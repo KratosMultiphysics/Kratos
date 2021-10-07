@@ -81,38 +81,22 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::CheckDefaultsAndProces
     mInitialConditions = rParameters["benchmark_parameters"]["use_initial_conditions"].GetBool();
     mAlternativeFormulation = rParameters["benchmark_parameters"]["use_alternative_formulation"].GetBool();
 
-    double &r_nu = mViscosity;
+    this->CalculateKinematicViscosity();
 
-    this->CalculateKinematicViscosity(mReynoldsNumber, r_nu);
+    double dynamic_viscosity = mViscosity * mDensity;
 
-    double dynamic_viscosity = r_nu * mDensity;
-
-    double &permeability = mPermeability;
-
-    this->CalculatePermeability(mDamKohlerNumber, dynamic_viscosity, permeability);
+    this->CalculatePermeability(dynamic_viscosity);
 
 }
 
-void SpatialDependantPorositySolutionAndBodyForceProcess::CalculateKinematicViscosity(
-    double &rReynoldsNumber,
-    double &rviscosity)
+void SpatialDependantPorositySolutionAndBodyForceProcess::CalculateKinematicViscosity()
 {
-    double u_characteristic = mUchar;
-    double L = mLength;
-    rviscosity = u_characteristic * L / rReynoldsNumber;
+    mViscosity = mUchar * mLength / mReynoldsNumber;
 }
 
-void SpatialDependantPorositySolutionAndBodyForceProcess::CalculatePermeability(
-    double &rDamKohlerNumber,
-    double &dynamic_viscosity,
-    double &permeability)
+void SpatialDependantPorositySolutionAndBodyForceProcess::CalculatePermeability(double &dynamic_viscosity)
 {
-    const double L = mLength;
-    const double nu = mViscosity;
-    const double u_char = mUchar;
-
-    permeability = dynamic_viscosity * u_char / (rDamKohlerNumber * (2 * nu * (u_char/std::pow(L,2))));
-
+    mPermeability = dynamic_viscosity * mUchar / (mDamKohlerNumber * (2 * mViscosity * (mUchar/std::pow(mLength,2))));
 }
 
 const Parameters SpatialDependantPorositySolutionAndBodyForceProcess::GetDefaultParameters() const

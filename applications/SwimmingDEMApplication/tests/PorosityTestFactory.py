@@ -2,7 +2,7 @@ import os
 
 # Importing the Kratos Library
 import KratosMultiphysics
-
+import numpy as np
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
@@ -68,34 +68,27 @@ class PorosityConservationAnalysis(SwimmingDEMAnalysis, DEM_procedures.Procedure
 
     def __init__(self, model, parameters):
         super().__init__(model, parameters)
-
-    def Initialize(self):
-        super().Initialize()
-        solid_domain_volume, fluid_domain_volume = self.ComputePhysicalVolumes()
-        self.solid_domain_volume = solid_domain_volume
-        self.fluid_domain_volume = fluid_domain_volume
+        self._GetDEMAnalysis().mdpas_folder_path = os.path.join(self._GetDEMAnalysis().main_path, 'porosity_tests/porosity_conservation/')
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
+        self.solid_domain_volume = self.ComputeSolidVolume()
         self.CheckConservation()
 
-    def ComputePhysicalVolumes(self):
-        import numpy
+    def ComputeSolidVolume(self):
         solid_volume = 0.0
-        for node in self.spheres_model_part.Nodes:
-            sphere_volume = node.GetSolutionStepValue(KratosMultiphysics.RADIUS) ** 3 * 4/3 * numpy.pi
+        spheres_model_part = self.model.GetModelPart('SpheresPart')
+        for node in spheres_model_part.Nodes:
+            sphere_volume = node.GetSolutionStepValue(KratosMultiphysics.RADIUS) ** 3 * 4/3 * np.pi
             solid_volume += sphere_volume
+        return solid_volume
 
+    def CheckConservation(self):
+        numerical_fluid_volume = 0.0
         fluid_volume = 0.0
         for node in self.fluid_model_part.Nodes:
             fluid_volume += node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
-
-        return solid_volume, fluid_volume
-
-    def CheckConservation(self):
-        import numpy
-        numerical_fluid_volume = 0.0
-        for node in self.fluid_model_part.Nodes:
             numerical_fluid_volume +=  node.GetSolutionStepValue(KratosMultiphysics.FLUID_FRACTION) * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
 
-        assert numpy.abs(self.fluid_domain_volume - self.solid_domain_volume - numerical_fluid_volume) < 1e-17
+        assert fluid_volume != numerical_fluid_volume
+        assert np.abs(fluid_volume - self.solid_domain_volume - numerical_fluid_volume) < 1e-17

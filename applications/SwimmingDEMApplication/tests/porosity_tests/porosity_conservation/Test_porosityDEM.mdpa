@@ -80,8 +80,8 @@ Begin SubModelPart DEMParts_Particles // Group Particles // Subtree DEMParts
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart 1 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: DEM_conditions
-  Begin SubModelPartData // DEM-VelocityBC. Group name: DEM_conditions
+Begin SubModelPart 1 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: Particles
+  Begin SubModelPartData // DEM-VelocityBC. Group name: Particles
     LINEAR_VELOCITY [3] (0.0, -1.0, 0.0)
     VELOCITY_PERIOD 0.03
     ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
@@ -93,7 +93,7 @@ Begin SubModelPart 1 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: 
     ANGULAR_VELOCITY_STOP_TIME 1000.0
     RIGID_BODY_MOTION 1
     FORCE_INTEGRATION_GROUP 0
-    IDENTIFIER DEM_conditions
+    IDENTIFIER Particles
   End SubModelPartData
   Begin SubModelPartNodes
        521

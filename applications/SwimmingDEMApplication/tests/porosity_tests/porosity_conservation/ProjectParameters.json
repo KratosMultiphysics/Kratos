@@ -21,7 +21,7 @@
         "parallel_type" : "OpenMP",
         "echo_level"    : 0,
         "start_time"    : 0.0,
-        "end_time"      : 0.006
+        "end_time"      : 0.003
     },
     "do_print_results_option" : false,
     "coupling"                : {
@@ -47,7 +47,7 @@
         "do_solve_dem"                     : true,
         "do_search_neighbours"             : true,
         "type_of_dem_inlet"                : "VelocityImposed",
-        "translational_integration_scheme" : "Hybrid_Bashforth"
+        "translational_integration_scheme" : "Symplectic_Euler"
     },
     "dem_nodal_results"       : {
         "ANGULAR_VELOCITY"                  : false,
