@@ -238,7 +238,7 @@ class ScalarRansFormulation(RansFormulation):
         else:
             raise Exception("Unsupported stabilization method")
 
-    def SetWallFunctionSettings(self, settings):
+    def SetWallFunctionSettings(self, settings=None):
         self.condition_name = self.GetConditionNamePrefix()
 
     def ElementHasNodalProperties(self):

@@ -6,6 +6,7 @@ import KratosMultiphysics as Kratos
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.RANSApplication as KratosRANS
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 # import formulation interface
 from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
@@ -309,7 +310,20 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         process_info.SetValue(KratosRANS.VON_KARMAN, von_karman)
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, settings["c_mu"].GetDouble())
 
-    def SetWallFunctionSettings(self, settings):
+    def SetWallFunctionSettings(self, settings=None):
+        if settings is not None:
+            IssueDeprecationWarning(self.__class__.__name__, "Using deprecated global \"wall_function_settings\". Please define formulation specialized \"wall_function_settings\" in each leaf formulation.")
+        else:
+            if self.GetParameters().Has("wall_function_settings"):
+                settings = self.GetParameters()["wall_function_settings"]
+                if not settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
+                    if hasattr(self, "condition_name"):
+                        Kratos.Logger().PrintWarning(self.__class__.__name__, "Deprecated global wall settings are defined along with formulation specialized wall settings. Formulation specialized wall settings will be used hereafter.")
+                else:
+                    return
+            else:
+                return
+
         wall_function_region_type = "logarithmic_region_only"
         if (settings.Has("wall_function_region_type")):
             wall_function_region_type = settings["wall_function_region_type"].GetString()

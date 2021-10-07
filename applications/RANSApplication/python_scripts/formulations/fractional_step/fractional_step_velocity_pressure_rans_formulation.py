@@ -1,6 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import IsDistributedRun
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -306,7 +307,20 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
     def GetStrategy(self):
         return self.solver
 
-    def SetWallFunctionSettings(self, settings):
+    def SetWallFunctionSettings(self, settings=None):
+        if settings is not None:
+            IssueDeprecationWarning(self.__class__.__name__, "Using deprecated global \"wall_function_settings\". Please define formulation specialized \"wall_function_settings\" in each leaf formulation.")
+        else:
+            if self.GetParameters().Has("wall_function_settings"):
+                settings = self.GetParameters()["wall_function_settings"]
+                if not settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
+                    if hasattr(self, "condition_name"):
+                        Kratos.Logger().PrintWarning(self.__class__.__name__, "Deprecated global wall settings are defined along with formulation specialized wall settings. Formulation specialized wall settings will be used hereafter.")
+                else:
+                    return
+            else:
+                return
+
         wall_function_region_type = "logarithmic_region_only"
         if (settings.Has("wall_function_region_type")):
             wall_function_region_type = settings["wall_function_region_type"].GetString()

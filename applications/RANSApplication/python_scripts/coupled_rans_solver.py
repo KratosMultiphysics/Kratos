@@ -331,8 +331,8 @@ class CoupledRANSSolver(PythonSolver):
         if self.settings.Has("wall_function_settings"):
             IssueDeprecationWarning(self.__class__.__name__, "Using deprecated global \"wall_function_settings\". Please define them seperately for all leaf formulations.")
             self.formulation.SetWallFunctionSettings(self.settings["wall_function_settings"])
-        else:
-            self.formulation.SetWallFunctionSettings()
+
+        self.formulation.SetWallFunctionSettings()
         scheme_type = self.settings["time_scheme_settings"]["scheme_type"].GetString()
         if (scheme_type == "steady"):
             self.is_steady = True
