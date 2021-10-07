@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_WIND_WATER_FRICTION_H_INCLUDED
-#define KRATOS_WIND_WATER_FRICTION_H_INCLUDED
+#ifndef KRATOS_NODAL_MANNING_LAW_H_INCLUDED
+#define KRATOS_NODAL_MANNING_LAW_H_INCLUDED
 
 
 // System includes
@@ -21,8 +21,7 @@
 
 
 // Project includes
-#include "friction_law.h"
-#include "shallow_water_application_variables.h"
+#include "manning_law.h"
 
 
 namespace Kratos
@@ -35,37 +34,45 @@ namespace Kratos
 ///@{
 
 ///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
 ///@name Kratos Classes
 ///@{
 
-/** 
- * @class WindWaterFriction
+
+/**
+ * @class NodalManningLaw
  * @ingroup ShallowWaterApplication
- * @brief The base class for the bottom and surface friction laws
- * @details This class computes the bottom friction according to the Manning law
+ * @brief This class computes the bottom friction according to the Manning law
  * @author Miguel Maso Sotomayor
  */
-class WindWaterFriction : public FrictionLaw
+class NodalManningLaw : public ManningLaw
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(WindWaterFriction);
+    KRATOS_CLASS_POINTER_DEFINITION(NodalManningLaw);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /**
-     * @brief Default Constructor
+     * @brief Default constructor
      */
-    WindWaterFriction() {}
+    NodalManningLaw() {}
 
     /**
      * @brief Constructor with data
      */
-    WindWaterFriction(
+    NodalManningLaw(
         const GeometryType& rGeometry,
         const Properties& rProperty,
         const ProcessInfo& rProcessInfo);
@@ -73,7 +80,12 @@ public:
     /**
      * @brief Destructor
      */
-    virtual ~WindWaterFriction() {}
+    virtual ~NodalManningLaw() {}
+
+    ///@}
+    ///@name Operators
+    ///@{
+
 
     ///@}
     ///@name Operations
@@ -87,19 +99,15 @@ public:
         const Properties& rProperty,
         const ProcessInfo& rProcessInfo) override;
 
-    /**
-     * @brief Calculate the LHS coefficient for the given data
-     * @param rVector The layer velocity
-     * @return The LHS coefficient
-     */
-    double CalculateLHS(const array_1d<double,3>& rVelocity) override;
+    ///@}
+    ///@name Access
+    ///@{
 
-    /**
-     * @brief Calculate the RHS coefficient for the given data
-     * @param rVector The layer velocity
-     * @return The components of the RHS coefficients
-     */
-    array_1d<double,3> CalculateRHS(const array_1d<double,3>& rVelocity) override;
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
 
     ///@}
     ///@name Input and output
@@ -111,37 +119,36 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "WindWaterFriction";
+        buffer << "NodalManningLaw";
         return buffer.str();
     }
 
     ///@}
-
-private:
-
-    ///@name Member variables
+    ///@name Friends
     ///@{
 
-    double mAirDensity;
-    double mWaterDensity;
-    array_1d<double,3> mWind;
+
+    ///@}
+
+private:
 
     ///@}
     ///@name Un accessible methods
     ///@{
 
     /// Assignment operator.
-    WindWaterFriction& operator=(WindWaterFriction const& rOther)
+    NodalManningLaw& operator=(NodalManningLaw const& rOther)
     {
         return *this;
     }
 
     /// Copy constructor.
-    WindWaterFriction(WindWaterFriction const& rOther) {}
+    NodalManningLaw(NodalManningLaw const& rOther) {}
+
 
     ///@}
 
-}; // Class WindWaterFriction
+}; // Class NodalManningLaw
 
 ///@}
 
@@ -155,7 +162,7 @@ private:
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                const WindWaterFriction& rThis)
+                const NodalManningLaw& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -168,4 +175,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_WIND_WATER_FRICTION_H_INCLUDED  defined
+#endif // KRATOS_NODAL_MANNING_LAW_H_INCLUDED  defined
