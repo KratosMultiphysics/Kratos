@@ -44,7 +44,7 @@ class ScalarTurbulenceModelRansFormulation(ScalarRansFormulation):
 
             if (wall_function_region_type == "logarithmic_region_only"):
                 if (wall_friction_velocity_calculation_method == "velocity_based"):
-                    self.condition_name = self.condition_name + "UBasedWall"
+                    self.condition_name = self.condition_name + "VisLogBasedWall"
                 elif (wall_friction_velocity_calculation_method ==
                     "turbulent_kinetic_energy_based"):
                     self.condition_name = self.condition_name + "KBasedWall"
