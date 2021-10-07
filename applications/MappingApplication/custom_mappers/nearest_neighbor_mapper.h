@@ -114,6 +114,11 @@ public:
         return mpNode->Coordinates();
     }
 
+    MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
+    {
+        return Kratos::make_unique<NearestNeighborLocalSystem>(pNode);
+    }
+
     /// Turn back information as a string.
     std::string PairingInfo(const int EchoLevel) const override;
 
@@ -227,7 +232,8 @@ private:
         const Communicator& rModelPartCommunicator,
         std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) override
     {
-        MapperUtilities::CreateMapperLocalSystemsFromNodes<NearestNeighborLocalSystem>(
+        MapperUtilities::CreateMapperLocalSystemsFromNodes(
+            NearestNeighborLocalSystem(nullptr),
             rModelPartCommunicator,
             rLocalSystems);
     }
