@@ -363,7 +363,7 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
 
             const auto& rp_local_sys = rMapperLocalSystems[i_local_sys];
 
-            if (!rp_local_sys->HasInterfaceInfo()) {
+            if (!rp_local_sys->HasInterfaceInfoThatIsNotAnApproximation()) {
                 const auto& r_coords = rp_local_sys->Coordinates();
                 if (MapperUtilities::PointIsInsideBoundingBox(bounding_box, r_coords)) {
                     // These push_backs are threadsafe bcs only one vector is accessed per thread!

@@ -144,6 +144,16 @@ public:
         return mInterfaceInfos.size() > 0;
     }
 
+    bool HasInterfaceInfoThatIsNotAnApproximation() const
+    {
+        for (const auto& r_info : mInterfaceInfos) {
+            if (!r_info->GetIsApproximation()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     virtual MapperLocalSystemUniquePointer Create(NodePointerType pNode) const
     {
         KRATOS_ERROR << "Create is not implemented for NodePointerType!" << std::endl;

@@ -186,7 +186,7 @@ void InterfaceCommunicator::InitializeSearchIteration(const MapperInterfaceInfoU
 
     IndexType local_sys_idx = 0;
     for (const auto& r_local_sys : mrMapperLocalSystems) {
-        if (!r_local_sys->HasInterfaceInfo()) { // Only the local_systems that have not received an InterfaceInfo create a new one
+        if (!r_local_sys->HasInterfaceInfoThatIsNotAnApproximation()) { // Only the local_systems that have not received an InterfaceInfo create a new one
             const auto& r_coords = r_local_sys->Coordinates();
             r_mapper_interface_infos.push_back(rpRefInterfaceInfo->Create(r_coords, local_sys_idx, 0)); // dummy-rank of 0
         }
@@ -435,7 +435,7 @@ bool InterfaceCommunicator::AllNeighborsFound(const Communicator& rComm) const
     // this partition doesn't have a part of the interface!
 
     for (const auto& local_sys : mrMapperLocalSystems) {
-        if (!local_sys->HasInterfaceInfo()) {
+        if (!local_sys->HasInterfaceInfoThatIsNotAnApproximation()) {
             all_neighbors_found = 0;
             break;
         }
