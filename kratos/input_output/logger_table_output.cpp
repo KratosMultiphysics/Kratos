@@ -30,8 +30,7 @@ namespace Kratos
     mColumnsWidth({}),
     mColumnsTexts({}),
     mColumnsLabels({}),
-    mFileHeader(""),
-
+    mFileHeader("")
     {
       Parameters default_settings(R"({
           "file_header" : "",
