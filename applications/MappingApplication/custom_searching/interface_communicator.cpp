@@ -103,7 +103,7 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
         } else {
             max_search_iterations = std::max(max_search_iterations,static_cast<int>(
                     std::ceil(log_base(max_search_radius,  increase_factor)-
-                              log_base(init_search_radius, increase_factor))));
+                              log_base(init_search_radius, increase_factor)))+1);
         }
 
         KRATOS_INFO_IF("Mapper search", mEchoLevel>1)
@@ -134,9 +134,9 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
         mMeshesAreConforming = 0;
 
         KRATOS_INFO_IF("Mapper search", mEchoLevel >= 1)
-            << "search radius was increased, another search iteration is conducted\n"
-            << "search iteration " << num_iteration << " / "<< max_search_iterations << " | "
-            << "search radius " << mSearchRadius << std::endl;
+            << "search radius was increased, another search iteration is conducted\n    "
+            << "search iteration: " << num_iteration << " / "<< max_search_iterations << " | "
+            << "search radius: " << mSearchRadius << std::endl;
 
         ConductSearchIteration(rpInterfaceInfo, rComm);
     }
@@ -406,8 +406,8 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
 
         const double avg_num_results = sum_num_results / static_cast<double>(sum_num_searched_objects);
 
-        KRATOS_INFO_IF("Mapper", mEchoLevel > 1) << "An average of " << avg_num_results << " objects was found while searching" << std::endl;
-        KRATOS_WARNING_IF("Mapper", avg_num_results > 200) << "Many search results are found, consider adjusting the search settings for improving performance" << std::endl;
+        KRATOS_INFO_IF("Mapper search", mEchoLevel > 1) << "An average of " << avg_num_results << " objects was found while searching" << std::endl;
+        KRATOS_WARNING_IF("Mapper search", avg_num_results > 200) << "Many search results are found, consider adjusting the search settings for improving performance" << std::endl;
     }
 
     KRATOS_CATCH("");
