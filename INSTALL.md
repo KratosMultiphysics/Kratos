@@ -395,7 +395,7 @@ cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
 
 #### Windows
 
-Windows should detect automatically the number of threads of your computer, but many times this mechanism fail. We included several options in order to force the parallel compilation:
+Windows should detect automatically the number of threads of your computer, but many times this mechanism fails. We included several options in order to force the parallel compilation:
 
 You can force it manually by commenting this lines in the configuration file, and adding a number of processes of your choice:
 ```ps1
