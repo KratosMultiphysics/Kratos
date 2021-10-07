@@ -189,11 +189,10 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(const MapperInterfaceIn
 
         mpInterfaceObjectsOrigin->resize(num_nodes);
 
-        #pragma omp parallel for
-        for (int i = 0; i< static_cast<int>(num_nodes); ++i) {
+        IndexPartition<std::size_t>(num_nodes).for_each([&nodes_begin, this](const std::size_t i){
             auto it_node = nodes_begin + i;
             (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceNode>((*it_node).get());
-        }
+        });
     }
 
     else if (interface_obj_type == InterfaceObject::ConstructionType::Geometry_Center) {
@@ -219,16 +218,14 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(const MapperInterfaceIn
 
         mpInterfaceObjectsOrigin->resize(num_elements+num_conditions); // one of them has to be zero!!!
 
-        #pragma omp parallel for
-        for (int i = 0; i< static_cast<int>(num_elements); ++i) {
+        IndexPartition<std::size_t>(num_elements).for_each([&elements_begin, this](const std::size_t i){
             auto it_elem = elements_begin + i;
             (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceGeometryObject>((*it_elem)->pGetGeometry().get());
-        }
-        #pragma omp parallel for
-        for (int i = 0; i< static_cast<int>(num_conditions); ++i) {
+        });
+        IndexPartition<std::size_t>(num_conditions).for_each([&conditions_begin, this](const std::size_t i){
             auto it_cond = conditions_begin + i;
             (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceGeometryObject>((*it_cond)->pGetGeometry().get());
-        }
+        });
     }
     else {
         KRATOS_ERROR << "Type of interface object construction not implemented" << std::endl;
