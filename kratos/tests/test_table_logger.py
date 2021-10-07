@@ -21,6 +21,7 @@ class TestTableLogger(KratosUnittest.TestCase):
 
     def test_TableLogger(self):
         ''' We expect the following :
+
             My custom header
 
             header 1  header 2  header 3
