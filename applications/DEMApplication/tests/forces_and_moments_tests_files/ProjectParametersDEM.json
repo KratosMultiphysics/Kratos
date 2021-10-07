@@ -14,7 +14,7 @@
     "BoundingBoxMinZ"                : -10,
     "dem_inlet_option"               : false,
     "GravityX"                       : 0.0,
-    "GravityY"                       : -9.81,
+    "GravityY"                       : 0.0,
     "GravityZ"                       : 0.0,
     "RotationOption"                 : true,
     "CleanIndentationsOption"        : false,
@@ -33,14 +33,14 @@
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball1",
 		"force_settings" : {
-                    "value"                : [100.0, "30.0*t", "2000.0*(x+y)"],
+                    "value"                : [100.0, "10.0*t", "1e5*t*t"],
                     "table"                : [null, null, null]
                 },
                 "moment_settings" : {
-                    "value"                : [-50.0, "15.0*(x+z)", "600.0*t"],
+                    "value"                : [10.0, "10.0*t", "100.0*t*t"],
                     "table"                : [null, null, null]
                 },
-                "interval"             : [0.0, 0.2]
+                "interval"             : [0.0, 1]
             }
         },{
             "python_module" : "processes.apply_forces_and_moments_process",
@@ -55,7 +55,7 @@
                     "value"                : [null, null, null],
                     "table"                : [4, 5, 6]
                 },
-                "interval"             : [0.0, 1.0e30]
+                "interval"             : [0.05, 1]
             }
         },{
             "python_module" : "processes.apply_forces_and_moments_to_walls_process",
@@ -63,14 +63,14 @@
             "Parameters"    : {
                 "model_part_name" : "RigidFacePart.Cube1",
 		"force_settings" : {
-                    "value"                : ["-90.0*t", 300.0, "250.0*(x+y)"],
+                    "value"                : [100.0, "10.0*t", "-1e6*t*t"],
                     "table"                : [null, null, null]
                 },
                 "moment_settings" : {
-                    "value"                : ["(y**2+z)", "-700.0*t", 800.0],
+                    "value"                : [10.0, "1e4*t", "1e4*t*t"],
                     "table"                : [null, null, null]
                 },
-                "interval"             : [0.2, 0.4]
+                "interval"             : [0.0, 1]
             }
         },{
             "python_module" : "processes.apply_forces_and_moments_to_walls_process",
@@ -85,7 +85,7 @@
                     "value"                : [null, null, null],
                     "table"                : [10, 11, 12]
                 },
-                "interval"                 : [0.0, 1.0e30]
+                "interval"                 : [0.0, 0.05]
             }
         }],
         "list_other_processes"     : []
@@ -99,12 +99,12 @@
     "ElementType"                    : "SphericPartDEMElement3D",
     "TranslationalIntegrationScheme" : "Symplectic_Euler",
     "RotationalIntegrationScheme"    : "Direct_Integration",
-    "MaxTimeStep"                    : 0.0002,
-    "FinalTime"                      : 0.4,
+    "MaxTimeStep"                    : 2e-4,
+    "FinalTime"                      : 0.1,
     "NeighbourSearchFrequency"       : 50,
-    "GraphExportFreq"                : 0.001,
-    "VelTrapGraphExportFreq"         : 0.001,
-    "OutputTimeStep"                 : 0.01,
+    "GraphExportFreq"                : 1,
+    "VelTrapGraphExportFreq"         : 1,
+    "OutputTimeStep"                 : 1,
     "PostBoundingBox"                : false,
     "PostLocalContactForce"          : false,
     "PostDisplacement"               : false,
@@ -116,7 +116,7 @@
     "PostRigidElementForces"         : false,
     "PostStressStrainOption"         : false,
     "PostTangentialElasticForces"    : false,
-    "PostTotalForces"                : false,
+    "PostTotalForces"                : true,
     "PostAppliedForces"              : true,
     "PostPressure"                   : false,
     "PostShearStress"                : false,

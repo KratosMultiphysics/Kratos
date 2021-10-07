@@ -385,9 +385,6 @@ class ExplicitStrategy():
     def Check(self):
         pass
 
-    def Solve(self): # deprecated
-        self.SolveSolutionStep()
-
     def SolveSolutionStep(self):
         (self.cplusplus_strategy).SolveSolutionStep()
         return True

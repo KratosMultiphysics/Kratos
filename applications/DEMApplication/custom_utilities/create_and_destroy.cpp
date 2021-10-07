@@ -476,20 +476,6 @@ namespace Kratos {
         pnew_node->AddDof(ANGULAR_VELOCITY_Y);
         pnew_node->AddDof(ANGULAR_VELOCITY_Z);
 
-        pnew_node->pGetDof(VELOCITY_X)->FixDof();
-        pnew_node->pGetDof(VELOCITY_Y)->FixDof();
-        pnew_node->pGetDof(VELOCITY_Z)->FixDof();
-        pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
-        pnew_node->pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
-        pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
-
-        pnew_node->Set(DEMFlags::FIXED_VEL_X, true);
-        pnew_node->Set(DEMFlags::FIXED_VEL_Y, true);
-        pnew_node->Set(DEMFlags::FIXED_VEL_Z, true);
-        pnew_node->Set(DEMFlags::FIXED_ANG_VEL_X, true);
-        pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Y, true);
-        pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z, true);
-
         KRATOS_CATCH("")
     }
 

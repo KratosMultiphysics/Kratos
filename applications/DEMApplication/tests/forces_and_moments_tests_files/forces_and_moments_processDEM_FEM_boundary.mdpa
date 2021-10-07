@@ -7,32 +7,32 @@ End Properties
 
 Begin Table 7 TIME VALUE
     0.0 0.0
-    0.1 10000.0
+    0.1 1000.0
 End Table
 
 Begin Table 8 TIME VALUE
     0.0 0.0
-    0.1 300.0
+    0.1 500.0
 End Table
 
 Begin Table 9 TIME VALUE
     0.0 0.0
-    0.1 6000.0
+    0.1 200.0
 End Table
 
 Begin Table 10 TIME VALUE
     0.0 0.0
-    0.1 50000.0
+    0.1 1000.0
 End Table
 
 Begin Table 11 TIME VALUE
     0.0 0.0
-    0.1 600.0
+    0.1 500.0
 End Table
 
 Begin Table 12 TIME VALUE
     0.0 0.0
-    0.1 7000.0
+    0.1 200.0
 End Table
 
 Begin Nodes
@@ -86,7 +86,6 @@ Begin SubModelPart Cube1
     RIGID_BODY_MASS 1.0
     RIGID_BODY_CENTER_OF_MASS [3] (0.0,0.0,0.0)
     RIGID_BODY_INERTIAS [3] (0.66667,0.66667,0.66667)
-    FREE_BODY_MOTION 1
     IDENTIFIER Cube
     FORCE_INTEGRATION_GROUP 0
     COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT 1
@@ -124,7 +123,6 @@ Begin SubModelPart Cube2
     RIGID_BODY_MASS 1.0
     RIGID_BODY_CENTER_OF_MASS [3] (10.0,0.0,0.0)
     RIGID_BODY_INERTIAS [3] (0.66667,0.66667,0.66667)
-    FREE_BODY_MOTION 1
     IDENTIFIER Cube
     FORCE_INTEGRATION_GROUP 0
     COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT 1
