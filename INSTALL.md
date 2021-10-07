@@ -513,7 +513,7 @@ cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property
 
 Instead of the regular install target.
 
-Please, beware that using this flag along with a parallel compilation may cause a VERY LARGE use of ram as we hardcoded Kratos compilation so unitaty builds try to make as many unitary targets as threads are usable
+Please, beware that using this flag along with a parallel compilation may cause a VERY LARGE use of ram as we hardcoded Kratos compilation so unitary builds try to make as many unitary targets as threads are usable
 We recommed you to disable parallel compilation unless you know what you are doing.
 
 ### Parallelism
