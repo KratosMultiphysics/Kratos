@@ -98,9 +98,6 @@ void InterfaceCommunicatorMPI::InitializeSearchIteration(const MapperInterfaceIn
                                                           mCommRank,
                                                           mMapperInterfaceInfosContainer);
 
-    // TODO print info saying that ORIGIN_ONLY has no effect in MPI, the destination also has to be updated
-    // => since the origin changes also the destination might be sent to other partitions!
-
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
