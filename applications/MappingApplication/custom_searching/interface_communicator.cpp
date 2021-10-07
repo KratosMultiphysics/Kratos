@@ -42,7 +42,7 @@ InterfaceCommunicator::InterfaceCommunicator(
         mrMapperLocalSystems(rMapperLocalSystems),
         mSearchSettings(SearchSettings)
 {
-    Parameters search_defaults( R"({
+    const Parameters search_defaults( R"({
         "search_radius"                 : 0.0,
         "max_search_radius"             : 0.0,
         "search_radius_increase_factor" : 0.0,
