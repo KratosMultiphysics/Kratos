@@ -43,20 +43,9 @@ void OmegaVisLogBasedWallConditionData::Check(
     const auto& r_properties = rCondition.GetProperties();
     const int number_of_nodes = r_geometry.PointsNumber();
 
-    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA))
-        << "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA is not found in process info.\n";
-    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C_MU))
-        << "TURBULENCE_RANS_C_MU is not found in process info.\n";
-
-    KRATOS_ERROR_IF_NOT(r_properties.Has(WALL_SMOOTHNESS_BETA))
-        << "WALL_SMOOTHNESS_BETA is not found in condition properties [ Condition.Id() = "
-        << rCondition.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
-
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
         const auto& r_node = r_geometry[i_node];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, r_node);
 
