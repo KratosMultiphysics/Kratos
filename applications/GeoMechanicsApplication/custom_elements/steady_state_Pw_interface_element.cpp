@@ -43,16 +43,31 @@ int SteadyStatePwInterfaceElement<TDim,TNumNodes>::
     KRATOS_TRY
     // KRATOS_INFO("0-SteadyStatePwInterfaceElement::Check()") << std::endl;
 
+    int ierr = Element::Check(rCurrentProcessInfo);
+    if (ierr != 0) return ierr;
+
     const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom = this->GetGeometry();
 
     if (this->Id() < 1)
         KRATOS_ERROR << "Element found with Id 0 or negative, element: "
                      << this->Id()
                      << std::endl;
 
-    // Verify generic variables
-    int ierr = UPwSmallStrainInterfaceElement<TDim,TNumNodes>::Check(rCurrentProcessInfo);
-    if (ierr != 0) return ierr;
+    // Verify dof variables
+    for ( unsigned int i = 0; i < TNumNodes; ++i ) {
+        if ( Geom[i].SolutionStepsDataHas( WATER_PRESSURE ) == false )
+            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
+
+        if ( Geom[i].SolutionStepsDataHas( DT_WATER_PRESSURE ) == false )
+            KRATOS_ERROR << "missing variable DT_WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
+
+        if ( Geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false )
+            KRATOS_ERROR << "missing variable VOLUME_ACCELERATION on node " << Geom[i].Id() << std::endl;
+
+        if ( Geom[i].HasDofFor( WATER_PRESSURE ) == false )
+            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
+    }
 
     // Verify specific properties
     if ( Prop.Has( MINIMUM_JOINT_WIDTH ) == false || Prop[MINIMUM_JOINT_WIDTH] <= 0.0 )
@@ -69,6 +84,13 @@ int SteadyStatePwInterfaceElement<TDim,TNumNodes>::
         KRATOS_ERROR << "DYNAMIC_VISCOSITY has Key zero, is not defined or has an invalid value at element"
                     << this->Id()
                     << std::endl;
+
+    // Verify properties
+    if ( Prop.Has( DENSITY_WATER ) == false || Prop[DENSITY_WATER] < 0.0 )
+        KRATOS_ERROR << "DENSITY_WATER does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
+
+    if ( Prop.Has( POROSITY ) == false || Prop[POROSITY] < 0.0 || Prop[POROSITY] > 1.0 )
+        KRATOS_ERROR << "POROSITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
     // Verify the constitutive law
     if ( Prop.Has( CONSTITUTIVE_LAW ) == false )

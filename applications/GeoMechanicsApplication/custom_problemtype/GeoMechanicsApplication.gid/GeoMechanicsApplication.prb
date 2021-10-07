@@ -206,6 +206,8 @@ QUESTION: Nodal_Smoothing#CB#(true,false)
 VALUE: false
 QUESTION: Write_Hydraulic_Head#CB#(true,false)
 VALUE: true
+QUESTION: Write_Hydraulic_Discharge#CB#(true,false)
+VALUE: false
 
 QUESTION: GiD_post_mode#CB#(GiD_PostAscii,GiD_PostAsciiZipped,GiD_PostBinary,GiD_PostHDF5)
 VALUE: GiD_PostBinary

@@ -257,7 +257,6 @@ int TransientPwElement<TDim,TNumNodes>::
     if ( Prop.Has( POROSITY ) == false || Prop[POROSITY] < 0.0 || Prop[POROSITY] > 1.0 )
         KRATOS_ERROR << "POROSITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-
     if ( TDim == 2 ) {
         // If this is a 2D problem, nodes must be in XY plane
         for (unsigned int i=0; i<TNumNodes; ++i) {
@@ -420,10 +419,10 @@ void TransientPwElement<TDim,TNumNodes>::
             rOutput.resize(mRetentionLawVector.size());
 
         for ( unsigned int i = 0;  i < mRetentionLawVector.size(); ++i ) {
-            rOutput[i] = mRetentionLawVector[i]->GetValue( rVariable, rOutput[i] );
+            rOutput[i] = 0.0;
         }
     }
-    
+
     // KRATOS_INFO("1-TransientPwElement::CalculateOnIntegrationPoints()") << std::endl;
 
     KRATOS_CATCH( "" )
@@ -447,7 +446,6 @@ void TransientPwElement<TDim,TNumNodes>::
 
         for ( unsigned int i = 0;  i < mRetentionLawVector.size(); ++i ) {
             noalias(rOutput[i]) = ZeroVector(3);
-            rOutput[i] = mRetentionLawVector[i]->GetValue( rVariable, rOutput[i] );
         }
     }
 
@@ -476,7 +474,6 @@ void TransientPwElement<TDim,TNumNodes>::
         for ( unsigned int i = 0;  i < mRetentionLawVector.size(); ++i ) {
             rOutput[i].resize(TDim,TDim,false);
             noalias(rOutput[i]) = ZeroMatrix(TDim,TDim);
-            rOutput[i] = mRetentionLawVector[i]->GetValue( rVariable, rOutput[i] );
         }
     }
 

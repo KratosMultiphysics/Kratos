@@ -53,9 +53,7 @@ int UPwBaseElement<TDim,TNumNodes>::
     const GeometryType& Geom = this->GetGeometry();
 
     // verify nodal variables and dofs
-
-    for ( unsigned int i = 0; i < TNumNodes; ++i )
-    {
+    for ( unsigned int i = 0; i < TNumNodes; ++i ) {
         if ( Geom[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
             KRATOS_ERROR << "missing variable DISPLACEMENT on node " << Geom[i].Id() << std::endl;
 

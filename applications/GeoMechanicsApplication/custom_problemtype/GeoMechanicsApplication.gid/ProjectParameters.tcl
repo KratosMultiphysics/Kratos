@@ -129,6 +129,9 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
             puts $FileVar "            \"max_iteration\":       1000,"
             puts $FileVar "            \"scaling\":             [GiD_AccessValue get gendata Scaling],"
             puts $FileVar "            \"preconditioner_type\": \"ilu0\""
+        } elseif {([GiD_AccessValue get gendata Solver_Type] eq "sparse_cg") || ([GiD_AccessValue get gendata Solver_Type] eq "sparse_lu") || ([GiD_AccessValue get gendata Solver_Type] eq "sparse_qr")} {
+            puts $FileVar "            \"solver_type\":   \"LinearSolversApplication.[GiD_AccessValue get gendata Solver_Type]\","
+            puts $FileVar "            \"scaling\":       [GiD_AccessValue get gendata Scaling]"
         } else {
             puts $FileVar "            \"solver_type\":   \"[GiD_AccessValue get gendata Solver_Type]\","
             puts $FileVar "            \"scaling\":       [GiD_AccessValue get gendata Scaling]"
@@ -161,6 +164,9 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Interface_drained
     # Interface_undrained Part
     AppendGroupNames PutStrings Interface_undrained
+    # Interface_Groundwater_flow Part
+    AppendGroupNames PutStrings Interface_Groundwater_flow
+
     if {[GiD_Groups exists PropagationUnion_3d_6] eq 1} {
         append PutStrings \" PropagationUnion_3d_6 \" \]
     } else {
@@ -334,6 +340,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendOutputVariables PutStrings iGroup Write_Tangential_Load TANGENTIAL_CONTACT_STRESS
     AppendOutputVariables PutStrings iGroup Write_Normal_Fluid_Flux NORMAL_FLUID_FLUX
     AppendOutputVariables PutStrings iGroup Write_Body_Acceleration VOLUME_ACCELERATION
+    AppendOutputVariables PutStrings iGroup Write_Hydraulic_Discharge HYDRAULIC_DISCHARGE
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
         incr iGroup
         append PutStrings \" PARTITION_INDEX \" ,
@@ -550,7 +557,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
             }
         }
     }
-    
+
     if {$NumGroups > 0} {
         set iGroup 0
         puts $FileVar "        \"auxiliar_process_list\": \[\{"

@@ -367,6 +367,7 @@ proc WriteElementsTwoParts {FileVar Group ElemType ElemName PropertyId Connectiv
     if {[llength $Entities] > 0} {
         upvar $FileVar MyFileVar
 
+
         puts $MyFileVar "Begin Elements $ElemName"
         for {set j 0} {$j < [llength $Entities]} {incr j} {
             puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType1 [lindex $Entities $j]]"
@@ -1360,9 +1361,7 @@ proc WriteAnchorElementSubmodelPart {FileVar CondName AnchorElementDict} {
     }
 }
 
-
-
-
+#-------------------------------------------------------------------------------
 proc WriteElementSubmodelPart {FileVar CondName} {
     set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
@@ -1397,7 +1396,6 @@ proc WriteElementSubmodelPart {FileVar CondName} {
 }
 
 #-------------------------------------------------------------------------------
-
 proc WritePropUnionElementSubmodelPart {FileVar PropUnionElementList} {
     upvar $FileVar MyFileVar
 
@@ -1465,8 +1463,42 @@ proc WriteConstraintSubmodelPart {FileVar CondName TableDict} {
 }
 
 #-------------------------------------------------------------------------------
+proc WriteExcavationSubmodelPart {FileVar CondName} {
+    set Groups [GiD_Info conditions $CondName groups]
+    if {[llength $Groups]>0} {
+        upvar $FileVar MyFileVar
 
-proc WriteExcavationSubmodelPart {FileVar CondName AnchorElementDict} {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            puts $MyFileVar "Begin SubModelPart [lindex [lindex $Groups $i] 1]"
+            # Tables
+            puts $MyFileVar "  Begin SubModelPartTables"
+            puts $MyFileVar "  End SubModelPartTables"
+            # Nodes
+            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
+            puts $MyFileVar "  Begin SubModelPartNodes"
+            for {set j 0} {$j < [llength $Entities]} {incr j} {
+                puts $MyFileVar "    [lindex $Entities $j]"
+            }
+            puts $MyFileVar "  End SubModelPartNodes"
+            # Elements
+            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] elements]
+            puts $MyFileVar "  Begin SubModelPartElements"
+            for {set j 0} {$j < [llength $Entities]} {incr j} {
+                puts $MyFileVar "    [lindex $Entities $j]"
+            }
+            puts $MyFileVar "  End SubModelPartElements"
+            # Conditions
+            puts $MyFileVar "  Begin SubModelPartConditions"
+            puts $MyFileVar "  End SubModelPartConditions"
+            puts $MyFileVar "End SubModelPart"
+            puts $MyFileVar ""
+        }
+    }
+}
+
+
+#-------------------------------------------------------------------------------
+proc WriteExcavationSubmodelPartOriginal {FileVar CondName AnchorElementDict} {
  set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
         upvar $FileVar MyFileVar
@@ -1531,7 +1563,6 @@ proc WriteExcavationSubmodelPart {FileVar CondName AnchorElementDict} {
         }
     }
 }
-
 
 #-------------------------------------------------------------------------------
 
