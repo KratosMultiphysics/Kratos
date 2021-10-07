@@ -20,6 +20,7 @@
 
 // Project includes
 #include "utilities/parallel_utilities.h"
+#include "utilities/atomic_utilities.h"
 #include "mapping_matrix_utilities.h"
 #include "mappers/mapper_define.h"
 #include "custom_utilities/mapper_utilities.h"
@@ -67,7 +68,6 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
         EquationIdVectorType OriginIds;
         EquationIdVectorType DestinationIds;
     };
-
 
     // Looping the local-systems to get the entries for the matrix
     block_for_each(rMapperLocalSystems, EquationIdTLS(),
@@ -118,9 +118,69 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
     rpMdo.swap(p_Mdo);
 }
 
-void BuildMatrix(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>& rpMdo,
+void AssembleIntoMatrix(typename MappingSparseSpaceType::MatrixType& rMdo,
+                        const MatrixType& rLocalMappingMatrix,
+                        const EquationIdVectorType& rOriginIds,
+                        const EquationIdVectorType& rDestinationIds)
+{
+    KRATOS_DEBUG_ERROR_IF(rLocalMappingMatrix.size1() != rDestinationIds.size()) << "MappingMatrixAssembly: DestinationID vector size mismatch: LocalMappingMatrix-Size1: " << rLocalMappingMatrix.size1() << " | DestinationIDs-size: " << rDestinationIds.size() << std::endl;
+    KRATOS_DEBUG_ERROR_IF(rLocalMappingMatrix.size2() != rOriginIds.size()) << "MappingMatrixAssembly: OriginID vector size mismatch: LocalMappingMatrix-Size2: " << rLocalMappingMatrix.size2() << " | OriginIDs-size: " << rOriginIds.size() << std::endl;
+
+    double* values_vector = rMdo.value_data().begin();
+    std::size_t* index1_vector = rMdo.index1_data().begin();
+    std::size_t* index2_vector = rMdo.index2_data().begin();
+
+    for (auto dd : rMdo.value_data()) {
+        std::cout << "val : " << dd << std::endl;
+    }
+    for (auto dd : rMdo.index1_data()) {
+        std::cout << "index1 : " << dd << std::endl;
+    }
+    for (auto dd : rMdo.index2_data()) {
+        std::cout << "index2 : " << dd << std::endl;
+    }
+
+    for (auto dd : rOriginIds) {
+        std::cout << "origin_id : " << dd << std::endl;
+    }
+    for (auto dd : rDestinationIds) {
+        std::cout << "dest_id : " << dd << std::endl;
+    }
+
+    std::cout << "Local matrix: " << rLocalMappingMatrix << std::endl;
+
+    std::cout << std::endl;
+
+    // for (IndexType i=0; i<rTLS.DestinationIds.size(); ++i) {
+    //     for (IndexType j=0; j<rOriginIds.size(); ++j) {
+    //         double& r_val = (*rpMdo)(rTLS.DestinationIds[i], rOriginIds[j]);
+    //         AtomicAdd(r_val, rLocalMappingMatrix(i,j));
+    //     }
+    // }
+}
+
+void BuildMatrix(typename MappingSparseSpaceType::MatrixType& rMdo,
                  std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems)
 {
+
+    struct AssemblyTLS
+    {
+        MatrixType LocalMappingMatrix;
+        EquationIdVectorType OriginIds;
+        EquationIdVectorType DestinationIds;
+    };
+
+    block_for_each(rMapperLocalSystems, AssemblyTLS(),
+        [&](Kratos::unique_ptr<MapperLocalSystem>& rpLocalSys, AssemblyTLS& rTLS){
+
+            rpLocalSys->CalculateLocalSystem(rTLS.LocalMappingMatrix, rTLS.OriginIds, rTLS.DestinationIds);
+
+            AssembleIntoMatrix(rMdo, rTLS.LocalMappingMatrix, rTLS.OriginIds, rTLS.DestinationIds);
+
+            rpLocalSys->Clear();
+    });
+
+
     MatrixType local_mapping_matrix;
     EquationIdVectorType origin_ids;
     EquationIdVectorType destination_ids;
@@ -135,11 +195,16 @@ void BuildMatrix(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>
         for (IndexType i=0; i<destination_ids.size(); ++i) {
             for (IndexType j=0; j<origin_ids.size(); ++j) {
                 // #pragma omp atomic
-                (*rpMdo)(destination_ids[i], origin_ids[j]) += local_mapping_matrix(i,j);
+                rMdo(destination_ids[i], origin_ids[j]) += local_mapping_matrix(i,j);
             }
         }
 
         r_local_sys->Clear();
+    }
+
+
+    for (auto dd : rMdo.value_data()) {
+        std::cout << "val xxxx: " << dd << std::endl;
     }
 }
 
@@ -212,7 +277,7 @@ void MappingMatrixUtilitiesType::BuildMappingMatrix(
     ConstructMatrixStructure(rpMappingMatrix, rMapperLocalSystems,
                              num_nodes_origin, num_nodes_destination);
 
-    BuildMatrix(rpMappingMatrix, rMapperLocalSystems);
+    BuildMatrix(*rpMappingMatrix, rMapperLocalSystems);
 
     // refactor to be used from the mapper directly
     // if (EchoLevel > 2) {
