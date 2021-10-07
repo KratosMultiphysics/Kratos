@@ -108,6 +108,7 @@ public:
 
         // Set whether nodal distances will be modified to avoid levelset zeros
         mAvoidZeroDistances = ThisParameters["avoid_zero_distances"].GetBool();
+
         // Set which elements will not be active
         mDeactivateNegativeElements = ThisParameters["deactivate_negative_elements"].GetBool();
         mDeactivateIntersectedElements = ThisParameters["deactivate_intersected_elements"].GetBool();
@@ -130,10 +131,7 @@ public:
         // Declare extension operator map for negative nodes of split elements
         NodesCloudMapType ext_op_map;
 
-        // Avoid zero levelset values using a positive tolerance
-        if ( mAvoidZeroDistances ) {
-            //ModifyDistances();
-        }
+        if (mAvoidZeroDistances) { ModifyDistances(); }
 
         // Set the required interface flags
         // NOTE: this will deactivate all negative as well as intersected elements
@@ -142,25 +140,8 @@ public:
         // Calculate the conforming extension basis 
         CalculateConformingExtensionBasis(ext_op_map);
 
-        // Make intersected elements and their nodes ACTIVE
-        if ( !mDeactivateIntersectedElements ) {
-            for (auto& rElement : mpModelPart->Elements()) {
-                // Check if the element is split
-                const auto& r_geom = rElement.GetGeometry();
-                if (IsSplit(r_geom)) {
-                    // Mark the boundary element as ACTIVE to assemble it
-                    rElement.Set(ACTIVE, true);
-                    // Mark the boundary element's nodes as ACTIVE
-                    for (auto& rNode : r_geom) {
-                        rNode.Set(ACTIVE, true);
-                    }
-                }
-            }
-        }
-        // Make negative elements and their nodes ACTIVE
-        if ( !mDeactivateNegativeElements ) {
-            //
-        }
+        // Reactivate intersected and negative elements as well as their nodes depending on the process settings
+        ReactivateElementsAndNodes();
 
         // Apply extension constraints to negative nodes of split elements
         ApplyExtensionConstraints(ext_op_map);
@@ -273,20 +254,8 @@ private:
 
     void CalculateConformingExtensionBasis(NodesCloudMapType& rExtensionOperatorMap)
     {
-        // Set the modified shape functions factory
-        // Note that unique geometry in the mesh is assumed
-        const auto& r_begin_geom = mpModelPart->ElementsBegin()->GetGeometry();
-        auto p_mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_begin_geom);
-
         // Get the MLS shape functions function
         auto p_mls_sh_func = GetMLSShapeFunctionsFunction();
-
-        // Get the element size calculation function
-        // Note that unique geometry in the mesh is assumed
-        //auto p_element_size_func = GetElementSizeFunction(r_begin_geom);
-
-        // Get max condition id
-        //std::size_t max_cond_id = block_for_each<MaxReduction<std::size_t>>(mpModelPart->Conditions(), [](const Condition& rCondition){return rCondition.Id();});
 
         // Loop the elements to create the negative nodes MLS basis
         for (auto& rElement : mpModelPart->Elements()) {
@@ -296,7 +265,6 @@ private:
                 // Find the intersected element negative nodes
                 for (auto& r_node : r_geom) {
                     // Check whether node is negative (not ACTIVE) or already was added because of a previous element
-                    // TODO: not necessary if element and nodes are made ACTIVE after calculting the extension operator??
                     const std::size_t found = rExtensionOperatorMap.count(&r_node);
                     if (r_node.IsNot(ACTIVE) && !found) {
 
@@ -330,22 +298,15 @@ private:
 
     void ApplyExtensionConstraints(NodesCloudMapType& rExtensionOperatorMap)
     {
-        
-        KRATOS_WATCH("--- applying extension constraints ---");
-
         // Initialize counter of master slave constraints
         ModelPart::IndexType id = mpModelPart->NumberOfMasterSlaveConstraints()+1;
-        // Get variable to constrain - TODO: user-defined? application-dependent?
-        //const Variable<double>& r_var = r_settings.GetUnknownVariable();
+        // Get variable to constrain 
         const auto& r_var = KratosComponents<Variable<double>>::Get("TEMPERATURE");
 
         // Loop through all negative nodes of split elements (slave nodes)
         for (auto it_slave = rExtensionOperatorMap.begin(); it_slave != rExtensionOperatorMap.end(); ++it_slave) {
             auto p_slave_node = std::get<0>(*it_slave);
             auto& r_ext_op_data = rExtensionOperatorMap[p_slave_node];
-
-            std::size_t n_support_nodes = 0;
-            double N_total = 0.0;
 
             // Add one master slave constraint for every node of the support cloud (master) of the negative node (slave)
             // The contributions of each master will be summed up in the BuilderAndSolver to give an equation for the slave dof
@@ -354,19 +315,12 @@ private:
                 auto p_support_node = std::get<0>(r_node_data);
                 const double support_node_N = std::get<1>(r_node_data);
 
-                // Add master slave constraint, the support node N serves as weight of the constraint
+                // Add master slave constraint, the support node MLS shape function value N serves as weight of the constraint
                 mpModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id++, 
                 *p_support_node, r_var, *p_slave_node, r_var, 
                 support_node_N, 0.0);
-
-                ++n_support_nodes;
-                N_total += support_node_N;
             }
-
-            KRATOS_WATCH(n_support_nodes);
-            KRATOS_WATCH(N_total);
-        }
-        KRATOS_WATCH(id);      
+        }  
     }
 
     void SetInterfaceFlags()
@@ -398,10 +352,7 @@ private:
                         rNode.Set(BOUNDARY, true);
                     }
                 }
-            } else if (IsNegative(r_geom)) {
-                // Mark the negative element as non ACTIVE to avoid assembling it
-                rElement.Set(ACTIVE, false);
-            } else {
+            } else if (!IsNegative(r_geom)) {
                 // Mark the positive element as ACTIVE to assemble it
                 rElement.Set(ACTIVE, true);
                 // Mark the active element nodes as ACTIVE
@@ -420,16 +371,59 @@ private:
                 auto& r_neigh_elems = rElement.GetValue(NEIGHBOUR_ELEMENTS);
                 for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
                     // The neighbour corresponding to the current face is ACTIVE means that the current face is surrogate boundary
-                    // Flag the current neighbour owning the surrogate face as INTERFACE as well as its nodes, which will form the MLS cloud
+                    // Flag the current neighbour owning the surrogate face as INTERFACE
                     auto& r_neigh_elem = r_neigh_elems[i_face];
                     if (r_neigh_elem.Is(ACTIVE)) {
                         r_neigh_elem.Set(INTERFACE, true);
-                        // auto& r_neigh_geom = r_neigh_elem.GetGeometry();
-                        // for (auto& rNode : r_neigh_geom) {
-                        //     rNode.Set(INTERFACE, true);
-                        // }
                     }
                 }
+            }
+        }
+    }
+
+    void ReactivateElementsAndNodes()
+    {
+        // Make intersected elements and their nodes ACTIVE
+        if ( !mDeactivateIntersectedElements ) {
+            for (auto& rElement : mpModelPart->Elements()) {
+                // Check if the element is split
+                const auto& r_geom = rElement.GetGeometry();
+                if (IsSplit(r_geom)) {
+                    rElement.Set(ACTIVE, true);
+                    for (auto& rNode : r_geom) {
+                        rNode.Set(ACTIVE, true);
+                    }
+                }
+            }
+        }
+        // Make negative elements and their nodes ACTIVE
+        if ( !mDeactivateNegativeElements ) {
+            for (auto& rElement : mpModelPart->Elements()) {
+                // Check if the element is negative
+                const auto& r_geom = rElement.GetGeometry();
+                if (IsNegative(r_geom)) {
+                    rElement.Set(ACTIVE, true);
+                    for (auto& rNode : r_geom) {
+                        rNode.Set(ACTIVE, true);
+                    }
+                }
+            }
+        }
+    }
+
+    void ModifyDistances()
+    {
+        auto& r_nodes = mpModelPart->Nodes();
+        double tol_d = 1.0e-12;
+
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+            auto it_node = r_nodes.begin() + i;
+            double& d = it_node->FastGetSolutionStepValue(DISTANCE);
+
+            // Check if the distance values are close to zero, if so set the tolerance as distance value
+            if (std::abs(d) < tol_d) { 
+                d = (d > 0.0) ? tol_d : -tol_d; 
             }
         }
     }
@@ -459,64 +453,6 @@ private:
         return (n_neg == rGeometry.PointsNumber());
     }
 
-    void SetNodalDistancesVector(
-        const GeometryType& rGeometry,
-        Vector& rNodalDistances)
-    {
-        const std::size_t n_nodes = rGeometry.PointsNumber();
-        if (rNodalDistances.size() != n_nodes) {
-            rNodalDistances.resize(n_nodes);
-        }
-        std::size_t i = 0;
-        for (const auto& r_node : rGeometry) {
-            rNodalDistances[i++] = r_node.FastGetSolutionStepValue(DISTANCE);
-        }
-    }
-
-    ModifiedShapeFunctionsFactoryType GetStandardModifiedShapeFunctionsFactory(const GeometryType& rGeometry)
-    {
-        switch (rGeometry.GetGeometryType()) {
-            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-                return [](const GeometryType::Pointer pGeometry, const Vector& rNodalDistances)->ModifiedShapeFunctions::UniquePointer{
-                    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rNodalDistances);};
-            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-                return [](const GeometryType::Pointer pGeometry, const Vector& rNodalDistances)->ModifiedShapeFunctions::UniquePointer{
-                    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rNodalDistances);};
-            default:
-                KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
-        }
-    }
-
-    MLSShapeFunctionsAndGradientsFunctionType GetMLSShapeFunctionsAndGradientsFunction()
-    {
-        switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
-            case 2:
-                switch (mMLSExtensionOperatorOrder) {
-                    case 1:
-                        return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, Matrix& rDN_DX){
-                            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2,1>(rPoints, rX, h, rN, rDN_DX);};
-                    case 2:
-                        return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, Matrix& rDN_DX){
-                            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2,2>(rPoints, rX, h, rN, rDN_DX);};
-                    default:
-                        KRATOS_ERROR << "Wrong MLS extension operator order. Only linear (1) and quadratic (2) are supported.";
-                }
-            case 3:
-                switch (mMLSExtensionOperatorOrder) {
-                    case 1:
-                        return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, Matrix& rDN_DX){
-                            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3,1>(rPoints, rX, h, rN, rDN_DX);};
-                    case 2:
-                        return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, Matrix& rDN_DX){
-                            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3,2>(rPoints, rX, h, rN, rDN_DX);};
-                    default:
-                        KRATOS_ERROR << "Wrong MLS extension operator order. Only linear (1) and quadratic (2) are supported.";
-                }
-            default:
-                KRATOS_ERROR << "Wrong domain size. MLS shape functions utility cannot be set.";
-        }
-    }
-
     MLSShapeFunctionsFunctionType GetMLSShapeFunctionsFunction()
     {
         switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
@@ -544,103 +480,6 @@ private:
                 }
             default:
                 KRATOS_ERROR << "Wrong domain size. MLS shape functions utility cannot be set.";
-        }
-    }
-
-    ElementSizeFunctionType GetElementSizeFunction(const GeometryType& rGeometry)
-    {
-        switch (rGeometry.GetGeometryType()) {
-            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-                return [](const GeometryType& rGeometry)->double{return ElementSizeCalculator<2,3>::AverageElementSize(rGeometry);};
-            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-                return [](const GeometryType& rGeometry)->double{return ElementSizeCalculator<3,4>::AverageElementSize(rGeometry);};
-            default:
-                KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
-        }
-    }
-
-    void SetSplitElementSupportCloud(
-        const Element& rSplitElement,
-        PointerVector<NodeType>& rCloudNodes,
-        Matrix& rCloudCoordinates)
-    {
-        // Find the positive side support cloud of nodes
-        // Note that we use an unordered_set to ensure that these are unique
-        const auto& r_geometry = rSplitElement.GetGeometry();
-        const std::size_t n_nodes = r_geometry.PointsNumber();
-        const std::size_t n_layers = mMLSExtensionOperatorOrder;
-        NodesCloudSetType aux_set;
-        std::vector<NodeType::Pointer> cur_layer_nodes;
-        std::vector<NodeType::Pointer> prev_layer_nodes;
-        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-            auto p_node = r_geometry(i_node);
-            if (p_node->Is(BOUNDARY)) {
-                // Add current positive node to map
-                aux_set.insert(p_node);
-                prev_layer_nodes.push_back(p_node);
-
-                // Add positive neighbours to map
-                // Note that we check the order of the MLS interpolation to add nodes from enough interior layers
-                for (std::size_t i_layer = 0; i_layer < n_layers; ++i_layer) {
-                    for (auto& p_node : prev_layer_nodes) {
-                        auto& r_pos_node_neigh = p_node->GetValue(NEIGHBOUR_NODES);
-                        const std::size_t n_neigh = r_pos_node_neigh.size();
-                        for (std::size_t i_neigh = 0; i_neigh < n_neigh; ++i_neigh) {
-                            auto& r_neigh = r_pos_node_neigh[i_neigh];
-                            if (r_neigh.Is(ACTIVE)) {
-                                NodeType::Pointer p_neigh = &r_neigh;
-                                p_neigh->Set(INTERFACE, true);
-                                aux_set.insert(p_neigh);
-                                cur_layer_nodes.push_back(p_neigh);
-                            }
-                        }
-                    }
-
-                    prev_layer_nodes = cur_layer_nodes;
-                    cur_layer_nodes.clear();
-                }
-
-                prev_layer_nodes.clear();
-            }
-        }
-
-        // Check that the current nodes are enough to perform the MLS calculation
-        // If not sufficient, add the nodal neighbours of the current nodes to the cloud of points
-        const std::size_t n_cloud_nodes_temp = aux_set.size();
-        KRATOS_ERROR_IF(n_cloud_nodes_temp == 0) << "Degenerated case with no neighbours. Check if the element " << rSplitElement.Id() << " is intersected and isolated." << std::endl;
-        if (n_cloud_nodes_temp < GetRequiredNumberOfPoints()) {
-            NodesCloudSetType aux_extra_set(aux_set);
-            for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
-                auto& r_it_set_neighs = (*it_set)->GetValue(NEIGHBOUR_NODES);
-                const std::size_t n_neigh = r_it_set_neighs.size();
-                for (std::size_t i_neigh = 0; i_neigh < n_neigh; ++i_neigh) {
-                    auto& r_neigh = r_it_set_neighs[i_neigh];
-                    if (r_neigh.Is(ACTIVE)) {
-                        NodeType::Pointer p_neigh = &r_neigh;
-                        aux_extra_set.insert(p_neigh);
-                    }
-                }
-            }
-            aux_set = aux_extra_set;
-        }
-
-        // Sort the obtained nodes by id
-        const std::size_t n_cloud_nodes = aux_set.size();
-        rCloudNodes.resize(n_cloud_nodes);
-        std::size_t aux_i = 0;
-        for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
-            rCloudNodes(aux_i++) = *it_set;
-        }
-        std::sort(rCloudNodes.ptr_begin(), rCloudNodes.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
-
-        // Fill the coordinates matrix
-        array_1d<double,3> aux_coord;
-        rCloudCoordinates.resize(n_cloud_nodes, 3);
-        for (std::size_t i_node = 0; i_node < n_cloud_nodes; ++i_node) {
-            noalias(aux_coord) = rCloudNodes[i_node].Coordinates();
-            rCloudCoordinates(i_node, 0) = aux_coord[0];
-            rCloudCoordinates(i_node, 1) = aux_coord[1];
-            rCloudCoordinates(i_node, 2) = aux_coord[2];
         }
     }
 
@@ -736,10 +575,7 @@ private:
     {
         const std::size_t n_nodes = rCloudCoordinates.size1();
         const double squared_rad = IndexPartition<std::size_t>(n_nodes).for_each<MaxReduction<double>>([&](std::size_t I){
-            // return std::pow(rCloudCoordinates(I,0),2) + std::pow(rOrigin(0),2) - 2.0*rCloudCoordinates(I,0)*rOrigin(0) +
-            //     std::pow(rCloudCoordinates(I,1),2) + std::pow(rOrigin(1),2) - 2.0*rCloudCoordinates(I,1)*rOrigin(1) +
-            //     std::pow(rCloudCoordinates(I,2),2) + std::pow(rOrigin(2),2) - 2.0*rCloudCoordinates(I,2)*rOrigin(2);
-            return std::pow(rCloudCoordinates(I,0) - rOrigin(0),2) + std::pow(rCloudCoordinates(I,1) - rOrigin(1),2) + std::pow(rCloudCoordinates(I,2) - rOrigin(2),2);
+            return std::pow(rCloudCoordinates(I,0) - rOrigin(0), 2) + std::pow(rCloudCoordinates(I,1) - rOrigin(1), 2) + std::pow(rCloudCoordinates(I,2) - rOrigin(2), 2);
         });
         return std::sqrt(squared_rad);
     }
