@@ -329,7 +329,7 @@ public:
     {
         KRATOS_TRY;
 
-        if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+        if (RansCalculationUtilities::IsWallFunctionActive(this->GetGeometry())) {
             this->SetValue(GAUSS_RANS_Y_PLUS, Vector(this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod())));
         }
 
@@ -496,7 +496,7 @@ protected:
     {
         using namespace RansCalculationUtilities;
 
-        if (IsWallFunctionActive(*this)) {
+        if (IsWallFunctionActive(this->GetGeometry())) {
             const auto& r_geometry = this->GetGeometry();
             // Get Shape function data
             Vector gauss_weights;

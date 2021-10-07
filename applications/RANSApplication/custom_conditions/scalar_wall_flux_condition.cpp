@@ -27,6 +27,7 @@
 #include "custom_conditions/data_containers/k_epsilon/epsilon_u_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_omega/omega_k_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_omega/omega_u_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_omega/omega_vis_log_law_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_omega_sst/omega_k_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_omega_sst/omega_u_based_wall_condition_data.h"
 
@@ -147,7 +148,7 @@ void ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Cal
 
     noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
-    if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+    if (TScalarWallFluxConditionData::IsWallFluxComputed(this->GetGeometry())) {
         const auto& r_geometry = this->GetGeometry();
         // Get Shape function data
         Vector gauss_weights;
@@ -197,7 +198,7 @@ int ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Chec
     KRATOS_TRY
 
     int check = BaseType::Check(rCurrentProcessInfo);
-    if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+    if (TScalarWallFluxConditionData::IsWallFluxComputed(this->GetGeometry())) {
         TScalarWallFluxConditionData::Check(*this, rCurrentProcessInfo);
 
         KRATOS_ERROR_IF_NOT(this->Has(NEIGHBOUR_ELEMENTS))
@@ -254,8 +255,10 @@ template class ScalarWallFluxCondition<3, 3, KEpsilonWallConditionData::EpsilonU
 
 template class ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaKBasedWallConditionData>;
 template class ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaUBasedWallConditionData>;
+template class ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaVisLogBasedWallConditionData>;
 template class ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaKBasedWallConditionData>;
 template class ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaUBasedWallConditionData>;
+template class ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaVisLogBasedWallConditionData>;
 
 template class ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaKBasedWallConditionData>;
 template class ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaUBasedWallConditionData>;

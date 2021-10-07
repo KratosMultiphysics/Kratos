@@ -214,7 +214,7 @@ void RunRansKOmegaSSTQSVMSRFCAdjointTest(
         const int number_of_conditions = rModelPart.NumberOfConditions();
         for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond) {
             auto& r_cond = *(rModelPart.ConditionsBegin() + i_cond);
-            if (RansCalculationUtilities::IsWallFunctionActive(r_cond)) {
+            if (RansCalculationUtilities::IsWallFunctionActive(r_cond.GetGeometry())) {
                 const auto& r_parent_element = r_cond.GetValue(NEIGHBOUR_ELEMENTS)[0];
                 const auto& r_element_properties = r_parent_element.GetProperties();
                 const double rho = r_element_properties[DENSITY];

@@ -66,7 +66,7 @@ int VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Check(
         << ", rElementProperties.Id() = " << r_element_properties.Id()
         << ", DYNAMIC_VISCOSITY = " << r_element_properties[DYNAMIC_VISCOSITY] << " ].\n";
 
-    if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+    if (RansCalculationUtilities::IsWallFunctionActive(this->GetGeometry())) {
 
         KRATOS_ERROR_IF_NOT(this->Has(NEIGHBOUR_ELEMENTS))
             << "NEIGHBOUR_ELEMENTS are not found in condition [ rCondition.Id() = "
@@ -117,7 +117,7 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Initialize(const Process
 {
     KRATOS_TRY;
 
-    if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+    if (RansCalculationUtilities::IsWallFunctionActive(this->GetGeometry())) {
         this->SetValue(GAUSS_RANS_Y_PLUS, Vector(this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod())));
     }
 
@@ -352,7 +352,7 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
 
     using namespace RansCalculationUtilities;
 
-    if (IsWallFunctionActive(*this)) {
+    if (IsWallFunctionActive(this->GetGeometry())) {
         const auto& r_geometry = this->GetGeometry();
         // Get Shape function data
         Vector gauss_weights;

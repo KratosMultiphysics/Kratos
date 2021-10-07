@@ -208,7 +208,7 @@ Condition::Pointer TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, T
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 int TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
-     if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+     if (RansCalculationUtilities::IsWallFunctionActive(this->GetGeometry())) {
         TAdjointConditionData::Check(*this, rCurrentProcessInfo);
      }
     return 0.0;
@@ -241,7 +241,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 {
     const auto& r_variables_list = TAdjointConditionData::GetDofVariablesList();
 
-    if (rCurrentProcessInfo[FRACTIONAL_STEP] == 200 && RansCalculationUtilities::IsWallFunctionActive(*this)) {
+    if (rCurrentProcessInfo[FRACTIONAL_STEP] == 200 && RansCalculationUtilities::IsWallFunctionActive(this->GetGeometry())) {
         // add dofs for the shape sensitivity calculation
         // it is required to add all the nodes corresponding to parent element
         // because, wall distance calculation involves parent nodes.
@@ -355,7 +355,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 {
     KRATOS_TRY;
 
-    if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+    if (RansCalculationUtilities::IsWallFunctionActive(this->GetGeometry())) {
         TAdjointConditionData::InitializeCondition(*this, rCurrentProcessInfo);
     }
 
@@ -416,7 +416,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 
     rRightHandSideVector.clear();
 
-    if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+    if (RansCalculationUtilities::IsWallFunctionActive(this->GetGeometry())) {
         auto& r_parent_element = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
         AddFluidResidualsContributions(rRightHandSideVector, r_parent_element, rCurrentProcessInfo);
         AddTurbulenceResidualsContributions(rRightHandSideVector, r_parent_element, rCurrentProcessInfo);
@@ -435,7 +435,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 
     rLeftHandSideMatrix.clear();
 
-    if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+    if (RansCalculationUtilities::IsWallFunctionActive(this->GetGeometry())) {
         auto& r_parent_element = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
         AddFluidFirstDerivatives(rLeftHandSideMatrix, r_parent_element, rCurrentProcessInfo);
         AddTurbulenceFirstDerivatives(rLeftHandSideMatrix, r_parent_element, rCurrentProcessInfo);
@@ -485,7 +485,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
     KRATOS_TRY
 
     if (rSensitivityVariable == SHAPE_SENSITIVITY) {
-        if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+        if (RansCalculationUtilities::IsWallFunctionActive(this->GetGeometry())) {
             auto& r_parent_elemnet = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
             const IndexType coords_size = TDim * r_parent_elemnet.GetGeometry().PointsNumber();
 

@@ -292,9 +292,9 @@ void CalculateYPlusAndUtau(
 }
 
 bool IsWallFunctionActive(
-    const ConditionType& rCondition)
+    const GeometryType& rGeometry)
 {
-    return rCondition.GetValue(RANS_IS_WALL_FUNCTION_ACTIVE);
+    return rGeometry.GetValue(RANS_IS_WALL_FUNCTION_ACTIVE);
 }
 
 bool IsInlet(
@@ -360,7 +360,7 @@ void CalculateWallTurbulentViscosity(
 
     block_for_each(rModelPart.Conditions(), tls_type(), [&](ConditionType& rCondition, tls_type& rTLS) {
         double nu_t = 0.0;
-        if (IsWallFunctionActive(rCondition)) {
+        if (IsWallFunctionActive(rCondition.GetGeometry())) {
             auto& r_geometry = rCondition.GetGeometry();
 
             auto& Ws = std::get<0>(rTLS);
