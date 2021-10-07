@@ -36,7 +36,11 @@ class MonolithicKOmegaRansFormulation(RansFormulation):
             "incompressible_potential_flow_initialization_settings": {},
             "monolithic_flow_solver_settings": {},
             "k_omega_solver_settings": {},
-            "max_iterations": 1
+            "max_iterations": 1,
+            "rans_chimera_settings": {
+                "is_chimera": false,
+                "apply_chimera_constraints_every_step": false
+            }
         }''')
 
     def SetConstants(self, settings):
