@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_analysis import PotentialFlowAnalysis
 from KratosMultiphysics.CompressiblePotentialFlowApplication import ComputeNodalValueProcess
 
@@ -44,7 +43,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
 
     def ExecuteInitialize(self):
         # Creating model part
-        potential_mpart = self.model.CreateModelPart("model_part_potential_analysis")
+        potential_mpart = self.model.CreateModelPart("potential_analysis_model_part")
 
         # Starting analysis
         self.analysis = PotentialFlowAnalysis(self.model, self.analysis_parameters)
@@ -52,8 +51,11 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         # Filling model part
         original_model_part = self.model[self.settings["model_part_name"].GetString()]
         KratosMultiphysics.MergeVariableListsUtility().Merge(original_model_part, potential_mpart)
+
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
         modeler.GenerateModelPart(original_model_part, potential_mpart, "Element2D3N", "LineCondition2D2N")
+
+        # potential_mpart.ProcessInfo = pre_merger_pinfo
 
         # Running analysis
         self.analysis.Run()
@@ -116,40 +118,32 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
     def _GenerateAnalysisparameters(cls, settings):
         defaults = KratosMultiphysics.Parameters("""
         {
-            "problem_data":
-            {
-                "problem_name": "internal_potential_solver",
-                "parallel_type": "OpenMP",
-                "echo_level": 0,
-                "start_time": 0.0,
-                "end_time": 1
+            "problem_data"     : {
+                "problem_name"  : "potential_analysis_model_part",
+                "parallel_type" : "OpenMP",
+                "echo_level"    : 0,
+                "start_time"    : 0.0,
+                "end_time"      : 1
             },
-            "output_processes":
-            {},
-            "solver_settings":
-            {
-                "model_part_name": "model_part_potential_analysis",
-                "domain_size": 2,
-                "solver_type": "potential_flow",
-                "model_import_settings":
-                {
-                    "input_type": "use_input_model_part"
-                },
-                "formulation":
-                {
-                    "element_type": "compressible"
-                },
-                "maximum_iterations": 10,
-                "echo_level": 0,
-                "volume_model_part_name": "{replace_me}",
-                "skin_parts": ["{replace_me}"],
-                "no_skin_parts": [],
-                "reform_dofs_at_each_step": false
+            "output_processes" : {
             },
-            "processes":
-            {
-                "boundary_conditions_process_list": ["{replace_me}"],
-                "auxiliar_process_list": []
+            "solver_settings"  : {
+                "model_part_name"          : "potential_analysis_model_part",
+                "domain_size"              : 2,
+                "solver_type"              : "potential_flow",
+                "model_import_settings"    : {
+                    "input_type"     : "use_input_model_part"
+                },
+                "maximum_iterations"       : 10,
+                "echo_level"               : 0,
+                "volume_model_part_name"   : "{replaceme}",
+                "skin_parts"               : [],
+                "no_skin_parts"            : [],
+                "reform_dofs_at_each_step" : false
+            },
+            "processes"        : {
+                "boundary_conditions_process_list" : [],
+                "auxiliar_process_list"            : []
             }
         }
         """)

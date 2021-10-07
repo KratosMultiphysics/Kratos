@@ -1,16 +1,15 @@
 import KratosMultiphysics
-import KratosMultiphysics.KratosUnittest
 from KratosMultiphysics.testing.utilities import ReadModelPart
 from KratosMultiphysics.FluidDynamicsApplication import initialize_with_compressible_potential_solution_process
 
 from KratosMultiphysics import KratosUnittest
-
+from KratosMultiphysics import CompressiblePotentialFlowApplication
 class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
     @KratosUnittest.skipIfApplicationsNotAvailable("CompressiblePotentialFlowApplication")
-    def test_AnalysisParameters(self):
+    def testAnalysisParameters(self):
         work_folder = "Square"
         work_file = "square"
         with KratosUnittest.WorkFolderScope(work_folder, __file__):
@@ -33,21 +32,29 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
             )
 
     @KratosUnittest.skipIfApplicationsNotAvailable("CompressiblePotentialFlowApplication")
-    def test_Process(self):
+    def testProcess(self):
+        "Ensures the whole process functions when given expected parameters"
         work_folder = "Square"
         work_file = "square"
         with KratosUnittest.WorkFolderScope(work_folder, __file__):
             model = KratosMultiphysics.Model()
             mpart = model.CreateModelPart("main_model_part")
+
             mpart.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 2
+            mpart.SetBufferSize(2)
             mpart.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-            # mpart.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENTUM)
-            # mpart.AddNodalSolutionStepVariable(KratosMultiphysics.TOTAL_ENERGY)
+            mpart.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENTUM)
+            mpart.AddNodalSolutionStepVariable(KratosMultiphysics.TOTAL_ENERGY)
             ReadModelPart(work_file, mpart)
 
             process = initialize_with_compressible_potential_solution_process.Factory(self._GetSettings(), model)
             process.ExecuteInitialize()
 
+            # for node in mpart.Nodes:
+            #     print("Node #{} --> PHI = {}".format(
+            #         node.Id,
+            #         node.GetValue(KratosMultiphysics.VELOCITY)
+            #     ))
 
 
     @classmethod
@@ -58,7 +65,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                 "Parameters" : {
                     "model_part_name": "main_model_part",
                     "volume_model_part_name": "Fluid",
-                    "skin_parts": ["Inlet","Outlet","Walls"],
+                    "skin_parts": ["Inlet","Outlet"],
                     "properties" : {
                         "c_v" : 722.14,
                         "gamma" : 1.4,
@@ -68,36 +75,24 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                     },
                     "boundary_conditions_process_list": [
                         {
-                            "python_module": "apply_far_field_process",
-                            "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
-                            "process_name": "FarFieldProcess",
-                            "Parameters":
-                            {
-                                "model_part_name": "model_part_potential_analysis.Inlet",
-                                "angle_of_attack": 0.0,
-                                "mach_infinity": 0.8,
-                                "speed_of_sound": 344.31
+                            "python_module" : "apply_far_field_process",
+                            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+                            "process_name"  : "FarFieldProcess",
+                            "Parameters"    : {
+                                "model_part_name" : "potential_analysis_model_part.Inlet",
+                                "angle_of_attack" : 10.0,
+                                "mach_infinity"   : 0.8,
+                                "speed_of_sound"  : 340.0
                             }
-                        },
-                        {
-                            "python_module": "apply_far_field_process",
-                            "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
-                            "process_name": "FarFieldProcess",
-                            "Parameters":
-                            {
-                                "model_part_name": "model_part_potential_analysis.Outlet",
-                                "angle_of_attack": 0.0,
-                                "mach_infinity": 0.8,
-                                "speed_of_sound": 344.31
-                            }
-                        },
-                        {
-                            "python_module": "define_wake_process_2d",
-                            "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
-                            "process_name": "DefineWakeProcess2D",
-                            "Parameters":
-                            {
-                                "model_part_name": "model_part_potential_analysis.Walls"
+                        },{
+                            "python_module" : "apply_far_field_process",
+                            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+                            "process_name"  : "FarFieldProcess",
+                            "Parameters"    : {
+                                "model_part_name" : "potential_analysis_model_part.Outlet",
+                                "angle_of_attack" : 0.0,
+                                "mach_infinity"   : 0.8,
+                                "speed_of_sound"  : 340.0
                             }
                         }
                     ]
@@ -113,7 +108,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                     "echo_level": 0,
                     "end_time": 1,
                     "parallel_type": "OpenMP",
-                    "problem_name": "internal_potential_solver",
+                    "problem_name": "potential_analysis_model_part",
                     "start_time": 0.0
                 },
                 "processes": {
@@ -121,10 +116,10 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                     "boundary_conditions_process_list": [
                         {
                             "Parameters": {
-                                "angle_of_attack": 0.0,
+                                "angle_of_attack": 10.0,
                                 "mach_infinity": 0.8,
-                                "model_part_name": "model_part_potential_analysis.Inlet",
-                                "speed_of_sound": 344.31
+                                "model_part_name": "potential_analysis_model_part.Inlet",
+                                "speed_of_sound": 340.0
                             },
                             "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
                             "process_name": "FarFieldProcess",
@@ -134,45 +129,34 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                             "Parameters": {
                                 "angle_of_attack": 0.0,
                                 "mach_infinity": 0.8,
-                                "model_part_name": "model_part_potential_analysis.Outlet",
-                                "speed_of_sound": 344.31
+                                "model_part_name": "potential_analysis_model_part.Outlet",
+                                "speed_of_sound": 340.0
                             },
                             "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
                             "process_name": "FarFieldProcess",
                             "python_module": "apply_far_field_process"
-                        },
-                        {
-                            "Parameters": {
-                                "model_part_name": "model_part_potential_analysis.Walls"
-                            },
-                            "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
-                            "process_name": "DefineWakeProcess2D",
-                            "python_module": "define_wake_process_2d"
                         }
                     ]
                 },
                 "solver_settings": {
                     "domain_size": 2,
                     "echo_level": 0,
-                    "formulation": {
-                        "element_type": "compressible"
-                    },
                     "maximum_iterations": 10,
                     "model_import_settings": {
                         "input_type": "use_input_model_part"
                     },
-                    "model_part_name": "model_part_potential_analysis",
+                    "model_part_name": "potential_analysis_model_part",
                     "no_skin_parts": [],
                     "reform_dofs_at_each_step": false,
                     "skin_parts": [
                         "Inlet",
-                        "Outlet",
-                        "Walls"
+                        "Outlet"
                     ],
                     "solver_type": "potential_flow",
                     "volume_model_part_name": "Fluid"
                 }
             }
+
         """)
 
 if __name__ == '__main__':
