@@ -318,7 +318,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
                 settings = self.GetParameters()["wall_function_settings"]
                 if not settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
                     if hasattr(self, "condition_name"):
-                        Kratos.Logger().PrintWarning(self.__class__.__name__, "Deprecated global wall settings are defined along with formulation specialized wall settings. Formulation specialized wall settings will be used hereafter.")
+                        Kratos.Logger.PrintWarning(self.__class__.__name__, "Deprecated global wall settings are defined along with formulation specialized wall settings. Formulation specialized wall settings will be used hereafter.")
                 else:
                     return
             else:
