@@ -73,6 +73,7 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
         error_water_pressure = abs(pore_pressure_middle - analytical_solution_water_pressure) / \
                                   (abs(analytical_solution_water_pressure) + 1e-60)
         self.assertTrue(error_outflow_discharge < 0.03)
+        print('Writing tex file in: ', os.path.abspath(file_path + "\\test_pressure_in_confined_aquifer.tex"))
         output_file_for_latex = open(file_path + "\\test_pressure_in_confined_aquifer.tex","w")
         output_file_for_latex.write(' & '.join(['water pressure',
                                                 str(round(analytical_solution_water_pressure,2)),
