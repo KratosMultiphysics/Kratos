@@ -413,21 +413,17 @@ namespace Kratos {
       }
 
       // Set walls data
-      ModelPart& fem_model_part = GetFemModelPart();
+      for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = GetFemModelPart().SubModelPartsBegin(); sub_model_part != GetFemModelPart().SubModelPartsEnd(); ++sub_model_part) {
 
-      if (fem_model_part.NumberOfSubModelParts()) {
-        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part  = fem_model_part.SubModelPartsBegin();
-                                                             sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
-          ModelPart& submp = *sub_model_part;
-          ElementsArrayType& rElements = submp.GetCommunicator().LocalMesh().Elements();
+        ModelPart& submp = *sub_model_part;
+        ConditionsArrayType& rConditions = submp.GetCommunicator().LocalMesh().Conditions();
 
-          block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
-            if (submp.Has(ADIABATIC))
-              rElement.Set(DEMFlags::IS_ADIABATIC, submp[ADIABATIC]);
-            else
-              rElement.Set(DEMFlags::IS_ADIABATIC, false);
+        block_for_each(rConditions, [&](ModelPart::ConditionType& rCondition) {
+          if (submp.Has(ADIABATIC))
+            rCondition.Set(DEMFlags::IS_ADIABATIC, submp[ADIABATIC]);
+          else
+            rCondition.Set(DEMFlags::IS_ADIABATIC, false);
           });
-        }
       }
 
       KRATOS_CATCH("")
