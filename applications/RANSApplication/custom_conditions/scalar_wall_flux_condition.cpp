@@ -148,6 +148,9 @@ void ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Cal
 
     noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
+    KRATOS_WATCH(this->Id());
+    KRATOS_WATCH(TScalarWallFluxConditionData::IsWallFluxComputed(this->GetGeometry()));
+
     if (TScalarWallFluxConditionData::IsWallFluxComputed(this->GetGeometry())) {
         const auto& r_geometry = this->GetGeometry();
         // Get Shape function data
