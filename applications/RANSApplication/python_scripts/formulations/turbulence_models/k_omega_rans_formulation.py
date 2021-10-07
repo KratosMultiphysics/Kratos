@@ -1,5 +1,6 @@
 # import kratos
 import KratosMultiphysics as Kratos
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 # import RANS
 import KratosMultiphysics.RANSApplication as KratosRANS
@@ -30,13 +31,15 @@ class KOmegaOmegaRansFormulation(ScalarTurbulenceModelRansFormulation):
         return "RansKOmegaOmega"
 
     def SetWallFunctionSettings(self, settings=None):
-        if settings is None:
-            settings = self.GetParameters()["wall_function_settings"]
-            if not settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
-                if hasattr(self, "condition_name"):
-                    Kratos.Logger.PrintWarning(self.__class__.__name__, "Deprecated global wall settings are defined along with formulation specialized wall settings. Formulation specialized wall settings will be used hereafter.")
+        formulation_settings = self.GetParameters()["wall_function_settings"]
+        if settings is not None:
+            if not formulation_settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
+                Kratos.Logger.PrintWarning(self.__class__.__name__, "Global and specialized \"wall_function_settings\" are defined. Using specialized settings and global settings are discarded for this formulation.")
+                settings = formulation_settings
             else:
-                return
+                IssueDeprecationWarning(self.__class__.__name__, "Using deprecated global \"wall_function_settings\". Please define formulation specialized \"wall_function_settings\" in each leaf formulation.")
+        else:
+            settings = formulation_settings
 
         self.condition_name = self.GetConditionNamePrefix()
 

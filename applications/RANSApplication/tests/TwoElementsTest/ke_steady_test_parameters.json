@@ -34,10 +34,6 @@
         "material_import_settings": {
             "materials_filename": "./TwoElementsTest/ke_test_materials.json"
         },
-        "wall_function_settings": {
-            "wall_function_region_type": "logarithmic_region_only",
-            "wall_friction_velocity_calculation_method": "turbulent_kinetic_energy_based"
-        },
         "no_skin_parts": [],
         "formulation_settings": {
             "formulation_name": "monolithic_k_epsilon",
@@ -63,6 +59,10 @@
                     "element_type": "qsvms",
                     "use_orthogonal_subscales": false,
                     "dynamic_tau": 1.0
+                },
+                "wall_function_settings": {
+                    "wall_function_region_type": "logarithmic_region_only",
+                    "wall_friction_velocity_calculation_method": "turbulent_kinetic_energy_based"
                 }
             },
             "k_epsilon_solver_settings": {
@@ -89,6 +89,10 @@
                         "solver_type": "LinearSolversApplication.sparse_lu",
                         "tolerance": 1e-9,
                         "verbosity": 0
+                    },
+                    "wall_function_settings": {
+                        "wall_function_region_type": "logarithmic_region_only",
+                        "wall_friction_velocity_calculation_method": "turbulent_kinetic_energy_based"
                     }
                 },
                 "echo_level": 0,

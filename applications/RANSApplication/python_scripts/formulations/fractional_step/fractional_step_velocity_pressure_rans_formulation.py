@@ -51,6 +51,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             "time_order": 2,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
+            "wall_function_settings":{},
             "pressure_linear_solver_settings":  {
                 "solver_type"                    : "amgcl",
                 "max_iteration"                  : 200,
@@ -308,18 +309,15 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
         return self.solver
 
     def SetWallFunctionSettings(self, settings=None):
+        formulation_settings = self.GetParameters()["wall_function_settings"]
         if settings is not None:
-            IssueDeprecationWarning(self.__class__.__name__, "Using deprecated global \"wall_function_settings\". Please define formulation specialized \"wall_function_settings\" in each leaf formulation.")
-        else:
-            if self.GetParameters().Has("wall_function_settings"):
-                settings = self.GetParameters()["wall_function_settings"]
-                if not settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
-                    if hasattr(self, "condition_name"):
-                        Kratos.Logger.PrintWarning(self.__class__.__name__, "Deprecated global wall settings are defined along with formulation specialized wall settings. Formulation specialized wall settings will be used hereafter.")
-                else:
-                    return
+            if not formulation_settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
+                Kratos.Logger.PrintWarning(self.__class__.__name__, "Global and specialized \"wall_function_settings\" are defined. Using specialized settings and global settings are discarded for this formulation.")
+                settings = formulation_settings
             else:
-                return
+                IssueDeprecationWarning(self.__class__.__name__, "Using deprecated global \"wall_function_settings\". Please define formulation specialized \"wall_function_settings\" in each leaf formulation.")
+        else:
+            settings = formulation_settings
 
         wall_function_region_type = "logarithmic_region_only"
         if (settings.Has("wall_function_region_type")):

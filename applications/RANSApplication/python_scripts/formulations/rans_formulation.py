@@ -326,11 +326,9 @@ class RansFormulation:
         """
         if settings is not None:
             IssueDeprecationWarning(self.__class__.__name__, "SetWallFunctionSettings with parameters argument is deprecated. Please update formulation to use the same method without any input arguments.")
-
-            self.__ExecuteRansFormulationMethods("SetWallFunctionSettings", [settings])
             self.__wall_function_settings = settings
-        else:
-            self.__ExecuteRansFormulationMethods("SetWallFunctionSettings", [None])
+
+        self.__ExecuteRansFormulationMethods("SetWallFunctionSettings", [settings])
 
     def GetWallFunctionSettings(self):
         """Returns wall function settings
