@@ -96,6 +96,8 @@ KratosRANSApplication::KratosRANSApplication()
       mRansKOmegaOmegaKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansKOmegaOmegaUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansKOmegaOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      mRansKOmegaOmegaVisLogBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansKOmegaOmegaVisLogBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       // k-omega-sst turbulence model conditions
       mRansKOmegaSSTOmegaKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansKOmegaSSTOmegaKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
@@ -328,6 +330,9 @@ void KratosRANSApplication::Register()
 
     KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall2D2N", mRansKOmegaOmegaUBasedWall2D2N);
     KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall3D3N", mRansKOmegaOmegaUBasedWall3D3N);
+
+    KRATOS_REGISTER_CONDITION("RansKOmegaOmegaVisLogBasedWall2D2N", mRansKOmegaOmegaVisLogBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansKOmegaOmegaVisLogBasedWall3D3N", mRansKOmegaOmegaVisLogBasedWall3D3N);
 
     // registering k-omega-sst conditions
     KRATOS_REGISTER_CONDITION("RansKOmegaSSTOmegaKBasedWall2D2N", mRansKOmegaSSTOmegaKBasedWall2D2N);
