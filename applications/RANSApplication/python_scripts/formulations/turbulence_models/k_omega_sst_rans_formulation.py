@@ -70,7 +70,7 @@ class KOmegaSSTOmegaRansFormulation(ScalarTurbulenceModelRansFormulation):
                     msg += "\tturbulent_kinetic_energy_based\n"
                     raise Exception(msg)
             elif (wall_function_region_type == "viscous_region_only"):
-                self.condition_name = self.condition_name + "VisLogBasedWall"
+                self.condition_name = "RansKOmegaOmegaVisLogBasedWall"
             else:
                 msg = "Unsupported wall function region type provided. [ wall_function_region_type = \"" + wall_function_region_type + "\" ]."
                 msg += "Supported wall function region types are:\n"
