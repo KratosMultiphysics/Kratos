@@ -14,12 +14,15 @@
 //  Framework for Non-Matching Grid Mapping"
 
 // System includes
+#include <cmath>
+#include <limits>
 
 // External includes
 
 // Project includes
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
+#include "custom_utilities/mapper_utilities.h"
 #include "interface_communicator.h"
 
 namespace Kratos {
@@ -35,12 +38,60 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
 {
     KRATOS_TRY;
 
-    mSearchRadius = mSearchSettings["search_radius"].GetDouble();
-    const int max_search_iterations = mSearchSettings["search_iterations"].GetInt();
+    InitializeSearch(rpInterfaceInfo); // to create the bins and the data structure needed in the following for determining search radius etc
 
-    const double increase_factor = 4.0;
+    const SizeType num_interface_obj_bin = mpInterfaceObjectsOrigin->size();
+
+    double init_search_radius = 0.0;
+    double max_search_radius = 0.0;
+    double increase_factor = 2.0; // default value
+    int max_search_iterations = 3; // default value
+
+    if (num_interface_obj_bin > 0) { // this partition has a part of the interface
+        auto log_base = [](const double Val, const double Base) -> double {
+            return std::log(Val) / std::log(Base);
+        };
+
+        if (mSearchSettings.Has("search_radius_increase_factor")) {
+            increase_factor = mSearchSettings["search_radius_increase_factor"].GetDouble();
+            KRATOS_ERROR_IF(increase_factor < std::numeric_limits<double>::epsilon()) << "Search radius increase factor must be larger than 0.0!" << std::endl;
+        }
+
+        if (mSearchSettings.Has("search_radius")) {
+            init_search_radius = mSearchSettings["search_radius"].GetDouble();
+            KRATOS_ERROR_IF(init_search_radius < std::numeric_limits<double>::epsilon()) << "Search radius must be larger than 0.0!" << std::endl;
+        } else {
+            const array_1d<double, 3> box_size = mpLocalBinStructure->GetMaxPoint() - mpLocalBinStructure->GetMinPoint();
+            init_search_radius = (*std::max_element(box_size.begin(), box_size.end())) / num_interface_obj_bin;
+        }
+
+        if (mSearchSettings.Has("maximum_search_radius")) {
+            max_search_radius = mSearchSettings["maximum_search_radius"].GetDouble();
+            KRATOS_ERROR_IF(max_search_radius < std::numeric_limits<double>::epsilon()) << "Maximum radius must be larger than 0.0!" << std::endl;
+        } else {
+            max_search_radius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin, mEchoLevel);
+        }
+        max_search_radius = std::max(MapperUtilities::ComputeSearchRadius(mrModelPartOrigin, mEchoLevel), init_search_radius);
+
+        if (mSearchSettings.Has("max_num_search_iterations")) {
+            max_search_iterations = mSearchSettings["max_num_search_iterations"].GetInt();
+            KRATOS_ERROR_IF(max_search_iterations < 1) << "Number of search iterations must be larger than 0!" << std::endl;
+        } else {
+            max_search_iterations = std::max(max_search_iterations,static_cast<int>(
+                    std::ceil(log_base(max_search_radius,  increase_factor)-
+                              log_base(init_search_radius, increase_factor))));
+        }
+
+        KRATOS_INFO_IF("Mapper search", mEchoLevel>1)
+            << "\n    Initial search radius: " << init_search_radius
+            << "\n    Maximum search radius: " << max_search_radius
+            << "\n    Maximum number of search iterations: " << max_search_iterations
+            << "\n    Search radius increase factor: " << increase_factor << std::endl;
+    }
+
+    mSearchRadius = init_search_radius;
+
     int num_iteration = 1;
-    InitializeSearch(rpInterfaceInfo);
 
     // First Iteration is done outside the search loop bcs it has
     // to be done in any case
@@ -58,7 +109,7 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
         // for the initial given search radius.
         mMeshesAreConforming = 0;
 
-        KRATOS_WARNING_IF("Mapper", mEchoLevel >= 1)
+        KRATOS_INFO_IF("Mapper search", mEchoLevel >= 1)
             << "search radius was increased, another search iteration is conducted\n"
             << "search iteration " << num_iteration << " / "<< max_search_iterations << " | "
             << "search radius " << mSearchRadius << std::endl;
