@@ -1,9 +1,12 @@
+import KratosMultiphysics as Kratos
+
 # import formulation interface
 from KratosMultiphysics.RANSApplication.formulations.scalar_rans_formulation import ScalarRansFormulation
 
 # import utilities
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializeYPlusVariablesInConditions
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 class ScalarTurbulenceModelRansFormulation(ScalarRansFormulation):
     def __init__(self, model_part, settings):
@@ -28,7 +31,18 @@ class ScalarTurbulenceModelRansFormulation(ScalarRansFormulation):
 
         super().Initialize()
 
-    def SetWallFunctionSettings(self, settings):
+    def SetWallFunctionSettings(self, settings=None):
+        if settings is not None:
+            IssueDeprecationWarning(self.__class__.__name__, "Using deprecated global \"wall_function_settings\". Please define formulation specialized \"wall_function_settings\" in each leaf formulation.")
+        else:
+            if self.GetParameters().Has("wall_function_settings"):
+                settings = self.GetParameters()["wall_function_settings"]
+                if not settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
+                    if hasattr(self, "condition_name"):
+                        Kratos.Logger().PrintWarning(self.__class__.__name__, "Deprecated global wall settings are defined along with formulation specialized wall settings. Formulation specialized wall settings will be used hereafter.")
+            else:
+                settings = Kratos.Parameters("""{}""")
+
         self.condition_name = self.GetConditionNamePrefix()
 
         if (self.condition_name != ""):
@@ -44,7 +58,7 @@ class ScalarTurbulenceModelRansFormulation(ScalarRansFormulation):
 
             if (wall_function_region_type == "logarithmic_region_only"):
                 if (wall_friction_velocity_calculation_method == "velocity_based"):
-                    self.condition_name = self.condition_name + "VisLogBasedWall"
+                    self.condition_name = self.condition_name + "UBasedWall"
                 elif (wall_friction_velocity_calculation_method ==
                     "turbulent_kinetic_energy_based"):
                     self.condition_name = self.condition_name + "KBasedWall"

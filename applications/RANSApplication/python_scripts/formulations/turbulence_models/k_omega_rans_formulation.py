@@ -29,6 +29,46 @@ class KOmegaOmegaRansFormulation(ScalarTurbulenceModelRansFormulation):
     def GetConditionNamePrefix(self):
         return "RansKOmegaOmega"
 
+    def SetWallFunctionSettings(self, settings=None):
+        if settings is None:
+            settings = self.GetParameters()["wall_function_settings"]
+            if not settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
+                if hasattr(self, "condition_name"):
+                    Kratos.Logger().PrintWarning(self.__class__.__name__, "Deprecated global wall settings are defined along with formulation specialized wall settings. Formulation specialized wall settings will be used hereafter.")
+
+        self.condition_name = self.GetConditionNamePrefix()
+
+        if (self.condition_name != ""):
+            if (settings.Has("wall_function_region_type")):
+                wall_function_region_type = settings["wall_function_region_type"].GetString()
+            else:
+                wall_function_region_type = "logarithmic_region_only"
+
+            if (settings.Has("wall_friction_velocity_calculation_method")):
+                wall_friction_velocity_calculation_method = settings["wall_friction_velocity_calculation_method"].GetString()
+            else:
+                wall_friction_velocity_calculation_method = "velocity_based"
+
+            if (wall_function_region_type == "logarithmic_region_only"):
+                if (wall_friction_velocity_calculation_method == "velocity_based"):
+                    self.condition_name = self.condition_name + "UBasedWall"
+                elif (wall_friction_velocity_calculation_method ==
+                    "turbulent_kinetic_energy_based"):
+                    self.condition_name = self.condition_name + "KBasedWall"
+                else:
+                    msg = "Unsupported wall friction velocity calculation method. [ wall_friction_velocity_calculation_method = \"" + wall_friction_velocity_calculation_method + "\" ].\n"
+                    msg += "Supported methods are:\n"
+                    msg += "\tvelocity_based\n"
+                    msg += "\tturbulent_kinetic_energy_based\n"
+                    raise Exception(msg)
+            elif (wall_function_region_type == "viscous_region_only"):
+                self.condition_name = self.condition_name + "VisLogBasedWall"
+            else:
+                msg = "Unsupported wall function region type provided. [ wall_function_region_type = \"" + wall_function_region_type + "\" ]."
+                msg += "Supported wall function region types are:\n"
+                msg += "\tlogarithmic_region_only\n"
+                msg += "\tviscous_region_only\n"
+                raise Exception(msg)
 
 class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
     def __init__(self, model_part, settings):

@@ -5,6 +5,7 @@ from shutil import rmtree
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import IsDistributedRun
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
@@ -327,7 +328,11 @@ class CoupledRANSSolver(PythonSolver):
 
         self.is_periodic = self.formulation.IsPeriodic()
 
-        self.formulation.SetWallFunctionSettings(self.settings["wall_function_settings"])
+        if self.settings.Has("wall_function_settings"):
+            IssueDeprecationWarning(self.__class__.__name__, "Using deprecated global \"wall_function_settings\". Please define them seperately for all leaf formulations.")
+            self.formulation.SetWallFunctionSettings(self.settings["wall_function_settings"])
+        else:
+            self.formulation.SetWallFunctionSettings()
         scheme_type = self.settings["time_scheme_settings"]["scheme_type"].GetString()
         if (scheme_type == "steady"):
             self.is_steady = True

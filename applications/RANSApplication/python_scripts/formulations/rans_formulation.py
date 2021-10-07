@@ -1,6 +1,7 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSApplication as KratosRANS
 
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
 class RansFormulation:
@@ -320,9 +321,16 @@ class RansFormulation:
         else:
             raise Exception(self.__class__.__name__ + " needs to use \"SetTimeSchemeSettings\" first before calling \"GetTimeSchemeSettings\".")
 
-    def SetWallFunctionSettings(self, settings):
-        self.__ExecuteRansFormulationMethods("SetWallFunctionSettings", [settings])
-        self.__wall_function_settings = settings
+    def SetWallFunctionSettings(self, settings=None):
+        """Sets wall function settings recursively
+        """
+        if settings is not None:
+            IssueDeprecationWarning(self.__class__.__name__, "SetWallFunctionSettings with parameters argument is deprecated. Please update formulation to use the same method without any input arguments.")
+
+            self.__ExecuteRansFormulationMethods("SetWallFunctionSettings", [settings])
+            self.__wall_function_settings = settings
+        else:
+            self.__ExecuteRansFormulationMethods("SetWallFunctionSettings", [None])
 
     def GetWallFunctionSettings(self):
         """Returns wall function settings
@@ -330,6 +338,7 @@ class RansFormulation:
         Returns:
             Kratos.Parameters: Wall function settings used for formulations
         """
+        IssueDeprecationWarning(self.__class__.__name__, "GetWallFunctionSettings is deprecated. Use formulation specific settings.")
         if (hasattr(self, "_RansFormulation__wall_function_settings")):
             return self.__wall_function_settings
         else:

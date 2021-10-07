@@ -36,12 +36,13 @@ class ScalarRansFormulation(RansFormulation):
             "max_iterations"        : 200,
             "relaxation_factor"     : 0.5,
             "echo_level"            : 2,
+            "boundary_flags"        : ["INLET", "STRUCTURE"],
+            "auxiliar_process_list" : [],
+            "vtk_output_settings"   : {},
+            "wall_function_settings": {},
             "linear_solver_settings": {
                 "solver_type"  : "amgcl"
-            },
-            "boundary_flags": ["INLET", "STRUCTURE"],
-            "auxiliar_process_list": [],
-            "vtk_output_settings":{}
+            }
         }""")
 
         settings.ValidateAndAssignDefaults(defaults)
