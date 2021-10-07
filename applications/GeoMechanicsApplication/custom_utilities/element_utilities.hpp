@@ -372,7 +372,7 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculateShapeFunctionsNodesGradients(BoundedMatrix<double,2,2>& DN_DXContainer)
+    static inline void CalculateNewtonCotesShapeFunctionsGradients(BoundedMatrix<double,2,2>& DN_DXContainer)
     {
         //Line 2-noded
         const unsigned int NumNodes = 2;
@@ -388,7 +388,7 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculateShapeFunctionsNodesGradients(BoundedMatrix<double,3,3>& DN_DXContainer)
+    static inline void CalculateNewtonCotesShapeFunctionsGradients(BoundedMatrix<double,3,3>& DN_DXContainer)
     {
         //Line 3-noded
         const unsigned int NumNodes = 3;
@@ -401,6 +401,20 @@ public:
             DN_DXContainer(integrationPoint,0) =  Xi[integrationPoint] - 0.5;
             DN_DXContainer(integrationPoint,1) = -Xi[integrationPoint] * 2.0;
             DN_DXContainer(integrationPoint,2) =  Xi[integrationPoint] + 0.5;
+        }
+    }
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    static inline void CalculateNewtonCotesShapeFunctions(BoundedMatrix<double,3,3>& NContainer)
+    {
+        //Line 3-noded
+        const unsigned int NumNodes = 3;
+
+        for (unsigned int integrationPoint = 0; integrationPoint < NumNodes; ++integrationPoint) {
+            for (unsigned int node = 0; node < NumNodes; ++node) {
+                NContainer(integrationPoint,node) = (integrationPoint == node ? 1.0 : 0.0);
+            }
         }
     }
 

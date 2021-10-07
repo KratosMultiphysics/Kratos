@@ -522,8 +522,8 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void GeoCurvedBeamElement<TDim,TNumNodes>::
-    CalculateAndAddStiffnessForce( VectorType& rRightHandSideVector,
-                                   ElementVariables& rVariables ) const
+    CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector,
+                                  ElementVariables& rVariables) const
 {
     KRATOS_TRY;
 
@@ -537,8 +537,8 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 double GeoCurvedBeamElement<TDim,TNumNodes>::
-    CalculateElementCrossAngle(unsigned int GPoint,
-                               const BoundedMatrix<double,TNumNodes, TNumNodes> & DN_DXContainer) const
+    CalculateAngleAtNode(unsigned int GPoint,
+                         const BoundedMatrix<double,TNumNodes, TNumNodes> & DN_DXContainer) const
 {
     KRATOS_TRY;
 
@@ -561,31 +561,7 @@ double GeoCurvedBeamElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 double GeoCurvedBeamElement<TDim,TNumNodes>::
-    CalculateElementAngle(unsigned int GPoint,
-                          const BoundedMatrix<double,TNumNodes, TNumNodes> &DN_DXContainer) const
-{
-    KRATOS_TRY;
-
-    const GeometryType& Geom = this->GetGeometry();
-
-    double dx = 0;
-    double dy = 0;
-
-    // loop over nodes
-    for (unsigned int node = 0; node < TNumNodes; ++node) {
-        dx += DN_DXContainer(GPoint, node) * Geom[node].X0();
-        dy += DN_DXContainer(GPoint, node) * Geom[node].Y0();
-    }
-
-    return atan2(dy, dx);
-
-    KRATOS_CATCH("");
-}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-double GeoCurvedBeamElement<TDim,TNumNodes>::
-    CalculateElementAngle(const Matrix &GradNpT) const
+    CalculateAngleAtGaussPoint(const Matrix &GradNpT) const
 {
     KRATOS_TRY;
 
@@ -613,7 +589,7 @@ void GeoCurvedBeamElement<2,3>::
 {
     KRATOS_TRY;
 
-    const double phi = CalculateElementAngle(GradNpT);
+    const double phi = CalculateAngleAtGaussPoint(GradNpT);
     const double cosPhi = cos(phi);
     const double sinPhi = sin(phi);
 
@@ -650,15 +626,15 @@ void GeoCurvedBeamElement<3,3>::
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void GeoCurvedBeamElement<TDim,TNumNodes>::
-    CalculateCrossDirection( Matrix &CrossDirection ) const
+    CalculateCrossDirection(Matrix& CrossDirection) const
 {
     KRATOS_TRY;
 
     BoundedMatrix<double, TNumNodes, TNumNodes> DN_DXContainer;
-    GeoElementUtilities::CalculateShapeFunctionsNodesGradients(DN_DXContainer);
+    GeoElementUtilities::CalculateNewtonCotesShapeFunctionsGradients(DN_DXContainer);
 
     for (unsigned int IntegrationNode = 0; IntegrationNode < TNumNodes; ++IntegrationNode) {
-        double phi = CalculateElementCrossAngle(IntegrationNode, DN_DXContainer);
+        double phi = CalculateAngleAtNode(IntegrationNode, DN_DXContainer);
         CrossDirection(0, IntegrationNode) = cos(phi);
         CrossDirection(1, IntegrationNode) = sin(phi);
     }

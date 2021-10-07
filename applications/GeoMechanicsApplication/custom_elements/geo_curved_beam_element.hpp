@@ -25,9 +25,10 @@ namespace Kratos
  *
  * @brief This is a geometrically non-linear (curved) beam element.
  *        The formulation can be found in papers written by Karan S. Surana, e.g:
- *        "1. Geometrically non-linear formulation for two dimensional curved beam elements"
- *        "2. Geometrically non-linear formulation for the axisymmetric shell elements"
- *        or 
+ *        "1. Geometrically non-linear formulation for the axisymmetric shell elements"
+ *        "2. Geometrically non-linear formulation for two dimensional curved beam elements"
+ *        Discriptions of beam elements can be found in the following book, chapter 9.
+ *        For 2D curved beams, see section 9.4:
  *        "Non-linear Finite element analysis of solids and structures" by De Borst et al.
  * 
  * @author Vahid Galavi
@@ -150,15 +151,12 @@ protected:
     virtual void CalculateTransformationMatrix( Matrix &TransformationMatrix,
                                                 const Matrix &GradNpT ) const;
 
-    void CalculateCrossDirection( Matrix &CrossDirection ) const override;
+    virtual void CalculateCrossDirection( Matrix& CrossDirection ) const override;
 
-    virtual double CalculateElementAngle(unsigned int GPoint,
-                                         const BoundedMatrix<double,TNumNodes,TNumNodes> &DN_DXContainer) const;
+    virtual double CalculateAngleAtGaussPoint(const Matrix &GradNpT) const;
 
-    virtual double CalculateElementAngle(const Matrix &GradNpT) const;
-
-    virtual double CalculateElementCrossAngle(unsigned int GPoint,
-                                              const BoundedMatrix<double,TNumNodes,TNumNodes> &DN_DXContainer) const;
+    virtual double CalculateAngleAtNode(unsigned int GPoint,
+                                        const BoundedMatrix<double,TNumNodes,TNumNodes> &DN_DXContainer) const;
 
     virtual void CalculateDeterminantJacobian(unsigned int GPointCross,
                                               const ElementVariables &rVariables,
