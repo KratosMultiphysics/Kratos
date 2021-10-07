@@ -82,6 +82,8 @@ double OmegaVisLogBasedWallConditionData::CalculateWallFlux(
 {
     const double g_n = 12.0 * rParameters.mKinematicViscosity / (0.0075 * mWallDistance3);
 
+    KRATOS_WATCH(g_n);
+
     return (rParameters.mKinematicViscosity) * g_n;
 }
 
