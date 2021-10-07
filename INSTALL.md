@@ -423,7 +423,7 @@ cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property
 
 Finally you can set parallelism options in the VisualStudio IDE.
 
-**Warning**: Please be carefull while mixing parallel builds with unitay builds. See [below](#unitary-builds)
+**Warning**: Please be careful while mixing parallel builds with unitary builds. See [below](#unitary-builds)
 
 #### MacOS
 
