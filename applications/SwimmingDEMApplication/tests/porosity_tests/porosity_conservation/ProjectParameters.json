@@ -21,7 +21,7 @@
         "parallel_type" : "OpenMP",
         "echo_level"    : 0,
         "start_time"    : 0.0,
-        "end_time"      : 0.003
+        "end_time"      : 0.001
     },
     "do_print_results_option" : false,
     "coupling"                : {
