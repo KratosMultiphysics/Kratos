@@ -427,7 +427,7 @@ Finally you can set parallelism options in the VisualStudio IDE.
 
 #### MacOS
 
-There is no dedicate support for parallel builds in MacOS but Linux options should behave very similarly. If you detect a problem please inform us and we will
+There is no dedicated support for parallel builds in MacOS, but Linux options should behave very similarly. If you detect a problem please inform us and we will
 try to update this section with the specifics.
 
 ### Building Environment
