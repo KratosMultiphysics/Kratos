@@ -33,6 +33,30 @@ typedef std::size_t SizeType;
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
+
+InterfaceCommunicator::InterfaceCommunicator(
+    ModelPart& rModelPartOrigin,
+    MapperLocalSystemPointerVector& rMapperLocalSystems,
+    Parameters SearchSettings)
+      : mrModelPartOrigin(rModelPartOrigin),
+        mrMapperLocalSystems(rMapperLocalSystems),
+        mSearchSettings(SearchSettings)
+{
+    Parameters search_defaults( R"({
+        "search_radius"                 : 0.0,
+        "max_search_radius"             : 0.0,
+        "search_radius_increase_factor" : 0.0,
+        "max_num_search_iterations"     : 0,
+        "echo_level"                    : 0
+    })");
+    // deliberately only validating defaults, but not assigning, since computing the defaults is expensive
+    // see "ExchangeInterfaceData"
+    mSearchSettings.ValidateDefaults(search_defaults);
+
+    mEchoLevel = mSearchSettings.Has("echo_level") ? mSearchSettings["echo_level"].GetInt() : 0;
+    mMapperInterfaceInfosContainer.resize(1);
+}
+
 void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
                                                   const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo)
 {
@@ -65,8 +89,8 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
             init_search_radius = (*std::max_element(box_size.begin(), box_size.end())) / num_interface_obj_bin;
         }
 
-        if (mSearchSettings.Has("maximum_search_radius")) {
-            max_search_radius = mSearchSettings["maximum_search_radius"].GetDouble();
+        if (mSearchSettings.Has("max_search_radius")) {
+            max_search_radius = mSearchSettings["max_search_radius"].GetDouble();
             KRATOS_ERROR_IF(max_search_radius < std::numeric_limits<double>::epsilon()) << "Maximum radius must be larger than 0.0!" << std::endl;
         } else {
             max_search_radius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin, mEchoLevel);

@@ -70,14 +70,7 @@ public:
 
     InterfaceCommunicator(ModelPart& rModelPartOrigin,
                              MapperLocalSystemPointerVector& rMapperLocalSystems,
-                             Parameters SearchSettings)
-        : mrModelPartOrigin(rModelPartOrigin),
-          mrMapperLocalSystems(rMapperLocalSystems),
-          mSearchSettings(SearchSettings)
-    {
-        mEchoLevel = mSearchSettings["echo_level"].GetInt();
-        mMapperInterfaceInfosContainer.resize(1);
-    }
+                             Parameters SearchSettings);
 
     /// Destructor.
     virtual ~InterfaceCommunicator() = default;
