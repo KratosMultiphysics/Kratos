@@ -17,27 +17,18 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
 
         self.model = model
         self.settings = settings
+        self.freestream_properties = self._GenerateFreeStreamProperties(self.settings["properties"])
 
-        self.freestream_properties = self._GenerateFreeStreamProperties(settings["properties"])
 
+    def ExecuteInitialize(self):
+        "Ensures that free_stream_density, sound speed, and heat capacity ratio are consistent across processes"
+        for process_parameters in self.settings["boundary_conditions_process_list"]:
+            if process_parameters["process_name"].GetString() == "FarFieldProcess":
+                params = process_parameters["Parameters"]
+                self._AddParameterIfMissing(params, "free_stream_density", self.freestream_properties["rho"])
+                self._AddParameterIfMissing(params, "heat_capacity_ratio", self.freestream_properties["gamma"])
+                self._AddParameterIfMissing(params, "speed_of_sound", self.freestream_properties["c"])
 
-    def GetDefaultParameters(self):
-        return KratosMultiphysics.Parameters("""
-        {
-            "model_part_name" : "",
-            "volume_model_part_name" : "",
-            "skin_parts" : [],
-            "boundary_conditions_process_list" : [],
-            "element_type" : "compressible",
-            "properties" : {
-                "c_v" : 722.14,
-                "gamma" : 1.4,
-                "free_stream_density" : 1.19659,
-                "free_stream_momentum" : 0,
-                "free_stream_energy" : 2.53313e5
-            }
-        }
-        """)
 
     def ExecuteBeforeSolutionLoop(self):
         # Creating model part
@@ -76,6 +67,32 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
                 node.SetSolutionStepValue(variable, value)
 
         potential_mpart.CloneSolutionStep()
+
+    def GetDefaultParameters(self):
+        return KratosMultiphysics.Parameters("""
+        {
+            "model_part_name" : "",
+            "volume_model_part_name" : "",
+            "skin_parts" : [],
+            "boundary_conditions_process_list" : [],
+            "element_type" : "compressible",
+            "properties" : {
+                "c_v" : 722.14,
+                "gamma" : 1.4,
+                "free_stream_density" : 1.19659,
+                "free_stream_momentum" : 0,
+                "free_stream_energy" : 2.53313e5
+            }
+        }
+        """)
+
+
+    @classmethod
+    def _AddParameterIfMissing(cls, parameters, key, value):
+        if not parameters.Has(key):
+            parameters.AddEmptyValue(key)
+            parameters[key].SetDouble(value)
+
 
     @classmethod
     def _GenerateFreeStreamProperties(cls, settings):
