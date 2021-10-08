@@ -70,6 +70,7 @@ void RansOmegaAutomaticInletProcess::ExecuteInitializeSolutionStep()
 
     block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
         const double y = inner_prod(mWallLocation - rNode.Coordinates(), mWallOutwardPointintUnitNormal);
+        std::cout<< "y = " << y << ", coordinates = " << rNode.Coordinates() << std::endl;
         if (y > 1e-12) {
             const double tke_sqrt = std::sqrt(std::max(rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY), 0.0));
             const double omega_turbulent_mixing_length =  tke_sqrt / (c_mu_25 * mTurbulentMixingLength);
