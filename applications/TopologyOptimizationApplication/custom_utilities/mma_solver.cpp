@@ -329,6 +329,9 @@ void MMASolver::DualGrad(double *x, double *low, double *upp)
 
         for (int j = 0; j < m; j++) {
             grad[j] = -b[j] - a[j] * z - y[j];
+            std::cout << " consstraint value in b: "<< -1*b[j] << std::endl;
+            std::cout << " consstraint value in a: "<< -1*a[j]*z << std::endl;
+            std::cout << " consstraint value in y: "<< -1*y[j] << std::endl;
             for (int i = 0; i < nano; i++) {
                 grad[j] += pij[i * m + j] / (upp[i] - x[i]) + qij[i * m + j] / (x[i] - low[i]);
             }
@@ -470,6 +473,9 @@ void MMASolver::GenSub(const double *xval, const double *dfdx, const double *gx,
                 double pq = 0.001 * std::abs(dgdx[i * m + j]) + raa0 * xmamiinv;
                 pij[i * m + j] = std::pow(upp[i] - xval[i], 2.0) * (dgdxp + pq);
                 qij[i * m + j] = std::pow(xval[i] - low[i], 2.0) * (dgdxm + pq);
+                //double pq = 0.001 * std::abs(dgdx[i * m + j]) + raa0 * xmamiinv;
+               //  pij[i * m + j] = std::pow(upp[i] - xval[i], 2.0) * (1.001*dgdxp + 0.001*dgdxm + raa0*xmamiinv);
+               // qij[i * m + j] = std::pow(xval[i] - low[i], 2.0) * (0.001*dgdxp + 1.001*dgdxm + raa0*xmamiinv); 
             }
         }
 
@@ -480,7 +486,7 @@ void MMASolver::GenSub(const double *xval, const double *dfdx, const double *gx,
             for (int i = 0; i < nano; i++) 
             {
                 b[j] += pij[i * m + j] / (upp[i] - xval[i]) + qij[i * m + j] / (xval[i] - low[i]);
-                std::cout << " consstraint value in MMA: "<< b[j] << std::endl;
+                //std::cout << " consstraint value in MMA: "<< b[j] << std::endl;
             }
         }
 
