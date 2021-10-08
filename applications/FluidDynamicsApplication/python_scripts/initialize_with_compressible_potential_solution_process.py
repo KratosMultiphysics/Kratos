@@ -10,7 +10,8 @@ def Factory(settings, model):
 
 
 class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Process):
-    """Initializes the values by solving a steady-state problem with the
+    """
+    Initializes the values by solving a steady-state problem with the
     compressible potential flow analysis stage
 
     Parameters:
@@ -43,7 +44,8 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
 
 
     def ExecuteInitialize(self):
-        """Automatically sets certain values of FarFieldProcess according to the freestream properties
+        """
+        Automatically sets certain values of FarFieldProcess according to the freestream properties
 
         These values are:
          - free_stream_density
