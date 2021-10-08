@@ -2,12 +2,14 @@ import KratosMultiphysics
 from KratosMultiphysics.testing.utilities import ReadModelPart
 from KratosMultiphysics.FluidDynamicsApplication import initialize_with_compressible_potential_solution_process
 from KratosMultiphysics import KratosUnittest
+
+
 class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.TestCase):
-    def setUp(self):
-        pass
+    "Tests initialize_with_compressible_potential_flow_process"
 
     @KratosUnittest.skipIfApplicationsNotAvailable("CompressiblePotentialFlowApplication")
     def testAnalysisParameters(self):
+        "Ensures the process parameters are appropiately delivered to the analysis parameters."
         work_folder = "Square"
         work_file = "square"
         with KratosUnittest.WorkFolderScope(work_folder, __file__):
@@ -56,22 +58,27 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                 self.assertAlmostEqual(
                     node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X),
                     expected_v,
-                    places=7)
+                    places=2,
+                    msg="Unexpected VELOCITY_X for node #{}".format(node.Is))
                 self.assertAlmostEqual(
                     node.GetSolutionStepValue(KratosMultiphysics.DENSITY),
                     expected_rho,
-                    places=5)
+                    places=5,
+                    msg="Unexpected DENSITY for node #{}".format(node.Is))
                 self.assertAlmostEqual(
                     node.GetSolutionStepValue(KratosMultiphysics.MOMENTUM_X),
                     expected_v * expected_rho,
-                    places=2)
+                    places=2,
+                    msg="Unexpected MOMENTUM_X for node #{}".format(node.Is))
                 self.assertAlmostEqual(
                     node.GetSolutionStepValue(KratosMultiphysics.TOTAL_ENERGY),
                     expected_e,
-                    places=0) # Large value -> Lower absolute accuracy
+                    places=0,
+                    msg="Unexpected TOTAL_ENERGY for node #{}".format(node.Is)) # Large value -> Lower absolute accuracy
 
 
     def _AssertParametersEqual(self, A, B,):
+        "Raises an AssertionError when a parameter value or key is different between the two inputs"
         if A.IsArray():
             if A.size() != B.size():
                 raise AssertionError(":\n Different item count in array ({} != {})".format(A.size(), B.size()))
@@ -113,8 +120,6 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                 self._AssertParametersEqual(A[key_A], B[key_B])
             except AssertionError as err:
                 raise AssertionError("\"{}\" >> {}".format(key_A, err)) from None
-        
-        return
 
 
     @classmethod
