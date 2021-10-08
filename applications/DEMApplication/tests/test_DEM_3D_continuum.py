@@ -127,6 +127,7 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         self.rigid_face_submpart.AddConditions(rigid_face_part_conditions_id)
 
         self.rigid_face_submpart.SetValue(DEM.COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT, True)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_OPTION, True)
 
 class TestDEM3DContinuum(KratosUnittest.TestCase):
 
