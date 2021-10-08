@@ -117,6 +117,7 @@ class DEM3D_ForwardEulerTestSolution(KratosMultiphysics.DEMApplication.DEM_analy
         self.rigid_face_submpart.AddConditions(rigid_face_part_conditions_id)
 
         self.rigid_face_submpart.SetValue(DEM.COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT, True)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_OPTION, True)
 
 class DEM3D_TaylorTestSolution(DEM3D_ForwardEulerTestSolution):
 
