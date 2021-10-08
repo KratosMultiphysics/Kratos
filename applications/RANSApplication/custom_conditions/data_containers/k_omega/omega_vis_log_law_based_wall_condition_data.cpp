@@ -40,7 +40,6 @@ void OmegaVisLogBasedWallConditionData::Check(
 {
     KRATOS_TRY
     const auto& r_geometry = rCondition.GetGeometry();
-    const auto& r_properties = rCondition.GetProperties();
     const int number_of_nodes = r_geometry.PointsNumber();
 
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)

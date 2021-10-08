@@ -43,6 +43,7 @@
 #include "custom_processes/rans_wall_properties_update_process.h"
 #include "custom_processes/rans_compute_y_plus_process.h"
 #include "custom_processes/rans_vtk_output_process.h"
+#include "custom_processes/rans_omega_automatic_inlet_process.h"
 
 // Include base h
 #include "custom_python/add_custom_processes_to_python.h"
@@ -77,6 +78,9 @@ void AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<Model&, Parameters&>());
 
     py::class_<RansInitializeBossakPreviousStepVariableDerivatives, RansInitializeBossakPreviousStepVariableDerivatives::Pointer, Process>(m, "RansInitializeBossakPreviousStepVariableDerivatives")
+        .def(py::init<Model&, Parameters&>());
+
+    py::class_<RansOmegaAutomaticInletProcess, RansOmegaAutomaticInletProcess::Pointer, Process>(m, "RansOmegaAutomaticInletProcess")
         .def(py::init<Model&, Parameters&>());
 
     // adding RansFormulationProcesses

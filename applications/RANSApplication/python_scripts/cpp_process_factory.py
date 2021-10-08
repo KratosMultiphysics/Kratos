@@ -86,6 +86,10 @@ def Factory(settings, Model):
         [
             "VTKOutputProcess",
             KratosRANS.RansVTKOutputProcess
+        ],
+        [
+            "OmegaAutomaticInletProcess",
+            KratosRANS.RansOmegaAutomaticInletProcess
         ]
     ]
 
