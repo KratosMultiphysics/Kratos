@@ -1,0 +1,153 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "windows": {
+
+        "options": {
+            "shell": {
+                "executable": "C:\\Windows\\System32\\cmd.exe",
+                "args": [
+                    "/d", "/c",
+                    "C:\\Program^ Files^ ^(x86^)\\Microsoft^ Visual^ Studio\\2019\\Professional\\Common7\\Tools\\VsDevCmd.bat -arch=amd64", "", "&&" //This is for compiling in VS
+                    //,"C:\\Program^ Files^ ^(x86^)\\IntelSWTools\\compilers_and_libraries_2019.2.190\\windows\\bin\\ipsxe-comp-vars.bat intel64 vs2017","","&&" //This is for compiling in IC
+                ]
+            }
+        }
+    },
+    "tasks": [
+//-------------------------------------------------- Build
+        {
+            "label" : "Build",
+            "type" : "shell",
+            "windows" : {
+                "command": "${workspaceFolder}/scripts/ninja_configure.bat",
+                "problemMatcher":[
+                    {
+                        "owner": "cpp",
+                        "fileLocation": "absolute",
+                        "pattern":
+                        {
+                            "regexp": "^(.*)\\(([0-9]*)\\):(.*warning.*|.*error.*)$",
+                            "file": 1,
+                            "line": 2,
+                            "severity": 3,
+                            "message": 3
+                        }
+                    },
+                    {
+                        "owner": "cmake",
+                        "fileLocation": "relative",
+                        "pattern": {
+                            "regexp": "^CMake (.*) at(.*):([0-9]*) \\(file\\):",
+                            "file": 2,
+                            "line": 3,
+                            "severity": 1,
+                        }
+                    }
+                ]
+            },
+            "linux" : {
+                "command": "sh",
+                "args":["${workspaceFolder}/scripts/standard_configure.sh"],
+                "problemMatcher":[
+                    {
+                        "owner": "cpp",
+                        "fileLocation": "absolute",
+                        "pattern": {
+                            "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                            "file": 1,
+                            "line": 2,
+                            "column": 3,
+                            "severity": 4,
+                            "message": 5
+                        }
+                    },
+                    {
+                        "owner": "cmake",
+                        "fileLocation": "relative",
+                        "pattern": {
+                            "regexp": "^CMake (.*) at(.*):([0-9]*) \\(file\\):",
+                            "file": 2,
+                            "line": 3,
+                            "severity": 1,
+                        }
+                    }
+                ]
+            },
+
+            "options":{
+                "env":{
+                    "KRATOS_INSTALL_PYTHON_USING_LINKS":"ON",
+                    "BOOST_ROOT":"C:/workspaces/Poesis/external_libraries/boost",
+                    "KRATOS_BUILD_TYPE":"${input:BuildType}"
+                }
+            },
+            "group": {
+                "kind":"build",
+                "isDefault": true
+            },
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "always"//"silent"
+            }
+        },
+//-----------------------------------------------------------------------------------------
+        {
+            "label": "Run Tests",
+            "type": "shell",
+            "windows":{
+                "command": "python.exe"
+            },
+            "linux":{
+                "command": "python3"
+            },
+            "args": ["${workspaceFolder}/bin/${input:BuildType}/KratosMultiphysics/run_tests.py"],
+            "options":{
+                "cwd": "${workspaceFolder}/bin/${input:BuildType}/KratosMultiphysics",
+                "env":{
+                    "OMP_NUM_THREADS":"1",
+                    "LD_LIBRARY_PATH":"${workspaceFolder}/bin/${input:BuildType}/libs",
+                    "PYTHONPATH":"${workspaceFolder}/bin/${input:BuildType}"
+                }
+            },
+            "group": "test",
+            "presentation": {
+                "reveal": "always"//"silent"
+            }
+        },
+//-----------------------------------------------------------------------------------------
+        {
+            "label": "Run CurrentFile",
+            "type": "shell",
+            "windows":{
+                "command": "python.exe"
+            },
+            "linux":{
+                "command": "python3"
+            },
+            "args": ["${file}"],
+            "options":{
+                "cwd": "${fileDirname}",
+                "env":{
+                    "LD_LIBRARY_PATH":"${workspaceFolder}/bin/${input:BuildType}/libs",
+                    "PYTHONPATH":"${workspaceFolder}/bin/${input:BuildType}"
+                }
+            },
+            "group": "test",
+            "presentation": {
+                "reveal": "always"//"silent"
+            }
+        }
+    ],
+    //-----------------------------------------------------------------------------------------
+    "inputs": [
+        {
+            "id": "BuildType",
+            "description": "BuildType to be done/used",
+            "default": "RelWithDebInfo",
+            "options":["RelWithDebInfo","Release","FullDebug"],
+            "type": "pickString"
+        }
+    ]
+}
