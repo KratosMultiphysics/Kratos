@@ -37,11 +37,6 @@ End NodalData
 
 Begin SubModelPart 1 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: fixed_DEM
   Begin SubModelPartData // DEM-VelocityBC. Group name: fixed_DEM
-    IMPOSED_VELOCITY_X_VALUE 0.01
-    IMPOSED_VELOCITY_Y_VALUE 0.0
-    IMPOSED_VELOCITY_Z_VALUE 0.0
-    VELOCITY_START_TIME 0.0
-    VELOCITY_STOP_TIME 100.0
   End SubModelPartData
   Begin SubModelPartNodes
          1
@@ -51,11 +46,6 @@ End SubModelPart
 
 Begin SubModelPart 2 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: fixed_DEM
   Begin SubModelPartData // DEM-VelocityBC. Group name: fixed_DEM
-    IMPOSED_VELOCITY_X_VALUE 0.1
-    IMPOSED_VELOCITY_Y_VALUE 0.0
-    IMPOSED_VELOCITY_Z_VALUE 0.0
-    VELOCITY_START_TIME 0.0
-    VELOCITY_STOP_TIME 100.0
   End SubModelPartData
   Begin SubModelPartNodes
          3
@@ -65,11 +55,6 @@ End SubModelPart
 
 Begin SubModelPart 3 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: fixed_DEM
   Begin SubModelPartData // DEM-VelocityBC. Group name: fixed_DEM
-    IMPOSED_VELOCITY_X_VALUE 1.0
-    IMPOSED_VELOCITY_Y_VALUE 0.0
-    IMPOSED_VELOCITY_Z_VALUE 0.0
-    VELOCITY_START_TIME 0.0
-    VELOCITY_STOP_TIME 100.0
   End SubModelPartData
   Begin SubModelPartNodes
          5
