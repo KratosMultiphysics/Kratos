@@ -6,8 +6,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
-//                   Franziska Wahl
+//  Main authors:    Franziska Wahl
 //
 
 // System includes
@@ -17,19 +16,15 @@
 // Project includes
 #include "includes/checks.h"
 #include "includes/define.h"
-#include "includes/kratos_flags.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
 #include "includes/convection_diffusion_settings.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/element_size_calculator.h"
+#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 
 // Application includes
 #include "custom_elements/embedded_laplacian_element.h"
 #include "convection_diffusion_application_variables.h"
-
-#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
-#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 
 namespace Kratos
 {
@@ -97,7 +92,7 @@ void EmbeddedLaplacianElement<TTDim>::CalculateLocalSystem(
         InitializeGeometryData(data);
 
         // Resizing and resetting the LHS
-        if(rLeftHandSideMatrix.size1() != NumNodes)
+        if(rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
             rLeftHandSideMatrix.resize(NumNodes,NumNodes,false);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes,NumNodes);
 
@@ -182,7 +177,7 @@ void EmbeddedLaplacianElement<TTDim>::InitializeGeometryData(
         this->GetIntegrationMethod());
 
     // Normalize the interface normals
-    const double h = ElementSizeCalculator<TTDim,NumNodes>::MinimumElementSize(this->GetGeometry());
+    const double h = ElementSizeCalculator<TTDim,NumNodes>::AverageElementSize(this->GetGeometry());
     const double tolerance = std::pow(1e-3 * h, TTDim-1);
     this->NormalizeInterfaceNormals(rData.PositiveInterfaceUnitNormals, tolerance);
 }
@@ -208,9 +203,9 @@ void EmbeddedLaplacianElement<TTDim>::AddPositiveElementSide(
     const auto& r_geom = GetGeometry();
     auto& r_settings = *rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
 
-    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
-    const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable();
-    const Variable<double>& r_volume_source_var = r_settings.GetVolumeSourceVariable();
+    const auto& r_unknown_var = r_settings.GetUnknownVariable();
+    const auto& r_diffusivity_var = r_settings.GetDiffusionVariable();
+    const auto& r_volume_source_var = r_settings.GetVolumeSourceVariable();
 
     // Get heat flux, conductivity and temp (RHS = ExternalSources - K*temp) nodal vectors
     Vector heat_flux_local(NumNodes);
@@ -256,8 +251,8 @@ void EmbeddedLaplacianElement<TTDim>::AddPositiveInterfaceTerms(
     const auto& r_geom = GetGeometry();
     auto& r_settings = *rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
 
-    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
-    const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable();
+    const auto& r_unknown_var = r_settings.GetUnknownVariable();
+    const auto& r_diffusivity_var = r_settings.GetDiffusionVariable();
 
     // Get conductivity and temperature nodal vectors
     Vector nodal_conductivity(NumNodes);
@@ -304,8 +299,8 @@ void EmbeddedLaplacianElement<TTDim>::AddNitscheBoundaryTerms(
     const auto& r_geom = GetGeometry();
     auto& r_settings = *rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
 
-    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
-    const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable();
+    const auto& r_unknown_var = r_settings.GetUnknownVariable();
+    const auto& r_diffusivity_var = r_settings.GetDiffusionVariable();
 
     // Get conductivity and temperature nodal vectors
     Vector nodal_conductivity(NumNodes);
@@ -320,7 +315,7 @@ void EmbeddedLaplacianElement<TTDim>::AddNitscheBoundaryTerms(
     // Dirichlet boundary value
     const double temp_bc = GetValue(EMBEDDED_SCALAR);
     // Measure of element size
-    const double h = ElementSizeCalculator<TTDim,NumNodes>::MinimumElementSize(r_geom);
+    const double h = ElementSizeCalculator<TTDim,NumNodes>::AverageElementSize(r_geom);
 
     // Iterate over the positive side interface integration points 
     const std::size_t number_of_positive_gauss_points = rData.PositiveInterfaceWeights.size();
@@ -402,12 +397,10 @@ void EmbeddedElementData<TTDim>::Initialize(
     // Number and indices of positive and negative distance function values
     NumPositiveNodes = 0;
     NumNegativeNodes = 0;
-    PositiveIndices.clear();
 
     for (std::size_t i = 0; i < NumNodes; ++i){
         if (NodalDistances[i] > 0.0){
             NumPositiveNodes++;
-            PositiveIndices.push_back(i);
         } else {
             NumNegativeNodes++;
         }

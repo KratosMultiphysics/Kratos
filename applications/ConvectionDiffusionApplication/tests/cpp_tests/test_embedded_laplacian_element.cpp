@@ -6,8 +6,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
-//                   Franziska Wahl
+//  Main authors:    Franziska Wahl
 //
 
 // System includes
@@ -31,7 +30,7 @@ namespace Testing
     void SetEmbeddedLaplacianElementTestModelPart(ModelPart &rModelPart)
     {
         // Set buffer size
-        rModelPart.SetBufferSize(2);
+        rModelPart.SetBufferSize(1);
 
         // Set convection diffusion settings
         ConvectionDiffusionSettings::Pointer p_conv_dff_set = Kratos::make_shared<ConvectionDiffusionSettings>();
