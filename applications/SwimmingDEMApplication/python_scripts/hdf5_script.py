@@ -5,7 +5,6 @@ import numpy as np
 import h5py
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.DEMApplication as DEM
-import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import KratosMultiphysics.FluidDynamicsApplication as Fluid
 
 class ErrorProjectionPostProcessTool(object):

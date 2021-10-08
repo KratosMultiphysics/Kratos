@@ -5,7 +5,6 @@ import KratosMultiphysics
 import numpy as np
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.SwimmingDEMApplication as SDEM
 from KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis import SwimmingDEMAnalysis
 import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
 # This utility will control the execution scope
