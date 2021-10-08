@@ -10,9 +10,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
 
     @KratosUnittest.skipIfApplicationsNotAvailable("CompressiblePotentialFlowApplication")
     def testAnalysisParameters(self):
-        """
-        Ensures the process parameters are appropiately delivered to the analysis parameters.
-        """
+        """Ensures the process parameters are appropiately delivered to the analysis parameters."""
         work_folder = "Square"
         work_file = "square"
         with KratosUnittest.WorkFolderScope(work_folder, __file__):
@@ -31,7 +29,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
 
     @KratosUnittest.skipIfApplicationsNotAvailable("CompressiblePotentialFlowApplication")
     def testProcess(self):
-        """Ensures the whole process functions when given expected parameters"""
+        """Ensures the whole process functions when given expected parameters."""
         work_folder = "Square"
         work_file = "square"
         with KratosUnittest.WorkFolderScope(work_folder, __file__):
@@ -79,7 +77,8 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
 
 
     def _AssertParametersEqual(self, A, B, places=7):
-        """Raises an AssertionError when a parameter value or key is different between the two inputs.
+        """
+        Raises an AssertionError when a parameter value or key is different between the two inputs.
 
         Args:
             A: The first Kratos Parameters object to compare.

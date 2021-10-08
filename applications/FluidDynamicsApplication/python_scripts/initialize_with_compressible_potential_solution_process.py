@@ -37,6 +37,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
     """
 
     def __init__(self, model, settings):
+        """Stores the model and the validated parameters"""
         super().__init__()
         settings.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
 
