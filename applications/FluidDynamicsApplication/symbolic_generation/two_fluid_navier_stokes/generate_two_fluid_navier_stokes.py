@@ -1,6 +1,6 @@
 from sympy import *
 from KratosMultiphysics import *
-from sympy_fe_utilities import *
+from KratosMultiphysics.sympy_fe_utilities import *
 
 ## Settings explanation
 # DIMENSION TO COMPUTE:
@@ -84,7 +84,8 @@ for dim in dim_vector:
     stab_c1 = Symbol('stab_c1', positive = True)
     stab_c2 = Symbol('stab_c2', positive = True)
     K_darcy = Symbol('K_darcy', positive = True)
-
+    volume_error_ratio = Symbol('volume_error_ratio')
+    
     ## Backward differences coefficients
     bdf0 = Symbol('bdf0')
     bdf1 = Symbol('bdf1')
@@ -148,9 +149,9 @@ for dim in dim_vector:
     rv_galerkin -= w_gauss.transpose()*K_darcy*v_gauss #Darcy Term
 
     if (divide_by_rho):
-        rv_galerkin -= q_gauss*div_v
+        rv_galerkin += q_gauss*(volume_error_ratio - div_v[0,0])
     else:
-        rv_galerkin -= rho*q_gauss*div_v
+        rv_galerkin += rho*q_gauss*(volume_error_ratio - div_v[0,0])
 
     # Stabilization functional terms
     # Momentum conservation residual
@@ -159,9 +160,9 @@ for dim in dim_vector:
 
     # Mass conservation residual
     if (divide_by_rho):
-        mas_residual = -div_v
+        mas_residual = -div_v[0,0] + volume_error_ratio
     else:
-        mas_residual = -rho*div_v
+        mas_residual = -rho*div_v[0,0] + rho*volume_error_ratio
 
     vel_subscale = tau1*vel_residual
     mas_subscale = tau2*mas_residual
@@ -219,11 +220,11 @@ for dim in dim_vector:
     rv_galerkin_enriched = div_w*penr_gauss
 
     if (divide_by_rho):
-        rv_galerkin_enriched += -qenr_gauss*div_v
+        rv_galerkin_enriched += qenr_gauss*(volume_error_ratio - div_v[0,0])
         rv_stab_enriched = grad_qenr.transpose()*vel_subscale_enr
         rv_stab_enriched -= grad_q.transpose()*tau1*grad_penr
     else:
-        rv_galerkin_enriched += -qenr_gauss*rho*div_v
+        rv_galerkin_enriched += qenr_gauss*rho*(volume_error_ratio - div_v[0,0])
         rv_stab_enriched = rho*grad_qenr.transpose()*vel_subscale_enr
         rv_stab_enriched -= rho*grad_q.transpose()*tau1*grad_penr
 

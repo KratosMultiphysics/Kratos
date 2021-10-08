@@ -27,9 +27,6 @@
 
 namespace Kratos
 {
-///@addtogroup ShallowWaterApplication
-///@{
-
 ///@name Kratos Globals
 ///@{
 
@@ -38,17 +35,8 @@ namespace Kratos
 ///@{
 
 ///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
-
 
 /** 
  * @class WindWaterFriction
@@ -69,16 +57,23 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /**
+     * @brief Default Constructor
+     */
     WindWaterFriction() {}
 
-    /// Destructor.
+    /**
+     * @brief Constructor with data
+     */
+    WindWaterFriction(
+        const GeometryType& rGeometry,
+        const Properties& rProperty,
+        const ProcessInfo& rProcessInfo);
+
+    /**
+     * @brief Destructor
+     */
     virtual ~WindWaterFriction() {}
-
-    ///@}
-    ///@name Operators
-    ///@{
-
 
     ///@}
     ///@name Operations
@@ -89,37 +84,22 @@ public:
      */
     void Initialize(
         const GeometryType& rGeometry,
+        const Properties& rProperty,
         const ProcessInfo& rProcessInfo) override;
 
     /**
      * @brief Calculate the LHS coefficient for the given data
-     * @param rHeight The layer depth
-     * @param rVector The layer velocity or momentum
+     * @param rVector The layer velocity
      * @return The LHS coefficient
      */
-    double CalculateLHS(
-        const array_1d<double,3>& rInnerVelocity,
-        const array_1d<double,3>& rOuterVelocity) override;
+    double CalculateLHS(const array_1d<double,3>& rVelocity) override;
 
     /**
      * @brief Calculate the RHS coefficient for the given data
-     * @param rHeight The layer depth
-     * @param rVector The layer velocity or momentum
+     * @param rVector The layer velocity
      * @return The components of the RHS coefficients
      */
-    array_1d<double,3> CalculateRHS(
-        const array_1d<double,3>& rInnerVelocity,
-        const array_1d<double,3>& rOuterVelocity) override;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
+    array_1d<double,3> CalculateRHS(const array_1d<double,3>& rVelocity) override;
 
     ///@}
     ///@name Input and output
@@ -134,24 +114,6 @@ public:
         buffer << "WindWaterFriction";
         return buffer.str();
     }
-    
-    /**
-     * @brief Print information about this object.
-     */
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "WindWaterFriction";
-    }
-
-    /**
-     * @brief Print object's data.
-     */
-    void PrintData(std::ostream& rOStream) const override {}
-
-    ///@}
-    ///@name Friends
-    ///@{
-
 
     ///@}
 
@@ -162,6 +124,7 @@ private:
 
     double mAirDensity;
     double mWaterDensity;
+    array_1d<double,3> mWind;
 
     ///@}
     ///@name Un accessible methods
@@ -175,7 +138,6 @@ private:
 
     /// Copy constructor.
     WindWaterFriction(WindWaterFriction const& rOther) {}
-
 
     ///@}
 
@@ -203,8 +165,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 ///@}
-
-///@} addtogroup block
 
 }  // namespace Kratos.
 
