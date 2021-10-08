@@ -229,7 +229,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         wake_stl_mesh = mesh.Mesh.from_multi_file(self.wake_stl_file_name)
 
         z = 0.003#-1.44e-3#-2.87e-3#-1e-4 #-1.44e-3
-        y = -0.001
+        y = 0.0
         x = -0.001#-3e-4
 
         # Looping over stl meshes
@@ -490,6 +490,9 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             self.body_model_part.GetRootModelPart().RemoveSubModelPart("wake_elements_model_part")
             # self.body_model_part.GetRootModelPart().RemoveSubModelPart("wake_model_part")
             # self.body_model_part.GetRootModelPart().RemoveSubModelPart("Wake3D_Wake_Auto1")
+            self.main_model_part.RemoveSubModelPart('wake_sub_model_part')
+            self.main_model_part.RemoveSubModelPart('trailing_edge_sub_model_part')
+            self.main_model_part.RemoveSubModelPart('fluid_computational_model_part')
 
     def _CallMMG(self):
 
