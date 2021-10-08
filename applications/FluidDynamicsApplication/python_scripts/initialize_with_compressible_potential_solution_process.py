@@ -55,7 +55,10 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
         modeler.GenerateModelPart(original_model_part, potential_mpart, "Element2D3N", "LineCondition2D2N")
 
-        # potential_mpart.ProcessInfo = pre_merger_pinfo
+        # Removing outer solver interfearence
+        if potential_mpart.HasSubModelPart("fluid_computational_model_part"):
+            potential_mpart.RemoveSubModelPart("fluid_computational_model_part")
+        
 
         # Running analysis
         self.analysis.Run()
