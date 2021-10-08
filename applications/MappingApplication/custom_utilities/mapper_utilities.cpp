@@ -49,21 +49,19 @@ void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
     rModelPartCommunicator.SynchronizeNonHistoricalVariable(INTERFACE_EQUATION_ID);
 }
 
-template <typename T>
-double ComputeMaxEdgeLengthLocal(const T& rEntityContainer)
+template <typename TContainer>
+double ComputeMaxEdgeLengthLocal(const TContainer& rEntityContainer)
 {
-    double max_element_size = 0.0;
     // Loop through each edge of a geometrical entity ONCE
-    for (const auto& r_entity : rEntityContainer) {
-        for (std::size_t i = 0; i < (r_entity.GetGeometry().size() - 1); ++i) {
-            for (std::size_t j = i + 1; j < r_entity.GetGeometry().size(); ++j) {
-                double edge_length = ComputeDistance(r_entity.GetGeometry()[i].Coordinates(),
-                                                        r_entity.GetGeometry()[j].Coordinates());
-                max_element_size = std::max(max_element_size, edge_length);
+    return block_for_each<MaxReduction<double>>(rEntityContainer, [](const typename TContainer::value_type& rEntity){
+        for (std::size_t i = 0; i < (rEntity.GetGeometry().size() - 1); ++i) {
+            for (std::size_t j = i + 1; j < rEntity.GetGeometry().size(); ++j) {
+                return ComputeDistance(rEntity.GetGeometry()[i].Coordinates(),
+                                       rEntity.GetGeometry()[j].Coordinates());
             }
         }
-    }
-    return max_element_size;
+        return 0.0; // in case the geometry is a point
+    });
 }
 
 double ComputeSearchRadius(const ModelPart& rModelPart, const int EchoLevel)
