@@ -6,8 +6,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
-//                   Franziska Wahl
+//  Main authors:    Franziska Wahl
 //
 
 // System includes
@@ -17,25 +16,21 @@
 // Project includes
 #include "includes/checks.h"
 #include "includes/define.h"
-#include "includes/kratos_flags.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
 #include "includes/convection_diffusion_settings.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/element_size_calculator.h"
-
-// Application includes
-#include "custom_elements/laplacian_embedded_element.h"
-#include "convection_diffusion_application_variables.h"
-
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
+
+// Application includes
+#include "custom_elements/embedded_laplacian_element.h"
+#include "convection_diffusion_application_variables.h"
 
 namespace Kratos
 {
 
 template<std::size_t TTDim>
-LaplacianEmbeddedElement<TTDim>::LaplacianEmbeddedElement(
+EmbeddedLaplacianElement<TTDim>::EmbeddedLaplacianElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : LaplacianElement(
@@ -45,7 +40,7 @@ LaplacianEmbeddedElement<TTDim>::LaplacianEmbeddedElement(
 }
 
 template<std::size_t TTDim>
-LaplacianEmbeddedElement<TTDim>::LaplacianEmbeddedElement(
+EmbeddedLaplacianElement<TTDim>::EmbeddedLaplacianElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties)
@@ -57,30 +52,30 @@ LaplacianEmbeddedElement<TTDim>::LaplacianEmbeddedElement(
 }
 
 template<std::size_t TTDim>
-Element::Pointer LaplacianEmbeddedElement<TTDim>::Create(
+Element::Pointer EmbeddedLaplacianElement<TTDim>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<LaplacianEmbeddedElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<EmbeddedLaplacianElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 template<std::size_t TTDim>
-Element::Pointer LaplacianEmbeddedElement<TTDim>::Create(
+Element::Pointer EmbeddedLaplacianElement<TTDim>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<LaplacianEmbeddedElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<EmbeddedLaplacianElement>(NewId, pGeom, pProperties);
 }
 
 template<std::size_t TTDim>
-LaplacianEmbeddedElement<TTDim>::~LaplacianEmbeddedElement()
+EmbeddedLaplacianElement<TTDim>::~EmbeddedLaplacianElement()
 {
 }
 
 template<std::size_t TTDim>
-void LaplacianEmbeddedElement<TTDim>::CalculateLocalSystem(
+void EmbeddedLaplacianElement<TTDim>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -97,7 +92,7 @@ void LaplacianEmbeddedElement<TTDim>::CalculateLocalSystem(
         InitializeGeometryData(data);
 
         // Resizing and resetting the LHS
-        if(rLeftHandSideMatrix.size1() != NumNodes)
+        if(rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
             rLeftHandSideMatrix.resize(NumNodes,NumNodes,false);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes,NumNodes);
 
@@ -124,7 +119,7 @@ void LaplacianEmbeddedElement<TTDim>::CalculateLocalSystem(
 }
 
 template<std::size_t TTDim>
-void LaplacianEmbeddedElement<TTDim>::CalculateLeftHandSide(
+void EmbeddedLaplacianElement<TTDim>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -133,7 +128,7 @@ void LaplacianEmbeddedElement<TTDim>::CalculateLeftHandSide(
 }
 
 template<std::size_t TTDim>
-void LaplacianEmbeddedElement<TTDim>::CalculateRightHandSide(
+void EmbeddedLaplacianElement<TTDim>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -142,7 +137,7 @@ void LaplacianEmbeddedElement<TTDim>::CalculateRightHandSide(
 }
 
 template<std::size_t TTDim>
-int LaplacianEmbeddedElement<TTDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
+int EmbeddedLaplacianElement<TTDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     // Base Laplacian element check
     return BaseType::Check(rCurrentProcessInfo);
@@ -153,12 +148,12 @@ int LaplacianEmbeddedElement<TTDim>::Check(const ProcessInfo& rCurrentProcessInf
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<std::size_t TTDim>
-void LaplacianEmbeddedElement<TTDim>::InitializeGeometryData(
+void EmbeddedLaplacianElement<TTDim>::InitializeGeometryData(
     EmbeddedElementData& rData)
 {
     // Get shape function calculator
     ModifiedShapeFunctions::Pointer p_calculator =
-        LaplacianEmbeddedInternals::GetContinuousShapeFunctionCalculator<TTDim, NumNodes>(
+        EmbeddedLaplacianInternals::GetContinuousShapeFunctionCalculator<TTDim, NumNodes>(
             *this,
             rData.NodalDistances);
 
@@ -182,13 +177,13 @@ void LaplacianEmbeddedElement<TTDim>::InitializeGeometryData(
         this->GetIntegrationMethod());
 
     // Normalize the interface normals
-    const double h = ElementSizeCalculator<TTDim,NumNodes>::MinimumElementSize(this->GetGeometry());
+    const double h = ElementSizeCalculator<TTDim,NumNodes>::AverageElementSize(this->GetGeometry());
     const double tolerance = std::pow(1e-3 * h, TTDim-1);
     this->NormalizeInterfaceNormals(rData.PositiveInterfaceUnitNormals, tolerance);
 }
 
 template<std::size_t TTDim>
-void LaplacianEmbeddedElement<TTDim>::NormalizeInterfaceNormals(
+void EmbeddedLaplacianElement<TTDim>::NormalizeInterfaceNormals(
     typename EmbeddedElementData::InterfaceNormalsType& rNormals,
     double Tolerance) const
 {
@@ -199,7 +194,7 @@ void LaplacianEmbeddedElement<TTDim>::NormalizeInterfaceNormals(
 }
 
 template<std::size_t TTDim>
-void LaplacianEmbeddedElement<TTDim>::AddPositiveElementSide(
+void EmbeddedLaplacianElement<TTDim>::AddPositiveElementSide(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -208,9 +203,9 @@ void LaplacianEmbeddedElement<TTDim>::AddPositiveElementSide(
     const auto& r_geom = GetGeometry();
     auto& r_settings = *rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
 
-    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
-    const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable();
-    const Variable<double>& r_volume_source_var = r_settings.GetVolumeSourceVariable();
+    const auto& r_unknown_var = r_settings.GetUnknownVariable();
+    const auto& r_diffusivity_var = r_settings.GetDiffusionVariable();
+    const auto& r_volume_source_var = r_settings.GetVolumeSourceVariable();
 
     // Get heat flux, conductivity and temp (RHS = ExternalSources - K*temp) nodal vectors
     Vector heat_flux_local(NumNodes);
@@ -247,7 +242,7 @@ void LaplacianEmbeddedElement<TTDim>::AddPositiveElementSide(
 }
 
 template<std::size_t TTDim>
-void LaplacianEmbeddedElement<TTDim>::AddPositiveInterfaceTerms(
+void EmbeddedLaplacianElement<TTDim>::AddPositiveInterfaceTerms(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -256,8 +251,8 @@ void LaplacianEmbeddedElement<TTDim>::AddPositiveInterfaceTerms(
     const auto& r_geom = GetGeometry();
     auto& r_settings = *rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
 
-    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
-    const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable();
+    const auto& r_unknown_var = r_settings.GetUnknownVariable();
+    const auto& r_diffusivity_var = r_settings.GetDiffusionVariable();
 
     // Get conductivity and temperature nodal vectors
     Vector nodal_conductivity(NumNodes);
@@ -295,7 +290,7 @@ void LaplacianEmbeddedElement<TTDim>::AddPositiveInterfaceTerms(
 }
 
 template<std::size_t TTDim>
-void LaplacianEmbeddedElement<TTDim>::AddNitscheBoundaryTerms(
+void EmbeddedLaplacianElement<TTDim>::AddNitscheBoundaryTerms(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -304,8 +299,8 @@ void LaplacianEmbeddedElement<TTDim>::AddNitscheBoundaryTerms(
     const auto& r_geom = GetGeometry();
     auto& r_settings = *rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
 
-    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
-    const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable();
+    const auto& r_unknown_var = r_settings.GetUnknownVariable();
+    const auto& r_diffusivity_var = r_settings.GetDiffusionVariable();
 
     // Get conductivity and temperature nodal vectors
     Vector nodal_conductivity(NumNodes);
@@ -320,7 +315,7 @@ void LaplacianEmbeddedElement<TTDim>::AddNitscheBoundaryTerms(
     // Dirichlet boundary value
     const double temp_bc = GetValue(EMBEDDED_SCALAR);
     // Measure of element size
-    const double h = ElementSizeCalculator<TTDim,NumNodes>::MinimumElementSize(r_geom);
+    const double h = ElementSizeCalculator<TTDim,NumNodes>::AverageElementSize(r_geom);
 
     // Iterate over the positive side interface integration points 
     const std::size_t number_of_positive_gauss_points = rData.PositiveInterfaceWeights.size();
@@ -367,7 +362,7 @@ void LaplacianEmbeddedElement<TTDim>::AddNitscheBoundaryTerms(
 // Helper functions for template specialization
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace LaplacianEmbeddedInternals {
+namespace EmbeddedLaplacianInternals {
 
 template <>
 ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<2, 3>(
@@ -402,12 +397,10 @@ void EmbeddedElementData<TTDim>::Initialize(
     // Number and indices of positive and negative distance function values
     NumPositiveNodes = 0;
     NumNegativeNodes = 0;
-    PositiveIndices.clear();
 
     for (std::size_t i = 0; i < NumNodes; ++i){
         if (NodalDistances[i] > 0.0){
             NumPositiveNodes++;
-            PositiveIndices.push_back(i);
         } else {
             NumNegativeNodes++;
         }
@@ -420,13 +413,13 @@ bool EmbeddedElementData<TTDim>::IsSplit()
     return (NumPositiveNodes > 0) && (NumNegativeNodes > 0);
 }
 
-} // Namespace LaplacianEmbeddedInternals
+} // Namespace EmbeddedLaplacianInternals
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
-template class LaplacianEmbeddedElement<2>;
-template class LaplacianEmbeddedElement<3>;
+template class EmbeddedLaplacianElement<2>;
+template class EmbeddedLaplacianElement<3>;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

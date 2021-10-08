@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "utilities/parallel_utilities.h"
 #include "interface_communicator.h"
 
 namespace Kratos {
@@ -258,51 +259,66 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
 {
     KRATOS_TRY;
 
-    SizeType num_interface_obj_bin = mpInterfaceObjectsOrigin->size();
+    const SizeType num_interface_obj_bin = mpInterfaceObjectsOrigin->size();
 
-    KRATOS_ERROR_IF(mSearchRadius < 0.0) << "Search-Radius has to be larger than 0.0!"
-        << std::endl;
+    KRATOS_ERROR_IF(mSearchRadius < 0.0) << "Search-Radius has to be larger than 0.0!" << std::endl;
 
     int sum_num_results = 0;
     int sum_num_searched_objects = 0;
 
     if (num_interface_obj_bin > 0) { // this partition has a bin structure
-        InterfaceObjectConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
-        auto interface_obj(Kratos::make_shared<InterfaceObject>(array_1d<double, 3>(0.0)));
+
+        struct SearchTLS {
+            explicit SearchTLS(std::size_t MaxNeighborResults) : mMaxNeighborResults(MaxNeighborResults) {}
+
+            // the IndexPartition uses the CopyConstructor to create the thread local storage
+            // hence using it to initialize the members
+            SearchTLS(const SearchTLS& rOther)
+            {
+                mNeighborResults.resize(rOther.mMaxNeighborResults);
+                mInterfaceObject = Kratos::make_shared<InterfaceObject>(array_1d<double, 3>(0.0));
+            }
+
+            InterfaceObjectConfigure::ResultContainerType mNeighborResults;
+            Kratos::shared_ptr<InterfaceObject> mInterfaceObject;
+
+        private:
+            std::size_t mMaxNeighborResults = 0;
+        };
 
         for (auto& r_interface_infos_rank : mMapperInterfaceInfosContainer) { // loop the ranks
-            // #pragma omp parallel for // TODO this requires to make some things thread-local!
-            // it makes more sense to omp this loop even though it is not the outermost one ...
-            for (IndexType i=0; i<r_interface_infos_rank.size(); ++i) {
-                sum_num_searched_objects++;
+            sum_num_searched_objects += r_interface_infos_rank.size();
+            // intentionally not the outermost loop is parallelized as this one can be large
+            sum_num_results += IndexPartition<std::size_t>(r_interface_infos_rank.size()).for_each<SumReduction<int>>(
+                SearchTLS(num_interface_obj_bin), [
+                &r_interface_infos_rank,
+                num_interface_obj_bin,
+                this](const std::size_t Index, SearchTLS& rTLS) {
+                auto& r_interface_info = r_interface_infos_rank[Index];
 
-                auto& r_interface_info = r_interface_infos_rank[i];
-
-                interface_obj->Coordinates() = r_interface_info->Coordinates();
-                double search_radius = mSearchRadius; // reset search radius // TODO check this
+                rTLS.mInterfaceObject->Coordinates() = r_interface_info->Coordinates();
 
                 // reset the containers
-                auto results_itr = neighbor_results.begin();
+                auto results_itr = rTLS.mNeighborResults.begin();
 
                 const SizeType number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
-                    interface_obj, search_radius, results_itr,
+                    rTLS.mInterfaceObject, mSearchRadius, results_itr,
                     num_interface_obj_bin);
 
-                sum_num_results += number_of_results;
-
                 for (IndexType j=0; j<number_of_results; ++j) {
-                    r_interface_info->ProcessSearchResult(*(neighbor_results[j]));
+                    r_interface_info->ProcessSearchResult(*(rTLS.mNeighborResults[j]));
                 }
 
                 // If the search did not result in a "valid" result (e.g. the projection fails)
                 // we try to compute an approximation
                 if (!r_interface_info->GetLocalSearchWasSuccessful()) {
                     for (IndexType j=0; j<number_of_results; ++j) {
-                        r_interface_info->ProcessSearchResultForApproximation(
-                            *(neighbor_results[j]));
+                        r_interface_info->ProcessSearchResultForApproximation(*(rTLS.mNeighborResults[j]));
                     }
                 }
-            }
+
+                return number_of_results;
+            });
         }
     }
 

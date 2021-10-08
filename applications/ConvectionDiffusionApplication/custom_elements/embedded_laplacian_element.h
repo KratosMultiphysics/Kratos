@@ -6,12 +6,11 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
-//                   Franziska Wahl
+//  Main authors:    Franziska Wahl
 //
 
-#ifndef KRATOS_LAPLACIAN_EMBEDDED_ELEMENT_H_INCLUDED
-#define  KRATOS_LAPLACIAN_EMBEDDED_ELEMENT_H_INCLUDED
+#ifndef KRATOS_EMBEDDED_LAPLACIAN_ELEMENT_H_INCLUDED
+#define  KRATOS_EMBEDDED_LAPLACIAN_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -47,20 +46,80 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-// Forward declaration of data container class
-namespace LaplacianEmbeddedInternals {
-    template<std::size_t TDim> class EmbeddedElementData;
-} 
+namespace EmbeddedLaplacianInternals {
+
+    template <size_t TDim, size_t TNumNodes>
+    ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator(
+        const Element &rElement,
+        const Vector &rNodalDistances);
+
+    // Data container class
+    template<std::size_t TDim>
+    class EmbeddedElementData
+    {
+    public:
+        ///@name Type Definitions
+        ///@{
+
+        static constexpr std::size_t NumNodes = TDim + 1;
+
+        typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+        typedef std::vector<array_1d<double,3>> InterfaceNormalsType;
+        typedef array_1d<double,NumNodes> NodalScalarData;
+
+        ///@}
+        ///@name Public Members
+        ///@{
+
+        double PenaltyCoefficient;
+
+        NodalScalarData NodalDistances;
+
+        Matrix PositiveSideN;
+        ShapeFunctionsGradientsType PositiveSideDNDX;
+        Vector PositiveSideWeights;
+
+        Matrix PositiveInterfaceN;
+        ShapeFunctionsGradientsType PositiveInterfaceDNDX;
+        Vector PositiveInterfaceWeights;
+        InterfaceNormalsType PositiveInterfaceUnitNormals;
+
+        size_t NumPositiveNodes;
+        size_t NumNegativeNodes;
+
+        ///@}
+        ///@name Public Operations
+        ///@{
+
+        /**
+         * @brief Split element data container initialization
+         * This method initializes the embedded formulation data container. This implies to get the nodal distances.
+         */
+        void Initialize(const Element& rElement);
+
+        /**
+         * @brief Checks if the current element is intersected
+         * Checks if the current element is intersected by checking the number of positive and negative distance nodes.
+         * @return true if the element is intersected
+         * @return false if the element is not intersected
+         */
+        bool IsSplit();
+
+        ///@}
+    };
+
+} //namespace EmbeddedLaplacianInternals
+
 
 template<std::size_t TDim>
-class LaplacianEmbeddedElement : public LaplacianElement
+class EmbeddedLaplacianElement : public LaplacianElement
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of LaplacianEmbeddedElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LaplacianEmbeddedElement);
+    /// Counted pointer of EmbeddedLaplacianElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmbeddedLaplacianElement);
 
     typedef LaplacianElement BaseType;
     typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
@@ -68,24 +127,24 @@ public:
     static constexpr std::size_t NumNodes = TDim + 1;
 
     using NodalScalarData = array_1d<double,NumNodes>;
-    using EmbeddedElementData = LaplacianEmbeddedInternals::EmbeddedElementData < TDim >;
+    using EmbeddedElementData = EmbeddedLaplacianInternals::EmbeddedElementData < TDim >;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    LaplacianEmbeddedElement(
+    EmbeddedLaplacianElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
-    LaplacianEmbeddedElement(
+    EmbeddedLaplacianElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~LaplacianEmbeddedElement();
+    virtual ~EmbeddedLaplacianElement();
 
     ///@}
     ///@name Operators
@@ -227,7 +286,7 @@ protected:
     ///@{
 
     // Protected default constructor necessary for serialization
-    LaplacianEmbeddedElement() : LaplacianElement()
+    EmbeddedLaplacianElement() : LaplacianElement()
     {
     }
 
@@ -283,81 +342,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //LaplacianEmbeddedElement& operator=(const LaplacianEmbeddedElement& rOther);
+    //EmbeddedLaplacianElement& operator=(const EmbeddedLaplacianElement& rOther);
 
     /// Copy constructor.
-    //LaplacianEmbeddedElement(const LaplacianEmbeddedElement& rOther);
+    //EmbeddedLaplacianElement(const EmbeddedLaplacianElement& rOther);
 
     ///@}
 
-}; // Class LaplacianEmbeddedElement
+}; // Class EmbeddedLaplacianElement
 
-namespace LaplacianEmbeddedInternals {
-
-template <size_t TDim, size_t TNumNodes>
-ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator(
-    const Element &rElement,
-    const Vector &rNodalDistances);
-
-template<std::size_t TDim>
-class EmbeddedElementData
-{
-public:
-    ///@name Type Definitions
-    ///@{
-
-    static constexpr std::size_t NumNodes = TDim + 1;
-
-    typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
-    typedef std::vector<array_1d<double,3>> InterfaceNormalsType;
-    typedef array_1d<double,NumNodes> NodalScalarData;
-
-    ///@}
-    ///@name Public Members
-    ///@{
-
-    double PenaltyCoefficient;
-
-    NodalScalarData NodalDistances;
-
-    Matrix PositiveSideN;
-    ShapeFunctionsGradientsType PositiveSideDNDX;
-    Vector PositiveSideWeights;
-
-    Matrix PositiveInterfaceN;
-    ShapeFunctionsGradientsType PositiveInterfaceDNDX;
-    Vector PositiveInterfaceWeights;
-    InterfaceNormalsType PositiveInterfaceUnitNormals;
-
-    std::vector< size_t > PositiveIndices;
-
-    size_t NumPositiveNodes;
-    size_t NumNegativeNodes;
-
-    ///@}
-    ///@name Public Operations
-    ///@{
-
-    /**
-     * @brief Split element data container initialization
-     * This method initializes the embedded formulation data container. This implies to get the nodal distances.
-     */
-    void Initialize(
-        const Element& rElement
-    );
-
-    /**
-     * @brief Checks if the current element is intersected
-     * Checks if the current element is intersected by checking the number of positive and negative distance nodes.
-     * @return true if the element is intersected
-     * @return false if the element is not intersected
-     */
-    bool IsSplit();
-
-    ///@}
-};
-
-} //namespace LaplacianEmbeddedInternals
 
 ///@}
 
@@ -371,11 +364,11 @@ public:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-				    LaplacianEmbeddedElement& rThis);
+				    EmbeddedLaplacianElement& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const LaplacianEmbeddedElement& rThis)
+				    const EmbeddedLaplacianElement& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -387,4 +380,4 @@ public:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LAPLACIAN_EMBEDDED_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_EMBEDDED_LAPLACIAN_ELEMENT_H_INCLUDED  defined

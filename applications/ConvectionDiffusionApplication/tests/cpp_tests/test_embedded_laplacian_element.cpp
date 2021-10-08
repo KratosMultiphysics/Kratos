@@ -6,8 +6,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
-//                   Franziska Wahl
+//  Main authors:    Franziska Wahl
 //
 
 // System includes
@@ -28,10 +27,10 @@
 namespace Kratos {
 namespace Testing
 {
-    void SetLaplacianEmbeddedElementTestModelPart(ModelPart &rModelPart)
+    void SetEmbeddedLaplacianElementTestModelPart(ModelPart &rModelPart)
     {
         // Set buffer size
-        rModelPart.SetBufferSize(2);
+        rModelPart.SetBufferSize(1);
 
         // Set convection diffusion settings
         ConvectionDiffusionSettings::Pointer p_conv_dff_set = Kratos::make_shared<ConvectionDiffusionSettings>();
@@ -66,19 +65,19 @@ namespace Testing
         auto p_elem_prop = rModelPart.CreateNewProperties(0);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(LaplacianEmbeddedElement2D3N, KratosConvectionDiffusionFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(EmbeddedLaplacianElement2D3N, KratosConvectionDiffusionFastSuite)
     {
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        SetLaplacianEmbeddedElementTestModelPart(r_test_model_part);
+        SetEmbeddedLaplacianElementTestModelPart(r_test_model_part);
 
         // Element creation
         r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
         r_test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
         r_test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
         std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3};
-        r_test_model_part.CreateNewElement("LaplacianEmbeddedElement2D3N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
+        r_test_model_part.CreateNewElement("EmbeddedLaplacianElement2D3N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
 
         // Set the nodal values
         for (auto &i_node : r_test_model_part.Nodes()) {
