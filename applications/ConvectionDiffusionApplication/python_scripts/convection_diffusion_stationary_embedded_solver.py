@@ -2,7 +2,6 @@
 import KratosMultiphysics
 
 # Import applications
-import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
 # Import base class file
 from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_stationary_solver
@@ -136,8 +135,8 @@ class ConvectionDiffusionStationaryEmbeddedSolver(convection_diffusion_stationar
         # Element checks
         if num_nodes_elements not in (3,4):
             raise Exception("Only simplex elements are supported so far.")
-        if element_name != "LaplacianEmbeddedElement":
-            raise Exception("Only \'LaplacianEmbeddedElement\' is supported so far.")
+        if element_name != "EmbeddedLaplacianElement":
+            raise Exception("Only \'EmbeddedLaplacianElement\' is supported so far.")
 
         # Set registering element name
         name_string = "{0}{1}D{2}N".format(element_name, domain_size, num_nodes_elements)
