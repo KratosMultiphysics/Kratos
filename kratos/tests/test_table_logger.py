@@ -16,22 +16,10 @@ class TestTableLogger(KratosUnittest.TestCase):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             self.comm.Barrier()
             KratosUtilities.DeleteFileIfExisting("table_logger_test.out")
-            # if self.rank == 0: KratosUtilities.DeleteFileIfExisting(self.file_name+".out")
             self.comm.Barrier()
 
     def test_TableLogger(self):
-        ''' We expect the following :
-
-            My custom header
-
-            header 1  header 2  header 3
-            --------  --------  --------
-            C1V       C2V       C3V
-            C1V2      C2V2      C3V2
-            header 1  header 2  header 3
-        '''
         self.file_name = "table_logger_test.out"
-
         # OUT file pre process
         table_logger_settings = KratosMultiphysics.Parameters("""
         {
