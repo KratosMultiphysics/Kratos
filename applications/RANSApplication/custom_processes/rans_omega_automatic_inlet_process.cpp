@@ -42,6 +42,7 @@ RansOmegaAutomaticInletProcess::RansOmegaAutomaticInletProcess(
     rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mTurbulentMixingLength = rParameters["turbulent_mixing_length"].GetDouble();
+    mKinematicViscosity = rParameters["kinematic_viscosity"].GetDouble();
     mWallLocation = rParameters["wall_location"].GetVector();
     mWallOutwardPointintUnitNormal = rParameters["wall_normal"].GetVector();
     mWallOutwardPointintUnitNormal = mWallOutwardPointintUnitNormal / norm_2(mWallOutwardPointintUnitNormal);
@@ -70,7 +71,6 @@ void RansOmegaAutomaticInletProcess::ExecuteInitializeSolutionStep()
 
     block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
         const double y = inner_prod(mWallLocation - rNode.Coordinates(), mWallOutwardPointintUnitNormal);
-        std::cout<< "y = " << y << ", coordinates = " << rNode.Coordinates() << std::endl;
         if (y > 1e-12) {
             const double tke_sqrt = std::sqrt(std::max(rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY), 0.0));
             const double omega_turbulent_mixing_length =  tke_sqrt / (c_mu_25 * mTurbulentMixingLength);
@@ -136,6 +136,7 @@ const Parameters RansOmegaAutomaticInletProcess::GetDefaultParameters() const
         "model_part_name"         : "PLEASE_SPECIFY_MODEL_PART_NAME",
         "turbulent_mixing_length" : 0.005,
         "echo_level"              : 0,
+        "kinematic_viscosity"     : 1e-5,
         "wall_location"           : [0.0, 0.0, 0.0],
         "wall_normal"             : [1.0, 0.0, 0.0],
         "min_value"               : 1e-12
