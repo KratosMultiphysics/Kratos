@@ -179,11 +179,16 @@ public:
         return mPairingStatus;
     }
 
+    virtual void SetPairingStatusForPrinting()
+    {
+        KRATOS_ERROR << "SetPairingStatusForPrinting is not implemented!" << std::endl;
+    }
+
     ///@}
     ///@name Input and output
     ///@{
 
-    virtual std::string PairingInfo(const int EchoLevel) const = 0;
+    virtual void PairingInfo(std::ostream& rOStream, const int EchoLevel) const = 0;
 
     /// Turn back information as a string.
     virtual std::string Info() const {return "MapperLocalSystem";}
