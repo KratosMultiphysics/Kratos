@@ -23,11 +23,12 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
     def ExecuteInitialize(self):
         "Ensures that free_stream_density, sound speed, and heat capacity ratio are consistent across processes"
         for process_parameters in self.settings["boundary_conditions_process_list"]:
-            if process_parameters["process_name"].GetString() == "FarFieldProcess":
-                params = process_parameters["Parameters"]
-                self._AddParameterIfMissing(params, "free_stream_density", self.freestream_properties["rho"])
-                self._AddParameterIfMissing(params, "heat_capacity_ratio", self.freestream_properties["gamma"])
-                self._AddParameterIfMissing(params, "speed_of_sound", self.freestream_properties["c"])
+            if process_parameters.Has("process_name") and \
+                process_parameters["process_name"].GetString() == "FarFieldProcess":
+                    params = process_parameters["Parameters"]
+                    self._AddParameterIfMissing(params, "free_stream_density", self.freestream_properties["rho"])
+                    self._AddParameterIfMissing(params, "heat_capacity_ratio", self.freestream_properties["gamma"])
+                    self._AddParameterIfMissing(params, "speed_of_sound", self.freestream_properties["c"])
 
 
     def ExecuteBeforeSolutionLoop(self):
