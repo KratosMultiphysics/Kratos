@@ -32,13 +32,13 @@ class GluedParticlesTestSolution(DEM_analysis_stage.DEMAnalysisStage, KratosUnit
 
                 if self.time > 0.499999 and self.time < 0.5000001:
                     self.assertAlmostEqual(node.X, -1.0, delta=tolerance)
-                    self.assertAlmostEqual(node.Y, 0.6634116060768411, delta=tolerance)
-                    self.assertAlmostEqual(node.Z, 0.21612092234725555, delta=tolerance)
+                    self.assertAlmostEqual(node.Y, 0.6642787801645016, delta=tolerance)
+                    self.assertAlmostEqual(node.Z, 0.21746554336759882, delta=tolerance)
 
                 if self.time > 0.999999 and self.time < 1.0000001:
                     self.assertAlmostEqual(node.X, -1.0, tolerance)
-                    self.assertAlmostEqual(node.Y, 0.6362810292697275, delta=tolerance)
-                    self.assertAlmostEqual(node.Z, -0.16645873461885752, delta=tolerance)
+                    self.assertAlmostEqual(node.Y, 0.6356181058546995, delta=tolerance)
+                    self.assertAlmostEqual(node.Z, -0.16500253094750714, delta=tolerance)
 
 
     def Finalize(self):

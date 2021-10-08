@@ -29,6 +29,28 @@
         "materials_filename" : "MaterialsDEM.json"
     }
 },
+"processes"        : {
+    "constraints_process_list" : [{
+        "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
+        "kratos_module" : "KratosMultiphysics.DEMApplication",
+        "Parameters"    : {
+            "model_part_name" : "RigidFacePart.sticky",
+    "velocity_constraints_settings" : {
+                "constrained"          : [true, true, true],
+                "value"                : [0.0, 0.0, 0.0],
+                "table"                : [null, null, null]
+            },
+            "angular_velocity_constraints_settings" : {
+                "constrained"          : [true, true, true],
+                "value"                : [2.0, 0.0, 0.0],
+                "table"                : [null, null, null]
+            },
+            "interval"             : [0.0, 1.0e30]
+        }
+    }],
+    "loads_process_list"       : [],
+    "list_other_processes"     : []
+},
 
 "RemoveBallsInEmbeddedOption"      : true,
 
@@ -55,7 +77,7 @@
 
 "GraphExportFreq"                  : 1e-3,
 "VelTrapGraphExportFreq"           : 1e-3,
-"OutputTimeStep"                   : 1e-2,
+"OutputTimeStep"                   : 1e-3,
 "PostBoundingBox"                  : true,
 "PostDisplacement"                 : false,
 "PostVelocity"                     : true,

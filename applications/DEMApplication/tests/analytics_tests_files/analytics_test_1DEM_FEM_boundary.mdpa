@@ -20,9 +20,11 @@ Begin Conditions RigidFace3D3N
 12 1 14 15 16
 End Conditions
 
-Begin SubModelPart 1
+Begin SubModelPart fix
   Begin SubModelPartData
-  RIGID_BODY_MOTION 1
+  RIGID_BODY_OPTION 1
+  RIGID_BODY_CENTER_OF_MASS [3] (0.0,0.0,0.0)
+  ORIENTATION [4] (0.0, 0.0, 0.0, 1.0)
   End SubModelPartData
   Begin SubModelPartNodes
   10
@@ -38,9 +40,11 @@ Begin SubModelPart 1
   End SubModelPartTables
 End SubModelPart
 
-Begin SubModelPart 2
+Begin SubModelPart move
   Begin SubModelPartData
-  RIGID_BODY_MOTION 1
+  RIGID_BODY_OPTION 1
+  RIGID_BODY_CENTER_OF_MASS [3] (0.0,0.0,0.0)
+  ORIENTATION [4] (0.0, 0.0, 0.0, 1.0)
   End SubModelPartData
   Begin SubModelPartNodes
   14

@@ -380,7 +380,6 @@ class ExplicitStrategy():
 
     def Predict(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
-        #self._MoveAllMeshes(time, self.dt)
 
     def Check(self):
         pass
@@ -396,15 +395,6 @@ class ExplicitStrategy():
         self._UpdateTimeInModelParts(time)
 
         return time
-
-    def _MoveAllMeshes(self, time, dt):
-        spheres_model_part = self.all_model_parts.Get("SpheresPart")
-        dem_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
-        rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
-
-        self.dem_fem_utils.MoveAllMeshes(spheres_model_part, time, dt)
-        self.dem_fem_utils.MoveAllMeshes(dem_inlet_model_part, time, dt)
-        self.dem_fem_utils.MoveAllMeshes(rigid_face_model_part, time, dt)
 
     def _UpdateTimeInModelParts(self, time, is_time_to_print = False):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")

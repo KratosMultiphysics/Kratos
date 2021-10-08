@@ -45,8 +45,6 @@ class KRATOS_API(DEM_APPLICATION) DEMFEMUtilities {
 
     virtual ~DEMFEMUtilities();
 
-    void MoveAllMeshes(ModelPart& r_model_part, double time, double dt);
-
     void CreateRigidFacesFromAllElements(ModelPart& r_model_part, PropertiesType::Pointer pProps);
 
     /// Turn back information as a string

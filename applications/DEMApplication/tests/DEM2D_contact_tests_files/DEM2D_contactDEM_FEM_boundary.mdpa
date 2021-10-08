@@ -41,6 +41,7 @@ End Conditions
 
 Begin SubModelPart 1 // DEM-FEM-Wall2D - group identifier: wall
   Begin SubModelPartData // DEM-FEM-Wall. Group name: wall
+    RIGID_BODY_OPTION 1
     IS_GHOST false
     COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT true
     IDENTIFIER wall

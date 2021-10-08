@@ -18,7 +18,7 @@ End Conditions
 Begin SubModelPart 1 // DEM-FEM-Wall. Group name: DEM-FEM-Wall
   Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-FEM-Wall
   FIXED_MESH_OPTION 0
-  RIGID_BODY_MOTION 0
+  RIGID_BODY_OPTION 1
   RIGID_BODY_MASS 0.0
   RIGID_BODY_CENTER_OF_MASS [3] (0.0,0.0,0.0)
   RIGID_BODY_INERTIAS [3] (0.0,0.0,0.0)

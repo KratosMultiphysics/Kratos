@@ -821,6 +821,8 @@ namespace Kratos {
                     if (submp[RIGID_BODY_OPTION] == false) {
                         continue;
                     }
+                } else {
+                    continue;
                 }
 
                 block_for_each(pTConditions, [&](ModelPart::ConditionType& rTCondition){

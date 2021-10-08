@@ -49,6 +49,7 @@ End Conditions
 Begin SubModelPart 1 // DEM-FEM-Wall - group identifier: Floor
   Begin SubModelPartData // DEM-FEM-Wall. Group name: Floor
     IS_GHOST false
+    RIGID_BODY_OPTION 1
     COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT true
     IDENTIFIER Floor
   End SubModelPartData
@@ -90,6 +91,5 @@ Begin SubModelPartConditions
         43
         44
 End SubModelPartConditions
-
 End SubModelPart
 

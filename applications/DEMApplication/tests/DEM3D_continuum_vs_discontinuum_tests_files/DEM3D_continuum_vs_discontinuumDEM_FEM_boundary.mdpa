@@ -16,7 +16,7 @@ End Conditions
 
 Begin SubModelPart 1 // DEM-FEM-Wall - group identifier: floor
   Begin SubModelPartData // DEM-FEM-Wall. Group name: floor
-    RIGID_BODY_MOTION 1
+    RIGID_BODY_OPTION 1
   End SubModelPartData
   Begin SubModelPartNodes
          17

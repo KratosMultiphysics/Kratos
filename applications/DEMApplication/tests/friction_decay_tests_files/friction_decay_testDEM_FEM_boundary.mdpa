@@ -29,6 +29,7 @@ End Conditions
 
 Begin SubModelPart 3 // DEM-FEM-Wall. Group name: DEM-wall1
   Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-wall1
+  RIGID_BODY_OPTION 1
   IDENTIFIER DEM-wall1
   End SubModelPartData
   Begin SubModelPartNodes
@@ -46,6 +47,7 @@ End SubModelPart
 
 Begin SubModelPart 4 // DEM-FEM-Wall. Group name: DEM-wall2
   Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-wall2
+  RIGID_BODY_OPTION 1
   IDENTIFIER DEM-wall2
   End SubModelPartData
   Begin SubModelPartNodes

@@ -324,7 +324,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<DEMFEMUtilities, DEMFEMUtilities::Pointer>(m, "DEMFEMUtilities")
         .def(py::init<>())
-        .def("MoveAllMeshes", &DEMFEMUtilities::MoveAllMeshes)
         .def("CreateRigidFacesFromAllElements", &DEMFEMUtilities::CreateRigidFacesFromAllElements)
         ;
 

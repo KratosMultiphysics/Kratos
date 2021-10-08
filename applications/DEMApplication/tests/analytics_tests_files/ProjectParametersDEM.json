@@ -69,7 +69,7 @@
         "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
         "kratos_module" : "KratosMultiphysics.DEMApplication",
         "Parameters"    : {
-            "model_part_name" : "RigidFacePart.1",
+            "model_part_name" : "RigidFacePart.fix",
     "velocity_constraints_settings" : {
                 "constrained"          : [true, true, true],
                 "value"                : [0.0, 0.0, 0.0],
@@ -86,7 +86,7 @@
         "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
         "kratos_module" : "KratosMultiphysics.DEMApplication",
         "Parameters"    : {
-            "model_part_name" : "RigidFacePart.2",
+            "model_part_name" : "RigidFacePart.move",
             "velocity_constraints_settings" : {
                 "constrained"          : [true, true, true],
                 "value"                : [5.0, 0.0, 0.0],
