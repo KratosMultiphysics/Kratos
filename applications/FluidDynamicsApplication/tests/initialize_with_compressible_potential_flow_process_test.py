@@ -5,7 +5,7 @@ from KratosMultiphysics import KratosUnittest
 
 
 class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.TestCase):
-    
+
     """Tests initialize_with_compressible_potential_flow_process"""
 
     @KratosUnittest.skipIfApplicationsNotAvailable("CompressiblePotentialFlowApplication")
