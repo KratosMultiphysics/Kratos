@@ -1,6 +1,10 @@
 import KratosMultiphysics as KM
+import KratosMultiphysics.MappingApplication as KratosMapping
 import basic_mapper_tests
 import blade_mapping_test
+data_comm = KM.Testing.GetDefaultDataCommunicator()
+if data_comm.IsDistributed():
+    from KratosMultiphysics.MappingApplication import MPIExtension as MappingMPIExtension
 
 class BasicTestsLine(basic_mapper_tests.BasicMapperTests):
     @classmethod
@@ -74,6 +78,25 @@ class BasicTestsVolume(basic_mapper_tests.BasicMapperTests):
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params)
+
+    def test_Is_not_conforming(self):
+        is_conforming = self.mapper.AreMeshesConforming()
+        self.assertFalse(is_conforming)
+
+    def test_Is_conforming(self):
+        if data_comm.IsDistributed():
+            map_creator = MappingMPIExtension.MPIMapperFactory.CreateMapper
+        else:
+            map_creator = KratosMapping.MapperFactory.CreateMapper
+
+        non_conform_mapper = map_creator(
+            self.model_part_origin,
+            self.model_part_origin,
+            self.mapper_parameters
+        )
+
+        is_conforming = non_conform_mapper.AreMeshesConforming()
+        self.assertTrue(is_conforming)
 
 class BasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
