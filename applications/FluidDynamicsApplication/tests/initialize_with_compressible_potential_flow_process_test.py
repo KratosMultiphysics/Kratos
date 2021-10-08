@@ -24,9 +24,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
             obtained = process._GenerateAnalysisparameters(process.settings, 0.0)
             expected = self._GetExpectedAnalysisParameters()
 
-            obtained.RecursivelyValidateDefaults(expected)
-
-            self._AssertParametersEqual(obtained, expected)
+            self._AssertParametersEqual(obtained, expected, places=5)
 
     @KratosUnittest.skipIfApplicationsNotAvailable("CompressiblePotentialFlowApplication")
     def testProcess(self):
@@ -77,22 +75,27 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                     msg="Unexpected TOTAL_ENERGY for node #{}".format(node.Is)) # Large value -> Lower absolute accuracy
 
 
-    def _AssertParametersEqual(self, A, B,):
-        "Raises an AssertionError when a parameter value or key is different between the two inputs"
+    def _AssertParametersEqual(self, A, B, places=7):
+        """Raises an AssertionError when a parameter value or key is different between the two inputs
+        Args:
+            A: The first Kratos Parameters object to compare.
+            B: The second Kratos Parameters object to compare.
+            places: Minimum number of coinciding decimal digits for two doubles to be considered almost equal.
+        """
         if A.IsArray():
             if A.size() != B.size():
                 raise AssertionError(":\n Different item count in array ({} != {})".format(A.size(), B.size()))
             i = 0
             for item_a, item_b in zip(A, B):
                 try:
-                    self._AssertParametersEqual(item_a,item_b)
+                    self._AssertParametersEqual(item_a,item_b, places)
                 except AssertionError as err:
                     raise AssertionError("[{}] >> {}".format(i, err)) from None
                 i += 1
             return
 
         if A.IsDouble():
-            self.assertAlmostEqual(A.GetDouble(), B.GetDouble())
+            self.assertAlmostEqual(A.GetDouble(), B.GetDouble(), places=places)
             return
 
         if A.IsInt():
@@ -107,19 +110,17 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
             self.assertEqual(A.GetString(), B.GetString())
             return
 
-        if len(A.keys()) == 0:
-            return
-
+        #  A is a JSON object literal
         try:
             A.ValidateDefaults(B)
         except RuntimeError as err:
             raise AssertionError(":\n {}".format(err)) from None
 
-        for key_a, key_b in zip(A.keys(), B.keys()):
+        for key in A.keys():
             try:
-                self._AssertParametersEqual(A[key_a], B[key_b])
+                self._AssertParametersEqual(A[key], B[key], places)
             except AssertionError as err:
-                raise AssertionError("\"{}\" >> {}".format(key_a, err)) from None
+                raise AssertionError("\"{}\" >> {}".format(key, err)) from None
 
 
     @classmethod
@@ -142,18 +143,14 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
                             "process_name"  : "FarFieldProcess",
                             "Parameters"    : {
-                                "model_part_name" : "potential_analysis_model_part.Inlet",
-                                "angle_of_attack" : 0.0,
-                                "mach_infinity"   : 0.8
+                                "model_part_name" : "potential_analysis_model_part.Inlet"
                             }
                         },{
                             "python_module" : "apply_far_field_process",
                             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
                             "process_name"  : "FarFieldProcess",
                             "Parameters"    : {
-                                "model_part_name" : "potential_analysis_model_part.Outlet",
-                                "angle_of_attack" : 0.0,
-                                "mach_infinity"   : 0.8
+                                "model_part_name" : "potential_analysis_model_part.Outlet"
                             }
                         }
                     ]

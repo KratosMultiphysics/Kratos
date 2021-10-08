@@ -29,6 +29,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
                 self._AddParameterIfMissing(params, "free_stream_density", self.freestream_properties["rho"])
                 self._AddParameterIfMissing(params, "heat_capacity_ratio", self.freestream_properties["gamma"])
                 self._AddParameterIfMissing(params, "speed_of_sound", self.freestream_properties["c"])
+                self._AddParameterIfMissing(params, "mach_infinity", self.freestream_properties["M"])
 
 
     def ExecuteBeforeSolutionLoop(self):
