@@ -212,6 +212,8 @@ public:
 
 protected:
 
+    int mMeshesAreConforming = false;
+
    /**
     * @brief Initializing the Mapper
     * This has to be called in the constructor of the
@@ -287,8 +289,6 @@ private:
 
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
-
-    int mMeshesAreConforming = false;
 
     ///@}
     ///@name Private Operations

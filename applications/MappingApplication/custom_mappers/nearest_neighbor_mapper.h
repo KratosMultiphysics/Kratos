@@ -205,7 +205,7 @@ public:
     int AreMeshesConforming() const override
     {
         KRATOS_WARNING_ONCE("Mapper") << "Developer-warning: \"AreMeshesConforming\" is deprecated and will be removed in the future" << std::endl;
-        return mMeshesAreConforming;
+        return BaseType::mMeshesAreConforming;
     }
 
     ///@}
