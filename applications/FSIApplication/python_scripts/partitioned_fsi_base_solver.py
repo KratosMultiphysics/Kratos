@@ -161,13 +161,6 @@ class PartitionedFSIBaseSolver(PythonSolver):
         # Perform all the operations required to set up the coupling interfaces
         self._InitializeCouplingInterfaces()
 
-        self.filename = self.settings["coupling_settings"]["coupling_strategy_settings"]["solver_type"].GetString()
-        if (self.filename == "MVQN_randomized_SVD" or self.filename == "IBQN_MVQN_randomized_SVD"):
-            modes_number = self.settings["coupling_settings"]["coupling_strategy_settings"]["jacobian_modes"].GetInt()
-            self.filename += "_{}".format(modes_number)
-        self.filename += ".txt"
-        f = open(self.filename, "w")
-
     def AdvanceInTime(self, current_time):
         # Subdomains time advance
         fluid_new_time = self.fluid_solver.AdvanceInTime(current_time)
@@ -285,10 +278,6 @@ class PartitionedFSIBaseSolver(PythonSolver):
                 KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'FSI non-linear converged not achieved in {0} iterations'.format(self.max_nl_it))
             else:
                 nl_it += 1
-
-        f = open(self.filename, "a")
-        f.write("{}\t{}\n".format(self.GetFluidComputingModelPart().ProcessInfo[KratosMultiphysics.TIME], nl_it + 1))
-        f.close()
 
         return is_converged
 
