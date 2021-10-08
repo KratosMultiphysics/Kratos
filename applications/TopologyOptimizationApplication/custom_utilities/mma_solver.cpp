@@ -26,7 +26,7 @@ MMASolver::MMASolver(int nn, int mm, double ai, double ci, double di)
 : nano(nn)
 , m(mm)
 , xmamieps(1.0e-5)
-, epsimin(std::sqrt(nano + m) * 1e-9)
+, epsimin(std::sqrt(nano + m) * 1e-15) //e-9
 , raa0(0.00001)
 , move(0.5)
 , albefa(0.1)
