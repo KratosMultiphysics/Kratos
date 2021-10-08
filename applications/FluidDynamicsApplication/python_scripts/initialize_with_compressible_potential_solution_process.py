@@ -46,8 +46,8 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
 
         # Starting analysis
         time = original_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        self.analysis_parameters = self._GenerateAnalysisparameters(self.settings, time)
-        self.analysis = PotentialFlowAnalysis(self.model, self.analysis_parameters)
+        analysis_parameters = self._GenerateAnalysisparameters(self.settings, time)
+        analysis = PotentialFlowAnalysis(self.model, analysis_parameters)
 
         # Filling model part
         KratosMultiphysics.MergeVariableListsUtility().Merge(original_model_part, potential_mpart)
@@ -59,12 +59,12 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         # Removing outer solver interfearence
         if potential_mpart.HasSubModelPart("fluid_computational_model_part"):
             potential_mpart.RemoveSubModelPart("fluid_computational_model_part")
-        
+
         # Running analysis
-        self.analysis.Run()
+        analysis.Run()
 
         # Calculate the velocity and pressure nodal projections
-        computing_model_part = self.analysis._GetSolver().GetComputingModelPart()
+        computing_model_part = analysis._GetSolver().GetComputingModelPart()
         nodal_variables = ["VELOCITY","PRESSURE"]
         nodal_value_process = ComputeNodalValueProcess(computing_model_part, nodal_variables)
         nodal_value_process.Execute()
@@ -75,7 +75,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
             # Setting initial conditions
             for variable,value in local_props.items():
                 node.SetSolutionStepValue(variable, value)
-        
+
         potential_mpart.CloneSolutionStep()
 
     @classmethod
@@ -109,14 +109,14 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         num = 1.0 + 0.5 * (self.freestream_properties["gamma"] - 1.0) * self.freestream_properties["M"]**2
         det = 1.0 + 0.5 * (self.freestream_properties["gamma"] - 1.0) * mach**2
         rho = self.freestream_properties["rho"] * (num / det)**(1.0 / (self.freestream_properties["gamma"] - 1.0))
-        total_energy = rho * (self.freestream_properties["c_v"] * self.freestream_properties["temperature"] + 0.5 * vel2)
+        energy = rho * (self.freestream_properties["c_v"] * self.freestream_properties["temperature"] + 0.5 * vel2)
 
         local_properties = {}
         local_properties[KratosMultiphysics.VELOCITY] = vel
         local_properties[KratosMultiphysics.PRESSURE] = node.GetValue(KratosMultiphysics.PRESSURE)
         local_properties[KratosMultiphysics.DENSITY] = rho
         local_properties[KratosMultiphysics.MOMENTUM] = vel*rho
-        local_properties[KratosMultiphysics.TOTAL_ENERGY] = total_energy
+        local_properties[KratosMultiphysics.TOTAL_ENERGY] = energy
 
         return local_properties
 
