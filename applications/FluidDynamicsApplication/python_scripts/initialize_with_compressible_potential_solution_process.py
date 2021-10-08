@@ -72,11 +72,10 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         for node in potential_mpart.Nodes:
             local_props = self._ComputeLocalProperties(node)
 
-            # Density initial condition
+            # Setting initial conditions
             for variable,value in local_props.items():
                 node.SetSolutionStepValue(variable, 0, value)
                 node.SetSolutionStepValue(variable, 1, value)
-            
 
     @classmethod
     def _GenerateFreeStreamProperties(cls, settings):
@@ -112,11 +111,11 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         total_energy = rho * (self.freestream_properties["c_v"] * self.freestream_properties["temperature"] + 0.5 * vel2)
 
         local_properties = {}
-        local_properties[KratosMultiphysics.DENSITY] = rho
         local_properties[KratosMultiphysics.VELOCITY] = vel
+        local_properties[KratosMultiphysics.PRESSURE] = node.GetValue(KratosMultiphysics.PRESSURE)
+        local_properties[KratosMultiphysics.DENSITY] = rho
         local_properties[KratosMultiphysics.MOMENTUM] = vel*rho
         local_properties[KratosMultiphysics.TOTAL_ENERGY] = total_energy
-        local_properties[KratosMultiphysics.PRESSURE] = vel = node.GetValue(KratosMultiphysics.PRESSURE)
 
         return local_properties
 
