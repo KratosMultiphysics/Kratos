@@ -67,17 +67,13 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         nodal_value_process.Execute()
 
         for node in potential_mpart.Nodes:
-            rho, momentum, total_energy = self._ComputeLocalProperties(node)
+            local_props = self._ComputeLocalProperties(node)
 
             # Density initial condition
-            node.SetSolutionStepValue(KratosMultiphysics.DENSITY, 0, rho)
-            node.SetSolutionStepValue(KratosMultiphysics.DENSITY, 1, rho)
-            # Momentum initial condition
-            node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM, 0, momentum)
-            node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM, 1, momentum)
-            # Total energy initial condition
-            node.SetSolutionStepValue(KratosMultiphysics.TOTAL_ENERGY, 0, total_energy)
-            node.SetSolutionStepValue(KratosMultiphysics.TOTAL_ENERGY, 1, total_energy)
+            for variable,value in local_props.items():
+                node.SetSolutionStepValue(variable, 0, value)
+                node.SetSolutionStepValue(variable, 1, value)
+            
 
     @classmethod
     def _GenerateFreeStreamProperties(cls, settings):
@@ -112,7 +108,14 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         rho = self.freestream_properties["rho"] * (num / det)**(1.0 / (self.freestream_properties["gamma"] - 1.0))
         total_energy = rho * (self.freestream_properties["c_v"] * self.freestream_properties["temperature"] + 0.5 * vel2)
 
-        return rho, vel*rho, total_energy
+        local_properties = {}
+        local_properties[KratosMultiphysics.DENSITY] = rho
+        local_properties[KratosMultiphysics.VELOCITY] = vel
+        local_properties[KratosMultiphysics.MOMENTUM] = vel*rho
+        local_properties[KratosMultiphysics.TOTAL_ENERGY] = total_energy
+        local_properties[KratosMultiphysics.PRESSURE] = vel = node.GetValue(KratosMultiphysics.PRESSURE)
+
+        return local_properties
 
     @classmethod
     def _GenerateAnalysisparameters(cls, settings):
@@ -133,6 +136,9 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
                 "solver_type"              : "potential_flow",
                 "model_import_settings"    : {
                     "input_type"     : "use_input_model_part"
+                },
+                "formulation": {
+                    "element_type" : "compressible"
                 },
                 "maximum_iterations"       : 10,
                 "echo_level"               : 0,

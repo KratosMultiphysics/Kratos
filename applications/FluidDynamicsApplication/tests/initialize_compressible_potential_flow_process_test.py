@@ -1,9 +1,7 @@
 import KratosMultiphysics
 from KratosMultiphysics.testing.utilities import ReadModelPart
 from KratosMultiphysics.FluidDynamicsApplication import initialize_with_compressible_potential_solution_process
-
 from KratosMultiphysics import KratosUnittest
-from KratosMultiphysics import CompressiblePotentialFlowApplication
 class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.TestCase):
     def setUp(self):
         pass
@@ -45,16 +43,34 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
             mpart.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
             mpart.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENTUM)
             mpart.AddNodalSolutionStepVariable(KratosMultiphysics.TOTAL_ENERGY)
+            mpart.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+            mpart.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
             ReadModelPart(work_file, mpart)
 
             process = initialize_with_compressible_potential_solution_process.Factory(self._GetSettings(), model)
             process.ExecuteInitialize()
 
-            # for node in mpart.Nodes:
-            #     print("Node #{} --> PHI = {}".format(
-            #         node.Id,
-            #         node.GetValue(KratosMultiphysics.VELOCITY)
-            #     ))
+            expected_v = 0.8 * 344.31
+            expected_rho = 1.19659
+            expected_e = 298706
+
+            for node in mpart.Nodes:
+                self.assertAlmostEqual(
+                    node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X),
+                    expected_v,
+                    places=7)
+                self.assertAlmostEqual(
+                    node.GetSolutionStepValue(KratosMultiphysics.DENSITY),
+                    expected_rho,
+                    places=5)
+                self.assertAlmostEqual(
+                    node.GetSolutionStepValue(KratosMultiphysics.MOMENTUM_X),
+                    expected_v * expected_rho,
+                    places=2)
+                self.assertAlmostEqual(
+                    node.GetSolutionStepValue(KratosMultiphysics.TOTAL_ENERGY),
+                    expected_e,
+                    places=0) # Large value -> Lower absolute accuracy
 
 
     @classmethod
@@ -82,7 +98,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                                 "model_part_name" : "potential_analysis_model_part.Inlet",
                                 "angle_of_attack" : 10.0,
                                 "mach_infinity"   : 0.8,
-                                "speed_of_sound"  : 340.0
+                                "speed_of_sound"  : 344.31
                             }
                         },{
                             "python_module" : "apply_far_field_process",
@@ -92,7 +108,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                                 "model_part_name" : "potential_analysis_model_part.Outlet",
                                 "angle_of_attack" : 0.0,
                                 "mach_infinity"   : 0.8,
-                                "speed_of_sound"  : 340.0
+                                "speed_of_sound"  : 344.31
                             }
                         }
                     ]
@@ -119,7 +135,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                                 "angle_of_attack": 10.0,
                                 "mach_infinity": 0.8,
                                 "model_part_name": "potential_analysis_model_part.Inlet",
-                                "speed_of_sound": 340.0
+                                "speed_of_sound": 344.31
                             },
                             "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
                             "process_name": "FarFieldProcess",
@@ -130,7 +146,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                                 "angle_of_attack": 0.0,
                                 "mach_infinity": 0.8,
                                 "model_part_name": "potential_analysis_model_part.Outlet",
-                                "speed_of_sound": 340.0
+                                "speed_of_sound": 344.31
                             },
                             "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
                             "process_name": "FarFieldProcess",
@@ -144,6 +160,9 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                     "maximum_iterations": 10,
                     "model_import_settings": {
                         "input_type": "use_input_model_part"
+                    },
+                    "formulation": {
+                        "element_type" : "compressible"
                     },
                     "model_part_name": "potential_analysis_model_part",
                     "no_skin_parts": [],
