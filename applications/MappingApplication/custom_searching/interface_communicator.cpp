@@ -87,6 +87,8 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
         } else {
             const array_1d<double, 3> box_size = mpLocalBinStructure->GetMaxPoint() - mpLocalBinStructure->GetMinPoint();
             init_search_radius = (*std::max_element(box_size.begin(), box_size.end())) / num_interface_obj_bin;
+            // use minimum across the partitions
+            init_search_radius = rComm.GetDataCommunicator().MinAll(init_search_radius);
         }
 
         if (mSearchSettings.Has("max_search_radius")) {
