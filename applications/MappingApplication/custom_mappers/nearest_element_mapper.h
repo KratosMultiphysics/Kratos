@@ -286,12 +286,12 @@ private:
     Parameters GetMapperDefaultSettings() const override
     {
         return Parameters( R"({
+            "search_settings"              : {},
             "local_coord_tolerance"        : 0.25,
             "use_initial_configuration"    : false,
             "echo_level"                   : 0,
-            "print_pairing_status_to_file" : true,
-            "pairing_status_file_path"     : "",
-            "search_settings"              : {}
+            "print_pairing_status_to_file" : false,
+            "pairing_status_file_path"     : ""
         })");
     }
 
