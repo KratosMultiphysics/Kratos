@@ -1,7 +1,10 @@
 import KratosMultiphysics
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 from KratosMultiphysics.testing.utilities import ReadModelPart
-from KratosMultiphysics.FluidDynamicsApplication import initialize_with_compressible_potential_solution_process
 from KratosMultiphysics import KratosUnittest
+
+if CheckIfApplicationsAvailable("CompressiblePotentialFlowApplication"):
+    from KratosMultiphysics.FluidDynamicsApplication import initialize_with_compressible_potential_solution_process
 
 
 class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.TestCase):
