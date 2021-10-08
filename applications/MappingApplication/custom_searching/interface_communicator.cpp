@@ -66,54 +66,83 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
 
     const SizeType num_interface_obj_bin = mpInterfaceObjectsOrigin->size();
 
-    double init_search_radius = 0.0;
+    double init_search_radius = -1.0;
     double max_search_radius = 0.0;
     double increase_factor = 2.0; // default value
     int max_search_iterations = 3; // default value
 
-    if (num_interface_obj_bin > 0) { // this partition has a part of the interface
-        auto log_base = [](const double Val, const double Base) -> double {
-            return std::log(Val) / std::log(Base);
-        };
+    auto log_base = [](const double Val, const double Base) -> double {
+        return std::log(Val) / std::log(Base);
+    };
 
-        if (mSearchSettings.Has("search_radius_increase_factor")) {
-            increase_factor = mSearchSettings["search_radius_increase_factor"].GetDouble();
-            KRATOS_ERROR_IF(increase_factor < std::numeric_limits<double>::epsilon()) << "Search radius increase factor must be larger than 0.0!" << std::endl;
+    if (mSearchSettings.Has("search_radius_increase_factor")) {
+        increase_factor = mSearchSettings["search_radius_increase_factor"].GetDouble();
+        KRATOS_ERROR_IF(increase_factor < std::numeric_limits<double>::epsilon()) << "Search radius increase factor must be larger than 0.0!" << std::endl;
+    }
+
+    if (mSearchSettings.Has("max_search_radius")) {
+        max_search_radius = mSearchSettings["max_search_radius"].GetDouble();
+        KRATOS_ERROR_IF(max_search_radius < std::numeric_limits<double>::epsilon()) << "Maximum radius must be larger than 0.0!" << std::endl;
+    } else {
+        max_search_radius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin, mEchoLevel);
+
+        // use maximum across the all partitions
+        if (mrModelPartOrigin.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
+            max_search_radius = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MaxAll(max_search_radius);
         }
+        if (rComm.GetDataCommunicator().IsDefinedOnThisRank()) {
+            max_search_radius = rComm.GetDataCommunicator().MaxAll(max_search_radius);
+        }
+    }
 
-        if (mSearchSettings.Has("search_radius")) {
-            init_search_radius = mSearchSettings["search_radius"].GetDouble();
-            KRATOS_ERROR_IF(init_search_radius < std::numeric_limits<double>::epsilon()) << "Search radius must be larger than 0.0!" << std::endl;
-        } else {
+    if (mSearchSettings.Has("search_radius")) {
+        init_search_radius = mSearchSettings["search_radius"].GetDouble();
+        KRATOS_ERROR_IF(init_search_radius < std::numeric_limits<double>::epsilon()) << "Search radius must be larger than 0.0!" << std::endl;
+    } else {
+        if (mpInterfaceObjectsOrigin->size() > 1) { // this partition has part of the interface and large enough bins
             const array_1d<double, 3> box_size = mpLocalBinStructure->GetMaxPoint() - mpLocalBinStructure->GetMinPoint();
             init_search_radius = (*std::max_element(box_size.begin(), box_size.end())) / num_interface_obj_bin;
-            // use minimum across the partitions
-            init_search_radius = rComm.GetDataCommunicator().MinAll(init_search_radius);
+        }
+        // use minimum across the all partitions
+        if (mrModelPartOrigin.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
+            init_search_radius = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MaxAll(init_search_radius);
+        }
+        if (rComm.GetDataCommunicator().IsDefinedOnThisRank()) {
+            init_search_radius = rComm.GetDataCommunicator().MaxAll(init_search_radius);
         }
 
-        if (mSearchSettings.Has("max_search_radius")) {
-            max_search_radius = mSearchSettings["max_search_radius"].GetDouble();
-            KRATOS_ERROR_IF(max_search_radius < std::numeric_limits<double>::epsilon()) << "Maximum radius must be larger than 0.0!" << std::endl;
-        } else {
-            max_search_radius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin, mEchoLevel);
+        if (init_search_radius < std::numeric_limits<double>::epsilon()) {
+            // very rare case when all bins only have one entry
+            // using a backup solution then
+            init_search_radius = max_search_radius/1000;
         }
-        max_search_radius = std::max(max_search_radius, init_search_radius);
-
-        if (mSearchSettings.Has("max_num_search_iterations")) {
-            max_search_iterations = mSearchSettings["max_num_search_iterations"].GetInt();
-            KRATOS_ERROR_IF(max_search_iterations < 1) << "Number of search iterations must be larger than 0!" << std::endl;
-        } else {
-            max_search_iterations = std::max(max_search_iterations,static_cast<int>(
-                    std::ceil(log_base(max_search_radius,  increase_factor)-
-                              log_base(init_search_radius, increase_factor)))+1);
-        }
-
-        KRATOS_INFO_IF("Mapper search", mEchoLevel>1)
-            << "\n    Initial search radius: " << init_search_radius
-            << "\n    Maximum search radius: " << max_search_radius
-            << "\n    Maximum number of search iterations: " << max_search_iterations
-            << "\n    Search radius increase factor: " << increase_factor << std::endl;
     }
+
+    max_search_radius = std::max(max_search_radius, init_search_radius);
+
+    if (mSearchSettings.Has("max_num_search_iterations")) {
+        max_search_iterations = mSearchSettings["max_num_search_iterations"].GetInt();
+        KRATOS_ERROR_IF(max_search_iterations < 1) << "Number of search iterations must be larger than 0!" << std::endl;
+    } else {
+        max_search_iterations = std::max(max_search_iterations,static_cast<int>(
+                std::ceil(log_base(max_search_radius,  increase_factor)-
+                            log_base(init_search_radius, increase_factor)))+1);
+        // use maximum across the all partitions
+        if (mrModelPartOrigin.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
+            max_search_iterations = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MaxAll(max_search_iterations);
+        }
+        if (rComm.GetDataCommunicator().IsDefinedOnThisRank()) {
+            max_search_iterations = rComm.GetDataCommunicator().MaxAll(max_search_iterations);
+        }
+    }
+
+    KRATOS_INFO_IF("Mapper search", mEchoLevel>1)
+        << "\n    Initial search radius: " << init_search_radius
+        << "\n    Maximum search radius: " << max_search_radius
+        << "\n    Maximum number of search iterations: " << max_search_iterations
+        << "\n    Search radius increase factor: " << increase_factor << std::endl;
+
+
 
     mSearchRadius = init_search_radius;
 
@@ -149,10 +178,6 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
     }
 
     FinalizeSearch();
-
-    if (rComm.GetDataCommunicator().IsDefinedOnThisRank()) {
-        rComm.GetDataCommunicator().Barrier();
-    }
 
     KRATOS_CATCH("");
 }
@@ -449,6 +474,9 @@ bool InterfaceCommunicator::AllNeighborsFound(const Communicator& rComm) const
     }
 
     // This is necessary bcs not all partitions would start a new search iteration!
+    if (mrModelPartOrigin.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
+        all_neighbors_found = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MinAll(all_neighbors_found);
+    }
     if (rComm.GetDataCommunicator().IsDefinedOnThisRank()) {
         all_neighbors_found = rComm.GetDataCommunicator().MinAll(all_neighbors_found);
     }
@@ -460,6 +488,8 @@ bool InterfaceCommunicator::AllNeighborsFound(const Communicator& rComm) const
 
 void InterfaceCommunicator::PrintInfoAboutCurrentSearchSuccess(const Communicator& rComm) const
 {
+    if (rComm.GetDataCommunicator().IsNullOnThisRank()) { return; }
+
     using TwoReduction = CombinedReduction<SumReduction<int>, SumReduction<int>>;
     int approximations, no_neighbor;
     std::tie(approximations, no_neighbor) = block_for_each<TwoReduction>(mrMapperLocalSystems,
