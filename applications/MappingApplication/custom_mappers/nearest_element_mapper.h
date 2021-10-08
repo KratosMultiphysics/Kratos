@@ -148,8 +148,9 @@ public:
         return Kratos::make_unique<NearestElementLocalSystem>(pNode);
     }
 
-    /// Turn back information as a string.
-    std::string PairingInfo(const int EchoLevel) const override;
+    void PairingInfo(std::ostream& rOStream, const int EchoLevel) const override;
+
+    void SetPairingStatusForPrinting() override;
 
 private:
     NodePointerType mpNode;
