@@ -316,7 +316,7 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(const MapperInterfaceIn
             << "Both Elements and Conditions are present which is not allowed!\n"
             << "Name of ModelPart: " << mrModelPartOrigin.Name()
             << "\nNumber of Elements: " << num_elements_global
-            << "; Number of Condition: " << num_conditions_globals << std::endl;
+            << "; Number of Condition: " << num_conditions_global << std::endl;
 
         KRATOS_ERROR_IF(num_elements_global+num_conditions_global == 0)
             << "No Elements and Conditions are present which is not allowed!\n"
