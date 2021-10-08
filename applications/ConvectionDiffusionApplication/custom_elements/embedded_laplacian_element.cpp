@@ -25,7 +25,7 @@
 #include "utilities/element_size_calculator.h"
 
 // Application includes
-#include "custom_elements/laplacian_embedded_element.h"
+#include "custom_elements/embedded_laplacian_element.h"
 #include "convection_diffusion_application_variables.h"
 
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
@@ -35,7 +35,7 @@ namespace Kratos
 {
 
 template<std::size_t TTDim>
-LaplacianEmbeddedElement<TTDim>::LaplacianEmbeddedElement(
+EmbeddedLaplacianElement<TTDim>::EmbeddedLaplacianElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : LaplacianElement(
@@ -45,7 +45,7 @@ LaplacianEmbeddedElement<TTDim>::LaplacianEmbeddedElement(
 }
 
 template<std::size_t TTDim>
-LaplacianEmbeddedElement<TTDim>::LaplacianEmbeddedElement(
+EmbeddedLaplacianElement<TTDim>::EmbeddedLaplacianElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties)
@@ -57,30 +57,30 @@ LaplacianEmbeddedElement<TTDim>::LaplacianEmbeddedElement(
 }
 
 template<std::size_t TTDim>
-Element::Pointer LaplacianEmbeddedElement<TTDim>::Create(
+Element::Pointer EmbeddedLaplacianElement<TTDim>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<LaplacianEmbeddedElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<EmbeddedLaplacianElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 template<std::size_t TTDim>
-Element::Pointer LaplacianEmbeddedElement<TTDim>::Create(
+Element::Pointer EmbeddedLaplacianElement<TTDim>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<LaplacianEmbeddedElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<EmbeddedLaplacianElement>(NewId, pGeom, pProperties);
 }
 
 template<std::size_t TTDim>
-LaplacianEmbeddedElement<TTDim>::~LaplacianEmbeddedElement()
+EmbeddedLaplacianElement<TTDim>::~EmbeddedLaplacianElement()
 {
 }
 
 template<std::size_t TTDim>
-void LaplacianEmbeddedElement<TTDim>::CalculateLocalSystem(
+void EmbeddedLaplacianElement<TTDim>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -124,7 +124,7 @@ void LaplacianEmbeddedElement<TTDim>::CalculateLocalSystem(
 }
 
 template<std::size_t TTDim>
-void LaplacianEmbeddedElement<TTDim>::CalculateLeftHandSide(
+void EmbeddedLaplacianElement<TTDim>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -133,7 +133,7 @@ void LaplacianEmbeddedElement<TTDim>::CalculateLeftHandSide(
 }
 
 template<std::size_t TTDim>
-void LaplacianEmbeddedElement<TTDim>::CalculateRightHandSide(
+void EmbeddedLaplacianElement<TTDim>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -142,7 +142,7 @@ void LaplacianEmbeddedElement<TTDim>::CalculateRightHandSide(
 }
 
 template<std::size_t TTDim>
-int LaplacianEmbeddedElement<TTDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
+int EmbeddedLaplacianElement<TTDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     // Base Laplacian element check
     return BaseType::Check(rCurrentProcessInfo);
@@ -153,12 +153,12 @@ int LaplacianEmbeddedElement<TTDim>::Check(const ProcessInfo& rCurrentProcessInf
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<std::size_t TTDim>
-void LaplacianEmbeddedElement<TTDim>::InitializeGeometryData(
+void EmbeddedLaplacianElement<TTDim>::InitializeGeometryData(
     EmbeddedElementData& rData)
 {
     // Get shape function calculator
     ModifiedShapeFunctions::Pointer p_calculator =
-        LaplacianEmbeddedInternals::GetContinuousShapeFunctionCalculator<TTDim, NumNodes>(
+        EmbeddedLaplacianInternals::GetContinuousShapeFunctionCalculator<TTDim, NumNodes>(
             *this,
             rData.NodalDistances);
 
@@ -188,7 +188,7 @@ void LaplacianEmbeddedElement<TTDim>::InitializeGeometryData(
 }
 
 template<std::size_t TTDim>
-void LaplacianEmbeddedElement<TTDim>::NormalizeInterfaceNormals(
+void EmbeddedLaplacianElement<TTDim>::NormalizeInterfaceNormals(
     typename EmbeddedElementData::InterfaceNormalsType& rNormals,
     double Tolerance) const
 {
@@ -199,7 +199,7 @@ void LaplacianEmbeddedElement<TTDim>::NormalizeInterfaceNormals(
 }
 
 template<std::size_t TTDim>
-void LaplacianEmbeddedElement<TTDim>::AddPositiveElementSide(
+void EmbeddedLaplacianElement<TTDim>::AddPositiveElementSide(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -247,7 +247,7 @@ void LaplacianEmbeddedElement<TTDim>::AddPositiveElementSide(
 }
 
 template<std::size_t TTDim>
-void LaplacianEmbeddedElement<TTDim>::AddPositiveInterfaceTerms(
+void EmbeddedLaplacianElement<TTDim>::AddPositiveInterfaceTerms(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -295,7 +295,7 @@ void LaplacianEmbeddedElement<TTDim>::AddPositiveInterfaceTerms(
 }
 
 template<std::size_t TTDim>
-void LaplacianEmbeddedElement<TTDim>::AddNitscheBoundaryTerms(
+void EmbeddedLaplacianElement<TTDim>::AddNitscheBoundaryTerms(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -367,7 +367,7 @@ void LaplacianEmbeddedElement<TTDim>::AddNitscheBoundaryTerms(
 // Helper functions for template specialization
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace LaplacianEmbeddedInternals {
+namespace EmbeddedLaplacianInternals {
 
 template <>
 ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<2, 3>(
@@ -420,13 +420,13 @@ bool EmbeddedElementData<TTDim>::IsSplit()
     return (NumPositiveNodes > 0) && (NumNegativeNodes > 0);
 }
 
-} // Namespace LaplacianEmbeddedInternals
+} // Namespace EmbeddedLaplacianInternals
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
-template class LaplacianEmbeddedElement<2>;
-template class LaplacianEmbeddedElement<3>;
+template class EmbeddedLaplacianElement<2>;
+template class EmbeddedLaplacianElement<3>;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
