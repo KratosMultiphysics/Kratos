@@ -28,6 +28,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
             "volume_model_part_name" : "",
             "skin_parts" : [],
             "boundary_conditions_process_list" : [],
+            "element_type" : "compressible",
             "properties" : {
                 "c_v" : 722.14,
                 "gamma" : 1.4,
@@ -140,7 +141,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
                     "input_type"     : "use_input_model_part"
                 },
                 "formulation": {
-                    "element_type" : "compressible"
+                    "element_type" : "{replaceme}"
                 },
                 "maximum_iterations"       : 10,
                 "echo_level"               : 0,
@@ -157,6 +158,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         """)
 
         defaults["solver_settings"]["volume_model_part_name"] = settings["volume_model_part_name"]
+        defaults["solver_settings"]["formulation"]["element_type"] = settings["element_type"]
         defaults["solver_settings"]["skin_parts"] = settings["skin_parts"]
         defaults["processes"]["boundary_conditions_process_list"] = settings["boundary_conditions_process_list"]
 

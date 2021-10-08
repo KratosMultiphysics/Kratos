@@ -18,7 +18,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
 
             process = initialize_with_compressible_potential_solution_process.Factory(self._GetSettings(), model)
 
-            obtained = process.analysis_parameters
+            obtained = process._GenerateAnalysisparameters(process.settings, 0.0)
             expected = self._GetExpectedAnalysisParameters()
 
             obtained.RecursivelyValidateDefaults(expected)
@@ -49,6 +49,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
 
             process = initialize_with_compressible_potential_solution_process.Factory(self._GetSettings(), model)
             process.ExecuteInitialize()
+            process.ExecuteBeforeSolutionLoop()
 
             expected_v = 0.8 * 344.31
             expected_rho = 1.19659
@@ -122,10 +123,10 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                 "output_processes": {},
                 "problem_data": {
                     "echo_level": 0,
-                    "end_time": 1,
+                    "end_time": 0.0,
                     "parallel_type": "OpenMP",
                     "problem_name": "potential_analysis_model_part",
-                    "start_time": 0.0
+                    "start_time": -1.0
                 },
                 "processes": {
                     "auxiliar_process_list": [],
