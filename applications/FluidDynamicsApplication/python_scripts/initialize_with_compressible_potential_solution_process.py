@@ -10,6 +10,7 @@ def Factory(settings, model):
 
 
 class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Process):
+
     """
     Initializes the values by solving a steady-state problem with the
     compressible potential flow analysis stage
@@ -34,6 +35,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
     - mach_infinity
 
     """
+
     def __init__(self, model, settings):
         super().__init__()
         settings.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
