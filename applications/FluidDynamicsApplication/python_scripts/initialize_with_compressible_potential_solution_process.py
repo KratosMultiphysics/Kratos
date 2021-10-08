@@ -12,10 +12,10 @@ def Factory(settings, model):
 class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Process):
 
     """
-    Initializes the values by solving a steady-state problem with the
-    compressible potential flow analysis stage
+    Initializes the values by solving a steady-state problem with the compressible potential flow analysis stage.
 
-    Parameters:
+    Parameters
+    ----------
      - model_part_name: The name of the modelpart to clone and run the analysis
             on. Should be the main_model_part of the parent analysis.
      - volume_model_part_name: The modelpart containing the fluid.
@@ -37,7 +37,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
     """
 
     def __init__(self, model, settings):
-        """Stores the model and the validated parameters"""
+        """Stores the model and the validated parameters."""
         super().__init__()
         settings.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
 
@@ -48,7 +48,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
 
     def ExecuteInitialize(self):
         """
-        Automatically sets certain values of FarFieldProcess according to the freestream properties
+        Automatically sets certain values of FarFieldProcess according to the freestream properties.
 
         These values are:
          - free_stream_density
