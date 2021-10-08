@@ -64,9 +64,8 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         analysis.Run()
 
         # Calculate the velocity and pressure nodal projections
-        computing_model_part = analysis._GetSolver().GetComputingModelPart()
         nodal_variables = ["VELOCITY","PRESSURE"]
-        nodal_value_process = ComputeNodalValueProcess(computing_model_part, nodal_variables)
+        nodal_value_process = ComputeNodalValueProcess(potential_mpart, nodal_variables)
         nodal_value_process.Execute()
 
         for node in potential_mpart.Nodes:
