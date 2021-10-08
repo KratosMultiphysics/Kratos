@@ -95,7 +95,7 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
         } else {
             max_search_radius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin, mEchoLevel);
         }
-        max_search_radius = std::max(MapperUtilities::ComputeSearchRadius(mrModelPartOrigin, mEchoLevel), init_search_radius);
+        max_search_radius = std::max(max_search_radius, init_search_radius);
 
         if (mSearchSettings.Has("max_num_search_iterations")) {
             max_search_iterations = mSearchSettings["max_num_search_iterations"].GetInt();
