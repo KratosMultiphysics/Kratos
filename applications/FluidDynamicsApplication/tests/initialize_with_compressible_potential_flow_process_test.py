@@ -83,9 +83,9 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
             if A.size() != B.size():
                 raise AssertionError(":\n Different item count in array ({} != {})".format(A.size(), B.size()))
             i = 0
-            for a, b in zip(A, B):
+            for item_a, item_b in zip(A, B):
                 try:
-                    self._AssertParametersEqual(a,b)
+                    self._AssertParametersEqual(item_a,item_b)
                 except AssertionError as err:
                     raise AssertionError("[{}] >> {}".format(i, err)) from None
                 i += 1
@@ -115,11 +115,11 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
         except RuntimeError as err:
             raise AssertionError(":\n {}".format(err)) from None
 
-        for key_A, key_B in zip(A.keys(), B.keys()):
+        for key_a, key_b in zip(A.keys(), B.keys()):
             try:
-                self._AssertParametersEqual(A[key_A], B[key_B])
+                self._AssertParametersEqual(A[key_a], B[key_b])
             except AssertionError as err:
-                raise AssertionError("\"{}\" >> {}".format(key_A, err)) from None
+                raise AssertionError("\"{}\" >> {}".format(key_a, err)) from None
 
 
     @classmethod
