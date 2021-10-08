@@ -19,6 +19,32 @@ class KOmegaKRansFormulation(ScalarTurbulenceModelRansFormulation):
     def GetConditionNamePrefix(self):
         return ""
 
+    def SetWallFunctionSettings(self, settings=None):
+        formulation_settings = self.GetParameters()["wall_function_settings"]
+        if settings is not None:
+            if not formulation_settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
+                Kratos.Logger.PrintWarning(self.__class__.__name__, "Global and specialized \"wall_function_settings\" are defined. Using specialized settings and global settings are discarded for this formulation.")
+                settings = formulation_settings
+            else:
+                IssueDeprecationWarning(self.__class__.__name__, "Using deprecated global \"wall_function_settings\". Please define formulation specialized \"wall_function_settings\" in each leaf formulation.")
+        else:
+            settings = formulation_settings
+
+        if (settings.Has("wall_function_region_type")):
+            wall_function_region_type = settings["wall_function_region_type"].GetString()
+        else:
+            wall_function_region_type = "logarithmic_region_only"
+
+        if (wall_function_region_type == "logarithmic_region_only"):
+            self.condition_name = ""
+        elif (wall_function_region_type == "viscous_region_only"):
+            self.condition_name = "RansKEpsilonKVisBasedWall"
+        else:
+            msg = "Unsupported wall function region type provided. [ wall_function_region_type = \"" + wall_function_region_type + "\" ]."
+            msg += "Supported wall function region types are:\n"
+            msg += "\tlogarithmic_region_only\n"
+            msg += "\tviscous_region_only\n"
+            raise Exception(msg)
 
 class KOmegaOmegaRansFormulation(ScalarTurbulenceModelRansFormulation):
     def GetSolvingVariable(self):

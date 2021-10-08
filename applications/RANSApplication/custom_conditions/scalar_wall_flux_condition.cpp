@@ -23,6 +23,7 @@
 // Application includes
 #include "rans_application_variables.h"
 #include "custom_utilities/rans_calculation_utilities.h"
+#include "custom_conditions/data_containers/k_epsilon/k_vis_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_epsilon/epsilon_k_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_epsilon/epsilon_u_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_omega/omega_k_based_wall_condition_data.h"
@@ -248,8 +249,10 @@ int ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Chec
 
 // template instantiations
 
+template class ScalarWallFluxCondition<2, 2, KEpsilonWallConditionData::KVisBasedWallConditionData>;
 template class ScalarWallFluxCondition<2, 2, KEpsilonWallConditionData::EpsilonKBasedWallConditionData>;
 template class ScalarWallFluxCondition<2, 2, KEpsilonWallConditionData::EpsilonUBasedWallConditionData>;
+template class ScalarWallFluxCondition<3, 3, KEpsilonWallConditionData::KVisBasedWallConditionData>;
 template class ScalarWallFluxCondition<3, 3, KEpsilonWallConditionData::EpsilonKBasedWallConditionData>;
 template class ScalarWallFluxCondition<3, 3, KEpsilonWallConditionData::EpsilonUBasedWallConditionData>;
 

@@ -60,6 +60,7 @@
 #include "custom_conditions/scalar_wall_flux_condition.h"
 
 // k-epsilon turbulence model condition data
+#include "custom_conditions/data_containers/k_epsilon/k_vis_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_epsilon/epsilon_k_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_epsilon/epsilon_u_based_wall_condition_data.h"
 
@@ -273,6 +274,9 @@ private:
     const IncompressiblePotentialFlowVelocityInletCondition<3, 3> mIncompressiblePotentialFlowVelocityInlet3D3N;
 
     // k-epsilon turbulence model conditions
+    const ScalarWallFluxCondition<2, 2, KEpsilonWallConditionData::KVisBasedWallConditionData> mRansKEpsilonKVisBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KEpsilonWallConditionData::KVisBasedWallConditionData> mRansKEpsilonKVisBasedWall3D3N;
+
     const ScalarWallFluxCondition<2, 2, KEpsilonWallConditionData::EpsilonKBasedWallConditionData> mRansKEpsilonEpsilonKBasedWall2D2N;
     const ScalarWallFluxCondition<3, 3, KEpsilonWallConditionData::EpsilonKBasedWallConditionData> mRansKEpsilonEpsilonKBasedWall3D3N;
 

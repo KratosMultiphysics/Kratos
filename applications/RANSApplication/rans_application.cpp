@@ -87,6 +87,8 @@ KratosRANSApplication::KratosRANSApplication()
       mIncompressiblePotentialFlowVelocityInlet2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mIncompressiblePotentialFlowVelocityInlet3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       // k-epsilon turbulence model conditions
+      mRansKEpsilonKVisBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansKEpsilonKVisBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansKEpsilonEpsilonKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansKEpsilonEpsilonKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansKEpsilonEpsilonUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
@@ -318,6 +320,9 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowVelocityInlet3D3N", mIncompressiblePotentialFlowVelocityInlet3D3N);
 
     // registering k-epsilon conditions
+    KRATOS_REGISTER_CONDITION("RansKEpsilonKVisBasedWall2D2N", mRansKEpsilonKVisBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansKEpsilonKVisBasedWall3D3N", mRansKEpsilonKVisBasedWall3D3N);
+
     KRATOS_REGISTER_CONDITION("RansKEpsilonEpsilonKBasedWall2D2N", mRansKEpsilonEpsilonKBasedWall2D2N);
     KRATOS_REGISTER_CONDITION("RansKEpsilonEpsilonKBasedWall3D3N", mRansKEpsilonEpsilonKBasedWall3D3N);
 
