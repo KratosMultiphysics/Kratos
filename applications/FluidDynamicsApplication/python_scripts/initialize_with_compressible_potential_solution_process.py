@@ -18,9 +18,6 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         self.model = model
         self.settings = settings
 
-        self.analysis_parameters = self._GenerateAnalysisparameters(self.settings)
-        self.analysis = None
-
         self.freestream_properties = self._GenerateFreeStreamProperties(settings["properties"])
 
 
@@ -44,13 +41,16 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
     def ExecuteBeforeSolutionLoop(self):
         # Creating model part
         potential_mpart = self.model.CreateModelPart("potential_analysis_model_part")
+        original_model_part = self.model[self.settings["model_part_name"].GetString()]
 
         # Starting analysis
+        time = original_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        self.analysis_parameters = self._GenerateAnalysisparameters(self.settings, time)
         self.analysis = PotentialFlowAnalysis(self.model, self.analysis_parameters)
 
         # Filling model part
-        original_model_part = self.model[self.settings["model_part_name"].GetString()]
         KratosMultiphysics.MergeVariableListsUtility().Merge(original_model_part, potential_mpart)
+        potential_mpart.SetBufferSize(3)
 
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
         modeler.GenerateModelPart(original_model_part, potential_mpart, "Element2D3N", "LineCondition2D2N")
@@ -61,7 +61,6 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         
         # Running analysis
         self.analysis.Run()
-
 
         # Calculate the velocity and pressure nodal projections
         computing_model_part = self.analysis._GetSolver().GetComputingModelPart()
@@ -74,8 +73,9 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
 
             # Setting initial conditions
             for variable,value in local_props.items():
-                node.SetSolutionStepValue(variable, 0, value)
-                node.SetSolutionStepValue(variable, 1, value)
+                node.SetSolutionStepValue(variable, value)
+        
+        potential_mpart.CloneSolutionStep()
 
     @classmethod
     def _GenerateFreeStreamProperties(cls, settings):
@@ -120,7 +120,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         return local_properties
 
     @classmethod
-    def _GenerateAnalysisparameters(cls, settings):
+    def _GenerateAnalysisparameters(cls, settings, simulation_time):
         defaults = KratosMultiphysics.Parameters("""
         {
             "problem_data"     : {
@@ -128,7 +128,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
                 "parallel_type" : "OpenMP",
                 "echo_level"    : 0,
                 "start_time"    : 0.0,
-                "end_time"      : 1
+                "end_time"      : 1.0
             },
             "output_processes" : {
             },
@@ -159,5 +159,9 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         defaults["solver_settings"]["volume_model_part_name"] = settings["volume_model_part_name"]
         defaults["solver_settings"]["skin_parts"] = settings["skin_parts"]
         defaults["processes"]["boundary_conditions_process_list"] = settings["boundary_conditions_process_list"]
+
+        # Ensuring time ends at the begging of simulation
+        defaults["problem_data"]["end_time"].SetDouble(simulation_time)
+        defaults["problem_data"]["start_time"].SetDouble(simulation_time - 1.0)
 
         return defaults
