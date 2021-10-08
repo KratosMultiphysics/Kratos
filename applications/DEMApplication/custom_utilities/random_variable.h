@@ -11,6 +11,7 @@
 #include <string>
 #include <iostream>
 #include <random>
+#include <numeric>
 
 // Project includes
 #include "includes/define.h"
