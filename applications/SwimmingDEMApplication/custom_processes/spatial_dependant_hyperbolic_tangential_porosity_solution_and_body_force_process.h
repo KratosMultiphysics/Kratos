@@ -124,14 +124,9 @@ public:
 
     const Parameters GetDefaultParameters() const override;
 
-    void CalculatePermeability(
-        double &rDamKohlerNumber,
-        double &dynamic_viscosity,
-        double &permeability);
+    void CalculatePermeability(double &dynamic_viscosity);
 
-    void CalculateFunctionParameters(
-        double &mFirstParameter,
-        double &mSecondParameter);
+    void CalculateFunctionParameters();
 
     void SetInitialBodyForceAndPorosityField();
 
