@@ -133,12 +133,17 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
         // for the initial given search radius.
         mMeshesAreConforming = 0;
 
+        KRATOS_INFO("") << "\n";
         KRATOS_INFO_IF("Mapper search", mEchoLevel >= 1)
             << "search radius was increased, another search iteration is conducted\n    "
             << "search iteration: " << num_iteration << " / "<< max_search_iterations << " | "
             << "search radius: " << mSearchRadius << std::endl;
 
         ConductSearchIteration(rpInterfaceInfo, rComm);
+
+        if (mEchoLevel > 1) {
+            PrintInfoAboutCurrentSearchSuccess(rComm);
+        }
     }
 
     FinalizeSearch();
@@ -449,6 +454,32 @@ bool InterfaceCommunicator::AllNeighborsFound(const Communicator& rComm) const
     return all_neighbors_found > 0;
 
     KRATOS_CATCH("");
+}
+
+void InterfaceCommunicator::PrintInfoAboutCurrentSearchSuccess(const Communicator& rComm) const
+{
+    using TwoReduction = CombinedReduction<SumReduction<int>, SumReduction<int>>;
+    int approximations, no_neighbor;
+    std::tie(approximations, no_neighbor) = block_for_each<TwoReduction>(mrMapperLocalSystems,
+        [](const MapperLocalSystemPointer& rpLocalSys){
+            if (rpLocalSys->HasInterfaceInfoThatIsNotAnApproximation()) {
+                return std::make_tuple(0,0);
+            } else if (rpLocalSys->HasInterfaceInfo()) {
+                return std::make_tuple(1,0);
+            }
+            return std::make_tuple(0,1);
+    });
+    approximations = rComm.GetDataCommunicator().SumAll(approximations);
+    no_neighbor = rComm.GetDataCommunicator().SumAll(no_neighbor);
+    const int global_num_nodes = rComm.GlobalNumberOfNodes();
+
+    KRATOS_INFO("Mapper search") << "current status:\n    "
+        << approximations << " / " << global_num_nodes << " ("
+        << std::round((approximations/static_cast<double>(global_num_nodes))*100)
+        << " %) local systems found only an approximation\n    "
+        << no_neighbor << " / " << global_num_nodes << " ("
+        << std::round((no_neighbor/static_cast<double>(global_num_nodes))*100)
+        << " %) local systems did not find a neighbor" << std::endl;
 }
 
 }  // namespace Kratos.

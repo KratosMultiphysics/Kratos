@@ -167,6 +167,8 @@ private:
 
     bool AllNeighborsFound(const Communicator& rComm) const;
 
+    void PrintInfoAboutCurrentSearchSuccess(const Communicator& rComm) const;
+
     ///@}
 
 }; // Class InterfaceCommunicator

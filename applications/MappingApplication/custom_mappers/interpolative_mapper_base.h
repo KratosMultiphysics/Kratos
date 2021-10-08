@@ -465,9 +465,9 @@ private:
             no_neighbor = r_data_comm.SumAll(no_neighbor);
             const int global_num_nodes = mrModelPartDestination.GetCommunicator().GlobalNumberOfNodes();
 
-            KRATOS_WARNING_IF("Mapper", approximations > 0) << approximations << " / " << global_num_nodes << " (" << std::round((approximations/static_cast<double>(global_num_nodes))*100) << " %) local system are using an approximation" << std::endl;
+            KRATOS_WARNING_IF("Mapper", approximations > 0) << approximations << " / " << global_num_nodes << " (" << std::round((approximations/static_cast<double>(global_num_nodes))*100) << " %) local systems are using an approximation" << std::endl;
 
-            KRATOS_WARNING_IF("Mapper", no_neighbor > 0) << no_neighbor << " / " << global_num_nodes << " (" << std::round((no_neighbor/static_cast<double>(global_num_nodes))*100) << " local system did not find a neighbor!" << std::endl;
+            KRATOS_WARNING_IF("Mapper", no_neighbor > 0) << no_neighbor << " / " << global_num_nodes << " (" << std::round((no_neighbor/static_cast<double>(global_num_nodes))*100) << " %) local system sdid not find a neighbor!" << std::endl;
         }
 
         if (mMapperSettings["print_pairing_status_to_file"].GetBool()) {
