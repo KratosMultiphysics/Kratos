@@ -84,8 +84,6 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                     "volume_model_part_name": "Fluid",
                     "skin_parts": ["Inlet","Outlet"],
                     "properties" : {
-                        "c_v" : 722.14,
-                        "gamma" : 1.4,
                         "free_stream_density" : 1.19659,
                         "free_stream_momentum" : 329.598,
                         "free_stream_energy" : 298706.0

@@ -13,7 +13,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
     """Initializes the values by solving a steady-state problem with the compressible potential flow analysis stage"""
     def __init__(self, model, settings):
         super().__init__()
-        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
+        settings.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.model = model
         self.settings = settings
