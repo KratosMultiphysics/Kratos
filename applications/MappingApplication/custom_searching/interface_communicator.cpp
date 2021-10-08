@@ -84,7 +84,7 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
         max_search_radius = mSearchSettings["max_search_radius"].GetDouble();
         KRATOS_ERROR_IF(max_search_radius < std::numeric_limits<double>::epsilon()) << "Maximum radius must be larger than 0.0!" << std::endl;
     } else {
-        max_search_radius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin, mEchoLevel);
+        max_search_radius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin, mEchoLevel)*2;
 
         // use maximum across the all partitions
         if (mrModelPartOrigin.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
