@@ -43,6 +43,7 @@ RansOmegaAutomaticInletProcess::RansOmegaAutomaticInletProcess(
 
     mTurbulentMixingLength = rParameters["turbulent_mixing_length"].GetDouble();
     mKinematicViscosity = rParameters["kinematic_viscosity"].GetDouble();
+    mBeta = rParameters["beta"].GetDouble();
     mWallLocation = rParameters["wall_location"].GetVector();
     mWallOutwardPointintUnitNormal = rParameters["wall_normal"].GetVector();
     mWallOutwardPointintUnitNormal = mWallOutwardPointintUnitNormal / norm_2(mWallOutwardPointintUnitNormal);
@@ -66,7 +67,9 @@ void RansOmegaAutomaticInletProcess::ExecuteInitializeSolutionStep()
     KRATOS_TRY
 
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-    const double c_mu_25 = std::pow(r_model_part.GetProcessInfo()[TURBULENCE_RANS_C_MU], 0.25);
+    const auto& r_process_info = r_model_part.GetProcessInfo();
+    const double c_mu_25 = std::pow(r_process_info[TURBULENCE_RANS_C_MU], 0.25);
+    const double kappa = r_process_info[VON_KARMAN];
     auto& r_nodes = r_model_part.Nodes();
 
     block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
@@ -75,7 +78,7 @@ void RansOmegaAutomaticInletProcess::ExecuteInitializeSolutionStep()
             const double tke_sqrt = std::sqrt(std::max(rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY), 0.0));
             const double omega_turbulent_mixing_length =  tke_sqrt / (c_mu_25 * mTurbulentMixingLength);
             const double omega_vis = 6.0 * mKinematicViscosity / (mBeta * y * y);
-            const double omega_log = tke_sqrt / (c_mu_25 * VON_KARMAN * y);
+            const double omega_log = tke_sqrt / (c_mu_25 * kappa * y);
 
             double& omega = rNode.FastGetSolutionStepValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
             omega = std::max(std::sqrt(std::pow(omega_vis, 2) + std::pow(omega_log, 2) +
@@ -136,6 +139,7 @@ const Parameters RansOmegaAutomaticInletProcess::GetDefaultParameters() const
         "model_part_name"         : "PLEASE_SPECIFY_MODEL_PART_NAME",
         "turbulent_mixing_length" : 0.005,
         "echo_level"              : 0,
+        "beta"                    : 0.075,
         "kinematic_viscosity"     : 1e-5,
         "wall_location"           : [0.0, 0.0, 0.0],
         "wall_normal"             : [1.0, 0.0, 0.0],
