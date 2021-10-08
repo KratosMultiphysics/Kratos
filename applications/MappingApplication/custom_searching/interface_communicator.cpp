@@ -142,8 +142,6 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
         << "\n    Maximum number of search iterations: " << max_search_iterations
         << "\n    Search radius increase factor: " << increase_factor << std::endl;
 
-
-
     mSearchRadius = init_search_radius;
 
     int num_iteration = 1;
@@ -311,14 +309,14 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(const MapperInterfaceIn
         const auto elements_begin = r_comm.LocalMesh().Elements().ptr_begin();
         const auto conditions_begin = r_comm.LocalMesh().Conditions().ptr_begin();
 
-        int num_elements_global = r_comm.GetDataCommunicator().SumAll(static_cast<int>(num_elements));
-        int num_conditions_global = r_comm.GetDataCommunicator().SumAll(static_cast<int>(num_conditions));
+        int num_elements_global = r_comm.GlobalNumberOfElements();
+        int num_conditions_global = r_comm.GlobalNumberOfConditions();
 
         KRATOS_ERROR_IF(num_elements_global > 0 && num_conditions_global > 0)
             << "Both Elements and Conditions are present which is not allowed!\n"
             << "Name of ModelPart: " << mrModelPartOrigin.Name()
-            << "\nNumber of Elements: " << num_elements
-            << "; Number of Condition: " << num_conditions << std::endl;
+            << "\nNumber of Elements: " << num_elements_global
+            << "; Number of Condition: " << num_conditions_globals << std::endl;
 
         KRATOS_ERROR_IF(num_elements_global+num_conditions_global == 0)
             << "No Elements and Conditions are present which is not allowed!\n"
