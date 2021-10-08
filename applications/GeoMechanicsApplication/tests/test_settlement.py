@@ -25,14 +25,14 @@ class KratosGeoMechanicsSettlementTests(KratosUnittest.TestCase):
         node = 1
         kratos_res = getTimesDisplacement(node)
         self.assertEqual(128, len(kratos_res))
-        dsett_res = getComparisonResult("dsett.csv")
         analytical_res = getComparisonResult("analytical.csv")
-        dsett_error = compareResult(kratos_res, dsett_res)
-        analytical_error = compareResult(kratos_res, analytical_res)
-        self.assertLess(analytical_error, 5,
-                        "Analytical Comparison Failed (Av Diff >5%): {0:.2f}%".format(analytical_error))
-        self.assertLess(dsett_error, 5,
-                        "DSettlement Comparison Failed (Av Diff >5%): {0:.2f}%".format(dsett_error))
+
+        # convert to objective stress
+        analytical_error = compareResult(kratos_res, convertToObjectiveStress(analytical_res, 100))
+
+        self.assertLess(analytical_error, 7.5,
+                        "Analytical Comparison Failed (Av Diff >7.5%): {0:.2f}%".format(analytical_error))
+
 
 def getComparisonResult(file):
     with open(os.path.join('.', file), 'r') as fo:
@@ -74,11 +74,10 @@ def getTimesDisplacement(node):
                     timeDisplacement.append([time, yDisp])
     return timeDisplacement
 
-
 def compareResult(kratos_res, comp_res):
     ErrorRelativePercent = []
     for point in kratos_res:
-        if point[0] < 0 + 1 or point[0] > 10000 - 1:
+        if point[0] < 0 + 2.5 or point[0] > 10000 - 2.5:
             continue
         y = interpolate(comp_res, point[0])
         if not math.isnan(y) and y != 0:
@@ -86,6 +85,18 @@ def compareResult(kratos_res, comp_res):
             print(y, point[1], point[0], ErrorRelativePercent[-1])
     return sum(ErrorRelativePercent)/len(ErrorRelativePercent)
 
+def convertToObjectiveStress(result, depth):
+    # ABC
+    # S = H0 * (1 - exp(-eps(t))) => S = H0 * (eps(t) / (1 + eps(t))
+
+    objectiveStress = [];
+    for point in result:
+        y = -point[1]
+        et = -math.log(1 - (y / depth))
+        s = -depth * (et / (1 + et))
+        objectiveStress.append([point[0], s])
+
+    return objectiveStress
 
 if __name__ == '__main__':
     suites = KratosUnittest.KratosSuites
