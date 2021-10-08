@@ -328,7 +328,7 @@ class MaterialTest():
             if smp[IDENTIFIER] == 'TOP':
                 self.top_mesh_nodes = smp.Nodes
                 prepare_check[0] = 1
-            if smp[IDENTIFIER] == 'BOT':
+            if smp[IDENTIFIER] == 'BOTTOM':
                 self.bot_mesh_nodes = smp.Nodes
                 prepare_check[1] = 1
 
@@ -337,7 +337,7 @@ class MaterialTest():
                 self.top_mesh_nodes = smp.Nodes
                 prepare_check[2] = -1
 
-            if smp[IDENTIFIER] == 'BOT':
+            if smp[IDENTIFIER] == 'BOTTOM':
                 self.bot_mesh_nodes = smp.Nodes
                 prepare_check[3] = -1
 

@@ -409,13 +409,16 @@ namespace Kratos {
         double current_normal_tension_module = current_normal_force_module / calculation_area;
         double BondedLocalElasticContactTension2 = BondedLocalElasticContactForce2 / calculation_area;
 
-        if (1) { //mDebugPrintingOption) {
+        if (true) { //mDebugPrintingOption) {
 
             const long unsigned int& sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_1];
             const long unsigned int& neigh_sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_2];
 
             //if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
-            if ((element1->Id() == 2872) && (r_process_info[TIME] > 360.02)) {
+            if (element1->GetGeometry()[0].X() > 0.01 && \
+                element1->GetGeometry()[0].X() < 0.012 && \
+                element1->GetGeometry()[0].Y() > -0.098 && \
+                element1->GetGeometry()[0].Y() < -0.096 && (r_process_info[TIME] > 360.018)) {
                 std::ofstream normal_forces_file("nl.txt", std::ios_base::out | std::ios_base::app);
                 normal_forces_file << r_process_info[TIME] << " " << indentation/*2*/ << " " << LocalElasticContactForce[2]/*3*/ << " "
                                    << limit_force/*4*/ << " " << delta_accumulated/*5*/ << " " << returned_by_mapping_force/*6*/ << " "
@@ -431,8 +434,8 @@ namespace Kratos {
                 normal_forces_file.close();
                 KRATOS_WATCH(element1->GetGeometry()[0].X())
                 KRATOS_WATCH(element1->GetGeometry()[0].Y())
+                KRATOS_WATCH(element1->Id())
             }
-            
         }
         // X 0.011935682775608353
         // Y -0.10919087619794197
@@ -660,7 +663,7 @@ namespace Kratos {
         }
         double returned_by_mapping_tension = returned_by_mapping_force / calculation_area;
 
-        if (1) { //mDebugPrintingOption) {
+        if (true) { //mDebugPrintingOption) {
             const long unsigned int& sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_1];
             const long unsigned int& neigh_sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_2];
             double local_elastic_force_modulus_bonded_only = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0] +
@@ -672,7 +675,10 @@ namespace Kratos {
             double quotient_unbonded_only = local_elastic_force_modulus_unbonded_only / calculation_area;
 
             //if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
-            if ((element1->Id() == 2872) && (r_process_info[TIME] > 360.02)) {
+            if (element1->GetGeometry()[0].X() > 0.01 && \
+                element1->GetGeometry()[0].X() < 0.012 && \
+                element1->GetGeometry()[0].Y() > -0.098 && \
+                element1->GetGeometry()[0].Y() < -0.096 && (r_process_info[TIME] > 360.018)) {
                 std::ofstream tangential_forces_file("tg.txt", std::ios_base::out | std::ios_base::app);
                 tangential_forces_file << r_process_info[TIME] << " " << int(failure_type)/*2*/ << " " << tau_strength/*3*/ << " "
                                     << kt_updated/*4*/ << " " << int(sliding)/*5*/ << " "
