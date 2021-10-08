@@ -41,7 +41,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         }
         """)
 
-    def ExecuteInitialize(self):
+    def ExecuteBeforeSolutionLoop(self):
         # Creating model part
         potential_mpart = self.model.CreateModelPart("potential_analysis_model_part")
 
@@ -59,9 +59,9 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         if potential_mpart.HasSubModelPart("fluid_computational_model_part"):
             potential_mpart.RemoveSubModelPart("fluid_computational_model_part")
         
-
         # Running analysis
         self.analysis.Run()
+
 
         # Calculate the velocity and pressure nodal projections
         computing_model_part = self.analysis._GetSolver().GetComputingModelPart()
