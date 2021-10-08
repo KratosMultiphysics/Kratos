@@ -30,6 +30,32 @@ namespace Kratos {
 typedef std::size_t IndexType;
 typedef std::size_t SizeType;
 
+namespace {
+
+// Since either ModelPart might not be part of this rank,
+// we have to check and reduce over both
+template<typename T>
+T MaxAll(
+    const DataCommunicator& rDataComm1,
+    const DataCommunicator& rDataComm2,
+    T Value)
+{
+    if (rDataComm1.IsDefinedOnThisRank()) {
+        Value = rDataComm1.MaxAll(Value);
+    }
+    if (rDataComm2.IsDefinedOnThisRank()) {
+        Value = rDataComm2.MaxAll(Value);
+    }
+    return Value;
+}
+
+double LogBase(const double Val, const double Base)
+{
+    return std::log(Val) / std::log(Base);
+}
+
+} // anonymous namespace for helper functions
+
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
@@ -71,10 +97,6 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
     double increase_factor = 2.0; // default value
     int max_search_iterations = 3; // default value
 
-    auto log_base = [](const double Val, const double Base) -> double {
-        return std::log(Val) / std::log(Base);
-    };
-
     if (mSearchSettings.Has("search_radius_increase_factor")) {
         increase_factor = mSearchSettings["search_radius_increase_factor"].GetDouble();
         KRATOS_ERROR_IF(increase_factor < std::numeric_limits<double>::epsilon()) << "Search radius increase factor must be larger than 0.0!" << std::endl;
@@ -86,13 +108,10 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
     } else {
         max_search_radius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin, mEchoLevel)*2;
 
-        // use maximum across the all partitions
-        if (mrModelPartOrigin.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
-            max_search_radius = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MaxAll(max_search_radius);
-        }
-        if (rComm.GetDataCommunicator().IsDefinedOnThisRank()) {
-            max_search_radius = rComm.GetDataCommunicator().MaxAll(max_search_radius);
-        }
+        max_search_radius = MaxAll(
+            mrModelPartOrigin.GetCommunicator().GetDataCommunicator(),
+            rComm.GetDataCommunicator(),
+            max_search_radius);
     }
 
     if (mSearchSettings.Has("search_radius")) {
@@ -103,13 +122,11 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
             const array_1d<double, 3> box_size = mpLocalBinStructure->GetMaxPoint() - mpLocalBinStructure->GetMinPoint();
             init_search_radius = (*std::max_element(box_size.begin(), box_size.end())) / num_interface_obj_bin;
         }
-        // use minimum across the all partitions
-        if (mrModelPartOrigin.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
-            init_search_radius = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MaxAll(init_search_radius);
-        }
-        if (rComm.GetDataCommunicator().IsDefinedOnThisRank()) {
-            init_search_radius = rComm.GetDataCommunicator().MaxAll(init_search_radius);
-        }
+
+        init_search_radius = MaxAll(
+            mrModelPartOrigin.GetCommunicator().GetDataCommunicator(),
+            rComm.GetDataCommunicator(),
+            init_search_radius);
 
         if (init_search_radius < std::numeric_limits<double>::epsilon()) {
             // very rare case when all bins only have one entry
@@ -125,15 +142,13 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
         KRATOS_ERROR_IF(max_search_iterations < 1) << "Number of search iterations must be larger than 0!" << std::endl;
     } else {
         max_search_iterations = std::max(max_search_iterations,static_cast<int>(
-                std::ceil(log_base(max_search_radius,  increase_factor)-
-                            log_base(init_search_radius, increase_factor)))+1);
-        // use maximum across the all partitions
-        if (mrModelPartOrigin.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
-            max_search_iterations = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MaxAll(max_search_iterations);
-        }
-        if (rComm.GetDataCommunicator().IsDefinedOnThisRank()) {
-            max_search_iterations = rComm.GetDataCommunicator().MaxAll(max_search_iterations);
-        }
+                std::ceil(LogBase(max_search_radius,  increase_factor)-
+                          LogBase(init_search_radius, increase_factor)))+1);
+
+        max_search_iterations = MaxAll(
+            mrModelPartOrigin.GetCommunicator().GetDataCommunicator(),
+            rComm.GetDataCommunicator(),
+            max_search_iterations);
     }
 
     KRATOS_INFO_IF("Mapper search", mEchoLevel>1)
@@ -461,25 +476,23 @@ bool InterfaceCommunicator::AllNeighborsFound(const Communicator& rComm) const
 {
     KRATOS_TRY;
 
-    int all_neighbors_found = 1; // set to "1" aka "true" by default in case
+    int all_neighbors_found = 0; // set to "0" aka "true" by default in case
     // this partition doesn't have a part of the interface!
 
     for (const auto& local_sys : mrMapperLocalSystems) {
         if (!local_sys->HasInterfaceInfoThatIsNotAnApproximation()) {
-            all_neighbors_found = 0;
+            all_neighbors_found = 1;
             break;
         }
     }
 
     // This is necessary bcs not all partitions would start a new search iteration!
-    if (mrModelPartOrigin.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
-        all_neighbors_found = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().MinAll(all_neighbors_found);
-    }
-    if (rComm.GetDataCommunicator().IsDefinedOnThisRank()) {
-        all_neighbors_found = rComm.GetDataCommunicator().MinAll(all_neighbors_found);
-    }
+    all_neighbors_found = MaxAll(
+        mrModelPartOrigin.GetCommunicator().GetDataCommunicator(),
+        rComm.GetDataCommunicator(),
+        all_neighbors_found);
 
-    return all_neighbors_found > 0;
+    return all_neighbors_found == 0;
 
     KRATOS_CATCH("");
 }
