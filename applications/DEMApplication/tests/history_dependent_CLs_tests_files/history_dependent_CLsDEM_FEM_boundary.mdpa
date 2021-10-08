@@ -26,6 +26,7 @@ End Conditions
 
 Begin SubModelPart Surface1
   Begin SubModelPartData
+    RIGID_BODY_OPTION 1
     IDENTIFIER Surface1
   End SubModelPartData
   Begin SubModelPartNodes
@@ -43,6 +44,7 @@ End SubModelPart
 
 Begin SubModelPart Surface2
   Begin SubModelPartData
+    RIGID_BODY_OPTION 1
     IDENTIFIER Surface2
   End SubModelPartData
   Begin SubModelPartNodes
