@@ -10,7 +10,29 @@ def Factory(settings, model):
 
 
 class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Process):
-    """Initializes the values by solving a steady-state problem with the compressible potential flow analysis stage"""
+    """Initializes the values by solving a steady-state problem with the
+    compressible potential flow analysis stage
+
+    Parameters:
+     - model_part_name: The name of the modelpart to clone and run the analysis
+            on. Should be the main_model_part of the parent analysis.
+     - volume_model_part_name: The modelpart containing the fluid.
+     - skin_parts: Inlets and outlets
+     - boundary_conditions_process_list: Processes ran for the potential
+            simulation.
+     - element_type: Type of element. See PotentialFlowSolver._GetStrategyType
+            to see the options
+     - properties: These are used to convert VELOCITY into MOMENTUM, DENSITY
+            and TOTAL_ENERGY
+
+    Furthermore, if any of the listed items is missing in the parameters of a
+    FarField process, they will be autofilled based on these properties.
+    - free_stream_density
+    - sound speed
+    - heat capacity ratio
+    - mach_infinity
+
+    """
     def __init__(self, model, settings):
         super().__init__()
         settings.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
@@ -21,7 +43,14 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
 
 
     def ExecuteInitialize(self):
-        "Ensures that free_stream_density, sound speed, and heat capacity ratio are consistent across processes"
+        """Automatically sets certain values of FarFieldProcess according to the freestream properties
+
+        These values are:
+         - free_stream_density
+         - sound speed
+         - heat capacity ratio
+         - mach_infinity
+        """
         for process_parameters in self.settings["boundary_conditions_process_list"]:
             if process_parameters.Has("process_name") and \
                     process_parameters["process_name"].GetString() == "FarFieldProcess":
