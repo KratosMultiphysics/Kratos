@@ -17,17 +17,14 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
             ReadModelPart(work_file, mpart)
 
             process = initialize_with_compressible_potential_solution_process.Factory(self._GetSettings(), model)
+            process.ExecuteInitialize()
 
             obtained = process._GenerateAnalysisparameters(process.settings, 0.0)
             expected = self._GetExpectedAnalysisParameters()
 
             obtained.RecursivelyValidateDefaults(expected)
 
-            self.assertTrue(
-                obtained.IsEquivalentTo(expected),
-                "Parameters do not match. Obtained:\n\n{}\n\nExpected:\n\n{}".
-                    format(obtained.PrettyPrintJsonString(), expected.PrettyPrintJsonString())
-            )
+            self._AssertParametersEqual(obtained, expected)
 
     @KratosUnittest.skipIfApplicationsNotAvailable("CompressiblePotentialFlowApplication")
     def testProcess(self):
@@ -74,6 +71,52 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                     places=0) # Large value -> Lower absolute accuracy
 
 
+    def _AssertParametersEqual(self, A, B,):
+        if A.IsArray():
+            if A.size() != B.size():
+                raise AssertionError(":\n Different item count in array ({} != {})".format(A.size(), B.size()))
+            i = 0
+            for a, b in zip(A, B):
+                try:
+                    self._AssertParametersEqual(a,b)
+                except AssertionError as err:
+                    raise AssertionError("[{}] >> {}".format(i, err)) from None
+                i += 1
+            return
+
+        if A.IsDouble():
+            self.assertAlmostEqual(A.GetDouble(), B.GetDouble())
+            return
+
+        if A.IsInt():
+            self.assertEqual(A.GetInt(), B.GetInt())
+            return
+
+        if A.IsBool():
+            self.assertEqual(A.GetBool(), B.GetBool())
+            return
+
+        if A.IsString():
+            self.assertEqual(A.GetString(), B.GetString())
+            return
+
+        if len(A.keys()) == 0:
+            return
+
+        try:
+            A.ValidateDefaults(B)
+        except RuntimeError as err:
+            raise AssertionError(":\n {}".format(err)) from None
+
+        for key_A, key_B in zip(A.keys(), B.keys()):
+            try:
+                self._AssertParametersEqual(A[key_A], B[key_B])
+            except AssertionError as err:
+                raise AssertionError("\"{}\" >> {}".format(key_A, err)) from None
+        
+        return
+
+
     @classmethod
     def _GetSettings(cls):
         """Returns settings for M=0.8 @ 1bar and 293.15K"""
@@ -95,9 +138,8 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                             "process_name"  : "FarFieldProcess",
                             "Parameters"    : {
                                 "model_part_name" : "potential_analysis_model_part.Inlet",
-                                "angle_of_attack" : 10.0,
-                                "mach_infinity"   : 0.8,
-                                "speed_of_sound"  : 344.31
+                                "angle_of_attack" : 0.0,
+                                "mach_infinity"   : 0.8
                             }
                         },{
                             "python_module" : "apply_far_field_process",
@@ -106,8 +148,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                             "Parameters"    : {
                                 "model_part_name" : "potential_analysis_model_part.Outlet",
                                 "angle_of_attack" : 0.0,
-                                "mach_infinity"   : 0.8,
-                                "speed_of_sound"  : 344.31
+                                "mach_infinity"   : 0.8
                             }
                         }
                     ]
@@ -131,10 +172,12 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                     "boundary_conditions_process_list": [
                         {
                             "Parameters": {
-                                "angle_of_attack": 10.0,
+                                "angle_of_attack": 0.0,
+                                "free_stream_density": 1.19659,
+                                "heat_capacity_ratio": 1.4,
                                 "mach_infinity": 0.8,
                                 "model_part_name": "potential_analysis_model_part.Inlet",
-                                "speed_of_sound": 344.31
+                                "speed_of_sound": 344.3099953136029
                             },
                             "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
                             "process_name": "FarFieldProcess",
@@ -143,9 +186,11 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                         {
                             "Parameters": {
                                 "angle_of_attack": 0.0,
+                                "free_stream_density": 1.19659,
+                                "heat_capacity_ratio": 1.4,
                                 "mach_infinity": 0.8,
                                 "model_part_name": "potential_analysis_model_part.Outlet",
-                                "speed_of_sound": 344.31
+                                "speed_of_sound": 344.3099953136029
                             },
                             "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
                             "process_name": "FarFieldProcess",
