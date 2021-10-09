@@ -125,10 +125,10 @@ class ScalarRansFormulation(RansFormulation):
                 if not settings["clipping_settings"].IsEquivalentTo(Kratos.Parameters("""{}""")):
                     scheme = scheme_type(
                         self.GetModelPart().ProcessInfo[Kratos.BOSSAK_ALPHA],
-                        settings["clipping_settings"]["min_value"].GetDouble(),
-                        settings["clipping_settings"]["max_value"].GetDouble(),
                         settings["relaxation_factor"].GetDouble(),
-                        self.GetSolvingVariable())
+                        self.GetSolvingVariable(),
+                        settings["clipping_settings"]["min_value"].GetDouble(),
+                        settings["clipping_settings"]["max_value"].GetDouble())
                 else:
                     scheme = scheme_type(
                         self.GetModelPart().ProcessInfo[Kratos.BOSSAK_ALPHA],
