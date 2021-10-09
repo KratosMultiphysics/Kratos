@@ -38,6 +38,7 @@ class ScalarRansFormulation(RansFormulation):
             "echo_level"            : 2,
             "boundary_flags"        : ["INLET", "STRUCTURE"],
             "auxiliar_process_list" : [],
+            "clipping_settings"     : {},
             "vtk_output_settings"   : {},
             "wall_function_settings": {},
             "linear_solver_settings": {
@@ -121,10 +122,18 @@ class ScalarRansFormulation(RansFormulation):
             scheme_type = GetKratosObjectPrototype("BossakRelaxationScalarScheme")
             vtk_settings = settings["vtk_output_settings"]
             if vtk_settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
-                scheme = scheme_type(
-                    self.GetModelPart().ProcessInfo[Kratos.BOSSAK_ALPHA],
-                    settings["relaxation_factor"].GetDouble(),
-                    self.GetSolvingVariable())
+                if not settings["clipping_settings"].IsEquivalentTo(Kratos.Parameters("""{}""")):
+                    scheme = scheme_type(
+                        self.GetModelPart().ProcessInfo[Kratos.BOSSAK_ALPHA],
+                        settings["clipping_settings"]["min_value"].GetDouble(),
+                        settings["clipping_settings"]["max_value"].GetDouble(),
+                        settings["relaxation_factor"].GetDouble(),
+                        self.GetSolvingVariable())
+                else:
+                    scheme = scheme_type(
+                        self.GetModelPart().ProcessInfo[Kratos.BOSSAK_ALPHA],
+                        settings["relaxation_factor"].GetDouble(),
+                        self.GetSolvingVariable())
             else:
                 if vtk_settings.Has("model_part_name") and vtk_settings["model_part_name"].GetString() != self.GetModelPart().FullName():
                     Kratos.Logger.PrintWarning(self.__class__.__name__, "Vtk output model part name " + vtk_settings["model_part_name"].GetString(
@@ -133,11 +142,20 @@ class ScalarRansFormulation(RansFormulation):
                     vtk_settings.AddEmptyValue("model_part_name")
                 vtk_settings["model_part_name"].SetString(self.GetModelPart().FullName())
 
-                scheme = scheme_type(
-                    self.GetModelPart().ProcessInfo[Kratos.BOSSAK_ALPHA],
-                    settings["relaxation_factor"].GetDouble(),
-                    self.GetSolvingVariable(),
-                    Kratos.VtkOutput(self.GetModelPart(), vtk_settings))
+                if not settings["clipping_settings"].IsEquivalentTo(Kratos.Parameters("""{}""")):
+                    scheme = scheme_type(
+                        self.GetModelPart().ProcessInfo[Kratos.BOSSAK_ALPHA],
+                        settings["relaxation_factor"].GetDouble(),
+                        self.GetSolvingVariable(),
+                        settings["clipping_settings"]["min_value"].GetDouble(),
+                        settings["clipping_settings"]["max_value"].GetDouble(),
+                        Kratos.VtkOutput(self.GetModelPart(), vtk_settings))
+                else:
+                    scheme = scheme_type(
+                        self.GetModelPart().ProcessInfo[Kratos.BOSSAK_ALPHA],
+                        settings["relaxation_factor"].GetDouble(),
+                        self.GetSolvingVariable(),
+                        Kratos.VtkOutput(self.GetModelPart(), vtk_settings))
 
         self.scheme = scheme
         solver_type = GetKratosObjectPrototype("ResidualBasedNewtonRaphsonStrategy")

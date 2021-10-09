@@ -30,6 +30,7 @@
 #include "input_output/vtk_output.h"
 
 // Application includes
+#include "custom_utilities/rans_variable_utilities.h"
 #include "custom_strategies/steady_scalar_scheme.h"
 
 namespace Kratos
@@ -111,6 +112,53 @@ public:
         mIndex = 0;
     }
 
+    BossakRelaxationScalarScheme(
+        const double AlphaBossak,
+        const double RelaxationFactor,
+        const Variable<double>& rScalarVariable,
+        const double MinValue,
+        const double MaxValue)
+        : BaseType(RelaxationFactor),
+          mAlphaBossak(AlphaBossak),
+          mrScalarVariable(rScalarVariable),
+          mClipScalarVariable(true),
+          mMinValue(MinValue),
+          mMaxValue(MaxValue)
+    {
+        // Allocate auxiliary memory.
+        const int num_threads = OpenMPUtils::GetNumThreads();
+
+        mMassMatrix.resize(num_threads);
+        mSecondDerivativeValuesVector.resize(num_threads);
+        mSecondDerivativeValuesVectorOld.resize(num_threads);
+        mIndex = 0;
+        mpVtkOutput = nullptr;
+    }
+
+    BossakRelaxationScalarScheme(
+        const double AlphaBossak,
+        const double RelaxationFactor,
+        const Variable<double>& rScalarVariable,
+        const double MinValue,
+        const double MaxValue,
+        VtkOutput::Pointer pVtkOutput)
+        : BaseType(RelaxationFactor),
+          mAlphaBossak(AlphaBossak),
+          mrScalarVariable(rScalarVariable),
+          mpVtkOutput(pVtkOutput),
+          mClipScalarVariable(true),
+          mMinValue(MinValue),
+          mMaxValue(MaxValue)
+    {
+        // Allocate auxiliary memory.
+        const int num_threads = OpenMPUtils::GetNumThreads();
+
+        mMassMatrix.resize(num_threads);
+        mSecondDerivativeValuesVector.resize(num_threads);
+        mSecondDerivativeValuesVectorOld.resize(num_threads);
+        mIndex = 0;
+    }
+
     /// Destructor.
     ~BossakRelaxationScalarScheme() override = default;
 
@@ -171,6 +219,18 @@ public:
         KRATOS_TRY;
 
         BaseType::Update(rModelPart, rDofSet, rA, rDx, rb);
+
+        if (mClipScalarVariable) {
+            const auto v = RansVariableUtilities::ClipScalarVariable(mMinValue, mMaxValue, mrScalarVariable, rModelPart);
+            const auto below_lower_bound = std::get<0>(v);
+            const auto above_upper_bound = std::get<1>(v);
+
+            KRATOS_INFO_IF(this->Info(), below_lower_bound > 0 || above_upper_bound > 0)
+                << "Clipped " << mrScalarVariable.Name() << " between [ "
+                << mMinValue << ", " << mMaxValue << " ]. [ "
+                << below_lower_bound << " nodes < " << mMinValue << " and "
+                << above_upper_bound << " > " << mMaxValue << " ].";
+        }
 
         this->UpdateScalarRateVariables(rModelPart);
 
@@ -329,6 +389,12 @@ private:
     VtkOutput::Pointer mpVtkOutput;
 
     long unsigned int mIndex;
+
+    bool mClipScalarVariable;
+
+    double mMinValue = std::numeric_limits<double>::lowest();
+
+    double mMaxValue = std::numeric_limits<double>::max();
 
     ///@}
     ///@name Private Operations

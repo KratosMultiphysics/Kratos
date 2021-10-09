@@ -55,6 +55,8 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     py::class_<BossakRelaxationScalarSchemeType, typename BossakRelaxationScalarSchemeType::Pointer, BaseSchemeType>(m, "BossakRelaxationScalarScheme")
         .def(py::init<const double, const double, const Variable<double>&>())
         .def(py::init<const double, const double, const Variable<double>&, VtkOutput::Pointer>())
+        .def(py::init<const double, const double, const Variable<double>&, const double, const double>())
+        .def(py::init<const double, const double, const Variable<double>&, const double, const double, VtkOutput::Pointer>())
         .def("InitializeDofUpdater", &BossakRelaxationScalarSchemeType::InitializeDofUpdater)
         .def("UpdateScalarRateVariables", &BossakRelaxationScalarSchemeType::UpdateScalarRateVariables);
 
