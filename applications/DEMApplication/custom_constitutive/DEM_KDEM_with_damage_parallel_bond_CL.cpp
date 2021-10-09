@@ -409,7 +409,7 @@ namespace Kratos {
         double current_normal_tension_module = current_normal_force_module / calculation_area;
         double BondedLocalElasticContactTension2 = BondedLocalElasticContactForce2 / calculation_area;
 
-        if (true) { //mDebugPrintingOption) {
+        if (false) { //mDebugPrintingOption) {
 
             const long unsigned int& sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_1];
             const long unsigned int& neigh_sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_2];
@@ -663,7 +663,7 @@ namespace Kratos {
         }
         double returned_by_mapping_tension = returned_by_mapping_force / calculation_area;
 
-        if (true) { //mDebugPrintingOption) {
+        if (false) { //mDebugPrintingOption) {
             const long unsigned int& sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_1];
             const long unsigned int& neigh_sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_2];
             double local_elastic_force_modulus_bonded_only = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0] +
