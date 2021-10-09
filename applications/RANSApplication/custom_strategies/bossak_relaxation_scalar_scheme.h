@@ -225,7 +225,7 @@ public:
             const auto below_lower_bound = std::get<0>(v);
             const auto above_upper_bound = std::get<1>(v);
 
-            KRATOS_INFO_IF(this->Info(), below_lower_bound > 0 || above_upper_bound > 0)
+            KRATOS_INFO_IF("BossakRelaxationScalarScheme", below_lower_bound > 0 || above_upper_bound > 0)
                 << "Clipped " << mrScalarVariable.Name() << " between [ "
                 << mMinValue << ", " << mMaxValue << " ]. [ "
                 << below_lower_bound << " nodes < " << mMinValue << " and "
