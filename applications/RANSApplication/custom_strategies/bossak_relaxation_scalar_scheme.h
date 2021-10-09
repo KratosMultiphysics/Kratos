@@ -229,7 +229,7 @@ public:
                 << "Clipped " << mrScalarVariable.Name() << " between [ "
                 << mMinValue << ", " << mMaxValue << " ]. [ "
                 << below_lower_bound << " nodes < " << mMinValue << " and "
-                << above_upper_bound << " > " << mMaxValue << " ].";
+                << above_upper_bound << " > " << mMaxValue << " ].\n";
         }
 
         this->UpdateScalarRateVariables(rModelPart);
