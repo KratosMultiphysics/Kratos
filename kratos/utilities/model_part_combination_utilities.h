@@ -66,6 +66,10 @@ public:
     }
 
     virtual ~ModelPartCombinationUtilities()= default;
+    
+    ///@}
+    ///@name Operations
+    ///@{
 
     ///@}
     ///@name Access
@@ -77,14 +81,6 @@ public:
 
     ///@}
     ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-    ///@name Operations
     ///@{
 
     /**
@@ -111,6 +107,11 @@ public:
         rOStream << Info() << std::endl;
     }
 
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
 protected:
 
     ///@name Protected static Member Variables
