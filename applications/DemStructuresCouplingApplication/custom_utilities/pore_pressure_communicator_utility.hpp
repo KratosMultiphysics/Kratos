@@ -78,7 +78,11 @@ namespace Kratos {
                     bool is_found = false;
                     Element::Pointer shared_p_element;
                     is_found = mpSearchStructure->FindPointOnMesh(particle_coordinates, N, shared_p_element, results_begin, max_results, 0.0);
-                    if (is_found == true) {
+                    double gravity = 9.81;
+                    const double well_radius = 0.075;
+                    if ((particle_coordinates[0] * particle_coordinates[0] + particle_coordinates[1] * particle_coordinates[1]) < well_radius * well_radius) {
+                        noalias(central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)) = -1.0 * particle_coordinates * gravity;
+                    } else if (is_found) {
                         const auto& geom = shared_p_element->GetGeometry();
                         array_1d<double, 3> interpolated_gradient_of_pore_pressure = ZeroVector(3);
                         for (size_t j = 0; j < geom.size(); j++) {

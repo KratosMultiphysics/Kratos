@@ -415,10 +415,11 @@ namespace Kratos {
             const long unsigned int& neigh_sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_2];
 
             //if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
-            if (element1->GetGeometry()[0].X() > 0.01 && \
-                element1->GetGeometry()[0].X() < 0.012 && \
-                element1->GetGeometry()[0].Y() > -0.098 && \
-                element1->GetGeometry()[0].Y() < -0.096 && (r_process_info[TIME] > 360.018)) {
+            //if ((element1->GetGeometry()[0].X() > 0.12) && \
+                (element1->GetGeometry()[0].X() < 0.13) && \
+                (element1->GetGeometry()[0].Y() > -0.17) && \
+                (element1->GetGeometry()[0].Y() < -0.15) && (r_process_info[TIME] > 360.059)) {
+            if (element1->Id() == 441) {
                 std::ofstream normal_forces_file("nl.txt", std::ios_base::out | std::ios_base::app);
                 normal_forces_file << r_process_info[TIME] << " " << indentation/*2*/ << " " << LocalElasticContactForce[2]/*3*/ << " "
                                    << limit_force/*4*/ << " " << delta_accumulated/*5*/ << " " << returned_by_mapping_force/*6*/ << " "
@@ -432,9 +433,9 @@ namespace Kratos {
                                    << BondedLocalElasticContactTension2/*22*/ << " " << bonded_indentation/*23*/ << '\n';
                 normal_forces_file.flush();
                 normal_forces_file.close();
-                KRATOS_WATCH(element1->GetGeometry()[0].X())
+                /*KRATOS_WATCH(element1->GetGeometry()[0].X())
                 KRATOS_WATCH(element1->GetGeometry()[0].Y())
-                KRATOS_WATCH(element1->Id())
+                KRATOS_WATCH(element1->Id())*/
             }
         }
         // X 0.011935682775608353
@@ -675,10 +676,11 @@ namespace Kratos {
             double quotient_unbonded_only = local_elastic_force_modulus_unbonded_only / calculation_area;
 
             //if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
-            if (element1->GetGeometry()[0].X() > 0.01 && \
-                element1->GetGeometry()[0].X() < 0.012 && \
-                element1->GetGeometry()[0].Y() > -0.098 && \
-                element1->GetGeometry()[0].Y() < -0.096 && (r_process_info[TIME] > 360.018)) {
+            //if ((element1->GetGeometry()[0].X() > 0.12) && \
+                (element1->GetGeometry()[0].X() < 0.13) && \
+                (element1->GetGeometry()[0].Y() > -0.17) && \
+                (element1->GetGeometry()[0].Y() < -0.15) && (r_process_info[TIME] > 360.059)) {
+            if (element1->Id() == 441) {
                 std::ofstream tangential_forces_file("tg.txt", std::ios_base::out | std::ios_base::app);
                 tangential_forces_file << r_process_info[TIME] << " " << int(failure_type)/*2*/ << " " << tau_strength/*3*/ << " "
                                     << kt_updated/*4*/ << " " << int(sliding)/*5*/ << " "
@@ -698,7 +700,7 @@ namespace Kratos {
                                     << indentation/*36*/<< '\n';
                 tangential_forces_file.flush();
                 tangential_forces_file.close();
-                KRATOS_ERROR << "Ball found" << std::endl;
+                //KRATOS_ERROR << "Ball found" << std::endl;
             }
         }
 
