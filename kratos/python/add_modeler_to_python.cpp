@@ -11,12 +11,9 @@
 //                   Riccardo Rossi
 //
 
-
-
 // System includes
 
 // External includes
-
 
 // Project includes
 #include "includes/define_python.h"
@@ -24,7 +21,6 @@
 #include "modeler/modeler.h"
 #include "modeler/edge_swapping_2d_modeler.h"
 #include "modeler/connectivity_preserve_modeler.h"
-
 #include "modeler/modeler_factory.h"
 
 namespace Kratos
@@ -48,12 +44,10 @@ void GeneratePartialModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin
     if (KratosComponents<Element>::Has(rName)) {
         GM.GenerateModelPart(origin_model_part, destination_model_part,
                              KratosComponents<Element>::Get(rName));
-    }
-    else if (KratosComponents<Condition>::Has(rName)) {
+    } else if (KratosComponents<Condition>::Has(rName)) {
         GM.GenerateModelPart(origin_model_part, destination_model_part,
                              KratosComponents<Condition>::Get(rName));
-    }
-    else {
+    } else {
         KRATOS_ERROR << "Unknown Element/Condition name " << rName << "." << std::endl;
     }
 }
