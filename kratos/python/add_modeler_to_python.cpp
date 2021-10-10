@@ -22,6 +22,7 @@
 #include "modeler/edge_swapping_2d_modeler.h"
 #include "modeler/connectivity_preserve_modeler.h"
 #include "modeler/modeler_factory.h"
+#include "modeler/serial_model_part_combinator_modeler.h"
 
 namespace Kratos
 {
@@ -86,6 +87,11 @@ void  AddModelerToPython(pybind11::module& m)
     py::class_< EdgeSwapping2DModeler, EdgeSwapping2DModeler::Pointer, Modeler >(m,"EdgeSwapping2DModeler")
             .def(py::init< >())
             .def("ReGenerateMesh",&EdgeSwapping2DModeler::Remesh)
+    ;
+
+    py::class_< SerialModelPartCombinatorModeler, SerialModelPartCombinatorModeler::Pointer, Modeler >(m,"SerialModelPartCombinatorModeler")
+        .def(py::init< >())
+        .def(py::init<Model&, Parameters>())
     ;
 }
 
