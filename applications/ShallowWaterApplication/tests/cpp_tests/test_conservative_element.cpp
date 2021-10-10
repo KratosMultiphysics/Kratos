@@ -27,6 +27,29 @@ namespace Testing {
 
 typedef ModelPart::IndexType IndexType;
 
+void SetNodalValues(
+    ModelPart& rModelPart,
+    const double& rManning,
+    const double& rHeight,
+    const array_1d<double,3>& rMomentum,
+    const array_1d<double,3>& rTopographySlope,
+    const array_1d<double,3>& rHeightGradient)
+{
+    for (auto& r_node : rModelPart.Nodes())
+    {
+        const array_1d<double,3> coords = r_node.Coordinates();
+        const auto height = rHeight + inner_prod(coords, rHeightGradient);
+        const auto velocity = rMomentum / height;
+        const auto topography = inner_prod(coords, rTopographySlope);
+
+        r_node.FastGetSolutionStepValue(MOMENTUM) = rMomentum;
+        r_node.FastGetSolutionStepValue(VELOCITY) = velocity;
+        r_node.FastGetSolutionStepValue(HEIGHT) = height;
+        r_node.FastGetSolutionStepValue(MANNING) = rManning;
+        r_node.FastGetSolutionStepValue(TOPOGRAPHY) = topography;
+    }
+}
+
 void ConservativeElementSteadyStateTest(
     const double& rManning,
     const double& rHeight,
@@ -51,19 +74,42 @@ void ConservativeElementSteadyStateTest(
     ShallowWaterTestsUtilities::CreateGeometry(model_part, "ConservativeElement2D3N", "ConservativeCondition2D2N");
 
     // Set the nodal values
-    for (auto& r_node : model_part.Nodes())
-    {
-        const array_1d<double,3> coords = r_node.Coordinates();
-        const auto height = rHeight + inner_prod(coords, rHeightGradient);
-        const auto velocity = rMomentum / height;
-        const auto topography = inner_prod(coords, rTopographySlope);
+    SetNodalValues(model_part, rManning, rHeight, rMomentum, rTopographySlope, rHeightGradient);
 
-        r_node.FastGetSolutionStepValue(MOMENTUM) = rMomentum;
-        r_node.FastGetSolutionStepValue(VELOCITY) = velocity;
-        r_node.FastGetSolutionStepValue(HEIGHT) = height;
-        r_node.FastGetSolutionStepValue(MANNING) = rManning;
-        r_node.FastGetSolutionStepValue(TOPOGRAPHY) = topography;
-    }
+    // Compute RHS
+    Vector rhs = ZeroVector(9);
+    ShallowWaterTestsUtilities::CalculateAndAssembleRHS(model_part, rhs);
+
+    // Check the RHS values. Since it is a steady solution the RHS must be zero
+    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(rhs, ZeroVector(9), rTolerance);
+}
+
+void ConservativeElementSteadyStateTestParts(
+    const double& rManning,
+    const double& rHeight,
+    const array_1d<double,3>& rMomentum,
+    const array_1d<double,3>& rTopographySlope,
+    const array_1d<double,3>& rHeightGradient = ZeroVector(3),
+    const double& rTolerance = 1e-12)
+{
+    Model model;
+    ModelPart& model_part = model.CreateModelPart("main", 2);
+
+    // Variables
+    ShallowWaterTestsUtilities::AddVariables(model_part);
+
+    // Set ProcessInfo
+    ProcessInfo& r_process_info = model_part.GetProcessInfo();
+    r_process_info.SetValue(INTEGRATE_BY_PARTS, true);
+    r_process_info.SetValue(GRAVITY_Z, 9.81);
+    r_process_info.SetValue(STABILIZATION_FACTOR, 0.01);
+    r_process_info.SetValue(RELATIVE_DRY_HEIGHT, 0.1);
+
+    // Create the triangle and its conditions
+    ShallowWaterTestsUtilities::CreateGeometry(model_part, "ConservativeElement2D3N", "ConservativeCondition2D2N");
+
+    // Set the nodal values
+    SetNodalValues(model_part, rManning, rHeight, rMomentum, rTopographySlope, rHeightGradient);
 
     // Compute RHS
     Vector rhs = ZeroVector(9);
@@ -171,6 +217,35 @@ KRATOS_TEST_CASE_IN_SUITE(ConservativeElement2D3N_SteadyStateVariableVelocityY, 
 
     ConservativeElementSteadyStateTest(manning, height, momentum, slope, height_grad, tolerance);
 }
+
+/**
+ * @brief Check the ConservativeElement2D3N element integrated by parts with still free surface
+ */
+KRATOS_TEST_CASE_IN_SUITE(ConservativeElement2D3NByParts_SteadyStillSurface, ShallowWaterApplicationFastSuite)
+{
+    const double manning = 0.0;
+    const double height = 5.0;
+    const array_1d<double,3> momentum = ZeroVector(3);
+    const array_1d<double,3> slope = ZeroVector(3);
+
+    ConservativeElementSteadyStateTestParts(manning, height, momentum, slope);
+}
+
+/**
+ * @brief Check the ConservativeElement2D3N element integrated by parts with still free surface and bottom topography skew gradient
+ */
+// KRATOS_TEST_CASE_IN_SUITE(ConservativeElement2D3NByParts_SteadyTopographySkewGradient, ShallowWaterApplicationFastSuite)
+// {
+//     const double manning = 0.0;
+//     const double height = 5.0;
+//     array_1d<double,3> momentum = ZeroVector(3);
+//     array_1d<double,3> slope = ZeroVector(3);
+//     slope[0] = 0.03;
+//     slope[1] = 0.03;
+//     array_1d<double,3> height_gradient = -slope;
+
+//     ConservativeElementSteadyStateTestParts(manning, height, momentum, slope, height_gradient);
+// }
 
 } // namespace Testing
 

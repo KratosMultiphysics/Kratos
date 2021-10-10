@@ -18,7 +18,7 @@
         "time_integration_order"     : 2,
         "stabilization_factor"       : 0.005,
         "shock_stabilization_factor" : 0.0,
-        "add_flux_correction"        : true,
+        "shock_capturing_type"       : "flux_correction",
         "relative_tolerance"         : 1.0E-6,
         "absolute_tolerance"         : 1.0E-9,
         "maximum_iterations"         : 10,

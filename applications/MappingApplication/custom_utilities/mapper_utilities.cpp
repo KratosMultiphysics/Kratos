@@ -23,16 +23,18 @@
 #include "mapper_utilities.h"
 #include "mapping_application_variables.h"
 
-namespace Kratos
-{
-namespace MapperUtilities
-{
+namespace Kratos {
+namespace MapperUtilities {
 
 typedef std::size_t SizeType;
 typedef std::size_t IndexType;
 
 void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
 {
+    if (rModelPartCommunicator.GetDataCommunicator().IsNullOnThisRank()) {
+        return;
+    }
+
     const int num_nodes_local = rModelPartCommunicator.LocalMesh().NumberOfNodes();
     int num_nodes_accumulated = rModelPartCommunicator.GetDataCommunicator().ScanSum(num_nodes_local);
     const int start_equation_id = num_nodes_accumulated - num_nodes_local;
@@ -66,10 +68,14 @@ double ComputeMaxEdgeLengthLocal(const T& rEntityContainer)
 
 double ComputeSearchRadius(const ModelPart& rModelPart, const int EchoLevel)
 {
+    const auto& r_comm = rModelPart.GetCommunicator();
+
+    if (r_comm.GetDataCommunicator().IsNullOnThisRank()) {
+        return 0.0;
+    }
+
     static constexpr double search_safety_factor = 1.2;
     double max_element_size = 0.0;
-
-    const auto r_comm = rModelPart.GetCommunicator();
 
     if (r_comm.GlobalNumberOfConditions() > 0) {
         max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Conditions());
@@ -199,8 +205,10 @@ BoundingBoxType ComputeGlobalBoundingBox(const ModelPart& rModelPart)
 
     // compute global values
     const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
-    max_vals = r_data_comm.MaxAll(max_vals);
-    min_vals = r_data_comm.MinAll(min_vals);
+    if (r_data_comm.IsDefinedOnThisRank()) {
+        max_vals = r_data_comm.MaxAll(max_vals);
+        min_vals = r_data_comm.MinAll(min_vals);
+    }
 
     BoundingBoxType global_bounding_box;
     // extract information from buffers
@@ -258,6 +266,29 @@ bool PointIsInsideBoundingBox(const BoundingBoxType& rBoundingBox,
     return false;
 }
 
+void CreateMapperLocalSystemsFromNodes(const MapperLocalSystem& rMapperLocalSystemPrototype,
+                                       const Communicator& rModelPartCommunicator,
+                                       std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)
+{
+    const std::size_t num_nodes = rModelPartCommunicator.LocalMesh().NumberOfNodes();
+    const auto nodes_ptr_begin = rModelPartCommunicator.LocalMesh().Nodes().ptr_begin();
+
+    if (rLocalSystems.size() != num_nodes) {
+        rLocalSystems.resize(num_nodes);
+    }
+
+    IndexPartition<std::size_t>(num_nodes).for_each([&](std::size_t i){
+        InterfaceObject::NodePointerType p_node = (nodes_ptr_begin + i)->get();
+        rLocalSystems[i] = rMapperLocalSystemPrototype.Create(p_node);
+    });
+
+    if (rModelPartCommunicator.GetDataCommunicator().IsDefinedOnThisRank()) {
+        int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
+
+        KRATOS_ERROR_IF_NOT(num_local_systems > 0) << "No mapper local systems were created" << std::endl;
+    }
+}
+
 void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystem& rMapperLocalSystemPrototype,
                                             const Communicator& rModelPartCommunicator,
                                             std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)
@@ -272,9 +303,11 @@ void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystem& rMapperLoca
         rLocalSystems[i] = rMapperLocalSystemPrototype.Create(p_geom);
     });
 
-    const int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
+    if (rModelPartCommunicator.GetDataCommunicator().IsDefinedOnThisRank()) {
+        const int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
 
-    KRATOS_ERROR_IF_NOT(num_local_systems > 0) << "No mapper local systems were created" << std::endl;
+        KRATOS_ERROR_IF_NOT(num_local_systems > 0) << "No mapper local systems were created" << std::endl;
+    }
 }
 
 void SaveCurrentConfiguration(ModelPart& rModelPart)
@@ -317,7 +350,6 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
     KRATOS_DEBUG_ERROR_IF_NOT(std::fmod(rBoundingBoxes.size(), 6) == 0)
         << "Bounding Boxes size has to be a multiple of 6!" << std::endl;
 
-    // #pragma omp parallel for => "bounding_box" has to be threadprivate!
     for (IndexType i_rank=0; i_rank<comm_size; ++i_rank) {
         auto& r_rank_buffer = rSendBuffer[i_rank];
         r_rank_buffer.clear();
