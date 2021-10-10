@@ -76,6 +76,7 @@ namespace Kratos {
                     const auto& particle_coordinates = central_node.Coordinates();
                     SphericParticle* particle = dynamic_cast<SphericParticle*>(&*elem_it);
                     const double particle_volume = particle->CalculateVolume();
+                    const double particle_mass = particle->GetMass();
 
                     bool is_found = false;
                     Element::Pointer shared_p_element;
@@ -83,7 +84,7 @@ namespace Kratos {
                     double gravity = 9.81;
                     const double well_radius = 0.075;
                     if ((particle_coordinates[0] * particle_coordinates[0] + particle_coordinates[1] * particle_coordinates[1]) < well_radius * well_radius) {
-                        noalias(central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)) = -1.0 * particle_coordinates * particle_volume * gravity;
+                        noalias(central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)) = -1.0 * particle_coordinates * particle_mass * gravity / well_radius;
                     } else if (is_found) {
                         const auto& geom = shared_p_element->GetGeometry();
                         array_1d<double, 3> interpolated_gradient_of_pore_pressure = ZeroVector(3);
