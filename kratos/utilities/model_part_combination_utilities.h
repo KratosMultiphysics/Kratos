@@ -68,6 +68,10 @@ public:
     virtual ~ModelPartCombinationUtilities()= default;
     
     ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
     ///@name Operations
     ///@{
 
