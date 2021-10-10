@@ -41,7 +41,7 @@ namespace Kratos
 /**
  * @class ModelPartCombinationUtilities
  * @ingroup KratosCore
- * @brief This utility helps cobine different ModelParts into one single ModelPart, with the corresponding sub ModelParts
+ * @brief This utility helps combine different ModelParts into one single ModelPart, with the corresponding sub ModelParts
  * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) ModelPartCombinationUtilities
