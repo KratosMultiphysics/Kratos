@@ -19,7 +19,11 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         return KratosChimera.python_solvers_wrapper_fluid_chimera.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):
-        return "Fluid Chimera Analysis"
+        solver_type = self.project_parameters["solver_settings"]["solver_type"].GetString()
+        if (solver_type == "monolithic_rans_chimera" or solver_type == "MonolithicRANSChimera"):
+            return "RANS Chimera Analysis"
+        else:
+            return "Fluid Chimera Analysis"
 
     def KeepAdvancingSolutionLoop(self):
         """This function specfies the stopping criteria for breaking the solution loop.
