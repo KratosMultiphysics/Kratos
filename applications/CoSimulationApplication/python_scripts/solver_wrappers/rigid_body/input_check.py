@@ -76,7 +76,18 @@ def _ValidateAndAssignRigidBodySolverDefaults(parameters, available_dofs):
         "output_parameters":{
             "write_output_files": true,
             "file_path" : "results/rigid_body"
-        }
+        },
+        "restart_parameters":{
+            "load_restart_file": false,
+            "input_path":   "mdof_solver",
+            "input_file_name": "",
+            "write_restart_file": false,
+            "restart_save_frequency": 0.0,
+            "restart_control_type": "time",
+            "save_restart_files_in_folder"   : true,
+            "output_path"                  : "mdof_solver",
+            "max_files_to_keep"            : -1
+                }
     }''')
 
     dof_parameters = {}

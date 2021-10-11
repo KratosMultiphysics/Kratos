@@ -21,11 +21,11 @@ class RigidBodySolverWrapper(CoSimulationSolverWrapper):
         self.mp.ProcessInfo[KM.DOMAIN_SIZE] = 3
 
         input_file_name = self.settings["solver_wrapper_settings"]["input_file"].GetString()
-        self._rigid_body_solver = self._CreateRigidBodySolver(input_file_name)
+        self._rigid_body_solver = self._CreateRigidBodySolver(input_file_name, self.mp)
 
     @classmethod
-    def _CreateRigidBodySolver(cls, input_file_name):
-        return RigidBodySolver(input_file_name)
+    def _CreateRigidBodySolver(cls, input_file_name, model_part):
+        return RigidBodySolver(input_file_name, model_part)
 
     def Initialize(self):
         super().Initialize()
