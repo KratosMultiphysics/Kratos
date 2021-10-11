@@ -8,7 +8,7 @@ optimization_method = "simp_method"
 # case: optimization_method == "simp_method"
 simp_property         	= 1             # Property ID of the material
 penalty               	= 3             # Penalty Factor - Recomended: 3
-continuation_strategy 	= 1             # Options: Activated=1, Deactivated=0
+continuation_strategy 	= 0             # Options: Activated=1, Deactivated=0
 E_min                 	= 0.000000001   # Elastic modulus of void material
 initial_volume_fraction = 0.15			# Initial densitiy distribution
 density_filter			= "density"		# density filter active if "density" else unactive

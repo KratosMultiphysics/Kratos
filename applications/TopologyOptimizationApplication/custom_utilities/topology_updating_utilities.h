@@ -131,7 +131,7 @@ public:
 
 			// Update Densities procedure
 			double l1     = 0.0;
-			double l2     = 1000000000000.0; ///10000000000.0
+			double l2     = 10000000000.0; ///10000000000.0
 			double move   = 0.2;
 			double sum_X_Phys;
 			int nele;
@@ -296,7 +296,7 @@ public:
 
 			g[0] = 0;
 			vol_frac_iteration = vol_summ;
-			g[0] = vol_frac_iteration/nn - volfrac;
+			g[0] = vol_frac_iteration - volfrac*nn;
 /* 		 	if (OptItr==1)
 			{
 				g[0]=10000000000000;
