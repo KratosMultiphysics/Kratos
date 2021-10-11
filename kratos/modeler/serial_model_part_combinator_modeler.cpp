@@ -116,7 +116,7 @@ void SerialModelPartCombinatorModeler::SingleImportModelPart(
             import_flags = ModelPartIO::IGNORE_VARIABLES_ERROR|import_flags;
         }
 
-        KRATOS_INFO("SerialModelPartCombinatorModeler") << "Reading model part from file: " << fs::current_path() << "/" << input_filename << ".mdpa" << std::endl;
+        KRATOS_INFO("SerialModelPartCombinatorModeler") << "Reading model part from file: " << FilesystemExtensions::CurrentWorkingDirectory()<< "/" << input_filename << ".mdpa" << std::endl;
 
         if (ModelPartImportParameters["reorder_consecutive"].GetBool()) {
             ReorderConsecutiveModelPartIO(input_filename, import_flags).ReadModelPart(rModelPart);
