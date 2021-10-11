@@ -167,7 +167,7 @@ private:
 
     Model* mpModel = nullptr; /// The model of the problem
 
-    Parameters mParameters;  /// The configuration parameters
+    Parameters mParameters;   /// The configuration parameters
 
     ///@}
     ///@name Private Operators
