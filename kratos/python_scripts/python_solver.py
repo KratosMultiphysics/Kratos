@@ -136,50 +136,6 @@ class PythonSolver:
     def GetComputingModelPart(self):
         raise Exception("This function has to be implemented in the derived class")
 
-    def _single_ImportModelPart(self, model_part, model_part_import_settings, input_type = "mdpa"):
-        """This function imports one single ModelPart
-        """
-        if input_type == "mdpa":
-            problem_path = os.getcwd()
-
-            default_settings = KratosMultiphysics.Parameters("""{
-                "input_filename"                             : "",
-                "skip_timer"                                 : true,
-                "ignore_variables_not_in_solution_step_data" : false,
-                "reorder"                                    : false,
-                "reorder_consecutive"                        : false
-            }""")
-
-            # cannot validate as this might contain other settings too
-            model_part_import_settings.AddMissingParameters(default_settings)
-
-            input_filename = model_part_import_settings["input_filename"].GetString()
-
-            # Setting some mdpa-import-related flags
-            import_flags = KratosMultiphysics.ModelPartIO.READ
-
-            if model_part_import_settings["skip_timer"].GetBool():
-                import_flags = KratosMultiphysics.ModelPartIO.SKIP_TIMER|import_flags
-
-            if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool():
-                import_flags = KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR|import_flags
-
-            # Import model part from mdpa file.
-            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
-
-            if model_part_import_settings["reorder_consecutive"].GetBool():
-                KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
-            else:
-                KratosMultiphysics.ModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
-
-            if model_part_import_settings["reorder"].GetBool():
-                tmp = KratosMultiphysics.Parameters("{}")
-                KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part, tmp).Execute()
-
-            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading model part from mdpa file.")
-        else:
-            raise Exception("Other model part input options are not yet implemented.")
-
     def _ImportModelPart(self, model_part, model_part_import_settings):
         """This function imports the ModelPart
         """
@@ -187,48 +143,14 @@ class PythonSolver:
 
         input_type = model_part_import_settings["input_type"]
 
-        if input_type.IsArray():
-            if model_part_import_settings["input_filename"].IsArray():
-                current_model = model_part.GetModel()
-                combine_param = KratosMultiphysics.Parameters("""{
-                    "model_parts_list"         : [],
-                    "combined_model_part_name" : ""
-                }""")
-                combine_param["combined_model_part_name"].SetString(model_part.Name)
-                filenames_list = model_part_import_settings["input_filename"].GetStringArray()
-                copy_model_part_import_settings = KratosMultiphysics.Parameters(model_part_import_settings)
-                copy_model_part_import_settings.RemoveValue("input_filename")
-                copy_model_part_import_settings.AddString("input_filename", "")
-                for i in range(len(filenames_list)):
-                    aux_name = "AUX_MODELPART" + str(i)
-                    combine_param["model_parts_list"].Append(aux_name)
-                    aux_model_part = current_model.CreateModelPart(aux_name)
-                    copy_model_part_import_settings["input_filename"].SetString(filenames_list[i])
-                    self._single_ImportModelPart(aux_model_part, model_part_import_settings, input_type[i].GetString())
-                KratosMultiphysics.ModelPartCombinationUtilities(current_model).CombineModelParts(combine_param)
-            else:
-                raise Exception("Multiple input formats, but only one file?.")
-        elif input_type.GetString() == "mdpa": # Add other file reading formats
-            if model_part_import_settings["input_filename"].IsArray():
-                current_model = model_part.GetModel()
-                combine_param = KratosMultiphysics.Parameters("""{
-                    "model_parts_list"         : [],
-                    "combined_model_part_name" : ""
-                }""")
-                combine_param["combined_model_part_name"].SetString(model_part.Name)
-                filenames_list = model_part_import_settings["input_filename"].GetStringArray()
-                copy_model_part_import_settings = KratosMultiphysics.Parameters(model_part_import_settings)
-                copy_model_part_import_settings.RemoveValue("input_filename")
-                copy_model_part_import_settings.AddString("input_filename", "")
-                for i in range(len(filenames_list)):
-                    aux_name = "AUX_MODELPART" + str(i)
-                    combine_param["model_parts_list"].Append(aux_name)
-                    aux_model_part = current_model.CreateModelPart(aux_name)
-                    copy_model_part_import_settings["input_filename"].SetString(filenames_list[i])
-                    self._single_ImportModelPart(aux_model_part, model_part_import_settings, input_type.GetString())
-                KratosMultiphysics.ModelPartCombinationUtilities(current_model).CombineModelParts(combine_param)
-            else:
-                self._single_ImportModelPart(model_part, model_part_import_settings, input_type.GetString())
+        # Directly reading the file and combining if required
+        if input_type.IsArray() or input_type.IsString():
+            auxiliar_import_parameters = KratosMultiphysics.Parameters("""{
+                "model_part_name" : ""
+            }""")
+            auxiliar_import_parameters["model_part_name"].SetString(model_part.Name)
+            auxiliar_import_parameters.AddValue("model_import_settings", model_part_import_settings)
+            KratosMultiphysics.SerialModelPartCombinatorModeler(model_part.GetModel(), auxiliar_import_parameters).SetupModelPart()
         elif input_type.GetString() == "rest":
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
             RestartUtility(model_part, self._GetRestartSettings(model_part_import_settings)).LoadRestart()
