@@ -7,14 +7,13 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-    "model_part_name"                        : "Structure",
+        "model_part_name"                    : "Structure",
         "domain_size"                        : 2,
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
-            "input_type"     : "mdpa",
-            "input_filename" : ["ALM_frictionless_contact_test_2D/hyper_simple_patch_test1", "ALM_frictionless_contact_test_2D/hyper_simple_patch_test2"]
+            "input_type"     : "use_input_model_part" // NOTE: This is to skip the reading in the python solver
         },
         "material_import_settings" :{
             "materials_filename": "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_materials.json"
@@ -27,6 +26,17 @@
         },
         "convergence_criterion"              : "contact_residual_criterion"
     },
+    "modelers": [{
+        "modeler_name": "SerialModelPartCombinatorModeler",
+        "Parameters": {
+            "model_part_name"                    : "Structure",
+            "model_import_settings"              : {
+                "input_type"     : "mdpa",
+                "input_filename" : ["ALM_frictionless_contact_test_2D/hyper_simple_patch_test1", "ALM_frictionless_contact_test_2D/hyper_simple_patch_test2"]
+            }
+        }
+    }
+    ],
     "processes" : {
         "constraints_process_list" : [{
             "python_module"   : "assign_vector_variable_process",
