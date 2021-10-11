@@ -14,7 +14,10 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
 
     def setUp(self):
         # Code here will be placed BEFORE every test in this TestCase.
-        pass
+        self.test_confined_aquifer = [('test_flow_under_dam/test_pressure_in_confined_aquifer_higher', 5.499),
+                                      ('test_flow_under_dam/test_pressure_in_confined_aquifer_lower', 0.423),
+                                      ('test_flow_under_dam/test_pressure_in_confined_aquifer_reversed', 2.54028)]
+
 
     def tearDown(self):
         # Code here will be placed AFTER every test in this TestCase.
@@ -54,6 +57,23 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
         simulation = test_helper.run_kratos(file_path)
 
         self.assert_outflow_discharge(simulation, 2)
+
+    def test_flow_under_dam(self):
+        for test_name, Q in self.test_confined_aquifer:
+            with self.subTest():
+                file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
+                simulation = test_helper.run_kratos(file_path)
+                outflow_discharge = self.calculate_outflow_discharge(simulation)
+                error_outflow_discharge = abs(outflow_discharge - Q) / (Q + 1e-60)
+                self.assertTrue(error_outflow_discharge < 0.03)
+                print('Writing tex file in: ', os.path.abspath(file_path + "\\test_flow_under_dam.tex"))
+                output_file_for_latex = open(file_path + "\\test_flow_under_dam.tex", "w")
+                output_file_for_latex.write(' & '.join(['Q',
+                                                        str(round(Q, 2)),
+                                                        str(round(outflow_discharge, 2)),
+                                                        str(round(error_outflow_discharge * 100, 2))]) +
+                                            ' \\\\ \hline \n')
+                output_file_for_latex.close()
 
     def test_flow_rate_heterogeneous_soil(self):
         test_name = 'flow_rate_heterogeneous_soil'
