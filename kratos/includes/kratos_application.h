@@ -66,6 +66,7 @@
 #include "modeler/modeler.h"
 #include "modeler/cad_io_modeler.h"
 #include "modeler/cad_tessellation_modeler.h"
+#include "modeler/serial_model_part_combinator_modeler.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -469,6 +470,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Modeler mModeler;
     const CadIoModeler mCadIoModeler;
     const CadTessellationModeler mCadTessellationModeler;
+    const SerialModelPartCombinatorModeler mSerialModelPartCombinatorModeler;
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
