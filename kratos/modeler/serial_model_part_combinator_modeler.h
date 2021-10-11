@@ -177,6 +177,18 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method imports one single ModelPart
+     * @param rModelPart The model part where to read the input
+     * @param ModelPartImportParameters The model part import parameters
+     * @param InputType The input type
+     */
+    void SingleImportModelPart(
+        ModelPart& rModelPart, 
+        Parameters ModelPartImportParameters,
+        const std::string& InputType
+        );
+
     ///@}
     ///@name Private  Access
     ///@{

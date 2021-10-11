@@ -10,10 +10,29 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
+// System includes
+
+// External includes
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || (defined(__cplusplus) && __cplusplus >= 201703L)) && defined(__has_include)
+#if __has_include(<filesystem>) && (!defined(__MAC_OS_X_VERSION_MIN_REQUIRED) || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500)
+#define GHC_USE_STD_FS
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif
+#endif
+#ifndef GHC_USE_STD_FS
+#include <ghc/filesystem.hpp>
+namespace fs = ghc::filesystem;
+#endif
+
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part_io.h"
+#include "includes/kratos_filesystem.h"
+#include "includes/reorder_consecutive_model_part_io.h"
 #include "utilities/model_part_combination_utilities.h"
 #include "modeler/serial_model_part_combinator_modeler.h"
+#include "processes/reorder_and_optimize_modelpart_process.h"
 
 namespace Kratos
 {
@@ -74,6 +93,58 @@ void SerialModelPartCombinatorModeler::SetupModelPart()
     //     else:
     //         self._single_ImportModelPart(model_part, model_part_import_settings, input_type.GetString())
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SerialModelPartCombinatorModeler::SingleImportModelPart(
+    ModelPart& rModelPart, 
+    Parameters ModelPartImportParameters,
+    const std::string& InputType
+    )
+{
+    // Check type file
+    if (InputType == "mdpa") {
+        auto default_settings = Parameters(R"({
+            "input_filename"                             : "",
+            "skip_timer"                                 : true,
+            "ignore_variables_not_in_solution_step_data" : false,
+            "reorder"                                    : false,
+            "reorder_consecutive"                        : false
+        })");
+
+        // Cannot validate as this might contain other settings too
+        ModelPartImportParameters.AddMissingParameters(default_settings);
+
+        const auto& input_filename = ModelPartImportParameters["input_filename"].GetString();
+
+        // Setting some mdpa-import-related flags
+        auto import_flags = ModelPartIO::READ;
+
+        if (ModelPartImportParameters["skip_timer"].GetBool()) {
+            import_flags = ModelPartIO::SKIP_TIMER|import_flags;
+        }
+
+        if (ModelPartImportParameters["ignore_variables_not_in_solution_step_data"].GetBool()) {
+            import_flags = ModelPartIO::IGNORE_VARIABLES_ERROR|import_flags;
+        }
+
+        KRATOS_INFO("SerialModelPartCombinatorModeler") << "Reading model part from file: " << fs::current_path() << "/" << input_filename << ".mdpa" << std::endl;
+
+        if (ModelPartImportParameters["reorder_consecutive"].GetBool()) {
+            ReorderConsecutiveModelPartIO(input_filename, import_flags).ReadModelPart(rModelPart);
+        } else {
+            ModelPartIO(input_filename, import_flags).ReadModelPart(rModelPart);
+        }
+
+        if (ModelPartImportParameters["reorder"].GetBool()) {
+            auto tmp = Parameters(R"({})");
+            ReorderAndOptimizeModelPartProcess(rModelPart, tmp).Execute();
+        }
+
+        KRATOS_INFO("SerialModelPartCombinatorModeler") << "Finished reading model part from mdpa file." << std::endl;
+    } else {
+        KRATOS_ERROR << "Other model part input options are not yet implemented. Demanded: " << InputType << std::endl;
+    }
 }
 
 } // namespace Kratos
