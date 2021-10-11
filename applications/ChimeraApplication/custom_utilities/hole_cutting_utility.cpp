@@ -48,27 +48,27 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
     auto elem_end = rModelPart.Elements().ptr_end();
 
     // set the solution to zero for all the nodes with negative chimera distance
-    for (auto p_elem=elem_begin; p_elem!=elem_end; ++p_elem){
-        Geometry<Node<3>>& geom = (*p_elem)->GetGeometry();
+    // for (auto p_elem=elem_begin; p_elem!=elem_end; ++p_elem){
+    //     Geometry<Node<3>>& geom = (*p_elem)->GetGeometry();
         
-        for (auto& node: geom){
-            double nodal_distance = node.FastGetSolutionStepValue(CHIMERA_DISTANCE);
+    //     for (auto& node: geom){
+    //         double nodal_distance = node.FastGetSolutionStepValue(CHIMERA_DISTANCE);
 
-            nodal_distance = nodal_distance * DomainType;
-            if (nodal_distance < 0){
-                node.FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
-                node.FastGetSolutionStepValue(VELOCITY_X, 1) = 0.0;
-                node.FastGetSolutionStepValue(VELOCITY_Y, 0) = 0.0;
-                node.FastGetSolutionStepValue(VELOCITY_Y, 1) = 0.0;
-                node.FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
-                node.FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
-                if (TDim>2){
-                    node.FastGetSolutionStepValue(VELOCITY_Z, 0) = 0.0;
-                    node.FastGetSolutionStepValue(VELOCITY_Z, 1) = 0.0;
-                }
-            }
-        }
-    }
+    //         nodal_distance = nodal_distance * DomainType;
+    //         if (nodal_distance < 0){
+    //             node.FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
+    //             node.FastGetSolutionStepValue(VELOCITY_X, 1) = 0.0;
+    //             node.FastGetSolutionStepValue(VELOCITY_Y, 0) = 0.0;
+    //             node.FastGetSolutionStepValue(VELOCITY_Y, 1) = 0.0;
+    //             node.FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
+    //             node.FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
+    //             if (TDim>2){
+    //                 node.FastGetSolutionStepValue(VELOCITY_Z, 0) = 0.0;
+    //                 node.FastGetSolutionStepValue(VELOCITY_Z, 1) = 0.0;
+    //             }
+    //         }
+    //     }
+    // }
 
     for (auto p_elem=elem_begin; p_elem != elem_end; ++p_elem){
         bool is_elem_outside = true;
