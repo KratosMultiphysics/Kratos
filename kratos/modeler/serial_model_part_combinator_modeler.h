@@ -71,10 +71,10 @@ public:
      */
     SerialModelPartCombinatorModeler(
         Model& rModel,
-        Parameters ModelerParameters = Parameters())
-        : Modeler(rModel, ModelerParameters),
-          mpModel(&rModel),
-          mParameters(ModelerParameters)
+        Parameters ModelerParameters = Parameters()
+        ) : Modeler(rModel, ModelerParameters),
+            mpModel(&rModel),
+            mParameters(ModelerParameters)
     {
     }
 
