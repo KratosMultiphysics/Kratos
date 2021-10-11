@@ -50,8 +50,6 @@ Modeler::Pointer SerialModelPartCombinatorModeler::Create(
 
 void SerialModelPartCombinatorModeler::SetupModelPart()
 {
-    KRATOS_INFO("SerialModelPartCombinatorModeler") << "Reading model part." << std::endl;
-
     // Import parameters
     const auto& r_model_import_settings = mParameters["model_import_settings"];
     const auto& r_input_type = r_model_import_settings["input_type"];
