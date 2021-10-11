@@ -448,7 +448,17 @@ class RansFormulation(ABC):
             for source_element in self.GetBaseModelPart().Elements:
                 if source_element.IsDefined(Kratos.ACTIVE):
                     # NOTE below line of code is a very expensive process: should be moved to KratosCore.VariableUtils()
-                    self.GetModelPart().GetElement(source_element.Id).Set(Kratos.ACTIVE, source_element.Is(Kratos.ACTIVE))
+                    # self.GetModelPart().GetElement(source_element.Id).Set(Kratos.ACTIVE, source_element.Is(Kratos.ACTIVE))
+                    element = self.GetModelPart().GetElement(source_element.Id)
+                    element.Set(Kratos.ACTIVE, source_element.Is(Kratos.ACTIVE))
+
+                    # set the nodal solutions of inactive elements to ZERO.
+                    if source_element.IsNot(Kratos.ACTIVE):
+                        for node in element.GetNodes():
+                            for solving_variable in self.GetSolvingVariables():
+                                node.SetSolutionStepValue(solving_variable, 0, 0.0)
+                                node.SetSolutionStepValue(solving_variable, 1, 0.0)
+
 
             # CONSTRAINTS
             # remove any existing Chimera master-slave constraints (Assuming only chimera constraints exist.)
