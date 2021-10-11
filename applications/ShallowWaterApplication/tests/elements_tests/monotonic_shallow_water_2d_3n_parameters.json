@@ -18,7 +18,7 @@
         "time_integration_order"     : 2,
         "stabilization_factor"       : 0.005,
         "shock_stabilization_factor" : 0.0,
-        "add_flux_correction"        : true,
+        "shock_capturing_type"       : "flux_correction",
         "relative_tolerance"         : 1.0E-6,
         "absolute_tolerance"         : 1.0E-9,
         "maximum_iterations"         : 10,
@@ -118,28 +118,14 @@
                 "time_frequency"   : 0.29,
                 "tolerance"        : 1e-6
             }
-        }]
-    },
-    "copy_the_process_into___processes___to_generate_or check_the_results_file" : {
-        "json_output_and_check_process" : [{
-            "kratos_module"   : "KratosMultiphysics",
-            "python_module"   : "json_output_process",
-            "Parameters"      : {
-                "model_part_name"  : "main_model_part",
-                "output_variables" : ["HEIGHT"],
-                "output_file_name" : "monotonic_shallow_water_2d_3n_reference.json",
-                "time_frequency"   : 0.29
-            }
-        },{
-            "kratos_module"   : "KratosMultiphysics",
-            "python_module"   : "from_json_check_result_process",
-            "Parameters"      : {
-                "model_part_name"  : "main_model_part",
-                "check_variables"  : ["HEIGHT"],
-                "input_file_name"  : "monotonic_shallow_water_2d_3n_reference.json",
-                "time_frequency"   : 0.29,
-                "tolerance"        : 1e-6
-            }
+            // "kratos_module"   : "KratosMultiphysics",
+            // "python_module"   : "json_output_process",
+            // "Parameters"      : {
+            //     "model_part_name"  : "main_model_part",
+            //     "output_variables" : ["HEIGHT"],
+            //     "output_file_name" : "monotonic_shallow_water_2d_3n_reference.json",
+            //     "time_frequency"   : 0.29
+            // }
         }]
     }
 }
