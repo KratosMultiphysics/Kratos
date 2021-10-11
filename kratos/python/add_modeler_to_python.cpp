@@ -93,6 +93,9 @@ void  AddModelerToPython(pybind11::module& m)
         .def(py::init< >())
         .def(py::init<Model&, Parameters>())
     ;
+
+    auto single_model_part_import = m.def_submodule("SingleImportModelPart");
+    single_model_part_import.def("Import", &SingleImportModelPart::Import );
 }
 
 }  // namespace Python.
