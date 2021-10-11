@@ -140,22 +140,16 @@ class PythonSolver:
         """This function imports the ModelPart
         """
         KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part.")
+        input_type = model_part_import_settings["input_type"].GetString()
 
-        input_type = model_part_import_settings["input_type"]
-
-        # Directly reading the file and combining if required
-        if input_type.IsArray() or input_type.IsString():
-            auxiliar_import_parameters = KratosMultiphysics.Parameters("""{
-                "model_part_name" : ""
-            }""")
-            auxiliar_import_parameters["model_part_name"].SetString(model_part.Name)
-            auxiliar_import_parameters.AddValue("model_import_settings", model_part_import_settings)
-            KratosMultiphysics.SerialModelPartCombinatorModeler(model_part.GetModel(), auxiliar_import_parameters).SetupModelPart()
-        elif input_type.GetString() == "rest":
+        if input_type == "mdpa": # NOTE: Add more types in the future
+            KratosMultiphysics.SingleImportModelPart.Import(model_part, model_part_import_settings, input_type)
+        elif input_type == "rest":
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
             RestartUtility(model_part, self._GetRestartSettings(model_part_import_settings)).LoadRestart()
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
-        elif input_type.GetString() == "use_input_model_part":
+
+        elif input_type == "use_input_model_part":
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Using already imported model part - no reading necessary.")
         else:
             raise Exception("Other model part input options are not yet implemented.")
