@@ -59,7 +59,7 @@ void OmegaVisLogBasedWallConditionData::CalculateConstants(
 {
     KRATOS_TRY
 
-    mWallDistance3 = this->GetGeometry().GetValue(DISTANCE);
+    mWallDistance3 = std::pow(this->GetGeometry().GetValue(DISTANCE), 3);
 
     KRATOS_CATCH("");
 }
@@ -68,12 +68,7 @@ double OmegaVisLogBasedWallConditionData::CalculateWallFlux(
     const Vector& rShapeFunctions,
     const ScalarWallFluxConditionData::Parameters& rParameters)
 {
-    double omega;
-    FluidCalculationUtilities::EvaluateNonHistoricalInPoint(
-        this->GetGeometry(), rShapeFunctions,
-        std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE));
-
-    const double g_n = 2.0 * omega / mWallDistance3;
+    const double g_n = 12.0 * rParameters.mKinematicViscosity / (0.0075 * mWallDistance3);
 
     return (rParameters.mKinematicViscosity) * g_n;
 }
