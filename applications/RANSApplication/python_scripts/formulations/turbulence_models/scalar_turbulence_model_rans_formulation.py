@@ -3,6 +3,7 @@ from abc import abstractmethod
 # import kratos
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+import KratosMultiphysics.ChimeraApplication as KratosChimera
 
 # import formulation interface
 from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
@@ -107,10 +108,18 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
         linear_solver_factory = GetKratosObjectPrototype("LinearSolverFactory")
         linear_solver = linear_solver_factory(settings["linear_solver_settings"])
 
-        builder_and_solver = CreateBlockBuilderAndSolver(
-            linear_solver,
-            self.IsPeriodic(),
-            self.GetCommunicator())
+        # builder_and_solver
+        if self.IsChimera():
+            if self.IsPeriodic():
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Periodic conditions are not implemented for chimera case.")
+                raise NotImplementedError
+            else:
+                builder_and_solver = KratosChimera.ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera(linear_solver)
+        else:
+            builder_and_solver = CreateBlockBuilderAndSolver(
+                linear_solver,
+                self.IsPeriodic(),
+                self.GetCommunicator())
 
         convergence_criteria_type = GetKratosObjectPrototype("MixedGenericCriteria")
         convergence_criteria = convergence_criteria_type([

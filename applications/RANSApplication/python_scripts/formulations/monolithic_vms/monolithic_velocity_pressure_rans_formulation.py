@@ -4,6 +4,7 @@ import KratosMultiphysics as Kratos
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.RANSApplication as KratosRANS
+import KratosMultiphysics.ChimeraApplication as KratosChimera
 
 # import formulation interface
 from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
@@ -228,10 +229,18 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         linear_solver_factory = GetKratosObjectPrototype("LinearSolverFactory")
         linear_solver = linear_solver_factory(settings["linear_solver_settings"])
 
-        builder_and_solver = CreateBlockBuilderAndSolver(
-            linear_solver,
-            self.IsPeriodic(),
-            self.GetCommunicator())
+        # builder_and_solver
+        if self.IsChimera():
+            if self.IsPeriodic():
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Periodic conditions are not implemented for chimera case.")
+                raise NotImplementedError
+            else:
+                builder_and_solver = KratosChimera.ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera(linear_solver)
+        else:
+            builder_and_solver = CreateBlockBuilderAndSolver(
+                linear_solver,
+                self.IsPeriodic(),
+                self.GetCommunicator())
 
         solver_type = GetKratosObjectPrototype("ResidualBasedNewtonRaphsonStrategy")
         self.solver = solver_type(
