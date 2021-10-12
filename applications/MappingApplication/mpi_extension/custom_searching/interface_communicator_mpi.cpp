@@ -160,7 +160,7 @@ void InterfaceCommunicatorMPI::ComputeGlobalBoundingBoxes()
         auto props = r_bbox_model_part.CreateNewProperties(0);
 
         // create hexahedral elements representing the bounding boxes
-        for (std::size_t i=0; i<mCommSize; ++i) {
+        for (int i=0; i<mCommSize; ++i) {
             const double x_max = mGlobalBoundingBoxes[(i*6)];
             const double x_min = mGlobalBoundingBoxes[(i*6)+1];
             const double y_max = mGlobalBoundingBoxes[(i*6)+2];
