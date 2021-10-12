@@ -178,7 +178,7 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
         mMeshesAreConforming = 0;
 
         KRATOS_INFO("") << "\n";
-        KRATOS_INFO_IF("Mapper search", mEchoLevel >= 1)
+        KRATOS_INFO_IF("Mapper search", mEchoLevel > 0)
             << "search radius was increased, another search iteration is conducted\n    "
             << "search iteration: " << num_iteration << " / "<< max_search_iterations << " | "
             << "search radius: " << mSearchRadius << std::endl;
@@ -442,16 +442,16 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
         }
     }
 
-    if (mEchoLevel > 1) {
+    if (mEchoLevel > 0) {
         const auto& r_data_comm = rComm.GetDataCommunicator();
         if (r_data_comm.IsDefinedOnThisRank()) {
             sum_num_results = r_data_comm.Sum(sum_num_results, 0);
             sum_num_searched_objects = r_data_comm.Sum(sum_num_searched_objects, 0);
         }
 
-        const double avg_num_results = sum_num_results / static_cast<double>(sum_num_searched_objects);
+        const double avg_num_results = std::round(sum_num_results / static_cast<double>(sum_num_searched_objects));
 
-        KRATOS_INFO_IF("Mapper search", mEchoLevel > 1) << "An average of " << avg_num_results << " objects was found while searching" << std::endl;
+        KRATOS_INFO_IF("Mapper search") << "An average of " << avg_num_results << " objects was found while searching" << std::endl;
         KRATOS_WARNING_IF("Mapper search", avg_num_results > 200) << "Many search results are found, consider adjusting the search settings for improving performance" << std::endl;
     }
 
