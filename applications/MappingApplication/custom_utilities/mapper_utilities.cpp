@@ -72,7 +72,7 @@ double ComputeSearchRadius(const ModelPart& rModelPart, const int EchoLevel)
         return 0.0;
     }
 
-    static constexpr double search_safety_factor = 1.2;
+    static constexpr double search_safety_factor = 1.5;
     double max_element_size = 0.0;
 
     if (r_comm.GlobalNumberOfConditions() > 0) {
