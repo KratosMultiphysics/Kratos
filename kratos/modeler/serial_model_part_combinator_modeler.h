@@ -51,7 +51,7 @@ namespace SingleImportModelPart
      * @param ModelPartImportParameters The model part import parameters
      * @param InputType The input type
      */
-    void Import(
+    void KRATOS_API(KRATOS_CORE) Import(
         ModelPart& rModelPart, 
         Parameters ModelPartImportParameters,
         const std::string& InputType
