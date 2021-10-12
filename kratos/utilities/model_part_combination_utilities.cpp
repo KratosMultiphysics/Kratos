@@ -109,8 +109,6 @@ ModelPart& ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParam
         });
     }
 
-    KRATOS_WARNING("ReadMaterialsUtility") << r_combined_model_part << std::endl;
-
     return r_combined_model_part;
 }
 
