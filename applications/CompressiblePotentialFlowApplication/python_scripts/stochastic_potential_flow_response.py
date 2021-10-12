@@ -7,6 +7,7 @@ import KratosMultiphysics.ShapeOptimizationApplication as KSO
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_analysis as potential_flow_analysis
 import KratosMultiphysics.MappingApplication
+from scipy.interpolate import splev
 
 # Import Kratos, XMC, PyCOMPSs API
 import KratosMultiphysics.MultilevelMonteCarloApplication
@@ -201,6 +202,29 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
         self._RunCVaRXMC()
         print ("FINISHED XMC!")
+
+        self.splineKnotsPsi = self.xmc_analysis.splineKnotsPsi
+        self.splineCoeffsPsi = self.xmc_analysis.splineCoeffsPsi
+
+        i_spline=0
+        # print(self.argmin)
+        ini_time = time.time()
+        # for node in self.current_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
+        #     shape_sensitivity = KratosMultiphysics.Vector(3, 0.0)
+        #     # Hack becuase of how scipy splines works. 10 interpolation points hard coded and never changes
+        #     # You will need to change the numbers to the left and right of *knots to the limit of the CVaR function
+        #     for i_dim in range(2):
+        #         coeffs_psi = [*self.splineKnotsPsi[i_spline+i_dim],0.0,0.0,0.0,0.0]
+        #         knots_psi = [0.5,0.5,0.5,* self.splineCoeffsPsi[i_spline+i_dim],0.9,0.9,0.9]
+        #         # print(knots_psi)
+
+        #         shape_sensitivity[i_dim] = splev(self.argmin,(knots_psi, coeffs_psi,3),der=1)
+
+        #     i_spline += 2
+        #     # print(shape_sensitivity)
+        #     node.SetValue(KratosMultiphysics.SHAPE_SENSITIVITY, shape_sensitivity)
+        print("time spent computing gradients from spline", time.time()-ini_time)
+
         for node in self.current_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
             shape_sensitivity = KratosMultiphysics.Vector(3, 0.0)
             shape_sensitivity[0] = 1.0
@@ -220,7 +244,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         if variable != KratosMultiphysics.SHAPE_SENSITIVITY:
             raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
 
-        gradient = {node.Id : node.GetValue(variable) for node in self.current_model_part.Nodes}
+        gradient = {node.Id : node.GetValue(variable) for node in self.current_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes}
 
         return gradient
 
@@ -320,7 +344,8 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         toleranceSequence = [errorTolerance*(tolRefinementRatio**(Nref-i-1)) for i in range(Nref)]
         print(toleranceSequence)
         toleranceSplitting = [.001, .8] # fractions on interpolation and bias errors, respectively
-        optiParameters = self.current_model_part.NumberOfNodes()*2
+        # optiParameters = self.current_model_part.NumberOfNodes()*2
+        optiParameters = 2
         optiWeights = [1.0]*(optiParameters+1)# THIS SHOULD BE LEN() == optiparameters
         derivationOrder = 1
         indexSpace = [0,3]
@@ -687,6 +712,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self.xmc_analysis.runXMC()
 
         self._value = self.xmc_analysis.estimation(0)[0]['min'] #armgmin is quantile, min is cvar.
+        self.argmin = self.xmc_analysis.estimation(0)[0]['argmin'] #armgmin is quantile, min is cvar.
 
         print("OBTAINED VALUE FROM XMC", self._value)
 
@@ -1248,7 +1274,7 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
             raise(Exception("XMC mapping is NOT needed in embedded, as the skin stays the same"))
 
         Logger.PrintInfo("StochasticAdjointResponse", "Total number of QoI:",len(qoi_list))
-        return qoi_list
+        return qoi_list[0:3]
 
     def MappingAndEvaluateQuantityOfInterest(self):
         raise(Exception("XMC mapping is NOT needed in embedded, as the skin stays the same"))
