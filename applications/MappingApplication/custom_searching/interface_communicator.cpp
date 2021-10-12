@@ -72,6 +72,8 @@ InterfaceCommunicator::InterfaceCommunicator(
         "max_search_radius"             : 0.0,
         "search_radius_increase_factor" : 0.0,
         "max_num_search_iterations"     : 0,
+        "print_bounding_boxes_to_file"  : false,
+        "bounding_boxes_file_path"      : "",
         "echo_level"                    : 0
     })");
     // deliberately only validating defaults, but not assigning, since computing the defaults is expensive
