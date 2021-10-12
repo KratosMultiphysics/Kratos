@@ -58,7 +58,7 @@ class TestModelPartCombinationUtilities(KratosUnittest.TestCase):
 
         # Checks
         self.assertEqual(combined_model_part.Name, "CombinedModelParts")
-        self.assertEqual(combined_model_part.NumberOfProperties(), 2)
+        self.assertEqual(combined_model_part.NumberOfProperties(), 1)
         self.assertEqual(combined_model_part.NumberOfNodes(), 15)
         self.assertEqual(combined_model_part.NumberOfElements(), 3)
         self.assertEqual(combined_model_part.NumberOfConditions(), 4)
