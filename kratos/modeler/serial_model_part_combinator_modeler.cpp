@@ -96,7 +96,6 @@ void SerialModelPartCombinatorModeler::SetupModelPart()
     // Import parameters
     const auto& r_model_import_settings = mParameters["model_import_settings"];
     const auto& r_input_type = r_model_import_settings["input_type"];
-    const auto& r_input_filename = r_model_import_settings["input_filename"];
 
     // Multiple import
     auto combine_param = Parameters(R"({
