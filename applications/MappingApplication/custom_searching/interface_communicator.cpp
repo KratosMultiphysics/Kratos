@@ -178,7 +178,7 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
         // for the initial given search radius.
         mMeshesAreConforming = 0;
 
-        KRATOS_INFO("") << "\n";
+        KRATOS_INFO_IF("", mEchoLevel > 0) << "\n";
         KRATOS_INFO_IF("Mapper search", mEchoLevel > 0)
             << "search radius was increased, another search iteration is conducted\n    "
             << "search iteration: " << num_iteration << " / "<< max_search_iterations << " | "
