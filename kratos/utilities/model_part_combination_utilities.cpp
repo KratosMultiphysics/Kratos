@@ -97,15 +97,15 @@ ModelPart& ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParam
         // Iterate over conditions
         auto& r_conditions_array = r_combined_model_part.Conditions();
         const auto it_cond_begin = r_conditions_array.begin();
-        IndexPartition<std::size_t>(r_conditions_array.size()).for_each([&it_cond_begin](std::size_t i){
-            (it_cond_begin + i)->SetProperties(*pProperties);
+        IndexPartition<std::size_t>(r_conditions_array.size()).for_each([&it_cond_begin,&pProperties](std::size_t i){
+            (it_cond_begin + i)->SetProperties(pProperties);
         });
 
         // Iterate over elements
         auto& r_elements_array = r_combined_model_part.Elements();
         const auto it_elem_begin = r_elements_array.begin();
-        IndexPartition<std::size_t>(r_elements_array.size()).for_each([&it_elem_begin](std::size_t i){
-            (it_elem_begin + i)->SetProperties(*pProperties);
+        IndexPartition<std::size_t>(r_elements_array.size()).for_each([&it_elem_begin,&pProperties](std::size_t i){
+            (it_elem_begin + i)->SetProperties(pProperties);
         });
     }
 
