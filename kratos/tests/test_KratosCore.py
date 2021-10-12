@@ -60,6 +60,7 @@ import test_file_name_data_collector
 import test_function_parser_utility
 import test_integration_points
 import test_mls_shape_functions_utility
+import test_set_initial_state_process
 import test_force_and_torque_utils
 
 def AssembleTestSuites():
@@ -140,6 +141,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_function_parser_utility.TestGenericFunctionUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_integration_points.TestIntegrationPoints]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mls_shape_functions_utility.TestMLSShapeFunctionsUtility]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_set_initial_state_process.TestSetInitialStateProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_force_and_torque_utils.TestForceAndTorqueUtils]))
 
     # Create a test suite with the selected tests plus all small tests
