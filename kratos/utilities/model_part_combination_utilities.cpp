@@ -104,7 +104,7 @@ ModelPart& ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParam
         // Iterate over elements
         auto& r_elements_array = r_combined_model_part.Elements();
         const auto it_elem_begin = r_elements_array.begin();
-        IndexPartition<std::size_t>(r_elements_array.size()).for_each([&it_elem_begin,&pProperties](std::size_t i){
+        block_for_each(r_combined_model_part.Elements(), [&pProperties](Element& rElem){
             (it_elem_begin + i)->SetProperties(pProperties);
         });
     }
