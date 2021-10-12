@@ -85,6 +85,32 @@ ModelPart& ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParam
         mrModel.DeleteModelPart(r_name);
     }
 
+    // Clean up properties
+    const int clean_up_properties = ThisParameters["clean_up_properties"].GetBool();
+    if (clean_up_properties) {
+        for (auto it_prop = r_combined_model_part.PropertiesBegin() + 1; it_prop < r_combined_model_part.PropertiesEnd(); it_prop++) {
+            r_combined_model_part.RemovePropertiesFromAllLevels(*(it_prop.base()));
+        }
+        auto pProperties = *(r_combined_model_part.PropertiesBegin().base());
+        pProperties->SetId(0);
+        
+        // Iterate over conditions
+        auto& r_conditions_array = r_combined_model_part.Conditions();
+        const auto it_cond_begin = r_conditions_array.begin();
+        IndexPartition<std::size_t>(r_conditions_array.size()).for_each([&it_cond_begin](std::size_t i){
+            (it_cond_begin + i)->SetProperties(*pProperties);
+        });
+
+        // Iterate over elements
+        auto& r_elements_array = r_combined_model_part.Elements();
+        const auto it_elem_begin = r_elements_array.begin();
+        IndexPartition<std::size_t>(r_elements_array.size()).for_each([&it_elem_begin](std::size_t i){
+            (it_elem_begin + i)->SetProperties(*pProperties);
+        });
+    }
+
+    KRATOS_WARNING("ReadMaterialsUtility") << r_combined_model_part << std::endl;
+
     return r_combined_model_part;
 }
 
@@ -262,7 +288,8 @@ const Parameters ModelPartCombinationUtilities::GetDefaultParameters() const
         "model_parts_list"         : [],
         "combined_model_part_name" : "CombinedModelParts",
         "buffer_size"              : 2,
-        "echo_level"               : 0
+        "echo_level"               : 0,
+        "clean_up_properties"      : true
     })" );
     return default_parameters;
 }
