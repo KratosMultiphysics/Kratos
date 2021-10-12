@@ -21,13 +21,13 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/communicator.h"
 #include "includes/kratos_parameters.h"
+#include "includes/model_part.h"
+#include "mappers/mapper_flags.h"
 #include "spatial_containers/bins_dynamic_objects.h"
+#include "utilities/builtin_timer.h"
 #include "custom_searching/custom_configures/interface_object_configure.h"
 #include "custom_utilities/mapper_local_system.h"
-#include "mappers/mapper_flags.h"
 
 
 namespace Kratos
@@ -69,8 +69,8 @@ public:
     ///@{
 
     InterfaceCommunicator(ModelPart& rModelPartOrigin,
-                             MapperLocalSystemPointerVector& rMapperLocalSystems,
-                             Parameters SearchSettings);
+                          MapperLocalSystemPointerVector& rMapperLocalSystems,
+                          Parameters SearchSettings);
 
     /// Destructor.
     virtual ~InterfaceCommunicator() = default;
@@ -167,7 +167,9 @@ private:
 
     bool AllNeighborsFound(const Communicator& rComm) const;
 
-    void PrintInfoAboutCurrentSearchSuccess(const Communicator& rComm) const;
+    void PrintInfoAboutCurrentSearchSuccess(
+        const Communicator& rComm,
+        const BuiltinTimer& rTimer) const;
 
     ///@}
 

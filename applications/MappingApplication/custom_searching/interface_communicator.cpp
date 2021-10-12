@@ -20,7 +20,6 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "interface_communicator.h"
@@ -183,10 +182,12 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
             << "search iteration: " << num_iteration << " / "<< max_search_iterations << " | "
             << "search radius: " << mSearchRadius << std::endl;
 
+        BuiltinTimer timer;
+
         ConductSearchIteration(rpInterfaceInfo, rComm);
 
         if (mEchoLevel > 1) {
-            PrintInfoAboutCurrentSearchSuccess(rComm);
+            PrintInfoAboutCurrentSearchSuccess(rComm, timer);
         }
     }
 
@@ -296,7 +297,7 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(const MapperInterfaceIn
 {
     KRATOS_TRY;
 
-    mpInterfaceObjectsOrigin = Kratos::make_unique<InterfaceObjectContainerType>();
+    mpInterfaceObjectsOrigin = Kratos::make_unique<InterfaceObjectContainerType>(); // must be initialized everywhere as is used for some checks!
 
     if (mrModelPartOrigin.GetCommunicator().GetDataCommunicator().IsNullOnThisRank()) {
         return;
@@ -451,7 +452,7 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
 
         const double avg_num_results = std::round(sum_num_results / static_cast<double>(sum_num_searched_objects));
 
-        KRATOS_INFO_IF("Mapper search") << "An average of " << avg_num_results << " objects was found while searching" << std::endl;
+        KRATOS_INFO("Mapper search") << "An average of " << avg_num_results << " objects was found while searching" << std::endl;
         KRATOS_WARNING_IF("Mapper search", avg_num_results > 200) << "Many search results are found, consider adjusting the search settings for improving performance" << std::endl;
     }
 
@@ -497,7 +498,9 @@ bool InterfaceCommunicator::AllNeighborsFound(const Communicator& rComm) const
     KRATOS_CATCH("");
 }
 
-void InterfaceCommunicator::PrintInfoAboutCurrentSearchSuccess(const Communicator& rComm) const
+void InterfaceCommunicator::PrintInfoAboutCurrentSearchSuccess(
+    const Communicator& rComm,
+    const BuiltinTimer& rTimer) const
 {
     if (rComm.GetDataCommunicator().IsNullOnThisRank()) { return; }
 
@@ -523,6 +526,8 @@ void InterfaceCommunicator::PrintInfoAboutCurrentSearchSuccess(const Communicato
         << no_neighbor << " / " << global_num_nodes << " ("
         << std::round((no_neighbor/static_cast<double>(global_num_nodes))*100)
         << " %) local systems did not find a neighbor" << std::endl;
+
+    KRATOS_INFO("Mapper search") << "Search iteration took " << rTimer.ElapsedSeconds() << " [s]" << std::endl;
 }
 
 }  // namespace Kratos.
