@@ -487,11 +487,11 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         mcsAssemblers = [None]*(3+3*optiParameters)
         estForAssblr = [None]*(3+3*optiParameters)
         iCVaRAssembler = 0
-        iSensAssembler = list(range(3+2*optiParameters,3+3*optiParameters))
         iDerivativeNormAssemblerFunction = 1
         iBiasAssemblerFunction = 2
         iDerivativeNormAssemblerSens = list(range(3,3+2*optiParameters,2))
         iBiasAssemblerSens = list(range(4,3+2*optiParameters,2))
+        iSensAssembler = list(range(3+2*optiParameters,3+3*optiParameters))
 
         # Assemble the actual VaR and CVaR from Phi
         pointwiseAssemblerSchematics = {'constructor':'xmc.estimationAssembler.EstimationAssembler',
@@ -528,16 +528,16 @@ class AdjointResponseFunction(ResponseFunctionInterface):
                 'xmc.methodDefs_estimationAssembler.assembleEstimation.assembleBias_Task')
             estForAssblr[4+2*i] = [[2+2*i,[13]]]
 
-        # Assemble the sensitivity functions Psi_i
-        pointwiseAssemblerSchematics = {'constructor':'xmc.estimationAssembler.EstimationAssembler',
-                                        'assembleEstimation':'xmc.methodDefs_estimationAssembler.assembleEstimation.assembleValue_Task'}
-        interpolatorSchematics = {'constructor':'xmc.interpolator.SplineInterpolator',
-                                'domain':[parameterPoints[0],parameterPoints[-1]]}
-        cvarAssemblerInputDict = {'interpolator':interpolatorSchematics,
-                                'pointwiseAssembler':pointwiseAssemblerSchematics,
-                                'post-processing':['argmin','min']}
-
         for i in range(len(iSensAssembler)):
+            # Assemble the sensitivity functions Psi_i
+            pointwiseAssemblerSchematics = {'constructor':'xmc.estimationAssembler.EstimationAssembler',
+                                            'assembleEstimation':'xmc.methodDefs_estimationAssembler.assembleEstimation.assembleValue_Task'}
+            interpolatorSchematics = {'constructor':'xmc.interpolator.SplineInterpolator',
+                                    'domain':[parameterPoints[0],parameterPoints[-1]]}
+            cvarAssemblerInputDict = {'interpolator':interpolatorSchematics,
+                                    'pointwiseAssembler':pointwiseAssemblerSchematics,
+                                    'post-processing':['argmin','min']}
+
             j = iSensAssembler[i]
             mcsAssemblers[j] = xmc.parametricEstimationInterpolator.ParametricEstimationInterpolator(**cvarAssemblerInputDict)
             estForAssblr[j] = [[2+2*i,[0]]]
