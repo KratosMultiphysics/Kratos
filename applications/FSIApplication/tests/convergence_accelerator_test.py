@@ -49,10 +49,7 @@ class ConvergenceAcceleratorTest(KratosUnittest.TestCase):
         return y
 
     def norm(self, v):
-        v_norm = 0.0
-        for i in v:
-            v_norm += i**2
-        return math.sqrt(v_norm)
+        return math.sqrt(sum([i**2 for i in v]))
 
     # Specific residual functions for the MVQN accelerator test
     # Recall that the MVQN accelerator requires a "large enough" problem to avoid becoming ill-conditioned
