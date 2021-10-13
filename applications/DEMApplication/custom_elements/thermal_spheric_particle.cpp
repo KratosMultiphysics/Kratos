@@ -484,7 +484,7 @@ namespace Kratos
     }
 
     // Compute heat flux
-    return h * GetNeighborTemperature() - GetParticleTemperature();
+    return h * (GetNeighborTemperature() - GetParticleTemperature());
 
     KRATOS_CATCH("")
   }
