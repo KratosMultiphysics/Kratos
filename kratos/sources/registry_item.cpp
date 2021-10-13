@@ -21,7 +21,7 @@ namespace Kratos
 {
 
     std::string RegistryItem::Info() const{
-        return mName + " RegistryItem";
+        return mName + " RegistryItem ";
     }
 
     void RegistryItem::PrintInfo(std::ostream &rOStream) const{
@@ -29,7 +29,9 @@ namespace Kratos
     }
 
     void RegistryItem::PrintData(std::ostream &rOStream) const{
-        
+        for(auto& item : mSubRegistryItem){
+            rOStream << *(item.second) << std::endl;
+        }
     }
 
     RegistryItem const& RegistryItem::GetItem(std::string const& ItemName) const {
