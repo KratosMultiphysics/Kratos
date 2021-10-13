@@ -26,9 +26,6 @@ namespace Kratos
 {
 ModelPart& ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParameters)
 {
-    // Serial check
-    KRATOS_ERROR_IF(Kernel::IsDistributedRun()) << "ModelPartCombinationUtilities is only compatible in serial simulations" << std::endl;
-
     // Ensuring parameters
     ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 
@@ -60,6 +57,9 @@ ModelPart& ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParam
 
     // Create the new ModelPart
     auto& r_combined_model_part = mrModel.HasModelPart(r_new_model_part_name) ? mrModel.GetModelPart(r_new_model_part_name) : mrModel.CreateModelPart(r_new_model_part_name, ThisParameters["buffer_size"].GetInt());
+
+    // Serial check
+    KRATOS_ERROR_IF(r_combined_model_part.IsDistributed()) << "ModelPartCombinationUtilities is only compatible in serial simulations" << std::endl;
 
     // Before combine the ModelParts we need to check that the submodelparts are not repeated
     CheckSubModelParts(model_parts_names);
