@@ -261,7 +261,10 @@ namespace Kratos {
         void SynchronizeRHS(ModelPart& r_model_part);
         void CleanEnergies();
         void Check_MPI(bool& has_mpi);
-        void CheckSubmodelPartVariables(ModelPart& rigid_body_sub_model_part);
+
+        template<class TDataType> void CheckIfSubModelPartHasVariable(ModelPart& smp, const Variable<TDataType>& rThisVariable) {
+            if(!smp.Has(rThisVariable)) KRATOS_ERROR<<"The SubModelPart '"<<smp.Name()<<"' does not have the required variable '"<<rThisVariable.Name()<<"'";
+        }
 
         ModelPart& GetModelPart() { return (*mpDem_model_part);}
         ModelPart& GetFemModelPart() { return (*mpFem_model_part);}

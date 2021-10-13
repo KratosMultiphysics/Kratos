@@ -827,7 +827,6 @@ Begin SubModelPart 0 // DEM-FEM-Wall. Group name: FEM-wall
   Begin SubModelPartData // DEM-FEM-Wall. Group name: FEM-wall
   PROPERTIES_ID 0
   RIGID_BODY_MOTION 1
-  FIXED_MESH_OPTION 0
   LINEAR_VELOCITY [3] (0.0,0.0,0.0)
   VELOCITY_PERIOD 0.0
   ANGULAR_VELOCITY [3] (-2.0,0.0,0.0)
@@ -1388,7 +1387,6 @@ Begin SubModelPart 3 // DEM-FEM-Wall. Group name: FEM-periodic
   Begin SubModelPartData // DEM-FEM-Wall. Group name: FEM-periodic
   PROPERTIES_ID 3
   RIGID_BODY_MOTION 1
-  FIXED_MESH_OPTION 0
   LINEAR_VELOCITY [3] (0.0,0.0,10)
   VELOCITY_PERIOD 0.5
   ANGULAR_VELOCITY [3] (0.0,1,0.0)
@@ -1458,7 +1456,6 @@ Begin SubModelPart 4 // DEM-FEM-Wall. Group name: FEM-ghost
   Begin SubModelPartData // DEM-FEM-Wall. Group name: FEM-ghost
   PROPERTIES_ID 4
   RIGID_BODY_MOTION 1
-  FIXED_MESH_OPTION 0
   LINEAR_VELOCITY [3] (0.0,0.0,0.0)
   VELOCITY_PERIOD 0.0
   ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
@@ -1604,7 +1601,6 @@ Begin SubModelPart 6 // DEM-FEM-Wall. Group name: FEM-wear
   Begin SubModelPartData // DEM-FEM-Wall. Group name: FEM-wear
   PROPERTIES_ID 6
   RIGID_BODY_MOTION 1
-  FIXED_MESH_OPTION 0
   LINEAR_VELOCITY [3] (0.0,0.0,1)
   VELOCITY_PERIOD 0.0
   ANGULAR_VELOCITY [3] (0.0,1,0.0)
