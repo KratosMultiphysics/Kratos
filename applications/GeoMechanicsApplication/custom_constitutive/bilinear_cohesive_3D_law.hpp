@@ -58,7 +58,7 @@ public:
 
     void InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues ) override;
 
-    virtual SizeType GetStrainSize() override
+    virtual SizeType GetStrainSize() const override
     {
         return 3;
     }

@@ -237,7 +237,7 @@ public:
     }
 
     /**
-    * @brief Calls projection of its nurbs surface.
+    * @brief Calls projection of its nurbs curve.
     *        Projects a certain point on the geometry, or finds
     *        the closest point, depending on the provided
     *        initial guess. The external point does not necessary
@@ -246,17 +246,16 @@ public:
     *        projection function e.g. the Newton-Raphson.
     *        Thus, the breaking criteria does not necessarily mean
     *        that it found a point on the surface, if it is really
-    *        the closest if or not. It shows only if the breaking
+    *        the closest or not. It shows only if the breaking
     *        criteria, defined by the tolerance is reached.
     *
     *        This function requires an initial guess, provided by
     *        rProjectedPointLocalCoordinates.
+    *
     *        This function can be a very costly operation.
     *
     * @param rPointGlobalCoordinates the point to which the
     *        projection has to be found.
-    * @param rProjectedPointGlobalCoordinates the location of the
-    *        projection in global coordinates.
     * @param rProjectedPointLocalCoordinates the location of the
     *        projection in local coordinates.
     *        The variable is as initial guess!
@@ -266,15 +265,14 @@ public:
     *         0 -> failed
     *         1 -> converged
     */
-    int ProjectionPoint(
+    int ProjectionPointGlobalToLocalSpace(
         const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        return mpNurbsCurve->ProjectionPoint(
-            rPointGlobalCoordinates, rProjectedPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
+        return mpNurbsCurve->ProjectionPointGlobalToLocalSpace(
+            rPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
     }
 
     /*

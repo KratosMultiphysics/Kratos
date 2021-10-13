@@ -105,13 +105,7 @@ public:
 
         KRATOS_WARNING_IF("Mapper", mMapperSettings["use_initial_configuration"].GetBool()) << "Updating the interface while using the initial configuration for mapping!" << std::endl;
 
-        // Set the Flags according to the type of remeshing
-        if (MappingOptions.Is(MapperFlags::REMESHED)) {
-            InitializeInterface(MappingOptions);
-        }
-        else {
-            BuildMappingMatrix(MappingOptions);
-        }
+        Initialize();
 
         if (mpInverseMapper) {
             mpInverseMapper->UpdateInterface(MappingOptions,
@@ -129,14 +123,8 @@ public:
         KRATOS_TRY;
 
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE);
-            MappingOptions.Set(MapperFlags::INTERNAL_USE_TRANSPOSE, true);
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
-        }
-        else if (MappingOptions.Is(MapperFlags::INTERNAL_USE_TRANSPOSE)) {
-            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
+            GetInverseMapper().MapInternalTranspose(rDestinationVariable, rOriginVariable, MappingOptions);
+        } else {
             MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
         }
 
@@ -151,14 +139,8 @@ public:
         KRATOS_TRY;
 
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE);
-            MappingOptions.Set(MapperFlags::INTERNAL_USE_TRANSPOSE, true);
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
-        }
-        else if (MappingOptions.Is(MapperFlags::INTERNAL_USE_TRANSPOSE)) {
-            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
+            GetInverseMapper().MapInternalTranspose(rDestinationVariable, rOriginVariable, MappingOptions);
+        } else {
             MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
         }
 
@@ -174,9 +156,8 @@ public:
 
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
             MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+        } else {
+            GetInverseMapper().Map(rDestinationVariable, rOriginVariable, MappingOptions);
         }
 
         KRATOS_CATCH("");
@@ -191,9 +172,8 @@ public:
 
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
             MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+        } else {
+            GetInverseMapper().Map(rDestinationVariable, rOriginVariable, MappingOptions);
         }
 
         KRATOS_CATCH("");
@@ -215,7 +195,7 @@ public:
     int AreMeshesConforming() const override
     {
         KRATOS_WARNING_ONCE("Mapper") << "Developer-warning: \"AreMeshesConforming\" is deprecated and will be removed in the future" << std::endl;
-        return mpIntefaceCommunicator->AreMeshesConforming();
+        return mMeshesAreConforming;
     }
 
     ///@}
@@ -252,8 +232,7 @@ protected:
     {
         KRATOS_TRY;
 
-        InitializeInterfaceCommunicator();
-        InitializeInterface();
+        BuildMappingMatrix();
 
         KRATOS_CATCH("");
     }
@@ -289,43 +268,21 @@ private:
 
     MapperLocalSystemPointerVector mMapperLocalSystems;
 
-    InterfaceCommunicatorPointerType mpIntefaceCommunicator;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
+
+    int mMeshesAreConforming = false;
 
     ///@}
     ///@name Private Operations
     ///@{
 
-
-
-    void InitializeInterfaceCommunicator()
-    {
-        KRATOS_TRY;
-
-        mpIntefaceCommunicator = Kratos::make_unique<InterfaceCommunicatorType>(
-            mrModelPartOrigin,
-            mMapperLocalSystems,
-            mMapperSettings);
-
-        KRATOS_CATCH("");
-    }
-
-    void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags())
+    void BuildMappingMatrix()
     {
         KRATOS_TRY;
 
         CreateMapperLocalSystems(mrModelPartDestination.GetCommunicator(),
-                                mMapperLocalSystems);
-
-        BuildMappingMatrix(MappingOptions);
-
-        KRATOS_CATCH("");
-    }
-
-    void BuildMappingMatrix(Kratos::Flags MappingOptions = Kratos::Flags())
-    {
-        KRATOS_TRY;
+                                 mMapperLocalSystems);
 
         const bool use_initial_configuration = mMapperSettings["use_initial_configuration"].GetBool();
 
@@ -339,13 +296,18 @@ private:
 
         AssignInterfaceEquationIds(); // Has to be done ever time in case of overlapping interfaces!
 
-        KRATOS_ERROR_IF_NOT(mpIntefaceCommunicator) << "mpIntefaceCommunicator is a nullptr!" << std::endl;
+        auto p_interface_comm = Kratos::make_unique<InterfaceCommunicatorType>(
+            mrModelPartOrigin,
+            mMapperLocalSystems,
+            mMapperSettings);
 
         const MapperInterfaceInfoUniquePointerType p_ref_interface_info = GetMapperInterfaceInfo();
 
-        mpIntefaceCommunicator->ExchangeInterfaceData(mrModelPartDestination.GetCommunicator(),
-                                                    MappingOptions,
-                                                    p_ref_interface_info);
+        p_interface_comm->ExchangeInterfaceData(mrModelPartDestination.GetCommunicator(),
+                                                      p_ref_interface_info);
+
+        // ugly hack until this function can be removed
+        mMeshesAreConforming = p_interface_comm->AreMeshesConforming();
 
         const int echo_level = mMapperSettings["echo_level"].GetInt();
 
@@ -509,14 +471,14 @@ private:
     ///@name Private  Access
     ///@{
 
-    MapperUniquePointerType& GetInverseMapper()
+    InterpolativeMapperBase& GetInverseMapper()
     {
         KRATOS_TRY;
 
         if (!mpInverseMapper) {
             InitializeInverseMapper();
         }
-        return mpInverseMapper;
+        return *(static_cast<InterpolativeMapperBase*>(mpInverseMapper.get()));
 
         KRATOS_CATCH("");
     }
