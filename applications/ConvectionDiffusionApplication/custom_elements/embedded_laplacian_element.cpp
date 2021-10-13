@@ -103,13 +103,20 @@ void EmbeddedLaplacianElement<TTDim>::CalculateLocalSystem(
 
         // Calculate and add local system for the positive side of the element
         AddPositiveElementSide(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, data);
+
+        if(this.Has(EMBEDDED_SCALAR)) {
+            if(this.Has(EMBEDDED_FLUX)) {
+                KRATOS_ERROR << "Dirichlet and Neumann condition given.";
+            }
+            // Calculate and add Nitsche terms for weak imposition of boundary condition
+            AddNitscheBoundaryTerms(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, data);
+        } else if (this.Has(EMBEDDED_FLUX)) {
+            // Calculate and add interface flux
+            AddNeumannBoundaryTerm(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, data);
+        } else {
+            KRATOS_ERROR << "No boundary condition given for embedded element.";
+        }
         
-        // Calculate and add interface terms
-        AddPositiveInterfaceTerms(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, data);
-
-        // Calculate and add Nitsche terms for weak imposition of boundary condition
-        AddNitscheBoundaryTerms(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, data);
-
     } else {
         // Add base Laplacian contribution (standard Galerkin)
         BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
@@ -242,7 +249,7 @@ void EmbeddedLaplacianElement<TTDim>::AddPositiveElementSide(
 }
 
 template<std::size_t TTDim>
-void EmbeddedLaplacianElement<TTDim>::AddPositiveInterfaceTerms(
+void EmbeddedLaplacianElement<TTDim>::AddNeumannBoundaryTerm(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -251,7 +258,6 @@ void EmbeddedLaplacianElement<TTDim>::AddPositiveInterfaceTerms(
     const auto& r_geom = GetGeometry();
     auto& r_settings = *rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
 
-    const auto& r_unknown_var = r_settings.GetUnknownVariable();
     const auto& r_diffusivity_var = r_settings.GetDiffusionVariable();
 
     // Get conductivity and temperature nodal vectors
@@ -259,32 +265,24 @@ void EmbeddedLaplacianElement<TTDim>::AddPositiveInterfaceTerms(
     Vector temp(NumNodes);
     for(std::size_t n = 0; n < NumNodes; ++n) {
         nodal_conductivity[n] = r_geom[n].FastGetSolutionStepValue(r_diffusivity_var);
-        temp[n] = r_geom[n].GetSolutionStepValue(r_unknown_var);
     }
+
+    // Neumann boundary value
+    const double flux_bc = GetValue(EMBEDDED_FLUX);
 
     // Iterate over the positive side interface integration points 
     const std::size_t number_of_positive_gauss_points = rData.PositiveInterfaceWeights.size();
     for (std::size_t g = 0; g < number_of_positive_gauss_points; ++g) {
 
         const auto& N = row(rData.PositiveInterfaceN, g); 
-        const auto& DN_DX = rData.PositiveInterfaceDNDX[g];
         const double weight_gauss = rData.PositiveInterfaceWeights[g]; 
-        const auto& unit_normal = rData.PositiveInterfaceUnitNormals[g];
 
         //Calculate the local conductivity
         const double conductivity_gauss = inner_prod(N, nodal_conductivity);
 
         // Add interface contributions
         for (std::size_t i = 0; i < NumNodes; ++i) {
-            for (std::size_t j = 0; j < NumNodes; ++j) {
-                for (std::size_t d = 0; d < TTDim; ++d) {
-
-                    const double aux_flux = weight_gauss * conductivity_gauss * N(i) * unit_normal(d) * DN_DX(j,d);
-
-                    rLeftHandSideMatrix(i, j) -= aux_flux;
-                    rRightHandSideVector(i) += aux_flux * temp(j);
-                }
-            }
+            rRightHandSideVector(i) += weight_gauss * conductivity_gauss * N(i) * flux_bc;
         }
     }
 }
@@ -342,9 +340,17 @@ void EmbeddedLaplacianElement<TTDim>::AddNitscheBoundaryTerms(
                 aux_bc_2 += weight_gauss * conductivity_gauss * DN_DX(i, d) * unit_normal(d);
             }
             
-            // Add contribution of Nitsche boundary condition to LHS
             for (std::size_t j = 0; j < NumNodes; ++j) {
+                // Add contribution of Nitsche boundary condition to LHS
                 rLeftHandSideMatrix(i, j) += aux_bc_1 * N(j) - aux_bc_2 * N(j);
+
+                // Calculate and add interface flux contribution
+                for (std::size_t d = 0; d < TTDim; ++d) {
+                    const double aux_flux = weight_gauss * conductivity_gauss * N(i) * unit_normal(d) * DN_DX(j,d);
+
+                    rLeftHandSideMatrix(i, j) -= aux_flux;
+                    rRightHandSideVector(i) += aux_flux * temp(j);
+                }
             }
 
             // Add contribution of Nitsche boundary condition to RHS
