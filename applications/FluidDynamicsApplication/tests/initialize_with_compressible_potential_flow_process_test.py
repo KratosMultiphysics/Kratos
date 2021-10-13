@@ -153,14 +153,14 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
                             "process_name"  : "FarFieldProcess",
                             "Parameters"    : {
-                                "model_part_name" : "potential_analysis_model_part.Inlet"
+                                "model_part_name" : "initial_potential_process_model_part.Inlet"
                             }
                         },{
                             "python_module" : "apply_far_field_process",
                             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
                             "process_name"  : "FarFieldProcess",
                             "Parameters"    : {
-                                "model_part_name" : "potential_analysis_model_part.Outlet"
+                                "model_part_name" : "initial_potential_process_model_part.Outlet"
                             }
                         }
                     ]
@@ -178,7 +178,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                     "echo_level": 0,
                     "end_time": 0.0,
                     "parallel_type": "OpenMP",
-                    "problem_name": "potential_analysis_model_part",
+                    "problem_name": "initialize_with_compressible_potential_solution_process_internal_analyisis",
                     "start_time": -1.0
                 },
                 "processes": {
@@ -189,7 +189,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                                 "free_stream_density": 1.19659,
                                 "heat_capacity_ratio": 1.4,
                                 "mach_infinity": 0.8,
-                                "model_part_name": "potential_analysis_model_part.Inlet",
+                                "model_part_name": "initial_potential_process_model_part.Inlet",
                                 "speed_of_sound": 344.3099953136029
                             },
                             "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
@@ -201,7 +201,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                                 "free_stream_density": 1.19659,
                                 "heat_capacity_ratio": 1.4,
                                 "mach_infinity": 0.8,
-                                "model_part_name": "potential_analysis_model_part.Outlet",
+                                "model_part_name": "initial_potential_process_model_part.Outlet",
                                 "speed_of_sound": 344.3099953136029
                             },
                             "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
@@ -220,7 +220,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                     "formulation": {
                         "element_type" : "compressible"
                     },
-                    "model_part_name": "potential_analysis_model_part",
+                    "model_part_name": "initial_potential_process_model_part",
                     "no_skin_parts": [],
                     "reform_dofs_at_each_step": false,
                     "skin_parts": [

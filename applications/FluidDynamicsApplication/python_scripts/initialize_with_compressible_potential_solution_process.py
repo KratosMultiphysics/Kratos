@@ -68,7 +68,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
 
     def ExecuteBeforeSolutionLoop(self):
         # Creating model part
-        potential_mpart = self.model.CreateModelPart("potential_analysis_model_part")
+        potential_mpart = self.model.CreateModelPart(self._GetPotentialModelPartName())
         original_model_part = self.model[self.settings["model_part_name"].GetString()]
 
         # Starting analysis
@@ -172,12 +172,19 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
 
         return local_properties
 
+
+    @classmethod
+    def _GetPotentialModelPartName(cls):
+        """Giving it a unique name to avoid colisions"""
+        return "initial_potential_process_model_part"
+
+
     @classmethod
     def _GenerateAnalysisparameters(cls, settings, simulation_time):
         defaults = KratosMultiphysics.Parameters("""
         {
             "problem_data"     : {
-                "problem_name"  : "potential_analysis_model_part",
+                "problem_name"  : "initialize_with_compressible_potential_solution_process_internal_analyisis",
                 "parallel_type" : "OpenMP",
                 "echo_level"    : 0,
                 "start_time"    : 0.0,
@@ -186,7 +193,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
             "output_processes" : {
             },
             "solver_settings"  : {
-                "model_part_name"          : "potential_analysis_model_part",
+                "model_part_name"          : "{replaceme}",
                 "domain_size"              : 2,
                 "solver_type"              : "potential_flow",
                 "model_import_settings"    : {
@@ -198,7 +205,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
                 "maximum_iterations"       : 10,
                 "echo_level"               : 0,
                 "volume_model_part_name"   : "{replaceme}",
-                "skin_parts"               : [],
+                "skin_parts"               : ["{replaceme}"],
                 "no_skin_parts"            : [],
                 "reform_dofs_at_each_step" : false
             },
@@ -209,6 +216,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         }
         """)
 
+        defaults["solver_settings"]["model_part_name"].SetString(cls._GetPotentialModelPartName())
         defaults["solver_settings"]["volume_model_part_name"] = settings["volume_model_part_name"]
         defaults["solver_settings"]["formulation"]["element_type"] = settings["element_type"]
         defaults["solver_settings"]["skin_parts"] = settings["skin_parts"]
