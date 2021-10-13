@@ -54,14 +54,46 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryItem, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(registry_item.HasItem("test"));
     KRATOS_CHECK(registry_item.HasItem("sub_item"));
 
+    std::cout << registry_item << std::endl;
+
     auto& sub_item = registry_item.GetItem("sub_item");
     KRATOS_CHECK_STRING_EQUAL(sub_item.Name(),"sub_item");
 
     registry_item.RemoveItem("sub_item");
     KRATOS_CHECK_IS_FALSE(registry_item.HasItems());
     KRATOS_CHECK_IS_FALSE(registry_item.HasItem("sub_item"));
-  
+}
 
+KRATOS_TEST_CASE_IN_SUITE(RegistryValue, KratosCoreFastSuite)
+{
+    RegistryValueItem<double> empty_registry_item("empty_item");
+    KRATOS_CHECK_STRING_EQUAL(empty_registry_item.Name(),"empty_item");
+    KRATOS_CHECK_IS_FALSE(empty_registry_item.HasValue());
+    KRATOS_CHECK_IS_FALSE(empty_registry_item.HasItems());
+    KRATOS_CHECK_IS_FALSE(empty_registry_item.HasItem("test"));
+
+    double value = 3.14;
+    RegistryValueItem<double> value_registry_item("value_item", value);
+    KRATOS_CHECK_STRING_EQUAL(value_registry_item.Name(),"value_item");
+    KRATOS_CHECK(value_registry_item.HasValue());
+    KRATOS_CHECK_IS_FALSE(value_registry_item.HasItems());
+    KRATOS_CHECK_IS_FALSE(value_registry_item.HasItem("test"));
+
+    RegistryItem registry_item("items");
+    registry_item.AddItem<RegistryValueItem<double>>("sub_item");
+    KRATOS_CHECK_IS_FALSE(registry_item.HasValue());
+    KRATOS_CHECK(registry_item.HasItems());
+    KRATOS_CHECK_IS_FALSE(registry_item.HasItem("test"));
+    KRATOS_CHECK(registry_item.HasItem("sub_item"));
+
+    std::cout << registry_item << std::endl;
+
+    auto& sub_item = registry_item.GetItem("sub_item");
+    KRATOS_CHECK_STRING_EQUAL(sub_item.Name(),"sub_item");
+
+    registry_item.RemoveItem("sub_item");
+    KRATOS_CHECK_IS_FALSE(registry_item.HasItems());
+    KRATOS_CHECK_IS_FALSE(registry_item.HasItem("sub_item"));
 }
 
 // KRATOS_TEST_CASE_IN_SUITE(KratosComponentsGetNonExistingElement, KratosCoreFastSuite)
