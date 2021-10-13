@@ -187,18 +187,21 @@ void BFECCConvectionUtility<TDim>::CopyVariableToPreviousTimeStep(const TVarType
 }
 
 
-template class BFECCConvectionUtility<2>;
-template class BFECCConvectionUtility<3>;
+template KRATOS_API(SHALLOW_WATER_APPLICATION) class BFECCConvectionUtility<2>;
+template KRATOS_API(SHALLOW_WATER_APPLICATION) class BFECCConvectionUtility<3>;
 
-template void BFECCConvectionUtility<2>::Convect<Variable<double>, double>(const Variable<double>&, const Variable<array_1d<double,3>>&);
-template void BFECCConvectionUtility<3>::Convect<Variable<double>, double>(const Variable<double>&, const Variable<array_1d<double,3>>&);
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void BFECCConvectionUtility<2>::UpdateSearchDatabase();
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void BFECCConvectionUtility<3>::UpdateSearchDatabase();
 
-template void BFECCConvectionUtility<2>::Convect<Variable<array_1d<double,3>>, array_1d<double,3>>(const Variable<array_1d<double,3>>&, const Variable<array_1d<double,3>>&);
-template void BFECCConvectionUtility<3>::Convect<Variable<array_1d<double,3>>, array_1d<double,3>>(const Variable<array_1d<double,3>>&, const Variable<array_1d<double,3>>&);
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void BFECCConvectionUtility<2>::Convect<Variable<double>, double>(const Variable<double>&, const Variable<array_1d<double,3>>&);
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void BFECCConvectionUtility<3>::Convect<Variable<double>, double>(const Variable<double>&, const Variable<array_1d<double,3>>&);
 
-template void BFECCConvectionUtility<2>::ResetBoundaryConditions(const Variable<double>&);
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void BFECCConvectionUtility<2>::Convect<Variable<array_1d<double,3>>, array_1d<double,3>>(const Variable<array_1d<double,3>>&, const Variable<array_1d<double,3>>&);
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void BFECCConvectionUtility<3>::Convect<Variable<array_1d<double,3>>, array_1d<double,3>>(const Variable<array_1d<double,3>>&, const Variable<array_1d<double,3>>&);
 
-template void BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep(const Variable<double>&);
-template void BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep(const Variable<array_1d<double,3>>&);
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void BFECCConvectionUtility<2>::ResetBoundaryConditions(const Variable<double>&);
+
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep(const Variable<double>&);
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep(const Variable<array_1d<double,3>>&);
 
 }  // namespace Kratos

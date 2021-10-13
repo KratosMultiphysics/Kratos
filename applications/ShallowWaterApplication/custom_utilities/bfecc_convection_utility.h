@@ -55,7 +55,7 @@ namespace Kratos
 /// Explicit convection utility
 /** Convection of scalars and vectors for shallow water equations using BFECC correction
 */
-template<std::size_t TDim> class BFECCConvectionUtility
+template<std::size_t TDim> class KRATOS_API(SHALLOW_WATER_APPLICATION) BFECCConvectionUtility
 {
 
 public:
