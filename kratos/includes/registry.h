@@ -24,6 +24,7 @@
 
 // Project includes
 #include "includes/registry_item.h"
+#include "includes/registry_value_item.h"
 
 
 namespace Kratos
