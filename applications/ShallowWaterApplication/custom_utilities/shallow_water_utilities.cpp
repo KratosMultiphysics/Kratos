@@ -343,6 +343,7 @@ bool ShallowWaterUtilities::IsWet(const GeometryType& rGeometry, const double He
 }
 
 template<>
+KRATOS_API(SHALLOW_WATER_APPLICATION)
 array_1d<double,3> ShallowWaterUtilities::EvaluateHydrostaticForce<ModelPart::ConditionsContainerType>(
     const double Density,
     const double Gravity,
@@ -354,6 +355,7 @@ array_1d<double,3> ShallowWaterUtilities::EvaluateHydrostaticForce<ModelPart::Co
 }
 
 template<>
+KRATOS_API(SHALLOW_WATER_APPLICATION)
 array_1d<double,3> ShallowWaterUtilities::EvaluateHydrostaticForce<ModelPart::ElementsContainerType>(
     const double Density,
     const double Gravity,

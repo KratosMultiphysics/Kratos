@@ -60,7 +60,7 @@ namespace Kratos
  * @details Move the computational mesh over a background mesh and map data between them
  * @author Miguel Maso Sotomayor
  */
-class MoveMeshUtility
+class KRATOS_API(SHALLOW_WATER_APPLICATION) MoveMeshUtility
 {
 public:
     ///@name Type Definitions
