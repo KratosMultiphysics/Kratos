@@ -274,7 +274,7 @@ class ConvergenceAcceleratorTest(KratosUnittest.TestCase):
 
         # Check the obtained solution
         expected_solution = [-0.274582199767, 0.345871967131, -3.755454999722, 2.709011159847, -4.425545499972, 1.364499472545, 8.220809505302, -1.110404752651, 9.165482205319, -9.330964410638]
-        self.assertEqual(True, convergence)
+        self.assertTrue(convergence)
         self.assertVectorAlmostEqual(expected_solution, x_guess)
 
     # Recursive MVQN accelerator test
