@@ -49,21 +49,26 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
     def ExecuteInitialize(self):
         """
         Automatically sets certain values of FarFieldProcess according to the freestream properties.
-
-        These values are:
-         - free_stream_density
-         - sound speed
-         - heat capacity ratio
-         - mach_infinity
         """
+
+        auto_filled_parameters = KratosMultiphysics.Parameters("""
+        {
+            "free_stream_density" : 0.0,
+            "heat_capacity_ratio" : 0.0,
+            "speed_of_sound" : 0.0,
+            "mach_infinity" : 0.0
+        }
+        """)
+
+        auto_filled_parameters["free_stream_density"].SetDouble(self.freestream_properties["rho"])
+        auto_filled_parameters["heat_capacity_ratio"].SetDouble(self.freestream_properties["gamma"])
+        auto_filled_parameters["speed_of_sound"].SetDouble(self.freestream_properties["c"])
+        auto_filled_parameters["mach_infinity"].SetDouble(self.freestream_properties["M"])
+
         for process_parameters in self.settings["boundary_conditions_process_list"]:
             if process_parameters.Has("process_name") and \
                     process_parameters["process_name"].GetString() == "FarFieldProcess":
-                params = process_parameters["Parameters"]
-                self._AddParameterIfMissing(params, "free_stream_density", self.freestream_properties["rho"])
-                self._AddParameterIfMissing(params, "heat_capacity_ratio", self.freestream_properties["gamma"])
-                self._AddParameterIfMissing(params, "speed_of_sound", self.freestream_properties["c"])
-                self._AddParameterIfMissing(params, "mach_infinity", self.freestream_properties["M"])
+                process_parameters["Parameters"].AddMissingParameters(auto_filled_parameters)
 
 
     def ExecuteBeforeSolutionLoop(self):
@@ -126,13 +131,6 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
             }
         }
         """)
-
-
-    @classmethod
-    def _AddParameterIfMissing(cls, parameters, key, value):
-        if not parameters.Has(key):
-            parameters.AddEmptyValue(key)
-            parameters[key].SetDouble(value)
 
 
     @classmethod
