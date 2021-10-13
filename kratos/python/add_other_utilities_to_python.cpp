@@ -683,7 +683,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     ;
 
     auto single_model_part_import = m.def_submodule("SingleImportModelPart");
-    single_model_part_import.def("Import", &SingleImportModelPart::Import );
+    single_model_part_import.def_static("Import", &SingleImportModelPart::Import );
 
 }
 
