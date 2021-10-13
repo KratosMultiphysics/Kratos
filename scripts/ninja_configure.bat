@@ -36,17 +36,17 @@ del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
-rem Enable this if your build is slow and you have a multi-core machine
-rem set KRATOS_PARALLEL_BUILD_FLAG=/MP4
-
 rem Configure
 @echo on
-cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"          ^
--DUSE_EIGEN_MKL=OFF        ^
--DCMAKE_CXX_FLAGS=" %KRATOS_PARALLEL_BUILD_FLAG% "
+cmake -G"Ninja"                                 ^
+-H"%KRATOS_SOURCE%"                             ^
+-B"%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%"          ^
+-DCMAKE_BUILD_TYPE=%KRATOS_BUILD_TYPE%          ^
+-DCMAKE_PDB_OUTPUT_DIRECTORY=%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%/PDB ^
+-DUSE_EIGEN_MKL=OFF
 
 rem Build
-cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install
 goto:eof
 
 rem Function to add apps
