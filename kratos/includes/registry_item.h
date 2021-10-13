@@ -111,9 +111,9 @@ public:
     ///@name Access
     ///@{
 
-        const std::string& Name() const{
-            return mName;
-        }
+    const std::string& Name() const{
+        return mName;
+    }
 
     RegistryItem const& GetItem(std::string const& ItemName) const;
 
@@ -163,6 +163,9 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    std::string mName;
+    const void* mpValue;
+    std::unordered_map<std::string, Kratos::unique_ptr<RegistryItem>> mSubRegistryItem;
 
     ///@}
     ///@name Protected member Variables
@@ -200,9 +203,6 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    std::string mName;
-    const void* mpValue;
-    std::unordered_map<std::string, Kratos::unique_ptr<RegistryItem>> mSubRegistryItem;
 
 
 
