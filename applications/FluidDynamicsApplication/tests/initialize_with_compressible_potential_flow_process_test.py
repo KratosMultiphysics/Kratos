@@ -61,22 +61,22 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                     node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X),
                     expected_v,
                     places=2,
-                    msg="Unexpected VELOCITY_X for node #{}".format(node.Is))
+                    msg="Unexpected VELOCITY_X for node #{}".format(node.Id))
                 self.assertAlmostEqual(
                     node.GetSolutionStepValue(KratosMultiphysics.DENSITY),
                     expected_rho,
                     places=5,
-                    msg="Unexpected DENSITY for node #{}".format(node.Is))
+                    msg="Unexpected DENSITY for node #{}".format(node.Id))
                 self.assertAlmostEqual(
                     node.GetSolutionStepValue(KratosMultiphysics.MOMENTUM_X),
                     expected_v * expected_rho,
                     places=2,
-                    msg="Unexpected MOMENTUM_X for node #{}".format(node.Is))
+                    msg="Unexpected MOMENTUM_X for node #{}".format(node.Id))
                 self.assertAlmostEqual(
                     node.GetSolutionStepValue(KratosMultiphysics.TOTAL_ENERGY),
                     expected_e,
                     places=0,
-                    msg="Unexpected TOTAL_ENERGY for node #{}".format(node.Is)) # Large value -> Lower absolute accuracy
+                    msg="Unexpected TOTAL_ENERGY for node #{}".format(node.Id)) # Large value -> Lower absolute accuracy
 
 
     def _AssertParametersEqual(self, A, B, places=7):
