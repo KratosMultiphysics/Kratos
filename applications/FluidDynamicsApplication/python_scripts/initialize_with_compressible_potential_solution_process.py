@@ -104,6 +104,11 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
 
         potential_mpart.CloneSolutionStep()
 
+
+    def Clear(self):
+        self.model.DeleteModelPart(self._GetPotentialModelPartName())
+
+
     def GetDefaultParameters(self):
         return KratosMultiphysics.Parameters("""
         {
