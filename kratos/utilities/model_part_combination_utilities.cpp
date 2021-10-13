@@ -59,7 +59,7 @@ ModelPart& ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParam
     auto& r_combined_model_part = mrModel.HasModelPart(r_new_model_part_name) ? mrModel.GetModelPart(r_new_model_part_name) : mrModel.CreateModelPart(r_new_model_part_name, ThisParameters["buffer_size"].GetInt());
 
     // Serial check
-    KRATOS_ERROR_IF(r_combined_model_part.IsDistributed()) << "ModelPartCombinationUtilities is only compatible in serial simulations" << std::endl;
+    KRATOS_ERROR_IF(mrModel.GetModelPart(mrModel.GetModelPartNames()[0]).IsDistributed()) << "ModelPartCombinationUtilities is only compatible in serial simulations" << std::endl;
 
     // Before combine the ModelParts we need to check that the submodelparts are not repeated
     CheckSubModelParts(model_parts_names);
