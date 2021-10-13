@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "includes/kernel.h"
 #include "utilities/model_part_combination_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
@@ -25,6 +26,9 @@ namespace Kratos
 {
 ModelPart& ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParameters)
 {
+    // Serial check
+    KRATOS_ERROR_IF(Kernel::IsDistributedRun()) << "ModelPartCombinationUtilities is only compatible in serial simulations" << std::endl;
+
     // Ensuring parameters
     ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 
