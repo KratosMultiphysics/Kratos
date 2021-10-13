@@ -100,9 +100,9 @@ namespace Kratos
     }
 
     // Compute heat fluxes with neighbor walls
-    for (unsigned int i = 0; i < mNeighbourRigidFaces.size(); i++) {
-      if (mNeighbourRigidFaces[i] == NULL) continue;
-      mNeighbor_w   = dynamic_cast<DEMWall*>(mNeighbourRigidFaces[i]);
+    for (unsigned int i = 0; i < mNeighbourPotentialRigidFaces.size(); i++) {
+      if (mNeighbourPotentialRigidFaces[i] == NULL) continue;
+      mNeighbor_w   = dynamic_cast<DEMWall*>(mNeighbourPotentialRigidFaces[i]);
       mNeighborType = WALL_NEIGHBOR;
       ComputeHeatFluxWithNeighbor(r_process_info);
     }
