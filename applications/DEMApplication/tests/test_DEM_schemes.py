@@ -119,6 +119,22 @@ class DEM3D_ForwardEulerTestSolution(KratosMultiphysics.DEMApplication.DEM_analy
         self.rigid_face_submpart.SetValue(DEM.COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT, True)
         self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_OPTION, True)
 
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_MASS, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_CENTER_OF_ROTATION_X, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_CENTER_OF_ROTATION_Y, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_CENTER_OF_ROTATION_Z, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_INERTIAS_X, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_INERTIAS_Y, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_INERTIAS_Z, 0.0)
+
+        orientation = KratosMultiphysics.Quaternion()
+        orientation.X= 0.0
+        orientation.Y = 0.0
+        orientation.Z = 0.0
+        orientation.W = 1.0
+        self.rigid_face_submpart.SetValue(KratosMultiphysics.ORIENTATION, orientation)
+
+
 class DEM3D_TaylorTestSolution(DEM3D_ForwardEulerTestSolution):
 
     def CheckValues(self, x_vel, dem_pressure):

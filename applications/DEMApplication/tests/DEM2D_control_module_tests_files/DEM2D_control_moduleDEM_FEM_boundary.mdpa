@@ -45,6 +45,10 @@ Begin SubModelPart left // DEM-FEM-Wall2D - group identifier: left
   Begin SubModelPartData // DEM-FEM-Wall. Group name: left
     IS_GHOST false
     RIGID_BODY_OPTION 1
+    RIGID_BODY_MASS 0.0
+    RIGID_BODY_CENTER_OF_ROTATION [3] (0.0,0.0,0.0)
+    RIGID_BODY_INERTIAS [3] (0.0,0.0,0.0)
+    ORIENTATION [4] (0.0, 0.0, 0.0, 1.0)
     IDENTIFIER left
     TOP 0
     BOTTOM 0
@@ -64,6 +68,10 @@ Begin SubModelPart right // DEM-FEM-Wall2D - group identifier: right
   Begin SubModelPartData // DEM-FEM-Wall. Group name: right
     IS_GHOST false
     RIGID_BODY_OPTION 1
+    RIGID_BODY_MASS 0.0
+    RIGID_BODY_CENTER_OF_ROTATION [3] (0.0,0.0,0.0)
+    RIGID_BODY_INERTIAS [3] (0.0,0.0,0.0)
+    ORIENTATION [4] (0.0, 0.0, 0.0, 1.0)
     IDENTIFIER right
     TOP 0
     BOTTOM 0
@@ -82,6 +90,10 @@ End SubModelPart
 Begin SubModelPart bot // DEM-FEM-Wall2D - group identifier: bot
   Begin SubModelPartData // DEM-FEM-Wall. Group name: bot
     RIGID_BODY_OPTION 1
+    RIGID_BODY_MASS 0.0
+    RIGID_BODY_CENTER_OF_ROTATION [3] (0.0,0.0,0.0)
+    RIGID_BODY_INERTIAS [3] (0.0,0.0,0.0)
+    ORIENTATION [4] (0.0, 0.0, 0.0, 1.0)
     IS_GHOST false
     IDENTIFIER bot
     TOP 0
@@ -102,6 +114,10 @@ Begin SubModelPart top // DEM-FEM-Wall2D - group identifier: top
   Begin SubModelPartData // DEM-FEM-Wall. Group name: top
     IS_GHOST false
     RIGID_BODY_OPTION 1
+    RIGID_BODY_MASS 0.0
+    RIGID_BODY_CENTER_OF_ROTATION [3] (0.0,0.0,0.0)
+    RIGID_BODY_INERTIAS [3] (0.0,0.0,0.0)
+    ORIENTATION [4] (0.0, 0.0, 0.0, 1.0)
     IDENTIFIER top
     TOP 0
     BOTTOM 0

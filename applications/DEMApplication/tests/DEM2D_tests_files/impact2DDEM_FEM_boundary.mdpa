@@ -16,6 +16,10 @@ End Conditions
 Begin SubModelPart 1
   Begin SubModelPartData
   RIGID_BODY_OPTION 1
+  RIGID_BODY_MASS 0.0
+    RIGID_BODY_CENTER_OF_ROTATION [3] (0.0,0.0,0.0)
+    RIGID_BODY_INERTIAS [3] (0.0,0.0,0.0)
+    ORIENTATION [4] (0.0, 0.0, 0.0, 1.0)
   End SubModelPartData
   Begin SubModelPartNodes
   14

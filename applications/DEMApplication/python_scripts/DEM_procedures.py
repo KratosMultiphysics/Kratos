@@ -1029,7 +1029,7 @@ class DEMFEMProcedures():
                         total_moment[1] = 0.0
                         total_moment[2] = 0.0
 
-                        rotation_center = smp[ROTATION_CENTER]
+                        rotation_center = smp[RIGID_BODY_CENTER_OF_ROTATION]
 
                         PostUtilities().IntegrationOfForces(mesh_nodes, total_force, rotation_center, total_moment)
 

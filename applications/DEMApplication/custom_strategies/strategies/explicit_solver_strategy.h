@@ -261,6 +261,7 @@ namespace Kratos {
         void SynchronizeRHS(ModelPart& r_model_part);
         void CleanEnergies();
         void Check_MPI(bool& has_mpi);
+        void CheckSubmodelPartVariables(ModelPart& rigid_body_sub_model_part);
 
         ModelPart& GetModelPart() { return (*mpDem_model_part);}
         ModelPart& GetFemModelPart() { return (*mpFem_model_part);}

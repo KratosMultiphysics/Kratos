@@ -30,6 +30,10 @@ End Conditions
 Begin SubModelPart 3 // DEM-FEM-Wall. Group name: DEM-wall1
   Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-wall1
   RIGID_BODY_OPTION 1
+  RIGID_BODY_MASS 0.0
+    RIGID_BODY_CENTER_OF_ROTATION [3] (0.0,0.0,0.0)
+    RIGID_BODY_INERTIAS [3] (0.0,0.0,0.0)
+    ORIENTATION [4] (0.0, 0.0, 0.0, 1.0)
   IDENTIFIER DEM-wall1
   End SubModelPartData
   Begin SubModelPartNodes
@@ -48,6 +52,10 @@ End SubModelPart
 Begin SubModelPart 4 // DEM-FEM-Wall. Group name: DEM-wall2
   Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-wall2
   RIGID_BODY_OPTION 1
+  RIGID_BODY_MASS 0.0
+    RIGID_BODY_CENTER_OF_ROTATION [3] (0.0,0.0,0.0)
+    RIGID_BODY_INERTIAS [3] (0.0,0.0,0.0)
+    ORIENTATION [4] (0.0, 0.0, 0.0, 1.0)
   IDENTIFIER DEM-wall2
   End SubModelPartData
   Begin SubModelPartNodes

@@ -802,6 +802,35 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+
+
+    void ExplicitSolverStrategy::CheckSubmodelPartVariables(ModelPart& rigid_body_sub_model_part) {
+
+        if (rigid_body_sub_model_part.Has(RIGID_BODY_MASS)) {
+            KRATOS_INFO("DEM") << "RIGID_BODY_MASS correctly defined: "<<RIGID_BODY_MASS<<std::endl;
+        } else {
+            KRATOS_THROW_ERROR(std::runtime_error,"RIGID_BODY_MASS was not found in the submodelpart Data ","");
+        }
+
+        if (rigid_body_sub_model_part.Has(RIGID_BODY_CENTER_OF_ROTATION)) {
+            KRATOS_INFO("DEM") << "RIGID_BODY_CENTER_OF_ROTATION correctly defined: "<<RIGID_BODY_CENTER_OF_ROTATION<<std::endl;
+        } else {
+            KRATOS_THROW_ERROR(std::runtime_error,"RIGID_BODY_CENTER_OF_ROTATION was not found in the submodelpart Data ","");
+        }
+
+        if (rigid_body_sub_model_part.Has(RIGID_BODY_INERTIAS)) {
+            KRATOS_INFO("DEM") << "RIGID_BODY_INERTIAS correctly defined: "<<RIGID_BODY_INERTIAS<<std::endl;
+        } else {
+            KRATOS_THROW_ERROR(std::runtime_error,"RIGID_BODY_INERTIAS was not found in the submodelpart Data ","");
+        }
+
+        if (rigid_body_sub_model_part.Has(ORIENTATION)) {
+            KRATOS_INFO("DEM") << "ORIENTATION correctly defined: "<<ORIENTATION<<std::endl;
+        } else {
+            KRATOS_THROW_ERROR(std::runtime_error,"ORIENTATION was not found in the submodelpart Data ","");
+        }
+    }
+
     void ExplicitSolverStrategy::InitializeFEMElements() {
 
         KRATOS_TRY
@@ -820,6 +849,8 @@ namespace Kratos {
                 if (submp.Has(RIGID_BODY_OPTION)) {
                     if (submp[RIGID_BODY_OPTION] == false) {
                         continue;
+                    } else {
+                        CheckSubmodelPartVariables(submp);
                     }
                 } else {
                     continue;
@@ -836,10 +867,10 @@ namespace Kratos {
 
                     array_1d<double, 3> reference_coordinates = ZeroVector(3);
 
-                    if (submp.Has(RIGID_BODY_CENTER_OF_MASS)) {
-                        reference_coordinates[0] = submp[RIGID_BODY_CENTER_OF_MASS][0];
-                        reference_coordinates[1] = submp[RIGID_BODY_CENTER_OF_MASS][1];
-                        reference_coordinates[2] = submp[RIGID_BODY_CENTER_OF_MASS][2];
+                    if (submp.Has(RIGID_BODY_CENTER_OF_ROTATION)) {
+                        reference_coordinates[0] = submp[RIGID_BODY_CENTER_OF_ROTATION][0];
+                        reference_coordinates[1] = submp[RIGID_BODY_CENTER_OF_ROTATION][1];
+                        reference_coordinates[2] = submp[RIGID_BODY_CENTER_OF_ROTATION][2];
                     }
 
                     int Node_Id_1 = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(fem_model_part);

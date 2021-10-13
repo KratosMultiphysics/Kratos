@@ -50,6 +50,10 @@ Begin SubModelPart 1 // DEM-FEM-Wall - group identifier: Floor
   Begin SubModelPartData // DEM-FEM-Wall. Group name: Floor
     IS_GHOST false
     RIGID_BODY_OPTION 1
+    RIGID_BODY_MASS 0.0
+    RIGID_BODY_CENTER_OF_ROTATION [3] (0.0,0.0,0.0)
+    RIGID_BODY_INERTIAS [3] (0.0,0.0,0.0)
+    ORIENTATION [4] (0.0, 0.0, 0.0, 1.0)
     COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT true
     IDENTIFIER Floor
   End SubModelPartData
