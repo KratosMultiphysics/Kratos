@@ -31,6 +31,7 @@
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_for_entities_process.h"
 #include "processes/find_global_nodal_elemental_neighbours_process.h"
+#include "processes/find_intersected_geometrical_objects_process.h"
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/node_erase_process.h" // TODO: To be removed
 #include "processes/entity_erase_process.h"
@@ -184,6 +185,14 @@ void  AddProcessesToPython(pybind11::module& m)
     }))
     .def("ClearNeighbours",&FindGlobalNodalElementalNeighboursProcess::ClearNeighbours)
     .def("GetNeighbourIds",&FindGlobalNodalElementalNeighboursProcess::GetNeighbourIds)
+    ;
+
+    py::class_<FindIntersectedGeometricalObjectsProcess, FindIntersectedGeometricalObjectsProcess::Pointer, Process>
+        (m, "FindIntersectedGeometricalObjectsProcess")
+    .def(py::init<Model&, Parameters>())
+    .def(py::init<ModelPart&, ModelPart&>())
+    .def(py::init<ModelPart&, ModelPart&, const Flags>())
+    .def("FindIntersections", &FindIntersectedGeometricalObjectsProcess::FindIntersections)
     ;
 
     // Find NODAL_H (Historical variables stored)
