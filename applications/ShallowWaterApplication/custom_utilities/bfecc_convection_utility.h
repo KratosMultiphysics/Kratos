@@ -83,7 +83,7 @@ public:
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
         mMaxResults = ThisParameters["maximum_results"].GetDouble();
 
-        mSearchStructure.UpdateSearchDatabase()
+        mSearchStructure.UpdateSearchDatabase();
     }
 
 
