@@ -104,13 +104,13 @@ void EmbeddedLaplacianElement<TTDim>::CalculateLocalSystem(
         // Calculate and add local system for the positive side of the element
         AddPositiveElementSide(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, data);
 
-        if(this.Has(EMBEDDED_SCALAR)) {
-            if(this.Has(EMBEDDED_FLUX)) {
+        if(this->Has(EMBEDDED_SCALAR)) {
+            if(this->Has(EMBEDDED_FLUX)) {
                 KRATOS_ERROR << "Dirichlet and Neumann condition given.";
             }
             // Calculate and add Nitsche terms for weak imposition of boundary condition
             AddNitscheBoundaryTerms(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, data);
-        } else if (this.Has(EMBEDDED_FLUX)) {
+        } else if (this->Has(EMBEDDED_FLUX)) {
             // Calculate and add interface flux
             AddNeumannBoundaryTerm(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, data);
         } else {
