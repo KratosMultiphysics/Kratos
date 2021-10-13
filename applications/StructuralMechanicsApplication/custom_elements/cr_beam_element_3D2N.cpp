@@ -1233,9 +1233,9 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
         rOutput[1][1] = -1.0 * nodal_forces_local_qe[4] * 0.50 + nodal_forces_local_qe[10] * 0.50;
         rOutput[2][1] = -1.0 * nodal_forces_local_qe[4] * 0.25 + nodal_forces_local_qe[10] * 0.75;
 
-        rOutput[0][2] = 1.0 * nodal_forces_local_qe[5] * 0.75 - nodal_forces_local_qe[11] * 0.25;
-        rOutput[1][2] = 1.0 * nodal_forces_local_qe[5] * 0.50 - nodal_forces_local_qe[11] * 0.50;
-        rOutput[2][2] = 1.0 * nodal_forces_local_qe[5] * 0.25 - nodal_forces_local_qe[11] * 0.75;
+        rOutput[0][2] = -1.0 * nodal_forces_local_qe[5] * 0.75 + nodal_forces_local_qe[11] * 0.25;
+        rOutput[1][2] = -1.0 * nodal_forces_local_qe[5] * 0.50 + nodal_forces_local_qe[11] * 0.50;
+        rOutput[2][2] = -1.0 * nodal_forces_local_qe[5] * 0.25 + nodal_forces_local_qe[11] * 0.75;
     } else if (rVariable == FORCE) {
         Vector nodal_forces_local_qe = CalculateLocalNodalForces();
         rOutput[0][0] = -1.0 * nodal_forces_local_qe[0] * 0.75 + nodal_forces_local_qe[6] * 0.25;

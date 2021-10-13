@@ -103,7 +103,7 @@
             "Parameters"    : {
                 "model_part_name" : "FluidModelPart.FluidParts_Fluid",
                 "variable_name"   : "BODY_FORCE",
-                "modulus"         : 10,
+                "modulus"         : 9.81,
                 "constrained"     : false,
                 "direction"       : [0.0,-1,0.0]
             }

@@ -6,16 +6,16 @@
     * [Windows Installation](#windows-installation)
   * [Specific Application Dependencies](#specific-application-dependencies)
 * [Basic Configuration](#basic-configuration)
-* [Examples](#examples)
+* [Examples](#configuration-scripts-examples)
   * [Linux](#linux)
   * [Windows](#windows)
   * [MacOS](#macos)
 * [Adding Applications](#adding-applications)
 * [Post Compilation](#post-compilation)
 * [Advanced Configuration](#advanced-configuration)
-  * [Building Environment](#building-environments)
+  * [Building Environment](#building-environment)
   * [Common Flags](#common-flags)
-  * [Compilation Performance](#compilation-performance)
+  * [Unitary Builds](#unitary-builds)
   * [MPI-Parallelism](#parallelism)
 
 ## Cloning Kratos
@@ -223,10 +223,14 @@ del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
+rem Enable this if your build is slow and you have a multi-core machine
+rem set KRATOS_PARALLEL_BUILD_FLAG=/MP4
+
 rem Configure
 @echo on
 cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
--DUSE_EIGEN_MKL=OFF
+-DUSE_EIGEN_MKL=OFF        ^
+-DCMAKE_CXX_FLAGS=" %KRATOS_PARALLEL_BUILD_FLAG% "
 
 rem Build
 cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
@@ -370,6 +374,62 @@ The result should be:
 
 ## Advanced Configuration
 
+### Parallel Compilation
+
+We provide several flavours in order to parallelize Kratos compilation. We have divided this option according to the operating system specifics.
+
+#### Linux
+
+Linux builds should automatically make use of the maximum number of threads in your computer which is passed to the compiler in the `-j$(nproc)` flag on the last line of the configure file:
+```
+# Buid
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
+```
+
+If your linux flavour does not support the `$(nproc)` shortcut or you simply want to tune this value to some of your liking, you can change it:
+```
+# Buid (This will make it compile with 2 threads)
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
+```
+**Warning**: Please be carefull while mixing parallel builds with unitay builds. See [below](#unitary-builds)
+
+#### Windows
+
+Windows should detect automatically the number of threads of your computer, but many times this mechanism fails. We included several options in order to force the parallel compilation:
+
+You can force it manually by commenting this lines in the configuration file, and adding a number of processes of your choice:
+```ps1
+rem Enable this if your build is slow and you have a multi-core machine
+rem set KRATOS_PARALLEL_BUILD_FLAG=/MPX
+```
+
+This will pass the `/MPX` option directly to `CL.exe`, where `X` is the number of threads you want to use.
+
+If you preffer to interact directly with `MSBuild.exe` you can use either of this options in the cmake build command:
+- `/p:CL_MPcount=X`: Enable multiples cpp to be compiled in parallel
+- `/m:x`: Enable multiple applications to be compiled in parallel
+
+Example using 4 threads and a single project
+```ps1
+rem Build
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 /p:CL_MPcount=4 /m:1
+```
+
+Example using 2 threads and 2 project ( total io 4 threads )
+```ps1
+rem Build
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 /p:CL_MPcount=2 /m:2
+```
+
+Finally you can set parallelism options in the VisualStudio IDE.
+
+**Warning**: Please be careful while mixing parallel builds with unitary builds. See [below](#unitary-builds)
+
+#### MacOS
+
+There is no dedicated support for parallel builds in MacOS, but Linux options should behave very similarly. If you detect a problem please inform us and we will
+try to update this section with the specifics.
+
 ### Building Environment
 
 It is possible to configure the build environment for Kratos, that is: where the source is located, which will be the install dir, and how the python files are going to be installed.
@@ -434,7 +494,7 @@ Enables(Default) or Disables the compilation of the embedded python interpreter 
 
 Enables(Default) or Disables the compilation of the C++ unitary tests for Kratos and Applications.
 
-### Compilation Performance
+### Unitary Builds
 `-DCMAKE_UNITY_BUILD=ON/OFF`
 
 Enables or Disables(default) the use of [cmake unity build](https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html) to speedup compilation by using unitary builds.
@@ -452,6 +512,9 @@ cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property
 ```
 
 Instead of the regular install target.
+
+Please, beware that using this flag along with a parallel compilation may cause a VERY LARGE use of ram as we hardcoded Kratos compilation so unitary builds try to make as many unitary targets as threads are usable
+We recommed you to disable parallel compilation unless you know what you are doing.
 
 ### Parallelism
 `-DUSE_MPI=ON/OFF`
