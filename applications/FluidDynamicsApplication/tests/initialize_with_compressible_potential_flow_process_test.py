@@ -124,6 +124,8 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
         except RuntimeError as err:
             raise AssertionError(":\n {}".format(err)) from None
 
+        self.assertSetEqual(set(A.keys()), set(B.keys()))
+
         for key in A.keys():
             try:
                 self._AssertParametersEqual(A[key], B[key], places)
@@ -184,7 +186,6 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                     "boundary_conditions_process_list": [
                         {
                             "Parameters": {
-                                "angle_of_attack": 0.0,
                                 "free_stream_density": 1.19659,
                                 "heat_capacity_ratio": 1.4,
                                 "mach_infinity": 0.8,
@@ -197,7 +198,6 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
                         },
                         {
                             "Parameters": {
-                                "angle_of_attack": 0.0,
                                 "free_stream_density": 1.19659,
                                 "heat_capacity_ratio": 1.4,
                                 "mach_infinity": 0.8,
