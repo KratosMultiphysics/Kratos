@@ -29,7 +29,7 @@ namespace Kratos
 
 /// AdditiveSchwarzPreconditioner class.
 /**   */
-template<class TSparseSpaceType, class TDenseSpaceType>
+template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType>
 class AdditiveSchwarzPreconditioner : public Preconditioner<TSparseSpaceType, TDenseSpaceType>
 {
 public:
@@ -48,14 +48,16 @@ public:
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
+    typedef typename TLinearSolverType::Pointer LinearSolverPointerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    AdditiveSchwarzPreconditioner()
+    AdditiveSchwarzPreconditioner(DenseMatrixType& blocks, LinearSolverPointerType pNewLinearSystemSolver)
     {
-        //@TODO
+        mpLinearSystemSolver = pNewLinearSystemSolver;
     }
 
 
@@ -192,9 +194,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    unsigned int mILUSize;
-    int *iL, *jL, *iU, *jU;
-    double *L, *U;
+    LinearSolverPointerType mpLinearSystemSolver = nullptr;
+
 
     ///@}
 
@@ -209,18 +210,18 @@ protected:
 
 
 /// input stream function
-template<class TSparseSpaceType, class TDenseSpaceType>
+template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType>
 inline std::istream& operator >> (std::istream& IStream,
-                                  AdditiveSchwarzPreconditioner<TSparseSpaceType, TDenseSpaceType>& rThis)
+                                  AdditiveSchwarzPreconditioner<TSparseSpaceType, TDenseSpaceType, TLinearSolverType>& rThis)
 {
     return IStream;
 }
 
 
 /// output stream function
-template<class TSparseSpaceType, class TDenseSpaceType>
+template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType>
 inline std::ostream& operator << (std::ostream& OStream,
-                                  const AdditiveSchwarzPreconditioner<TSparseSpaceType, TDenseSpaceType>& rThis)
+                                  const AdditiveSchwarzPreconditioner<TSparseSpaceType, TDenseSpaceType, TLinearSolverType>& rThis)
 {
     rThis.PrintInfo(OStream);
     OStream << std::endl;
