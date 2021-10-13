@@ -17,13 +17,15 @@ Please open an issue in order to give any comment about the current state of the
 
 ## Submitting a fix
 
-If you are already a developer, please create a new branch with the proposed changes. Then create a Pull Request (PR) and request a review.
+If you are already a developer, please create a new branch with the proposed changes. Then create a Pull Request (PR) and request a review. 
 
 The structure of the branch must be: `subject/short-description`
 
+If you are not developer, fork this project and open a PR with the proposed fix.
+
 ## Proposing new features
 
-Please open an issue, or if you are already a developer and brave enough open a MR with the proposed changes ;).
+Please open an issue, or if you are already a developer and brave enough open a PR with the proposed changes ;).
 
 ## Becoming a maintainer
 
