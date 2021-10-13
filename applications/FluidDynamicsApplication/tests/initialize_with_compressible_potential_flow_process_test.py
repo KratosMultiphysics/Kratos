@@ -14,7 +14,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
     @KratosUnittest.skipIfApplicationsNotAvailable("CompressiblePotentialFlowApplication")
     def testAnalysisParameters(self):
         """Ensures the process parameters are appropiately delivered to the analysis parameters."""
-        work_folder = "Square"
+        work_folder = "InitializeWithCompressiblePotentialSolutionProcessTest"
         work_file = "square"
         with KratosUnittest.WorkFolderScope(work_folder, __file__):
             model = KratosMultiphysics.Model()
@@ -33,7 +33,7 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
     @KratosUnittest.skipIfApplicationsNotAvailable("CompressiblePotentialFlowApplication")
     def testProcess(self):
         """Ensures the whole process functions when given expected parameters."""
-        work_folder = "Square"
+        work_folder = "InitializeWithCompressiblePotentialSolutionProcessTest"
         work_file = "square"
         with KratosUnittest.WorkFolderScope(work_folder, __file__):
             model = KratosMultiphysics.Model()
