@@ -464,13 +464,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
-            # (self.distance_gradient_process).Execute() # Always check if calculated above
-            # (self.surface_smoothing_process).Execute()
-            # TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-            # if (TimeStep % 1 == 0):
-            #     for node in self.main_model_part.Nodes:
-            #         smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-            #         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+            (self.distance_gradient_process).Execute() # Always check if calculated above
+            (self.surface_smoothing_process).Execute()
+            TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+            if (TimeStep % 1 == 0):
+                for node in self.main_model_part.Nodes:
+                    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
             print(time.time())
             print("Smoothing Finished")
