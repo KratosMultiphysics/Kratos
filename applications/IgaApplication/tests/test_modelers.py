@@ -142,6 +142,80 @@ class TestModelers(KratosUnittest.TestCase):
         degree_v = geometry.PolynomialDegreeV()
         self.assertEqual(degree_v, 1)
 
+    def test_nurbs_geometry_2d_modeler_consistency(self):
+        current_model = KratosMultiphysics.Model()
+        modeler_settings = KratosMultiphysics.Parameters("""
+        [{
+            "modeler_name": "NurbsGeometryModeler",
+            "Parameters": {
+                "model_part_name" : "Mesh_01",
+                "lower_point": [-1.0,-0.5],
+                "upper_point": [1.0,0.5],
+                "polynomial_order" : [4, 5],
+                "number_of_knot_spans" : [3,6]
+            } }, {
+            "modeler_name": "NurbsGeometryModeler",
+            "Parameters": {
+                "model_part_name" : "Mesh_02",
+                "lower_point": [-1.0,-0.5],
+                "upper_point": [1.0,0.5],
+                "polynomial_order" : [1, 1],
+                "number_of_knot_spans" : [1,1]
+            }
+        }]
+        """)
+
+        run_modelers(current_model, modeler_settings)
+        model_part_01 = current_model.GetModelPart("Mesh_01")
+        model_part_02 = current_model.GetModelPart("Mesh_02")
+
+        geometry_01 = model_part_01.GetGeometry(1)
+        geometry_02 = model_part_02.GetGeometry(1)
+
+        ## Check knots
+        # geometry 01
+        knots_u_01 = geometry_01.KnotsU()
+        self.assertVectorAlmostEqual(knots_u_01,
+            [0.0, 0.0, 0.0, 0.0, 1.0/3.0, 2.0/3.0, 1.0, 1.0, 1.0, 1.0])
+        knots_v_01 = geometry_01.KnotsV()
+        self.assertVectorAlmostEqual(knots_v_01,
+            [0.0, 0.0, 0.0, 0.0, 0.0, 1.0/6.0, 1.0/3.0, 1.0/2.0, 2.0/3.0, 5.0/6.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+        # geometry 02
+        knots_u_02 = geometry_02.KnotsU()
+        self.assertVectorAlmostEqual(knots_u_02, [0.0, 1.0])
+        knots_v_02 = geometry_02.KnotsV()
+        self.assertVectorAlmostEqual(knots_v_02, [0.0, 1.0])
+
+        ## Check Polynomial degree
+        # Geometry 01
+        self.assertEqual(geometry_01.PolynomialDegreeU(), 4)
+        self.assertEqual(geometry_01.PolynomialDegreeV(), 5)
+        # Geometry 02
+        self.assertEqual(geometry_02.PolynomialDegreeU(), 1)
+        self.assertEqual(geometry_02.PolynomialDegreeV(), 1)
+
+        ## Check number of control points/nodes
+        # Geomtry 01
+        self.assertEqual(len(geometry_01),77)
+        self.assertEqual(model_part_01.NumberOfNodes(), 77)
+        # Geomtry 02
+        self.assertEqual(len(geometry_02),4)
+        self.assertEqual(model_part_02.NumberOfNodes(), 4)
+
+        # Check if geoemtry is similar.
+        param = KratosMultiphysics.Vector(3)
+        param[0] = 0.0
+        param[1] = 1.0
+        param[2] = 0.0
+        for _ in range(11):
+            for _ in range(11):
+                coord_01 = geometry_01.GlobalCoordinates(param)
+                coord_02 = geometry_02.GlobalCoordinates(param)
+                param[2] += 0.1
+                self.assertVectorAlmostEqual(coord_01, coord_02)
+            param[0] += 0.1
+            param[1] -= 0.1
+            param[2] = 0.0
 
     def test_nurbs_geometry_3d_modeler_control_points(self):
         current_model = KratosMultiphysics.Model()
