@@ -101,12 +101,6 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         sbm_interface_process = ConvectionDiffusionApplication.ShiftedBoundaryMeshlessInterfaceProcess(self.model, settings)
         sbm_interface_process.Execute()
 
-        # Merge the SBM boundary model part with the computational one
-        KratosMultiphysics.SubModelPartConditionsBooleanOperationUtility.Union(
-            self.GetComputingModelPart(),
-            self.model.GetModelPart(self.main_model_part.Name + "." + "shifted_boundary"),
-            self.GetComputingModelPart())
-
         # Initialize base solver strategy
         super().Initialize()
 
