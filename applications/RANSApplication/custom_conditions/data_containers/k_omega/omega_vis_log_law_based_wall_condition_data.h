@@ -86,7 +86,17 @@ protected:
     ///@name Protected Members
     ///@{
 
-    double mWallDistance3;
+    Vector mGaussPointWeights;
+    Matrix mShapeFunctions;
+    Geometry<Node<3>>::ShapeFunctionsGradientsType mShapeFunctionDerivatives;
+
+    double mWallDistance;
+    double mOmegaViscous;
+    double mOmegaLog;
+    double mOmegaBlended;
+    double mUTau;
+    double mCmu25;
+    double mKappa;
 
     ///@}
 };
