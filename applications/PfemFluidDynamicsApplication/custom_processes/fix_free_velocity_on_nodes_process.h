@@ -2,12 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics FemDem Application
+//                   Multi-Physics PfemFluidDynamics Application
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
+//                   Carlos Eulogio Flores
 //
 
 #if !defined(KRATOS_FIX_FREE_VELOCITY_ON_NODES_PROCESS)
@@ -51,4 +52,4 @@ protected:
 };  // Class
 
 }  // namespace Kratos
-#endif /* KRATOS_TRANSFER_NODAL_FORCES_TO_FEM_PROCESS defined */
+#endif /* KRATOS_FIX_FREE_VELOCITY_ON_NODES_PROCESS defined */
