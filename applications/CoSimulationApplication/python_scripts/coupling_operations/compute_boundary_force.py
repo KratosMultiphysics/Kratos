@@ -102,6 +102,11 @@ class ComputeBoundaryForce(CoSimulationCouplingOperation):
             shape_functions_values = geometry.ShapeFunctionsValues()
             area = geometry.Area()
             unit_normal = geometry.UnitNormal()
+            # print normal info
+            debug_normal_info_mode = False
+            if debug_normal_info_mode:
+                self._PrintUnitNormalInfo(nodes, element, unit_normal)
+            
             pressure = 0
             c = 0
             for node in nodes:
@@ -126,6 +131,17 @@ class ComputeBoundaryForce(CoSimulationCouplingOperation):
             cs_tools.cs_print_info(self._ClassName(), info_msg)
         
         return velocity + sum_forces + pressure_list
+
+    def _PrintUnitNormalInfo(self, nodes, element, unit_normal):
+        # print normal debug information
+        import pdb
+        pdb.set_trace()
+        cs_tools.cs_print_info('Element info', element)
+        cs_tools.cs_print_info('Unit normal', unit_normal)
+        node_counter = 0
+        for node in nodes:
+            cs_tools.cs_print_info(str(node_counter) + ' Node Id', str(node.Id))
+            node_counter += 1
     
     def _GetFileHeader(self):
         header = '# Global force for model part ' + self.model_part_name + '\n'
