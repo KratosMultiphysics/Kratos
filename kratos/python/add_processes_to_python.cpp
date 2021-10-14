@@ -190,9 +190,6 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<FindIntersectedGeometricalObjectsProcess, FindIntersectedGeometricalObjectsProcess::Pointer, Process>
         (m, "FindIntersectedGeometricalObjectsProcess")
     .def(py::init<Model&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&>())
-    .def(py::init<ModelPart&, ModelPart&, const Flags>())
-    .def("FindIntersections", &FindIntersectedGeometricalObjectsProcess::FindIntersections)
     ;
 
     // Find NODAL_H (Historical variables stored)
