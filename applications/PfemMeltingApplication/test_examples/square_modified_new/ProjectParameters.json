@@ -122,6 +122,11 @@
             "material_import_settings"           : {
                 "materials_filename" : "BuoyancyMaterials.json"
             },
+            "time_integration_method" : "implicit",
+            "transient_parameters" : {
+                "dynamic_tau": 0.0,
+                "theta"    : 1.0
+            },
 	    "reform_dofs_at_each_step": true,
             "line_search"                        : false,
             "echo_level"                         : 0,

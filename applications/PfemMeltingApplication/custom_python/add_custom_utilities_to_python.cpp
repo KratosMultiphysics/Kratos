@@ -31,6 +31,8 @@
 #include "custom_utilities/face_heat_distribution.h"
 #include "custom_utilities/streamline.h"
 #include "custom_utilities/heat_source.h"
+#include "custom_utilities/pfemmelting_apply_bc_process.h"
+
 namespace Kratos
 {
 
@@ -61,6 +63,7 @@ namespace py = pybind11;
    .def("Heat_Source", &HeatSource < 3 > ::Heat_Source)
    ;
 
+ py::class_<PfemMeltingApplyBCProcess, PfemMeltingApplyBCProcess::Pointer, Process>(m, "PfemMeltingApplyBCProcess").def(py::init<ModelPart &>());
 
 }
 

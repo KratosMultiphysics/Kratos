@@ -8,7 +8,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
 import KratosMultiphysics.MeshingApplication as MeshApp
-import KratosMultiphysics.PFEM2Application as PFEM2
+#import KratosMultiphysics.PFEM2Application as PFEM2
 import KratosMultiphysics.PfemMeltingApplication as PfemM
 
 
@@ -92,13 +92,13 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
         self.modeler = KratosMultiphysics.ConnectivityPreserveModeler()
 
-        self.Pfem2_apply_bc_process = PFEM2.Pfem2ApplyBCProcess(self.fluid_solver.main_model_part);
+        self.PfemM_apply_bc_process = PfemM.PfemMeltingApplyBCProcess(self.fluid_solver.main_model_part);
 
         self.node_erase_process = KratosMultiphysics.NodeEraseProcess(self.fluid_solver.main_model_part);
 
         self.Streamline = PfemM.Streamline()
 
-        self.Pfem2Utils = PFEM2.Pfem2Utils()
+        #self.Pfem2Utils = PFEM2.Pfem2Utils()
 
         self.faceheatflux = PfemM.FaceHeatFlux()
 
@@ -570,7 +570,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         neighbor_condition_search.Execute()
 
 
-        (self.Pfem2_apply_bc_process).Execute();
+        (self.PfemM_apply_bc_process).Execute();
 
 
        
