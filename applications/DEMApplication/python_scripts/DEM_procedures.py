@@ -497,11 +497,16 @@ class Procedures():
         model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
         model_part.AddNodalSolutionStepVariable(NEIGHBOUR_SIZE)
         model_part.AddNodalSolutionStepVariable(NEIGHBOUR_RATIO)
+        # TODO. Ignasi
+        model_part.AddNodalSolutionStepVariable(NODAL_MASS_ARRAY)
+        
 
         # ROTATION RELATED PROPERTIES
         if self.DEM_parameters["RotationOption"].GetBool():
             # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
             model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
+            # TODO. Ignasi
+            model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA_ARRAY)
             model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA)
             # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
             model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)

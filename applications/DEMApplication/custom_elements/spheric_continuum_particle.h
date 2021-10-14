@@ -148,6 +148,12 @@ namespace Kratos
 
     protected:
 
+        // TODO. Ignasi
+        void ComputeBallToBallInitialStiffness(SphericParticle::ParticleDataBuffer & data_buffer,
+                                                            const ProcessInfo& r_process_info,
+                                                            array_1d<double, 3>& r_nodal_stiffness_array,
+                                                            array_1d<double, 3>& r_nodal_rotational_stiffness_array) override;
+
         SphericContinuumParticle();
 
         void Initialize(const ProcessInfo& r_process_info) override;

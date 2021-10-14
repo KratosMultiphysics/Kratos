@@ -49,14 +49,16 @@ namespace Kratos {
         const array_1d<double,3>& external_force = i.FastGetSolutionStepValue(EXTERNAL_FORCE);
         const array_1d<double,3>& external_force_old = i.FastGetSolutionStepValue(EXTERNAL_FORCE_OLD);
 
-        double mass_inv = 1.0 / (mass*(1.0+g_coefficient*delta_t));
+        // TODO. Ignasi
+        const array_1d<double,3>& nodal_mass_array = i.FastGetSolutionStepValue(NODAL_MASS_ARRAY);
+
         for (int k = 0; k < 3; k++) {
             if (Fix_vel[k] == false) {
-                delta_displ[k] = ( (2.0*(1.0+g_coefficient*delta_t)-alpha*delta_t)*mass*displ[k]
-                                + (alpha*delta_t-(1.0+g_coefficient*delta_t))*mass*displ_old[k]
+                delta_displ[k] = ( (2.0*(1.0+g_coefficient*delta_t)-alpha*delta_t)*nodal_mass_array[k]*displ[k]
+                                + (alpha*delta_t-(1.0+g_coefficient*delta_t))*nodal_mass_array[k]*displ_old[k]
                                 - delta_t*(beta+theta*delta_t)*internal_force[k]
                                 + delta_t*(beta-delta_t*(1.0-theta))*internal_force_old[k]
-                                + delta_t*delta_t*(theta*external_force[k]+(1.0-theta)*external_force_old[k]) ) * mass_inv - displ[k];
+                                + delta_t*delta_t*(theta*external_force[k]+(1.0-theta)*external_force_old[k]) ) * (1.0 / (nodal_mass_array[k]*(1.0+g_coefficient*delta_t))) - displ[k];
                 displ_old[k] = displ[k];
                 displ[k] = displ_old[k] + delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
@@ -67,6 +69,25 @@ namespace Kratos {
                 coor[k] = initial_coor[k] + displ[k];
             }
         } // dimensions
+
+        // double mass_inv = 1.0 / (mass*(1.0+g_coefficient*delta_t));
+        // for (int k = 0; k < 3; k++) {
+        //     if (Fix_vel[k] == false) {
+        //         delta_displ[k] = ( (2.0*(1.0+g_coefficient*delta_t)-alpha*delta_t)*mass*displ[k]
+        //                         + (alpha*delta_t-(1.0+g_coefficient*delta_t))*mass*displ_old[k]
+        //                         - delta_t*(beta+theta*delta_t)*internal_force[k]
+        //                         + delta_t*(beta-delta_t*(1.0-theta))*internal_force_old[k]
+        //                         + delta_t*delta_t*(theta*external_force[k]+(1.0-theta)*external_force_old[k]) ) * mass_inv - displ[k];
+        //         displ_old[k] = displ[k];
+        //         displ[k] = displ_old[k] + delta_displ[k];
+        //         coor[k] = initial_coor[k] + displ[k];
+        //         vel[k] = delta_displ[k]/delta_t;
+        //     } else {
+        //         delta_displ[k] = delta_t * vel[k];
+        //         displ[k] += delta_displ[k];
+        //         coor[k] = initial_coor[k] + displ[k];
+        //     }
+        // } // dimensions
     }
 
     void CentralDifferencesScheme::CalculateNewRotationalVariablesOfSpheres(
@@ -94,14 +115,16 @@ namespace Kratos {
         const array_1d<double,3>& external_torque = i.FastGetSolutionStepValue(PARTICLE_EXTERNAL_MOMENT);
         const array_1d<double,3>& external_torque_old = i.FastGetSolutionStepValue(PARTICLE_EXTERNAL_MOMENT_OLD);
 
-        double moment_of_inertia_inv = 1.0 / (moment_of_inertia*(1.0+g_coefficient*delta_t));
+        // TODO. Ignasi
+        const array_1d<double,3>& particle_moment_intertia_array = i.FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA_ARRAY);
+
         for (int k = 0; k < 3; k++) {
             if (Fix_Ang_vel[k] == false) {
-                delta_rotation[k] = ( (2.0*(1.0+g_coefficient*delta_t)-alpha*delta_t)*moment_of_inertia*rotated_angle[k]
-                                    + (alpha*delta_t-(1.0+g_coefficient*delta_t))*moment_of_inertia*rotated_angle_old[k]
+                delta_rotation[k] = ( (2.0*(1.0+g_coefficient*delta_t)-alpha*delta_t)*particle_moment_intertia_array[k]*rotated_angle[k]
+                                    + (alpha*delta_t-(1.0+g_coefficient*delta_t))*particle_moment_intertia_array[k]*rotated_angle_old[k]
                                     - delta_t*(beta+theta*delta_t)*internal_torque[k]
                                     + delta_t*(beta-delta_t*(1.0-theta))*internal_torque_old[k]
-                                    + delta_t*delta_t*(theta*external_torque[k]+(1.0-theta)*external_torque_old[k]) ) * moment_of_inertia_inv - rotated_angle[k];
+                                    + delta_t*delta_t*(theta*external_torque[k]+(1.0-theta)*external_torque_old[k]) ) * (1.0 / (particle_moment_intertia_array[k]*(1.0+g_coefficient*delta_t))) - rotated_angle[k];
                 rotated_angle_old[k] = rotated_angle[k];
                 rotated_angle[k] = rotated_angle_old[k] + delta_rotation[k];
                 angular_velocity[k] = delta_rotation[k]/delta_t;
@@ -110,6 +133,23 @@ namespace Kratos {
                 rotated_angle[k] += delta_rotation[k];
             }
         } // dimensions
+
+        // double moment_of_inertia_inv = 1.0 / (moment_of_inertia*(1.0+g_coefficient*delta_t));
+        // for (int k = 0; k < 3; k++) {
+        //     if (Fix_Ang_vel[k] == false) {
+        //         delta_rotation[k] = ( (2.0*(1.0+g_coefficient*delta_t)-alpha*delta_t)*moment_of_inertia*rotated_angle[k]
+        //                             + (alpha*delta_t-(1.0+g_coefficient*delta_t))*moment_of_inertia*rotated_angle_old[k]
+        //                             - delta_t*(beta+theta*delta_t)*internal_torque[k]
+        //                             + delta_t*(beta-delta_t*(1.0-theta))*internal_torque_old[k]
+        //                             + delta_t*delta_t*(theta*external_torque[k]+(1.0-theta)*external_torque_old[k]) ) * moment_of_inertia_inv - rotated_angle[k];
+        //         rotated_angle_old[k] = rotated_angle[k];
+        //         rotated_angle[k] = rotated_angle_old[k] + delta_rotation[k];
+        //         angular_velocity[k] = delta_rotation[k]/delta_t;
+        //     } else {
+        //         delta_rotation[k] = delta_t * angular_velocity[k];
+        //         rotated_angle[k] += delta_rotation[k];
+        //     }
+        // } // dimensions
     }
 
     void CentralDifferencesScheme::CalculateNewRotationalVariablesOfRigidBodyElements(

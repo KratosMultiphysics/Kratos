@@ -204,6 +204,115 @@ namespace Kratos {
         return effectiveVolumeRadius;
     }
 
+    // TODO. Ignasi
+    void SphericContinuumParticle::ComputeBallToBallInitialStiffness(SphericParticle::ParticleDataBuffer & data_buffer,
+                                                            const ProcessInfo& r_process_info,
+                                                            array_1d<double, 3>& r_nodal_stiffness_array,
+                                                            array_1d<double, 3>& r_nodal_rotational_stiffness_array)
+    {
+        KRATOS_TRY
+
+        NodeType& this_node = this->GetGeometry()[0];
+        DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mMyCoors, this_node)
+
+        const array_1d<double, 3>& vel         = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+        const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+        Vector& cont_ini_neigh_area            = this->GetValue(NEIGHBOURS_CONTACT_AREAS);
+
+        for (int i = 0; data_buffer.SetNextNeighbourOrExit(i); ++i) {
+
+            if (mNeighbourElements[i] == NULL) continue;
+            if (this->Is(NEW_ENTITY) && mNeighbourElements[i]->Is(NEW_ENTITY)) continue;
+            SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
+            data_buffer.mpOtherParticle = neighbour_iterator;
+
+            noalias(data_buffer.mOtherToMeVector) = this->GetGeometry()[0].Coordinates() - data_buffer.mpOtherParticle->GetGeometry()[0].Coordinates();
+
+            const double& other_radius = data_buffer.mpOtherParticle->GetRadius();
+
+            data_buffer.mDistance = DEM_MODULUS_3(data_buffer.mOtherToMeVector);
+            double radius_sum = GetRadius() + other_radius;
+
+            double initial_delta = GetInitialDelta(i);
+
+            double initial_dist = radius_sum - initial_delta;
+            double indentation = initial_dist - data_buffer.mDistance;
+            double myYoung = GetYoung();
+            double myPoisson = GetPoisson();
+
+            double kn_el = 0.0;
+            double kt_el = 0.0;
+            double DeltDisp[3] = {0.0};
+            double RelVel[3] = {0.0};
+            DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mLocalCoordSystem)
+            DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mOldLocalCoordSystem)
+
+            // Getting neighbor properties
+            double other_young = data_buffer.mpOtherParticle->GetYoung();
+            double other_poisson = data_buffer.mpOtherParticle->GetPoisson();
+            double equiv_poisson;
+            if ((myPoisson + other_poisson) != 0.0) { equiv_poisson = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson); }
+            else { equiv_poisson = 0.0; }
+
+            double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
+            double calculation_area = 0.0;
+            const double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
+
+            if (i < (int)mContinuumInitialNeighborsSize) {
+                mContinuumConstitutiveLawArray[i]->GetContactArea(GetRadius(), other_radius, cont_ini_neigh_area, i, calculation_area); //some Constitutive Laws get a value, some others calculate the value.
+                mContinuumConstitutiveLawArray[i]->CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area, this, neighbour_iterator, indentation);
+            }
+
+            EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOldLocalCoordSystem, vel, delta_displ);
+
+            double LocalStiffness[3]              = {0.0};
+            double GlobalStiffness[3]             = {0.0};
+            double LocalRotationalStiffness[3]       = {0.0};
+            double GlobalRotationalStiffness[3]      = {0.0};
+
+            if (i < (int)mContinuumInitialNeighborsSize) {
+
+                LocalStiffness[0] = kt_el;
+                LocalStiffness[1] = kt_el;
+                LocalStiffness[2] = kn_el;
+
+            } else if (indentation > 0.0) {
+
+                mDiscontinuumConstitutiveLaw = pGetDiscontinuumConstitutiveLawWithNeighbour(data_buffer.mpOtherParticle);
+                mDiscontinuumConstitutiveLaw->InitializeContact(this,data_buffer.mpOtherParticle,indentation);
+
+                const double Kt = mDiscontinuumConstitutiveLaw->mKt;
+                const double Kn = mDiscontinuumConstitutiveLaw->mKn;
+
+                LocalStiffness[0] = Kt;
+                LocalStiffness[1] = Kt;
+                LocalStiffness[2] = Kn;
+            }
+
+            if (this->Is(DEMFlags::HAS_ROTATION)) {
+                if (i < (int)mContinuumInitialNeighborsSize && mIniNeighbourFailureId[i] == 0) {
+
+                    const double equivalent_radius = sqrt(calculation_area / Globals::Pi);
+                    const double Inertia_I = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
+                    const double Inertia_J = 2.0 * Inertia_I; // This is the polar inertia
+
+                    LocalRotationalStiffness[0] = equiv_young * Inertia_I / data_buffer.mDistance;
+                    LocalRotationalStiffness[1] = equiv_young * Inertia_I / data_buffer.mDistance;
+                    LocalRotationalStiffness[2] = equiv_young * Inertia_J / data_buffer.mDistance;
+                }
+            }
+
+            GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalStiffness, GlobalStiffness);
+            GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalRotationalStiffness, GlobalRotationalStiffness);
+
+            DEM_ADD_SECOND_TO_FIRST(r_nodal_stiffness_array, GlobalStiffness)
+            DEM_ADD_SECOND_TO_FIRST(r_nodal_rotational_stiffness_array, GlobalRotationalStiffness)
+
+        } // for each neighbor
+
+        KRATOS_CATCH("")
+    } //  ComputeBallToBallInitialStiffness
+
     void SphericContinuumParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
                                                                 const ProcessInfo& r_process_info,
                                                                 array_1d<double, 3>& rElasticForce,
