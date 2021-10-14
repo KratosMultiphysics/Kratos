@@ -146,44 +146,49 @@ KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeKnotRefinementU, KratosCoreNurbsGeometriesF
 KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeKnotRefinementV, KratosCoreNurbsGeometriesFastSuite) {
     auto volume_v = GenerateVolume(1);
     std::vector<double> insert_knots = {0.1, 0.1, 0.22, 0.22, 0.7};
-    auto refined_volume_v = NurbsVolumeRefinementUtilities::KnotRefinementV(*volume_v, insert_knots);
+
+    PointerVector<NodeType> points_refined;
+    Vector knots_v_refined;
+    NurbsVolumeRefinementUtilities::KnotRefinementU(*volume_v, insert_knots, points_refined, knots_v_refined);
+    volume_v->SetInternals(points_refined, volume_v->PolynomialDegreeU(), volume_v->PolynomialDegreeV(), volume_v->PolynomialDegreeW(),
+                        volume_v->KnotsU(), knots_v_refined, volume_v->KnotsW() );
 
     // Check polynomial degree
-    KRATOS_CHECK_EQUAL(refined_volume_v->PolynomialDegreeU(),1);
-    KRATOS_CHECK_EQUAL(refined_volume_v->PolynomialDegreeV(),3);
-    KRATOS_CHECK_EQUAL(refined_volume_v->PolynomialDegreeW(),1);
+    KRATOS_CHECK_EQUAL(volume_v->PolynomialDegreeU(),1);
+    KRATOS_CHECK_EQUAL(volume_v->PolynomialDegreeV(),3);
+    KRATOS_CHECK_EQUAL(volume_v->PolynomialDegreeW(),1);
     // Check knot vectors
     std::vector<double> knots_u_ref = {0, 1.0};
     std::vector<double> knots_v_ref = {0, 0, 0, 0.1, 0.1, 0.2, 0.22, 0.22, 0.5, 0.7, 1.0, 1.0, 1.0};
     std::vector<double> knots_w_ref = {0, 1.0};
-    KRATOS_CHECK_VECTOR_NEAR(refined_volume_v->KnotsU(), knots_u_ref, TOLERANCE);
-    KRATOS_CHECK_VECTOR_NEAR(refined_volume_v->KnotsV(), knots_v_ref, TOLERANCE);
-    KRATOS_CHECK_VECTOR_NEAR(refined_volume_v->KnotsW(), knots_w_ref, TOLERANCE);
+    KRATOS_CHECK_VECTOR_NEAR(volume_v->KnotsU(), knots_u_ref, TOLERANCE);
+    KRATOS_CHECK_VECTOR_NEAR(volume_v->KnotsV(), knots_v_ref, TOLERANCE);
+    KRATOS_CHECK_VECTOR_NEAR(volume_v->KnotsW(), knots_w_ref, TOLERANCE);
     // Check number of CP's
-    KRATOS_CHECK_EQUAL(refined_volume_v->NumberOfControlPointsU(),2);
-    KRATOS_CHECK_EQUAL(refined_volume_v->NumberOfControlPointsV(),11);
-    KRATOS_CHECK_EQUAL(refined_volume_v->NumberOfControlPointsW(),2);
+    KRATOS_CHECK_EQUAL(volume_v->NumberOfControlPointsU(),2);
+    KRATOS_CHECK_EQUAL(volume_v->NumberOfControlPointsV(),11);
+    KRATOS_CHECK_EQUAL(volume_v->NumberOfControlPointsW(),2);
     // Check position of CP's
     IndexType k = 0;
     for( std::size_t i = 0; i < 2; ++i){
         for( std::size_t j = 0; j < 2; ++j){
-            KRATOS_CHECK_NEAR((*refined_volume_v)[k+j+0][1], 0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR((*refined_volume_v)[k+j+2][1], 0.1665, TOLERANCE);
-            KRATOS_CHECK_NEAR((*refined_volume_v)[k+j+4][1], 0.26085, TOLERANCE);
-            KRATOS_CHECK_NEAR((*refined_volume_v)[k+j+6][1], 0.37518, TOLERANCE);
-            KRATOS_CHECK_NEAR((*refined_volume_v)[k+j+8][1], 0.39915599999999996, TOLERANCE);
-            KRATOS_CHECK_NEAR((*refined_volume_v)[k+j+10][1], 0.41993519999999995, TOLERANCE);
-            KRATOS_CHECK_NEAR((*refined_volume_v)[k+j+12][1], 0.470653875, TOLERANCE);
-            KRATOS_CHECK_NEAR((*refined_volume_v)[k+j+14][1], 0.524266875, TOLERANCE);
-            KRATOS_CHECK_NEAR((*refined_volume_v)[k+j+16][1], 0.624375, TOLERANCE);
-            KRATOS_CHECK_NEAR((*refined_volume_v)[k+j+18][1], 0.7996, TOLERANCE);
-            KRATOS_CHECK_NEAR((*refined_volume_v)[k+j+20][1], 1.0, TOLERANCE);
+            KRATOS_CHECK_NEAR((*volume_v)[k+j+0][1], 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR((*volume_v)[k+j+2][1], 0.1665, TOLERANCE);
+            KRATOS_CHECK_NEAR((*volume_v)[k+j+4][1], 0.26085, TOLERANCE);
+            KRATOS_CHECK_NEAR((*volume_v)[k+j+6][1], 0.37518, TOLERANCE);
+            KRATOS_CHECK_NEAR((*volume_v)[k+j+8][1], 0.39915599999999996, TOLERANCE);
+            KRATOS_CHECK_NEAR((*volume_v)[k+j+10][1], 0.41993519999999995, TOLERANCE);
+            KRATOS_CHECK_NEAR((*volume_v)[k+j+12][1], 0.470653875, TOLERANCE);
+            KRATOS_CHECK_NEAR((*volume_v)[k+j+14][1], 0.524266875, TOLERANCE);
+            KRATOS_CHECK_NEAR((*volume_v)[k+j+16][1], 0.624375, TOLERANCE);
+            KRATOS_CHECK_NEAR((*volume_v)[k+j+18][1], 0.7996, TOLERANCE);
+            KRATOS_CHECK_NEAR((*volume_v)[k+j+20][1], 1.0, TOLERANCE);
         }
         k += 22;
     }
     // Check ID's
-    for( long unsigned int i = 0; i < refined_volume_v->size(); ++i){
-        KRATOS_CHECK_EQUAL((*refined_volume_v)[i].Id(), i+1);
+    for( long unsigned int i = 0; i < volume_v->size(); ++i){
+        KRATOS_CHECK_EQUAL((*volume_v)[i].Id(), 0);
     }
 }
 
