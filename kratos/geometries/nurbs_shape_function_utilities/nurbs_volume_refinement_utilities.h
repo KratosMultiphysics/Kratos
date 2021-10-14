@@ -190,18 +190,15 @@ public:
      * @return Pointer to refined geometry.
      * @note This function does not consider weights, thus only B-Spline-Volumes can be refined.
      **/
-    static NurbsVolumeGeometryPointerType KnotRefinementV(NurbsVolumeGeometryType& rGeometry, std::vector<double>& rInsertKnots ){
+    static void KnotRefinementV(NurbsVolumeGeometryType& rGeometry, std::vector<double>& rInsertKnots,
+            PointerVector<NodeType>& rPointsRefined, Vector& rKnotsVRefined ){
 
         // Sort the knots which are to be inserted!
         std::sort(rInsertKnots.begin(),rInsertKnots.end());
         // Get current order
-        const SizeType polynomial_degree_u = rGeometry.PolynomialDegreeU();
         const SizeType polynomial_degree_v = rGeometry.PolynomialDegreeV();
-        const SizeType polynomial_degree_w = rGeometry.PolynomialDegreeW();
         // Get current knot information
-        const Kratos::Vector& old_knots_u = rGeometry.KnotsU();
         const Kratos::Vector& old_knots_v = rGeometry.KnotsV();
-        const Kratos::Vector& old_knots_w = rGeometry.KnotsW();
 
         const SizeType old_num_of_knots_v = rGeometry.NumberOfKnotsV();
         // Get current cp's information
@@ -216,17 +213,17 @@ public:
         SizeType r = rInsertKnots.size();
         // Initialize new containers
         SizeType new_num_of_knots_v = old_num_of_knots_v + r;
-        Kratos::Vector new_knots_v(new_num_of_knots_v);
+        rKnotsVRefined.resize(new_num_of_knots_v);
 
         SizeType new_num_of_cp_v = old_num_of_cp_v + r;
-        PointerVector<NodeType> new_points(old_num_of_cp_u*new_num_of_cp_v*old_num_of_cp_w);
+        rPointsRefined.resize(old_num_of_cp_u*new_num_of_cp_v*old_num_of_cp_w);
 
         r = r - 1;
         // Create new ordered knot vector.
         for( IndexType i = 0; i <= a; i++)
-            new_knots_v[i] = old_knots_v[i];
+            rKnotsVRefined[i] = old_knots_v[i];
         for( IndexType i = b+polynomial_degree_v; i < old_num_of_knots_v; ++i)
-            new_knots_v[i+r+1] = old_knots_v[i];
+            rKnotsVRefined[i+r+1] = old_knots_v[i];
 
         // Copy unaltered cp's.
         for( IndexType row=0; row < old_num_of_cp_u; ++row){
@@ -238,7 +235,7 @@ public:
                         old_num_of_cp_u, new_num_of_cp_v, old_num_of_cp_w, row, i, depth);
                     IndexType cp_index_right = NurbsUtilities::GetVectorIndexFromMatrixIndices(
                         old_num_of_cp_u, old_num_of_cp_v, old_num_of_cp_w, row, i, depth);
-                    new_points(cp_index_left) = Kratos::make_intrusive<NodeType>(cp_index_left+1, rGeometry[cp_index_right]);
+                    rPointsRefined(cp_index_left) = Kratos::make_intrusive<NodeType>(0, rGeometry[cp_index_right]);
                 }
                 // Note: The "+1" accounts for the fact that first and last knots only appear "p"-times (and not "p+1"-times).
                 for( IndexType i = b; i < old_num_of_cp_v; ++i){
@@ -246,7 +243,7 @@ public:
                         old_num_of_cp_u, new_num_of_cp_v, old_num_of_cp_w, row, i+r+1, depth);
                     IndexType cp_index_right = NurbsUtilities::GetVectorIndexFromMatrixIndices(
                         old_num_of_cp_u, old_num_of_cp_v, old_num_of_cp_w, row, i, depth);
-                    new_points(cp_index_left) = Kratos::make_intrusive<NodeType>(cp_index_left+1, rGeometry[cp_index_right]);
+                    rPointsRefined(cp_index_left) = Kratos::make_intrusive<NodeType>(0, rGeometry[cp_index_right]);
                 }
             }
         }
@@ -266,10 +263,10 @@ public:
                             old_num_of_cp_u, new_num_of_cp_v, old_num_of_cp_w, row, k-p-1+1, depth);
                         IndexType cp_index_right = NurbsUtilities::GetVectorIndexFromMatrixIndices(
                             old_num_of_cp_u, old_num_of_cp_v, old_num_of_cp_w, row, i-p-1+1, depth);
-                        new_points(cp_index_left) = Kratos::make_intrusive<NodeType>(cp_index_left+1, rGeometry[cp_index_right]);
+                        rPointsRefined(cp_index_left) = Kratos::make_intrusive<NodeType>(0, rGeometry[cp_index_right]);
                     }
                 }
-                new_knots_v[k] = old_knots_v[i];
+                rKnotsVRefined[k] = old_knots_v[i];
                 k--;
                 i--;
             }
@@ -280,13 +277,12 @@ public:
                         old_num_of_cp_u, new_num_of_cp_v, old_num_of_cp_w, row, k-p-1+1, depth);
                     IndexType cp_index_right = NurbsUtilities::GetVectorIndexFromMatrixIndices(
                         old_num_of_cp_u, new_num_of_cp_v, old_num_of_cp_w, row, k-p+1, depth);
-                    new_points(cp_index_left) =  new_points(cp_index_right);
-                    new_points(cp_index_left)->SetId(cp_index_left+1);
+                    rPointsRefined(cp_index_left) =  rPointsRefined(cp_index_right);
                 }
             }
             for( IndexType l=1; l <= p; ++l){
                 IndexType index = k - p + l;
-                double alpha = new_knots_v[k+l] - rInsertKnots[j];
+                double alpha = rKnotsVRefined[k+l] - rInsertKnots[j];
                 if( std::abs(alpha) < 1e-10){
                     for( IndexType row=0; row < old_num_of_cp_u; ++row) {
                         for( IndexType depth=0; depth < old_num_of_cp_w; ++depth) {
@@ -295,13 +291,12 @@ public:
                                 old_num_of_cp_u, new_num_of_cp_v, old_num_of_cp_w, row, index-1+1, depth);
                             IndexType cp_index_right = NurbsUtilities::GetVectorIndexFromMatrixIndices(
                                 old_num_of_cp_u, new_num_of_cp_v, old_num_of_cp_w, row, index+1, depth);
-                            new_points(cp_index_left) = new_points(cp_index_right);
-                            new_points(cp_index_left)->SetId(cp_index_left+1);
+                            rPointsRefined(cp_index_left) = rPointsRefined(cp_index_right);
                         }
                     }
                 }
                 else {
-                    alpha = alpha / ( new_knots_v[k+l] - old_knots_v[i-p+l]);
+                    alpha = alpha / ( rKnotsVRefined[k+l] - old_knots_v[i-p+l]);
                     for( IndexType row=0; row < old_num_of_cp_u; ++row) {
                         for( IndexType depth=0; depth < old_num_of_cp_w; ++depth) {
                             // Note: The "+1" accounts for the fact that first and last knots only appear "p"-times (and not "p+1"-times).
@@ -310,23 +305,19 @@ public:
                             IndexType cp_index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
                                 old_num_of_cp_u, new_num_of_cp_v, old_num_of_cp_w, row, index+1, depth);
 
-                            double x = alpha * new_points[cp_index_minus][0] + (1.0-alpha) * new_points[cp_index][0];
-                            double y = alpha * new_points[cp_index_minus][1] + (1.0-alpha) * new_points[cp_index][1];
-                            double z = alpha * new_points[cp_index_minus][2] + (1.0-alpha) * new_points[cp_index][2];
+                            double x = alpha * rPointsRefined[cp_index_minus][0] + (1.0-alpha) * rPointsRefined[cp_index][0];
+                            double y = alpha * rPointsRefined[cp_index_minus][1] + (1.0-alpha) * rPointsRefined[cp_index][1];
+                            double z = alpha * rPointsRefined[cp_index_minus][2] + (1.0-alpha) * rPointsRefined[cp_index][2];
 
-                            new_points(cp_index_minus) = Kratos::make_intrusive<NodeType>(cp_index_minus+1, x, y, z);
+                            rPointsRefined(cp_index_minus) = Kratos::make_intrusive<NodeType>(0, x, y, z);
                         }
                     }
                 }
 
             }
-            new_knots_v[k] = rInsertKnots[j];
+            rKnotsVRefined[k] = rInsertKnots[j];
             k -= 1;
         }
-
-        return Kratos::make_shared<NurbsVolumeGeometry<PointerVector<NodeType>>>(
-            new_points, polynomial_degree_u, polynomial_degree_v, polynomial_degree_w,
-            old_knots_u, new_knots_v, old_knots_w);
     }
 
     /**
