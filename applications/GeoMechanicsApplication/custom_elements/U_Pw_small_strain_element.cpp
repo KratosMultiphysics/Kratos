@@ -776,8 +776,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         Vector TotalStressVector(mStressVector[0].size());
 
         //Loop over integration points
-        for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint )
-        {
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
             //Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
 
@@ -915,8 +914,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                      rCurrentProcessInfo);
 
     //Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint)
-    {
+    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         //Compute Np, GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
 
@@ -1051,8 +1049,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
     //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint)
-    {
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         //Compute GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
 
@@ -1746,18 +1743,16 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     CalculateCauchyGreenStrain( ElementVariables& rVariables )
 {
-   // KRATOS_INFO("0-UPwSmallStrainElement::CalculateCauchyGreenStrain()") << std::endl;
+    KRATOS_TRY;
+    // KRATOS_INFO("0-UPwSmallStrainElement::CalculateCauchyGreenStrain()") << std::endl;
 
     //-Compute total deformation gradient
     const Matrix& F = rVariables.F;
 
     Matrix ETensor;
-    if (TDim == 3)
-    {
+    if (TDim == 3) {
         ETensor = prod(trans(F), F);
-    }
-    else
-    {
+    } else {
         Matrix F2x2(TDim,TDim);
         for (unsigned int i = 0; i<TDim; ++i)
             for (unsigned int j = 0; j<TDim; ++j)
@@ -1772,7 +1767,9 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
     noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
 
-   // KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateCauchyGreenStrain()") << std::endl;
+    // KRATOS_INFO("1-UPwSmallStrainElement::CalculateCauchyGreenStrain()") << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 //----------------------------------------------------------------------------------------

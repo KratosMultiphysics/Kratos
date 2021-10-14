@@ -246,10 +246,10 @@ protected:
 
     virtual void CalculateKinematics(ElementVariables& rVariables, const unsigned int &PointNumber);
 
-    double CalculateDerivativesOnInitialConfiguration(const GeometryType& Geometry,
+    double CalculateDerivativesOnInitialConfiguration(Matrix& J0,
+                                                      Matrix& InvJ0,
                                                       Matrix& DN_DX,
-                                                      const IndexType& PointNumber,
-                                                      IntegrationMethod ThisIntegrationMethod) const;
+                                                      const IndexType& PointNumber) const;
 
     void SetConstitutiveParameters(ElementVariables& rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters);
@@ -304,6 +304,9 @@ protected:
     virtual void CalculateCauchyStrain( ElementVariables& rVariables );
     virtual void CalculateStrain( ElementVariables& rVariables );
 
+    virtual void CalculateDeformationGradient( ElementVariables& rVariables,
+                                               const IndexType& GPoint );
+
     double CalculateFluidPressure( const ElementVariables &rVariables, const unsigned int &PointNumber );
 
     void SetRetentionParameters(const ElementVariables& rVariables,
@@ -314,6 +317,27 @@ protected:
                                      const unsigned int &GPoint );
 
     void CalculateSoilDensity(ElementVariables &rVariables);
+
+    /**
+     * @brief This functions calculate the derivatives in the reference frame
+     * @param J0 The jacobian in the reference configuration
+     * @param InvJ0 The inverse of the jacobian in the reference configuration
+     * @param DN_DX The gradient derivative of the shape function
+     * @param PointNumber The id of the integration point considered
+     * @param ThisIntegrationMethod The integration method considered
+     * @return The determinant of the jacobian in the reference configuration
+     */
+    double CalculateDerivativesOnReferenceConfiguration(Matrix& J0,
+                                                        Matrix& InvJ0,
+                                                        Matrix& DN_DX,
+                                                        const IndexType& PointNumber) const;
+
+    double CalculateJacobianOnCurrentConfiguration(Matrix& rJ,
+                                                   Matrix& rInvJ,
+                                                   const IndexType& GPoint) const;
+
+    Matrix& CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

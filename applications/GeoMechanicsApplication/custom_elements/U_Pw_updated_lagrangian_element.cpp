@@ -180,8 +180,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     RetentionLaw::Parameters RetentionParameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
     // Computing in all integrations points
-    for ( IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint )
-    {
+    for ( IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint ) {
         // Compute element kinematics B, F, GradNpT ...
         this->CalculateKinematics(Variables, GPoint);
 
@@ -216,8 +215,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
                                                   GPoint,
                                                   Variables.detJ);
 
-        if ( CalculateStiffnessMatrixFlag == true )
-        {
+        if (CalculateStiffnessMatrixFlag) {
             // Contributions to stiffness matrix calculated on the reference config
             /* Material stiffness matrix */
             this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -227,8 +225,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
                 this->CalculateAndAddGeometricStiffnessMatrix( rLeftHandSideMatrix, Variables, GPoint );
         }
 
-        if (CalculateResidualVectorFlag)
-        {
+        if (CalculateResidualVectorFlag) {
             //Contributions to the right hand side
             Variables.detJInitialConfiguration =
                 CalculateDerivativesOnInitialConfiguration(this->GetGeometry(),
@@ -242,7 +239,6 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
                 this->CalculateIntegrationCoefficient(IntegrationPoints,
                                                       GPoint,
                                                       Variables.detJInitialConfiguration);
-
 
             //Contributions to the right hand side
             this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
