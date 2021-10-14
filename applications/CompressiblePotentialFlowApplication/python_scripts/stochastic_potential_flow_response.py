@@ -1216,7 +1216,7 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
         """
         mach = abs(self.sample[1])
         alpha = self.sample[2]
-        # print("MACH ALPHA", mach, alpha)
+        KratosMultiphysics.Logger.PrintInfo("MACH ALPHA", mach, alpha)
         for i_boundary, boundary_process in enumerate(self.project_parameters["processes"]["boundary_conditions_process_list"]):
             if boundary_process["python_module"].GetString() == "apply_far_field_process":
                 boundary_process["Parameters"]["mach_infinity"].SetDouble(mach)
