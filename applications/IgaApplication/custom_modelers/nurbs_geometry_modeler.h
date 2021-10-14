@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
 #include "modeler/modeler.h"
 #include "geometries/nurbs_volume_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
@@ -98,7 +99,6 @@ private:
      * @param Order  Polynomial degree in each direction u,v.
      * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v.
      * @note The CP'S are defined as nodes and added to the rModelPart.
-     * @todo How to deal with node Id's..
      **/
     void CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A, const Point& B, SizeType OrderU, SizeType OrderV,
         SizeType NumKnotSpansU, SizeType NumKnotSpansV );
@@ -110,7 +110,6 @@ private:
      * @param Order  Polynomial degree in each direction u,v,w.
      * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v,w.
      * @note The CP'S are defined as nodes and added to the rModelPart.
-     * @todo How to deal with node Id's..
      **/
     void CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A, const Point& B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
         SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );

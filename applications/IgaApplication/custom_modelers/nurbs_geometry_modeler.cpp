@@ -45,7 +45,7 @@ namespace Kratos
         KRATOS_ERROR_IF( local_space_dimension != size_number_of_knot_spans )
             << "Size of given Vectors: \"polynomial_order\" and \"number_of_knot_spans\" do not match." << std::endl;
 
-        // Here add geometry and nodes to model part.
+        // Create model part in case it does not exist.
         KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
             << "NurbsGeometryModeler: Missing \"model_part_name\" section" << std::endl;
 
@@ -95,6 +95,7 @@ namespace Kratos
 
         for( IndexType j=0; j < OrderV+1; ++j){
             for( IndexType i = 0; i < OrderU+1; ++i){
+                // Proper node ID is defined later.
                 points.push_back(Kratos::make_intrusive<NodeType>(0, x, y, 0.0 ));
                 x += delta_x;
             }
@@ -122,7 +123,7 @@ namespace Kratos
             }
         }
 
-        // Create trivariant nurbs cube.
+        // Create bivariant nurbs surface.
         auto p_surface_geometry = Kratos::make_shared<NurbsSurfaceGeometryType>(
             points, OrderU, OrderV, knot_vector_u, knot_vector_v);
 
