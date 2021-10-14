@@ -644,7 +644,65 @@ public:
      * @param  ThisGeometry Geometry to intersect with
      * @return True if the geometries intersect, False in any other case.
      */
-    bool HasIntersection(const GeometryType& ThisGeometry) override
+    bool HasIntersection(const GeometryType& rThisGeometry) override
+    {
+        const auto geometry_type = rThisGeometry.GetGeometryType();
+
+        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2 ||
+            geometry_type == GeometryData::KratosGeometryType::Kratos_Line3D2) {
+            return LineTriangleOverlap(rThisGeometry);
+        }
+        else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 ||
+                geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
+            return TriTriOverlap(rThisGeometry);
+        }
+        else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4 ||
+                geometry_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) {
+            Triangle3D3 triangle_0 (rThisGeometry.pGetPoint(0), rThisGeometry.pGetPoint(1), rThisGeometry.pGetPoint(2));
+            Triangle3D3 triangle_1 (rThisGeometry.pGetPoint(2), rThisGeometry.pGetPoint(3), rThisGeometry.pGetPoint(0));
+            if      ( TriTriOverlap(triangle_0) ) return true;
+            else if ( TriTriOverlap(triangle_1) ) return true;
+            else return false;
+        }
+        else {
+            KRATOS_ERROR << "Triangle3D3::HasIntersection : Geometry cannot be identified, please, check the intersecting geometry type." << std::endl;
+        }
+    }
+
+    bool LineTriangleOverlap(const GeometryType& rLine)
+    {
+        // Based on Tomas Möller & Ben Trumbore (1997) Fast, Minimum Storage Ray-Triangle Intersection, Journal of Graphics Tools, 2:1, 21-28, DOI: 10.1080/10867651.1997.10487468 
+        const double tolerance = 1e-6;
+        double a, f, u, v;
+        array_1d<double,3> h, s, q;
+        const array_1d<double,3> ray_vector = rLine[1] - rLine[0];
+        const array_1d<double,3> vert0 = this->GetPoint(0);
+        const array_1d<double,3> vert1 = this->GetPoint(1);
+        const array_1d<double,3> vert2 = this->GetPoint(2);
+        const array_1d<double,3> edge1 = vert1 - vert0;
+        const array_1d<double,3> edge2 = vert2 - vert0;
+        h = MathUtils<double>::CrossProduct(ray_vector, edge2);
+        a = inner_prod(edge1, h);
+        if (a > -tolerance && a < tolerance)
+            return false; // this ray is parallel to the triangle.
+        f = 1.0 / a;
+        s = rLine[0] - vert0;
+        u = f * inner_prod(s, h);
+        if (u < 0.0 || u > 1.0)
+            return false;
+        q = MathUtils<double>::CrossProduct(s, edge1);
+        v = f * inner_prod(ray_vector, q);
+        if (v < 0.0 || u + v > 1.0)
+            return false;
+        // At this stage we can compute t to find out where the intersection point is on the line.
+        double t = f * inner_prod(edge2, q);
+        if (t > tolerance) // line intersection
+            return true;
+        else // This means that there is a ray intersection but not a line intersection.
+            return false;
+    }
+
+    bool TriTriOverlap(const GeometryType& rThisGeometry)
     {
         // Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
         // and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
@@ -653,11 +711,11 @@ public:
         Plane3D plane_1(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2));
         array_1d<double, 3> distances_1;
         for (int i = 0; i < 3; i++)
-            distances_1[i] = plane_1.CalculateSignedDistance(ThisGeometry[i]);
+            distances_1[i] = plane_1.CalculateSignedDistance(rThisGeometry[i]);
         if (AllSameSide(distances_1))
             return false;
 
-        Plane3D plane_2(ThisGeometry[0], ThisGeometry[1], ThisGeometry[2]);
+        Plane3D plane_2(rThisGeometry[0], rThisGeometry[1], rThisGeometry[2]);
         array_1d<double, 3> distances_2;
         for (int i = 0; i < 3; i++)
             distances_2[i] = plane_2.CalculateSignedDistance(this->GetPoint(i));
@@ -675,25 +733,24 @@ public:
         double vp1 = this->GetPoint(1)[index];
         double vp2 = this->GetPoint(2)[index];
 
-        double up0 = ThisGeometry[0][index];
-        double up1 = ThisGeometry[1][index];
-        double up2 = ThisGeometry[2][index];
+        double up0 = rThisGeometry[0][index];
+        double up1 = rThisGeometry[1][index];
+        double up2 = rThisGeometry[2][index];
 
 
         // compute interval for triangle 1 //
         double a, b, c, x0, x1;
         if (ComputeIntervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], a, b, c, x0, x1) == true)
         {
-            return CoplanarIntersectionCheck(plane_1.GetNormal(), ThisGeometry);
+            return CoplanarIntersectionCheck(plane_1.GetNormal(), rThisGeometry);
         }
 
         // compute interval for triangle 2 //
         double d, e, f, y0, y1;
         if (ComputeIntervals(up0, up1, up2, distances_1[0], distances_1[1], distances_1[2], d, e, f, y0, y1) == true)
         {
-            return CoplanarIntersectionCheck(plane_1.GetNormal(), ThisGeometry);
+            return CoplanarIntersectionCheck(plane_1.GetNormal(), rThisGeometry);
         }
-
 
         double xx, yy, xxyy, tmp;
         xx = x0*x1;
@@ -710,9 +767,6 @@ public:
         isect2[0] = tmp + e*xx*y1;
         isect2[1] = tmp + f*xx*y0;
 
-        // std::sort(isect1.begin(), isect1.end());
-        // std::sort(isect2.begin(), isect2.end());
-
         if (isect1[0] > isect1[1]) {
             isect1[1] = isect1[0] + isect1[1];
             isect1[0] = isect1[1] - isect1[0];
@@ -727,7 +781,6 @@ public:
 
         if (isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
         return true;
-
     }
 
     /**
