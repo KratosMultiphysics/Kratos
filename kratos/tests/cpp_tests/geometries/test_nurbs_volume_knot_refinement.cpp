@@ -149,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeKnotRefinementV, KratosCoreNurbsGeometriesF
 
     PointerVector<NodeType> points_refined;
     Vector knots_v_refined;
-    NurbsVolumeRefinementUtilities::KnotRefinementU(*volume_v, insert_knots, points_refined, knots_v_refined);
+    NurbsVolumeRefinementUtilities::KnotRefinementV(*volume_v, insert_knots, points_refined, knots_v_refined);
     volume_v->SetInternals(points_refined, volume_v->PolynomialDegreeU(), volume_v->PolynomialDegreeV(), volume_v->PolynomialDegreeW(),
                         volume_v->KnotsU(), knots_v_refined, volume_v->KnotsW() );
 
