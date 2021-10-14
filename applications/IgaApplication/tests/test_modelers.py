@@ -98,8 +98,8 @@ class TestModelers(KratosUnittest.TestCase):
             "modeler_name": "NurbsGeometryModeler",
             "Parameters": {
                 "model_part_name" : "Mesh",
-                "lower_point": [0.0,0.0],
-                "upper_point": [1.0,1.0],
+                "lower_point": [0.0,0.0,0.0],
+                "upper_point": [1.0,1.0,0.0],
                 "polynomial_order" : [4, 1],
                 "number_of_knot_spans" : [3,2]
             }
@@ -149,16 +149,16 @@ class TestModelers(KratosUnittest.TestCase):
             "modeler_name": "NurbsGeometryModeler",
             "Parameters": {
                 "model_part_name" : "Mesh_01",
-                "lower_point": [-1.0,-0.5],
-                "upper_point": [1.0,0.5],
+                "lower_point": [-1.0,-0.5,0.0],
+                "upper_point": [1.0,0.5,0.0],
                 "polynomial_order" : [4, 5],
                 "number_of_knot_spans" : [3,6]
             } }, {
             "modeler_name": "NurbsGeometryModeler",
             "Parameters": {
                 "model_part_name" : "Mesh_02",
-                "lower_point": [-1.0,-0.5],
-                "upper_point": [1.0,0.5],
+                "lower_point": [-1.0,-0.5,0.0],
+                "upper_point": [1.0,0.5,0.0],
                 "polynomial_order" : [1, 1],
                 "number_of_knot_spans" : [1,1]
             }
