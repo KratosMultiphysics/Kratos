@@ -50,11 +50,11 @@ public:
      * @return Pointer to refined geometry.
      * @note This function does not consider weights, thus only B-Spline-Volumes can be refined.
      **/
-    static void KnotRefinementU(NurbsVolumeGeometryType& rGeometry, std::vector<double>& rInsertKnots,
+    static void KnotRefinementU(NurbsVolumeGeometryType& rGeometry, std::vector<double>& rKnotsUToInsert,
                             PointerVector<NodeType>& rPointsRefined, Vector& rKnotsURefined ){
 
         // Sort the knots which are to be inserted!
-        std::sort(rInsertKnots.begin(),rInsertKnots.end());
+        std::sort(rKnotsUToInsert.begin(),rKnotsUToInsert.end());
         // Get current order
         const SizeType polynomial_degree_u = rGeometry.PolynomialDegreeU();
 
@@ -68,10 +68,10 @@ public:
         const SizeType old_num_of_cp_w = rGeometry.NumberOfControlPointsW();
 
         // Get current span's
-        SizeType a = NurbsUtilities::GetLowerSpan(polynomial_degree_u, old_knots_u, rInsertKnots.front());
-        SizeType b = NurbsUtilities::GetLowerSpan(polynomial_degree_u, old_knots_u, rInsertKnots.back()) + 1;
+        SizeType a = NurbsUtilities::GetLowerSpan(polynomial_degree_u, old_knots_u, rKnotsUToInsert.front());
+        SizeType b = NurbsUtilities::GetLowerSpan(polynomial_degree_u, old_knots_u, rKnotsUToInsert.back()) + 1;
 
-        SizeType r = rInsertKnots.size();
+        SizeType r = rKnotsUToInsert.size();
         // Initialize new containers
         SizeType new_num_of_knots_u = old_num_of_knots_u + r;
         rKnotsURefined.resize(new_num_of_knots_u);
@@ -114,7 +114,7 @@ public:
         int i = b + p - 1;
         int k = b + p + r;
         for( int j = r; j >= 0; j--){
-            while( rInsertKnots[j] <= old_knots_u[i] && i > static_cast<int>(a) ){
+            while( rKnotsUToInsert[j] <= old_knots_u[i] && i > static_cast<int>(a) ){
                 for( IndexType column=0; column < old_num_of_cp_v; ++column) {
                     for( IndexType depth=0; depth < old_num_of_cp_w; ++depth) {
                         // Note: The "+1" accounts for the fact that first and last knots only appear "p"-times (and not "p+1"-times).
@@ -143,7 +143,7 @@ public:
             }
             for( IndexType l=1; l <= p; ++l){
                 IndexType index = k - p + l;
-                double alpha = rKnotsURefined[k+l] - rInsertKnots[j];
+                double alpha = rKnotsURefined[k+l] - rKnotsUToInsert[j];
                 if( std::abs(alpha) < 1e-10){
                     for( IndexType column=0; column < old_num_of_cp_v; ++column) {
                         for( IndexType depth=0; depth < old_num_of_cp_w; ++depth) {
@@ -174,9 +174,8 @@ public:
                         }
                     }
                 }
-
             }
-            rKnotsURefined[k] = rInsertKnots[j];
+            rKnotsURefined[k] = rKnotsUToInsert[j];
             k -= 1;
         }
     }
@@ -190,11 +189,11 @@ public:
      * @return Pointer to refined geometry.
      * @note This function does not consider weights, thus only B-Spline-Volumes can be refined.
      **/
-    static void KnotRefinementV(NurbsVolumeGeometryType& rGeometry, std::vector<double>& rInsertKnots,
+    static void KnotRefinementV(NurbsVolumeGeometryType& rGeometry, std::vector<double>& rKnotsVToInsert,
             PointerVector<NodeType>& rPointsRefined, Vector& rKnotsVRefined ){
 
         // Sort the knots which are to be inserted!
-        std::sort(rInsertKnots.begin(),rInsertKnots.end());
+        std::sort(rKnotsVToInsert.begin(),rKnotsVToInsert.end());
         // Get current order
         const SizeType polynomial_degree_v = rGeometry.PolynomialDegreeV();
         // Get current knot information
@@ -207,10 +206,10 @@ public:
         const SizeType old_num_of_cp_w = rGeometry.NumberOfControlPointsW();
 
         // Get current span's
-        SizeType a = NurbsUtilities::GetLowerSpan(polynomial_degree_v, old_knots_v, rInsertKnots.front());
-        SizeType b = NurbsUtilities::GetLowerSpan(polynomial_degree_v, old_knots_v, rInsertKnots.back()) + 1;
+        SizeType a = NurbsUtilities::GetLowerSpan(polynomial_degree_v, old_knots_v, rKnotsVToInsert.front());
+        SizeType b = NurbsUtilities::GetLowerSpan(polynomial_degree_v, old_knots_v, rKnotsVToInsert.back()) + 1;
 
-        SizeType r = rInsertKnots.size();
+        SizeType r = rKnotsVToInsert.size();
         // Initialize new containers
         SizeType new_num_of_knots_v = old_num_of_knots_v + r;
         rKnotsVRefined.resize(new_num_of_knots_v);
@@ -253,7 +252,7 @@ public:
         int i = b + p - 1;
         int k = b + p + r;
         for( int j = r; j >= 0; j--){
-            while( rInsertKnots[j] <= old_knots_v[i] && i > static_cast<int>(a)){
+            while( rKnotsVToInsert[j] <= old_knots_v[i] && i > static_cast<int>(a)){
                 for( IndexType row=0; row < old_num_of_cp_u; ++row) {
                     for( IndexType depth=0; depth < old_num_of_cp_w; ++depth) {
                         // Note: The "+1" accounts for the fact that first and last knots only appear "p"-times (and not "p+1"-times).
@@ -282,7 +281,7 @@ public:
             }
             for( IndexType l=1; l <= p; ++l){
                 IndexType index = k - p + l;
-                double alpha = rKnotsVRefined[k+l] - rInsertKnots[j];
+                double alpha = rKnotsVRefined[k+l] - rKnotsVToInsert[j];
                 if( std::abs(alpha) < 1e-10){
                     for( IndexType row=0; row < old_num_of_cp_u; ++row) {
                         for( IndexType depth=0; depth < old_num_of_cp_w; ++depth) {
@@ -315,7 +314,7 @@ public:
                 }
 
             }
-            rKnotsVRefined[k] = rInsertKnots[j];
+            rKnotsVRefined[k] = rKnotsVToInsert[j];
             k -= 1;
         }
     }
@@ -329,11 +328,11 @@ public:
      * @return Pointer to refined geometry.
      * @note This function does not consider weights, thus only B-Spline-Volumes can be refined.
      **/
-    static void KnotRefinementW(NurbsVolumeGeometryType& rGeometry, std::vector<double>& rInsertKnots,
+    static void KnotRefinementW(NurbsVolumeGeometryType& rGeometry, std::vector<double>& rKnotsWToInsert,
                             PointerVector<NodeType>& rPointsRefined, Vector& rKnotsWRefined ){
 
         // Sort the knots which are to be inserted!
-        std::sort(rInsertKnots.begin(),rInsertKnots.end());
+        std::sort(rKnotsWToInsert.begin(),rKnotsWToInsert.end());
         // Get current order
         const SizeType polynomial_degree_w = rGeometry.PolynomialDegreeW();
         // Get current knot information
@@ -346,10 +345,10 @@ public:
         const SizeType old_num_of_cp_w = rGeometry.NumberOfControlPointsW();
 
         // Get current span's
-        SizeType a = NurbsUtilities::GetLowerSpan(polynomial_degree_w, old_knots_w, rInsertKnots.front());
-        SizeType b = NurbsUtilities::GetLowerSpan(polynomial_degree_w, old_knots_w, rInsertKnots.back()) + 1;
+        SizeType a = NurbsUtilities::GetLowerSpan(polynomial_degree_w, old_knots_w, rKnotsWToInsert.front());
+        SizeType b = NurbsUtilities::GetLowerSpan(polynomial_degree_w, old_knots_w, rKnotsWToInsert.back()) + 1;
 
-        SizeType r = rInsertKnots.size();
+        SizeType r = rKnotsWToInsert.size();
         // Initialize new containers
         SizeType new_num_of_knots_w = old_num_of_knots_w + r;
         rKnotsWRefined.resize(new_num_of_knots_w);
@@ -392,7 +391,7 @@ public:
         int i = b + p - 1;
         int k = b + p + r;
         for( int j = r; j >= 0; j--){
-            while( rInsertKnots[j] <= old_knots_w[i] && i > static_cast<int>(a)){
+            while( rKnotsWToInsert[j] <= old_knots_w[i] && i > static_cast<int>(a)){
                 for( IndexType row=0; row < old_num_of_cp_u; ++row) {
                     for( IndexType column=0; column < old_num_of_cp_v; ++column) {
                         // Note: The "+1" accounts for the fact that first and last knots only appear "p"-times (and not "p+1"-times).
@@ -421,7 +420,7 @@ public:
             }
             for( IndexType l=1; l <= p; ++l){
                 IndexType index = k - p + l;
-                double alpha = rKnotsWRefined[k+l] - rInsertKnots[j];
+                double alpha = rKnotsWRefined[k+l] - rKnotsWToInsert[j];
                 if( std::abs(alpha) < 1e-10){
                     for( IndexType row=0; row < old_num_of_cp_u; ++row) {
                         for( IndexType column=0; column < old_num_of_cp_v; ++column) {
@@ -454,7 +453,7 @@ public:
                 }
 
             }
-            rKnotsWRefined[k] = rInsertKnots[j];
+            rKnotsWRefined[k] = rKnotsWToInsert[j];
             k -= 1;
         }
     }
