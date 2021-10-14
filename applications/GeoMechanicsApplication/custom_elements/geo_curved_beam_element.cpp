@@ -26,8 +26,6 @@ Element::Pointer GeoCurvedBeamElement<TDim,TNumNodes>::
             NodesArrayType const& ThisNodes,
             PropertiesType::Pointer pProperties ) const
 {
-    KRATOS_ERROR << "calling the default Create method for a particular element ... illegal operation!!" << std::endl;
-
     return Element::Pointer( new GeoCurvedBeamElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
@@ -38,8 +36,6 @@ Element::Pointer GeoCurvedBeamElement<TDim,TNumNodes>::
             GeometryType::Pointer pGeom,
             PropertiesType::Pointer pProperties ) const
 {
-    KRATOS_ERROR << "calling the default Create method for a particular element ... illegal operation!!" << std::endl;
-
     return Element::Pointer( new GeoCurvedBeamElement( NewId, pGeom, pProperties ) );
 }
 
