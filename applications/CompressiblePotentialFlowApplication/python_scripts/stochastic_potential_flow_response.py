@@ -209,27 +209,18 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         i_spline=0
         # print(self.argmin)
         ini_time = time.time()
-        # for node in self.current_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
-        #     shape_sensitivity = KratosMultiphysics.Vector(3, 0.0)
-        #     # Hack becuase of how scipy splines works. 10 interpolation points hard coded and never changes
-        #     # You will need to change the numbers to the left and right of *knots to the limit of the CVaR function
-        #     for i_dim in range(2):
-        #         coeffs_psi = [*self.splineKnotsPsi[i_spline+i_dim],0.0,0.0,0.0,0.0]
-        #         knots_psi = [0.5,0.5,0.5,* self.splineCoeffsPsi[i_spline+i_dim],0.9,0.9,0.9]
-        #         # print(knots_psi)
-
-        #         shape_sensitivity[i_dim] = splev(self.argmin,(knots_psi, coeffs_psi,3),der=1)
-
-        #     i_spline += 2
-        #     # print(shape_sensitivity)
-        #     node.SetValue(KratosMultiphysics.SHAPE_SENSITIVITY, shape_sensitivity)
-        print("time spent computing gradients from spline", time.time()-ini_time)
-
         for node in self.current_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
             shape_sensitivity = KratosMultiphysics.Vector(3, 0.0)
-            shape_sensitivity[0] = 1.0
-            node.SetValue(KratosMultiphysics.SHAPE_SENSITIVITY, shape_sensitivity)
+            # Hack becuase of how scipy splines works. 10 interpolation points hard coded and never changes
+            # You will need to change the numbers to the left and right of *knots to the limit of the CVaR function
+            for i_dim in range(2):
+                coeffs_psi = [*self.splineCoeffsPsi[i_spline+i_dim],0.0,0.0,0.0,0.0]
+                knots_psi = [-0.9,-0.9,-0.9,*self.splineKnotsPsi[i_spline+i_dim],-0.5,-0.5,-0.5]
+                shape_sensitivity[i_dim] = splev(self.argmin,(knots_psi, coeffs_psi,3),der=1)
 
+            i_spline += 2
+            node.SetValue(KratosMultiphysics.SHAPE_SENSITIVITY, shape_sensitivity)
+        print("time spent computing gradients from spline", time.time()-ini_time)
 
     def CalculateValue(self):
         pass
@@ -344,13 +335,13 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         toleranceSequence = [errorTolerance*(tolRefinementRatio**(Nref-i-1)) for i in range(Nref)]
         print(toleranceSequence)
         toleranceSplitting = [.001, .8] # fractions on interpolation and bias errors, respectively
-        # optiParameters = self.current_model_part.NumberOfNodes()*2
-        optiParameters = 2
+        optiParameters = self.current_model_part.NumberOfNodes()*2
+        # optiParameters = 2
         optiWeights = [1.0]*(optiParameters+1)# THIS SHOULD BE LEN() == optiparameters
         derivationOrder = 1
         indexSpace = [0,3]
         parameterPointsSpace = [10,10**3+1]
-        parameterPoints = np.linspace(0.5,0.9,num=parameterPointsSpace[0]).tolist() #TRY to set this interval as small as possible.
+        parameterPoints = np.linspace(-0.9,-0.5,num=parameterPointsSpace[0]).tolist() #TRY to set this interval as small as possible.
         sampleNumberSpace = [10,10**5]
         initialHierarchy = parameters["initialHierarchy"]
         for i, _ in enumerate(initialHierarchy):
@@ -1208,7 +1199,8 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
         """
         Method evaluating the QoI of the problem: lift coefficient.
         """
-        qoi_list = [self.response_function.CalculateValue(self.primal_model_part)]
+        # REPORTING NEGATIVE OF LIFT TO MINIMIZE THE NEGATIVE -> maximize lift
+        qoi_list = [-1*self.response_function.CalculateValue(self.primal_model_part)]
         print("StochasticAdjointResponse", " Lift Coefficient: ",qoi_list[0], "Number of nodes", self.primal_model_part.NumberOfNodes())
 
         model_part = self.adjoint_model_part
@@ -1268,13 +1260,14 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
             for node in skin_model_part.Nodes:
                 distance_gradient=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
                 sensitivity=node.GetSolutionStepValue(KratosMultiphysics.NORMAL_SENSITIVITY)
-                this_shape_sensitivity =[-1*sensitivity*i for i in distance_gradient]
+                # one negative due to level set and one negative as to minimize the negative
+                this_shape_sensitivity =[-1*-1*sensitivity*i for i in distance_gradient]
                 qoi_list.extend(this_shape_sensitivity[0:2])
         elif (self.mapping is True):
             raise(Exception("XMC mapping is NOT needed in embedded, as the skin stays the same"))
 
         Logger.PrintInfo("StochasticAdjointResponse", "Total number of QoI:",len(qoi_list))
-        return qoi_list[0:3]
+        return qoi_list
 
     def MappingAndEvaluateQuantityOfInterest(self):
         raise(Exception("XMC mapping is NOT needed in embedded, as the skin stays the same"))

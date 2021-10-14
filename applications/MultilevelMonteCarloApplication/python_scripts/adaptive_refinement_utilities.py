@@ -68,6 +68,8 @@ class AdaptiveRefinement(object):
                 min_size = original_min_size*(coefficient_interp_error)**(-current_level)
                 size_distribution = level_set_metric_parameters["sizing_parameters"]["size_distribution"].GetMatrix()
                 size_distribution[2,1] = min_size
+                size_distribution[1,1] = 5*min_size
+                size_distribution[3,1] = 5*min_size
                 level_set_metric_parameters["sizing_parameters"]["size_distribution"].SetMatrix(size_distribution)
             local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(model_coarse.GetModelPart(model_part_name), KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
             local_gradient.Execute()
@@ -95,7 +97,7 @@ class AdaptiveRefinement(object):
                 min_size = original_min_size*(coefficient_interp_error)**(-current_level)
                 # interp_error = original_interp_error/(coefficient_interp_error*current_level)
                 metric_param["minimal_size"].SetDouble(min_size)
-            print("Setting MINSIZE", metric_param["minimal_size"].GetDouble())
+            # print("Setting MINSIZE", metric_param["minimal_size"].GetDouble())
             # Setting metric tensor to 0
             domain_size = self.wrapper.GetDomainSize()
             model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
@@ -118,7 +120,7 @@ class AdaptiveRefinement(object):
                 raise Exception("A list of variable is expected under the key [\"hessian_strategy_parameters\"][\"metric_variable\"] of the \"metric\" dictionary.")
 
 
-            # Write metrics to model to preserver element size across levels
+            # # Write metrics to model to preserver element size across levels
             # primal_model_part = model_coarse.GetModelPart(model_part_name)
             # find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(primal_model_part)
             # find_nodal_h.Execute()
