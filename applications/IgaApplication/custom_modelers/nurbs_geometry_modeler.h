@@ -86,6 +86,18 @@ private:
     ///@{
 
     /**
+     * @brief Creates a regular grid composed out of bivariant B-splines.
+     * @param PointA Lower point of bounding box.
+     * @param PointB Upper point of bounding box.
+     * @param Order  Polynomial degree in each direction u,v.
+     * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v.
+     * @note The CP'S are defined as nodes and added to the rModelPart.
+     * @todo How to deal with node Id's..
+     **/
+    void CreateGeometry2D( const Point& A, const Point& B, SizeType OrderU, SizeType OrderV,
+        SizeType NumKnotSpansU, SizeType NumKnotSpansV );
+
+    /**
      * @brief Creates a cartesian grid composed out of trivariant B-spline cubes.
      * @param PointA Lower point of bounding box.
      * @param PointB Upper point of bounding box.

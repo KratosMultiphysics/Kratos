@@ -43,14 +43,15 @@ namespace Kratos
         KRATOS_ERROR_IF( local_space_dimension != size_number_of_knot_spans )
             << "Size of given Vectors: \"polynomial_order\" and \"number_of_knot_spans\" do not match." << std::endl;
 
-        // if( local_space_dimension == 2) {
-        //     SizeType p_u =  mParameters["polynomial_order"].GetArrayItem(0).GetInt();
-        //     SizeType p_v =  mParameters["polynomial_order"].GetArrayItem(1).GetInt();
-        //     SizeType num_knot_span_u =  mParameters["number_of_knot_spans"].GetArrayItem(0).GetInt();
-        //     SizeType num_knot_span_v =  mParameters["number_of_knot_spans"].GetArrayItem(1).GetInt();
-        //     //CreateGeometry2D(..)
-        // }
-        if( local_space_dimension == 3) {
+        if( local_space_dimension == 2) {
+            SizeType p_u =  mParameters["polynomial_order"].GetArrayItem(0).GetInt();
+            SizeType p_v =  mParameters["polynomial_order"].GetArrayItem(1).GetInt();
+            SizeType num_knot_span_u =  mParameters["number_of_knot_spans"].GetArrayItem(0).GetInt();
+            SizeType num_knot_span_v =  mParameters["number_of_knot_spans"].GetArrayItem(1).GetInt();
+
+            CreateGeometry2D(point_a, point_b, p_u, p_v, num_knot_span_u, num_knot_span_v)
+        }
+        else if( local_space_dimension == 3) {
             SizeType p_u =  mParameters["polynomial_order"].GetArrayItem(0).GetInt();
             SizeType p_v =  mParameters["polynomial_order"].GetArrayItem(1).GetInt();
             SizeType p_w =  mParameters["polynomial_order"].GetArrayItem(2).GetInt();
@@ -61,7 +62,7 @@ namespace Kratos
             CreateGeometry3D(point_a, point_b, p_u, p_v, p_w, num_knot_span_u, num_knot_span_v, num_knot_span_w);
         }
         else {
-            KRATOS_ERROR << "Murbs Geometry Modeler is not yet implemented for 1D and 2D geometries." << std::endl;
+            KRATOS_ERROR << "Nurbs Geometry Modeler is not yet implemented for 1D and 2D geometries." << std::endl;
         }
 
         // Here add geometry and nodes to model part.
