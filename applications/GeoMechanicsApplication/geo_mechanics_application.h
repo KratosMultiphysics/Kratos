@@ -183,8 +183,8 @@ public:
     ///// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-          KRATOS_WATCH("in KratosGeoMechanicsApplication");
-          KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        KRATOS_WATCH("in KratosGeoMechanicsApplication");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
 
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
@@ -408,13 +408,12 @@ private:
     const GeoCrBeamElementLinear3D2N mGeoCrBeamElementLinear3D2N;
     const GeoTrussElement<2,2>       mGeoTrussElement2D2N;
     const GeoTrussElement<3,2>       mGeoTrussElement3D2N;
-    const GeoCurvedBeamElement<2,3>  mGeoCurvedBeamElement2D3N;
-
     const GeoLinearTrussElement<2,2> mGeoLinearTrussElement2D2N;
     const GeoLinearTrussElement<3,2> mGeoLinearTrussElement3D2N;
-
     const GeoCableElement<2,2> mGeoCableElement2D2N;
     const GeoCableElement<3,2> mGeoCableElement3D2N;
+
+    const GeoCurvedBeamElement<2,3>  mGeoCurvedBeamElement2D3N;
 
     // conditions
     const UPwForceCondition<2,1> mUPwForceCondition2D1N;
