@@ -1138,27 +1138,27 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
 
         for elem in self.primal_model_part.Elements:
             elem.Set(KratosMultiphysics.ACTIVE, True)
-        gid_output = GiDOutputProcess(
-                self.primal_model_part,
-                "gid_output/primal_"+str(self.sample[0])+"_"+str(self.primal_model_part.NumberOfNodes()),
-                KratosMultiphysics.Parameters("""
-                    {
-                        "result_file_configuration" : {
-                            "gidpost_flags": {
-                                "GiDPostMode": "GiD_PostBinary",
-                                "MultiFileFlag": "SingleFile"
-                            },
-                            "gauss_point_results" : ["VELOCITY", "PRESSURE_COEFFICIENT"]
-                        }
-                    }
-                    """)
-                )
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
+        # gid_output = GiDOutputProcess(
+        #         self.primal_model_part,
+        #         "gid_output/primal_"+str(self.sample[0])+"_"+str(self.primal_model_part.NumberOfNodes()),
+        #         KratosMultiphysics.Parameters("""
+        #             {
+        #                 "result_file_configuration" : {
+        #                     "gidpost_flags": {
+        #                         "GiDPostMode": "GiD_PostBinary",
+        #                         "MultiFileFlag": "SingleFile"
+        #                     },
+        #                     "gauss_point_results" : ["VELOCITY", "PRESSURE_COEFFICIENT"]
+        #                 }
+        #             }
+        #             """)
+        #         )
+        # gid_output.ExecuteInitialize()
+        # gid_output.ExecuteBeforeSolutionLoop()
+        # gid_output.ExecuteInitializeSolutionStep()
+        # gid_output.PrintOutput()
+        # gid_output.ExecuteFinalizeSolutionStep()
+        # gid_output.ExecuteFinalize()
 
         # Store mesh to solve with adjoint after remeshing
         self.primal_model_part.RemoveSubModelPart("fluid_computational_model_part")
