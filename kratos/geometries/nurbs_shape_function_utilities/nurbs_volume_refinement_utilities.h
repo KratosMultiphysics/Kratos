@@ -45,9 +45,10 @@ public:
      * @brief Refines the u-knotvector of a NurbsVolumeGeometry.
      * @details This function adopts the surface knot-refinement algorithm from Piegl1995 (p.164 Algorithm A5.5).
      *          The algorithm is modified to suit trivariant B-Spline volumes.
-     * @param rGeometry Geometry to be refined.
-     * @param vector<double> Knots to be inserted.
-     * @return Pointer to refined geometry.
+     * @param rGeometry surface to be refined.
+     * @param rKnotsUToInsert Knots to be inserted.
+     * @param rPointsRefined the nodes for the refined geometry.
+     * @param rKnotsURefined the new knot vector.
      * @note This function does not consider weights, thus only B-Spline-Volumes can be refined.
      **/
     static void KnotRefinementU(NurbsVolumeGeometryType& rGeometry, std::vector<double>& rKnotsUToInsert,
@@ -185,8 +186,9 @@ public:
      * @details This function adopts the surface knot-refinement algorithm from Piegl1995 (p.164 Algorithm A5.5).
      *          The algorithm is modified to suit trivariant B-Spline volumes.
      * @param rGeometry Geometry to be refined.
-     * @param vector<double> Knots to be inserted.
-     * @return Pointer to refined geometry.
+     * @param rKnotsVToInsert Knots to be inserted.
+     * @param rPointsRefined the nodes for the refined geometry.
+     * @param rKnotsVRefined the new knot vector.
      * @note This function does not consider weights, thus only B-Spline-Volumes can be refined.
      **/
     static void KnotRefinementV(NurbsVolumeGeometryType& rGeometry, std::vector<double>& rKnotsVToInsert,
@@ -324,8 +326,9 @@ public:
      * @details This function adopts the surface knot-refinement algorithm from Piegl1995 (p.164 Algorithm A5.5).
      *          The algorithm is modified to suit trivariant B-Spline volumes.
      * @param rGeometry Geometry to be refined.
-     * @param vector<double> Knots to be inserted.
-     * @return Pointer to refined geometry.
+     * @param rKnotsWToInsert Knots to be inserted.
+     * @param rPointsRefined the nodes for the refined geometry.
+     * @param rKnotsWRefined the new knot vector.
      * @note This function does not consider weights, thus only B-Spline-Volumes can be refined.
      **/
     static void KnotRefinementW(NurbsVolumeGeometryType& rGeometry, std::vector<double>& rKnotsWToInsert,
