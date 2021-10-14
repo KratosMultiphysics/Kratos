@@ -211,16 +211,19 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         # print(self.argmin)
         ini_time = time.time()
         for node in self.current_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
-            shape_sensitivity = KratosMultiphysics.Vector(3, 0.0)
             # Hack becuase of how scipy splines works. 10 interpolation points hard coded and never changes
             # You will need to change the numbers to the left and right of *knots to the limit of the CVaR function
-            for i_dim in range(2):
-                coeffs_psi = [*self.splineCoeffsPsi[i_spline+i_dim],0.0,0.0,0.0,0.0]
-                knots_psi = [-0.9,-0.9,-0.9,*self.splineKnotsPsi[i_spline+i_dim],-0.5,-0.5,-0.5]
-                shape_sensitivity[i_dim] = splev(self.argmin,(knots_psi, coeffs_psi,3),der=1)
+            shape_sensitivity = KratosMultiphysics.Vector(3, 0.0)
+            if i_spline < len(self.splineKnotsPsi):
+                for i_dim in range(2):
+                    coeffs_psi = [*self.splineCoeffsPsi[i_spline+i_dim],0.0,0.0,0.0,0.0]
+                    knots_psi = [-0.9,-0.9,-0.9,*self.splineKnotsPsi[i_spline+i_dim],-0.5,-0.5,-0.5]
+                    shape_sensitivity[i_dim] = splev(self.argmin,(knots_psi, coeffs_psi,3),der=1)
 
-            i_spline += 2
-            node.SetValue(KratosMultiphysics.SHAPE_SENSITIVITY, shape_sensitivity)
+                i_spline += 2
+                node.SetValue(KratosMultiphysics.SHAPE_SENSITIVITY, shape_sensitivity)
+            else:
+                shape_sensitivity[1]=1.0
         print("time spent computing gradients from spline", time.time()-ini_time)
 
     def CalculateValue(self):
