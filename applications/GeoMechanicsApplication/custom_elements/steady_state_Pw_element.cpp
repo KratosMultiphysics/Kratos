@@ -52,8 +52,7 @@ int SteadyStatePwElement<TDim,TNumNodes>::
     if (Geom.DomainSize() < 1.0e-15)
         KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
 
-    for ( unsigned int i = 0; i < TNumNodes; ++i )
-    {
+    for ( unsigned int i = 0; i < TNumNodes; ++i ) {
         if ( Geom[i].SolutionStepsDataHas( WATER_PRESSURE ) == false )
             KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
 
@@ -74,11 +73,9 @@ int SteadyStatePwElement<TDim,TNumNodes>::
         KRATOS_ERROR << "POROSITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
 
-    if ( TDim == 2 )
-    {
+    if ( TDim == 2 ) {
         // If this is a 2D problem, nodes must be in XY plane
-        for (unsigned int i=0; i<TNumNodes; ++i)
-        {
+        for (unsigned int i=0; i<TNumNodes; ++i) {
             if (Geom[i].Z() != 0.0)
                 KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << Geom[i].Id() << std::endl;
         }
@@ -97,8 +94,7 @@ int SteadyStatePwElement<TDim,TNumNodes>::
     if ( Prop.Has( PERMEABILITY_XY ) == false || Prop[PERMEABILITY_XY] < 0.0 )
         KRATOS_ERROR << "PERMEABILITY_XY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-    if (TDim > 2)
-    {
+    if (TDim > 2) {
         if ( Prop.Has( PERMEABILITY_ZZ ) == false || Prop[PERMEABILITY_ZZ] < 0.0 )
             KRATOS_ERROR << "PERMEABILITY_ZZ does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
@@ -151,8 +147,7 @@ void SteadyStatePwElement<TDim,TNumNodes>::
     RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
 
     //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
-    {
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++) {
         //Compute GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
 
