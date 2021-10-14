@@ -206,7 +206,7 @@
                 "Parameters"    : {
                     "model_part_name" : "SpheresPart.1",
             "velocity_constraints_settings" : {
-                        "constrained"          : [true,false,false],
+                        "constrained"          : [false,false,true],
                         "value"                : [0.0, 0.0, -1.0],
                         "table"                : [null, null, null]
                     },
@@ -215,7 +215,7 @@
                         "value"                : [0.0, 0.0, 0.0],
                         "table"                : [null, null, null]
                     },
-                    "interval"             : [0.0, 2e-6]
+                    "interval"             : [0.0, 0.0002]
                 }
             }],
             "loads_process_list"       : [],
