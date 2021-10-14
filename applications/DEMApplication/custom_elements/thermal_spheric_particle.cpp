@@ -228,11 +228,9 @@ namespace Kratos
     KRATOS_TRY
 
     // Set simulated properties
-    mNeighborDistance = ComputeDistanceToNeighbor();
-    mContactRadius    = ComputeContactRadius();
-
-    // Set contact interaction flag
+    mNeighborDistance  = ComputeDistanceToNeighbor();
     mNeighborInContact = CheckSurfaceDistance(0.0);
+    mContactRadius     = ComputeContactRadius();
 
     // Set adjusted contact properties
     if (mNeighborInContact) {
@@ -1136,17 +1134,16 @@ namespace Kratos
     
     double Rc = 0.0;
 
-    if (mNeighborType == PARTICLE_NEIGHBOR) {
-      double r1 = GetRadius();
-      double r2 = mNeighbor_p->GetRadius();
-      if (mNeighborDistance < r1 + r2)
+    if (mNeighborInContact) {
+      if (mNeighborType == PARTICLE_NEIGHBOR) {
+        double r1 = GetRadius();
+        double r2 = mNeighbor_p->GetRadius();
         Rc = sqrt(fabs(r1 * r1 - pow(((r1 * r1 - r2 * r2 + mNeighborDistance * mNeighborDistance) / (2.0 * mNeighborDistance)), 2.0)));
-    }
-    else if (mNeighborType == WALL_NEIGHBOR) {
-      double r = GetRadius();
-      double ident = r - mNeighborDistance;
-      if (ident > 0.0)
-        Rc = sqrt(ident * (2.0 * r - ident));
+      }
+      else if (mNeighborType == WALL_NEIGHBOR) {
+        double r = GetRadius();
+        Rc = sqrt(r * r - mNeighborDistance * mNeighborDistance);
+      }
     }
 
     return Rc;
