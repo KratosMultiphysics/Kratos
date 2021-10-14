@@ -93,7 +93,7 @@
 
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
-
+#include "custom_constitutive/linear_elastic_2D_beam_law.h"
 
 namespace Kratos {
 
@@ -471,6 +471,8 @@ private:
 
     const LinearElastic2DInterfaceLaw     mLinearElastic2DInterfaceLaw;
     const LinearElastic3DInterfaceLaw     mLinearElastic3DInterfaceLaw;
+
+    const LinearElastic2DBeamLaw          mLinearElastic2DBeamLaw;
 
     /// Assignment operator.
     KratosGeoMechanicsApplication& operator=(KratosGeoMechanicsApplication const& rOther);
