@@ -278,6 +278,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     //tempGradPhi = ZeroMatrix(num_dof,num_dof);
 
     BoundedMatrix<double,num_dof,num_dof> lhs = ZeroMatrix(num_dof,num_dof);
+    BoundedMatrix<double,num_dof,num_dof> lhs_Newton_Raphson = ZeroMatrix(num_dof,num_dof);
     Vector rhs = ZeroVector(num_dof);
 
     const GeometryData::IntegrationMethod integration_method = GeometryData::GI_GAUSS_2;
@@ -341,6 +342,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
 
     double diffusion = 0.0;
+    double diffusion_prime_to_s = 0.0;
 
     for (unsigned int gp = 0; gp < number_of_gauss_points; gp++){
         grad_phi_avg = ZeroVector(num_dim);
@@ -355,11 +357,19 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         //KRATOS_WATCH(norm_grad_phi_avg)
         if (norm_grad_phi_avg > 1.0){
             diffusion = 1.0/norm_grad_phi_avg;
+            diffusion_prime_to_s = -1.0/(norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg);
         } else{
-            diffusion = (3.0 - 2.0*norm_grad_phi_avg)*norm_grad_phi_avg;
+            diffusion = 1.0 - 2.0*norm_grad_phi_avg*norm_grad_phi_avg*(1.0 - norm_grad_phi_avg)*(1.0 - norm_grad_phi_avg)
+                + (1.0 - norm_grad_phi_avg)*norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg; //(3.0 - 2.0*norm_grad_phi_avg)*norm_grad_phi_avg;
+            diffusion_prime_to_s = -(4.0*(1.0 - norm_grad_phi_avg)*(1.0 - norm_grad_phi_avg)
+                + 7.0*norm_grad_phi_avg*(norm_grad_phi_avg - 1.0) + norm_grad_phi_avg*norm_grad_phi_avg );
         }
 
         for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
+            double grad_Ni_dot_grad_phi = 0.0;
+            for (unsigned int k_dim = 0; k_dim < num_dim; k_dim++){
+                grad_Ni_dot_grad_phi += (DN_DX[gp])(i_node, k_dim) * grad_phi_avg[k_dim];
+            }
             for (unsigned int j_node = 0; j_node < num_nodes; j_node++){
                 //tempPhi: LHS associated with the dissipative smoother
                 //tempPhi(i_node*(num_dim + 1) + 0, j_node*(num_dim + 1) + 0) +=
@@ -369,6 +379,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                 //rhs(i_node*(num_dim + 1) + 0) +=
                 //    weights(gp) /* * (1/dissipative_coefficient) */ * distances0(j_node) * N(gp, j_node) * N(gp, i_node);
 
+                double grad_Nj_dot_grad_phi = 0.0;
                 for (unsigned int k_dim = 0; k_dim < num_dim; k_dim++){
 
                     //tempPhi: LHS for the first 4 rows
@@ -395,10 +406,16 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                     //     weights(gp) * N(gp, i_node) * (DN_DX[gp])(j_node, k_dim);
 
                     lhs(i_node, j_node) += weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
+                    grad_Nj_dot_grad_phi += (DN_DX[gp])(j_node, k_dim) * grad_phi_avg[k_dim];
 
                     if (step > 1){
+                        // move to the LHS for Newton-Raphson strategy:
                         rhs[i_node] += diffusion * weights(gp) * (DN_DX[gp])(i_node, k_dim) * N(gp, j_node) * grad_phi_avg[k_dim];//grad_phi[k_dim];//
+                        //lhs(i_node, j_node) += - diffusion * weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
                     }
+                }
+                if (step > 1){
+                    lhs_Newton_Raphson(i_node, j_node) -= diffusion_prime_to_s * weights(gp) * grad_Ni_dot_grad_phi * grad_Nj_dot_grad_phi;
                 }
             }
         }
@@ -632,8 +649,8 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         }
     }
 
-    noalias(rLeftHandSideMatrix) = lhs;// tempPhi + tempGradPhi;
-    noalias(rRightHandSideVector) = rhs - prod(rLeftHandSideMatrix,values); // Reducing the contribution of the last known values
+    noalias(rLeftHandSideMatrix) = lhs + lhs_Newton_Raphson;// tempPhi + tempGradPhi;
+    noalias(rRightHandSideVector) = rhs - prod(lhs,values); // Reducing the contribution of the last known values
 
     KRATOS_CATCH("");
 }
