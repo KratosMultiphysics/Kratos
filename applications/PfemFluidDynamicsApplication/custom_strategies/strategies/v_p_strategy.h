@@ -402,8 +402,7 @@ namespace Kratos
       for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
            i != rModelPart.NodesEnd(); ++i)
       {
-        //if (i->IsNot(RIGID))
-        //{
+
         array_1d<double, 3> &CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 0);
         array_1d<double, 3> &PreviousVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
 
@@ -420,7 +419,6 @@ namespace Kratos
         CurrentDisplacement[2] = 0.5 * TimeStep * (CurrentVelocity[2] + PreviousVelocity[2]) + PreviousDisplacement[2];
 
         // currentFluidFractionRate = (currentFluidFraction - previousFluidFraction)/TimeStep;
-        //}
       }
     }
 
