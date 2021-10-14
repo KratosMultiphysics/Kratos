@@ -212,11 +212,8 @@ namespace Kratos
   if (CheckAdiabaticNeighbor())
     return;
 
-  // Set distance between particles centroids
-  SetDistanceToNeighbor();
-
-  // Compute adjusted or simulated contact radius
-  ComputeAdjustedContactRadius(r_process_info);
+  // Compute simulated or adjusted interaction properties
+  ComputeInteractionProps(r_process_info);
 
   // Heat transfer mechanisms
   if (this->Is(DEMFlags::HAS_DIRECT_CONDUCTION))   ComputeDirectConductionHeatFlux(r_process_info);
@@ -227,23 +224,39 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::ComputeAdjustedContactRadius(const ProcessInfo& r_process_info) {
+  void ThermalSphericParticle<TBaseElement>::ComputeInteractionProps(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    if (!CheckSurfaceDistance(0.0)) {
-      // Non-contact
-      mContactRadius = 0.0;
-    }
-    else if (this->Is(DEMFlags::HAS_ADJUSTED_CONTACT)) {
-      // Compute adjusted contact radius according to selected model
-      std::string model = r_process_info[ADJUSTED_CONTACT_MODEL];
+    // Set simulated properties
+    mNeighborDistance = ComputeDistanceToNeighbor();
+    mContactRadius    = ComputeContactRadius();
 
-      if (model.compare("zhou") == 0) mContactRadius = AdjustedContactRadiusZhou(r_process_info);
-      if (model.compare("lu")   == 0) mContactRadius = AdjustedContactRadiusLu(r_process_info);
+    // Set contact interaction flag
+    mIsContact = CheckSurfaceDistance(0.0);
+
+    // Set adjusted contact properties
+    if (mIsContact) {
+
+      // Non adjusted contact
+      if (!this->Is(DEMFlags::HAS_ADJUSTED_CONTACT)) {
+        mNeighborDistanceAdjusted = mNeighborDistance;
+        mContactRadiusAdjusted    = mContactRadius;
+      }
+
+      // Adjusted contact
+      else {
+        // Compute adjusted contact radius according to selected model
+        std::string model = r_process_info[ADJUSTED_CONTACT_MODEL];
+        if (model.compare("zhou") == 0) mContactRadiusAdjusted = AdjustedContactRadiusZhou(r_process_info);
+        if (model.compare("lu")   == 0) mContactRadiusAdjusted = AdjustedContactRadiusLu(r_process_info);
+
+        // Compute adjusted distance from adjusted contact radius
+        mNeighborDistanceAdjusted = ComputeDistanceToNeighborAdjusted();
+      }
     }
     else {
-      // Compute simulated contact radius
-      mContactRadius = ComputeContactRadius();
+      mNeighborDistanceAdjusted = mNeighborDistance;
+      mContactRadiusAdjusted    = mContactRadius;
     }
 
     KRATOS_CATCH("")
@@ -254,7 +267,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Check for contact
-    if (!CheckSurfaceDistance(0.0))
+    if (!mIsContact)
       return;
 
     // Compute heat flux according to selected model
@@ -385,6 +398,8 @@ namespace Kratos
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::DirectConductionCollisional(const ProcessInfo& r_process_info) {
     KRATOS_TRY
+
+    // TODO: Decide which Young modulus to use when computing parameters: simulation or real?
 
     // TODO: track collision time and save impact velocity
     double col_time = 0.0;
@@ -656,7 +671,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Check for contact
-    if (!CheckSurfaceDistance(0.0))
+    if (!mIsContact)
       return 0.0;
 
     // Assumption 1: Formulation for a liquid (not gas) as the interstitial fluid is being used
@@ -774,8 +789,8 @@ namespace Kratos
     double eff_young      = ComputeEffectiveYoung();
     double eff_young_real = ComputeEffectiveYoungReal();
 
-    // Real value of contact radius
-    return ComputeContactRadius() * pow(eff_young / eff_young_real, 0.2);
+    // Adjusted value of contact radius
+    return mContactRadius * pow(eff_young / eff_young_real, 0.2);
 
     KRATOS_CATCH("")
   }
@@ -795,8 +810,8 @@ namespace Kratos
     double stiff      = 4.0 / 3.0 * sqrt(eff_radius) * eff_young;
     double stiff_real = 4.0 / 3.0 * sqrt(eff_radius) * eff_young_real;
 
-    // Real value of contact radius
-    return pow(ComputeContactRadius() * stiff / stiff_real, 2.0/3.0);
+    // Adjusted value of contact radius
+    return pow(mContactRadius * stiff / stiff_real, 2.0/3.0);
 
     KRATOS_CATCH("")
   }
@@ -994,37 +1009,11 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::SetDistanceToNeighbor() {
+  bool ThermalSphericParticle<TBaseElement>::CheckAdiabaticNeighbor(void) {
     KRATOS_TRY
 
-    if (mNeighborType == PARTICLE_NEIGHBOR) {
-      array_1d<double, 3> direction;
-      direction[0] = GetGeometry()[0].Coordinates()[0] - mNeighbor_p->GetGeometry()[0].Coordinates()[0];
-      direction[1] = GetGeometry()[0].Coordinates()[1] - mNeighbor_p->GetGeometry()[0].Coordinates()[1];
-      direction[2] = GetGeometry()[0].Coordinates()[2] - mNeighbor_p->GetGeometry()[0].Coordinates()[2];
-      mNeighborDistance = DEM_MODULUS_3(direction);
-    }
-    else if (mNeighborType == WALL_NEIGHBOR) {
-      // Stolen from ComputeBallToRigidFaceContactForce in spheric_particle
-      //double dummy1[3][3];
-      //DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
-      //array_1d<double, 4> dummy2 = this->mContactConditionWeights[i];
-      //array_1d<double, 3> dummy3 = ZeroVector(3);
-      //array_1d<double, 3> dummy4 = ZeroVector(3);
-      //int dummy5 = -1;
-      //double distance = 0.0;
-      //mNeighbor_w->ComputeConditionRelativeData(i, this, dummy1, distance, dummy2, dummy3, dummy4, dummy5);
-      //mNeighborDistance = distance;
-
-      // Stolen from ComputeBallToRigidFaceContactForce in spheric_particle
-      array_1d<double, 3> cond_to_me_vect;
-      array_1d<double, 3> wall_coordinates = mNeighbor_w->GetGeometry().Center();
-      noalias(cond_to_me_vect) = GetGeometry()[0].Coordinates() - wall_coordinates;
-      mNeighborDistance = DEM_MODULUS_3(cond_to_me_vect);
-    }
-    else {
-      mNeighborDistance = 0.0;
-    }
+    return ((mNeighborType == PARTICLE_NEIGHBOR && mNeighbor_p->Is(DEMFlags::IS_ADIABATIC)) ||
+            (mNeighborType == WALL_NEIGHBOR     && mNeighbor_w->Is(DEMFlags::IS_ADIABATIC)));
 
     KRATOS_CATCH("")
   }
@@ -1044,11 +1033,57 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  bool ThermalSphericParticle<TBaseElement>::CheckAdiabaticNeighbor(void) {
+  double ThermalSphericParticle<TBaseElement>::ComputeDistanceToNeighbor() {
     KRATOS_TRY
 
-    return ((mNeighborType == PARTICLE_NEIGHBOR && mNeighbor_p->Is(DEMFlags::IS_ADIABATIC)) ||
-            (mNeighborType == WALL_NEIGHBOR     && mNeighbor_w->Is(DEMFlags::IS_ADIABATIC)));
+    if (mNeighborType == PARTICLE_NEIGHBOR) {
+      array_1d<double, 3> direction;
+      direction[0] = GetGeometry()[0].Coordinates()[0] - mNeighbor_p->GetGeometry()[0].Coordinates()[0];
+      direction[1] = GetGeometry()[0].Coordinates()[1] - mNeighbor_p->GetGeometry()[0].Coordinates()[1];
+      direction[2] = GetGeometry()[0].Coordinates()[2] - mNeighbor_p->GetGeometry()[0].Coordinates()[2];
+      return DEM_MODULUS_3(direction);
+    }
+    else if (mNeighborType == WALL_NEIGHBOR) {
+      // Stolen from ComputeBallToRigidFaceContactForce in spheric_particle
+      //double dummy1[3][3];
+      //DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
+      //array_1d<double, 4> dummy2 = this->mContactConditionWeights[i];
+      //array_1d<double, 3> dummy3 = ZeroVector(3);
+      //array_1d<double, 3> dummy4 = ZeroVector(3);
+      //int dummy5 = -1;
+      //double distance = 0.0;
+      //mNeighbor_w->ComputeConditionRelativeData(i, this, dummy1, distance, dummy2, dummy3, dummy4, dummy5);
+      //mNeighborDistance = distance;
+
+      // Stolen from ComputeBallToRigidFaceContactForce in spheric_particle
+      array_1d<double, 3> cond_to_me_vect;
+      array_1d<double, 3> wall_coordinates = mNeighbor_w->GetGeometry().Center();
+      noalias(cond_to_me_vect) = GetGeometry()[0].Coordinates() - wall_coordinates;
+      return DEM_MODULUS_3(cond_to_me_vect);
+    }
+    else {
+      return 0.0;
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ComputeDistanceToNeighborAdjusted() {
+    KRATOS_TRY
+
+    if (mNeighborType == PARTICLE_NEIGHBOR) {
+      double r1 = GetRadius();
+      double r2 = mNeighbor_p->GetRadius();
+      return sqrt(r1 * r1 - mContactRadiusAdjusted * mContactRadiusAdjusted) + sqrt(r2 * r2 - mContactRadiusAdjusted * mContactRadiusAdjusted);
+    }
+    else if (mNeighborType == WALL_NEIGHBOR) {
+      double r = GetRadius();
+      return sqrt(r * r - mContactRadiusAdjusted * mContactRadiusAdjusted);
+    }
+    else {
+      return 0.0;
+    }
 
     KRATOS_CATCH("")
   }
@@ -1115,16 +1150,12 @@ namespace Kratos
       double r2 = mNeighbor_p->GetRadius();
       if (mNeighborDistance < r1 + r2)
         Rc = sqrt(fabs(r1 * r1 - pow(((r1 * r1 - r2 * r2 + mNeighborDistance * mNeighborDistance) / (2.0 * mNeighborDistance)), 2.0)));
-      else
-        Rc = 0.0;
     }
     else if (mNeighborType == WALL_NEIGHBOR) {
       double r = GetRadius();
       double ident = r - mNeighborDistance;
       if (ident > 0.0)
         Rc = sqrt(ident * (2.0 * r - ident));
-      else
-        Rc = 0.0;
     }
 
     return Rc;

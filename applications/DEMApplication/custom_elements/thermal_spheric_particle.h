@@ -81,7 +81,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
 
   // Heat fluxes computation
   void ComputeHeatFluxWithNeighbor(const ProcessInfo& r_process_info);
-  void ComputeAdjustedContactRadius(const ProcessInfo& r_process_info);
+  void ComputeInteractionProps(const ProcessInfo& r_process_info);
   void ComputeDirectConductionHeatFlux(const ProcessInfo& r_process_info);
   void ComputeIndirectConductionHeatFlux(const ProcessInfo& r_process_info);
   void ComputeRadiativeHeatFlux(const ProcessInfo& r_process_info);
@@ -120,9 +120,10 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
 
   // Neighbor interaction computations
   virtual void ComputeContactArea(const double rmin, double indentation, double& calculation_area);
-  void   SetDistanceToNeighbor();
-  bool   CheckSurfaceDistance(const double radius_factor);
   bool   CheckAdiabaticNeighbor();
+  bool   CheckSurfaceDistance(const double radius_factor);
+  double ComputeDistanceToNeighbor();
+  double ComputeDistanceToNeighborAdjusted();
   double ComputeFourierNumber();
   double ComputeMaxCollisionTime();
   double ComputeMaxContactRadius();
@@ -186,15 +187,18 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double mPrescribedHeatFlux;
   double mTotalHeatFlux;
 
-  // Interaction data
+  // Neighbor data
   ThermalSphericParticle<TBaseElement>* mNeighbor_p;
   DEMWall*                              mNeighbor_w;
   int                                   mNeighborType;
-  double                                mNeighborDistance;
 
-  // Contact properties
-  double mContactRadius;
-  double mRealYoungRatio;
+  // Interaction properties
+  bool   mIsContact;                 // flag for contact interaction
+  double mRealYoungRatio;            // real value of Young modulus
+  double mContactRadius;             // simulation contact radius
+  double mNeighborDistance;          // simulation neighbor distance
+  double mContactRadiusAdjusted;     // adjusted contact radius from real Young modulus
+  double mNeighborDistanceAdjusted;  // adjusted neighbor distance from adjusted contact radius
 
   // Radiation environment-related
   int    mEnvironmentCount;
