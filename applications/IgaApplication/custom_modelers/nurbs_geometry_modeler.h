@@ -20,8 +20,8 @@
 // Project includes
 #include "modeler/modeler.h"
 #include "geometries/nurbs_volume_geometry.h"
-#include "geometries/nurbs_shape_function_utilities/nurbs_volume_utilities.h"
-#include "includes/model_part.h"
+#include "geometries/nurbs_surface_geometry.h"
+#include "geometries/nurbs_shape_function_utilities/nurbs_surface_refinement_utilities.h"
 
 namespace Kratos {
 
@@ -37,8 +37,15 @@ public:
     typedef std::size_t SizeType;
     typedef Node<3> NodeType;
 
+    typedef Geometry<NodeType> GeometryType;
+    typedef typename GeometryType::Pointer GeometryPointerType;
+
+    typedef NurbsSurfaceGeometry<2, PointerVector<NodeType>> NurbsSurfaceGeometryType;
+    typedef typename NurbsSurfaceGeometryType::Pointer NurbsSurfaceGeometryPointerType;
+
     typedef NurbsVolumeGeometry<PointerVector<NodeType>> NurbsVolumeGeometryType;
     typedef typename NurbsVolumeGeometryType::Pointer NurbsVolumeGeometryPointerType;
+
 
     ///@}
     ///@name Life Cycle
@@ -79,7 +86,8 @@ private:
     ///@{
 
     Model* mpModel;
-    NurbsVolumeGeometryPointerType mpGeometry;
+    NurbsVSurfaceGeometryPointerType mpNurbsSurfaceGeometry;
+    NurbsVolumeGeometryPointerType mpNurbsVolumeGeometry;
 
     ///@}
     ///@name Private Operations

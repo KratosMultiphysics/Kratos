@@ -11,11 +11,13 @@
 //
 
 // Project includes
-#include "nurbs_geometry_modeler.h"
 #include "includes/define.h"
+#include "nurbs_geometry_modeler.h"
+#include "geometries/nurbs_shape_function_utilities/nurbs_volume_utilities.h"
 
 namespace Kratos
 {
+
     ///@name Stages
     ///@{
 
@@ -43,13 +45,21 @@ namespace Kratos
         KRATOS_ERROR_IF( local_space_dimension != size_number_of_knot_spans )
             << "Size of given Vectors: \"polynomial_order\" and \"number_of_knot_spans\" do not match." << std::endl;
 
+        // Here add geometry and nodes to model part.
+        KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
+            << "NurbsGeometryModeler: Missing \"model_part_name\" section" << std::endl;
+
+        ModelPart& model_part = mpModel->HasModelPart(mParameters["model_part_name"].GetString()) ?
+            mpModel->GetModelPart(mParameters["model_part_name"].GetString()) :
+            mpModel->CreateModelPart(mParameters["model_part_name"].GetString());
+
         if( local_space_dimension == 2) {
             SizeType p_u =  mParameters["polynomial_order"].GetArrayItem(0).GetInt();
             SizeType p_v =  mParameters["polynomial_order"].GetArrayItem(1).GetInt();
             SizeType num_knot_span_u =  mParameters["number_of_knot_spans"].GetArrayItem(0).GetInt();
             SizeType num_knot_span_v =  mParameters["number_of_knot_spans"].GetArrayItem(1).GetInt();
 
-            CreateGeometry2D(point_a, point_b, p_u, p_v, num_knot_span_u, num_knot_span_v)
+            CreateGeometry2D(point_a, point_b, p_u, p_v, num_knot_span_u, num_knot_span_v);
         }
         else if( local_space_dimension == 3) {
             SizeType p_u =  mParameters["polynomial_order"].GetArrayItem(0).GetInt();
@@ -65,27 +75,106 @@ namespace Kratos
             KRATOS_ERROR << "Nurbs Geometry Modeler is not yet implemented for 1D and 2D geometries." << std::endl;
         }
 
-        // Here add geometry and nodes to model part.
-        KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
-            << "NurbsGeometryModeler: Missing \"model_part_name\" section" << std::endl;
 
-        ModelPart& model_part = mpModel->HasModelPart(mParameters["model_part_name"].GetString()) ?
-            mpModel->GetModelPart(mParameters["model_part_name"].GetString()) :
-            mpModel->CreateModelPart(mParameters["model_part_name"].GetString());
 
         const SizeType number_of_geometries = model_part.NumberOfGeometries();
-        mpGeometry->SetId(number_of_geometries+1);
-        model_part.AddGeometry(mpGeometry);
+        // if( )
+        // mpGeometry->SetId(number_of_geometries+1);
+        // model_part.AddGeometry(mpGeometry);
 
-        for( IndexType i = 0; i < mpGeometry->size(); ++i){
-            mpGeometry->pGetPoint(i)->SetSolutionStepVariablesList(model_part.pGetNodalSolutionStepVariablesList());
-            model_part.AddNode(mpGeometry->pGetPoint(i),0);
+        // for( IndexType i = 0; i < mpGeometry->size(); ++i){
+        //     mpGeometry->pGetPoint(i)->SetSolutionStepVariablesList(model_part.pGetNodalSolutionStepVariablesList());
+        //     model_part.AddNode(mpGeometry->pGetPoint(i),0);
         }
     }
 
     ///@}
     ///@name Private Operations
     ///@{
+    void NurbsGeometryModeler::CreateGeometry2D( const Point& A, const Point& B, SizeType OrderU, SizeType OrderV,
+            SizeType NumKnotSpansU, SizeType NumKnotSpansV)
+    {
+        KRATOS_ERROR_IF( B.X() <= A.X() || B.Y() <= A.Y() ) << "NurbsGeometryModeler: "
+            << "The two Points A and B must meet the following requirement: (B-A) > (0,0,0). However, (B-A)=" << B-A << std::endl;
+
+        PointerVector<NodeType> points;
+        double delta_x = std::abs(B.X()-A.X())/OrderU;
+        double delta_y = std::abs(B.Y()-A.Y())/OrderV;
+
+        double x = A.X();
+        double y = A.Y();
+
+        IndexType node_id = 1;
+        for( IndexType j=0; j < OrderV+1; ++j){
+            for( IndexType i = 0; i < OrderU+1; ++i){
+                points.push_back(Kratos::make_intrusive<NodeType>(node_id, x, y, 0.0 ));
+                x += delta_x;
+                node_id++;
+            }
+            x = A.X();
+            y += delta_y;
+        }
+
+        // Set up knot vectors according to the given polynomial degree p.
+        SizeType number_of_knots_u = 2*OrderU;
+        Vector knot_vector_u(number_of_knots_u);
+        for( IndexType i=0; i < number_of_knots_u; ++i){
+            if( i < OrderU ){
+                knot_vector_u[i] = 0.0;
+            } else {
+                knot_vector_u[i] = 1.0;
+            }
+        }
+        SizeType number_of_knots_v = 2*OrderV;
+        Vector knot_vector_v(number_of_knots_v);
+        for( IndexType i=0; i < number_of_knots_v; ++i){
+            if( i < OrderV ){
+                knot_vector_v[i] = 0.0;
+            } else {
+                knot_vector_v[i] = 1.0;
+            }
+        }
+
+        // Create trivariant nurbs cube.
+        mpNurbsSurfaceGeometry = Kratos::make_shared<NurbsSurfaceGeometryType>(
+            points, OrderU, OrderV, knot_vector_u, knot_vector_v);
+
+        // Set up knots for knot refinement according to the given number of elements in each direction.
+        double delta_knot_u = 1.0 / NumKnotSpansU;
+        double knot_u = 0.0;
+        std::vector<double> insert_knots_u(NumKnotSpansU-1);
+        for( IndexType i = 0; i < NumKnotSpansU-1; i++){
+            knot_u += delta_knot_u;
+            insert_knots_u[i] = knot_u;
+        }
+
+        double delta_knot_v = 1.0 / NumKnotSpansV;
+        double knot_v = 0.0;
+        std::vector<double> insert_knots_v(NumKnotSpansV-1);
+        for( IndexType i = 0; i < NumKnotSpansV-1; i++){
+            knot_v += delta_knot_v;
+            insert_knots_v[i] = knot_v;
+        }
+
+        // Perform knot refinement.
+        if( NumKnotSpansU > 1) {
+            PointerVector<NodeType> PointsRefined;
+            Vector KnotsURefined;
+            Vector WeightsRefined;
+
+            NurbsSurfaceRefinementUtilities::KnotRefinementU( *mpNurbsSurfaceGeometry, insert_knots_u,
+                PointsRefined, KnotsURefined, WeightsRefined);
+
+            mpNurbsSurfaceGeometry->SetInternals(PointsRefined,
+                mpNurbsSurfaceGeometry->PolynomialDegreeU(), mpNurbsSurfaceGeometry->PolynomialDegreeV(),
+                KnotsURefined, mpNurbsSurfaceGeometry->KnotsV(),
+                WeightsRefined);
+        }
+        // if( NumKnotSpansV > 1) {
+        //     mpGeometry = NurbsVolumeUtilities::KnotRefinementV(*mpGeometry, insert_knots_v);
+        // }
+    }
+
 
     void NurbsGeometryModeler::CreateGeometry3D( const Point& A, const Point& B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
         SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW )
@@ -147,7 +236,7 @@ namespace Kratos
         }
 
         // Create trivariant nurbs cube.
-        mpGeometry = Kratos::make_shared<NurbsVolumeGeometryType>(
+        mpNurbsVolumeGeometry = Kratos::make_shared<NurbsVolumeGeometryType>(
             points, OrderU, OrderV, OrderW, knot_vector_u, knot_vector_v, knot_vector_w);
 
         // Set up knots for knot refinement according to the given number of elements in each direction.
@@ -177,13 +266,13 @@ namespace Kratos
 
         // Perform knot refinement.
         if( NumKnotSpansU > 1) {
-            mpGeometry = NurbsVolumeUtilities::KnotRefinementU(*mpGeometry, insert_knots_u);
+            mpNurbsVolumeGeometry = NurbsVolumeUtilities::KnotRefinementU(*mpNurbsVolumeGeometry, insert_knots_u);
         }
         if( NumKnotSpansV > 1) {
-            mpGeometry = NurbsVolumeUtilities::KnotRefinementV(*mpGeometry, insert_knots_v);
+            mpNurbsVolumeGeometry = NurbsVolumeUtilities::KnotRefinementV(*mpNurbsVolumeGeometry, insert_knots_v);
         }
         if( NumKnotSpansW > 1) {
-            mpGeometry = NurbsVolumeUtilities::KnotRefinementW(*mpGeometry, insert_knots_w);
+            mpNurbsVolumeGeometry = NurbsVolumeUtilities::KnotRefinementW(*mpNurbsVolumeGeometry, insert_knots_w);
         }
     }
     ///@}
