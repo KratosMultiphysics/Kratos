@@ -25,10 +25,18 @@ namespace Kratos
         // Get bounding box
         KRATOS_ERROR_IF_NOT(mParameters.Has("lower_point"))
             << "NurbsGeometryModeler: Missing \"lower_point\" section" << std::endl;
+
+        KRATOS_ERROR_IF_NOT( mParameters["lower_point"].GetVector().size() == 3 )
+            << "NurbsGeometryModeler: \"lower_point\" must be defined in 3 dimensions." << std::endl;
+
         Point point_a(mParameters["lower_point"].GetVector());
 
         KRATOS_ERROR_IF_NOT(mParameters.Has("upper_point"))
             << "NurbsGeometryModeler: Missing \"upper_point\" section" << std::endl;
+
+        KRATOS_ERROR_IF_NOT( mParameters["upper_point"].GetVector().size() == 3 )
+            << "NurbsGeometryModeler: \"upper_point\" must be defined in 3 dimensions." << std::endl;
+
         Point point_b(mParameters["upper_point"].GetVector());
 
         // Get polynomial order and number of knotspans
