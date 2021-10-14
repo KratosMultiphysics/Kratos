@@ -1,5 +1,5 @@
 ---
-name: TODO
+name: ✔️ TODO
 about: List of things that are pending TO DO
 ---
 

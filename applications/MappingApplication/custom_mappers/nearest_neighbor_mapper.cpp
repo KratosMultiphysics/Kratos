@@ -21,16 +21,16 @@
 #include "nearest_neighbor_mapper.h"
 #include "mapping_application_variables.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
-void NearestNeighborInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject,
-                                                      const double NeighborDistance)
+void NearestNeighborInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject)
 {
     SetLocalSearchWasSuccessful();
 
-    if (NeighborDistance < mNearestNeighborDistance) {
-        mNearestNeighborDistance = NeighborDistance;
+    const double neighbor_distance = MapperUtilities::ComputeDistance(this->Coordinates(), rInterfaceObject.Coordinates());
+
+    if (neighbor_distance < mNearestNeighborDistance) {
+        mNearestNeighborDistance = neighbor_distance;
         mNearestNeighborId = rInterfaceObject.pGetBaseNode()->GetValue(INTERFACE_EQUATION_ID);
     }
 }

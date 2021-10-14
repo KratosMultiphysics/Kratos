@@ -225,11 +225,11 @@ namespace MPMParticleGeneratorUtility
         const unsigned int number_nodes = rBackgroundGridModelPart.NumberOfNodes();
         unsigned int last_condition_id;
         if (number_elements > number_nodes && number_elements > number_conditions)
-            last_condition_id = number_elements + 1;
+            last_condition_id = number_elements;
         else if (number_nodes > number_elements && number_nodes > number_conditions)
-            last_condition_id = number_nodes + 1;
+            last_condition_id = number_nodes;
         else
-            last_condition_id = number_conditions + 1;
+            last_condition_id = number_conditions;
 
         BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
         SearchStructure.UpdateSearchDatabase();
@@ -391,6 +391,7 @@ namespace MPMParticleGeneratorUtility
                             // Mark as boundary condition
                             p_condition->Set(BOUNDARY, true);
                             
+                            last_condition_id += 1;
 
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
@@ -423,7 +424,7 @@ namespace MPMParticleGeneratorUtility
                                     mpc_area[0]);
 
                                 // Create new material point condition
-                                new_condition_id = last_condition_id + point_number;
+                                new_condition_id = last_condition_id + point_number +1 ;
                                 Condition::Pointer p_condition = new_condition.Create(new_condition_id, p_new_geometry, properties);
 
                                 ProcessInfo process_info = ProcessInfo();

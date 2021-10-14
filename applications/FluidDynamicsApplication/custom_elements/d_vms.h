@@ -304,7 +304,7 @@ protected:
 
     // Implementation details of DVMS /////////////////////////////////////////
 
-    void AddMassStabilization(
+    virtual void AddMassStabilization(
         TElementData& rData,
         MatrixType& rMassMatrix);
 
@@ -325,10 +325,10 @@ protected:
         const TElementData& rData,
         double &rPressureSubscale) const override;
 
-    array_1d<double,3> FullConvectiveVelocity(
+    virtual array_1d<double,3> FullConvectiveVelocity(
         const TElementData& rData) const;
 
-    void UpdateSubscaleVelocityPrediction(
+    virtual void UpdateSubscaleVelocityPrediction(
         const TElementData& rData);
     ///@}
     ///@name Protected  Access

@@ -192,6 +192,7 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_MODELER("Modeler", mModeler);
     KRATOS_REGISTER_MODELER("CadIoModeler", mCadIoModeler);
     KRATOS_REGISTER_MODELER("CadTessellationModeler", mCadTessellationModeler);
+    KRATOS_REGISTER_MODELER("SerialModelPartCombinatorModeler", mSerialModelPartCombinatorModeler);
 
     // Register general geometries:
     // Point register:

@@ -64,11 +64,9 @@ public:
         return InterfaceObject::ConstructionType::Geometry_Center;
     }
 
-    void ProcessSearchResult(const InterfaceObject& rInterfaceObject,
-                             const double NeighborDistance) override;
+    void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
 
-    void ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject,
-                                             const double NeighborDistance) override;
+    void ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject) override;
 
     void GetValue(std::vector<int>& rValue,
                   const InfoType ValueType) const override
@@ -143,6 +141,11 @@ public:
     CoordinatesArrayType& Coordinates() const override
     {
         return mpNode->Coordinates();
+    }
+
+    MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
+    {
+        return Kratos::make_unique<NearestElementLocalSystem>(pNode);
     }
 
     /// Turn back information as a string.
@@ -268,7 +271,8 @@ private:
         const Communicator& rModelPartCommunicator,
         std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) override
     {
-        MapperUtilities::CreateMapperLocalSystemsFromNodes<NearestElementLocalSystem>(
+        MapperUtilities::CreateMapperLocalSystemsFromNodes(
+            NearestElementLocalSystem(nullptr),
             rModelPartCommunicator,
             rLocalSystems);
     }

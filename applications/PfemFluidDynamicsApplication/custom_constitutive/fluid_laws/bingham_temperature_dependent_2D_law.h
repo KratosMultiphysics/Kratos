@@ -87,7 +87,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) BinghamTemperatureDependent2DL
      * @return
      */
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) override;
+              const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Input and output
