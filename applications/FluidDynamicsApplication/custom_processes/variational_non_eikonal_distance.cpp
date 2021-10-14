@@ -105,6 +105,52 @@ void VariationalNonEikonalDistance::Execute()
 
     double distance_min = 1.0e10;
     unsigned int node_nearest = 0;
+    //#pragma omp parallel for
+    for (unsigned int k = 0; k < NumNodes; ++k) {
+        auto it_node = mrModelPart.NodesBegin() + k;
+
+        const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
+
+        if (abs(distance) < 1.0e-12){
+            it_node->Fix(DISTANCE_AUX2);
+        } else {
+            it_node->Free(DISTANCE_AUX2);
+        }
+
+        /* if (abs(distance) < distance_min){
+            #pragma omp critical
+            distance_min = abs(distance);
+            #pragma omp critical
+            node_nearest = k;
+        } */
+    }
+
+    double h_min = 1.0e12;
+    #pragma omp parallel for
+    for(unsigned int i = 0; i < mrModelPart.Elements().size(); i++){
+        auto it_elem = mrModelPart.ElementsBegin() + i;
+        auto& geom = it_elem->GetGeometry();
+
+        const double he = ElementSizeCalculator<3,4>::AverageElementSize(geom);
+        if (he < h_min){
+            #pragma omp critical
+            h_min = he;
+        }
+
+        unsigned int n_pos = 0;
+        for (int geom_node=0; geom_node<num_nodes; ++geom_node){
+            auto& distance_i = geom[geom_node].FastGetSolutionStepValue(DISTANCE);
+            if (distance_i > 0){
+                n_pos++;
+            }
+        }
+        /* if (n_pos < num_nodes && n_pos > 0){
+            for (int geom_node=0; geom_node<num_nodes; ++geom_node){
+                #pragma omp critical
+                geom[geom_node].Fix(DISTANCE_AUX2);
+            }
+        } */
+    }
 
     #pragma omp parallel for
     for (unsigned int k = 0; k < NumNodes; ++k) {
@@ -112,27 +158,18 @@ void VariationalNonEikonalDistance::Execute()
         it_node->SetValue(NODAL_AREA, 0.0);
 
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
-        it_node->FastGetSolutionStepValue(DISTANCE_AUX2) = distance;
 
         auto it_node_redistancing = r_redistancing_model_part.NodesBegin() + k;
-        if (it_node->GetValue(IS_STRUCTURE) == 1.0){//if (it_node->IsFixed(DISTANCE)){//
-            it_node_redistancing->Fix(DISTANCE_AUX2);
-            it_node->Fix(DISTANCE_AUX2);
-            it_node->FastGetSolutionStepValue(FLAG_VARIABLE) = 543;
-        } else {
-            it_node_redistancing->Free(DISTANCE_AUX2);
-            it_node->Free(DISTANCE_AUX2);
-            it_node->FastGetSolutionStepValue(FLAG_VARIABLE) = -345;
+
+        if (!it_node->IsFixed(DISTANCE_AUX2)){
+            if (distance > 0.0){
+                it_node->FastGetSolutionStepValue(DISTANCE_AUX2) = 1.0*h_min;
+            } else{
+                it_node->FastGetSolutionStepValue(DISTANCE_AUX2) = -1.0*h_min;
+            }
         }
 
         it_node->Set(BOUNDARY,false);
-
-        if (abs(distance) < distance_min){
-            #pragma omp critical
-            distance_min = abs(distance);
-            #pragma omp critical
-            node_nearest = k;
-        }
     }
 
     //KRATOS_WATCH(node_nearest)
@@ -158,6 +195,22 @@ void VariationalNonEikonalDistance::Execute()
     KRATOS_INFO("VariationalNonEikonalDistance") << "Reconstruction of levelset, LSE is solved" << std::endl;
 
     r_redistancing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
+
+    /* #pragma omp parallel for
+    for (unsigned int k = 0; k < NumNodes; ++k) {
+        auto it_node = mrModelPart.NodesBegin() + k;
+        auto it_node_redistancing = r_redistancing_model_part.NodesBegin() + k;
+
+        if (it_node->IsFixed(DISTANCE)){//(it_node->GetValue(IS_STRUCTURE) == 1.0){//
+            it_node_redistancing->Fix(DISTANCE_AUX2);
+            it_node->Fix(DISTANCE_AUX2);
+            it_node->FastGetSolutionStepValue(FLAG_VARIABLE) = 543;
+        } else {
+            it_node_redistancing->Free(DISTANCE_AUX2);
+            it_node->Free(DISTANCE_AUX2);
+            it_node->FastGetSolutionStepValue(FLAG_VARIABLE) = -345;
+        }
+    } */
 
     for (unsigned iter = 0; iter < 5; ++iter){
         mpGradientCalculator->Execute(); // To provide the initial condition for DISTANCE_GRADIENT

@@ -162,8 +162,9 @@ void SurfaceSmoothingProcess::Execute()
         it_node->Set(BOUNDARY,false);
     }
 
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (auto it_cond = mrModelPart.ConditionsBegin(); it_cond != mrModelPart.ConditionsEnd(); ++it_cond){
+        //it_cond->Set(BOUNDARY,true);
         Geometry< Node<3> >& geom = it_cond->GetGeometry();
         for(unsigned int i=0; i<geom.size(); i++){
             geom[i].Set(BOUNDARY,true);

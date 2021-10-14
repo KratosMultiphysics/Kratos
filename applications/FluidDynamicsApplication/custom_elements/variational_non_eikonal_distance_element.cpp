@@ -21,6 +21,7 @@
 
 // Project includes
 #include "custom_elements/variational_non_eikonal_distance_element.h"
+#include "custom_utilities/element_size_calculator.h"
 
 namespace Kratos
 {
@@ -250,10 +251,12 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     const int num_nodes  = num_dim + 1;
     const int num_dof = num_nodes; //(num_dim + 1)*num_nodes;
 
+    const double element_size = ElementSizeCalculator<3,4>::AverageElementSize(this->GetGeometry());
+
     //const double tau = 0.5;
     //const double penalty_curvature = 0.0;//1.0e-3; // Not possible for curvature itself since normalized DISTANCE_GRADIENT is needed.
-    const double penalty_phi0 = 1.0e8;//0.0;//
-    const double source_coeff = 1.0e2;
+    const double penalty_phi0 = 1.0e9;//0.0;//
+    const double source_coeff = 3.0/(8.0*element_size);//1.0e0; //Usually we have ~10 elements across a Radius
     //const double dissipative_coefficient = 1.0e-8;
 
     GeometryData::ShapeFunctionsGradientsType DN_DX;
@@ -265,7 +268,9 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     Vector distances0(num_nodes);
     //Matrix distance_gradient0(num_nodes, num_dim);
     Vector values(num_dof);
-    VectorType grad_phi_avg;
+    VectorType grad_phi_avg;    //Recovered (lumped-mass) gradient
+    VectorType grad_phi_old;    //Based on the unmodified DISTANCE
+    VectorType grad_phi;        //Standard gradient
 
     //BoundedMatrix<double,num_dof,num_dof> tempPhi; // Only the 4 rows associated with Phi will be filled
     //tempPhi = ZeroMatrix(num_dof,num_dof);
@@ -342,8 +347,11 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
             grad_phi_avg += GetGeometry()[i_node].GetValue(DISTANCE_GRADIENT)*N(gp, i_node);
         }
+        grad_phi = prod(trans(DN_DX[gp]),values);
+        grad_phi_old = prod(trans(DN_DX[gp]),distances0);
 
         const double norm_grad_phi_avg = norm_2(grad_phi_avg);
+
         //KRATOS_WATCH(norm_grad_phi_avg)
         if (norm_grad_phi_avg > 1.0){
             diffusion = 1.0/norm_grad_phi_avg;
@@ -389,7 +397,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                     lhs(i_node, j_node) += weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
 
                     if (step > 1){
-                        rhs[i_node] += diffusion * weights(gp) * (DN_DX[gp])(i_node, k_dim) * N(gp, j_node) * grad_phi_avg[k_dim];
+                        rhs[i_node] += diffusion * weights(gp) * (DN_DX[gp])(i_node, k_dim) * N(gp, j_node) * grad_phi_avg[k_dim];//grad_phi[k_dim];//
                     }
                 }
             }
@@ -432,7 +440,8 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
             for (unsigned int pos_gp = 0; pos_gp < number_of_pos_gauss_points; pos_gp++){
                 for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
                     //rhs(i_node*(num_dim + 1) + 0) += pos_weights(pos_gp) * pos_N(pos_gp, i_node);
-                    rhs(i_node) += source_coeff * pos_weights(pos_gp) * pos_N(pos_gp, i_node);
+                    rhs(i_node) += 0.0;//source_coeff * pos_weights(pos_gp) * pos_N(pos_gp, i_node);
+                    // There is no need for the positive source term
                 }
             }
 
@@ -447,93 +456,179 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
             for (unsigned int neg_gp = 0; neg_gp < number_of_neg_gauss_points; neg_gp++){
                 for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
                     //rhs(i_node*(num_dim + 1) + 0) -= neg_weights(neg_gp) * neg_N(neg_gp, i_node);
-                    rhs(i_node) -= 1.0e2 * source_coeff * neg_weights(neg_gp) * neg_N(neg_gp, i_node);
+                    rhs(i_node) -= 1.0e0 * source_coeff * neg_weights(neg_gp) * neg_N(neg_gp, i_node);
                 }
             }
-        }
+        } //else{
 
-        //KRATOS_INFO("VariationalNonEikonalDistanceElement") << "Here 4" << std::endl;
+            //KRATOS_INFO("VariationalNonEikonalDistanceElement") << "Here 4" << std::endl;
 
-        p_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
-            int_N,
-            int_DN_DX,
-            int_weights,
-            integration_method);
+            p_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
+                int_N,
+                int_DN_DX,
+                int_weights,
+                integration_method);
 
-        const std::size_t number_of_int_gauss_points = int_weights.size();
+            const std::size_t number_of_int_gauss_points = int_weights.size();
 
-        for (unsigned int int_gp = 0; int_gp < number_of_int_gauss_points; int_gp++){
-            for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
-                for (unsigned int j_node = 0; j_node < num_nodes; j_node++){
-                    //tempPhi: LHS for 4 rows associated with Phi
-                    // tempPhi(i_node*(num_dim + 1) + 0, j_node*(num_dim + 1) + 0) +=
-                    //     penalty_phi0 * int_weights(int_gp) * int_N(int_gp, i_node) * int_N(int_gp, j_node);
-
-                    /* for (unsigned int k_dim = 0; k_dim < num_dim; k_dim++){
-                        //tempGradPhi: LHS for 3*4 rows associated with GradPhi
-                        // tempGradPhi(i_node*(num_dim + 1) + k_dim + 1, j_node*(num_dim + 1) + k_dim + 1) +=
-                        //     penalty_curvature * int_weights(int_gp) * int_N(int_gp, i_node) * (int_DN_DX[int_gp])(j_node,k_dim);
-
-                        // rhs(i_node*(num_dim + 1) + k_dim + 1) +=
-                        //     penalty_curvature*int_weights(int_gp)*(int_DN_DX[int_gp])(j_node,k_dim)*distance_gradient0(j_node, k_dim)*int_N(int_gp, i_node);
-
-                    } */
-
-                    lhs(i_node, j_node) += penalty_phi0*int_weights(int_gp)*int_N(int_gp, i_node)*int_N(int_gp, j_node);
-                }
-            }
-        }
-
-        std::vector<unsigned int> contact_line_faces;
-        std::vector<unsigned int> contact_line_indices;
-
-        std::vector<MatrixType> contact_N;                                   //std::vector for multiple contact lines
-        std::vector<GeometryType::ShapeFunctionsGradientsType> contact_DN_DX;//std::vector for multiple contact lines
-        std::vector<Kratos::Vector> contact_weights;                         //std::vector for multiple contact lines
-
-        auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
-
-        for (unsigned int i_cl = 0; i_cl < contact_line_faces.size(); i_cl++){
-            if (neighbour_elems[ contact_line_faces[i_cl] ].Id() == this->Id() ){
-                contact_line_indices.push_back(i_cl);
-            }
-        }
-
-        // Call the Contact Line negative side shape functions calculator
-        p_modified_sh_func->ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
-            contact_line_indices, //ADDED
-            contact_N,
-            contact_DN_DX,
-            contact_weights,
-            GeometryData::GI_GAUSS_2);
-
-        for (unsigned int i_cl = 0; i_cl < contact_weights.size(); i_cl++){
-            const std::size_t number_of_contact_gauss_points = (contact_weights[i_cl]).size();
-            for (unsigned int contact_gp = 0; contact_gp < number_of_contact_gauss_points; contact_gp++){
+            for (unsigned int int_gp = 0; int_gp < number_of_int_gauss_points; int_gp++){
                 for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
                     for (unsigned int j_node = 0; j_node < num_nodes; j_node++){
+                        //tempPhi: LHS for 4 rows associated with Phi
+                        // tempPhi(i_node*(num_dim + 1) + 0, j_node*(num_dim + 1) + 0) +=
+                        //     penalty_phi0 * int_weights(int_gp) * int_N(int_gp, i_node) * int_N(int_gp, j_node);
 
-                        lhs(i_node, j_node) +=
-                            1.0e2 * penalty_phi0*(contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*(contact_N[i_cl])(contact_gp, j_node);
+                        /* for (unsigned int k_dim = 0; k_dim < num_dim; k_dim++){
+                            //tempGradPhi: LHS for 3*4 rows associated with GradPhi
+                            // tempGradPhi(i_node*(num_dim + 1) + k_dim + 1, j_node*(num_dim + 1) + k_dim + 1) +=
+                            //     penalty_curvature * int_weights(int_gp) * int_N(int_gp, i_node) * (int_DN_DX[int_gp])(j_node,k_dim);
 
+                            // rhs(i_node*(num_dim + 1) + k_dim + 1) +=
+                            //     penalty_curvature*int_weights(int_gp)*(int_DN_DX[int_gp])(j_node,k_dim)*distance_gradient0(j_node, k_dim)*int_N(int_gp, i_node);
+
+                        } */
+
+                        lhs(i_node, j_node) += penalty_phi0*int_weights(int_gp)*int_N(int_gp, i_node)*int_N(int_gp, j_node);
                     }
                 }
             }
-        }
+
+            std::vector<unsigned int> contact_line_faces;
+            std::vector<unsigned int> contact_line_indices;
+
+            std::vector<MatrixType> contact_N;                                   //std::vector for multiple contact lines
+            std::vector<GeometryType::ShapeFunctionsGradientsType> contact_DN_DX;//std::vector for multiple contact lines
+            std::vector<Kratos::Vector> contact_weights;                         //std::vector for multiple contact lines
+
+            auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
+
+            for (unsigned int i_cl = 0; i_cl < contact_line_faces.size(); i_cl++){
+                if (neighbour_elems[ contact_line_faces[i_cl] ].Id() == this->Id() ){
+                    contact_line_indices.push_back(i_cl);
+                }
+            }
+
+            // Call the Contact Line negative side shape functions calculator
+            p_modified_sh_func->ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
+                contact_line_indices, //ADDED
+                contact_N,
+                contact_DN_DX,
+                contact_weights,
+                GeometryData::GI_GAUSS_2);
+
+            for (unsigned int i_cl = 0; i_cl < contact_weights.size(); i_cl++){
+                const std::size_t number_of_contact_gauss_points = (contact_weights[i_cl]).size();
+                for (unsigned int contact_gp = 0; contact_gp < number_of_contact_gauss_points; contact_gp++){
+                    for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
+                        for (unsigned int j_node = 0; j_node < num_nodes; j_node++){
+
+                            lhs(i_node, j_node) += 0.0;
+                                1.0e0 * penalty_phi0*(contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*(contact_N[i_cl])(contact_gp, j_node);
+
+                        }
+                    }
+                }
+            }
+        //}
 
     } else if (step == 1){
         //KRATOS_WATCH(nneg)
         double source;
         if (npos != 0)
-            source = 1.0;
+            source = 0.0;//1.0; // There is no need to add positive source term
         else
-            source = -1.0e2;
+            source = -1.0e0;
 
         for (unsigned int gp = 0; gp < number_of_gauss_points; gp++){
             for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
                 //rhs(i_node*(num_dim + 1) + 0) += weights(gp) * source * N(gp, i_node);
                 rhs(i_node) += source_coeff * source * weights(gp) * N(gp, i_node);
             }
+        }
+    }
+
+    if (step == 1){
+        GeometryType::GeometriesArrayType faces = GetGeometry().GenerateFaces();
+
+        unsigned int i_face = 0;
+        const unsigned int num_faces = num_nodes; //for simplex elements
+        const unsigned int num_face_nodes = num_nodes - 1;
+
+        while (i_face < num_faces) {
+
+            GeometryType& r_face = faces[i_face];
+            unsigned int boundary_face_node = 0;
+
+            double contact_angle = 0.0;
+            double contact_angle_weight = 0.0;
+            Vector solid_normal = ZeroVector(num_dim);
+
+            for (unsigned int i=0; i < num_face_nodes; ++i){
+                if ( r_face[i].Is(BOUNDARY) ){
+                    boundary_face_node++;
+                    const double contact_angle_i = r_face[i].FastGetSolutionStepValue(CONTACT_ANGLE);
+                    if (contact_angle_i > 1.0e-12)
+                    {
+                        contact_angle += contact_angle_i;
+                        contact_angle_weight += 1.0;
+                    }
+                    solid_normal += r_face[i].FastGetSolutionStepValue(NORMAL);
+                }
+            }
+
+            if (boundary_face_node == num_face_nodes){
+                double minus_cos_contact_angle = 0.0;
+                const double norm_solid_normal = Kratos::norm_2(solid_normal);
+                solid_normal = (1.0/norm_solid_normal)*solid_normal;
+
+                const unsigned int num_int_pts = (faces[i_face]).IntegrationPointsNumber(integration_method);
+
+                //std::vector< IntegrationPoint<3> > face_gauss_pts;
+                auto face_gauss_pts = (faces[i_face]).IntegrationPoints(integration_method);
+
+                VectorType face_jacobian;
+                (faces[i_face]).DeterminantOfJacobian(face_jacobian, integration_method);
+
+                // Get the original geometry shape function and gradients values over the intersection
+                for (unsigned int i_gauss = 0; i_gauss < num_int_pts; ++i_gauss) {
+                    // Store the Gauss points weights
+                    const double face_weight = face_jacobian(i_gauss) * face_gauss_pts[i_gauss].Weight();
+
+                    // Compute the global coordinates of the face Gauss pt.
+                    GeometryType::CoordinatesArrayType global_coords = ZeroVector(num_dim);
+                    global_coords = (faces[i_face]).GlobalCoordinates(global_coords, face_gauss_pts[i_gauss].Coordinates());
+
+                    // Compute the parent geometry local coordinates of the Gauss pt.
+                    GeometryType::CoordinatesArrayType loc_coords = ZeroVector(num_dim);
+                    loc_coords = GetGeometry().PointLocalCoordinates(loc_coords, global_coords);
+
+                    // // Compute shape function values
+                    // // Obtain the parent subgeometry shape function values
+
+                    Kratos::Vector face_shape_func = ZeroVector(num_nodes);
+                    face_shape_func = GetGeometry().ShapeFunctionsValues(face_shape_func, loc_coords);
+
+            //         /* double det_jac;
+            //         VectorType face_jacobian_inv;
+            //         MathUtils<double>::GeneralizedInvertMatrix( face_jacobian(i_gauss), face_jacobian_inv, det_jac );
+            //         Matrix& face_shape_func_derivative = =  prod( GetGeometry().ShapeFunctionsLocalGradients(face_shape_func_derivative, loc_coords),
+            //             face_jacobian_inv); */ // This code is not working, it is only as a hint for further development
+
+                    for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
+                        if (contact_angle_weight > 0.0){
+                            minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
+                        } else{
+                            const double norm_grad_phi_old = norm_2(grad_phi_old); // For linear elements, grad_phi_old is constant, however, this is not the correct way to calculate it
+                            minus_cos_contact_angle = Kratos::inner_prod(solid_normal,1.0/norm_grad_phi_old*grad_phi_old);
+                                //GetGeometry()[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT));
+                        }
+
+                        rhs(i_node) += minus_cos_contact_angle * face_weight * face_shape_func(i_node);
+                        //In case we use this process for the sake of redistancing, this RHS contribution should be turned off.
+                    }
+                }
+            }
+            i_face++;
         }
     }
 
@@ -704,19 +799,19 @@ int VariationalNonEikonalDistanceElement::Check(const ProcessInfo& rCurrentProce
 
     KRATOS_ERROR_IF(this->GetGeometry().Area() <= 0) << "On VariationalNonEikonalDistanceElement -> "
         << this->Id() <<  "; Area cannot be less than or equal to 0" << std::endl;
-  
+
       // Base class checks for positive Jacobian and Id > 0
       int ierr = Element::Check(rCurrentProcessInfo);
       if(ierr != 0) return ierr;
-  
+
       // Check that all required variables have been registered
       KRATOS_CHECK_VARIABLE_KEY(DISTANCE)
       KRATOS_CHECK_VARIABLE_KEY(DISTANCE_AUX2)
       /* KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT_X)
       KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT_Y)
       KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT_Z) */
-  
-      unsigned const int number_of_points = GetGeometry().size(); 
+
+      unsigned const int number_of_points = GetGeometry().size();
       // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
       for ( unsigned int i = 0; i < number_of_points; i++ )
       {
@@ -732,7 +827,7 @@ int VariationalNonEikonalDistanceElement::Check(const ProcessInfo& rCurrentProce
           KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE_GRADIENT_Z,rnode)
           KRATOS_CHECK_DOF_IN_NODE(DISTANCE_GRADIENT_Z,rnode) */
       }
-  
+
       return ierr;
 
     KRATOS_CATCH("");
