@@ -136,7 +136,7 @@ void RansOmegaViscousLogBinomialWallProcess::ExecuteOperation()
         const double u_tau_log = wall_velocity_magnitude / (std::log(y_plus) / kappa + beta);
         u_tau = std::pow(std::pow(u_tau_vis, 4) + std::pow(u_tau_log, 4), 0.25);
 
-        const double omega_vis = 6.0 * nu / (0.075 * y * y);
+        const double omega_vis = 6.0 * nu / (0.0075 * y * y);
         const double omega_log = u_tau / (c_mu_25 * kappa * y);
         double omega = std::sqrt(std::pow(omega_vis, 2) + std::pow(omega_log, 2));
 
