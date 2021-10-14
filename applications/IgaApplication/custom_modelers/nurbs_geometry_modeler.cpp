@@ -162,7 +162,7 @@ namespace Kratos
         if( NumKnotSpansU > 1) {
             Vector KnotsURefined;
             Vector WeightsRefined;
-            PointsRefined.clear();
+            PointsRefined = PointerVector<NodeType>(0);
 
             NurbsSurfaceRefinementUtilities::KnotRefinementU( *p_surface_geometry, insert_knots_u,
                 PointsRefined, KnotsURefined, WeightsRefined);
@@ -176,7 +176,7 @@ namespace Kratos
 
             Vector KnotsVRefined;
             Vector WeightsRefined;
-            PointsRefined.clear();
+            PointsRefined = PointerVector<NodeType>(0);
 
             NurbsSurfaceRefinementUtilities::KnotRefinementV( *p_surface_geometry, insert_knots_v,
                 PointsRefined, KnotsVRefined, WeightsRefined);
