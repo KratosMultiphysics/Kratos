@@ -50,8 +50,8 @@ def __ModuleInitDetail():
                     sys.__excepthook__(exc_type, exc_value, exc_traceback)
                     return
 
-                from KratosMultiphysics import DataCommunicator
-                exc_value = exc_type("(on rank {}): {}".format(DataCommunicator.GetDefault().Rank(), exc_value))
+                from KratosMultiphysics import ParallelEnvironment
+                exc_value = exc_type("(on rank {}): {}".format(ParallelEnvironment.GetDataCommunicator("World").Rank(), exc_value))
                 sys.__excepthook__(exc_type, exc_value, exc_traceback)
 
             sys.excepthook = CustomExceptionHook
@@ -80,7 +80,7 @@ def __ModuleInitDetail():
 
         if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.minor != int(kratos_version_info[1]):
             print("Warning: Kratos is running with python {}.{} but was compiled with python {}.{}. Please ensure the versions match.".format(
-                sys.version_info.major, sys.version_info.minor, 
+                sys.version_info.major, sys.version_info.minor,
                 kratos_version_info[0], kratos_version_info[1]
             ))
     except:
