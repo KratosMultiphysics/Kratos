@@ -378,7 +378,7 @@ namespace Kratos
     double keff      = ComputeEffectiveConductivity();
     double temp_grad = GetNeighborTemperature() - GetParticleTemperature();
 
-    return 4.0 * keff * mContactRadius * temp_grad;
+    return 4.0 * keff * mContactRadiusAdjusted * temp_grad;
 
     KRATOS_CATCH("")
   }
@@ -390,7 +390,7 @@ namespace Kratos
     double kavg      = ComputeAverageConductivity();
     double temp_grad = GetNeighborTemperature() - GetParticleTemperature();
 
-    return kavg * (Globals::Pi * mContactRadius * mContactRadius) * temp_grad / mNeighborDistance;
+    return kavg * (Globals::Pi * mContactRadiusAdjusted * mContactRadiusAdjusted) * temp_grad / mNeighborDistanceAdjusted;
 
     KRATOS_CATCH("")
   }
@@ -461,10 +461,10 @@ namespace Kratos
       double param = pow((r_max + (layer * r_max)), 2.0);
       double upp_lim;
 
-      if (mNeighborDistance <= sqrt(param - r_min * r_min))
+      if (mNeighborDistanceAdjusted <= sqrt(param - r_min * r_min))
         upp_lim = r_min;
       else
-        upp_lim = sqrt(param - pow(((param - r_min * r_min + mNeighborDistance * mNeighborDistance) / (2.0 * mNeighborDistance)), 2.0));
+        upp_lim = sqrt(param - pow(((param - r_min * r_min + mNeighborDistanceAdjusted * mNeighborDistanceAdjusted) / (2.0 * mNeighborDistanceAdjusted)), 2.0));
 
       // Build struct of integration parameters
       IntegrandParams params;
@@ -473,13 +473,13 @@ namespace Kratos
       params.p3 = neighbor_radius;
 
       // Heat transfer coefficient from integral expression solved numerically
-      h = fluid_conductivity * AdaptiveSimpsonIntegration(r_process_info, mContactRadius, upp_lim, params, &ThermalSphericParticle::EvalIntegrandSurrLayer);
+      h = fluid_conductivity * AdaptiveSimpsonIntegration(r_process_info, mContactRadiusAdjusted, upp_lim, params, &ThermalSphericParticle::EvalIntegrandSurrLayer);
     }
     else if (mNeighborType == WALL_NEIGHBOR) {
       double a, b, c, r_in, r_out;
       double particle_radius = GetRadius();
 
-      a = (mNeighborDistance - particle_radius) / particle_radius;
+      a = (mNeighborDistanceAdjusted - particle_radius) / particle_radius;
 
       if (mNeighborDistance > particle_radius + min_dist)
         r_in = 0.0;
@@ -529,7 +529,7 @@ namespace Kratos
       double rij = 0.56 * particle_radius * pow((1.0 - porosity), -1.0/3.0);
 
       // Compute upper limit of integral
-      double upp_lim = particle_radius * rij / sqrt(rij * rij + mNeighborDistance * mNeighborDistance / 4.0);
+      double upp_lim = particle_radius * rij / sqrt(rij * rij + mNeighborDistanceAdjusted * mNeighborDistanceAdjusted / 4.0);
 
       // Build struct of integration parameters
       IntegrandParams params;
@@ -539,7 +539,7 @@ namespace Kratos
       params.p4 = rij;
 
       // Heat transfer coefficient from integral expression solved numerically
-      h = AdaptiveSimpsonIntegration(r_process_info, mContactRadius, upp_lim, params, &ThermalSphericParticle::EvalIntegrandVoronoiMono);
+      h = AdaptiveSimpsonIntegration(r_process_info, mContactRadiusAdjusted, upp_lim, params, &ThermalSphericParticle::EvalIntegrandVoronoiMono);
     }
     else {
       double rij, D1, D2, rij_, upp_lim;
@@ -548,12 +548,12 @@ namespace Kratos
       // Assumption: using average radius
       rij = 0.56 * (particle_radius + neighbor_radius) / 2.0 * pow((1.0 - porosity), -1.0/3.0);
 
-      if (mNeighborDistance < particle_radius + neighbor_radius)
-        D1 = sqrt(particle_radius * particle_radius - mContactRadius * mContactRadius);
+      if (mNeighborInContact)
+        D1 = sqrt(particle_radius * particle_radius - mContactRadiusAdjusted * mContactRadiusAdjusted);
       else
         D1 = (particle_radius * particle_radius - neighbor_radius * neighbor_radius + mNeighborDistance * mNeighborDistance) / (2 * mNeighborDistance);
 
-      D2 = mNeighborDistance - D1;
+      D2 = mNeighborDistanceAdjusted - D1;
 
       if (particle_radius <= neighbor_radius)
         upp_lim = particle_radius * rij / sqrt(rij * rij + D1 * D1);
@@ -575,7 +575,7 @@ namespace Kratos
       params.p9 = D2;
 
       // Heat transfer coefficient from integral expression solved numerically
-      h = AdaptiveSimpsonIntegration(r_process_info, mContactRadius, upp_lim, params, &ThermalSphericParticle::EvalIntegrandVoronoiMulti);
+      h = AdaptiveSimpsonIntegration(r_process_info, mContactRadiusAdjusted, upp_lim, params, &ThermalSphericParticle::EvalIntegrandVoronoiMulti);
     }
 
     // Compute heat flux
@@ -614,11 +614,11 @@ namespace Kratos
       
       double keff = ComputeEffectiveConductivity();
       double rc   = core * particle_radius;
-      double D    = mNeighborDistance / 2.0;
+      double D    = mNeighborDistanceAdjusted / 2.0;
       double a    = (1.0 / rc - 1.0 / particle_radius) / (2.0 * keff) + 1.0 / (fluid_conductivity * particle_radius);
       double b    = 1.0 / (fluid_conductivity * D);
       double c0   = D / sqrt(rij * rij + D * D);
-      double c1   = D / sqrt(mContactRadius * mContactRadius + D * D);
+      double c1   = D / sqrt(mContactRadiusAdjusted * mContactRadiusAdjusted + D * D);
       double f    = (a - b * c0) / (a - b * c1);
       double ln   = 0.0;
       if (f > 0.0)
@@ -633,8 +633,8 @@ namespace Kratos
       double rij = 0.56 * (particle_radius + neighbor_radius) / 2.0 * pow((1.0 - porosity), -1.0/3.0);
       double An = Globals::Pi * rij * rij;
 
-      double gamma1 = particle_radius / mNeighborDistance;
-      double gamma2 = neighbor_radius / mNeighborDistance;
+      double gamma1 = particle_radius / mNeighborDistanceAdjusted;
+      double gamma2 = neighbor_radius / mNeighborDistanceAdjusted;
       double dgamma = gamma2 - gamma1;
 
       double A = (particle_conductivity + fluid_conductivity * (1.0 / core - 1.0)) / (particle_conductivity * gamma1);
@@ -642,8 +642,8 @@ namespace Kratos
 
       double lambda = (1.0 + dgamma * A) * (1.0 - dgamma * B);
 
-      double delmax = 0.5 * (sqrt((4.0 * An) / (Globals::Pi * mNeighborDistance * mNeighborDistance * (1.0 - dgamma * dgamma)) + 1.0) - dgamma);
-      double delmin = 0.5 * (sqrt((4.0 * mContactRadius * mContactRadius) / (mNeighborDistance * mNeighborDistance * (1.0 - dgamma * dgamma)) + 1.0) - dgamma);
+      double delmax = 0.5 * (sqrt((4.0 * An) / (Globals::Pi * mNeighborDistanceAdjusted * mNeighborDistanceAdjusted * (1.0 - dgamma * dgamma)) + 1.0) - dgamma);
+      double delmin = 0.5 * (sqrt((4.0 * mContactRadiusAdjusted * mContactRadiusAdjusted) / (mNeighborDistanceAdjusted * mNeighborDistanceAdjusted * (1.0 - dgamma * dgamma)) + 1.0) - dgamma);
 
       double Xmax = ((A + B) * delmax + dgamma * B - 1.0) / sqrt(fabs(lambda));
       double Xmin = ((A + B) * delmin + dgamma * B - 1.0) / sqrt(fabs(lambda));
@@ -653,11 +653,11 @@ namespace Kratos
 
       // Heat transfer coefficient
       if (lambda > 0.0)
-        h = Globals::Pi * fluid_conductivity * mNeighborDistance * (1.0 - dgamma * dgamma) * log(fabs((1.0 - Y1) / (1.0 + Y1))) / (2.0 * sqrt(fabs(lambda)));
+        h = Globals::Pi * fluid_conductivity * mNeighborDistanceAdjusted * (1.0 - dgamma * dgamma) * log(fabs((1.0 - Y1) / (1.0 + Y1))) / (2.0 * sqrt(fabs(lambda)));
       else if (lambda < 0.0)
-        h = Globals::Pi * fluid_conductivity * mNeighborDistance * (1.0 - dgamma * dgamma) * atan(Y2) / (2.0 * sqrt(fabs(lambda)));
+        h = Globals::Pi * fluid_conductivity * mNeighborDistanceAdjusted * (1.0 - dgamma * dgamma) * atan(Y2) / (2.0 * sqrt(fabs(lambda)));
       else
-        h = Globals::Pi * fluid_conductivity * mNeighborDistance * (1.0 - dgamma * dgamma) * (1.0 / delmin - 1.0 / delmax) / (A + B);
+        h = Globals::Pi * fluid_conductivity * mNeighborDistanceAdjusted * (1.0 - dgamma * dgamma) * (1.0 / delmin - 1.0 / delmax) / (A + B);
     }
 
     // Compute heat flux
@@ -684,7 +684,7 @@ namespace Kratos
     double avg_radius      = (particle_radius + neighbor_radius) / 2.0;
 
     // Compute heat flux
-    return 4.0 * Globals::Pi * fluid_conductivity * (1.0 - 0.5 * pow(mContactRadius / avg_radius, 2.0) * (avg_radius - mContactRadius)) * temp_grad / (1.0 - Globals::Pi / 4.0);
+    return 4.0 * Globals::Pi * fluid_conductivity * (1.0 - 0.5 * pow(mContactRadiusAdjusted / avg_radius, 2.0) * (avg_radius - mContactRadiusAdjusted)) * temp_grad / (1.0 - Globals::Pi / 4.0);
 
     KRATOS_CATCH("")
   }
@@ -957,7 +957,7 @@ namespace Kratos
     double r1   = params.p2;
     double r2   = params.p3;
 
-    return 2.0 * Globals::Pi * r / std::max(dmin, mNeighborDistance - sqrt(r1 * r1 - r * r) - sqrt(r2 * r2 - r * r));
+    return 2.0 * Globals::Pi * r / std::max(dmin, mNeighborDistanceAdjusted - sqrt(r1 * r1 - r * r) - sqrt(r2 * r2 - r * r));
 
     KRATOS_CATCH("")
   }
@@ -972,7 +972,7 @@ namespace Kratos
     double rp   = params.p3;
     double rij  = params.p4;
 
-    return 2.0 * Globals::Pi * r / ((sqrt(rp * rp - r * r) - r * mNeighborDistance / (2.0 * rij)) / keff + 2.0 * (mNeighborDistance / 2.0 - sqrt(rp * rp - r * r)) / kf);
+    return 2.0 * Globals::Pi * r / ((sqrt(rp * rp - r * r) - r * mNeighborDistanceAdjusted / (2.0 * rij)) / keff + 2.0 * (mNeighborDistanceAdjusted / 2.0 - sqrt(rp * rp - r * r)) / kf);
 
     KRATOS_CATCH("")
   }
@@ -995,7 +995,7 @@ namespace Kratos
     double beta1 = sqrt(r1 * r1 - r * r);
     double beta2 = sqrt(r2 * r2 - r * r);
 
-    return 2.0 * Globals::Pi * r / ((beta1 - r * D1 / rij) / k1 + (beta2 - r * D2 / rij_) / k2 + (mNeighborDistance - beta1 - beta2) / kf);
+    return 2.0 * Globals::Pi * r / ((beta1 - r * D1 / rij) / k1 + (beta2 - r * D2 / rij_) / k2 + (mNeighborDistanceAdjusted - beta1 - beta2) / kf);
 
     KRATOS_CATCH("")
   }
@@ -1044,17 +1044,6 @@ namespace Kratos
       return DEM_MODULUS_3(direction);
     }
     else if (mNeighborType == WALL_NEIGHBOR) {
-      // Stolen from ComputeBallToRigidFaceContactForce in spheric_particle
-      //double dummy1[3][3];
-      //DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
-      //array_1d<double, 4> dummy2 = this->mContactConditionWeights[i];
-      //array_1d<double, 3> dummy3 = ZeroVector(3);
-      //array_1d<double, 3> dummy4 = ZeroVector(3);
-      //int dummy5 = -1;
-      //double distance = 0.0;
-      //mNeighbor_w->ComputeConditionRelativeData(i, this, dummy1, distance, dummy2, dummy3, dummy4, dummy5);
-      //mNeighborDistance = distance;
-
       // Stolen from ComputeBallToRigidFaceContactForce in spheric_particle
       array_1d<double, 3> cond_to_me_vect;
       array_1d<double, 3> wall_coordinates = mNeighbor_w->GetGeometry().Center();
@@ -1114,6 +1103,7 @@ namespace Kratos
     KRATOS_TRY
 
     // TODO: save impact normal velocity
+    // TODO: Use real Young modulus?
     double impact_normal_velocity = 0.0;
     double eff_radius = ComputeEffectiveRadius();
     double eff_mass   = ComputeEffectiveMass();
@@ -1129,6 +1119,7 @@ namespace Kratos
     KRATOS_TRY
 
     // TODO: save impact normal velocity
+    // TODO: Use real Young modulus?
     double impact_normal_velocity = 0.0;
     double eff_radius = ComputeEffectiveRadius();
     double eff_mass   = ComputeEffectiveMass();
