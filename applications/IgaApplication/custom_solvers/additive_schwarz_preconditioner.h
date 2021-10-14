@@ -29,7 +29,7 @@ namespace Kratos
 
 /// AdditiveSchwarzPreconditioner class.
 /**   */
-template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType>
+template<class TSparseSpaceType, class TDenseSpaceType>
 class AdditiveSchwarzPreconditioner : public Preconditioner<TSparseSpaceType, TDenseSpaceType>
 {
 public:
@@ -48,16 +48,14 @@ public:
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-    typedef typename TLinearSolverType::Pointer LinearSolverPointerType;
-
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    AdditiveSchwarzPreconditioner(DenseMatrixType& blocks, LinearSolverPointerType pNewLinearSystemSolver)
+    AdditiveSchwarzPreconditioner(DenseMatrixType& blocks)
     {
-        mpLinearSystemSolver = pNewLinearSystemSolver;
+
     }
 
 
@@ -87,17 +85,17 @@ public:
 
     void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
-        VectorType z = rX;
-        TSparseSpaceType::Mult(rA,z, rY);
-        ApplyLeft(rY);
+        // VectorType z = rX;
+        // TSparseSpaceType::Mult(rA,z, rY);
+        // ApplyLeft(rY);
     }
 
-    void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
-    {
-        VectorType z = rX;
-        ApplyTransposeLeft(z);
-        TSparseSpaceType::TransposeMult(rA,z, rY);
-    }
+    // void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
+    // {
+    //     // VectorType z = rX;
+    //     // ApplyTransposeLeft(z);
+    //     // TSparseSpaceType::TransposeMult(rA,z, rY);
+    // }
 
     /** multiply first rX by L^-1 and store result in temp
         then multiply temp by U^-1 and store result in rX
@@ -127,7 +125,7 @@ public:
         //     }
         //     rX[i]=sum/U[iU[i]];
         // }
-        // return rX;
+        return rX;
     }
 
     /** Multiply first rX by U^-T and store result in temp
@@ -159,7 +157,7 @@ public:
         //         rX[jL[indexj]]=rX[jL[indexj]]-rxi*L[indexj];
         //     }
         // }
-        // return rX;
+        return rX;
     }
 
     ///@}
@@ -194,9 +192,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    LinearSolverPointerType mpLinearSystemSolver = nullptr;
-
-
     ///@}
 
 }; // Class AdditiveSchwarzPreconditioner
@@ -210,18 +205,18 @@ protected:
 
 
 /// input stream function
-template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType>
+template<class TSparseSpaceType, class TDenseSpaceType>
 inline std::istream& operator >> (std::istream& IStream,
-                                  AdditiveSchwarzPreconditioner<TSparseSpaceType, TDenseSpaceType, TLinearSolverType>& rThis)
+                                  AdditiveSchwarzPreconditioner<TSparseSpaceType, TDenseSpaceType>& rThis)
 {
     return IStream;
 }
 
 
 /// output stream function
-template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType>
+template<class TSparseSpaceType, class TDenseSpaceType>
 inline std::ostream& operator << (std::ostream& OStream,
-                                  const AdditiveSchwarzPreconditioner<TSparseSpaceType, TDenseSpaceType, TLinearSolverType>& rThis)
+                                  const AdditiveSchwarzPreconditioner<TSparseSpaceType, TDenseSpaceType>& rThis)
 {
     rThis.PrintInfo(OStream);
     OStream << std::endl;
