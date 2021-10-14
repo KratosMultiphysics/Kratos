@@ -40,7 +40,7 @@ public:
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::Pointer GeometryPointerType;
 
-    typedef NurbsSurfaceGeometry<2, PointerVector<NodeType>> NurbsSurfaceGeometryType;
+    typedef NurbsSurfaceGeometry<3, PointerVector<NodeType>> NurbsSurfaceGeometryType;
     typedef typename NurbsSurfaceGeometryType::Pointer NurbsSurfaceGeometryPointerType;
 
     typedef NurbsVolumeGeometry<PointerVector<NodeType>> NurbsVolumeGeometryType;
@@ -86,8 +86,6 @@ private:
     ///@{
 
     Model* mpModel;
-    NurbsVSurfaceGeometryPointerType mpNurbsSurfaceGeometry;
-    NurbsVolumeGeometryPointerType mpNurbsVolumeGeometry;
 
     ///@}
     ///@name Private Operations
@@ -102,7 +100,7 @@ private:
      * @note The CP'S are defined as nodes and added to the rModelPart.
      * @todo How to deal with node Id's..
      **/
-    void CreateGeometry2D( const Point& A, const Point& B, SizeType OrderU, SizeType OrderV,
+    NurbsSurfaceGeometryPointerType CreateGeometry2D( const Point& A, const Point& B, SizeType OrderU, SizeType OrderV,
         SizeType NumKnotSpansU, SizeType NumKnotSpansV );
 
     /**
@@ -114,7 +112,7 @@ private:
      * @note The CP'S are defined as nodes and added to the rModelPart.
      * @todo How to deal with node Id's..
      **/
-    void CreateGeometry3D( const Point& A, const Point& B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
+    NurbsVolumeGeometryPointerType CreateGeometry3D( const Point& A, const Point& B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
         SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
 
 };
