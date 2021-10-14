@@ -239,6 +239,26 @@ public:
     ///@name Get and Set functions
     ///@{
 
+    void SetInternals(
+        const PointsArrayType& rThisPoints,
+        const SizeType PolynomialDegreeU,
+        const SizeType PolynomialDegreeV,
+        const SizeType PolynomialDegreeW,
+        const Vector& rKnotsU,
+        const Vector& rKnotsV,
+        const Vector& rKnotsW)
+    {
+        this->Points() = rThisPoints;
+        mPolynomialDegreeU = PolynomialDegreeU;
+        mPolynomialDegreeV = PolynomialDegreeV;
+        mPolynomialDegreeW = PolynomialDegreeW;
+        mKnotsU = rKnotsU;
+        mKnotsV = rKnotsV;
+        mKnotsW = rKnotsW;
+
+        CheckAndFitKnotVectors();
+    }
+
     /**
      * @return returns the polynomial degree 'p' in u direction.
      **/
