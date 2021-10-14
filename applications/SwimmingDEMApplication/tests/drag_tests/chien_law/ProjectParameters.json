@@ -163,6 +163,62 @@
                 "materials_filename" : "drag_tests/MaterialsDEM.json"
             }
         },
+        "processes"        : {
+            "constraints_process_list" : [{
+                "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
+                "kratos_module" : "KratosMultiphysics.DEMApplication",
+                "Parameters"    : {
+                    "model_part_name" : "RigidFacePart.1",
+            "velocity_constraints_settings" : {
+                        "constrained"          : [true, true, true],
+                        "value"                : [0.0, 0.0, 0.0],
+                        "table"                : [null, null, null]
+                    },
+                    "angular_velocity_constraints_settings" : {
+                        "constrained"          : [true, true, true],
+                        "value"                : [0.0, 0.0, 0.0],
+                        "table"                : [null, null, null]
+                    },
+                    "interval"             : [0.0, 1.0e30]
+                }
+            },{
+                "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
+                "kratos_module" : "KratosMultiphysics.DEMApplication",
+                "Parameters"    : {
+                    "model_part_name" : "RigidFacePart.2",
+            "velocity_constraints_settings" : {
+                        "constrained"          : [true, true, true],
+                        "value"                : [0.0, 0.0, 0.0],
+                        "table"                : [null, null, null]
+                    },
+                    "angular_velocity_constraints_settings" : {
+                        "constrained"          : [true, true, true],
+                        "value"                : [0.0, 0.0, 0.0],
+                        "table"                : [null, null, null]
+                    },
+                    "interval"             : [0.0, 1.0e30]
+                }
+            },{
+                "python_module" : "processes.apply_kinematic_constraints_process",
+                "kratos_module" : "KratosMultiphysics.DEMApplication",
+                "Parameters"    : {
+                    "model_part_name" : "SpheresPart.DEMParts",
+            "velocity_constraints_settings" : {
+                        "constrained"          : [true,false,false],
+                        "value"                : [1.0, 0.0, 0.0],
+                        "table"                : [null, null, null]
+                    },
+                    "angular_velocity_constraints_settings" : {
+                        "constrained"          : [false,false,false],
+                        "value"                : [0.0, 0.0, 0.0],
+                        "table"                : [null, null, null]
+                    },
+                    "interval"             : [0.0, 2e-5]
+                }
+            }],
+            "loads_process_list"       : [],
+            "list_other_processes"     : []
+        },
         "VirtualMassCoefficient"         : 1.0,
         "RollingFrictionOption"          : false,
         "GlobalDamping"                  : 0.0,

@@ -18,7 +18,6 @@ End NodalData
 
 Begin SubModelPart DEMParts
   Begin SubModelPartData
-    INITIAL_VELOCITY_X_VALUE 1.0
   End SubModelPartData
   Begin SubModelPartNodes
     111
