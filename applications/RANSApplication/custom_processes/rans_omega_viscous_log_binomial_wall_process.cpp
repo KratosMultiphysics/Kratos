@@ -48,6 +48,7 @@ RansOmegaViscousLogBinomialWallProcess::RansOmegaViscousLogBinomialWallProcess(
     mEchoLevel = rParameters["echo_level"].GetInt();
     mModelPartName = rParameters["model_part_name"].GetString();
     mMinValue = rParameters["min_value"].GetDouble();
+    mCalculationStepIndex = rParameters["calculation_step_index"].GetInt();
 
     KRATOS_ERROR_IF(mMinValue < 0.0) << "Minimum turbulent energy dissipation "
                                         "rate needs to be positive in the "
@@ -84,7 +85,7 @@ void RansOmegaViscousLogBinomialWallProcess::ExecuteOperation()
 
     const auto& r_process_info = r_model_part.GetProcessInfo();
     const double kappa = r_process_info[VON_KARMAN];
-    const double c_mu = r_process_info[TURBULENCE_RANS_C_MU];
+    const double c_mu_25 = std::pow(r_process_info[TURBULENCE_RANS_C_MU], 0.25);
     auto& r_conditions = r_model_part.Conditions();
 
     VariableUtils().SetHistoricalVariableToZero(
@@ -105,6 +106,10 @@ void RansOmegaViscousLogBinomialWallProcess::ExecuteOperation()
         const double nu = r_elem_properties[DYNAMIC_VISCOSITY] / rho;
         const array_1d<double, 3>& normal = rCondition.GetValue(NORMAL);
 
+        // get surface properties from condition
+        const auto& r_cond_properties = rCondition.GetProperties();
+        const double beta = r_cond_properties.GetValue(WALL_SMOOTHNESS_BETA);
+
         // Get Shape function data
         RansCalculationUtilities::CalculateGeometryData(
             r_parent_element_geometry,
@@ -112,14 +117,28 @@ void RansOmegaViscousLogBinomialWallProcess::ExecuteOperation()
 
         const double y = RansCalculationUtilities::CalculateWallHeight(rCondition, normal);
 
-        double tke;
+        array_1d<double, 3> wall_velocity, fluid_velocity, mesh_velocity;
         FluidCalculationUtilities::EvaluateInPoint(
-            r_parent_element_geometry, row(Ns, 0),
-            std::tie(tke, TURBULENT_KINETIC_ENERGY));
+            r_parent_element_geometry, row(Ns, 0), mCalculationStepIndex,
+            std::tie(fluid_velocity, VELOCITY),
+            std::tie(mesh_velocity, MESH_VELOCITY));
+
+        noalias(wall_velocity) = fluid_velocity - mesh_velocity;
+        const double wall_velocity_magnitude =
+            std::sqrt(std::pow(norm_2(wall_velocity), 2) -
+                      std::pow(inner_prod(wall_velocity, normal), 2));
+
+        double u_tau, y_plus;
+        RansCalculationUtilities::CalculateYPlusAndUtau(
+                y_plus, u_tau, wall_velocity_magnitude, y, nu, kappa, beta);
+
+        const double u_tau_vis = wall_velocity_magnitude / y_plus;
+        const double u_tau_log = wall_velocity_magnitude / (std::log(y_plus) / kappa + beta);
+        u_tau = std::pow(std::pow(u_tau_vis, 4) + std::pow(u_tau_log, 4), 0.25);
 
         const double omega_vis = 6.0 * nu / (0.075 * y * y);
-        const double omega_log = std::sqrt(std::max(tke, 0.0)) / (c_mu * kappa * y);
-        double omega = std::sqrt(omega_vis * omega_vis + omega_log * omega_log);
+        const double omega_log = u_tau / (c_mu_25 * kappa * y);
+        double omega = std::sqrt(std::pow(omega_vis, 2) + std::pow(omega_log, 2));
 
         auto& r_condition_geometry = rCondition.GetGeometry();
         omega = std::max(mMinValue, omega / r_condition_geometry.PointsNumber());
@@ -182,6 +201,7 @@ const Parameters RansOmegaViscousLogBinomialWallProcess::GetDefaultParameters() 
         "echo_level"              : 0,
         "is_fixed"                : true,
         "min_value"               : 1e-12,
+        "calculation_step_index"  : 0,
         "execution_points"        : ["initialize_solution_step"]
     })");
 
