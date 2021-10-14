@@ -57,12 +57,9 @@ public:
         std::sort(rInsertKnots.begin(),rInsertKnots.end());
         // Get current order
         const SizeType polynomial_degree_u = rGeometry.PolynomialDegreeU();
-        const SizeType polynomial_degree_v = rGeometry.PolynomialDegreeV();
-        const SizeType polynomial_degree_w = rGeometry.PolynomialDegreeW();
+
         // Get current knot information
         const Kratos::Vector& old_knots_u = rGeometry.KnotsU();
-        const Kratos::Vector& old_knots_v = rGeometry.KnotsV();
-        const Kratos::Vector& old_knots_w = rGeometry.KnotsW();
 
         const SizeType old_num_of_knots_u = rGeometry.NumberOfKnotsU();
         // Get current cp's information
@@ -142,7 +139,6 @@ public:
                     IndexType cp_index_right = NurbsUtilities::GetVectorIndexFromMatrixIndices(
                         new_num_of_cp_u, old_num_of_cp_v, old_num_of_cp_w, k-p+1, column, depth);
                     rPointsRefined(cp_index_left) =  rPointsRefined(cp_index_right);
-                    rPointsRefined(cp_index_left)->SetId(cp_index_left+1);
                 }
             }
             for( IndexType l=1; l <= p; ++l){
@@ -157,7 +153,6 @@ public:
                             IndexType cp_index_right = NurbsUtilities::GetVectorIndexFromMatrixIndices(
                                 new_num_of_cp_u, old_num_of_cp_v, old_num_of_cp_w, index+1, column, depth);
                             rPointsRefined(cp_index_left) = rPointsRefined(cp_index_right);
-                            rPointsRefined(cp_index_left)->SetId(cp_index_left+1);
                         }
                     }
                 }
