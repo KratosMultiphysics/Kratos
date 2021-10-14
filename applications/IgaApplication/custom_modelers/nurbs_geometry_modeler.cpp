@@ -93,12 +93,10 @@ namespace Kratos
         double x = A.X();
         double y = A.Y();
 
-        IndexType node_id = 1;
         for( IndexType j=0; j < OrderV+1; ++j){
             for( IndexType i = 0; i < OrderU+1; ++i){
-                points.push_back(Kratos::make_intrusive<NodeType>(node_id, x, y, 0.0 ));
+                points.push_back(Kratos::make_intrusive<NodeType>(0, x, y, 0.0 ));
                 x += delta_x;
-                node_id++;
             }
             x = A.X();
             y += delta_y;
@@ -150,7 +148,7 @@ namespace Kratos
         r_model_part.AddGeometry(p_surface_geometry);
 
         // Perform knot refinement.
-        PointerVector<NodeType> PointsRefined;
+        PointerVector<NodeType> PointsRefined = p_surface_geometry->Points();
 
         if( NumKnotSpansU > 1) {
             Vector KnotsURefined;
@@ -180,7 +178,7 @@ namespace Kratos
                 WeightsRefined);
         }
 
-        node_id = 1;
+        IndexType node_id = 1;
         if( r_model_part.NumberOfNodes() > 0 ){
             node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
         }
