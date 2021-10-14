@@ -232,10 +232,10 @@ namespace Kratos
     mContactRadius    = ComputeContactRadius();
 
     // Set contact interaction flag
-    mIsContact = CheckSurfaceDistance(0.0);
+    mNeighborInContact = CheckSurfaceDistance(0.0);
 
     // Set adjusted contact properties
-    if (mIsContact) {
+    if (mNeighborInContact) {
 
       // Non adjusted contact
       if (!this->Is(DEMFlags::HAS_ADJUSTED_CONTACT)) {
@@ -267,7 +267,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Check for contact
-    if (!mIsContact)
+    if (!mNeighborInContact)
       return;
 
     // Compute heat flux according to selected model
@@ -671,7 +671,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Check for contact
-    if (!mIsContact)
+    if (!mNeighborInContact)
       return 0.0;
 
     // Assumption 1: Formulation for a liquid (not gas) as the interstitial fluid is being used

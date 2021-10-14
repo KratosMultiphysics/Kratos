@@ -193,7 +193,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   int                                   mNeighborType;
 
   // Interaction properties
-  bool   mIsContact;                 // flag for contact interaction
+  bool   mNeighborInContact;         // flag for contact interaction
   double mRealYoungRatio;            // real value of Young modulus
   double mContactRadius;             // simulation contact radius
   double mNeighborDistance;          // simulation neighbor distance
