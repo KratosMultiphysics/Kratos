@@ -229,6 +229,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             reactions_process = KratosRANS.RansComputeReactionsProcess(
                 model_part.GetModel(),
                 wall_model_part_name,
+                ["after_coupling_solve_step"],
                 self.echo_level)
             self.AddProcess(reactions_process)
 
