@@ -8,6 +8,7 @@ from KratosMultiphysics.response_functions.response_function_interface import Re
 import KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_analysis as potential_flow_analysis
 import KratosMultiphysics.MappingApplication
 from scipy.interpolate import splev
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 # Import Kratos, XMC, PyCOMPSs API
 import KratosMultiphysics.MultilevelMonteCarloApplication
@@ -335,7 +336,10 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         toleranceSequence = [errorTolerance*(tolRefinementRatio**(Nref-i-1)) for i in range(Nref)]
         print(toleranceSequence)
         toleranceSplitting = [.001, .8] # fractions on interpolation and bias errors, respectively
-        optiParameters = self.current_model_part.NumberOfNodes()*2
+        if "optiParameters" in parameters.keys():
+            optiParameters = parameters["optiParameters"]
+        else:
+            optiParameters = self.current_model_part.NumberOfNodes()*2
         # optiParameters = 2
         optiWeights = [1.0]*(optiParameters+1)# THIS SHOULD BE LEN() == optiparameters
         derivationOrder = 1
@@ -1128,6 +1132,30 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
         self.skin_model_part = self.model.GetModelPart(self.design_surface_sub_model_part_name)
         nodal_velocity_process = KCPFApp.ComputeNodalValueProcess(self.primal_model_part, ["VELOCITY", "PRESSURE_COEFFICIENT"])
         nodal_velocity_process.Execute()
+
+        for elem in self.primal_model_part.Elements:
+            elem.Set(KratosMultiphysics.ACTIVE, True)
+        gid_output = GiDOutputProcess(
+                self.primal_model_part,
+                "gid_output/primal_"+str(self.sample[0])+"_"+str(self.primal_model_part.NumberOfNodes()),
+                KratosMultiphysics.Parameters("""
+                    {
+                        "result_file_configuration" : {
+                            "gidpost_flags": {
+                                "GiDPostMode": "GiD_PostBinary",
+                                "MultiFileFlag": "SingleFile"
+                            },
+                            "gauss_point_results" : ["VELOCITY", "PRESSURE_COEFFICIENT"]
+                        }
+                    }
+                    """)
+                )
+        gid_output.ExecuteInitialize()
+        gid_output.ExecuteBeforeSolutionLoop()
+        gid_output.ExecuteInitializeSolutionStep()
+        gid_output.PrintOutput()
+        gid_output.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalize()
 
         # Store mesh to solve with adjoint after remeshing
         self.primal_model_part.RemoveSubModelPart("fluid_computational_model_part")
