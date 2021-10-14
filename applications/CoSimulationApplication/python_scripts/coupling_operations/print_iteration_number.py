@@ -7,7 +7,6 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupl
 # Additional imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
-import pdb
 
 def Create(*args):
     return PrintIterationNumberOperation(*args)
@@ -48,10 +47,9 @@ class PrintIterationNumberOperation(CoSimulationCouplingOperation):
             self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part, file_handler_settings, file_header).file
     
     def InitializeSolutionStep(self):
-        self.iteration_number = 0
+        self.iteration_number = 1
 
     def FinalizeCouplingIteration(self):
-        #pdb.set_trace()
         current_time = self.model_part.ProcessInfo[KM.TIME]
         if((current_time >= self.interval[0]) and (current_time < self.interval[1])):
             if(self.model_part.GetCommunicator().MyPID() == 0):

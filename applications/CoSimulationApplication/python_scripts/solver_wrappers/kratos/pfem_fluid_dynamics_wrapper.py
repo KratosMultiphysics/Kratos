@@ -7,9 +7,6 @@ from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos import kratos_base_wrapper
 
-# Additional imports
-import pdb
-
 # Importing PfemFluidDynamics
 if not CheckIfApplicationsAvailable("PfemFluidDynamicsApplication"):
     raise ImportError("The PfemFluidDynamicsApplication is not available!")
@@ -32,8 +29,7 @@ class PfemFluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
 
     def SolveSolutionStep(self):
-        ##### Fix the velocity on the pfem interface nodes only
-        #pdb.set_trace()
+        # Fix the velocity on the pfem interface nodes only
         for fix_model_part in self.list_of_fix_free_model_parts:
             fix_nodes_model_part = KM.PfemFluidDynamicsApplication.FixFreeVelocityOnNodesProcess(self._analysis_stage._GetSolver().model[fix_model_part], 0)
             fix_nodes_model_part.Execute()
@@ -41,7 +37,7 @@ class PfemFluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
         # solve PFEM
         super().SolveSolutionStep()
 
-        ##### Free the velocity on the pfem interface nodes only
+        # Free the velocity on the pfem interface nodes only
         for free_model_part in self.list_of_fix_free_model_parts:
             free_nodes_model_part = KM.PfemFluidDynamicsApplication.FixFreeVelocityOnNodesProcess(self._analysis_stage._GetSolver().model[free_model_part], 1)
             free_nodes_model_part.Execute()

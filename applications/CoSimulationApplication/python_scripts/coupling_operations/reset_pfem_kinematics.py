@@ -8,7 +8,6 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupl
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-import pdb
 
 def Create(*args):
     return ResetPfemKinematics(*args)
@@ -37,17 +36,9 @@ class ResetPfemKinematics(CoSimulationCouplingOperation):
         self.interval = self.settings["interval"].GetVector()
 
     def InitializeCouplingIteration(self):
-        #pdb.set_trace()
         current_time = self.model_part.ProcessInfo[KM.TIME]
-
         if((current_time >= self.interval[0]) and (current_time < self.interval[1])):
             self._ResetPfemKinematicValues()
-
-            '''if(self.model_part.GetCommunicator().MyPID() == 0):
-                if(self.echo_level > 2):
-                    # print to screen the results at echo level 3 or higher
-                    result_msg = " PFEM KINEMATICS RESET "
-                    cs_tools.cs_print_info(self._ClassName(), result_msg) # This message is duplicated'''
 
     def _ResetPfemKinematicValues(self):
         KM.PfemFluidDynamicsApplication.MoveMeshUtility().ResetPfemKinematicValues(self.model_part)
