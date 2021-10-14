@@ -371,6 +371,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         AppendOutputVariables PutStrings iGroup Write_Structural_Moment MOMENT
         AppendOutputVariables PutStrings iGroup Write_Structural_Force FORCE
         AppendOutputVariables PutStrings iGroup Write_Strain GREEN_LAGRANGE_STRAIN_TENSOR
+        AppendOutputVariables PutStrings iGroup Write_Strain ENGINEERING_STRAIN_TENSOR
         AppendOutputVariables PutStrings iGroup Write_Effective_Stress CAUCHY_STRESS_TENSOR
         AppendOutputVariables PutStrings iGroup Write_Total_Stress TOTAL_STRESS_TENSOR
         AppendOutputVariables PutStrings iGroup Write_Von_Mises_Stress VON_MISES_STRESS

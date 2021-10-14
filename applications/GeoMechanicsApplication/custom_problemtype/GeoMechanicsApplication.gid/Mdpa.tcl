@@ -646,8 +646,8 @@ proc WriteMdpa { basename dir problemtypedir } {
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
 
             if {$Dim eq 2} {
-              # CrBeamElement2D2N twice
-              WriteElementsTwoParts FileVar [lindex $Groups $i] line GeoCrBeamElementLinear2D2N $BodyElemsProp Line2D2ConnectivitiesPart1 Line2D2ConnectivitiesPart2
+              # GeoCurvedBeamElement2D3N
+              WriteElements FileVar [lindex $Groups $i] line GeoCurvedBeamElement2D3N $BodyElemsProp Line2D3Connectivities
 
             } else {
               # GeoCrBeamElementLinear3D2N twice
