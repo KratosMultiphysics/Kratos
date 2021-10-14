@@ -1,6 +1,7 @@
 from math import sqrt
 
 import KratosMultiphysics as Kratos
+from KratosMultiphysics.RANSApplication.formulations.utilities import InitializeWallLawProperties
 
 try:
     import KratosMultiphysics.HDF5Application as KratosHDF5
@@ -301,6 +302,42 @@ def CreateLineOutput(model_part, line_output_parameters):
     line_output_process.ExecuteInitialize()
     line_output_process.ExecuteInitializeSolutionStep()
     line_output_process.ExecuteFinalizeSolutionStep()
+
+def CalculateReactions(model_part, wall_model_part_name, materials_filename):
+    # In here, we assume model_part process info constants are properly defined.
+
+    # find parent elements
+    tmoc = Kratos.TetrahedralMeshOrientationCheck
+    throw_errors = False
+    flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS) | tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+    Kratos.TetrahedralMeshOrientationCheck(model_part, throw_errors, flags).Execute()
+
+    # calculate normals
+    KratosRANS.RansVariableUtilities.CalculateNodalNormal(model_part.GetModel()[wall_model_part_name])
+
+    # populate material properties
+    material_settings = Kratos.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+    material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
+    Kratos.ReadMaterialsUtility(material_settings, model_part.GetModel())
+
+    # add wall law properties
+    InitializeWallLawProperties(model_part.GetModel())
+
+    # initialize constitutive laws
+    KratosRANS.RansVariableUtilities.SetElementConstitutiveLaws(model_part.Elements)
+
+    # calculate reactions
+    params = Kratos.Parameters("""
+    {
+        "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "execution_points": ["execute"],
+        "echo_level"      : 1
+    }""")
+    params["model_part_name"].SetString(wall_model_part_name)
+    process = KratosRANS.RansComputeReactionsProcess(model_part.GetModel(), params)
+    process.Check()
+    process.Execute()
+
 
 def CalculateFirstElementYPlusValues(model_part, output_variable, density, kinmeatic_viscosity):
     if (KratosRANS is None):
