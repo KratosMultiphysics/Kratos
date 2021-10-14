@@ -2501,11 +2501,11 @@ void SmallStrainUPwDiffOrderElement::
     // calculation of derivative of shape function with respect to reference configuration
     // derivative of shape function (displacement)
     Matrix J0, InvJ0, DNu_DX0;
-    double detJ0 =
-        CalculateDerivativesOnInitialConfiguration(J0,
-                                                   InvJ0,
-                                                   DNu_DX0,
-                                                   GPoint);
+    double detJ0;
+        detJ0 = CalculateDerivativesOnInitialConfiguration(J0,
+                                                           InvJ0,
+                                                           DNu_DX0,
+                                                           GPoint);
 
     //Calculating current jacobian in order to find deformation gradient
     Matrix J, InvJ;
