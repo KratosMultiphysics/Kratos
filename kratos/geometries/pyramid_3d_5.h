@@ -79,7 +79,6 @@ public:
     */
     typedef typename BaseType::IndexType IndexType;
 
-
     /** This typed used to return size or dimension in
      geometry. Dimension, WorkingDimension, PointsNumber and
     ... return this type as their results.
@@ -133,6 +132,15 @@ public:
     * Type of coordinates array
     */
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+
+    /**
+     * A Vector of counted pointers to Geometries. Used for
+     * returning edges of the geometry.
+     */
+    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
+
+    //typedef typename::BaseType::Line3D2<TPointType> EdgeType;
+
 
     ///@}
     ///@name Life Cycle
@@ -302,6 +310,91 @@ public:
     }
 
     /**
+     * :TODO: TO BE TESTED
+     */
+    /** This method calculate and return the height of the pyramid.
+     @return double value contain the height
+     @ref (https://math.stackexchange.com/questions/2177006/how-to-define-a-plane-based-on-4-points)
+     @ref (https://stackoverflow.com/questions/9605556/how-to-project-a-point-onto-a-plane-in-3d)
+     */
+    double HeightOfPyramid() const
+    {
+        //Step 1 : find the Unit Normal Vector of the Base using 4 points A,B,C,D
+        const PointsArrayType& vertices = this->Points();
+
+        array_1d<double,3> AB;
+        array_1d<double,3> BC;
+        array_1d<double,3> UnitNormal;
+
+        AB[0] = vertices[1].X() - vertices[0].X();
+        AB[1] = vertices[1].Y() - vertices[0].Y();
+        AB[2] = vertices[1].Z() - vertices[0].Z();
+
+        BC[0] = vertices[2].X() - vertices[1].X();
+        BC[1] = vertices[2].Y() - vertices[1].Y();
+        BC[2] = vertices[2].Z() - vertices[1].Z();
+
+        MathUtils<double>::UnitCrossProduct(UnitNormal, AB, BC);
+
+        //Step2 : Make a Vector from any Base point to the apex point
+        array_1d<double,3> AE;
+
+        AE[0] = vertices[4].X() - vertices[0].X();
+        AE[1] = vertices[4].Y() - vertices[0].Y();
+        AE[2] = vertices[4].Z() - vertices[0].Z();
+
+        //Step3 : Take a dot product of this Vector with the Unit Normal Vector to get height
+        double height = AE[0] * UnitNormal[0] + AE[1] * UnitNormal[1] + AE[2] * UnitNormal[2] ;
+
+        return height;
+    }
+
+
+    /**
+     * :TODO: TO BE TESTED
+     */
+    /**
+     * Determinant of jacobians for given integration method.
+     * This method calculate determinant of jacobian in all
+     * integrations points of given integration method.
+     *
+     * @return Vector of double which is vector of determinants of
+     * jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the
+     * integration point index of given integration method.
+     *
+     * @see Jacobian
+     * @see InverseOfJacobian
+     */
+
+    Vector& DeterminantOfJacobian( Vector& rResult,
+                                   IntegrationMethod ThisMethod ) const override
+    {
+        double side1, side2, height;
+
+        const PointsArrayType& vertices = this->Points();
+
+        side1 = std::sqrt(std::pow((vertices[0].X() - vertices[1].X()), 2.0) +
+            std::pow((vertices[0].Y() - vertices[1].Y()), 2.0) + std::pow((vertices[0].Z() - vertices[1].Z()), 2.0));
+
+        side2 = std::sqrt(std::pow((vertices[2].X() - vertices[1].X()), 2.0) +
+            std::pow((vertices[2].Y() - vertices[1].Y()), 2.0) + std::pow((vertices[2].Z() - vertices[1].Z()), 2.0));
+
+        height = HeightOfPyramid(); // to get Height of pyramid
+
+        IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
+        IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
+
+        if( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
+            rResult.resize( this->IntegrationPointsNumber( ThisMethod ), false );
+
+        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
+        {
+            rResult[pnt] = (0.03125) * side1 * side2 * height * (1 - integration_points[pnt].Z()) * (1 - integration_points[pnt].Z()) ;
+        }
+        return rResult;
+    }
+
+    /**
     * Returns a matrix of the local coordinates of all points
     * @param rResult a Matrix that will be overwritten by the results
     * @return the coordinates of all points of the current geometry
@@ -334,7 +427,8 @@ public:
         return rResult;
     }
 
-        /**
+
+    /**
      * Shape Function
      */
 
@@ -353,13 +447,13 @@ public:
         switch ( ShapeFunctionIndex )
         {
         case 0:
-            return( (0.125) * (1 - rPoint[1]) * (1 - rPoint[0]) * (1 + rPoint[2]) );
-        case 1:
-            return( (0.125) * (1 + rPoint[1]) * (1 - rPoint[0]) * (1 + rPoint[2]) );
-        case 2:
-            return( (0.125) * (1 + rPoint[1]) * (1 + rPoint[0]) * (1 + rPoint[2]) );
-        case 3:
             return( (0.125) * (1 - rPoint[1]) * (1 + rPoint[0]) * (1 + rPoint[2]) );
+        case 1:
+            return( (0.125) * (1 + rPoint[1]) * (1 + rPoint[0]) * (1 + rPoint[2]) );
+        case 2:
+            return( (0.125) * (1 + rPoint[1]) * (1 - rPoint[0]) * (1 + rPoint[2]) );
+        case 3:
+            return( (0.125) * (1 - rPoint[1]) * (1 - rPoint[0]) * (1 + rPoint[2]) );
         case 4:
             return( (0.5) * (1 + rPoint[2]) );
         default:
@@ -392,10 +486,10 @@ public:
         //loop over all integration points
 
         for ( int pnt = 0; pnt < integration_points_number; pnt++ ) {
-            shape_function_values( pnt, 0 ) = (0.125) * (1 - integration_points[pnt].Y()) * (1 - integration_points[pnt].X()) * (1 + integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 1 ) = (0.125) * (1 + integration_points[pnt].Y()) * (1 - integration_points[pnt].X()) * (1 + integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 2 ) = (0.125) * (1 + integration_points[pnt].Y()) * (1 + integration_points[pnt].X()) * (1 + integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 3 ) = (0.125) * (1 - integration_points[pnt].Y()) * (1 + integration_points[pnt].X()) * (1 + integration_points[pnt].Z()) ;
+            shape_function_values( pnt, 0 ) = (0.125) * (1 - integration_points[pnt].Y()) * (1 + integration_points[pnt].X()) * (1 + integration_points[pnt].Z()) ;
+            shape_function_values( pnt, 1 ) = (0.125) * (1 + integration_points[pnt].Y()) * (1 + integration_points[pnt].X()) * (1 + integration_points[pnt].Z()) ;
+            shape_function_values( pnt, 2 ) = (0.125) * (1 + integration_points[pnt].Y()) * (1 - integration_points[pnt].X()) * (1 + integration_points[pnt].Z()) ;
+            shape_function_values( pnt, 3 ) = (0.125) * (1 - integration_points[pnt].Y()) * (1 - integration_points[pnt].X()) * (1 + integration_points[pnt].Z()) ;
             shape_function_values( pnt, 4 ) = (0.5) * (1 + integration_points[pnt].Z()) ;
         }
 
@@ -416,21 +510,21 @@ public:
         const CoordinatesArrayType& rPoint
         )
     {
-        rResult( 0, 0 ) =  (-0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[2] ) ;
-        rResult( 0, 1 ) =  (-0.125) * ( 1 - rPoint[0] ) * ( 1 + rPoint[2] ) ;
-        rResult( 0, 2 ) =  (+0.125) * ( 1 - rPoint[1] ) * ( 1 - rPoint[0] ) ;
+        rResult( 0, 0 ) =  (+0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[2] ) ;
+        rResult( 0, 1 ) =  (-0.125) * ( 1 + rPoint[0] ) * ( 1 + rPoint[2] ) ;
+        rResult( 0, 2 ) =  (+0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[0] ) ;
 
-        rResult( 1, 0 ) =  (-0.125) * ( 1 + rPoint[1] ) * ( 1 + rPoint[2] ) ;
-        rResult( 1, 1 ) =  (+0.125) * ( 1 - rPoint[0] ) * ( 1 + rPoint[2] ) ;
-        rResult( 1, 2 ) =  (+0.125) * ( 1 + rPoint[1] ) * ( 1 - rPoint[0] ) ;
+        rResult( 1, 0 ) =  (+0.125) * ( 1 + rPoint[1] ) * ( 1 + rPoint[2] ) ;
+        rResult( 1, 1 ) =  (+0.125) * ( 1 + rPoint[0] ) * ( 1 + rPoint[2] ) ;
+        rResult( 1, 2 ) =  (+0.125) * ( 1 + rPoint[1] ) * ( 1 + rPoint[0] ) ;
 
-        rResult( 2, 0 ) =  (+0.125) * ( 1 + rPoint[1] ) * ( 1 + rPoint[2] ) ;
-        rResult( 2, 1 ) =  (+0.125) * ( 1 + rPoint[0] ) * ( 1 + rPoint[2] ) ;
-        rResult( 2, 2 ) =  (+0.125) * ( 1 + rPoint[1] ) * ( 1 + rPoint[0] ) ;
+        rResult( 2, 0 ) =  (-0.125) * ( 1 + rPoint[1] ) * ( 1 + rPoint[2] ) ;
+        rResult( 2, 1 ) =  (+0.125) * ( 1 - rPoint[0] ) * ( 1 + rPoint[2] ) ;
+        rResult( 2, 2 ) =  (+0.125) * ( 1 + rPoint[1] ) * ( 1 - rPoint[0] ) ;
 
-        rResult( 3, 0 ) =  (+0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[2] ) ;
-        rResult( 3, 1 ) =  (-0.125) * ( 1 + rPoint[0] ) * ( 1 + rPoint[2] ) ;
-        rResult( 3, 2 ) =  (+0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[0] ) ;
+        rResult( 3, 0 ) =  (-0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[2] ) ;
+        rResult( 3, 1 ) =  (-0.125) * ( 1 - rPoint[0] ) * ( 1 + rPoint[2] ) ;
+        rResult( 3, 2 ) =  (+0.125) * ( 1 - rPoint[1] ) * ( 1 - rPoint[0] ) ;
 
         rResult( 4, 0 ) =   0.00 ;
         rResult( 4, 1 ) =   0.00 ;
@@ -463,21 +557,21 @@ public:
         {
             Matrix result = ZeroMatrix( 5, 3 );
 
-            result( 0, 0 ) =  (-0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 0, 1 ) =  (-0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 0, 2 ) =  (+0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 - integration_points[pnt].X() ) ;
+            result( 0, 0 ) =  (+0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 0, 1 ) =  (-0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 0, 2 ) =  (+0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].X() ) ;
 
-            result( 1, 0 ) =  (-0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 1, 1 ) =  (+0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 1, 2 ) =  (+0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 - integration_points[pnt].X() ) ;
+            result( 1, 0 ) =  (+0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 1, 1 ) =  (+0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 1, 2 ) =  (+0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].X() ) ;
 
-            result( 2, 0 ) =  (+0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 2, 1 ) =  (+0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 2, 2 ) =  (+0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].X() ) ;
+            result( 2, 0 ) =  (-0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 2, 1 ) =  (+0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 2, 2 ) =  (+0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 - integration_points[pnt].X() ) ;
 
-            result( 3, 0 ) =  (+0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 3, 1 ) =  (-0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 3, 2 ) =  (+0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].X() ) ;
+            result( 3, 0 ) =  (-0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 3, 1 ) =  (-0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 3, 2 ) =  (+0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 - integration_points[pnt].X() ) ;
 
             result( 4, 0 ) =   0.00 ;
             result( 4, 1 ) =   0.00 ;

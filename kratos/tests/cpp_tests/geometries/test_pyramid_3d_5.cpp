@@ -57,7 +57,6 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5FacesNumber, KratosCoreGeometriesFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5Volume, KratosCoreGeometriesFastSuite)
 {
-    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geomRegular = GenerateRegularPyramid3D5();
 
     KRATOS_CHECK_NEAR(geomRegular->Volume(), 2.0, TOLERANCE);
@@ -71,6 +70,13 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5Center, KratosCoreGeometriesFastSuite)
 
     KRATOS_CHECK_VECTOR_NEAR(geomRegular->Center(), center, TOLERANCE);
 }
+
+/* KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5Height, KratosCoreGeometriesFastSuite)
+{
+    auto geomRegular = GenerateRegularPyramid3D5();
+
+    KRATOS_CHECK_NEAR(geomRegular->HeightOfPyramid(), 1.2, TOLERANCE);
+} */
 
 /** Checks the inside test for a given point respect to the pyramid
 * Checks the inside test for a given point respect to the pyramid
