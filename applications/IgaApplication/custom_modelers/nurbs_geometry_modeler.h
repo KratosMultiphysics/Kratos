@@ -100,7 +100,7 @@ private:
      * @note The CP'S are defined as nodes and added to the rModelPart.
      * @todo How to deal with node Id's..
      **/
-    NurbsSurfaceGeometryPointerType CreateGeometry2D( const Point& A, const Point& B, SizeType OrderU, SizeType OrderV,
+    void CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A, const Point& B, SizeType OrderU, SizeType OrderV,
         SizeType NumKnotSpansU, SizeType NumKnotSpansV );
 
     /**
@@ -112,7 +112,7 @@ private:
      * @note The CP'S are defined as nodes and added to the rModelPart.
      * @todo How to deal with node Id's..
      **/
-    NurbsVolumeGeometryPointerType CreateGeometry3D( const Point& A, const Point& B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
+    void CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A, const Point& B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
         SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
 
 };

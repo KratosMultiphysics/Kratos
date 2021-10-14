@@ -45,14 +45,21 @@ namespace Kratos
         KRATOS_ERROR_IF( local_space_dimension != size_number_of_knot_spans )
             << "Size of given Vectors: \"polynomial_order\" and \"number_of_knot_spans\" do not match." << std::endl;
 
-        GeometryPointerType p_geometry = nullptr;
+        // Here add geometry and nodes to model part.
+        KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
+            << "NurbsGeometryModeler: Missing \"model_part_name\" section" << std::endl;
+
+        ModelPart& model_part = mpModel->HasModelPart(mParameters["model_part_name"].GetString()) ?
+            mpModel->GetModelPart(mParameters["model_part_name"].GetString()) :
+            mpModel->CreateModelPart(mParameters["model_part_name"].GetString());
+
         if( local_space_dimension == 2) {
             SizeType p_u =  mParameters["polynomial_order"].GetArrayItem(0).GetInt();
             SizeType p_v =  mParameters["polynomial_order"].GetArrayItem(1).GetInt();
             SizeType num_knot_span_u =  mParameters["number_of_knot_spans"].GetArrayItem(0).GetInt();
             SizeType num_knot_span_v =  mParameters["number_of_knot_spans"].GetArrayItem(1).GetInt();
 
-            p_geometry = CreateGeometry2D(point_a, point_b, p_u, p_v, num_knot_span_u, num_knot_span_v);
+            CreateAndAddRegularGrid2D(model_part, point_a, point_b, p_u, p_v, num_knot_span_u, num_knot_span_v);
         }
         else if( local_space_dimension == 3) {
             SizeType p_u =  mParameters["polynomial_order"].GetArrayItem(0).GetInt();
@@ -62,35 +69,18 @@ namespace Kratos
             SizeType num_knot_span_w =  mParameters["number_of_knot_spans"].GetArrayItem(2).GetInt();
             SizeType num_knot_span_v =  mParameters["number_of_knot_spans"].GetArrayItem(1).GetInt();
 
-            p_geometry = CreateGeometry3D(point_a, point_b, p_u, p_v, p_w, num_knot_span_u, num_knot_span_v, num_knot_span_w);
+            CreateAndAddRegularGrid3D(model_part, point_a, point_b, p_u, p_v, p_w, num_knot_span_u, num_knot_span_v, num_knot_span_w);
         }
         else {
             KRATOS_ERROR << "Nurbs Geometry Modeler is only available for surfaces and volumes." << std::endl;
         }
 
-        // Here add geometry and nodes to model part.
-        KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
-            << "NurbsGeometryModeler: Missing \"model_part_name\" section" << std::endl;
-
-        ModelPart& model_part = mpModel->HasModelPart(mParameters["model_part_name"].GetString()) ?
-            mpModel->GetModelPart(mParameters["model_part_name"].GetString()) :
-            mpModel->CreateModelPart(mParameters["model_part_name"].GetString());
-
-        const SizeType number_of_geometries = model_part.NumberOfGeometries();
-
-        p_geometry->SetId(number_of_geometries+1);
-        model_part.AddGeometry(p_geometry);
-
-        for( IndexType i = 0; i < p_geometry->size(); ++i){
-            p_geometry->pGetPoint(i)->SetSolutionStepVariablesList(model_part.pGetNodalSolutionStepVariablesList());
-            model_part.AddNode(p_geometry->pGetPoint(i),0);
-        }
     }
 
     ///@}
     ///@name Private Operations
     ///@{
-    NurbsGeometryModeler::NurbsSurfaceGeometryPointerType NurbsGeometryModeler::CreateGeometry2D( const Point& A, const Point& B,
+    void NurbsGeometryModeler::CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A, const Point& B,
         SizeType OrderU, SizeType OrderV,SizeType NumKnotSpansU, SizeType NumKnotSpansV)
     {
         KRATOS_ERROR_IF( B.X() <= A.X() || B.Y() <= A.Y() ) << "NurbsGeometryModeler: "
@@ -155,11 +145,17 @@ namespace Kratos
             insert_knots_v[i] = knot_v;
         }
 
+        const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
+        p_surface_geometry->SetId(number_of_geometries+1);
+        r_model_part.AddGeometry(p_surface_geometry);
+
         // Perform knot refinement.
+        PointerVector<NodeType> PointsRefined;
+
         if( NumKnotSpansU > 1) {
-            PointerVector<NodeType> PointsRefined;
             Vector KnotsURefined;
             Vector WeightsRefined;
+            PointsRefined.clear();
 
             NurbsSurfaceRefinementUtilities::KnotRefinementU( *p_surface_geometry, insert_knots_u,
                 PointsRefined, KnotsURefined, WeightsRefined);
@@ -170,9 +166,10 @@ namespace Kratos
                 WeightsRefined);
         }
         if( NumKnotSpansV > 1) {
-            PointerVector<NodeType> PointsRefined;
+
             Vector KnotsVRefined;
             Vector WeightsRefined;
+            PointsRefined.clear();
 
             NurbsSurfaceRefinementUtilities::KnotRefinementV( *p_surface_geometry, insert_knots_v,
                 PointsRefined, KnotsVRefined, WeightsRefined);
@@ -183,11 +180,22 @@ namespace Kratos
                 WeightsRefined);
         }
 
-        return p_surface_geometry;
+        node_id = 1;
+        if( r_model_part.NumberOfNodes() > 0 ){
+            node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+        }
+
+        for (IndexType i = 0; i < PointsRefined.size(); ++i) {
+            if (PointsRefined(i)->Id() == 0) {
+                PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
+                node_id++;
+            }
+        }
+
     }
 
 
-    NurbsGeometryModeler::NurbsVolumeGeometryPointerType NurbsGeometryModeler::CreateGeometry3D( const Point& A, const Point& B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
+    void NurbsGeometryModeler::CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A, const Point& B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
         SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW )
     {
         KRATOS_ERROR_IF( B.X() <= A.X() || B.Y() <= A.Y() || B.Z() <= A.Z() ) << "NurbsGeometryModeler: "
@@ -287,7 +295,13 @@ namespace Kratos
             p_volume_geometry = NurbsVolumeUtilities::KnotRefinementW(*p_volume_geometry, insert_knots_w);
         }
 
-        return p_volume_geometry;
+        const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
+        p_volume_geometry->SetId(number_of_geometries+1);
+        r_model_part.AddGeometry(p_volume_geometry);
+        for( IndexType i = 0; i < p_volume_geometry->size(); ++i){
+            p_volume_geometry->pGetPoint(i)->SetSolutionStepVariablesList(r_model_part.pGetNodalSolutionStepVariablesList());
+            r_model_part.AddNode(p_volume_geometry->pGetPoint(i),0);
+        }
     }
     ///@}
 
