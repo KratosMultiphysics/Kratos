@@ -157,45 +157,59 @@ void DefineEmbeddedWakeProcess::Execute()
 
     RedefineWake();
 
-    // std::unordered_set<std::size_t> touching_elements;
+    std::unordered_set<std::size_t> touching_elements;
 
-    // ModelPart& deactivated_model_part = mrModelPart.GetSubModelPart("deactivated_model_part");
-    // for (auto& r_elem : deactivated_model_part.Elements()) {
-    //     if (r_elem.Is(STRUCTURE) && touching_elements.find(r_elem.Id()) == touching_elements.end()) {
-    //         KRATOS_WATCH("***********************************")
-    //         KRATOS_WATCH(r_elem.Id())
-    //         std::unordered_set<std::size_t> visited_elements;
-    //         bool touches_wake = TouchesWake(r_elem, visited_elements);
-    //         KRATOS_WATCH("***********************************")
-    //         KRATOS_WATCH(touches_wake)
-    //         KRATOS_WATCH("***********************************")
-    //         if (!touches_wake) {
-    //             r_elem.Set(MARKER, true);
-    //             r_elem.SetValue(WAKE, false);
-    //             r_elem.Set(STRUCTURE, false);
-    //             // for (auto& r_node : r_elem.GetGeometry()) {
-    //             //     r_node.SetValue(WING_TIP, false);
-    //             // }
-    //         } else {
-    //             for (auto elem_id : visited_elements) {
-    //                 touching_elements.insert(elem_id);
-    //             }
-    //             for (auto& r_node : r_elem.GetGeometry()) {
-    //                 r_node.SetValue(WAKE, true);
-    //             }
-    //         }
-    //     }
-    // }
+    ModelPart& deactivated_model_part = mrModelPart.GetSubModelPart("deactivated_model_part");
+    for (auto& r_elem : deactivated_model_part.Elements()) {
+        if (r_elem.Is(STRUCTURE) && touching_elements.find(r_elem.Id()) == touching_elements.end()) {
+            // KRATOS_WATCH("***********************************")
 
-    // for (auto& r_elem : deactivated_model_part.Elements()) {
-    //     if (r_elem.Is(MARKER)) {
-    //         for (auto& r_node : r_elem.GetGeometry()) {
-    //             if(r_node.GetValue(UPPER_SURFACE) && r_node.GetValue(LOWER_SURFACE) && !r_node.GetValue(WAKE)){
-    //                 r_node.SetValue(TRAILING_EDGE, true);
-    //             }
-    //         }
-    //     }
-    // }
+            std::unordered_set<std::size_t> visited_elements;
+            bool touches_wake = TouchesWake(r_elem, visited_elements);
+            // KRATOS_WATCH("***********************************")
+            // KRATOS_WATCH(touches_wake)
+            // KRATOS_WATCH("***********************************")
+            if (!touches_wake) {
+                r_elem.Set(MARKER, true);
+                r_elem.SetValue(WAKE, false);
+                r_elem.Set(STRUCTURE, false);
+                // for (auto& r_node : r_elem.GetGeometry()) {
+                //     r_node.SetValue(WING_TIP, false);
+                // }
+            } else {
+                for (auto elem_id : visited_elements) {
+                    touching_elements.insert(elem_id);
+                }
+                for (auto& r_node : r_elem.GetGeometry()) {
+                    r_node.SetValue(WAKE, true);
+                }
+            }
+        }
+    }
+
+    for (auto& r_elem : deactivated_model_part.Elements()) {
+        if (r_elem.Is(MARKER)) {
+            bool is_upper = false;
+            bool is_lower = false;
+            for (auto& r_node : r_elem.GetGeometry()) {
+                if (r_node.GetValue(UPPER_SURFACE)) {
+                    is_upper = true;
+                }
+                if (r_node.GetValue(LOWER_SURFACE)) {
+                    is_lower = true;
+                }
+            }
+
+            for (auto& r_node : r_elem.GetGeometry()) {
+                // if(r_node.GetValue(UPPER_SURFACE) && r_node.GetValue(LOWER_SURFACE) && !r_node.GetValue(WAKE)){
+                if(is_upper && is_lower && r_node.GetValue(WAKE_DISTANCE) < 0.0) {
+                // if(r_node.GetValue(UPPER_SURFACE) && r_node.GetValue(LOWER_SURFACE)){
+                    r_node.SetValue(TRAILING_EDGE, true);
+                    r_elem.SetValue(KUTTA, true);
+                }
+            }
+        }
+    }
 
     // for (auto& r_elem : mrModelPart.Elements()) {
     //     std::size_t upper_nodes = 0;
