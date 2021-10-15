@@ -122,6 +122,18 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mSmallStrainUPwDiffOrderElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
     mSmallStrainUPwDiffOrderElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
 
+    // small strain axisymmtric elements:
+    mUPwSmallStrainAxisymmetricElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
+    mUPwSmallStrainAxisymmetricElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mUPwSmallStrainAxisymmetricElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
+    mUPwSmallStrainAxisymmetricElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+    mUPwSmallStrainAxisymmetricElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mUPwSmallStrainAxisymmetricFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
+    mUPwSmallStrainAxisymmetricFICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mSmallStrainUPwDiffOrderAxisymmetricElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
+    mSmallStrainUPwDiffOrderAxisymmetricElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+    mSmallStrainUPwDiffOrderAxisymmetricElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+
     // small strain interface elements
     mUPwSmallStrainInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
     mUPwSmallStrainInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
@@ -162,8 +174,11 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mGeoCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mGeoCrBeamElementLinear2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mGeoCrBeamElementLinear3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+    mGeoTrussElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mGeoTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
-    mGeoTrussLinearElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+    mGeoLinearTrussElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+    mGeoLinearTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+    mGeoCableElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mGeoCableElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
 
     // conditions
@@ -284,6 +299,20 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement3D20N", mSmallStrainUPwDiffOrderElement3D20N )
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement3D27N", mSmallStrainUPwDiffOrderElement3D27N )
 
+    // small strain axisymmtric elements:
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricElement2D3N", mUPwSmallStrainAxisymmetricElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricElement2D4N", mUPwSmallStrainAxisymmetricElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricElement2D6N", mUPwSmallStrainAxisymmetricElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricElement2D8N", mUPwSmallStrainAxisymmetricElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricElement2D9N", mUPwSmallStrainAxisymmetricElement2D9N )
+
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricFICElement2D3N", mUPwSmallStrainAxisymmetricFICElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricFICElement2D4N", mUPwSmallStrainAxisymmetricFICElement2D4N )
+
+    KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderAxisymmetricElement2D6N", mSmallStrainUPwDiffOrderAxisymmetricElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderAxisymmetricElement2D8N", mSmallStrainUPwDiffOrderAxisymmetricElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderAxisymmetricElement2D9N", mSmallStrainUPwDiffOrderAxisymmetricElement2D9N )
+
     // Small strain interface elements
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement2D4N", mUPwSmallStrainInterfaceElement2D4N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement3D6N", mUPwSmallStrainInterfaceElement3D6N )
@@ -321,8 +350,11 @@ void KratosGeoMechanicsApplication::Register() {
 
 
     // Register geo structural elements
+    KRATOS_REGISTER_ELEMENT("GeoTrussElement2D2N", mGeoTrussElement2D2N)
     KRATOS_REGISTER_ELEMENT("GeoTrussElement3D2N", mGeoTrussElement3D2N)
-    KRATOS_REGISTER_ELEMENT("GeoTrussLinearElement3D2N", mGeoTrussLinearElement3D2N)
+    KRATOS_REGISTER_ELEMENT("GeoLinearTrussElement2D2N", mGeoLinearTrussElement2D2N)
+    KRATOS_REGISTER_ELEMENT("GeoLinearTrussElement3D2N", mGeoLinearTrussElement3D2N)
+    KRATOS_REGISTER_ELEMENT("GeoCableElement2D2N", mGeoCableElement2D2N)
     KRATOS_REGISTER_ELEMENT("GeoCableElement3D2N", mGeoCableElement3D2N)
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElement3D2N", mGeoCrBeamElement3D2N)
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElement2D2N", mGeoCrBeamElement2D2N)

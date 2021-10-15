@@ -55,9 +55,12 @@
 #include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/file_name_data_collector.h"
 #include "utilities/sensitivity_utilities.h"
+#include "utilities/dense_qr_decomposition.h"
 #include "utilities/dense_svd_decomposition.h"
 #include "utilities/force_and_torque_utils.h"
 #include "utilities/sub_model_part_entities_boolean_operation_utility.h"
+#include "utilities/model_part_combination_utilities.h"
+#include "utilities/single_import_model_part.h"
 
 namespace Kratos {
 namespace Python {
@@ -364,6 +367,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     // Auxiliar ModelPart Utility
     py::class_<AuxiliarModelPartUtilities, typename AuxiliarModelPartUtilities::Pointer>(m, "AuxiliarModelPartUtilities")
         .def(py::init<ModelPart&>())
+        .def("CopySubModelPartStructure", &AuxiliarModelPartUtilities::CopySubModelPartStructure)
         .def("RecursiveEnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities) { rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties();})
         .def("RecursiveEnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, const bool RemovePreviousProperties) { rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties(RemovePreviousProperties);})
         .def("EnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities) { rAuxiliarModelPartUtilities.EnsureModelPartOwnsProperties();})
@@ -647,6 +651,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("PrintDebugInfo", &FillCommunicator::PrintDebugInfo)
     ;
 
+    typedef DenseQRDecomposition<LocalSpaceType> DenseQRDecompositionType;
+    py::class_<DenseQRDecompositionType, DenseQRDecompositionType::Pointer>(m,"DenseQRDecompositionType")
+    ;
+
     typedef DenseSingularValueDecomposition<LocalSpaceType> DenseSingularValueDecompositionType;
     py::class_<DenseSingularValueDecompositionType, DenseSingularValueDecompositionType::Pointer>(m,"DenseSingularValueDecomposition")
     ;
@@ -669,6 +677,14 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     AddSubModelPartEntitiesBooleanOperationToPython<MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType>(
         m, "SubModelPartConstraintsBooleanOperationUtility");
+
+    py::class_<ModelPartCombinationUtilities, ModelPartCombinationUtilities::Pointer>(m,"ModelPartCombinationUtilities")
+        .def(py::init<Model& >() )
+        .def("CombineModelParts", [&](ModelPartCombinationUtilities &self, Parameters Param) { return &self.CombineModelParts(Param); }, py::return_value_policy::reference_internal)
+    ;
+
+    auto single_model_part_import = m.def_submodule("SingleImportModelPart");
+    single_model_part_import.def("Import", &SingleImportModelPart::Import );
 
 }
 

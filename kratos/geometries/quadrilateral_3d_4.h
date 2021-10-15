@@ -1584,6 +1584,7 @@ public:
     *         0 -> failed
     *         1 -> converged
     */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead.")
     int ProjectionPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointGlobalCoordinates,
@@ -1591,12 +1592,41 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
+        KRATOS_WARNING("ProjectionPoint") << "This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead." << std::endl;
+
+        const int result = ProjectionPointGlobalToLocalSpace(rPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
+
+        this->GlobalCoordinates(rProjectedPointGlobalCoordinates, rProjectedPointLocalCoordinates);
+
+        return result;
+    }
+
+    int ProjectionPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rProjectionPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        // Calculate the global coordinates of the coordinates to be projected
+        CoordinatesArrayType pt_gl_coords;
+        this->GlobalCoordinates(pt_gl_coords, rPointLocalCoordinates);
+
+        // Calculate the projection point local coordinates
+        return this->ProjectionPointGlobalToLocalSpace(pt_gl_coords, rProjectionPointLocalCoordinates, Tolerance);
+    }
+
+    int ProjectionPointGlobalToLocalSpace(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectionPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
         // Max number of iterations
         const std::size_t max_number_of_iterations = 10;
 
         // We do a first guess in the center of the geometry
-        noalias(rProjectedPointGlobalCoordinates) = this->Center();
-        array_1d<double, 3> normal = this->UnitNormal(rProjectedPointGlobalCoordinates);
+        CoordinatesArrayType proj_pt_gl_coords = this->Center();
+        array_1d<double, 3> normal = this->UnitNormal(proj_pt_gl_coords);
 
         // Some auxiliar variables
         double distance;
@@ -1605,23 +1635,29 @@ public:
         // We iterate until we find the properly projected point
         for (iter = 0; iter < max_number_of_iterations; ++iter) {
             // We compute the distance, if it is not in the plane we project
-            rProjectedPointGlobalCoordinates = GeometricalProjectionUtilities::FastProject<CoordinatesArrayType,CoordinatesArrayType,CoordinatesArrayType>( rProjectedPointGlobalCoordinates, rPointGlobalCoordinates, normal, distance);
+            proj_pt_gl_coords = GeometricalProjectionUtilities::FastProject<CoordinatesArrayType>(
+                proj_pt_gl_coords,
+                rPointGlobalCoordinates,
+                normal,
+                distance);
 
             // If the normal corresponds means that we have converged
-            if (norm_2(this->UnitNormal(rProjectedPointGlobalCoordinates) - normal) < Tolerance) break;
+            if (norm_2(this->UnitNormal(proj_pt_gl_coords) - normal) < Tolerance) {
+                break;
+            }
 
             // Compute normal
-            noalias(normal) = this->UnitNormal(rProjectedPointGlobalCoordinates);
+            noalias(normal) = this->UnitNormal(proj_pt_gl_coords);
         }
 
-        PointLocalCoordinates( rProjectedPointLocalCoordinates, rProjectedPointGlobalCoordinates );
+        PointLocalCoordinates(rProjectionPointLocalCoordinates, proj_pt_gl_coords);
 
         // We do check to print warning
-	if (iter >= max_number_of_iterations - 1) {
-	    return 0;
-	} else {
+        if (iter >= max_number_of_iterations - 1) {
+            return 0;
+        } else {
             return 1;
-	}
+        }
     }
 
     ///@}

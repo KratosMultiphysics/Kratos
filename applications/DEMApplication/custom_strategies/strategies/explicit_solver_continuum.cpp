@@ -685,11 +685,6 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ContinuumExplicitSolverStrategy::Check_MPI(bool& has_mpi) {
-        VariablesList r_modelpart_nodal_variables_list = GetModelPart().GetNodalSolutionStepVariablesList();
-        if (r_modelpart_nodal_variables_list.Has(PARTITION_INDEX)) has_mpi = true;
-    }
-
     void ContinuumExplicitSolverStrategy::CalculateMaxSearchDistance() {
 
         KRATOS_TRY

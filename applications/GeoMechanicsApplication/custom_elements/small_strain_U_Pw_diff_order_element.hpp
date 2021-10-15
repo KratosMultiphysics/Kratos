@@ -250,7 +250,9 @@ protected:
     void SetConstitutiveParameters(ElementVariables& rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters);
 
-    virtual void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, double detJ, double weight);
+    virtual double CalculateIntegrationCoefficient( const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+                                                    const IndexType& PointNumber,
+                                                    const double& detJ);
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
@@ -284,8 +286,9 @@ protected:
     double CalculateBiotCoefficient( const ElementVariables &rVariables,
                                      const bool &hasBiotCoefficient) const;
 
-    void CalculateBMatrix( Matrix& rB,
-                           const Matrix& DNu_DX );
+    virtual void CalculateBMatrix( Matrix& rB,
+                                   const Matrix& DNu_DX,
+                                   const Vector& Np );
 
     void AssignPressureToIntermediateNodes();
 

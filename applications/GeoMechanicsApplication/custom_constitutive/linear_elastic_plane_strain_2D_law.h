@@ -71,9 +71,6 @@ public:
     // for the time being
     static constexpr SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
 
-    /// Static definition of the VoigtSize
-    static constexpr SizeType VoigtSizePlaneStress = VOIGT_SIZE_2D_PLANE_STRESS;
-
     /// Counted pointer of LinearPlaneStrainK0Law
     KRATOS_CLASS_POINTER_DEFINITION( GeoLinearElasticPlaneStrain2DLaw );
 
@@ -128,9 +125,9 @@ public:
      * @brief Voigt tensor size:
      * @return The size of the strain vector in Voigt notation
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
-        return VoigtSizePlaneStress;
+        return VoigtSize;
     }
 
     ///@}

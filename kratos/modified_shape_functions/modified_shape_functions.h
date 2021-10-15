@@ -57,6 +57,7 @@ public:
     typedef GeometryType::CoordinatesArrayType                                                      CoordinatesArrayType;
     typedef GeometryData::IntegrationMethod                                                         IntegrationMethodType;
     typedef GeometryData::ShapeFunctionsGradientsType                                               ShapeFunctionsGradientsType;
+    typedef std::vector<array_1d<double,3>> AreaNormalsContainerType;
 
     typedef DivideGeometry::IndexedPointGeometryType                                                IndexedPointGeometryType;
     typedef DivideGeometry::IndexedPointGeometryPointerType                                         IndexedPointGeometryPointerType;
@@ -231,7 +232,7 @@ public:
     * @param IntegrationMethod Desired integration quadrature.
     */
     void ComputePositiveSideInterfaceAreaNormals(
-        std::vector<Vector> &rPositiveSideInterfaceAreaNormal,
+        AreaNormalsContainerType& rPositiveSideInterfaceAreaNormal,
         const IntegrationMethodType IntegrationMethod);
 
     /**
@@ -240,7 +241,7 @@ public:
     * @param IntegrationMethod Desired integration quadrature.
     */
     void ComputeNegativeSideInterfaceAreaNormals(
-        std::vector<Vector> &rNegativeSideInterfaceAreaNormal,
+        AreaNormalsContainerType& rNegativeSideInterfaceAreaNormal,
         const IntegrationMethodType IntegrationMethod);
 
     /**
@@ -250,7 +251,7 @@ public:
     * @param IntegrationMethod Desired integration quadrature.
     */
     void ComputePositiveExteriorFaceAreaNormals(
-        std::vector<Vector> &rPositiveExteriorFaceAreaNormal,
+        AreaNormalsContainerType& rPositiveExteriorFaceAreaNormal,
         const unsigned int FaceId,
         const IntegrationMethodType IntegrationMethod);
 
@@ -261,7 +262,7 @@ public:
     * @param IntegrationMethod Desired integration quadrature.
     */
     void ComputeNegativeExteriorFaceAreaNormals(
-        std::vector<Vector> &rNegativeExteriorFaceAreaNormal,
+        AreaNormalsContainerType& rNegativeExteriorFaceAreaNormal,
         const unsigned int FaceId,
         const IntegrationMethodType IntegrationMethod);
 
@@ -395,7 +396,7 @@ protected:
     * @param IntegrationMethod Desired integration quadrature.
     */
     void ComputeFaceNormalOnOneSide(
-        std::vector<Vector> &rInterfaceAreaNormalValues,
+        AreaNormalsContainerType& rInterfaceAreaNormalValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const IntegrationMethodType IntegrationMethod);
 
