@@ -6,7 +6,6 @@ import KratosMultiphysics.CoSimulationApplication.factories.io_factory as io_fac
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
-from KratosMultiphysics.CoSimulationApplication.utilities.serial_data_communicator import SerialDataCommunicator
 
 def Create(settings, name):
     raise Exception('"CoSimulationSolverWrapper" is a baseclass and cannot be used directly!')
@@ -45,16 +44,8 @@ class CoSimulationSolverWrapper:
 
         self.echo_level = self.settings["echo_level"].GetInt()
 
-<<<<<<< Updated upstream
-        self.data_communicator = self.__GetDataCommunicator()
-
-=======
-<<<<<<< Updated upstream
-=======
         self.data_communicator = self._GetDataCommunicator()
 
->>>>>>> Stashed changes
->>>>>>> Stashed changes
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
         self.__io = None
 
@@ -156,20 +147,9 @@ class CoSimulationSolverWrapper:
     def __HasIO(self):
         return self.__io is not None
 
-    def __GetDataCommunicator(self):
-        if not KM.IsDistributedRun():
-            return KM.ParallelEnvironment.GetDataCommunicator("Serial")
-        else:
-            data_comm_settings = self.settings["data_communicator_settings"]
-            data_comm_name = data_comm_settings["name"].GetString()
-            # This requires the creation of SubCommunicators, which are not yet fully supported in Kratos Solvers
-            if data_comm_name not in ["Serial", "World"]:
-                raise Exception('Currently only "Serial" and "World" is supported as data communicator')
-
-            if data_comm_name == "Serial":
-                return SerialDataCommunicator()
-            else:
-                return KM.ParallelEnvironment.GetDataCommunicator(data_comm_name)
+    def _GetDataCommunicator(self):
+        # by default, the solver uses all available cores
+        return KM.ParallelEnvironment.GetDefaultDataCommunicator()
 
     @classmethod
     def _GetDefaultParameters(cls):
@@ -180,15 +160,5 @@ class CoSimulationSolverWrapper:
             "data"                       : {},
             "echo_level"                 : 0
         }""")
-
-        if KM.IsDistributedRun():
-            data_comm_defaults = KM.Parameters("""{
-                "name" : "World",
-                "size" : 0
-            }""")
-            # get size of the default comm
-            default_data_comm = KM.ParallelEnvironment.GetDataCommunicator(data_comm_defaults["name"].GetString())
-            data_comm_defaults["size"].SetInt(default_data_comm.Size())
-            default_parameters.AddValue("data_communicator_settings", data_comm_defaults)
 
         return default_parameters
