@@ -19,8 +19,8 @@ class DEM3D_SearchFlagTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
     Two particles are created in two different locations and assigned velocities in order to make them collide. A FEM surface is also created between the two particles. With boths search flags set to FALSE, the test expect no collision between particles or against the middle wall.
     '''
 
-    @classmethod
-    def GetMainPath(cls):
+
+    def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_search_flags_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -85,8 +85,8 @@ class TestDEM3DSearchFlag(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
-    def test_DEM3D_search(cls):
+
+    def test_DEM3D_search(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_search_flags_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()

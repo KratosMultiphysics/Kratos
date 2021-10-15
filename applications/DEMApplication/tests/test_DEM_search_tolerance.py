@@ -21,8 +21,8 @@ class DEM3D_SearchToleranceMain(KratosMultiphysics.DEMApplication.DEM_analysis_s
         for node in self.spheres_model_part.Nodes:
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
 
-    @classmethod
-    def GetMainPath(cls):
+
+    def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_search_tolerance")
 
     def GetProblemNameWithPath(self):
@@ -134,8 +134,8 @@ class DEM3D_SearchTolerance3(DEM3D_SearchToleranceMain):
 
 class TestSearchTolerance(KratosUnittest.TestCase):
 
-    @classmethod
-    def test_SearchA(cls):
+
+    def test_SearchA(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_search_tolerance")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         with open(parameters_file_name,'r') as parameter_file:
@@ -147,8 +147,8 @@ class TestSearchTolerance(KratosUnittest.TestCase):
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_SearchToleranceMain, model, project_parameters, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
-    @classmethod
-    def test_SearchB(cls):
+
+    def test_SearchB(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_search_tolerance")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         with open(parameters_file_name,'r') as parameter_file:
@@ -160,8 +160,8 @@ class TestSearchTolerance(KratosUnittest.TestCase):
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_SearchTolerance1, model, project_parameters, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
-    @classmethod
-    def test_SearchC(cls):
+
+    def test_SearchC(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_search_tolerance")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         with open(parameters_file_name,'r') as parameter_file:
@@ -173,8 +173,8 @@ class TestSearchTolerance(KratosUnittest.TestCase):
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_SearchTolerance2, model, project_parameters, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
-    @classmethod
-    def test_SearchD(cls):
+
+    def test_SearchD(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_search_tolerance")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         with open(parameters_file_name,'r') as parameter_file:

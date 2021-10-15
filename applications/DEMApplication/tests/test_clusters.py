@@ -46,8 +46,8 @@ class TestClusters(KratosUnittest.TestCase):
         destination = os.path.join(os.path.dirname(os.path.realpath(__file__)), subfolder_name, "linecluster3D.clu")
         copyfile(source, destination)
 
-    @classmethod
-    def test_clusters_1(cls):
+
+    def test_clusters_1(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), subfolder_name)
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()

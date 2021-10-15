@@ -14,8 +14,8 @@ def GetFilePath(fileName):
 
 class OMPTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-    @classmethod
-    def GetMainPath(cls):
+
+    def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_omp")
 
     def GetProblemNameWithPath(self):
@@ -47,30 +47,30 @@ class TestOMP(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
-    def test_omp_1(cls):
+
+    def test_omp_1(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_omp")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(OMPTestSolution, model, parameters_file_name, 1)
 
 
-    @classmethod
-    def test_omp_2(cls):
+
+    def test_omp_2(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_omp")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(OMPTestSolution, model, parameters_file_name, 2)
 
-    @classmethod
-    def test_omp_3(cls):
+
+    def test_omp_3(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_omp")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(OMPTestSolution, model, parameters_file_name, 3)
 
-    @classmethod
-    def test_omp_4(cls):
+
+    def test_omp_4(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_omp")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()

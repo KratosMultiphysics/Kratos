@@ -18,8 +18,8 @@ def GetFilePath(fileName):
 
 class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-    @classmethod
-    def GetMainPath(cls):
+
+    def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -45,8 +45,8 @@ class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
 class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-    @classmethod
-    def GetMainPath(cls):
+
+    def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -75,8 +75,8 @@ class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DE
 
 class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-    @classmethod
-    def GetMainPath(cls):
+
+    def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -111,15 +111,15 @@ class TestAnalytics(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
-    def test_Analytics_1(cls):
+
+    def test_Analytics_1(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(AnalyticsTestSolution, model, parameters_file_name, 1)
 
 
-    # @classmethod
+    #
     # @KratosUnittest.expectedFailure
     # def test_Analytics_2():
     #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
@@ -128,7 +128,7 @@ class TestAnalytics(KratosUnittest.TestCase):
     #     CreateAndRunStageInSelectedNumberOfOpenMPThreads(GhostsTestSolution, model, parameters_file_name, 1)
 
 
-    # @classmethod
+    #
     # @KratosUnittest.expectedFailure
     # def test_Analytics_3():
     #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")

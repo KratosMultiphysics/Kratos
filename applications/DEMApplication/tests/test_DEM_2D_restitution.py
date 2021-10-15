@@ -20,8 +20,8 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
         for node in self.spheres_model_part.Nodes:
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
 
-    @classmethod
-    def GetMainPath(cls):
+
+    def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_restitution_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -92,15 +92,15 @@ class TestDEM2DRestitution(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
-    def test_DEM2D_restitution_1(cls):
+
+    def test_DEM2D_restitution_1(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_RestitutionTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
-    @classmethod
-    def test_DEM2D_restitution_2(cls):
+
+    def test_DEM2D_restitution_2(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()

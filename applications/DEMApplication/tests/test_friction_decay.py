@@ -14,8 +14,8 @@ def GetFilePath(fileName):
 
 class FrictionDecayTestSolution(DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-    @classmethod
-    def GetMainPath(cls):
+
+    def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "friction_decay_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -50,8 +50,8 @@ class TestFrictionDecay(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
-    def test_Friction_Decay(cls):
+
+    def test_Friction_Decay(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "friction_decay_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()

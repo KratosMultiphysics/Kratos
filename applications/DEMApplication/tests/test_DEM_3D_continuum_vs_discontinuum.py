@@ -69,8 +69,8 @@ class DEM3D_ContinuumTestVsDiscontinuumSolution(KratosMultiphysics.DEMApplicatio
         self.assertAlmostEqual(displ13, displ15, delta = self.tolerance)
         self.assertAlmostEqual(displ14, displ16, delta = self.tolerance)
 
-    @classmethod
-    def GetMainPath(cls):
+
+    def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_continuum_vs_discontinuum_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -86,8 +86,8 @@ class TestDEM3DContinuumVsDiscontinuum(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
-    def test_DEM3D_continuum_vs_discontinuum(cls):
+
+    def test_DEM3D_continuum_vs_discontinuum(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_continuum_vs_discontinuum_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()

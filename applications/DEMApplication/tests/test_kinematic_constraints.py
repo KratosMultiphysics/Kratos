@@ -15,8 +15,8 @@ def GetFilePath(fileName):
 
 class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-    @classmethod
-    def GetMainPath(cls):
+
+    def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "kinematic_constraints_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -148,8 +148,8 @@ class TestKinematicConstraints(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
-    def test_KinematicConstraints_1(cls):
+
+    def test_KinematicConstraints_1(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "kinematic_constraints_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()

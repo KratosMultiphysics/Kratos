@@ -14,8 +14,8 @@ def GetFilePath(fileName):
 
 class ForcesAndMomentsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-    @classmethod
-    def GetMainPath(cls):
+
+    def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "forces_and_moments_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -70,8 +70,8 @@ class TestExternalForcesAndMoments(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
-    def test_ForcesAndMoments(cls):
+
+    def test_ForcesAndMoments(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "forces_and_moments_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()
