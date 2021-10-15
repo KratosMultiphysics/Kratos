@@ -255,7 +255,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
     //const double tau = 0.5;
     //const double penalty_curvature = 0.0;//1.0e-3; // Not possible for curvature itself since normalized DISTANCE_GRADIENT is needed.
-    const double penalty_phi0 = 1.0e9;//0.0;//
+    const double penalty_phi0 = 1.0e7/element_size; // <-- For Nitsche's method //1.0e9;//0.0;//
     const double source_coeff = 3.0/(8.0*element_size);//1.0e0; //Usually we have ~10 elements across a Radius
     //const double dissipative_coefficient = 1.0e-8;
 
@@ -488,8 +488,14 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
             const std::size_t number_of_int_gauss_points = int_weights.size();
 
+            const VectorType normal0 = 1.0/norm_2(grad_phi_old) * grad_phi_old; // For a linear element, the gradient is constant
+
             for (unsigned int int_gp = 0; int_gp < number_of_int_gauss_points; int_gp++){
                 for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
+                    double normal_dot_grad_int_Ni = 0.0;
+                    for (unsigned int k_dim = 0; k_dim < num_dim; k_dim++){
+                        normal_dot_grad_int_Ni += (int_DN_DX[int_gp])(i_node, k_dim) * normal0[k_dim];
+                    }
                     for (unsigned int j_node = 0; j_node < num_nodes; j_node++){
                         //tempPhi: LHS for 4 rows associated with Phi
                         // tempPhi(i_node*(num_dim + 1) + 0, j_node*(num_dim + 1) + 0) +=
@@ -505,7 +511,14 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
                         } */
 
-                        lhs(i_node, j_node) += penalty_phi0*int_weights(int_gp)*int_N(int_gp, i_node)*int_N(int_gp, j_node);
+                        double normal_dot_grad_int_Nj = 0.0;
+                        for (unsigned int k_dim = 0; k_dim < num_dim; k_dim++){
+                            normal_dot_grad_int_Nj += (int_DN_DX[int_gp])(j_node, k_dim) * normal0[k_dim];
+                        }
+
+                        lhs(i_node, j_node) += penalty_phi0*int_weights(int_gp)*int_N(int_gp, i_node)*int_N(int_gp, j_node)
+                            - int_weights(int_gp)*int_N(int_gp, i_node)*normal_dot_grad_int_Nj
+                            - int_weights(int_gp)*normal_dot_grad_int_Ni*int_N(int_gp, j_node);
                     }
                 }
             }
@@ -537,11 +550,20 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                 const std::size_t number_of_contact_gauss_points = (contact_weights[i_cl]).size();
                 for (unsigned int contact_gp = 0; contact_gp < number_of_contact_gauss_points; contact_gp++){
                     for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
+                        double normal_dot_grad_contact_Ni = 0.0;
+                        for (unsigned int k_dim = 0; k_dim < num_dim; k_dim++){
+                            normal_dot_grad_contact_Ni += ( (contact_DN_DX[i_cl] )[contact_gp])(i_node, k_dim) * normal0[k_dim];
+                        }
+
                         for (unsigned int j_node = 0; j_node < num_nodes; j_node++){
+                            double normal_dot_grad_contact_Nj = 0.0;
+                            for (unsigned int k_dim = 0; k_dim < num_dim; k_dim++){
+                                normal_dot_grad_contact_Nj += ( (contact_DN_DX[i_cl] )[contact_gp])(j_node, k_dim) * normal0[k_dim];
+                            }
 
-                            lhs(i_node, j_node) += 0.0;
-                                1.0e0 * penalty_phi0*(contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*(contact_N[i_cl])(contact_gp, j_node);
-
+                            lhs(i_node, j_node) += 1.0e0 * penalty_phi0*(contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*(contact_N[i_cl])(contact_gp, j_node)
+                                - (contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*normal_dot_grad_contact_Nj
+                                - (contact_weights[i_cl])(contact_gp)*normal_dot_grad_contact_Ni*(contact_N[i_cl])(contact_gp, j_node);
                         }
                     }
                 }
