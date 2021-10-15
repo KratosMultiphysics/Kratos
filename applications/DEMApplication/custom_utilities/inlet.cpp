@@ -213,12 +213,17 @@ namespace Kratos {
                 const Parameters& inlet_settings = mInletsSettings[mp.Name()];
                 mInletsRandomSettings.emplace(mp.Name(), inlet_settings["random_variable_settings"]);
                 const Parameters& rv_settings = mInletsRandomSettings[mp.Name()];
+                int seed = rv_settings["seed"].GetInt();
+                if (!rv_settings["do_use_seed"].GetBool()){
+                    seed = std::random_device{}();
+                }
                 if (mp[PROBABILITY_DISTRIBUTION] == "piecewise_linear"){
-                    mInletsRandomVariables[mp.Name()] = std::unique_ptr<PiecewiseLinearRandomVariable>(new PiecewiseLinearRandomVariable(rv_settings));
+
+                    mInletsRandomVariables[mp.Name()] = std::unique_ptr<PiecewiseLinearRandomVariable>(new PiecewiseLinearRandomVariable(rv_settings, seed));
                 }
 
                 else if (mp[PROBABILITY_DISTRIBUTION] == "discrete"){
-                    mInletsRandomVariables[mp.Name()] = std::unique_ptr<DiscreteRandomVariable>(new DiscreteRandomVariable(rv_settings));
+                    mInletsRandomVariables[mp.Name()] = std::unique_ptr<DiscreteRandomVariable>(new DiscreteRandomVariable(rv_settings, seed));
                 }
 
                 else {
