@@ -919,7 +919,7 @@ namespace Kratos {
      * @brief Detect if  triangle and box are intersected
      */
     virtual bool HasIntersection(
-        GeometryType& rGeometry1,
+        GeometryType& rGeometry,
         const Point& rLowPoint,
         const Point& rHighPoint
         )
