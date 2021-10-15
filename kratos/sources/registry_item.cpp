@@ -34,6 +34,20 @@ namespace Kratos
         }
     }
 
+    std::string RegistryItem::ToJson(std::string const& Indentation) const {
+        KRATOS_ERROR_IF(HasValue()) << "For storing a value you should use the RegistryValueItem" << std::endl;
+
+        std::stringstream buffer;
+        buffer  << Indentation << "\"" << mName << "\" : {" << std::endl;
+        for(auto& item : mSubRegistryItem){
+            buffer << item.second->ToJson( Indentation + "    ");
+        }
+        buffer << "}" << std::endl;
+
+        return buffer.str();
+    }
+
+
     RegistryItem const& RegistryItem::GetItem(std::string const& ItemName) const {
         auto iterator = mSubRegistryItem.find(ItemName);
         KRATOS_ERROR_IF(iterator == mSubRegistryItem.end()) << "The RegistryItem " << this->Name() << " does not have an item with name " << ItemName << std::endl;
