@@ -187,10 +187,10 @@ public:
         {
             const double fluid_fraction_0 = rNode.FastGetSolutionStepValue(FLUID_FRACTION);
             const double fluid_fraction_1 = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD);
-            const double fluid_fraction_2 = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLDEST);
+            const double fluid_fraction_2 = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD_2);
             rNode.FastGetSolutionStepValue(FLUID_FRACTION_RATE) = BDFcoefs[0] * fluid_fraction_0 + BDFcoefs[1] * fluid_fraction_1 + BDFcoefs[2] * fluid_fraction_2;
 
-            rNode.GetSolutionStepValue(FLUID_FRACTION_OLDEST) = rNode.GetSolutionStepValue(FLUID_FRACTION_OLD);
+            rNode.GetSolutionStepValue(FLUID_FRACTION_OLD_2) = rNode.GetSolutionStepValue(FLUID_FRACTION_OLD);
             rNode.GetSolutionStepValue(FLUID_FRACTION_OLD) = rNode.GetSolutionStepValue(FLUID_FRACTION);
         });
     }
