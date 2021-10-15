@@ -15,16 +15,7 @@
 
 /*
 This file defines the IO of Kratos-CoSimulation for the exchange of data with external solvers.
-
-By default the communication is done through files.
-Support for additional means of communication can be enabled by uncommenting the following macros.
-Note that this introduces dependencies such as e.g. boost (header-only version) or MPI
 */
-
-// macros are protected to avoid redefinition in case they were defined externally (e.g. in CMake)
-#ifndef CO_SIM_IO_USING_MPI
-// #define CO_SIM_IO_USING_MPI // uncomment for MPI support
-#endif
 
 // System includes
 
