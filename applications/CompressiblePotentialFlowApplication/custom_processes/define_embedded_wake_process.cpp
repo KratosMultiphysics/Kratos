@@ -190,36 +190,33 @@ void DefineEmbeddedWakeProcess::Execute()
     for (auto& r_elem : deactivated_model_part.Elements()) {
         if (r_elem.Is(MARKER)) {
             for (auto& r_node : r_elem.GetGeometry()) {
-                // if(r_node.GetValue(UPPER_SURFACE) && r_node.GetValue(LOWER_SURFACE) && !r_node.GetValue(WAKE)){
-                if(r_node.GetValue(WAKE_DISTANCE) < 0.0) {
-                // if(r_node.GetValue(UPPER_SURFACE) && r_node.GetValue(LOWER_SURFACE)){
+                if(r_node.GetValue(UPPER_SURFACE) && r_node.GetValue(LOWER_SURFACE) && !r_node.GetValue(WAKE)){
                     r_node.SetValue(TRAILING_EDGE, true);
-                    r_elem.SetValue(KUTTA, true);
                 }
             }
         }
     }
 
-    // for (auto& r_elem : mrModelPart.Elements()) {
-    //     std::size_t upper_nodes = 0;
-    //     bool touches_te = false;
-    //     for (auto& r_node : r_elem.GetGeometry()) {
-    //         if(r_node.GetValue(UPPER_SURFACE)){
-    //             upper_nodes++;
-    //         }
-    //         if(r_node.GetValue(TRAILING_EDGE))
-    //             touches_te = true;
-    //     }
-    //     bool is_upper = upper_nodes == 3;
-    //     if (is_upper && touches_te) {
-    //         r_elem.SetValue(KUTTA, true);
-    //     }
-    //     // if (touches_te && r_elem.Is(ACTIVE)) {
-    //     //     for (auto& r_node : r_elem.GetGeometry()) {
-    //     //         r_node.SetValue(WING_TIP, true);
-    //     //     }
-    //     // }
-    // }
+    for (auto& r_elem : mrModelPart.Elements()) {
+        std::size_t upper_nodes = 0;
+        bool touches_te = false;
+        for (auto& r_node : r_elem.GetGeometry()) {
+            if(r_node.GetValue(UPPER_SURFACE)){
+                upper_nodes++;
+            }
+            if(r_node.GetValue(TRAILING_EDGE))
+                touches_te = true;
+        }
+        bool is_upper = upper_nodes == 3;
+        if (is_upper && touches_te) {
+            r_elem.SetValue(KUTTA, true);
+        }
+        // if (touches_te && r_elem.Is(ACTIVE)) {
+        //     for (auto& r_node : r_elem.GetGeometry()) {
+        //         r_node.SetValue(WING_TIP, true);
+        //     }
+        // }
+    }
 
     Element::Pointer airfoil_pointer = mrModelPart.pGetElement(1);
     Element::Pointer kutta_wake_pointer = mrModelPart.pGetElement(1);
