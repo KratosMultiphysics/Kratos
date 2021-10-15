@@ -153,12 +153,10 @@ class CoSimulationSolverWrapper:
 
     @classmethod
     def _GetDefaultParameters(cls):
-        default_parameters = KM.Parameters("""{
+        return KM.Parameters("""{
             "type"                       : "",
             "solver_wrapper_settings"    : {},
             "io_settings"                : {},
             "data"                       : {},
             "echo_level"                 : 0
         }""")
-
-        return default_parameters
