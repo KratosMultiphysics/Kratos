@@ -1,7 +1,8 @@
 // Author: Joaquin Gonzalez-Usua (jgonzalez@cimne.upc.edu)
 // Date: April 2021
 //This drag law is explained and implemented in detail in the following paper:
-//Lattice-Boltzmann simulation of lfuid flow through packed beds: interaction between fluid rheology and bed properties.
+//Lattice Boltzmann investigation on fluid flows through packed beds: Interaction between fluid rheology and bed properties
+//Qi et al. 2020
 #include "swimming_DEM_application.h"
 #include "dallavalle_drag_law.h"
 
