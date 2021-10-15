@@ -273,14 +273,8 @@ namespace Kratos {
                       for (char j_level = neighbour_cell->GetLevel(); j_level > i_level + 1; j_level--) {
                         SubdivideCell(temp_neighbour_cell);
                         temp_neighbour_cell->TransferObjectsToSonsNormalized();
-                        //                                        for (std::size_t j = 0; j < CHILDREN_NUMBER; j++) {
-                        //                                            next_leaves.push_back(temp_neighbour_cell->GetChildren() + j);
-                        //                                        }
-                        //                                        temp_neighbour_cell = temp_neighbour_cell->pGetChild(neighbour_key[0], neighbour_key[1], neighbour_key[2]);
                         std::size_t child_index = temp_neighbour_cell->GetChildIndex(neighbour_key[0], neighbour_key[1], neighbour_key[2]);
                         for (std::size_t j = 0; j < CHILDREN_NUMBER; j++) {
-                          //                                            *((temp_neighbour_cell->GetChildren() + j)->pGetDataPointer()) = TCellType::configuration_type::AllocateData();
-                          //                                            *((temp_neighbour_cell->GetChildren() + j)->pGetData()) = 1;
                           if (j != child_index) {
                             next_leaves.push_back(temp_neighbour_cell->GetChildren() + j);
                           }
@@ -298,7 +292,6 @@ namespace Kratos {
             }
             leaves.swap(next_leaves);
             next_leaves.clear();
-            //                KRATOS_WATCH(leaves.size())
           }
         }
 
@@ -321,10 +314,6 @@ namespace Kratos {
                                     for (char j_level = neighbour_cell->GetLevel(); j_level > i_level + 1; j_level--) {
                                         SubdivideCell(temp_neighbour_cell);
 
-                                        //                                        for (std::size_t j = 0; j < CHILDREN_NUMBER; j++) {
-                                        //                                            next_leaves.push_back(temp_neighbour_cell->GetChildren() + j);
-                                        //                                        }
-                                        //                                        temp_neighbour_cell = temp_neighbour_cell->pGetChild(neighbour_key[0], neighbour_key[1], neighbour_key[2]);
                                         std::size_t child_index = temp_neighbour_cell->GetChildIndex(neighbour_key[0], neighbour_key[1], neighbour_key[2]);
                                         for (std::size_t j = 0; j < CHILDREN_NUMBER; j++) {
                                             if (j != child_index) {
@@ -354,8 +343,6 @@ namespace Kratos {
         void GetLeavesInBoundingBoxNormalized(const double* coord1, const double* coord2,
           std::vector<cell_type*>& leaves) const
         {
-      // const double tolerance = 0.001 * double(1 << MIN_LEVEL) / double(1 << ROOT_LEVEL) ; // 0.1% of the min size
-
             key_type min_x_key = CalcKeyNormalized(coord1[0]);
             key_type min_y_key = CalcKeyNormalized(coord1[1]);
             key_type min_z_key = CalcKeyNormalized(coord1[2]);
@@ -581,17 +568,9 @@ namespace Kratos {
         }
 
         cell_type * pGetNeighbourCell(cell_type* p_cell, std::size_t position, std::size_t direction) {
-            //                 KRATOS_WATCH(position);
-            //                KRATOS_WATCH(direction);
-            //                KRATOS_WATCH(int(p_cell->GetLevel()));
             key_type keys[3];
-            //                p_cell->GetMinKey(keys[0], keys[1], keys[2]);
-            //                std::cout << "min_keys: " << keys[0] << ", " << keys[1] << ", " << keys[2] << std::endl;
-            //                p_cell->GetKey(position, keys);
-            //                std::cout << "pos_keys: " << keys[0] << ", " << keys[1] << ", " << keys[2] << std::endl;
-            if (p_cell->GetNeighbourKey(position, direction, keys)) {
 
-                //                std::cout << "new_keys: " << keys[0] << ", " << keys[1] << ", " << keys[2] << std::endl;
+            if (p_cell->GetNeighbourKey(position, direction, keys)) {
                 return pGetCell(keys);
             }
             return NULL; // no neighbour
@@ -604,18 +583,6 @@ namespace Kratos {
           return p_cell->SubdivideCell();
         }
 
-        //cell_type* SubdivideCellAndReturnChild(cell_type* p_cell,const double* coord) {
-        //  key_type x_key = Key(coord[0]);
-        //  key_type y_key = Key(coord[1]);
-        //  key_type z_key = Key(coord[2]);
-
-        //  number_of_cells_ += CHILDREN_NUMBER;
-        //  number_of_leaves_ += CHILDREN_NUMBER - 1;
-
-        //  p_cell->SubdivideCell();
-
-        //  return p_cell->pGetChild(x_key, y_key, z_key);
-        //}
 
         int SubvidiveUntilSizeNormalized(double* coord, const double desired_size){
             key_type x_key = CalcKeyNormalized(coord[0]);
