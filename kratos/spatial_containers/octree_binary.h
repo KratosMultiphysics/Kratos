@@ -250,43 +250,10 @@ namespace Kratos {
 
         }
 
-        /*void InsertAndBallance(coordinate_type* point) {
-            key_type x_key = Key(point[0]);
-            key_type y_key = Key(point[1]);
-            key_type z_key = Key(point[2]);
-
-            cell_type* cell = root_;
-
-            for (std::size_t i = 0; i < ROOT_LEVEL; i++) {
-                if (cell->IsLeaf()) {
-                    cell->SubdivideCell();
-                    number_of_cells_ += CHILDREN_NUMBER;
-                    number_of_leaves_ += CHILDREN_NUMBER - 1;
-
-                    char neighbour_level[6] = {pGetLeftCell(cell)->GetLevel(),
-                        pGetRightCell(cell)->GetLevel(),
-                        pGetFrontCell(cell)->GetLevel(),
-                        pGetBackCell(cell)->GetLevel(),
-                        pGetTopCell(cell)->GetLevel(),
-                        pGetBottomCell(cell)->GetLevel()};
-
-
-                    char min_neighbour_level = neighbour_level[0];
-
-                    for (int i = 1; i < 6; i++)
-                        min_neighbour_level = (min_neighbour_level < neighbour_level[i]) ? min_neighbour_level : neighbour_level[i];
-
-                }
-                cell = cell->pGetChild(x_key, y_key, z_key);
-            }
-
-        }*/
-
         bool CheckConstrain2To1() const{
           //POOYAN. This function must return true if the octree is balanced (constrained2:1) and false if not.
           return true;
         }
-
 
         void Constrain2To1() {
           std::vector<cell_type*> leaves;
