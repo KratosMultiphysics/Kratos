@@ -1126,6 +1126,18 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
 
         super().Initialize()
 
+        if self.project_parameters["solver_settings"]["model_import_settings"]["input_type"].GetString()=="use_input_model_part":
+            copy_model_part = self.model.GetModelPart(self.main_model_part_name)
+            # copy_model_part.RemoveSubModelPart("fluid_computational_model_part")
+            if not copy_model_part.HasProperties(0):
+                copy_model_part.AddProperties(KratosMultiphysics.Properties(0))
+            if not copy_model_part.HasProperties(1):
+                copy_model_part.AddProperties(KratosMultiphysics.Properties(1))
+            self.auxiliary_mdpa_path_new = self.auxiliary_mdpa_path+"_"+str(self.sample[0])+"_"+str(math.floor(time.time()*100000))[6:]
+            if not os.path.exists(self.auxiliary_mdpa_path_new):
+                KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path_new, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SKIP_TIMER).WriteModelPart(copy_model_part)
+            #time.sleep(1)
+            print("SOLVING mdpa:", self.auxiliary_mdpa_path_new)
     def Finalize(self):
 
         super().Finalize()
