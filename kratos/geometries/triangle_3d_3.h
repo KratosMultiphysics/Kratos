@@ -676,14 +676,14 @@ public:
         const array_1d<double,3>& r_vert0 = this->GetPoint(0);
         const array_1d<double,3>& r_vert1 = this->GetPoint(1);
         const array_1d<double,3>& r_vert2 = this->GetPoint(2);
-        const array_1d<double,3> edge1 = vert1 - vert0;
-        const array_1d<double,3> edge2 = vert2 - vert0;
+        const array_1d<double,3> edge1 = r_vert1 - r_vert0;
+        const array_1d<double,3> edge2 = r_vert2 - r_vert0;
         h = MathUtils<double>::CrossProduct(ray_vector, edge2);
         a = inner_prod(edge1, h);
         if (a > -tolerance && a < tolerance)
             return false; // this ray is parallel to the triangle.
         f = 1.0 / a;
-        s = rLine[0] - vert0;
+        s = rLine[0] - r_vert0;
         u = f * inner_prod(s, h);
         if (u < 0.0 || u > 1.0)
             return false;
