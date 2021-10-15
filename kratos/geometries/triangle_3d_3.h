@@ -673,9 +673,9 @@ public:
         double a, f, u, v;
         array_1d<double,3> h, s, q;
         const array_1d<double,3> ray_vector = rLine[1] - rLine[0];
-        const array_1d<double,3> vert0 = this->GetPoint(0);
-        const array_1d<double,3> vert1 = this->GetPoint(1);
-        const array_1d<double,3> vert2 = this->GetPoint(2);
+        const array_1d<double,3>& r_vert0 = this->GetPoint(0);
+        const array_1d<double,3>& r_vert1 = this->GetPoint(1);
+        const array_1d<double,3>& r_vert2 = this->GetPoint(2);
         const array_1d<double,3> edge1 = vert1 - vert0;
         const array_1d<double,3> edge2 = vert2 - vert0;
         h = MathUtils<double>::CrossProduct(ray_vector, edge2);
