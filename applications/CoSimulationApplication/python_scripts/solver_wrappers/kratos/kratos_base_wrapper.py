@@ -6,7 +6,6 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-from KratosMultiphysics.CoSimulationApplication.utilities.serial_data_communicator import SerialDataCommunicator
 from importlib import import_module
 
 
@@ -51,11 +50,6 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
             self.thread_manager = ThreadManager(omp_num_threads)
         else:
             self.thread_manager = ThreadManager()
-
-        parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
-        if parallel_type == "OpenMP":
-            # probably better to somehow override "__GetDataCommunicator"
-            self.data_communicator = SerialDataCommunicator()
 
     def Initialize(self):
         with self.thread_manager:
