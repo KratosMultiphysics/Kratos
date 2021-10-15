@@ -180,6 +180,9 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
 
   protected:
 
+  // General
+  bool is_time_to_solve;
+
   // Heat flux components
   double mConductiveHeatFlux;
   double mConvectiveHeatFlux;

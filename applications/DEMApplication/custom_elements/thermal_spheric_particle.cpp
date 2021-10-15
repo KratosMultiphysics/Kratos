@@ -50,7 +50,13 @@ namespace Kratos
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::InitializeSolutionStep(const ProcessInfo& r_process_info) {
     // Initialize base class
-    TBaseElement::InitializeSolutionStep(r_process_info);
+    if (this->Is(DEMFlags::HAS_MOTION))
+      TBaseElement::InitializeSolutionStep(r_process_info);
+
+    // Check if it is time to compute heat transfer
+    int step = r_process_info[TIME_STEPS];
+    int freq = r_process_info[THERMAL_FREQUENCY];
+    is_time_to_solve = (step - 1) % freq == 0 && (step > 0);
   }
 
   template <class TBaseElement>
@@ -83,7 +89,8 @@ namespace Kratos
       TBaseElement::CalculateRightHandSide(r_process_info, dt, gravity);
     
     // Heat flux components
-    ComputeHeatFluxes(r_process_info);
+    if (is_time_to_solve)
+      ComputeHeatFluxes(r_process_info);
   }
 
   template <class TBaseElement>
@@ -140,9 +147,12 @@ namespace Kratos
   void ThermalSphericParticle<TBaseElement>::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
     if (this->Is(DEMFlags::HAS_MOTION))
       TBaseElement::FinalizeSolutionStep(r_process_info);
-    UpdateTemperature(r_process_info);
-    mPreviousTemperature = GetParticleTemperature();
-    SetParticleHeatFlux(mTotalHeatFlux);
+
+    if (is_time_to_solve) {
+      UpdateTemperature(r_process_info);
+      mPreviousTemperature = GetParticleTemperature();
+      SetParticleHeatFlux(mTotalHeatFlux);
+    }
   }
 
   //=====================================================================================================================================================================================

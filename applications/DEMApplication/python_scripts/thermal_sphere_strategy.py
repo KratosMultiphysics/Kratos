@@ -13,6 +13,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         # Get thermal settings and assign default values
         default_settings = Parameters("""
         {
+            "thermal_solve_frequency"        : 1,
             "compute_motion"                 : true,
             "compute_direct_conduction"      : false,
             "compute_indirect_conduction"    : false,
@@ -46,8 +47,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.thermal_settings = DEM_parameters["thermal_settings"]
         self.thermal_settings.ValidateAndAssignDefaults(default_settings)
 
-        # Set flags
-        self.compute_motion_option = self.thermal_settings["compute_motion"].GetBool()
+        # General options
+        self.thermal_solve_frequency = self.thermal_settings["thermal_solve_frequency"].GetInt()
+        self.compute_motion_option   = self.thermal_settings["compute_motion"].GetBool()
 
         # Set booleans for active heat transfer mechanisms
         self.compute_direct_conduction_option   = self.thermal_settings["compute_direct_conduction"].GetBool()
@@ -145,7 +147,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         # Set general additional variables (currently empty)
         BaseExplicitStrategy.SetAdditionalVariablesAndOptions(self)
 
-        # Flags
+        # General options
+        self.spheres_model_part.ProcessInfo.SetValue(THERMAL_FREQUENCY, self.thermal_solve_frequency)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MOTION_OPTION, self.compute_motion_option)
 
         # Booleans for active heat transfer mechanisms
@@ -189,6 +192,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
     def InitializeSolutionStep(self):
         if (self.compute_motion_option):
             BaseExplicitStrategy.InitializeSolutionStep(self)
+        else:
+            (self.cplusplus_strategy).InitializeSolutionStep()
     
     def Predict(self):
         if (self.compute_motion_option):
