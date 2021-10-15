@@ -18,7 +18,7 @@ def GetFilePath(fileName):
 class TestPostProcessClass1(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
-    def GetMainPath(self):
+    def GetMainPath(cls):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "post_process_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -38,7 +38,7 @@ class TestPostProcess(KratosUnittest.TestCase):
         shutil.copy(ring_cluster_path, path)
 
     @classmethod
-    def test_gid_printing_many_results(self):
+    def test_gid_printing_many_results(cls):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "post_process_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()

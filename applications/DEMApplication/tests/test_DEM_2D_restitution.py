@@ -21,7 +21,7 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
 
     @classmethod
-    def GetMainPath(self):
+    def GetMainPath(cls):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_restitution_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -74,7 +74,6 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
         condition_name = "RigidEdge2D2N"
         self.rigid_face_model_part.CreateNewCondition(condition_name, 7, [3, 4], self.rigid_face_model_part.GetProperties()[0])
 
-    @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
         self.coeff = 1.0 # analytic value should be 1.0
 
@@ -85,7 +84,6 @@ class DEM2D_RestitutionTestSolution_2(DEM2D_RestitutionTestSolution):
         with open(materials_file_abs_path, 'r') as materials_file:
             self.DEM_material_parameters = KratosMultiphysics.Parameters(materials_file.read())
 
-    @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
         self.coeff = 0.46637 # analytic value should be 0.5
 
@@ -95,14 +93,14 @@ class TestDEM2DRestitution(KratosUnittest.TestCase):
         pass
 
     @classmethod
-    def test_DEM2D_restitution_1(self):
+    def test_DEM2D_restitution_1(cls):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_RestitutionTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
     @classmethod
-    def test_DEM2D_restitution_2(self):
+    def test_DEM2D_restitution_2(cls):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()

@@ -17,7 +17,7 @@ def GetFilePath(fileName):
 class HistoryDependentCLsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
-    def GetMainPath(self):
+    def GetMainPath(cls):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "history_dependent_CLs_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -71,7 +71,7 @@ class TestHistoryDependentCLs(KratosUnittest.TestCase):
         pass
 
     @classmethod
-    def test_HistoryDependentCLs(self):
+    def test_HistoryDependentCLs(cls):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "history_dependent_CLs_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()

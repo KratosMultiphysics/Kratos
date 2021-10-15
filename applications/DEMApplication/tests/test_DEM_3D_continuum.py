@@ -21,7 +21,7 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
 
     @classmethod
-    def GetMainPath(self):
+    def GetMainPath(cls):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_DEM_3D_continuum")
 
     def GetProblemNameWithPath(self):
@@ -150,7 +150,7 @@ class TestDEM3DContinuum(KratosUnittest.TestCase):
         pass
 
     @classmethod
-    def test_DEM3D_continuum(self):
+    def test_DEM3D_continuum(cls):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_DEM_3D_continuum")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()

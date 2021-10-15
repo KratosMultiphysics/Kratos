@@ -16,7 +16,7 @@ def GetFilePath(fileName):
 class DEM3D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
-    def GetMainPath(self):
+    def GetMainPath(cls):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_inlet_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -50,7 +50,7 @@ class TestDEM3DInlet(KratosUnittest.TestCase):
         pass
 
     @classmethod
-    def test_DEM3D_inlet(self):
+    def test_DEM3D_inlet(cls):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_inlet_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()

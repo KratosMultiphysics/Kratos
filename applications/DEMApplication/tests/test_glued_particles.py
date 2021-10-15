@@ -15,7 +15,7 @@ def GetFilePath(fileName):
 class GluedParticlesTestSolution(DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
-    def GetMainPath(self):
+    def GetMainPath(cls):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "glued_particles_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -51,7 +51,7 @@ class TestGluedParticles(KratosUnittest.TestCase):
         pass
 
     @classmethod
-    def test_Glued_Particles_1(self):
+    def test_Glued_Particles_1(cls):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "glued_particles_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()

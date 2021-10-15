@@ -16,7 +16,7 @@ def GetFilePath(fileName):
 class DEM2D_ContactTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
-    def GetMainPath(self):
+    def GetMainPath(cls):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_contact_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -47,7 +47,7 @@ class TestDEM2DContact(KratosUnittest.TestCase):
         pass
 
     @classmethod
-    def test_DEM2D_contact(self):
+    def test_DEM2D_contact(cls):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_contact_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()

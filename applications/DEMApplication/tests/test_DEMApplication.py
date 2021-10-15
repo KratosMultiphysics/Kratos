@@ -87,6 +87,7 @@ def AssembleTestSuites():
 
     smallSuite.addTest(test_omp.TestOMP("test_omp_1"))
     smallSuite.addTest(test_omp.TestOMP("test_omp_2"))
+    smallSuite.addTest(test_omp.TestOMP("test_omp_3"))
     smallSuite.addTest(test_omp.TestOMP("test_omp_4"))
 
     # Create a test suit with the selected tests plus all small tests

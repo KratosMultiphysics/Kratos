@@ -31,7 +31,7 @@ class DEM3D_ForwardEulerTestSolution(KratosMultiphysics.DEMApplication.DEM_analy
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
 
     @classmethod
-    def GetMainPath(self):
+    def GetMainPath(cls):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_schemes")
 
     def GetProblemNameWithPath(self):
@@ -166,28 +166,28 @@ class DEM3D_VerletTestSolution(DEM3D_ForwardEulerTestSolution):
 class TestDEMSchemes(KratosUnittest.TestCase):
 
     @classmethod
-    def test_ForwardEuler(self):
+    def test_ForwardEuler(cls):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_schemes")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM_ForwardEuler.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_ForwardEulerTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
     @classmethod
-    def test_Taylor(self):
+    def test_Taylor(cls):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_schemes")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM_Taylor.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_TaylorTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
     @classmethod
-    def test_Symplectic(self):
+    def test_Symplectic(cls):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_schemes")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM_Symplectic.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_SymplecticTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
     @classmethod
-    def test_Verlet(self):
+    def test_Verlet(cls):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_schemes")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM_Verlet.json")
         model = KratosMultiphysics.Model()

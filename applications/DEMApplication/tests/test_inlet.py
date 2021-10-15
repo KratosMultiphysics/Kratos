@@ -22,7 +22,7 @@ class TestDEMPiecewiseInletAnalysis(dem_analysis.DEMAnalysisStage):
         return 0.5 * sum(abs((values_ref - values)) * interval_widths)
 
     @classmethod
-    def GetMainPath(self):
+    def GetMainPath(cls):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "random_variable_based_inlet_tests_files")
 
     def __init__(self, model, DEM_parameters):

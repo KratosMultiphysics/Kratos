@@ -84,7 +84,7 @@ class DEM3D_ContinuumTestVsWallSolution(KratosMultiphysics.DEMApplication.DEM_an
 
 
     @classmethod
-    def GetMainPath(self):
+    def GetMainPath(cls):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_continuum_vs_wall_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -96,7 +96,7 @@ class TestDEM3DContinuumVsWall(KratosUnittest.TestCase):
         pass
 
     @classmethod
-    def test_DEM3D_continuum_vs_wall(self):
+    def test_DEM3D_continuum_vs_wall(cls):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_continuum_vs_wall_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()

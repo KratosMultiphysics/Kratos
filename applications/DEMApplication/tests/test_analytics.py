@@ -19,7 +19,7 @@ def GetFilePath(fileName):
 class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
-    def GetMainPath(self):
+    def GetMainPath(cls):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -46,7 +46,7 @@ class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage
 class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
-    def GetMainPath(self):
+    def GetMainPath(cls):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -76,7 +76,7 @@ class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DE
 class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
-    def GetMainPath(self):
+    def GetMainPath(cls):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
     def GetProblemNameWithPath(self):
@@ -112,7 +112,7 @@ class TestAnalytics(KratosUnittest.TestCase):
         pass
 
     @classmethod
-    def test_Analytics_1(self):
+    def test_Analytics_1(cls):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()
@@ -121,7 +121,7 @@ class TestAnalytics(KratosUnittest.TestCase):
 
     # @classmethod
     # @KratosUnittest.expectedFailure
-    # def test_Analytics_2(self):
+    # def test_Analytics_2():
     #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
     #     parameters_file_name = os.path.join(path, "ProjectParametersDEM_single_layer_ghost.json")
     #     model = Kratos.Model()
@@ -130,7 +130,7 @@ class TestAnalytics(KratosUnittest.TestCase):
 
     # @classmethod
     # @KratosUnittest.expectedFailure
-    # def test_Analytics_3(self):
+    # def test_Analytics_3():
     #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
     #     parameters_file_name = os.path.join(path, "ProjectParametersDEM_multi_layer_ghost.json")
     #      = os.path.join(path, "MaterialsDEM.json")
