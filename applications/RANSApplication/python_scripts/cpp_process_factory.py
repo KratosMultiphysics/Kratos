@@ -90,6 +90,10 @@ def Factory(settings, Model):
         [
             "OmegaAutomaticInletProcess",
             KratosRANS.RansOmegaAutomaticInletProcess
+        ],
+        [
+            "SmoothClipScalarVariableProcess",
+            KratosRANS.RansSmoothClipScalarVariableProcess
         ]
     ]
 
