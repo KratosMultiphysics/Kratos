@@ -24,13 +24,10 @@
 
 
 // Project includes
-#ifdef KRATOS_INDEPENDENT
-#else
 #include "includes/define.h"
 #include "geometries/geometry.h"
 #include "includes/node.h"
 #include "utilities/intersection_utilities.h"
-#endif
 
 #include "octree_binary_cell.h"
 
@@ -303,10 +300,6 @@ namespace Kratos {
             next_leaves.clear();
             //                KRATOS_WATCH(leaves.size())
           }
-#ifdef KRATOS_INDEPENDENT
-#else
-          KRATOS_WATCH(number_of_leaves_);
-#endif
         }
 
         void Constrain2To1New() {
@@ -353,15 +346,9 @@ namespace Kratos {
                 }
                 leaves.swap(next_leaves);
                 next_leaves.clear();
-#ifdef KRATOS_INDEPENDENT
-#else
                 KRATOS_WATCH(leaves.size())
-#endif
             }
-#ifdef KRATOS_INDEPENDENT
-#else
             KRATOS_WATCH(number_of_leaves_);
-#endif
         }
 
         void GetLeavesInBoundingBoxNormalized(const double* coord1, const double* coord2,
@@ -856,12 +843,6 @@ namespace Kratos {
 
 
         }
-
-
-
-        #ifdef KRATOS_INDEPENDENT
-
-#else
 
     /**
     * @brief This method fills the intersected leaves
@@ -1409,27 +1390,6 @@ namespace Kratos {
         if ( min > rad || max < -rad ) return 0;
         else return 1;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-///////////////////////////////////////////
-
-
-
-#endif // KRATOS_INDEPENDENT
-
 
         cell_type* pGetCellContainRegion(key_type min_x_key, key_type min_y_key, key_type min_z_key,
                                          key_type max_x_key, key_type max_y_key, key_type max_z_key)
