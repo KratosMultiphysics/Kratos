@@ -648,16 +648,13 @@ public:
     {
         const auto geometry_type = rThisGeometry.GetGeometryType();
 
-        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2 ||
-            geometry_type == GeometryData::KratosGeometryType::Kratos_Line3D2) {
+        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Line3D2) {
             return LineTriangleOverlap(rThisGeometry);
         }
-        else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 ||
-                geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
+        else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
             return TriTriOverlap(rThisGeometry);
         }
-        else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4 ||
-                geometry_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) {
+        else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) {
             Triangle3D3 triangle_0 (rThisGeometry.pGetPoint(0), rThisGeometry.pGetPoint(1), rThisGeometry.pGetPoint(2));
             Triangle3D3 triangle_1 (rThisGeometry.pGetPoint(2), rThisGeometry.pGetPoint(3), rThisGeometry.pGetPoint(0));
             if      ( TriTriOverlap(triangle_0) ) return true;
