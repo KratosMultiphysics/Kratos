@@ -28,9 +28,6 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryObject, KratosMappingApplicationSeria
 
     InterfaceObject interface_obj(init_coords);
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(interface_obj.UpdateCoordinates(),
-        "Error: Base class function called!");
-
     KRATOS_CHECK_EXCEPTION_IS_THROWN(interface_obj.pGetBaseNode(),
         "Error: Base class function called!");
 
@@ -65,15 +62,6 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceNode, KratosMappingApplicationSerialTestSuite
     for (std::size_t i=0; i<3; ++i)
         KRATOS_CHECK_DOUBLE_EQUAL(p_interface_obj->Coordinates()[i], coords[i]);
 
-    Point new_coords(18.3, -89.123, 125.7);
-
-    noalias(node_1->Coordinates()) = new_coords;
-
-    p_interface_obj->UpdateCoordinates();
-
-    for (std::size_t i=0; i<3; ++i)
-        KRATOS_CHECK_DOUBLE_EQUAL(p_interface_obj->Coordinates()[i], new_coords[i]);
-
     KRATOS_CHECK_EQUAL(*(p_interface_obj->pGetBaseNode()), *node_1);
 }
 
@@ -97,26 +85,6 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceObject, KratosMappingApplicationSerialTestSui
 
     for (std::size_t i=0; i<3; ++i)
         KRATOS_CHECK_DOUBLE_EQUAL(p_interface_obj->Coordinates()[i], center_coords[i]);
-
-    p_point1->X() -= 2.5;
-    p_point2->X() -= 2.5;
-    p_point3->X() -= 2.5;
-    p_point4->X() -= 2.5;
-
-    p_point1->Y() += 2.0;
-    p_point4->Y() += 2.0;
-
-    p_point1->Z() = 2.0;
-    p_point2->Z() = 2.0;
-    p_point3->Z() = 2.0;
-    p_point4->Z() = 2.0;
-
-    Point new_center_coords(2.5, 6.0, 2.0);
-
-    p_interface_obj->UpdateCoordinates();
-
-    for (std::size_t i=0; i<3; ++i)
-        KRATOS_CHECK_DOUBLE_EQUAL(p_interface_obj->Coordinates()[i], new_center_coords[i]);
 
     // KRATOS_CHECK_EQUAL(*(p_interface_obj->pGetBaseGeometry()), *p_quad); // does not compile ...
 }

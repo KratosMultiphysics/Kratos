@@ -1,4 +1,4 @@
-from KratosMultiphysics import DataCommunicator
+from KratosMultiphysics import Testing
 from KratosMultiphysics.kratos_utilities import GetNotAvailableApplications
 
 from unittest import * # needed to make all functions available to the tests using this file
@@ -74,33 +74,46 @@ class TestCase(TestCase):
         raise self.failureException(msg)
 
     def assertVectorAlmostEqual(self, vector1, vector2, prec=7):
-        def GetErrMsg(mismatch_idx):
-            err_msg  = '\nCheck failed because vector arguments are not equal in component {}'.format(mismatch_idx)
-            err_msg += '\nVector 1:\n{}\nVector 2:\n{}'.format(vector1, vector2)
-            yield err_msg
+        class LazyErrMsg:
+            '''Since potentially expensive, this class delays printing the error message until it is actually needed'''
+            def __init__(self, mismatch_idx):
+                self.mismatch_idx = mismatch_idx
+
+            def __str__(self):
+                err_msg  = '\nCheck failed because vector arguments are not equal in component {}'.format(self.mismatch_idx)
+                err_msg += '\nVector 1:\n{}\nVector 2:\n{}'.format(vector1, vector2)
+                return err_msg
 
         self.assertEqual(len(vector1), len(vector2), msg="\nCheck failed because vector arguments do not have the same size")
         for i, (v1, v2) in enumerate(zip(vector1, vector2)):
-            self.assertAlmostEqual(v1, v2, prec, msg=GetErrMsg(i))
+            self.assertAlmostEqual(v1, v2, prec, msg=LazyErrMsg(i))
 
     def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7):
-        def GetDimErrMsg():
-            err_msg  = '\nCheck failed because matrix arguments do not have the same dimensions:\n'
-            err_msg += 'First argument has dimensions ({},{}), '.format(matrix1.Size1(), matrix1.Size2())
-            err_msg += 'Second argument has dimensions ({},{})'.format(matrix2.Size1(), matrix2.Size2())
-            yield err_msg
+        class LazyDimErrMsg:
+            '''Since potentially expensive, this class delays printing the error message until it is actually needed'''
+            def __str__(self):
+                err_msg  = '\nCheck failed because matrix arguments do not have the same dimensions:\n'
+                err_msg += 'First argument has dimensions ({},{}), '.format(matrix1.Size1(), matrix1.Size2())
+                err_msg += 'Second argument has dimensions ({},{})'.format(matrix2.Size1(), matrix2.Size2())
+                return err_msg
 
-        def GetValErrMsg(idx_1, idx_2):
-            err_msg  = '\nCheck failed because matrix arguments are not equal in component ({},{})'.format(idx_1, idx_2)
-            err_msg += '\nMatrix 1:\n{}\nMatrix 2:\n{}'.format(matrix1, matrix2)
-            yield err_msg
+        class LazyValErrMsg:
+            '''Since potentially expensive, this class delays printing the error message until it is actually needed'''
+            def __init__(self, idx_1, idx_2):
+                self.idx_1 = idx_1
+                self.idx_2 = idx_2
+
+            def __str__(self):
+                err_msg  = '\nCheck failed because matrix arguments are not equal in component ({},{})'.format(self.idx_1, self.idx_2)
+                err_msg += '\nMatrix 1:\n{}\nMatrix 2:\n{}'.format(matrix1, matrix2)
+                return err_msg
 
         dimensions_match = (matrix1.Size1() == matrix2.Size1() and matrix1.Size2() == matrix2.Size2())
-        self.assertTrue(dimensions_match, msg=GetDimErrMsg())
+        self.assertTrue(dimensions_match, msg=LazyDimErrMsg())
 
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
-                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec, msg=GetValErrMsg(i,j))
+                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec, msg=LazyValErrMsg(i,j))
 
 
 def skipIfApplicationsNotAvailable(*application_names):
@@ -170,7 +183,7 @@ def runTests(tests):
         print('[Warning]: "{}" test suite is empty'.format(level),file=sys.stderr)
     else:
         result = not TextTestRunner(verbosity=args.verbosity, buffer=True).run(tests[level]).wasSuccessful()
-        if DataCommunicator.GetDefault().Rank() == 0 and args.timing:
+        if Testing.GetDefaultDataCommunicator().Rank() == 0 and args.timing:
             print("Test Execution Times:")
             for test_time, test_name in sorted(test_timing_results.items(), reverse=True):
                 print(test_name, " {0:.{1}f} [sec]".format(test_time,2))
