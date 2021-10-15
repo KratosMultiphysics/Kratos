@@ -13,7 +13,7 @@
 // Project includes
 #include "includes/define.h"
 #include "nurbs_geometry_modeler.h"
-#include "geometries/nurbs_shape_function_utilities/nurbs_volume_utilities.h"
+#include "geometries/nurbs_shape_function_utilities/nurbs_volume_refinement_utilities.h"
 
 namespace Kratos
 {
@@ -218,13 +218,11 @@ namespace Kratos
         double x = A.X();
         double y = A.Y();
         double z = A.Z();
-        IndexType node_id = 1;
         for( IndexType k=0; k < OrderW+1; ++k){
             for( IndexType j=0; j < OrderV+1; ++j){
                 for( IndexType i = 0; i < OrderU+1; ++i){
-                    points.push_back(Kratos::make_intrusive<NodeType>(node_id, x, y, z ));
+                    points.push_back(Kratos::make_intrusive<NodeType>(0, x, y, z ));
                     x += delta_x;
-                    node_id++;
                 }
                 x = A.X();
                 y += delta_y;
@@ -290,26 +288,58 @@ namespace Kratos
             insert_knots_w[i] = knot_w;
         }
 
-        // Perform knot refinement.
-        if( NumKnotSpansU > 1) {
-            //@Todo; Change to similar scheme as surface; SetInternals...
-            p_volume_geometry = NurbsVolumeUtilities::KnotRefinementU(*p_volume_geometry, insert_knots_u);
-        }
-        if( NumKnotSpansV > 1) {
-            p_volume_geometry = NurbsVolumeUtilities::KnotRefinementV(*p_volume_geometry, insert_knots_v);
-        }
-        if( NumKnotSpansW > 1) {
-            p_volume_geometry = NurbsVolumeUtilities::KnotRefinementW(*p_volume_geometry, insert_knots_w);
-        }
-
         const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
         p_volume_geometry->SetId(number_of_geometries+1);
         r_model_part.AddGeometry(p_volume_geometry);
-        for( IndexType i = 0; i < p_volume_geometry->size(); ++i){
-            p_volume_geometry->pGetPoint(i)->SetSolutionStepVariablesList(r_model_part.pGetNodalSolutionStepVariablesList());
-            r_model_part.AddNode(p_volume_geometry->pGetPoint(i),0);
+
+        // Perform knot refinement.
+        PointerVector<NodeType> PointsRefined = p_volume_geometry->Points();
+
+        if( NumKnotSpansU > 1) {
+            Vector KnotsURefined;
+            PointsRefined = PointerVector<NodeType>(0);
+
+            NurbsVolumeRefinementUtilities::KnotRefinementU( *p_volume_geometry, insert_knots_u,
+                PointsRefined, KnotsURefined);
+
+            p_volume_geometry->SetInternals(PointsRefined,
+                p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
+                KnotsURefined, p_volume_geometry->KnotsV(), p_volume_geometry->KnotsW());
+        }
+        if( NumKnotSpansV > 1) {
+            Vector KnotsVRefined;
+            PointsRefined = PointerVector<NodeType>(0);
+
+            NurbsVolumeRefinementUtilities::KnotRefinementV( *p_volume_geometry, insert_knots_v,
+                PointsRefined, KnotsVRefined);
+
+            p_volume_geometry->SetInternals(PointsRefined,
+                p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
+                p_volume_geometry->KnotsU(), KnotsVRefined, p_volume_geometry->KnotsW());
+        }
+        if( NumKnotSpansW > 1) {
+            Vector KnotsWRefined;
+            PointsRefined = PointerVector<NodeType>(0);
+
+            NurbsVolumeRefinementUtilities::KnotRefinementW( *p_volume_geometry, insert_knots_w,
+                PointsRefined, KnotsWRefined);
+
+            p_volume_geometry->SetInternals(PointsRefined,
+                p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
+                p_volume_geometry->KnotsU(), p_volume_geometry->KnotsV(), KnotsWRefined);
+        }
+
+        IndexType node_id = 1;
+        if( r_model_part.NumberOfNodes() > 0 ){
+            node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+        }
+
+        for (IndexType i = 0; i < PointsRefined.size(); ++i) {
+            if (PointsRefined(i)->Id() == 0) {
+                PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
+                node_id++;
+            }
         }
     }
     ///@}
-
 } // end namespace kratos
