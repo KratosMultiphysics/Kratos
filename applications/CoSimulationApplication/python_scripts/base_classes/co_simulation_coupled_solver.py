@@ -331,7 +331,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
                 if solver_name not in solvers_map:
                     raise Exception('A Model was given for solver "{}" but this solver does not exist!'.format(solver_name))
 
-
         return solvers_map
 
     def __GetSolverCoSimulationDetails(self):

@@ -148,7 +148,7 @@ class CoSimulationSolverWrapper:
         return self.__io is not None
 
     def _GetDataCommunicator(self):
-        # by default, the solver uses all available cores
+        # by default, the solver uses all available processes
         return KM.ParallelEnvironment.GetDefaultDataCommunicator()
 
     @classmethod
