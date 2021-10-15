@@ -7,7 +7,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 
 # Other imports
 from .sdof_solver import SDoFSolver
-from KratosMultiphysics.CoSimulationApplication.utilities.serial_data_communicator import SerialDataCommunicator
+from KratosMultiphysics.CoSimulationApplication.utilities.data_communicator_utilities import GetRankZeroDataCommunicator
 
 def Create(settings, model, solver_name):
     return SdofSolverWrapper(settings, model, solver_name)
@@ -62,4 +62,5 @@ class SdofSolverWrapper(CoSimulationSolverWrapper):
                 raise Exception('Variable "{}" of interface data "{}" of solver "{}" cannot be used for the SDof Solver!\nOnly the following variables are allowed: {}'.format(data.variable.Name(), data.name, data.solver_name, admissible_variables))
 
     def _GetDataCommunicator(self):
-        return SerialDataCommunicator()
+        # this solver does not support MPI
+        return GetRankZeroDataCommunicator()
