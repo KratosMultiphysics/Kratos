@@ -13,6 +13,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         # Get thermal settings and assign default values
         default_settings = Parameters("""
         {
+            "compute_motion"                 : true,
             "compute_direct_conduction"      : false,
             "compute_indirect_conduction"    : false,
             "compute_convection"             : false,
@@ -44,6 +45,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         self.thermal_settings = DEM_parameters["thermal_settings"]
         self.thermal_settings.ValidateAndAssignDefaults(default_settings)
+
+        # Set flags
+        self.compute_motion_option = self.thermal_settings["compute_motion"].GetBool()
 
         # Set booleans for active heat transfer mechanisms
         self.compute_direct_conduction_option   = self.thermal_settings["compute_direct_conduction"].GetBool()
@@ -141,6 +145,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
         # Set general additional variables (currently empty)
         BaseExplicitStrategy.SetAdditionalVariablesAndOptions(self)
 
+        # Flags
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MOTION_OPTION, self.compute_motion_option)
+
         # Booleans for active heat transfer mechanisms
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, DIRECT_CONDUCTION_OPTION,   self.compute_direct_conduction_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, INDIRECT_CONDUCTION_OPTION, self.compute_indirect_conduction_option)
@@ -178,3 +185,18 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         # Set thermal properties of provided in SubModelParts data
         (self.cplusplus_strategy).InitializeThermalDataInSubModelParts()
+
+    def InitializeSolutionStep(self):
+        if (self.compute_motion_option):
+            BaseExplicitStrategy.InitializeSolutionStep(self)
+    
+    def Predict(self):
+        if (self.compute_motion_option):
+            BaseExplicitStrategy.Predict(self)
+    
+    def SolveSolutionStep(self):
+        if (self.compute_motion_option):
+            (self.cplusplus_strategy).SolveSolutionStep()
+        else:
+            (self.cplusplus_strategy).SolveSolutionStepStatic()
+        return True

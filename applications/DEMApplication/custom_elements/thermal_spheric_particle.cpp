@@ -34,6 +34,7 @@ namespace Kratos
     TBaseElement::Initialize(r_process_info);
 
     // Set thermal flags
+    this->Set(DEMFlags::HAS_MOTION,              r_process_info[MOTION_OPTION]);
     this->Set(DEMFlags::HAS_DIRECT_CONDUCTION,   r_process_info[DIRECT_CONDUCTION_OPTION]);
     this->Set(DEMFlags::HAS_INDIRECT_CONDUCTION, r_process_info[INDIRECT_CONDUCTION_OPTION]);
     this->Set(DEMFlags::HAS_CONVECTION,          r_process_info[CONVECTION_OPTION]);
@@ -78,7 +79,8 @@ namespace Kratos
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::CalculateRightHandSide(const ProcessInfo& r_process_info, double dt, const array_1d<double, 3>& gravity) {
     // Force components
-    TBaseElement::CalculateRightHandSide(r_process_info, dt, gravity);
+    if (this->Is(DEMFlags::HAS_MOTION))
+      TBaseElement::CalculateRightHandSide(r_process_info, dt, gravity);
     
     // Heat flux components
     ComputeHeatFluxes(r_process_info);
@@ -136,7 +138,8 @@ namespace Kratos
 
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
-    TBaseElement::FinalizeSolutionStep(r_process_info);
+    if (this->Is(DEMFlags::HAS_MOTION))
+      TBaseElement::FinalizeSolutionStep(r_process_info);
     UpdateTemperature(r_process_info);
     mPreviousTemperature = GetParticleTemperature();
     SetParticleHeatFlux(mTotalHeatFlux);

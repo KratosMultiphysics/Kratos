@@ -520,6 +520,17 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+    double ExplicitSolverStrategy::SolveSolutionStepStatic() {
+        KRATOS_TRY
+
+        // Solve solution step ignoring particles kinetics (forces and motion).
+        // Should be called in thermal analysis when computing only heat transfer.
+        GetForce();
+        return 0.00;
+
+        KRATOS_CATCH("")
+    }
+
     void ExplicitSolverStrategy::SearchDEMOperations(ModelPart& r_model_part, bool has_mpi) {
         KRATOS_TRY
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
