@@ -25,6 +25,7 @@
 #include "geometries/geometry.h"
 #include "integration/line_gauss_legendre_integration_points.h"
 #include "integration/line_collocation_integration_points.h"
+#include "utilities/intersection_utilities.h"
 
 namespace Kratos
 {
@@ -786,6 +787,20 @@ public:
         }
 
         return false;
+    }
+
+    /** Test intersection of the geometry with a box (AABB)
+     * Tests the intersection of the geometry with
+     * a 3D box defined by rLowPoint and rHighPoint
+     *
+     * @param  rLowPoint  Lower point of the box to test the intersection
+     * @param  rHighPoint Higher point of the box to test the intersection
+     * @return            True if the geometry intersects the box, False in any other case.
+     */
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) override
+    {
+        return IntersectionUtilities::ComputeLineBoxIntersection(
+            rLowPoint, rHighPoint, this->GetPoint(0), this->GetPoint(1));
     }
 
     /**
