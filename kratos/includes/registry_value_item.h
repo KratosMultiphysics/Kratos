@@ -68,8 +68,6 @@ public:
     /// Pointer definition of RegistryValueItem
     KRATOS_CLASS_POINTER_DEFINITION(RegistryValueItem);
 
-    using RegistryItem::mName;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -96,6 +94,27 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const override {
         return Name() + " RegistryValueItem ";
+    }
+
+    std::string ToJson(std::string const& Indentation = "") const override {
+        std::stringstream buffer;
+
+        if(HasValue()){
+            buffer << Indentation << "\"" << mName << "\" : " << ValueToJson() << std::endl;
+        }
+        else{
+            buffer << Indentation << "\"" << mName << "\" : \"\""  << std::endl;
+
+        }
+
+        return buffer.str();
+    }
+
+    std::string ValueToJson() const {
+        std::stringstream buffer;
+        buffer << "\"" << *static_cast<const TValueType*>(mpValue) << "\"";
+
+        return buffer.str();
     }
 
     ///@}

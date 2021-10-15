@@ -151,6 +151,8 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const;
 
+    virtual std::string ToJson(std::string const& Indetation = "") const;
+
 
     ///@}
     ///@name Friends
