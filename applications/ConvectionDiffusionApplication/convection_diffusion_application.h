@@ -31,6 +31,7 @@
 #include "custom_elements/laplacian_element.h"
 #include "custom_elements/laplacian_shifted_boundary_element.h"
 #include "custom_elements/mixed_laplacian_element.h"
+#include "custom_elements/mixed_laplacian_shifted_boundary_element.h"
 #include "custom_elements/embedded_laplacian_element.h"
 #include "custom_elements/adjoint_diffusion_element.h"
 #include "custom_elements/qs_convection_diffusion_explicit.h"
@@ -249,6 +250,8 @@ private:
 
     const LaplacianShiftedBoundaryElement<2> mLaplacianShiftedBoundary2D3N;
     const LaplacianShiftedBoundaryElement<3> mLaplacianShiftedBoundary3D4N;
+    const MixedLaplacianShiftedBoundaryElement<2> mMixedLaplacianShiftedBoundary2D3N;
+    const MixedLaplacianShiftedBoundaryElement<3> mMixedLaplacianShiftedBoundary3D4N;
 
     const AdjointDiffusionElement<LaplacianElement> mAdjointDiffusionElement2D3N;
     const AdjointDiffusionElement<LaplacianElement> mAdjointDiffusionElement3D4N;
