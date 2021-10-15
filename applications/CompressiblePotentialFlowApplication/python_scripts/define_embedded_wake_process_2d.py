@@ -284,8 +284,6 @@ class DefineEmbeddedWakeProcess(KratosMultiphysics.Process):
         angle=math.radians(-self.main_model_part.ProcessInfo.GetValue(CPFApp.ROTATION_ANGLE))
         self.moving_parameters["rotation_angle"].SetDouble(angle)
         CPFApp.MoveModelPartProcess(self.wake_model_part, self.moving_parameters).Execute()
-        print(self.wake_model_part.GetNode(1).X, self.wake_model_part.GetNode(1).Y)
-        print(self.wake_model_part.GetNode(2).X, self.wake_model_part.GetNode(2).Y)
 
     def _MoveAndRotateWake(self):
         ''' This function moves and rotates the wake with the same parameters as the geometry.
