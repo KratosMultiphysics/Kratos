@@ -101,6 +101,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.integral_tolerance      = self.thermal_settings["integral_tolerance"].GetDouble()
         
         # Check / adjust parameters
+        if (self.thermal_solve_frequency <= 0):
+            self.thermal_solve_frequency = 1
         if (self.min_conduction_distance <= 0):
             raise Exception('DEM', '"min_conduction_distance" must be positive.')
         if (self.max_conduction_distance < 0):
