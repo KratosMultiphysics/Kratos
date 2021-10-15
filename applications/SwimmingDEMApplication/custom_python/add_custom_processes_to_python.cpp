@@ -21,12 +21,12 @@
 #include "includes/kratos_parameters.h"
 
 #include "custom_processes/apply_rigid_rotation_process.hpp"
-#include "custom_processes/transient_spatial_dependant_porosity_solution_body_force_process.h"
-#include "custom_processes/spatial_dependant_porosity_solution_and_body_force_process.h"
-#include "custom_processes/spatial_dependant_sinusoidal_porosity_solution_transient_body_force_process.h"
-#include "custom_processes/spatial_dependant_sinusoidal_porosity_solution_and_body_force_process.h"
-#include "custom_processes/spatial_dependant_hyperbolic_tangential_porosity_solution_and_body_force_process.h"
-#include "custom_processes/spatial_dependant_porosity_solution_transient_body_force_process.h"
+#include "custom_processes/transient_porosity_solution_body_force_process.h"
+#include "custom_processes/porosity_solution_and_body_force_process.h"
+#include "custom_processes/sinusoidal_porosity_solution_transient_body_force_process.h"
+#include "custom_processes/sinusoidal_porosity_solution_and_body_force_process.h"
+#include "custom_processes/hyperbolic_tangential_porosity_solution_and_body_force_process.h"
+#include "custom_processes/porosity_solution_transient_body_force_process.h"
 
 namespace Kratos
 {
@@ -42,38 +42,38 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     (m, "ApplyRigidRotationProcess")
     .def( py::init< ModelPart&, Parameters&>());
 
-    py::class_<TransientSpatialDependantPorositySolutionBodyForceProcess, TransientSpatialDependantPorositySolutionBodyForceProcess::Pointer, Process>
-    (m, "TransientSpatialDependantPorositySolutionBodyForceProcess")
+    py::class_<TransientPorositySolutionBodyForceProcess, TransientPorositySolutionBodyForceProcess::Pointer, Process>
+    (m, "TransientPorositySolutionBodyForceProcess")
     .def(py::init< ModelPart&>())
     .def(py::init< ModelPart&, Parameters& >())
     ;
 
-    py::class_<SpatialDependantPorositySolutionAndBodyForceProcess, SpatialDependantPorositySolutionAndBodyForceProcess::Pointer, Process>
-    (m, "SpatialDependantPorositySolutionAndBodyForceProcess")
+    py::class_<PorositySolutionAndBodyForceProcess, PorositySolutionAndBodyForceProcess::Pointer, Process>
+    (m, "PorositySolutionAndBodyForceProcess")
     .def(py::init< ModelPart&>())
     .def(py::init< ModelPart&, Parameters& >())
     ;
 
-    py::class_<SpatialDependantPorositySolutionTransientBodyForceProcess, SpatialDependantPorositySolutionTransientBodyForceProcess::Pointer, Process>
-    (m, "SpatialDependantPorositySolutionTransientBodyForceProcess")
+    py::class_<PorositySolutionTransientBodyForceProcess, PorositySolutionTransientBodyForceProcess::Pointer, Process>
+    (m, "PorositySolutionTransientBodyForceProcess")
     .def(py::init< ModelPart&>())
     .def(py::init< ModelPart&, Parameters& >())
     ;
 
-    py::class_<SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess, SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess::Pointer, Process>
-    (m, "SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess")
+    py::class_<SinusoidalPorositySolutionTransientBodyForceProcess, SinusoidalPorositySolutionTransientBodyForceProcess::Pointer, Process>
+    (m, "SinusoidalPorositySolutionTransientBodyForceProcess")
     .def(py::init< ModelPart&>())
     .def(py::init< ModelPart&, Parameters& >())
     ;
 
-    py::class_<SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess, SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess::Pointer, Process>
-    (m, "SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess")
+    py::class_<SinusoidalPorositySolutionAndBodyForceProcess, SinusoidalPorositySolutionAndBodyForceProcess::Pointer, Process>
+    (m, "SinusoidalPorositySolutionAndBodyForceProcess")
     .def(py::init< ModelPart&>())
     .def(py::init< ModelPart&, Parameters& >())
     ;
 
-    py::class_<SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess, SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::Pointer, Process>
-    (m, "SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess")
+    py::class_<HyperbolicTangentialPorositySolutionAndBodyForceProcess, HyperbolicTangentialPorositySolutionAndBodyForceProcess::Pointer, Process>
+    (m, "HyperbolicTangentialPorositySolutionAndBodyForceProcess")
     .def(py::init< ModelPart&>())
     .def(py::init< ModelPart&, Parameters& >())
     ;

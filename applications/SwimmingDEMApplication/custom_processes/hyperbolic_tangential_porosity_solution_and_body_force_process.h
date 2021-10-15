@@ -11,8 +11,8 @@
 //
 //
 
-#ifndef KRATOS_SPATIAL_DEPENDANT_SINUSOIDAL_POROSITY_SOLUTION_TRANSIENT_BODY_FORCE_PROCESS_H
-#define KRATOS_SPATIAL_DEPENDANT_SINUSOIDAL_POROSITY_SOLUTION_TRANSIENT_BODY_FORCE_PROCESS_H
+#ifndef KRATOS_HYPERBOLIC_TANGENTIAL_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H
+#define KRATOS_HYPERBOLIC_TANGENTIAL_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H
 
 // System includes
 #include <string>
@@ -52,36 +52,36 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(SWIMMING_DEM_APPLICATION) SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess : public Process
+class KRATOS_API(SWIMMING_DEM_APPLICATION) HyperbolicTangentialPorositySolutionAndBodyForceProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess
-    KRATOS_CLASS_POINTER_DEFINITION(SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess);
+    /// Pointer definition of HyperbolicTangentialPorositySolutionAndBodyForceProcess
+    KRATOS_CLASS_POINTER_DEFINITION(HyperbolicTangentialPorositySolutionAndBodyForceProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess();
+    HyperbolicTangentialPorositySolutionAndBodyForceProcess();
     /// Constructor.
-    SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess(
+    HyperbolicTangentialPorositySolutionAndBodyForceProcess(
         ModelPart& rModelPart);
 
     /// Constructor with Kratos parameters.
-    SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess(
+    HyperbolicTangentialPorositySolutionAndBodyForceProcess(
         ModelPart& rModelPart,
         Parameters& rParameters);
 
     /// Constructor with Kratos model
-    SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess(
+    HyperbolicTangentialPorositySolutionAndBodyForceProcess(
         Model& rModel,
         Parameters& rParameters);
 
     /// Destructor.
-    ~SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess() override {}
+    ~HyperbolicTangentialPorositySolutionAndBodyForceProcess() override {}
 
     ///@}
 
@@ -90,18 +90,15 @@ public:
     double                                            mViscosity;
     double                                         mPermeability;
     double                                                mUchar;
-    double                                           mDeltaAlpha;
     double                                               mLength;
-    double                                   mMaxSqueezeFraction;
-    double                                                mOmega;
-    double                                     mSqueezeAmplitude;
-    double                                              mNSafety;
-    double                                             mX1Origin;
-    double                                             mX2Origin;
+    double                                            mMeanAlpha;
+    double                                             mMinAlpha;
+    double                                               mHeight;
     double                                       mReynoldsNumber;
     double                                      mDamKohlerNumber;
     double                                         mMaxGradAlpha;
-    double                                           mWaveNumber;
+    double                                       mFirstParameter;
+    double                                      mSecondParameter;
     bool                                      mInitialConditions;
     bool                                 mAlternativeFormulation;
     ///@}
@@ -127,26 +124,11 @@ public:
 
     const Parameters GetDefaultParameters() const override;
 
-    void CalculateKinematicViscosity(
-        double &rReynoldsNumber,
-        double &viscosity);
+    void CalculatePermeability(double &dynamic_viscosity);
 
-    void CalculatePermeability(
-        double &rDamKohlerNumber,
-        double &dynamic_viscosity,
-        double &permeability);
-
-    void CalculateWaveNumber(
-        double &mMaxGradAlpha,
-        double &mReynoldsNumber,
-        double &dynamic_viscosity,
-        double &mDeltaAlpha,
-        double &mUchar,
-        double &mWaveNumber);
+    void CalculateFunctionParameters();
 
     void SetInitialBodyForceAndPorosityField();
-
-    void SetBodyForceAndPorosityField();
 
     void SetFluidProperties();
 
@@ -166,12 +148,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess" ;
+        buffer << "HyperbolicTangentialPorositySolutionAndBodyForceProcess" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "HyperbolicTangentialPorositySolutionAndBodyForceProcess";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -219,7 +201,7 @@ private:
     /// Copy constructor.
     ///@}
 
-}; // Class SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess
+}; // Class HyperbolicTangentialPorositySolutionAndBodyForceProcess
 
 ///@}
 ///@name Type Definitions
@@ -235,4 +217,4 @@ private:
 
 };  // namespace Kratos.
 
-#endif // KRATOS_SPATIAL_DEPENDANT_SINUSOIDAL_POROSITY_SOLUTION_TRANSIENT_BODY_FORCE_PROCESS_H
+#endif // KRATOS_HYPERBOLIC_TANGENTIAL_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H

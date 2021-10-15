@@ -11,6 +11,8 @@
 //
 //
 
+//These formulas are derived from "Derivatives.py" script
+
 // System includes
 
 // External includes
@@ -23,23 +25,24 @@
 
 // Application includes
 #include "swimming_DEM_application.h"
-#include "spatial_dependant_hyperbolic_tangential_porosity_solution_and_body_force_process.h"
+#include "hyperbolic_tangential_porosity_solution_and_body_force_process.h"
 #include "swimming_dem_application_variables.h"
 
 // Other applications includes
 #include "fluid_dynamics_application_variables.h"
 
+
 namespace Kratos
 {
 
 /* Public functions *******************************************************/
-SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess(
+HyperbolicTangentialPorositySolutionAndBodyForceProcess::HyperbolicTangentialPorositySolutionAndBodyForceProcess(
     ModelPart& rModelPart)
     : Process(),
       mrModelPart(rModelPart)
 {}
 
-SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess(
+HyperbolicTangentialPorositySolutionAndBodyForceProcess::HyperbolicTangentialPorositySolutionAndBodyForceProcess(
     ModelPart& rModelPart,
     Parameters& rParameters)
     : Process(),
@@ -49,7 +52,7 @@ SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::Spatial
     this->CheckDefaultsAndProcessSettings(rParameters);
 }
 
-SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess(
+HyperbolicTangentialPorositySolutionAndBodyForceProcess::HyperbolicTangentialPorositySolutionAndBodyForceProcess(
     Model &rModel,
     Parameters &rParameters)
     : Process(),
@@ -61,7 +64,7 @@ SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::Spatial
 }
 
 
-void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
+void HyperbolicTangentialPorositySolutionAndBodyForceProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
 {
     const Parameters default_parameters = GetDefaultParameters();
 
@@ -87,20 +90,20 @@ void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::Ch
     this->CalculateFunctionParameters();
 }
 
-void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::CalculatePermeability(double &dynamic_viscosity)
+void HyperbolicTangentialPorositySolutionAndBodyForceProcess::CalculatePermeability(double &dynamic_viscosity)
 {
     mPermeability = dynamic_viscosity * mUchar / (mDamKohlerNumber * (2 * mViscosity * (mUchar/std::pow(mLength,2))));
 
 }
 
-void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::CalculateFunctionParameters()
+void HyperbolicTangentialPorositySolutionAndBodyForceProcess::CalculateFunctionParameters()
 {
     mFirstParameter = mMaxGradAlpha / (mMeanAlpha * mHeight);
     mSecondParameter = mMeanAlpha * (1.0 - mHeight) - mMinAlpha;
 
 }
 
-const Parameters SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::GetDefaultParameters() const
+const Parameters HyperbolicTangentialPorositySolutionAndBodyForceProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters( R"(
     {
@@ -130,16 +133,16 @@ const Parameters SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForc
     return default_parameters;
 }
 
-void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::Execute()
+void HyperbolicTangentialPorositySolutionAndBodyForceProcess::Execute()
 {
     this->ExecuteInitialize();
     this->ExecuteInitializeSolutionStep();
 }
 
-void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::ExecuteInitialize()
+void HyperbolicTangentialPorositySolutionAndBodyForceProcess::ExecuteInitialize()
 {}
 
-void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::ExecuteBeforeSolutionLoop()
+void HyperbolicTangentialPorositySolutionAndBodyForceProcess::ExecuteBeforeSolutionLoop()
 {
     this->SetFluidProperties();
     if (mInitialConditions == true)
@@ -148,14 +151,14 @@ void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::Ex
     }
 }
 
-void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::ExecuteInitializeSolutionStep()
+void HyperbolicTangentialPorositySolutionAndBodyForceProcess::ExecuteInitializeSolutionStep()
 {}
 
-void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::ExecuteFinalizeSolutionStep() {}
+void HyperbolicTangentialPorositySolutionAndBodyForceProcess::ExecuteFinalizeSolutionStep() {}
 
 /* Protected functions ****************************************************/
 
-void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosityField()
+void HyperbolicTangentialPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosityField()
 {
     const double dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double rho = mDensity;
@@ -286,7 +289,7 @@ void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::Se
 
 }
 
-void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::SetFluidProperties()
+void HyperbolicTangentialPorositySolutionAndBodyForceProcess::SetFluidProperties()
 {
     (mrModelPart.pGetProperties(1))->SetValue(DENSITY, mDensity);
     (mrModelPart.pGetProperties(1))->SetValue(DYNAMIC_VISCOSITY, mViscosity * mDensity);

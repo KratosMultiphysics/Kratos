@@ -11,6 +11,8 @@
 //
 //
 
+//These formulas are derived from "Derivatives.py" script
+
 // System includes
 
 // External includes
@@ -23,7 +25,7 @@
 
 // Application includes
 #include "swimming_DEM_application.h"
-#include "transient_spatial_dependant_porosity_solution_body_force_process.h"
+#include "transient_porosity_solution_body_force_process.h"
 #include "swimming_dem_application_variables.h"
 
 // Other applications includes
@@ -33,13 +35,13 @@ namespace Kratos
 {
 
 /* Public functions *******************************************************/
-TransientSpatialDependantPorositySolutionBodyForceProcess::TransientSpatialDependantPorositySolutionBodyForceProcess(
+TransientPorositySolutionBodyForceProcess::TransientPorositySolutionBodyForceProcess(
     ModelPart& rModelPart)
     : Process(),
       mrModelPart(rModelPart)
 {}
 
-TransientSpatialDependantPorositySolutionBodyForceProcess::TransientSpatialDependantPorositySolutionBodyForceProcess(
+TransientPorositySolutionBodyForceProcess::TransientPorositySolutionBodyForceProcess(
     ModelPart& rModelPart,
     Parameters& rParameters)
     : Process(),
@@ -49,7 +51,7 @@ TransientSpatialDependantPorositySolutionBodyForceProcess::TransientSpatialDepen
     this->CheckDefaultsAndProcessSettings(rParameters);
 }
 
-TransientSpatialDependantPorositySolutionBodyForceProcess::TransientSpatialDependantPorositySolutionBodyForceProcess(
+TransientPorositySolutionBodyForceProcess::TransientPorositySolutionBodyForceProcess(
     Model &rModel,
     Parameters &rParameters)
     : Process(),
@@ -61,7 +63,7 @@ TransientSpatialDependantPorositySolutionBodyForceProcess::TransientSpatialDepen
 }
 
 
-void TransientSpatialDependantPorositySolutionBodyForceProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
+void TransientPorositySolutionBodyForceProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
 {
     const Parameters default_parameters = GetDefaultParameters();
 
@@ -72,6 +74,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::CheckDefaultsAnd
     mDeltaAlpha  = rParameters["benchmark_parameters"]["delta_alpha"].GetDouble();
     mLength      = rParameters["benchmark_parameters"]["length"].GetDouble();
     mOmega       = rParameters["benchmark_parameters"]["omega"].GetDouble();
+    mViscosity   = rParameters["benchmark_parameters"]["viscosity"].GetDouble();
     mX1Origin    = rParameters["benchmark_parameters"]["x1_origin"].GetDouble();
     mX2Origin    = rParameters["benchmark_parameters"]["x2_origin"].GetDouble();
     mSqueezeAmplitude = rParameters["benchmark_parameters"]["squeeze_amplitude"].GetDouble();
@@ -81,7 +84,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::CheckDefaultsAnd
     mInitialConditions = rParameters["benchmark_parameters"]["use_initial_conditions"].GetBool();
     mAlternativeFormulation = rParameters["benchmark_parameters"]["use_alternative_formulation"].GetBool();
 
-    this->CalculateKinematicViscosity();
+    //this->CalculateKinematicViscosity();
 
     double dynamic_viscosity = mViscosity * mDensity;
 
@@ -89,19 +92,19 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::CheckDefaultsAnd
 
 }
 
-void TransientSpatialDependantPorositySolutionBodyForceProcess::CalculateKinematicViscosity()
+void TransientPorositySolutionBodyForceProcess::CalculateKinematicViscosity()
 {
     mViscosity = mUchar * mLength / mReynoldsNumber;
 }
 
-void TransientSpatialDependantPorositySolutionBodyForceProcess::CalculatePermeability(double &dynamic_viscosity)
+void TransientPorositySolutionBodyForceProcess::CalculatePermeability(double &dynamic_viscosity)
 {
 
     mPermeability = dynamic_viscosity * mUchar / (mDamKohlerNumber * (2 * mUchar * (mUchar/std::pow(mLength,2))));
 
 }
 
-const Parameters TransientSpatialDependantPorositySolutionBodyForceProcess::GetDefaultParameters() const
+const Parameters TransientPorositySolutionBodyForceProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters( R"(
     {
@@ -135,16 +138,16 @@ const Parameters TransientSpatialDependantPorositySolutionBodyForceProcess::GetD
     return default_parameters;
 }
 
-void TransientSpatialDependantPorositySolutionBodyForceProcess::Execute()
+void TransientPorositySolutionBodyForceProcess::Execute()
 {
     this->ExecuteInitialize();
     this->ExecuteInitializeSolutionStep();
 }
 
-void TransientSpatialDependantPorositySolutionBodyForceProcess::ExecuteInitialize()
+void TransientPorositySolutionBodyForceProcess::ExecuteInitialize()
 {}
 
-void TransientSpatialDependantPorositySolutionBodyForceProcess::ExecuteBeforeSolutionLoop()
+void TransientPorositySolutionBodyForceProcess::ExecuteBeforeSolutionLoop()
 {
     this->SetFluidProperties();
     if (mInitialConditions == true)
@@ -153,16 +156,16 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::ExecuteBeforeSol
     }
 }
 
-void TransientSpatialDependantPorositySolutionBodyForceProcess::ExecuteInitializeSolutionStep()
+void TransientPorositySolutionBodyForceProcess::ExecuteInitializeSolutionStep()
 {
     this->SetBodyForceAndPorosityField();
 }
 
-void TransientSpatialDependantPorositySolutionBodyForceProcess::ExecuteFinalizeSolutionStep() {}
+void TransientPorositySolutionBodyForceProcess::ExecuteFinalizeSolutionStep() {}
 
 /* Protected functions ****************************************************/
 
-void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyForceAndPorosityField()
+void TransientPorositySolutionBodyForceProcess::SetInitialBodyForceAndPorosityField()
 {
     const double time = mrModelPart.GetProcessInfo()[TIME];
     const double dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -226,7 +229,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
 
 	        r_alpha2 = delta_alpha*(2*x2 - 2*x20)*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))))/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)*std::pow((1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))),2));
 
-            r_pressure = 100 * std::pow(x1,2);
+            r_pressure = 0.0;
 
 	        du11 = u_char*std::pow(x1,2)*(2*x1 - 2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))*std::exp(-time)*std::cos(Globals::Pi*time)/(-delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1) + 2*u_char*x1*std::pow((1 - x1),2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))*std::exp(-time)*std::cos(Globals::Pi*time)/(-delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1) - delta_alpha*u_char*std::pow(x1,2)*std::pow((1 - x1),2)*(2*x1 - 2*x10)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))*std::exp(-time)*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))))*std::cos(Globals::Pi*time)/(std::pow(R,2)*std::pow((-delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1),2)*std::pow((1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))),2));
 
@@ -280,7 +283,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
 
             r_alpha2 = 0.0;
 
-            r_pressure = 100 * std::pow(x1,2);
+            r_pressure = 0.0;
 
             du11 = u_char*std::pow(x1,2)*(2*x1 - 2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))*std::exp(-time)*std::cos(Globals::Pi*time) + 2*u_char*x1*std::pow((1 - x1),2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))*std::exp(-time)*std::cos(Globals::Pi*time);
 
@@ -322,7 +325,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
         const double grad_of_div1 = du111 + du221;
         const double grad_of_div2 = du112 + du222;
 
-        const double press_grad1 = 200.0 * x1;
+        const double press_grad1 = 0.0;
         const double press_grad2 = 0.0;
 
         if (mAlternativeFormulation){
@@ -353,7 +356,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
 
 }
 
-void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndPorosityField()
+void TransientPorositySolutionBodyForceProcess::SetBodyForceAndPorosityField()
 {
     const double time = mrModelPart.GetProcessInfo()[TIME];
     const double dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -417,7 +420,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
 
 	        r_alpha2 = delta_alpha*(2*x2 - 2*x20)*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))))/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)*std::pow((1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))),2));
 
-            r_pressure = 100 * std::pow(x1,2);
+            r_pressure = 0.0;
 
 	        du11 = u_char*std::pow(x1,2)*(2*x1 - 2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))*std::exp(-time)*std::cos(Globals::Pi*time)/(-delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1) + 2*u_char*x1*std::pow((1 - x1),2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))*std::exp(-time)*std::cos(Globals::Pi*time)/(-delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1) - delta_alpha*u_char*std::pow(x1,2)*std::pow((1 - x1),2)*(2*x1 - 2*x10)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))*std::exp(-time)*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))))*std::cos(Globals::Pi*time)/(std::pow(R,2)*std::pow((-delta_alpha*std::exp(1 - 1/(1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)))) + 1),2)*std::pow((1 - std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2)/std::pow(R,2) - std::pow((x2 - x20),2)/(std::pow(R,2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))),2));
 
@@ -471,7 +474,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
 
             r_alpha2 = 0.0;
 
-            r_pressure = 100 * std::pow(x1,2);
+            r_pressure = 0.0;
 
             du11 = u_char*std::pow(x1,2)*(2*x1 - 2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))*std::exp(-time)*std::cos(Globals::Pi*time) + 2*u_char*x1*std::pow((1 - x1),2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))*std::exp(-time)*std::cos(Globals::Pi*time);
 
@@ -513,7 +516,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
         const double grad_of_div1 = du111 + du221;
         const double grad_of_div2 = du112 + du222;
 
-        const double press_grad1 = 200.0 * x1;
+        const double press_grad1 = 0.0;
         const double press_grad2 = 0.0;
 
         if (mAlternativeFormulation){
@@ -550,7 +553,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
 
 }
 
-void TransientSpatialDependantPorositySolutionBodyForceProcess::SetFluidProperties()
+void TransientPorositySolutionBodyForceProcess::SetFluidProperties()
 {
     (mrModelPart.pGetProperties(1))->SetValue(DENSITY, mDensity);
     (mrModelPart.pGetProperties(1))->SetValue(DYNAMIC_VISCOSITY, mViscosity * mDensity);
@@ -567,7 +570,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetFluidProperti
     });
 }
 
-bool TransientSpatialDependantPorositySolutionBodyForceProcess::IsInsideEllipticalSupport(
+bool TransientPorositySolutionBodyForceProcess::IsInsideEllipticalSupport(
     const double x1,
     const double x2,
     const double c,

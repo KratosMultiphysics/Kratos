@@ -70,7 +70,12 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
         super(SwimmingDEMAnalysis, self).FinalizeSolutionStep()
 
         self.velocity_error_projected, self.pressure_error_projected, self.error_model_part = self._GetSolver().CalculateL2Error()
-        self.projector_post_process.WriteData(self.error_model_part, self.velocity_error_projected, self.pressure_error_projected, self.projection_type, self.model_type, self.subscale_type)
+        self.projector_post_process.WriteData(self.error_model_part,
+                                            self.velocity_error_projected,
+                                            self.pressure_error_projected,
+                                            self.projection_type,
+                                            self.model_type,
+                                            self.subscale_type)
 
     def TransferBodyForceFromDisperseToFluid(self):
         pass

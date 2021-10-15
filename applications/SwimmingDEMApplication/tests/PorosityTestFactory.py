@@ -1,5 +1,9 @@
 import os
 
+# The aim of this test is to check that the transference of the porosity from DEM to FEM conserves the total volume of the domain.
+# It does two checks. The first is made to ensure that there are particles in the domain and they are fully coupled with fluid.
+# The second one is to ensure that the total volume is conserved when the smoothed porosity of the particles is transferred to fluid.
+
 # Importing the Kratos Library
 import KratosMultiphysics
 import numpy as np

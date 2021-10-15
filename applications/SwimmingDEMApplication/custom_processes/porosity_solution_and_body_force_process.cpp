@@ -11,6 +11,8 @@
 //
 //
 
+//These formulas are derived from "Derivatives.py" script
+
 // System includes
 
 // External includes
@@ -23,7 +25,7 @@
 
 // Application includes
 #include "swimming_DEM_application.h"
-#include "spatial_dependant_porosity_solution_and_body_force_process.h"
+#include "porosity_solution_and_body_force_process.h"
 #include "swimming_dem_application_variables.h"
 
 // Other applications includes
@@ -33,13 +35,13 @@ namespace Kratos
 {
 
 /* Public functions *******************************************************/
-SpatialDependantPorositySolutionAndBodyForceProcess::SpatialDependantPorositySolutionAndBodyForceProcess(
+PorositySolutionAndBodyForceProcess::PorositySolutionAndBodyForceProcess(
     ModelPart& rModelPart)
     : Process(),
       mrModelPart(rModelPart)
 {}
 
-SpatialDependantPorositySolutionAndBodyForceProcess::SpatialDependantPorositySolutionAndBodyForceProcess(
+PorositySolutionAndBodyForceProcess::PorositySolutionAndBodyForceProcess(
     ModelPart& rModelPart,
     Parameters& rParameters)
     : Process(),
@@ -49,7 +51,7 @@ SpatialDependantPorositySolutionAndBodyForceProcess::SpatialDependantPorositySol
     this->CheckDefaultsAndProcessSettings(rParameters);
 }
 
-SpatialDependantPorositySolutionAndBodyForceProcess::SpatialDependantPorositySolutionAndBodyForceProcess(
+PorositySolutionAndBodyForceProcess::PorositySolutionAndBodyForceProcess(
     Model &rModel,
     Parameters &rParameters)
     : Process(),
@@ -61,7 +63,7 @@ SpatialDependantPorositySolutionAndBodyForceProcess::SpatialDependantPorositySol
 }
 
 
-void SpatialDependantPorositySolutionAndBodyForceProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
+void PorositySolutionAndBodyForceProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
 {
     const Parameters default_parameters = GetDefaultParameters();
 
@@ -89,17 +91,17 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::CheckDefaultsAndProces
 
 }
 
-void SpatialDependantPorositySolutionAndBodyForceProcess::CalculateKinematicViscosity()
+void PorositySolutionAndBodyForceProcess::CalculateKinematicViscosity()
 {
     mViscosity = mUchar * mLength / mReynoldsNumber;
 }
 
-void SpatialDependantPorositySolutionAndBodyForceProcess::CalculatePermeability(double &dynamic_viscosity)
+void PorositySolutionAndBodyForceProcess::CalculatePermeability(double &dynamic_viscosity)
 {
     mPermeability = dynamic_viscosity * mUchar / (mDamKohlerNumber * (2 * mViscosity * (mUchar/std::pow(mLength,2))));
 }
 
-const Parameters SpatialDependantPorositySolutionAndBodyForceProcess::GetDefaultParameters() const
+const Parameters PorositySolutionAndBodyForceProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters( R"(
     {
@@ -133,16 +135,16 @@ const Parameters SpatialDependantPorositySolutionAndBodyForceProcess::GetDefault
     return default_parameters;
 }
 
-void SpatialDependantPorositySolutionAndBodyForceProcess::Execute()
+void PorositySolutionAndBodyForceProcess::Execute()
 {
     this->ExecuteInitialize();
     this->ExecuteInitializeSolutionStep();
 }
 
-void SpatialDependantPorositySolutionAndBodyForceProcess::ExecuteInitialize()
+void PorositySolutionAndBodyForceProcess::ExecuteInitialize()
 {}
 
-void SpatialDependantPorositySolutionAndBodyForceProcess::ExecuteBeforeSolutionLoop()
+void PorositySolutionAndBodyForceProcess::ExecuteBeforeSolutionLoop()
 {
     this->SetFluidProperties();
     if (mInitialConditions == true)
@@ -151,14 +153,14 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::ExecuteBeforeSolutionL
     }
 }
 
-void SpatialDependantPorositySolutionAndBodyForceProcess::ExecuteInitializeSolutionStep()
+void PorositySolutionAndBodyForceProcess::ExecuteInitializeSolutionStep()
 {}
 
-void SpatialDependantPorositySolutionAndBodyForceProcess::ExecuteFinalizeSolutionStep() {}
+void PorositySolutionAndBodyForceProcess::ExecuteFinalizeSolutionStep() {}
 
 /* Protected functions ****************************************************/
 
-void SpatialDependantPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosityField()
+void PorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosityField()
 {
     const double dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double delta_alpha = mDeltaAlpha;
@@ -346,7 +348,7 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::SetInitialBodyForceAnd
 
 }
 
-void SpatialDependantPorositySolutionAndBodyForceProcess::SetFluidProperties()
+void PorositySolutionAndBodyForceProcess::SetFluidProperties()
 {
     (mrModelPart.pGetProperties(1))->SetValue(DENSITY, mDensity);
     (mrModelPart.pGetProperties(1))->SetValue(DYNAMIC_VISCOSITY, mViscosity * mDensity);
@@ -363,7 +365,7 @@ void SpatialDependantPorositySolutionAndBodyForceProcess::SetFluidProperties()
     });
 }
 
-bool SpatialDependantPorositySolutionAndBodyForceProcess::IsInsideEllipticalSupport(
+bool PorositySolutionAndBodyForceProcess::IsInsideEllipticalSupport(
     const double x1,
     const double x2,
     const double c,

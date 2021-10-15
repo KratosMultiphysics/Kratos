@@ -1,6 +1,6 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: G.Casas (gcasas@cimmne.upc.edu) $
+//   Last Modified by:    $Author: G.Casas (gcasas@cimmne.upc.edu)$
 //   Date:                $Date: 2011-6-13 08:56:42 $
 //   Revision:            $Revision: 1.5 $
 //
@@ -626,8 +626,8 @@ double CalculateElementalVolume(const Geometry<Node <3> >& geom)
 
         vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
     }
-
-    if (std::abs(vol) == 0.0){
+    const double h = CalculateDiameter(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3)
+    if (if (std::abs(vol)/std::pow(h, 3) < std::numeric_limits<double>::epsilon())){
         KRATOS_ERROR << "Element with zero area found with the current geometry "<< geom << std::endl;
     }
 

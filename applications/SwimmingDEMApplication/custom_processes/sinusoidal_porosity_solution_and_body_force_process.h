@@ -11,8 +11,8 @@
 //
 //
 
-#ifndef KRATOS_SPATIAL_DEPENDANT_SINUSOIDAL_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H
-#define KRATOS_SPATIAL_DEPENDANT_SINUSOIDAL_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H
+#ifndef KRATOS_SINUSOIDAL_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H
+#define KRATOS_SINUSOIDAL_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H
 
 // System includes
 #include <string>
@@ -52,36 +52,36 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(SWIMMING_DEM_APPLICATION) SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess : public Process
+class KRATOS_API(SWIMMING_DEM_APPLICATION) SinusoidalPorositySolutionAndBodyForceProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess
-    KRATOS_CLASS_POINTER_DEFINITION(SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess);
+    /// Pointer definition of SinusoidalPorositySolutionAndBodyForceProcess
+    KRATOS_CLASS_POINTER_DEFINITION(SinusoidalPorositySolutionAndBodyForceProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess();
+    SinusoidalPorositySolutionAndBodyForceProcess();
     /// Constructor.
-    SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess(
+    SinusoidalPorositySolutionAndBodyForceProcess(
         ModelPart& rModelPart);
 
     /// Constructor with Kratos parameters.
-    SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess(
+    SinusoidalPorositySolutionAndBodyForceProcess(
         ModelPart& rModelPart,
         Parameters& rParameters);
 
     /// Constructor with Kratos model
-    SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess(
+    SinusoidalPorositySolutionAndBodyForceProcess(
         Model& rModel,
         Parameters& rParameters);
 
     /// Destructor.
-    ~SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess() override {}
+    ~SinusoidalPorositySolutionAndBodyForceProcess() override {}
 
     ///@}
 
@@ -163,12 +163,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess" ;
+        buffer << "SinusoidalPorositySolutionAndBodyForceProcess" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "SinusoidalPorositySolutionAndBodyForceProcess";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -216,7 +216,7 @@ private:
     /// Copy constructor.
     ///@}
 
-}; // Class SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess
+}; // Class SinusoidalPorositySolutionAndBodyForceProcess
 
 ///@}
 ///@name Type Definitions
@@ -232,4 +232,4 @@ private:
 
 };  // namespace Kratos.
 
-#endif // KRATOS_SPATIAL_DEPENDANT_SINUSOIDAL_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H
+#endif // KRATOS_SINUSOIDAL_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H

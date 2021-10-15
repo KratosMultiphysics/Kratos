@@ -131,8 +131,11 @@ class ParticleDragForcePostProcessTool(object):
         #self.time.append(self.spheres_model_part.ProcessInfo[Kratos.TIME])
         with h5py.File(self.file_path, 'a') as f:
                 self.WriteDataToFile(file_or_group = f,
-                            names = ['id_particle', 'position_x', 'position_y', 'position_z', 'radius', 'drag_force_x', 'drag_force_y', 'drag_force_z', 'y', 'porosity', 'slip_velocity_x', 'slip_velocity_y', 'slip_velocity_z'],
-                            data = [self.id_particle, self.position_x, self.position_y, self.position_z, self.radius, self.drag_force_x, self.drag_force_y, self.drag_force_z, self.y, self.porosity, self.slip_velocity_x, self.slip_velocity_y, self.slip_velocity_z])
+                            names = ['id_particle', 'position_x', 'position_y', 'position_z', 'radius', 'drag_force_x', 'drag_force_y',
+                                    'drag_force_z', 'y', 'porosity', 'slip_velocity_x', 'slip_velocity_y', 'slip_velocity_z'],
+                            data = [self.id_particle, self.position_x, self.position_y, self.position_z, self.radius,
+                                    self.drag_force_x, self.drag_force_y, self.drag_force_z, self.y, self.porosity,
+                                    self.slip_velocity_x, self.slip_velocity_y, self.slip_velocity_z])
 
     def WriteDataToFile(self, file_or_group, names, data):
         if self.group_name in file_or_group:

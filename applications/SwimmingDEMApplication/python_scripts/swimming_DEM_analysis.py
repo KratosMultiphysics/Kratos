@@ -608,7 +608,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
         Say(final_message)
 
     def GetBackwardCouplingCounter(self):
-        return SDP.Counter(self.project_parameters["coupling"]["backward_coupling"]["backward_time_interval"].GetInt(), 1, self.project_parameters["coupling"]["coupling_level_type"].GetInt() > 1)
+        return SDP.Counter(self.project_parameters["coupling"]["backward_coupling"]["backward_time_interval"].GetInt(), 1,
+                        self.project_parameters["coupling"]["coupling_level_type"].GetInt() > 1)
 
     def GetRecoveryCounter(self):
         there_is_something_to_recover = (

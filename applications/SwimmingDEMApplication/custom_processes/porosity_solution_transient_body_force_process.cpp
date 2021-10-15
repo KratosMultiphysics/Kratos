@@ -23,7 +23,7 @@
 
 // Application includes
 #include "swimming_DEM_application.h"
-#include "spatial_dependant_porosity_solution_transient_body_force_process.h"
+#include "porosity_solution_transient_body_force_process.h"
 #include "swimming_dem_application_variables.h"
 
 
@@ -31,13 +31,13 @@ namespace Kratos
 {
 
 /* Public functions *******************************************************/
-SpatialDependantPorositySolutionTransientBodyForceProcess::SpatialDependantPorositySolutionTransientBodyForceProcess(
+PorositySolutionTransientBodyForceProcess::PorositySolutionTransientBodyForceProcess(
     ModelPart& rModelPart)
     : Process(),
     mrModelPart(rModelPart)
 {}
 
-SpatialDependantPorositySolutionTransientBodyForceProcess::SpatialDependantPorositySolutionTransientBodyForceProcess(
+PorositySolutionTransientBodyForceProcess::PorositySolutionTransientBodyForceProcess(
     ModelPart& rModelPart,
     Parameters& rParameters)
     : Process(),
@@ -47,7 +47,7 @@ SpatialDependantPorositySolutionTransientBodyForceProcess::SpatialDependantPoros
     this->CheckDefaultsAndProcessSettings(rParameters);
 }
 
-SpatialDependantPorositySolutionTransientBodyForceProcess::SpatialDependantPorositySolutionTransientBodyForceProcess(
+PorositySolutionTransientBodyForceProcess::PorositySolutionTransientBodyForceProcess(
     Model &rModel,
     Parameters &rParameters)
     : Process(),
@@ -59,7 +59,7 @@ SpatialDependantPorositySolutionTransientBodyForceProcess::SpatialDependantPoros
 }
 
 
-void SpatialDependantPorositySolutionTransientBodyForceProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
+void PorositySolutionTransientBodyForceProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
 {
 
     const Parameters default_parameters = GetDefaultParameters();
@@ -74,7 +74,7 @@ void SpatialDependantPorositySolutionTransientBodyForceProcess::CheckDefaultsAnd
     mInitialConditions = rParameters["benchmark_parameters"]["use_initial_conditions"].GetBool();
 }
 
-const Parameters SpatialDependantPorositySolutionTransientBodyForceProcess::GetDefaultParameters() const
+const Parameters PorositySolutionTransientBodyForceProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters( R"(
     {
@@ -103,16 +103,16 @@ const Parameters SpatialDependantPorositySolutionTransientBodyForceProcess::GetD
 }
 
 
-void SpatialDependantPorositySolutionTransientBodyForceProcess::Execute()
+void PorositySolutionTransientBodyForceProcess::Execute()
 {
     this->ExecuteInitialize();
     this->ExecuteInitializeSolutionStep();
 }
 
-void SpatialDependantPorositySolutionTransientBodyForceProcess::ExecuteInitialize()
+void PorositySolutionTransientBodyForceProcess::ExecuteInitialize()
 {}
 
-void SpatialDependantPorositySolutionTransientBodyForceProcess::ExecuteBeforeSolutionLoop()
+void PorositySolutionTransientBodyForceProcess::ExecuteBeforeSolutionLoop()
 {
     this->SetFluidProperties();
     if (mInitialConditions == true)
@@ -121,16 +121,16 @@ void SpatialDependantPorositySolutionTransientBodyForceProcess::ExecuteBeforeSol
     }
 }
 
-void SpatialDependantPorositySolutionTransientBodyForceProcess::ExecuteInitializeSolutionStep()
+void PorositySolutionTransientBodyForceProcess::ExecuteInitializeSolutionStep()
 {
     this->SetBodyForceAndPorosityField();
 }
 
-void SpatialDependantPorositySolutionTransientBodyForceProcess::ExecuteFinalizeSolutionStep() {}
+void PorositySolutionTransientBodyForceProcess::ExecuteFinalizeSolutionStep() {}
 
 /* Protected functions ****************************************************/
 
-void SpatialDependantPorositySolutionTransientBodyForceProcess::SetInitialBodyForceAndPorosityField() {
+void PorositySolutionTransientBodyForceProcess::SetInitialBodyForceAndPorosityField() {
 
     //const double time = mrModelPart.GetProcessInfo()[TIME];
     const double time = 0.0;
@@ -227,7 +227,7 @@ void SpatialDependantPorositySolutionTransientBodyForceProcess::SetInitialBodyFo
 
 }
 
-void SpatialDependantPorositySolutionTransientBodyForceProcess::SetBodyForceAndPorosityField() {
+void PorositySolutionTransientBodyForceProcess::SetBodyForceAndPorosityField() {
 
     //const double time = mrModelPart.GetProcessInfo()[TIME];
     const double time = 0.0;
@@ -330,7 +330,7 @@ void SpatialDependantPorositySolutionTransientBodyForceProcess::SetBodyForceAndP
         }
 }
 
-void SpatialDependantPorositySolutionTransientBodyForceProcess::SetFluidProperties()
+void PorositySolutionTransientBodyForceProcess::SetFluidProperties()
 {
     (mrModelPart.pGetProperties(1))->SetValue(DENSITY, mDensity);
     (mrModelPart.pGetProperties(1))->SetValue(DYNAMIC_VISCOSITY, mViscosity * mDensity);

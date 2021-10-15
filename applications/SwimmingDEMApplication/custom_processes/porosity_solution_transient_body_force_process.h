@@ -11,8 +11,8 @@
 //
 //
 
-#ifndef KRATOS_SPATIAL_DEPENDANT_POROSITY_SOLUTION_TRANSIENT_BODY_FORCE_PROCESS_H
-#define KRATOS_SPATIAL_DEPENDANT_POROSITY_SOLUTION_TRANSIENT_BODY_FORCE_PROCESS_H
+#ifndef KRATOS_POROSITY_SOLUTION_TRANSIENT_BODY_FORCE_PROCESS_H
+#define KRATOS_POROSITY_SOLUTION_TRANSIENT_BODY_FORCE_PROCESS_H
 
 // System includes
 #include <string>
@@ -52,35 +52,35 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(SWIMMING_DEM_APPLICATION) SpatialDependantPorositySolutionTransientBodyForceProcess : public Process
+class KRATOS_API(SWIMMING_DEM_APPLICATION) PorositySolutionTransientBodyForceProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of SpatialDependantPorositySolutionTransientBodyForceProcess
-    KRATOS_CLASS_POINTER_DEFINITION(SpatialDependantPorositySolutionTransientBodyForceProcess);
+    /// Pointer definition of PorositySolutionTransientBodyForceProcess
+    KRATOS_CLASS_POINTER_DEFINITION(PorositySolutionTransientBodyForceProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    SpatialDependantPorositySolutionTransientBodyForceProcess(
+    PorositySolutionTransientBodyForceProcess(
         ModelPart& rModelPart);
 
     /// Constructor with Kratos parameters.
-    SpatialDependantPorositySolutionTransientBodyForceProcess(
+    PorositySolutionTransientBodyForceProcess(
         ModelPart& rModelPart,
         Parameters& rParameters);
 
     /// Constructor with Kratos model
-    SpatialDependantPorositySolutionTransientBodyForceProcess(
+    PorositySolutionTransientBodyForceProcess(
         Model& rModel,
         Parameters& rParameters);
 
     /// Destructor.
-    ~SpatialDependantPorositySolutionTransientBodyForceProcess() override {}
+    ~PorositySolutionTransientBodyForceProcess() override {}
 
     ///@}
     ///@name Operators
@@ -116,12 +116,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "SpatialDependantPorositySolutionTransientBodyForceProcess" ;
+        buffer << "PorositySolutionTransientBodyForceProcess" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "SpatialDependantPorositySolutionTransientBodyForceProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "PorositySolutionTransientBodyForceProcess";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -180,17 +180,17 @@ private:
     ///@{
 
     /// Default constructor.
-    SpatialDependantPorositySolutionTransientBodyForceProcess() = delete;
+    PorositySolutionTransientBodyForceProcess() = delete;
 
     /// Assignment operator.
-    SpatialDependantPorositySolutionTransientBodyForceProcess& operator=(SpatialDependantPorositySolutionTransientBodyForceProcess const& rOther) = delete;
+    PorositySolutionTransientBodyForceProcess& operator=(PorositySolutionTransientBodyForceProcess const& rOther) = delete;
 
     /// Copy constructor.
-    SpatialDependantPorositySolutionTransientBodyForceProcess(SpatialDependantPorositySolutionTransientBodyForceProcess const& rOther) = delete;
+    PorositySolutionTransientBodyForceProcess(PorositySolutionTransientBodyForceProcess const& rOther) = delete;
 
     ///@}
 
-}; // Class SpatialDependantPorositySolutionTransientBodyForceProcess
+}; // Class PorositySolutionTransientBodyForceProcess
 
 ///@}
 ///@name Type Definitions
@@ -206,4 +206,4 @@ private:
 
 };  // namespace Kratos.
 
-#endif // KRATOS_SPATIAL_DEPENDANT_POROSITY_SOLUTION_TRANSIENT_BODY_FORCE_PROCESS_H
+#endif // KRATOS_POROSITY_SOLUTION_TRANSIENT_BODY_FORCE_PROCESS_H

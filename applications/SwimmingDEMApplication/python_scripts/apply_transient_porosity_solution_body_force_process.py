@@ -5,10 +5,10 @@ import KratosMultiphysics.SwimmingDEMApplication as KratosSDEM
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplySpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess(Model, settings["Parameters"])
+    return ApplyTransientPorositySolutionBodyForceProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class ApplySpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess(KratosMultiphysics.Process):
+class ApplyTransientPorositySolutionBodyForceProcess(KratosMultiphysics.Process):
     def __init__(self, model, settings):
         """The default constructor of the class.
 
@@ -38,13 +38,14 @@ class ApplySpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProce
         self.model_part = model[self.settings["model_part_name"].GetString()]
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
 
-        self.ApplySpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess = KratosSDEM.SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess(self.model_part, self.settings)
+        self.TransientPorositySolutionBodyForceProcess = KratosSDEM.TransientPorositySolutionBodyForceProcess(self.model_part, self.settings)
 
     def ExecuteBeforeSolutionLoop(self):
-        self.ApplySpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess.ExecuteBeforeSolutionLoop()
+        self.TransientPorositySolutionBodyForceProcess.ExecuteBeforeSolutionLoop()
+
 
     def ExecuteInitializeSolutionStep(self):
-        self.ApplySpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess.ExecuteInitializeSolutionStep()
+        self.TransientPorositySolutionBodyForceProcess.ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
         pass
