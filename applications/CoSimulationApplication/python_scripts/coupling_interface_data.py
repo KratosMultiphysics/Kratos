@@ -128,6 +128,9 @@ class CouplingInterfaceData(BaseCouplingInterfaceData):
     def IsDistributed(self):
         return self.GetModelPart().IsDistributed()
 
+    def IsDefinedOnThisRank(self):
+        return self.GetModelPart().GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()
+
     def Size(self):
         if self.location == "model_part":
             return 1 * self.dimension
