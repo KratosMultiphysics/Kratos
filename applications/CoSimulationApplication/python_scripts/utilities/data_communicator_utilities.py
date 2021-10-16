@@ -9,6 +9,7 @@ def GetRankZeroDataCommunicator():
     if KM.IsDistributedRun():
         data_comm_name = "co_simulation_data_comm_rank_zero"
         if not KM.ParallelEnvironment.HasDataCommunicator(data_comm_name):
+            # TODO maybe do this at startup of the CoSimApp as otherwise this function must be called by all ranks for CreateFromRanksAndRegister!
             world_data_comm = KM.ParallelEnvironment.GetDataCommunicator("World")
             ranks = [0]
             DataCommunicatorFactory.CreateFromRanksAndRegister(world_data_comm, ranks, data_comm_name)
@@ -31,11 +32,14 @@ def CreateDataCommunicatorWithNProcesses(settings):
     num_processes = settings["num_processes"].GetInt()
     name = settings["name"].GetString()
 
+    world_data_comm = KM.ParallelEnvironment.GetDataCommunicator("World")
+
     if num_processes < 1:
-        raise Exception('Input for "num_processes" must be > 0, and not {}!'.format(num_processes))
+        raise Exception('Input for "num_processes" ({}) must be > 0!'.format(num_processes))
+    if num_processes > world_data_comm.Size():
+        raise Exception('Input for "num_processes" ({}) cannot be larger than the number of MPI processes ({})!'.format(num_processes, world_data_comm.Size()))
     if name == "":
         raise Exception('Input for "name" cannot be empty!')
 
-    world_data_comm = KM.ParallelEnvironment.GetDataCommunicator("World")
     ranks = list(range(num_processes)) # [ 0 ... num_processes-1 ]
     return DataCommunicatorFactory.CreateFromRanksAndRegister(world_data_comm, ranks, name)
