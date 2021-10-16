@@ -9,17 +9,31 @@ import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_facto
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.factories.helpers as factories_helper
 import KratosMultiphysics.CoSimulationApplication.colors as colors
+from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import BaseCouplingInterfaceData
 
 # Other imports
 from collections import OrderedDict
 
 
 class UndefinedSolver:
-    def __init__(self, name):
+    def __init__(self, name, settings):
         self.name = name
+        self.settings = settings
+
+    def Initialize(self):
+        if self.settings.Has("data"):
+            self.data_dict = {data_name : BaseCouplingInterfaceData(data_config, data_name, self.name) for (data_name, data_config) in self.settings["data"].items()}
+        else:
+            self.data_dict = {}
 
     def IsDefinedOnThisRank(self):
         return False
+
+    def GetInterfaceData(self, data_name):
+        try:
+            return self.data_dict[data_name]
+        except KeyError:
+            raise Exception('Requested data field "{}" does not exist for solver "{}"'.format(data_name, self.name))
 
     def AdvanceInTime(*args): return 0.0
 
@@ -254,10 +268,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
     def __GetInterfaceDataFromSolver(self, solver_name, interface_data_name):
         solver = self.solver_wrappers[solver_name]
-        if solver.IsDefinedOnThisRank(): # this solver does exist on this rank
-            return solver.GetInterfaceData(interface_data_name)
-        else:
-            return None
+        return solver.GetInterfaceData(interface_data_name)
 
     def __GetDataTransferOperator(self, data_transfer_operator_name):
         try:
@@ -313,10 +324,10 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             solver_settings = self.settings["coupling_sequence"][i_solver_settings]
             solver_name = solver_settings["name"].GetString()
             solver = solvers[solver_name]
-            if solver.data_communicator.IsDefinedOnThisRank():
+            if solver.IsDefinedOnThisRank():
                 solvers_map[solver_name] = solvers[solver_name]
             else:
-                solvers_map[solver_name] = UndefinedSolver(solver_name)
+                solvers_map[solver_name] = UndefinedSolver(solver_name, self.settings["solvers"][solver_name])
 
         for solver_name in self.settings["solvers"].keys():
             if solver_name not in solvers_map:
