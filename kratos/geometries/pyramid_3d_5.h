@@ -349,6 +349,103 @@ public:
         return height;
     }
 
+    /**
+     * TODO: implemented but not yet tested
+     */
+    /**
+     * Jacobian in specific integration point of given integration
+     * method. This method calculate jacobian matrix in given
+     * integration point of given integration method.
+     *
+     * @param IntegrationPointIndex index of integration point which jacobians has to
+     * be calculated in it.
+     *
+     * @param ThisMethod integration method which jacobians has to
+     * be calculated in its integration points.
+     *
+     * @return Matrix<double> Jacobian matrix \f$ J_i \f$ where \f$
+     * i \f$ is the given integration point index of given
+     * integration method.
+     *
+     * @see DeterminantOfJacobian
+     * @see InverseOfJacobian
+     */
+    Matrix& Jacobian( Matrix& rResult,
+                      IndexType IntegrationPointIndex,
+                      IntegrationMethod ThisMethod ) const override
+    {
+        double side1, side2, height;
+        const PointsArrayType& vertices = this->Points();
+
+        side1 = std::sqrt(std::pow((vertices[0].X() - vertices[1].X()), 2.0) +
+            std::pow((vertices[0].Y() - vertices[1].Y()), 2.0) + std::pow((vertices[0].Z() - vertices[1].Z()), 2.0));
+
+        side2 = std::sqrt(std::pow((vertices[2].X() - vertices[1].X()), 2.0) +
+            std::pow((vertices[2].Y() - vertices[1].Y()), 2.0) + std::pow((vertices[2].Z() - vertices[1].Z()), 2.0));
+
+        height = HeightOfPyramid(); // to get Height of pyramid
+
+        rResult.resize( 3, 3, false );
+
+        IntegrationPointsContainerType all_integration_points = this->AllIntegrationPoints();
+        IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
+        IntegrationPointType intergration_point = integration_points[IntegrationPointIndex];
+
+        rResult( 0, 0 ) = (0.25) * side1 * (1 - intergration_point.Z()) ;
+        rResult( 0, 1 ) = 0.0 ;
+        rResult( 0, 2 ) = 0.0 ;
+        rResult( 1, 0 ) = 0.0 ;
+        rResult( 1, 1 ) = (0.25) * side2 * (1 - intergration_point.Z()) ;
+        rResult( 1, 2 ) = 0.0 ;
+        rResult( 2, 0 ) = (-0.25) * side1 * (intergration_point.Y()) ;
+        rResult( 2, 1 ) = (-0.25) * side2 * (intergration_point.X()) ;
+        rResult( 2, 2 ) = (0.5) * height ;
+
+        return rResult;
+    }
+
+        /**
+     * TODO: implemented but not yet tested
+     */
+    /**
+       * Jacobian in given point. This method calculate jacobian
+       * matrix in given point.
+       *
+       * @param rPoint point which jacobians has to
+    * be calculated in it.
+    *
+    * @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
+    *
+    * @see DeterminantOfJacobian
+    * @see InverseOfJacobian
+     */
+    Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
+    {
+        double side1, side2, height;
+        const PointsArrayType& vertices = this->Points();
+
+        side1 = std::sqrt(std::pow((vertices[0].X() - vertices[1].X()), 2.0) +
+            std::pow((vertices[0].Y() - vertices[1].Y()), 2.0) + std::pow((vertices[0].Z() - vertices[1].Z()), 2.0));
+
+        side2 = std::sqrt(std::pow((vertices[2].X() - vertices[1].X()), 2.0) +
+            std::pow((vertices[2].Y() - vertices[1].Y()), 2.0) + std::pow((vertices[2].Z() - vertices[1].Z()), 2.0));
+
+        height = HeightOfPyramid(); // to get Height of pyramid
+
+		rResult.resize( 3, 3, false );
+        rResult( 0, 0 ) = (0.25) * side1 * (1 - rPoint[2]) ;
+        rResult( 0, 1 ) = 0.0 ;
+        rResult( 0, 2 ) = 0.0 ;
+        rResult( 1, 0 ) = 0.0 ;
+        rResult( 1, 1 ) = (0.25) * side2 * (1 - rPoint[2]) ;
+        rResult( 1, 2 ) = 0.0 ;
+        rResult( 2, 0 ) = (-0.25) * side1 * (rPoint[1]) ;
+        rResult( 2, 1 ) = (-0.25) * side2 * (rPoint[0]) ;
+        rResult( 2, 2 ) = (0.5) * height ;
+
+        return rResult;
+    }
+
 
     /**
      * :TODO: TO BE TESTED
@@ -404,33 +501,157 @@ public:
         if ( rResult.size1() != 5 || rResult.size2() != 3 )
             rResult.resize( 5, 3, false );
 
-        rResult( 0, 0 ) = +1.0;
+        rResult( 0, 0 ) = -1.0;
         rResult( 0, 1 ) = -1.0;
         rResult( 0, 2 ) =  0.0;
 
         rResult( 1, 0 ) = +1.0;
-        rResult( 1, 1 ) = +1.0;
+        rResult( 1, 1 ) = -1.0;
         rResult( 1, 2 ) =  0.0;
 
-        rResult( 2, 0 ) = -1.0;
-        rResult( 2, 1 ) =  1.0;
+        rResult( 2, 0 ) = +1.0;
+        rResult( 2, 1 ) = +1.0;
         rResult( 2, 2 ) =  0.0;
 
         rResult( 3, 0 ) = -1.0;
-        rResult( 3, 1 ) = -1.0;
-        rResult( 3, 2 ) = 0.0;
+        rResult( 3, 1 ) = +1.0;
+        rResult( 3, 2 ) =  0.0;
 
-        rResult( 4, 0 ) = 0.0;
-        rResult( 4, 1 ) = 0.0;
-        rResult( 4, 2 ) = 1.0;
+        rResult( 4, 0 ) =  0.0;
+        rResult( 4, 1 ) =  0.0;
+        rResult( 4, 2 ) = +1.0;
 
         return rResult;
     }
 
 
     /**
+     * @brief Returns the local coordinates of a given arbitrary point
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    /*CoordinatesArrayType& PointLocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint
+        ) const override
+    {
+        std::cout << "AShish 1.1" <<std::endl;
+        BoundedMatrix<double,3,3> X;
+        BoundedMatrix<double,3,2> DN;
+        for(unsigned int i=0; i<2;i++) {
+            X(0,i ) = 0.5*(this->GetPoint( i ).X() + this->GetPoint( i+3 ).X());
+            X(1,i ) = 0.5*(this->GetPoint( i ).Y() + this->GetPoint( i+3 ).Y());
+            X(2,i ) = 0.5*(this->GetPoint( i ).Z() + this->GetPoint( i+3 ).Z());
+        }
+        std::cout << "AShish 2.1" <<std::endl;
+
+        X(0,2) = this->GetPoint(2).X();
+        X(1,2) = this->GetPoint(2).Y();
+        X(2,2) = this->GetPoint(2).Z();
+
+        std::cout << "AShish 3.1" <<std::endl;
+
+        double tol = 1.0e-8;
+        int maxiter = 1000;
+
+        Matrix J = ZeroMatrix( 2, 2 );
+        Matrix invJ = ZeroMatrix( 2, 2 );
+
+        //starting with xi = 0
+        rResult = ZeroVector( 3 );
+        Vector DeltaXi = ZeroVector( 2 );
+        array_1d<double,3> CurrentGlobalCoords;
+
+        std::cout << "AShish 4.1" <<std::endl;
+
+
+        //Newton iteration:
+        for ( int k = 0; k < maxiter; k++ )
+        {
+            noalias(CurrentGlobalCoords) = ZeroVector( 3 );
+            this->GlobalCoordinates( CurrentGlobalCoords, rResult );
+            std::cout << "AShish 5.1" <<std::endl;
+
+            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
+
+            std::cout << "AShish 6.1" <<std::endl;
+
+            //derivatives of shape functions
+            Matrix shape_functions_gradients;
+            shape_functions_gradients = CalculateShapeFunctionsLocalGradients(shape_functions_gradients, rResult );
+            std::cout << "AShish 7.1" <<std::endl;
+            noalias(DN) = prod(X,shape_functions_gradients);
+            std::cout << "AShish 7.2" <<std::endl;
+
+            noalias(J) = prod(trans(DN),DN);
+            std::cout << "AShish 7.3" <<std::endl;
+            Vector res = prod(trans(DN),CurrentGlobalCoords);
+
+            std::cout << "AShish 8.1" <<std::endl;
+
+            //deteminant of Jacobian
+            const double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
+
+            //filling matrix
+            invJ( 0, 0 ) = ( J( 1, 1 ) ) / ( det_j );
+            invJ( 1, 0 ) = -( J( 1, 0 ) ) / ( det_j );
+            invJ( 0, 1 ) = -( J( 0, 1 ) ) / ( det_j );
+            invJ( 1, 1 ) = ( J( 0, 0 ) ) / ( det_j );
+
+            std::cout << "AShish 9.1" <<std::endl;
+
+
+            DeltaXi( 0 ) = invJ( 0, 0 ) * res[0] + invJ( 0, 1 ) * res[1];
+            DeltaXi( 1 ) = invJ( 1, 0 ) * res[0] + invJ( 1, 1 ) * res[1];
+
+            rResult[0] += DeltaXi[0];
+            rResult[1] += DeltaXi[1];
+            rResult[2] = 0.0;
+
+            std::cout << "AShish 10.1" <<std::endl;
+
+            if ( k>0 && norm_2( DeltaXi ) > 30 )
+            {
+                KRATOS_ERROR << "Computation of local coordinates failed at iteration " << k<< std::endl;
+            }
+
+            if ( norm_2( DeltaXi ) < tol )
+            {
+                break;
+            }
+        }
+
+        return( rResult );
+    }*/
+
+
+    /**
      * Shape Function
      */
+
+    /** This method gives all non-zero shape functions values
+    evaluated at the rCoordinates provided
+
+    @return Vector of values of shape functions \f$ F_{i} \f$
+    where i is the shape function index (for NURBS it is the index
+    of the local enumeration in the element).
+
+    @see ShapeFunctionValue
+    @see ShapeFunctionsLocalGradients
+    @see ShapeFunctionLocalGradient
+    */
+    Vector& ShapeFunctionsValues(Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
+    {
+        if(rResult.size() != 6) rResult.resize(6,false);
+        rResult[0] = (0.125) * (1 - rCoordinates[1]) * (1 + rCoordinates[0]) * (1 + rCoordinates[2]);
+        rResult[1] = (0.125) * (1 + rCoordinates[1]) * (1 + rCoordinates[0]) * (1 + rCoordinates[2]);
+        rResult[2] = (0.125) * (1 + rCoordinates[1]) * (1 - rCoordinates[0]) * (1 + rCoordinates[2]);
+        rResult[3] = (0.125) * (1 - rCoordinates[1]) * (1 - rCoordinates[0]) * (1 + rCoordinates[2]);
+        rResult[4] = (0.5) * (1 + rCoordinates[2]);
+
+        return rResult;
+    }
 
     /**
      * Calculates the value of a given shape function at a given point.
@@ -510,6 +731,9 @@ public:
         const CoordinatesArrayType& rPoint
         )
     {
+        rResult.resize( 5, 3, false );
+        noalias( rResult ) = ZeroMatrix( 5, 3 );
+
         rResult( 0, 0 ) =  (+0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[2] ) ;
         rResult( 0, 1 ) =  (-0.125) * ( 1 + rPoint[0] ) * ( 1 + rPoint[2] ) ;
         rResult( 0, 2 ) =  (+0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[0] ) ;

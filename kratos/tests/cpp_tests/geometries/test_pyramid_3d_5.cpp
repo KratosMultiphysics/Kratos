@@ -115,32 +115,30 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5PointLocalCoordinates, KratosCoreGeometriesF
 
     // Compute the global coordinates of the centre
     auto points = geom->Points();
-    auto centre = Point{points[0] + points[1] + points[2] + points[3] + points[4]};
-    centre /= 6.0; // TODO use Center()
+    auto centre = geom->Center();
 
     // Compute the centre local coordinates
     array_1d<double, 3> centre_local_coords;
     geom->PointLocalCoordinates(centre_local_coords, centre);
 
-    KRATOS_CHECK_NEAR(centre_local_coords(0), 1.0/3.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(centre_local_coords(1), 1.0/3.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(centre_local_coords(2), 1.0/2.0, TOLERANCE);
+    KRATOS_CHECK_NEAR(centre_local_coords(0), 0.0, TOLERANCE);
+    KRATOS_CHECK_NEAR(centre_local_coords(1), 0.0, TOLERANCE);
+    KRATOS_CHECK_NEAR(centre_local_coords(2), 0.3, TOLERANCE);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsValues, KratosCoreGeometriesFastSuite)
 {
-    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
+    //KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
     array_1d<double, 3> coord(3);
     coord[0] = 1.0 / 2.0;
     coord[1] = 1.0 / 4.0;
     coord[2] = 1.0 / 16.0;
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 0.234375, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.46875, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), 0.234375, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), 0.015625, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(4, coord), 0.03125, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(5, coord), 0.015625, TOLERANCE);
+    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 0.149414063, TOLERANCE);
+    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.249023438, TOLERANCE);
+    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), 0.083007813, TOLERANCE);
+    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), 0.049804687, TOLERANCE);
+    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(4, coord), 0.53125, TOLERANCE);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite)
@@ -190,7 +188,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsLocalGradients, KratosCoreGeom
 */
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint1, KratosCoreGeometriesFastSuite)
 {
-    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
+    //KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
     const double expected_vol = 2.0;
@@ -204,7 +202,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint1, KratosCoreGeometriesFastSuite)
 */
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint2, KratosCoreGeometriesFastSuite)
 {
-    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
+    //KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
     const double expected_vol = 2.0;

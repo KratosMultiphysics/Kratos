@@ -241,6 +241,10 @@ namespace Testing {
             // Calculating and storing inverse of the jacobian and the parameters needed
             double DetJ0 = MathUtils<double>::Det( J0[PointNumber] );
 
+            std::cout << "LHS = " << std::abs(determinants[PointNumber]) << std::endl;
+            std::cout << "RHS = " << DetJ0 << std::endl;
+
+
             KRATOS_ERROR_IF( std::abs(determinants[PointNumber] - DetJ0)/std::abs(DetJ0) > 1e-13) << "Geometry Type = " << GetGeometryName(ThisGeometry) << " - IntegrationMethod = " << GetIntegrationName(ThisGeometry,ThisMethod) << " --> " << " determinant as computed from DeterminantOfJacobian does not match the value computed by taking the determinant of J "  << std::endl;
 
             // Calculating the total area
