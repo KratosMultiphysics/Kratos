@@ -90,8 +90,11 @@ class AdaptiveRefinement(object):
                 min_size = original_min_size*(coefficient_interp_error)**(-current_level)
                 size_distribution = level_set_metric_parameters["sizing_parameters"]["size_distribution"].GetMatrix()
                 size_distribution[2,1] = min_size
-                size_distribution[1,1] = 5*min_size
-                size_distribution[3,1] = 5*min_size
+                if level_set_metric_parameters.Has("size_distribution_multipler"):
+                    if level_set_metric_parameters["size_distribution_multipler"].GetDouble()>0.0:
+                        size_distribution[1,1] = level_set_metric_parameters["size_distribution_multipler"].GetDouble()*min_size
+                        size_distribution[3,1] = level_set_metric_parameters["size_distribution_multipler"].GetDouble()*min_size
+                    level_set_metric_parameters.RemoveValue("size_distribution_multipler")
                 level_set_metric_parameters["sizing_parameters"]["size_distribution"].SetMatrix(size_distribution)
             local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(model_coarse.GetModelPart(model_part_name), KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
             local_gradient.Execute()
