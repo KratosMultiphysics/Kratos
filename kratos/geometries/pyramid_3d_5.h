@@ -309,6 +309,34 @@ public:
         return vol;
     }
 
+
+    /**
+     * Returns whether given arbitrary point is inside the Geometry and the respective
+     * local point for the given global point
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
+     */
+    bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        this->PointLocalCoordinates( rResult, rPoint );
+
+        if ( rResult[0] >= (0.0 - Tolerance) )
+            if ( rResult[1] >= (0.0 - Tolerance) )
+                if ( rResult[2] >= (0.0 - Tolerance) )
+                    if( rResult[2] <= (1.0 + Tolerance) )
+                        if ( (rResult[0] + rResult[1]) <= (1.0 + Tolerance) )
+                            return true;
+
+        return false;
+    }
+
+
     /**
      * :TODO: TO BE TESTED
      */
@@ -503,19 +531,19 @@ public:
 
         rResult( 0, 0 ) = -1.0;
         rResult( 0, 1 ) = -1.0;
-        rResult( 0, 2 ) =  0.0;
+        rResult( 0, 2 ) = -1.0;
 
         rResult( 1, 0 ) = +1.0;
         rResult( 1, 1 ) = -1.0;
-        rResult( 1, 2 ) =  0.0;
+        rResult( 1, 2 ) = -1.0;
 
         rResult( 2, 0 ) = +1.0;
         rResult( 2, 1 ) = +1.0;
-        rResult( 2, 2 ) =  0.0;
+        rResult( 2, 2 ) = -1.0;
 
         rResult( 3, 0 ) = -1.0;
         rResult( 3, 1 ) = +1.0;
-        rResult( 3, 2 ) =  0.0;
+        rResult( 3, 2 ) = -1.0;
 
         rResult( 4, 0 ) =  0.0;
         rResult( 4, 1 ) =  0.0;
@@ -531,11 +559,12 @@ public:
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
-    /*CoordinatesArrayType& PointLocalCoordinates(
+    CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint
         ) const override
     {
+        /*
         std::cout << "AShish 1.1" <<std::endl;
         BoundedMatrix<double,3,3> X;
         BoundedMatrix<double,3,2> DN;
@@ -620,10 +649,16 @@ public:
             {
                 break;
             }
-        }
+        }*/
+
+        std::cout << "i am in local Coodinate" <<std::endl;
+
+        rResult[0] = rPoint[0] * (1 - rPoint[2]) ;
+        rResult[1] = rPoint[1] * (1 - rPoint[2]) ;
+        rResult[2] = rPoint[2] ;
 
         return( rResult );
-    }*/
+    }
 
 
     /**
@@ -643,12 +678,41 @@ public:
     */
     Vector& ShapeFunctionsValues(Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
-        if(rResult.size() != 6) rResult.resize(6,false);
-        rResult[0] = (0.125) * (1 - rCoordinates[1]) * (1 + rCoordinates[0]) * (1 + rCoordinates[2]);
-        rResult[1] = (0.125) * (1 + rCoordinates[1]) * (1 + rCoordinates[0]) * (1 + rCoordinates[2]);
-        rResult[2] = (0.125) * (1 + rCoordinates[1]) * (1 - rCoordinates[0]) * (1 + rCoordinates[2]);
-        rResult[3] = (0.125) * (1 - rCoordinates[1]) * (1 - rCoordinates[0]) * (1 + rCoordinates[2]);
+        if(rResult.size() != 5) rResult.resize(5,false);
+        rResult[0] = (0.125) * (1 - rCoordinates[0]) * (1 - rCoordinates[1]) * (1 + rCoordinates[2]);
+        rResult[1] = (0.125) * (1 + rCoordinates[0]) * (1 - rCoordinates[1]) * (1 + rCoordinates[2]);
+        rResult[2] = (0.125) * (1 + rCoordinates[0]) * (1 + rCoordinates[1]) * (1 + rCoordinates[2]);
+        rResult[3] = (0.125) * (1 - rCoordinates[0]) * (1 + rCoordinates[1]) * (1 + rCoordinates[2]);
         rResult[4] = (0.5) * (1 + rCoordinates[2]);
+
+        std::cout << "I am in 1"<< std::endl;
+
+        /* rResult[0] = ((1 - rCoordinates[0] - rCoordinates[2] ) *  (1 - rCoordinates[1] - rCoordinates[2]) / (1 - rCoordinates[2]) ) ;
+        rResult[1] = ((rCoordinates[0] * (1 - rCoordinates[1] - rCoordinates[2])) / (1 - rCoordinates[2]) );
+        rResult[2] = ((rCoordinates[0] * rCoordinates[1]) / (1 - rCoordinates[2]) );
+        rResult[3] = ((rCoordinates[1] * (1 - rCoordinates[0] - rCoordinates[2])) / (1 - rCoordinates[2]) );
+        rResult[4] = rCoordinates[2];
+ */
+
+        return rResult;
+    }
+
+    /**
+     * Calculates the gradients in terms of local coordinateds
+     * of all shape functions in a given point.
+     * @param rPoint the current point at which the gradients are calculated
+     * @return the gradients of all shape functions
+     * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
+     */
+    Matrix& ShapeFunctionsLocalGradients(
+        Matrix& rResult,
+        const CoordinatesArrayType& rPoint
+        ) const override
+    {
+        if(rResult.size1() != this->PointsNumber() || rResult.size2() != this->LocalSpaceDimension())
+            rResult.resize(this->PointsNumber(),this->LocalSpaceDimension(),false);
+
+        CalculateShapeFunctionsLocalGradients(rResult, rPoint);
 
         return rResult;
     }
@@ -665,18 +729,24 @@ public:
     double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
+        std::cout << "I m in 2" <<std::endl;
         switch ( ShapeFunctionIndex )
         {
         case 0:
-            return( (0.125) * (1 - rPoint[1]) * (1 + rPoint[0]) * (1 + rPoint[2]) );
+            return( (0.125) * (1 - rPoint[0]) * (1 - rPoint[1]) * (1 + rPoint[2]) );
+            //return ((1 - rPoint[0] - rPoint[2] ) *  (1 - rPoint[1] - rPoint[2]) / (1 - rPoint[2]) ) ;
         case 1:
-            return( (0.125) * (1 + rPoint[1]) * (1 + rPoint[0]) * (1 + rPoint[2]) );
+            return( (0.125) * (1 + rPoint[0]) * (1 - rPoint[1]) * (1 + rPoint[2]) );
+            //return ((rPoint[0] * (1 - rPoint[1] - rPoint[2])) / (1 - rPoint[2]) );
         case 2:
-            return( (0.125) * (1 + rPoint[1]) * (1 - rPoint[0]) * (1 + rPoint[2]) );
+            return( (0.125) * (1 + rPoint[0]) * (1 + rPoint[1]) * (1 + rPoint[2]) );
+            //return ((rPoint[0] * rPoint[1]) / (1 - rPoint[2]) );
         case 3:
-            return( (0.125) * (1 - rPoint[1]) * (1 - rPoint[0]) * (1 + rPoint[2]) );
+            return( (0.125) * (1 - rPoint[0]) * (1 + rPoint[1]) * (1 + rPoint[2]) );
+            //return ((rPoint[1] * (1 - rPoint[0] - rPoint[2])) / (1 - rPoint[2]) );
         case 4:
             return( (0.5) * (1 + rPoint[2]) );
+            //return rPoint[2];
         default:
             KRATOS_ERROR << "Wrong index of shape function!" << *this  << std::endl;
         }
@@ -696,6 +766,7 @@ public:
 
     static Matrix CalculateShapeFunctionsIntegrationPointsValues(typename BaseType::IntegrationMethod ThisMethod)
     {
+        std::cout << "I m in 3" <<std::endl;
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
         IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
         //number of integration points
@@ -707,12 +778,20 @@ public:
         //loop over all integration points
 
         for ( int pnt = 0; pnt < integration_points_number; pnt++ ) {
-            shape_function_values( pnt, 0 ) = (0.125) * (1 - integration_points[pnt].Y()) * (1 + integration_points[pnt].X()) * (1 + integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 1 ) = (0.125) * (1 + integration_points[pnt].Y()) * (1 + integration_points[pnt].X()) * (1 + integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 2 ) = (0.125) * (1 + integration_points[pnt].Y()) * (1 - integration_points[pnt].X()) * (1 + integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 3 ) = (0.125) * (1 - integration_points[pnt].Y()) * (1 - integration_points[pnt].X()) * (1 + integration_points[pnt].Z()) ;
+            shape_function_values( pnt, 0 ) = (0.125) * (1 - integration_points[pnt].X()) * (1 - integration_points[pnt].Y()) * (1 + integration_points[pnt].Z()) ;
+            shape_function_values( pnt, 1 ) = (0.125) * (1 + integration_points[pnt].X()) * (1 - integration_points[pnt].Y()) * (1 + integration_points[pnt].Z()) ;
+            shape_function_values( pnt, 2 ) = (0.125) * (1 + integration_points[pnt].X()) * (1 + integration_points[pnt].Y()) * (1 + integration_points[pnt].Z()) ;
+            shape_function_values( pnt, 3 ) = (0.125) * (1 - integration_points[pnt].X()) * (1 + integration_points[pnt].Y()) * (1 + integration_points[pnt].Z()) ;
             shape_function_values( pnt, 4 ) = (0.5) * (1 + integration_points[pnt].Z()) ;
         }
+
+        /* for ( int pnt = 0; pnt < integration_points_number; pnt++ ) {
+            shape_function_values( pnt, 0 ) = ((1 - integration_points[pnt].X() - integration_points[pnt].Z() ) *  (1 - integration_points[pnt].Y() - integration_points[pnt].Z()) / (1 - integration_points[pnt].Z()) ) ;
+            shape_function_values( pnt, 1 ) = ((integration_points[pnt].X() * (1 - integration_points[pnt].Y() - integration_points[pnt].Z())) / (1 - integration_points[pnt].Z()) );
+            shape_function_values( pnt, 2 ) = ((integration_points[pnt].X() * integration_points[pnt].Y()) / (1 - integration_points[pnt].Z()) );
+            shape_function_values( pnt, 3 ) = ((integration_points[pnt].Y() * (1 - integration_points[pnt].X() - integration_points[pnt].Z())) / (1 - integration_points[pnt].Z()) );
+            shape_function_values( pnt, 4 ) = integration_points[pnt].Z();
+        } */
 
         return shape_function_values;
     }
@@ -734,21 +813,21 @@ public:
         rResult.resize( 5, 3, false );
         noalias( rResult ) = ZeroMatrix( 5, 3 );
 
-        rResult( 0, 0 ) =  (+0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[2] ) ;
-        rResult( 0, 1 ) =  (-0.125) * ( 1 + rPoint[0] ) * ( 1 + rPoint[2] ) ;
-        rResult( 0, 2 ) =  (+0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[0] ) ;
+        rResult( 0, 0 ) =  (-0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[2] ) ;
+        rResult( 0, 1 ) =  (-0.125) * ( 1 - rPoint[0] ) * ( 1 + rPoint[2] ) ;
+        rResult( 0, 2 ) =  (+0.125) * ( 1 - rPoint[0] ) * ( 1 - rPoint[1] ) ;
 
-        rResult( 1, 0 ) =  (+0.125) * ( 1 + rPoint[1] ) * ( 1 + rPoint[2] ) ;
-        rResult( 1, 1 ) =  (+0.125) * ( 1 + rPoint[0] ) * ( 1 + rPoint[2] ) ;
-        rResult( 1, 2 ) =  (+0.125) * ( 1 + rPoint[1] ) * ( 1 + rPoint[0] ) ;
+        rResult( 1, 0 ) =  (+0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[2] ) ;
+        rResult( 1, 1 ) =  (-0.125) * ( 1 + rPoint[0] ) * ( 1 + rPoint[2] ) ;
+        rResult( 1, 2 ) =  (+0.125) * ( 1 + rPoint[0] ) * ( 1 - rPoint[1] ) ;
 
-        rResult( 2, 0 ) =  (-0.125) * ( 1 + rPoint[1] ) * ( 1 + rPoint[2] ) ;
-        rResult( 2, 1 ) =  (+0.125) * ( 1 - rPoint[0] ) * ( 1 + rPoint[2] ) ;
-        rResult( 2, 2 ) =  (+0.125) * ( 1 + rPoint[1] ) * ( 1 - rPoint[0] ) ;
+        rResult( 2, 0 ) =  (+0.125) * ( 1 + rPoint[1] ) * ( 1 + rPoint[2] ) ;
+        rResult( 2, 1 ) =  (+0.125) * ( 1 + rPoint[0] ) * ( 1 + rPoint[2] ) ;
+        rResult( 2, 2 ) =  (+0.125) * ( 1 + rPoint[0] ) * ( 1 + rPoint[1] ) ;
 
-        rResult( 3, 0 ) =  (-0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[2] ) ;
-        rResult( 3, 1 ) =  (-0.125) * ( 1 - rPoint[0] ) * ( 1 + rPoint[2] ) ;
-        rResult( 3, 2 ) =  (+0.125) * ( 1 - rPoint[1] ) * ( 1 - rPoint[0] ) ;
+        rResult( 3, 0 ) =  (-0.125) * ( 1 + rPoint[1] ) * ( 1 + rPoint[2] ) ;
+        rResult( 3, 1 ) =  (+0.125) * ( 1 - rPoint[0] ) * ( 1 + rPoint[2] ) ;
+        rResult( 3, 2 ) =  (+0.125) * ( 1 - rPoint[0] ) * ( 1 + rPoint[1] ) ;
 
         rResult( 4, 0 ) =   0.00 ;
         rResult( 4, 1 ) =   0.00 ;
@@ -781,21 +860,21 @@ public:
         {
             Matrix result = ZeroMatrix( 5, 3 );
 
-            result( 0, 0 ) =  (+0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 0, 1 ) =  (-0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 0, 2 ) =  (+0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].X() ) ;
+            result( 0, 0 ) =  (-0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 0, 1 ) =  (-0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 0, 2 ) =  (+0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 - integration_points[pnt].Y() ) ;
 
-            result( 1, 0 ) =  (+0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 1, 1 ) =  (+0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 1, 2 ) =  (+0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].X() ) ;
+            result( 1, 0 ) =  (+0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 1, 1 ) =  (-0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 1, 2 ) =  (+0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 - integration_points[pnt].Y() ) ;
 
-            result( 2, 0 ) =  (-0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 2, 1 ) =  (+0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 2, 2 ) =  (+0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 - integration_points[pnt].X() ) ;
+            result( 2, 0 ) =  (+0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 2, 1 ) =  (+0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 2, 2 ) =  (+0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Y() ) ;
 
-            result( 3, 0 ) =  (-0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 3, 1 ) =  (-0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 3, 2 ) =  (+0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 - integration_points[pnt].X() ) ;
+            result( 3, 0 ) =  (-0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 3, 1 ) =  (+0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 3, 2 ) =  (+0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Y() ) ;
 
             result( 4, 0 ) =   0.00 ;
             result( 4, 1 ) =   0.00 ;
