@@ -542,12 +542,38 @@ namespace Kratos
     double porosity = r_process_info[PRESCRIBED_GLOBAL_POROSITY];
 
     // Compute heat transfer coefficient
-    // Assumption: neighbor wall is treated as a particle with the same radius
     double h = 0.0;
 
-    if (particle_radius == neighbor_radius || mNeighborType == WALL_NEIGHBOR) {
+    if (mNeighborType == WALL_NEIGHBOR) {
       // Compute voronoi edge radius from porosity
       double rij = 0.56 * particle_radius * pow((1.0 - porosity), -1.0/3.0);
+
+      if (rij <= mContactRadiusAdjusted) {
+        h = 0.0;
+        return;
+      }
+
+      // Compute upper limit of integral
+      double upp_lim = particle_radius * rij / sqrt(rij * rij + mNeighborDistanceAdjusted * mNeighborDistanceAdjusted);
+
+      // Build struct of integration parameters
+      IntegrandParams params;
+      params.p1 = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
+      params.p2 = GetParticleConductivity();
+      params.p3 = particle_radius;
+      params.p4 = rij;
+
+      // Heat transfer coefficient from integral expression solved numerically
+      h = AdaptiveSimpsonIntegration(r_process_info, mContactRadiusAdjusted, upp_lim, params, &ThermalSphericParticle::EvalIntegrandVoronoiWall);
+    }
+    else if (particle_radius == neighbor_radius) {
+      // Compute voronoi edge radius from porosity
+      double rij = 0.56 * particle_radius * pow((1.0 - porosity), -1.0/3.0);
+
+      if (rij <= mContactRadiusAdjusted) {
+        h = 0.0;
+        return;
+      }
 
       // Compute upper limit of integral
       double upp_lim = particle_radius * rij / sqrt(rij * rij + mNeighborDistanceAdjusted * mNeighborDistanceAdjusted / 4.0);
@@ -569,10 +595,15 @@ namespace Kratos
       // Assumption: using average radius
       rij = 0.56 * (particle_radius + neighbor_radius) / 2.0 * pow((1.0 - porosity), -1.0/3.0);
 
+      if (rij <= mContactRadiusAdjusted) {
+        h = 0.0;
+        return;
+      }
+
       if (mNeighborInContact)
         D1 = sqrt(particle_radius * particle_radius - mContactRadiusAdjusted * mContactRadiusAdjusted);
       else
-        D1 = (particle_radius * particle_radius - neighbor_radius * neighbor_radius + mNeighborDistance * mNeighborDistance) / (2 * mNeighborDistance);
+        D1 = (particle_radius * particle_radius - neighbor_radius * neighbor_radius + mNeighborDistanceAdjusted * mNeighborDistanceAdjusted) / (2 * mNeighborDistanceAdjusted);
 
       D2 = mNeighborDistanceAdjusted - D1;
 
@@ -984,6 +1015,21 @@ namespace Kratos
   }
 
   template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::EvalIntegrandVoronoiWall(IntegrandParams params) {
+    KRATOS_TRY
+
+    double r    = params.x;
+    double kf   = params.p1;
+    double kp   = params.p2;
+    double rp   = params.p3;
+    double rij  = params.p4;
+
+    return 2.0 * Globals::Pi * r / ((sqrt(rp * rp - r * r) - r * mNeighborDistanceAdjusted / rij) / kp + (mNeighborDistanceAdjusted - sqrt(rp * rp - r * r)) / kf);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::EvalIntegrandVoronoiMono(IntegrandParams params) {
     KRATOS_TRY
 
@@ -1016,7 +1062,7 @@ namespace Kratos
     double beta1 = sqrt(r1 * r1 - r * r);
     double beta2 = sqrt(r2 * r2 - r * r);
 
-    return 2.0 * Globals::Pi * r / ((beta1 - r * D1 / rij) / k1 + (beta2 - r * D2 / rij_) / k2 + (mNeighborDistanceAdjusted - beta1 - beta2) / kf);
+    return 2.0 * Globals::Pi * r / ((beta1 - D1 * r / rij) / k1 + (beta2 - D2 * r / rij_) / k2 + (mNeighborDistanceAdjusted - beta1 - beta2) / kf);
 
     KRATOS_CATCH("")
   }

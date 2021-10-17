@@ -115,6 +115,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double AdaptiveSimpsonIntegration(const ProcessInfo& r_process_info, double a, double b, IntegrandParams params, double (ThermalSphericParticle::*evalIntegrand)(IntegrandParams));
   double RecursiveSimpsonIntegration(double a, double b, double fa, double fb, double fc, double tol, IntegrandParams params, double (ThermalSphericParticle::*evalIntegrand)(IntegrandParams));
   double EvalIntegrandSurrLayer(IntegrandParams params);
+  double EvalIntegrandVoronoiWall(IntegrandParams params);
   double EvalIntegrandVoronoiMono(IntegrandParams params);
   double EvalIntegrandVoronoiMulti(IntegrandParams params);
 
