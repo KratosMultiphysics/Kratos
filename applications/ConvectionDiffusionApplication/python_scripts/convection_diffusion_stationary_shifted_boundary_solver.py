@@ -96,16 +96,16 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         if self.settings["lagrange_multipliers_imposition"].GetBool():
             sbm_interface_condition_name = "LaplacianShiftedBoundaryLagrangeMultipliersCondition"
         else:
-            sbm_interface_condition_name = "LaplacianShiftedBoundaryCondition"
+            element_type = self.settings["element_replace_settings"]["element_name"].GetString()[:-4]
+            if element_type == "LaplacianShiftedBoundaryElement":
+                sbm_interface_condition_name = "LaplacianShiftedBoundaryCondition"
+            elif element_type == "MixedLaplacianShiftedBoundaryElement":
+                sbm_interface_condition_name = "MixedLaplacianShiftedBoundaryCondition"
+            else:
+                raise Exception("Unsupported \'element_type\': {}".format(element_type))
         settings.AddEmptyValue("sbm_interface_condition_name").SetString(sbm_interface_condition_name)
         sbm_interface_process = ConvectionDiffusionApplication.ShiftedBoundaryMeshlessInterfaceProcess(self.model, settings)
         sbm_interface_process.Execute()
-
-        # Merge the SBM boundary model part with the computational one
-        KratosMultiphysics.SubModelPartConditionsBooleanOperationUtility.Union(
-            self.GetComputingModelPart(),
-            self.model.GetModelPart(self.main_model_part.Name + "." + "shifted_boundary"),
-            self.GetComputingModelPart())
 
         # Initialize base solver strategy
         super().Initialize()
@@ -127,8 +127,9 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         # Element checks
         if num_nodes_elements not in (3,4):
             raise Exception("Only simplex elements are supported so far.")
-        if element_name != "LaplacianShiftedBoundaryElement":
-            raise Exception("Only \'LaplacianShiftedBoundaryElement\' is supported so far.")
+        supported_elements = ["LaplacianShiftedBoundaryElement", "MixedLaplacianShiftedBoundaryElement"]
+        if element_name not in supported_elements:
+            raise Exception("Only \'LaplacianShiftedBoundaryElement\' and \'MixedLaplacianShiftedBoundaryElement\' are supported so far.")
 
         # Set registering element name
         name_string = "{0}{1}D{2}N".format(element_name, domain_size, num_nodes_elements)

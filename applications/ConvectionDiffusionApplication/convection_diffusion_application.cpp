@@ -44,6 +44,12 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
       mLaplacian3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mLaplacian3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
       mLaplacian3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(Element::GeometryType::PointsArrayType(27)))),
+      mEmbeddedLaplacian2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mEmbeddedLaplacian3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mMixedLaplacianElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mMixedLaplacianElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mMixedLaplacianShiftedBoundary2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mMixedLaplacianShiftedBoundary3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mLaplacianShiftedBoundary2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mLaplacianShiftedBoundary3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mAdjointDiffusionElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -56,6 +62,7 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
       mFluxCondition3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mLaplacianShiftedBoundaryCondition(0, Element::GeometryType::Pointer(new Geometry<Node<3>>())),
       mLaplacianShiftedBoundaryLagrangeMultipliersCondition(0, Element::GeometryType::Pointer(new Geometry<Node<3>>())),
+      mMixedLaplacianShiftedBoundaryCondition(0, Element::GeometryType::Pointer(new Geometry<Node<3>>())),
       mAdjointThermalFace2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mAdjointThermalFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mQSConvectionDiffusionExplicit2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -104,6 +111,12 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_ELEMENT("LaplacianElement3D27N", mLaplacian3D27N);
     KRATOS_REGISTER_ELEMENT("LaplacianShiftedBoundaryElement2D3N", mLaplacianShiftedBoundary2D3N);
     KRATOS_REGISTER_ELEMENT("LaplacianShiftedBoundaryElement3D4N", mLaplacianShiftedBoundary3D4N);
+    KRATOS_REGISTER_ELEMENT("MixedLaplacianElement2D3N", mMixedLaplacianElement2D3N);
+    KRATOS_REGISTER_ELEMENT("MixedLaplacianElement3D4N", mMixedLaplacianElement3D4N);
+    KRATOS_REGISTER_ELEMENT("MixedLaplacianShiftedBoundaryElement2D3N", mMixedLaplacianShiftedBoundary2D3N);
+    KRATOS_REGISTER_ELEMENT("MixedLaplacianShiftedBoundaryElement3D4N", mMixedLaplacianShiftedBoundary3D4N);
+    KRATOS_REGISTER_ELEMENT("EmbeddedLaplacianElement2D3N", mEmbeddedLaplacian2D3N);
+    KRATOS_REGISTER_ELEMENT("EmbeddedLaplacianElement3D4N", mEmbeddedLaplacian3D4N);
     KRATOS_REGISTER_ELEMENT("QSConvectionDiffusionExplicit2D3N", mQSConvectionDiffusionExplicit2D3N);
     KRATOS_REGISTER_ELEMENT("QSConvectionDiffusionExplicit3D4N", mQSConvectionDiffusionExplicit3D4N);
     KRATOS_REGISTER_ELEMENT("DConvectionDiffusionExplicit2D3N", mDConvectionDiffusionExplicit2D3N);
@@ -120,6 +133,7 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_CONDITION("FluxCondition3D4N", mFluxCondition3D4N);
     KRATOS_REGISTER_CONDITION("LaplacianShiftedBoundaryCondition", mLaplacianShiftedBoundaryCondition);
     KRATOS_REGISTER_CONDITION("LaplacianShiftedBoundaryLagrangeMultipliersCondition", mLaplacianShiftedBoundaryLagrangeMultipliersCondition);
+    KRATOS_REGISTER_CONDITION("MixedLaplacianShiftedBoundaryCondition", mMixedLaplacianShiftedBoundaryCondition);
 
     KRATOS_REGISTER_CONDITION("AdjointThermalFace2D2N", mAdjointThermalFace2D2N);
     KRATOS_REGISTER_CONDITION("AdjointThermalFace3D3N", mAdjointThermalFace3D3N);

@@ -144,8 +144,13 @@ namespace Kratos {
 
         PropertiesProxiesManager().CreatePropertiesProxies(*mpDem_model_part, *mpInlet_model_part, *mpCluster_model_part);
 
-        RepairPointersToNormalProperties(mListOfSphericParticles); // The particles sent to this partition have their own copy of the Kratos properties they were using in the previous partition!!
-        RepairPointersToNormalProperties(mListOfGhostSphericParticles);
+        bool has_mpi = false;
+        Check_MPI(has_mpi);
+
+        if (has_mpi) {
+            RepairPointersToNormalProperties(mListOfSphericParticles); // The particles sent to this partition have their own copy of the Kratos properties they were using in the previous partition!!
+            RepairPointersToNormalProperties(mListOfGhostSphericParticles);
+        }
 
         RebuildPropertiesProxyPointers(mListOfSphericParticles);
         RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
@@ -297,6 +302,11 @@ namespace Kratos {
         }
 
         KRATOS_CATCH("")
+    }
+
+    void ExplicitSolverStrategy::Check_MPI(bool& has_mpi) {
+        VariablesList r_modelpart_nodal_variables_list = GetModelPart().GetNodalSolutionStepVariablesList();
+        if (r_modelpart_nodal_variables_list.Has(PARTITION_INDEX)) has_mpi = true;
     }
 
     void ExplicitSolverStrategy::CalculateMaxTimeStep() {
@@ -474,8 +484,15 @@ namespace Kratos {
 
             RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
             RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
-            RepairPointersToNormalProperties(mListOfSphericParticles);
-            RepairPointersToNormalProperties(mListOfGhostSphericParticles);
+
+            bool has_mpi = false;
+            Check_MPI(has_mpi);
+
+            if (has_mpi) {
+                RepairPointersToNormalProperties(mListOfSphericParticles);
+                RepairPointersToNormalProperties(mListOfGhostSphericParticles);
+            }
+
             RebuildPropertiesProxyPointers(mListOfSphericParticles);
             RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
 

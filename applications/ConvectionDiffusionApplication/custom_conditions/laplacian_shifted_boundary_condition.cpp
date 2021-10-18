@@ -153,8 +153,8 @@ void LaplacianShiftedBoundaryCondition::CalculateLocalSystem(
     //FIXME: Find variables for these
     const auto& r_N = GetValue(BDF_COEFFICIENTS);
     const auto& r_DN_DX = GetValue(LOCAL_AXES_MATRIX);
-    array_1d<double,3>& r_normal = GetValue(NORMAL);
-    r_normal /= norm_2(r_normal);
+    array_1d<double,3> normal = GetValue(NORMAL);
+    normal /= norm_2(normal);
 
     // Interpolate conductivity and get unknown values
     double k = 0.0;
@@ -187,7 +187,7 @@ void LaplacianShiftedBoundaryCondition::CalculateLocalSystem(
             i_node_grad = row(r_DN_DX, i_node);
             aux_stab = 0.0;
             for (std::size_t d = 0; d < i_node_grad.size(); ++d) {
-                aux_stab += i_node_grad(d) * r_normal(d);
+                aux_stab += i_node_grad(d) * normal(d);
             }
             aux_stab *= aux_weight_stab;
             for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
@@ -212,7 +212,7 @@ void LaplacianShiftedBoundaryCondition::CalculateLocalSystem(
         //         aux_2 = 0.0;
         //         j_node_grad = row(r_DN_DX, j_node);
         //         for (std::size_t d = 0; d < dim; ++d) {
-        //             aux_2 += j_node_grad(d) * r_normal(d);
+        //             aux_2 += j_node_grad(d) * normal(d);
         //         }
         //         aux_2 *= k;
         //         rLeftHandSideMatrix(i_node, j_node) += aux_1 * aux_2;
@@ -233,14 +233,14 @@ void LaplacianShiftedBoundaryCondition::CalculateLocalSystem(
             aux_1 = r_N[i_node];
             i_node_grad = row(r_DN_DX, i_node);
             for (std::size_t d = 0; d < i_node_grad.size(); ++d) {
-                aux_1 -= aux * i_node_grad(d) * r_normal(d);
+                aux_1 -= aux * i_node_grad(d) * normal(d);
             }
             aux_1 *= w;
             for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
                 aux_2 = 0.0;
                 j_node_grad = row(r_DN_DX, j_node);
                 for (std::size_t d = 0; d < j_node_grad.size(); ++d) {
-                    aux_2 += j_node_grad(d) * r_normal(d);
+                    aux_2 += j_node_grad(d) * normal(d);
                 }
                 aux_2 *= k;
                 rLeftHandSideMatrix(i_node, j_node) += aux_1 * aux_2;

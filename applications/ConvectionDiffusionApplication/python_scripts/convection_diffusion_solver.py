@@ -7,7 +7,6 @@ import KratosMultiphysics.base_convergence_criteria_factory as convergence_crite
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication
-import KratosMultiphysics.ConvectionDiffusionApplication.check_and_prepare_model_process_convection_diffusion as check_and_prepare_model_process
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
@@ -43,7 +42,6 @@ class ConvectionDiffusionSolver(PythonSolver):
     """
 
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass = True
         super().__init__(model, custom_settings)
 
         # Convection diffusion variables check
@@ -84,7 +82,6 @@ class ConvectionDiffusionSolver(PythonSolver):
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
-            "computing_model_part_name" : "thermal_computing_domain",
             "material_import_settings" :{
                 "materials_filename": ""
             },
@@ -101,12 +98,14 @@ class ConvectionDiffusionSolver(PythonSolver):
                 "transfer_coefficient_variable" : "TRANSFER_COEFFICIENT",
                 "velocity_variable"             : "VELOCITY",
                 "specific_heat_variable"        : "SPECIFIC_HEAT",
-                "reaction_variable"             : "REACTION_FLUX"
+                "reaction_variable"             : "REACTION_FLUX",
+                "reaction_gradient_variable"    : "REACTION"
             },
             "time_stepping" : {
                 "time_step": 1.0
             },
             "reform_dofs_at_each_step": false,
+            "gradient_dofs" : false,
             "line_search": false,
             "compute_reactions": true,
             "block_builder": true,
@@ -186,6 +185,9 @@ class ConvectionDiffusionSolver(PythonSolver):
         reaction_variable = self.settings["convection_diffusion_variables"]["reaction_variable"].GetString()
         if (reaction_variable != ""):
             convention_diffusion_settings.SetReactionVariable(KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable))
+        reaction_gradient_variable = self.settings["convection_diffusion_variables"]["reaction_gradient_variable"].GetString()
+        if (reaction_gradient_variable != ""):
+            convention_diffusion_settings.SetReactionGradientVariable(KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable))
 
         target_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convention_diffusion_settings)
 
@@ -216,6 +218,8 @@ class ConvectionDiffusionSolver(PythonSolver):
                 target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetSpecificHeatVariable())
             if convention_diffusion_settings.IsDefinedReactionVariable():
                 target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetReactionVariable())
+            if convention_diffusion_settings.IsDefinedReactionGradientVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetReactionGradientVariable())
         else:
             raise Exception("The provided target_model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
 
@@ -232,10 +236,35 @@ class ConvectionDiffusionSolver(PythonSolver):
 
     def AddDofs(self):
         settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]
+
+        # Add standard scalar DOF
         if settings.IsDefinedReactionVariable():
             KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), settings.GetReactionVariable(),self.main_model_part)
         else:
             KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), self.main_model_part)
+
+        # Add gradient of the unknown DOF for mixed problems
+        if self.settings["gradient_dofs"].GetBool():
+            gradient_variable = settings.GetGradientVariable()
+            gradient_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_X")
+            gradient_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_Y")
+            if settings.IsDefinedReactionGradientVariable():
+                reaction_gradient_variable = settings.GetReactionGradientVariable()
+                reaction_gradient_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable.Name() + "_X")
+                reaction_gradient_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable.Name() + "_Y")
+                KratosMultiphysics.VariableUtils().AddDof(gradient_variable_x, reaction_gradient_variable_x, self.main_model_part)
+                KratosMultiphysics.VariableUtils().AddDof(gradient_variable_y, reaction_gradient_variable_y, self.main_model_part)
+                if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
+                    gradient_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_Z")
+                    reaction_gradient_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable.Name() + "_Z")
+                    KratosMultiphysics.VariableUtils().AddDof(gradient_variable_z, reaction_gradient_variable_z, self.main_model_part)
+            else:
+                KratosMultiphysics.VariableUtils().AddDof(gradient_variable_x, self.main_model_part)
+                KratosMultiphysics.VariableUtils().AddDof(gradient_variable_y, self.main_model_part)
+                if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
+                    gradient_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_Z")
+                    KratosMultiphysics.VariableUtils().AddDof(gradient_variable_z, self.main_model_part)
+
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):
@@ -245,8 +274,12 @@ class ConvectionDiffusionSolver(PythonSolver):
 
     def PrepareModelPart(self):
         if not self.is_restarted():
-            # Check and prepare computing model part and import constitutive laws.
-            self._execute_after_reading()
+            # Import material properties
+            materials_imported = self.import_materials()
+            if materials_imported:
+                KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were successfully imported.")
+            else:
+                KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
             throw_errors = False
             KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
@@ -314,7 +347,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+        return self.main_model_part
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -432,23 +465,6 @@ class ConvectionDiffusionSolver(PythonSolver):
         else:
             return False
 
-    def _execute_after_reading(self):
-        """Prepare computing model part and import constitutive laws."""
-        # Auxiliary parameters object for the CheckAndPepareModelProcess
-        params = KratosMultiphysics.Parameters("{}")
-        params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
-        params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-        params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-        # Assign mesh entities from domain and process sub model parts to the computing model part.
-        check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
-
-        # Import constitutive laws.
-        materials_imported = self.import_materials()
-        if materials_imported:
-            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were successfully imported.")
-        else:
-            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
-
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information."""
         # Set the buffer size for the nodal solution steps data. Existing nodal
@@ -498,7 +514,7 @@ class ConvectionDiffusionSolver(PythonSolver):
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D")
                 else:
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D8N")
-        elif element_name in ("LaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit"):
+        elif element_name in ("LaplacianElement","MixedLaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit"):
             name_string = "{0}{1}D{2}N".format(element_name,domain_size, num_nodes_elements)
             self.settings["element_replace_settings"]["element_name"].SetString(name_string)
 
@@ -631,6 +647,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "velocity_variable", default_conv_diff_variables["velocity_variable"].GetString())
             self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "specific_heat_variable", default_conv_diff_variables["specific_heat_variable"].GetString())
             self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "reaction_variable", default_conv_diff_variables["reaction_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "reaction_gradient_variable", default_conv_diff_variables["reaction_gradient_variable"].GetString())
 
     def _ConvectionDiffusionSingleVariableCheck(self, custom_conv_diff_variables, variable_entry, variable_name):
         if not custom_conv_diff_variables.Has(variable_entry):

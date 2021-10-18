@@ -15,6 +15,9 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conv_diff_3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/laplacian_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/laplacian_shifted_boundary_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/mixed_laplacian_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/mixed_laplacian_shifted_boundary_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_laplacian_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_convection_diffusion_explicit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/d_convection_diffusion_explicit.cpp
 
@@ -24,6 +27,7 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/flux_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/laplacian_shifted_boundary_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/laplacian_shifted_boundary_lagrange_multipliers_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mixed_laplacian_shifted_boundary_condition.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_thermal_face.cpp
 
