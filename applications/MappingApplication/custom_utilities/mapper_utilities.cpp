@@ -49,21 +49,19 @@ void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
     rModelPartCommunicator.SynchronizeNonHistoricalVariable(INTERFACE_EQUATION_ID);
 }
 
-template <typename T>
-double ComputeMaxEdgeLengthLocal(const T& rEntityContainer)
+template <typename TContainer>
+double ComputeMaxEdgeLengthLocal(const TContainer& rEntityContainer)
 {
-    double max_element_size = 0.0;
     // Loop through each edge of a geometrical entity ONCE
-    for (const auto& r_entity : rEntityContainer) {
-        for (std::size_t i = 0; i < (r_entity.GetGeometry().size() - 1); ++i) {
-            for (std::size_t j = i + 1; j < r_entity.GetGeometry().size(); ++j) {
-                double edge_length = ComputeDistance(r_entity.GetGeometry()[i].Coordinates(),
-                                                        r_entity.GetGeometry()[j].Coordinates());
-                max_element_size = std::max(max_element_size, edge_length);
+    return block_for_each<MaxReduction<double>>(rEntityContainer, [](const typename TContainer::value_type& rEntity){
+        for (std::size_t i = 0; i < (rEntity.GetGeometry().size() - 1); ++i) {
+            for (std::size_t j = i + 1; j < rEntity.GetGeometry().size(); ++j) {
+                return ComputeDistance(rEntity.GetGeometry()[i].Coordinates(),
+                                       rEntity.GetGeometry()[j].Coordinates());
             }
         }
-    }
-    return max_element_size;
+        return 0.0; // in case the geometry is a point
+    });
 }
 
 double ComputeSearchRadius(const ModelPart& rModelPart, const int EchoLevel)
@@ -74,7 +72,7 @@ double ComputeSearchRadius(const ModelPart& rModelPart, const int EchoLevel)
         return 0.0;
     }
 
-    static constexpr double search_safety_factor = 1.2;
+    static constexpr double search_safety_factor = 1.5;
     double max_element_size = 0.0;
 
     if (r_comm.GlobalNumberOfConditions() > 0) {
@@ -363,7 +361,7 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
 
             const auto& rp_local_sys = rMapperLocalSystems[i_local_sys];
 
-            if (!rp_local_sys->HasInterfaceInfo()) {
+            if (!rp_local_sys->HasInterfaceInfoThatIsNotAnApproximation()) {
                 const auto& r_coords = rp_local_sys->Coordinates();
                 if (MapperUtilities::PointIsInsideBoundingBox(bounding_box, r_coords)) {
                     // These push_backs are threadsafe bcs only one vector is accessed per thread!

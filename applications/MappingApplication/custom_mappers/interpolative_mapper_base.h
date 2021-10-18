@@ -189,16 +189,6 @@ public:
     }
 
     ///@}
-    ///@name Inquiry
-    ///@{
-
-    int AreMeshesConforming() const override
-    {
-        KRATOS_WARNING_ONCE("Mapper") << "Developer-warning: \"AreMeshesConforming\" is deprecated and will be removed in the future" << std::endl;
-        return mMeshesAreConforming;
-    }
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -222,6 +212,8 @@ public:
 
 protected:
 
+    int mMeshesAreConforming = false;
+
    /**
     * @brief Initializing the Mapper
     * This has to be called in the constructor of the
@@ -239,17 +231,44 @@ protected:
 
     void ValidateInput()
     {
+        // backward compatibility
+        if (mMapperSettings.Has("search_radius")) {
+            KRATOS_WARNING("Mapper") << "DEPRECATION-WARNING: \"search_radius\" should be specified under \"search_settings\"!" << std::endl;
+            const double search_radius = mMapperSettings["search_radius"].GetDouble();
+
+            if (mMapperSettings.Has("search_settings")) {
+                KRATOS_ERROR_IF(mMapperSettings["search_settings"].Has("search_radius")) << "\"search_radius\" specified twice, please only speficy it in \"search_settings\"!" << std::endl;
+            } else {
+                mMapperSettings.AddValue("search_settings", Parameters());
+            }
+
+            mMapperSettings["search_settings"].AddEmptyValue("search_radius").SetDouble(search_radius);
+            mMapperSettings.RemoveValue("search_radius");
+        }
+
+        if (mMapperSettings.Has("search_iterations")) {
+            KRATOS_WARNING("Mapper") << "DEPRECATION-WARNING: \"search_iterations\" should be specified as \"max_num_search_iterations\" under \"search_settings\"!" << std::endl;
+            const int search_iterations = mMapperSettings["search_iterations"].GetInt();
+
+            if (mMapperSettings.Has("search_settings")) {
+                KRATOS_ERROR_IF(mMapperSettings["search_settings"].Has("max_num_search_iterations")) << "\"search_iterations\" specified twice, please only speficy it in \"search_settings\" (as \"max_num_search_iterations\")!" << std::endl;
+            } else {
+                mMapperSettings.AddValue("search_settings", Parameters());
+            }
+
+            mMapperSettings["search_settings"].AddEmptyValue("max_num_search_iterations").SetInt(search_iterations);
+            mMapperSettings.RemoveValue("search_iterations");
+        }
+
         MapperUtilities::CheckInterfaceModelParts(0);
 
-        Parameters mapper_default_settings(GetMapperDefaultSettings());
+        const Parameters mapper_default_settings(GetMapperDefaultSettings());
+
         mMapperSettings.ValidateAndAssignDefaults(mapper_default_settings);
 
-        if (mMapperSettings["search_radius"].GetDouble() < 0.0) {
-            const double search_radius = MapperUtilities::ComputeSearchRadius(
-                                            mrModelPartOrigin,
-                                            mrModelPartDestination,
-                                            mMapperSettings["echo_level"].GetInt());
-            mMapperSettings["search_radius"].SetDouble(search_radius);
+        if (!mMapperSettings["search_settings"].Has("echo_level")) {
+            // use the echo level of the mapper in case none was specified for the search
+            mMapperSettings["search_settings"].AddEmptyValue("echo_level").SetInt(mMapperSettings["echo_level"].GetInt());
         }
     }
 
@@ -270,8 +289,6 @@ private:
 
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
-
-    int mMeshesAreConforming = false;
 
     ///@}
     ///@name Private Operations
@@ -299,7 +316,7 @@ private:
         auto p_interface_comm = Kratos::make_unique<InterfaceCommunicatorType>(
             mrModelPartOrigin,
             mMapperLocalSystems,
-            mMapperSettings);
+            mMapperSettings["search_settings"]);
 
         const MapperInterfaceInfoUniquePointerType p_ref_interface_info = GetMapperInterfaceInfo();
 
@@ -320,14 +337,16 @@ private:
             mMapperLocalSystems,
             echo_level);
 
-        if (echo_level > 0) {
-            PrintPairingInfo(echo_level);
-        }
-
         if (use_initial_configuration) {
             MapperUtilities::RestoreCurrentConfiguration(mrModelPartOrigin);
             MapperUtilities::RestoreCurrentConfiguration(mrModelPartDestination);
         }
+
+        PrintPairingInfo(echo_level);
+
+        // free memory
+        mMapperLocalSystems.clear();
+        mMapperLocalSystems.shrink_to_fit();
 
         KRATOS_CATCH("");
     }
@@ -408,54 +427,83 @@ private:
 
     void PrintPairingInfo(const int EchoLevel)
     {
-        std::stringstream warning_msg;
+        KRATOS_TRY;
 
-        if (EchoLevel > 1) {
-            // Initialize the values for printing later
-            VariableUtils().SetNonHistoricalVariable(PAIRING_STATUS, 1, mrModelPartDestination.Nodes());
+        const auto& r_data_comm = mrModelPartDestination.GetCommunicator().GetDataCommunicator();
+
+        if (r_data_comm.IsNullOnThisRank()) {return;}
+
+        if (EchoLevel > 2) {
+            for (const auto& rp_local_sys : mMapperLocalSystems) {
+                const auto pairing_status = rp_local_sys->GetPairingStatus();
+
+                if (pairing_status != MapperLocalSystem::PairingStatus::InterfaceInfoFound) {
+                    std::stringstream warning_msg;
+                    rp_local_sys->PairingInfo(warning_msg, EchoLevel);
+
+                    if (pairing_status == MapperLocalSystem::PairingStatus::Approximation) {
+                        warning_msg << " is using an approximation";
+                    } else if (pairing_status == MapperLocalSystem::PairingStatus::NoInterfaceInfo) {
+                        warning_msg << " has not found a neighbor";
+                    }
+
+                    KRATOS_WARNING_ALL_RANKS("Mapper") << warning_msg.str() << std::endl; // TODO use data-comm of the destination-MP
+                }
+            }
         }
 
-        for (const auto& rp_local_sys : mMapperLocalSystems) {
-            const auto pairing_status = rp_local_sys->GetPairingStatus();
+        if (EchoLevel > 0) {
+            using TwoReduction = CombinedReduction<SumReduction<int>, SumReduction<int>>;
+            int approximations, no_neighbor;
+            std::tie(approximations, no_neighbor) = block_for_each<TwoReduction>(mMapperLocalSystems,
+                [](const MapperLocalSystemPointer& rpLocalSys){
+                    const auto pairing_status = rpLocalSys->GetPairingStatus();
+                    if (pairing_status == MapperLocalSystem::PairingStatus::Approximation) {
+                        return std::make_tuple(1,0);
+                    } else if (pairing_status == MapperLocalSystem::PairingStatus::NoInterfaceInfo) {
+                        return std::make_tuple(0,1);
+                    }
+                    return std::make_tuple(0,0);
+            });
+            approximations = r_data_comm.SumAll(approximations);
+            no_neighbor = r_data_comm.SumAll(no_neighbor);
+            const int global_num_nodes = mrModelPartDestination.GetCommunicator().GlobalNumberOfNodes();
 
-            if (pairing_status != MapperLocalSystem::PairingStatus::InterfaceInfoFound) {
-                warning_msg << rp_local_sys->PairingInfo(EchoLevel);
+            KRATOS_WARNING_IF("Mapper", approximations > 0) << approximations << " / " << global_num_nodes << " (" << std::round((approximations/static_cast<double>(global_num_nodes))*100) << " %) local systems are using an approximation" << std::endl;
 
-                if (pairing_status == MapperLocalSystem::PairingStatus::Approximation)
-                    warning_msg << " is using an approximation";
-                else if (pairing_status == MapperLocalSystem::PairingStatus::NoInterfaceInfo)
-                    warning_msg << " has not found a neighbor";
-
-                KRATOS_WARNING_ALL_RANKS("Mapper") << warning_msg.str() << std::endl; // TODO use data-comm of the destination-MP
-
-                // reset the stringstream
-                warning_msg.str( std::string() );
-                warning_msg.clear();
-            }
+            KRATOS_WARNING_IF("Mapper", no_neighbor > 0) << no_neighbor << " / " << global_num_nodes << " (" << std::round((no_neighbor/static_cast<double>(global_num_nodes))*100) << " %) local systems did not find a neighbor!" << std::endl;
         }
 
         if (mMapperSettings["print_pairing_status_to_file"].GetBool()) {
             // print a debug ModelPart to check the pairing
 
-            const std::string pairing_status_file_path = mMapperSettings["pairing_status_file_path"].GetString();
+            // initialize data
+            VariableUtils().SetNonHistoricalVariable(PAIRING_STATUS, 1, mrModelPartDestination.Nodes());
 
-            filesystem::create_directories(pairing_status_file_path);
-
-            const std::string file_name = FilesystemExtensions::JoinPaths({
-                pairing_status_file_path,
-                std::string(Info() + "_PairingStatus_O_" + mrModelPartOrigin.FullName() + "_D_" + mrModelPartDestination.FullName())
+            block_for_each(mMapperLocalSystems, [](const MapperLocalSystemPointer& rpLocalSys){
+                rpLocalSys->SetPairingStatusForPrinting();
             });
+
+            const std::string file_name = Info() + "_PairingStatus_O_" + mrModelPartOrigin.FullName() + "_D_" + mrModelPartDestination.FullName();
 
             KRATOS_INFO("Mapper") << "Printing file with PAIRING_STATUS: " << file_name << ".vtk" << std::endl;
 
             Parameters vtk_params( R"({
                 "file_format"                        : "binary",
-                "save_output_files_in_folder"        : false,
+                "save_output_files_in_folder"        : true,
                 "nodal_data_value_variables"         : ["PAIRING_STATUS"]
             })");
 
+            vtk_params.AddValue("output_path", mMapperSettings["pairing_status_file_path"]);
+
             VtkOutput(mrModelPartDestination, vtk_params).PrintOutput(file_name);
+
+            block_for_each(mrModelPartDestination.Nodes(), [&](Node<3>& rNode){
+                rNode.Data().Erase(PAIRING_STATUS);
+            });
         }
+
+        KRATOS_CATCH("");
     }
 
     // functions for customizing the behavior of this Mapper
