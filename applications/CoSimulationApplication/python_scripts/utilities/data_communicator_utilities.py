@@ -8,11 +8,6 @@ def GetRankZeroDataCommunicator():
     """
     if KM.IsDistributedRun():
         data_comm_name = "co_simulation_data_comm_rank_zero"
-        if not KM.ParallelEnvironment.HasDataCommunicator(data_comm_name):
-            # TODO maybe do this at startup of the CoSimApp as otherwise this function must be called by all ranks for CreateFromRanksAndRegister!
-            world_data_comm = KM.ParallelEnvironment.GetDataCommunicator("World")
-            ranks = [0]
-            DataCommunicatorFactory.CreateFromRanksAndRegister(world_data_comm, ranks, data_comm_name)
     else:
         data_comm_name = "Serial"
 
