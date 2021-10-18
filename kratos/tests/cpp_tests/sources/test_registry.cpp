@@ -58,6 +58,12 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryItem, KratosCoreFastSuite)
 
     auto& sub_item = registry_item.GetItem("sub_item");
     KRATOS_CHECK_STRING_EQUAL(sub_item.Name(),"sub_item");
+    std::string item_json = R"("items" : {
+    "sub_item" : {
+}
+}
+)";
+    KRATOS_CHECK_STRING_EQUAL(registry_item.ToJson(), item_json);
 
     registry_item.RemoveItem("sub_item");
     KRATOS_CHECK_IS_FALSE(registry_item.HasItems());
@@ -66,11 +72,11 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryItem, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(RegistryValue, KratosCoreFastSuite)
 {
-    RegistryValueItem<double> empty_registry_item("empty_item");
-    KRATOS_CHECK_STRING_EQUAL(empty_registry_item.Name(),"empty_item");
-    KRATOS_CHECK_IS_FALSE(empty_registry_item.HasValue());
-    KRATOS_CHECK_IS_FALSE(empty_registry_item.HasItems());
-    KRATOS_CHECK_IS_FALSE(empty_registry_item.HasItem("test"));
+    RegistryValueItem<double> empty_value_item("empty_value_item");
+    KRATOS_CHECK_STRING_EQUAL(empty_value_item.Name(),"empty_value_item");
+    KRATOS_CHECK_IS_FALSE(empty_value_item.HasValue());
+    KRATOS_CHECK_IS_FALSE(empty_value_item.HasItems());
+    KRATOS_CHECK_IS_FALSE(empty_value_item.HasItem("test"));
 
     double value = 3.14;
     RegistryValueItem<double> value_registry_item("value_item", value);
@@ -79,21 +85,31 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryValue, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(value_registry_item.HasItems());
     KRATOS_CHECK_IS_FALSE(value_registry_item.HasItem("test"));
 
+    std::string value_item_json = R"("value_item" : "3.14"
+)";
+    KRATOS_CHECK_STRING_EQUAL(value_registry_item.ToJson(), value_item_json);
+
     RegistryItem registry_item("items");
-    registry_item.AddItem<RegistryValueItem<double>>("sub_item");
+    registry_item.AddItem<RegistryValueItem<double>>("sub_value_item", value);
     KRATOS_CHECK_IS_FALSE(registry_item.HasValue());
     KRATOS_CHECK(registry_item.HasItems());
     KRATOS_CHECK_IS_FALSE(registry_item.HasItem("test"));
-    KRATOS_CHECK(registry_item.HasItem("sub_item"));
+    KRATOS_CHECK(registry_item.HasItem("sub_value_item"));
 
-    std::cout << registry_item << std::endl;
+    std::string item_json = R"("items" : {
+    "sub_value_item" : "3.14"
+}
+)";
+    KRATOS_CHECK_STRING_EQUAL(registry_item.ToJson(), item_json);
 
-    auto& sub_item = registry_item.GetItem("sub_item");
-    KRATOS_CHECK_STRING_EQUAL(sub_item.Name(),"sub_item");
-
-    registry_item.RemoveItem("sub_item");
+    auto& sub_item = registry_item.GetItem("sub_value_item");
+    KRATOS_CHECK_STRING_EQUAL(sub_item.Name(),"sub_value_item");
+    KRATOS_CHECK(sub_item.HasValue());
+    registry_item.RemoveItem("sub_value_item");
     KRATOS_CHECK_IS_FALSE(registry_item.HasItems());
-    KRATOS_CHECK_IS_FALSE(registry_item.HasItem("sub_item"));
+    KRATOS_CHECK_IS_FALSE(registry_item.HasItem("sub_value_item"));
+
+    KRATOS_WATCH(registry_item.ToJson());
 }
 
 // KRATOS_TEST_CASE_IN_SUITE(KratosComponentsGetNonExistingElement, KratosCoreFastSuite)
