@@ -24,7 +24,7 @@ class FluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
     def _GetDataCommunicator(self):
         if not KM.IsDistributedRun():
-            return KM.ParallelEnvironment.GetDefaultDataCommunicator()
+            return KM.ParallelEnvironment.GetDataCommunicator("Serial")
 
         # now we know that Kratos runs in MPI
         parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
@@ -46,4 +46,4 @@ class FluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
         if solver_wrapper_settings.Has("data_communicator_creation"):
             return data_communicator_utilities.CreateDataCommunicatorWithNProcesses(solver_wrapper_settings["data_communicator_creation"])
         else:
-            return KM.ParallelEnvironment.GetDefaultDataCommunicator()
+            return KM.ParallelEnvironment.GetDataCommunicator("World")
