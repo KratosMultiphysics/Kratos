@@ -102,3 +102,30 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
         cs_tools.cs_print_info("KratosSolver", self._ClassName())
         cs_tools.cs_print_info("KratosSolver", 'Using AnalysisStage "{}", defined in module "{}'.format(self._analysis_stage.__class__.__name__, self._analysis_stage.__class__.__module__))
         ## TODO print additional stuff with higher echo-level
+
+    @staticmethod
+    def _CheckDataCommunicatorIsConsistentlyDefined(import_settings, solver_settings):
+        """
+        Checking if the data-comm used for the solver (specified in the import-settings,
+        see "distributed_import_model_part_utility") is consistent with the one that should be
+        created by the solver-wrapper
+        """
+        solver_uses_custom_data_comm = import_settings.Has("data_communicator_name")
+        creating_new_data_comm = solver_settings.Has("data_communicator_creation")
+
+        if not creating_new_data_comm:
+            # nothing to check if no new data-comm is created
+            return
+
+        if creating_new_data_comm and not solver_uses_custom_data_comm:
+            raise Exception("A data-communicator can only be created if the solver uses it!")
+
+        if not solver_uses_custom_data_comm and not creating_new_data_comm:
+            # using all ranks aka the default data comm hence nothing to do here
+            return
+
+        # check if both settings use the same DataCommunicator
+        solver_data_comm_name = import_settings["data_communicator_name"].GetString()
+        data_comm_creation_name = solver_settings["name"].GetString()
+        if solver_data_comm_name != data_comm_creation_name:
+            raise Exception('Names of data communicators do not match!')
