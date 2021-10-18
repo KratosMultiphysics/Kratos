@@ -13,10 +13,8 @@ from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import 
 # Other imports
 from KratosMultiphysics.CoSimulationApplication.utilities import data_communicator_utilities
 
-
 def Create(settings, model, solver_name):
     return FluidDynamicsWrapper(settings, model, solver_name)
-
 
 class FluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
     """This class is the interface to the FluidDynamicsApplication of Kratos"""
@@ -36,7 +34,16 @@ class FluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
             return data_communicator_utilities.GetRankZeroDataCommunicator()
 
         # now we know that the solver uses MPI, only question left is whether to use all ranks or a subset
-        if self.settings["solver_wrapper_settings"].Has("data_communicator_creation"):
-            return data_communicator_utilities.CreateDataCommunicatorWithNProcesses(self.settings["solver_wrapper_settings"]["data_communicator_creation"])
+        if self.project_parameters["solver_settings"]["solver_type"].GetString() == "ale_fluid":
+            model_import_settings = self.project_parameters["solver_settings"]["fluid_solver_settings"]["model_import_settings"]
+        else:
+            model_import_settings = self.project_parameters["solver_settings"]["model_import_settings"]
+
+        solver_wrapper_settings = self.settings["solver_wrapper_settings"]
+
+        self._CheckDataCommunicatorIsConsistentlyDefined(model_import_settings, solver_wrapper_settings)
+
+        if solver_wrapper_settings.Has("data_communicator_creation"):
+            return data_communicator_utilities.CreateDataCommunicatorWithNProcesses(solver_wrapper_settings["data_communicator_creation"])
         else:
             return KM.ParallelEnvironment.GetDefaultDataCommunicator()
