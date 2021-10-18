@@ -86,6 +86,13 @@ public:
 
     }
 
+    void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    {
+
+
+
+        //ApplyLeft(rY);
+    }
     ///@}
     ///@name Get/Set functions
     ///@{
@@ -101,24 +108,40 @@ public:
     )
     {
         const SizeType local_size = rEquationId.size();
+        std::sort(rEquationId.begin(), rEquationId.end() );
 
-        // for( int i = 0; i < rS.size1(); ++i){
-        //     rS(i,i) = 1.0;
+
+        DenseMatrixType M = ZeroMatrix(local_size, local_size);
+        // for( int i = 0; i < local_size; ++i){
+        //     std::cout << rEquationId[i] << std::endl;
         // }
-
-        DenseMatrixType M;
         for (IndexType i_local = 0; i_local < local_size; i_local++) {
             const IndexType i_global = rEquationId[i_local];
             GetRowEntries(rA, M, i_global, i_local, rEquationId);
         }
-        double M_det = MathUtils<double>::Det(M);
-        DenseMatrixType M_invert;
-        MathUtils<double>::InvertMatrix(M, M_invert, M_det, 1e-10);
 
-        for (IndexType i_local = 0; i_local < local_size; i_local++) {
-            const IndexType i_global = rEquationId[i_local];
-            AssembleRowEntries(rS, M_invert, i_global, i_local, rEquationId);
+
+        DenseMatrixType M2;
+        M2.resize(local_size, local_size);
+        for( int i = 0; i < local_size; ++i){
+            for( int j = 0; j < local_size; ++j){
+                M2(i,j) = rA(rEquationId[i],rEquationId[j]);
+            }
         }
+
+        double M_det = 0.0; //MathUtils<double>::Det(M);
+        DenseMatrixType M_invert = ZeroMatrix(local_size, local_size);
+        MathUtils<double>::InvertMatrix(M, M_invert, M_det, -1e-6);
+
+        for( int i = 0; i < local_size; ++i){
+            for( int j = 0; j < local_size; ++j){
+                rS(rEquationId[i],rEquationId[j]) += M_invert(i,j);
+            }
+        }
+        // for (IndexType i_local = 0; i_local < local_size; i_local++) {
+        //     const IndexType i_global = rEquationId[i_local];
+        //     AssembleRowEntries(rS, M_invert, i_global, i_local, rEquationId);
+        // }
     }
 
     void GetRowEntries(SparseMatrixType& rA, DenseMatrixType& Alocal, const unsigned int i, const unsigned int i_local, std::vector<std::size_t>& EquationId){
@@ -150,6 +173,9 @@ public:
             }
 
             const double& r = values_vector[pos];
+            if( i_local == 0) {
+                std::cout << "(" << i_local << ", " << j << ") value: " << r << std::endl;
+            }
             double& v = Alocal(i_local,j);
             AtomicAdd(v,  r);
 
@@ -188,6 +214,7 @@ public:
 
             double& r = values_vector[pos];
             const double& v = Alocal(i_local,j);
+
             AtomicAdd(r, v);
 
             last_found = id_to_find;
@@ -205,7 +232,7 @@ public:
     ) override
     {
         std::cout << "Size matrix: " << rA.size1() << std::endl;
-        mS.resize(rA.size1(), rA.size1());
+        mS.resize(rA.size1(), rA.size2());
         TSparseSpaceType::SetToZero(mS);
         VariableUtils().SetFlag(VISITED, false, r_model_part.Nodes());
         auto element_it_begin = r_model_part.ElementsBegin();
@@ -245,26 +272,29 @@ public:
     ///@name Operations
     ///@{
 
+    VectorType& ApplyInverseRight(VectorType& rX) override
+    {
+        // VectorType z = rX;
+        // TSparseSpaceType::Mult(mS, z, rX);
+        return rX;
+    }
+
+
     void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
-        for( int i = 0; i < mS.size1(); ++i){
-            std::cout << mS(i,i) << std::endl;
-        }
 
-        VectorType z;
-        z.resize(rX.size());
-        TSparseSpaceType::Mult(mS, rX, z);
-
-        TSparseSpaceType::Mult(rA,z, rY);
+        VectorType zz = rX;
+        TSparseSpaceType::Mult(rA, zz, rY);
 
         ApplyLeft(rY);
+
     }
 
     void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
-        VectorType z = rX;
-        ApplyTransposeLeft(z);
-        TSparseSpaceType::TransposeMult(rA,z, rY);
+        // VectorType z = rX;
+        // ApplyTransposeLeft(z);
+        // TSparseSpaceType::TransposeMult(rA,z, rY);
     }
 
     /** multiply first rX by L^-1 and store result in temp
@@ -273,44 +303,15 @@ public:
     */
     VectorType& ApplyLeft(VectorType& rX) override
     {
-
+        // for( int i = 0; i < mS.size1(); ++i){
+        //     std::cout << mS(i,i) << std::endl;
+        // }
         VectorType z = rX;
         TSparseSpaceType::Mult(mS, z, rX);
 
         return rX;
     }
 
-    /** Multiply first rX by U^-T and store result in temp
-        then multiply temp by L^-T and store result in rX
-        @param rX  Unknows of preconditioner suystem
-    */
-    VectorType& ApplyTransposeLeft(VectorType& rX) override
-    {
-        // const int size = TSparseSpaceType::Size(rX);
-        // VectorType temp(size);
-        // int i, indexj;
-        // double tempi, rxi;
-        // for (i=0; i<size; i++) temp[i]=rX[i];
-        // for (i=0; i<size; i++)
-        // {
-        //     temp[i]=temp[i]/U[iU[i]];
-        //     tempi=temp[i];
-        //     for (indexj=iU[i]+1; indexj<iU[i+1]; indexj++)
-        //     {
-        //         temp[jU[indexj]]=temp[jU[indexj]]-tempi*U[indexj];
-        //     }
-        // }
-        // for (i=0; i<size; i++) rX[i]=temp[i];
-        // for (i=size-1; i>=0; i--)
-        // {
-        //     rxi=rX[i];
-        //     for (indexj=iL[i]; indexj<iL[i+1]; indexj++)
-        //     {
-        //         rX[jL[indexj]]=rX[jL[indexj]]-rxi*L[indexj];
-        //     }
-        // }
-        return rX;
-    }
 
     ///@}
     ///@name Input and output
