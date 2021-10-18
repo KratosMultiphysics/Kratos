@@ -15,7 +15,8 @@ class CopySingleToDistributed(CoSimulationDataTransferOperator):
         if from_solver_data.IsDefinedOnThisRank():
             data_value = from_solver_data.GetData()
 
-            assert not from_solver_data.IsDistributed()
+            if from_solver_data.IsDistributed():
+                raise Exception("The source if the data cannot be distributed!")
 
             if not data_value.size == 1:
             # assert from_solver_data.Size() == 1

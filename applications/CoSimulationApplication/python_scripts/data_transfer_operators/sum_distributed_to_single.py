@@ -24,7 +24,8 @@ class SumDistributedToSingle(CoSimulationDataTransferOperator):
         if not to_solver_data.IsDefinedOnThisRank():
             return
 
-        assert not to_solver_data.IsDistributed()
+        if to_solver_data.IsDistributed():
+            raise Exception("The destination if the data cannot be distributed!")
 
         to_solver_data_size = to_solver_data.Size()
         if not to_solver_data_size == 1:
