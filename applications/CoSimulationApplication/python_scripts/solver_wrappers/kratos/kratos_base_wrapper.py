@@ -126,6 +126,9 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
         # check if both settings use the same DataCommunicator
         solver_data_comm_name = import_settings["data_communicator_name"].GetString()
-        data_comm_creation_name = solver_settings["name"].GetString()
+        data_comm_creation_name = solver_settings["data_communicator_creation"]["name"].GetString()
         if solver_data_comm_name != data_comm_creation_name:
-            raise Exception('Names of data communicators do not match!')
+            err_msg  = 'Names of data communicators do not match!\n'
+            err_msg += '    Name specified in "model_import_settings: {}\n'.format(solver_data_comm_name)
+            err_msg += '    Name specified in "data_communicator_creation": {}'.format(data_comm_creation_name)
+            raise Exception(err_msg)
