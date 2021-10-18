@@ -40,7 +40,7 @@ void AddCustomSolversToPython(
     typedef AdditiveSchwarzPreconditioner<SpaceType,  LocalSpaceType> AdditiveSchwarzPreconditionerType;
 
     py::class_<AdditiveSchwarzPreconditionerType, AdditiveSchwarzPreconditionerType::Pointer, PreconditionerType>(m,"AdditiveSchwarzPreconditioner")
-    .def(py::init<DenseMatrixType&>() )
+    .def(py::init<>() )
     .def("__str__", PrintObject<AdditiveSchwarzPreconditionerType>)
     ;
 }
