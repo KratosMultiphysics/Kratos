@@ -43,11 +43,9 @@ public:
                                          const Matrix& NContainer,
                                          const unsigned int& GPoint)
     {
-        for (unsigned int i=0; i < TDim; ++i)
-        {
+        for (unsigned int i=0; i < TDim; ++i) {
             unsigned int index = i - TDim;
-            for (unsigned int j=0; j < TNumNodes; ++j)
-            {
+            for (unsigned int j=0; j < TNumNodes; ++j) {
                 index += TDim;
                 rNu(i, index) = NContainer(GPoint, j);
             }
@@ -62,11 +60,9 @@ public:
     {
         const unsigned int offset = (TDim+1);
 
-        for (unsigned int i=0; i < TDim; ++i)
-        {
+        for (unsigned int i=0; i < TDim; ++i) {
             unsigned int index = i - offset;
-            for (unsigned int j=0; j < TNumNodes; ++j)
-            {
+            for (unsigned int j=0; j < TNumNodes; ++j) {
                 index += offset;
                 rNut(i, index) = NContainer(GPoint, j);
             }
@@ -83,10 +79,8 @@ public:
         noalias(rVector) = ZeroVector(TDim);
 
         unsigned int index = 0;
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            for (unsigned int j=0; j<TDim; j++)
-            {
+        for (unsigned int i=0; i<TNumNodes; ++i) {
+            for (unsigned int j=0; j<TDim; ++j) {
                 rVector[j] += NContainer(GPoint,i)*VariableWithComponents[index++];
             }
         }
@@ -119,11 +113,9 @@ public:
     {
         array_1d<double, 3> NodalVariableAux;
         unsigned int index = 0;
-        for (unsigned int i=0; i < TNumNodes; i++)
-        {
+        for (unsigned int i=0; i < TNumNodes; ++i) {
             noalias(NodalVariableAux) = Geom[i].FastGetSolutionStepValue(Variable, SolutionStepIndex);
-            for (unsigned int j=0; j < TDim; j++)
-            {
+            for (unsigned int j=0; j < TDim; ++j) {
                 rNodalVariableVector[index++] = NodalVariableAux[j];
             }
         }
@@ -172,8 +164,7 @@ public:
 
         InputMatrixDet = InputMatrix(0,0)*InputMatrix(1,1)-InputMatrix(0,1)*InputMatrix(1,0);
 
-        if (InputMatrixDet < numerical_limit)
-        {
+        if (InputMatrixDet < numerical_limit) {
             KRATOS_ERROR << "determinant zero or negative" << std::endl;
         }
 
@@ -203,10 +194,8 @@ public:
     static inline void AssembleDensityMatrix(BoundedMatrix<double,TDim+1, TDim+1> &DensityMatrix,
                                              const double &Density)
     {
-        for (unsigned int idim = 0; idim < TDim; ++idim)
-        {
-            for (unsigned int jdim = 0; jdim < TDim; ++jdim)
-            {
+        for (unsigned int idim = 0; idim < TDim; ++idim) {
+            for (unsigned int jdim = 0; jdim < TDim; ++jdim) {
                 DensityMatrix(idim, jdim) = Density;
             }
         }
@@ -216,10 +205,8 @@ public:
     static inline void AssembleDensityMatrix(Matrix &DensityMatrix,
                                              const double &Density)
     {
-        for (unsigned int idim = 0; idim < DensityMatrix.size1(); ++idim)
-        {
-            for (unsigned int jdim = 0; jdim < DensityMatrix.size2(); ++jdim)
-            {
+        for (unsigned int idim = 0; idim < DensityMatrix.size1(); ++idim) {
+            for (unsigned int jdim = 0; jdim < DensityMatrix.size2(); ++jdim) {
                 DensityMatrix(idim, jdim) = Density;
             }
         }
@@ -231,20 +218,16 @@ public:
     static inline void AssembleUBlockMatrix(Matrix &rLeftHandSideMatrix,
                                             const BoundedMatrix<double,TDim*TNumNodes, TDim*TNumNodes> &UBlockMatrix)
     {
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             const unsigned int Global_i = i * (TDim + 1);
             const unsigned int Local_i  = i * TDim;
 
-            for (unsigned int j = 0; j < TNumNodes; j++)
-            {
+            for (unsigned int j = 0; j < TNumNodes; ++j) {
                 const unsigned int Global_j = j * (TDim + 1);
                 const unsigned int Local_j  = j * TDim;
 
-                for (unsigned int idim = 0; idim < TDim; ++idim)
-                {
-                    for (unsigned int jdim = 0; jdim < TDim; ++jdim)
-                    {
+                for (unsigned int idim = 0; idim < TDim; ++idim) {
+                    for (unsigned int jdim = 0; jdim < TDim; ++jdim) {
                         rLeftHandSideMatrix(Global_i+idim, Global_j+jdim) += UBlockMatrix(Local_i+idim, Local_j+jdim);
                     }
                 }
@@ -258,20 +241,16 @@ public:
                                             const double &TNumNodes,
                                             const double &TDim)
     {
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             const unsigned int Global_i = i * (TDim + 1);
             const unsigned int Local_i  = i * TDim;
 
-            for (unsigned int j = 0; j < TNumNodes; j++)
-            {
+            for (unsigned int j = 0; j < TNumNodes; ++j) {
                 const unsigned int Global_j = j * (TDim + 1);
                 const unsigned int Local_j  = j * TDim;
 
-                for (unsigned int idim = 0; idim < TDim; ++idim)
-                {
-                    for (unsigned int jdim = 0; jdim < TDim; ++jdim)
-                    {
+                for (unsigned int idim = 0; idim < TDim; ++idim) {
+                    for (unsigned int jdim = 0; jdim < TDim; ++jdim) {
                         rLeftHandSideMatrix(Global_i+idim, Global_j+jdim) += UBlockMatrix(Local_i+idim, Local_j+jdim);
                     }
                 }
@@ -284,17 +263,14 @@ public:
     static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix,
                                              const BoundedMatrix<double,TDim*TNumNodes,TNumNodes>& UPBlockMatrix)
     {
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             const unsigned int Global_i = i * (TDim + 1);
             const unsigned int Local_i = i * TDim;
 
-            for (unsigned int j = 0; j < TNumNodes; j++)
-            {
+            for (unsigned int j = 0; j < TNumNodes; ++j) {
                 const unsigned int Global_j = j * (TDim + 1) + TDim;
 
-                for (unsigned int dim = 0; dim < TDim; ++dim)
-                {
+                for (unsigned int dim = 0; dim < TDim; ++dim) {
                     rLeftHandSideMatrix(Global_i + dim, Global_j)  += UPBlockMatrix(Local_i + dim, j);
                 }
             }
@@ -306,17 +282,14 @@ public:
     static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix,
                                              const BoundedMatrix<double,TNumNodes,TNumNodes*TDim>& PUBlockMatrix)
     {
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             const unsigned int Global_i = i * (TDim + 1) + TDim;
 
-            for (unsigned int j = 0; j < TNumNodes; j++)
-            {
+            for (unsigned int j = 0; j < TNumNodes; ++j) {
                 const unsigned int Global_j = j * (TDim + 1);
                 const unsigned int Local_j = j * TDim;
 
-                for (unsigned int dim = 0; dim < TDim; ++dim)
-                {
+                for (unsigned int dim = 0; dim < TDim; ++dim) {
                     rLeftHandSideMatrix(Global_i, Global_j+dim) += PUBlockMatrix(i, Local_j+dim);
                 }
             }
@@ -328,12 +301,10 @@ public:
     static inline void AssemblePBlockMatrix(Matrix& rLeftHandSideMatrix,
                                             const BoundedMatrix<double,TNumNodes,TNumNodes> &PBlockMatrix)
     {
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             const unsigned int Global_i = i * (TDim + 1) + TDim;
 
-            for (unsigned int j = 0; j < TNumNodes; j++)
-            {
+            for (unsigned int j = 0; j < TNumNodes; ++j) {
                 const unsigned int Global_j = j * (TDim + 1) + TDim;
 
                 rLeftHandSideMatrix(Global_i,Global_j) += PBlockMatrix(i,j);
@@ -346,13 +317,11 @@ public:
     static inline void AssembleUBlockVector(Vector& rRightHandSideVector,
                                             const array_1d<double,TDim*TNumNodes>& UBlockVector)
     {
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             const unsigned int Global_i = i * (TDim + 1);
             const unsigned int Local_i  = i * TDim;
 
-            for (unsigned int dim = 0; dim < TDim; ++dim)
-            {
+            for (unsigned int dim = 0; dim < TDim; ++dim) {
                 rRightHandSideVector[Global_i + dim] += UBlockVector[Local_i + dim];
             }
         }
@@ -363,8 +332,7 @@ public:
     static inline void AssemblePBlockVector(Vector& rRightHandSideVector,
                                             const array_1d<double, TNumNodes> &PBlockVector)
     {
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             const unsigned int Global_i = i * (TDim + 1) + TDim;
 
             rRightHandSideVector[Global_i] += PBlockVector[i];
@@ -375,13 +343,14 @@ public:
     static inline void CalculateNewtonCotesShapeFunctionsGradients(BoundedMatrix<double,2,2>& DN_DXContainer)
     {
         //Line 2-noded
+        // nodes:
+        // 0------------1
         const unsigned int NumNodes = 2;
         const std::vector<double> Xi{-1.0, 1.0};
 
         noalias(DN_DXContainer) = ZeroMatrix(NumNodes,NumNodes);
 
-        for (unsigned int integrationPoint = 0; integrationPoint < NumNodes; ++integrationPoint)
-        {
+        for (unsigned int integrationPoint = 0; integrationPoint < NumNodes; ++integrationPoint) {
             DN_DXContainer(integrationPoint,0) = - 0.5;
             DN_DXContainer(integrationPoint,1) =   0.5;
         }
@@ -391,19 +360,19 @@ public:
     static inline void CalculateNewtonCotesShapeFunctionsGradients(BoundedMatrix<double,3,3>& DN_DXContainer)
     {
         //Line 3-noded
+        // nodes:
+        // 0------2------1
         const unsigned int NumNodes = 3;
         const std::vector<double> Xi{-1.0, 0.0, 1.0};
 
         noalias(DN_DXContainer) = ZeroMatrix(NumNodes,NumNodes);
 
-        for (unsigned int integrationPoint = 0; integrationPoint < NumNodes; ++integrationPoint)
-        {
+        for (unsigned int integrationPoint = 0; integrationPoint < NumNodes; ++integrationPoint) {
             DN_DXContainer(integrationPoint,0) =  Xi[integrationPoint] - 0.5;
-            DN_DXContainer(integrationPoint,1) = -Xi[integrationPoint] * 2.0;
-            DN_DXContainer(integrationPoint,2) =  Xi[integrationPoint] + 0.5;
+            DN_DXContainer(integrationPoint,1) =  Xi[integrationPoint] + 0.5;
+            DN_DXContainer(integrationPoint,2) = -Xi[integrationPoint] * 2.0;
         }
     }
-
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void CalculateNewtonCotesShapeFunctions(BoundedMatrix<double,3,3>& NContainer)
@@ -429,8 +398,7 @@ public:
     {
         double Radius = 0.0;
 
-        for (unsigned int iNode = 0; iNode < Geom.size(); iNode++)
-        {
+        for (unsigned int iNode = 0; iNode < Geom.size(); iNode++) {
             // Displacement from the reference to the current configuration
             const array_1d<double, 3 >& CurrentPosition = Geom[iNode].Coordinates();
             Radius += CurrentPosition[0] * N[iNode];

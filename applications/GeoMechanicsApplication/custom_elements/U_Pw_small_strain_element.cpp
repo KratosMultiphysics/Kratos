@@ -1260,10 +1260,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
     unsigned int index;
 
-    if (TDim > 2)
-    {
-        for ( unsigned int i = 0; i < TNumNodes; ++i )
-        {
+    if (TDim > 2) {
+        for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             index = TDim * i;
 
             rB( INDEX_3D_XX, index + INDEX_X ) = GradNpT( i, INDEX_X );
@@ -1276,12 +1274,9 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             rB( INDEX_3D_XZ, index + INDEX_X ) = GradNpT( i, INDEX_Z );
             rB( INDEX_3D_XZ, index + INDEX_Z ) = GradNpT( i, INDEX_X );
         }
-    }
-    else
-    {
+    } else {
         // 2D plane strain
-        for ( unsigned int i = 0; i < TNumNodes; ++i )
-        {
+        for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             index = TDim * i;
 
             rB( INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X ) = GradNpT( i, INDEX_X );

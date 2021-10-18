@@ -131,11 +131,11 @@ protected:
         Vector DofValuesVector;
 
         ///General elemental variables
-        Matrix CrossDirection;
+        Matrix NodalCrossDirection;
 
         ///Variables computed at each GP
         Matrix B;
-        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu;
+        BoundedMatrix<double,TDim, TNumNodes*TDim> NuTot;
 
         Matrix TransformationMatrix;
         array_1d<double, TDim> BodyAcceleration;
@@ -144,11 +144,11 @@ protected:
         Vector StrainVector;
         Vector StressVector;
         Matrix ConstitutiveMatrix;
-        Vector Np;
-        Matrix GradNpT;
+        Vector Nu;
+        Matrix GradNu;
         Matrix F;
         double detF;
-        double thickness;
+        double HalfThickness;
 
         ///Auxiliary Variables
         Matrix UVoigtMatrix;
@@ -160,7 +160,9 @@ protected:
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     std::vector<Vector> mStressVector;
 
-    virtual SizeType GetIntegrationPointsNumber() const;
+    virtual SizeType GetTotalNumberIntegrationPoints() const;
+    virtual SizeType GetCrossNumberIntegrationPoints() const;
+    virtual SizeType GetAlongNumberIntegrationPoints() const;
 
     virtual void InitializeElementVariables( ElementVariables& rVariables,
                                              ConstitutiveLaw::Parameters& rConstitutiveParameters,
@@ -184,7 +186,7 @@ protected:
     virtual void CalculateRHS( VectorType& rRightHandSideVector,
                                const ProcessInfo& CurrentProcessInfo );
 
-    virtual void CalculateCrossDirection( Matrix &CrossDirection ) const;
+    virtual void CalculateNodalCrossDirection( Matrix &NodalCrossDirection ) const;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

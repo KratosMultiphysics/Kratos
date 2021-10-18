@@ -115,10 +115,8 @@ protected:
 
     /// Member Variables
 
-    SizeType GetIntegrationPointsNumber() const override
-    {
-        return N_POINT_CROSS * this->GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod);
-    }
+    SizeType GetCrossNumberIntegrationPoints() const override;
+    SizeType GetAlongNumberIntegrationPoints() const override;
 
     double CalculateIntegrationCoefficient( unsigned int GPointCross,
                                             double detJ,
@@ -149,11 +147,11 @@ protected:
                                     ElementVariables &rVariables) const;
 
     virtual void CalculateTransformationMatrix( Matrix &TransformationMatrix,
-                                                const Matrix &GradNpT ) const;
+                                                const Matrix &GradNu ) const;
 
-    virtual void CalculateCrossDirection( Matrix& CrossDirection ) const override;
+    virtual void CalculateNodalCrossDirection( Matrix& NodalCrossDirection ) const override;
 
-    virtual double CalculateAngleAtGaussPoint(const Matrix &GradNpT) const;
+    virtual double CalculateAngleAtGaussPoint(const Matrix &GradNu) const;
 
     virtual double CalculateAngleAtNode(unsigned int GPoint,
                                         const BoundedMatrix<double,TNumNodes,TNumNodes> &DN_DXContainer) const;
@@ -173,6 +171,10 @@ protected:
 
     void CalculateAndAddStiffnessForce(VectorType &rRightHandSideVector, ElementVariables &rVariables) const;
     void SetRotationalInertiaVector(const PropertiesType& Prop, Vector& RotationalInertia) const;
+
+    void ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult,
+                                                  Vector& determinants_of_jacobian,
+                                                  const GeometryData::IntegrationMethod& ThisMethod ) const;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
