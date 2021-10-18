@@ -88,20 +88,20 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5Center, KratosCoreGeometriesFastSuite)
 */
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5IsInside, KratosCoreGeometriesFastSuite)
 {
-    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
+    //KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
-    Point PointInside(0.1666, 0.1666, 0.1666);
-    Point PointOutside(2.0, 2.0, 2.0);
+    Point PointInside(0.0, 0.0, 0.3);
+    Point PointOutside(0.0, 0.0, 1.6);
     Point PointInVertex(0.0, 0.0, 1.5);
-    Point PointInEdge(1.0, 0.0, 0.0);
+    Point PointInEdge(1.0, 0.5, 0.0);
 
     Point LocalCoords;
 
     KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
     KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
-    KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
-    KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+    //KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
+    //KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
 }
 
 /** Checks the point local coordinates for a given point respect to the
@@ -110,7 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5IsInside, KratosCoreGeometriesFastSuite)
 */
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5PointLocalCoordinates, KratosCoreGeometriesFastSuite)
 {
-    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
+    //KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
     // Compute the global coordinates of the centre
@@ -123,7 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5PointLocalCoordinates, KratosCoreGeometriesF
 
     KRATOS_CHECK_NEAR(centre_local_coords(0), 0.0, TOLERANCE);
     KRATOS_CHECK_NEAR(centre_local_coords(1), 0.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(centre_local_coords(2), 0.3, TOLERANCE);
+    KRATOS_CHECK_NEAR(centre_local_coords(2), -0.6, TOLERANCE);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsValues, KratosCoreGeometriesFastSuite)

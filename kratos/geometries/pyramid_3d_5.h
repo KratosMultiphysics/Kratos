@@ -326,14 +326,106 @@ public:
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
-        if ( rResult[0] >= (0.0 - Tolerance) )
-            if ( rResult[1] >= (0.0 - Tolerance) )
-                if ( rResult[2] >= (0.0 - Tolerance) )
-                    if( rResult[2] <= (1.0 + Tolerance) )
-                        if ( (rResult[0] + rResult[1]) <= (1.0 + Tolerance) )
-                            return true;
+        //Calculation of all the surface normals of a Pyramid ABCDE
+        Matrix LocalPyramid;
+        LocalPyramid = PointsLocalCoordinates(LocalPyramid); //Fix values
 
-        return false;
+        //Surface Normal for ABE
+        array_1d<double,3> AB;
+        array_1d<double,3> AE;
+        array_1d<double,3> nABE;
+
+        //(B - A)
+        AB[0] = LocalPyramid(1,0) - LocalPyramid(0,0);
+        AB[1] = LocalPyramid(1,1) - LocalPyramid(0,1);
+        AB[2] = LocalPyramid(1,2) - LocalPyramid(0,2);
+
+        //(E - A)
+        AE[0] = LocalPyramid(4,0) - LocalPyramid(0,0);
+        AE[1] = LocalPyramid(4,1) - LocalPyramid(0,1);
+        AE[2] = LocalPyramid(4,2) - LocalPyramid(0,2);
+
+        MathUtils<double>::UnitCrossProduct(nABE, AB, AE);
+
+        //Surface Normal for BCE
+        array_1d<double,3> BC;
+        array_1d<double,3> BE;
+        array_1d<double,3> nBCE;
+
+        //(C - B)
+        BC[0] = LocalPyramid(2,0) - LocalPyramid(1,0);
+        BC[1] = LocalPyramid(2,1) - LocalPyramid(1,1);
+        BC[2] = LocalPyramid(2,2) - LocalPyramid(1,2);
+
+        //(E - B)
+        BE[0] = LocalPyramid(4,0) - LocalPyramid(1,0);
+        BE[1] = LocalPyramid(4,1) - LocalPyramid(1,1);
+        BE[2] = LocalPyramid(4,2) - LocalPyramid(1,2);
+
+        MathUtils<double>::UnitCrossProduct(nBCE, BC, BE);
+
+        //Surface Normal for CDE
+        array_1d<double,3> CD;
+        array_1d<double,3> CE;
+        array_1d<double,3> nCDE;
+
+        //(D - C)
+        CD[0] = LocalPyramid(3,0) - LocalPyramid(2,0);
+        CD[1] = LocalPyramid(3,1) - LocalPyramid(2,1);
+        CD[2] = LocalPyramid(3,2) - LocalPyramid(2,2);
+
+        //(E - C)
+        CE[0] = LocalPyramid(4,0) - LocalPyramid(2,0);
+        CE[1] = LocalPyramid(4,1) - LocalPyramid(2,1);
+        CE[2] = LocalPyramid(4,2) - LocalPyramid(2,2);
+
+        MathUtils<double>::UnitCrossProduct(nCDE, CD, CE);
+
+        //Surface Normal for DAE
+        array_1d<double,3> DA;
+        array_1d<double,3> DE;
+        array_1d<double,3> nDAE;
+
+        //(A - D)
+        DA[0] = LocalPyramid(0,0) - LocalPyramid(3,0);
+        DA[1] = LocalPyramid(0,1) - LocalPyramid(3,1);
+        DA[2] = LocalPyramid(0,2) - LocalPyramid(3,2);
+
+        //(E - D)
+        DE[0] = LocalPyramid(4,0) - LocalPyramid(3,0);
+        DE[1] = LocalPyramid(4,1) - LocalPyramid(3,1);
+        DE[2] = LocalPyramid(4,2) - LocalPyramid(3,2);
+
+        MathUtils<double>::UnitCrossProduct(nDAE, DA, DE);
+
+        //Surface Normal for ABCD , using AB and DA
+        array_1d<double,3> nABCD;
+
+        MathUtils<double>::UnitCrossProduct(nABCD, AB, DA);
+
+        //Direction Vector from Point to the point in the Plane
+        array_1d<double,3> PE; //As point E is been shared between all 4 planes ABE, BCE, CDE, DAE
+        array_1d<double,3> PD; //For the base place ABCD
+
+        //PE = (E - P)
+        PE[0] = LocalPyramid(4,0) - rResult[0];
+        PE[1] = LocalPyramid(4,1) - rResult[1];
+        PE[2] = LocalPyramid(4,2) - rResult[2];
+
+        //PD = (D - P)
+        PD[0] = LocalPyramid(3,0) - rResult[0];
+        PD[1] = LocalPyramid(3,1) - rResult[1];
+        PD[2] = LocalPyramid(3,2) - rResult[2];
+
+        //Dot products of direction vector with Planar normal
+        if((MathUtils<double>::Dot(PE, nABE) >= 0) && (MathUtils<double>::Dot(PE, nBCE) >= 0) && (MathUtils<double>::Dot(PE, nCDE) >= 0) && (MathUtils<double>::Dot(PE, nDAE) >= 0) && (MathUtils<double>::Dot(PD, nABCD) >= 0))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
 
@@ -372,7 +464,7 @@ public:
         AE[2] = vertices[4].Z() - vertices[0].Z();
 
         //Step3 : Take a dot product of this Vector with the Unit Normal Vector to get height
-        double height = AE[0] * UnitNormal[0] + AE[1] * UnitNormal[1] + AE[2] * UnitNormal[2] ;
+        double height = MathUtils<double>::Dot(AE , UnitNormal);
 
         return height;
     }
@@ -425,8 +517,8 @@ public:
         rResult( 1, 0 ) = 0.0 ;
         rResult( 1, 1 ) = (0.25) * side2 * (1 - intergration_point.Z()) ;
         rResult( 1, 2 ) = 0.0 ;
-        rResult( 2, 0 ) = (-0.25) * side1 * (intergration_point.Y()) ;
-        rResult( 2, 1 ) = (-0.25) * side2 * (intergration_point.X()) ;
+        rResult( 2, 0 ) = (-0.25) * side1 * (intergration_point.X()) ;
+        rResult( 2, 1 ) = (-0.25) * side2 * (intergration_point.Y()) ;
         rResult( 2, 2 ) = (0.5) * height ;
 
         return rResult;
@@ -467,8 +559,8 @@ public:
         rResult( 1, 0 ) = 0.0 ;
         rResult( 1, 1 ) = (0.25) * side2 * (1 - rPoint[2]) ;
         rResult( 1, 2 ) = 0.0 ;
-        rResult( 2, 0 ) = (-0.25) * side1 * (rPoint[1]) ;
-        rResult( 2, 1 ) = (-0.25) * side2 * (rPoint[0]) ;
+        rResult( 2, 0 ) = (-0.25) * side1 * (rPoint[0]) ;
+        rResult( 2, 1 ) = (-0.25) * side2 * (rPoint[1]) ;
         rResult( 2, 2 ) = (0.5) * height ;
 
         return rResult;
@@ -552,115 +644,6 @@ public:
         return rResult;
     }
 
-
-    /**
-     * @brief Returns the local coordinates of a given arbitrary point
-     * @param rResult The vector containing the local coordinates of the point
-     * @param rPoint The point in global coordinates
-     * @return The vector containing the local coordinates of the point
-     */
-    CoordinatesArrayType& PointLocalCoordinates(
-        CoordinatesArrayType& rResult,
-        const CoordinatesArrayType& rPoint
-        ) const override
-    {
-        /*
-        std::cout << "AShish 1.1" <<std::endl;
-        BoundedMatrix<double,3,3> X;
-        BoundedMatrix<double,3,2> DN;
-        for(unsigned int i=0; i<2;i++) {
-            X(0,i ) = 0.5*(this->GetPoint( i ).X() + this->GetPoint( i+3 ).X());
-            X(1,i ) = 0.5*(this->GetPoint( i ).Y() + this->GetPoint( i+3 ).Y());
-            X(2,i ) = 0.5*(this->GetPoint( i ).Z() + this->GetPoint( i+3 ).Z());
-        }
-        std::cout << "AShish 2.1" <<std::endl;
-
-        X(0,2) = this->GetPoint(2).X();
-        X(1,2) = this->GetPoint(2).Y();
-        X(2,2) = this->GetPoint(2).Z();
-
-        std::cout << "AShish 3.1" <<std::endl;
-
-        double tol = 1.0e-8;
-        int maxiter = 1000;
-
-        Matrix J = ZeroMatrix( 2, 2 );
-        Matrix invJ = ZeroMatrix( 2, 2 );
-
-        //starting with xi = 0
-        rResult = ZeroVector( 3 );
-        Vector DeltaXi = ZeroVector( 2 );
-        array_1d<double,3> CurrentGlobalCoords;
-
-        std::cout << "AShish 4.1" <<std::endl;
-
-
-        //Newton iteration:
-        for ( int k = 0; k < maxiter; k++ )
-        {
-            noalias(CurrentGlobalCoords) = ZeroVector( 3 );
-            this->GlobalCoordinates( CurrentGlobalCoords, rResult );
-            std::cout << "AShish 5.1" <<std::endl;
-
-            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
-
-            std::cout << "AShish 6.1" <<std::endl;
-
-            //derivatives of shape functions
-            Matrix shape_functions_gradients;
-            shape_functions_gradients = CalculateShapeFunctionsLocalGradients(shape_functions_gradients, rResult );
-            std::cout << "AShish 7.1" <<std::endl;
-            noalias(DN) = prod(X,shape_functions_gradients);
-            std::cout << "AShish 7.2" <<std::endl;
-
-            noalias(J) = prod(trans(DN),DN);
-            std::cout << "AShish 7.3" <<std::endl;
-            Vector res = prod(trans(DN),CurrentGlobalCoords);
-
-            std::cout << "AShish 8.1" <<std::endl;
-
-            //deteminant of Jacobian
-            const double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
-
-            //filling matrix
-            invJ( 0, 0 ) = ( J( 1, 1 ) ) / ( det_j );
-            invJ( 1, 0 ) = -( J( 1, 0 ) ) / ( det_j );
-            invJ( 0, 1 ) = -( J( 0, 1 ) ) / ( det_j );
-            invJ( 1, 1 ) = ( J( 0, 0 ) ) / ( det_j );
-
-            std::cout << "AShish 9.1" <<std::endl;
-
-
-            DeltaXi( 0 ) = invJ( 0, 0 ) * res[0] + invJ( 0, 1 ) * res[1];
-            DeltaXi( 1 ) = invJ( 1, 0 ) * res[0] + invJ( 1, 1 ) * res[1];
-
-            rResult[0] += DeltaXi[0];
-            rResult[1] += DeltaXi[1];
-            rResult[2] = 0.0;
-
-            std::cout << "AShish 10.1" <<std::endl;
-
-            if ( k>0 && norm_2( DeltaXi ) > 30 )
-            {
-                KRATOS_ERROR << "Computation of local coordinates failed at iteration " << k<< std::endl;
-            }
-
-            if ( norm_2( DeltaXi ) < tol )
-            {
-                break;
-            }
-        }*/
-
-        std::cout << "i am in local Coodinate" <<std::endl;
-
-        rResult[0] = rPoint[0] * (1 - rPoint[2]) ;
-        rResult[1] = rPoint[1] * (1 - rPoint[2]) ;
-        rResult[2] = rPoint[2] ;
-
-        return( rResult );
-    }
-
-
     /**
      * Shape Function
      */
@@ -684,15 +667,6 @@ public:
         rResult[2] = (0.125) * (1 + rCoordinates[0]) * (1 + rCoordinates[1]) * (1 + rCoordinates[2]);
         rResult[3] = (0.125) * (1 - rCoordinates[0]) * (1 + rCoordinates[1]) * (1 + rCoordinates[2]);
         rResult[4] = (0.5) * (1 + rCoordinates[2]);
-
-        std::cout << "I am in 1"<< std::endl;
-
-        /* rResult[0] = ((1 - rCoordinates[0] - rCoordinates[2] ) *  (1 - rCoordinates[1] - rCoordinates[2]) / (1 - rCoordinates[2]) ) ;
-        rResult[1] = ((rCoordinates[0] * (1 - rCoordinates[1] - rCoordinates[2])) / (1 - rCoordinates[2]) );
-        rResult[2] = ((rCoordinates[0] * rCoordinates[1]) / (1 - rCoordinates[2]) );
-        rResult[3] = ((rCoordinates[1] * (1 - rCoordinates[0] - rCoordinates[2])) / (1 - rCoordinates[2]) );
-        rResult[4] = rCoordinates[2];
- */
 
         return rResult;
     }
@@ -729,24 +703,18 @@ public:
     double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
-        std::cout << "I m in 2" <<std::endl;
         switch ( ShapeFunctionIndex )
         {
         case 0:
             return( (0.125) * (1 - rPoint[0]) * (1 - rPoint[1]) * (1 + rPoint[2]) );
-            //return ((1 - rPoint[0] - rPoint[2] ) *  (1 - rPoint[1] - rPoint[2]) / (1 - rPoint[2]) ) ;
         case 1:
             return( (0.125) * (1 + rPoint[0]) * (1 - rPoint[1]) * (1 + rPoint[2]) );
-            //return ((rPoint[0] * (1 - rPoint[1] - rPoint[2])) / (1 - rPoint[2]) );
         case 2:
             return( (0.125) * (1 + rPoint[0]) * (1 + rPoint[1]) * (1 + rPoint[2]) );
-            //return ((rPoint[0] * rPoint[1]) / (1 - rPoint[2]) );
         case 3:
             return( (0.125) * (1 - rPoint[0]) * (1 + rPoint[1]) * (1 + rPoint[2]) );
-            //return ((rPoint[1] * (1 - rPoint[0] - rPoint[2])) / (1 - rPoint[2]) );
         case 4:
             return( (0.5) * (1 + rPoint[2]) );
-            //return rPoint[2];
         default:
             KRATOS_ERROR << "Wrong index of shape function!" << *this  << std::endl;
         }
@@ -766,7 +734,6 @@ public:
 
     static Matrix CalculateShapeFunctionsIntegrationPointsValues(typename BaseType::IntegrationMethod ThisMethod)
     {
-        std::cout << "I m in 3" <<std::endl;
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
         IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
         //number of integration points
@@ -784,14 +751,6 @@ public:
             shape_function_values( pnt, 3 ) = (0.125) * (1 - integration_points[pnt].X()) * (1 + integration_points[pnt].Y()) * (1 + integration_points[pnt].Z()) ;
             shape_function_values( pnt, 4 ) = (0.5) * (1 + integration_points[pnt].Z()) ;
         }
-
-        /* for ( int pnt = 0; pnt < integration_points_number; pnt++ ) {
-            shape_function_values( pnt, 0 ) = ((1 - integration_points[pnt].X() - integration_points[pnt].Z() ) *  (1 - integration_points[pnt].Y() - integration_points[pnt].Z()) / (1 - integration_points[pnt].Z()) ) ;
-            shape_function_values( pnt, 1 ) = ((integration_points[pnt].X() * (1 - integration_points[pnt].Y() - integration_points[pnt].Z())) / (1 - integration_points[pnt].Z()) );
-            shape_function_values( pnt, 2 ) = ((integration_points[pnt].X() * integration_points[pnt].Y()) / (1 - integration_points[pnt].Z()) );
-            shape_function_values( pnt, 3 ) = ((integration_points[pnt].Y() * (1 - integration_points[pnt].X() - integration_points[pnt].Z())) / (1 - integration_points[pnt].Z()) );
-            shape_function_values( pnt, 4 ) = integration_points[pnt].Z();
-        } */
 
         return shape_function_values;
     }
