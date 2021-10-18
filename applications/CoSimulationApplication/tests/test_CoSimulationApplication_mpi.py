@@ -11,6 +11,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from test_convergence_criteria import TestConvergenceCriteriaWrapper
 from test_convergence_accelerators import TestConvergenceAcceleratorWrapper
 from test_processes import TestCreatePointBasedEntitiesProcess
+from co_simulation_test_factory import TestCoSimulationCases
 
 
 def AssembleTestSuites():
@@ -34,6 +35,7 @@ def AssembleTestSuites():
 
     ################################################################################
     nightSuite = suites['mpi_nightly'] # These tests are executed in the nightly build
+    nightSuite.addTest(TestCoSimulationCases('test_sdof_fsi'))
     nightSuite.addTests(smallSuite)
 
     ################################################################################
