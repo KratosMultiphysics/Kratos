@@ -16,8 +16,9 @@ class InitialPerturbationProcess(KM.Process):
         default_settings = KM.Parameters("""
             {
                 "model_part_name"            : "main_model_part",
-                "source_type"                : "point or model_part",
-                "source_point_coordinates"   : [0.0, 0.0, 0.0],
+                "interval"                   : [0.0, 0.0],
+                "source_type"                : "coordinates or model_part",
+                "source_coordinates"         : [0.0, 0.0, 0.0],
                 "source_model_part_name"     : "main_model_part.sub_model_part",
                 "variable_name"              : "FREE_SURFACE_ELEVATION",
                 "default_value"              : 0.0,
@@ -38,12 +39,12 @@ class InitialPerturbationProcess(KM.Process):
         cpp_parameters.AddValue("distance_of_influence", settings["distance_of_influence"])
         cpp_parameters.AddValue("maximum_perturbation_value", settings["maximum_perturbation_value"])
 
-        if settings["source_type"].GetString() == "point":
-            # retrieving the position of the point
-            point_position = settings["source_point_coordinates"].GetVector()
-            if (point_position.Size() != 3):
-                raise Exception('The source_point_coordinates has to be provided with 3 coordinates! It has ', point_position.Size())
-            node = KM.Node(1, point_position[0], point_position[1], point_position[2])
+        if settings["source_type"].GetString() == "coordinates":
+            # retrieving the position of the source
+            source_coordinates = settings["source_coordinates"].GetVector()
+            if (source_coordinates.Size() != 3):
+                raise Exception('The source_coordinates has to be provided with 3 coordinates! It has ', source_coordinates.Size())
+            node = KM.Node(1, source_coordinates[0], source_coordinates[1], source_coordinates[2])
             # Construction of the process with one node
             self.perturbation_process = SW.ApplyPerturbationFunctionToScalar(self.model_part, node, variable, cpp_parameters)
 

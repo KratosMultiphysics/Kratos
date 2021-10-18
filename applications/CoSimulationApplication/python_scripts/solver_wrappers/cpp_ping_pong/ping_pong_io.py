@@ -3,8 +3,8 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_io im
 from pathlib import Path
 import os
 
-def Create(model, settings, solver_name):
-    return PingPongIO(model, settings, solver_name)
+def Create(*args):
+    return PingPongIO(*args)
 
 class PingPongIO(CoSimulationIO):
     """This is the IO wrapper for the PING-PONG example.

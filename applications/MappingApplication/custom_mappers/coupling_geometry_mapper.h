@@ -67,7 +67,7 @@ public:
     }
 
     /// Turn back information as a string.
-    std::string PairingInfo(const int EchoLevel) const override;
+    void PairingInfo(std::ostream& rOStream, const int EchoLevel) const override {KRATOS_ERROR << "Not implemented!"<<std::endl;}
 
 private:
     GeometryPointerType mpGeom;
