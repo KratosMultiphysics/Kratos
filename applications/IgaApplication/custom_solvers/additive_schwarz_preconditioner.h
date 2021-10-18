@@ -110,17 +110,11 @@ public:
         const SizeType local_size = rEquationId.size();
         std::sort(rEquationId.begin(), rEquationId.end() );
 
-
         DenseMatrixType M = ZeroMatrix(local_size, local_size);
-        // for( int i = 0; i < local_size; ++i){
-        //     std::cout << rEquationId[i] << std::endl;
-        // }
-
         for (IndexType i_local = 0; i_local < local_size; i_local++) {
             const IndexType i_global = rEquationId[i_local];
             GetRowEntries(rA, M, i_global, i_local, rEquationId);
         }
-
 
         DenseMatrixType M2;
         M2.resize(local_size, local_size);
@@ -134,23 +128,10 @@ public:
         DenseMatrixType M_invert = ZeroMatrix(local_size, local_size);
         MathUtils<double>::InvertMatrix(M, M_invert, M_det, -1e-6);
 
-        // SparseMatrixType test;
-        // test.resize(rS.size1(), rS.size2());
-        // TSparseSpaceType::SetToZero(test);
-        // for( int i = 0; i < local_size; ++i){
-        //     for( int j = 0; j < local_size; ++j){
-        //         test(rEquationId[i],rEquationId[j]) += M_invert(i,j);
-        //     }
-        // }
-        std::cout << rS.size1() << ":" << rS.size2() << std::endl;
         for (IndexType i_local = 0; i_local < local_size; i_local++) {
             const IndexType i_global = rEquationId[i_local];
             AssembleRowEntries(rS, M_invert, i_global, i_local, rEquationId);
         }
-        // for( int i =0; i < rS.size1(); ++i){
-        //     std::cout << rS(0,i) << ":" << test(0,i) << std::endl;
-        // }
-
     }
 
     void GetRowEntries(SparseMatrixType& rA, DenseMatrixType& Alocal, const unsigned int i, const unsigned int i_local, std::vector<std::size_t>& EquationId){
@@ -236,7 +217,7 @@ public:
         ModelPart& r_model_part
     ) override
     {
-        std::cout << "Size matrix: " << rA.size1() << std::endl;
+        // TODO: make this better!!
         mS = rA;
         TSparseSpaceType::SetToZero(mS);
 
@@ -271,7 +252,6 @@ public:
                     //dof_blocks.push_back(new_equation_ids);
                 }
         }
-        std::cout << "Found: blnlbna " << count << std::endl;
     }
 
     ///@}
