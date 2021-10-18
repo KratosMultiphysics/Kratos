@@ -115,6 +115,7 @@ public:
         // for( int i = 0; i < local_size; ++i){
         //     std::cout << rEquationId[i] << std::endl;
         // }
+
         for (IndexType i_local = 0; i_local < local_size; i_local++) {
             const IndexType i_global = rEquationId[i_local];
             GetRowEntries(rA, M, i_global, i_local, rEquationId);
@@ -133,15 +134,23 @@ public:
         DenseMatrixType M_invert = ZeroMatrix(local_size, local_size);
         MathUtils<double>::InvertMatrix(M, M_invert, M_det, -1e-6);
 
-        for( int i = 0; i < local_size; ++i){
-            for( int j = 0; j < local_size; ++j){
-                rS(rEquationId[i],rEquationId[j]) += M_invert(i,j);
-            }
-        }
-        // for (IndexType i_local = 0; i_local < local_size; i_local++) {
-        //     const IndexType i_global = rEquationId[i_local];
-        //     AssembleRowEntries(rS, M_invert, i_global, i_local, rEquationId);
+        // SparseMatrixType test;
+        // test.resize(rS.size1(), rS.size2());
+        // TSparseSpaceType::SetToZero(test);
+        // for( int i = 0; i < local_size; ++i){
+        //     for( int j = 0; j < local_size; ++j){
+        //         test(rEquationId[i],rEquationId[j]) += M_invert(i,j);
+        //     }
         // }
+        std::cout << rS.size1() << ":" << rS.size2() << std::endl;
+        for (IndexType i_local = 0; i_local < local_size; i_local++) {
+            const IndexType i_global = rEquationId[i_local];
+            AssembleRowEntries(rS, M_invert, i_global, i_local, rEquationId);
+        }
+        // for( int i =0; i < rS.size1(); ++i){
+        //     std::cout << rS(0,i) << ":" << test(0,i) << std::endl;
+        // }
+
     }
 
     void GetRowEntries(SparseMatrixType& rA, DenseMatrixType& Alocal, const unsigned int i, const unsigned int i_local, std::vector<std::size_t>& EquationId){
@@ -173,9 +182,6 @@ public:
             }
 
             const double& r = values_vector[pos];
-            if( i_local == 0) {
-                std::cout << "(" << i_local << ", " << j << ") value: " << r << std::endl;
-            }
             double& v = Alocal(i_local,j);
             AtomicAdd(v,  r);
 
@@ -184,7 +190,7 @@ public:
         }
     }
 
-    void AssembleRowEntries(SparseMatrixType& rA, DenseMatrixType& Alocal, const unsigned int i, const unsigned int i_local, std::vector<std::size_t>& EquationId){
+    void AssembleRowEntries(SparseMatrixType& rA, const DenseMatrixType& Alocal, const unsigned int i, const unsigned int i_local, std::vector<std::size_t>& EquationId){
         double* values_vector = rA.value_data().begin();
         std::size_t* index1_vector = rA.index1_data().begin();
         std::size_t* index2_vector = rA.index2_data().begin();
@@ -198,7 +204,7 @@ public:
 
         double& r_a = values_vector[last_pos];
         const double& v_a = Alocal(i_local,0);
-        AtomicAdd(r_a, v_a);
+        AtomicAdd(r_a,  v_a);
 
         //now find all of the other entries
         size_t pos = 0;
@@ -214,8 +220,7 @@ public:
 
             double& r = values_vector[pos];
             const double& v = Alocal(i_local,j);
-
-            AtomicAdd(r, v);
+            AtomicAdd(r,  v);
 
             last_found = id_to_find;
             last_pos = pos;
@@ -232,8 +237,9 @@ public:
     ) override
     {
         std::cout << "Size matrix: " << rA.size1() << std::endl;
-        mS.resize(rA.size1(), rA.size2());
+        mS = rA;
         TSparseSpaceType::SetToZero(mS);
+
         VariableUtils().SetFlag(VISITED, false, r_model_part.Nodes());
         auto element_it_begin = r_model_part.ElementsBegin();
         int count = 0;
