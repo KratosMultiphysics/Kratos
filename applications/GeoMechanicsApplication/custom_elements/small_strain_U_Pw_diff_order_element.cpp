@@ -2530,12 +2530,12 @@ void SmallStrainUPwDiffOrderElement::
     if (detJ < 0.0)
     {
         // KRATOS_INFO("negative detJ")
-        << "ERROR:: ELEMENT ID: "
-        << this->Id()
-        << " INVERTED. DETJ: "
-        << detJ
-        << " nodes:" << this->GetGeometry()
-        << std::endl;
+        // << "ERROR:: ELEMENT ID: "
+        // << this->Id()
+        // << " INVERTED. DETJ: "
+        // << detJ
+        // << " nodes:" << this->GetGeometry()
+        // << std::endl;
     }
 #endif
 
