@@ -102,6 +102,10 @@ public:
     {
         const SizeType local_size = rEquationId.size();
 
+        // for( int i = 0; i < rS.size1(); ++i){
+        //     rS(i,i) = 1.0;
+        // }
+
         DenseMatrixType M;
         for (IndexType i_local = 0; i_local < local_size; i_local++) {
             const IndexType i_global = rEquationId[i_local];
@@ -200,7 +204,9 @@ public:
         ModelPart& r_model_part
     ) override
     {
-        mS.resize(rA.size1(), rA.size2());
+        std::cout << "Size matrix: " << rA.size1() << std::endl;
+        mS.resize(rA.size1(), rA.size1());
+        TSparseSpaceType::SetToZero(mS);
         VariableUtils().SetFlag(VISITED, false, r_model_part.Nodes());
         auto element_it_begin = r_model_part.ElementsBegin();
         int count = 0;
@@ -228,7 +234,8 @@ public:
                             }
                         }
                     }
-                    dof_blocks.push_back(new_equation_ids);
+                    GetEntries(rA, mS, new_equation_ids);
+                    //dof_blocks.push_back(new_equation_ids);
                 }
         }
         std::cout << "Found: blnlbna " << count << std::endl;
@@ -240,8 +247,16 @@ public:
 
     void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
-        VectorType z = rX;
+        for( int i = 0; i < mS.size1(); ++i){
+            std::cout << mS(i,i) << std::endl;
+        }
+
+        VectorType z;
+        z.resize(rX.size());
+        TSparseSpaceType::Mult(mS, rX, z);
+
         TSparseSpaceType::Mult(rA,z, rY);
+
         ApplyLeft(rY);
     }
 
@@ -258,28 +273,10 @@ public:
     */
     VectorType& ApplyLeft(VectorType& rX) override
     {
-        // const int size = TSparseSpaceType::Size(rX);
-        // VectorType temp(size);
-        // double sum;
-        // int i, indexj;
-        // for (i=0; i<size; i++)
-        // {
-        //     sum=rX[i];
-        //     for (indexj=iL[i]; indexj<iL[i+1]; indexj++)
-        //     {
-        //         sum=sum-L[indexj]*temp[jL[indexj]];
-        //     }
-        //     temp[i]=sum;
-        // }
-        // for (i=size-1; i>=0; i--)
-        // {
-        //     sum=temp[i];
-        //     for (indexj=iU[i]+1; indexj<iU[i+1]; indexj++)
-        //     {
-        //         sum=sum-U[indexj]*rX[jU[indexj]];
-        //     }
-        //     rX[i]=sum/U[iU[i]];
-        // }
+
+        VectorType z = rX;
+        TSparseSpaceType::Mult(mS, z, rX);
+
         return rX;
     }
 
