@@ -822,6 +822,23 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
 {
     KRATOS_TRY
 
+    std::vector<int> a;
+
+    a.resize(this->mNeighbourElements.size() + 1);
+    a[0]=this->Id();
+
+    for (int i = 0; i < mNeighbourElements.size(); i++) {
+        a[i+1] = mNeighbourElements[i]->Id();
+    }
+
+    std::vector<double> f;
+    f.resize(this->mNeighbourElements.size());
+
+    std::vector<double> ind;
+    ind.resize(this->mNeighbourElements.size());
+
+
+
     NodeType& this_node = GetGeometry()[0];
     DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mMyCoors, this_node)
 
@@ -851,11 +868,11 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
 
             EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOldLocalCoordSystem, velocity, delta_displ);
 
-            if (this->Is(DEMFlags::HAS_ROTATION)) {
-                RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternion(DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOtherRadius, data_buffer.mDt, ang_velocity, data_buffer.mpOtherParticle);
-            }
+            // if (this->Is(DEMFlags::HAS_ROTATION)) {
+            //     RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternion(DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOtherRadius, data_buffer.mDt, ang_velocity, data_buffer.mpOtherParticle);
+            // }
 
-            RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, data_buffer.mpOtherParticle);
+            //RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, data_buffer.mpOtherParticle);
 
 
             EvaluateBallToBallForcesForPositiveIndentiations(data_buffer,
@@ -873,9 +890,12 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
                                                             data_buffer.mOldLocalCoordSystem,
                                                             mNeighbourElasticContactForces[i]);
 
+            f[i]=LocalElasticContactForce[2];
+            ind[i]=data_buffer.mIndentation;
+
 
             array_1d<double, 3> other_ball_to_ball_forces = ZeroVector(3);
-            ComputeOtherBallToBallForces(other_ball_to_ball_forces); //These forces can exist even with no indentation.
+            // ComputeOtherBallToBallForces(other_ball_to_ball_forces); //These forces can exist even with no indentation.
 
             // Transforming to global forces and adding up
             AddUpForcesAndProject(data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
@@ -883,24 +903,21 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             //TODO: make different AddUpForces for continuum and discontinuum (different arguments, different operations!)
 
             // ROTATION FORCES
-            if (this->Is(DEMFlags::HAS_ROTATION) && !data_buffer.mMultiStageRHS) {
-                ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation, i);
-            }
+            // if (this->Is(DEMFlags::HAS_ROTATION) && !data_buffer.mMultiStageRHS) {
+            //     ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation, i);
+            // }
 
-            if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-                AddNeighbourContributionToStressTensor(r_process_info,GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
-            }
+            // if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
+            //     AddNeighbourContributionToStressTensor(r_process_info,GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
+            // }
 
-            if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) { //TODO: we should avoid calling a processinfo for each neighbour. We can put it once per time step in the buffer??
-                unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
-                if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
-                    CalculateOnContactElements(i, LocalContactForce);
-                }
-            }
+            // if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) { //TODO: we should avoid calling a processinfo for each neighbour. We can put it once per time step in the buffer??
+            //     unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
+            //     if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
+            //         CalculateOnContactElements(i, LocalContactForce);
+            //     }
+            // }
 
-            DEM_SET_COMPONENTS_TO_ZERO_3(DeltDisp)
-            DEM_SET_COMPONENTS_TO_ZERO_3(LocalDeltDisp)
-            DEM_SET_COMPONENTS_TO_ZERO_3(RelVel)
             DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mLocalCoordSystem)
             DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mOldLocalCoordSystem)
 
@@ -910,6 +927,20 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             #endif
         }
     }// for each neighbor
+
+
+    if (this->Id() == 10) {
+
+        #pragma omp critical
+        {
+            std::cout << a[0]<< " ";
+            for (int i =0; i < f.size(); i++) {
+                std::cout << " n" << a[i] << "   f " << f[i]<< "   ind " << ind[i];
+            }
+            std::cout << std::endl;
+        }
+    }
+
 
     KRATOS_CATCH("")
 }// ComputeBallToBallContactForce

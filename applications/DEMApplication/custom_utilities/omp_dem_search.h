@@ -194,7 +194,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               DistanceType                  localResultsDistances(MaxNumberOfElements);
               std::size_t                   NumberOfResults = 0;
 
-              #pragma omp for schedule(dynamic, 100) //schedule(guided)
+              #pragma omp for
               for(int i = 0; i < static_cast<int>(elements_array.size()); i++)
               {
                   ResultElementsContainerType::iterator ResultsPointer          = localResults.begin();

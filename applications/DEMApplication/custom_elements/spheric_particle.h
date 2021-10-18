@@ -64,6 +64,7 @@ public:
 
 virtual bool SetNextNeighbourOrExit(int& i)
 {
+    ClearNeighboursInformation();
     if (i < int(mpThisParticle->mNeighbourElements.size())){
         SetCurrentNeighbour(mpThisParticle->mNeighbourElements[i]);
         mpOtherParticleNode = &(mpOtherParticle->GetGeometry()[0]);
@@ -75,6 +76,21 @@ virtual bool SetNextNeighbourOrExit(int& i)
         mpOtherParticleNode = NULL;
         return false;
     }
+}
+
+void ClearNeighboursInformation(){
+
+    mDistance = 0.0;
+    mRadiusSum = 0.0;
+    mOtherRadius = 0.0;
+    mIndentation = 0.0;
+    DEM_SET_COMPONENTS_TO_ZERO_3(mLocalRelVel);
+    DEM_SET_COMPONENTS_TO_ZERO_3(mOtherCoors);
+    DEM_SET_COMPONENTS_TO_ZERO_3(mOtherToMeVector);
+    mpOtherParticle = nullptr;
+    mpOtherParticleNode = nullptr;
+    DEM_SET_COMPONENTS_TO_ZERO_3x3(mLocalCoordSystem);
+    DEM_SET_COMPONENTS_TO_ZERO_3x3(mOldLocalCoordSystem);
 }
 
 void SetCurrentNeighbour(SphericParticle* p_neighbour)

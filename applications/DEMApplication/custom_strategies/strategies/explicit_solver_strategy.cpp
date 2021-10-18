@@ -233,7 +233,7 @@ namespace Kratos {
 
         const int number_of_particles = (int) mListOfSphericParticles.size();
 
-        #pragma omp parallel for schedule(dynamic, 100)
+        #pragma omp parallel for schedule(dynamic, 1)
         for (int i = 0; i < number_of_particles; i++) {
             std::vector<DEMWall*>& neighbour_walls_vector = mListOfSphericParticles[i]->mNeighbourPotentialRigidFaces;
             for (int j = 0; j<(int)neighbour_walls_vector.size(); j++) {
@@ -379,7 +379,7 @@ namespace Kratos {
 
         //mpParticleCreatorDestructor->FindAndSaveMaxNodeIdInModelPart(*mpDem_model_part); //This has been moved to python main script and checks both dem model part and walls model part (also important!)
 
-        #pragma omp parallel for schedule(dynamic, 100)
+        #pragma omp parallel for schedule(dynamic, 1)
         for (int k = 0; k < number_of_clusters; k++) {
 
             ElementsArrayType::iterator it = pElements.ptr_begin() + k;
@@ -409,7 +409,7 @@ namespace Kratos {
         ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();
         const int number_of_clusters = pElements.size();
 
-        #pragma omp parallel for schedule(dynamic, 50)
+        #pragma omp parallel for schedule(dynamic, 1)
         for (int k = 0; k < number_of_clusters; k++) {
 
             ElementsArrayType::iterator it = pElements.ptr_begin() + k;
@@ -607,10 +607,16 @@ namespace Kratos {
 
         const int number_of_particles = (int) mListOfSphericParticles.size();
 
-        #pragma omp parallel for schedule(dynamic, 100)
+        #pragma omp parallel for schedule(dynamic, 1)
         for (int i = 0; i < number_of_particles; i++) {
             mListOfSphericParticles[i]->CalculateRightHandSide(r_process_info, dt, gravity);
         }
+
+        //std::cout << "end step" << std::endl;
+
+        // block_for_each(mListOfSphericParticles, [&](SphericParticle* particle){
+        //     particle->CalculateRightHandSide(r_process_info, dt, gravity);
+        // });
 
         KRATOS_CATCH("")
     }
@@ -1187,7 +1193,7 @@ namespace Kratos {
         std::vector<ConnectivitiesMap> thread_maps_of_connectivities;
         thread_maps_of_connectivities.resize(ParallelUtilities::GetNumThreads());
 
-        #pragma omp parallel for schedule(dynamic, 100)
+        #pragma omp parallel for schedule(dynamic, 1)
         for (int i = 0; i < number_of_particles; i++) {
             mListOfSphericParticles[i]->mNeighbourElements.clear();
             for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[i].begin(); neighbour_it != this->GetResults()[i].end(); ++neighbour_it) {
@@ -1204,7 +1210,7 @@ namespace Kratos {
         }
 
         // the next loop ensures consistency in neighbourhood (if A is neighbour of B, B must be neighbour of A)
-        #pragma omp parallel for schedule(dynamic, 100)
+        #pragma omp parallel for schedule(dynamic, 1)
         for (int i = 0; i < number_of_particles; i++) {
             auto& current_neighbours = mListOfSphericParticles[i]->mNeighbourElements;
             std::vector<SphericParticle*> neighbours_to_add;
@@ -1420,7 +1426,7 @@ namespace Kratos {
             //Fast Bins Search
             mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
 
-            #pragma omp parallel for schedule(dynamic, 100)
+            #pragma omp parallel for schedule(dynamic, 1)
             for (int i = 0; i < number_of_particles; i++) {
                 mListOfSphericParticles[i]->mNeighbourPotentialRigidFaces.clear();
                 for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[i].begin(); neighbour_it != this->GetRigidFaceResults()[i].end(); ++neighbour_it) {
@@ -1490,7 +1496,7 @@ namespace Kratos {
             std::vector< int > Id_Array;
             std::vector< int > ContactType_Array;
 
-            #pragma omp for schedule(dynamic, 100)
+            #pragma omp for schedule(dynamic, 1)
             for (int i = 0; i < number_of_particles; i++) {
                 SphericParticle* p_sphere_i = mListOfSphericParticles[i];
                 p_sphere_i->mNeighbourRigidFaces.resize(0);

@@ -305,7 +305,7 @@ class KRATOS_API(DEM_APPLICATION) DEM_FEM_Search : public SpatialSearch
         DistanceType                          localResultsDistances(MaxNumberOfElements);
         std::size_t                           NumberOfResults = 0;
 
-        #pragma omp for schedule(dynamic, 100)
+        #pragma omp for
         for (int p = 0; p < (int)elements_sear.size(); p++) {
 
           Elem_iter it = elements_sear.begin() + p;
