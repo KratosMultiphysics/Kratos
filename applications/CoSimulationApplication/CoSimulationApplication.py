@@ -8,7 +8,7 @@ _ImportApplication(application, application_name)
 
 def __ModuleInitDetail():
     """
-    Creatign a DataCommunicator that only contains rank zero and is undefined in other ranks
+    Create a DataCommunicator that only contains rank zero and is undefined in other ranks
     This is necessary for solvers that can only run in serial
     It is defined as a function to avoid polluting the Kratos namespace with local variables.
     """
