@@ -42,6 +42,7 @@
 #include "custom_conditions/adjoint_thermal_face.h"
 #include "custom_conditions/laplacian_shifted_boundary_condition.h"
 #include "custom_conditions/laplacian_shifted_boundary_lagrange_multipliers_condition.h"
+#include "custom_conditions/mixed_laplacian_shifted_boundary_condition.h"
 
 #include "includes/variables.h"
 #include "includes/condition.h"
@@ -265,6 +266,7 @@ private:
 
     const LaplacianShiftedBoundaryCondition mLaplacianShiftedBoundaryCondition;
     const LaplacianShiftedBoundaryLagrangeMultipliersCondition mLaplacianShiftedBoundaryLagrangeMultipliersCondition;
+    const MixedLaplacianShiftedBoundaryCondition mMixedLaplacianShiftedBoundaryCondition;
 
     const AdjointThermalFace mAdjointThermalFace2D2N;
     const AdjointThermalFace mAdjointThermalFace3D3N;

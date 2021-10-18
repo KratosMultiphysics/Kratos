@@ -96,7 +96,13 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         if self.settings["lagrange_multipliers_imposition"].GetBool():
             sbm_interface_condition_name = "LaplacianShiftedBoundaryLagrangeMultipliersCondition"
         else:
-            sbm_interface_condition_name = "LaplacianShiftedBoundaryCondition"
+            element_type = self.settings["element_replace_settings"]["element_name"].GetString()[:-4]
+            if element_type == "LaplacianShiftedBoundaryElement":
+                sbm_interface_condition_name = "LaplacianShiftedBoundaryCondition"
+            elif element_type == "MixedLaplacianShiftedBoundaryElement":
+                sbm_interface_condition_name = "MixedLaplacianShiftedBoundaryCondition"
+            else:
+                raise Exception("Unsupported \'element_type\': {}".format(element_type))
         settings.AddEmptyValue("sbm_interface_condition_name").SetString(sbm_interface_condition_name)
         sbm_interface_process = ConvectionDiffusionApplication.ShiftedBoundaryMeshlessInterfaceProcess(self.model, settings)
         sbm_interface_process.Execute()
