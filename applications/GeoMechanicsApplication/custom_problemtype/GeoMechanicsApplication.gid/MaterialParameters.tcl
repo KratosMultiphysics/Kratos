@@ -13,6 +13,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
 
     set SolutionType [GiD_AccessValue get gendata Solution_Type]
     set Dim [GiD_AccessValue get gendata Domain_Size]
+    set IsQuadratic [GiD_Info Project Quadratic]
 
     # Soil_two_phase part
     set Groups [GiD_Info conditions Soil_two_phase groups]
@@ -1580,7 +1581,15 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
        puts $FileVar "      \"properties_id\":           $PropertyId,"
        puts $FileVar "      \"Material\": \{"
        puts $FileVar "          \"constitutive_law\": \{"
-       puts $FileVar "              \"name\"             :  \"KratosMultiphysics.StructuralMechanicsApplication.BeamConstitutiveLaw\" "
+       if {$IsQuadratic} {
+           if {$Dim eq 2} {
+                puts $FileVar "              \"name\"             :  \"LinearElastic2DBeamLaw\" "
+           } else {
+                puts $FileVar "              \"name\"             :  \"LinearElastic3DBeamLaw\" "
+           }
+       } else {
+            puts $FileVar "              \"name\"             :  \"KratosMultiphysics.StructuralMechanicsApplication.BeamConstitutiveLaw\" "
+       }
        puts $FileVar "          \},"
        puts $FileVar "          \"Variables\": \{"
        puts $FileVar "              \"YOUNG_MODULUS\"     :  [lindex [lindex $Groups $i] 5],"

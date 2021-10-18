@@ -12,11 +12,11 @@
 # Setting paths. WARNING: one must properly set them before running this file
 
 # Setting PATHs for Kratos
-export PYTHONPATH="$HOME/Kratos:$PYTHONPATH"
+export PYTHONPATH="$HOME/Kratos/bin/Release:$PYTHONPATH"
 
 ## Linux
 # Setting PATHs for Kratos libs
-export LD_LIBRARY_PATH="$HOME/Kratos/libs:$HOME/boost_1_62_0/stage/lib:$LD_LIBRARY_PATH"
+# export LD_LIBRARY_PATH="$HOME/Kratos/libs:$HOME/boost_1_62_0/stage/lib:$LD_LIBRARY_PATH"
 # Setting PATH for Python 3
 export PATH="/usr/bin/python3:$PATH"
 

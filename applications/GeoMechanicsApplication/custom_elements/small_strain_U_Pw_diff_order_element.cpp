@@ -1445,7 +1445,7 @@ void SmallStrainUPwDiffOrderElement::
                   bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAll") << std::endl;
+    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAll") << this->Id() << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const PropertiesType& rProp = this->GetProperties();
@@ -1611,18 +1611,30 @@ void SmallStrainUPwDiffOrderElement::
     (rVariables.DNu_DX).resize(NumUNodes,Dim,false);
     (rVariables.DNu_DXInitialConfiguration).resize(NumUNodes,Dim,false);
     (rVariables.detJuContainer).resize(NumGPoints,false);
-    rGeom.ShapeFunctionsIntegrationPointsGradients( rVariables.DNu_DXContainer,
-                                                    rVariables.detJuContainer,
-                                                    this->GetIntegrationMethod() );
+
+    try {
+        rGeom.ShapeFunctionsIntegrationPointsGradients( rVariables.DNu_DXContainer,
+                                                        rVariables.detJuContainer,
+                                                        this->GetIntegrationMethod() );
+    } catch (Kratos::Exception& e) {
+        // KRATOS_INFO("Original error message") << e.what() << std::endl;
+        KRATOS_ERROR << "In calculation of dNu/dx. Most probably the element is distorted. Element ID: " << this->Id() << std::endl;
+    }
 
     (rVariables.DNp_DXContainer).resize(NumGPoints,false);
     for (SizeType i = 0; i<NumGPoints; ++i)
         ((rVariables.DNp_DXContainer)[i]).resize(NumPNodes,Dim,false);
     (rVariables.DNp_DX).resize(NumPNodes,Dim,false);
     Vector detJpContainer = ZeroVector(NumGPoints);
-    mpPressureGeometry->ShapeFunctionsIntegrationPointsGradients( rVariables.DNp_DXContainer,
-                                                                  detJpContainer,
-                                                                  this->GetIntegrationMethod());
+
+    try {
+        mpPressureGeometry->ShapeFunctionsIntegrationPointsGradients( rVariables.DNp_DXContainer,
+                                                                    detJpContainer,
+                                                                    this->GetIntegrationMethod());
+    } catch (Kratos::Exception& e) {
+        // KRATOS_INFO("Original error message") << e.what() << std::endl;
+        KRATOS_ERROR << "In calculation of dNp/dx. Most probably the element is distorted. Element ID: " << this->Id() << std::endl;
+    }
 
     //Variables computed at each integration point
     const SizeType VoigtSize  = ( Dim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
@@ -1881,7 +1893,7 @@ double SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY
 
-    //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateDerivativesOnReferenceConfiguration()") << std::endl;
+    //// KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateDerivativesOnReferenceConfiguration()") << std::endl;
     const GeometryType& rGeom = this->GetGeometry();
 
     Matrix deltaDisplacement;
@@ -1894,7 +1906,7 @@ double SmallStrainUPwDiffOrderElement::
     MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
     GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
 
-    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateDerivativesOnReferenceConfiguration()") << std::endl;
+    //// KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateDerivativesOnReferenceConfiguration()") << std::endl;
 
     return detJ0;
 
@@ -2517,7 +2529,7 @@ void SmallStrainUPwDiffOrderElement::
 #ifdef KRATOS_COMPILED_IN_WINDOWS
     if (detJ < 0.0)
     {
-        KRATOS_INFO("negative detJ")
+        // KRATOS_INFO("negative detJ")
         << "ERROR:: ELEMENT ID: "
         << this->Id()
         << " INVERTED. DETJ: "
@@ -2591,14 +2603,14 @@ double SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY
 
-    //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
+    //// KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
     const GeometryType& rGeom = this->GetGeometry();
 
     double detJ;
     rJ = rGeom.Jacobian( rJ, GPoint, this->GetIntegrationMethod() );
     MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
 
-    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
+    //// KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
 
     return detJ;
 
@@ -2612,7 +2624,7 @@ Matrix& SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY
 
-    //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateDeltaDisplacement()") << std::endl;
+    //// KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateDeltaDisplacement()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
@@ -2628,7 +2640,7 @@ Matrix& SmallStrainUPwDiffOrderElement::
             DeltaDisplacement(iNode, iDim) = currentDisplacement[iDim] - previousDisplacement[iDim];
     }
 
-    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateDeltaDisplacement()") << std::endl;
+    //// KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateDeltaDisplacement()") << std::endl;
 
     return DeltaDisplacement;
 

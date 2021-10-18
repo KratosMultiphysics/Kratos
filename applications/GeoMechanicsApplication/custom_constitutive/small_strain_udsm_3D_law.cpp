@@ -816,7 +816,7 @@ void SmallStrainUDSM3DLaw::CalculateStress( ConstitutiveLaw::Parameters &rValues
 }
 
 //----------------------------------------------------------------------------------------
-void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, ConstitutiveLaw::Parameters &rValues)
+void SmallStrainUDSM3DLaw::CallUDSM(int *pIDTask, ConstitutiveLaw::Parameters &rValues)
 {
    KRATOS_TRY;
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::CallUDSM()") << std::endl;
@@ -848,8 +848,14 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, ConstitutiveLaw::Parameters &rV
    int iAbort = 0;
    int nSizeProjectDirectory = mProjectDirectory.size();
 
+   // KRATOS_INFO("IDTask") << *pIDTask << std::endl;
+   // KRATOS_INFO("mStressVectorFinalized") << mStressVectorFinalized << std::endl;
+   // KRATOS_INFO("mDeltaStrainVector") << mDeltaStrainVector << std::endl;
+   // KRATOS_INFO("mStateVariablesFinalized") << mStateVariablesFinalized << std::endl;
+   // KRATOS_INFO("deltaTime") << deltaTime << std::endl;
+
    const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
-   pUserMod(IDTask, &modelNumber, &isUndr,
+   pUserMod(pIDTask, &modelNumber, &isUndr,
             &iStep, &iteration, &iElement, &integrationNumber,
             &X, &Y, &Z,
             &time, &deltaTime,
@@ -862,18 +868,18 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, ConstitutiveLaw::Parameters &rV
             &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
             mProjectDirectory.data(), &nSizeProjectDirectory, 
             &iAbort);
-   if (iAbort != 0)
-   {
+
+   if (iAbort != 0) {
       KRATOS_INFO("CallUDSM, iAbort !=0")
                   << " iAbort: " << iAbort
                   << " the specified UDSM returns an error while call UDSM with IDTASK: " 
-                  << std::to_string(*IDTask) << "." 
+                  << std::to_string(*pIDTask) << "." 
                   << " UDSM: " << rMaterialProperties[UDSM_NAME] 
                   << " UDSM_NUMBER: " << rMaterialProperties[UDSM_NUMBER]
                   << " Parameters: " << MaterialParameters
                   << std::endl;
       KRATOS_ERROR << "the specified UDSM returns an error while call UDSM with IDTASK: " 
-                   << std::to_string(*IDTask)
+                   << std::to_string(*pIDTask)
                    << ". UDSM: "
                    << rMaterialProperties[UDSM_NAME]
                    << std::endl;
