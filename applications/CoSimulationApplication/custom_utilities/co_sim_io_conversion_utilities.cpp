@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include<unordered_map>
 
 // External includes
 
@@ -82,9 +83,15 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
     KRATOS_ERROR_IF(rKratosModelPart.NumberOfProperties() > 0) << "ModelPart is not empty, it has properties!" << std::endl;
     KRATOS_ERROR_IF(rKratosModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
 
+    // Need to use aux structure as passing Nodes by Id to CreateNewElement currently sorts the nodes array
+    // this would screw up the ordering of Nodes and the data coming from external solvers could no longer be
+    // assigned to the  correct nodes!
+    std::unordered_map<Kratos::ModelPart::IndexType, Kratos::ModelPart::NodeType::Pointer> kratos_nodes;
+    kratos_nodes.reserve(rCoSimIOModelPart.NumberOfNodes());
+
     // fill ModelPart with received entities
     for (const auto& r_node : rCoSimIOModelPart.Nodes()) {
-        rKratosModelPart.CreateNewNode(
+        kratos_nodes[r_node.Id()] = rKratosModelPart.CreateNewNode(
             r_node.Id(),
             r_node.X(),
             r_node.Y(),
@@ -95,17 +102,15 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
     Properties::Pointer p_props;
     if (rCoSimIOModelPart.NumberOfElements() > 0) {
         p_props = rKratosModelPart.CreateNewProperties(0);
+        rKratosModelPart.Elements().reserve(rCoSimIOModelPart.NumberOfElements());
     }
 
-    std::vector<IndexType> conn;
+    Geometry<Node<3>>::PointsArrayType conn;
     for (const auto& r_elem : rCoSimIOModelPart.Elements()) {
-        if (conn.size() != r_elem.NumberOfNodes()) {
-            conn.resize(r_elem.NumberOfNodes());
-        };
+        conn.clear();
 
-        const auto nodes_begin = r_elem.NodesBegin();
-        for (std::size_t i=0; i<r_elem.NumberOfNodes(); ++i) {
-            conn[i] = (*(nodes_begin+i))->Id();
+        for (const auto& r_node : r_elem.Nodes()) {
+            conn.push_back(kratos_nodes[r_node.Id()]); // no check necessary if Id exists, as the Elements could not have been created in the CoSimIO ModelPart without the nodes in the first place
         };
 
         auto elem_name_it = elem_name_map.find(r_elem.Type());
