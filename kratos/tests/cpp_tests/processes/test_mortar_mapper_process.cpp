@@ -10,6 +10,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
+#ifdef USE_TRIANGLE_NONFREE_TPL
 // System includes
 
 // External includes
@@ -338,3 +339,4 @@ namespace Kratos
         }
     } // namespace Testing
 }  // namespace Kratos.
+#endif
