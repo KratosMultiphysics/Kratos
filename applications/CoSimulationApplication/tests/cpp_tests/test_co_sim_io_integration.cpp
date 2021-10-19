@@ -104,10 +104,34 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIOModelPartToKratosModelPart, KratosCosimulationF
 
 KRATOS_TEST_CASE_IN_SUITE(KratosModelPartToCoSimIOModelPart, KratosCosimulationFastSuite)
 {
+    Model model;
+    auto& kratos_model_part = model.CreateModelPart("kratos_mp");
 
+    CoSimIO::ModelPart co_sim_io_model_part("co_sim_io_mp");
+
+    constexpr std::size_t num_nodes = 5;
+
+    for (std::size_t i=0; i<num_nodes; ++i) {
+        kratos_model_part.CreateNewNode(i+1, i*1.5, i+3.5, i-8.6);
+    }
+
+    auto p_props = kratos_model_part.CreateNewProperties(0);
+
+    std::vector<IndexType> conn {1,2};
+    kratos_model_part.CreateNewElement("Element2D2N", 1, conn, p_props);
+    conn = {2,3};
+    kratos_model_part.CreateNewElement("Element2D2N", 2, conn, p_props);
+    conn = {3,4,5};
+    kratos_model_part.CreateNewElement("Element2D3N", 3, conn, p_props);
+
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfElements(), 3);
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 1);
+
+    CoSimIOConversionUtilities::KratosModelPartToCoSimIOModelPart(kratos_model_part, co_sim_io_model_part);
+
+    CheckModelPartsAreEqual(kratos_model_part, co_sim_io_model_part);
 }
-
-
 
 } // namespace Testing
 } // namespace Kratos
