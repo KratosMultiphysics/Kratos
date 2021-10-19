@@ -49,6 +49,8 @@ public:
 
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
 
+    typedef typename TSparseSpace::MatrixPointerType SparseMatrixPointerType;
+
     typedef typename TSparseSpaceType::VectorType VectorType;
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
@@ -208,6 +210,42 @@ public:
         }
     }
 
+    void InitializeMatrix(SparseMatrixType& rA){
+
+        mpS = TSparseSpaceType::CreateEmptyMatrixPointer();
+        SparseMatrixType& S = *mpS;
+        S.resize(rA.size1(), rA.size2(), rA.nnz());
+
+        double* Avalues = S.value_data().begin();
+        std::size_t* Arow_indices = S.index1_data().begin();
+        std::size_t* Acol_indices = S.index2_data().begin();
+
+        std::size_t* Arow_indices_old = rA.index1_data().begin();
+        std::size_t* Acol_indices_old = rA.index2_data().begin();
+        //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+        Arow_indices[0] = 0;
+        for (int i = 0; i < static_cast<int>(rA.size1()); i++) {
+            Arow_indices[i+1] = Arow_indices_old[i+1];
+        }
+
+        IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t i){
+            const unsigned int row_begin = Arow_indices_old[i];
+            //const unsigned int row_end = Arow_indices[i+1];
+            unsigned int k = row_begin;
+            for (int i = 0; i < rA.index1_data().size() ; ++i) {
+                Acol_indices[k] = Acol_indices_old[k];
+                Avalues[k] = 0.0;
+                k++;
+            }
+
+            // indices[i].clear(); //deallocating the memory
+
+            // //std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
+
+        });
+
+        S.set_filled(rA.size1()+1, rA.nnz());
+    }
 
     void ProvideAdditionalData(
         SparseMatrixType& rA,
@@ -217,9 +255,10 @@ public:
         ModelPart& r_model_part
     ) override
     {
-        // TODO: make this better!!
-        mS = rA;
-        TSparseSpaceType::SetToZero(mS);
+
+        InitializeMatrix(rA);
+        //mpS = rA; //SparseMatrixType(rA.size1(), rA.size2(), rA.nnz_capacity() );
+        TSparseSpaceType::SetToZero(mpS);
 
         VariableUtils().SetFlag(VISITED, false, r_model_part.Nodes());
         auto element_it_begin = r_model_part.ElementsBegin();
@@ -248,7 +287,7 @@ public:
                             }
                         }
                     }
-                    GetEntries(rA, mS, new_equation_ids);
+                    GetEntries(rA, mpS, new_equation_ids);
                     //dof_blocks.push_back(new_equation_ids);
                 }
         }
@@ -261,7 +300,7 @@ public:
     VectorType& ApplyInverseRight(VectorType& rX) override
     {
         // VectorType z = rX;
-        // TSparseSpaceType::Mult(mS, z, rX);
+        // TSparseSpaceType::Mult(mpS, z, rX);
         return rX;
     }
 
@@ -289,16 +328,18 @@ public:
     */
     VectorType& ApplyLeft(VectorType& rX) override
     {
-        // for( int i = 0; i < mS.size1(); ++i){
-        //     std::cout << mS(i,i) << std::endl;
+        // for( int i = 0; i < mpS.size1(); ++i){
+        //     std::cout << mpS(i,i) << std::endl;
         // }
         VectorType z = rX;
-        TSparseSpaceType::Mult(mS, z, rX);
+        TSparseSpaceType::Mult(mpS, z, rX);
 
         return rX;
     }
 
-
+    VectorType& Finalize(VectorType& rX) override{
+        TSparseSpaceType::Clear(mpS);
+    }
     ///@}
     ///@name Input and output
     ///@{
@@ -331,7 +372,7 @@ protected:
     ///@name Protected member Variables
     ///@{
     std::vector<std::vector<size_t>> dof_blocks;
-    SparseMatrixType mS;
+    SparseMatrixPointerType mpS;
 
     ///@}
 
