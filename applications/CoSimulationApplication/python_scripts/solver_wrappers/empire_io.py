@@ -13,8 +13,8 @@ from KratosMultiphysics.CoSimulationApplication.utilities import model_part_util
 # Other imports
 import os
 
-def Create(settings, model, solver_name):
-    return EmpireIO(settings, model, solver_name)
+def Create(*args):
+    return EmpireIO(*args)
 
 communication_folder = ".EmpireIO" # hardcoded in C++
 
