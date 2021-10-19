@@ -200,6 +200,7 @@ void ParallelEnvironment::RegisterCommunicatorFactoryDetail(std::function<Commun
 ParallelEnvironment::ParallelEnvironment()
 {
     RegisterDataCommunicatorDetail("Serial", DataCommunicator::Create(), MakeDefault);
+
     RegisterCommunicatorFactoryDetail<const std::string>([](ModelPart& rModelPart, const std::string& rDataCommunicatorName)->Communicator::UniquePointer{
         const auto& r_data_communicator = ParallelEnvironment::GetDataCommunicator("Serial");
         return Kratos::make_unique<Communicator>(r_data_communicator);
@@ -208,6 +209,16 @@ ParallelEnvironment::ParallelEnvironment()
         KRATOS_ERROR_IF(rDataCommunicator.IsDistributed()) << "Trying to create an serial communicator with a distributed data communicator." << std::endl;
         return Kratos::make_unique<Communicator>(rDataCommunicator);
     });
+
+    RegisterFillCommunicatorFactoryDetail<const std::string>([](ModelPart& rModelPart, const std::string& rDataCommunicatorName)->FillCommunicator::Pointer{
+        const auto& r_data_communicator = ParallelEnvironment::GetDataCommunicator("Serial");
+        return Kratos::make_shared<FillCommunicator>(rModelPart, r_data_communicator);
+    });
+    RegisterFillCommunicatorFactoryDetail<const DataCommunicator>([](ModelPart& rModelPart, const DataCommunicator& rDataCommunicator)->FillCommunicator::Pointer{
+        KRATOS_ERROR_IF(rDataCommunicator.IsDistributed()) << "Trying to create an serial communicator with a distributed data communicator." << std::endl;
+        return Kratos::make_shared<FillCommunicator>(rModelPart, rDataCommunicator);
+    });
+
     RegisterFillCommunicatorFactoryDetail([&](ModelPart& rModelPart)->FillCommunicator::Pointer{return FillCommunicator::Pointer(new FillCommunicator(rModelPart));});
 }
 
