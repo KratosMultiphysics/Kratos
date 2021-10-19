@@ -44,13 +44,13 @@ void AddTrilinosUtilitiesToPython(pybind11::module& m)
     using BaseSolverSettings = SolverSettings<TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver>;
     typedef ChimeraTrilinosFractionalStepSettings<TrilinosSparseSpace,UblasLocalSpace,TrilinosLinearSolver> ChimeraTrilinosFractionalStepSettingsType;
 
-    // TrilinosChimeraFractionalStepSettings
-    py::class_< ChimeraTrilinosFractionalStepSettingsType, ChimeraTrilinosFractionalStepSettingsType::Pointer, BaseSolverSettings>(m,"TrilinosFractionalStepSettings")
-    .def(py::init<Epetra_MpiComm&, ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
-    .def("SetStrategy",&ChimeraTrilinosFractionalStepSettingsType::SetStrategy)
-    .def("GetStrategy",&ChimeraTrilinosFractionalStepSettingsType::pGetStrategy)
-    .def("SetEchoLevel",&ChimeraTrilinosFractionalStepSettingsType::SetEchoLevel)
-    ;
+    // // TrilinosChimeraFractionalStepSettings
+    // py::class_< ChimeraTrilinosFractionalStepSettingsType, ChimeraTrilinosFractionalStepSettingsType::Pointer, BaseSolverSettings>(m,"TrilinosFractionalStepSettings")
+    // .def(py::init<Epetra_MpiComm&, ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
+    // .def("SetStrategy",&ChimeraTrilinosFractionalStepSettingsType::SetStrategy)
+    // .def("GetStrategy",&ChimeraTrilinosFractionalStepSettingsType::pGetStrategy)
+    // .def("SetEchoLevel",&ChimeraTrilinosFractionalStepSettingsType::SetEchoLevel)
+    // ;
 }
 
 }

@@ -299,10 +299,10 @@ protected:
             }
         }
 
-        rModelPart.GetCommunicator().AssembleCurrentData(CONV_PROJ);
-        rModelPart.GetCommunicator().AssembleCurrentData(PRESS_PROJ);
-        rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
-        rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
+        rModelPart.GetCommunicator().SynchronizeVariable(CONV_PROJ);
+        rModelPart.GetCommunicator().SynchronizeVariable(PRESS_PROJ);
+        rModelPart.GetCommunicator().SynchronizeVariable(DIVPROJ);
+        rModelPart.GetCommunicator().SynchronizeVariable(NODAL_AREA);
 
         // If there are periodic conditions, add contributions from both sides to the periodic nodes
         //PeriodicConditionProjectionCorrection(rModelPart);
@@ -325,6 +325,10 @@ protected:
             }
         }
 
+        rModelPart.GetCommunicator().SynchronizeVariable(CONV_PROJ);
+        rModelPart.GetCommunicator().SynchronizeVariable(PRESS_PROJ);
+        rModelPart.GetCommunicator().SynchronizeVariable(DIVPROJ);
+        rModelPart.GetCommunicator().SynchronizeVariable(NODAL_AREA);
 
          //For correcting projections for chimera
         auto &r_pre_modelpart = rModelPart.GetSubModelPart(rModelPart.Name()+"fs_pressure_model_part");
@@ -395,7 +399,7 @@ protected:
             }
         }
 
-        r_model_part.GetCommunicator().AssembleCurrentData(FRACT_VEL);
+        r_model_part.GetCommunicator().SynchronizeVariable(FRACT_VEL);
         //PeriodicConditionVelocityCorrection(r_model_part);
 
         // Force the end of step velocity to verify slip conditions in the model
@@ -424,6 +428,11 @@ protected:
                 r_slave_node.GetValue(DIVPROJ)= 0 ;
             }
         }
+
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(CONV_PROJ);
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(PRESS_PROJ);
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(DIVPROJ);
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(NODAL_AREA);
 
         for(const auto& constraint : r_constraints_container)
         {
@@ -456,10 +465,10 @@ protected:
             }
         }
 
-        rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
-        rModelPart.GetCommunicator().AssembleNonHistoricalData(CONV_PROJ);
-        rModelPart.GetCommunicator().AssembleNonHistoricalData(PRESS_PROJ);
-        rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(NODAL_AREA);
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(CONV_PROJ);
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(PRESS_PROJ);
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(DIVPROJ);
 
         for (auto it_node = rModelPart.NodesBegin(); it_node != rModelPart.NodesEnd(); it_node++)
         {
@@ -476,6 +485,10 @@ protected:
                 it_node->GetValue(DIVPROJ) = 0.0;
             }
         }
+        rModelPart.GetCommunicator().SynchronizeVariable(CONV_PROJ);
+        rModelPart.GetCommunicator().SynchronizeVariable(PRESS_PROJ);
+        rModelPart.GetCommunicator().SynchronizeVariable(DIVPROJ);
+        rModelPart.GetCommunicator().SynchronizeVariable(NODAL_AREA);
      }
 
     void ChimeraVelocityCorrection(ModelPart& rModelPart)
@@ -522,7 +535,7 @@ protected:
             }
         }
 
-        rModelPart.GetCommunicator().AssembleNonHistoricalData(FRACT_VEL);
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(FRACT_VEL);
 
         for (typename ModelPart::NodeIterator it_node = rModelPart.NodesBegin(); it_node != rModelPart.NodesEnd(); it_node++)
         {
@@ -597,6 +610,7 @@ private:
                 }
             }
         }
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(FRACT_VEL);
 
         auto& r_pre_modelpart =
             rModelPart.GetSubModelPart(rModelPart.Name()+"fs_pressure_model_part");

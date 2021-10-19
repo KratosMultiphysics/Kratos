@@ -58,19 +58,18 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     ;
 
 
-    // Base types
-    typedef FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType  > BaseSolvingStrategyType;
-    typedef FractionalStepStrategyForChimera< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType  > TrilinosFractionalStepStrategyForChimeraType;
-    typedef ChimeraTrilinosFractionalStepSettings<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> ChimeraTrilinosFractionalStepSettingsType;
-    //*************************STRATEGY CLASSES***************************
-    py::class_< TrilinosFractionalStepStrategyForChimeraType,
-                typename TrilinosFractionalStepStrategyForChimeraType::Pointer,
-                BaseSolvingStrategyType >
-                (m,"TrilinosFractionalStepStrategyForChimera")
-                .def(py::init< ModelPart&, ChimeraTrilinosFractionalStepSettingsType&, bool >() )
-                .def(py::init< ModelPart&, ChimeraTrilinosFractionalStepSettingsType&, bool, bool >() )
-                ;
-
+    // // Base types
+    // typedef FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType  > BaseSolvingStrategyType;
+    // typedef FractionalStepStrategyForChimera< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType  > TrilinosFractionalStepStrategyForChimeraType;
+    // typedef ChimeraTrilinosFractionalStepSettings<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> ChimeraTrilinosFractionalStepSettingsType;
+    // //*************************STRATEGY CLASSES***************************
+    // py::class_< TrilinosFractionalStepStrategyForChimeraType,
+    //             typename TrilinosFractionalStepStrategyForChimeraType::Pointer,
+    //             BaseSolvingStrategyType >
+    //             (m,"TrilinosFractionalStepStrategyForChimera")
+    //             .def(py::init< ModelPart&, ChimeraTrilinosFractionalStepSettingsType&, bool >() )
+    //             .def(py::init< ModelPart&, ChimeraTrilinosFractionalStepSettingsType&, bool, bool >() )
+    //             ;
 
 }
 }
