@@ -179,13 +179,11 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsLocalGradients, KratosCoreGeom
 */
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint1, KratosCoreGeometriesFastSuite)
 {
-    //KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
     const double expected_vol = 2.0;
 
     KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::GI_GAUSS_1), expected_vol, TOLERANCE);
-    //VerifyStrainExactness(*geom, GeometryData::GI_GAUSS_1);
 }
 
 /** Tests the area using 'GI_GAUSS_2' integration method.
@@ -193,13 +191,11 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint1, KratosCoreGeometriesFastSuite)
 */
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint2, KratosCoreGeometriesFastSuite)
 {
-    //KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
     const double expected_vol = 2.0;
 
     KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::GI_GAUSS_2), expected_vol, TOLERANCE);
-    //VerifyStrainExactness(*geom, GeometryData::GI_GAUSS_2);
 }
 
 /** Tests the area using 'GI_GAUSS_3' integration method.
@@ -207,13 +203,11 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint2, KratosCoreGeometriesFastSuite)
 */
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint3, KratosCoreGeometriesFastSuite)
 {
-    //KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
     const double expected_vol = 2.0;
 
     KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::GI_GAUSS_3), expected_vol, TOLERANCE);
-    //VerifyStrainExactness(*geom, GeometryData::GI_GAUSS_3);
 }
 
 /** Tests the area using 'GI_GAUSS_4' integration method.
@@ -221,13 +215,11 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint3, KratosCoreGeometriesFastSuite)
 */
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint4, KratosCoreGeometriesFastSuite)
 {
-    //KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
     const double expected_vol = 2.0;
 
     KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::GI_GAUSS_4), expected_vol, TOLERANCE);
-    //VerifyStrainExactness(*geom, GeometryData::GI_GAUSS_4);
 }
 
 /** Tests the area using 'GI_GAUSS_5' integration method.
@@ -235,13 +227,11 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint4, KratosCoreGeometriesFastSuite)
 */
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint5, KratosCoreGeometriesFastSuite)
 {
-    //KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
     const double expected_vol = 2.0;
 
     KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::GI_GAUSS_5), expected_vol, TOLERANCE);
-    //VerifyStrainExactness(*geom, GeometryData::GI_GAUSS_5);
 }
 
 } // namespace Testing

@@ -49,7 +49,7 @@ namespace Kratos {
  *                1------------------2
  *
  *
- * @author Philipp Bucher
+ * @author Philipp Bucher, Ashish Darekar
  */
 template<class TPointType>
 class Pyramid3D5 : public Geometry<TPointType>
@@ -138,8 +138,6 @@ public:
      * returning edges of the geometry.
      */
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
-
-    //typedef typename::BaseType::Line3D2<TPointType> EdgeType;
 
 
     ///@}
@@ -651,7 +649,9 @@ public:
     */
     Vector& ShapeFunctionsValues(Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
-        if(rResult.size() != 5) rResult.resize(5,false);
+        if(rResult.size() != 5)
+            rResult.resize(5,false);
+
         rResult[0] = (0.125) * (1 - rCoordinates[0]) * (1 - rCoordinates[1]) * (1 + rCoordinates[2]);
         rResult[1] = (0.125) * (1 + rCoordinates[0]) * (1 - rCoordinates[1]) * (1 + rCoordinates[2]);
         rResult[2] = (0.125) * (1 + rCoordinates[0]) * (1 + rCoordinates[1]) * (1 + rCoordinates[2]);
@@ -661,25 +661,7 @@ public:
         return rResult;
     }
 
-    /**
-     * Calculates the gradients in terms of local coordinateds
-     * of all shape functions in a given point.
-     * @param rPoint the current point at which the gradients are calculated
-     * @return the gradients of all shape functions
-     * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
-     */
-    Matrix& ShapeFunctionsLocalGradients(
-        Matrix& rResult,
-        const CoordinatesArrayType& rPoint
-        ) const override
-    {
-        if(rResult.size1() != this->PointsNumber() || rResult.size2() != this->LocalSpaceDimension())
-            rResult.resize(this->PointsNumber(),this->LocalSpaceDimension(),false);
 
-        CalculateShapeFunctionsLocalGradients(rResult, rPoint);
-
-        return rResult;
-    }
 
     /**
      * Calculates the value of a given shape function at a given point.
@@ -743,6 +725,26 @@ public:
         }
 
         return shape_function_values;
+    }
+
+    /**
+     * Calculates the gradients in terms of local coordinateds
+     * of all shape functions in a given point.
+     * @param rPoint the current point at which the gradients are calculated
+     * @return the gradients of all shape functions
+     * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
+     */
+    Matrix& ShapeFunctionsLocalGradients(
+        Matrix& rResult,
+        const CoordinatesArrayType& rPoint
+        ) const override
+    {
+        if(rResult.size1() != this->PointsNumber() || rResult.size2() != this->LocalSpaceDimension())
+            rResult.resize(this->PointsNumber(),this->LocalSpaceDimension(),false);
+
+        CalculateShapeFunctionsLocalGradients(rResult, rPoint);
+
+        return rResult;
     }
 
 
