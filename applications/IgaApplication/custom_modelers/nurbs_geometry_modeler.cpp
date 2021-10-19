@@ -153,9 +153,13 @@ namespace Kratos
         }
 
         // Add geometry to model part
-        SizeType last_geometry_id = ( r_model_part.NumberOfGeometries() > 0 )
-            ? r_model_part.Geometries().back().Id()
-            : 0;
+        const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
+        SizeType last_geometry_id = 0;
+        if( number_of_geometries > 0 ){
+            for( auto it = r_model_part.GeometriesBegin(); it!= r_model_part.GeometriesEnd(); ++it){
+                last_geometry_id = it->Id();
+            }
+        }
         p_surface_geometry->SetId(last_geometry_id+1);
 
         r_model_part.AddGeometry(p_surface_geometry);
@@ -310,7 +314,9 @@ namespace Kratos
         const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
         SizeType last_geometry_id = 0;
         if( number_of_geometries > 0 ){
-            last_geometry_id = r_model_part.Geometries()[number_of_geometries-1].Id();
+            for( auto it = r_model_part.GeometriesBegin(); it!= r_model_part.GeometriesEnd(); ++it){
+                last_geometry_id = it->Id();
+            }
         }
         p_volume_geometry->SetId(last_geometry_id+1);
         r_model_part.AddGeometry(p_volume_geometry);
