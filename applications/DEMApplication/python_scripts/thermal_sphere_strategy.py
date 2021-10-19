@@ -111,6 +111,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.fluid_layer_thickness = 0
         if (self.isothermal_core_radius < 0):
             self.isothermal_core_radius = 0
+        if (self.isothermal_core_radius > 1):
+            self.isothermal_core_radius = 1
         if (self.max_radiation_distance < 0 ):
             self.max_radiation_distance = 0
         if (self.global_porosity < 0 or self.global_porosity >= 1):
