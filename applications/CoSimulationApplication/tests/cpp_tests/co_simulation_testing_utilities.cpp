@@ -46,9 +46,6 @@ void CheckElementsAreEqual(
 {
     KRATOS_TRY
 
-    std::cout  << std::endl<< "rKratosElement.Id() :" << rKratosElement.Id() << std::endl;
-    std::cout << "rCoSimIOElement.Id() :" << rCoSimIOElement.Id() << std::endl << std::endl;
-
     // basic checks
     KRATOS_CHECK_EQUAL(rKratosElement.Id(), rCoSimIOElement.Id());
     // KRATOS_CHECK_EQUAL(rKratosElement.Type(), rCoSimIOElement.Type());
