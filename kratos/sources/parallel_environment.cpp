@@ -63,6 +63,13 @@ void ParallelEnvironment::RegisterFillCommunicatorFactory(std::function<FillComm
 }
 
 template<class TDataCommunicatorInputType>
+void ParallelEnvironment::RegisterFillCommunicatorFactory(std::function<FillCommunicator::Pointer(ModelPart&, TDataCommunicatorInputType&)> FillCommunicatorFactory)
+{
+    ParallelEnvironment& env = GetInstance();
+    env.RegisterFillCommunicatorFactoryDetail<TDataCommunicatorInputType>(FillCommunicatorFactory);
+}
+
+template<class TDataCommunicatorInputType>
 void ParallelEnvironment::RegisterCommunicatorFactory(std::function<Communicator::UniquePointer(ModelPart&, TDataCommunicatorInputType&)> CommunicatorFactory)
 {
     ParallelEnvironment& env = GetInstance();
@@ -80,7 +87,7 @@ FillCommunicator::Pointer ParallelEnvironment::CreateFillCommunicatorFromGlobalP
     const std::string& rDataCommunicatorName)
 {
     ParallelEnvironment& env = GetInstance();
-    return env.mFillCommunicatorStringFactory(rModelPart);
+    return env.mFillCommunicatorStringFactory(rModelPart, rDataCommunicatorName);
 }
 
 FillCommunicator::Pointer ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(
@@ -165,6 +172,18 @@ void ParallelEnvironment::PrintData(std::ostream &rOStream)
 }
 
 // Implementation details /////////////////////////////////////////////////////
+
+template<>
+void ParallelEnvironment::RegisterFillCommunicatorFactoryDetail(std::function<FillCommunicator::Pointer(ModelPart&, const std::string&)> FillCommunicatorFactory)
+{
+    mFillCommunicatorStringFactory = FillCommunicatorFactory;
+}
+
+template<>
+void ParallelEnvironment::RegisterFillCommunicatorFactoryDetail(std::function<FillCommunicator::Pointer(ModelPart&, const DataCommunicator&)> FillCommunicatorFactory)
+{
+    mFillCommunicatorReferenceFactory = FillCommunicatorFactory;
+}
 
 template<>
 void ParallelEnvironment::RegisterCommunicatorFactoryDetail(std::function<Communicator::UniquePointer(ModelPart&, const std::string&)> CommunicatorFactory)
@@ -369,6 +388,9 @@ ParallelEnvironment* ParallelEnvironment::mpInstance = nullptr;
 bool ParallelEnvironment::mDestroyed = false;
 
 // Explicit template instantiation
+template void ParallelEnvironment::RegisterFillCommunicatorFactory<const std::string>(std::function<FillCommunicator::Pointer(ModelPart&, const std::string&)> CommunicatorFactory);
+template void ParallelEnvironment::RegisterFillCommunicatorFactory<const DataCommunicator>(std::function<FillCommunicator::Pointer(ModelPart&, const DataCommunicator&)> CommunicatorFactory);
+
 template void ParallelEnvironment::RegisterCommunicatorFactory<const std::string>(std::function<Communicator::UniquePointer(ModelPart&, const std::string&)> CommunicatorFactory);
 template void ParallelEnvironment::RegisterCommunicatorFactory<DataCommunicator>(std::function<Communicator::UniquePointer(ModelPart&, DataCommunicator&)> CommunicatorFactory);
 
