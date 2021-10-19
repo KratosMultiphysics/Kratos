@@ -183,9 +183,18 @@ namespace Kratos
     if (!GetProperties().Has(THERMAL_EXPANSION_COEFFICIENT))
       return;
 
-    double new_radius = GetRadius() * (1.0 + GetParticleExpansionCoefficient() * (GetParticleTemperature() - mPreviousTemperature));
+    // Update radius
+    double new_radius  = GetRadius() * (1.0 + GetParticleExpansionCoefficient() * (GetParticleTemperature() - mPreviousTemperature));
     SetRadius(new_radius);
     GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = new_radius;
+
+    // Update density
+    double new_density = GetMass() / CalculateVolume();
+    GetProperties()[PARTICLE_DENSITY] = new_density;
+
+    // Update inertia
+    double new_inertia = CalculateMomentOfInertia();
+    GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = new_inertia;
 
     KRATOS_CATCH("")
   }
