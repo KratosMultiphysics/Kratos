@@ -15,6 +15,9 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOp
 set(KRATOS_MESHING_APPLICATION_EXTRA_LIBS tetMeshOpt)
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
+    add_definitions( -DTETGEN143 )
+    add_definitions( -DTETLIBRARY )
+    add_definitions( -DUSE_TETGEN_NONFREE_TPL )
     include_directories(${TETGEN_ROOT})
     set(KRATOS_MESHING_APPLICATION_EXTRA_LIBS ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS} tetgen)
 endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)

@@ -386,10 +386,6 @@ endif(${INSTALL_RUNKRATOS} MATCHES ON )
 ##*****************************
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
-    add_definitions( -DTETGEN143 )
-    add_definitions( -DTETLIBRARY )
-    add_definitions( -DUSE_TETGEN_NONFREE_TPL )
-
     if(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
         # Use TetGen from local source
         include_directories(${USE_TETGEN_NONFREE_TPL_PATH})
