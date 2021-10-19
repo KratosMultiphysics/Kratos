@@ -385,9 +385,40 @@ endif(${INSTALL_RUNKRATOS} MATCHES ON )
 
 ##*****************************
 
-if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
-  find_package(Tetgen REQUIRED)
-endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
+if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
+    add_definitions( -DTETGEN143 )
+    add_definitions( -DTETLIBRARY )
+    add_definitions( -DUSE_TETGEN_NONFREE_TPL )
+
+    if(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
+        # Use TetGen from local source
+        include_directories(${USE_TETGEN_NONFREE_TPL_PATH})
+    elseif(DEFINED USE_TETGEN_NONFREE_TPL_URL)
+        # Use TetGen from external source (download)
+        set(TETGEN_ZIP_FILE "tetgen")
+        set(TETGEN_ZIP_PATH ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/tetgen)
+
+        find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_ZIP_PATH}/*/)
+        if(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
+            DownloadLibAt(${TETGEN_ZIP_FILE} ${USE_TETGEN_NONFREE_TPL_URL} ${TETGEN_ZIP_PATH})
+            find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_ZIP_PATH}/*/)
+        else(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
+            # Touch the url variable so it does no trigger a unused warning.
+            set(ignoreMe "${USE_TETGEN_NONFREE_TPL_URL}")
+            message("-- Found tetgen at ${TETGEN_ZIP_PATH}, skipping...")
+        endif(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
+
+        set(Tetgen_FOUND True)
+        add_subdirectory(${TETGEN_ROOT})
+    else(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
+        # Try to find tetgen installed in the system
+        find_package(Tetgen REQUIRED)
+    endif(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
+
+    if(tetgen_FOUND)
+        message(FATAL_ERROR "TetGen could not be found. Please use -DUSE_TETGEN_NONFREE_TPL_PATH=[path] or -DUSE_TETGEN_NONFREE_TPL_URL=[url] to indicate the correct TetGen location.")
+    endif(NOT DEFINED tetgen_FOUND)
+endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 
 if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
@@ -511,7 +542,9 @@ message("\t Make Check() method of ConstitutiveLaw const: https://github.com/Kra
 message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
 
 # Compiling the triangle library
-add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
+if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
+  add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
+endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
 # Compiling the tinyexpr library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr)
