@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
-//
+//  Contirbutors:    Ashish Darekar
 //
 
 // System includes
@@ -90,13 +90,12 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13Center, KratosCoreGeometriesFastSuite)
 */
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13IsInside, KratosCoreGeometriesFastSuite)
 {
-    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D13();
 
-    Point PointInside(0.1666, 0.1666, 0.1666);
-    Point PointOutside(0.66, 0.66, 0.66);
-    Point PointInVertex(0.0, 0.0, 0.0);
-    Point PointInEdge(0.33, 0.33, 0.33);
+    Point PointInside(0.0, 0.0, 0.3);
+    Point PointOutside(0.0, 0.0, 1.6);
+    Point PointInVertex(-1.0, 1.0, 0.0);
+    Point PointInEdge(-1.0, 0.0, 0.0);
 
     Point LocalCoords;
 
