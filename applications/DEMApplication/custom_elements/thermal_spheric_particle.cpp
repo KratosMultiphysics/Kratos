@@ -660,10 +660,39 @@ namespace Kratos
     // Assumption: neighbor wall is treated as a particle with the same radius
     double h = 0.0;
 
-    if (particle_radius == neighbor_radius || mNeighborType == WALL_NEIGHBOR) {
+    if (mNeighborType == WALL_NEIGHBOR) {
       // Compute voronoi edge radius from porosity
       double rij = 0.56 * particle_radius * pow((1.0 - porosity), -1.0/3.0);
       
+      if (rij <= mContactRadiusAdjusted) {
+        h = 0.0;
+        return;
+      }
+
+      double kp = GetParticleConductivity();
+      double rc = core * particle_radius;
+      double d  = mNeighborDistanceAdjusted;
+      double a  = (1.0 / rc - 1.0 / particle_radius) / (2.0 * kp) + 1.0 / (2 * fluid_conductivity * particle_radius);
+      double b  = 1.0 / (2 * fluid_conductivity * d);
+      double c0 = d / sqrt(rij * rij + d * d);
+      double c1 = d / sqrt(mContactRadiusAdjusted * mContactRadiusAdjusted + d * d);
+      double f  = (a - b * c0) / (a - b * c1);
+      double ln = 0.0;
+      if (f > 0.0)
+        ln = log(f);
+
+      // Heat transfer coefficient
+      h = Globals::Pi * ln / b;
+    }
+    else if (particle_radius == neighbor_radius) {
+      // Compute voronoi edge radius from porosity
+      double rij = 0.56 * particle_radius * pow((1.0 - porosity), -1.0/3.0);
+      
+      if (rij <= mContactRadiusAdjusted) {
+        h = 0.0;
+        return;
+      }
+
       double keff = ComputeEffectiveConductivity();
       double rc   = core * particle_radius;
       double D    = mNeighborDistanceAdjusted / 2.0;
@@ -683,6 +712,12 @@ namespace Kratos
       // Compute area of neighboring voronoi cells
       // Assumption: using average radius for rij
       double rij = 0.56 * (particle_radius + neighbor_radius) / 2.0 * pow((1.0 - porosity), -1.0/3.0);
+
+      if (rij <= mContactRadiusAdjusted) {
+        h = 0.0;
+        return;
+      }
+
       double An = Globals::Pi * rij * rij;
 
       double gamma1 = particle_radius / mNeighborDistanceAdjusted;
