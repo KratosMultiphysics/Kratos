@@ -59,8 +59,6 @@ void InitializeMPIParallelRun()
         KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Trying to create an MPI communicator with a non-distributed data communicator." << std::endl;
         return Kratos::make_shared<ParallelFillCommunicator>(rModelPart, rDataCommunicator);
     });
-
-    ParallelEnvironment::RegisterFillCommunicatorFactory([](ModelPart& rModelPart)->FillCommunicator::Pointer{return FillCommunicator::Pointer(new ParallelFillCommunicator(rModelPart));});
 }
 
 PYBIND11_MODULE(KratosMPI, m)

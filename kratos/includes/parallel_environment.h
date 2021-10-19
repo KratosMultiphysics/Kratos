@@ -96,13 +96,6 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     /**
      * @brief Registers the fill communicator factory
      * This method takes the provided fill communicator pointer factory and saves it to be used later on
-     * @param FillCommunicatorFactory Factory function returning a pointer to a (parallel or serial) fill communicator
-     */
-    static void RegisterFillCommunicatorFactory(std::function<FillCommunicator::Pointer(ModelPart&)> FillCommunicatorFactory);
-
-    /**
-     * @brief Registers the fill communicator factory
-     * This method takes the provided fill communicator pointer factory and saves it to be used later on
      * @param CommunicatorFactory Factory function returning a pointer to a (parallel or serial) fill communicator
      */
     template<class TDataCommunicatorInputType>
@@ -234,8 +227,6 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 
     void SetUpMPIEnvironmentDetail(EnvironmentManager::Pointer pEnvironmentManager);
 
-    void RegisterFillCommunicatorFactoryDetail(std::function<FillCommunicator::Pointer(ModelPart&)> FillCommunicatorFactory);
-
     template<class TDataCommunicatorInputType>
     void RegisterFillCommunicatorFactoryDetail(std::function<FillCommunicator::Pointer(ModelPart&, TDataCommunicatorInputType&)> FillCommunicatorFactory);
 
@@ -293,8 +284,6 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     std::unordered_map<std::string, DataCommunicator::UniquePointer> mDataCommunicators;
 
     std::unordered_map<std::string, DataCommunicator::UniquePointer>::iterator mDefaultCommunicator;
-
-    std::function<FillCommunicator::Pointer(ModelPart&)> mFillCommunicatorFactory;
 
     std::function<FillCommunicator::Pointer(ModelPart&, const std::string&)> mFillCommunicatorStringFactory;
 

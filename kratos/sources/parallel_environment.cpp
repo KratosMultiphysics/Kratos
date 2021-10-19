@@ -56,12 +56,6 @@ void ParallelEnvironment::SetUpMPIEnvironment(EnvironmentManager::Pointer pEnvir
     env.SetUpMPIEnvironmentDetail(std::move(pEnvironmentManager));
 }
 
-void ParallelEnvironment::RegisterFillCommunicatorFactory(std::function<FillCommunicator::Pointer(ModelPart&)> FillCommunicatorFactory)
-{
-    ParallelEnvironment& env = GetInstance();
-    env.RegisterFillCommunicatorFactoryDetail(FillCommunicatorFactory);
-}
-
 template<class TDataCommunicatorInputType>
 void ParallelEnvironment::RegisterFillCommunicatorFactory(std::function<FillCommunicator::Pointer(ModelPart&, TDataCommunicatorInputType&)> FillCommunicatorFactory)
 {
@@ -218,8 +212,6 @@ ParallelEnvironment::ParallelEnvironment()
         KRATOS_ERROR_IF(rDataCommunicator.IsDistributed()) << "Trying to create an serial communicator with a distributed data communicator." << std::endl;
         return Kratos::make_shared<FillCommunicator>(rModelPart, rDataCommunicator);
     });
-
-    RegisterFillCommunicatorFactoryDetail([&](ModelPart& rModelPart)->FillCommunicator::Pointer{return FillCommunicator::Pointer(new FillCommunicator(rModelPart));});
 }
 
 ParallelEnvironment::~ParallelEnvironment()
@@ -284,11 +276,6 @@ void ParallelEnvironment::SetUpMPIEnvironmentDetail(EnvironmentManager::Pointer 
     << "Trying to configure run for MPI twice. This should not be happening!" << std::endl;
 
     mpEnvironmentManager = std::move(pEnvironmentManager);
-}
-
-void ParallelEnvironment::RegisterFillCommunicatorFactoryDetail(std::function<FillCommunicator::Pointer(ModelPart&)> FillCommunicatorFactory)
-{
-    mFillCommunicatorFactory = FillCommunicatorFactory;
 }
 
 void ParallelEnvironment::RegisterDataCommunicatorDetail(
