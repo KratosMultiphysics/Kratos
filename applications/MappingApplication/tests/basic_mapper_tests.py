@@ -20,9 +20,9 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     @classmethod
     def setUpMapper(cls, mapper_parameters, switch_sides=False):
         if switch_sides:
-            super(BasicMapperTests, cls).setUpModelParts("cube_quad", "cube_tri")
+            super().setUpModelParts("cube_quad", "cube_tri")
         else:
-            super(BasicMapperTests, cls).setUpModelParts("cube_tri", "cube_quad")
+            super().setUpModelParts("cube_tri", "cube_quad")
         # TODO ATTENTION: currently the MapperFactory removes some keys, hence those checks have to be done beforehand => improve this!
 
         cls.mapper_type = mapper_parameters["mapper_type"].GetString()
@@ -292,29 +292,6 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         sum_origin = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin)
         sum_destination = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.TEMPERATURE, self.interface_model_part_destination)
         self.assertAlmostEqual(sum_origin, sum_destination)
-
-
-    def test_Is_conforming(self):
-        is_conforming = self.mapper.AreMeshesConforming()
-        self.assertTrue(is_conforming)
-
-    def test_Is_not_conforming(self):
-        non_conform_parameters = self.mapper_parameters.Clone()
-        non_conform_parameters.AddEmptyValue("search_radius").SetDouble(1e-6)
-
-        if data_comm.IsDistributed():
-            map_creator = MappingMPIExtension.MPIMapperFactory.CreateMapper
-        else:
-            map_creator = KratosMapping.MapperFactory.CreateMapper
-
-        non_conform_mapper = map_creator(
-            self.model_part_origin,
-            self.model_part_destination,
-            non_conform_parameters
-        )
-
-        is_conforming = non_conform_mapper.AreMeshesConforming()
-        self.assertFalse(is_conforming)
 
 
     # def test_UpdateInterface(self):
