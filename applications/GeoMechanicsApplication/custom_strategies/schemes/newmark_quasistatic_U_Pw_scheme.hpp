@@ -288,8 +288,7 @@ public:
     {
         KRATOS_TRY
 
-        if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING] == true)
-        {
+        if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING] == true) {
             unsigned int Dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
             SizeType StressTensorSize = STRESS_TENSOR_SIZE_2D;
@@ -313,14 +312,11 @@ public:
             // Compute smoothed nodal variables
             block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode) {
                 const double& NodalArea = rNode.FastGetSolutionStepValue(NODAL_AREA);
-                if (NodalArea > 1.0e-20)
-                {
+                if (NodalArea > 1.0e-20) {
                     const double InvNodalArea = 1.0/NodalArea;
                     Matrix& rNodalStress = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                    for(unsigned int i = 0; i < rNodalStress.size1(); i++)
-                    {
-                        for(unsigned int j = 0; j < rNodalStress.size2(); j++)
-                        {
+                    for(unsigned int i = 0; i < rNodalStress.size1(); ++i) {
+                        for(unsigned int j = 0; j < rNodalStress.size2(); ++j) {
                             rNodalStress(i,j) *= InvNodalArea;
                         }
                     }
@@ -328,17 +324,14 @@ public:
                 }
 
                 const double& NodalJointArea = rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA);
-                if (NodalJointArea > 1.0e-20)
-                {
+                if (NodalJointArea > 1.0e-20) {
                     const double InvNodalJointArea = 1.0/NodalJointArea;
                     rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH)  *= InvNodalJointArea;
                     rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) *= InvNodalJointArea;
                 }
             });
 
-        }
-        else
-        {
+        } else {
             FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
         }
 
@@ -507,8 +500,7 @@ public:
             typename DofsArrayType::iterator DofsEnd = rDofSet.begin() + DofSetPartition[k+1];
 
             //Update Displacement and Pressure (DOFs)
-            for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof)
-            {
+            for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof) {
                 if (itDof->IsFree())
                     itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, itDof->EquationId());
             }

@@ -144,7 +144,8 @@ protected:
                                     ElementVariables &rVariables) const;
 
     virtual void CalculateAndAddRHS(VectorType &rRightHandSideVector,
-                                    ElementVariables &rVariables) const;
+                                    ElementVariables &rVariables,
+                                    unsigned int GPoint ) const;
 
     virtual void CalculateTransformationMatrix( Matrix &TransformationMatrix,
                                                 const Matrix &GradNu ) const;
@@ -169,7 +170,9 @@ protected:
     void CalculateAndAddBodyForce(VectorType &rRightHandSideVector,
                                   ElementVariables &rVariables) const;
 
-    void CalculateAndAddStiffnessForce(VectorType &rRightHandSideVector, ElementVariables &rVariables) const;
+    void CalculateAndAddStiffnessForce(VectorType &rRightHandSideVector,
+                                       ElementVariables &rVariables,
+                                       unsigned int GPoint) const;
     void SetRotationalInertiaVector(const PropertiesType& Prop, Vector& RotationalInertia) const;
 
     void ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult,

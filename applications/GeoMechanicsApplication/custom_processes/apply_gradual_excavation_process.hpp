@@ -102,8 +102,7 @@ class ApplyGradualExcavationProcess : public ApplyExcavationProcess
 
         ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
         #pragma omp parallel for
-        for (int i = 0; i < nnodes; ++i)
-        {
+        for (int i = 0; i < nnodes; ++i) {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
             noalias(Coordinates) = it->Coordinates();
             if (Coordinates[mGravityDirection] > max_vertical_coordinate)

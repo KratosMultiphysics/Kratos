@@ -80,6 +80,7 @@ void  ElasticIsotropicK03DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Par
         Vector& r_stress_vector = rValues.GetStressVector();
         CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
     }
+
     KRATOS_CATCH("");
 }
 

@@ -57,9 +57,9 @@ class ApplyExcavationProcess : public Process
                            Parameters& rParameters) : Process(Flags()), mr_model_part(model_part)
     {
         KRATOS_TRY
+
         mDeactivateSoilPart =  rParameters["deactivate_soil_part"].GetBool();
         mModelPartName      =  rParameters["model_part_name"].GetString();
-        
 
         KRATOS_CATCH("");
     }
@@ -76,51 +76,43 @@ class ApplyExcavationProcess : public Process
         KRATOS_TRY;
 
         const int nelements = mr_model_part.GetMesh(0).Elements().size();
-        const int nnodes = mr_model_part.GetMesh(0).Nodes().size();
-
-        if (nelements != 0)
-        {
-            if (mDeactivateSoilPart == true)
-            {
+        if (nelements != 0) {
+            if (mDeactivateSoilPart == true) {
                 // Deactivation of the existing parts:
                 // ( User must specify each part through the interface)
                 ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
                 #pragma omp parallel for
-                for (int k = 0; k < nelements; ++k)
-                {
+                for (int k = 0; k < nelements; ++k) {
                     ModelPart::ElementsContainerType::iterator it = el_begin + k;
                     it->Set(ACTIVE, false);
                     it->ResetConstitutiveLaw();
                 }
 
                 // Same nodes for both computing model part
-                ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
-                #pragma omp parallel for
-                for (int i = 0; i < nnodes; ++i)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    it->Set(ACTIVE, false);
-                    it->Set(SOLID, false);
+                // const int nnodes = mr_model_part.GetMesh(0).Nodes().size();
+                // ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
+                // #pragma omp parallel for
+                // for (int i = 0; i < nnodes; ++i) {
+                //     ModelPart::NodesContainerType::iterator it = it_begin + i;
+                //     it->Set(ACTIVE, false);
+                //     it->Set(SOLID, false);
 
-                }
-            }
-            else
-            {
+                // }
+            } else {
                 // Activation of the existing parts:
                 // ( User must specify each part through the interface)
                 ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
                 #pragma omp parallel for
-                for (int k = 0; k < nelements; ++k)
-                {
+                for (int k = 0; k < nelements; ++k) {
                     ModelPart::ElementsContainerType::iterator it = el_begin + k;
                     it->Set(ACTIVE, true);
                 }
 
                 // Same nodes for both computing model part
+                const int nnodes = mr_model_part.GetMesh(0).Nodes().size();
                 ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
                 #pragma omp parallel for
-                for (int i = 0; i < nnodes; ++i)
-                {
+                for (int i = 0; i < nnodes; ++i) {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
                     it->Set(ACTIVE, true);
                     it->Set(SOLID, true);
@@ -130,12 +122,10 @@ class ApplyExcavationProcess : public Process
 
         // Conditions
         const int nconditions = mr_model_part.GetMesh(0).Conditions().size();
-        if (nconditions != 0)
-        {
+        if (nconditions != 0) {
             ModelPart::ConditionsContainerType::iterator cond_begin = mr_model_part.ConditionsBegin();
 
-            for (int k = 0; k < nconditions; ++k)
-            {
+            for (int k = 0; k < nconditions; ++k) {
                 ModelPart::ConditionsContainerType::iterator it_cond = cond_begin + k;
 
                 // VG: there is a problem in this part

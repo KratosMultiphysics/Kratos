@@ -559,10 +559,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     rVariables.DofValuesVector.resize(N_DOF_ELEMENT);
     GetNodalDofValuesVector(rVariables.DofValuesVector, rGeom);
 
-    //General Variables
-    rVariables.DofValuesVector.resize(N_DOF_ELEMENT);
-
-    rVariables.NodalCrossDirection.resize(TDim, TNumNodes);
+    rVariables.NodalCrossDirection.resize(TNumNodes, TDim);
     CalculateNodalCrossDirection(rVariables.NodalCrossDirection);
 
     //Variables computed at each GP
