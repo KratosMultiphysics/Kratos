@@ -112,6 +112,12 @@ public:
         QUADRATURE_ON_NODES
     };
 
+    /// Defines the possible results of the projection methods.
+    static constexpr int PROJECTION_FAILED = -1;
+    static constexpr int POINT_OUTSIDE = 0;
+    static constexpr int POINT_INSIDE = 1;
+    static constexpr int POINT_ON_BOUNDARY = 2;
+
     /** Array of counted pointers to point. This type used to hold
     geometry's points.
     */
@@ -2657,7 +2663,7 @@ public:
                 Tolerance);
         } else {
             // Projection failed
-            return -1;
+            return PROJECTION_FAILED;
         }
     }
 
