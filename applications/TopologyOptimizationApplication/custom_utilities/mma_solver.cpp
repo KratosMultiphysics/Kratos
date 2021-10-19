@@ -90,11 +90,11 @@ void MMASolver::Update(double *xval, const double *dfdx, const double *gx, const
         ///std::copy_n(xval, nano, xold1.data());
 
         // Solve the dual with an interior point method
-        //SolveDIP(xval, low, upp);
+        SolveDIP(xval, low, upp);
 
 
         // Solve the dual with a steepest ascent method
-        SolveDSA(xval, low, upp);
+        //SolveDSA(xval, low, upp);
         KRATOS_CATCH( "" );
     }
 

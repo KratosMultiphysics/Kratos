@@ -294,12 +294,12 @@ public:
 			MMASolver *mma = new MMASolver(nn,mm);
 	
 
-			g[0] = 10000000000;
+			g[0] = 0;
 			vol_frac_iteration = vol_summ;
-			//g[0] = vol_frac_iteration - volfrac*nn;
-/* 		 	if (OptItr==1)
+			g[0] = vol_frac_iteration - volfrac*nn;
+ /*		 	if (OptItr==1)
 			{
-				g[0]=10000000000000;
+				g[0]=1000000000;
 			}
 			if (g[0] > 0)
 			{
