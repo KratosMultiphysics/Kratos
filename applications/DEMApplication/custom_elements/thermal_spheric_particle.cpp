@@ -149,8 +149,9 @@ namespace Kratos
       TBaseElement::FinalizeSolutionStep(r_process_info);
 
     if (is_time_to_solve) {
-      UpdateTemperature(r_process_info);
       mPreviousTemperature = GetParticleTemperature();
+      UpdateTemperature(r_process_info);
+      UpdateTemperatureDependentRadius(r_process_info);
       SetParticleHeatFlux(mTotalHeatFlux);
     }
   }
@@ -177,12 +178,16 @@ namespace Kratos
 
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info) {
-    //double this_temp      = GetParticleTemperature();
-    //double fluid_temp     = r_process_info[FLUID_TEMPERATURE];
-    //double relative_temp  = this_temp - fluid_temp; // temp in Kelvin
-    //double thermal_alpha  = GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
-    //double updated_radius = GetRadius() * (1 + thermal_alpha * relative_temp);
-    //SetRadius(updated_radius);
+    KRATOS_TRY
+
+    if (!GetProperties().Has(THERMAL_EXPANSION_COEFFICIENT))
+      return;
+
+    double new_radius = GetRadius() * (1.0 + GetParticleExpansionCoefficient() * (GetParticleTemperature() - mPreviousTemperature));
+    SetRadius(new_radius);
+    GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = new_radius;
+
+    KRATOS_CATCH("")
   }
 
   template <class TBaseElement>
@@ -1374,6 +1379,11 @@ namespace Kratos
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleEmissivity() {
     return GetProperties()[EMISSIVITY];
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetParticleExpansionCoefficient() {
+    return GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
   }
 
   template <class TBaseElement>

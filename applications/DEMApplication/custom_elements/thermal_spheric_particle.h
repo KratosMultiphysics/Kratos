@@ -155,6 +155,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double GetParticleConductivity();
   double GetParticleHeatCapacity();
   double GetParticleEmissivity();
+  double GetParticleExpansionCoefficient();
   double GetWallTemperature();
   double GetNeighborTemperature();
   double GetNeighborDensity();
