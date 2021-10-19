@@ -92,8 +92,8 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5IsInside, KratosCoreGeometriesFastSuite)
 
     Point PointInside(0.0, 0.0, 0.3);
     Point PointOutside(0.0, 0.0, 1.6);
-    Point PointInVertex(0.0, 0.0, 1.5);
-    Point PointInEdge(1.0, 0.5, 0.0);
+    //Point PointInVertex(-1.0, 1.0, 0.0);
+    //Point PointInEdge(-1.0, 0.0, 0.0);
 
     Point LocalCoords;
 

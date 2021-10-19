@@ -325,6 +325,8 @@ public:
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
+        std::cout << "Point is = ( "<<rResult[0] << " , " << rResult[1] << " , "<< rResult[2] << " )"<<std::endl;
+
         //Calculation of all the surface normals of a Pyramid ABCDE
         Matrix LocalPyramid;
         LocalPyramid = PointsLocalCoordinates(LocalPyramid); //Fix values
@@ -415,6 +417,8 @@ public:
         PD[0] = LocalPyramid(3,0) - rResult[0];
         PD[1] = LocalPyramid(3,1) - rResult[1];
         PD[2] = LocalPyramid(3,2) - rResult[2];
+
+        std::cout << "product = "<< MathUtils<double>::Dot(PE, nABE) << "," << MathUtils<double>::Dot(PE, nBCE) << "," << MathUtils<double>::Dot(PE, nCDE) << "," <<MathUtils<double>::Dot(PE, nDAE) << "," <<MathUtils<double>::Dot(PD, nABCD) << std::endl;
 
         //Dot products of direction vector with Planar normal
         if((MathUtils<double>::Dot(PE, nABE) >= 0) && (MathUtils<double>::Dot(PE, nBCE) >= 0) && (MathUtils<double>::Dot(PE, nCDE) >= 0) && (MathUtils<double>::Dot(PE, nDAE) >= 0) && (MathUtils<double>::Dot(PD, nABCD) >= 0))
