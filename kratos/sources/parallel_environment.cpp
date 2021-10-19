@@ -75,6 +75,22 @@ FillCommunicator::Pointer ParallelEnvironment::CreateFillCommunicator(ModelPart&
     return env.mFillCommunicatorFactory(rModelPart);
 }
 
+FillCommunicator::Pointer ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(
+    ModelPart& rModelPart,
+    const std::string& rDataCommunicatorName)
+{
+    ParallelEnvironment& env = GetInstance();
+    return env.mFillCommunicatorStringFactory(rModelPart);
+}
+
+FillCommunicator::Pointer ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(
+    ModelPart& rModelPart,
+    const DataCommunicator& rDataCommunicator)
+{
+    ParallelEnvironment& env = GetInstance();
+    return env.mFillCommunicatorReferenceFactory(rModelPart, rDataCommunicator);
+}
+
 Communicator::UniquePointer ParallelEnvironment::CreateCommunicatorFromGlobalParallelism(
     ModelPart& rModelPart,
     const std::string& rDataCommunicatorName)

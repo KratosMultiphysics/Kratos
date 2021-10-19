@@ -117,6 +117,28 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     static FillCommunicator::Pointer CreateFillCommunicator(ModelPart& rModelPart);
 
     /**
+     * @brief Create a fill communicator object
+     * This method uses the previously registered fill communicator factory for the creation of a new fill communicator pointer
+     * @param rModelPart Model part to which the fill communicator will be applied
+     * @param rDataCommunicatorName Name of the data communicator to be retrieved for the fill communicator construction
+     * @return FillCommunicator::Pointer Pointer to the new fill communicator instance
+     */
+    static FillCommunicator::Pointer CreateFillCommunicatorFromGlobalParallelism(
+      ModelPart& rModelPart,
+      const std::string& rDataCommunicatorName);
+
+    /**
+     * @brief Create a fill communicator object
+     * This method uses the previously registered fill communicator factory for the creation of a new fill communicator pointer
+     * @param rModelPart Model part to which the fill communicator will be applied
+     * @param rDataCommunicator reference to the data communicator to be used for the fill communicator construction
+     * @return FillCommunicator::Pointer Pointer to the new fill communicator instance
+     */
+    static FillCommunicator::Pointer CreateFillCommunicatorFromGlobalParallelism(
+      ModelPart& rModelPart,
+      const DataCommunicator& rDataCommunicator);
+
+    /**
      * @brief Create a Communicator object
      * This method uses the previously registered communicator factory for the creation of a new communicator pointer
      * @param rModelPart Model part required to retrieve the variables list from it
