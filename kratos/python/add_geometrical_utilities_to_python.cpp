@@ -38,9 +38,11 @@
 #include "utilities/iso_printer.h"
 #include "utilities/interval_utility.h"
 #include "utilities/convect_particles_utilities.h"
-#include "utilities/tessellation_utilities/delaunator_utilities.h"
 #include "utilities/mls_shape_functions_utility.h"
 
+#ifdef USE_TRIANGLE_NONFREE_TPL
+    #include "utilities/tessellation_utilities/delaunator_utilities.h"
+#endif
 namespace Kratos {
 namespace Python {
 
@@ -302,9 +304,11 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("MoveParticles_RK4", &ParticleConvectUtily<3>::MoveParticles_RK4)
         ;
 
+#ifdef USE_TRIANGLE_NONFREE_TPL
     // Delaunator utilities
     auto mod_delaunator = m.def_submodule("CreateTriangleMeshFromNodes");
     mod_delaunator.def("CreateTriangleMeshFromNodes",&DelaunatorUtilities::CreateTriangleMeshFromNodes);
+#endif
 
     // GeometricalTransformationUtilities
     auto mod_geom_trans_utils = m.def_submodule("GeometricalTransformationUtilities");
