@@ -12,7 +12,7 @@
 // System includes
 
 // External includes
-#include "custom_external_libraries/CoSimIO/co_sim_io/co_sim_io.hpp"
+#include "custom_external_libraries/co_sim_io/co_sim_io.hpp"
 
 // Project includes
 #include "testing/testing.h"
