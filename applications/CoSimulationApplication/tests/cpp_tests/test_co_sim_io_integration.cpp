@@ -76,7 +76,7 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIOModelPartToKratosModelPart, KratosCosimulationF
 
     CoSimIO::ModelPart co_sim_io_model_part("co_sim_io_mp");
 
-    const int node_ids[] = {2, 159, 61}; // deliberately not ordered!
+    const int node_ids[] = {2,61,159};
     const std::array<double, 3> node_coords = {1.0, -2.7, 9.44};
     co_sim_io_model_part.CreateNewNode(node_ids[0], node_coords[0], node_coords[1], node_coords[2]);
     co_sim_io_model_part.CreateNewNode(node_ids[1], node_coords[1], node_coords[2], node_coords[0]);
@@ -84,7 +84,7 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIOModelPartToKratosModelPart, KratosCosimulationF
 
     KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfNodes(), 3);
 
-    const int elem_ids[] = {21, 19, 1}; // deliberately not ordered!
+    const int elem_ids[] = {1,19,21};
     const CoSimIO::ElementType elem_types[] = {
         CoSimIO::ElementType::Point2D,
         CoSimIO::ElementType::Point2D,
