@@ -404,8 +404,15 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
             message("-- Found tetgen at ${TETGEN_ZIP_PATH}, skipping...")
         endif(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
 
-        set(Tetgen_FOUND True)
+        add_definitions(-DTETGEN143 )
+        add_definitions(-DTETLIBRARY )
         add_subdirectory(${TETGEN_ROOT})
+
+        set(Tetgen_FOUND True)
+
+        # This is for backwards compatibility
+        set(TETGEN_INCLUDE ${TETGEN_ROOT})
+        set(TETGEN_LIBRARIES tetgen)
     else(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
         # Try to find tetgen installed in the system
         find_package(Tetgen REQUIRED)
@@ -413,7 +420,7 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 
     if(tetgen_FOUND)
         message(FATAL_ERROR "TetGen could not be found. Please use -DUSE_TETGEN_NONFREE_TPL_PATH=[path] or -DUSE_TETGEN_NONFREE_TPL_URL=[url] to indicate the correct TetGen location.")
-    endif(NOT DEFINED tetgen_FOUND)
+    endif(tetgen_FOUND)
 endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 
 if(${USE_MPI} MATCHES ON )
