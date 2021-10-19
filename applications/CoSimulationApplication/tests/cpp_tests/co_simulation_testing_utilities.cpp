@@ -26,7 +26,7 @@ void CheckNodesAreEqual(
 {
     KRATOS_TRY
 
-    KRATOS_CHECK_EQUAL(rKratosNode.Id(), rCoSimIONode.Id());
+    KRATOS_CHECK_EQUAL(rKratosNode.Id(), static_cast<std::size_t>(rCoSimIONode.Id()));
 
     KRATOS_CHECK_DOUBLE_EQUAL(rKratosNode.X(),  rCoSimIONode.X());
     KRATOS_CHECK_DOUBLE_EQUAL(rKratosNode.X0(), rCoSimIONode.X());
@@ -47,7 +47,7 @@ void CheckElementsAreEqual(
     KRATOS_TRY
 
     // basic checks
-    KRATOS_CHECK_EQUAL(rKratosElement.Id(), rCoSimIOElement.Id());
+    KRATOS_CHECK_EQUAL(rKratosElement.Id(), static_cast<std::size_t>(rCoSimIOElement.Id()));
     // KRATOS_CHECK_EQUAL(rKratosElement.Type(), rCoSimIOElement.Type());
     KRATOS_CHECK_EQUAL(rKratosElement.GetGeometry().PointsNumber(), rCoSimIOElement.NumberOfNodes());
 
