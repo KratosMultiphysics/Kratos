@@ -102,7 +102,7 @@ Communicator::UniquePointer ParallelEnvironment::CreateCommunicatorFromGlobalPar
 
 Communicator::UniquePointer ParallelEnvironment::CreateCommunicatorFromGlobalParallelism(
     ModelPart& rModelPart,
-    DataCommunicator& rDataCommunicator)
+    const DataCommunicator& rDataCommunicator)
 {
     ParallelEnvironment& env = GetInstance();
     return env.mCommunicatorReferenceFactory(rModelPart, rDataCommunicator);
@@ -186,7 +186,7 @@ void ParallelEnvironment::RegisterCommunicatorFactoryDetail(std::function<Commun
 }
 
 template<>
-void ParallelEnvironment::RegisterCommunicatorFactoryDetail(std::function<Communicator::UniquePointer(ModelPart&, DataCommunicator&)> CommunicatorFactory)
+void ParallelEnvironment::RegisterCommunicatorFactoryDetail(std::function<Communicator::UniquePointer(ModelPart&, const DataCommunicator&)> CommunicatorFactory)
 {
     mCommunicatorReferenceFactory = CommunicatorFactory;
 }
@@ -199,7 +199,7 @@ ParallelEnvironment::ParallelEnvironment()
         const auto& r_data_communicator = ParallelEnvironment::GetDataCommunicator("Serial");
         return Kratos::make_unique<Communicator>(r_data_communicator);
     });
-    RegisterCommunicatorFactoryDetail<DataCommunicator>([](ModelPart& rModelPart, DataCommunicator& rDataCommunicator)->Communicator::UniquePointer{
+    RegisterCommunicatorFactoryDetail<DataCommunicator>([](ModelPart& rModelPart, const DataCommunicator& rDataCommunicator)->Communicator::UniquePointer{
         KRATOS_ERROR_IF(rDataCommunicator.IsDistributed()) << "Trying to create an serial communicator with a distributed data communicator." << std::endl;
         return Kratos::make_unique<Communicator>(rDataCommunicator);
     });
@@ -390,6 +390,6 @@ template void ParallelEnvironment::RegisterFillCommunicatorFactory<const std::st
 template void ParallelEnvironment::RegisterFillCommunicatorFactory<const DataCommunicator>(std::function<FillCommunicator::Pointer(ModelPart&, const DataCommunicator&)> CommunicatorFactory);
 
 template void ParallelEnvironment::RegisterCommunicatorFactory<const std::string>(std::function<Communicator::UniquePointer(ModelPart&, const std::string&)> CommunicatorFactory);
-template void ParallelEnvironment::RegisterCommunicatorFactory<DataCommunicator>(std::function<Communicator::UniquePointer(ModelPart&, DataCommunicator&)> CommunicatorFactory);
+template void ParallelEnvironment::RegisterCommunicatorFactory<const DataCommunicator>(std::function<Communicator::UniquePointer(ModelPart&, const DataCommunicator&)> CommunicatorFactory);
 
 }

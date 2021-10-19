@@ -160,7 +160,7 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
      */
     static Communicator::UniquePointer CreateCommunicatorFromGlobalParallelism(
       ModelPart& rModelPart,
-      DataCommunicator& rDataCommunicator);
+      const DataCommunicator& rDataCommunicator);
 
     /// Add a new DataCommunicator instance to the ParallelEnvironment.
     /** @param rName The name to be used to identify the DataCommunicator within ParallelEnvironment.
@@ -291,7 +291,7 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 
     std::function<Communicator::UniquePointer(ModelPart&, const std::string&)> mCommunicatorStringFactory;
 
-    std::function<Communicator::UniquePointer(ModelPart&, DataCommunicator&)> mCommunicatorReferenceFactory;
+    std::function<Communicator::UniquePointer(ModelPart&, const DataCommunicator&)> mCommunicatorReferenceFactory;
 
     int mDefaultRank;
     int mDefaultSize;
