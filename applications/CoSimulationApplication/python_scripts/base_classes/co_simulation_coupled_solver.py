@@ -20,7 +20,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
     - holds DataTransferOperators
     - holds CouplingOperations
     - initialization of IOs of solvers
-    - Snychronization of Input and Output
+    - Synchronization of Input and Output
     - Handles the coupling sequence
     """
     def __init__(self, settings, models, solver_name):
@@ -56,7 +56,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
         self.solver_wrappers = self.__CreateSolverWrappers(models)
 
-        # overwritting the Model created in the BaseClass
+        # overwriting the Model created in the BaseClass
         # CoupledSolvers only forward calls to its solvers
         # this is done with the ModelAccessor
         self.model = ModelAccessor(self.solver_wrappers)
@@ -66,6 +66,20 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         for solver in self.solver_wrappers.values():
             solver.CreateIO(self.echo_level)
             # using the Echo_level of the coupled solver, since IO is needed by the coupling
+
+    def _GetSolver(self, solver_name):
+        solver_name, *sub_solver_names = solver_name.split(".")
+        solver = self.solver_wrappers[solver_name]
+        if len(sub_solver_names) > 0:
+            return solver._GetSolver(".".join(sub_solver_names))
+        else:
+            return solver
+
+    def Initialize(self):
+        for solver in self.solver_wrappers.values():
+            solver.Initialize()
+
+        super().Initialize()
 
         ### Creating the predictors
         self.predictors_list = factories_helper.CreatePredictors(
@@ -85,31 +99,11 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             self.settings["data_transfer_operators"],
             self.echo_level)
 
-    def _GetSolver(self, solver_name):
-        solver_name, *sub_solver_names = solver_name.split(".")
-        solver = self.solver_wrappers[solver_name]
-        if len(sub_solver_names) > 0:
-            return solver._GetSolver(".".join(sub_solver_names))
-        else:
-            return solver
-
-    def Initialize(self):
-        for solver in self.solver_wrappers.values():
-            solver.Initialize()
-
-        super().Initialize()
-
         for predictor in self.predictors_list:
             predictor.Initialize()
 
         for coupling_operation in self.coupling_operations_dict.values():
             coupling_operation.Initialize()
-
-    def InitializeCouplingInterfaceData(self):
-        super().InitializeCouplingInterfaceData()
-
-        for solver in self.solver_wrappers.values():
-            solver.InitializeCouplingInterfaceData()
 
     def Finalize(self):
         super().Finalize()
@@ -239,15 +233,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
                     cs_tools.cs_print_info("  Skipped", 'not in interval')
                 return
 
-            if from_solver_data.is_outdated:
-                # Importing data from external solvers (if it is outdated)
-                from_solver_data_config = {
-                    "type" : "coupling_interface_data",
-                    "interface_data" : from_solver_data
-                }
-                from_solver.ImportData(from_solver_data_config)
-                from_solver_data.is_outdated = False
-
             # perform the data transfer
             self.__ExecuteCouplingOperations(i_data["before_data_transfer_operations"])
 
@@ -256,13 +241,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             self.__GetDataTransferOperator(data_transfer_operator_name).TransferData(from_solver_data, to_solver_data, i_data["data_transfer_operator_options"])
 
             self.__ExecuteCouplingOperations(i_data["after_data_transfer_operations"])
-
-            # Exporting data to external solvers
-            to_solver_data_config = {
-                "type" : "coupling_interface_data",
-                "interface_data" : to_solver_data
-            }
-            to_solver.ExportData(to_solver_data_config)
 
 
     def __GetDataTransferOperator(self, data_transfer_operator_name):
@@ -365,7 +343,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "coupling_sequence"        : [],
             "solvers"                  : {},
@@ -373,7 +351,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             "coupling_operations"      : {},
             "data_transfer_operators"  : {}
         }""")
-        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
 
         return this_defaults
 

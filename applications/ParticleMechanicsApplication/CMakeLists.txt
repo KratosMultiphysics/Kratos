@@ -5,7 +5,7 @@ message("**** configuring KratosParticleMechanicsApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 # Define application core sources (pure C++ parts)
 file(GLOB_RECURSE KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE
@@ -19,6 +19,13 @@ file(GLOB_RECURSE KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
+
+# If there is mpi support, use..
+if((${USE_MPI} MATCHES ON) )
+  file( GLOB KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE ${KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi/*.cpp
+  )
+endif((${USE_MPI} MATCHES ON) )
 
 # Define python interface sources
 file(GLOB_RECURSE KRATOS_PARTICLE_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
@@ -37,6 +44,12 @@ pybind11_add_module(KratosParticleMechanicsApplication MODULE THIN_LTO ${KRATOS_
 target_link_libraries(KratosParticleMechanicsApplication PRIVATE KratosParticleMechanicsCore)
 set_target_properties(KratosParticleMechanicsApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosParticleMechanicsCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosParticleMechanicsApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosParticleMechanicsApplication PROPERTIES SUFFIX .pyd)
@@ -46,12 +59,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosParticleMechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosParticleMechanicsCore)
-    cotire(KratosParticleMechanicsApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/ParticleMechanicsApplication.py KratosMultiphysics/ParticleMechanicsApplication/__init__.py )
@@ -75,3 +82,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosParticleMechanicsCore DESTINATION libs )
 install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosParticleMechanicsCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosParticleMechanicsApplication" PARENT_SCOPE)

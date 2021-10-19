@@ -8,12 +8,13 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_io im
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication as KratosCoSim
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication.utilities import model_part_utilities
 
 # Other imports
 import os
 
-def Create(settings, model, solver_name):
-    return EmpireIO(settings, model, solver_name)
+def Create(*args):
+    return EmpireIO(*args)
 
 communication_folder = ".EmpireIO" # hardcoded in C++
 
@@ -46,7 +47,7 @@ class EmpireIO(CoSimulationIO):
 
         if not self.model.HasModelPart(model_part_name):
             main_model_part_name, *sub_model_part_names = model_part_name.split(".")
-            cs_tools.RecursiveCreateModelParts(self.model[main_model_part_name], ".".join(sub_model_part_names))
+            model_part_utilities.RecursiveCreateModelParts(self.model[main_model_part_name], ".".join(sub_model_part_names))
 
         model_part = self.model[model_part_name]
         KratosCoSim.EMPIRE_API.EMPIRE_API_recvMesh(model_part, comm_name)
@@ -69,8 +70,8 @@ class EmpireIO(CoSimulationIO):
         if data_type == "coupling_interface_data":
             interface_data = data_config["interface_data"]
             KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField(interface_data.GetModelPart(), self.solver_name+"_"+interface_data.name, interface_data.variable)
-        elif data_type == "convergence_signal":
-            KratosCoSim.EMPIRE_API.EMPIRE_API_sendConvergenceSignal(data_config["is_converged"], self.solver_name)
+        elif data_type == "repeat_time_step":
+            KratosCoSim.EMPIRE_API.EMPIRE_API_sendConvergenceSignal((not data_config["repeat_time_step"]), self.solver_name)
         else:
             raise NotImplementedError('Exporting interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
 
@@ -81,10 +82,10 @@ class EmpireIO(CoSimulationIO):
         pass
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "api_print_timing" : false
         }""")
-        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
 
         return this_defaults

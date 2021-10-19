@@ -99,7 +99,7 @@ void RansNutKOmegaUpdateProcess::ExecuteAfterCouplingSolveStep()
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
     auto& r_nodes = r_model_part.Nodes();
 
-    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each([&](ModelPart::NodeType& rNode) {
+    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
         const double omega =
             rNode.FastGetSolutionStepValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
         const double tke = rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
@@ -111,9 +111,6 @@ void RansNutKOmegaUpdateProcess::ExecuteAfterCouplingSolveStep()
         } else {
             nu_t = mMinValue;
         }
-
-        rNode.FastGetSolutionStepValue(VISCOSITY) =
-            rNode.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + nu_t;
     });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)

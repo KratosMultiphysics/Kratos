@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, Logger
 import KratosMultiphysics.DEMApplication as DEM
@@ -15,7 +14,7 @@ def GetGlobalVariableByName(variable_name):
     modules = [Kratos, DEM, SDEM]
     for mod in modules:
         try:
-            return getattr(mod, variable_name) #TODO: this could use KratosMultiphysics.KratosGlobals.GetVariable(var_name)
+            return Kratos.KratosGlobals.GetVariable(variable_name)
         except Exception:
             pass
     names = [mod.__name__ for mod in modules]
@@ -208,6 +207,7 @@ class VariablesManager:
         self.dem_vars += self.coupling_dem_vars
         self.dem_vars += [Kratos.BUOYANCY]
         self.dem_vars += [Kratos.VELOCITY_OLD]
+        self.dem_vars += [Kratos.SLIP_VELOCITY]
 
         if self.do_include_history_force:
             self.dem_vars += [Kratos.BASSET_FORCE]
@@ -341,6 +341,15 @@ class VariablesManager:
         # fluid coupling variables
         self.coupling_fluid_vars = []
         self.coupling_fluid_vars += [Kratos.MATERIAL_ACCELERATION]
+        self.coupling_fluid_vars += [Fluid.MASS_SOURCE]
+        self.coupling_fluid_vars += [SDEM.EXACT_VELOCITY]
+        self.coupling_fluid_vars += [SDEM.VECTORIAL_ERROR]
+        self.coupling_fluid_vars += [SDEM.ERROR_X]
+        self.coupling_fluid_vars += [SDEM.ERROR_Y]
+        self.coupling_fluid_vars += [SDEM.ERROR_Z]
+        self.coupling_fluid_vars += [SDEM.ERROR_P]
+        self.coupling_fluid_vars += [SDEM.SCALAR_ERROR]
+        self.coupling_fluid_vars += [SDEM.EXACT_PRESSURE]
 
         self.coupling_fluid_vars += [Kratos.KratosGlobals.GetVariable(parameters["body_force_per_unit_mass_variable_name"].GetString() )]
 
@@ -348,9 +357,10 @@ class VariablesManager:
             self.coupling_fluid_vars += [SDEM.AVERAGED_FLUID_VELOCITY]
 
         if (parameters["custom_fluid"]["fluid_model_type"].GetInt() == 0
-            or parameters["coupling"]["coupling_level_type"].GetInt() > 1):
+            or parameters["coupling"]["coupling_level_type"].GetInt() >= 1):
             self.coupling_fluid_vars += [Kratos.FLUID_FRACTION]
             self.coupling_fluid_vars += [Kratos.FLUID_FRACTION_OLD]
+            self.coupling_fluid_vars += [SDEM.FLUID_FRACTION_OLD_2]
 
             if 'DISPERSE_FRACTION' in self.nodal_results:
                 self.coupling_fluid_vars += [Kratos.DISPERSE_FRACTION]
@@ -428,11 +438,16 @@ class VariablesManager:
 
         if self.do_backward_coupling:
             if parameters["coupling"]["backward_coupling"]["apply_time_filter_to_fluid_fraction_option"].GetBool():
-                self.time_filtered_vars += [Kratos.FLUID_FRACTION_FILTERED]
+                self.time_filtered_vars += [Kratos.FLUID_FRACTION]
 
         if parameters["coupling"]["backward_coupling"]["filter_velocity_option"].GetBool():
             self.time_filtered_vars += [Kratos.PARTICLE_VEL_FILTERED]
 
+        if self.time_filtered_vars:
+            self.coupling_fluid_vars += [Kratos.TIME_AVERAGED_DOUBLE]
+            self.coupling_fluid_vars += [Kratos.TIME_AVERAGED_ARRAY_3]
+            self.coupling_fluid_vars += [SDEM.TIME_AVERAGED_BODY_FORCE]
+            self.time_filtered_vars  += [Kratos.KratosGlobals.GetVariable(parameters["body_force_per_unit_mass_variable_name"].GetString())]
 
     def ChangeListOfFluidNodalResultsToPrint(self, parameters):
         fluid_list = self.project_parameters["fluid_nodal_results"]

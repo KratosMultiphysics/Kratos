@@ -1,6 +1,6 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: G.Casas (gcasas@cimmne.upc.edu) $
+//   Last Modified by:    $Author: G.Casas (gcasas@cimmne.upc.edu)$
 //   Date:                $Date: 2011-6-13 08:56:42 $
 //   Revision:            $Revision: 1.5 $
 //
@@ -28,12 +28,12 @@
 //Database includes
 #include "custom_utilities/search/discrete_particle_configure.h"
 #include "includes/define.h"
-#include "../../DEMApplication/custom_elements/discrete_element.h"
+#include "custom_elements/discrete_element.h"
 #include "custom_elements/swimming_particle.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
-#include "../../DEMApplication/custom_elements/spheric_particle.h"
-#include "../swimming_DEM_application.h"
-#include "../../../kratos/utilities/geometry_utilities.h"
+#include "custom_elements/spheric_particle.h"
+#include "swimming_DEM_application.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -149,7 +149,7 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
             mLastPressureVariation = pressure_spatial_variation;
             const double characteristic_pressure_variation = 0.5 * (pressure_spatial_variation + mLastPressureVariation);
 
-            if (characteristic_pressure_variation == 0.0 || reciprocal_of_characteristic_time == 0.0){ // unlikely
+            if (std::abs(characteristic_pressure_variation) == 0.0 || std::abs(reciprocal_of_characteristic_time) == 0.0){ // unlikely
                 std::cout << "Uniform problem: stationarity check being performed with dimensional values...! " << "\n";
 
                 if (max_pressure_change_rate <= tol){ // go with the absolute value
@@ -161,14 +161,14 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
         }
 
         else {
-            KRATOS_THROW_ERROR(std::runtime_error, "Trying to calculate pressure variations between two coincident time steps! (null time variation since last recorded time)","");
+            KRATOS_ERROR << "Trying to calculate pressure variations between two coincident time steps! (null time variation since last recorded time)" << std::endl;
         }
 
         std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << "\n";
         std::cout << "The stationarity condition tolerance is " << "\n";
-        KRATOS_WATCH(tol)
+        KRATOS_INFO("SwimmingDEM") << tol << std::endl;
         std::cout << "The stationarity residual is now " << "\n";
-        KRATOS_WATCH(max_pressure_change_rate)
+        KRATOS_INFO("SwimmingDEM") << max_pressure_change_rate << std::endl;
         std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << "\n";
 
         return max_pressure_change_rate <= tol;
@@ -179,12 +179,12 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
 //**************************************************************************************************************************************************
 double CalculateDomainVolume(ModelPart& r_fluid_model_part)
 {
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+    OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
     double added_volume = 0.0;
 
     #pragma omp parallel for reduction(+ : added_volume)
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+    for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
             added_volume += CalculateElementalVolume(it->GetGeometry());
@@ -200,17 +200,17 @@ double CalculateDomainVolume(ModelPart& r_fluid_model_part)
 
 void CalculateTotalHydrodynamicForceOnParticles(ModelPart& r_dem_model_part, array_1d <double, 3>& force)
 {
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_dem_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+    OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_dem_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
     std::vector<array_1d <double, 3> > added_force_vect;
-    added_force_vect.resize(OpenMPUtils::GetNumThreads());
+    added_force_vect.resize(ParallelUtilities::GetNumThreads());
 
     for (unsigned int k = 0; k < added_force_vect.size(); ++k){
         added_force_vect[k] = ZeroVector(3);
     }
 
     #pragma omp parallel for
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+    for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_dem_model_part, k); it != GetElementPartitionEnd(r_dem_model_part, k); ++it){
             Geometry< Node<3> >& geom = it->GetGeometry();
@@ -241,12 +241,12 @@ void CalculateTotalHydrodynamicForceOnParticles(ModelPart& r_dem_model_part, arr
 
 void CalculateTotalHydrodynamicForceOnFluid(ModelPart& r_fluid_model_part, array_1d <double, 3>& instantaneous_force, array_1d <double, 3>& mean_force)
 {
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+    OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
     std::vector<array_1d <double, 3> > added_force_vect;
-    added_force_vect.resize(OpenMPUtils::GetNumThreads());
+    added_force_vect.resize(ParallelUtilities::GetNumThreads());
     std::vector<array_1d <double, 3> > added_mean_force_vect;
-    added_mean_force_vect.resize(OpenMPUtils::GetNumThreads());
+    added_mean_force_vect.resize(ParallelUtilities::GetNumThreads());
 
     for (unsigned int k = 0; k < added_force_vect.size(); ++k){
         added_force_vect[k] = ZeroVector(3);
@@ -254,7 +254,7 @@ void CalculateTotalHydrodynamicForceOnFluid(ModelPart& r_fluid_model_part, array
     }
 
     #pragma omp parallel for
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+    for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
             Geometry< Node<3> >& geom = it->GetGeometry();
@@ -298,12 +298,12 @@ void CalculateTotalHydrodynamicForceOnFluid(ModelPart& r_fluid_model_part, array
 
 double CalculateGlobalFluidVolume(ModelPart& r_fluid_model_part)
 {
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+    OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
     double added_fluid_volume = 0.0;
 
     #pragma omp parallel for reduction(+ : added_fluid_volume)
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+    for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
             Geometry< Node<3> >& geom = it->GetGeometry();
@@ -497,19 +497,6 @@ void CopyValuesFromFirstToSecond(ModelPart& r_model_part, const Variable<double>
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-void CopyValuesFromFirstToSecond(ModelPart& r_model_part, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& origin_variable, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& destination_variable)
-{
-    #pragma omp parallel for
-    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
-        ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_node = *(i_particle.base());
-        double& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
-        const double origin_value = p_node->FastGetSolutionStepValue(origin_variable);
-        destination_value = origin_value;
-    }
-}
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
 void CopyValuesFromFirstToSecond(ModelPart& r_model_part, const Variable<array_1d<double, 3>>& origin_variable, const Variable<array_1d<double, 3>>& destination_variable)
 {
     #pragma omp parallel for
@@ -612,7 +599,7 @@ inline double CalculateVol(const double x0, const double y0, const double z0,
 double CalculateElementalVolume(const Geometry<Node <3> >& geom)
 {
     double vol;
-
+    double h;
     if (TDim == 2){
         double x0 = geom[0].X();
         double y0 = geom[0].Y();
@@ -620,7 +607,9 @@ double CalculateElementalVolume(const Geometry<Node <3> >& geom)
         double y1 = geom[1].Y();
         double x2 = geom[2].X();
         double y2 = geom[2].Y();
+
         vol = CalculateArea(x0, y0, x1, y1, x2, y2);
+        h = CalculateDiameter(x0, y0, x1, y1, x2, y2);
     }
 
     else {
@@ -638,13 +627,86 @@ double CalculateElementalVolume(const Geometry<Node <3> >& geom)
         double z3 = geom[3].Z();
 
         vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+        h = CalculateDiameter(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
     }
-
-    if (vol == 0.0){
-        KRATOS_THROW_ERROR(std::logic_error, "element with zero area found with the current geometry ", geom);
+    if (std::abs(vol)/std::pow(h, 3) < std::numeric_limits<double>::epsilon()){
+        KRATOS_ERROR << "Element with zero area found with the current geometry "<< geom << std::endl;
     }
 
     return vol;
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+double CalculateDiameter(const double x0, const double y0,
+                        const double x1, const double y1,
+                        const double x2, const double y2)
+{
+    double x10 = x1 - x0;
+    double y10 = y1 - y0;
+
+    double x12 = x1 - x0;
+    double y12 = y1 - y0;
+
+    double x20 = x2 - x0;
+    double y20 = y2 - y0;
+
+    double dist_10 = std::sqrt(std::pow(x10,2) + std::pow(y10,2));
+    double dist_12 = std::sqrt(std::pow(x12,2) + std::pow(y12,2));
+    double dist_20 = std::sqrt(std::pow(x20,2) + std::pow(y20,2));
+
+    double arr[] = {dist_10, dist_12, dist_20};
+
+    double *max = std::max_element(std::begin(arr), std::end(arr));
+
+    return *max;
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+double CalculateDiameter(const double x0, const double y0, const double z0,
+                        const double x1, const double y1, const double z1,
+                        const double x2, const double y2, const double z2,
+                        const double x3, const double y3, const double z3)
+{
+    double x10 = x1 - x0;
+    double y10 = y1 - y0;
+    double z10 = z1 - z0;
+
+    double x12 = x1 - x0;
+    double y12 = y1 - y0;
+    double z12 = z1 - z0;
+
+    double x13 = x1 - x3;
+    double y13 = y1 - y3;
+    double z13 = z1 - z3;
+
+    double x20 = x2 - x0;
+    double y20 = y2 - y0;
+    double z20 = z2 - z0;
+
+    double x23 = x2 - x3;
+    double y23 = y2 - y3;
+    double z23 = z2 - z3;
+
+    double x30 = x3 - x0;
+    double y30 = y3 - y0;
+    double z30 = z3 - z0;
+
+    double dist_10 = std::sqrt(std::pow(x10,2) + std::pow(y10,2) + std::pow(z10,2));
+    double dist_12 = std::sqrt(std::pow(x12,2) + std::pow(y12,2) + std::pow(z12,2));
+    double dist_13 = std::sqrt(std::pow(x13,2) + std::pow(y13,2) + std::pow(z13,2));
+    double dist_20 = std::sqrt(std::pow(x20,2) + std::pow(y20,2) + std::pow(z20,2));
+    double dist_23 = std::sqrt(std::pow(x23,2) + std::pow(y23,2) + std::pow(z23,2));
+    double dist_30 = std::sqrt(std::pow(x30,2) + std::pow(y30,2) + std::pow(z30,2));
+
+    double arr[] = {dist_10, dist_12, dist_13, dist_20, dist_23, dist_30};
+
+    double *max = std::max_element(std::begin(arr), std::end(arr));
+
+    return *max;
 }
 
 //**************************************************************************************************************************************************
@@ -672,9 +734,7 @@ double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >&
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    if (vol == 0.0){
-        KRATOS_THROW_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
-    }
+    KRATOS_ERROR_IF(std::abs(vol) == 0.0) << "Element with zero area found. Its geometry is given by "<< geom << std::endl;
 
     N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
     N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
@@ -715,9 +775,7 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    if (vol == 0.0){
-        KRATOS_THROW_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
-    }
+    KRATOS_ERROR_IF(std::abs(vol) == 0.0) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
 
     N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
     N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
@@ -758,9 +816,7 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMas
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    if (vol == 0.0){
-        KRATOS_THROW_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
-    }
+    KRATOS_ERROR_IF(std::abs(vol) == 0.0) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
 
     N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
     N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);

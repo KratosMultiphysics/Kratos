@@ -9,6 +9,9 @@
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_ExponentialHC : public DEMContinuumConstitutiveLaw {
+
+        typedef DEMContinuumConstitutiveLaw BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_ExponentialHC);
@@ -24,7 +27,7 @@ namespace Kratos {
         double mGamma3;
         double mMaxDef;
 
-        void Initialize(SphericContinuumParticle* owner_sphere) override;
+        void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps) override;
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 

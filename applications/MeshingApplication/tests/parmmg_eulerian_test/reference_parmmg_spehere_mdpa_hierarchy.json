@@ -1,0 +1,176 @@
+{
+    "2": {
+        "MainModelPart": {
+            "nodes": 22,
+            "elements": 44,
+            "conditions": 20,
+            "properties": 0,
+            "sub_model_parts": {
+                "SurfaceLoad3D_Load_on_surfaces_Auto8": {
+                    "nodes": 4,
+                    "elements": 0,
+                    "conditions": 2,
+                    "properties": 0
+                },
+                "SurfaceLoad3D_Load_on_surfaces_Auto7": {
+                    "nodes": 4,
+                    "elements": 0,
+                    "conditions": 2,
+                    "properties": 0
+                },
+                "Parts_Solid_Solid_Auto1": {
+                    "nodes": 12,
+                    "elements": 20,
+                    "conditions": 0,
+                    "properties": 0
+                },
+                "Parts_Solid_Solid_Auto2": {
+                    "nodes": 14,
+                    "elements": 24,
+                    "conditions": 0,
+                    "properties": 0
+                },
+                "SurfaceLoad3D_Load_on_surfaces_Auto3": {
+                    "nodes": 4,
+                    "elements": 0,
+                    "conditions": 2,
+                    "properties": 0
+                },
+                "SurfaceLoad3D_Load_on_surfaces_Auto5": {
+                    "nodes": 8,
+                    "elements": 0,
+                    "conditions": 6,
+                    "properties": 0
+                },
+                "SurfaceLoad3D_Load_on_surfaces_Auto6": {
+                    "nodes": 8,
+                    "elements": 0,
+                    "conditions": 6,
+                    "properties": 0
+                },
+                "SurfaceLoad3D_Load_on_surfaces_Auto4": {
+                    "nodes": 4,
+                    "elements": 0,
+                    "conditions": 2,
+                    "properties": 0
+                }
+            }
+        }
+    },
+    "3": {
+        "MainModelPart": {
+            "nodes": 19,
+            "elements": 37,
+            "conditions": 20,
+            "properties": 0,
+            "sub_model_parts": {
+                "SurfaceLoad3D_Load_on_surfaces_Auto8": {
+                    "nodes": 4,
+                    "elements": 0,
+                    "conditions": 2,
+                    "properties": 0
+                },
+                "SurfaceLoad3D_Load_on_surfaces_Auto7": {
+                    "nodes": 4,
+                    "elements": 0,
+                    "conditions": 2,
+                    "properties": 0
+                },
+                "Parts_Solid_Solid_Auto1": {
+                    "nodes": 10,
+                    "elements": 15,
+                    "conditions": 0,
+                    "properties": 0
+                },
+                "Parts_Solid_Solid_Auto2": {
+                    "nodes": 13,
+                    "elements": 22,
+                    "conditions": 0,
+                    "properties": 0
+                },
+                "SurfaceLoad3D_Load_on_surfaces_Auto3": {
+                    "nodes": 4,
+                    "elements": 0,
+                    "conditions": 2,
+                    "properties": 0
+                },
+                "SurfaceLoad3D_Load_on_surfaces_Auto5": {
+                    "nodes": 8,
+                    "elements": 0,
+                    "conditions": 6,
+                    "properties": 0
+                },
+                "SurfaceLoad3D_Load_on_surfaces_Auto6": {
+                    "nodes": 8,
+                    "elements": 0,
+                    "conditions": 6,
+                    "properties": 0
+                },
+                "SurfaceLoad3D_Load_on_surfaces_Auto4": {
+                    "nodes": 4,
+                    "elements": 0,
+                    "conditions": 2,
+                    "properties": 0
+                }
+            }
+        }
+    },
+        "4": {
+        "MainModelPart": {
+            "nodes": 21,
+            "elements": 47,
+            "conditions": 20,
+            "properties": 0,
+            "sub_model_parts": {
+                "SurfaceLoad3D_Load_on_surfaces_Auto8": {
+                    "nodes": 4,
+                    "elements": 0,
+                    "conditions": 2,
+                    "properties": 0
+                },
+                "SurfaceLoad3D_Load_on_surfaces_Auto7": {
+                    "nodes": 4,
+                    "elements": 0,
+                    "conditions": 2,
+                    "properties": 0
+                },
+                "Parts_Solid_Solid_Auto1": {
+                    "nodes": 14,
+                    "elements": 29,
+                    "conditions": 0,
+                    "properties": 0
+                },
+                "Parts_Solid_Solid_Auto2": {
+                    "nodes": 11,
+                    "elements": 18,
+                    "conditions": 0,
+                    "properties": 0
+                },
+                "SurfaceLoad3D_Load_on_surfaces_Auto3": {
+                    "nodes": 4,
+                    "elements": 0,
+                    "conditions": 2,
+                    "properties": 0
+                },
+                "SurfaceLoad3D_Load_on_surfaces_Auto5": {
+                    "nodes": 8,
+                    "elements": 0,
+                    "conditions": 6,
+                    "properties": 0
+                },
+                "SurfaceLoad3D_Load_on_surfaces_Auto6": {
+                    "nodes": 8,
+                    "elements": 0,
+                    "conditions": 6,
+                    "properties": 0
+                },
+                "SurfaceLoad3D_Load_on_surfaces_Auto4": {
+                    "nodes": 4,
+                    "elements": 0,
+                    "conditions": 2,
+                    "properties": 0
+                }
+            }
+        }
+    }
+}

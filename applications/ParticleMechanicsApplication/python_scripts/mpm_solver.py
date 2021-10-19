@@ -30,7 +30,7 @@ class MPMSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ", "Solver is constructed correctly.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""
         {
             "model_part_name" : "MPM_Material",
@@ -89,7 +89,7 @@ class MPMSolver(PythonSolver):
                 "coarse_enough" : 50
             }
         }""")
-        this_defaults.AddMissingParameters(super(MPMSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(MPMSolver, cls).GetDefaultParameters())
         return this_defaults
 
     ### Solver public functions
@@ -435,7 +435,15 @@ class MPMSolver(PythonSolver):
     ### Solver private functions
 
     def __ComputeDeltaTime(self):
-        return self.settings["time_stepping"]["time_step"].GetDouble()
+        if self.settings["time_stepping"].Has("time_step"):
+            return self.settings["time_stepping"]["time_step"].GetDouble()
+        elif self.settings["time_stepping"].Has("time_step_table"):
+            current_time = self.grid_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            time_step_table = self.settings["time_stepping"]["time_step_table"].GetMatrix()
+            tb = KratosMultiphysics.PiecewiseLinearTable(time_step_table)
+            return tb.GetValue(current_time)
+        else:
+            raise Exception("::[ParticleSolver]:: Time stepping not defined!")
 
     def __ExecuteCheckAndPrepare(self):
         # Specific active node and element check for particle MPM solver

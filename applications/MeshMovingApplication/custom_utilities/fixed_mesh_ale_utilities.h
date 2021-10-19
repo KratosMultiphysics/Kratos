@@ -29,7 +29,7 @@
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "spaces/ublas_space.h"
 
 // Application includes
@@ -75,7 +75,7 @@ namespace Kratos
  * as a projection from the virtual mesh. This is required to consistently
  * initialize the historical values when nodes change its topological status.
  */
-class FixedMeshALEUtilities
+class KRATOS_API(MESH_MOVING_APPLICATION) FixedMeshALEUtilities
 {
 public:
     ///@name Type Definitions
@@ -288,7 +288,7 @@ private:
      * Return the default FM-ALE settings
      * @return Parameters json string encapsulation the default settings
      */
-    Parameters GetDefaultSettings();
+    Parameters GetDefaultParameters();
 
     /**
      * @brief Set the Linear Solver Pointer object

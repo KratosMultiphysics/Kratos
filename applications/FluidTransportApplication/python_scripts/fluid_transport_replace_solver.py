@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 # Importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics.FluidTransportApplication.fluid_transport_solver import FluidTransportSolver
+from KratosMultiphysics.FluidTransportApplication import check_and_prepare_model_process_convection_diffusion as check_and_prepare_model_process
 
 # Import applications
 
@@ -19,7 +20,7 @@ class FluidTransportReplaceSolver(FluidTransportSolver):
         super(FluidTransportReplaceSolver,self).__init__(model, custom_settings)
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type": "fluid_transport_solver",
             "model_part_name": "FluidTransportDomain",
@@ -71,7 +72,7 @@ class FluidTransportReplaceSolver(FluidTransportSolver):
             "processes_sub_model_part_list": [""]
         }""")
 
-        this_defaults.AddMissingParameters(super(FluidTransportReplaceSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(FluidTransportReplaceSolver, cls).GetDefaultParameters())
         return this_defaults
 
     def PrepareModelPart(self):
@@ -131,7 +132,6 @@ class FluidTransportReplaceSolver(FluidTransportSolver):
         params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
         params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
         # Assign mesh entities from domain and process sub model parts to the computing model part.
-        from KratosMultiphysics.ConvectionDiffusionApplication import check_and_prepare_model_process_convection_diffusion as check_and_prepare_model_process
         check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # Import constitutive laws.

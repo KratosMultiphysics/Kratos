@@ -25,9 +25,6 @@ namespace Kratos
 {
 KratosRANSApplication::KratosRANSApplication()
     : KratosApplication("RANSApplication"),
-      // Fractionalstep elements
-      mRansFractionalStep2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mRansFractionalStep3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       // incompressible potential flow elements
       mIncompressiblePotentialFlowVelocity2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mIncompressiblePotentialFlowVelocity3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
@@ -148,7 +145,7 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( TURBULENCE_RANS_A1 )
     KRATOS_REGISTER_VARIABLE( TURBULENCE_RANS_BETA_1 )
     KRATOS_REGISTER_VARIABLE( TURBULENCE_RANS_BETA_2 )
-    KRATOS_REGISTER_VARIABLE( WALL_VON_KARMAN )
+    KRATOS_REGISTER_VARIABLE( VON_KARMAN )
 
     // formulation specific variables
     KRATOS_REGISTER_VARIABLE( ANALYSIS_STEPS )
@@ -156,10 +153,6 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( NUMBER_OF_NEIGHBOUR_CONDITIONS )
 
     // registering elements
-    // registering fractional step elements
-    KRATOS_REGISTER_ELEMENT("RansFractionalStep2D3N", mRansFractionalStep2D);
-    KRATOS_REGISTER_ELEMENT("RansFractionalStep3D4N", mRansFractionalStep3D);
-
     // registering incompressible potential flow elements
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity2D3N", mIncompressiblePotentialFlowVelocity2D);
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity3D4N", mIncompressiblePotentialFlowVelocity3D);
@@ -245,5 +238,8 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall2D2N", mRansKOmegaOmegaUBasedWall2D2N);
     KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall3D3N", mRansKOmegaOmegaUBasedWall3D3N);
 
+    // registering constitutive laws
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansNewtonian2DLaw", mRansNewtonian2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RansNewtonian3DLaw", mRansNewtonian3DLaw);
 }
 } // namespace Kratos.

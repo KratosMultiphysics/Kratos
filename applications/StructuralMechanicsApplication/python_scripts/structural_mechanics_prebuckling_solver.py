@@ -26,7 +26,7 @@ class PrebucklingSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[PrebucklingSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "buckling_settings"     : {
                 "initial_load_increment"    : 1.0,
@@ -43,7 +43,7 @@ class PrebucklingSolver(MechanicalSolver):
                 "echo_level"            : 1
             }
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     #### Private functions ####
@@ -80,9 +80,9 @@ class PrebucklingSolver(MechanicalSolver):
     # Builder and Solver Static
     def _create_builder_and_solver(self):
         """This method is overridden to make sure it always uses ResidualBasedEliminationBuilderAndSolver"""
-        if self.settings["block_builder"].GetBool():
+        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             warn_msg = '"Elimination Builder is required. \n'
-            warn_msg += '"block_builder" specification will be ignored'
+            warn_msg += '"use_block_builder" specification will be ignored'
             KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsPrebucklingAnalysis; Warning", warn_msg)
         linear_solver = self.get_linear_solver()
         builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)

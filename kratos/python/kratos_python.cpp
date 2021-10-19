@@ -23,7 +23,6 @@
 #include "add_model_part_to_python.h"
 #include "add_kernel_to_python.h"
 #include "add_deprecated_variables_to_python.h"
-#include "add_c2c_variables_to_python.h"
 #include "add_cfd_variables_to_python.h"
 #include "add_mesh_moving_variables_to_python.h"
 #include "add_mapping_variables_to_python.h"
@@ -50,6 +49,7 @@
 #include "add_serializer_to_python.h"
 #include "add_table_to_python.h"
 #include "add_strategies_to_python.h"
+#include "add_convergence_accelerators_to_python.h"
 #include "add_geometrical_utilities_to_python.h"
 #include "add_other_utilities_to_python.h"
 #include "add_variable_utils_to_python.h"
@@ -66,6 +66,7 @@
 #include "add_parallel_environment_to_python.h"
 #include "add_global_pointers_to_python.h"
 #include "add_dofs_to_python.h"
+#include "add_mapper_to_python.h"
 
 namespace Kratos
 {
@@ -99,7 +100,6 @@ PYBIND11_MODULE(Kratos, m)
     AddCFDVariablesToPython(m);
     AddDEMVariablesToPython(m);
     AddALEVariablesToPython(m);
-    AddC2CVariablesToPython(m);
     AddFSIVariablesToPython(m);
     AddMappingVariablesToPython(m);
     AddMATVariablesToPython(m);
@@ -117,6 +117,7 @@ PYBIND11_MODULE(Kratos, m)
     AddFactoriesToPython(m);
     AddAMGCLSolverToPython(m);
     AddStrategiesToPython(m);
+    AddConvergenceAcceleratorsToPython(m);
     AddGeometricalUtilitiesToPython(m);
     AddOtherUtilitiesToPython(m);
     AddVariableUtilsToPython(m);
@@ -137,6 +138,7 @@ PYBIND11_MODULE(Kratos, m)
     AddCommunicatorToPython(m);
     AddDataCommunicatorToPython(m);
     AddParallelEnvironmentToPython(m);
+    AddMapperToPython(m);
 
     m.def("Hello", Hello);
 }

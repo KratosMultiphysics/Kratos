@@ -41,7 +41,7 @@ public:
 
     Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const override;
 
-    void InitializeSolutionStep(ProcessInfo& r_process_info) override;
+    void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
 
     int CheckSide(SphericParticle* p_particle) override;
     bool IsPhantom() override {return true;}

@@ -67,7 +67,7 @@ void RansComputeReactionsProcess::CorrectPeriodicNodes(
 
     auto& r_nodes = rModelPart.Nodes();
 
-    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each([&](ModelPart::NodeType& rNode) {
+    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
         if (rNode.Is(PERIODIC)) {
             const int slave_id = rNode.FastGetSolutionStepValue(PATCH_INDEX);
             const int master_id = rNode.Id();
@@ -107,21 +107,18 @@ void RansComputeReactionsProcess::ExecuteFinalizeSolutionStep()
 
     auto& r_conditions = r_model_part.Conditions();
 
-    BlockPartition<ModelPart::ConditionsContainerType>(r_conditions)
-        .for_each([&](ModelPart::ConditionType& rCondition) {
+    block_for_each(r_conditions, [&](ModelPart::ConditionType& rCondition) {
             CalculateReactionValues(rCondition);
         });
 
     r_model_part.GetCommunicator().AssembleCurrentData(REACTION);
     this->CorrectPeriodicNodes(r_model_part, REACTION);
 
-    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each(
-        [&](ModelPart::NodeType& rNode) {
-            const auto& pressure_force =
-                rNode.FastGetSolutionStepValue(NORMAL) *
-                (-1.0 * rNode.FastGetSolutionStepValue(PRESSURE));
-            rNode.FastGetSolutionStepValue(REACTION) += pressure_force;
-        });
+    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
+        const array_1d<double, 3>& pressure_force = rNode.FastGetSolutionStepValue(NORMAL) *
+                                     (rNode.FastGetSolutionStepValue(PRESSURE) * -1.0);
+        rNode.FastGetSolutionStepValue(REACTION) += pressure_force;
+    });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
         << "Computed Reaction terms for " << mModelPartName << " for slip condition.\n";
@@ -137,10 +134,6 @@ int RansComputeReactionsProcess::Check()
 
     KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(REACTION))
         << "REACTION is not found in nodal solution step variables list of "
-        << mModelPartName << ".";
-
-    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(DENSITY))
-        << "DENSITY is not found in nodal solution step variables list of "
         << mModelPartName << ".";
 
     KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(PRESSURE))
@@ -175,22 +168,19 @@ void RansComputeReactionsProcess::CalculateReactionValues(
 {
     const auto& r_friction_velocity = rCondition.GetValue(FRICTION_VELOCITY);
     const double u_tau = norm_2(r_friction_velocity);
-    auto& r_geometry = rCondition.GetGeometry();
 
-    const IndexType number_of_nodes = r_geometry.PointsNumber();
+    if (u_tau > 0.0) {
+        auto& r_geometry = rCondition.GetGeometry();
+        const double rho = r_geometry.GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties().GetValue(DENSITY);
+        const IndexType number_of_nodes = r_geometry.PointsNumber();
+        for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
+            auto& r_node = r_geometry[i_node];
 
-    for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        auto& r_node = r_geometry[i_node];
-        const double rho = r_node.FastGetSolutionStepValue(DENSITY);
-
-        if (u_tau > 0.0)
-        {
             const double shear_force = rho * std::pow(u_tau, 2) *
                                        r_geometry.DomainSize() /
                                        static_cast<double>(number_of_nodes);
             r_node.SetLock();
-            r_node.FastGetSolutionStepValue(REACTION) +=
+            r_node.FastGetSolutionStepValue(REACTION) -=
                 r_friction_velocity * (shear_force / u_tau);
             r_node.UnSetLock();
         }

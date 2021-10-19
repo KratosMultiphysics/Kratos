@@ -285,13 +285,7 @@ class FluidSolver(PythonSolver):
         return self._solution_strategy
 
     def _CreateEstimateDtUtility(self):
-        domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        if domain_size == 2:
-            estimate_dt_utility = KratosCFD.EstimateDtUtility2D(
-                self.GetComputingModelPart(),
-                self.settings["time_stepping"])
-        else:
-            estimate_dt_utility = KratosCFD.EstimateDtUtility3D(
+        estimate_dt_utility = KratosCFD.EstimateDtUtility(
                 self.GetComputingModelPart(),
                 self.settings["time_stepping"])
 
@@ -371,15 +365,39 @@ class FluidSolver(PythonSolver):
         return builder_and_solver
 
     def _CreateSolutionStrategy(self):
+        analysis_type = self.settings["analysis_type"].GetString()
+        if analysis_type == "linear":
+            solution_strategy = self._CreateLinearStrategy()
+        elif analysis_type == "non_linear":
+            solution_strategy = self._CreateNewtonRaphsonStrategy()
+        else:
+            err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
+            err_msg += "Available options are: \"linear\", \"non_linear\""
+            raise Exception(err_msg)
+        return solution_strategy
+
+    def _CreateLinearStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         time_scheme = self._GetScheme()
-        linear_solver = self._GetLinearSolver()
+        builder_and_solver = self._GetBuilderAndSolver()
+        calculate_norm_dx = False
+        return KratosMultiphysics.ResidualBasedLinearStrategy(
+            computing_model_part,
+            time_scheme,
+            builder_and_solver,
+            self.settings["compute_reactions"].GetBool(),
+            self.settings["reform_dofs_at_each_step"].GetBool(),
+            calculate_norm_dx,
+            self.settings["move_mesh_flag"].GetBool())
+
+    def _CreateNewtonRaphsonStrategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        time_scheme = self._GetScheme()
         convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self._GetBuilderAndSolver()
         return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
             computing_model_part,
             time_scheme,
-            linear_solver,
             convergence_criterion,
             builder_and_solver,
             self.settings["maximum_iterations"].GetInt(),

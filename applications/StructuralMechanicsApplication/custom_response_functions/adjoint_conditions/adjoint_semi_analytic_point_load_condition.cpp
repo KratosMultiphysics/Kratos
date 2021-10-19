@@ -20,6 +20,7 @@
 
 #include "adjoint_semi_analytic_point_load_condition.h"
 #include "structural_mechanics_application_variables.h"
+#include "includes/variables.h"
 #include "custom_conditions/point_load_condition.h"
 
 namespace Kratos

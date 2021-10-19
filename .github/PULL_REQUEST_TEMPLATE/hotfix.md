@@ -1,5 +1,5 @@
 ---
-name: Hotfix
+name: ✨ Hotfix
 about: Quick bugfix with very localized and low impact changes.
 
 ---
@@ -12,6 +12,3 @@ If it has an associated issue please add "Fixes #XXXX".
 Please summarize the change in one line to generate the changelog:
 E.g.
 - Fixed Y (#XXXX)
-
-**Additional info**
-Add any other releavant information here.

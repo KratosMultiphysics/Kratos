@@ -1,5 +1,5 @@
 ---
-name: Bug report
+name: 🐛 Bug report
 about: Report a bug, problem, issue or a missing feature
 labels: bug
 
@@ -28,6 +28,3 @@ E.g.:
 - OS: Ubuntu 18.04
 - Branch: master
 - Python 3.7
-
-**Additional info**
-Add any other releavant information here.

@@ -55,11 +55,13 @@ namespace Kratos {
         mListOfRadii.clear();
     }
 
-    void Cluster3D::Initialize(ProcessInfo& r_process_info) {
+    void Cluster3D::Initialize(const ProcessInfo& r_process_info) {
 
         RigidBodyElement3D::Initialize(r_process_info);
 
-        const double cl = GetGeometry()[0].FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
+        auto& central_node = GetGeometry()[0];
+
+        const double cl = central_node.FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
 
 	    KRATOS_ERROR_IF_NOT(GetProperties().Has(CLUSTER_INFORMATION))<<"Something went wrong. Properties do not contain CLUSTER_INFORMATION.";
         const ClusterInformation& cl_info = GetProperties()[CLUSTER_INFORMATION];
@@ -89,32 +91,32 @@ namespace Kratos {
         const double cluster_volume = reference_volume * scaling_factor*scaling_factor*scaling_factor;
         const double cluster_mass = particle_density * cluster_volume;
 
-        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
-        GetGeometry()[0].FastGetSolutionStepValue(CLUSTER_VOLUME) = cluster_volume;
-        GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = this->SlowGetParticleMaterial();
+        central_node.FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
+        central_node.FastGetSolutionStepValue(CLUSTER_VOLUME) = cluster_volume;
+        central_node.FastGetSolutionStepValue(PARTICLE_MATERIAL) = this->SlowGetParticleMaterial();
 
         const double squared_scaling_factor_times_density = scaling_factor * scaling_factor * particle_density;
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = reference_inertias[0] * cluster_volume * squared_scaling_factor_times_density;
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = reference_inertias[1] * cluster_volume * squared_scaling_factor_times_density;
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = reference_inertias[2] * cluster_volume * squared_scaling_factor_times_density;
+        central_node.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = reference_inertias[0] * cluster_volume * squared_scaling_factor_times_density;
+        central_node.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = reference_inertias[1] * cluster_volume * squared_scaling_factor_times_density;
+        central_node.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = reference_inertias[2] * cluster_volume * squared_scaling_factor_times_density;
 
-        array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+        array_1d<double, 3> base_principal_moments_of_inertia = central_node.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
 
-        Quaternion<double>& Orientation = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION);
+        Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
         Orientation.normalize();
 
-        array_1d<double, 3> angular_velocity = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        array_1d<double, 3> angular_velocity = central_node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
         array_1d<double, 3> angular_momentum;
         double LocalTensor[3][3];
         double GlobalTensor[3][3];
         GeometryFunctions::ConstructLocalTensor(base_principal_moments_of_inertia, LocalTensor);
         GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensor, GlobalTensor);
         GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensor, angular_velocity, angular_momentum);
-        noalias(this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_MOMENTUM)) = angular_momentum;
+        noalias(central_node.FastGetSolutionStepValue(ANGULAR_MOMENTUM)) = angular_momentum;
 
         array_1d<double, 3> local_angular_velocity;
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
-        noalias(this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
+        noalias(central_node.FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
     }
 
     void Cluster3D::CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties, const bool continuum_strategy) {
@@ -129,14 +131,17 @@ namespace Kratos {
         std::string ElementNameString;
         bool breakable = false;
         bool contact_info_element = false;
+        bool beam_element = false;
         if (GetProperties()[BREAKABLE_CLUSTER]) breakable = true;
         if (GetProperties()[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] == "DEM_D_Conical_damage" || GetProperties()[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] == "DEM_D_Stress_Dependent_Cohesive") contact_info_element = true;
+        if (GetProperties()[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] == "DEMBeamConstitutiveLaw") beam_element = true;
 
         if (continuum_strategy) ElementNameString= "SphericContinuumParticle3D";
         else if (contact_info_element) ElementNameString= "ContactInfoSphericParticle3D";
+        else if (beam_element) ElementNameString= "BeamParticle3D";
         else ElementNameString= "SphericParticle3D";
 
-        if (!continuum_strategy && breakable) KRATOS_THROW_ERROR(std::runtime_error,"Breakable cluster elements are being used inside a non-deformable strategy. The program will now stop.","")
+        KRATOS_ERROR_IF(!continuum_strategy && breakable) << "Breakable cluster elements are being used inside a non-deformable strategy. The program will now stop." << std::endl;
 
         //We now create a spheric particle and keep it as a reference to an Element
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
@@ -318,6 +323,7 @@ namespace Kratos {
             center_torque[1] += additional_torque[1];
             center_torque[2] += additional_torque[2];
         }
+        central_node.FastGetSolutionStepValue(CONTACT_FORCES) = center_forces;
     }
 
     void Cluster3D::SetContinuumGroupToBreakableClusterSpheres(const int Id) {

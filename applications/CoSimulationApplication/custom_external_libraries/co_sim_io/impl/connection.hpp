@@ -10,8 +10,8 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#ifndef CO_SIM_IO_CONNECTION_H_INCLUDED
-#define CO_SIM_IO_CONNECTION_H_INCLUDED
+#ifndef CO_SIM_IO_CONNECTION_INCLUDED
+#define CO_SIM_IO_CONNECTION_INCLUDED
 
 // Optional includes
 #ifdef CO_SIM_IO_USING_SOCKETS
@@ -45,32 +45,23 @@ public:
 
     using FunctionPointerType = std::function<Info(const Info&)>;
 
-    explicit Connection(const std::string& rName, const Info& I_Settings) : mConnectionName(rName)
+    explicit Connection(const Info& I_Settings)
     {
         Initialize(I_Settings);
     }
 
-    Info Connect()
+    Info Connect(const Info& I_Info)
     {
-        /*const bool is_connected = */mpComm->Connect();
-        Info info; // TODO in the future probably it makes more sense that the mpComm can directly return the Info to potentionally populate it e.g. with error codes
+        Info info = mpComm->Connect(I_Info);
         info.Set<int>("connection_status", ConnectionStatus::Connected);
         return info;
     }
 
-    Info Disconnect()
+    Info Disconnect(const Info& I_Info)
     {
-        /*const bool is_disconnected = */mpComm->Disconnect();
-        Info info; // TODO in the future probably it makes more sense that the mpComm can directly return the Info to potentionally populate it e.g. with error codes
+        Info info = mpComm->Disconnect(I_Info);
         info.Set<int>("connection_status", ConnectionStatus::Disconnected);
         return info;
-    }
-
-    Info SendControlSignal(const std::string& rIdentifier, const CoSimIO::ControlSignal Signal)
-    {
-        CO_SIM_IO_ERROR_IF_NOT(mIsConnectionMaster) << "This function can only be called as the Connection-Master!" << std::endl;
-        mpComm->SendControlSignal(rIdentifier, Signal);
-        return Info(); // TODO use this
     }
 
     Info Register(
@@ -79,9 +70,7 @@ public:
     {
         CO_SIM_IO_INFO("CoSimIO") << "Registering function for: " << rFunctionName << std::endl;
 
-        CO_SIM_IO_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-
-        CheckIfFunctionNameIsValid(rFunctionName);
+        CheckIfNameIsValid(rFunctionName);
 
         CO_SIM_IO_ERROR_IF((mRegisteredFunctions.count(rFunctionName)>0)) << "A function was already registered for " << rFunctionName << "!" << std::endl;
 
@@ -89,117 +78,93 @@ public:
         return Info(); // TODO use this
     }
 
-    Info Run()
+    Info Run(const Info& I_Info)
     {
-        CO_SIM_IO_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
+        CoSimIO::Info ctrl_info;
+        ctrl_info.Set("identifier", "run_control");
 
-        CoSimIO::ControlSignal control_signal;
-        std::string identifier;
         while(true) {
-            control_signal = RecvControlSignal(identifier);
-            //TODO check if received signal is valid
-            if (control_signal == CoSimIO::ControlSignal::BreakSolutionLoop) {
-                break; // coupled simulation is done
+            Info info = ImportInfo(ctrl_info);
+            const std::string control_signal = info.Get<std::string>("control_signal");
+            CheckIfNameIsValid(control_signal);
+            if (control_signal == "exit") {
+                break;
             } else {
-                const std::string function_name(ControlSignalName(control_signal));
-                CO_SIM_IO_ERROR_IF_NOT((mRegisteredFunctions.count(function_name)>0)) << "No function was registered for \"" << function_name << "\"!" << std::endl;
-                Info info;
-                mRegisteredFunctions.at(function_name)(info);
+                auto it_fct = mRegisteredFunctions.find(control_signal);
+                if (it_fct == mRegisteredFunctions.end()) {
+                    std::stringstream err_msg;
+                    err_msg << "Nothing was registered for \"" << control_signal << "\"!\nOnly the following names are currently registered:";
+                    for (const auto& reg : mRegisteredFunctions) {
+                        err_msg << "\n    " << reg.first;
+                    }
+                    err_msg << "\n    end" << std::endl;
+                    CO_SIM_IO_ERROR << err_msg.str();
+                }
+                it_fct->second(info.Get<Info>("settings", Info{})); // pass settings if specified
+
             }
         }
         return Info(); // TODO use this
     }
 
-    bool IsConverged()
+
+    template<class... Args>
+    Info ImportInfo(Args&&... args)
     {
-        std::string dummy("");
-        return (RecvControlSignal(dummy) == CoSimIO::ControlSignal::ConvergenceAchieved);
+        return mpComm->ImportInfo(std::forward<Args>(args)...);
     }
 
-
+    template<class... Args>
+    Info ExportInfo(Args&&... args)
+    {
+        return mpComm->ExportInfo(std::forward<Args>(args)...);
+    }
     template<class... Args>
     Info ImportData(Args&&... args)
     {
-        mpComm->ImportData(std::forward<Args>(args)...);
-
-        return Info(); // TODO use this
+        return mpComm->ImportData(std::forward<Args>(args)...);
     }
 
     template<class... Args>
     Info ExportData(Args&&... args)
     {
-        mpComm->ExportData(std::forward<Args>(args)...);
-
-        return Info(); // TODO use this
+        return mpComm->ExportData(std::forward<Args>(args)...);
     }
 
     template<class... Args>
     Info ImportMesh(Args&&... args)
     {
-        mpComm->ImportMesh(std::forward<Args>(args)...);
-
-        return Info(); // TODO use this
+        return mpComm->ImportMesh(std::forward<Args>(args)...);
     }
 
     template<class... Args>
     Info ExportMesh(Args&&... args)
     {
-        mpComm->ExportMesh(std::forward<Args>(args)...);
-
-        return Info(); // TODO use this
-    }
-
-    template<class... Args>
-    Info ImportGeometry(Args&&... args)
-    {
-        CO_SIM_IO_ERROR << "Importing of Geometry is not yet implemented!" << std::endl;
-        mpComm->ImportGeometry(std::forward<Args>(args)...);
-
-        return Info(); // TODO use this
-    }
-
-    template<class... Args>
-    Info ExportGeometry(Args&&... args)
-    {
-        CO_SIM_IO_ERROR << "Exporting of Geometry is not yet implemented!" << std::endl;
-        mpComm->ExportGeometry(std::forward<Args>(args)...);
-
-        return Info(); // TODO use this
+        return mpComm->ExportMesh(std::forward<Args>(args)...);
     }
 
 private:
     std::unique_ptr<Communication> mpComm; // handles communication (File, Sockets, MPI, ...)
 
-    std::string mConnectionName;
-
-    bool mIsConnectionMaster = false;
-
     std::unordered_map<std::string, FunctionPointerType> mRegisteredFunctions;
 
     void Initialize(const Info& I_Settings)
     {
-        std::string comm_format = "file"; // default is file-communication
-        if (I_Settings.Has("communication_format")) { // communication format has been specified
-            comm_format = I_Settings.Get<std::string>("communication_format");
-        }
+        const std::string comm_format = I_Settings.Get<std::string>("communication_format", "file"); // default is file-communication
 
-        if (I_Settings.Has("is_connection_master")) { // is_connection_master has been specified
-            mIsConnectionMaster = I_Settings.Get<bool>("is_connection_master");
-        }
-
-        CO_SIM_IO_INFO("CoSimIO") << "CoSimIO for \"" << mConnectionName << "\" uses communication format: " << comm_format << std::endl;
+        CO_SIM_IO_INFO("CoSimIO") << "CoSimIO from \"" << I_Settings.Get<std::string>("my_name") << "\" to \"" << I_Settings.Get<std::string>("connect_to") << "\" uses communication format: " << comm_format << std::endl;
 
         if (comm_format == "file") {
-            mpComm = std::unique_ptr<Communication>(new FileCommunication(mConnectionName, I_Settings, mIsConnectionMaster));
+            mpComm = CoSimIO::make_unique<FileCommunication>(I_Settings);
         } else if (comm_format == "sockets") {
             #ifdef CO_SIM_IO_USING_SOCKETS
-            mpComm = std::unique_ptr<Communication>(new SocketsCommunication(mConnectionName, I_Settings, mIsConnectionMaster));
+            mpComm = CoSimIO::make_unique<SocketsCommunication>(I_Settings);
             #else
             CO_SIM_IO_ERROR << "Support for Sockets was not compiled!" << std::endl;
             #endif // CO_SIM_IO_USING_SOCKETS
         } else if (comm_format == "mpi") {
             #ifdef CO_SIM_IO_USING_MPI
-            mpComm = std::unique_ptr<Communication>(new MPICommunication(mConnectionName, I_Settings, mIsConnectionMaster));
+            mpComm = CoSimIO::make_unique<MPICommunication>(I_Settings);
             #else
             CO_SIM_IO_ERROR << "Support for MPI was not compiled!" << std::endl;
             #endif // CO_SIM_IO_USING_MPI
@@ -208,53 +173,31 @@ private:
         }
     }
 
-    CoSimIO::ControlSignal RecvControlSignal(std::string& rIdentifier)
-    {
-        CO_SIM_IO_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-        return mpComm->RecvControlSignal(rIdentifier);
-    }
-
-    void CheckIfFunctionNameIsValid(const std::string rFunctionName) const
+    void CheckIfNameIsValid(const std::string& rName) const
     {
         // could use set but that would require another include just for this
-        const static std::vector<std::string> allowed_function_names {
+        const static std::vector<std::string> allowed_names {
             "AdvanceInTime",
             "InitializeSolutionStep",
             "Predict",
             "SolveSolutionStep",
             "FinalizeSolutionStep",
             "OutputSolutionStep",
-            // "ImportGeometry", // not yet implemented
-            // "ExportGeometry", // not yet implemented
             "ImportMesh",
             "ExportMesh",
             "ImportData",
-            "ExportData"
+            "ExportData",
+            "exit"
         };
 
-        CO_SIM_IO_ERROR_IF(std::find(allowed_function_names.begin(), allowed_function_names.end(), rFunctionName) == allowed_function_names.end()) << "The function name \"" << rFunctionName << "\" is not allowed!\nOnly the following names are allowed:\n"; // TODO print the names
-    }
-
-    std::string ControlSignalName(const ControlSignal Signal) const
-    {
-        switch (Signal) {
-            // first two should not be needed here, this is intended to be used in "Run"
-            // case ControlSignal::Dummy:                  return "Dummy";
-            // case ControlSignal::ConvergenceAchieved:    return "ConvergenceAchieved";
-            case ControlSignal::BreakSolutionLoop:      return "BreakSolutionLoop";
-            case ControlSignal::AdvanceInTime:          return "AdvanceInTime";
-            case ControlSignal::InitializeSolutionStep: return "InitializeSolutionStep";
-            case ControlSignal::Predict:                return "Predict";
-            case ControlSignal::SolveSolutionStep:      return "SolveSolutionStep";
-            case ControlSignal::FinalizeSolutionStep:   return "FinalizeSolutionStep";
-            case ControlSignal::OutputSolutionStep:     return "OutputSolutionStep";
-            case ControlSignal::ImportGeometry:         return "ImportGeometry";
-            case ControlSignal::ExportGeometry:         return "ExportGeometry";
-            case ControlSignal::ImportMesh:             return "ImportMesh";
-            case ControlSignal::ExportMesh:             return "ExportMesh";
-            case ControlSignal::ImportData:             return "ImportData";
-            case ControlSignal::ExportData:             return "ExportData";
-            default: CO_SIM_IO_ERROR << "Signal is unknown: " << static_cast<int>(Signal); return "";
+        if (std::find(allowed_names.begin(), allowed_names.end(), rName) == allowed_names.end()) {
+            std::stringstream err_msg;
+            err_msg << "The name \"" << rName << "\" is not allowed!\nOnly the following names are allowed:";
+            for (const auto& name : allowed_names) {
+                err_msg << "\n    " << name;
+            }
+            err_msg << std::endl;
+            CO_SIM_IO_ERROR << err_msg.str();
         }
     }
 
@@ -263,4 +206,4 @@ private:
 } // namespace Internals
 } // namespace CoSimIO
 
-#endif // CO_SIM_IO_CONNECTION_H_INCLUDED
+#endif // CO_SIM_IO_CONNECTION_INCLUDED

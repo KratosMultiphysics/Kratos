@@ -2,7 +2,7 @@
 import KratosMultiphysics
 
 # Import applications
-import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+from KratosMultiphysics.MeshMovingApplication import TrilinosExtension as TrilinosMeshMoving
 
 # Import baseclass
 from KratosMultiphysics.MeshMovingApplication.trilinos_mesh_solver_base import TrilinosMeshSolverBase
@@ -20,11 +20,11 @@ class TrilinosMeshSolverLaplacian(TrilinosMeshSolverBase):
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverLaplacian]:: Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "buffer_size"           : 2
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     #### Private functions ####
@@ -34,7 +34,7 @@ class TrilinosMeshSolverLaplacian(TrilinosMeshSolverBase):
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
         compute_reactions = self.settings["compute_reactions"].GetBool()
         communicator = self.get_communicator()
-        solving_strategy = TrilinosApplication.TrilinosLaplacianMeshMovingStrategy(
+        solving_strategy = TrilinosMeshMoving.TrilinosLaplacianMeshMovingStrategy(
             communicator,
             self.mesh_model_part,
             linear_solver,

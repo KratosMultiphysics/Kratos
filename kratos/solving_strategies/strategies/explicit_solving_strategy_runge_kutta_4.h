@@ -21,6 +21,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "factories/factory.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
 
 namespace Kratos
@@ -54,6 +55,9 @@ class ExplicitSolvingStrategyRungeKutta4 : public ExplicitSolvingStrategy<TSpars
 public:
     ///@name Type Definitions
     ///@{
+
+    // The base solving strategy class definition
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
 
     // The base class definition
     typedef ExplicitSolvingStrategy<TSparseSpace, TDenseSpace> BaseType;
@@ -93,8 +97,11 @@ public:
     explicit ExplicitSolvingStrategyRungeKutta4(
         ModelPart &rModelPart,
         Parameters ThisParameters)
-        : BaseType(rModelPart, ThisParameters)
+        : BaseType(rModelPart)
     {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -130,7 +137,7 @@ public:
      * @param rModelPart The model part to be computed
      * @param ThisParameters The configuration parameters
      */
-    typename BaseType::Pointer Create(
+    typename SolvingStrategyType::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters
         ) const override
@@ -145,6 +152,23 @@ public:
     /** Destructor.
      */
     ~ExplicitSolvingStrategyRungeKutta4() override = default;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "explicit_solving_strategy_runge_kutta_4"
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
 
     /**
      * @brief Returns the name of the class as used in the settings (snake_case format)

@@ -1,5 +1,5 @@
 ---
-name: Question
+name: ❓ Question
 about: Doubts and questions
 
 ---
@@ -14,7 +14,4 @@ E.g.
 - KratosCore
 - FooApplication
 - Documentation
-
-**Additional info**
-Add any other releavant information here.
 

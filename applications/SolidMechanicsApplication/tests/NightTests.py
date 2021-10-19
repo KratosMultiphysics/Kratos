@@ -19,7 +19,7 @@ def SetTestSuite(suites):
 
     night_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            SmallStrains_IsotropicDamage_SimoJu_Test,
+            #SmallStrains_IsotropicDamage_SimoJu_Test,
             Necking_2D_Test
         ])
     )

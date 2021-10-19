@@ -62,7 +62,7 @@ ConstitutiveLaw::SizeType Bingham3DLaw::WorkingSpaceDimension() {
     return 3;
 }
 
-ConstitutiveLaw::SizeType Bingham3DLaw::GetStrainSize() {
+ConstitutiveLaw::SizeType Bingham3DLaw::GetStrainSize() const {
     return 6;
 }
 
@@ -77,8 +77,8 @@ void  Bingham3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
-    
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();    
+
+    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
 
     Vector& S                  = rValues.GetStrainVector(); //using the short name S to reduce the lenght of the expressions
     Vector& StressVector                  = rValues.GetStressVector();
@@ -89,23 +89,23 @@ void  Bingham3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     const double mu          = MaterialProperties[DYNAMIC_VISCOSITY];
     const double sigma_y    = MaterialProperties[YIELD_STRESS];
     const double m    = MaterialProperties[REGULARIZATION_COEFFICIENT];
-    
-    const double gamma_dot = std::sqrt(2.*S[0]*S[0] + 2.*S[1]*S[1] + 2.*S[2]*S[2] 
+
+    const double gamma_dot = std::sqrt(2.*S[0]*S[0] + 2.*S[1]*S[1] + 2.*S[2]*S[2]
                                 + S[3]*S[3] + S[4]*S[4] + S[5]*S[5]);
-    
+
     const double min_gamma_dot = 1e-12;
 
     //limit the gamma_dot to a minimum so to ensure that the case of gamma_dot=0 is not problematic
     const double g = std::max(gamma_dot, min_gamma_dot);
-    
+
     double Regularization = 1.0 - std::exp(-m*g);
     const double mu_effective = mu + Regularization * sigma_y / g;
-    
+
 //     KRATOS_WATCH( mu_effective )
-    
+
     const double trS = S[0]+S[1]+S[2];
     const double eps_vol = trS/3.0;
-    
+
     //computation of stress
     StressVector[0] = 2.0*mu_effective*(S[0] - eps_vol);
     StressVector[1] = 2.0*mu_effective*(S[1] - eps_vol);
@@ -122,7 +122,7 @@ void  Bingham3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 //         }
 //         else
 //         {
-// 
+//
 //                 const double x0 =             pow(S[3], 2);
 //                 const double x1 =             pow(S[4], 2);
 //                 const double x2 =             pow(S[5], 2);
@@ -202,11 +202,11 @@ void  Bingham3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 //                 C(5,3)=x39;
 //                 C(5,4)=x41;
 //                 C(5,5)=x36*(x15 + x2*x37);
-// 
+//
 //         }
-            
+
     }
-	  
+
 }
 
 std::string Bingham3DLaw::Info() const {
@@ -217,16 +217,11 @@ std::string Bingham3DLaw::Info() const {
 //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
 //************************************************************************************
 
-
-
-int Bingham3DLaw::Check(const Properties& rMaterialProperties,
-                              const GeometryType& rElementGeometry,
-                              const ProcessInfo& rCurrentProcessInfo)
-{    
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
-    KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
-    KRATOS_CHECK_VARIABLE_KEY(REGULARIZATION_COEFFICIENT);
-
+int Bingham3DLaw::Check(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
     if( rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.00 ) {
         KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for Bingham3DLaw: " << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
     }

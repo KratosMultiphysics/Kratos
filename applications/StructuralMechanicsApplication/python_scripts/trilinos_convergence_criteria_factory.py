@@ -32,11 +32,11 @@ class convergence_criterion:
 
         if(convergence_crit == "displacement_criterion"):
             if rotation_dofs:
-                self.mechanical_convergence_criterion = KratosTrilinos.TrilinosMixedGenericCriteria(
+                self.mechanical_convergence_criterion = TrilinosApplication.TrilinosMixedGenericCriteria(
                     [(KratosMultiphysics.DISPLACEMENT, D_RT, D_AT),
                     (KratosMultiphysics.ROTATION, D_RT, D_AT)])
             elif volumetric_strain_dofs:
-                self.mechanical_convergence_criterion = KratosTrilinos.TrilinosMixedGenericCriteria(
+                self.mechanical_convergence_criterion = TrilinosApplication.TrilinosMixedGenericCriteria(
                     [(KratosMultiphysics.DISPLACEMENT, D_RT, D_AT),
                     (KratosMultiphysics.VOLUMETRIC_STRAIN, D_RT, D_AT)])
             else:
