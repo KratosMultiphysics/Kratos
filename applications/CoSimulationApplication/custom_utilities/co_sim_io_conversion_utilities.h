@@ -16,8 +16,8 @@
 // System includes
 
 // External includes
-#include "custom_external_libraries/CoSimIO/co_sim_io/includes/model_part.hpp"
-#include "custom_external_libraries/CoSimIO/co_sim_io/includes/info.hpp"
+#include "custom_external_libraries/co_sim_io/impl/model_part.hpp"
+#include "custom_external_libraries/co_sim_io/impl/info.hpp"
 
 // Project includes
 #include "includes/define.h"
