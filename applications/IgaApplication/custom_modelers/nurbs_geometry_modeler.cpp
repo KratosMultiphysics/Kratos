@@ -152,8 +152,14 @@ namespace Kratos
             insert_knots_v[i] = knot_v;
         }
 
-        const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
-        p_surface_geometry->SetId(number_of_geometries+1);
+        // Add geometry to model part
+        const SizeType number_geometries = r_model_part.NumberOfGeometries();
+        SizeType last_geometry_id = 0;
+        if( number_geometries > 0 ){
+            last_geometry_id = r_model_part.Geometries()[number_geometries-1].Id();
+        }
+        p_surface_geometry->SetId(last_geometry_id+1);
+
         r_model_part.AddGeometry(p_surface_geometry);
 
         // Perform knot refinement.
@@ -288,8 +294,14 @@ namespace Kratos
             insert_knots_w[i] = knot_w;
         }
 
+        // Add geometry to model part
         const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
-        p_volume_geometry->SetId(number_of_geometries+1);
+        SizeType last_geometry_id = 0;
+        if( number_of_geometries > 0 ){
+            last_geometry_id = r_model_part.Geometries()[number_of_geometries-1].Id();
+        }
+        p_volume_geometry->SetId(last_geometry_id+1);
+
         r_model_part.AddGeometry(p_volume_geometry);
 
         // Perform knot refinement.
