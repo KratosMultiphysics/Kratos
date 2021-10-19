@@ -196,6 +196,10 @@ namespace Kratos
     double new_inertia = CalculateMomentOfInertia();
     GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = new_inertia;
 
+    // Update prescribed heat flux
+    if (mPrescribedHeatFlux != 0.0)
+      SetParticlePrescribedHeatFlux(0.0);
+
     KRATOS_CATCH("")
   }
 
@@ -1487,7 +1491,7 @@ namespace Kratos
 
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::SetParticlePrescribedHeatFlux(const double heat_flux) {
-    mPrescribedHeatFlux = heat_flux;
+    mPrescribedHeatFlux = heat_flux * GetParticleSurfaceArea();
   }
 
   template <class TBaseElement>
