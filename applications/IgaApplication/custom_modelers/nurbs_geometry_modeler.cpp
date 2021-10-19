@@ -152,8 +152,14 @@ namespace Kratos
             insert_knots_v[i] = knot_v;
         }
 
-        const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
-        p_surface_geometry->SetId(number_of_geometries+1);
+        // Add geometry to model part
+        const SizeType number_geometries = r_model_part.NumberOfGeometries();
+        SizeType last_geometry_id = 0;
+        if( number_geometries > 0 ){
+            last_geometry_id = r_model_part.Geometries()[number_geometries-1].Id();
+        }
+        p_surface_geometry->SetId(last_geometry_id+1);
+
         r_model_part.AddGeometry(p_surface_geometry);
 
         // Perform knot refinement.
@@ -302,9 +308,15 @@ namespace Kratos
             p_volume_geometry = NurbsVolumeUtilities::KnotRefinementW(*p_volume_geometry, insert_knots_w);
         }
 
+        // Add geometry to model part
         const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
-        p_volume_geometry->SetId(number_of_geometries+1);
+        SizeType last_geometry_id = 0;
+        if( number_of_geometries > 0 ){
+            last_geometry_id = r_model_part.Geometries()[number_of_geometries-1].Id();
+        }
+        p_volume_geometry->SetId(last_geometry_id+1);
         r_model_part.AddGeometry(p_volume_geometry);
+        // Add nodes to model part
         for( IndexType i = 0; i < p_volume_geometry->size(); ++i){
             p_volume_geometry->pGetPoint(i)->SetSolutionStepVariablesList(r_model_part.pGetNodalSolutionStepVariablesList());
             r_model_part.AddNode(p_volume_geometry->pGetPoint(i),0);
