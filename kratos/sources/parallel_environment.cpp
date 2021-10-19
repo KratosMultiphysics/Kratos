@@ -79,7 +79,7 @@ void ParallelEnvironment::RegisterCommunicatorFactory(std::function<Communicator
 FillCommunicator::Pointer ParallelEnvironment::CreateFillCommunicator(ModelPart& rModelPart)
 {
     ParallelEnvironment& env = GetInstance();
-    return env.mFillCommunicatorFactory(rModelPart);
+    return env.mFillCommunicatorReferenceFactory(rModelPart, GetDefaultDataCommunicator());
 }
 
 FillCommunicator::Pointer ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(
