@@ -395,13 +395,13 @@ public:
         case 8:
             return( (0.125) * (1 - rPoint[0]) * (1 - std::pow(rPoint[1],2.0)) * (1 - rPoint[2]) * (2 + rPoint[0] + rPoint[0]*rPoint[2]) );
         case 9:
-            return( (0.25) * (1 - rPoint[0]) * (1 - rPoint[1]) * (1 - std::pow(rPoint[2],2.0))  );
+            return( (0.25) * (1 - rPoint[0]) * (1 - rPoint[1]) * (1 - std::pow(rPoint[2],2.0)) );
         case 10:
-            return( (0.25) * (1 + rPoint[0]) * (1 - rPoint[1]) * (1 - std::pow(rPoint[2],2.0))  );
+            return( (0.25) * (1 + rPoint[0]) * (1 - rPoint[1]) * (1 - std::pow(rPoint[2],2.0)) );
         case 11:
-            return( (0.25) * (1 + rPoint[0]) * (1 + rPoint[1]) * (1 - std::pow(rPoint[2],2.0))  );
+            return( (0.25) * (1 + rPoint[0]) * (1 + rPoint[1]) * (1 - std::pow(rPoint[2],2.0)) );
         case 12:
-            return( (0.25) * (1 - rPoint[0]) * (1 + rPoint[1]) * (1 - std::pow(rPoint[2],2.0))  );
+            return( (0.25) * (1 - rPoint[0]) * (1 + rPoint[1]) * (1 - std::pow(rPoint[2],2.0)) );
         default:
             KRATOS_ERROR << "Wrong index of shape function!" << *this  << std::endl;
         }
@@ -482,28 +482,60 @@ public:
         const CoordinatesArrayType& rPoint
         )
     {
-        rResult.resize( 5, 3, false );
-        noalias( rResult ) = ZeroMatrix( 5, 3 );
+        rResult.resize( 13, 3, false );
+        noalias( rResult ) = ZeroMatrix( 13, 3 );
 
-        rResult( 0, 0 ) =  (-0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[2] ) ;
-        rResult( 0, 1 ) =  (-0.125) * ( 1 - rPoint[0] ) * ( 1 + rPoint[2] ) ;
-        rResult( 0, 2 ) =  (+0.125) * ( 1 - rPoint[0] ) * ( 1 - rPoint[1] ) ;
+        rResult( 0, 0 ) = (+0.0625) * (1 - rPoint[1]) * (1 - rPoint[2]) * (1 + 6*rPoint[0] + rPoint[1] + 4*rPoint[0]*rPoint[1] + rPoint[2] + 2*rPoint[0]*rPoint[2] - rPoint[1]*rPoint[2] + 4*rPoint[0]*rPoint[1]*rPoint[2]) ;
+        rResult( 0, 1 ) = (+0.0625) * (1 - rPoint[0]) * (1 - rPoint[2]) * (1 + rPoint[0] + 6*rPoint[1] + 4*rPoint[0]*rPoint[1] + rPoint[2] - rPoint[0]*rPoint[2] + 2*rPoint[1]*rPoint[2] + 4*rPoint[0]*rPoint[1]*rPoint[2]) ;
+        rResult( 0, 2 ) = (+0.125) * (1 - rPoint[0]) * (1 - rPoint[1]) * (1 + rPoint[0] + rPoint[1] + 2*rPoint[2] + rPoint[0]*rPoint[2] + rPoint[1]*rPoint[2] + 2*rPoint[0]*rPoint[1]*rPoint[2]) ;
 
-        rResult( 1, 0 ) =  (+0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[2] ) ;
-        rResult( 1, 1 ) =  (-0.125) * ( 1 + rPoint[0] ) * ( 1 + rPoint[2] ) ;
-        rResult( 1, 2 ) =  (+0.125) * ( 1 + rPoint[0] ) * ( 1 - rPoint[1] ) ;
+        rResult( 1, 0 ) = (-0.0625) * (1 - rPoint[1]) * (1 - rPoint[2]) * (1 - 6*rPoint[0] + rPoint[1] - 4*rPoint[0]*rPoint[1] + rPoint[2] - 2*rPoint[0]*rPoint[2] - rPoint[1]*rPoint[2] - 4*rPoint[0]*rPoint[1]*rPoint[2]) ;
+        rResult( 1, 1 ) = (+0.0625) * (1 + rPoint[0]) * (1 - rPoint[2]) * (1 - rPoint[0] + 6*rPoint[1] - 4*rPoint[0]*rPoint[1] + rPoint[2] + rPoint[0]*rPoint[2] + 2*rPoint[1]*rPoint[2] - 4*rPoint[0]*rPoint[1]*rPoint[2]) ;
+        rResult( 1, 2 ) = (+0.125) * (1 + rPoint[0]) * (1 - rPoint[1]) * (1 - rPoint[0] + rPoint[1] + 2*rPoint[2] - rPoint[0]*rPoint[2] + rPoint[1]*rPoint[2] - 2*rPoint[0]*rPoint[1]*rPoint[2]) ;
 
-        rResult( 2, 0 ) =  (+0.125) * ( 1 + rPoint[1] ) * ( 1 + rPoint[2] ) ;
-        rResult( 2, 1 ) =  (+0.125) * ( 1 + rPoint[0] ) * ( 1 + rPoint[2] ) ;
-        rResult( 2, 2 ) =  (+0.125) * ( 1 + rPoint[0] ) * ( 1 + rPoint[1] ) ;
+        rResult( 2, 0 ) = (-0.0625) * (1 + rPoint[1]) * (1 - rPoint[2]) * (1 - 6*rPoint[0] - rPoint[1] + 4*rPoint[0]*rPoint[1] + rPoint[2] - 2*rPoint[0]*rPoint[2] + rPoint[1]*rPoint[2] + 4*rPoint[0]*rPoint[1]*rPoint[2]) ;
+        rResult( 2, 1 ) = (-0.0625) * (1 + rPoint[0]) * (1 - rPoint[2]) * (1 - rPoint[0] - 6*rPoint[1] + 4*rPoint[0]*rPoint[1] + rPoint[2] + rPoint[0]*rPoint[2] - 2*rPoint[1]*rPoint[2] + 4*rPoint[0]*rPoint[1]*rPoint[2]) ;
+        rResult( 2, 2 ) = (+0.125) * (1 + rPoint[0]) * (1 + rPoint[1]) * (1 - rPoint[0] - rPoint[1] + 2*rPoint[2] - rPoint[0]*rPoint[2] - rPoint[1]*rPoint[2] + 2*rPoint[0]*rPoint[1]*rPoint[2]) ;
 
-        rResult( 3, 0 ) =  (-0.125) * ( 1 + rPoint[1] ) * ( 1 + rPoint[2] ) ;
-        rResult( 3, 1 ) =  (+0.125) * ( 1 - rPoint[0] ) * ( 1 + rPoint[2] ) ;
-        rResult( 3, 2 ) =  (+0.125) * ( 1 - rPoint[0] ) * ( 1 + rPoint[1] ) ;
+        rResult( 3, 0 ) = (+0.0625) * (1 + rPoint[1]) * (1 - rPoint[2]) * (1 + 6*rPoint[0] - rPoint[1] - 4*rPoint[0]*rPoint[1] + rPoint[2] + 2*rPoint[0]*rPoint[2] + rPoint[1]*rPoint[2] - 4*rPoint[0]*rPoint[1]*rPoint[2]) ;
+        rResult( 3, 1 ) = (-0.0625) * (1 - rPoint[0]) * (1 - rPoint[2]) * (1 + rPoint[0] - 6*rPoint[1] - 4*rPoint[0]*rPoint[1] + rPoint[2] - rPoint[0]*rPoint[2] - 2*rPoint[1]*rPoint[2] - 4*rPoint[0]*rPoint[1]*rPoint[2]) ;
+        rResult( 3, 2 ) = (+0.125) * (1 - rPoint[0]) * (1 + rPoint[1]) * (1 + rPoint[0] - rPoint[1] + 2*rPoint[2] + rPoint[0]*rPoint[2] - rPoint[1]*rPoint[2] - 2*rPoint[0]*rPoint[1]*rPoint[2]) ;
 
-        rResult( 4, 0 ) =   0.00 ;
-        rResult( 4, 1 ) =   0.00 ;
-        rResult( 4, 2 ) =  +0.50 ;
+        rResult( 4, 0 ) = 0.00 ;
+        rResult( 4, 1 ) = 0.00 ;
+        rResult( 4, 2 ) = (0.5) + rPoint[2] ;
+
+        rResult( 5, 0 ) = (-0.25) * (rPoint[0]) * (1 - rPoint[1]) * (1 - rPoint[2]) * (2 + rPoint[1] + rPoint[1]*rPoint[2]) ;
+        rResult( 5, 1 ) = (-0.125) * (1 - std::pow(rPoint[0],2.0)) * (1 - rPoint[2]) * (1 + 2*rPoint[1] - rPoint[2] + 2*rPoint[1]*rPoint[2]) ;
+        rResult( 5, 2 ) = (-0.25) * (1 - std::pow(rPoint[0],2.0)) * (1 - rPoint[1]) * (1 + rPoint[1]*rPoint[2]) ;
+
+        rResult( 6, 0 ) = (0.125) * (1 - std::pow(rPoint[1],2.0)) * (1 - rPoint[2]) * (1 - 2*rPoint[0] - rPoint[2] - 2*rPoint[0]*rPoint[2]) ;
+        rResult( 6, 1 ) = (-0.25) * (1 + rPoint[0]) * (rPoint[1]) *  (1 - rPoint[2]) * (2 - rPoint[0] - rPoint[0]*rPoint[2]) ;
+        rResult( 6, 2 ) = (-0.25) * (1 + rPoint[0]) * (1 - std::pow(rPoint[1],2.0)) *  (1 - rPoint[0]*rPoint[2]) ;
+
+        rResult( 7, 0 ) = (-0.25) * (rPoint[0]) * (1 + rPoint[1]) * (1 - rPoint[2]) * (2 - rPoint[1] - rPoint[1]*rPoint[2]) ;
+        rResult( 7, 1 ) = (+0.125) * (1 - std::pow(rPoint[0],2.0)) * (1 - rPoint[2]) * (1 - 2*rPoint[1] - rPoint[2] - 2*rPoint[1]*rPoint[2]) ;
+        rResult( 7, 2 ) = (-0.25) * (1 - std::pow(rPoint[0],2.0)) * (1 + rPoint[1]) * (1 - rPoint[1]*rPoint[2]) ;
+
+        rResult( 8, 0 ) = (-0.125) * (1 - std::pow(rPoint[1],2.0)) * (1 - rPoint[2]) * (1 + 2*rPoint[0] - rPoint[2] + 2*rPoint[0]*rPoint[2]) ;
+        rResult( 8, 1 ) = (-0.25) * (1 - rPoint[0]) * (rPoint[1]) *  (1 - rPoint[2]) * (2 + rPoint[0] + rPoint[0]*rPoint[2]) ;
+        rResult( 8, 2 ) = (-0.25) * (1 - rPoint[0]) * (1 - std::pow(rPoint[1],2.0)) *  (1 + rPoint[0]*rPoint[2]) ;
+
+        rResult( 9, 0 ) = (-0.25) * (1 - rPoint[1]) * (1 - std::pow(rPoint[2],2.0)) ;
+        rResult( 9, 1 ) = (-0.25) * (1 - rPoint[0]) * (1 - std::pow(rPoint[2],2.0)) ;
+        rResult( 9, 2 ) = (-0.5) * (1 - rPoint[0]) * (1 - rPoint[1]) * (rPoint[2]) ;
+
+        rResult( 10, 0 ) = (+0.25) * (1 - rPoint[1]) * (1 - std::pow(rPoint[2],2.0)) ;
+        rResult( 10, 1 ) = (-0.25) * (1 + rPoint[0]) * (1 - std::pow(rPoint[2],2.0)) ;
+        rResult( 10, 2 ) = (-0.5) * (1 + rPoint[0]) * (1 - rPoint[1]) * (rPoint[2]) ;
+
+        rResult( 11, 0 ) = (+0.25) * (1 + rPoint[1]) * (1 - std::pow(rPoint[2],2.0)) ;
+        rResult( 11, 1 ) = (+0.25) * (1 + rPoint[0]) * (1 - std::pow(rPoint[2],2.0)) ;
+        rResult( 11, 2 ) = (-0.5) * (1 + rPoint[0]) * (1 + rPoint[1]) * (rPoint[2]) ;
+
+        rResult( 12, 0 ) = (-0.25) * (1 + rPoint[1]) * (1 - std::pow(rPoint[2],2.0)) ;
+        rResult( 12, 1 ) = (+0.25) * (1 - rPoint[0]) * (1 - std::pow(rPoint[2],2.0)) ;
+        rResult( 12, 2 ) = (-0.5) * (1 - rPoint[0]) * (1 + rPoint[1]) * (rPoint[2]) ;
 
         return rResult;
     }
@@ -528,27 +560,59 @@ public:
         //loop over all integration points
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            Matrix result = ZeroMatrix( 5, 3 );
+            Matrix result = ZeroMatrix( 13, 3 );
 
-            result( 0, 0 ) =  (-0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 0, 1 ) =  (-0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 0, 2 ) =  (+0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 - integration_points[pnt].Y() ) ;
+            result( 0, 0 ) = (+0.0625) * (1 - integration_points[pnt].Y()) * (1 - integration_points[pnt].Z()) * (1 + 6*integration_points[pnt].X() + integration_points[pnt].Y() + 4*integration_points[pnt].X()*integration_points[pnt].Y() + integration_points[pnt].Z() + 2*integration_points[pnt].X()*integration_points[pnt].Z() - integration_points[pnt].Y()*integration_points[pnt].Z() + 4*integration_points[pnt].X()*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
+            result( 0, 1 ) = (+0.0625) * (1 - integration_points[pnt].X()) * (1 - integration_points[pnt].Z()) * (1 + integration_points[pnt].X() + 6*integration_points[pnt].Y() + 4*integration_points[pnt].X()*integration_points[pnt].Y() + integration_points[pnt].Z() - integration_points[pnt].X()*integration_points[pnt].Z() + 2*integration_points[pnt].Y()*integration_points[pnt].Z() + 4*integration_points[pnt].X()*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
+            result( 0, 2 ) = (+0.125) * (1 - integration_points[pnt].X()) * (1 - integration_points[pnt].Y()) * (1 + integration_points[pnt].X() + integration_points[pnt].Y() + 2*integration_points[pnt].Z() + integration_points[pnt].X()*integration_points[pnt].Z() + integration_points[pnt].Y()*integration_points[pnt].Z() + 2*integration_points[pnt].X()*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
 
-            result( 1, 0 ) =  (+0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 1, 1 ) =  (-0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 1, 2 ) =  (+0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 - integration_points[pnt].Y() ) ;
+            result( 1, 0 ) = (-0.0625) * (1 - integration_points[pnt].Y()) * (1 - integration_points[pnt].Z()) * (1 - 6*integration_points[pnt].X() + integration_points[pnt].Y() - 4*integration_points[pnt].X()*integration_points[pnt].Y() + integration_points[pnt].Z() - 2*integration_points[pnt].X()*integration_points[pnt].Z() - integration_points[pnt].Y()*integration_points[pnt].Z() - 4*integration_points[pnt].X()*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
+            result( 1, 1 ) = (+0.0625) * (1 + integration_points[pnt].X()) * (1 - integration_points[pnt].Z()) * (1 - integration_points[pnt].X() + 6*integration_points[pnt].Y() - 4*integration_points[pnt].X()*integration_points[pnt].Y() + integration_points[pnt].Z() + integration_points[pnt].X()*integration_points[pnt].Z() + 2*integration_points[pnt].Y()*integration_points[pnt].Z() - 4*integration_points[pnt].X()*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
+            result( 1, 2 ) = (+0.125) * (1 + integration_points[pnt].X()) * (1 - integration_points[pnt].Y()) * (1 - integration_points[pnt].X() + integration_points[pnt].Y() + 2*integration_points[pnt].Z() - integration_points[pnt].X()*integration_points[pnt].Z() + integration_points[pnt].Y()*integration_points[pnt].Z() - 2*integration_points[pnt].X()*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
 
-            result( 2, 0 ) =  (+0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 2, 1 ) =  (+0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 2, 2 ) =  (+0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Y() ) ;
+            result( 2, 0 ) = (-0.0625) * (1 + integration_points[pnt].Y()) * (1 - integration_points[pnt].Z()) * (1 - 6*integration_points[pnt].X() - integration_points[pnt].Y() + 4*integration_points[pnt].X()*integration_points[pnt].Y() + integration_points[pnt].Z() - 2*integration_points[pnt].X()*integration_points[pnt].Z() + integration_points[pnt].Y()*integration_points[pnt].Z() + 4*integration_points[pnt].X()*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
+            result( 2, 1 ) = (-0.0625) * (1 + integration_points[pnt].X()) * (1 - integration_points[pnt].Z()) * (1 - integration_points[pnt].X() - 6*integration_points[pnt].Y() + 4*integration_points[pnt].X()*integration_points[pnt].Y() + integration_points[pnt].Z() + integration_points[pnt].X()*integration_points[pnt].Z() - 2*integration_points[pnt].Y()*integration_points[pnt].Z() + 4*integration_points[pnt].X()*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
+            result( 2, 2 ) = (+0.125) * (1 + integration_points[pnt].X()) * (1 + integration_points[pnt].Y()) * (1 - integration_points[pnt].X() - integration_points[pnt].Y() + 2*integration_points[pnt].Z() - integration_points[pnt].X()*integration_points[pnt].Z() - integration_points[pnt].Y()*integration_points[pnt].Z() + 2*integration_points[pnt].X()*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
 
-            result( 3, 0 ) =  (-0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 3, 1 ) =  (+0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
-            result( 3, 2 ) =  (+0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Y() ) ;
+            result( 3, 0 ) = (+0.0625) * (1 + integration_points[pnt].Y()) * (1 - integration_points[pnt].Z()) * (1 + 6*integration_points[pnt].X() - integration_points[pnt].Y() - 4*integration_points[pnt].X()*integration_points[pnt].Y() + integration_points[pnt].Z() + 2*integration_points[pnt].X()*integration_points[pnt].Z() + integration_points[pnt].Y()*integration_points[pnt].Z() - 4*integration_points[pnt].X()*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
+            result( 3, 1 ) = (-0.0625) * (1 - integration_points[pnt].X()) * (1 - integration_points[pnt].Z()) * (1 + integration_points[pnt].X() - 6*integration_points[pnt].Y() - 4*integration_points[pnt].X()*integration_points[pnt].Y() + integration_points[pnt].Z() - integration_points[pnt].X()*integration_points[pnt].Z() - 2*integration_points[pnt].Y()*integration_points[pnt].Z() - 4*integration_points[pnt].X()*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
+            result( 3, 2 ) = (+0.125) * (1 - integration_points[pnt].X()) * (1 + integration_points[pnt].Y()) * (1 + integration_points[pnt].X() - integration_points[pnt].Y() + 2*integration_points[pnt].Z() + integration_points[pnt].X()*integration_points[pnt].Z() - integration_points[pnt].Y()*integration_points[pnt].Z() - 2*integration_points[pnt].X()*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
 
-            result( 4, 0 ) =   0.00 ;
-            result( 4, 1 ) =   0.00 ;
-            result( 4, 2 ) =  +0.50 ;
+            result( 4, 0 ) = 0.00 ;
+            result( 4, 1 ) = 0.00 ;
+            result( 4, 2 ) = (0.5) + integration_points[pnt].Z() ;
+
+            result( 5, 0 ) = (-0.25) * (integration_points[pnt].X()) * (1 - integration_points[pnt].Y()) * (1 - integration_points[pnt].Z()) * (2 + integration_points[pnt].Y() + integration_points[pnt].Y()*integration_points[pnt].Z()) ;
+            result( 5, 1 ) = (-0.125) * (1 - std::pow(integration_points[pnt].X(),2.0)) * (1 - integration_points[pnt].Z()) * (1 + 2*integration_points[pnt].Y() - integration_points[pnt].Z() + 2*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
+            result( 5, 2 ) = (-0.25) * (1 - std::pow(integration_points[pnt].X(),2.0)) * (1 - integration_points[pnt].Y()) * (1 + integration_points[pnt].Y()*integration_points[pnt].Z()) ;
+
+            result( 6, 0 ) = (0.125) * (1 - std::pow(integration_points[pnt].Y(),2.0)) * (1 - integration_points[pnt].Z()) * (1 - 2*integration_points[pnt].X() - integration_points[pnt].Z() - 2*integration_points[pnt].X()*integration_points[pnt].Z()) ;
+            result( 6, 1 ) = (-0.25) * (1 + integration_points[pnt].X()) * (integration_points[pnt].Y()) *  (1 - integration_points[pnt].Z()) * (2 - integration_points[pnt].X() - integration_points[pnt].X()*integration_points[pnt].Z()) ;
+            result( 6, 2 ) = (-0.25) * (1 + integration_points[pnt].X()) * (1 - std::pow(integration_points[pnt].Y(),2.0)) *  (1 - integration_points[pnt].X()*integration_points[pnt].Z()) ;
+
+            result( 7, 0 ) = (-0.25) * (integration_points[pnt].X()) * (1 + integration_points[pnt].Y()) * (1 - integration_points[pnt].Z()) * (2 - integration_points[pnt].Y() - integration_points[pnt].Y()*integration_points[pnt].Z()) ;
+            result( 7, 1 ) = (+0.125) * (1 - std::pow(integration_points[pnt].X(),2.0)) * (1 - integration_points[pnt].Z()) * (1 - 2*integration_points[pnt].Y() - integration_points[pnt].Z() - 2*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
+            result( 7, 2 ) = (-0.25) * (1 - std::pow(integration_points[pnt].X(),2.0)) * (1 + integration_points[pnt].Y()) * (1 - integration_points[pnt].Y()*integration_points[pnt].Z()) ;
+
+            result( 8, 0 ) = (-0.125) * (1 - std::pow(integration_points[pnt].Y(),2.0)) * (1 - integration_points[pnt].Z()) * (1 + 2*integration_points[pnt].X() - integration_points[pnt].Z() + 2*integration_points[pnt].X()*integration_points[pnt].Z()) ;
+            result( 8, 1 ) = (-0.25) * (1 - integration_points[pnt].X()) * (integration_points[pnt].Y()) *  (1 - integration_points[pnt].Z()) * (2 + integration_points[pnt].X() + integration_points[pnt].X()*integration_points[pnt].Z()) ;
+            result( 8, 2 ) = (-0.25) * (1 - integration_points[pnt].X()) * (1 - std::pow(integration_points[pnt].Y(),2.0)) *  (1 + integration_points[pnt].X()*integration_points[pnt].Z()) ;
+
+            result( 9, 0 ) = (-0.25) * (1 - integration_points[pnt].Y()) * (1 - std::pow(integration_points[pnt].Z(),2.0)) ;
+            result( 9, 1 ) = (-0.25) * (1 - integration_points[pnt].X()) * (1 - std::pow(integration_points[pnt].Z(),2.0)) ;
+            result( 9, 2 ) = (-0.5) * (1 - integration_points[pnt].X()) * (1 - integration_points[pnt].Y()) * (integration_points[pnt].Z()) ;
+
+            result( 10, 0 ) = (+0.25) * (1 - integration_points[pnt].Y()) * (1 - std::pow(integration_points[pnt].Z(),2.0)) ;
+            result( 10, 1 ) = (-0.25) * (1 + integration_points[pnt].X()) * (1 - std::pow(integration_points[pnt].Z(),2.0)) ;
+            result( 10, 2 ) = (-0.5) * (1 + integration_points[pnt].X()) * (1 - integration_points[pnt].Y()) * (integration_points[pnt].Z()) ;
+
+            result( 11, 0 ) = (+0.25) * (1 + integration_points[pnt].Y()) * (1 - std::pow(integration_points[pnt].Z(),2.0)) ;
+            result( 11, 1 ) = (+0.25) * (1 + integration_points[pnt].X()) * (1 - std::pow(integration_points[pnt].Z(),2.0)) ;
+            result( 11, 2 ) = (-0.5) * (1 + integration_points[pnt].X()) * (1 + integration_points[pnt].Y()) * (integration_points[pnt].Z()) ;
+
+            result( 12, 0 ) = (-0.25) * (1 + integration_points[pnt].Y()) * (1 - std::pow(integration_points[pnt].Z(),2.0)) ;
+            result( 12, 1 ) = (+0.25) * (1 - integration_points[pnt].X()) * (1 - std::pow(integration_points[pnt].Z(),2.0)) ;
+            result( 12, 2 ) = (-0.5) * (1 - integration_points[pnt].X()) * (1 + integration_points[pnt].Y()) * (integration_points[pnt].Z()) ;
 
             d_shape_f_values[pnt] = result;
         }
