@@ -87,7 +87,7 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
     for (auto node_it=rCoSimIOModelPart.NodesBegin(); node_it!=rCoSimIOModelPart.NodesEnd(); ++node_it) {
         const auto& r_node = **node_it;
 
-        KRATOS_ERROR_IF(max_node_id >= r_node.Id()) << "The nodes must be consecutively ordered!" << std::endl;
+        KRATOS_ERROR_IF(max_node_id >= static_cast<std::size_t>(r_node.Id())) << "The nodes must be consecutively ordered!" << std::endl;
         max_node_id = r_node.Id();
 
         rKratosModelPart.CreateNewNode(
