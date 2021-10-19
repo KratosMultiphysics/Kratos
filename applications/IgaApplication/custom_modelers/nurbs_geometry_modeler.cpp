@@ -341,18 +341,6 @@ namespace Kratos
                 p_volume_geometry->KnotsU(), p_volume_geometry->KnotsV(), KnotsWRefined);
         }
 
-<<<<<<< HEAD
-        IndexType node_id = 1;
-        if( r_model_part.NumberOfNodes() > 0 ){
-            node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
-        }
-
-        for (IndexType i = 0; i < PointsRefined.size(); ++i) {
-            if (PointsRefined(i)->Id() == 0) {
-                PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
-                node_id++;
-            }
-=======
         // Add geometry to model part
         const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
         SizeType last_geometry_id = 0;
@@ -365,7 +353,6 @@ namespace Kratos
         for( IndexType i = 0; i < p_volume_geometry->size(); ++i){
             p_volume_geometry->pGetPoint(i)->SetSolutionStepVariablesList(r_model_part.pGetNodalSolutionStepVariablesList());
             r_model_part.AddNode(p_volume_geometry->pGetPoint(i),0);
->>>>>>> regular-grid-2D
         }
     }
     ///@}
