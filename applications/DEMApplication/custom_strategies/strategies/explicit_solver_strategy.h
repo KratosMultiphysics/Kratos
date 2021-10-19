@@ -277,7 +277,7 @@ namespace Kratos {
         VectorDistanceType& GetResultsDistances() { return (mResultsDistances);}
         RadiusArrayType& GetArrayOfAmplifiedRadii() { return (mArrayOfAmplifiedRadii);}
         int& GetNStepSearch() { return (mNStepSearch);}
-        int& GetSearchControl() { return mSearchControl;}
+        int& GetSearchControl() { return GetModelPart().GetProcessInfo()[SEARCH_CONTROL];}
         int& GetNumberOfThreads() { return (mNumberOfThreads);}
         double& GetMaxTimeStep() { return (mMaxTimeStep);}
         double& GetSafetyFactor() { return (mSafetyFactor);}
@@ -300,7 +300,6 @@ namespace Kratos {
         VectorDistanceType mResultsDistances;
         RadiusArrayType mArrayOfAmplifiedRadii;
         int mNStepSearch;
-        int mSearchControl;
         int mNumberOfThreads;
         double mMaxTimeStep;
         double mSafetyFactor;

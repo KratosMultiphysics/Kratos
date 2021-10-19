@@ -196,7 +196,7 @@ namespace Kratos {
         AttachSpheresToStickyWalls();
 
         //set flag to 2 (search performed this timestep)
-        mSearchControl = 2;
+        GetSearchControl() = 2;
 
         // Finding overlapping of initial configurations
         if (r_process_info[CLEAN_INDENT_OPTION]) {
@@ -501,10 +501,10 @@ namespace Kratos {
 
             ComputeNewNeighboursHistoricalData();
 
-            mSearchControl = 2; // Search is active and has been performed during this time step
+            GetSearchControl() = 2; // Search is active and has been performed during this time step
             //ReorderParticles();
         } else {
-            mSearchControl = 1; // Search is active but no search has been done this time step;
+            GetSearchControl() = 1; // Search is active but no search has been done this time step;
         }
 
         if (is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
@@ -527,7 +527,7 @@ namespace Kratos {
             SetSearchRadiiWithFemOnAllParticles(r_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
             SearchRigidFaceNeighbours();
             ComputeNewRigidFaceNeighboursHistoricalData();
-            mSearchControl = 2; // Search is active and has been performed during this time step
+            GetSearchControl() = 2; // Search is active and has been performed during this time step
         }
 
         else {
@@ -537,7 +537,7 @@ namespace Kratos {
             if (number_of_conditions > 0) {
                 CheckHierarchyWithCurrentNeighbours();
                 ComputeNewRigidFaceNeighboursHistoricalData();
-                mSearchControl = 1; // Search is active but no search has been done this time step;
+                GetSearchControl() = 1; // Search is active but no search has been done this time step;
             }
         }
         KRATOS_CATCH("")
