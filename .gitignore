@@ -74,3 +74,6 @@ bin/*
 
 # Most used editor files
 *.vscode
+
+# External downloaded libs (TPL downloaded libs, etc...)
+external_libraries/tetgen/*
