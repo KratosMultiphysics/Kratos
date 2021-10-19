@@ -199,7 +199,7 @@ ParallelEnvironment::ParallelEnvironment()
         const auto& r_data_communicator = ParallelEnvironment::GetDataCommunicator("Serial");
         return Kratos::make_unique<Communicator>(r_data_communicator);
     });
-    RegisterCommunicatorFactoryDetail<DataCommunicator>([](ModelPart& rModelPart, const DataCommunicator& rDataCommunicator)->Communicator::UniquePointer{
+    RegisterCommunicatorFactoryDetail<const DataCommunicator>([](ModelPart& rModelPart, const DataCommunicator& rDataCommunicator)->Communicator::UniquePointer{
         KRATOS_ERROR_IF(rDataCommunicator.IsDistributed()) << "Trying to create an serial communicator with a distributed data communicator." << std::endl;
         return Kratos::make_unique<Communicator>(rDataCommunicator);
     });
