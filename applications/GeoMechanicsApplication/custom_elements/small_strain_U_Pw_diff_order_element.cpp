@@ -1617,7 +1617,10 @@ void SmallStrainUPwDiffOrderElement::
                                                         rVariables.detJuContainer,
                                                         this->GetIntegrationMethod() );
     } catch (Kratos::Exception& e) {
-        // KRATOS_INFO("Original error message") << e.what() << std::endl;
+        KRATOS_INFO("Original error message") << e.what() << std::endl;
+#ifdef KRATOS_COMPILED_IN_WINDOWS
+        KRATOS_INFO("Error in calculation of dNu/dx. Most probably the element is distorted. Element ID: ") << this->Id() << std::endl;
+#endif
         KRATOS_ERROR << "In calculation of dNu/dx. Most probably the element is distorted. Element ID: " << this->Id() << std::endl;
     }
 
@@ -1632,7 +1635,10 @@ void SmallStrainUPwDiffOrderElement::
                                                                     detJpContainer,
                                                                     this->GetIntegrationMethod());
     } catch (Kratos::Exception& e) {
-        // KRATOS_INFO("Original error message") << e.what() << std::endl;
+        KRATOS_INFO("Original error message") << e.what() << std::endl;
+#ifdef KRATOS_COMPILED_IN_WINDOWS
+        KRATOS_INFO("Error in calculation of dNp/dx. Most probably the element is distorted. Element ID: ") << this->Id() << std::endl;
+#endif
         KRATOS_ERROR << "In calculation of dNp/dx. Most probably the element is distorted. Element ID: " << this->Id() << std::endl;
     }
 
@@ -2527,8 +2533,7 @@ void SmallStrainUPwDiffOrderElement::
                                                       GPoint);
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-    if (detJ < 0.0)
-    {
+    if (detJ < 0.0) {
         KRATOS_INFO("negative detJ")
         << "ERROR:: ELEMENT ID: "
         << this->Id()
