@@ -122,6 +122,7 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
      * @param rModelPart Model part to which the fill communicator will be applied
      * @return FillCommunicator::Pointer Pointer to the new fill communicator instance
      */
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please use \"CreateFillCommunicatorFromGlobalParallelism\" instead")
     static FillCommunicator::Pointer CreateFillCommunicator(ModelPart& rModelPart);
 
     /**
