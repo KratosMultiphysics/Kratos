@@ -36,19 +36,19 @@ namespace Kratos {
  *                     4
  *                   ,/|\
  *                 ,/ .'|\
- *               ,/   | | \
- *             ,/    .' | `.
- *           ,/      |  '.  \
- *         ,/       .' w |   \
- *       ,/         |  ^ |    \
- *      3----------.'--|-2    `.
- *       `\        |   |  `\    \
- *         `\     .'   +----`\ - \ -> v
- *           `\   |    `\     `\  \
- *             `\.'      `\     `\`
- *                0----------------1
- *                          `\
- *                             u
+ *               ,/   μ | \
+ *             ,/    .^ | `.
+ *           ,/      || '.  \
+ *         ,/       .'|  |   \
+ *       ,/         | +--|----\-----> η
+ *      0----------.'-`\ -3    `.
+ *       `\        |    `\ `\    \
+ *         `\     .'      `\ `\   \
+ *           `\   |         ξ  `\  \
+ *             `\.'              `\`\
+ *                1------------------2
+ *
+ *
  * @author Philipp Bucher
  */
 template<class TPointType>
@@ -430,9 +430,6 @@ public:
     }
 
 
-    /**
-     * :TODO: TO BE TESTED
-     */
     /** This method calculate and return the height of the pyramid.
      @return double value contain the height
      @ref (https://math.stackexchange.com/questions/2177006/how-to-define-a-plane-based-on-4-points)
@@ -470,9 +467,6 @@ public:
         return height;
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Jacobian in specific integration point of given integration
      * method. This method calculate jacobian matrix in given
@@ -525,14 +519,12 @@ public:
         return rResult;
     }
 
-        /**
-     * TODO: implemented but not yet tested
-     */
+
     /**
-       * Jacobian in given point. This method calculate jacobian
-       * matrix in given point.
-       *
-       * @param rPoint point which jacobians has to
+    * Jacobian in given point. This method calculate jacobian
+    * matrix in given point.
+    *
+    * @param rPoint point which jacobians has to
     * be calculated in it.
     *
     * @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
@@ -568,9 +560,6 @@ public:
     }
 
 
-    /**
-     * :TODO: TO BE TESTED
-     */
     /**
      * Determinant of jacobians for given integration method.
      * This method calculate determinant of jacobian in all
@@ -795,7 +784,6 @@ public:
 
         return rResult;
     }
-
 
 
     /**
