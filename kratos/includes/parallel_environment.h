@@ -153,7 +153,7 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
      * @brief Create a Communicator object
      * This method uses the previously registered communicator factory for the creation of a new communicator pointer
      * @param rModelPart Model part required to retrieve the variables list from it
-     * @param pDataCommunicator Pointer to the data communicator to be used for the communicator construction
+     * @param rDataCommunicator reference to the data communicator to be used for the communicator construction
      * @return Communicator::UniquePointer Unique pointer to the new communicator
      */
     static Communicator::UniquePointer CreateCommunicatorFromGlobalParallelism(
