@@ -17,15 +17,16 @@
 #include "custom_constitutive/buoyancy_laws/archimedes_buoyancy_law.h"
 
 // Drag laws
-#include "custom_constitutive/drag_laws/drag_law.h"
-#include "custom_constitutive/drag_laws/stokes_drag_law.h"
-#include "custom_constitutive/drag_laws/beetstra_drag_law.h"
-#include "custom_constitutive/drag_laws/schiller_and_naumann_drag_law.h"
-#include "custom_constitutive/drag_laws/haider_and_levenspiel_drag_law.h"
-#include "custom_constitutive/drag_laws/chien_drag_law.h"
-#include "custom_constitutive/drag_laws/ganser_drag_law.h"
-#include "custom_constitutive/drag_laws/shah_drag_law.h"
-#include "custom_constitutive/drag_laws/newton_drag_law.h"
+#include "../custom_constitutive/drag_laws/drag_law.h"
+#include "../custom_constitutive/drag_laws/stokes_drag_law.h"
+#include "../custom_constitutive/drag_laws/beetstra_drag_law.h"
+#include "../custom_constitutive/drag_laws/schiller_and_naumann_drag_law.h"
+#include "../custom_constitutive/drag_laws/haider_and_levenspiel_drag_law.h"
+#include "../custom_constitutive/drag_laws/ganser_drag_law.h"
+#include "../custom_constitutive/drag_laws/shah_drag_law.h"
+#include "../custom_constitutive/drag_laws/newton_drag_law.h"
+#include "../custom_constitutive/drag_laws/chien_drag_law.h"
+#include "../custom_constitutive/drag_laws/dallavalle_drag_law.h"
 
 // Inviscid force laws
 #include "custom_constitutive/inviscid_force_laws/inviscid_force_law.h"
@@ -154,6 +155,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
     py::class_<NewtonDragLaw, NewtonDragLaw::Pointer, BaseDragLawType>(m, "NewtonDragLaw")
         .def(py::init<>())
         .def(py::init<Parameters>())
+        ;
+
+    py::class_<DallavalleDragLaw, DallavalleDragLaw::Pointer, BaseDragLawType>(m, "DallavalleDragLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters&>())
         ;
 
     // Inviscid force laws
