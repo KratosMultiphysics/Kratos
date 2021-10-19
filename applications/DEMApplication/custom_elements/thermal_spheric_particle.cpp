@@ -34,12 +34,13 @@ namespace Kratos
     TBaseElement::Initialize(r_process_info);
 
     // Set thermal flags
-    this->Set(DEMFlags::HAS_MOTION,              r_process_info[MOTION_OPTION]);
-    this->Set(DEMFlags::HAS_DIRECT_CONDUCTION,   r_process_info[DIRECT_CONDUCTION_OPTION]);
-    this->Set(DEMFlags::HAS_INDIRECT_CONDUCTION, r_process_info[INDIRECT_CONDUCTION_OPTION]);
-    this->Set(DEMFlags::HAS_CONVECTION,          r_process_info[CONVECTION_OPTION]);
-    this->Set(DEMFlags::HAS_RADIATION,           r_process_info[RADIATION_OPTION]);
-    this->Set(DEMFlags::HAS_ADJUSTED_CONTACT,    r_process_info[ADJUSTED_CONTACT_OPTION]);
+    this->Set(DEMFlags::HAS_MOTION,                       r_process_info[MOTION_OPTION]);
+    this->Set(DEMFlags::HAS_DIRECT_CONDUCTION,            r_process_info[DIRECT_CONDUCTION_OPTION]);
+    this->Set(DEMFlags::HAS_INDIRECT_CONDUCTION,          r_process_info[INDIRECT_CONDUCTION_OPTION]);
+    this->Set(DEMFlags::HAS_CONVECTION,                   r_process_info[CONVECTION_OPTION]);
+    this->Set(DEMFlags::HAS_RADIATION,                    r_process_info[RADIATION_OPTION]);
+    this->Set(DEMFlags::HAS_ADJUSTED_CONTACT,             r_process_info[ADJUSTED_CONTACT_OPTION]);
+    this->Set(DEMFlags::HAS_TEMPERATURE_DEPENDENT_RADIUS, r_process_info[TEMPERATURE_DEPENDENT_RADIUS_OPTION]);
 
     // Initialize prescribed heat flux (currently a constant value)
     SetParticlePrescribedHeatFlux(0.0);
@@ -180,7 +181,7 @@ namespace Kratos
   void ThermalSphericParticle<TBaseElement>::UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    if (!GetProperties().Has(THERMAL_EXPANSION_COEFFICIENT))
+    if (!this->Is(DEMFlags::HAS_TEMPERATURE_DEPENDENT_RADIUS))
       return;
 
     // Update radius

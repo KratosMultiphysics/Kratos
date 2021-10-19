@@ -154,7 +154,13 @@ class ExplicitStrategy(BaseExplicitStrategy):
         # General options
         self.spheres_model_part.ProcessInfo.SetValue(THERMAL_FREQUENCY, self.thermal_solve_frequency)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MOTION_OPTION, self.compute_motion_option)
-
+        
+        temperature_dependent_radius = 0
+        for properties in self.spheres_model_part.Properties:
+            if properties.Has(THERMAL_EXPANSION_COEFFICIENT) and properties[THERMAL_EXPANSION_COEFFICIENT] != 0:
+                temperature_dependent_radius = 1
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, TEMPERATURE_DEPENDENT_RADIUS_OPTION, temperature_dependent_radius)
+        
         # Booleans for active heat transfer mechanisms
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, DIRECT_CONDUCTION_OPTION,   self.compute_direct_conduction_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, INDIRECT_CONDUCTION_OPTION, self.compute_indirect_conduction_option)
@@ -208,4 +214,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
             (self.cplusplus_strategy).SolveSolutionStep()
         else:
             (self.cplusplus_strategy).SolveSolutionStepStatic()
+        
+        if (self.spheres_model_part.ProcessInfo[TEMPERATURE_DEPENDENT_RADIUS_OPTION]):
+            (self.cplusplus_strategy).SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
+        
         return True
