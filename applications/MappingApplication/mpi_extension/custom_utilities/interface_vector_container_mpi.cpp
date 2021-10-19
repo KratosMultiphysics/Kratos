@@ -36,14 +36,16 @@ template<>
 void VectorContainerType::UpdateSystemVectorFromModelPart(const Variable<double>& rVariable,
                                                           const Kratos::Flags& rMappingOptions)
 {
-    MapperUtilities::UpdateSystemVectorFromModelPart((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions);
+    constexpr bool in_parallel = false; // accessing the trilinos vectors is not threadsafe in the default configuration!
+    MapperUtilities::UpdateSystemVectorFromModelPart((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions, in_parallel);
 }
 
 template<>
 void VectorContainerType::UpdateModelPartFromSystemVector(const Variable<double>& rVariable,
                                                           const Kratos::Flags& rMappingOptions)
 {
-    MapperUtilities::UpdateModelPartFromSystemVector((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions);
+    constexpr bool in_parallel = false; // accessing the trilinos vectors is not threadsafe in the default configuration!
+    MapperUtilities::UpdateModelPartFromSystemVector((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions, in_parallel);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
