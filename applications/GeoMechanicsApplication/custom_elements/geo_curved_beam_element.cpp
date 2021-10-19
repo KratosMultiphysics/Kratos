@@ -575,9 +575,12 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
     KRATOS_INFO("rRightHandSideVector") << rRightHandSideVector << std::endl;
 
     //Distribute body force block vector into elemental vector
-    rRightHandSideVector +=  density
+    noalias(rVariables.UVector) = density
                            * prod(trans(rVariables.NuTot), rVariables.BodyAcceleration)
                            * rVariables.IntegrationCoefficient;
+
+    //Distribute body force block vector into elemental vector
+    GeoElementUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector,rVariables.UVector);
 
     KRATOS_INFO("1-GeoCurvedBeamElement::CalculateAndAddBodyForce") << std::endl;
     KRATOS_CATCH("")
@@ -851,9 +854,15 @@ double GeoCurvedBeamElement<TDim,TNumNodes>::
                                     double detJ,
                                     double weight) const
 {
+    KRATOS_INFO("0-GeoCurvedBeamElement::CalculateIntegrationCoefficient") << std::endl;
+
+    const std::vector<double> CrossWeight{1.0, 1.0};
+
     KRATOS_INFO("weight") << weight << std::endl;
     KRATOS_INFO("CrossWeight[GPointCross]") << CrossWeight[GPointCross] << std::endl;
     KRATOS_INFO("detJ") << detJ << std::endl;
+
+    KRATOS_INFO("0-GeoCurvedBeamElement::CalculateIntegrationCoefficient") << std::endl;
 
     return weight * CrossWeight[GPointCross] * detJ;
 }

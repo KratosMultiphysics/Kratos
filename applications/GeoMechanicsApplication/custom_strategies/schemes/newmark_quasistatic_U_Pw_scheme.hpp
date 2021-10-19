@@ -232,6 +232,54 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    void GetDofList( const Element& rElement,
+                     Element::DofsVectorType& rDofList,
+                     const ProcessInfo& rCurrentProcessInfo ) override
+    {
+        const bool isActive = (rElement.IsDefined(ACTIVE)) ? rElement.Is(ACTIVE) : true;
+        if (isActive) rElement.GetDofList(rDofList, rCurrentProcessInfo);
+
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void GetDofList( const Condition& rCondition,
+                     Element::DofsVectorType& rDofList,
+                     const ProcessInfo& rCurrentProcessInfo ) override
+    {
+        const bool isActive = (rCondition.IsDefined(ACTIVE)) ? rCondition.Is(ACTIVE) : true;
+        if (isActive) rCondition.GetDofList(rDofList, rCurrentProcessInfo);
+
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void EquationId(
+        const Element& rElement,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        const bool isActive = (rElement.IsDefined(ACTIVE)) ? rElement.Is(ACTIVE) : true;
+        if (isActive) rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
+        
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void EquationId(
+        const Condition& rCondition,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        const bool isActive = (rCondition.IsDefined(ACTIVE)) ? rCondition.Is(ACTIVE) : true;
+        if (isActive) rCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
+    }
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& A,
@@ -260,9 +308,7 @@ public:
                 rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) = 0.0;
             });
 
-
             FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
-
 
             // Compute smoothed nodal variables
             block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode) {

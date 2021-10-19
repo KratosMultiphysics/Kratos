@@ -622,7 +622,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
             rNodalVariableVector[index++] = rGeom[i].FastGetSolutionStepValue(ROTATION_Z, SolutionStepIndex);
         }
     } else {
-        KRATOS_ERROR << " Unspecified dimension in GetDofList: " << this->Id() << std::endl;
+        KRATOS_ERROR << " Unspecified dimension in GetNodalDofValuesVector: " << this->Id() << std::endl;
     }
 
     KRATOS_INFO("1-GeoStructuralBaseElement::GetNodalDofValuesVector") << std::endl;

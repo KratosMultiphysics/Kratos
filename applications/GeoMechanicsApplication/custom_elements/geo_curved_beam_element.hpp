@@ -205,7 +205,6 @@ private:
     static constexpr SizeType N_DOF_NODE_ROT = (TDim == 2 ? 1 : 3);
     static constexpr SizeType N_DOF_NODE = N_DOF_NODE_DISP + N_DOF_NODE_ROT;
     static constexpr SizeType N_POINT_CROSS = 2;
-    const Vector CrossWeight = UnitVector(N_POINT_CROSS);
 
 }; // Class GeoCurvedBeamElement
 

@@ -315,10 +315,11 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template< unsigned int TDim, unsigned int TNumNodes >
     static inline void AssembleUBlockVector(Vector& rRightHandSideVector,
-                                            const array_1d<double,TDim*TNumNodes>& UBlockVector)
+                                            const array_1d<double,TDim*TNumNodes>& UBlockVector,
+                                            int unsigned OffsetDof = 1)
     {
         for (unsigned int i = 0; i < TNumNodes; ++i) {
-            const unsigned int Global_i = i * (TDim + 1);
+            const unsigned int Global_i = i * (TDim + OffsetDof);
             const unsigned int Local_i  = i * TDim;
 
             for (unsigned int dim = 0; dim < TDim; ++dim) {
