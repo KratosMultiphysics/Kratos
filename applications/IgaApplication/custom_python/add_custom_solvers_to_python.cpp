@@ -18,6 +18,7 @@
 #include "spaces/ublas_space.h"
 #include "custom_python/add_custom_solvers_to_python.h"
 #include "custom_solvers/additive_schwarz_preconditioner.h"
+#include "factories/standard_preconditioner_factory.h"
 
 #include "iga_application_variables.h"
 
@@ -43,6 +44,9 @@ void AddCustomSolversToPython(
     .def(py::init<>() )
     .def("__str__", PrintObject<AdditiveSchwarzPreconditionerType>)
     ;
+
+    static auto DiagonalPreconditionerFactory = StandardPreconditionerFactory<SpaceType,LocalSpaceType,AdditiveSchwarzPreconditionerType>();
+    KRATOS_REGISTER_PRECONDITIONER("additive_schwarz", DiagonalPreconditionerFactory);
 }
 
 } // namespace Python

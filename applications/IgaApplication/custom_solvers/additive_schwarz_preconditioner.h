@@ -124,7 +124,6 @@ public:
         double M_det = 0.0; //MathUtils<double>::Det(M);
         DenseMatrixType M_invert = ZeroMatrix(local_size, local_size);
         MathUtils<double>::InvertMatrix(M, M_invert, M_det, -1e-6);
-
         for (IndexType i_local = 0; i_local < local_size; i_local++) {
             const IndexType i_global = rEquationId[i_local];
             AssembleRowEntries(rS, M_invert, i_global, i_local, rEquationId);
@@ -174,7 +173,6 @@ public:
         std::size_t* index2_vector = rA.index2_data().begin();
 
         size_t left_limit = index1_vector[i];
-//    size_t right_limit = index1_vector[i+1];
 
         //find the first entry
         size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
@@ -322,7 +320,7 @@ public:
     }
 
     VectorType& Finalize(VectorType& rX) override{
-        TSparseSpaceType::Clear(mpS);
+        TSparseSpaceType::SetToZero(*mpS);
 
         return rX;
     }
@@ -359,6 +357,7 @@ protected:
     ///@{
     std::vector<std::vector<size_t>> dof_blocks;
     SparseMatrixPointerType mpS;
+    bool mMatrixIsInitializedFlag = false;
 
     ///@}
 
