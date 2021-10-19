@@ -316,6 +316,7 @@ public:
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
+     * @ref (https://stackoverflow.com/questions/68641598/check-if-a-3d-point-is-in-a-square-based-pyramid-or-not)
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
