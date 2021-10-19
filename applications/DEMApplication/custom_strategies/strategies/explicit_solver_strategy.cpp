@@ -390,9 +390,14 @@ namespace Kratos {
               p_sphere->SetParticleTemperature(submp[TEMPERATURE]);
 
             if (submp.Has(HEATFLUX))
-              p_sphere->SetParticlePrescribedHeatFlux(submp[HEATFLUX]);
+              p_sphere->SetParticlePrescribedHeatFluxSurface(submp[HEATFLUX]);
             else
-              p_sphere->SetParticlePrescribedHeatFlux(0.0);
+              p_sphere->SetParticlePrescribedHeatFluxSurface(0.0);
+
+            if (submp.Has(HEATSOURCE))
+              p_sphere->SetParticlePrescribedHeatFluxVolume(submp[HEATSOURCE]);
+            else
+              p_sphere->SetParticlePrescribedHeatFluxVolume(0.0);
 
             if (submp.Has(REAL_YOUNG_MODULUS_RATIO))
               p_sphere->SetParticleRealYoungRatio(submp[REAL_YOUNG_MODULUS_RATIO]);

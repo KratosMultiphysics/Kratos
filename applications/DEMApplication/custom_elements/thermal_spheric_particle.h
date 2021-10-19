@@ -152,6 +152,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   const double& GetParticleTemperature();
   double GetParticleSurfaceArea();
   double GetParticleCharacteristicLength();
+  double GetParticleVolume();
   double GetParticleConductivity();
   double GetParticleHeatCapacity();
   double GetParticleEmissivity();
@@ -166,7 +167,8 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double GetNeighborEmissivity();
   void   SetParticleTemperature(const double temperature);
   void   SetParticleHeatFlux(const double heat_flux);
-  void   SetParticlePrescribedHeatFlux(const double heat_flux);
+  void   SetParticlePrescribedHeatFluxSurface(const double heat_flux);
+  void   SetParticlePrescribedHeatFluxVolume(const double heat_flux);
   void   SetParticleRealYoungRatio(const double ratio);
 
   // Turn back information as a string.
@@ -189,6 +191,8 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double mConductiveHeatFlux;
   double mConvectiveHeatFlux;
   double mRadiativeHeatFlux;
+  double mPrescribedHeatFluxSurface;
+  double mPrescribedHeatFluxVolume;
   double mPrescribedHeatFlux;
   double mTotalHeatFlux;
 

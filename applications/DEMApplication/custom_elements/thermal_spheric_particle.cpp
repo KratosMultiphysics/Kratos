@@ -42,8 +42,9 @@ namespace Kratos
     this->Set(DEMFlags::HAS_ADJUSTED_CONTACT,             r_process_info[ADJUSTED_CONTACT_OPTION]);
     this->Set(DEMFlags::HAS_TEMPERATURE_DEPENDENT_RADIUS, r_process_info[TEMPERATURE_DEPENDENT_RADIUS_OPTION]);
 
-    // Initialize prescribed heat flux (currently a constant value)
-    SetParticlePrescribedHeatFlux(0.0);
+    // Initialize prescribed heat flux/source (currently a constant value)
+    SetParticlePrescribedHeatFluxSurface(0.0);
+    SetParticlePrescribedHeatFluxVolume(0.0);
 
     KRATOS_CATCH("")
   }
@@ -68,6 +69,7 @@ namespace Kratos
     mConductiveHeatFlux = 0.0;
     mConvectiveHeatFlux = 0.0;
     mRadiativeHeatFlux  = 0.0;
+    mPrescribedHeatFlux = 0.0;
     mTotalHeatFlux      = 0.0;
 
     // Initialize environment-related variables for radiation
@@ -135,6 +137,12 @@ namespace Kratos
     if (this->Is(DEMFlags::HAS_RADIATION))
       ComputeContinuumRadiativeHeatFlux(r_process_info);
 
+    // Compute prescribed heat flux
+    if (mPrescribedHeatFluxSurface != 0.0)
+      mPrescribedHeatFlux += mPrescribedHeatFluxSurface * GetParticleSurfaceArea();
+    if (mPrescribedHeatFluxVolume != 0.0)
+      mPrescribedHeatFlux += mPrescribedHeatFluxVolume * GetParticleVolume();
+
     // Sum up heat fluxes contributions
     mTotalHeatFlux = mConductiveHeatFlux + mConvectiveHeatFlux + mRadiativeHeatFlux + mPrescribedHeatFlux;
 
@@ -190,16 +198,12 @@ namespace Kratos
     GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = new_radius;
 
     // Update density
-    double new_density = GetMass() / CalculateVolume();
+    double new_density = GetMass() / GetParticleVolume();
     GetProperties()[PARTICLE_DENSITY] = new_density;
 
     // Update inertia
     double new_inertia = CalculateMomentOfInertia();
     GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = new_inertia;
-
-    // Update prescribed heat flux
-    if (mPrescribedHeatFlux != 0.0)
-      SetParticlePrescribedHeatFlux(0.0);
 
     KRATOS_CATCH("")
   }
@@ -1381,6 +1385,11 @@ namespace Kratos
   }
 
   template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetParticleVolume() {
+    return CalculateVolume();
+  }
+
+  template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleConductivity() {
     return GetProperties()[THERMAL_CONDUCTIVITY];
   }
@@ -1491,8 +1500,13 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::SetParticlePrescribedHeatFlux(const double heat_flux) {
-    mPrescribedHeatFlux = heat_flux * GetParticleSurfaceArea();
+  void ThermalSphericParticle<TBaseElement>::SetParticlePrescribedHeatFluxSurface(const double heat_flux) {
+    mPrescribedHeatFluxSurface = heat_flux;
+  }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::SetParticlePrescribedHeatFluxVolume(const double heat_flux) {
+    mPrescribedHeatFluxVolume = heat_flux;
   }
 
   template <class TBaseElement>
