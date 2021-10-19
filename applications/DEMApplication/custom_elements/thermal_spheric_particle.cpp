@@ -548,10 +548,8 @@ namespace Kratos
       // Compute voronoi edge radius from porosity
       double rij = 0.56 * particle_radius * pow((1.0 - porosity), -1.0/3.0);
 
-      if (rij <= mContactRadiusAdjusted) {
-        h = 0.0;
-        return;
-      }
+      if (rij <= mContactRadiusAdjusted)
+        return 0.0;
 
       // Compute upper limit of integral
       double upp_lim = particle_radius * rij / sqrt(rij * rij + mNeighborDistanceAdjusted * mNeighborDistanceAdjusted);
@@ -570,10 +568,8 @@ namespace Kratos
       // Compute voronoi edge radius from porosity
       double rij = 0.56 * particle_radius * pow((1.0 - porosity), -1.0/3.0);
 
-      if (rij <= mContactRadiusAdjusted) {
-        h = 0.0;
-        return;
-      }
+      if (rij <= mContactRadiusAdjusted)
+        return 0.0;
 
       // Compute upper limit of integral
       double upp_lim = particle_radius * rij / sqrt(rij * rij + mNeighborDistanceAdjusted * mNeighborDistanceAdjusted / 4.0);
@@ -595,10 +591,8 @@ namespace Kratos
       // Assumption: using average radius
       rij = 0.56 * (particle_radius + neighbor_radius) / 2.0 * pow((1.0 - porosity), -1.0/3.0);
 
-      if (rij <= mContactRadiusAdjusted) {
-        h = 0.0;
-        return;
-      }
+      if (rij <= mContactRadiusAdjusted)
+        return 0.0;
 
       if (mNeighborInContact)
         D1 = sqrt(particle_radius * particle_radius - mContactRadiusAdjusted * mContactRadiusAdjusted);
@@ -664,10 +658,8 @@ namespace Kratos
       // Compute voronoi edge radius from porosity
       double rij = 0.56 * particle_radius * pow((1.0 - porosity), -1.0/3.0);
       
-      if (rij <= mContactRadiusAdjusted) {
-        h = 0.0;
-        return;
-      }
+      if (rij <= mContactRadiusAdjusted)
+        return 0.0;
 
       double kp = GetParticleConductivity();
       double rc = core * particle_radius;
@@ -688,10 +680,8 @@ namespace Kratos
       // Compute voronoi edge radius from porosity
       double rij = 0.56 * particle_radius * pow((1.0 - porosity), -1.0/3.0);
       
-      if (rij <= mContactRadiusAdjusted) {
-        h = 0.0;
-        return;
-      }
+      if (rij <= mContactRadiusAdjusted)
+        return 0.0;
 
       double keff = ComputeEffectiveConductivity();
       double rc   = core * particle_radius;
@@ -713,10 +703,8 @@ namespace Kratos
       // Assumption: using average radius for rij
       double rij = 0.56 * (particle_radius + neighbor_radius) / 2.0 * pow((1.0 - porosity), -1.0/3.0);
 
-      if (rij <= mContactRadiusAdjusted) {
-        h = 0.0;
-        return;
-      }
+      if (rij <= mContactRadiusAdjusted)
+        return 0.0;
 
       double An = Globals::Pi * rij * rij;
 
