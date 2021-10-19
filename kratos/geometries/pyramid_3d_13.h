@@ -325,6 +325,71 @@ public:
     }
 
     /**
+    * Returns a matrix of the local coordinates of all points
+    * @param rResult a Matrix that will be overwritten by the results
+    * @return the coordinates of all points of the current geometry
+    */
+    Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
+    {
+        if ( rResult.size1() != 13 || rResult.size2() != 3 )
+            rResult.resize( 13, 3, false );
+
+        rResult( 0, 0 ) = -1.0;
+        rResult( 0, 1 ) = -1.0;
+        rResult( 0, 2 ) = -1.0;
+
+        rResult( 1, 0 ) = +1.0;
+        rResult( 1, 1 ) = -1.0;
+        rResult( 1, 2 ) = -1.0;
+
+        rResult( 2, 0 ) = +1.0;
+        rResult( 2, 1 ) = +1.0;
+        rResult( 2, 2 ) = -1.0;
+
+        rResult( 3, 0 ) = -1.0;
+        rResult( 3, 1 ) = +1.0;
+        rResult( 3, 2 ) = -1.0;
+
+        rResult( 4, 0 ) =  0.0;
+        rResult( 4, 1 ) =  0.0;
+        rResult( 4, 2 ) = +1.0;
+
+        rResult( 5, 0 ) =  0.0;
+        rResult( 5, 1 ) = -0.5;
+        rResult( 5, 2 ) = -1.0;
+
+        rResult( 6, 0 ) = +0.5;
+        rResult( 6, 1 ) =  0.0;
+        rResult( 6, 2 ) = -1.0;
+
+        rResult( 7, 0 ) =  0.0;
+        rResult( 7, 1 ) = +0.5;
+        rResult( 7, 2 ) = -1.0;
+
+        rResult( 8, 0 ) = +0.5;
+        rResult( 8, 1 ) =  0.0;
+        rResult( 8, 2 ) = -1.0;
+
+        rResult( 9, 0 ) = -0.5;
+        rResult( 9, 1 ) = -0.5;
+        rResult( 9, 2 ) =  0.0;
+
+        rResult( 10, 0 ) = +0.5;
+        rResult( 10, 1 ) = -0.5;
+        rResult( 10, 2 ) = 0.0;
+
+        rResult( 11, 0 ) = +0.5;
+        rResult( 11, 1 ) = +0.5;
+        rResult( 11, 2 ) = 0.0;
+
+        rResult( 12, 0 ) = -0.5;
+        rResult( 12, 1 ) = +0.5;
+        rResult( 12, 2 ) = 0.0;
+
+        return rResult;
+    }
+
+    /**
      * Shape Function
      */
 
@@ -632,7 +697,7 @@ public:
     */
     std::string Info() const override
     {
-        return "3 dimensional pyramid with four nodes in 3D space";
+        return "3 dimensional pyramid with 13 nodes in 3D space";
     }
 
     /** Print information about this object.
