@@ -49,7 +49,7 @@ public:
 
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
 
-    typedef typename TSparseSpace::MatrixPointerType SparseMatrixPointerType;
+    typedef typename TSparseSpaceType::MatrixPointerType SparseMatrixPointerType;
 
     typedef typename TSparseSpaceType::VectorType VectorType;
 
@@ -64,12 +64,14 @@ public:
     /// Default constructor.
     AdditiveSchwarzPreconditioner()
     {
-
+        mMatrixIsInitializedFlag = false;
     }
 
 
     /// Copy constructor.
-    AdditiveSchwarzPreconditioner(const AdditiveSchwarzPreconditioner& Other) {}
+    AdditiveSchwarzPreconditioner(const AdditiveSchwarzPreconditioner& Other) {
+        mMatrixIsInitializedFlag = Other.mMatrixIsInitializedFlag;
+    }
 
 
     /// Destructor.
@@ -88,13 +90,6 @@ public:
 
     }
 
-    void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
-    {
-
-
-
-        //ApplyLeft(rY);
-    }
     ///@}
     ///@name Get/Set functions
     ///@{
@@ -214,7 +209,9 @@ public:
 
         mpS = TSparseSpaceType::CreateEmptyMatrixPointer();
         SparseMatrixType& S = *mpS;
-        S.resize(rA.size1(), rA.size2(), rA.nnz());
+        //S = rA;
+        S.resize(rA.size1(), rA.size1(), false);
+        S.reserve(rA.nnz_capacity(), false);
 
         double* Avalues = S.value_data().begin();
         std::size_t* Arow_indices = S.index1_data().begin();
@@ -222,29 +219,17 @@ public:
 
         std::size_t* Arow_indices_old = rA.index1_data().begin();
         std::size_t* Acol_indices_old = rA.index2_data().begin();
-        //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
-        Arow_indices[0] = 0;
-        for (int i = 0; i < static_cast<int>(rA.size1()); i++) {
-            Arow_indices[i+1] = Arow_indices_old[i+1];
+
+        for(int i = 0; i < rA.index1_data().size(); ++i){
+            Arow_indices[i] = Arow_indices_old[i];
         }
 
-        IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t i){
-            const unsigned int row_begin = Arow_indices_old[i];
-            //const unsigned int row_end = Arow_indices[i+1];
-            unsigned int k = row_begin;
-            for (int i = 0; i < rA.index1_data().size() ; ++i) {
-                Acol_indices[k] = Acol_indices_old[k];
-                Avalues[k] = 0.0;
-                k++;
-            }
+        for(int i = 0; i < rA.index2_data().size(); ++i){
+            Acol_indices[i] = Acol_indices_old[i];
+            Avalues[i] =  0.0;
+        }
 
-            // indices[i].clear(); //deallocating the memory
-
-            // //std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
-
-        });
-
-        S.set_filled(rA.size1()+1, rA.nnz());
+        S.set_filled(rA.filled1(),rA.filled2());
     }
 
     void ProvideAdditionalData(
@@ -255,10 +240,10 @@ public:
         ModelPart& r_model_part
     ) override
     {
-
-        InitializeMatrix(rA);
-        //mpS = rA; //SparseMatrixType(rA.size1(), rA.size2(), rA.nnz_capacity() );
-        TSparseSpaceType::SetToZero(mpS);
+        if( ! mMatrixIsInitializedFlag ){
+            InitializeMatrix(rA);
+            mMatrixIsInitializedFlag = true;
+        }
 
         VariableUtils().SetFlag(VISITED, false, r_model_part.Nodes());
         auto element_it_begin = r_model_part.ElementsBegin();
@@ -287,8 +272,7 @@ public:
                             }
                         }
                     }
-                    GetEntries(rA, mpS, new_equation_ids);
-                    //dof_blocks.push_back(new_equation_ids);
+                    GetEntries(rA, *mpS, new_equation_ids);
                 }
         }
     }
@@ -332,13 +316,15 @@ public:
         //     std::cout << mpS(i,i) << std::endl;
         // }
         VectorType z = rX;
-        TSparseSpaceType::Mult(mpS, z, rX);
+        TSparseSpaceType::Mult(*mpS, z, rX);
 
         return rX;
     }
 
     VectorType& Finalize(VectorType& rX) override{
         TSparseSpaceType::Clear(mpS);
+
+        return rX;
     }
     ///@}
     ///@name Input and output
