@@ -2121,7 +2121,6 @@ private:
         double up1 = rThisGeometry[1][index];
         double up2 = rThisGeometry[2][index];
 
-
         // compute interval for triangle 1 //
         double a, b, c, x0, x1;
         if (ComputeIntervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], a, b, c, x0, x1) == true)
@@ -2181,11 +2180,10 @@ private:
 		double& X1
 		)
 	{
-		double D0D1 = D0*D1;
-		double D0D2 = D0*D2;
+		double D0D1 = D0 * D1;
+		double D0D2 = D0 * D2;
 
-		if (D0D1>0.00)
-		{
+		if (D0D1 > 0.0) {
 			// here we know that D0D2<=0.0 //
 			// that is D0, D1 are on the same side, D2 on the other or on the plane //
 			A = VV2;
@@ -2194,8 +2192,7 @@ private:
 			X0 = D2 - D0;
 			X1 = D2 - D1;
 		}
-		else if (D0D2>0.00)
-		{
+		else if (D0D2 > 0.0) {
 			// here we know that d0d1<=0.0 //
 			A = VV1;
 			B = (VV0 - VV1)*D1;
@@ -2203,8 +2200,7 @@ private:
 			X0 = D1 - D0;
 			X1 = D1 - D2;
 		}
-		else if (D1*D2>0.00 || D0 != 0.00)
-		{
+		else if (D1 * D2 > 0.00 || D0 != 0.00) {
 			// here we know that d0d1<=0.0 or that D0!=0.0 //
 			A = VV0;
 			B = (VV1 - VV0)*D0;
@@ -2212,30 +2208,24 @@ private:
 			X0 = D0 - D1;
 			X1 = D0 - D2;
 		}
-		else if (D1 != 0.00)
-		{
+		else if (D1 != 0.00) {
 			A = VV1;
 			B = (VV0 - VV1)*D1;
 			C = (VV2 - VV1)*D1;
 			X0 = D1 - D0;
 			X1 = D1 - D2;
 		}
-		else if (D2 != 0.00)
-		{
+		else if (D2 != 0.00) {
 			A = VV2;
 			B = (VV0 - VV2)*D2;
 			C = (VV1 - VV2)*D2;
 			X0 = D2 - D0;
 			X1 = D2 - D1;
 		}
-		else
-		{
-			///Triangles are coplanar
+		else { // Triangles are coplanar
 			return true;
 		}
-
 		return false;
-
 	}
 
 	bool CoplanarIntersectionCheck(const array_1d<double, 3>& N,
@@ -2249,28 +2239,19 @@ private:
 		A[0] = std::abs(N[0]);
 		A[1] = std::abs(N[1]);
 		A[2] = std::abs(N[2]);
-		if (A[0]>A[1])
-		{
-			if (A[0]>A[2])
-			{
+		if (A[0] > A[1]) {
+			if (A[0] > A[2]) {
 				i0 = 1;      // A[0] is greatest //
 				i1 = 2;
-			}
-			else
-			{
+			} else {
 				i0 = 0;      // A[2] is greatest //
 				i1 = 1;
 			}
-		}
-		else   // A[0]<=A[1] //
-		{
-			if (A[2]>A[1])
-			{
+		} else {             // A[0] <= A[1] //
+			if (A[2] > A[1]) {
 				i0 = 0;      // A[2] is greatest //
 				i1 = 1;
-			}
-			else
-			{
+			} else {
 				i0 = 0;      // A[1] is greatest //
 				i1 = 2;
 			}
