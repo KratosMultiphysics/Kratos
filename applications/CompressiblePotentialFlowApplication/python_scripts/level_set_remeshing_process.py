@@ -164,16 +164,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         from KratosMultiphysics import python_linear_solver_factory #Linear solver for variational distance process
         linear_solver_settings=KratosMultiphysics.Parameters("""
         {
-            "solver_type": "amgcl",
-            "max_iteration": 200,
-            "gmres_krylov_space_dimension": 100,
-            "smoother_type":"ilu0",
-            "coarsening_type":"ruge_stuben",
-            "coarse_enough" : 5000,
-            "krylov_type": "lgmres",
-            "tolerance": 1e-8,
-            "verbosity": 0,
-            "scaling": false
+            "solver_type": "LinearSolversApplication.sparse_lu"
         }""")
 
         linear_solver = python_linear_solver_factory.ConstructSolver(linear_solver_settings)
