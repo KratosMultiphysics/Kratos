@@ -1,11 +1,11 @@
 # Contributing to Kratos Multiphysics
 We love your input! We want to make contributing to this project as easy and transparent as possible, whether it's:
 
-- Reporting a bug
-- Discussing the current state of the code
-- Proposing new features
-- Submitting a fix
-- Becoming a maintainer
+- [Reporting a bug](#reporting-a-bug)
+- [Discussing the current state of the code](#discussing-the-current-state-of-the-code)
+- [Proposing new features](#proposing-new-features)
+- [Submitting a fix](#submitting-a-fix)
+- [Becoming a maintainer](#becoming-a-maintainer)
 
 ## Reporting a bug
 
