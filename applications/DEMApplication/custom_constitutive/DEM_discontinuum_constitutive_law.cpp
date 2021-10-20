@@ -53,7 +53,7 @@ namespace Kratos {
             KRATOS_WARNING("DEM")<<"WARNING: Variable FRICTION_DECAY should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 500.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
             pProp->GetValue(FRICTION_DECAY) = 500.0;
-        }        
+        }
         if(!pProp->Has(COEFFICIENT_OF_RESTITUTION)) {
             KRATOS_WARNING("DEM")<<std::endl;
             KRATOS_WARNING("DEM")<<"WARNING: Variable COEFFICIENT_OF_RESTITUTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
@@ -127,10 +127,9 @@ namespace Kratos {
         double equiv_mass = (mRealMass*other_real_mass)/(mRealMass+other_real_mass);
 
         // calculation of damping gamma
-        
+
         Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
         const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
-        KRATOS_WATCH(damping_gamma)
         const double friction_coeff = properties_of_this_contact[STATIC_FRICTION];
         const double viscous_damping_coeff     = 2.0 * damping_gamma * sqrt(equiv_mass * kn);
         double rescaled_damping = viscous_damping_coeff/(2*equiv_mass);

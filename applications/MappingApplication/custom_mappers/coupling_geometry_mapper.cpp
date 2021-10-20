@@ -105,25 +105,6 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     }
 }
 
-std::string CouplingGeometryLocalSystem::PairingInfo(const int EchoLevel) const
-{
-    //std::cout << "   >>> XXX : IS_PROJECTED_LOCAL_SYSTEM: " << mIsProjection << std::endl;
-    // KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
-
-    // std::stringstream buffer;
-    // buffer << "CouplingGeometryLocalSystem based on " << mpNode->Info();
-    // if (EchoLevel > 1) { // TODO leave here?
-    //     buffer << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
-    //     if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
-    //         mpNode->SetValue(PAIRING_STATUS, 0);
-    //     } else {
-    //         mpNode->SetValue(PAIRING_STATUS, -1);
-    //     }
-    // }
-    // return buffer.str();
-    return "";
-}
-
 template<class TSparseSpace, class TDenseSpace>
 CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CouplingGeometryMapper(
     ModelPart& rModelPartOrigin,

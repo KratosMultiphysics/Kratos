@@ -76,7 +76,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) PfemFluidConstitutiveLaw : pub
      *  @return 0 if everything is fine, other values indicate problems.
      */
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) override;
+              const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -100,7 +100,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) PfemFluidConstitutiveLaw : pub
     /// This lets the user know the size of the strain rate vector (in Voigt notation) used by the constitutive law.
     /** @return The size of the strain rate vector.
      */
-    SizeType GetStrainSize() override;
+    SizeType GetStrainSize() const override;
 
     ///@}
     ///@name Input and output

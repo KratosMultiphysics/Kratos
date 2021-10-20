@@ -4,11 +4,12 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//	                 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
-//  Contributors:    Ashish Darekar
+//                   Ashish Darekar
+//
 
 #if !defined (KRATOS_PYRAMID_3D_5_H_INCLUDED)
 #define KRATOS_PYRAMID_3D_5_H_INCLUDED
@@ -417,14 +418,7 @@ public:
         PD[2] = LocalPyramid(3,2) - rResult[2];
 
         //Dot products of direction vector with Planar normal
-        if((MathUtils<double>::Dot(PE, nABE) >= 0) && (MathUtils<double>::Dot(PE, nBCE) >= 0) && (MathUtils<double>::Dot(PE, nCDE) >= 0) && (MathUtils<double>::Dot(PE, nDAE) >= 0) && (MathUtils<double>::Dot(PD, nABCD) >= 0))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return ((MathUtils<double>::Dot(PE, nABE) >= 0) && (MathUtils<double>::Dot(PE, nBCE) >= 0) && (MathUtils<double>::Dot(PE, nCDE) >= 0) && (MathUtils<double>::Dot(PE, nDAE) >= 0) && (MathUtils<double>::Dot(PD, nABCD) >= 0));
     }
 
 

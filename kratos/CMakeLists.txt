@@ -101,6 +101,7 @@ if(CMAKE_UNITY_BUILD MATCHES ON)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/geometries/test_pyramid_3d_5.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 
     ## The following are conflicting due to KratosComponents
     file(GLOB_RECURSE KRATOS_STRATEGIES_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/solving_strategies/*.cpp)
