@@ -325,130 +325,14 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective
-     * local point for the given global point
-     * @param rPoint The point to be checked if is inside o note in global coordinates
-     * @param rResult The local coordinates of the point
-     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
-     * @ref (https://stackoverflow.com/questions/68641598/check-if-a-3d-point-is-in-a-square-based-pyramid-or-not)
-     * @return True if the point is inside, false otherwise
-     */
-    /* bool IsInside(
-        const CoordinatesArrayType& rPoint,
-        CoordinatesArrayType& rResult,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) const override
-    {
-        this->PointLocalCoordinates( rResult, rPoint );
-
-        //Calculation of all the surface normals of a Pyramid ABCDE
-        Matrix LocalPyramid;
-        LocalPyramid = PointsLocalCoordinates(LocalPyramid); //Fix values
-
-        //Surface Normal for ABE
-        array_1d<double,3> AB;
-        array_1d<double,3> AE;
-        array_1d<double,3> nABE;
-
-        //(B - A)
-        AB[0] = LocalPyramid(1,0) - LocalPyramid(0,0);
-        AB[1] = LocalPyramid(1,1) - LocalPyramid(0,1);
-        AB[2] = LocalPyramid(1,2) - LocalPyramid(0,2);
-
-        //(E - A)
-        AE[0] = LocalPyramid(4,0) - LocalPyramid(0,0);
-        AE[1] = LocalPyramid(4,1) - LocalPyramid(0,1);
-        AE[2] = LocalPyramid(4,2) - LocalPyramid(0,2);
-
-        MathUtils<double>::UnitCrossProduct(nABE, AB, AE);
-
-        //Surface Normal for BCE
-        array_1d<double,3> BC;
-        array_1d<double,3> BE;
-        array_1d<double,3> nBCE;
-
-        //(C - B)
-        BC[0] = LocalPyramid(2,0) - LocalPyramid(1,0);
-        BC[1] = LocalPyramid(2,1) - LocalPyramid(1,1);
-        BC[2] = LocalPyramid(2,2) - LocalPyramid(1,2);
-
-        //(E - B)
-        BE[0] = LocalPyramid(4,0) - LocalPyramid(1,0);
-        BE[1] = LocalPyramid(4,1) - LocalPyramid(1,1);
-        BE[2] = LocalPyramid(4,2) - LocalPyramid(1,2);
-
-        MathUtils<double>::UnitCrossProduct(nBCE, BC, BE);
-
-        //Surface Normal for CDE
-        array_1d<double,3> CD;
-        array_1d<double,3> CE;
-        array_1d<double,3> nCDE;
-
-        //(D - C)
-        CD[0] = LocalPyramid(3,0) - LocalPyramid(2,0);
-        CD[1] = LocalPyramid(3,1) - LocalPyramid(2,1);
-        CD[2] = LocalPyramid(3,2) - LocalPyramid(2,2);
-
-        //(E - C)
-        CE[0] = LocalPyramid(4,0) - LocalPyramid(2,0);
-        CE[1] = LocalPyramid(4,1) - LocalPyramid(2,1);
-        CE[2] = LocalPyramid(4,2) - LocalPyramid(2,2);
-
-        MathUtils<double>::UnitCrossProduct(nCDE, CD, CE);
-
-        //Surface Normal for DAE
-        array_1d<double,3> DA;
-        array_1d<double,3> DE;
-        array_1d<double,3> nDAE;
-
-        //(A - D)
-        DA[0] = LocalPyramid(0,0) - LocalPyramid(3,0);
-        DA[1] = LocalPyramid(0,1) - LocalPyramid(3,1);
-        DA[2] = LocalPyramid(0,2) - LocalPyramid(3,2);
-
-        //(E - D)
-        DE[0] = LocalPyramid(4,0) - LocalPyramid(3,0);
-        DE[1] = LocalPyramid(4,1) - LocalPyramid(3,1);
-        DE[2] = LocalPyramid(4,2) - LocalPyramid(3,2);
-
-        MathUtils<double>::UnitCrossProduct(nDAE, DA, DE);
-
-        //Surface Normal for ABCD , using AB and DA
-        array_1d<double,3> nABCD;
-
-        MathUtils<double>::UnitCrossProduct(nABCD, AB, DA);
-
-        //Direction Vector from Point to the point in the Plane
-        array_1d<double,3> PE; //As point E is been shared between all 4 planes ABE, BCE, CDE, DAE
-        array_1d<double,3> PD; //For the base place ABCD
-
-        //PE = (E - P)
-        PE[0] = LocalPyramid(4,0) - rResult[0];
-        PE[1] = LocalPyramid(4,1) - rResult[1];
-        PE[2] = LocalPyramid(4,2) - rResult[2];
-
-        //PD = (D - P)
-        PD[0] = LocalPyramid(3,0) - rResult[0];
-        PD[1] = LocalPyramid(3,1) - rResult[1];
-        PD[2] = LocalPyramid(3,2) - rResult[2];
-
-        //Dot products of direction vector with Planar normal
-        return ((MathUtils<double>::Dot(PE, nABE) >= 0) && (MathUtils<double>::Dot(PE, nBCE) >= 0) && (MathUtils<double>::Dot(PE, nCDE) >= 0) && (MathUtils<double>::Dot(PE, nDAE) >= 0) && (MathUtils<double>::Dot(PD, nABCD) >= 0));
-    }
-
- */
-
-    /**
     * @brief Checks if given point in local space coordinates of this geometry
     *        is inside the geometry boundaries.
     * @param rPointLocalCoordinates the point on the geometry,
     *        which shall be checked if it lays within
     *        the boundaries.
     * @param Tolerance the tolerance to the boundary.
-    * @return -1 -> failed
-    *          0 -> outside
-    *          1 -> inside
-    *          2 -> on the boundary
+    * @return  0 -> failed
+    *          1 -> inside /boundary/ vertex
     */
     int IsInsideLocalSpace(
         const CoordinatesArrayType& rPointLocalCoordinates,
@@ -461,12 +345,12 @@ public:
             {
                 if ( std::abs( rPointLocalCoordinates[2] ) <= (1.0 + Tolerance) )
                 {
-                    return true;
+                    return 1;
                 }
             }
         }
 
-        return false;
+        return 0;
     }
 
     /**

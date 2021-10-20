@@ -423,6 +423,35 @@ public:
 
 
     /**
+    * @brief Checks if given point in local space coordinates of this geometry
+    *        is inside the geometry boundaries.
+    * @param rPointLocalCoordinates the point on the geometry,
+    *        which shall be checked if it lays within
+    *        the boundaries.
+    * @param Tolerance the tolerance to the boundary.
+    * @return  0 -> failed
+    *          1 -> inside /boundary/ vertex
+    */
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        if ( std::abs( rPointLocalCoordinates[0] ) <= (1.0 + Tolerance) )
+        {
+            if ( std::abs( rPointLocalCoordinates[1] ) <= (1.0 + Tolerance) )
+            {
+                if ( std::abs( rPointLocalCoordinates[2] ) <= (1.0 + Tolerance) )
+                {
+                    return 1;
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    /**
     * Returns a matrix of the local coordinates of all points
     * @param rResult a Matrix that will be overwritten by the results
     * @return the coordinates of all points of the current geometry
