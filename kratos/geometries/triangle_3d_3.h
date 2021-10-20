@@ -2283,10 +2283,12 @@ private:
 		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(2), this->GetPoint(0), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
 
 		// finally, test if tri1 is totally contained in tri2 or vice versa //
-		array_1d<double, 3> local_coordinates;
-		// TODO: I should add the const to the is inside method in all geometries. Pooyan.
-		if (const_cast<GeometryType&>(OtherTriangle).IsInside(this->GetPoint(0), local_coordinates) == true) return true;
-		if (IsInside(OtherTriangle[0], local_coordinates) == true) return true;
+        if (PointInTriangle(i0, i1, this->GetPoint(0), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2])) {
+            return true;
+        }
+        else if (PointInTriangle(i0, i1, OtherTriangle[0], this->GetPoint(0), this->GetPoint(1), this->GetPoint(2))) {
+            return true;
+        }
 
 		return false;
 	}
@@ -2361,6 +2363,38 @@ private:
 		return false;
 	}
 
+    bool PointInTriangle(
+        int i0,
+        int i1,
+        double V0,
+        double U0,
+        double U1,
+        double U2)
+    {
+        double a,b,c,d0,d1,d2;
+        /* is T1 completely inside T2? */
+        /* check if V0 is inside tri(U0,U1,U2) */
+        a =   U1[i1] - U0[i1];
+        b = -(U1[i0] - U0[i0]);
+        c = -a * U0[i0] -b * U0[i1];
+        d0=  a * V0[i0] +b * V0[i1] + c;
+
+        a =   U2[i1] - U1[i1];
+        b = -(U2[i0] - U1[i0]);
+        c = -a * U1[i0] -b * U1[i1];
+        d1=  a * V0[i0] +b * V0[i1] + c;
+
+        a =   U0[i1] - U2[i1];
+        b = -(U0[i0] - U2[i0]);
+        c = -a * U2[i0] - b * U2[i1];
+        d2 = a * V0[i0] + b * V0[i1] + c;
+        
+        if (d0 * d1 > 0.0){
+            if (d0 * d2 > 0.0) return true;
+        } else {
+            return false;
+        }
+    }
 
     /**
      * @see HasIntersection
