@@ -504,8 +504,8 @@ typedef Node<3> NodeType;
         quadrature_points[2].Calculate(LOCAL_TANGENT, local_tangent);
         KRATOS_CHECK_VECTOR_NEAR(local_tangent, local_reference, TOLERANCE);
 
-        const int geometry_family = GeometryData::KratosGeometryFamily::KRATOS_Quadrature_Geometry;
-        const int geometry_type = GeometryData::KratosGeometryType::KRATOS_Quadrature_Point_Curve_On_Surface_Geometry;
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry;
 
         for (IndexType i = 0; i < quadrature_points.size(); ++i) {
             KRATOS_CHECK_EQUAL(quadrature_points[i].GetGeometryFamily(), geometry_family);

@@ -265,12 +265,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::KratosGeometryFamily::KRATOS_Quadrature_Geometry;
+        return GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::KratosGeometryType::KRATOS_Quadrature_Point_Curve_On_Surface_Geometry;
+        return GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry;
     }
 
     ///@}
