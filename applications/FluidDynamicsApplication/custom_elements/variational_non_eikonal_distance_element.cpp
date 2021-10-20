@@ -335,7 +335,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     const double penalty_phi0 = 1.0e7/element_size; // <-- For Nitsche's method //1.0e9;//0.0;//
 
     double source_coeff = 2.1/(0.1*element_size); //3.0/(8.0*element_size);//1.0e0; 
-    const double radius = /* 1.339358195e-4/1.25 */1.339358195e-3/1.2 + mean_distance; //20.0*element_size //Usually we have ~10 elements across a Radius, so, this is the expected minimum radius.
+    const double radius = 1.339358195e-4/1.25/* 1.339358195e-3/1.2 */ + mean_distance; //20.0*element_size //Usually we have ~10 elements across a Radius, so, this is the expected minimum radius.
     if ( radius > (0.1*element_size) ) source_coeff = 2.1/radius;
     //const double dissipative_coefficient = 1.0e-8;
 
@@ -365,7 +365,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         const double norm_grad_phi = norm_2(grad_phi);
 
         //KRATOS_WATCH(norm_grad_phi_avg)
-        if (norm_grad_phi_avg > 1.0){
+        /* if (norm_grad_phi_avg > 1.0){
             diffusion = 1.0/norm_grad_phi_avg;
             diffusion_prime_to_s = -1.0/(norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg);
         } else{
@@ -373,6 +373,15 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                 + (1.0 - norm_grad_phi_avg)*norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg; //(3.0 - 2.0*norm_grad_phi_avg)*norm_grad_phi_avg;
             diffusion_prime_to_s = -(4.0*(1.0 - norm_grad_phi_avg)*(1.0 - norm_grad_phi_avg)
                 + 7.0*norm_grad_phi_avg*(norm_grad_phi_avg - 1.0) + norm_grad_phi_avg*norm_grad_phi_avg );
+        } */
+
+        const double tolerance = 1.0e-3*element_size;
+        if (norm_grad_phi_avg > 1.0){
+            diffusion = 1.0/norm_grad_phi_avg;
+            diffusion_prime_to_s = -1.0/(norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg);
+        } else{
+            diffusion = 2.0-norm_grad_phi_avg;
+            diffusion_prime_to_s = -1.0/(norm_grad_phi_avg+tolerance);
         }
 
         // //KRATOS_WATCH(norm_grad_phi)
