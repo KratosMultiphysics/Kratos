@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "includes/kernel.h"
 #include "utilities/model_part_combination_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
