@@ -2167,7 +2167,8 @@ private:
         return true;
     }
 
-	bool ComputeIntervals(double& VV0,
+	bool ComputeIntervals(
+        double& VV0,
 		double& VV1,
 		double& VV2,
 		double& D0,
@@ -2241,7 +2242,7 @@ private:
 		const GeometryType& OtherTriangle)
 	{
 		array_1d<double, 3 > A;
-		short i0, i1;
+		int i0, i1;
 
 		// first project onto an axis-aligned plane, that maximizes the area //
 		// of the triangles, compute indices: i0,i1. //
@@ -2293,8 +2294,9 @@ private:
 		return false;
 	}
 
-	bool EdgeToTriangleEdgesCheck(const short& i0,
-		const short& i1,
+	bool EdgeToTriangleEdgesCheck(
+        const int& i0,
+		const int& i1,
 		const Point& V0,
 		const Point& V1,
 		const Point&U0,
@@ -2321,7 +2323,8 @@ private:
 	//   this edge to edge test is based on Franlin Antonio's gem:
 	//   "Faster Line Segment Intersection", in Graphics Gems III,
 	//   pp. 199-202
-	bool EdgeToEdgeIntersectionCheck(double& Ax,
+	bool EdgeToEdgeIntersectionCheck(
+        double& Ax,
 		double& Ay,
 		double& Bx,
 		double& By,
@@ -2330,8 +2333,8 @@ private:
 		double& e,
 		double& d,
 		double& f,
-		const short& i0,
-		const short& i1,
+		const int& i0,
+		const int& i1,
 		const Point& V0,
 		const Point& U0,
 		const Point& U1)
