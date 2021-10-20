@@ -1,4 +1,5 @@
 # Contributing to Kratos Multiphysics
+
 We love your input! We want to make contributing to this project as easy and transparent as possible, whether it's:
 
 - [Reporting a bug](#reporting-a-bug)
@@ -7,28 +8,30 @@ We love your input! We want to make contributing to this project as easy and tra
 - [Submitting a fix](#submitting-a-fix)
 - [Becoming a maintainer](#becoming-a-maintainer)
 
-## Reporting a bug
+## Reporting a bug 🐛
 
 Please open an issue in order to report a bug. A template for bugs is provided.
 
-## Discussing the current state of the code
+## Discussing the current state of the code 🗣️
 
 Please open an issue in order to give any comment about the current state of the code. We also provide several templates for discussions and questions.
 
-Feedback is needed!
+Feedback is needed! 😊
 
-## Proposing new features
+## Proposing new features 🚀
 
-Please open an issue, or if you are already a developer and brave enough open a PR with the proposed changes ;). We have specific templates for the requests.
+Please open an issue, or if you are already a developer and brave enough open a **PR** with the new features ;). We have specific templates for the requests.
 
-## Submitting a fix
+The structure of the branch must be: `subject/short-description`. For example for a new utility in the core: `core/adding-xxx-utility`. We separate the words using `-`.
 
-If you are already a developer, please create a new branch with the proposed changes. Then create a **Pull Request** (**PR**) and request a review. 
+## Submitting a hotfix 🔥
 
-The structure of the branch must be: `subject/short-description`. For example for a fix in the core of a given utility: `core/fix-xxx-utility`. We separate the words using `-`.
+If you are already a developer, please create a new branch with the proposed changes. Then create a **Pull Request** (**PR**) and request a review. Define the proper labels in the corresponding **PR**.
 
-If you are not developer, fork this project and open a **PR** with the proposed fix. You can become a developer, see next section.
+We consider the same branch structure: `subject/short-description`. For example for a fix in the core of a given utility: `core/fix-xxx-utility`. 
 
-## Becoming a maintainer
+If you are not developer, fork this project and open a **PR** with the proposed fix. If you want to become a developer, please check next section.
 
-Please contact the main maintainer at <kratosmultiphysics@gmail.com>.
+## Becoming a maintainer 👨‍💻
+
+Please contact the main maintainer at <kratosmultiphysics@gmail.com> 📨.
