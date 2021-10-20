@@ -23,6 +23,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/math_utils.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/builtin_timer.h"
 
 namespace Kratos
 {
@@ -93,159 +94,24 @@ public:
     ///@}
     ///@name Get/Set functions
     ///@{
+
     bool AdditionalPhysicalDataIsNeeded() override
     {
         return true;
     }
 
-    void GetEntries(
-        SparseMatrixType& rA,
-        SparseMatrixType& rS,
-        Element::EquationIdVectorType& rEquationId
-    )
+    void ProvideAdditionalData(SparseMatrixType& rA, VectorType& rX, VectorType& rB,
+                                DofsArrayType& rdof_set, ModelPart& r_model_part ) override
     {
-        const SizeType local_size = rEquationId.size();
-        std::sort(rEquationId.begin(), rEquationId.end() );
+        const auto timer_omp = BuiltinTimer();
 
-        DenseMatrixType M = ZeroMatrix(local_size, local_size);
-        for (IndexType i_local = 0; i_local < local_size; i_local++) {
-            const IndexType i_global = rEquationId[i_local];
-            GetRowEntries(rA, M, i_global, i_local, rEquationId);
-        }
-
-        DenseMatrixType M2;
-        M2.resize(local_size, local_size);
-        for( int i = 0; i < local_size; ++i){
-            for( int j = 0; j < local_size; ++j){
-                M2(i,j) = rA(rEquationId[i],rEquationId[j]);
-            }
-        }
-
-        double M_det = 0.0; //MathUtils<double>::Det(M);
-        DenseMatrixType M_invert = ZeroMatrix(local_size, local_size);
-        MathUtils<double>::InvertMatrix(M, M_invert, M_det, -1e-6);
-        for (IndexType i_local = 0; i_local < local_size; i_local++) {
-            const IndexType i_global = rEquationId[i_local];
-            AssembleRowEntries(rS, M_invert, i_global, i_local, rEquationId);
-        }
-    }
-
-    void GetRowEntries(SparseMatrixType& rA, DenseMatrixType& Alocal, const unsigned int i, const unsigned int i_local, std::vector<std::size_t>& EquationId){
-        double* values_vector = rA.value_data().begin();
-        std::size_t* index1_vector = rA.index1_data().begin();
-        std::size_t* index2_vector = rA.index2_data().begin();
-
-        size_t left_limit = index1_vector[i];
-//    size_t right_limit = index1_vector[i+1];
-
-        //find the first entry
-        size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
-        size_t last_found = EquationId[0];
-
-        const double& r_a = values_vector[last_pos];
-        double& v_a = Alocal(i_local,0);
-        AtomicAdd(v_a, r_a);
-
-        //now find all of the other entries
-        size_t pos = 0;
-        for (unsigned int j=1; j<EquationId.size(); j++) {
-            unsigned int id_to_find = EquationId[j];
-            if(id_to_find > last_found) {
-                pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
-            } else if(id_to_find < last_found) {
-                pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
-            } else {
-                pos = last_pos;
-            }
-
-            const double& r = values_vector[pos];
-            double& v = Alocal(i_local,j);
-            AtomicAdd(v,  r);
-
-            last_found = id_to_find;
-            last_pos = pos;
-        }
-    }
-
-    void AssembleRowEntries(SparseMatrixType& rA, const DenseMatrixType& Alocal, const unsigned int i, const unsigned int i_local, std::vector<std::size_t>& EquationId){
-        double* values_vector = rA.value_data().begin();
-        std::size_t* index1_vector = rA.index1_data().begin();
-        std::size_t* index2_vector = rA.index2_data().begin();
-
-        size_t left_limit = index1_vector[i];
-
-        //find the first entry
-        size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
-        size_t last_found = EquationId[0];
-
-        double& r_a = values_vector[last_pos];
-        const double& v_a = Alocal(i_local,0);
-        AtomicAdd(r_a,  v_a);
-
-        //now find all of the other entries
-        size_t pos = 0;
-        for (unsigned int j=1; j<EquationId.size(); j++) {
-            unsigned int id_to_find = EquationId[j];
-            if(id_to_find > last_found) {
-                pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
-            } else if(id_to_find < last_found) {
-                pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
-            } else {
-                pos = last_pos;
-            }
-
-            double& r = values_vector[pos];
-            const double& v = Alocal(i_local,j);
-            AtomicAdd(r,  v);
-
-            last_found = id_to_find;
-            last_pos = pos;
-        }
-    }
-
-    void InitializeMatrix(SparseMatrixType& rA){
-
-        mpS = TSparseSpaceType::CreateEmptyMatrixPointer();
-        SparseMatrixType& S = *mpS;
-        //S = rA;
-        S.resize(rA.size1(), rA.size1(), false);
-        S.reserve(rA.nnz_capacity(), false);
-
-        double* Avalues = S.value_data().begin();
-        std::size_t* Arow_indices = S.index1_data().begin();
-        std::size_t* Acol_indices = S.index2_data().begin();
-
-        std::size_t* Arow_indices_old = rA.index1_data().begin();
-        std::size_t* Acol_indices_old = rA.index2_data().begin();
-
-        for(int i = 0; i < rA.index1_data().size(); ++i){
-            Arow_indices[i] = Arow_indices_old[i];
-        }
-
-        for(int i = 0; i < rA.index2_data().size(); ++i){
-            Acol_indices[i] = Acol_indices_old[i];
-            Avalues[i] =  0.0;
-        }
-
-        S.set_filled(rA.filled1(),rA.filled2());
-    }
-
-    void ProvideAdditionalData(
-        SparseMatrixType& rA,
-        VectorType& rX,
-        VectorType& rB,
-        DofsArrayType& rdof_set,
-        ModelPart& r_model_part
-    ) override
-    {
         if( ! mMatrixIsInitializedFlag ){
             InitializeMatrix(rA);
             mMatrixIsInitializedFlag = true;
         }
-
+        double time = 0.0;
         VariableUtils().SetFlag(VISITED, false, r_model_part.Nodes());
         auto element_it_begin = r_model_part.ElementsBegin();
-        int count = 0;
         for( IndexType i = 0; i < r_model_part.NumberOfElements(); ++i){
             auto element_it = element_it_begin + i;
             //if( element_it->GetGeometry().IsQuadraturePoint() ){
@@ -253,26 +119,22 @@ public:
                 std::vector<std::size_t> new_equation_ids;
                 if( r_geometry[0].IsNot(VISITED) ){
                     r_geometry[0].Set(VISITED,true);
-                    count++;
-                    const SizeType dimension = r_geometry.WorkingSpaceDimension();
-                    bool rotation_dofs =r_geometry[0].HasDofFor(ROTATION_X);
+
+                    const SizeType number_nodes = r_geometry.size();
+                    const SizeType number_dofs_per_node = r_geometry[0].GetDofs().size();
+
+                    new_equation_ids.reserve(number_nodes*number_dofs_per_node);
+
                     for( IndexType j = 0; j < r_geometry.size(); ++j){
-                        new_equation_ids.push_back( r_geometry[j].GetDof(DISPLACEMENT_X).EquationId() );
-                        new_equation_ids.push_back( r_geometry[j].GetDof(DISPLACEMENT_Y).EquationId() );
-                        if( dimension == 3 ){
-                            new_equation_ids.push_back( r_geometry[j].GetDof(DISPLACEMENT_Z).EquationId() );
-                        }
-                        if( rotation_dofs ){
-                            new_equation_ids.push_back( r_geometry[j].GetDof(ROTATION_X).EquationId() );
-                            new_equation_ids.push_back( r_geometry[j].GetDof(ROTATION_Y).EquationId() );
-                            if( dimension == 3 ){
-                                new_equation_ids.push_back( r_geometry[j].GetDof(ROTATION_Z).EquationId() );
-                            }
+                        for(auto& dof : r_geometry[j].GetDofs()){
+                            new_equation_ids.push_back(dof->EquationId());
                         }
                     }
-                    GetEntries(rA, *mpS, new_equation_ids);
+                    AssembleContributions(rA, *mpS, new_equation_ids, time);
                 }
         }
+        std::cout << "Time inverse = " << time << std::endl;
+        std::cout << "Assembly time = " << timer_omp.ElapsedSeconds() << std::endl;
     }
 
     ///@}
@@ -364,6 +226,138 @@ protected:
 private:
 
     //@name Private operations
+
+    void InitializeMatrix(SparseMatrixType& rA){
+
+        mpS = TSparseSpaceType::CreateEmptyMatrixPointer();
+        SparseMatrixType& S = *mpS;
+        //S = rA;
+        S.resize(rA.size1(), rA.size1(), false);
+        S.reserve(rA.nnz_capacity(), false);
+
+        double* Avalues = S.value_data().begin();
+        std::size_t* Arow_indices = S.index1_data().begin();
+        std::size_t* Acol_indices = S.index2_data().begin();
+
+        std::size_t* Arow_indices_old = rA.index1_data().begin();
+        std::size_t* Acol_indices_old = rA.index2_data().begin();
+
+        IndexPartition<std::size_t>(rA.index1_data().size()).for_each([&](IndexType i){
+            Arow_indices[i] = Arow_indices_old[i];
+        });
+
+        IndexPartition<std::size_t>(rA.index2_data().size()).for_each([&](IndexType i){
+            Acol_indices[i] = Acol_indices_old[i];
+            Avalues[i] =  0.0;
+        });
+
+        S.set_filled(rA.filled1(),rA.filled2());
+    }
+
+    void AssembleContributions(
+        SparseMatrixType& rA,
+        SparseMatrixType& rS,
+        Element::EquationIdVectorType& rEquationId, double& time
+    )
+    {
+        const SizeType local_size = rEquationId.size();
+        std::sort(rEquationId.begin(), rEquationId.end() );
+
+        DenseMatrixType M = ZeroMatrix(local_size, local_size);
+        for (IndexType i_local = 0; i_local < local_size; i_local++) {
+            const IndexType i_global = rEquationId[i_local];
+            GetRowEntries(rA, M, i_global, i_local, rEquationId);
+        }
+
+        DenseMatrixType M2;
+        M2.resize(local_size, local_size);
+        for( IndexType i = 0; i < local_size; ++i){
+            for( IndexType j = 0; j < local_size; ++j){
+                M2(i,j) = rA(rEquationId[i],rEquationId[j]);
+            }
+        }
+        const auto timer_omp = BuiltinTimer();
+        double M_det = 0.0; //MathUtils<double>::Det(M);
+        DenseMatrixType M_invert = ZeroMatrix(local_size, local_size);
+        MathUtils<double>::InvertMatrix(M, M_invert, M_det, -1e-6);
+        time += timer_omp.ElapsedSeconds();
+        for (IndexType i_local = 0; i_local < local_size; i_local++) {
+            const IndexType i_global = rEquationId[i_local];
+            AssembleRowEntries(rS, M_invert, i_global, i_local, rEquationId);
+        }
+    }
+
+    void AssembleRowEntries(SparseMatrixType& rA, const DenseMatrixType& Alocal, const unsigned int i, const unsigned int i_local, std::vector<std::size_t>& EquationId){
+        double* values_vector = rA.value_data().begin();
+        std::size_t* index1_vector = rA.index1_data().begin();
+        std::size_t* index2_vector = rA.index2_data().begin();
+
+        size_t left_limit = index1_vector[i];
+
+        //find the first entry
+        size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
+        size_t last_found = EquationId[0];
+
+        double& r_a = values_vector[last_pos];
+        const double& v_a = Alocal(i_local,0);
+        AtomicAdd(r_a,  v_a);
+
+        //now find all of the other entries
+        size_t pos = 0;
+        for (unsigned int j=1; j<EquationId.size(); j++) {
+            unsigned int id_to_find = EquationId[j];
+            if(id_to_find > last_found) {
+                pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
+            } else if(id_to_find < last_found) {
+                pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
+            } else {
+                pos = last_pos;
+            }
+
+            double& r = values_vector[pos];
+            const double& v = Alocal(i_local,j);
+            AtomicAdd(r,  v);
+
+            last_found = id_to_find;
+            last_pos = pos;
+        }
+    }
+
+    void GetRowEntries(SparseMatrixType& rA, DenseMatrixType& Alocal, const unsigned int i, const unsigned int i_local, std::vector<std::size_t>& EquationId){
+        double* values_vector = rA.value_data().begin();
+        std::size_t* index1_vector = rA.index1_data().begin();
+        std::size_t* index2_vector = rA.index2_data().begin();
+
+        size_t left_limit = index1_vector[i];
+
+        // Find the first entry
+        size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
+        size_t last_found = EquationId[0];
+
+        const double& r_a = values_vector[last_pos];
+        double& v_a = Alocal(i_local,0);
+        AtomicAdd(v_a, r_a);
+
+        // Now find all of the other entries
+        size_t pos = 0;
+        for (unsigned int j=1; j<EquationId.size(); j++) {
+            unsigned int id_to_find = EquationId[j];
+            if(id_to_find > last_found) {
+                pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
+            } else if(id_to_find < last_found) {
+                pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
+            } else {
+                pos = last_pos;
+            }
+
+            const double& r = values_vector[pos];
+            double& v = Alocal(i_local,j);
+            AtomicAdd(v,  r);
+
+            last_found = id_to_find;
+            last_pos = pos;
+        }
+    }
 
     inline unsigned int ForwardFind(const unsigned int id_to_find,
                                     const unsigned int start,

@@ -35,8 +35,6 @@ void AddCustomSolversToPython(
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-    typedef LocalSpaceType::MatrixType DenseMatrixType;
-
     typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
     typedef AdditiveSchwarzPreconditioner<SpaceType,  LocalSpaceType> AdditiveSchwarzPreconditionerType;
 
