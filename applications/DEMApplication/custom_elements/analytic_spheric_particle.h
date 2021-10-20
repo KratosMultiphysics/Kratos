@@ -154,6 +154,7 @@ void FinalizeForceComputation(BaseBufferType & data_buffer) override;
 
 void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
                                                     const ProcessInfo& r_process_info,
+                                                    double OldLocalElasticContactForce[3],
                                                     double LocalElasticContactForce[3],
                                                     double DeltDisp[3],
                                                     double LocalDeltDisp[3],

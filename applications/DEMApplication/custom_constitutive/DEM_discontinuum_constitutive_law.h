@@ -25,6 +25,12 @@ namespace Kratos {
         double mKn;
         double mKt;
 
+        double mKn_dem;
+        double mKt_dem;
+
+        double mKn_fem;
+        double mKt_fem;
+
         KRATOS_CLASS_POINTER_DEFINITION(DEMDiscontinuumConstitutiveLaw);
 
         DEMDiscontinuumConstitutiveLaw();

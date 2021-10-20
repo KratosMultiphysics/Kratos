@@ -833,9 +833,16 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
 
     std::vector<double> f;
     f.resize(this->mNeighbourElements.size());
-
+    std::vector<double> f_0;
+    f_0.resize(this->mNeighbourElements.size());
+    std::vector<double> f_1;
+    f_1.resize(this->mNeighbourElements.size());
     std::vector<double> ind;
     ind.resize(this->mNeighbourElements.size());
+    std::vector<double> ldd;
+    ldd.resize(this->mNeighbourElements.size());
+    std::vector<double> dd;
+    dd.resize(this->mNeighbourElements.size());
 
 
 
@@ -874,9 +881,11 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
 
             //RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, data_buffer.mpOtherParticle);
 
+            double OldLocalElasticContactForce[3] = {0.0};
 
             EvaluateBallToBallForcesForPositiveIndentiations(data_buffer,
                                                             r_process_info,
+                                                            OldLocalElasticContactForce,
                                                             LocalElasticContactForce,
                                                             DeltDisp,
                                                             LocalDeltDisp,
@@ -891,6 +900,10 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
                                                             mNeighbourElasticContactForces[i]);
 
             f[i]=LocalElasticContactForce[2];
+            f_0[i]=LocalElasticContactForce[0];
+            f_1[i]=LocalElasticContactForce[1];
+            ldd[i]=LocalDeltDisp[1];
+            dd[i]=DeltDisp[1];
             ind[i]=data_buffer.mIndentation;
 
 
@@ -928,18 +941,17 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
         }
     }// for each neighbor
 
-
-    if (this->Id() == 10) {
-
+    //if (this->Id() == 10) {
+        std::cout.precision(10);
         #pragma omp critical
         {
-            std::cout << a[0]<< " ";
+            std::cout << "this: " << a[0]<< " ";
             for (int i =0; i < f.size(); i++) {
-                std::cout << " n" << a[i] << "   f " << f[i]<< "   ind " << ind[i];
+                std::cout << std::fixed << " n" << a[i] << " f_0 " << f_0[i] << "   f_1 " << f_1[i] << "   f_n " << f[i]<< "   ind " << ind[i] << "  lddy " << ldd[i]<< "  ddy " << dd[i]<< " || ";
             }
-            std::cout << std::endl;
+            std::cout << " next " << std::endl;
         }
-    }
+    //}
 
 
     KRATOS_CATCH("")
@@ -947,6 +959,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
 
 void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
                                                                        const ProcessInfo& r_process_info,
+                                                                       double OldLocalElasticContactForce[3],
                                                                        double LocalElasticContactForce[3],
                                                                        double DeltDisp[3],
                                                                        double LocalDeltDisp[3],
@@ -960,7 +973,7 @@ void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericPa
                                                                        double OldLocalCoordSystem[3][3],
                                                                        array_1d<double, 3>& neighbour_elastic_contact_force)
 {
-    double OldLocalElasticContactForce[3] = {0.0};
+    //double OldLocalElasticContactForce[3] = {0.0};
     RotateOldContactForces(OldLocalCoordSystem, LocalCoordSystem, neighbour_elastic_contact_force);// still in global coordinates
     // Here we recover the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if necessary
     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, neighbour_elastic_contact_force, OldLocalElasticContactForce);
@@ -972,9 +985,20 @@ void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericPa
     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, data_buffer.mLocalRelVel);
 
     mDiscontinuumConstitutiveLaw = pGetDiscontinuumConstitutiveLawWithNeighbour(p_neighbour_element);
-    mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce,
-            LocalElasticContactForce, LocalDeltDisp, data_buffer.mLocalRelVel, indentation, previous_indentation,
-            ViscoDampingLocalContactForce, cohesive_force, this, p_neighbour_element, sliding, LocalCoordSystem);
+
+    mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info,
+                                                    OldLocalElasticContactForce,
+                                                    LocalElasticContactForce,
+                                                    LocalDeltDisp,
+                                                    data_buffer.mLocalRelVel,
+                                                    indentation,
+                                                    previous_indentation,
+                                                    ViscoDampingLocalContactForce,
+                                                    cohesive_force,
+                                                    this,
+                                                    p_neighbour_element,
+                                                    sliding,
+                                                    LocalCoordSystem);
 }
 
 void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
@@ -990,7 +1014,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
     const auto& central_node = GetGeometry()[0];
 
     std::vector<DEMWall*>& rNeighbours   = this->mNeighbourRigidFaces;
-    const array_1d<double, 3>& velocity         = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+    const array_1d<double, 3>& velocity  = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
     const array_1d<double,3>& AngularVel = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
 
     for (unsigned int i = 0; i < rNeighbours.size(); i++) {
@@ -2014,6 +2038,7 @@ bool SphericParticle::CalculateRelativePositionsOrSkipContact(ParticleDataBuffer
     data_buffer.mOtherRadius = data_buffer.mpOtherParticle->GetInteractionRadius();
     data_buffer.mRadiusSum   = this->GetInteractionRadius() + data_buffer.mOtherRadius;
     data_buffer.mIndentation = data_buffer.mRadiusSum - data_buffer.mDistance;
+    //KRATOS_WATCH(data_buffer.mIndentation)
 
     return data_buffer.mIndentation > 0.0;
 }

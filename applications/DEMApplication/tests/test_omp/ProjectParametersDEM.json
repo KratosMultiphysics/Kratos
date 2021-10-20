@@ -41,7 +41,7 @@
                 "value"                : [0.0, 0.0, 0.0],
                 "table"                : [null, null, null]
             },
-            "interval"             : [0.0, 2e-4]
+            "interval"             : [0.0, 4e-4]
         }
     },{
         "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
@@ -73,13 +73,13 @@
     "ElementType"                    : "SphericPartDEMElement3D",
     "TranslationalIntegrationScheme" : "Symplectic_Euler",
     "RotationalIntegrationScheme"    : "Direct_Integration",
-"MaxTimeStep"                      : 2e-4,
+"MaxTimeStep"                      : 2e-5,
 "FinalTime"                        : 0.01,
 "NeighbourSearchFrequency"         : 1,
     "SearchTolerance"                : 0.001,
     "GraphExportFreq"                : 0.001,
     "VelTrapGraphExportFreq"         : 0.001,
-    "OutputTimeStep"                 : 1,
+    "OutputTimeStep"                 : 2e-4,
     "PostBoundingBox"                : false,
     "PostLocalContactForce"          : false,
     "PostDisplacement"               : true,

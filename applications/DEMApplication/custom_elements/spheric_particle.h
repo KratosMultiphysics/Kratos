@@ -367,6 +367,7 @@ virtual void ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_bal
 
 virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
                                                             const ProcessInfo& r_process_info,
+                                                            double OldLocalElasticContactForce[3],
                                                             double LocalElasticContactForce[3],
                                                             double DeltDisp[3],
                                                             double LocalDeltDisp[3],

@@ -52,8 +52,8 @@ namespace Kratos {
 
         //Normal and Tangent elastic constants
         const double sqrt_equiv_radius_and_indentation = sqrt(equiv_radius * indentation);
-        mKn = 2.0 * equiv_young * sqrt_equiv_radius_and_indentation;
-        mKt = 4.0 * equiv_shear * mKn / equiv_young;
+        mKn_dem = 2.0 * equiv_young * sqrt_equiv_radius_and_indentation;
+        mKt_dem = 4.0 * equiv_shear * mKn_dem / equiv_young;
     }
 
     void DEM_D_Hertz_viscous_Coulomb::CalculateForces(const ProcessInfo& r_process_info,
@@ -127,8 +127,8 @@ namespace Kratos {
         Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
         const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
 
-        const double equiv_visco_damp_coeff_normal     = 2.0 * damping_gamma * sqrt(equiv_mass * mKn);
-        const double equiv_visco_damp_coeff_tangential = 2.0 * damping_gamma * sqrt(equiv_mass * mKt);
+        const double equiv_visco_damp_coeff_normal     = 2.0 * damping_gamma * sqrt(equiv_mass * mKn_dem);
+        const double equiv_visco_damp_coeff_tangential = 2.0 * damping_gamma * sqrt(equiv_mass * mKt_dem);
 
         ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
@@ -158,8 +158,8 @@ namespace Kratos {
 
         //Normal and Tangent elastic constants
         const double sqrt_equiv_radius_and_indentation = sqrt(effective_radius * indentation);
-        mKn = 2.0 * equiv_young * sqrt_equiv_radius_and_indentation;
-        mKt = 4.0 * equiv_shear * mKn / equiv_young;
+        mKn_fem = 2.0 * equiv_young * sqrt_equiv_radius_and_indentation;
+        mKt_fem = 4.0 * equiv_shear * mKn_fem / equiv_young;
     }
 
     void DEM_D_Hertz_viscous_Coulomb::CalculateForcesWithFEM(const ProcessInfo& r_process_info,
@@ -225,74 +225,82 @@ namespace Kratos {
 
         Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(neighbour->GetProperties().Id());
 
-        //KRATOS_WATCH(mKt)
+        //KRATOS_WATCH(mKt_dem)
 
-        LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - 2.56732e+07 * LocalDeltDisp[0];
-        LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - 2.56732e+07 * LocalDeltDisp[1];
-
-        // if (previous_indentation > indentation) {
-        //     const double minoring_factor = sqrt (indentation / previous_indentation);
-        //     LocalElasticContactForce[0] = OldLocalElasticContactForce[0] * minoring_factor - mKt * LocalDeltDisp[0];
-        //     LocalElasticContactForce[1] = OldLocalElasticContactForce[1] * minoring_factor - mKt * LocalDeltDisp[1];
-        // }
-
-        // AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+        LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - mKt_dem * LocalDeltDisp[0];
+        LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - mKt_dem * LocalDeltDisp[1];
+        // LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - 2.5e+07 * LocalDeltDisp[0];
+        // LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - 2.5e+07 * LocalDeltDisp[1];
 
 
-        // const double equiv_tg_of_static_fri_ang = properties_of_this_contact[STATIC_FRICTION];
-        // const double equiv_tg_of_dynamic_fri_ang = properties_of_this_contact[DYNAMIC_FRICTION];
-        // const double equiv_friction_decay_coefficient = properties_of_this_contact[FRICTION_DECAY];
 
-        // const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
-        // double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
 
-        // MaximumAdmisibleShearForce = normal_contact_force * equiv_friction;
 
-        // const double tangential_contact_force_0 = LocalElasticContactForce[0] + ViscoDampingLocalContactForce[0];
-        // const double tangential_contact_force_1 = LocalElasticContactForce[1] + ViscoDampingLocalContactForce[1];
 
-        // const double ActualTotalShearForce = sqrt(tangential_contact_force_0 * tangential_contact_force_0 + tangential_contact_force_1 * tangential_contact_force_1);
 
-        // if (ActualTotalShearForce > MaximumAdmisibleShearForce) {
+        if (previous_indentation > indentation) {
+            const double minoring_factor = sqrt (indentation / previous_indentation);
+            LocalElasticContactForce[0] = OldLocalElasticContactForce[0] * minoring_factor - mKt * LocalDeltDisp[0];
+            LocalElasticContactForce[1] = OldLocalElasticContactForce[1] * minoring_factor - mKt * LocalDeltDisp[1];
+        }
 
-        //     const double ActualElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+        AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-        //     const double dot_product = LocalElasticContactForce[0] * ViscoDampingLocalContactForce[0] + LocalElasticContactForce[1] * ViscoDampingLocalContactForce[1];
-        //     const double ViscoDampingLocalContactForceModule = sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] +\
-        //                                                             ViscoDampingLocalContactForce[1] * ViscoDampingLocalContactForce[1]);
 
-        //     if (dot_product >= 0.0) {
+        const double equiv_tg_of_static_fri_ang = properties_of_this_contact[STATIC_FRICTION];
+        const double equiv_tg_of_dynamic_fri_ang = properties_of_this_contact[DYNAMIC_FRICTION];
+        const double equiv_friction_decay_coefficient = properties_of_this_contact[FRICTION_DECAY];
 
-        //         if (ActualElasticShearForce > MaximumAdmisibleShearForce) {
-        //             const double fraction = MaximumAdmisibleShearForce / ActualElasticShearForce;
-        //             LocalElasticContactForce[0]      = LocalElasticContactForce[0] * fraction;
-        //             LocalElasticContactForce[1]      = LocalElasticContactForce[1] * fraction;
-        //             ViscoDampingLocalContactForce[0] = 0.0;
-        //             ViscoDampingLocalContactForce[1] = 0.0;
-        //         }
-        //         else {
-        //             const double ActualViscousShearForce = MaximumAdmisibleShearForce - ActualElasticShearForce;
-        //             const double fraction = ActualViscousShearForce / ViscoDampingLocalContactForceModule;
-        //             ViscoDampingLocalContactForce[0] *= fraction;
-        //             ViscoDampingLocalContactForce[1] *= fraction;
-        //         }
-        //     }
-        //     else {
-        //         if (ViscoDampingLocalContactForceModule >= ActualElasticShearForce) {
-        //             const double fraction = (MaximumAdmisibleShearForce + ActualElasticShearForce) / ViscoDampingLocalContactForceModule;
-        //             ViscoDampingLocalContactForce[0] *= fraction;
-        //             ViscoDampingLocalContactForce[1] *= fraction;
-        //         }
-        //         else {
-        //             const double fraction = MaximumAdmisibleShearForce / ActualElasticShearForce;
-        //             LocalElasticContactForce[0]      = LocalElasticContactForce[0] * fraction;
-        //             LocalElasticContactForce[1]      = LocalElasticContactForce[1] * fraction;
-        //             ViscoDampingLocalContactForce[0] = 0.0;
-        //             ViscoDampingLocalContactForce[1] = 0.0;
-        //         }
-        //     }
-        //     sliding = true;
-        // }
+        const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
+        double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
+
+        MaximumAdmisibleShearForce = normal_contact_force * equiv_friction;
+
+        const double tangential_contact_force_0 = LocalElasticContactForce[0] + ViscoDampingLocalContactForce[0];
+        const double tangential_contact_force_1 = LocalElasticContactForce[1] + ViscoDampingLocalContactForce[1];
+
+        const double ActualTotalShearForce = sqrt(tangential_contact_force_0 * tangential_contact_force_0 + tangential_contact_force_1 * tangential_contact_force_1);
+
+        if (ActualTotalShearForce > MaximumAdmisibleShearForce) {
+
+            const double ActualElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+
+            const double dot_product = LocalElasticContactForce[0] * ViscoDampingLocalContactForce[0] + LocalElasticContactForce[1] * ViscoDampingLocalContactForce[1];
+            const double ViscoDampingLocalContactForceModule = sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] +\
+                                                                    ViscoDampingLocalContactForce[1] * ViscoDampingLocalContactForce[1]);
+
+            if (dot_product >= 0.0) {
+
+                if (ActualElasticShearForce > MaximumAdmisibleShearForce) {
+                    const double fraction = MaximumAdmisibleShearForce / ActualElasticShearForce;
+                    LocalElasticContactForce[0]      = LocalElasticContactForce[0] * fraction;
+                    LocalElasticContactForce[1]      = LocalElasticContactForce[1] * fraction;
+                    ViscoDampingLocalContactForce[0] = 0.0;
+                    ViscoDampingLocalContactForce[1] = 0.0;
+                }
+                else {
+                    const double ActualViscousShearForce = MaximumAdmisibleShearForce - ActualElasticShearForce;
+                    const double fraction = ActualViscousShearForce / ViscoDampingLocalContactForceModule;
+                    ViscoDampingLocalContactForce[0] *= fraction;
+                    ViscoDampingLocalContactForce[1] *= fraction;
+                }
+            }
+            else {
+                if (ViscoDampingLocalContactForceModule >= ActualElasticShearForce) {
+                    const double fraction = (MaximumAdmisibleShearForce + ActualElasticShearForce) / ViscoDampingLocalContactForceModule;
+                    ViscoDampingLocalContactForce[0] *= fraction;
+                    ViscoDampingLocalContactForce[1] *= fraction;
+                }
+                else {
+                    const double fraction = MaximumAdmisibleShearForce / ActualElasticShearForce;
+                    LocalElasticContactForce[0]      = LocalElasticContactForce[0] * fraction;
+                    LocalElasticContactForce[1]      = LocalElasticContactForce[1] * fraction;
+                    ViscoDampingLocalContactForce[0] = 0.0;
+                    ViscoDampingLocalContactForce[1] = 0.0;
+                }
+            }
+            sliding = true;
+        }
     }
 
     void DEM_D_Hertz_viscous_Coulomb::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
@@ -305,8 +313,8 @@ namespace Kratos {
         Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
         const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
 
-        const double normal_damping_coefficient     = 2.0 * damping_gamma * sqrt(my_mass * mKn);
-        const double tangential_damping_coefficient = 2.0 * damping_gamma * sqrt(my_mass * mKt);
+        const double normal_damping_coefficient     = 2.0 * damping_gamma * sqrt(my_mass * mKn_fem);
+        const double tangential_damping_coefficient = 2.0 * damping_gamma * sqrt(my_mass * mKt_fem);
 
         ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];
@@ -315,7 +323,7 @@ namespace Kratos {
     }
 
     double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(const double indentation) {
-        return 0.666666666666666666667 * mKn * indentation;
+        return 0.666666666666666666667 * mKn_dem * indentation;
     }
 
     double DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation){

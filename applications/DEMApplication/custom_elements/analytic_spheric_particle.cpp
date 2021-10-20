@@ -169,6 +169,7 @@ void AnalyticSphericParticle::ClearNeighbours(BaseBufferType & data_buffer)
 
 void AnalyticSphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
                                                                             const ProcessInfo& r_process_info,
+                                                                            double OldLocalElasticContactForce[3],
                                                                             double LocalElasticContactForce[3],
                                                                             double DeltDisp[3],
                                                                             double LocalDeltDisp[3],
@@ -184,6 +185,7 @@ void AnalyticSphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(S
 {
     SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(data_buffer,
                                                                     r_process_info,
+                                                                    OldLocalElasticContactForce,
                                                                     LocalElasticContactForce,
                                                                     DeltDisp,
                                                                     LocalDeltDisp,

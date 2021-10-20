@@ -32,7 +32,7 @@ class OMPTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAn
 
     def Finalize(self):
         for node in self.spheres_model_part.Nodes:
-            if node.Id == 5:
+            if node.Id == 2:
                 y_disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
                 y_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
                 print(y_vel)
@@ -40,7 +40,7 @@ class OMPTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAn
         # self.CheckValues(y_disp, y_vel)
         Logger.PrintWarning("end thread")
         Logger.Flush()
-        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        #self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
 
 
@@ -50,25 +50,25 @@ class TestOMP(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def test_omp_1(self):
-        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_omp")
-        parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
-        model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(OMPTestSolution, model, parameters_file_name, 1)
+    # def test_omp_1(self):
+    #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_omp")
+    #     parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
+    #     model = KratosMultiphysics.Model()
+    #     auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(OMPTestSolution, model, parameters_file_name, 1)
 
 
-    def test_omp_2(self):
-        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_omp")
-        parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
-        model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(OMPTestSolution, model, parameters_file_name, 2)
+    # def test_omp_2(self):
+    #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_omp")
+    #     parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
+    #     model = KratosMultiphysics.Model()
+    #     auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(OMPTestSolution, model, parameters_file_name, 2)
 
 
-    def test_omp_3(self):
-        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_omp")
-        parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
-        model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(OMPTestSolution, model, parameters_file_name, 3)
+    # def test_omp_3(self):
+    #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_omp")
+    #     parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
+    #     model = KratosMultiphysics.Model()
+    #     auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(OMPTestSolution, model, parameters_file_name, 3)
 
 
     def test_omp_4(self):
