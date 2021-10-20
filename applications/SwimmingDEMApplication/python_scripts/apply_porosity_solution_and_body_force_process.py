@@ -5,10 +5,10 @@ import KratosMultiphysics.SwimmingDEMApplication as KratosSDEM
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplySpatialDependantPorositySolutionBodyForceProcess(Model, settings["Parameters"])
+    return ApplyPorositySolutionAndBodyForceProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class ApplySpatialDependantPorositySolutionBodyForceProcess(KratosMultiphysics.Process):
+class ApplyPorositySolutionAndBodyForceProcess(KratosMultiphysics.Process):
     def __init__(self, model, settings):
         """The default constructor of the class.
 
@@ -38,14 +38,14 @@ class ApplySpatialDependantPorositySolutionBodyForceProcess(KratosMultiphysics.P
         self.model_part = model[self.settings["model_part_name"].GetString()]
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
 
-        self.ApplySpatialDependantPorositySolutionBodyForceProcess = KratosSDEM.SpatialDependantPorositySolutionBodyForceProcess(self.model_part, settings)
+        self.ApplyPorositySolutionAndBodyForceProcess = KratosSDEM.PorositySolutionAndBodyForceProcess(self.model_part, settings)
 
 
     def ExecuteBeforeSolutionLoop(self):
-        self.ApplySpatialDependantPorositySolutionBodyForceProcess.ExecuteBeforeSolutionLoop()
+        self.ApplyPorositySolutionAndBodyForceProcess.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
-        self.ApplySpatialDependantPorositySolutionBodyForceProcess.ExecuteInitializeSolutionStep()
+        self.ApplyPorositySolutionAndBodyForceProcess.ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
         pass

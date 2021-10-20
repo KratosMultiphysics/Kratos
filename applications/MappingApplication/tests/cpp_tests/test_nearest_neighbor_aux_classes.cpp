@@ -242,7 +242,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_BasicTests, KratosMappingAp
     KRATOS_CHECK_EQUAL(origin_ids2.size(), 0);
     KRATOS_CHECK_EQUAL(destination_ids2.size(), 0);
 
-    KRATOS_CHECK_C_STRING_EQUAL((local_sys.PairingInfo(2)).c_str(),
+    std::stringstream str_steam;
+    local_sys.PairingInfo(str_steam, 4);
+    KRATOS_CHECK_STRING_EQUAL(str_steam.str(),
         "NearestNeighborLocalSystem based on Node #8 at Coodinates 1 | 2.5 | -5");
 }
 
