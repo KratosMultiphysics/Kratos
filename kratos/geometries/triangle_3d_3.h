@@ -650,21 +650,16 @@ public:
         const auto geometry_type = rThisGeometry.GetGeometryType();
 
         if (geometry_type == GeometryData::KratosGeometryType::Kratos_Line3D2) {
-            array_1d<double,3> intersection_point;
-            const auto& point1 = rThisGeometry.GetPoint(0);
-            const auto& point2 = rThisGeometry.GetPoint(1);
-            const int result = IntersectionUtilities::ComputeTriangleLineIntersection(*this, point1, point2, intersection_point);
-            if (result == 1) return true;
-            else return false;
+            return LineTriangleOverlap(rThisGeometry[0], rThisGeometry[1]);
         }
         else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
-            return TriTriOverlap(rThisGeometry);
+            return TriangleTriangleOverlap(rThisGeometry);
         }
         else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) {
             Triangle3D3 triangle_0 (rThisGeometry.pGetPoint(0), rThisGeometry.pGetPoint(1), rThisGeometry.pGetPoint(2));
             Triangle3D3 triangle_1 (rThisGeometry.pGetPoint(2), rThisGeometry.pGetPoint(3), rThisGeometry.pGetPoint(0));
-            if      ( TriTriOverlap(triangle_0) ) return true;
-            else if ( TriTriOverlap(triangle_1) ) return true;
+            if      ( TriangleTriangleOverlap(triangle_0) ) return true;
+            else if ( TriangleTriangleOverlap(triangle_1) ) return true;
             else return false;
         }
         else {
@@ -2081,7 +2076,17 @@ private:
       return 0.5 * std::sqrt((b+c-a) * (c+a-b) * (a+b-c) / (a+b+c));
     }
 
-    bool TriTriOverlap(const GeometryType& rThisGeometry)
+    bool LineTriangleOverlap(
+        const array_1d<double,3>& rPoint1,
+        const array_1d<double,3>& rPoint2)
+    {
+        array_1d<double,3> intersection_point;
+        const int result = IntersectionUtilities::ComputeTriangleLineIntersection(*this, rPoint1, rPoint2, intersection_point);
+        if (result == 1) return true;
+        else return false;
+    }
+
+    bool TriangleTriangleOverlap(const GeometryType& rThisGeometry)
     {
         // Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
         // and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
