@@ -2075,8 +2075,8 @@ private:
     }
 
     bool LineTriangleOverlap(
-        const array_1d<double,3>& rPoint1,
-        const array_1d<double,3>& rPoint2)
+        const Point& rPoint1,
+        const Point& rPoint2)
     {
         array_1d<double,3> intersection_point;
         const int result = IntersectionUtilities::ComputeTriangleLineIntersection(*this, rPoint1, rPoint2, intersection_point);
@@ -2085,9 +2085,9 @@ private:
     }
 
     bool TriangleTriangleOverlap(
-        const array_1d<double,3>& rPoint1,
-        const array_1d<double,3>& rPoint2,
-        const array_1d<double,3>& rPoint3)
+        const Point& rPoint1,
+        const Point& rPoint2,
+        const Point& rPoint3)
     {
         // Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
         // and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
@@ -2232,9 +2232,9 @@ private:
 
 	bool CoplanarIntersectionCheck(
         const array_1d<double,3>& N,
-		const array_1d<double,3>& rPoint1,
-		const array_1d<double,3>& rPoint2,
-		const array_1d<double,3>& rPoint3)
+		const Point& rPoint1,
+		const Point& rPoint2,
+		const Point& rPoint3)
 	{
 		array_1d<double, 3 > A;
 		int i0, i1;
@@ -2279,11 +2279,10 @@ private:
 		const int& i1,
 		const Point& V0,
 		const Point& V1,
-		const Point&U0,
-		const Point&U1,
-		const Point&U2)
+		const Point& U0,
+		const Point& U1,
+		const Point& U2)
 	{
-
 		double Ax, Ay, Bx, By, Cx, Cy, e, d, f;
 		Ax = V1[i0] - V0[i0];
 		Ay = V1[i1] - V0[i1];
@@ -2344,10 +2343,10 @@ private:
     bool PointInTriangle(
         int i0,
         int i1,
-        const array_1d<double,3>& V0,
-        const array_1d<double,3>& U0,
-        const array_1d<double,3>& U1,
-        const array_1d<double,3>& U2)
+        const Point& V0,
+        const Point& U0,
+        const Point& U1,
+        const Point& U2)
     {
         double a,b,c,d0,d1,d2;
         /* is T1 completely inside T2? */
