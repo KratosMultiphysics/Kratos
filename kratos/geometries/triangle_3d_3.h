@@ -2344,10 +2344,10 @@ private:
     bool PointInTriangle(
         int i0,
         int i1,
-        double V0,
-        double U0,
-        double U1,
-        double U2)
+        const array_1d<double,3>& V0,
+        const array_1d<double,3>& U0,
+        const array_1d<double,3>& U1,
+        const array_1d<double,3>& U2)
     {
         double a,b,c,d0,d1,d2;
         /* is T1 completely inside T2? */
