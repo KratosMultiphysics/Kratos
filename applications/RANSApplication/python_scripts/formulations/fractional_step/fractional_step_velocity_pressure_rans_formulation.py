@@ -283,7 +283,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
                     "scheme_type": "steady",
                     "pressure_gradient_relaxation_factor": 0.5
                 }''')
-                settings.ValidateAndAssignDefaults(default_settings)
+                settings.AddMissingParameters(default_settings)
                 self.GetBaseModelPart().ProcessInfo.SetValue(KratosCFD.FS_PRESSURE_GRADIENT_RELAXATION_FACTOR, settings["pressure_gradient_relaxation_factor"].GetDouble())
             elif (scheme_type == "bdf2"):
                 self.is_steady_simulation = False
