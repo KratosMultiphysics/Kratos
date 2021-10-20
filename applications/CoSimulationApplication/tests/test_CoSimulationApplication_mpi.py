@@ -35,12 +35,12 @@ def AssembleTestSuites():
 
     ################################################################################
     nightSuite = suites['mpi_nightly'] # These tests are executed in the nightly build
-    nightSuite.addTest(TestCoSimulationCases('test_sdof_fsi'))
     nightSuite.addTests(smallSuite)
 
     ################################################################################
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['mpi_validation']
+    validationSuite.addTest(TestCoSimulationCases('test_sdof_fsi'))
 
     ################################################################################
     # Create a test suit that contains all the tests:
