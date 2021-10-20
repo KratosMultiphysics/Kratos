@@ -28,6 +28,8 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
+        DEMDiscontinuumConstitutiveLaw* CloneRaw() const override;
+
         void CalculateForces(const ProcessInfo& r_process_info,
                             const double OldLocalContactForce[3],
                             double LocalElasticContactForce[3],

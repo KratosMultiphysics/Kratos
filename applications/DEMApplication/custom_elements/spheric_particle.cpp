@@ -95,6 +95,7 @@ SphericParticle::~SphericParticle(){
         delete mpRotationalIntegrationScheme;
         mpRotationalIntegrationScheme = NULL;
     }
+    delete mDiscontinuumConstitutiveLaw;
 }
 
 SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
@@ -122,6 +123,7 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     mRealMass = rOther.mRealMass;
     mClusterId = rOther.mClusterId;
     mGlobalDamping = rOther.mGlobalDamping;
+    mDiscontinuumConstitutiveLaw = rOther.mDiscontinuumConstitutiveLaw->CloneRaw();
 
     if(rOther.mStressTensor != NULL) {
         mStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
@@ -1806,7 +1808,7 @@ double SphericParticle::CalculateLocalMaxPeriod(const bool has_mpi, const Proces
 
 DEMDiscontinuumConstitutiveLaw* SphericParticle::pGetDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour) {
     Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour->GetProperties().Id());
-    return &*properties_of_this_contact[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER];
+    return properties_of_this_contact[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->CloneRaw();
 }
 
 DEMDiscontinuumConstitutiveLaw* SphericParticle::pGetDiscontinuumConstitutiveLawWithFEMNeighbour(Condition* neighbour) {

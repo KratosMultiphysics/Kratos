@@ -11,6 +11,11 @@ namespace Kratos {
         return p_clone;
     }
 
+    DEMDiscontinuumConstitutiveLaw* DEM_D_Hertz_viscous_Coulomb2D::CloneRaw() const{
+        DEMDiscontinuumConstitutiveLaw*cloned_law(new DEM_D_Hertz_viscous_Coulomb2D(*this));
+        return cloned_law;
+    }
+
     void DEM_D_Hertz_viscous_Coulomb2D::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Hertz_viscous_Coulomb2D to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());

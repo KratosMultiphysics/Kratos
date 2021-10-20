@@ -15,14 +15,15 @@ namespace Kratos {
         //KRATOS_INFO("DEM") << " DEMDiscontinuumConstitutiveLaw copy constructor..." << std::endl;
     }
 
-    //    DEMDiscontinuumConstitutiveLaw::DEMDiscontinuumConstitutiveLaw( const DEMDiscontinuumConstitutiveLaw &rReferenceDiscontinuumConstitutiveLaw){
-    //        //KRATOS_INFO("DEM") << " DEMDiscontinuumConstitutiveLaw copy constructor..." << std::endl;
-    //    }
-
     void DEMDiscontinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         //if (verbose) KRATOS_INFO("DEM") << "Assigning DEMDiscontinuumConstitutiveLaw to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
         this->Check(pProp);
+    }
+
+    DEMDiscontinuumConstitutiveLaw* DEMDiscontinuumConstitutiveLaw::CloneRaw() const{
+        DEMDiscontinuumConstitutiveLaw*cloned_law(new DEMDiscontinuumConstitutiveLaw(*this));
+        return cloned_law;
     }
 
     void DEMDiscontinuumConstitutiveLaw::Check(Properties::Pointer pProp) const {

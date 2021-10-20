@@ -28,6 +28,8 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
+        DEMDiscontinuumConstitutiveLaw* CloneRaw() const override;
+
     }; //class DEM_D_Linear_confined
 
 } /* namespace Kratos.*/
