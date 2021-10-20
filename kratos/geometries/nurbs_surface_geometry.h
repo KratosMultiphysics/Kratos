@@ -794,7 +794,7 @@ public:
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates) const override
     {
-        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 0);
+        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 1);
 
         if (IsRational()) {
             shape_function_container.ComputeNurbsShapeFunctionValues(mKnotsU, mKnotsV, mWeights, rCoordinates[0], rCoordinates[1]);
@@ -803,13 +803,13 @@ public:
             shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, rCoordinates[0], rCoordinates[1]);
         }
 
-        if (rResult.size1() != 2
-            && rResult.size2() != shape_function_container.NumberOfNonzeroControlPoints())
-            rResult.resize(2, shape_function_container.NumberOfNonzeroControlPoints());
+        if (rResult.size2() != 2
+            && rResult.size1() != shape_function_container.NumberOfNonzeroControlPoints())
+            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints(),2);
 
         for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-            rResult(0, i) = shape_function_container(i, 1);
-            rResult(1, i) = shape_function_container(i, 2);
+            rResult(i, 0) = shape_function_container(i, 1);
+            rResult(i, 1) = shape_function_container(i, 2);
         }
 
         return rResult;

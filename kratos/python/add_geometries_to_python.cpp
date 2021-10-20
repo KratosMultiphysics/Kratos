@@ -222,6 +222,12 @@ void  AddGeometriesToPython(pybind11::module& m)
             Matrix result;
             return(self.ShapeFunctionsLocalGradients(result, rCoordinates));
         })
+    .def("ShapeFunctionsLocalGradients", [](GeometryType& self )
+    {
+        GeometryData::IntegrationMethod integration_method = self.GetDefaultIntegrationMethod();
+        Matrix result = self.ShapeFunctionsLocalGradients( integration_method )[0];
+        return result;
+    })
     .def("ShapeFunctionDerivatives", [](GeometryType& self, IndexType DerivativeOrderIndex,
         IndexType IntegrationPointIndex)
         { return(self.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, self.GetDefaultIntegrationMethod())); })
