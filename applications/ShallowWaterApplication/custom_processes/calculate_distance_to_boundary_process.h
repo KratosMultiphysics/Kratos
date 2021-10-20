@@ -60,7 +60,7 @@ class ModelPart;
  * @details The boundary conditions are assumed to be contained in a line
  * @author Miguel Maso Sotomayor
  */
-class CalculateDistanceToBoundaryProcess : public Process
+class KRATOS_API(SHALLOW_WATER_APPLICATION) CalculateDistanceToBoundaryProcess : public Process
 {
 public:
     ///@name Type Definitions

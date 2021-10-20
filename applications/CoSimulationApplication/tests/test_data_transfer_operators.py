@@ -42,6 +42,9 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
             node_o.SetSolutionStepValue(KM.PRESSURE, 0, ScalarValueFromId(node_id))
             node_o.SetSolutionStepValue(KM.DISPLACEMENT, 0, VectorValueFromId(node_id))
+            node_o.SetValue(KM.LAMBDA, ScalarValueFromId(node_id)*1.47)
+
+        KM.VariableUtils().SetNonHistoricalVariableToZero(KM.VISCOSITY, mp_d_m.Nodes)
 
         for i in range(num_nodes_non_matching-1,-1, -1):
             node_id = i+15
@@ -52,6 +55,11 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         origin_data_settings_scalar = KM.Parameters("""{
             "model_part_name" : "mp_origin",
             "variable_name"   : "PRESSURE"
+        }""")
+        origin_data_settings_scalar_non_hist = KM.Parameters("""{
+            "model_part_name" : "mp_origin",
+            "variable_name"   : "LAMBDA",
+            "location"        : "node_non_historical"
         }""")
         origin_data_settings_vector = KM.Parameters("""{
             "model_part_name" : "mp_origin",
@@ -64,6 +72,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         }""")
 
         self.origin_data_scalar = CouplingInterfaceData(origin_data_settings_scalar, self.model)
+        self.origin_data_scalar_non_hist = CouplingInterfaceData(origin_data_settings_scalar_non_hist, self.model)
         self.origin_data_vector = CouplingInterfaceData(origin_data_settings_vector, self.model)
         self.origin_data_single_node = CouplingInterfaceData(origin_data_settings_single_node, self.model)
 
@@ -71,6 +80,11 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         destination_matching_data_settings_scalar = KM.Parameters("""{
             "model_part_name" : "mp_destination_matching",
             "variable_name"   : "TEMPERATURE"
+        }""")
+        destination_matching_data_settings_scalar_non_hist = KM.Parameters("""{
+            "model_part_name" : "mp_destination_matching",
+            "variable_name"   : "VISCOSITY",
+            "location"        : "node_non_historical"
         }""")
         destination_matching_data_settings_vector = KM.Parameters("""{
             "model_part_name" : "mp_destination_matching",
@@ -83,6 +97,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         }""")
 
         self.destination_matching_data_scalar = CouplingInterfaceData(destination_matching_data_settings_scalar, self.model)
+        self.destination_matching_data_scalar_non_hist = CouplingInterfaceData(destination_matching_data_settings_scalar_non_hist, self.model)
         self.destination_matching_data_vector = CouplingInterfaceData(destination_matching_data_settings_vector, self.model)
         self.destination_data_single_node = CouplingInterfaceData(destination_data_settings_single_node, self.model)
 
@@ -164,8 +179,59 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         data_model_part = CouplingInterfaceData(data_settings_model_part, self.model)
 
-        with self.assertRaisesRegex(Exception, 'Currently only historical nodal values are supported'):
+        with self.assertRaisesRegex(Exception, 'Mapping only supports nodal values!'):
             data_transfer_op.TransferData(self.origin_data_scalar, data_model_part, transfer_options_empty)
+
+    def test_kratos_mapping_transfer_operator_non_historical(self):
+        if not mapping_app_available:
+            self.skipTest("MappingApplication not available!")
+
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "kratos_mapping",
+            "mapper_settings" : {
+                "mapper_type" : "nearest_neighbor"
+            }
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+
+        transfer_options_empty = KM.Parameters(""" [] """)
+        # origin is non-hist
+        data_transfer_op.TransferData(self.origin_data_scalar_non_hist, self.destination_matching_data_scalar, transfer_options_empty)
+        self.assertVectorAlmostEqual(self.origin_data_scalar_non_hist.GetData(), self.destination_matching_data_scalar.GetData())
+
+        # destination is non-hist
+        data_transfer_op.TransferData(self.origin_data_scalar, self.destination_matching_data_scalar_non_hist, transfer_options_empty)
+        self.assertVectorAlmostEqual(self.origin_data_scalar.GetData(), self.destination_matching_data_scalar_non_hist.GetData())
+
+        # both are non-hist
+        data_transfer_op.TransferData(self.origin_data_scalar_non_hist, self.destination_matching_data_scalar_non_hist, transfer_options_empty)
+        self.assertVectorAlmostEqual(self.origin_data_scalar_non_hist.GetData(), self.destination_matching_data_scalar_non_hist.GetData())
+
+        # with this we make sure that only one mapper is created (and not several ones for each mapping operation!)
+        # Hint: requires access to private member
+        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator__mappers), 1)
+
+        self.destination_matching_data_scalar.SetData([i+9.47 for i in range(self.destination_matching_data_scalar.Size())]) # reset values
+        self.destination_matching_data_scalar_non_hist.SetData([i-89.14 for i in range(self.destination_matching_data_scalar_non_hist.Size())]) # reset values
+
+        # Now also check InverseMap
+        # origin is non-hist
+        data_transfer_op.TransferData(self.destination_matching_data_scalar, self.origin_data_scalar_non_hist, transfer_options_empty)
+        self.assertVectorAlmostEqual(self.destination_matching_data_scalar.GetData(), self.origin_data_scalar_non_hist.GetData())
+
+        # destination is non-hist
+        data_transfer_op.TransferData(self.destination_matching_data_scalar_non_hist, self.origin_data_scalar, transfer_options_empty)
+        self.assertVectorAlmostEqual(self.destination_matching_data_scalar_non_hist.GetData(), self.origin_data_scalar.GetData())
+
+        # both are non-hist
+        data_transfer_op.TransferData(self.destination_matching_data_scalar_non_hist, self.origin_data_scalar_non_hist, transfer_options_empty)
+        self.assertVectorAlmostEqual(self.destination_matching_data_scalar_non_hist.GetData(), self.origin_data_scalar_non_hist.GetData())
+
+        # with this we make sure that only one mapper is created (and not several ones for each mapping operation!)
+        # Hint: requires access to private member
+        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator__mappers), 1)
+
 
     def test_copy_single_to_dist_transfer_operator(self):
         data_transfer_op_settings = KM.Parameters("""{

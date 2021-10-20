@@ -320,6 +320,11 @@ public:
         return mrModel;
     }
 
+    const Model& GetModel() const
+    {
+        return mrModel;
+    }
+
     ///ATTENTION: this function does not touch the coordinates of the nodes.
     ///It just resets the database values to the values at the beginning of the time step
     void ReduceTimeStep(ModelPart& rModelPart, double NewTime);
@@ -519,11 +524,9 @@ public:
         return GetMesh(ThisIndex).NodesArray();
     }
 
-    template<class TDataType>
-    void AddNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable)
+    void AddNodalSolutionStepVariable(VariableData const& ThisVariable)
     {
-        if (!HasNodalSolutionStepVariable(ThisVariable))
-        {
+        if (!HasNodalSolutionStepVariable(ThisVariable)) {
             // This error prevents memory leaks if variables are being added to a non-empty modelpart
             KRATOS_ERROR_IF((this->GetRootModelPart()).Nodes().size() != 0)
                 << "Attempting to add the variable \"" << ThisVariable.Name()
@@ -533,8 +536,7 @@ public:
         }
     }
 
-    template<class TDataType>
-    bool HasNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable) const
+    bool HasNodalSolutionStepVariable(VariableData const& ThisVariable) const
     {
         return mpVariablesList->Has(ThisVariable);
     }
@@ -1521,7 +1523,7 @@ public:
                 }
             }
         }
-        
+
         // Add to root model part
         for(auto& p_geom : aux_root) {
             p_root_model_part->AddGeometry(p_geom);
