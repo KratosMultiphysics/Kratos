@@ -1406,7 +1406,10 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleExpansionCoefficient() {
-    return GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
+    if (GetProperties().Has(THERMAL_EXPANSION_COEFFICIENT))
+      return GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
+    else
+      return 0.0;
   }
 
   template <class TBaseElement>
