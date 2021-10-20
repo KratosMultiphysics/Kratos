@@ -916,6 +916,20 @@ public:
     }
 
     ///@}
+    ///@name Geometry Family
+    ///@{
+
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
+    }
+
+    ///@}
     ///@name Information
     ///@{
 
