@@ -336,12 +336,26 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_VECTOR_NEAR(derivatives[0], positionVct, TOLERANCE);
         KRATOS_CHECK_VECTOR_NEAR(derivatives[1], gradient1, TOLERANCE);
         KRATOS_CHECK_VECTOR_NEAR(derivatives[2], gradient2, TOLERANCE);
+
+        // Check kratos geometry family
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
+        KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryType(), geometry_type);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceNurbs, KratosCoreNurbsGeometriesFastSuite)
     {
         // Create a Nurbs curve on a Nurbs surface
         auto curve_on_surface = GenerateReferenceNurbsCurveOnNurbsSurface3d();
+
+        // Check kratos geometry family
+        {
+            const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+            const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
+            KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryFamily(), geometry_family);
+            KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryType(), geometry_type);
+        }
 
         // Evaluate the global coordinates of the curve at u = 4.0
         {
@@ -419,6 +433,11 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_NEAR(spans[2], 11.6569, 1e-4);
         KRATOS_CHECK_NEAR(spans[3], 19.2881, 1e-4);
         KRATOS_CHECK_NEAR(spans[4], 23.3137, 1e-4);
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
+        KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryType(), geometry_type);
     }
 
     // test intersection with background surface with not coinciding knot vectors
@@ -442,6 +461,11 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_NEAR(spans[2], 11.6569 / scaling_factor, 1e-4);
         KRATOS_CHECK_NEAR(spans[3], 19.2881 / scaling_factor, 1e-4);
         KRATOS_CHECK_NEAR(spans[4], 23.3137 / scaling_factor, 1e-4);
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
+        KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryType(), geometry_type);
     }
 
     // test integration of curve on surface
