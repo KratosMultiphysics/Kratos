@@ -4,11 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//	                 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
-//  Contributors:    Ashish Darekar
+//                   Ashish Darekar
 
 #if !defined (KRATOS_PYRAMID_3D_13_H_INCLUDED)
 #define KRATOS_PYRAMID_3D_13_H_INCLUDED
