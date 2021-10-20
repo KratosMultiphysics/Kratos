@@ -333,7 +333,7 @@ public:
      * @ref (https://stackoverflow.com/questions/68641598/check-if-a-3d-point-is-in-a-square-based-pyramid-or-not)
      * @return True if the point is inside, false otherwise
      */
-    bool IsInside(
+    /* bool IsInside(
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
@@ -443,6 +443,38 @@ public:
         }
     }
 
+ */
+
+    /**
+    * @brief Checks if given point in local space coordinates of this geometry
+    *        is inside the geometry boundaries.
+    * @param rPointLocalCoordinates the point on the geometry,
+    *        which shall be checked if it lays within
+    *        the boundaries.
+    * @param Tolerance the tolerance to the boundary.
+    * @return -1 -> failed
+    *          0 -> outside
+    *          1 -> inside
+    *          2 -> on the boundary
+    */
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        if ( std::abs( rPointLocalCoordinates[0] ) <= (1.0 + Tolerance) )
+        {
+            if ( std::abs( rPointLocalCoordinates[1] ) <= (1.0 + Tolerance) )
+            {
+                if ( std::abs( rPointLocalCoordinates[2] ) <= (1.0 + Tolerance) )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 
     /**
     * Returns a matrix of the local coordinates of all points
