@@ -201,6 +201,12 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(integration_points[0].Coordinates(), test_point, 1e-10);
         KRATOS_CHECK_NEAR( weight, 0.5, 1e-10);
         KRATOS_CHECK_NEAR( quad_geometries[0].DeterminantOfJacobian(0, integration_method )*weight, 0.5, 1e-10);
+
+        // Check kratos geometry families
+        const int geometry_family = GeometryData::KratosGeometryFamily::KRATOS_Quadrature_Geometry;
+        const int geometry_type = GeometryData::KratosGeometryType::KRATOS_Quadrature_Point_Surface_In_Volume_Geometry;
+        KRATOS_CHECK_EQUAL(quad_geometries[0].GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(quad_geometries[0].GetGeometryFamily(), geometry_type);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(SurfaceInVolumeGeometryQuadInCubeTest, KratosCoreNurbsGeometriesFastSuite)
@@ -268,6 +274,14 @@ namespace Testing {
         }
 
         KRATOS_CHECK_NEAR( global_area_triangle, std::sqrt(2.0)*2.0, 1e-10);
+
+        // Check kratos geometry families
+        const int geometry_family = GeometryData::KratosGeometryFamily::KRATOS_Quadrature_Geometry;
+        const int geometry_type = GeometryData::KratosGeometryType::KRATOS_Quadrature_Point_Surface_In_Volume_Geometry;
+        for( SizeType i = 0; i < quad_geometries.size(); ++i ){
+            KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryFamily(), geometry_family);
+            KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryFamily(), geometry_type);
+        }
     }
 
     KRATOS_TEST_CASE_IN_SUITE(SurfaceInVolumeGeometryQuadInCuboidTest, KratosCoreNurbsGeometriesFastSuite)
@@ -373,6 +387,14 @@ namespace Testing {
             KRATOS_CHECK_NEAR(det_J_quad, det_J, 1e-10);
         }
         KRATOS_CHECK_NEAR( global_area_triangle, area_ref, 1e-10);
+
+        // Check kratos geometry families
+        const int geometry_family = GeometryData::KratosGeometryFamily::KRATOS_Quadrature_Geometry;
+        const int geometry_type = GeometryData::KratosGeometryType::KRATOS_Quadrature_Point_Surface_In_Volume_Geometry;
+        for( SizeType i = 0; i < quad_geometries.size(); ++i ){
+            KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryFamily(), geometry_family);
+            KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryFamily(), geometry_type);
+        }
     }
 } // End namespace Testsing
 } // End namespace Kratos
