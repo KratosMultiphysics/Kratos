@@ -72,31 +72,31 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
 
     //verify that the variables are correctly initialized
     // Verify specific properties
-    const PropertiesType& Prop = this->GetProperties();
+    const PropertiesType& rProp = this->GetProperties();
 
-    if ( Prop.Has( IGNORE_UNDRAINED ) == false)
+    if ( rProp.Has( IGNORE_UNDRAINED ) == false)
         KRATOS_ERROR << "IGNORE_UNDRAINED does not exist in the parameter list" << this->Id() << std::endl;
 
-    bool IgnoreUndrained = Prop[IGNORE_UNDRAINED];
+    bool IgnoreUndrained = rProp[IGNORE_UNDRAINED];
 
     if (!IgnoreUndrained) {
-        if ( Prop.Has( PERMEABILITY_XX ) == false || Prop[PERMEABILITY_XX] < 0.0 )
+        if ( rProp.Has( PERMEABILITY_XX ) == false || rProp[PERMEABILITY_XX] < 0.0 )
             KRATOS_ERROR << "PERMEABILITY_XX has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
-        if ( Prop.Has( PERMEABILITY_YY ) == false || Prop[PERMEABILITY_YY] < 0.0 )
+        if ( rProp.Has( PERMEABILITY_YY ) == false || rProp[PERMEABILITY_YY] < 0.0 )
             KRATOS_ERROR << "PERMEABILITY_YY has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
-        if ( Prop.Has( PERMEABILITY_XY ) == false || Prop[PERMEABILITY_XY] < 0.0 )
+        if ( rProp.Has( PERMEABILITY_XY ) == false || rProp[PERMEABILITY_XY] < 0.0 )
             KRATOS_ERROR << "PERMEABILITY_XY has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
         if (rGeom.WorkingSpaceDimension() > 2) {
-            if ( Prop.Has( PERMEABILITY_ZZ ) == false || Prop[PERMEABILITY_ZZ] < 0.0 )
+            if ( rProp.Has( PERMEABILITY_ZZ ) == false || rProp[PERMEABILITY_ZZ] < 0.0 )
                 KRATOS_ERROR << "PERMEABILITY_ZZ has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
-            if ( Prop.Has( PERMEABILITY_YZ ) == false || Prop[PERMEABILITY_YZ] < 0.0 )
+            if ( rProp.Has( PERMEABILITY_YZ ) == false || rProp[PERMEABILITY_YZ] < 0.0 )
                 KRATOS_ERROR << "PERMEABILITY_YZ has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
-            if ( Prop.Has( PERMEABILITY_ZX ) == false || Prop[PERMEABILITY_ZX] < 0.0 )
+            if ( rProp.Has( PERMEABILITY_ZX ) == false || rProp[PERMEABILITY_ZX] < 0.0 )
                 KRATOS_ERROR << "PERMEABILITY_ZX has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
         }
     }
@@ -117,11 +117,11 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
     }
 
     // Verify that the constitutive law exists
-    KRATOS_ERROR_IF_NOT(Prop.Has( CONSTITUTIVE_LAW )) << "Constitutive law not provided for property " << Prop.Id() << std::endl;
+    KRATOS_ERROR_IF_NOT(rProp.Has( CONSTITUTIVE_LAW )) << "Constitutive law not provided for property " << rProp.Id() << std::endl;
 
     //verify compatibility with the constitutive law
     ConstitutiveLaw::Features LawFeatures;
-    Prop.GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
+    rProp.GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
     bool correct_strain_measure = false;
     for (unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); ++i) {
@@ -132,7 +132,7 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
     if ( correct_strain_measure == false )
         KRATOS_ERROR << "constitutive law is not compatible with the element type StrainMeasure_Infinitesimal " << this->Id() << std::endl;
 
-    Prop.GetValue( CONSTITUTIVE_LAW )->Check( Prop, rGeom, rCurrentProcessInfo );
+    rProp.GetValue( CONSTITUTIVE_LAW )->Check( rProp, rGeom, rCurrentProcessInfo );
 
     // Verify that the constitutive law has the correct dimension
     const SizeType strainSize = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
@@ -615,15 +615,15 @@ void SmallStrainUPwDiffOrderElement::
         rDampingMatrix.resize( ElementSize, ElementSize, false );
     noalias( rDampingMatrix ) = ZeroMatrix( ElementSize, ElementSize );
 
-    const PropertiesType& Prop = this->GetProperties();
+    const PropertiesType& rProp = this->GetProperties();
 
-    if (Prop.Has( RAYLEIGH_ALPHA ))
-        noalias(rDampingMatrix) += Prop[RAYLEIGH_ALPHA] * MassMatrix;
+    if (rProp.Has( RAYLEIGH_ALPHA ))
+        noalias(rDampingMatrix) += rProp[RAYLEIGH_ALPHA] * MassMatrix;
     else
         noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * MassMatrix;
 
-    if (Prop.Has( RAYLEIGH_BETA ))
-        noalias(rDampingMatrix) += Prop[RAYLEIGH_BETA] * StiffnessMatrix;
+    if (rProp.Has( RAYLEIGH_BETA ))
+        noalias(rDampingMatrix) += rProp[RAYLEIGH_BETA] * StiffnessMatrix;
     else
         noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
 
@@ -1101,7 +1101,7 @@ void SmallStrainUPwDiffOrderElement::
         }
     } else if (rVariable == HYDRAULIC_HEAD) {
         const double NumericalLimit = std::numeric_limits<double>::epsilon();
-        const PropertiesType& Prop = this->GetProperties();
+        const PropertiesType& rProp = this->GetProperties();
         const unsigned int NumGPoints = rGeom.IntegrationPointsNumber( this->GetIntegrationMethod() );
 
         //Defining the shape functions, the jacobian and the shape functions local gradients Containers
@@ -1115,7 +1115,7 @@ void SmallStrainUPwDiffOrderElement::
             noalias(NodeVolumeAcceleration) = rGeom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
             const double g = norm_2(NodeVolumeAcceleration);
             if (g > NumericalLimit) {
-                const double FluidWeight = g * Prop[DENSITY_WATER];
+                const double FluidWeight = g * rProp[DENSITY_WATER];
 
                 Vector NodeCoordinates(3);
                 noalias(NodeCoordinates) = rGeom[node].Coordinates();
@@ -1304,7 +1304,7 @@ void SmallStrainUPwDiffOrderElement::
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
-        const PropertiesType& Prop = this->GetProperties();
+        const PropertiesType& rProp = this->GetProperties();
 
         const SizeType VoigtSize = mStressVector[0].size();
         Vector VoigtVector = ZeroVector(VoigtSize);
@@ -1314,7 +1314,7 @@ void SmallStrainUPwDiffOrderElement::
         // create general parametes of retention law
         RetentionLaw::Parameters RetentionParameters(rGeom, GetProperties(), rCurrentProcessInfo);
 
-        const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+        const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
 
         Vector TotalStressVector(mStressVector[0].size());
 
@@ -1749,15 +1749,15 @@ double SmallStrainUPwDiffOrderElement::
     KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainElement::CalculateBiotCoefficient()") << std::endl;
 
-    const PropertiesType& Prop = this->GetProperties();
+    const PropertiesType& rProp = this->GetProperties();
 
     //Properties variables
     if (hasBiotCoefficient) {
-        return Prop[BIOT_COEFFICIENT];
+        return rProp[BIOT_COEFFICIENT];
     } else {
         // calculate Bulk modulus from stiffness matrix
         const double BulkModulus = CalculateBulkModulus(rVariables.ConstitutiveMatrix);
-        return 1.0 - BulkModulus / Prop[BULK_MODULUS_SOLID];
+        return 1.0 - BulkModulus / rProp[BULK_MODULUS_SOLID];
     }
 
     // KRATOS_INFO("1-UPwSmallStrainElement::CalculateBiotCoefficient()") << std::endl;
@@ -1773,22 +1773,22 @@ void SmallStrainUPwDiffOrderElement::
     KRATOS_TRY
     // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients") << std::endl;
 
-    const PropertiesType& Prop = this->GetProperties();
+    const PropertiesType& rProp = this->GetProperties();
 
     rVariables.BiotCoefficient = CalculateBiotCoefficient(rVariables, hasBiotCoefficient);
 
-    const bool IgnoreUndrained = Prop[IGNORE_UNDRAINED];
+    const bool IgnoreUndrained = rProp[IGNORE_UNDRAINED];
 
     if (!IgnoreUndrained) {
-        rVariables.BiotModulusInverse = (rVariables.BiotCoefficient - Prop[POROSITY]) / Prop[BULK_MODULUS_SOLID] 
-                                    + Prop[POROSITY]/Prop[BULK_MODULUS_FLUID];
+        rVariables.BiotModulusInverse = (rVariables.BiotCoefficient - rProp[POROSITY]) / rProp[BULK_MODULUS_SOLID] 
+                                    + rProp[POROSITY]/rProp[BULK_MODULUS_FLUID];
     } else {
-        rVariables.BiotModulusInverse = (rVariables.BiotCoefficient - Prop[POROSITY]) / Prop[BULK_MODULUS_SOLID] 
-                                       + Prop[POROSITY]/TINY;
+        rVariables.BiotModulusInverse = (rVariables.BiotCoefficient - rProp[POROSITY]) / rProp[BULK_MODULUS_SOLID] 
+                                       + rProp[POROSITY]/TINY;
     }
 
     rVariables.BiotModulusInverse *= rVariables.DegreeOfSaturation;
-    rVariables.BiotModulusInverse -= rVariables.DerivativeOfSaturation*Prop[POROSITY];
+    rVariables.BiotModulusInverse -= rVariables.DerivativeOfSaturation*rProp[POROSITY];
 
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients") << std::endl;
     KRATOS_CATCH( "" )
@@ -1801,29 +1801,29 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties( ElementVariables& rVa
     // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::InitializeProperties") << std::endl;
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const PropertiesType& Prop = this->GetProperties();
+    const PropertiesType& rProp = this->GetProperties();
 
-    rVariables.IgnoreUndrained = Prop[IGNORE_UNDRAINED];
+    rVariables.IgnoreUndrained = rProp[IGNORE_UNDRAINED];
     rVariables.UseHenckyStrain = false;
-    if (Prop.Has(USE_HENCKY_STRAIN))
-        rVariables.UseHenckyStrain = Prop[USE_HENCKY_STRAIN];
+    if (rProp.Has(USE_HENCKY_STRAIN))
+        rVariables.UseHenckyStrain = rProp[USE_HENCKY_STRAIN];
 
     rVariables.ConsiderGeometricStiffness = false;
-    if (Prop.Has(CONSIDER_GEOMETRIC_STIFFNESS))
-        rVariables.ConsiderGeometricStiffness = Prop[CONSIDER_GEOMETRIC_STIFFNESS];
+    if (rProp.Has(CONSIDER_GEOMETRIC_STIFFNESS))
+        rVariables.ConsiderGeometricStiffness = rProp[CONSIDER_GEOMETRIC_STIFFNESS];
 
-    rVariables.DynamicViscosityInverse = 1.0 / Prop[DYNAMIC_VISCOSITY];
+    rVariables.DynamicViscosityInverse = 1.0 / rProp[DYNAMIC_VISCOSITY];
     //Setting the intrinsic permeability matrix
     (rVariables.IntrinsicPermeability).resize(dimension,dimension,false);
-    rVariables.IntrinsicPermeability(0,0) = Prop[PERMEABILITY_XX];
-    rVariables.IntrinsicPermeability(1,1) = Prop[PERMEABILITY_YY];
-    rVariables.IntrinsicPermeability(0,1) = Prop[PERMEABILITY_XY];
+    rVariables.IntrinsicPermeability(0,0) = rProp[PERMEABILITY_XX];
+    rVariables.IntrinsicPermeability(1,1) = rProp[PERMEABILITY_YY];
+    rVariables.IntrinsicPermeability(0,1) = rProp[PERMEABILITY_XY];
     rVariables.IntrinsicPermeability(1,0) = rVariables.IntrinsicPermeability(0,1);
 
     if (dimension==3) {
-        rVariables.IntrinsicPermeability(2,2) = Prop[PERMEABILITY_ZZ];
-        rVariables.IntrinsicPermeability(2,0) = Prop[PERMEABILITY_ZX];
-        rVariables.IntrinsicPermeability(1,2) = Prop[PERMEABILITY_YZ];
+        rVariables.IntrinsicPermeability(2,2) = rProp[PERMEABILITY_ZZ];
+        rVariables.IntrinsicPermeability(2,0) = rProp[PERMEABILITY_ZX];
+        rVariables.IntrinsicPermeability(1,2) = rProp[PERMEABILITY_YZ];
         rVariables.IntrinsicPermeability(0,2) = rVariables.IntrinsicPermeability(2,0);
         rVariables.IntrinsicPermeability(2,1) = rVariables.IntrinsicPermeability(1,2);
     }
@@ -2292,12 +2292,12 @@ void SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainElement::CalculateSoilDensity()") << std::endl;
-    const PropertiesType& Prop = this->GetProperties();
+    const PropertiesType& rProp = this->GetProperties();
 
     rVariables.Density = (  rVariables.DegreeOfSaturation
-                          * Prop[POROSITY]
-                          * Prop[DENSITY_WATER] )
-                         + (1.0 - Prop[POROSITY] )*Prop[DENSITY_SOLID];
+                          * rProp[POROSITY]
+                          * rProp[DENSITY_WATER] )
+                         + (1.0 - rProp[POROSITY] )*rProp[DENSITY_SOLID];
 
     // KRATOS_INFO("1-UPwSmallStrainElement::CalculateSoilDensity()") << std::endl;
     KRATOS_CATCH("");
@@ -2464,7 +2464,12 @@ GeometryData::IntegrationMethod
 void SmallStrainUPwDiffOrderElement::
     CalculateStrain( ElementVariables& rVariables, const IndexType& GPoint )
 {
-    this->CalculateCauchyStrain( rVariables );
+    if (rVariables.UseHenckyStrain) {
+        this->CalculateDeformationGradient(rVariables, GPoint);
+        this->CalculateHenckyStrain( rVariables );
+    } else {
+        this->CalculateCauchyStrain( rVariables );
+    }
 }
 
 //----------------------------------------------------------------------------------------
@@ -2602,6 +2607,51 @@ void SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain(ElementVariabl
 }
 
 //----------------------------------------------------------------------------------------
+void SmallStrainUPwDiffOrderElement::CalculateHenckyStrain( ElementVariables& rVariables )
+{
+    KRATOS_TRY
+
+    const GeometryType& rGeom = GetGeometry();
+    const SizeType Dim = rGeom.WorkingSpaceDimension();
+
+    //-Compute total deformation gradient
+    const Matrix& F = rVariables.F;
+
+    Matrix CMatrix;
+    CMatrix = prod(trans(F), F);
+
+    // Declare the different matrix
+    Matrix EigenValuesMatrix = ZeroMatrix(Dim, Dim);
+    Matrix EigenVectorsMatrix = ZeroMatrix(Dim, Dim);
+
+    // Decompose matrix
+    MathUtils<double>::GaussSeidelEigenSystem(CMatrix, EigenVectorsMatrix, EigenValuesMatrix, 1.0e-16, 20);
+
+    // Calculate the eigenvalues of the E matrix
+    for (IndexType i = 0; i < Dim; ++i) {
+        EigenValuesMatrix(i, i) = 0.5 * std::log(EigenValuesMatrix(i, i));
+    }
+
+    // Calculate E matrix
+    Matrix ETensor = ZeroMatrix(Dim, Dim);
+    MathUtils<double>::BDBtProductOperation(ETensor, EigenValuesMatrix, EigenVectorsMatrix);
+
+    // Hencky Strain Calculation
+    if (Dim==2) {
+        Vector StrainVector;
+        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
+        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
+        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
+        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
+        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
+    } else {
+        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
 double SmallStrainUPwDiffOrderElement::
     CalculateJacobianOnCurrentConfiguration(Matrix& rJ,
                                             Matrix& rInvJ,
@@ -2609,14 +2659,14 @@ double SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY
 
-    //// KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
+    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
     const GeometryType& rGeom = this->GetGeometry();
 
     double detJ;
     rJ = rGeom.Jacobian( rJ, GPoint, this->GetIntegrationMethod() );
     MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
 
-    //// KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
+    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
 
     return detJ;
 

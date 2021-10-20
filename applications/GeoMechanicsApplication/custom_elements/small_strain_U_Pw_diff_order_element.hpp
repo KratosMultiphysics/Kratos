@@ -304,6 +304,7 @@ protected:
     virtual void CalculateCauchyGreenStrain( ElementVariables& rVariables );
     virtual void CalculateCauchyStrain( ElementVariables& rVariables );
     virtual void CalculateStrain( ElementVariables& rVariables, const IndexType& GPoint );
+    virtual void CalculateHenckyStrain( ElementVariables& rVariables );
 
     virtual void CalculateDeformationGradient( ElementVariables& rVariables,
                                                const IndexType& GPoint );

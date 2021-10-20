@@ -98,6 +98,11 @@ void UpdatedLagrangianUPwDiffOrderElement::
                                                   GPoint,
                                                   Variables.detJ);
 
+        Variables.IntegrationCoefficientInitialConfiguration =
+            this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                  GPoint,
+                                                  Variables.detJInitialConfiguration);
+
         if ( CalculateStiffnessMatrixFlag) {
             // Contributions to stiffness matrix calculated on the reference config
             /* Material stiffness matrix */
@@ -237,62 +242,6 @@ void UpdatedLagrangianUPwDiffOrderElement::
     }
 }
 
-//----------------------------------------------------------------------------------------
-void UpdatedLagrangianUPwDiffOrderElement::
-    CalculateStrain( ElementVariables& rVariables, const IndexType& GPoint )
-{
-    if (rVariables.UseHenckyStrain) {
-        this->CalculateDeformationGradient(rVariables, GPoint);
-        this->CalculateHenckyStrain( rVariables );
-    } else {
-        this->CalculateCauchyStrain( rVariables );
-    }
-}
-
-//----------------------------------------------------------------------------------------
-void UpdatedLagrangianUPwDiffOrderElement::CalculateHenckyStrain( ElementVariables& rVariables )
-{
-    KRATOS_TRY
-
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-
-    //-Compute total deformation gradient
-    const Matrix& F = rVariables.F;
-
-    Matrix CMatrix;
-    CMatrix = prod(trans(F), F);
-
-    // Declare the different matrix
-    Matrix EigenValuesMatrix = ZeroMatrix(Dim, Dim);
-    Matrix EigenVectorsMatrix = ZeroMatrix(Dim, Dim);
-
-    // Decompose matrix
-    MathUtils<double>::GaussSeidelEigenSystem(CMatrix, EigenVectorsMatrix, EigenValuesMatrix, 1.0e-16, 20);
-
-    // Calculate the eigenvalues of the E matrix
-    for (IndexType i = 0; i < Dim; ++i) {
-        EigenValuesMatrix(i, i) = 0.5 * std::log(EigenValuesMatrix(i, i));
-    }
-
-    // Calculate E matrix
-    Matrix ETensor = ZeroMatrix(Dim, Dim);
-    MathUtils<double>::BDBtProductOperation(ETensor, EigenValuesMatrix, EigenVectorsMatrix);
-
-    // Hencky Strain Calculation
-    if (Dim==2) {
-        Vector StrainVector;
-        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
-    } else {
-        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
-    }
-
-    KRATOS_CATCH( "" )
-}
 //----------------------------------------------------------------------------------------
 void UpdatedLagrangianUPwDiffOrderElement::save( Serializer& rSerializer ) const
 {
