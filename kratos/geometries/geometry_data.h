@@ -98,6 +98,7 @@ public:
         Kratos_Hexahedra,
         Kratos_Prism,
         Kratos_Brep,
+        KRATOS_Quadrature_Geometry,
         Kratos_generic_family
     };
 
@@ -129,7 +130,8 @@ public:
         Kratos_Point3D,
         Kratos_Sphere3D1,
         Kratos_Brep_Surface,
-        Kratos_Brep_Curve
+        Kratos_Brep_Curve,
+        KRATOS_Quadrature_Point_Geometry,
     };
 
     ///@}
