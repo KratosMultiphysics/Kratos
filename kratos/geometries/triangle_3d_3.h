@@ -2368,9 +2368,8 @@ private:
         
         if (d0 * d1 > 0.0){
             if (d0 * d2 > 0.0) return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
