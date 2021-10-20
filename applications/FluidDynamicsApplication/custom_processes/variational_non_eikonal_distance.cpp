@@ -111,7 +111,7 @@ void VariationalNonEikonalDistance::Execute()
 
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
 
-        if (abs(distance) < 1.0e-12){
+        if (std::abs(distance) < 1.0e-12){
             it_node->Fix(DISTANCE_AUX2);
         } else {
             it_node->Free(DISTANCE_AUX2);
@@ -212,12 +212,38 @@ void VariationalNonEikonalDistance::Execute()
         }
     } */
 
-    for (unsigned iter = 0; iter < 5; ++iter){
-        mpGradientCalculator->Execute(); // To provide the initial condition for DISTANCE_GRADIENT
+    mpGradientCalculator->Execute(); // To provide the initial condition for DISTANCE_GRADIENT
 
+    unsigned int iteration = 0;
+    double max_grad_norm_deviation = 1.0e2;
+    double norm_grad_norm_deviation = 0.0;
+    //for (unsigned iter = 0; iter < 50; ++iter){
+    while (max_grad_norm_deviation > 2.0e-1 && iteration < 5){
         KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, about to solve the LSE" << std::endl;
         mp_solving_strategy->Solve();
         KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, LSE is solved" << std::endl;
+
+        mpGradientCalculator->Execute();
+
+        max_grad_norm_deviation = 0.0;
+        norm_grad_norm_deviation = 0.0;
+        #pragma omp parallel for
+        for (unsigned int k = 0; k < NumNodes; ++k) {
+            auto it_node = mrModelPart.NodesBegin() + k;
+            const double grad_norm_dev = std::abs(
+                    norm_2( it_node->GetValue(DISTANCE_GRADIENT) ) - 1.0);
+            if ( grad_norm_dev > max_grad_norm_deviation ){
+                #pragma omp critical
+                max_grad_norm_deviation = grad_norm_dev;
+            }
+            norm_grad_norm_deviation += grad_norm_dev;
+        }
+        iteration++;
+        KRATOS_INFO("Maximum deviation in the norm of distance gradient") <<
+            norm_grad_norm_deviation/static_cast<double>(NumNodes) << std::endl;
+    }
+    if (max_grad_norm_deviation > 2.0e-1){
+        KRATOS_INFO("VariationalNonEikonalDistance") << "Convergence is not achieved." << std::endl;
     }
 
     /* #pragma omp parallel for

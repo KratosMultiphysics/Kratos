@@ -251,14 +251,6 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     const int num_nodes  = num_dim + 1;
     const int num_dof = num_nodes; //(num_dim + 1)*num_nodes;
 
-    const double element_size = ElementSizeCalculator<3,4>::AverageElementSize(this->GetGeometry());
-
-    //const double tau = 0.5;
-    //const double penalty_curvature = 0.0;//1.0e-3; // Not possible for curvature itself since normalized DISTANCE_GRADIENT is needed.
-    const double penalty_phi0 = 1.0e7/element_size; // <-- For Nitsche's method //1.0e9;//0.0;//
-    const double source_coeff = 3.0/(8.0*element_size);//1.0e0; //Usually we have ~10 elements across a Radius
-    //const double dissipative_coefficient = 1.0e-8;
-
     GeometryData::ShapeFunctionsGradientsType DN_DX;
     Matrix N;
     Vector DetJ;
@@ -304,12 +296,15 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
     unsigned int nneg=0, npos=0;
 
+    double mean_distance = 0.0;
+
     for (unsigned int i_node=0; i_node < num_nodes; ++i_node){
         //curvatures(i_node) = (*p_geometry)[i_node].FastGetSolutionStepValue(CURVATURE);
         //KRATOS_INFO("VariationalNonEikonalDistanceElement, storing curvature") << curvatures(i_node) << std::endl;
 
         const double dist0 = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE);
         distances0(i_node) = dist0;
+        mean_distance += dist0;
 
         if (dist0 > 0.0) npos += 1;
         else nneg += 1;
@@ -329,6 +324,20 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         // distance_gradient0(i_node, 1) = (*p_geometry)[i_node].GetValue(DISTANCE_GRADIENT_Y);
         // distance_gradient0(i_node, 2) = (*p_geometry)[i_node].GetValue(DISTANCE_GRADIENT_Z);
     }
+
+    mean_distance /= static_cast<double>(num_nodes);
+
+    const double element_size = ElementSizeCalculator<3,4>::MinimumElementSize(this->GetGeometry());
+    //KRATOS_WATCH(element_size)
+
+    //const double tau = 0.5;
+    //const double penalty_curvature = 0.0;//1.0e-3; // Not possible for curvature itself since normalized DISTANCE_GRADIENT is needed.
+    const double penalty_phi0 = 1.0e7/element_size; // <-- For Nitsche's method //1.0e9;//0.0;//
+
+    double source_coeff = 2.1/(0.1*element_size); //3.0/(8.0*element_size);//1.0e0; 
+    const double radius = /* 1.339358195e-4/1.25 */1.339358195e-3/1.2 + mean_distance; //20.0*element_size //Usually we have ~10 elements across a Radius, so, this is the expected minimum radius.
+    if ( radius > (0.1*element_size) ) source_coeff = 2.1/radius;
+    //const double dissipative_coefficient = 1.0e-8;
 
     // num_dof = 4*num_nodes
     if(rLeftHandSideMatrix.size1() != num_dof)
@@ -353,6 +362,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         grad_phi_old = prod(trans(DN_DX[gp]),distances0);
 
         const double norm_grad_phi_avg = norm_2(grad_phi_avg);
+        const double norm_grad_phi = norm_2(grad_phi);
 
         //KRATOS_WATCH(norm_grad_phi_avg)
         if (norm_grad_phi_avg > 1.0){
@@ -365,10 +375,21 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                 + 7.0*norm_grad_phi_avg*(norm_grad_phi_avg - 1.0) + norm_grad_phi_avg*norm_grad_phi_avg );
         }
 
+        // //KRATOS_WATCH(norm_grad_phi)
+        // if (norm_grad_phi > 1.0){
+        //     diffusion = 1.0/norm_grad_phi;
+        //     diffusion_prime_to_s = -1.0/(norm_grad_phi*norm_grad_phi*norm_grad_phi);
+        // } else{
+        //     diffusion = 1.0 - 2.0*norm_grad_phi*norm_grad_phi*(1.0 - norm_grad_phi)*(1.0 - norm_grad_phi)
+        //         + (1.0 - norm_grad_phi)*norm_grad_phi*norm_grad_phi*norm_grad_phi; //(3.0 - 2.0*norm_grad_phi)*norm_grad_phi;
+        //     diffusion_prime_to_s = -(4.0*(1.0 - norm_grad_phi)*(1.0 - norm_grad_phi)
+        //         + 7.0*norm_grad_phi*(norm_grad_phi - 1.0) + norm_grad_phi*norm_grad_phi );
+        // }
+
         for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
             double grad_Ni_dot_grad_phi = 0.0;
             for (unsigned int k_dim = 0; k_dim < num_dim; k_dim++){
-                grad_Ni_dot_grad_phi += (DN_DX[gp])(i_node, k_dim) * grad_phi_avg[k_dim];
+                grad_Ni_dot_grad_phi += (DN_DX[gp])(i_node, k_dim) * grad_phi_avg[k_dim];//grad_phi[k_dim];//
             }
             for (unsigned int j_node = 0; j_node < num_nodes; j_node++){
                 //tempPhi: LHS associated with the dissipative smoother
@@ -406,12 +427,12 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                     //     weights(gp) * N(gp, i_node) * (DN_DX[gp])(j_node, k_dim);
 
                     lhs(i_node, j_node) += weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
-                    grad_Nj_dot_grad_phi += (DN_DX[gp])(j_node, k_dim) * grad_phi_avg[k_dim];
+                    grad_Nj_dot_grad_phi += (DN_DX[gp])(j_node, k_dim) * grad_phi_avg[k_dim];//grad_phi[k_dim];//
 
                     if (step > 1){
                         // move to the LHS for Newton-Raphson strategy:
                         rhs[i_node] += diffusion * weights(gp) * (DN_DX[gp])(i_node, k_dim) * N(gp, j_node) * grad_phi_avg[k_dim];//grad_phi[k_dim];//
-                        //lhs(i_node, j_node) += - diffusion * weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
+                        // lhs(i_node, j_node) += - diffusion * weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
                     }
                 }
                 if (step > 1){
@@ -457,8 +478,9 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
             for (unsigned int pos_gp = 0; pos_gp < number_of_pos_gauss_points; pos_gp++){
                 for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
                     //rhs(i_node*(num_dim + 1) + 0) += pos_weights(pos_gp) * pos_N(pos_gp, i_node);
-                    rhs(i_node) += 0.0;//source_coeff * pos_weights(pos_gp) * pos_N(pos_gp, i_node);
+                    // rhs(i_node) += source_coeff * pos_weights(pos_gp) * pos_N(pos_gp, i_node);
                     // There is no need for the positive source term
+                    rhs(i_node) -= 2.0e0 * source_coeff * pos_weights(pos_gp) * pos_N(pos_gp, i_node);
                 }
             }
 
@@ -473,7 +495,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
             for (unsigned int neg_gp = 0; neg_gp < number_of_neg_gauss_points; neg_gp++){
                 for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
                     //rhs(i_node*(num_dim + 1) + 0) -= neg_weights(neg_gp) * neg_N(neg_gp, i_node);
-                    rhs(i_node) -= 1.0e0 * source_coeff * neg_weights(neg_gp) * neg_N(neg_gp, i_node);
+                    rhs(i_node) -= 2.0e0 * source_coeff * neg_weights(neg_gp) * neg_N(neg_gp, i_node);
                 }
             }
         } //else{
@@ -574,9 +596,9 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         //KRATOS_WATCH(nneg)
         double source;
         if (npos != 0)
-            source = 0.0;//1.0; // There is no need to add positive source term
+            source = -1.0e0;//0.0;//1.0; // There is no need to add positive source term
         else
-            source = -1.0e0;
+            source = -2.0e0;
 
         for (unsigned int gp = 0; gp < number_of_gauss_points; gp++){
             for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
@@ -618,7 +640,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
             if (boundary_face_node == num_face_nodes){
                 double minus_cos_contact_angle = 0.0;
                 const double norm_solid_normal = Kratos::norm_2(solid_normal);
-                solid_normal = (1.0/norm_solid_normal)*solid_normal;
+                solid_normal /= norm_solid_normal;
 
                 const unsigned int num_int_pts = (faces[i_face]).IntegrationPointsNumber(integration_method);
 
@@ -654,12 +676,13 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
             //             face_jacobian_inv); */ // This code is not working, it is only as a hint for further development
 
                     for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
+                        VectorType grad_phi_old_avg = GetGeometry()[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT);
+                        grad_phi_old_avg /= norm_2(grad_phi_old_avg);
                         if (contact_angle_weight > 0.0){
                             minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
                         } else{
                             const double norm_grad_phi_old = norm_2(grad_phi_old); // For linear elements, grad_phi_old is constant, however, this is not the correct way to calculate it
-                            minus_cos_contact_angle = Kratos::inner_prod(solid_normal,1.0/norm_grad_phi_old*grad_phi_old);
-                                //GetGeometry()[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT));
+                            minus_cos_contact_angle = Kratos::inner_prod(solid_normal,grad_phi_old_avg);//1.0/norm_grad_phi_old*grad_phi_old);//
                         }
 
                         rhs(i_node) += minus_cos_contact_angle * face_weight * face_shape_func(i_node);
