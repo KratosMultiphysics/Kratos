@@ -672,87 +672,6 @@ public:
         }
     }
 
-    bool TriTriOverlap(const GeometryType& rThisGeometry)
-    {
-        // Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
-        // and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
-        // http://web.stanford.edu/class/cs277/resources/papers/Moller1997b.pdf
-
-        Plane3D plane_1(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2));
-        array_1d<double, 3> distances_1;
-        for (int i = 0; i < 3; i++)
-            distances_1[i] = plane_1.CalculateSignedDistance(rThisGeometry[i]);
-        if (AllSameSide(distances_1))
-            return false;
-
-        Plane3D plane_2(rThisGeometry[0], rThisGeometry[1], rThisGeometry[2]);
-        array_1d<double, 3> distances_2;
-        for (int i = 0; i < 3; i++)
-            distances_2[i] = plane_2.CalculateSignedDistance(this->GetPoint(i));
-        if (AllSameSide(distances_2))
-            return false;
-
-        // compute direction of intersection line //
-        array_1d<double, 3> intersection_direction;
-        MathUtils<double>::CrossProduct(intersection_direction, plane_1.GetNormal(), plane_2.GetNormal());
-
-        int index = GetMajorAxis(intersection_direction);
-
-        // this is the simplified projection onto L//
-        double vp0 = this->GetPoint(0)[index];
-        double vp1 = this->GetPoint(1)[index];
-        double vp2 = this->GetPoint(2)[index];
-
-        double up0 = rThisGeometry[0][index];
-        double up1 = rThisGeometry[1][index];
-        double up2 = rThisGeometry[2][index];
-
-
-        // compute interval for triangle 1 //
-        double a, b, c, x0, x1;
-        if (ComputeIntervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], a, b, c, x0, x1) == true)
-        {
-            return CoplanarIntersectionCheck(plane_1.GetNormal(), rThisGeometry);
-        }
-
-        // compute interval for triangle 2 //
-        double d, e, f, y0, y1;
-        if (ComputeIntervals(up0, up1, up2, distances_1[0], distances_1[1], distances_1[2], d, e, f, y0, y1) == true)
-        {
-            return CoplanarIntersectionCheck(plane_1.GetNormal(), rThisGeometry);
-        }
-
-        double xx, yy, xxyy, tmp;
-        xx = x0*x1;
-        yy = y0*y1;
-        xxyy = xx*yy;
-
-        array_1d<double, 2> isect1, isect2;
-
-        tmp = a*xxyy;
-        isect1[0] = tmp + b*x1*yy;
-        isect1[1] = tmp + c*x0*yy;
-
-        tmp = d*xxyy;
-        isect2[0] = tmp + e*xx*y1;
-        isect2[1] = tmp + f*xx*y0;
-
-        if (isect1[0] > isect1[1]) {
-            isect1[1] = isect1[0] + isect1[1];
-            isect1[0] = isect1[1] - isect1[0];
-            isect1[1] = isect1[1] - isect1[0];
-        }
-
-        if (isect2[0] > isect2[1]) {
-            isect2[1] = isect2[0] + isect2[1];
-            isect2[0] = isect2[1] - isect2[0];
-            isect2[1] = isect2[1] - isect2[0];
-        }
-
-        if (isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
-        return true;
-    }
-
     /**
      * Check if an axis-aliged bounding box (AABB) intersects a triangle
      *
@@ -2160,6 +2079,87 @@ private:
      */
     inline double CalculateInradius(const double a, const double b, const double c) const {
       return 0.5 * std::sqrt((b+c-a) * (c+a-b) * (a+b-c) / (a+b+c));
+    }
+
+    bool TriTriOverlap(const GeometryType& rThisGeometry)
+    {
+        // Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
+        // and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
+        // http://web.stanford.edu/class/cs277/resources/papers/Moller1997b.pdf
+
+        Plane3D plane_1(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2));
+        array_1d<double, 3> distances_1;
+        for (int i = 0; i < 3; i++)
+            distances_1[i] = plane_1.CalculateSignedDistance(rThisGeometry[i]);
+        if (AllSameSide(distances_1))
+            return false;
+
+        Plane3D plane_2(rThisGeometry[0], rThisGeometry[1], rThisGeometry[2]);
+        array_1d<double, 3> distances_2;
+        for (int i = 0; i < 3; i++)
+            distances_2[i] = plane_2.CalculateSignedDistance(this->GetPoint(i));
+        if (AllSameSide(distances_2))
+            return false;
+
+        // compute direction of intersection line //
+        array_1d<double, 3> intersection_direction;
+        MathUtils<double>::CrossProduct(intersection_direction, plane_1.GetNormal(), plane_2.GetNormal());
+
+        int index = GetMajorAxis(intersection_direction);
+
+        // this is the simplified projection onto L//
+        double vp0 = this->GetPoint(0)[index];
+        double vp1 = this->GetPoint(1)[index];
+        double vp2 = this->GetPoint(2)[index];
+
+        double up0 = rThisGeometry[0][index];
+        double up1 = rThisGeometry[1][index];
+        double up2 = rThisGeometry[2][index];
+
+
+        // compute interval for triangle 1 //
+        double a, b, c, x0, x1;
+        if (ComputeIntervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], a, b, c, x0, x1) == true)
+        {
+            return CoplanarIntersectionCheck(plane_1.GetNormal(), rThisGeometry);
+        }
+
+        // compute interval for triangle 2 //
+        double d, e, f, y0, y1;
+        if (ComputeIntervals(up0, up1, up2, distances_1[0], distances_1[1], distances_1[2], d, e, f, y0, y1) == true)
+        {
+            return CoplanarIntersectionCheck(plane_1.GetNormal(), rThisGeometry);
+        }
+
+        double xx, yy, xxyy, tmp;
+        xx = x0*x1;
+        yy = y0*y1;
+        xxyy = xx*yy;
+
+        array_1d<double, 2> isect1, isect2;
+
+        tmp = a*xxyy;
+        isect1[0] = tmp + b*x1*yy;
+        isect1[1] = tmp + c*x0*yy;
+
+        tmp = d*xxyy;
+        isect2[0] = tmp + e*xx*y1;
+        isect2[1] = tmp + f*xx*y0;
+
+        if (isect1[0] > isect1[1]) {
+            isect1[1] = isect1[0] + isect1[1];
+            isect1[0] = isect1[1] - isect1[0];
+            isect1[1] = isect1[1] - isect1[0];
+        }
+
+        if (isect2[0] > isect2[1]) {
+            isect2[1] = isect2[0] + isect2[1];
+            isect2[0] = isect2[1] - isect2[0];
+            isect2[1] = isect2[1] - isect2[0];
+        }
+
+        if (isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
+        return true;
     }
 
 	bool ComputeIntervals(double& VV0,
