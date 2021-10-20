@@ -31,7 +31,7 @@
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_utilities/create_and_destroy.h"
@@ -121,9 +121,16 @@ namespace Kratos {
             mpParticleCreatorDestructor = p_creator_destructor;
             mpDemFemSearch = p_dem_fem_search;
             mpSpSearch = pSpSearch;
-            if(mParameters["do_search_neighbours"].GetBool()) mDoSearchNeighbourElements = true;
-            else mDoSearchNeighbourElements = false;
+
+            //Also checks old flag name for backward compatibility issues.
+            if(mParameters["do_search_dem_neighbours"].GetBool()) {
+                mDoSearchNeighbourElements = true;
+            } else mDoSearchNeighbourElements = false;
             p_creator_destructor->SetDoSearchNeighbourElements(mDoSearchNeighbourElements);
+
+            if(mParameters["do_search_fem_neighbours"].GetBool()) mDoSearchNeighbourFEMElements = true;
+            else mDoSearchNeighbourFEMElements = false;
+
             mMaxTimeStep = max_delta_time;
             mNStepSearch = n_step_search;
             mSafetyFactor = safety_factor;
@@ -255,6 +262,7 @@ namespace Kratos {
         void SynchronizeHistoricalVariables(ModelPart& r_model_part);
         void SynchronizeRHS(ModelPart& r_model_part);
         void CleanEnergies();
+        void Check_MPI(bool& has_mpi);
 
         ModelPart& GetModelPart() { return (*mpDem_model_part);}
         ModelPart& GetFemModelPart() { return (*mpFem_model_part);}
@@ -299,6 +307,7 @@ namespace Kratos {
         DEM_FEM_Search::Pointer mpDemFemSearch;
         SpatialSearch::Pointer mpSpSearch;
         bool mDoSearchNeighbourElements;
+        bool mDoSearchNeighbourFEMElements;
         VectorResultConditionsContainerType mRigidFaceResults;
         VectorDistanceType mRigidFaceResultsDistances;
         ModelPart *mpFem_model_part;

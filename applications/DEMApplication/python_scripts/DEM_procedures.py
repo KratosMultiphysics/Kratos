@@ -411,8 +411,8 @@ class Procedures():
         rigid_face_model_part = all_model_parts.Get('RigidFacePart')
 
         self.solver = weakref.proxy(solver)
-        self.translational_scheme = weakref.proxy(translational_scheme)
-        self.rotational_scheme = weakref.proxy(rotational_scheme)
+        #self.translational_scheme = weakref.proxy(translational_scheme)
+        #self.rotational_scheme = weakref.proxy(rotational_scheme)
         self.AddCommonVariables(spheres_model_part, DEM_parameters)
         self.AddSpheresVariables(spheres_model_part, DEM_parameters)
         self.AddMpiVariables(spheres_model_part)
@@ -894,7 +894,6 @@ class DEMFEMProcedures():
             # that means it is not possible to print results with a higher frequency than the computations delta time
             self.graph_frequency = 1
 
-        self.mesh_motion = DEMFEMUtilities()
 
         def Flush(self, a):
             a.flush()

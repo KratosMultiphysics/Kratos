@@ -1,6 +1,6 @@
 // Authors:
 // Guillermo Casas gcasas@cimne-upc.edu
-
+#include <algorithm>
 #include "piecewise_linear_random_variable.h"
 #include "includes/checks.h"
 
@@ -47,6 +47,12 @@ namespace Kratos {
             mPDFBreakpoints[i] = breakpoints[i];
             mPDFValues[i] = values[i];
         }
+
+        size_t low_index;
+        size_t high_index;
+        CalculateFirstAndLastIndicesWithNonzeroValue<double>(mPDFValues, low_index, high_index);
+
+        SetSupport(mPDFBreakpoints[low_index], mPDFBreakpoints[high_index]);
 
         Check();
 

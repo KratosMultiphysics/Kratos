@@ -80,7 +80,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Hypoelastic2DLaw : public Pfem
     /**
      * @return Size of the strain vector (in Voigt notation) for the constitutive law
      */
-    SizeType GetStrainSize() override;
+    SizeType GetStrainSize() const override;
 
     void CalculateMaterialResponseCauchy(Parameters& rValues) override;
 
@@ -94,7 +94,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Hypoelastic2DLaw : public Pfem
      * @return
      */
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) override;
+              const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Input and output

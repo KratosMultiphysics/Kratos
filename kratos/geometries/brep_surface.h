@@ -354,8 +354,6 @@ public:
     *
     * @param rPointGlobalCoordinates the point to which the
     *        projection has to be found.
-    * @param rProjectedPointGlobalCoordinates the location of the
-    *        projection in global coordinates.
     * @param rProjectedPointLocalCoordinates the location of the
     *        projection in local coordinates.
     *        The variable is as initial guess!
@@ -365,16 +363,17 @@ public:
     *         0 -> failed
     *         1 -> converged
     */
-    int ProjectionPoint(
+    int ProjectionPointGlobalToLocalSpace(
         const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) const override
+    ) const override
     {
-        return mpNurbsSurface->ProjectionPoint(
-            rPointGlobalCoordinates, rProjectedPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
+        return mpNurbsSurface->ProjectionPointGlobalToLocalSpace(
+            rPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
     }
+
+
 
     /*
     * @brief This method maps from dimension space to working space.
@@ -394,6 +393,16 @@ public:
     }
 
     ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        return mpNurbsSurface->GetDefaultIntegrationInfo();
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
@@ -401,10 +410,11 @@ public:
      * @param return integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
         mpNurbsSurface->CreateIntegrationPoints(
-            rIntegrationPoints);
+            rIntegrationPoints, rIntegrationInfo);
     }
 
     ///@}
@@ -424,10 +434,11 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints) override
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) override
     {
         mpNurbsSurface->CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
 
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);
@@ -446,10 +457,11 @@ public:
      */
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives) override
+        IndexType NumberOfShapeFunctionDerivatives,
+        IntegrationInfo& rIntegrationInfo) override
     {
         mpNurbsSurface->CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives);
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationInfo);
 
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);

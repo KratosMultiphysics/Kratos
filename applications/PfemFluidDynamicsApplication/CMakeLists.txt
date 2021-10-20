@@ -31,6 +31,9 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/three_step_updated_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/three_step_first_order_updated_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/three_step_second_order_updated_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/three_step_second_order_pspg_updated_lagrangian_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_solid_element.cpp
@@ -133,3 +136,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosPfemFluidDynamicsCore DESTINATION libs )
 install(TARGETS KratosPfemFluidDynamicsApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosPfemFluidDynamicsCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosPfemFluidDynamicsApplication" PARENT_SCOPE)

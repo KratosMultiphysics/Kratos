@@ -1,6 +1,5 @@
 from KratosMultiphysics import *
-from KratosMultiphysics import mpi
-from KratosMultiphysics.MappingApplication import *
+from KratosMultiphysics.MappingApplication import MPIExtension # registering the tests
 
 def run():
     Tester.SetVerbosity(Tester.Verbosity.TESTS_OUTPUTS)

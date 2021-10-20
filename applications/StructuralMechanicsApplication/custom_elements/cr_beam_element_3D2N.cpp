@@ -593,7 +593,6 @@ BoundedMatrix<double, CrBeamElement3D2N::msElementSize,
 CrBeamElement3D2N::msElementSize>
 CrBeamElement3D2N::CalculateInitialLocalCS() const
 {
-
     KRATOS_TRY
     const double numerical_limit = std::numeric_limits<double>::epsilon();
     array_1d<double, msDimension> direction_vector_x = ZeroVector(msDimension);
@@ -668,14 +667,10 @@ CrBeamElement3D2N::CalculateInitialLocalCS() const
         if (std::abs(direction_vector_x[2] - 1.00) < numerical_limit) {
             v2[1] = 1.0;
             v3[0] = -1.0;
-        }
-
-        else if (std::abs(direction_vector_x[2] + 1.00) < numerical_limit) {
+        } else if (std::abs(direction_vector_x[2] + 1.00) < numerical_limit) {
             v2[1] = 1.0;
             v3[0] = 1.0;
-        }
-
-        else {
+        } else {
             MathUtils<double>::UnitCrossProduct(v2, global_z, direction_vector_x);
             MathUtils<double>::UnitCrossProduct(v3, direction_vector_x, v2);
         }
@@ -732,8 +727,6 @@ void CrBeamElement3D2N::UpdateQuaternionParameters(
     BoundedVector<double, msDimension> d_phi_a = ZeroVector(msDimension);
     BoundedVector<double, msDimension> d_phi_b = ZeroVector(msDimension);
     Vector increment_deformation = GetIncrementDeformation();
-
-
 
     for (unsigned int i = 0; i < msDimension; ++i) {
         d_phi_a[i] = increment_deformation[i + 3];
@@ -1233,9 +1226,9 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
         rOutput[1][1] = -1.0 * nodal_forces_local_qe[4] * 0.50 + nodal_forces_local_qe[10] * 0.50;
         rOutput[2][1] = -1.0 * nodal_forces_local_qe[4] * 0.25 + nodal_forces_local_qe[10] * 0.75;
 
-        rOutput[0][2] = 1.0 * nodal_forces_local_qe[5] * 0.75 - nodal_forces_local_qe[11] * 0.25;
-        rOutput[1][2] = 1.0 * nodal_forces_local_qe[5] * 0.50 - nodal_forces_local_qe[11] * 0.50;
-        rOutput[2][2] = 1.0 * nodal_forces_local_qe[5] * 0.25 - nodal_forces_local_qe[11] * 0.75;
+        rOutput[0][2] = -1.0 * nodal_forces_local_qe[5] * 0.75 + nodal_forces_local_qe[11] * 0.25;
+        rOutput[1][2] = -1.0 * nodal_forces_local_qe[5] * 0.50 + nodal_forces_local_qe[11] * 0.50;
+        rOutput[2][2] = -1.0 * nodal_forces_local_qe[5] * 0.25 + nodal_forces_local_qe[11] * 0.75;
     } else if (rVariable == FORCE) {
         Vector nodal_forces_local_qe = CalculateLocalNodalForces();
         rOutput[0][0] = -1.0 * nodal_forces_local_qe[0] * 0.75 + nodal_forces_local_qe[6] * 0.25;
@@ -1277,20 +1270,18 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
 
 
 void CrBeamElement3D2N::AssembleSmallInBigMatrix(
-    Matrix SmallMatrix,
-    BoundedMatrix<double, CrBeamElement3D2N::msElementSize,
-    CrBeamElement3D2N::msElementSize>& BigMatrix) const
+    const Matrix& rSmallMatrix,
+    BoundedMatrix<double, CrBeamElement3D2N::msElementSize,CrBeamElement3D2N::msElementSize>& rBigMatrix
+    ) const
 {
     KRATOS_TRY
     const double numerical_limit = std::numeric_limits<double>::epsilon();
-    BigMatrix.clear();
+    rBigMatrix.clear();
     for (unsigned int kk = 0; kk < msElementSize; kk += msDimension) {
         for (int i = 0; i < msDimension; ++i) {
             for (int j = 0; j < msDimension; ++j) {
-                if (std::abs(SmallMatrix(i, j)) <= numerical_limit) {
-                    BigMatrix(i + kk, j + kk) = 0.00;
-                } else {
-                    BigMatrix(i + kk, j + kk) = SmallMatrix(i, j);
+                if (std::abs(rSmallMatrix(i, j)) > numerical_limit) {
+                    rBigMatrix(i + kk, j + kk) = rSmallMatrix(i, j);
                 }
             }
         }

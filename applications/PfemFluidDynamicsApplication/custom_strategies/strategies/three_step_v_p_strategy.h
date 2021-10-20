@@ -86,7 +86,7 @@ namespace Kratos
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
+    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace>::Pointer StrategyPointerType;
 
     typedef TwoStepVPSolverSettings<TSparseSpace, TDenseSpace, TLinearSolver> SolverSettingsType;
 
@@ -123,7 +123,7 @@ namespace Kratos
 
       // Additional Typedefs
       typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
-      typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+      typedef SolvingStrategy<TSparseSpace, TDenseSpace> BaseType;
 
       //initializing fractional velocity solution step
       typedef Scheme<TSparseSpace, TDenseSpace> SchemeType;
@@ -231,14 +231,14 @@ namespace Kratos
 
       unsigned int maxNonLinearIterations = mMaxPressureIter;
 
-      KRATOS_INFO("\nSolution with two_step_vp_strategy at t=") << currentTime << "s" << std::endl;
+      KRATOS_INFO("\nSolution with three_step_vp_strategy at t=") << currentTime << "s" << std::endl;
 
       bool momentumConverged = true;
       bool continuityConverged = false;
 
       this->SetBlockedAndIsolatedFlags();
 
-      this->FreePressure();
+      // this->FreePressure();
 
       for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
       {
@@ -250,7 +250,7 @@ namespace Kratos
         if (it == 0)
         {
           mpMomentumStrategy->InitializeSolutionStep();
-          this->FixPressure();
+          // this->FixPressure();
         }
         else
         {
@@ -278,12 +278,16 @@ namespace Kratos
           rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
           rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
           converged = true;
+          //double tensilStressSign = -1.0;
+          // ComputeErrorL2Norm(tensilStressSign);
           this->UpdateStressStrain();
           KRATOS_INFO("ThreeStepVPStrategy") << "V-P strategy converged in " << it + 1 << " iterations." << std::endl;
           break;
         }
         else if (it == (maxNonLinearIterations - 1) && it != 0)
         {
+          //double tensilStressSign = -1.0;
+          // ComputeErrorL2Norm(tensilStressSign);
           this->UpdateStressStrain();
         }
       }
@@ -508,6 +512,7 @@ namespace Kratos
 
       continuityConvergence = CheckPressureIncrementConvergence(NormDp);
 
+      //  continuityConvergence = true;
       if (!continuityConvergence && BaseType::GetEchoLevel() > 0)
         std::cout << "Continuity equation did not reach the convergence tolerance." << std::endl;
 
@@ -671,18 +676,19 @@ namespace Kratos
 
       NormV = 0.00;
       double errorNormDv = 0;
+      double temp_norm = NormV;
 
-#pragma omp parallel for reduction(+ \
-                                   : NormV)
+#pragma omp parallel for reduction(+ : temp_norm)
       for (int i_node = 0; i_node < n_nodes; ++i_node)
       {
         const auto it_node = rModelPart.NodesBegin() + i_node;
         const auto &r_vel = it_node->FastGetSolutionStepValue(VELOCITY);
         for (unsigned int d = 0; d < 3; ++d)
         {
-          NormV += r_vel[d] * r_vel[d];
+          temp_norm += r_vel[d] * r_vel[d];
         }
       }
+      NormV = temp_norm;
       NormV = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
       NormV = sqrt(NormV);
 
@@ -714,7 +720,6 @@ namespace Kratos
       const int n_nodes = rModelPart.NumberOfNodes();
 
       double NormV = 0.00;
-
 #pragma omp parallel for reduction(+ \
                                    : NormV)
       for (int i_node = 0; i_node < n_nodes; ++i_node)
@@ -780,6 +785,7 @@ namespace Kratos
       for (int i_node = 0; i_node < n_nodes; ++i_node)
       {
         const auto it_node = rModelPart.NodesBegin() + i_node;
+        //     if (it_node->Is(RIGID) && (it_node->X() < 0.001 || it_node->X() > 0.999)) // for closed domain case with analytical solution
         if (it_node->Is(FREE_SURFACE))
         {
           it_node->FastGetSolutionStepValue(PRESSURE) = 0;
@@ -796,165 +802,7 @@ namespace Kratos
       {
         const auto it_node = rModelPart.NodesBegin() + i_node;
         it_node->Free(PRESSURE);
-        // if (it_node->Is(FREE_SURFACE))
-        // {
-        //   it_node->Free(PRESSURE);
-        // }
       }
-    }
-
-    bool FixTimeStepMomentum(const double DvErrorNorm, bool &fixedTimeStep) override
-    {
-      ModelPart &rModelPart = BaseType::GetModelPart();
-      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      double currentTime = rCurrentProcessInfo[TIME];
-      double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-      double minTolerance = 0.005;
-      bool converged = false;
-
-      if (currentTime < 10 * timeInterval)
-      {
-        minTolerance = 10;
-      }
-
-      if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
-          DvErrorNorm != 0 &&
-          (DvErrorNorm != 1 || currentTime > timeInterval))
-      {
-        rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, true);
-        std::cout << "NOT GOOD CONVERGENCE!!! I'll reduce the next time interval" << DvErrorNorm << std::endl;
-        minTolerance = 0.05;
-        if (DvErrorNorm > minTolerance)
-        {
-          std::cout << "BAD CONVERGENCE!!! I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS" << DvErrorNorm << std::endl;
-          fixedTimeStep = true;
-#pragma omp parallel
-          {
-            ModelPart::NodeIterator NodeBegin;
-            ModelPart::NodeIterator NodeEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-            for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-            {
-              itNode->FastGetSolutionStepValue(VELOCITY, 0) = itNode->FastGetSolutionStepValue(VELOCITY, 1);
-              itNode->FastGetSolutionStepValue(PRESSURE, 0) = itNode->FastGetSolutionStepValue(PRESSURE, 1);
-              itNode->FastGetSolutionStepValue(ACCELERATION, 0) = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
-            }
-          }
-        }
-      }
-      else
-      {
-        rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
-        if (DvErrorNorm < mVelocityTolerance)
-        {
-          converged = true;
-        }
-      }
-      return converged;
-    }
-
-    bool CheckMomentumConvergence(const double DvErrorNorm, bool &fixedTimeStep) override
-    {
-      ModelPart &rModelPart = BaseType::GetModelPart();
-      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      double currentTime = rCurrentProcessInfo[TIME];
-      double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-      double minTolerance = 0.99999;
-      bool converged = false;
-
-      if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
-          DvErrorNorm != 0 &&
-          (DvErrorNorm != 1 || currentTime > timeInterval))
-      {
-        rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, true);
-        std::cout << "           BAD CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: " << DvErrorNorm << " higher than 0.9999" << std::endl;
-        std::cout << "      I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS" << std::endl;
-        fixedTimeStep = true;
-#pragma omp parallel
-        {
-          ModelPart::NodeIterator NodeBegin;
-          ModelPart::NodeIterator NodeEnd;
-          OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-          for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-          {
-            itNode->FastGetSolutionStepValue(VELOCITY, 0) = itNode->FastGetSolutionStepValue(VELOCITY, 1);
-            itNode->FastGetSolutionStepValue(PRESSURE, 0) = itNode->FastGetSolutionStepValue(PRESSURE, 1);
-            itNode->FastGetSolutionStepValue(ACCELERATION, 0) = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
-          }
-        }
-      }
-      else
-      {
-        rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
-        if (DvErrorNorm < mVelocityTolerance)
-        {
-          converged = true;
-        }
-      }
-      return converged;
-    }
-
-    bool FixTimeStepContinuity(const double DvErrorNorm, bool &fixedTimeStep) override
-    {
-      ModelPart &rModelPart = BaseType::GetModelPart();
-      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      double currentTime = rCurrentProcessInfo[TIME];
-      double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-      double minTolerance = 0.01;
-      bool converged = false;
-      if (currentTime < 10 * timeInterval)
-      {
-        minTolerance = 10;
-      }
-
-      if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
-          DvErrorNorm != 0 &&
-          (DvErrorNorm != 1 || currentTime > timeInterval))
-      {
-        fixedTimeStep = true;
-        // rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, true);
-        if (DvErrorNorm > 0.9999)
-        {
-          rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, true);
-          std::cout << "           BAD PRESSURE CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: " << DvErrorNorm << " higher than 0.1" << std::endl;
-          std::cout << "      I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS" << std::endl;
-          fixedTimeStep = true;
-#pragma omp parallel
-          {
-            ModelPart::NodeIterator NodeBegin;
-            ModelPart::NodeIterator NodeEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-            for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-            {
-              itNode->FastGetSolutionStepValue(VELOCITY, 0) = itNode->FastGetSolutionStepValue(VELOCITY, 1);
-              itNode->FastGetSolutionStepValue(PRESSURE, 0) = itNode->FastGetSolutionStepValue(PRESSURE, 1);
-              itNode->FastGetSolutionStepValue(ACCELERATION, 0) = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
-            }
-          }
-        }
-      }
-      else if (DvErrorNorm < mPressureTolerance)
-      {
-        converged = true;
-        fixedTimeStep = false;
-      }
-      rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
-      return converged;
-    }
-
-    bool CheckContinuityConvergence(const double DvErrorNorm, bool &fixedTimeStep) override
-    {
-      ModelPart &rModelPart = BaseType::GetModelPart();
-      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      bool converged = false;
-
-      if (DvErrorNorm < mPressureTolerance)
-      {
-        converged = true;
-        fixedTimeStep = false;
-      }
-      rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
-      return converged;
     }
 
     ///@}

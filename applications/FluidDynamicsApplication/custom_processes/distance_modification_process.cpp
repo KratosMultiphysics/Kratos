@@ -123,8 +123,7 @@ void DistanceModificationProcess::ExecuteInitialize()
 
     if (mContinuousDistance){
         // Continuous distance modification historical variables check
-        const auto& r_node = *mrModelPart.NodesBegin();
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
+        KRATOS_ERROR_IF_NOT(mrModelPart.HasNodalSolutionStepVariable(DISTANCE)) << "DISTANCE variable not found in solution step variables list in " << mrModelPart.FullName() << ".\n";
 
         // Compute NODAL_H (used for computing the distance tolerance)
         FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable> nodal_h_calculator(mrModelPart);
@@ -502,44 +501,46 @@ void DistanceModificationProcess::SetDiscontinuousDistanceToSplitFlag()
 
 void DistanceModificationProcess::CheckAndStoreVariablesList(const std::vector<std::string>& rVariableStringArray)
 {
-    const auto& r_node = *mrModelPart.NodesBegin();
-    for (std::size_t i_variable=0; i_variable < rVariableStringArray.size(); i_variable++){
-        if (KratosComponents<Variable<double>>::Has(rVariableStringArray[i_variable])) {
-            const auto& r_double_var  = KratosComponents<Variable<double>>::Get(rVariableStringArray[i_variable]);
-            KRATOS_CHECK_DOF_IN_NODE(r_double_var, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_double_var, r_node)
+    if (mrModelPart.GetCommunicator().LocalMesh().NumberOfNodes() != 0) {
+        const auto& r_node = *mrModelPart.NodesBegin();
+        for (std::size_t i_variable=0; i_variable < rVariableStringArray.size(); i_variable++){
+            if (KratosComponents<Variable<double>>::Has(rVariableStringArray[i_variable])) {
+                const auto& r_double_var  = KratosComponents<Variable<double>>::Get(rVariableStringArray[i_variable]);
+                KRATOS_CHECK_DOF_IN_NODE(r_double_var, r_node);
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_double_var, r_node)
 
-            mDoubleVariablesList.push_back(&r_double_var);
-        }
-        else if (KratosComponents<ComponentType>::Has(rVariableStringArray[i_variable])){
-            const auto& r_component_var  = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]);
-            KRATOS_CHECK_DOF_IN_NODE(r_component_var, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_component_var, r_node)
-
-            mComponentVariablesList.push_back(&r_component_var);
-        }
-        else if (KratosComponents<Variable<array_1d<double,3>>>::Has(rVariableStringArray[i_variable])){
-            // Checking vector variable in nodal data
-            const auto& r_vector_var = KratosComponents<Variable<array_1d<double,3>>>::Get(rVariableStringArray[i_variable]);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_vector_var, r_node)
-
-            // Checking and storing the component variables
-            const auto& r_component_var_x = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]+"_X");
-            KRATOS_CHECK_DOF_IN_NODE(r_component_var_x, r_node);
-            mComponentVariablesList.push_back(&r_component_var_x);
-
-            const auto& r_component_var_y = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]+"_Y");
-            KRATOS_CHECK_DOF_IN_NODE(r_component_var_y, r_node);
-            mComponentVariablesList.push_back(&r_component_var_y);
-
-            if (mrModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3) {
-                const auto& r_component_var_z = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]+"_Z");
-                KRATOS_CHECK_DOF_IN_NODE(r_component_var_z, r_node);
-                mComponentVariablesList.push_back(&r_component_var_z);
+                mDoubleVariablesList.push_back(&r_double_var);
             }
-        }
-        else {
-            KRATOS_ERROR << "The variable defined in the list is not a double variable nor a component variable. Given variable: " << rVariableStringArray[i_variable] << std::endl;
+            else if (KratosComponents<ComponentType>::Has(rVariableStringArray[i_variable])){
+                const auto& r_component_var  = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]);
+                KRATOS_CHECK_DOF_IN_NODE(r_component_var, r_node);
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_component_var, r_node)
+
+                mComponentVariablesList.push_back(&r_component_var);
+            }
+            else if (KratosComponents<Variable<array_1d<double,3>>>::Has(rVariableStringArray[i_variable])){
+                // Checking vector variable in nodal data
+                const auto& r_vector_var = KratosComponents<Variable<array_1d<double,3>>>::Get(rVariableStringArray[i_variable]);
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_vector_var, r_node)
+
+                // Checking and storing the component variables
+                const auto& r_component_var_x = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]+"_X");
+                KRATOS_CHECK_DOF_IN_NODE(r_component_var_x, r_node);
+                mComponentVariablesList.push_back(&r_component_var_x);
+
+                const auto& r_component_var_y = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]+"_Y");
+                KRATOS_CHECK_DOF_IN_NODE(r_component_var_y, r_node);
+                mComponentVariablesList.push_back(&r_component_var_y);
+
+                if (mrModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3) {
+                    const auto& r_component_var_z = KratosComponents<ComponentType>::Get(rVariableStringArray[i_variable]+"_Z");
+                    KRATOS_CHECK_DOF_IN_NODE(r_component_var_z, r_node);
+                    mComponentVariablesList.push_back(&r_component_var_z);
+                }
+            }
+            else {
+                KRATOS_ERROR << "The variable defined in the list is not a double variable nor a component variable. Given variable: " << rVariableStringArray[i_variable] << std::endl;
+            }
         }
     }
 }

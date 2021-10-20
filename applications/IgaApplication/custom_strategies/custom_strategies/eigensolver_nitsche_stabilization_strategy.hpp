@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "utilities/builtin_timer.h"
 #include "spaces/ublas_space.h"
 
@@ -52,7 +52,7 @@ template<class TSparseSpace,
          class TLinearSolver
          >
 class EigensolverNitscheStabilizationStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -60,7 +60,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(EigensolverNitscheStabilizationStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TSchemeType::Pointer SchemePointerType;
 
@@ -90,7 +90,7 @@ public:
         SchemePointerType pScheme,
         BuilderAndSolverPointerType pBuilderAndSolver
         )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
+        : BaseType(rModelPart),
             mpScheme(pScheme), mpBuilderAndSolver(pBuilderAndSolver)
     {
         KRATOS_TRY
@@ -383,7 +383,7 @@ public:
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
         TSparseSpace::SetToZero(rStabilizationMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStabilizationMatrix,b);
-        
+
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("StabilizationMatrix.mm", rStabilizationMatrix, false);
         }
@@ -395,8 +395,8 @@ public:
         if(rModelPart.ConditionsBegin()->GetGeometry().NumberOfGeometryParts() != 0) // Coupling Nitsche condition
         {
             // 1. find the DOFs on the current interface boundary
-            Model reduced_model_master;               
-            ModelPart& reduced_model_part_master = reduced_model_master.CreateModelPart("new_model"); 
+            Model reduced_model_master;
+            ModelPart& reduced_model_part_master = reduced_model_master.CreateModelPart("new_model");
 
             for (auto& r_cond : rModelPart.Conditions()) {
                 auto& r_geom_master = r_cond.GetGeometry().GetGeometryPart(0);
@@ -412,8 +412,8 @@ public:
             }
             const std::size_t number_of_nodes_master = reduced_model_part_master.NumberOfNodes();
 
-            Model reduced_model_slave;               
-            ModelPart& reduced_model_part_slave = reduced_model_slave.CreateModelPart("new_model"); 
+            Model reduced_model_slave;
+            ModelPart& reduced_model_part_slave = reduced_model_slave.CreateModelPart("new_model");
 
             for (auto& r_cond : rModelPart.Conditions()) {
                 auto& r_geom_slave = r_cond.GetGeometry().GetGeometryPart(1);
@@ -436,7 +436,7 @@ public:
             IndexType i_master = 0;
             for (auto& r_node : reduced_model_part_master.Nodes()) {
                 const IndexType index = i_master * 3;
-                
+
                 rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
                 rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
                 rResult[index + 2] = r_node.GetDof(DISPLACEMENT_Z).EquationId();
@@ -447,7 +447,7 @@ public:
             IndexType i_slave = 0;
             for (auto& r_node : reduced_model_part_slave.Nodes()) {
                 const IndexType index = i_slave * 3 + 3 * number_of_nodes_master;
-                
+
                 rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
                 rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
                 rResult[index + 2] = r_node.GetDof(DISPLACEMENT_Z).EquationId();
@@ -458,9 +458,9 @@ public:
             // 3. assigned the value of the reduced stifness and stabilization matrices based on result vector
             reduced_stabilization_matrix = ZeroMatrix((number_of_nodes_master+number_of_nodes_slave)*3,(number_of_nodes_master+number_of_nodes_slave)*3);
 
-            for (IndexType i = 0; i < (number_of_nodes_master+number_of_nodes_slave)*3; i++) 
+            for (IndexType i = 0; i < (number_of_nodes_master+number_of_nodes_slave)*3; i++)
             {
-                for (IndexType j = 0; j <= i; j++) 
+                for (IndexType j = 0; j <= i; j++)
                 {
                     reduced_stabilization_matrix(i,j) = rStabilizationMatrix(rResult(i),rResult(j));
                     if (i != j)
@@ -472,9 +472,9 @@ public:
 
             reduced_stiffness_matrix = ZeroMatrix((number_of_nodes_master+number_of_nodes_slave)*3,(number_of_nodes_master+number_of_nodes_slave)*3);
 
-            for (IndexType i = 0; i < (number_of_nodes_master+number_of_nodes_slave)*3; i++) 
+            for (IndexType i = 0; i < (number_of_nodes_master+number_of_nodes_slave)*3; i++)
             {
-                for (IndexType j = 0; j <= i; j++) 
+                for (IndexType j = 0; j <= i; j++)
                 {
                     reduced_stiffness_matrix(i,j) = rStiffnessMatrix(rResult(i),rResult(j));
                     if (i != j)
@@ -487,10 +487,10 @@ public:
         else // Support Nitsche condition
         {
             // 1. find the DOFs on the current interface boundary
-            Model reduced_model;               
-            ModelPart& reduced_model_part = reduced_model.CreateModelPart("new_model"); 
+            Model reduced_model;
+            ModelPart& reduced_model_part = reduced_model.CreateModelPart("new_model");
 
-            for (auto& r_cond : rModelPart.Conditions()) {        
+            for (auto& r_cond : rModelPart.Conditions()) {
                 auto& r_geom = r_cond.GetGeometry();
                 auto& r_N = r_geom.ShapeFunctionsValues();
 
@@ -511,7 +511,7 @@ public:
             IndexType i = 0;
             for (auto& r_node : reduced_model_part.Nodes()) {
                 const IndexType index = i * 3;
-                
+
                 rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
                 rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
                 rResult[index + 2] = r_node.GetDof(DISPLACEMENT_Z).EquationId();
@@ -522,9 +522,9 @@ public:
             // 3. assigned the value of the reduced stifness and stabilization matrices based on result vector
             reduced_stabilization_matrix = ZeroMatrix((number_of_nodes)*3,(number_of_nodes)*3);
 
-            for (IndexType i = 0; i < (number_of_nodes)*3; i++) 
+            for (IndexType i = 0; i < (number_of_nodes)*3; i++)
             {
-                for (IndexType j = 0; j <= i; j++) 
+                for (IndexType j = 0; j <= i; j++)
                 {
                     reduced_stabilization_matrix(i,j) = rStabilizationMatrix(rResult(i),rResult(j));
                     if (i != j)
@@ -534,9 +534,9 @@ public:
 
             reduced_stiffness_matrix = ZeroMatrix((number_of_nodes)*3,(number_of_nodes)*3);
 
-            for (IndexType i = 0; i < (number_of_nodes)*3; i++) 
+            for (IndexType i = 0; i < (number_of_nodes)*3; i++)
             {
-                for (IndexType j = 0; j <= i; j++) 
+                for (IndexType j = 0; j <= i; j++)
                 {
                     reduced_stiffness_matrix(i,j) = rStiffnessMatrix(rResult(i),rResult(j));
                     if (i != j)
