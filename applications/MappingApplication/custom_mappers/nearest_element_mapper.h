@@ -64,11 +64,9 @@ public:
         return InterfaceObject::ConstructionType::Geometry_Center;
     }
 
-    void ProcessSearchResult(const InterfaceObject& rInterfaceObject,
-                             const double NeighborDistance) override;
+    void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
 
-    void ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject,
-                                             const double NeighborDistance) override;
+    void ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject) override;
 
     void GetValue(std::vector<int>& rValue,
                   const InfoType ValueType) const override
@@ -145,8 +143,14 @@ public:
         return mpNode->Coordinates();
     }
 
-    /// Turn back information as a string.
-    std::string PairingInfo(const int EchoLevel) const override;
+    MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
+    {
+        return Kratos::make_unique<NearestElementLocalSystem>(pNode);
+    }
+
+    void PairingInfo(std::ostream& rOStream, const int EchoLevel) const override;
+
+    void SetPairingStatusForPrinting() override;
 
 private:
     NodePointerType mpNode;
@@ -268,7 +272,8 @@ private:
         const Communicator& rModelPartCommunicator,
         std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) override
     {
-        MapperUtilities::CreateMapperLocalSystemsFromNodes<NearestElementLocalSystem>(
+        MapperUtilities::CreateMapperLocalSystemsFromNodes(
+            NearestElementLocalSystem(nullptr),
             rModelPartCommunicator,
             rLocalSystems);
     }
@@ -281,12 +286,11 @@ private:
     Parameters GetMapperDefaultSettings() const override
     {
         return Parameters( R"({
-            "search_radius"                : -1.0,
-            "search_iterations"            : 3,
+            "search_settings"              : {},
             "local_coord_tolerance"        : 0.25,
             "use_initial_configuration"    : false,
             "echo_level"                   : 0,
-            "print_pairing_status_to_file" : true,
+            "print_pairing_status_to_file" : false,
             "pairing_status_file_path"     : ""
         })");
     }

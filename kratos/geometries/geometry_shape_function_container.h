@@ -16,11 +16,16 @@
 #define  KRATOS_GEOMETRY_SHAPE_FUNCTION_CONTAINER_H_INCLUDED
 
 // System includes
+#include<array>
+#include<vector>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
+#include "includes/ublas_interface.h"
+#include "includes/serializer.h"
+#include "integration/integration_point.h"
 
 namespace Kratos
 {
@@ -472,5 +477,3 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_GEOMETRY_SHAPE_FUNCTION_CONTAINER_H_INCLUDED  defined
-
-

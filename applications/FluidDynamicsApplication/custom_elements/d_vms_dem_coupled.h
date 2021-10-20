@@ -171,6 +171,12 @@ public:
         GeometryType::Pointer pGeom,
         Properties::Pointer pProperties) const override;
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -203,6 +209,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    // Velocity subscale history, stored at integration points
+    DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
+    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -233,15 +243,29 @@ protected:
 
     void AddMassStabilization(
         TElementData& rData,
-        MatrixType& rMassMatrix);
+        MatrixType& rMassMatrix) override;
 
     void CalculateStabilizationParameters(
         const TElementData& rData,
         const array_1d<double,3> &Velocity,
         BoundedMatrix<double,Dim,Dim> &TauOne,
-        double &TauTwo);
+        double &TauTwo) const;
 
-    virtual void MassProjTerm(
+    void SubscaleVelocity(
+        const TElementData& rData,
+        array_1d<double,3>& rVelocitySubscale) const override;
+
+    void SubscalePressure(
+        const TElementData& rData,
+        double& rPressureSubscale) const override;
+
+    array_1d<double,3> FullConvectiveVelocity(
+        const TElementData& rData) const override;
+
+    void UpdateSubscaleVelocityPrediction(
+        const TElementData& rData) override;
+
+    void MassProjTerm(
         const TElementData& rData,
         double& rMassRHS) const override;
 

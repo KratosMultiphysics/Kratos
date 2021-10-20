@@ -1,5 +1,5 @@
 ---
-name: Hotfix
+name: ✨ Hotfix
 about: Quick bugfix with very localized and low impact changes.
 
 ---
