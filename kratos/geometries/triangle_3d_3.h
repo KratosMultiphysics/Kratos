@@ -29,6 +29,7 @@
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
 #include "utilities/geometrical_projection_utilities.h"
+#include "utilities/intersection_utilities.h"
 
 namespace Kratos
 {
@@ -649,7 +650,12 @@ public:
         const auto geometry_type = rThisGeometry.GetGeometryType();
 
         if (geometry_type == GeometryData::KratosGeometryType::Kratos_Line3D2) {
-            return LineTriangleOverlap(rThisGeometry);
+            array_1d<double,3> intersection_point;
+            const auto& point1 = rThisGeometry.GetPoint(0);
+            const auto& point2 = rThisGeometry.GetPoint(1);
+            const int result = IntersectionUtilities::ComputeTriangleLineIntersection(*this, point1, point2, intersection_point);
+            if (result == 1) return true;
+            else return false;
         }
         else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
             return TriTriOverlap(rThisGeometry);
@@ -664,39 +670,6 @@ public:
         else {
             KRATOS_ERROR << "Triangle3D3::HasIntersection : Geometry cannot be identified, please, check the intersecting geometry type." << std::endl;
         }
-    }
-
-    bool LineTriangleOverlap(const GeometryType& rLine)
-    {
-        // Based on Tomas Möller & Ben Trumbore (1997) Fast, Minimum Storage Ray-Triangle Intersection, Journal of Graphics Tools, 2:1, 21-28, DOI: 10.1080/10867651.1997.10487468 
-        const double tolerance = 1e-6;
-        double a, f, u, v;
-        array_1d<double,3> h, s, q;
-        const array_1d<double,3> ray_vector = rLine[1] - rLine[0];
-        const array_1d<double,3>& r_vert0 = this->GetPoint(0);
-        const array_1d<double,3>& r_vert1 = this->GetPoint(1);
-        const array_1d<double,3>& r_vert2 = this->GetPoint(2);
-        const array_1d<double,3> edge1 = r_vert1 - r_vert0;
-        const array_1d<double,3> edge2 = r_vert2 - r_vert0;
-        h = MathUtils<double>::CrossProduct(ray_vector, edge2);
-        a = inner_prod(edge1, h);
-        if (a > -tolerance && a < tolerance)
-            return false; // this ray is parallel to the triangle.
-        f = 1.0 / a;
-        s = rLine[0] - r_vert0;
-        u = f * inner_prod(s, h);
-        if (u < 0.0 || u > 1.0)
-            return false;
-        q = MathUtils<double>::CrossProduct(s, edge1);
-        v = f * inner_prod(ray_vector, q);
-        if (v < 0.0 || u + v > 1.0)
-            return false;
-        // At this stage we can compute t to find out where the intersection point is on the line.
-        double t = f * inner_prod(edge2, q);
-        if (t > tolerance) // line intersection
-            return true;
-        else // This means that there is a ray intersection but not a line intersection.
-            return false;
     }
 
     bool TriTriOverlap(const GeometryType& rThisGeometry)
