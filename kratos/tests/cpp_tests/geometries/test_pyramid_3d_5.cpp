@@ -71,13 +71,6 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5Center, KratosCoreGeometriesFastSuite)
     KRATOS_CHECK_VECTOR_NEAR(geomRegular->Center(), center, TOLERANCE);
 }
 
-/* KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5Height, KratosCoreGeometriesFastSuite)
-{
-    auto geomRegular = GenerateRegularPyramid3D5();
-
-    KRATOS_CHECK_NEAR(geomRegular->HeightOfPyramid(), 1.2, TOLERANCE);
-} */
-
 /** Checks the inside test for a given point respect to the pyramid
 * Checks the inside test for a given point respect to the pyramid
 * It performs 4 tests:
@@ -92,15 +85,15 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5IsInside, KratosCoreGeometriesFastSuite)
 
     Point PointInside(0.0, 0.0, 0.3);
     Point PointOutside(0.0, 0.0, 1.6);
-    //Point PointInVertex(-1.0, 1.0, 0.0);
-    //Point PointInEdge(-1.0, 0.0, 0.0);
+    Point PointInVertex(-1.0, 1.0, 0.0);
+    Point PointInEdge(-1.0, 0.0, 0.0);
 
     Point LocalCoords;
 
     KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
     KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
-    //KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
-    //KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+    KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
+    KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
 }
 
 /** Checks the point local coordinates for a given point respect to the
@@ -131,10 +124,10 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsValues, KratosCoreGeometriesFa
     coord[0] = 1.0 / 2.0;
     coord[1] = 1.0 / 4.0;
     coord[2] = 1.0 / 16.0;
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 0.049804687, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.149414063, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), 0.249023438, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), 0.083007813, TOLERANCE);
+    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 0.0439453, TOLERANCE);
+    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.131836, TOLERANCE);
+    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), 0.219727, TOLERANCE);
+    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), 0.0732422, TOLERANCE);
     KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(4, coord), 0.53125, TOLERANCE);
 }
 
@@ -153,21 +146,21 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsLocalGradients, KratosCoreGeom
 
     gradient = geom->ShapeFunctionsLocalGradients(gradient, centre_local_coords);
 
-    KRATOS_CHECK_NEAR(gradient(0,0), -0.05, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(0,1), -0.05, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(0,2), +0.125, TOLERANCE);
+    KRATOS_CHECK_NEAR(gradient(0,0), -0.2, TOLERANCE);
+    KRATOS_CHECK_NEAR(gradient(0,1), -0.2, TOLERANCE);
+    KRATOS_CHECK_NEAR(gradient(0,2), -0.125, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(1,0), +0.05, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(1,1), -0.05, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(1,2), +0.125, TOLERANCE);
+    KRATOS_CHECK_NEAR(gradient(1,0), +0.2, TOLERANCE);
+    KRATOS_CHECK_NEAR(gradient(1,1), -0.2, TOLERANCE);
+    KRATOS_CHECK_NEAR(gradient(1,2), -0.125, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(2,0), +0.05, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(2,1), +0.05, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(2,2), +0.125, TOLERANCE);
+    KRATOS_CHECK_NEAR(gradient(2,0), +0.2, TOLERANCE);
+    KRATOS_CHECK_NEAR(gradient(2,1), +0.2, TOLERANCE);
+    KRATOS_CHECK_NEAR(gradient(2,2), -0.125, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(3,0), -0.05, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(3,1), +0.05, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(3,2), +0.125, TOLERANCE);
+    KRATOS_CHECK_NEAR(gradient(3,0), -0.2, TOLERANCE);
+    KRATOS_CHECK_NEAR(gradient(3,1), +0.2, TOLERANCE);
+    KRATOS_CHECK_NEAR(gradient(3,2), -0.125, TOLERANCE);
 
     KRATOS_CHECK_NEAR(gradient(4,0), 0.00, TOLERANCE);
     KRATOS_CHECK_NEAR(gradient(4,1), 0.00, TOLERANCE);
