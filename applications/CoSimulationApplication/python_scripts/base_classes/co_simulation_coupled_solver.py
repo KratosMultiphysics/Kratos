@@ -81,6 +81,11 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
         self.process_info = KM.ProcessInfo()
 
+        # TODO initialize this in a restart
+        self.process_info[KM.STEP] = 0
+        self.process_info[KM.TIME] = 0.0
+        self.process_info[KM.IS_RESTARTED] = False
+
         self.solver_wrappers = self.__CreateSolverWrappers(models)
 
         # overwriting the Model created in the BaseClass
@@ -158,6 +163,9 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
                     self.time = solver_time
                 elif abs(self.time - solver_time) > 1e-12:
                         raise Exception("Solver time mismatch")
+
+        self.process_info[KM.TIME] = self.time
+        self.process_info[KM.STEP] += 1
 
         return self.time
 

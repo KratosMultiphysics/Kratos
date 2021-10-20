@@ -16,10 +16,16 @@
 #define  KRATOS_GEOMETRY_SHAPE_FUNCTION_CONTAINER_H_INCLUDED
 
 // System includes
+#include<array>
+#include<vector>
 
 // External includes
 
 // Project includes
+#include "includes/define.h"
+#include "includes/ublas_interface.h"
+#include "includes/serializer.h"
+#include "integration/integration_point.h"
 
 namespace Kratos
 {
@@ -185,7 +191,7 @@ public:
     ///@name Operators
     ///@{
 
-    GeometryShapeFunctionContainer& operator=( 
+    GeometryShapeFunctionContainer& operator=(
         const GeometryShapeFunctionContainer& rOther )
     {
         mDefaultMethod = rOther.mDefaultMethod;
@@ -244,7 +250,7 @@ public:
         return mShapeFunctionsValues[mDefaultMethod];
     }
 
-    const Matrix& ShapeFunctionsValues( 
+    const Matrix& ShapeFunctionsValues(
         IntegrationMethod ThisMethod ) const
     {
         return mShapeFunctionsValues[ThisMethod];
@@ -330,7 +336,7 @@ public:
         IntegrationMethod ThisMethod) const
     {
         /* Shape function values are stored within a Matrix, however, only one row
-        should be provided here. Thus, currently it is not possible to provide the 
+        should be provided here. Thus, currently it is not possible to provide the
         needed source to this object.*/
         KRATOS_DEBUG_ERROR_IF(DerivativeOrderIndex == 0)
             << "Shape functions cannot be accessed through ShapeFunctionDerivatives()" << std::endl;
@@ -355,7 +361,7 @@ public:
     *        be accessed differently.
     *        DerivativeOrderIndex:,
     *           [0] - N
-    *           [1] - dN_de, DerivativeOrderRowIndex: 
+    *           [1] - dN_de, DerivativeOrderRowIndex:
     *                   [0] du, [1] dv, [2] dw
     *           [2] - ddN_dde, DerivativeOrderRowIndex:
     *                   1D: [0] du^2
@@ -377,7 +383,7 @@ public:
             return mShapeFunctionsValues[ThisMethod](IntegrationPointIndex, ShapeFunctionIndex);
         if (DerivativeOrderIndex == 1)
             return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex](ShapeFunctionIndex, DerivativeOrderRowIndex);
-        
+
         return mShapeFunctionsDerivatives[ThisMethod][DerivativeOrderIndex - 2][IntegrationPointIndex](ShapeFunctionIndex, DerivativeOrderRowIndex);
     }
 
@@ -471,5 +477,3 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_GEOMETRY_SHAPE_FUNCTION_CONTAINER_H_INCLUDED  defined
-
-
