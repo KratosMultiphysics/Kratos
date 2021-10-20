@@ -653,13 +653,11 @@ public:
             return LineTriangleOverlap(rThisGeometry[0], rThisGeometry[1]);
         }
         else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
-            return TriangleTriangleOverlap(rThisGeometry);
+            return TriangleTriangleOverlap(rThisGeometry[0], rThisGeometry[1], rThisGeometry[2]);
         }
         else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) {
-            Triangle3D3 triangle_0 (rThisGeometry.pGetPoint(0), rThisGeometry.pGetPoint(1), rThisGeometry.pGetPoint(2));
-            Triangle3D3 triangle_1 (rThisGeometry.pGetPoint(2), rThisGeometry.pGetPoint(3), rThisGeometry.pGetPoint(0));
-            if      ( TriangleTriangleOverlap(triangle_0) ) return true;
-            else if ( TriangleTriangleOverlap(triangle_1) ) return true;
+            if      ( TriangleTriangleOverlap(rThisGeometry[0], rThisGeometry[1], rThisGeometry[2]) ) return true;
+            else if ( TriangleTriangleOverlap(rThisGeometry[2], rThisGeometry[3], rThisGeometry[0]) ) return true;
             else return false;
         }
         else {
@@ -2086,7 +2084,10 @@ private:
         else return false;
     }
 
-    bool TriangleTriangleOverlap(const GeometryType& rThisGeometry)
+    bool TriangleTriangleOverlap(
+        const array_1d<double,3>& rPoint1,
+        const array_1d<double,3>& rPoint2,
+        const array_1d<double,3>& rPoint3)
     {
         // Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
         // and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
@@ -2094,12 +2095,13 @@ private:
 
         Plane3D plane_1(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2));
         array_1d<double, 3> distances_1;
-        for (int i = 0; i < 3; i++)
-            distances_1[i] = plane_1.CalculateSignedDistance(rThisGeometry[i]);
+        distances_1[0] = plane_1.CalculateSignedDistance(rPoint1);
+        distances_1[1] = plane_1.CalculateSignedDistance(rPoint2);
+        distances_1[2] = plane_1.CalculateSignedDistance(rPoint3);
         if (AllSameSide(distances_1))
             return false;
 
-        Plane3D plane_2(rThisGeometry[0], rThisGeometry[1], rThisGeometry[2]);
+        Plane3D plane_2(rPoint1, rPoint2, rPoint3);
         array_1d<double, 3> distances_2;
         for (int i = 0; i < 3; i++)
             distances_2[i] = plane_2.CalculateSignedDistance(this->GetPoint(i));
@@ -2117,22 +2119,22 @@ private:
         double vp1 = this->GetPoint(1)[index];
         double vp2 = this->GetPoint(2)[index];
 
-        double up0 = rThisGeometry[0][index];
-        double up1 = rThisGeometry[1][index];
-        double up2 = rThisGeometry[2][index];
+        double up0 = rPoint1[index];
+        double up1 = rPoint2[index];
+        double up2 = rPoint3[index];
 
         // compute interval for triangle 1 //
         double a, b, c, x0, x1;
         if (ComputeIntervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], a, b, c, x0, x1) == true)
         {
-            return CoplanarIntersectionCheck(plane_1.GetNormal(), rThisGeometry);
+            return CoplanarIntersectionCheck(plane_1.GetNormal(), rPoint1, rPoint2, rPoint3);
         }
 
         // compute interval for triangle 2 //
         double d, e, f, y0, y1;
         if (ComputeIntervals(up0, up1, up2, distances_1[0], distances_1[1], distances_1[2], d, e, f, y0, y1) == true)
         {
-            return CoplanarIntersectionCheck(plane_1.GetNormal(), rThisGeometry);
+            return CoplanarIntersectionCheck(plane_1.GetNormal(), rPoint1, rPoint2, rPoint3);
         }
 
         double xx, yy, xxyy, tmp;
@@ -2228,8 +2230,11 @@ private:
 		return false;
 	}
 
-	bool CoplanarIntersectionCheck(const array_1d<double, 3>& N,
-		const GeometryType& OtherTriangle)
+	bool CoplanarIntersectionCheck(
+        const array_1d<double,3>& N,
+		const array_1d<double,3>& rPoint1,
+		const array_1d<double,3>& rPoint2,
+		const array_1d<double,3>& rPoint3)
 	{
 		array_1d<double, 3 > A;
 		int i0, i1;
@@ -2258,19 +2263,13 @@ private:
 		}
 
 		// test all edges of triangle 1 against the edges of triangle 2 //
-		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(0), this->GetPoint(1), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
-
-		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(1), this->GetPoint(2), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
-
-		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(2), this->GetPoint(0), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
+		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(0), this->GetPoint(1), rPoint1, rPoint2, rPoint3) == true) return true;
+		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(1), this->GetPoint(2), rPoint1, rPoint2, rPoint3) == true) return true;
+		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(2), this->GetPoint(0), rPoint1, rPoint2, rPoint3) == true) return true;
 
 		// finally, test if tri1 is totally contained in tri2 or vice versa //
-        if (PointInTriangle(i0, i1, this->GetPoint(0), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2])) {
-            return true;
-        }
-        else if (PointInTriangle(i0, i1, OtherTriangle[0], this->GetPoint(0), this->GetPoint(1), this->GetPoint(2))) {
-            return true;
-        }
+        if (PointInTriangle(i0, i1, this->GetPoint(0), rPoint1, rPoint2, rPoint3)) return true;
+        else if (PointInTriangle(i0, i1, rPoint1, this->GetPoint(0), this->GetPoint(1), this->GetPoint(2))) return true;
 
 		return false;
 	}
@@ -2327,21 +2326,16 @@ private:
 		f = Ay*Bx - Ax*By;
 		d = By*Cx - Bx*Cy;
 
-		if (std::abs(f)<1E-10) f = 0.00;
-		if (std::abs(d)<1E-10) d = 0.00;
+		if (std::abs(f) < 1E-10) f = 0.00;
+		if (std::abs(d) < 1E-10) d = 0.00;
 
-
-		if ((f>0.00 && d >= 0.00 && d <= f) || (f<0.00 && d <= 0.00 && d >= f))
-		{
+		if ((f>0.00 && d >= 0.00 && d <= f) || (f<0.00 && d <= 0.00 && d >= f)) {
 			e = Ax*Cy - Ay*Cx;
 
-			if (f>0.00)
-			{
-				if (e >= 0.00 && e <= f) return true;
-			}
-			else
-			{
-				if (e <= 0.00 && e >= f) return true;
+			if (f > 0.0) {
+				if (e >= 0.0 && e <= f) return true;
+			} else {
+				if (e <= 0.0 && e >= f) return true;
 			}
 		}
 		return false;
