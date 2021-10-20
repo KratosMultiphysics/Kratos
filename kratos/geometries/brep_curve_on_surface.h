@@ -592,7 +592,7 @@ public:
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Brep_Curve;
+        return GeometryData::Kratos_Brep_Curve_On_Surface;
     }
     ///@}
     ///@name Input and output
