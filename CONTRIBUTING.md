@@ -34,4 +34,4 @@ If you are not developer, fork this project and open a **PR** with the proposed 
 
 ## Becoming a maintainer 👨‍💻
 
-Please contact the main maintainer at <kratosmultiphysics@gmail.com> 📨.
+Please contact the main maintainers at <kratosmultiphysics@gmail.com> 📨.
