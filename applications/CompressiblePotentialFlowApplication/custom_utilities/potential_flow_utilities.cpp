@@ -1194,6 +1194,18 @@ void ComputeMeshMetrics3D(ModelPart& rModelPart) {
 
 }
 
+
+void ScaleSensitivity(ModelPart& rModelPart) {
+
+    // block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode) {
+    for (auto& r_node : rModelPart.Nodes()) {
+        double sensitivity = r_node.FastGetSolutionStepValue(NORMAL_SENSITIVITY);
+        double nodal_h = r_node.GetValue(NODAL_H);
+        r_node.FastGetSolutionStepValue(NORMAL_SENSITIVITY) = sensitivity/nodal_h;
+    }
+    // });
+
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 

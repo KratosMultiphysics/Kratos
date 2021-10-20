@@ -207,6 +207,8 @@ void ComputeMeshMetrics2D(ModelPart& rModelPart);
 
 void ComputeMeshMetrics3D(ModelPart& rModelPart);
 
+void ScaleSensitivity(ModelPart& rModelPart);
+
 } // namespace PotentialFlow
 } // namespace Kratos
 

@@ -1264,6 +1264,11 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
         nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
         nodal_value_process.Execute()
 
+        find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.adjoint_analysis._GetSolver().main_model_part)
+        find_nodal_h.Execute()
+
+        KratosMultiphysics.CompressiblePotentialFlowApplication.PotentialFlowUtilities.ScaleSensitivity(self.adjoint_analysis._GetSolver().main_model_part)
+
         mapping_parameters = KratosMultiphysics.Parameters("""{
             "mapper_type": "nearest_element",
             "interface_submodel_part_origin": "Parts_Parts_Auto1",
