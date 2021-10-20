@@ -207,6 +207,7 @@ protected:
 
         //Properties and processinfo variables
         bool IgnoreUndrained;
+        bool UseHenckyStrain;
         bool ConsiderGeometricStiffness;
         double BiotCoefficient;
         double BiotModulusInverse;
@@ -302,7 +303,7 @@ protected:
     virtual void CalculateCauchyAlmansiStrain( ElementVariables& rVariables );
     virtual void CalculateCauchyGreenStrain( ElementVariables& rVariables );
     virtual void CalculateCauchyStrain( ElementVariables& rVariables );
-    virtual void CalculateStrain( ElementVariables& rVariables );
+    virtual void CalculateStrain( ElementVariables& rVariables, const IndexType& GPoint );
 
     virtual void CalculateDeformationGradient( ElementVariables& rVariables,
                                                const IndexType& GPoint );

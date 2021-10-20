@@ -126,6 +126,9 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
+    void CalculateStrain( ElementVariables& rVariables, const IndexType& GPoint ) override;
+    virtual void CalculateHenckyStrain( ElementVariables& rVariables );
+
     /**
      * @brief Calculate a double Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get

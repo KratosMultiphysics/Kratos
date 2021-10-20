@@ -308,7 +308,7 @@ void SmallStrainUPwDiffOrderElement::
         this->CalculateKinematics(Variables,GPoint);
 
         //Compute infinitessimal strain
-        this->CalculateStrain(Variables);
+        this->CalculateStrain(Variables, GPoint);
 
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -787,7 +787,7 @@ void SmallStrainUPwDiffOrderElement::
         this->CalculateKinematics(Variables,GPoint);
 
         //Compute infinitessimal strain
-        this->CalculateStrain(Variables);
+        this->CalculateStrain(Variables, GPoint);
 
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
@@ -1269,7 +1269,7 @@ void SmallStrainUPwDiffOrderElement::
             this->CalculateBMatrix( Variables.B, Variables.DNu_DXInitialConfiguration, Variables.Nu);
 
             //Compute infinitessimal strain
-            this->CalculateStrain(Variables);
+            this->CalculateCauchyStrain( Variables );
 
             if ( rOutput[GPoint].size() != Variables.StrainVector.size() )
                 rOutput[GPoint].resize( Variables.StrainVector.size(), false );
@@ -1287,7 +1287,7 @@ void SmallStrainUPwDiffOrderElement::
             this->CalculateKinematics(Variables,GPoint);
 
             //Compute infinitessimal strain
-            this->CalculateStrain(Variables);
+            this->CalculateStrain(Variables, GPoint);
 
             if ( rOutput[GPoint].size() != Variables.StrainVector.size() )
                 rOutput[GPoint].resize( Variables.StrainVector.size(), false );
@@ -1324,7 +1324,7 @@ void SmallStrainUPwDiffOrderElement::
             this->CalculateKinematics(Variables,GPoint);
 
             //Compute infinitessimal strain
-            this->CalculateStrain(Variables);
+            this->CalculateStrain(Variables, GPoint);
 
             //set gauss points variables to constitutivelaw parameters
             this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
@@ -1475,7 +1475,7 @@ void SmallStrainUPwDiffOrderElement::
         this->CalculateKinematics(Variables, GPoint);
 
         //Compute infinitessimal strain
-        this->CalculateStrain(Variables);
+        this->CalculateStrain(Variables, GPoint);
 
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
@@ -1538,7 +1538,7 @@ void SmallStrainUPwDiffOrderElement::
         this->CalculateKinematics(Variables,GPoint);
 
         //Compute infinitessimal strain
-        this->CalculateStrain(Variables);
+        this->CalculateStrain(Variables, GPoint);
 
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
@@ -1804,6 +1804,9 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties( ElementVariables& rVa
     const PropertiesType& Prop = this->GetProperties();
 
     rVariables.IgnoreUndrained = Prop[IGNORE_UNDRAINED];
+    rVariables.UseHenckyStrain = false;
+    if (Prop.Has(USE_HENCKY_STRAIN))
+        rVariables.UseHenckyStrain = Prop[USE_HENCKY_STRAIN];
 
     rVariables.ConsiderGeometricStiffness = false;
     if (Prop.Has(CONSIDER_GEOMETRIC_STIFFNESS))
@@ -2458,12 +2461,10 @@ GeometryData::IntegrationMethod
 }
 
 //----------------------------------------------------------------------------------------
-void SmallStrainUPwDiffOrderElement::CalculateStrain( ElementVariables& rVariables )
+void SmallStrainUPwDiffOrderElement::
+    CalculateStrain( ElementVariables& rVariables, const IndexType& GPoint )
 {
-    // this->CalculateCauchyGreenStrain( rVariables );
     this->CalculateCauchyStrain( rVariables );
-    // this->CalculateCauchyAlmansiStrain( rVariables );
-
 }
 
 //----------------------------------------------------------------------------------------

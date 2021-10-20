@@ -1745,22 +1745,22 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     const Matrix& F = rVariables.F;
 
     Matrix ETensor;
-    if (TDim == 3) {
-        ETensor = prod(trans(F), F);
-    } else {
-        Matrix F2x2(TDim,TDim);
-        for (unsigned int i = 0; i<TDim; ++i)
-            for (unsigned int j = 0; j<TDim; ++j)
-                F2x2(i, j) = F(i, j);
-
-        ETensor = prod(trans(F2x2), F2x2);
-    }
+    ETensor = prod(trans(F), F);
 
     for (unsigned int i=0; i<TDim; ++i)
         ETensor(i,i) -= 1.0;
     ETensor *= 0.5;
 
-    noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
+    if (TDim==2) {
+        Vector StrainVector;
+        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
+        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
+        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
+        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
+        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
+    } else {
+        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
+    }
 
     // KRATOS_INFO("1-UPwSmallStrainElement::CalculateCauchyGreenStrain()") << std::endl;
 
@@ -1778,19 +1778,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     const Matrix& F = rVariables.F;
 
     Matrix LeftCauchyGreen;
-    if (TDim == 3)
-    {
-        LeftCauchyGreen = prod(F, trans(F));
-    }
-    else
-    {
-        Matrix F2x2(TDim, TDim);
-        for (unsigned int i = 0; i<TDim; ++i)
-            for (unsigned int j = 0; j<TDim; ++j)
-                F2x2(i, j) = F(i, j);
-
-        LeftCauchyGreen = prod(F2x2, trans(F2x2));
-    }
+    LeftCauchyGreen = prod(F, trans(F));
 
     Matrix ETensor;
     double det;
@@ -1800,7 +1788,17 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         ETensor(i,i) = 1.0 - ETensor(i,i);
 
     ETensor *= 0.5;
-    noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
+
+    if (TDim==2) {
+        Vector StrainVector;
+        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
+        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
+        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
+        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
+        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
+    } else {
+        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
+    }
 
    // KRATOS_INFO("1-UPwSmallStrainElement::CalculateCauchyAlmansiStrain()") << std::endl;
 }
