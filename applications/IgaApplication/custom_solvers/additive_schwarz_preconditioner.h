@@ -109,32 +109,39 @@ public:
             InitializeMatrix(rA);
             mMatrixIsInitializedFlag = true;
         }
-        double time = 0.0;
+
         VariableUtils().SetFlag(VISITED, false, r_model_part.Nodes());
+        std::vector<ModelPart::ElementIterator> elements_to_consider;
         auto element_it_begin = r_model_part.ElementsBegin();
         for( IndexType i = 0; i < r_model_part.NumberOfElements(); ++i){
             auto element_it = element_it_begin + i;
             //if( element_it->GetGeometry().IsQuadraturePoint() ){
                 auto& r_geometry = element_it->GetGeometry();
-                std::vector<std::size_t> new_equation_ids;
                 if( r_geometry[0].IsNot(VISITED) ){
                     r_geometry[0].Set(VISITED,true);
-
-                    const SizeType number_nodes = r_geometry.size();
-                    const SizeType number_dofs_per_node = r_geometry[0].GetDofs().size();
-
-                    new_equation_ids.reserve(number_nodes*number_dofs_per_node);
-
-                    for( IndexType j = 0; j < r_geometry.size(); ++j){
-                        for(auto& dof : r_geometry[j].GetDofs()){
-                            new_equation_ids.push_back(dof->EquationId());
-                        }
-                    }
-                    AssembleContributions(rA, *mpS, new_equation_ids, time);
+                    elements_to_consider.push_back(element_it);
                 }
         }
-        std::cout << "Time inverse = " << time << std::endl;
-        std::cout << "Assembly time = " << timer_omp.ElapsedSeconds() << std::endl;
+
+        const auto element_to_consider_it_begin = elements_to_consider.begin();
+        IndexPartition<IndexType>(elements_to_consider.size()).for_each([&](IndexType i){
+            auto element_it = element_to_consider_it_begin + i;
+
+            auto& r_geometry = (*element_it)->GetGeometry();
+            const SizeType number_nodes = r_geometry.size();
+            const SizeType number_dofs_per_node = r_geometry[0].GetDofs().size();
+
+            std::vector<std::size_t> equation_ids;
+            equation_ids.reserve(number_nodes*number_dofs_per_node);
+            for( IndexType j = 0; j < r_geometry.size(); ++j){
+                for(auto& dof : r_geometry[j].GetDofs()){
+                    equation_ids.push_back(dof->EquationId());
+                }
+            }
+            AssembleContributions(rA, *mpS, equation_ids);
+        });
+
+        KRATOS_INFO("AdditiveScwarzPreconditioner:") << "Build Preconditioning Matrix Time: " << timer_omp.ElapsedSeconds() << std::endl;
     }
 
     ///@}
@@ -257,7 +264,7 @@ private:
     void AssembleContributions(
         SparseMatrixType& rA,
         SparseMatrixType& rS,
-        Element::EquationIdVectorType& rEquationId, double& time
+        Element::EquationIdVectorType& rEquationId
     )
     {
         const SizeType local_size = rEquationId.size();
@@ -279,8 +286,9 @@ private:
         const auto timer_omp = BuiltinTimer();
         double M_det = 0.0; //MathUtils<double>::Det(M);
         DenseMatrixType M_invert = ZeroMatrix(local_size, local_size);
+        M_invert = 1.0/1000000.0 * M_invert;
         MathUtils<double>::InvertMatrix(M, M_invert, M_det, -1e-6);
-        time += timer_omp.ElapsedSeconds();
+
         for (IndexType i_local = 0; i_local < local_size; i_local++) {
             const IndexType i_global = rEquationId[i_local];
             AssembleRowEntries(rS, M_invert, i_global, i_local, rEquationId);
