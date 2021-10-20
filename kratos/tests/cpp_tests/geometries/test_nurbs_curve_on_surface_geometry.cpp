@@ -342,6 +342,7 @@ typedef Node<3> NodeType;
         const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
         KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryType(), geometry_type);
+
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceNurbs, KratosCoreNurbsGeometriesFastSuite)
@@ -533,7 +534,7 @@ typedef Node<3> NodeType;
 
         for (IndexType i = 0; i < quadrature_points.size(); ++i) {
             KRATOS_CHECK_EQUAL(quadrature_points[i].GetGeometryFamily(), geometry_family);
-            KRATOS_CHECK_EQUAL(quadrature_points[i].GetGeometryFamily(), geometry_type);
+            KRATOS_CHECK_EQUAL(quadrature_points[i].GetGeometryType(), geometry_type);
         }
     }
 } // namespace Testing.

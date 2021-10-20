@@ -212,7 +212,7 @@ namespace Testing {
         const int geometry_family_qp = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
         const int geometry_type_qp = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry;
         KRATOS_CHECK_EQUAL(quad_geometries[0].GetGeometryFamily(), geometry_family_qp);
-        KRATOS_CHECK_EQUAL(quad_geometries[0].GetGeometryFamily(), geometry_type_qp);
+        KRATOS_CHECK_EQUAL(quad_geometries[0].GetGeometryType(), geometry_type_qp);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(SurfaceInVolumeGeometryQuadInCubeTest, KratosCoreNurbsGeometriesFastSuite)
@@ -292,7 +292,7 @@ namespace Testing {
         const int geometry_type_qp = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry;
         for( SizeType i = 0; i < quad_geometries.size(); ++i ){
             KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryFamily(), geometry_family_qp);
-            KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryFamily(), geometry_type_qp);
+            KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryType(), geometry_type_qp);
         }
     }
 
@@ -411,7 +411,7 @@ namespace Testing {
         const int geometry_type_qp = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry;
         for( SizeType i = 0; i < quad_geometries.size(); ++i ){
             KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryFamily(), geometry_family_qp);
-            KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryFamily(), geometry_type_qp);
+            KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryType(), geometry_type_qp);
         }
     }
 } // End namespace Testsing
