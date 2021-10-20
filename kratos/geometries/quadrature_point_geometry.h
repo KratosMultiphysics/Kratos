@@ -534,7 +534,7 @@ public:
     }
 
     ///@}
-    ///@name Shape Function
+    ///@name Kratos Geometry Families
     ///@{
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override

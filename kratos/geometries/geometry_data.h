@@ -132,6 +132,8 @@ public:
         Kratos_Brep_Surface,
         Kratos_Brep_Curve,
         KRATOS_Quadrature_Point_Geometry,
+        KRATOS_Quadrature_Point_Curve_On_Surface_Geometry,
+        KRATOS_Quadrature_Point_Surface_In_Volume_Geometry
     };
 
     ///@}

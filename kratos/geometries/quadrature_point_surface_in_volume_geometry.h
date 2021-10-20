@@ -220,6 +220,20 @@ public:
     }
 
     ///@}
+    ///@name Kratos Geometry Families
+    ///@{
+
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::KRATOS_Quadrature_Geometry;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::KRATOS_Quadrature_Point_Surface_In_Volume_Geometry;
+    }
+
+    ///@}
     ///@name Input and output
     ///@{
 
