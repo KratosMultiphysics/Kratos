@@ -101,6 +101,81 @@ namespace Kratos {
                                                 AuxElasticShearForce,
                                                 MaximumAdmisibleShearForce);
 
+        std::vector<int> dummy1;
+        dummy1.resize(22);
+        std::vector<int> dummy2;
+        dummy2.resize(22);
+
+
+        if (element1->Id() == 2 && element2->Id() == 4) {
+            dummy1[0]=LocalElasticContactForce[2];
+            dummy1[1]=ViscoDampingLocalContactForce[2];
+            dummy1[2]=OldLocalElasticContactForce[2];
+            dummy1[3]=LocalDeltDisp[0];
+            dummy1[4]=LocalDeltDisp[1];
+            dummy1[5]=LocalDeltDisp[2];
+            dummy1[6]=LocalRelVel[0];
+            dummy1[7]=LocalRelVel[1];
+            dummy1[8]=LocalRelVel[2];
+            dummy1[9]=indentation;
+            dummy1[10]=previous_indentation;
+
+            dummy1[11]=LocalCoordSystem[0][0];
+            dummy1[12]=LocalCoordSystem[0][1];
+            dummy1[13]=LocalCoordSystem[0][2];
+            dummy1[14]=LocalCoordSystem[1][0];
+            dummy1[15]=LocalCoordSystem[1][1];
+            dummy1[16]=LocalCoordSystem[1][2];
+            dummy1[17]=LocalCoordSystem[2][0];
+            dummy1[18]=LocalCoordSystem[2][1];
+            dummy1[19]=LocalCoordSystem[2][2];
+
+            dummy1[20]=mKn_dem;
+            dummy1[21]=mKt_dem;
+
+            //std::cout << LocalElasticContactForce[2];
+            std::cout << std::endl;
+        }
+
+        if (element1->Id() == 4 && element2->Id() == 2) {
+            //std::cout << LocalElasticContactForce[2];
+            dummy2[0]=LocalElasticContactForce[2];
+            dummy2[1]=ViscoDampingLocalContactForce[2];
+            dummy2[2]=OldLocalElasticContactForce[2];
+            dummy2[3]=LocalDeltDisp[0];
+            dummy2[4]=LocalDeltDisp[1];
+            dummy2[5]=LocalDeltDisp[2];
+            dummy2[6]=LocalRelVel[0];
+            dummy2[7]=LocalRelVel[1];
+            dummy2[8]=LocalRelVel[2];
+            dummy2[9]=indentation;
+            dummy2[10]=previous_indentation;
+
+            dummy2[11]=LocalCoordSystem[0][0];
+            dummy2[12]=LocalCoordSystem[0][1];
+            dummy2[13]=LocalCoordSystem[0][2];
+            dummy2[14]=LocalCoordSystem[1][0];
+            dummy2[15]=LocalCoordSystem[1][1];
+            dummy2[16]=LocalCoordSystem[1][2];
+            dummy2[17]=LocalCoordSystem[2][0];
+            dummy2[18]=LocalCoordSystem[2][1];
+            dummy2[19]=LocalCoordSystem[2][2];
+
+            dummy2[20]=mKn_dem;
+            dummy2[21]=mKt_dem;
+            std::cout << std::endl;
+        }
+
+
+        std::cout << dummy1 << std::endl;
+        std::cout << dummy2 << std::endl;
+        exit (EXIT_FAILURE);
+
+
+
+
+
+
         // double& elastic_energy = element1->GetElasticEnergy();
         // CalculateElasticEnergyDEM(elastic_energy, indentation, LocalElasticContactForce);
 

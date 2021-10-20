@@ -837,12 +837,40 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
     f_0.resize(this->mNeighbourElements.size());
     std::vector<double> f_1;
     f_1.resize(this->mNeighbourElements.size());
+
     std::vector<double> ind;
     ind.resize(this->mNeighbourElements.size());
-    std::vector<double> ldd;
-    ldd.resize(this->mNeighbourElements.size());
-    std::vector<double> dd;
-    dd.resize(this->mNeighbourElements.size());
+    std::vector<double> ldd_0;
+    ldd_0.resize(this->mNeighbourElements.size());
+    std::vector<double> ldd_1;
+    ldd_1.resize(this->mNeighbourElements.size());
+    std::vector<double> ldd_2;
+    ldd_2.resize(this->mNeighbourElements.size());
+
+    std::vector<double> dd_0;
+    dd_0.resize(this->mNeighbourElements.size());
+    std::vector<double> dd_1;
+    dd_1.resize(this->mNeighbourElements.size());
+    std::vector<double> dd_2;
+    dd_2.resize(this->mNeighbourElements.size());
+
+    std::vector<double> rv_0;
+    rv_0.resize(this->mNeighbourElements.size());
+    std::vector<double> rv_1;
+    rv_1.resize(this->mNeighbourElements.size());
+    std::vector<double> rv_2;
+    rv_2.resize(this->mNeighbourElements.size());
+
+    std::vector<double> lcs_0;
+    lcs_0.resize(this->mNeighbourElements.size());
+    std::vector<double> lcs_1;
+    lcs_1.resize(this->mNeighbourElements.size());
+    std::vector<double> lcs_2;
+    lcs_2.resize(this->mNeighbourElements.size());
+
+    std::vector<double> necf;
+    necf.resize(this->mNeighbourElements.size());
+
 
 
 
@@ -902,9 +930,26 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             f[i]=LocalElasticContactForce[2];
             f_0[i]=LocalElasticContactForce[0];
             f_1[i]=LocalElasticContactForce[1];
-            ldd[i]=LocalDeltDisp[1];
-            dd[i]=DeltDisp[1];
+
+            ldd_0[i]=LocalDeltDisp[0];
+            ldd_1[i]=LocalDeltDisp[1];
+            ldd_2[i]=LocalDeltDisp[2];
+
+            dd_0[i]=DeltDisp[0];
+            dd_1[i]=DeltDisp[1];
+            dd_2[i]=DeltDisp[2];
+
+            rv_0[i]=RelVel[0];
+            rv_1[i]=RelVel[1];
+            rv_2[i]=RelVel[2];
+
+            lcs_0[i]=data_buffer.mLocalCoordSystem[0][0];
+            lcs_1[i]=data_buffer.mLocalCoordSystem[0][1];
+            lcs_2[i]=data_buffer.mLocalCoordSystem[0][2];
+
             ind[i]=data_buffer.mIndentation;
+
+            necf[i]=mNeighbourElasticContactForces[i][0];
 
 
             array_1d<double, 3> other_ball_to_ball_forces = ZeroVector(3);
@@ -942,15 +987,15 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
     }// for each neighbor
 
     //if (this->Id() == 10) {
-        std::cout.precision(10);
-        #pragma omp critical
-        {
-            std::cout << "this: " << a[0]<< " ";
-            for (int i =0; i < f.size(); i++) {
-                std::cout << std::fixed << " n" << a[i] << " f_0 " << f_0[i] << "   f_1 " << f_1[i] << "   f_n " << f[i]<< "   ind " << ind[i] << "  lddy " << ldd[i]<< "  ddy " << dd[i]<< " || ";
-            }
-            std::cout << " next " << std::endl;
-        }
+        // std::cout.precision(10);
+        // #pragma omp critical
+        // {
+        //     std::cout << a[0]<< " ";
+        //     for (int i =0; i < mNeighbourElements.size(); i++) {
+        //         std::cout << std::fixed << " n" << a[i+1] << " f_0 " << f_0[i] << "   f_1 " << f_1[i] << "   f_n " << f[i]<< "   ind " << ind[i] << "  dd " << dd_0[i] << " " << dd_1[i] << " " << dd_2[i]<< "  RV " << rv_0[i] << " " << rv_1[i] << " " << rv_2[i]<< "  localCS " << lcs_0[i] << " " << lcs_1[i] << " " << lcs_2[i]<< "    necf" << necf[i]<< " || ";
+        //     }
+        //     std::cout << " next " << std::endl;
+        // }
     //}
 
 
@@ -985,7 +1030,6 @@ void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericPa
     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, data_buffer.mLocalRelVel);
 
     mDiscontinuumConstitutiveLaw = pGetDiscontinuumConstitutiveLawWithNeighbour(p_neighbour_element);
-
     mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info,
                                                     OldLocalElasticContactForce,
                                                     LocalElasticContactForce,
