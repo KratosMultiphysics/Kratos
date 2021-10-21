@@ -56,8 +56,9 @@ array_1d<double, 3> Bentonite_Force_Based_Inlet::GetInjectionForce(Element* p_el
 {
     SphericParticle* p_spheric_particle = dynamic_cast<SphericParticle*>(p_element);
 
-    DEM_D_Bentonite_Colloid* p_law = dynamic_cast<DEM_D_Bentonite_Colloid*>
-    (&*(p_spheric_particle->pCloneDiscontinuumConstitutiveLawWithNeighbour(p_spheric_particle)));
+    DEMDiscontinuumConstitutiveLaw* p_temp_law = &*(p_spheric_particle->pCloneDiscontinuumConstitutiveLawWithNeighbour(p_spheric_particle));
+
+    DEM_D_Bentonite_Colloid* p_law = dynamic_cast<DEM_D_Bentonite_Colloid*>(p_temp_law);
 
     const double normal_force_modulus = fabs(p_law->CalculateNormalForce(1e-7, mCationConcentration));
     array_1d<double, 3 > unitary_vector = mInjectionForce;
