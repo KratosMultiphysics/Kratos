@@ -161,7 +161,11 @@ public:
            mDistanceThreshold(DistanceThreshold),
            mEchoLevel(EchoLevel),
            mZeroToleranceFactor(ZeroToleranceFactor),
+        #ifdef USE_TRIANGLE_NONFREE_TPL
            mConsiderDelaunator(ConsiderDelaunator)
+        #else 
+           mConsiderDelaunator(false) // Until an alternative delaunator is implemented, so the tests don't fail
+        #endif
     {
         GetIntegrationMethod();
     }
