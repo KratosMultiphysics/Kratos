@@ -83,7 +83,7 @@ function build_interface ($pythonLocation, $pythonPath) {
 # Core can be build independently of the python version.
 # Install path should be useless here.
 Write-Host "Starting core build"
-build_core "$($env:pythonRoot)\39\python.exe" ${KRATOS_ROOT}/bin/core
+build_core "$($env:pythonRoot)\38\python.exe" ${KRATOS_ROOT}/bin/core
 Write-Host "Finished core build"
 
 foreach ($python in $pythons){
