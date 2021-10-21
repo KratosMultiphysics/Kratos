@@ -261,6 +261,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
         .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactAreaIntegration)
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<2,2>::GetConsiderDelaunator)
         ;
 
     py::class_<ExactMortarIntegrationUtility<3,3>>(m,"ExactMortarIntegrationUtility3D3N")
@@ -272,6 +273,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
         .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<3,3>::GetConsiderDelaunator)
         .def("TestIODebug",&ExactMortarIntegrationUtility<3,3>::TestIODebug)
         ;
 
@@ -284,6 +286,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
         .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<3,4>::GetConsiderDelaunator)
         .def("TestIODebug",&ExactMortarIntegrationUtility<3,4>::TestIODebug)
         ;
 
@@ -296,6 +299,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3,false,4>::TestGetExactIntegration)
         .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3,false,4>::TestGetExactAreaIntegration)
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<3,3,false,4>::GetConsiderDelaunator)
         .def("TestIODebug",&ExactMortarIntegrationUtility<3,3,false,4>::TestIODebug)
         ;
 
@@ -308,6 +312,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactIntegration)
         .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactAreaIntegration)
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<3,4,false,3>::GetConsiderDelaunator)
         .def("TestIODebug",&ExactMortarIntegrationUtility<3,4,false,3>::TestIODebug)
         ;
 
