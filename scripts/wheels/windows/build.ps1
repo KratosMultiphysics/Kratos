@@ -1,7 +1,7 @@
 param([System.String]$cotire="OFF")
 
-$pythons = "39"
-$env:kratos_version = "9.0.0"
+$pythons = "38"
+$env:kratos_version = "9.0.0.dev1"
 
 $kratosRoot = "c:\kratos\kratos"
 $env:kratos_root = $kratosRoot
