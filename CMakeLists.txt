@@ -430,7 +430,6 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
         # Prepare tetgen
         add_definitions(-DTETLIBRARY)
         add_definitions(${USE_TETGEN_NONFREE_TPL_FLAGS})
-        add_subdirectory(${TETGEN_ROOT})
 
         set(Tetgen_FOUND True)
 
