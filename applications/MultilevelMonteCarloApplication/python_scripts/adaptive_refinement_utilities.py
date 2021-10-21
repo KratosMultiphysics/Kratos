@@ -148,6 +148,11 @@ class AdaptiveRefinement(object):
                 local_gradient.Execute()
 
             # create the remeshing process and execute it
+            if remesh_param["echo_level"].GetInt() > 2:
+                this_time=str(math.floor(time.time()*100000))[6:]
+                print(this_time)
+                remesh_param.AddString("filename", "out_meshsol/out_"+this_time)
+                remesh_param.AddBool("save_external_files", True)
             if KratosMultiphysics.IsDistributedRun(): # MPI
                 KratosMultiphysics.mpi.ParallelFillCommunicator(model_coarse.GetModelPart(model_part_name)).Execute()
                 if domain_size == 3:
