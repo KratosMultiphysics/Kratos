@@ -2803,16 +2803,15 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const
     {
-        CoordinatesArrayType global_coordinates(ZeroVector(3));
-
-        if (ClosestPoint(
-            rPointGlobalCoordinates,
-            global_coordinates,
-            Tolerance) < 1)
-        {
+        CoordinatesArrayType local_coordinates(ZeroVector(3));
+        if (ClosestPointGlobalToLocalSpace(rPointGlobalCoordinates, local_coordinates, Tolerance) < 1) {
             // If projection fails, double::max will be returned
             return std::numeric_limits<double>::max();
         }
+
+        // Global coordinates of projected point
+        CoordinatesArrayType global_coordinates(ZeroVector(3));
+        this->GlobalCoordinates(global_coordinates, local_coordinates);
 
         // Distance to projected point
         return norm_2(rPointGlobalCoordinates - global_coordinates);
