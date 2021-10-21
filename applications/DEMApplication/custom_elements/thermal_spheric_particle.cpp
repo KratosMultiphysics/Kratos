@@ -172,7 +172,7 @@ namespace Kratos
     if (!this->Is(DEMFlags::HAS_FIXED_TEMPERATURE) && !this->Is(DEMFlags::IS_ADIABATIC)) {
       // Compute new temperature
       double thermal_inertia = GetMass() * GetParticleHeatCapacity();
-      double temp_increment  = mTotalHeatFlux / thermal_inertia * r_process_info[DELTA_TIME];
+      double temp_increment  = mTotalHeatFlux / thermal_inertia * r_process_info[THERMAL_FREQUENCY] * r_process_info[DELTA_TIME];
       double temp_new        = GetParticleTemperature() + temp_increment;
       
       // Set new temperature
