@@ -152,6 +152,9 @@ namespace Kratos
             insert_knots_v[i] = knot_v;
         }
 
+        // Set up weights. Required in case no refinement is performed.
+        Vector WeightsRefined(points.size(),1.0);
+
         // Add geometry to model part
         const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
         SizeType last_geometry_id = 0;
@@ -166,11 +169,10 @@ namespace Kratos
 
         // Perform knot refinement.
         PointerVector<NodeType> PointsRefined = p_surface_geometry->Points();
-
         if( NumKnotSpansU > 1) {
             Vector KnotsURefined;
-            Vector WeightsRefined;
             PointsRefined = PointerVector<NodeType>(0);
+            WeightsRefined.clear();
 
             NurbsSurfaceRefinementUtilities::KnotRefinementU( *p_surface_geometry, insert_knots_u,
                 PointsRefined, KnotsURefined, WeightsRefined);
@@ -183,8 +185,8 @@ namespace Kratos
         if( NumKnotSpansV > 1) {
 
             Vector KnotsVRefined;
-            Vector WeightsRefined;
             PointsRefined = PointerVector<NodeType>(0);
+            WeightsRefined.clear();
 
             NurbsSurfaceRefinementUtilities::KnotRefinementV( *p_surface_geometry, insert_knots_v,
                 PointsRefined, KnotsVRefined, WeightsRefined);
@@ -206,9 +208,12 @@ namespace Kratos
                 node_id++;
             }
         }
+
         p_surface_geometry->SetInternals(PointsRefined,
             p_surface_geometry->PolynomialDegreeU(), p_surface_geometry->PolynomialDegreeV(),
-            p_surface_geometry->KnotsU(), p_surface_geometry->KnotsV(), p_surface_geometry->Weights() );
+            p_surface_geometry->KnotsU(), p_surface_geometry->KnotsV(), WeightsRefined);
+
+
     }
 
 
