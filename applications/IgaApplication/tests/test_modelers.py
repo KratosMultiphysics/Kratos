@@ -109,27 +109,35 @@ class TestModelers(KratosUnittest.TestCase):
 
         model_part = current_model.GetModelPart("Mesh")
         # Check control points
-        nodes = model_part.NodesArray(0)
+        nodes_mp = model_part.NodesArray(0)
 
         for i in range(3):
-            self.assertAlmostEqual(nodes[i*7+0].X,0.0)
-            self.assertAlmostEqual(nodes[i*7+1].X,0.083333333334)
-            self.assertAlmostEqual(nodes[i*7+2].X,0.25)
-            self.assertAlmostEqual(nodes[i*7+3].X,0.5)
-            self.assertAlmostEqual(nodes[i*7+4].X,0.75)
-            self.assertAlmostEqual(nodes[i*7+5].X,0.916666666667)
-            self.assertAlmostEqual(nodes[i*7+6].X,1.0)
+            self.assertAlmostEqual(nodes_mp[i*7+0].X,0.0)
+            self.assertAlmostEqual(nodes_mp[i*7+1].X,0.083333333334)
+            self.assertAlmostEqual(nodes_mp[i*7+2].X,0.25)
+            self.assertAlmostEqual(nodes_mp[i*7+3].X,0.5)
+            self.assertAlmostEqual(nodes_mp[i*7+4].X,0.75)
+            self.assertAlmostEqual(nodes_mp[i*7+5].X,0.916666666667)
+            self.assertAlmostEqual(nodes_mp[i*7+6].X,1.0)
         for i in range(7):
-            self.assertAlmostEqual(nodes[i].Y,0.0)
-            self.assertAlmostEqual(nodes[i].Z,0.0)
+            self.assertAlmostEqual(nodes_mp[i].Y,0.0)
+            self.assertAlmostEqual(nodes_mp[i].Z,0.0)
         for i in range(7,14):
-            self.assertAlmostEqual(nodes[i].Y,0.5)
-            self.assertAlmostEqual(nodes[i].Z,0.0)
+            self.assertAlmostEqual(nodes_mp[i].Y,0.5)
+            self.assertAlmostEqual(nodes_mp[i].Z,0.0)
         for i in range(14,21):
-            self.assertAlmostEqual(nodes[i].Y,1.0)
-            self.assertAlmostEqual(nodes[i].Z,0.0)
+            self.assertAlmostEqual(nodes_mp[i].Y,1.0)
+            self.assertAlmostEqual(nodes_mp[i].Z,0.0)
 
         geometry = model_part.GetGeometry(1)
+
+        # Check if geometry holds same nodes as model part
+        for i, node_geo in enumerate(geometry):
+            self.assertEqual(node_geo.Id, nodes_mp[i].Id )
+            self.assertEqual(node_geo.X, nodes_mp[i].X )
+            self.assertEqual(node_geo.Y, nodes_mp[i].Y )
+            self.assertEqual(node_geo.Z, nodes_mp[i].Z )
+
         # Check knots
         knots_u = geometry.KnotsU()
         self.assertVectorAlmostEqual(knots_u, [0.0, 0.0, 0.0, 0.0, 1.0/3.0, 2.0/3.0, 1.0, 1.0, 1.0, 1.0])
@@ -171,6 +179,18 @@ class TestModelers(KratosUnittest.TestCase):
 
         geometry_01 = model_part_01.GetGeometry(1)
         geometry_02 = model_part_02.GetGeometry(1)
+
+        # Check if geometry holds same nodes as model part
+        for node_geo, node_mp in zip(geometry_01, model_part_01.Nodes):
+            self.assertEqual(node_geo.Id, node_mp.Id )
+            self.assertAlmostEqual(node_geo.X, node_mp.X)
+            self.assertAlmostEqual(node_geo.Y, node_mp.Y)
+            self.assertAlmostEqual(node_geo.Z, node_mp.Z)
+        for node_geo, node_mp in zip(geometry_01, model_part_01.Nodes):
+            self.assertEqual(node_geo.Id, node_mp.Id )
+            self.assertAlmostEqual(node_geo.X, node_mp.X)
+            self.assertAlmostEqual(node_geo.Y, node_mp.Y)
+            self.assertAlmostEqual(node_geo.Z, node_mp.Z)
 
         ## Check knots
         # geometry 01
@@ -234,29 +254,37 @@ class TestModelers(KratosUnittest.TestCase):
         run_modelers(current_model, modeler_settings)
         model_part = current_model.GetModelPart("Mesh")
         # Check control points
-        nodes = model_part.NodesArray(0)
+        nodes_mp = model_part.NodesArray(0)
         for i in range(4):
-            self.assertAlmostEqual(nodes[i*7+0].X,0.0)
-            self.assertAlmostEqual(nodes[i*7+1].X,0.083333333334)
-            self.assertAlmostEqual(nodes[i*7+2].X,0.25)
-            self.assertAlmostEqual(nodes[i*7+3].X,0.5)
-            self.assertAlmostEqual(nodes[i*7+4].X,0.75)
-            self.assertAlmostEqual(nodes[i*7+5].X,0.916666666667)
-            self.assertAlmostEqual(nodes[i*7+6].X,1.0)
+            self.assertAlmostEqual(nodes_mp[i*7+0].X,0.0)
+            self.assertAlmostEqual(nodes_mp[i*7+1].X,0.083333333334)
+            self.assertAlmostEqual(nodes_mp[i*7+2].X,0.25)
+            self.assertAlmostEqual(nodes_mp[i*7+3].X,0.5)
+            self.assertAlmostEqual(nodes_mp[i*7+4].X,0.75)
+            self.assertAlmostEqual(nodes_mp[i*7+5].X,0.916666666667)
+            self.assertAlmostEqual(nodes_mp[i*7+6].X,1.0)
         for i in range(7):
-            self.assertAlmostEqual(nodes[i].Y,0.0)
-            self.assertAlmostEqual(nodes[i].Z,0.0)
+            self.assertAlmostEqual(nodes_mp[i].Y,0.0)
+            self.assertAlmostEqual(nodes_mp[i].Z,0.0)
         for i in range(7,14):
-            self.assertAlmostEqual(nodes[i].Y,1.0)
-            self.assertAlmostEqual(nodes[i].Z,0.0)
+            self.assertAlmostEqual(nodes_mp[i].Y,1.0)
+            self.assertAlmostEqual(nodes_mp[i].Z,0.0)
         for i in range(14,21):
-            self.assertAlmostEqual(nodes[i].Y,0.0)
-            self.assertAlmostEqual(nodes[i].Z,1.0)
+            self.assertAlmostEqual(nodes_mp[i].Y,0.0)
+            self.assertAlmostEqual(nodes_mp[i].Z,1.0)
         for i in range(21,28):
-            self.assertAlmostEqual(nodes[i].Y,1.0)
-            self.assertAlmostEqual(nodes[i].Z,1.0)
+            self.assertAlmostEqual(nodes_mp[i].Y,1.0)
+            self.assertAlmostEqual(nodes_mp[i].Z,1.0)
 
         geometry = model_part.GetGeometry(1)
+
+        # Check if geometry holds same nodes as model part
+        for i, node_geo in enumerate(geometry):
+            self.assertEqual(node_geo.Id, nodes_mp[i].Id )
+            self.assertEqual(node_geo.X, nodes_mp[i].X )
+            self.assertEqual(node_geo.Y, nodes_mp[i].Y )
+            self.assertEqual(node_geo.Z, nodes_mp[i].Z )
+
         # Check knots
         knots_u = geometry.KnotsU()
         self.assertVectorAlmostEqual(knots_u, [0.0, 0.0, 0.0, 0.0, 1.0/3.0, 2.0/3.0, 1.0, 1.0, 1.0, 1.0])
@@ -301,6 +329,18 @@ class TestModelers(KratosUnittest.TestCase):
 
         geometry_01 = model_part_01.GetGeometry(1)
         geometry_02 = model_part_02.GetGeometry(1)
+
+        # Check if geometry holds same nodes as model part
+        for node_geo, node_mp in zip(geometry_01, model_part_01.Nodes):
+            self.assertEqual(node_geo.Id, node_mp.Id )
+            self.assertAlmostEqual(node_geo.X, node_mp.X)
+            self.assertAlmostEqual(node_geo.Y, node_mp.Y)
+            self.assertAlmostEqual(node_geo.Z, node_mp.Z)
+        for node_geo, node_mp in zip(geometry_01, model_part_01.Nodes):
+            self.assertEqual(node_geo.Id, node_mp.Id )
+            self.assertAlmostEqual(node_geo.X, node_mp.X)
+            self.assertAlmostEqual(node_geo.Y, node_mp.Y)
+            self.assertAlmostEqual(node_geo.Z, node_mp.Z)
 
         ## Check knots
         # geometry 01
