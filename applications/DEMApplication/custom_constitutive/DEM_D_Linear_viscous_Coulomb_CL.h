@@ -32,7 +32,7 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
-        DEMDiscontinuumConstitutiveLaw* CloneRaw() const override;
+        std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override;
 
         void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;
 

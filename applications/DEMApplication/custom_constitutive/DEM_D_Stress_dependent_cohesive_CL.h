@@ -32,7 +32,7 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
-        DEMDiscontinuumConstitutiveLaw* CloneRaw() const override;
+        std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override;
 
         void CalculateIndentedContactArea(const double radius,
                                           const double other_radius,

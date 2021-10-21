@@ -11,9 +11,9 @@ namespace Kratos {
         return p_clone;
     }
 
-    DEMDiscontinuumConstitutiveLaw* DEM_D_Stress_Dependent_Cohesive::CloneRaw() const{
-        DEMDiscontinuumConstitutiveLaw*cloned_law(new DEM_D_Stress_Dependent_Cohesive(*this));
-        return cloned_law;
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_Stress_Dependent_Cohesive::CloneUnique() {
+        auto ptr = std::unique_ptr<DEMDiscontinuumConstitutiveLaw>{new DEM_D_Stress_Dependent_Cohesive};
+        return ptr;
     }
 
     void DEM_D_Stress_Dependent_Cohesive::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {

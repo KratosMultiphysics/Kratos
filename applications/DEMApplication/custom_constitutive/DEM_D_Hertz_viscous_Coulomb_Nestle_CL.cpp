@@ -11,9 +11,9 @@ namespace Kratos {
         return p_clone;
     }
 
-    DEMDiscontinuumConstitutiveLaw* DEM_D_Hertz_viscous_Coulomb_Nestle::CloneRaw() const{
-        DEMDiscontinuumConstitutiveLaw*cloned_law(new DEM_D_Hertz_viscous_Coulomb_Nestle(*this));
-        return cloned_law;
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_Hertz_viscous_Coulomb_Nestle::CloneUnique() {
+        auto ptr = std::unique_ptr<DEMDiscontinuumConstitutiveLaw>{new DEM_D_Hertz_viscous_Coulomb_Nestle};
+        return ptr;
     }
 
     void DEM_D_Hertz_viscous_Coulomb_Nestle::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {

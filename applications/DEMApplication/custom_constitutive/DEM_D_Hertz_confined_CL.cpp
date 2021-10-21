@@ -10,9 +10,9 @@ namespace Kratos {
         return p_clone;
     }
 
-    DEMDiscontinuumConstitutiveLaw* DEM_D_Hertz_confined::CloneRaw() const{
-        DEMDiscontinuumConstitutiveLaw*cloned_law(new DEM_D_Hertz_confined(*this));
-        return cloned_law;
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_Hertz_confined::CloneUnique() {
+        auto ptr = std::unique_ptr<DEMDiscontinuumConstitutiveLaw>{new DEM_D_Hertz_confined};
+        return ptr;
     }
 
     void DEM_D_Hertz_confined::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {

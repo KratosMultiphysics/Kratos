@@ -21,9 +21,9 @@ namespace Kratos {
         this->Check(pProp);
     }
 
-    DEMDiscontinuumConstitutiveLaw* DEMDiscontinuumConstitutiveLaw::CloneRaw() const{
-        DEMDiscontinuumConstitutiveLaw*cloned_law(new DEMDiscontinuumConstitutiveLaw(*this));
-        return cloned_law;
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEMDiscontinuumConstitutiveLaw::CloneUnique() {
+        auto ptr = std::unique_ptr<DEMDiscontinuumConstitutiveLaw>{new DEMDiscontinuumConstitutiveLaw};
+        return ptr;
     }
 
     void DEMDiscontinuumConstitutiveLaw::Check(Properties::Pointer pProp) const {

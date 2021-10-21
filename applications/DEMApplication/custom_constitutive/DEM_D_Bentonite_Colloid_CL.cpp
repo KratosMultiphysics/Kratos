@@ -39,9 +39,9 @@ namespace Kratos {
         return p_clone;
     }
 
-    DEMDiscontinuumConstitutiveLaw* DEM_D_Bentonite_Colloid::CloneRaw() const{
-        DEMDiscontinuumConstitutiveLaw*cloned_law(new DEM_D_Bentonite_Colloid(*this));
-        return cloned_law;
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_Bentonite_Colloid::CloneUnique() {
+        auto ptr = std::unique_ptr<DEMDiscontinuumConstitutiveLaw>{new DEM_D_Bentonite_Colloid};
+        return ptr;
     }
 
     void DEM_D_Bentonite_Colloid::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {

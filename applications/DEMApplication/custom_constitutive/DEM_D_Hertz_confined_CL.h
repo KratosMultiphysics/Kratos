@@ -28,7 +28,7 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
-        DEMDiscontinuumConstitutiveLaw* CloneRaw() const override;
+        std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override;
 
     }; //class DEM_D_Hertz_confined
 
