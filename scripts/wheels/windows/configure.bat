@@ -12,7 +12,7 @@ set BOOST_ROOT=%BOOST%
 set PYTHON_EXECUTABLE=%1
 
 set KRATOS_APPLICATIONS=
-CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication
+@REM CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication
 @REM CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication
 @REM CALL :add_app %KRATOS_APP_DIR%\DEMApplication
 @REM CALL :add_app %KRATOS_APP_DIR%\ContactStructuralMechanicsApplication
@@ -23,7 +23,7 @@ CALL :add_app %KRATOS_APP_DIR%\ConvectionDiffusionApplication;
 @REM CALL :add_app %KRATOS_APP_DIR%\FSIApplication;
 @REM CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
 @REM CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
-CALL :add_app %KRATOS_APP_DIR%\EigenSolversApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\EigenSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 @REM CALL :add_app %KRATOS_APP_DIR%\ConstitutiveLawsApplication;
 @REM CALL :add_app %KRATOS_APP_DIR%\FemToDemApplication;
@@ -31,13 +31,13 @@ CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 @REM CALL :add_app %KRATOS_APP_DIR%\DelaunayMeshingApplication;
 @REM CALL :add_app %KRATOS_APP_DIR%\MeshingApplication;
 @REM CALL :add_app %KRATOS_APP_DIR%\DemStructuresCouplingApplication;
-CALL :add_app %KRATOS_APP_DIR%\MeshMovingApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\MeshMovingApplication;
 @REM CALL :add_app %KRATOS_APP_DIR%\CSharpWrapperApplication;
-CALL :add_app %KRATOS_APP_DIR%\ShapeOptimizationApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\ShapeOptimizationApplication;
 @REM CALL :add_app %KRATOS_APP_DIR%\CoSimulationApplication;
 @REM CALL :add_app %KRATOS_APP_DIR%\CableNetApplication;
 @REM CALL :add_app %KRATOS_APP_DIR%\RANSApplication;
-REM CALL :add_app %KRATOS_APP_DIR%\MappingApplication;
+@REM REM CALL :add_app %KRATOS_APP_DIR%\MappingApplication;
 @REM CALL :add_app %KRATOS_APP_DIR%\CompressiblePotentialFlowApplication;
 @REM CALL :add_app %KRATOS_APP_DIR%\HDF5Application;
 @REM CALL :add_app %KRATOS_APP_DIR%\IgaApplication;
