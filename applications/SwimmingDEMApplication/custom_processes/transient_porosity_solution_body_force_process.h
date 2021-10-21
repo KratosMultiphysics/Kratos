@@ -11,8 +11,8 @@
 //
 //
 
-#ifndef KRATOS_TRANSIENT_SPATIAL_DEPENDANT_POROSITY_SOLUTION_BODY_FORCE_PROCESS_H
-#define KRATOS_TRANSIENT_SPATIAL_DEPENDANT_POROSITY_SOLUTION_BODY_FORCE_PROCESS_H
+#ifndef KRATOS_TRANSIENT_POROSITY_SOLUTION_BODY_FORCE_PROCESS_H
+#define KRATOS_TRANSIENT_POROSITY_SOLUTION_BODY_FORCE_PROCESS_H
 
 // System includes
 #include <string>
@@ -52,50 +52,44 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(SWIMMING_DEM_APPLICATION) TransientSpatialDependantPorositySolutionBodyForceProcess : public Process
+class KRATOS_API(SWIMMING_DEM_APPLICATION) TransientPorositySolutionBodyForceProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of TransientSpatialDependantPorositySolutionBodyForceProcess
-    KRATOS_CLASS_POINTER_DEFINITION(TransientSpatialDependantPorositySolutionBodyForceProcess);
+    /// Pointer definition of TransientPorositySolutionBodyForceProcess
+    KRATOS_CLASS_POINTER_DEFINITION(TransientPorositySolutionBodyForceProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    TransientSpatialDependantPorositySolutionBodyForceProcess();
+    TransientPorositySolutionBodyForceProcess();
     /// Constructor.
-    TransientSpatialDependantPorositySolutionBodyForceProcess(
-        ModelPart& rModelPart,
-        const double Density,
-        const double Viscosity,
-        const double DeltaAlpha,
-        const double Length,
-        const double SqueezeAmplitude,
-        const double NSafety,
-        const double X1Origin,
-        const double X2Origin);
+    TransientPorositySolutionBodyForceProcess(
+        ModelPart& rModelPart);
 
     /// Constructor with Kratos parameters.
-    TransientSpatialDependantPorositySolutionBodyForceProcess(
+    TransientPorositySolutionBodyForceProcess(
         ModelPart& rModelPart,
         Parameters& rParameters);
 
     /// Constructor with Kratos model
-    TransientSpatialDependantPorositySolutionBodyForceProcess(
+    TransientPorositySolutionBodyForceProcess(
         Model& rModel,
         Parameters& rParameters);
 
     /// Destructor.
-    ~TransientSpatialDependantPorositySolutionBodyForceProcess() override {}
+    ~TransientPorositySolutionBodyForceProcess() override {}
 
     ///@}
 
     ModelPart&                                       mrModelPart;
     double                                              mDensity;
     double                                            mViscosity;
+    double                                         mPermeability;
+    double                                                mUchar;
     double                                           mDeltaAlpha;
     double                                               mLength;
     double                                   mMaxSqueezeFraction;
@@ -104,6 +98,10 @@ public:
     double                                              mNSafety;
     double                                             mX1Origin;
     double                                             mX2Origin;
+    double                                       mReynoldsNumber;
+    double                                      mDamKohlerNumber;
+    bool                                      mInitialConditions;
+    bool                                 mAlternativeFormulation;
     ///@}
 
     ///@name Operators
@@ -127,9 +125,15 @@ public:
 
     const Parameters GetDefaultParameters() const override;
 
+    void CalculateKinematicViscosity();
+
+    void CalculatePermeability(double &dynamic_viscosity);
+
     void SetInitialBodyForceAndPorosityField();
 
     void SetBodyForceAndPorosityField();
+
+    void SetFluidProperties();
 
     bool IsInsideEllipticalSupport(
         const double x1,
@@ -153,12 +157,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "TransientSpatialDependantPorositySolutionBodyForceProcess" ;
+        buffer << "TransientPorositySolutionBodyForceProcess" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "TransientSpatialDependantPorositySolutionBodyForceProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "TransientPorositySolutionBodyForceProcess";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -206,7 +210,7 @@ private:
     /// Copy constructor.
     ///@}
 
-}; // Class TransientSpatialDependantPorositySolutionBodyForceProcess
+}; // Class TransientPorositySolutionBodyForceProcess
 
 ///@}
 ///@name Type Definitions
@@ -222,4 +226,4 @@ private:
 
 };  // namespace Kratos.
 
-#endif // KRATOS_TRANSIENT_SPATIAL_DEPENDANT_POROSITY_SOLUTION_BODY_FORCE_PROCESS_H
+#endif // KRATOS_TRANSIENT_POROSITY_SOLUTION_BODY_FORCE_PROCESS_H
