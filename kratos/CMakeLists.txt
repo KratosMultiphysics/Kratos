@@ -12,10 +12,7 @@ SET(LIST_OF_SOURCE_EXCEPTIONS
     # kratos_version is excluded because I separated it to another CU so you didn't have to recompile the whole core every time the version changed, just relink it. In order to not pollute with more .dll / .so a separate .o is created and then using during the linking of KratosCore.dll
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_version.cpp 
 
-    # TPL sources are excluded from 
-    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/tessellation_utilities/delaunator_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/processes/simple_mortar_mapper_process.cpp
+    # TPL sources are excluded from
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/cad_tessellation_modeler.cpp
 )
 
@@ -42,9 +39,6 @@ ENDFOREACH(subFolder ${ListFolders})
 
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
     SET(KRATOS_TPL_SOURCES 
-        ${CMAKE_CURRENT_SOURCE_DIR}/utilities/tessellation_utilities/delaunator_utilities.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/processes/simple_mortar_mapper_process.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/modeler/cad_tessellation_modeler.cpp
     )
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
