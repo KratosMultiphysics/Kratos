@@ -129,19 +129,16 @@ namespace Kratos
       ComputeHeatFluxWithNeighbor(r_process_info);
     }
 
-    // Compute convection with surrounding fluid
-    if (this->Is(DEMFlags::HAS_CONVECTION))
-      ComputeConvectiveHeatFlux(r_process_info);
-
     // Finalize radiation computation of continuous methods
     if (this->Is(DEMFlags::HAS_RADIATION))
       ComputeContinuumRadiativeHeatFlux(r_process_info);
 
-    // Compute prescribed heat flux
-    if (mPrescribedHeatFluxSurface != 0.0)
-      mPrescribedHeatFlux += mPrescribedHeatFluxSurface * GetParticleSurfaceArea();
-    if (mPrescribedHeatFluxVolume != 0.0)
-      mPrescribedHeatFlux += mPrescribedHeatFluxVolume * GetParticleVolume();
+    // Compute convection with surrounding fluid
+    if (this->Is(DEMFlags::HAS_CONVECTION))
+      ComputeConvectiveHeatFlux(r_process_info);
+
+    // Prescribed heat flux
+    ComputePrescribedHeatFlux(r_process_info);
 
     // Sum up heat fluxes contributions
     mTotalHeatFlux = mConductiveHeatFlux + mConvectiveHeatFlux + mRadiativeHeatFlux + mPrescribedHeatFlux;
@@ -408,6 +405,21 @@ namespace Kratos
 
     // Compute heat flux
     mConvectiveHeatFlux += (Nu * fluid_conductivity / char_length) * surface_area * temp_grad;
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::ComputePrescribedHeatFlux(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+    
+    // Heat flux over surface area
+    if (mPrescribedHeatFluxSurface != 0.0)
+      mPrescribedHeatFlux += mPrescribedHeatFluxSurface * GetParticleSurfaceArea();
+
+    // Volume heat source
+    if (mPrescribedHeatFluxVolume != 0.0)
+      mPrescribedHeatFlux += mPrescribedHeatFluxVolume * GetParticleVolume();
 
     KRATOS_CATCH("")
   }

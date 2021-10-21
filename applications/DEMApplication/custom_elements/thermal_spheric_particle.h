@@ -87,6 +87,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   void ComputeRadiativeHeatFlux(const ProcessInfo& r_process_info);
   void ComputeContinuumRadiativeHeatFlux(const ProcessInfo& r_process_info);
   void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);
+  void ComputePrescribedHeatFlux(const ProcessInfo& r_process_info);
 
   // Heat transfer models
   double DirectConductionBatchelorOBrien(const ProcessInfo& r_process_info);
