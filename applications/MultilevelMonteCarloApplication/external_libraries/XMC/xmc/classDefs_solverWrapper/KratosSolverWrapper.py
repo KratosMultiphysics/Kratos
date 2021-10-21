@@ -480,8 +480,8 @@ class KratosSolverWrapper(sw.SolverWrapper):
             if parameters["problem_data"]["parallel_type"].GetString()=="MPI":
                 raise(Exception("Kratos is set in MPI but XMC is not!"))
             serialized_model, pickled_model = mds.SerializeSerialModel_Task(pickled_project_parameters_tmp, self.wrapper.GetModelPartName(), self.fake_sample_to_serialize, self.analysis)
-        # append to attribute
-        self.serialized_model.append(serialized_model)
+            # append to attribute
+            self.serialized_model.append(serialized_model) # this only for non-MPI parallelism, since a serialized_model cannot be retrieved in MPI
         self.pickled_model.append(pickled_model)
 
         # remove temporary objects created for MPI serialization
@@ -580,7 +580,7 @@ class KratosSolverWrapper(sw.SolverWrapper):
                 if parameters["problem_data"]["parallel_type"].GetString()=="MPI":
                     raise(Exception("Kratos is set in MPI but XMC is not!"))
                 serialized_model, pickled_model = mds.SerializeSerialModel_Task(pickled_project_parameters, self.wrapper.GetModelPartName(), self.fake_sample_to_serialize, self.analysis)
-                self.serialized_model.append(serialized_model)
+                self.serialized_model.append(serialized_model) # this only for non-MPI parallelism, since a serialized_model cannot be retrieved in MPI
             # append to attribute
             self.pickled_model.append(pickled_model)
             if self.is_mpi:
