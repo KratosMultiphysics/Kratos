@@ -206,7 +206,9 @@ namespace Kratos
                 node_id++;
             }
         }
-
+        p_surface_geometry->SetInternals(PointsRefined,
+            p_surface_geometry->PolynomialDegreeU(), p_surface_geometry->PolynomialDegreeV(),
+            p_surface_geometry->KnotsU(), p_surface_geometry->KnotsV(), p_surface_geometry->Weights() );
     }
 
 
@@ -356,6 +358,9 @@ namespace Kratos
                 node_id++;
             }
         }
+        p_volume_geometry->SetInternals(PointsRefined,
+            p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
+            p_volume_geometry->KnotsU(), p_volume_geometry->KnotsV(), p_volume_geometry->KnotsW());
     }
     ///@}
 } // end namespace kratos
