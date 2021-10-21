@@ -36,6 +36,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             {
                 "response_type": "stochastic_adjoint_lift_potential_jump",
                 "risk_measure": "expected_value",
+                "main_qoi": "lift_coefficient",
                 "primal_settings": "",
                 "adjoint_settings": "",
                 "xmc_settings": "",
@@ -72,6 +73,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
         self.auxiliary_mdpa_path = response_settings["auxiliary_mdpa_path"].GetString()
         self.risk_measure = response_settings["risk_measure"].GetString()
+        self.main_qoi = response_settings["main_qoi"].GetString()
 
         if response_settings.Has("output_dict_results_file_name"):
             self.output_dict_results_file_name = response_settings["output_dict_results_file_name"].GetString()
@@ -100,6 +102,10 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             primal_parameters["auxiliary_mdpa_path"].SetString(self.auxiliary_mdpa_path)
         else:
             primal_parameters.AddString("auxiliary_mdpa_path", self.auxiliary_mdpa_path)
+        if primal_parameters.Has("main_qoi"):
+            primal_parameters["main_qoi"].SetString(self.main_qoi)
+        else:
+            primal_parameters.AddString("main_qoi", self.main_qoi)
         open(self.response_settings["primal_settings"].GetString(), 'w').write(primal_parameters.PrettyPrintJsonString())
 
         # Store current design
@@ -1113,6 +1119,7 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
         self.design_surface_sub_model_part_name = input_parameters["design_surface_sub_model_part_name"].GetString()
         self.main_model_part_name = input_parameters["solver_settings"]["model_part_name"].GetString()
         self.auxiliary_mdpa_path = input_parameters["auxiliary_mdpa_path"].GetString()
+        self.main_qoi = input_parameters["main_qoi"].GetString()
         self.model = input_model
         super().__init__(self.model,input_parameters)
 
@@ -1243,8 +1250,9 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
         Method evaluating the QoI of the problem: lift coefficient.
         """
         # REPORTING NEGATIVE OF LIFT TO MINIMIZE THE NEGATIVE -> maximize lift
-        qoi_list = [-1*self.response_function.CalculateValue(self.primal_model_part)]
-        print("StochasticAdjointResponse", " Lift Coefficient: ",qoi_list[0], "Number of nodes", self.primal_model_part.NumberOfNodes())
+        if self.main_qoi == "lift_coefficient":
+            qoi_list = [-1*self.response_function.CalculateValue(self.adjoint_model_part)]
+            print("StochasticAdjointResponse", " Lift Coefficient: ",qoi_list[0], "Number of nodes", self.primal_model_part.NumberOfNodes())
 
         model_part = self.adjoint_model_part
         skin_model_part = self.this_skin_model_part
@@ -1290,6 +1298,12 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
             KratosMultiphysics.PRESSURE_COEFFICIENT,        \
             KratosMultiphysics.MappingApplication.Mapper.FROM_NON_HISTORICAL |     \
             KratosMultiphysics.MappingApplication.Mapper.TO_NON_HISTORICAL)
+
+        if self.main_qoi == "min_pressure":
+            min_pressure = min([node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT) for node in skin_model_part.Nodes])
+            qoi_list = [min_pressure]
+            print("StochasticAdjointResponse", " Min pressure: ",qoi_list[0], "Number of nodes", self.primal_model_part.NumberOfNodes())
+
 
         # pressure_coefficient = []
         # nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
