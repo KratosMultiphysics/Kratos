@@ -531,10 +531,10 @@ Enables colored output of the Logger. If switched on, e.g. warning level message
 Kratos can make use of TPL libraries that cannot be included in the main compilation processes for a variety of reasons
 If you want to add support for those libraries, we provide switches to enable them.
 
-Please note that **Kratos will NEVER DISTRIBUTE, RELEASE or COMPILE** with these libraries unless explicitly specified, and the use of these libraries may add aditinal restrictions on top of BSD.
+Please note that **Kratos will NEVER DISTRIBUTE, RELEASE or COMPILE** with these libraries unless explicitly specified, and the use of these libraries may add additional restrictions on top of BSD.
 
 #### Tetgen
-(Tetgen)[http://wias-berlin.de/software/tetgen/] is a library to generate tethrahedal mehses. We provide some utilities that can make use of tetgen. The flags related with Tetgen are the following:
+(Tetgen)[http://wias-berlin.de/software/tetgen/] is a library to generate tetrahedral meshes. We provide some utilities that can make use of tetgen. The flags related with Tetgen are the following:
 
 `-DUSE_TETGEN_NONFREE_TPL=ON`
 Enables/Disables the use of tetgen and its related utilities in the code. If no other options provided Kratos will try to find tetgen installed on your system.
@@ -549,7 +549,7 @@ Tries to download and use a version of tetgen from a given `TETGEN_URL`
 Forces to re-download and replace an existing version of tetgen obtained through `USE_TETGEN_NONFREE_TPL_URL`
 
 #### Triangle
-[Triangle](http://www.cs.cmu.edu/~quake/triangle.html) is a library for delaunay triangulation. We provide some utilities in Kratos that depend on this library. The flags related with Triangl are the following:
+[Triangle](http://www.cs.cmu.edu/~quake/triangle.html) is a library for delaunay triangulation. We provide some utilities in Kratos that depend on this library. The flags related with Triangle are the following:
 
 `-DUSE_TRIANGLE_NONFREE_TPL`
 Enables or disables the use of Triangle and its related utilities in the code.
