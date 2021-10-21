@@ -324,7 +324,7 @@ class MonteCarloSampler:
         # Add new indices and trim ones no longer required
         self.updateIndexSet(newHierarchy)
 
-        for i in range(len(self.indices)):
+        for i in reversed(range(len(self.indices))):
             self.indices[i].update(newHierarchy[i])
 
         # synchronize estimator needed for checking convergence and updating hierarchy
