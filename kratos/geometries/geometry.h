@@ -2678,6 +2678,8 @@ public:
         if (result == 1) {
             this->GlobalCoordinates(rClosestPointGlobalCoordinates, local_coordinates);
         }
+
+        return result;
     }
 
     /**
