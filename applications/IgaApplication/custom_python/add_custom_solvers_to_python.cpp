@@ -43,8 +43,8 @@ void AddCustomSolversToPython(
     .def("__str__", PrintObject<AdditiveSchwarzPreconditionerType>)
     ;
 
-    static auto DiagonalPreconditionerFactory = StandardPreconditionerFactory<SpaceType,LocalSpaceType,AdditiveSchwarzPreconditionerType>();
-    KRATOS_REGISTER_PRECONDITIONER("additive_schwarz", DiagonalPreconditionerFactory);
+    static auto AdditiveSchwarzlPreconditionerFactory = StandardPreconditionerFactory<SpaceType,LocalSpaceType,AdditiveSchwarzPreconditionerType>();
+    KRATOS_REGISTER_PRECONDITIONER("additive_schwarz", AdditiveSchwarzlPreconditionerFactory);
 }
 
 } // namespace Python

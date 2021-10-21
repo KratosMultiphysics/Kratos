@@ -28,11 +28,20 @@
 namespace Kratos
 {
 
-///@name  Preconditioners
+///@name Kratos Classes
 ///@{
 
-/// AdditiveSchwarzPreconditioner class.
-/**   */
+/**
+ * @class AdditiveSchwarzPreconditioner
+ * @brief AdditiveSchwarzPreconditioner
+ * @todo Use solver for computation of inverse.
+ *       Add Pseudo inverse.
+ *       Check values for relexation parameter.
+ *       Only apply additive schwarz preconditioner for trimmed elements (badly conditioned elements).
+ *       Apply Jacobi preconditioing for non-trimmed elements.
+ *       Migrate precondioner into Kratos Core.
+ **/
+
 template<class TSparseSpaceType, class TDenseSpaceType>
 class AdditiveSchwarzPreconditioner : public Preconditioner<TSparseSpaceType, TDenseSpaceType>
 {
@@ -68,12 +77,8 @@ public:
         mMatrixIsInitializedFlag = false;
     }
 
-
     /// Copy constructor.
-    AdditiveSchwarzPreconditioner(const AdditiveSchwarzPreconditioner& Other) {
-        mMatrixIsInitializedFlag = Other.mMatrixIsInitializedFlag;
-    }
-
+    AdditiveSchwarzPreconditioner(const AdditiveSchwarzPreconditioner& Other) = delete;
 
     /// Destructor.
     ~AdditiveSchwarzPreconditioner() override
@@ -103,7 +108,7 @@ public:
     void ProvideAdditionalData(SparseMatrixType& rA, VectorType& rX, VectorType& rB,
                                 DofsArrayType& rdof_set, ModelPart& r_model_part ) override
     {
-        const auto timer_omp = BuiltinTimer();
+        BuiltinTimer timer;
 
         if( ! mMatrixIsInitializedFlag ){
             InitializeMatrix(rA);
@@ -141,7 +146,7 @@ public:
             AssembleContributions(rA, *mpS, equation_ids);
         });
 
-        KRATOS_INFO("AdditiveScwarzPreconditioner:") << "Build Preconditioning Matrix Time: " << timer_omp.ElapsedSeconds() << std::endl;
+        KRATOS_INFO("AdditiveSchwarzPreconditioner:") << "Build Matrix Time: " << timer.ElapsedSeconds() << std::endl;
     }
 
     ///@}
