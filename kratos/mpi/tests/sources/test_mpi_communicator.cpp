@@ -62,7 +62,7 @@ void ModelPartForMPICommunicatorTests(ModelPart& rModelPart, const DataCommunica
     std::vector<ModelPart::IndexType> element_nodes{1, local_index, ghost_index};
     rModelPart.CreateNewElement("Element2D3N", rank+1, element_nodes, p_properties);
 
-    ParallelFillCommunicator(rModelPart).Execute();
+    ParallelFillCommunicator(rModelPart, Testing::GetDefaultDataCommunicator()).Execute();
 }
 
 }

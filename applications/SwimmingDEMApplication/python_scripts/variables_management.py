@@ -207,6 +207,7 @@ class VariablesManager:
         self.dem_vars += self.coupling_dem_vars
         self.dem_vars += [Kratos.BUOYANCY]
         self.dem_vars += [Kratos.VELOCITY_OLD]
+        self.dem_vars += [Kratos.SLIP_VELOCITY]
 
         if self.do_include_history_force:
             self.dem_vars += [Kratos.BASSET_FORCE]
@@ -356,9 +357,10 @@ class VariablesManager:
             self.coupling_fluid_vars += [SDEM.AVERAGED_FLUID_VELOCITY]
 
         if (parameters["custom_fluid"]["fluid_model_type"].GetInt() == 0
-            or parameters["coupling"]["coupling_level_type"].GetInt() > 1):
+            or parameters["coupling"]["coupling_level_type"].GetInt() >= 1):
             self.coupling_fluid_vars += [Kratos.FLUID_FRACTION]
             self.coupling_fluid_vars += [Kratos.FLUID_FRACTION_OLD]
+            self.coupling_fluid_vars += [SDEM.FLUID_FRACTION_OLD_2]
 
             if 'DISPERSE_FRACTION' in self.nodal_results:
                 self.coupling_fluid_vars += [Kratos.DISPERSE_FRACTION]
@@ -444,6 +446,8 @@ class VariablesManager:
         if self.time_filtered_vars:
             self.coupling_fluid_vars += [Kratos.TIME_AVERAGED_DOUBLE]
             self.coupling_fluid_vars += [Kratos.TIME_AVERAGED_ARRAY_3]
+            self.coupling_fluid_vars += [SDEM.TIME_AVERAGED_BODY_FORCE]
+            self.time_filtered_vars  += [Kratos.KratosGlobals.GetVariable(parameters["body_force_per_unit_mass_variable_name"].GetString())]
 
     def ChangeListOfFluidNodalResultsToPrint(self, parameters):
         fluid_list = self.project_parameters["fluid_nodal_results"]

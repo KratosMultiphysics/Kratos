@@ -70,7 +70,7 @@ public:
 
     /// Pointer definition of BDF2TurbulentSchemeDEMCoupled
     KRATOS_CLASS_POINTER_DEFINITION(BDF2TurbulentSchemeDEMCoupled);
-    typedef BDF2TurbulentScheme<TSparseSpace,TDenseSpace> BaseType;
+    typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
     typedef typename TSparseSpace::DataType TDataType;
     typedef typename TSparseSpace::MatrixType TSystemMatrixType;
     typedef typename TSparseSpace::VectorType TSystemVectorType;
@@ -143,6 +143,39 @@ public:
         this->UpdateFluidFraction(rModelPart, CurrentProcessInfo);
     }
 
+    void InitializeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        if (mpTurbulenceModel != 0) mpTurbulenceModel->Execute();
+
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        //if orthogonal subscales are computed
+        if (CurrentProcessInfo[OSS_SWITCH] == 1.0)
+        {
+            this->LumpedProjection(rModelPart);
+            //this->FullProjection(rModelPart);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void FinalizeNonLinIteration(
+        ModelPart &rModelPart,
+        TSystemMatrixType &A,
+        TSystemVectorType &Dx,
+        TSystemVectorType &b) override
+    {
+
+        BaseType::FinalizeNonLinIteration(rModelPart, A, Dx, b);
+
+    }
+
     void UpdateFluidFraction(
         ModelPart& r_model_part,
         ProcessInfo& r_current_process_info)
@@ -153,9 +186,12 @@ public:
         block_for_each(r_model_part.Nodes(), [&](Node<3>& rNode)
         {
             const double fluid_fraction_0 = rNode.FastGetSolutionStepValue(FLUID_FRACTION);
-            const double fluid_fraction_1 = rNode.FastGetSolutionStepValue(FLUID_FRACTION,1);
-            const double fluid_fraction_2 = rNode.FastGetSolutionStepValue(FLUID_FRACTION,2);
+            const double fluid_fraction_1 = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD);
+            const double fluid_fraction_2 = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD_2);
             rNode.FastGetSolutionStepValue(FLUID_FRACTION_RATE) = BDFcoefs[0] * fluid_fraction_0 + BDFcoefs[1] * fluid_fraction_1 + BDFcoefs[2] * fluid_fraction_2;
+
+            rNode.GetSolutionStepValue(FLUID_FRACTION_OLD_2) = rNode.GetSolutionStepValue(FLUID_FRACTION_OLD);
+            rNode.GetSolutionStepValue(FLUID_FRACTION_OLD) = rNode.GetSolutionStepValue(FLUID_FRACTION);
         });
     }
 
