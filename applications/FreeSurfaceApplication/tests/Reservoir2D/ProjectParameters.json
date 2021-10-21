@@ -2,7 +2,7 @@
     "problem_data" : {
         "problem_name"      : "Reservoir2D",
         "parallel_type"     : "OpenMP",
-        "echo_level"        : 2,
+        "echo_level"        : 0,
         "start_time"        : 0.0,
         "end_time"          : 5.0
     },
@@ -28,7 +28,7 @@
         "edge_detection_angle"          : 4.5e1,
         "assume_constant_pressure"      : false,
         "compute_porous_resistance_law" : "none",
-        "echo_level"                    : 2,
+        "echo_level"                    : 0,
         "model_import_settings"         : {
             "input_type"        : "mdpa",
             "input_filename"    : "Reservoir2D"

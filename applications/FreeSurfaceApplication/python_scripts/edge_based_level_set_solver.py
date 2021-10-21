@@ -8,25 +8,6 @@ import enum
 import pathlib
 
 
-def DebuggedMember(member_function):
-    def Wrapper(this, *args, **kwargs):
-        if not hasattr(this, "__indent_level"):
-            this.__indent_level = 0
-
-        function_name = member_function.__name__
-        indent = "".join('    ' for _ in range(this.__indent_level))
-
-        KratosMultiphysics.Logger.PrintInfo(this.__class__.__name__, "DEBUG: {}calling '{}'".format(indent, function_name))
-        this.__indent_level += 1
-        result = member_function(this, *args, **kwargs)
-        this.__indent_level -= 1
-        KratosMultiphysics.Logger.PrintInfo(this.__class__.__name__, "DEBUG: {}finished '{}'".format(indent, function_name))
-
-        return result
-    return Wrapper
-
-
-
 class EdgeBasedLevelSetSolver(PythonSolver):
 
     class PorousResistanceComputation(enum.IntEnum):
@@ -157,7 +138,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         return 2
 
 
-    @DebuggedMember
     def AddVariables(self) -> None:
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
@@ -174,7 +154,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRUCTURE_VELOCITY)
 
 
-    @DebuggedMember
     def AddDofs(self) -> None:
         for node in self.model_part.Nodes:
             node.AddDof(KratosMultiphysics.PRESSURE)
@@ -183,24 +162,19 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             node.AddDof(KratosMultiphysics.VELOCITY_Z)
 
 
-    @DebuggedMember
     def ImportModelPart(self) -> None:
         self._ImportModelPart(self.model_part, self.settings["model_import_settings"].Clone())
 
 
-    @DebuggedMember
     def PrepareModelPart(self) -> None:
-        # Set buffer size
         self.model_part.SetBufferSize(self.GetMinimumBufferSize())
 
 
-    @DebuggedMember
     def Check(self) -> None:
         if all(not component for component in self.body_force):
             raise ValueError("Body force cannot be a zero vector")
 
 
-    @DebuggedMember
     def Initialize(self) -> None:
         # Get rid of isolated nodes
         KratosMultiphysics.FindNodalNeighboursProcess(self.model_part).Execute()
@@ -249,7 +223,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             self.fluid_solver.ActivateWallResistance(self.wall_law_y)
 
 
-    @DebuggedMember
     def AdvanceInTime(self, current_time: float) -> float:
         """
         Compute a bounded variable time step and create new step data.
@@ -277,16 +250,18 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         return new_time
 
 
-    @DebuggedMember
     def SolveSolutionStep(self) -> bool:
         """Perform a local solution loop until the time step size shrinks to the target bounds."""
 
-        # DEBUG (original line: while True and 2 < self.model_part.ProcessInfo[KratosMultiphysics.STEP]:)
+        # Note:
+        # To stick to the original implementation, 3 initial steps are taken
+        # without solving the system, though I'd assume we only need 2.
         while True and (3 < self.model_part.ProcessInfo[KratosMultiphysics.STEP]):
             self.__SolveLocalSolutionStep()
 
             # Check step size and revert if it's too large
-            # Note: is the fixed 0.95 safety factor intended here?
+            # Note: does hardcoding a 0.95 safety factor make sense here
+            # or should it be variable?
             step_size_estimate = self.__EstimateTimeStep(0.95, self.current_max_step_size)
 
             if step_size_estimate < self.current_step_size:
@@ -321,7 +296,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         return self.model_part
 
 
-    @DebuggedMember
     def ExportModelPart(self) -> None:
         file_name = pathlib.Path(self.settings["model_import_settings"]["input_file_name"].GetString() + ".out")
         KratosMultiphysics.ModelPartIO(
@@ -331,7 +305,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.__Log("Model part written to '{}'".format(file_name))
 
 
-    @DebuggedMember
     def __MakeMatrixContainer(self) -> FreeSurface.MatrixContainer3D:
         if self.domain_size == 2:
             return FreeSurface.MatrixContainer2D()
@@ -341,7 +314,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             raise ValueError("Invalid domain size: {}".format(self.domain_size))
 
 
-    @DebuggedMember
     def __MakeDistanceUtilities(self) -> KratosMultiphysics.ParallelDistanceCalculator3D:
         if self.domain_size == 2:
             if self.use_parallel_distance_calculation:
@@ -357,7 +329,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             raise ValueError("Invalid domain size: {}".format(self.domain_size))
 
 
-    @DebuggedMember
     def __MakeEdgeBasedLevelSet(self) -> FreeSurface.EdgeBasedLevelSet3D:
         if self.domain_size == 2:
             EdgeBasedLevelSet = FreeSurface.EdgeBasedLevelSet2D
@@ -383,7 +354,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             self.assume_constant_pressure)
 
 
-    @DebuggedMember
     def __EstimateTimeStep(self, safety_factor: float, max_time_step_size: float) -> float:
         step_size = self.fluid_solver.ComputeTimeStep(safety_factor, max_time_step_size)
         if max_time_step_size < step_size:
@@ -392,11 +362,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         return step_size
 
 
-    @DebuggedMember
     def __Redistance(self) -> None:
-        # DEBUG: debug section begin        #
-        print("redistance")                 #
-        # DEBUG: debug section end          #
         if self.use_parallel_distance_calculation:
             self.distance_utils.CalculateDistances(
                 self.model_part,
@@ -411,7 +377,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
                 self.distance_size)
 
 
-    @DebuggedMember
     def __SolveLocalSolutionStep(self):
         """Solve the system in its current state without checking the time step."""
         if self.extrapolation_layers < 3:
@@ -433,23 +398,15 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.fluid_solver.ConvectDistance()
         self.timer.Stop("Convect distance")
 
+        # Note: the original script kept track of two different step counts,
+        # leading to some quirks with performing redistancing. The current
+        # behaviour mimics the original one to satisfy the tests, but it
+        # would probably make more sense to check (STEP % frequency == 0) instead.
         step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
-        # DEBUG: original section begin
-        # if step and (step % self.redistance_frequency) == 0:
-        # DEBUG: original section end
-        # DEBUG: debug section begin                                #
-        if not hasattr(self, "_step"):                              #
-            self._step = 0                                          #
-        if self._step == self.redistance_frequency:                 #
-            self._step = 0                                          #
-        # DEBUG: debug section end                                  #
+        if 0 < (step - 4) and ((step - 4) % self.redistance_frequency) == 0:
             self.timer.Start("Redistance")
-            self.__Log("redistance")
             self.__Redistance()
             self.timer.Stop("Redistance")
-        # DEBUG: debug section begin                                #
-        self._step += 1                                             #
-        # DEBUG: debug section end                                  #
 
         # Solve fluid
         self.timer.Start("Solve step 1")
