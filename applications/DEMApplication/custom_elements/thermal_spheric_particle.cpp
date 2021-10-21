@@ -1413,7 +1413,10 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleEmissivity() {
-    return GetProperties()[EMISSIVITY];
+    if (GetProperties().Has(EMISSIVITY))
+      return GetProperties()[EMISSIVITY];
+    else
+      return 0.0;
   }
 
   template <class TBaseElement>
