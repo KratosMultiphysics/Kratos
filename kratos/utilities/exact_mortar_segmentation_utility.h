@@ -355,6 +355,24 @@ public:
         mZeroToleranceFactor = ZeroToleranceFactor;
     }
 
+    /**
+     * @brief This method gets the current mConsiderDelaunator
+     * @return If considering delaunator
+     */
+    bool& GetConsiderDelaunator()
+    {
+        return mConsiderDelaunator;
+    }
+
+    /**
+     * @brief This method sets the current mConsiderDelaunator
+     * @param ConsiderDelaunator If considering delaunator
+     */
+    void SetConsiderDelaunator(const bool ConsiderDelaunator)
+    {
+        mConsiderDelaunator = ConsiderDelaunator;
+    }
+
     ///@}
 protected:
     ///@name Protected static Member Variables
