@@ -323,7 +323,7 @@ void BaseSolidElement::EquationIdVector(
 
     const SizeType pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
 
-    if(dimension == 2) {
+    if(dimension == 3) { // bad hack
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             const SizeType index = i * 2;
             rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos).EquationId();
@@ -356,7 +356,7 @@ void BaseSolidElement::GetDofList(
     rElementalDofList.resize(0);
     rElementalDofList.reserve(dimension*number_of_nodes);
 
-    if(dimension == 2) {
+    if(dimension == 3) { // bad hack
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
