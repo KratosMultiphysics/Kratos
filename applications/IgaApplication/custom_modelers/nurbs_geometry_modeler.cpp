@@ -164,7 +164,6 @@ namespace Kratos
             }
         }
         p_surface_geometry->SetId(last_geometry_id+1);
-
         r_model_part.AddGeometry(p_surface_geometry);
 
         // Perform knot refinement.
@@ -209,11 +208,10 @@ namespace Kratos
             }
         }
 
+        // SetInternals again to make geometry point to the same nodes, as constructed in the model part.
         p_surface_geometry->SetInternals(PointsRefined,
             p_surface_geometry->PolynomialDegreeU(), p_surface_geometry->PolynomialDegreeV(),
             p_surface_geometry->KnotsU(), p_surface_geometry->KnotsV(), WeightsRefined);
-
-
     }
 
 
@@ -312,7 +310,6 @@ namespace Kratos
             }
         }
         p_volume_geometry->SetId(last_geometry_id+1);
-
         r_model_part.AddGeometry(p_volume_geometry);
 
         // Perform knot refinement.
@@ -363,6 +360,7 @@ namespace Kratos
                 node_id++;
             }
         }
+        // SetInternals again to make geometry point to the same nodes, as constructed in the model part.
         p_volume_geometry->SetInternals(PointsRefined,
             p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
             p_volume_geometry->KnotsU(), p_volume_geometry->KnotsV(), p_volume_geometry->KnotsW());
