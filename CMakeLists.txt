@@ -386,33 +386,61 @@ endif(${INSTALL_RUNKRATOS} MATCHES ON )
 ##*****************************
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
+    set(TETGEN_ZIP_FILE "tetgen")
+    
     if(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
         # Use TetGen from local source
-        include_directories(${USE_TETGEN_NONFREE_TPL_PATH})
+        set(TETGEN_EXT_PATH ${CMAKE_CURRENT_BINARY_DIR}/external_libraries/tetgen)
+
+        find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
+        message("TETGEN_ROOT: ${TETGEN_ROOT}")
+        if(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
+            file(COPY ${USE_TETGEN_NONFREE_TPL_PATH} DESTINATION ${TETGEN_EXT_PATH})
+            find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
+            message("Copying tetgen dir to ${TETGEN_EXT_PATH}")
+        endif(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
+        
+        # Prepare tetgen
+        add_definitions(-DTETLIBRARY)
+        add_definitions(${USE_TETGEN_NONFREE_TPL_FLAGS})
+
+        set(Tetgen_FOUND True)
+
+        # This is for backwards compatibility
+        if(NOT DEFINED TETGEN_INCLUDE)
+            set(TETGEN_INCLUDE ${TETGEN_ROOT})
+        endif(NOT DEFINED TETGEN_INCLUDE)
+        if(NOT DEFINED TETGEN_LIBRARIES)
+            set(TETGEN_LIBRARIES tetgen)
+        endif(NOT DEFINED TETGEN_LIBRARIES)
     elseif(DEFINED USE_TETGEN_NONFREE_TPL_URL)
         # Use TetGen from external source (download)
-        set(TETGEN_ZIP_FILE "tetgen")
-        set(TETGEN_ZIP_PATH ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/tetgen)
+        set(TETGEN_EXT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/tetgen)
 
-        find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_ZIP_PATH}/*/)
+        find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
         if(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
-            DownloadLibAt(${TETGEN_ZIP_FILE} ${USE_TETGEN_NONFREE_TPL_URL} ${TETGEN_ZIP_PATH})
-            find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_ZIP_PATH}/*/)
+            DownloadLibAt(${TETGEN_ZIP_FILE} ${USE_TETGEN_NONFREE_TPL_URL} ${TETGEN_EXT_PATH})
+            find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
         else(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
             # Touch the url variable so it does no trigger a unused warning.
             set(ignoreMe "${USE_TETGEN_NONFREE_TPL_URL}")
-            message("-- Found tetgen at ${TETGEN_ZIP_PATH}, skipping...")
+            message("-- Found tetgen at ${TETGEN_EXT_PATH}, skipping...")
         endif(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
 
-        add_definitions(-DTETGEN143 )
-        add_definitions(-DTETLIBRARY )
+        # Prepare tetgen
+        add_definitions(-DTETLIBRARY)
+        add_definitions(${USE_TETGEN_NONFREE_TPL_FLAGS})
         add_subdirectory(${TETGEN_ROOT})
 
         set(Tetgen_FOUND True)
 
         # This is for backwards compatibility
-        set(TETGEN_INCLUDE ${TETGEN_ROOT})
-        set(TETGEN_LIBRARIES tetgen)
+        if(NOT DEFINED TETGEN_INCLUDE)
+            set(TETGEN_INCLUDE ${TETGEN_ROOT})
+        endif(NOT DEFINED TETGEN_INCLUDE)
+        if(NOT DEFINED TETGEN_LIBRARIES)
+            set(TETGEN_LIBRARIES tetgen)
+        endif(NOT DEFINED TETGEN_LIBRARIES)
     else(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
         # Try to find tetgen installed in the system
         find_package(Tetgen REQUIRED)

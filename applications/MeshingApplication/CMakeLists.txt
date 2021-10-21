@@ -16,6 +16,8 @@ set(KRATOS_MESHING_APPLICATION_EXTRA_LIBS tetMeshOpt)
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
     include_directories(${TETGEN_INCLUDE})
+    add_library(tetgen STATIC ${TETGEN_INCLUDE}/tetgen.cxx ${TETGEN_INCLUDE}/predicates.cxx)
+    target_compile_definitions(tetgen PRIVATE -DTETLIBRARY)
 endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 
 ## generate variables with the sources
