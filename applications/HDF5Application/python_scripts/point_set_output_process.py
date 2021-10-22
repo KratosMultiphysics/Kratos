@@ -40,8 +40,7 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
 
         self.file_parameters = parameters["file_parameters"].Clone()
 
-        communicator = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
-        self.isMPIRun = 1 < communicator.Size()
+        self.isMPIRun = self.model_part.IsDistributed()
 
         self.coordinates_prefix_pattern = parameters["coordinates_prefix"].GetString()
         self.variables_prefix_pattern = parameters["variables_prefix"].GetString()

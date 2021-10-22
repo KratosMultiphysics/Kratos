@@ -9,7 +9,7 @@ import pathlib
 
 class TestPointSetOutputProcess(UnitTest.TestCase):
 
-    communicator = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
+    communicator = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
     file_name = "test_point_set_output.h5"
 
 
@@ -83,7 +83,7 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
 
         # Linear node/element partition for mpi (shifted for debugging purposes)
-        communicator = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
+        communicator = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
         number_of_ranks = communicator.Size()
         rank = communicator.Rank()
 
