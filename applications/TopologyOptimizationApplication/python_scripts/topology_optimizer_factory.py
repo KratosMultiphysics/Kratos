@@ -397,6 +397,13 @@ class SIMPMethod:
 
             # RUN FEM: Call analyzer with current X to compute response (global_strain_energy, dcdx)
             self.analyzer(self.controller.get_controls(), response, opt_itr)
+
+            if opt_itr == 1:
+                Obj_Function = response[only_F_id]["func"]
+                Obj_Function_initial = Obj_Function
+            
+            Obj_initial = float(Obj_Function_initial)
+
             
             # Filter sensitivities
             print("\n::[Filter Sensitivities]::")
@@ -406,7 +413,7 @@ class SIMPMethod:
             print("\n::[Update Densities with MMA]::")
             self.design_update_utils.UpdateDensitiesUsingMMAMethod( self.config.optimization_algorithm,
                                                 self.config.initial_volume_fraction,
-                                                opt_itr)
+                                                opt_itr,  Obj_initial)
 
             if (self.config.density_filter == "density"):
                 print("\n::[Filter Densities]::") 

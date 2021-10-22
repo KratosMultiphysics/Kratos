@@ -209,7 +209,7 @@ public:
 
 /// MMA as a optimization Algorithm
 
-	void UpdateDensitiesUsingMMAMethod( char update_type[], double volfrac,  double OptItr)
+	void UpdateDensitiesUsingMMAMethod( char update_type[], double volfrac,  double OptItr, double  Obj_Function_initial)
 	{
 		KRATOS_TRY;
 		if ( strcmp( update_type , "MMA_algorithm" ) == 0 )
@@ -276,7 +276,7 @@ public:
 
 				
 				x[iteration]= xval;
-				df[iteration]= dfdx;
+				df[iteration]= dfdx/(Obj_Function_initial*nn*1e-3);
 				dg[iteration] = dgdx;
 				xmax[iteration] = Xmax;
 				xmin[iteration] = Xmin; 
@@ -294,22 +294,9 @@ public:
 			MMASolver *mma = new MMASolver(nn,mm);
 	
 
-			g[0] = 10000000000;
+			g[0] = 0;
 			vol_frac_iteration = vol_summ;
-			//g[0] = vol_frac_iteration - volfrac*nn;
-/* 		 	if (OptItr==1)
-			{
-				g[0]=10000000000000;
-			}
-			if (g[0] > 0)
-			{
-				g[0]= 100000000000;
-			} */
-	 
-			std::cout << "  vol_frac_limit "<< volfrac << std::endl;
-			std::cout << "  vol_frac_iteration"<< vol_frac_iteration << std::endl;
-			std::cout << "  constrain value "<< g[0] << std::endl;
-
+			g[0] = vol_frac_iteration - volfrac*nn;
 
 			double Xminn = 0;
 			double Xmaxx= 1;
