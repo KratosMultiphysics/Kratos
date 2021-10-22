@@ -1447,29 +1447,47 @@ public:
     }
 
 
-    /// detect if two tetrahedra are intersected
-    bool HasIntersection( const BaseType& rThisGeometry) override
+    /// Detect if the tetrahedra is intersected with another geometry
+    bool HasIntersection(const BaseType& rThisGeometry) override
     {
-
-        array_1d<Plane, 4>  plane;
-        std::vector<BaseType> Intersection;
-
-        //const BaseType& geom_1 = *this;
-        const BaseType& geom_2 = rThisGeometry;
-
-        GetPlanes(plane);
-        Intersection.push_back(geom_2);
-        for (unsigned int i = 0; i < 4; ++i)
-        {
-            std::vector<BaseType> inside;
-            for (unsigned int j = 0; j < Intersection.size(); ++j)
-            {
-                SplitAndDecompose(Intersection[j], plane[i], inside);
+        if (rThisGeometry.LocalSpaceDimension() < this->LocalSpaceDimension()) {
+            // Check the intersection of each face against the intersecting object
+            const auto faces = this->GenerateFaces();
+            for (auto& face : faces) {
+                if (face.HasIntersection(rThisGeometry)){
+                    return true;
+                }
             }
-            Intersection = inside;
-        }
 
-        return bool (Intersection.size() > 0);
+            // Let check second geometry is inside.
+            // Considering that there are no intersection, if one point is inside all of it is inside.
+            array_1d<double, 3> local_point;
+            if (this->IsInside(rThisGeometry.GetPoint(0), local_point)){
+                return true;
+            }
+
+            return false;
+        }
+        else {
+            array_1d<Plane, 4>  plane;
+            std::vector<BaseType> Intersection;
+
+            const BaseType& geom_2 = rThisGeometry;
+
+            GetPlanes(plane);
+            Intersection.push_back(geom_2);
+            for (unsigned int i = 0; i < 4; ++i)
+            {
+                std::vector<BaseType> inside;
+                for (unsigned int j = 0; j < Intersection.size(); ++j)
+                {
+                    SplitAndDecompose(Intersection[j], plane[i], inside);
+                }
+                Intersection = inside;
+            }
+
+            return bool (Intersection.size() > 0);
+        }
     }
 
 
