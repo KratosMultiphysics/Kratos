@@ -14,6 +14,8 @@ import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
 import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_gid_output as swimming_DEM_gid_output
 import KratosMultiphysics.SwimmingDEMApplication.embedded as embedded
 import KratosMultiphysics.SwimmingDEMApplication.variables_management as variables_management
+import KratosMultiphysics.SwimmingDEMApplication.derivative_recovery.derivative_recovery_strategy as derivative_recoverer
+
 
 def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
@@ -59,11 +61,15 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
+    @classmethod
+    def GetMainPath(self):
+        return os.getcwd()
+
     def __init__(self, model, parameters = Parameters("{}")):
         sys.stdout = SDEMLogger()
         self.StartTimer()
         self.model = model
-        self.main_path = os.getcwd()
+        self.main_path = self.GetMainPath()
 
         self.SetProjectParameters(parameters)
 
@@ -101,9 +107,12 @@ class SwimmingDEMAnalysis(AnalysisStage):
         import KratosMultiphysics.SwimmingDEMApplication.swimming_dem_default_input_parameters as only_swimming_defaults
         import KratosMultiphysics.DEMApplication.dem_default_input_parameters as dem_defaults
 
+        self.swimming_dem_default_project_parameters = only_swimming_defaults.GetDefaultInputParameters()
+        self.dem_default_project_parameters = dem_defaults.GetDefaultInputParameters()
 
-        self.project_parameters.ValidateAndAssignDefaults(only_swimming_defaults.GetDefaultInputParameters())
-        self.project_parameters["dem_parameters"].ValidateAndAssignDefaults(dem_defaults.GetDefaultInputParameters())
+        self.project_parameters.ValidateAndAssignDefaults(self.swimming_dem_default_project_parameters)
+        self.project_parameters["coupling"]["backward_coupling"].ValidateAndAssignDefaults(self.swimming_dem_default_project_parameters["coupling"]["backward_coupling"])
+        self.project_parameters["dem_parameters"].ValidateAndAssignDefaults(self.dem_default_project_parameters)
 
         # Second, set the default 'beta' parameters (candidates to be moved to the interface)
         self.SetBetaParameters()
@@ -378,12 +387,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.FillHistoryForcePrecalculatedVectors()
 
-        import KratosMultiphysics.SwimmingDEMApplication.derivative_recovery.derivative_recovery_strategy as derivative_recoverer
-
-        self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
-            self.project_parameters,
-            self.fluid_model_part,
-            self.custom_functions_tool)
+        self.GetDerivativeRecoveryStrategy()
 
         self.PerformZeroStepInitializations()
 
@@ -524,6 +528,12 @@ class SwimmingDEMAnalysis(AnalysisStage):
         else:
             Say("Skipping solving system...\n")
 
+    def GetDerivativeRecoveryStrategy(self):
+        self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
+            self.project_parameters,
+            self.fluid_model_part,
+            self.custom_functions_tool)
+
     def PerformZeroStepInitializations(self):
         pass
 
@@ -598,7 +608,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
         Say(final_message)
 
     def GetBackwardCouplingCounter(self):
-        return SDP.Counter(1, 1, self.project_parameters["coupling"]["coupling_level_type"].GetInt() > 1)
+        return SDP.Counter(self.project_parameters["coupling"]["backward_coupling"]["backward_time_interval"].GetInt(), 1,
+                        self.project_parameters["coupling"]["coupling_level_type"].GetInt() > 1)
 
     def GetRecoveryCounter(self):
         there_is_something_to_recover = (
