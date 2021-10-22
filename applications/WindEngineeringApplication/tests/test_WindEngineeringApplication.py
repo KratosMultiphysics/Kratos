@@ -85,13 +85,7 @@ def AssembleTestSuites(enable_mpi=False):
 
 
 def Run(enable_mpi=False):
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning C++ tests ...")
-    run_cpp_tests.Run()
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running C++ tests.")
-
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     UnitTest.runTests(AssembleTestSuites(enable_mpi=enable_mpi))
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running python tests.")
 
 
 if __name__ == "__main__":
