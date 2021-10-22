@@ -331,8 +331,9 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::CalculateStrainRa
 
 template <>
 void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::CalculateStrainRate(TwoFluidNavierStokesCNData<3, 4>& rData) const
-{
-    const BoundedMatrix<double,4,3> mid_step_velocity = 0.5 * (rData.Velocity + rData.Velocity_OldStep1);
+
+{   const double  theta=rData.theta;
+    const BoundedMatrix<double,4,3> mid_step_velocity = theta * (rData.Velocity)+(1-theta)* (rData.Velocity_OldStep1);
     auto& rDNDX = rData.DN_DX;
     auto& r_strain_rate = rData.StrainRate;
     noalias(r_strain_rate) = ZeroVector(6);
@@ -1327,7 +1328,7 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::ComputeGaussPoint
     double volume_error_ratio = 0.0;
     if (rData.IsCut()) {
         const double volume_error =-rData.VolumeError;
-        volume_error_ratio = volume_error / dt;
+        volume_error_ratio = volume_error;
     }
 
     auto &rhs = rData.rhs;
@@ -1448,7 +1449,7 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::ComputeGaussPoint
     double volume_error_ratio = 0.0;
     if (rData.IsCut()) {
         const double volume_error = -rData.VolumeError;
-        volume_error_ratio = volume_error / dt;
+        volume_error_ratio = volume_error;
     }
 
     auto &rhs = rData.rhs;
@@ -1610,7 +1611,7 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::ComputeGaussPoint
     double volume_error_ratio = 0.0;
     if (rData.IsCut()) {
         const double volume_error = -rData.VolumeError;
-        volume_error_ratio = volume_error / dt;
+        volume_error_ratio = volume_error;
     }
 
     auto &V = rData.V;
@@ -1809,7 +1810,7 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::ComputeGaussPoint
     double volume_error_ratio = 0.0;
     if (rData.IsCut()) {
         const double volume_error =-rData.VolumeError;
-        volume_error_ratio = volume_error / dt;
+        volume_error_ratio = volume_error;
     }
 
     auto &V = rData.V;
