@@ -776,8 +776,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocity(
 {
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction,rData.N);
-    array_1d<double,3> resolved_convection_velocity = this->FullConvectiveVelocity(rData);
-    const double dt = rData.DeltaTime;
+
     array_1d<double,3> predicted_subscale_velocity = ZeroVector(3);
 
     const array_1d<double,Dim>& r_old_subscale_velocity = mOldSubscaleVelocity[rData.IntegrationPointIndex];
@@ -793,20 +792,22 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocity(
         }
     }
 
-    // Part of the residual that does not depend on the subscale
-    array_1d<double,3> static_residual = ZeroVector(3);
-
-    // Note I'm only using large scale convection here, small-scale convection is re-evaluated at each iteration.
-    if (!rData.UseOSS)
-        this->AlgebraicMomentumResidual(rData,resolved_convection_velocity,static_residual);
-    else
-        this->OrthogonalMomentumResidual(rData,resolved_convection_velocity,static_residual);
-
     array_1d<double,3> v_d = ZeroVector(Dim);
     for (unsigned int d = 0; d < Dim; d++)
     {
         v_d[d] = previous_velocity[d] + previous_subscale_velocity[d];
     }
+    const double dt = rData.DeltaTime;
+
+    // Part of the residual that does not depend on the subscale
+    array_1d<double,3> static_residual = ZeroVector(3);
+
+    if (!rData.UseOSS)
+        this->AlgebraicMomentumResidual(rData,v_d,static_residual);
+    else
+        this->OrthogonalMomentumResidual(rData,v_d,static_residual);
+
+
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
 
