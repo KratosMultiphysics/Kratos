@@ -20,7 +20,7 @@ class SumDistributedToSingle(CoSimulationDataTransferOperator):
 
         value = sum(data_array)
         if from_solver_data.IsDistributed():
-            value = from_solver_data.GetModelPart.GetCommunicator().GetDataCommunicator().SumAll(value)
+            value = from_solver_data.model_part.GetCommunicator().GetDataCommunicator().SumAll(value)
         summed_data_array = np.array([value])
 
         # the order is IMPORTANT here!
