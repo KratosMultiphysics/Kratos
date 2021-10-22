@@ -45,9 +45,9 @@ void DepthIntegrationProcess::Execute()
     GetVolumePartBounds(bottom, top);
     FindIntersectedObjectsUtility intersections(mrVolumeModelPart);
     for (auto& node : mrInterfaceModelPart.Nodes()) {
-        auto integration_line = CreateIntegrationLine(node, bottom, top);
+        GeometryType::Pointer integration_line = CreateIntegrationLine(node, bottom, top);
         PointerVector<GeometricalObject> intersected_objects;
-        intersections.FindIntersectedObjects(*integration_line, intersected_objects);
+        intersections.FindIntersectedObjects(integration_line, intersected_objects);
         Integrate(intersected_objects, node);
     }
 }
@@ -70,7 +70,7 @@ void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjec
         }
         velocity += obj_velocity;
         min_elevation = std::min(min_elevation, obj_min_elevation);
-        max_elevation = std::min(max_elevation, obj_max_elevation);
+        max_elevation = std::max(max_elevation, obj_max_elevation);
         num_nodes += obj_num_nodes;
     }
     velocity /= num_nodes;
@@ -83,7 +83,7 @@ void DepthIntegrationProcess::GetVolumePartBounds(double& rMin, double& rMax)
 {
     using MultipleReduction = CombinedReduction<MinReduction<double>,MaxReduction<double>>; 
 
-    std::tie(rMin, rMax) = block_for_each<MultipleReduction>(mrInterfaceModelPart.Nodes(), [&](NodeType& node){
+    std::tie(rMin, rMax) = block_for_each<MultipleReduction>(mrVolumeModelPart.Nodes(), [&](NodeType& node){
         const double distance = inner_prod(mDirection, node);
         return std::make_tuple(distance, distance);
     });

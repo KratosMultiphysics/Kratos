@@ -108,7 +108,7 @@ public:
 
     void UpdateSearchStructure();
 
-    void FindIntersectedObjects(const GeometryType& rGeometry, PointerVector<GeometricalObject>& rResults);
+    void FindIntersectedObjects(GeometryType::Pointer rGeometry, PointerVector<GeometricalObject>& rResults);
 
     ///@}
     ///@name Access

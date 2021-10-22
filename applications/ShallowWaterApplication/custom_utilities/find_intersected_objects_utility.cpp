@@ -32,12 +32,14 @@ KRATOS_CREATE_LOCAL_FLAG(FindIntersectedObjectsUtility, INTERSECT_CONDITIONS, 1)
 FindIntersectedObjectsUtility::FindIntersectedObjectsUtility(
     ModelPart& rThisModelPart,
     Parameters ThisParameters
-) : mrModelPart(rThisModelPart)
+) : mrModelPart(rThisModelPart),
+    mpOctree(new OctreeType())
 {
     Parameters default_parameters(R"({
         "intersect_elements"   : true,
         "intersect_conditions" : false
     })");
+    ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     // Set the flags
     const bool intersect_elements = ThisParameters["intersect_elements"].GetBool();
@@ -59,14 +61,14 @@ void FindIntersectedObjectsUtility::UpdateSearchStructure()
 }
 
 void FindIntersectedObjectsUtility::FindIntersectedObjects(
-    const GeometryType& rGeometry,
+    GeometryType::Pointer pGeometry,
     PointerVector<GeometricalObject>& rResults)
 {
     OctreeCellVectorType leaves;
     leaves.clear();
-    auto p_geometrical_object = Kratos::make_intrusive<GeometricalObject>(0, Kratos::make_shared<GeometryType>(rGeometry));
+    auto p_geometrical_object = Kratos::make_intrusive<GeometricalObject>(0, pGeometry);
     mpOctree->GetIntersectedLeaves(p_geometrical_object, leaves);
-    FindIntersectedObjects(rGeometry, leaves, rResults);
+    FindIntersectedObjects(*pGeometry, leaves, rResults);
 }
 
 void FindIntersectedObjectsUtility::FindIntersectedObjects(
