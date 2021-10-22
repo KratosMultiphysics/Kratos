@@ -180,17 +180,16 @@ namespace Kratos {
             int mesh_size = mp.NumberOfNodes();
             if (!mesh_size) continue;
             ModelPart::NodesContainerType::ContainerType& all_nodes = mp.NodesArray();
-            std::string& identifier = mp[IDENTIFIER];
             mp[INLET_INITIAL_VELOCITY] = mp[LINEAR_VELOCITY];    //This is the velocity of the moving injector of particles
             mp[INLET_INITIAL_PARTICLES_VELOCITY] = mp[VELOCITY]; //This is the initial velocity vector of the injected particles
 
             array_1d<double, 3>& inlet_velocity = mp[VELOCITY];
 
-            KRATOS_ERROR_IF((inlet_velocity[0] == 0.0) && (inlet_velocity[1] == 0.0) && (inlet_velocity[2] == 0.0)) << "The inlet velocity cannot be zero for group " << identifier << std::endl;
+            KRATOS_ERROR_IF((inlet_velocity[0] == 0.0) && (inlet_velocity[1] == 0.0) && (inlet_velocity[2] == 0.0)) << "The inlet velocity cannot be zero for inlet: " << mp.Name() << std::endl;
 
             double max_rand_dev_angle = mp[MAX_RAND_DEVIATION_ANGLE];
 
-            KRATOS_ERROR_IF(max_rand_dev_angle < 0.0 || max_rand_dev_angle > 89.5) << "The velocity deviation angle must be between 0 and 89.5 degrees for group "<< identifier << std::endl;
+            KRATOS_ERROR_IF(max_rand_dev_angle < 0.0 || max_rand_dev_angle > 89.5) << "The velocity deviation angle must be between 0 and 89.5 degrees for inlet: "<< mp.Name() << std::endl;
 
             Properties::Pointer p_properties = r_modelpart.pGetProperties(mp[PROPERTIES_ID]);
             int general_properties_id = p_properties->Id();

@@ -901,7 +901,7 @@ class DEMFEMProcedures():
         def open_graph_files(self, rigid_face_model_part):
             for smp in self.rigid_face_model_part.SubModelParts:
                 if smp[FORCE_INTEGRATION_GROUP]:
-                    identifier = smp[IDENTIFIER]
+                    identifier = smp.Name
                     absolute_path_to_file = os.path.join(self.graphs_path, str(self.DEM_parameters["problem_name"].GetString()) + "_" + str(identifier) + "_force_graph.grf")
                     self.graph_forces[identifier] = open(absolute_path_to_file, 'w')
                     self.graph_forces[identifier].write(str("#time").rjust(12) + " " + str("total_force[0]").rjust(13) + " " + str("total_force[1]").rjust(13) + " " + str("total_force[2]").rjust(13) + " " + str("total_moment[0]").rjust(13) + " " + str("total_moment[1]").rjust(13) + " " + str("total_moment[2]").rjust(13) + "\n")
@@ -911,7 +911,7 @@ class DEMFEMProcedures():
         def open_balls_graph_files(self, spheres_model_part):
             for smp in self.spheres_model_part.SubModelParts:
                 if smp[FORCE_INTEGRATION_GROUP]:
-                    identifier = smp[IDENTIFIER]
+                    identifier = smp.Name
                     absolute_path_to_file = os.path.join(self.graphs_path, str(self.DEM_parameters["problem_name"].GetString()) + "_" + str(identifier) + "_particle_force_graph.grf")
                     self.particle_graph_forces[identifier] = open(absolute_path_to_file, 'w')
                     self.particle_graph_forces[identifier].write(str("#time").rjust(12) + " " + str("total_force_x").rjust(13) + " " + str("total_force_y").rjust(13) + " " + str("total_force_z").rjust(13) + "\n")
@@ -986,14 +986,14 @@ class DEMFEMProcedures():
 
         for smp in self.rigid_face_model_part.SubModelParts:
             if smp[FORCE_INTEGRATION_GROUP]:
-                identifier = smp[IDENTIFIER]
+                identifier = smp.Name
                 self.graph_forces[identifier].close()
 
     def close_balls_graph_files(self, spheres_model_part):
 
         for smp in self.spheres_model_part.SubModelParts:
             if smp[FORCE_INTEGRATION_GROUP]:
-                identifier = smp[IDENTIFIER]
+                identifier = smp.Name
                 self.particle_graph_forces[identifier].close()
 
     @classmethod
@@ -1033,7 +1033,7 @@ class DEMFEMProcedures():
 
                         PostUtilities().IntegrationOfForces(mesh_nodes, total_force, rotation_center, total_moment)
 
-                        identifier = smp[IDENTIFIER]
+                        identifier = smp.Name
 
                         self.graph_forces[identifier].write(str("%.8g" % time).rjust(12) +
                                                             " " + str("%.6g" % total_force[0]).rjust(13) + " " + str("%.6g" % total_force[1]).rjust(13) +
@@ -1066,7 +1066,7 @@ class DEMFEMProcedures():
 
                         PostUtilities().IntegrationOfElasticForces(mesh_nodes, total_force)
 
-                        identifier = smp[IDENTIFIER]
+                        identifier = smp.Name
                         self.particle_graph_forces[identifier].write(str("%.8g" % time).rjust(12) + " " + str("%.6g" % total_force[0]).rjust(13) + " " + str("%.6g" % total_force[1]).rjust(13) + " " + str("%.6g" % total_force[2]).rjust(13) + "\n")
                         self.particle_graph_forces[identifier].flush()
 
