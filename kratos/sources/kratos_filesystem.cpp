@@ -125,9 +125,10 @@ std::vector<std::string> ListDirectory(const std::string& rPath)
 
 void CreateDirectoriesThreadSafe(const std::string& rPath)
 {
-    std::error_code ec; // passing the error code so that the functions do not throw
-    while(!ghc::filesystem::exists(rPath, ec)) {
-        ghc::filesystem::create_directories(rPath, ec);
+    if (!ghc::filesystem::exists(rPath)) {
+        ghc::filesystem::create_directories(rPath);
+    }
+    if (!ghc::filesystem::exists(rPath)) { // wait for the path to appear in the filesystem
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }
