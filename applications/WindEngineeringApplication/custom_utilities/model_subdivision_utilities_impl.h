@@ -34,7 +34,7 @@ inline void ModelSubdivisionUtilities::ThreadSafeIndexSet::Push(ModelPart* pSubM
     // Note: the case where pSubModelPart==NULL is valid, and means the value will not be pushed anywhere
     if (pSubModelPart) {
         auto& rPair = mIndexSets[pSubModelPart];
-        std::lock_guard<std::mutex> lock(*rPair.second); // replace with std::scoped_lock (c++17)
+        std::lock_guard<LockType> lock(*rPair.second); // replace with std::scoped_lock (c++17)
         rPair.first.push_back(value);
     }
 

@@ -15,9 +15,7 @@
 
 // Project includes
 #include "includes/model_part.h"
-
-// System includes
-#include <mutex>
+#include "includes/lock_object.h"
 
 
 namespace Kratos
@@ -60,7 +58,7 @@ public:
      *  @param sortFunction function that decides which sub model part a node is added to (NULL means it is skipped)
      *  @param rSubModelParts set of sub model parts to sort nodes into
      *  @details calls sortFunction for every node in rModelPart, and adds each of them to a sub model part
-     *  in rSubModelParts. If sortFunction returns NULL, the node is skipped and is not added to any of the model parts. 
+     *  in rSubModelParts. If sortFunction returns NULL, the node is skipped and is not added to any of the model parts.
      */
     static void SortNodes(
         ModelPart& rModelPart,
@@ -72,7 +70,7 @@ public:
      *  @param sortFunction function that decides which sub model part a element is added to (NULL means it is skipped)
      *  @param rSubModelParts set of sub model parts to sort elements into
      *  @details calls sortFunction for every element in rModelPart, and adds each of them to a sub model part
-     *  in rSubModelParts. If sortFunction returns NULL, the element is skipped and is not added to any of the model parts. 
+     *  in rSubModelParts. If sortFunction returns NULL, the element is skipped and is not added to any of the model parts.
      */
     static void SortElements(
         ModelPart& rModelPart,
@@ -84,7 +82,7 @@ public:
      *  @param sortFunction function that decides which sub model part a condition is added to (NULL means it is skipped)
      *  @param rSubModelParts set of sub model parts to sort conditions into
      *  @details calls sortFunction for every condition in rModelPart, and adds each of them to a sub model part
-     *  in rSubModelParts. If sortFunction returns NULL, the condition is skipped and is not added to any of the model parts. 
+     *  in rSubModelParts. If sortFunction returns NULL, the condition is skipped and is not added to any of the model parts.
      */
     static void SortConditions(
         ModelPart& rModelPart,
@@ -114,9 +112,11 @@ protected:
         void Apply(TFunction function);
 
     private:
+        using LockType = LockObject;
+
         std::map<ModelPart*,
                  std::pair<std::vector<IndexType>,
-                           unique_ptr<std::mutex>>> mIndexSets;
+                           unique_ptr<LockType>>> mIndexSets;
     };
 
 
@@ -192,4 +192,4 @@ protected:
 
 #include "model_subdivision_utilities_impl.h"
 
-#endif // KRATOS_MODEL_SUBDIVISION_UTILITIES 
+#endif // KRATOS_MODEL_SUBDIVISION_UTILITIES

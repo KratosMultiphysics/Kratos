@@ -158,7 +158,7 @@ ModelSubdivisionUtilities::ThreadSafeIndexSet::ThreadSafeIndexSet(std::vector<Mo
     for (ModelPart* p_model_part : rSubModelParts) {
         mIndexSets.emplace(std::make_pair(
             p_model_part,
-            std::make_pair(std::vector<IndexType>(), make_unique<std::mutex>())
+            std::make_pair(std::vector<IndexType>(), make_unique<LockType>())
         ));
     }
 }
@@ -266,4 +266,4 @@ std::size_t ModelSubdivisionUtilities::SlabStack::size() const
 
 
 } // namespace Wind
-} // namespace Kratos 
+} // namespace Kratos
