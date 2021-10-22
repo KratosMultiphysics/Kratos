@@ -1494,6 +1494,17 @@ class BodyFittedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnal
             qoi_list = [self.response_function.CalculateValue(self.primal_model_part)]
             print("StochasticAdjointResponse", " Lift Coefficient: ",qoi_list[0],  "Number of nodes", self.primal_model_part.NumberOfNodes())
 
+        if self.main_qoi == "min_pressure":
+            nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
+            nodal_value_process.Execute()
+            if (self.mapping is not True):
+                min_pressure = min([node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT) for node in self.adjoint_analysis._GetSolver().main_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes])
+                qoi_list = [min_pressure]
+            elif (self.mapping is True):
+                min_pressure = min([node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT) for node in self.mapping_reference_model.GetModelPart(self.main_model_part_name).GetSubModelPart(self.design_surface_sub_model_part_name).Nodes])
+                qoi_list = [min_pressure]
+            print("StochasticAdjointResponse", " Min pressure: ",qoi_list[0], "Number of nodes", self.primal_model_part.NumberOfNodes())
+
         # pressure_coefficient = []
         # nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
         # nodal_value_process.Execute()

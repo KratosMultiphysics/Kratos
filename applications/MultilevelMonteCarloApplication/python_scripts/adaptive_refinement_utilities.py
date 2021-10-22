@@ -95,6 +95,12 @@ class AdaptiveRefinement(object):
             metric_process = KratosMultiphysics.MeshingApplication.ComputeLevelSetSolMetricProcess2D(model_coarse.GetModelPart(model_part_name),  KratosMultiphysics.DISTANCE_GRADIENT, level_set_metric_parameters)
             metric_process.Execute()
             metric_param.RemoveValue("level_set_strategy_parameters")
+        else:
+            primal_model_part = model_coarse.GetModelPart(model_part_name)
+            find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(primal_model_part)
+            find_nodal_h.Execute()
+            KratosMultiphysics.CompressiblePotentialFlowApplication.PotentialFlowUtilities.ComputeMeshMetrics2D(primal_model_part)
+            KratosMultiphysics.VariableUtils().SaveNonHistoricalVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.POTENTIAL_METRIC_TENSOR_2D,KratosMultiphysics.MeshingApplication.METRIC_TENSOR_2D, primal_model_part.Nodes)
 
 
         if (self.metric is "hessian"):
