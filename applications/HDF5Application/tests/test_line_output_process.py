@@ -14,15 +14,15 @@ class TestLineOutputProcess(UnitTest.TestCase):
 
 
     def setUp(self):
-        if self.communicator.Rank() == 1:
-            KratosUtils.DeleteFileIfExisting(self.file_name)
+        KratosUtils.DeleteFileIfExisting(self.file_name)
         self.communicator.Barrier()
 
 
     def tearDown(self):
-        if self.communicator.Rank() == 1:
-            #KratosUtils.DeleteFileIfExisting(self.file_name)
-            pass
+        # The output file is not actually checked yet in the script,
+        # so if you need to validate the results, comment the line
+        # below.
+        KratosUtils.DeleteFileIfExisting(self.file_name)
 
 
     def test_LineOutputProcess(self):
