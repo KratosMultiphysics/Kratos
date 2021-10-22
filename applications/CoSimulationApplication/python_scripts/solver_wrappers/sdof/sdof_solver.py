@@ -184,7 +184,7 @@ class SDoFSolver(object):
         if data_comm.Rank()==0:
             
             # Create the directory where the results will be stored
-            output_file_path = os.path.dirname()
+            output_file_path = os.path.dirname(self.output_file_name)
             if not os.path.exists(output_file_path):
                 os.makedirs(output_file_path)
 
