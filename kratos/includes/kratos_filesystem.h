@@ -81,6 +81,13 @@ std::string KRATOS_API(KRATOS_CORE) JoinPaths(const std::vector<std::string>& rP
  */
 std::vector<std::string> KRATOS_API(KRATOS_CORE) ListDirectory(const std::string& rPath);
 
+/**
+ * @brief Create directories in a thread safe way if it doesn't exist. It returns only after the folder exists
+ *
+ * @param rPath                         Path
+ */
+void KRATOS_API(KRATOS_CORE) CreateDirectoriesThreadSafe(const std::string& rPath);
+
 } // namespace FilesystemExtensions
 } // namespace Kratos
 
