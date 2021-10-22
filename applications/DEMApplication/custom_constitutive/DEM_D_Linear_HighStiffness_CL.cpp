@@ -10,8 +10,7 @@ namespace Kratos {
     }
 
     std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_Linear_HighStiffness::CloneUnique() {
-        auto ptr = std::unique_ptr<DEMDiscontinuumConstitutiveLaw>{new DEM_D_Linear_HighStiffness};
-        return ptr;
+        return Kratos::make_unique<DEM_D_Linear_HighStiffness>();
     }
 
     void DEM_D_Linear_HighStiffness::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {

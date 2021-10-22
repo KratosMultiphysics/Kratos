@@ -40,9 +40,10 @@ namespace Kratos {
     }
 
     std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_Bentonite_Colloid::CloneUnique() {
-        auto ptr = std::unique_ptr<DEMDiscontinuumConstitutiveLaw>{new DEM_D_Bentonite_Colloid};
-        return ptr;
+        return Kratos::make_unique<DEM_D_Bentonite_Colloid>();
     }
+
+
 
     void DEM_D_Bentonite_Colloid::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         KRATOS_INFO("DEM") << "Assigning DEM_D_Bentonite_Colloid to Properties " << pProp->Id() << std::endl;

@@ -13,8 +13,7 @@ namespace Kratos {
     }
 
     std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_Conical_damage::CloneUnique() {
-        auto ptr = std::unique_ptr<DEMDiscontinuumConstitutiveLaw>{new DEM_D_Conical_damage};
-        return ptr;
+        return Kratos::make_unique<DEM_D_Conical_damage>();
     }
 
     void DEM_D_Conical_damage::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {

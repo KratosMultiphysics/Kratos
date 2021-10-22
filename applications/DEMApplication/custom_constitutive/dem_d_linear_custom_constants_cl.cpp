@@ -12,8 +12,7 @@ namespace Kratos {
     }
 
     std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_Linear_Custom_Constants::CloneUnique() {
-        auto ptr = std::unique_ptr<DEMDiscontinuumConstitutiveLaw>{new DEM_D_Linear_Custom_Constants};
-        return ptr;
+        return Kratos::make_unique<DEM_D_Linear_Custom_Constants>();
     }
 
     void DEM_D_Linear_Custom_Constants::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
