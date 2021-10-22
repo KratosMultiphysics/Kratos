@@ -443,41 +443,39 @@ void QSVMSDEMCoupled<TElementData>::CalculateTau(
     BoundedMatrix<double,Dim,Dim> &TauOne,
     double &TauTwo) const
 {
+    double tau_one;
+    double inv_tau;
+
     constexpr double c1 = 8.0;
     constexpr double c2 = 2.0;
 
     const double h = rData.ElementSize;
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.EffectiveViscosity,rData.N);
+    double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
-    BoundedMatrix<double,Dim,Dim> non_diag_tau_one = ZeroMatrix(Dim, Dim);
-    BoundedMatrix<double,Dim,Dim> inv_tau = ZeroMatrix(Dim, Dim);
     BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
     BoundedMatrix<double,Dim,Dim> eigen_values_matrix, eigen_vectors_matrix;
-    BoundedMatrix<double,Dim,Dim> inv_eigen_matrix = ZeroMatrix(Dim, Dim);
 
     double det_permeability = MathUtils<double>::Det(permeability);
     MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
-    double velocity_norm = Velocity[0]*Velocity[0];
-    for (unsigned int d = 1; d < Dim; d++)
+    double velocity_norm = 0.0;
+    double sigma_term = 0.0;
+    for (unsigned int d = 0; d < Dim; d++){
         velocity_norm += Velocity[d]*Velocity[d];
+        for (unsigned int e = d; e < Dim; e++){
+            sigma_term += std::pow(sigma(d,e),2);
+        }
+    }
+
     velocity_norm = std::sqrt(velocity_norm);
+    inv_tau = c1 * viscosity / (h*h) + density * (c2 * velocity_norm / h ) + std::sqrt(sigma_term);
 
-    inv_tau = (c1 * viscosity / (h*h) + density * ( rData.DynamicTau/rData.DeltaTime + c2 * velocity_norm / h )) * I + viscosity * sigma;
-
-    double det_inv_tau = MathUtils<double>::Det(inv_tau);
-    MathUtils<double>::InvertMatrix(inv_tau, non_diag_tau_one, det_inv_tau, -1.0);
-
-    MathUtils<double>::GaussSeidelEigenSystem<BoundedMatrix<double,Dim,Dim>, BoundedMatrix<double,Dim,Dim>>(non_diag_tau_one, eigen_vectors_matrix, eigen_values_matrix);
-
-    double det_eigen_vectors_matrix = MathUtils<double>::Det(eigen_vectors_matrix);
-    MathUtils<double>::InvertMatrix(eigen_vectors_matrix, inv_eigen_matrix, det_eigen_vectors_matrix, -1.0);
-
-    BoundedMatrix<double,Dim,Dim> inv_PTau = prod(inv_eigen_matrix, non_diag_tau_one);
-    TauOne = prod(inv_PTau, eigen_vectors_matrix);
-    TauTwo = viscosity + c2 * density * velocity_norm * h / c1;
+    tau_one = 1 / inv_tau;
+    TauOne = tau_one * I;
+    TauTwo = h * h / (c1 * fluid_fraction * tau_one);
 }
 
 template< class TElementData >

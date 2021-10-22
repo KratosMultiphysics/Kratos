@@ -32,14 +32,17 @@ template< class TElementData >
 DVMSDEMCoupled<TElementData>::DVMSDEMCoupled(IndexType NewId):
     DVMS<TElementData>(NewId),
     mPredictedSubscaleVelocity(),
-    mOldSubscaleVelocity()
+    mOldSubscaleVelocity(),
+    mPreviousVelocity()
+
 {}
 
 template< class TElementData >
 DVMSDEMCoupled<TElementData>::DVMSDEMCoupled(IndexType NewId, const NodesArrayType& ThisNodes):
     DVMS<TElementData>(NewId,ThisNodes),
     mPredictedSubscaleVelocity(),
-    mOldSubscaleVelocity()
+    mOldSubscaleVelocity(),
+    mPreviousVelocity()
 {}
 
 
@@ -47,7 +50,8 @@ template< class TElementData >
 DVMSDEMCoupled<TElementData>::DVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry):
     DVMS<TElementData>(NewId,pGeometry),
     mPredictedSubscaleVelocity(),
-    mOldSubscaleVelocity()
+    mOldSubscaleVelocity(),
+    mPreviousVelocity()
 {}
 
 
@@ -55,7 +59,8 @@ template< class TElementData >
 DVMSDEMCoupled<TElementData>::DVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties):
     DVMS<TElementData>(NewId,pGeometry,pProperties),
     mPredictedSubscaleVelocity(),
-    mOldSubscaleVelocity()
+    mOldSubscaleVelocity(),
+    mPreviousVelocity()
 {}
 
 
@@ -99,10 +104,19 @@ void DVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCurrentProcess
 
     // The prediction is updated before each non-linear iteration:
     // It is not stored in a restart and can be safely initialized.
+    mPreviousVelocity.resize(number_of_gauss_points);
+
+    // The old velocity may be already defined (if restarting)
+    // and we want to keep the loaded values in that case.
+    if (mPreviousVelocity.size() != number_of_gauss_points)
+    {
+        mPreviousVelocity.resize(number_of_gauss_points);
+        for (unsigned int g = 0; g < number_of_gauss_points; g++)
+            mPreviousVelocity[g] = ZeroVector(Dim);
+    }
+
     mPredictedSubscaleVelocity.resize(number_of_gauss_points);
     for (unsigned int g = 0; g < number_of_gauss_points; g++)
-        mPredictedSubscaleVelocity[g] = ZeroVector(Dim);
-
     // The old velocity may be already defined (if restarting)
     // and we want to keep the loaded values in that case.
     if (mOldSubscaleVelocity.size() != number_of_gauss_points)
@@ -111,7 +125,6 @@ void DVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCurrentProcess
         for (unsigned int g = 0; g < number_of_gauss_points; g++)
             mOldSubscaleVelocity[g] = ZeroVector(Dim);
     }
-
 }
 
 template <class TElementData>
@@ -157,6 +170,25 @@ void DVMSDEMCoupled<TElementData>::InitializeNonLinearIteration(const ProcessInf
         this->UpdateIntegrationPointData(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g]);
 
         this->UpdateSubscaleVelocityPrediction(data);
+    }
+}
+
+template <class TElementData>
+void DVMSDEMCoupled<TElementData>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_function_derivatives;
+    this->CalculateGeometryData(gauss_weights,shape_functions,shape_function_derivatives);
+    const unsigned int number_of_integration_points = gauss_weights.size();
+
+    TElementData data;
+    data.Initialize(*this,rCurrentProcessInfo);
+    for (unsigned int g = 0; g < number_of_integration_points; g++) {
+        this->UpdateIntegrationPointData(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g]);
+
+        this->UpdateSubscaleVelocity(data);
     }
 }
 
@@ -260,6 +292,12 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
     const array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N);
 
     const array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(rData);
+    array_1d<double,3> velocity = this->GetAtCoordinate(rData.Velocity,rData.N);
+
+    array_1d<double,Dim>& r_prev_velocity = mPreviousVelocity[rData.IntegrationPointIndex];
+    for (unsigned int n = 0; n < Dim; n++){
+        r_prev_velocity[n] = velocity[n];
+    }
 
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
@@ -501,6 +539,7 @@ void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     const double h = rData.ElementSize;
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.EffectiveViscosity,rData.N);
+    double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     constexpr double c1 = DVMS<TElementData>::mTauC1;
     constexpr double c2 = DVMS<TElementData>::mTauC2;
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
@@ -521,11 +560,11 @@ void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
 
     velocity_norm = std::sqrt(velocity_norm);
 
-    inv_tau = (c1 * viscosity / (h * h) + density * ( 1.0 / rData.DeltaTime + c2 * velocity_norm / h ) + viscosity * std::sqrt(sigma_term));
+    inv_tau = c1 * viscosity / (h * h) + density * ( 1.0 / rData.DeltaTime + c2 * velocity_norm / h ) + viscosity * std::sqrt(sigma_term);
 
     tau_one = 1 / inv_tau;
     TauOne = tau_one * I;
-    TauTwo = viscosity + density * c2 * velocity_norm * h / c1;
+    TauTwo = h * h / (c1 * fluid_fraction * tau_one);
 }
 
 template< class TElementData >
@@ -592,6 +631,55 @@ array_1d<double,3> DVMSDEMCoupled<TElementData>::FullConvectiveVelocity(
     }
 
     return convective_velocity;
+}
+
+template< class TElementData >
+void DVMSDEMCoupled<TElementData>::UpdateSubscaleVelocity(
+    const TElementData& rData)
+{
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
+    double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction,rData.N);
+    array_1d<double,3> predicted_subscale_velocity = ZeroVector(3);
+
+    const array_1d<double,Dim>& r_old_subscale_velocity = mOldSubscaleVelocity[rData.IntegrationPointIndex];
+
+    array_1d<double, 3> previous_subscale_velocity = ZeroVector(3);
+
+    array_1d<double, 3> previous_velocity = mPreviousVelocity[rData.IntegrationPointIndex];
+
+    for (size_t i = 0; i < NumNodes; i++) {
+        array_1d<double, 3> subscale_velocity_on_previous_iteration = mPredictedSubscaleVelocity[rData.IntegrationPointIndex];
+        for (size_t d = 0; d < Dim; d++) {
+            previous_subscale_velocity[d] += rData.N[i] * subscale_velocity_on_previous_iteration[d];
+        }
+    }
+    array_1d<double,3> v_d = ZeroVector(Dim);
+    for (unsigned int d = 0; d < Dim; d++)
+    {
+        v_d[d] = previous_velocity[d] + previous_subscale_velocity[d];
+    }
+    const double dt = rData.DeltaTime;
+
+    // Part of the residual that does not depend on the subscale
+    array_1d<double,3> static_residual = ZeroVector(3);
+
+    if (!rData.UseOSS)
+        this->AlgebraicMomentumResidual(rData,v_d,static_residual);
+    else
+        this->OrthogonalMomentumResidual(rData,v_d,static_residual);
+
+
+    BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
+    double tau_two;
+
+    this->CalculateStabilizationParameters(rData,v_d,tau_one,tau_two);
+
+    for (unsigned int d = 0; d < Dim; d++)
+    {
+        predicted_subscale_velocity[d] = tau_one(d,d) * (static_residual[d] + fluid_fraction * (density/dt)*r_old_subscale_velocity[d]);
+    }
+    noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = predicted_subscale_velocity;
+
 }
 
 template< class TElementData >
