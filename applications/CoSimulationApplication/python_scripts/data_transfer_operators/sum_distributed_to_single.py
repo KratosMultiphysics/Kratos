@@ -13,7 +13,6 @@ class SumDistributedToSingle(CoSimulationDataTransferOperator):
     """
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         to_solver_data_value = to_solver_data.GetData()
-
         data_comm = to_solver_data.model_part.GetCommunicator().GetDataCommunicator()
 
         if (not data_comm.SumAll(to_solver_data_value.size) == 1):        
@@ -21,7 +20,12 @@ class SumDistributedToSingle(CoSimulationDataTransferOperator):
 
         data_array = from_solver_data.GetData()
 
-        value = sum(data_array)
+        # Get Value from solver, if not existent set 0
+        if data_array.size == 0:
+            value = float(0)
+        else:
+            value = sum(data_array)  
+        
         if from_solver_data.IsDistributed():
             value = from_solver_data.model_part.GetCommunicator().GetDataCommunicator().SumAll(value)
         summed_data_array = np.array([value])
