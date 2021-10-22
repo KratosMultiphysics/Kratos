@@ -54,28 +54,16 @@ class TestComputeLevelForceProcess(TestCase):
             model).ExecuteFinalizeSolutionStep()
 
         force, torque = ComputeLevelForceProcess.ParseOutput(GetFilePath("test_compute_level_force_process_0.dat"))
-        self.assertAlmostEqual(force[0], 7.2)
-        self.assertAlmostEqual(force[1], -36.0)
-        self.assertAlmostEqual(force[2], 36.0)
-        self.assertAlmostEqual(torque[0], 52.8)
-        self.assertAlmostEqual(torque[1], 0.84)
-        self.assertAlmostEqual(torque[2], -8.04)
+        self.assertVectorAlmostEqual(force, [7.2, -36.0, 36.0])
+        self.assertVectorAlmostEqual(torque, [52.8, 0.84, -8.04])
 
         force, torque = ComputeLevelForceProcess.ParseOutput(GetFilePath("test_compute_level_force_process_1.dat"))
-        self.assertAlmostEqual(force[0], 14.4)
-        self.assertAlmostEqual(force[1], -18.0)
-        self.assertAlmostEqual(force[2], 18.0)
-        self.assertAlmostEqual(torque[0], 26.4)
-        self.assertAlmostEqual(torque[1], 1.68)
-        self.assertAlmostEqual(torque[2], -16.08)
+        self.assertVectorAlmostEqual(force, [14.4, -18.0, 18.0])
+        self.assertVectorAlmostEqual(torque, [26.4, 1.68, -16.08])
 
         force, torque = ComputeLevelForceProcess.ParseOutput(GetFilePath("test_compute_level_force_process_2.dat"))
-        self.assertAlmostEqual(force[0], 50.4)
-        self.assertAlmostEqual(force[1], -36.0)
-        self.assertAlmostEqual(force[2], 36.0)
-        self.assertAlmostEqual(torque[0], 52.8)
-        self.assertAlmostEqual(torque[1], 5.88)
-        self.assertAlmostEqual(torque[2], -56.28)
+        self.assertVectorAlmostEqual(force, [50.4, -36.0, 36.0])
+        self.assertVectorAlmostEqual(torque, [52.8, 5.88, -56.28])
 
 
     @classmethod

@@ -9,7 +9,7 @@ import sys
 
 def Factory(parameters, model):
     if not isinstance(parameters, KratosMultiphysics.Parameters):
-        raise TypeError(f"expecting Parameters object encapsulating a json string, but got {type(parameters)}")
+        raise TypeError("expecting a Parameters object encapsulating a json string, but got {}".format(type(parameters)))
     return SetMeshMotionAndGetForcesProcess(model, parameters["Parameters"])
 
 
@@ -27,7 +27,7 @@ class SetMeshMotionAndGetForcesProcess(KratosMultiphysics.Process):
             else:
                 raise Exception("The second value of interval can be 'End' or a number, interval currently:" +
                     self.parameters["interval"].PrettyPrintJsonString())
-        
+
         self.model_part = model[self.parameters["model_part_name"].GetString()]
 
         # Transformation variables
@@ -228,7 +228,7 @@ class SetMeshMotionAndGetForcesProcess(KratosMultiphysics.Process):
             "forced_flush_step_frequency" : -1
         }""")
 
-    
+
     class Motion:
         def __init__(self):
             self._rampup_time = 0.0

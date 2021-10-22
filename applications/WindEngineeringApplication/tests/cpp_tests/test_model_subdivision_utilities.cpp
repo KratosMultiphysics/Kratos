@@ -154,8 +154,8 @@ KRATOS_TEST_CASE_IN_SUITE(ModelSubdivisionUtilitiesSlab, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(ModelSubdivisionUtilitiesSlabStack, KratosCoreFastSuite)
 {
-    const array_1d<double,3> bottom({-1.0, -1.0, 0.0});
-    const array_1d<double,3> top({1.0, 1.0, 0.0});
+    const array_1d<double,3> bottom {-1.0, -1.0, 0.0};
+    const array_1d<double,3> top {1.0, 1.0, 0.0};
 
     // Check invalid construction
     KRATOS_CHECK_EXCEPTION_IS_THROWN(MockUtility::SlabStack(bottom, top, 0, false), "Number of slabs in a stack must be at least 1");
@@ -182,4 +182,4 @@ KRATOS_TEST_CASE_IN_SUITE(ModelSubdivisionUtilitiesSlabStack, KratosCoreFastSuit
 
 
 } // namespace Testing
-} // namespace Kratos 
+} // namespace Kratos
