@@ -171,9 +171,7 @@ class SDoFSolver(object):
             self.LoadRestart()
 
         #x and dx contain: [displacement, velocity, acceleration]
-        if self.write_output_file:
-            if os.path.isfile(self.output_file_name):
-                os.remove(self.output_file_name)
+        if self.write_output_file:            
             self.InitializeOutput()
 
         #apply external load as an initial impulse
@@ -184,6 +182,16 @@ class SDoFSolver(object):
     def InitializeOutput(self):
         data_comm = KM.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
+            
+            # Create the directory where the results will be stored
+            output_file_path = os.path.dirname()
+            if not os.path.exists(output_file_path):
+                os.makedirs(output_file_path)
+
+            # erase results files from other runs
+            if os.path.isfile(self.output_file_name):
+                os.remove(self.output_file_name)
+
             with open(self.output_file_name, "w") as results_sdof:
                 results_sdof.write("time"+ " " +
                                    "displacement" + " " +
@@ -196,6 +204,7 @@ class SDoFSolver(object):
                                    "relative velocity" + " " +
                                    "relative accleration" + " " +
                                    "reaction" + "\n")
+            
             self.OutputSolutionStep()
 
             #restart
