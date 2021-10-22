@@ -65,6 +65,13 @@ endif(NOT DEFINED CMAKE_INSTALL_MESSAGE)
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
 
+# Generate and copy configuration for language servers
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+EXECUTE_PROCESS(
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+    "${CMAKE_BINARY_DIR}/compile_commands.json"
+    "${CMAKE_SOURCE_DIR}/compile_commands.json")
+
 # Include cmake modules
 include(DownloadLib)
 
