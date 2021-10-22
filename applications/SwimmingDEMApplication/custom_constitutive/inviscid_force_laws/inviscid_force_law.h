@@ -21,7 +21,7 @@ namespace Kratos {
 
         InviscidForceLaw(): mLastVirtualMassAddedMass(0.0){}
 
-        InviscidForceLaw(Parameters& r_parameters): mLastVirtualMassAddedMass(0.0){}
+        InviscidForceLaw(Parameters r_parameters): mLastVirtualMassAddedMass(0.0){}
 
         ~InviscidForceLaw(){}
 

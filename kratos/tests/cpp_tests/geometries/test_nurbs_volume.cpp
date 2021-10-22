@@ -187,6 +187,11 @@ namespace Testing {
                 volume += integration_points[i].Weight() * TruncatedPyramid.DeterminantOfJacobian(integration_points[i].Coordinates());
             }
             KRATOS_CHECK_NEAR(volume, 32.21333333333333, TOLERANCE);
+
+            const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+            const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
+            KRATOS_CHECK_EQUAL(TruncatedPyramid.GetGeometryFamily(), geometry_family);
+            KRATOS_CHECK_EQUAL(TruncatedPyramid.GetGeometryType(), geometry_type);
         }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeGeometryEvaluation1, KratosCoreNurbsGeometriesFastSuite) {
@@ -328,6 +333,12 @@ namespace Testing {
         KRATOS_CHECK_NEAR(global_coordinates[0], 0.7776905789441982,TOLERANCE);
         KRATOS_CHECK_NEAR(global_coordinates[1], -0.6794661290038271,TOLERANCE);
         KRATOS_CHECK_NEAR(global_coordinates[2], 2.4642328320000004,TOLERANCE);
+
+        // Check kratos geometry family
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
+        KRATOS_CHECK_EQUAL(TruncatedPyramid.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(TruncatedPyramid.GetGeometryType(), geometry_type);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeGeometryIntegrationPoints2, KratosCoreNurbsGeometriesFastSuite) {
@@ -347,6 +358,12 @@ namespace Testing {
             volume += integration_points[i].Weight() * DistortedCube.DeterminantOfJacobian(integration_points[i].Coordinates());
         }
         KRATOS_CHECK_NEAR(volume, 44.3259259259, TOLERANCE);
+
+        // Check kratos geometry family
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
+        KRATOS_CHECK_EQUAL(DistortedCube.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(DistortedCube.GetGeometryType(), geometry_type);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeGeometryEvaluation2, KratosCoreNurbsGeometriesFastSuite) {
@@ -415,6 +432,12 @@ namespace Testing {
         KRATOS_CHECK_NEAR(derivatives[9][0], 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(derivatives[9][1], 4.0, TOLERANCE);
         KRATOS_CHECK_NEAR(derivatives[9][2], 0.0, TOLERANCE);
+
+        // Check kratos geometry family
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
+        KRATOS_CHECK_EQUAL(DistortedCube.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(DistortedCube.GetGeometryType(), geometry_type);
     }
 
     /// Check quadrature point geometries of nurbs volume.
@@ -457,6 +480,12 @@ namespace Testing {
             element.GetGeometry().ShapeFunctionDerivatives(2, 0),
             quadrature_points(2)->ShapeFunctionDerivatives(2, 0),
             TOLERANCE);
+
+        // Check kratos geometry family
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
+        KRATOS_CHECK_EQUAL(pyramid.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(pyramid.GetGeometryType(), geometry_type);
     }
 
 } // End namespace Testsing

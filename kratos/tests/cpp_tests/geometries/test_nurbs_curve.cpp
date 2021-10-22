@@ -198,6 +198,11 @@ typedef Node<3> NodeType;
         curve.GlobalSpaceDerivatives(derivatives, parameter, 5);
 
         KRATOS_CHECK_NEAR(derivatives[4][1], 0.0, TOLERANCE);
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
+        KRATOS_CHECK_EQUAL(curve.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(curve.GetGeometryType(), geometry_type);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsCurve3dCircleLength, KratosCoreNurbsGeometriesFastSuite) {
@@ -378,6 +383,11 @@ typedef Node<3> NodeType;
             KRATOS_CHECK_NEAR(derivatives[3][1], -0.005858, TOLERANCE);
             KRATOS_CHECK_NEAR(derivatives[3][2], -0.00265, TOLERANCE);
         }
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
+        KRATOS_CHECK_EQUAL(curve.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(curve.GetGeometryType(), geometry_type);
     }
 
     ///// Test integration points of nurbs curve
@@ -395,8 +405,36 @@ typedef Node<3> NodeType;
             length += integration_points[i].Weight();
         }
         KRATOS_CHECK_NEAR(length, 11.180339887498949, TOLERANCE);
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
+        KRATOS_CHECK_EQUAL(curve.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(curve.GetGeometryType(), geometry_type);
     }
 
+    ///// Test integration points of nurbs curve
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve2dCreateIntegrationPointsGrid, KratosCoreNurbsGeometriesFastSuite) {
+        auto curve = GenerateReferenceCurve2d();
+
+        // Check general information, input to ouput
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        IntegrationInfo integration_info = curve.GetDefaultIntegrationInfo();
+        integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GRID);
+        integration_info.SetNumberOfIntegrationPointsPerSpan(0, 5);
+        curve.CreateIntegrationPoints(integration_points, integration_info);
+
+        KRATOS_CHECK_EQUAL(integration_points.size(), 7);
+        double length = 0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            length += integration_points[i].Weight();
+        }
+        KRATOS_CHECK_NEAR(length, 11.180339887498949, TOLERANCE);
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
+        KRATOS_CHECK_EQUAL(curve.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(curve.GetGeometryType(), geometry_type);
+    }
 
     // test quadrature points of curve on surface
     KRATOS_TEST_CASE_IN_SUITE(NurbsCurve2dCreateQuadraturePoints, KratosCoreNurbsGeometriesFastSuite)
@@ -447,6 +485,11 @@ typedef Node<3> NodeType;
         curve.GlobalCoordinates(global_coords, local_coords);
 
         KRATOS_CHECK_VECTOR_NEAR(quadrature_points[10].Center(), global_coords, TOLERANCE);
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
+        KRATOS_CHECK_EQUAL(curve.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(curve.GetGeometryType(), geometry_type);
     }
 } // namespace Testing.
 } // namespace Kratos.
