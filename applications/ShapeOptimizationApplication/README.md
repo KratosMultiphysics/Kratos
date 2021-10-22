@@ -3,7 +3,7 @@
 The Kratos ShapeOptimizationApplication contains an implementation of the Vertex Morphing method for node-based shape optimzation.
 
 It can be used in combination with the Adjoint Sensitivity Analysis capabilities of the Kratos StructuralMechanicsApplication and ConvectionDiffusionApplication. 
-Additionally it offers an interface to connect external solvers via custom python code.
+Additionally it offers an interface to use external response functions via custom python code.
 
 
 ## Examples
