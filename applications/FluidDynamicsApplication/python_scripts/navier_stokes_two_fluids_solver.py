@@ -269,7 +269,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def InitializeSolutionStep(self):
 
-        # If Crank Nicolson time integration scheme is using,in order to avoid some stabiliztation term the first steps of the simulation can be runned with backward euler time integration scheme. This limit is decided by user.
+        time_step_limit=40
+        time_step=self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+
+        print(time_step)
+        if  time_step < time_step_limit:
+            theta=1
+        else:
+            theta=0.5
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_INTEGRATION_THETA,theta)
 
         if self.initial_first_order:
             time_step=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]
