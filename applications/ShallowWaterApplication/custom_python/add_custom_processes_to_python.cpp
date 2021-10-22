@@ -24,6 +24,7 @@
 #include "custom_processes/apply_perturbation_function_process.h"
 #include "custom_processes/apply_sinusoidal_function_process.h"
 #include "custom_processes/calculate_distance_to_boundary_process.h"
+#include "custom_processes/depth_integration_process.h"
 
 
 namespace Kratos
@@ -66,6 +67,11 @@ namespace Python
         (m, "CalculateDistanceToBoundaryProcess")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        ;
+
+        py::class_<DepthIntegrationProcess, DepthIntegrationProcess::Pointer, Process>
+        (m, "DepthIntegrationProcess")
+        .def(py::init<Model&, Parameters>())
         ;
 
     }
