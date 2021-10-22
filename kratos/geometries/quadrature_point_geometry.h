@@ -534,6 +534,20 @@ public:
     }
 
     ///@}
+    ///@name Kratos Geometry Families
+    ///@{
+
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
+    }
+
+    ///@}
     ///@name Input and output
     ///@{
 
