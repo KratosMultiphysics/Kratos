@@ -31,7 +31,6 @@ void AddCustomSolversToPython(
 {
     namespace py = pybind11;
 
-
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
@@ -39,12 +38,12 @@ void AddCustomSolversToPython(
     typedef AdditiveSchwarzPreconditioner<SpaceType,  LocalSpaceType> AdditiveSchwarzPreconditionerType;
 
     py::class_<AdditiveSchwarzPreconditionerType, AdditiveSchwarzPreconditionerType::Pointer, PreconditionerType>(m,"AdditiveSchwarzPreconditioner")
-    .def(py::init<>() )
-    .def("__str__", PrintObject<AdditiveSchwarzPreconditionerType>)
+        .def(py::init<>() )
+        .def("__str__", PrintObject<AdditiveSchwarzPreconditionerType>)
     ;
 
-    static auto AdditiveSchwarzlPreconditionerFactory = StandardPreconditionerFactory<SpaceType,LocalSpaceType,AdditiveSchwarzPreconditionerType>();
-    KRATOS_REGISTER_PRECONDITIONER("additive_schwarz", AdditiveSchwarzlPreconditionerFactory);
+    static auto AdditiveSchwarzPreconditionerFactory = StandardPreconditionerFactory<SpaceType,LocalSpaceType,AdditiveSchwarzPreconditionerType>();
+    KRATOS_REGISTER_PRECONDITIONER("additive_schwarz", AdditiveSchwarzPreconditionerFactory);
 }
 
 } // namespace Python
