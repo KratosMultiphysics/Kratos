@@ -1,12 +1,9 @@
-# External imports
-import numpy
-
 # Kratos imports
 import KratosMultiphysics
 from KratosMultiphysics.WindEngineeringApplication.compute_level_force_process import ComputeLevelForceProcess
 from KratosMultiphysics.WindEngineeringApplication.compute_level_force_process import Factory as ComputeLevelForceProcessFactory
 import KratosMultiphysics.KratosUnittest as UnitTest
-from KratosMultiphysics.WindEngineeringApplication.test_case import SuiteFlags, TestCase 
+from KratosMultiphysics.WindEngineeringApplication.test_case import SuiteFlags, TestCase
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
 # STL imports
@@ -27,7 +24,7 @@ class TestComputeLevelForceProcess(TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
 
         # Fill a unit cube with nodes and assign reactions to them
-        coordinates = numpy.linspace(0.0, 1.0, num=6)
+        coordinates = [index/5.0 for index in range(6)]
         node_counter = 0
         for x in coordinates:
             for y in coordinates:
@@ -43,8 +40,8 @@ class TestComputeLevelForceProcess(TestCase):
         {
             "Parameters": {
                 "model_part_name"   : "main",
-                "bottom_point"      : [0.0, 0.0, 0.0],
-                "top_point"         : [0.9, 0.0, 0.0],
+                "bottom_point"      : [-0.1, 0.0, 0.0],
+                "top_point"         : [0.91, 0.0, 0.0],
                 "number_of_slabs"   : 3,
                 "output_name_stub"  : ""
             }
@@ -89,4 +86,4 @@ class TestComputeLevelForceProcess(TestCase):
 
 
 if __name__ == "__main__":
-    UnitTest.main() 
+    UnitTest.main()
