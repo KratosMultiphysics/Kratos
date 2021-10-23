@@ -77,6 +77,12 @@ target_compile_definitions(KratosVersion PRIVATE
 
 ## Define library KratosCore to be included in all of the others
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_TEST_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
+if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
+    MESSAGE(STATUS "Triangle will be compiled for delaunator")
+else(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
+    MESSAGE(STATUS "delaunator-cpp will be compiled for delaunator")
+    add_dependencies(KratosCore delaunator-cpp)
+endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
 # Set the shared external libraries for kratos (gidpost, tyniexpr, json, etc...)
 set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr)
