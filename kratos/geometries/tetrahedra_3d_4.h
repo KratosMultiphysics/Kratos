@@ -1464,25 +1464,22 @@ public:
             if (this->IsInside(rThisGeometry.GetPoint(0), local_point)) {
                 return true;
             }
-        } else { // Both geometries are 3D
-            array_1d<Plane, 4>  plane;
-            std::vector<BaseType> Intersection;
+        }  // Both geometries are 3D
+        array_1d<Plane, 4>  plane;
+        std::vector<BaseType> intersections;
 
-            const BaseType& geom_2 = rThisGeometry;
-
-            GetPlanes(plane);
-            Intersection.push_back(geom_2);
-            for (unsigned int i = 0; i < 4; ++i)
+        GetPlanes(plane);
+        intersections.push_back(rThisGeometry);
+        for (unsigned int i = 0; i < 4; ++i)
+        {
+            std::vector<BaseType> inside;
+            for (unsigned int j = 0; j < intersections.size(); ++j)
             {
-                std::vector<BaseType> inside;
-                for (unsigned int j = 0; j < Intersection.size(); ++j)
-                {
-                    SplitAndDecompose(Intersection[j], plane[i], inside);
-                }
-                Intersection = inside;
+                SplitAndDecompose(intersections[j], plane[i], inside);
             }
-            return bool (Intersection.size() > 0);
+            intersections = inside;
         }
+        return bool (intersections.size() > 0);
     }
 
 
