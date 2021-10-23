@@ -11,7 +11,6 @@
 //
 //
 
-#ifdef USE_TRIANGLE_NONFREE_TPL
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
@@ -48,4 +47,3 @@ KRATOS_TEST_CASE_IN_SUITE(CreateTriangleMeshFromNodes, KratosCoreFastSuite)
 
 }   // namespace Testing
 }  // namespace Kratos.
-#endif
