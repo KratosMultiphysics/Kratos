@@ -10,6 +10,10 @@ namespace Kratos {
         return p_clone;
     }
 
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_Hertz_confined::CloneUnique() {
+        return Kratos::make_unique<DEM_D_Hertz_confined>();
+    }
+
     void DEM_D_Hertz_confined::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         KRATOS_INFO("DEM") << "Assigning DEM_D_Hertz_confined to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
