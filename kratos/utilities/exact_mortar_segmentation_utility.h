@@ -253,6 +253,19 @@ public:
         Matrix& rCustomSolution
         );
 
+
+    /**
+     * @brief This utility computes the exact integration of the mortar condition and returns the area
+     * @param pSlaveCond The slave condition
+     * @param pMasterCond The master condition
+     * @return The total area integrated
+     */
+    double TestGetExactAreaIntegration(
+        Condition::Pointer pSlaveCond,
+        Condition::Pointer pMasterCond
+        );
+
+
     /**
      * @brief This utility computes the exact integration of the mortar condition and returns the area
      * @param rMainModelPart The main model part
