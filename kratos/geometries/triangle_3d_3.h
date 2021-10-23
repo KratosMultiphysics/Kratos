@@ -29,6 +29,7 @@
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
 #include "utilities/geometrical_projection_utilities.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -1032,6 +1033,28 @@ public:
         rResult(1) = eta;
 
         return rResult;
+    }
+
+    /**
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    */
+    virtual double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        double distance = GeometryUtils::PointDistanceToTriangle3D(
+            BaseType::GetPoint( 0 ),
+            BaseType::GetPoint( 1 ),
+            BaseType::GetPoint( 2 ),
+            Point(rPointGlobalCoordinates));
+        return distance;
     }
 
     ///@}

@@ -209,7 +209,7 @@ public:
                 for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
                     for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
                         auto& cell = GetCell(i,j,k);
-                        SearchNearestInCell(cell, ThePoint, current_result, current_radius);
+                        SearchNearestInCell(cell, ThePoint, current_result, Radius);
                     }
                 }
             }
@@ -409,13 +409,8 @@ private:
     template<typename TPointType>
     void SearchInRadiusInCell(CellType const& TheCell, TPointType const& ThePoint, double Radius, std::unordered_set<GeometricalObject*>& rResults) {
         for(auto p_geometrical_object : TheCell){  
-            auto& geometry = p_geometrical_object->GetGeometry();
-            // TODO: Change this to new Distance method of the geometry to be more general
-            double distance = GeometryUtils::PointDistanceToTriangle3D(
-            geometry[0],
-            geometry[1],
-            geometry[2],
-            ThePoint);
+            auto& geometry = p_geometrical_object->GetGeometry(); 	            
+            double distance = geometry.CalculateDistance(ThePoint); //function is generic for all geometry types
             if((Radius + Tolerance) > distance){
                 rResults.insert(p_geometrical_object);
             }
@@ -426,14 +421,9 @@ private:
     template<typename TPointType>
     void SearchNearestInCell(CellType const& TheCell, TPointType const& ThePoint, ResultType& rResult, double MaxRadius) {
         for(auto p_geometrical_object : TheCell){  
-            auto& geometry = p_geometrical_object->GetGeometry();
-            // TODO: Change this to new Distance method of the geometry to be more general
-            double distance = GeometryUtils::PointDistanceToTriangle3D(
-            geometry[0],
-            geometry[1],
-            geometry[2],
-            ThePoint);
-            if ((distance < rResult.GetDistance()) && (distance < MaxRadius)) {
+            auto& geometry = p_geometrical_object->GetGeometry(); 	            
+            double distance = geometry.CalculateDistance(ThePoint); //function is generic for all geometry types
+            if ((distance < rResult.GetDistance()) && (distance < MaxRadius + Tolerance)) {
                 rResult.Set(p_geometrical_object);
                 rResult.SetDistance(distance);
             }

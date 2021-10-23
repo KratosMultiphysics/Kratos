@@ -1071,6 +1071,45 @@ public:
     }
 
     /**
+    * @brief Checks if given point in local space coordinates of this geometry
+    *        is inside the geometry boundaries.
+    * @param rPointLocalCoordinates the point on the geometry,
+    *        which shall be checked if it lays within
+    *        the boundaries.
+    * @param Tolerance the tolerance to the boundary.
+    * @return -1 -> failed
+    *          0 -> outside
+    *          1 -> inside
+    *          2 -> on the boundary
+    */
+    virtual int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        int is_inside = -1;
+        if (rPointLocalCoordinates[0] < 0.0-Tolerance 
+            || rPointLocalCoordinates[1] < 0.0-Tolerance
+            || rPointLocalCoordinates[2] < 0.0-Tolerance
+            || rPointLocalCoordinates[0] > 1.0+Tolerance 
+            || rPointLocalCoordinates[1] > 1.0+Tolerance
+            || rPointLocalCoordinates[2] > 1.0+Tolerance)
+        {
+            is_inside = 0; // is outside
+        } else if (rPointLocalCoordinates[0] > 0.0
+            && rPointLocalCoordinates[0] < 1.0
+            && rPointLocalCoordinates[1] > 0.0 
+            && rPointLocalCoordinates[1] > 0.0
+            && rPointLocalCoordinates[2] > 0.0
+            && rPointLocalCoordinates[2] < 1.0)
+            is_inside = 1; // is inside
+        else {
+            is_inside = 2; // is on boundary
+        }
+        return is_inside;
+    }
+
+    /**
      * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
@@ -1244,6 +1283,67 @@ public:
       NodesInFaces(2,3)=2;
       NodesInFaces(3,3)=1;
 
+    }
+
+    /**
+    * @brief Projects a certain point on the geometry, or finds
+    *        the closest point, depending on the provided
+    *        initial guess. The external point does not necessary
+    *        lay on the geometry.
+    *        It shall deal as the interface to the mathematical
+    *        projection function e.g. the Newton-Raphson.
+    *        Thus, the breaking criteria does not necessarily mean
+    *        that it found a point on the surface, if it is really
+    *        the closest if or not. It shows only if the breaking
+    *        criteria, defined by the tolerance is reached.
+    *
+    *        This function requires an initial guess, provided by
+    *        rProjectedPointLocalCoordinates.
+    *        This function can be a very costly operation.
+    *
+    * @param rPointGlobalCoordinates the point to which the
+    *        projection has to be found.
+    * @param rProjectedPointGlobalCoordinates the location of the
+    *        projection in global coordinates.
+    * @param rProjectedPointLocalCoordinates the location of the
+    *        projection in local coordinates.
+    *        The variable is as initial guess!
+    * @param Tolerance accepted of orthogonal error to projection.
+    * @return It is chosen to take an int as output parameter to
+    *         keep more possibilities within the interface.
+    *         0 -> failed
+    *         1 -> converged
+    */
+    virtual int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        PointLocalCoordinates(rProjectedPointLocalCoordinates, rPointGlobalCoordinates);
+        
+        // projected point local coordinates can not be lower than 3
+        for (std::size_t  i = 0; i < 3; i++) {
+            rProjectedPointLocalCoordinates[i] = (rProjectedPointLocalCoordinates[i] < 0.0) ? 0.00 :  rProjectedPointLocalCoordinates[i];
+        }
+        if( (rProjectedPointLocalCoordinates[0] + rProjectedPointLocalCoordinates[1] + rProjectedPointLocalCoordinates[2]) > (1.0+Tolerance))
+        {
+            FaceType face(this->pGetPoint(2),this->pGetPoint(3),this->pGetPoint(1));
+            const auto center = face.Center();
+            const array_1d<double, 3> normal = face.UnitNormal(center);
+
+            const Point point_to_project(rProjectedPointLocalCoordinates);
+            double distance;
+            CoordinatesArrayType point_projected;
+            point_projected = GeometricalProjectionUtilities::FastProject( center, point_to_project, normal, distance);
+            
+            for (std::size_t  i = 0; i < 3; i++) {
+                rProjectedPointLocalCoordinates[i] = point_projected[i];
+            }
+        }
+        this->GlobalCoordinates(rProjectedPointGlobalCoordinates, rProjectedPointLocalCoordinates);
+        return 1;
     }
 
     /**
