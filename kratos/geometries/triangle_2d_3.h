@@ -26,6 +26,7 @@
 #include "geometries/line_2d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
+#include "utilities/intersection_utilities.h"
 
 namespace Kratos
 {
@@ -494,8 +495,13 @@ public:
         return 0.5*detJ;
     }
 
-    /// detect if two triangle are intersected
-    bool HasIntersection( const BaseType& rThisGeometry ) override {
+    /// Detect if this triangle is intersected with another geometry
+    bool HasIntersection( const BaseType& rThisGeometry ) override
+    {
+        if (rThisGeometry.LocalSpaceDimension() < this->LocalSpaceDimension()) {
+            return IntersectionUtilities::TriangleLineIntersection2D(
+                *this, rThisGeometry[0], rThisGeometry[1]);
+        }  // Both geometries are 2D 
         const BaseType& geom_1 = *this;
         const BaseType& geom_2 = rThisGeometry;
         return  NoDivTriTriIsect(geom_1[0], geom_1[1], geom_1[2], geom_2[0], geom_2[1], geom_2[2]);
