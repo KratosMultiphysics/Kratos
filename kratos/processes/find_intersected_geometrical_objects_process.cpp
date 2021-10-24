@@ -344,7 +344,7 @@ void  FindIntersectedGeometricalObjectsProcess::MarkIfIntersected(
     for (auto p_leaf : rLeaves) {
         auto& r_leaf = *(p_leaf->pGetObjects());
         for (auto p_intersecting_entity : r_leaf) {
-            if (rIntersectedElement.GetGeometry().HasIntersection(p_intersecting_entity->GetGeometry())) {
+            if (HasIntersection(rIntersectedElement.GetGeometry(), p_intersecting_entity->GetGeometry())) {
                 rIntersectedElement.Set(SELECTED);
                 return;
             }
@@ -352,14 +352,16 @@ void  FindIntersectedGeometricalObjectsProcess::MarkIfIntersected(
     }
 }
 
-// /***********************************************************************************/
-// /***********************************************************************************/
+/***********************************************************************************/
+/***********************************************************************************/
 
-// bool FindIntersectedGeometricalObjectsProcess::HasIntersection(
-//     GeometryType& rFirstGeometry,
-//     GeometryType& rSecondGeometry
-//     )
-// {
+bool FindIntersectedGeometricalObjectsProcess::HasIntersection(
+    GeometryType& rFirstGeometry,
+    GeometryType& rSecondGeometry
+    )
+{
+    return rFirstGeometry.HasIntersection(rSecondGeometry);
+}
 //     const IndexType working_space_dimension = rFirstGeometry.WorkingSpaceDimension(); // TODO: DOMAIN_SIZE should be considered for consistency with other implementations
 //     const IndexType local_space_dimension = rFirstGeometry.LocalSpaceDimension();
 //     if (working_space_dimension == 2) {

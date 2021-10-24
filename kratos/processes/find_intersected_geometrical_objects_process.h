@@ -540,45 +540,45 @@ protected:
         GeometryType& rSecondGeometry
         );
 
-    /**
-     * @brief This method check if there is an intersection between two geometries in 2D
-     * @param rFirstGeometry The first geometry
-     * @param rSecondGeometry The second geometry
-     */
-    virtual bool HasIntersection2D(
-        GeometryType& rFirstGeometry,
-        GeometryType& rSecondGeometry
-        );
+    // /**
+    //  * @brief This method check if there is an intersection between two geometries in 2D
+    //  * @param rFirstGeometry The first geometry
+    //  * @param rSecondGeometry The second geometry
+    //  */
+    // virtual bool HasIntersection2D(
+    //     GeometryType& rFirstGeometry,
+    //     GeometryType& rSecondGeometry
+    //     );
 
-    /**
-     * @brief This method check if there is an intersection between two geometries in 2D (directly between geometries)
-     * @param rFirstGeometry The first geometry
-     * @param rSecondGeometry The second geometry
-     */
-    virtual bool HasDirectIntersection2D(
-        GeometryType& rFirstGeometry,
-        GeometryType& rSecondGeometry
-        );
+    // /**
+    //  * @brief This method check if there is an intersection between two geometries in 2D (directly between geometries)
+    //  * @param rFirstGeometry The first geometry
+    //  * @param rSecondGeometry The second geometry
+    //  */
+    // virtual bool HasDirectIntersection2D(
+    //     GeometryType& rFirstGeometry,
+    //     GeometryType& rSecondGeometry
+    //     );
 
-    /**
-     * @brief This method check if there is an intersection between two geometries in 3D
-     * @param rFirstGeometry The first geometry
-     * @param rSecondGeometry The second geometry
-     */
-    virtual bool HasIntersection3D(
-        GeometryType& rFirstGeometry,
-        GeometryType& rSecondGeometry
-        );
+    // /**
+    //  * @brief This method check if there is an intersection between two geometries in 3D
+    //  * @param rFirstGeometry The first geometry
+    //  * @param rSecondGeometry The second geometry
+    //  */
+    // virtual bool HasIntersection3D(
+    //     GeometryType& rFirstGeometry,
+    //     GeometryType& rSecondGeometry
+    //     );
 
-    /**
-     * @brief This method check if there is an intersection between two geometries in 3D (directly between geometries)
-     * @param rFirstGeometry The first geometry
-     * @param rSecondGeometry The second geometry
-     */
-    virtual bool HasDirectIntersection3D(
-        GeometryType& rFirstGeometry,
-        GeometryType& rSecondGeometry
-        );
+    // /**
+    //  * @brief This method check if there is an intersection between two geometries in 3D (directly between geometries)
+    //  * @param rFirstGeometry The first geometry
+    //  * @param rSecondGeometry The second geometry
+    //  */
+    // virtual bool HasDirectIntersection3D(
+    //     GeometryType& rFirstGeometry,
+    //     GeometryType& rSecondGeometry
+    //     );
 
     ///@}
     ///@name Protected  Access

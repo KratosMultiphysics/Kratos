@@ -197,19 +197,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection(
             }
         }
     } else {
-        if (working_space_dimension == 2) {
-            if (local_space_dimension == 2) {
-                return BaseType::HasIntersection2D(rFirstGeometry, rSecondGeometry);
-            } else {
-                return BaseType::HasDirectIntersection2D(rFirstGeometry, rSecondGeometry);
-            }
-        } else {
-            if (local_space_dimension == 3) {
-                return BaseType::HasIntersection3D(rFirstGeometry, rSecondGeometry);
-            } else {
-                return BaseType::HasDirectIntersection3D(rFirstGeometry, rSecondGeometry);
-            }
-        }
+        return rFirstGeometry.HasIntersection(rSecondGeometry);
     }
 }
 
