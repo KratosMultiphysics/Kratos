@@ -11,6 +11,8 @@
 //                   Ruben Zorrilla
 //
 
+#ifdef USE_TRIANGLE_NONFREE_TPL
+
 #if !defined(KRATOS_CAD_TESSELLATION_MODELER_INCLUDED)
 #define KRATOS_CAD_TESSELLATION_MODELER_INCLUDED
 
@@ -250,3 +252,4 @@ inline std::ostream& operator<<(std::ostream& rOStream, const CadTessellationMod
 } // namespace Kratos.
 
 #endif // KRATOS_CAD_TESSELLATION_MODELER_INCLUDED  defined
+#endif
