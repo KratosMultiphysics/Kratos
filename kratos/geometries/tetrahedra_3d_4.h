@@ -1459,12 +1459,11 @@ public:
                 }
             }
             // Let check the second geometry is inside.
-            // Considering that there are no intersection, if one point is inside all of it is inside.
+            // Considering there are no intersection, if one point is inside all of it is inside.
             array_1d<double, 3> local_point;
-            if (this->IsInside(rThisGeometry.GetPoint(0), local_point)) {
-                return true;
-            }
-        }  // Both geometries are 3D
+            return this->IsInside(rThisGeometry.GetPoint(0), local_point);
+        }
+        // Both geometries are 3D
         array_1d<Plane, 4>  plane;
         std::vector<BaseType> intersections;
 
@@ -1496,12 +1495,9 @@ public:
         if(Triangle3D3Type(this->pGetPoint(2),this->pGetPoint(3), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
             return true;
 
-        CoordinatesArrayType local_coordinates;
         // if there are no faces intersecting the box then or the box is inside the tetrahedron or it does not have intersection
-        if(IsInside(rLowPoint,local_coordinates))
-            return true;
-
-        return false;
+        CoordinatesArrayType local_coordinates;
+        return IsInside(rLowPoint,local_coordinates);
     }
 
 
