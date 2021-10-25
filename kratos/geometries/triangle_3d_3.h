@@ -2124,7 +2124,7 @@ private:
 
         // compute interval for triangle 1 //
         double a, b, c, x0, x1;
-        if (ComputeIntervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], a, b, c, x0, x1) == true)
+        if (ComputeIntervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], a, b, c, x0, x1))
         {
             return CoplanarIntersectionCheck(plane_1.GetNormal(), rPoint1, rPoint2, rPoint3);
         }
