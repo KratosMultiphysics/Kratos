@@ -1219,53 +1219,6 @@ class PreUtils():
     def __init__(self):
         pass
 
-class MaterialTest():
-
-    def __init__(self):
-        pass
-
-    def Initialize(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
-
-        if not "material_test_settings" in DEM_parameters.keys():
-            self.TestType = "None"
-        else:
-            self.TestType = DEM_parameters["material_test_settings"]["TestType"].GetString()
-
-        if self.TestType != "None":
-            if self.TestType == "Triaxial2D":
-                self.script = triaxial2d_test.Triaxial2D(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
-            else:
-                self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
-            self.script.Initialize()
-
-            #self.PreUtils = DEM_material_test_script.PreUtils(spheres_model_part)
-            #self.PreUtils.BreakBondUtility(spheres_model_part)
-
-    def PrepareDataForGraph(self):
-        if self.TestType != "None":
-            self.script.PrepareDataForGraph()
-
-    def MeasureForcesAndPressure(self):
-        if self.TestType != "None":
-            self.script.MeasureForcesAndPressure()
-
-    def PrintGraph(self, time):
-        if self.TestType != "None":
-            self.script.PrintGraph(time)
-
-    def FinalizeGraphs(self):
-        if self.TestType != "None":
-            self.script.FinalizeGraphs()
-
-    def PrintChart(self):
-        if self.TestType != "None":
-            self.script.PrintChart()
-
-    def GenerateGraphics(self):
-        if self.TestType != "None":
-            self.script.GenerateGraphics()
-
-
 class MultifileList():
 
     def __init__(self, post_path, name, step, which_folder):
@@ -1279,7 +1232,6 @@ class MultifileList():
             absolute_path_to_file = os.path.join(post_path, self.name + ".post.lst")
 
         self.file = open(absolute_path_to_file, "w")
-
 
 class DEMIo():
 

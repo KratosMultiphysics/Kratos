@@ -38,7 +38,12 @@ namespace Kratos {
 
                 SphericContinuumParticle& r_sphere = dynamic_cast<SphericContinuumParticle&>(rElement);
 
-                for (int i=0; i<(int) r_sphere.mContinuumInitialNeighborsSize; i++) {
+                for (int i = 0; i < (int) r_sphere.mContinuumInitialNeighborsSize; i++) {
+
+                    if (!r_sphere.mNeighbourElements[i]) {
+                        continue;
+                    }
+
                     const auto& other_particle = r_sphere.mNeighbourElements[i];
                     array_1d<double, 3> other_to_me_vector;
                     noalias(other_to_me_vector) = r_sphere.GetGeometry()[0].Coordinates() - other_particle->GetGeometry()[0].Coordinates();
