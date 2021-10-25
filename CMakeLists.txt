@@ -65,6 +65,13 @@ endif(NOT DEFINED CMAKE_INSTALL_MESSAGE)
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
 
+# Generate and copy configuration for language servers
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+EXECUTE_PROCESS(
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+    "${CMAKE_BINARY_DIR}/compile_commands.json"
+    "${CMAKE_SOURCE_DIR}/compile_commands.json")
+
 # Include cmake modules
 include(DownloadLib)
 
@@ -157,11 +164,11 @@ endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11 -Wl,--no-as-needed -ldl")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
   endif()
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
   message(STATUS "additional default options were set for gcc")
   message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
@@ -181,8 +188,8 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	  endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	  if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
-		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -Wall -Wno-unknown-pragmas  ")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas ")
+		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -Wall -Wno-unknown-pragmas ")
 		set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
 		message("additional default options were set for clang compiler")
 		message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
@@ -478,8 +485,6 @@ endif(DEFINED ENV{KRATOS_APPLICATIONS})
 add_custom_target(KratosKernel DEPENDS ${KRATOS_KERNEL})
 add_custom_target(KratosPythonInterface DEPENDS ${KRATOS_PYTHON_INTERFACE})
 
-message("Interface List: ${KRATOS_PYTHON_INTERFACE}")
-
 message("")
 message("***********************************************************************")
 message("")
@@ -509,6 +514,9 @@ message("\t Changing 'FindNodalNeighboursProcess' constructor signature: https:/
 message("\t Minor update of import mechanism for applications: https://github.com/KratosMultiphysics/Kratos/pull/6556")
 message("\t Update of Element, Condition and Scheme Interface: https://github.com/KratosMultiphysics/Kratos/issues/7381")
 message("\t VariableComponent and VectorComponentAdaptor are no longer used: https://github.com/KratosMultiphysics/Kratos/pull/6686")
+message("\t Make Check() method of ConstitutiveLaw const: https://github.com/KratosMultiphysics/Kratos/pull/7948")
+message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
+message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
 
 # Compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)

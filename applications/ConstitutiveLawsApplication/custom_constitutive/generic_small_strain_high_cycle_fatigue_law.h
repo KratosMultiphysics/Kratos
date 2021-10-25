@@ -155,6 +155,48 @@ public:
     ///@{
 
     /**
+     * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Kirchhoff stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Cauchy stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
+
+    /**
+     * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
+
+    /**
+     * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
+
+    /**
      * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
@@ -271,6 +313,22 @@ public:
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue
         ) override;
+
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return true;
+    }
+
+        /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return true;
+    }
 
     /**
      * Finalize the material response in terms of Cauchy stresses

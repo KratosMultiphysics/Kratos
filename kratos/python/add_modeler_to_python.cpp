@@ -4,19 +4,16 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
 
-
-
 // System includes
 
 // External includes
-
 
 // Project includes
 #include "includes/define_python.h"
@@ -24,8 +21,8 @@
 #include "modeler/modeler.h"
 #include "modeler/edge_swapping_2d_modeler.h"
 #include "modeler/connectivity_preserve_modeler.h"
-
 #include "modeler/modeler_factory.h"
+#include "modeler/serial_model_part_combinator_modeler.h"
 
 namespace Kratos
 {
@@ -48,12 +45,10 @@ void GeneratePartialModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin
     if (KratosComponents<Element>::Has(rName)) {
         GM.GenerateModelPart(origin_model_part, destination_model_part,
                              KratosComponents<Element>::Get(rName));
-    }
-    else if (KratosComponents<Condition>::Has(rName)) {
+    } else if (KratosComponents<Condition>::Has(rName)) {
         GM.GenerateModelPart(origin_model_part, destination_model_part,
                              KratosComponents<Condition>::Get(rName));
-    }
-    else {
+    } else {
         KRATOS_ERROR << "Unknown Element/Condition name " << rName << "." << std::endl;
     }
 }
@@ -92,6 +87,11 @@ void  AddModelerToPython(pybind11::module& m)
     py::class_< EdgeSwapping2DModeler, EdgeSwapping2DModeler::Pointer, Modeler >(m,"EdgeSwapping2DModeler")
             .def(py::init< >())
             .def("ReGenerateMesh",&EdgeSwapping2DModeler::Remesh)
+    ;
+
+    py::class_< SerialModelPartCombinatorModeler, SerialModelPartCombinatorModeler::Pointer, Modeler >(m,"SerialModelPartCombinatorModeler")
+        .def(py::init< >())
+        .def(py::init<Model&, Parameters>())
     ;
 }
 

@@ -31,6 +31,7 @@
 #include "containers/data_value_container.h"
 #include "utilities/math_utils.h"
 #include "input_output/logger.h"
+#include "integration/integration_info.h"
 
 namespace Kratos
 {
@@ -1904,6 +1905,30 @@ public:
     }
 
     ///@}
+    ///@name Spans
+    ///@{
+
+    /* @brief Provides spans in local paramater coordinates of the geometry
+     *        according to its direction from LocalDirectionIndex.
+     *        For NurbsSurface this is equivalent to the knot vector per direction,
+     *        whereby NurbsCurve also provide its knot vector.
+     *        Linear geometries shall provide the delimiters, which might be -1 and 1
+     *        in standard cases.
+     *        Qudartic geometries, may provide additionally the middle point.
+     *
+     * @param resulting vector of span intervals.
+     * @param LocalDirectionIndex of chosen direction, for curves always 0.
+     */
+    virtual void SpansLocalSpace(
+        std::vector<double>& rSpans,
+        IndexType LocalDirectionIndex = 0) const
+    {
+        KRATOS_ERROR <<
+            "Calling SpansLocalSpace of geometry base class. Please check derived definitions. "
+            << *this << std::endl;
+    }
+
+    ///@}
     ///@name Inquiry
     ///@{
 
@@ -1929,6 +1954,12 @@ public:
     IntegrationMethod GetDefaultIntegrationMethod() const
     {
         return mpGeometryData->DefaultIntegrationMethod();
+    }
+
+    /// Provides the default integration per geometry.
+    virtual IntegrationInfo GetDefaultIntegrationInfo() const
+    {
+        return IntegrationInfo(LocalSpaceDimension(), GetDefaultIntegrationMethod());
     }
 
     /** This method is to know if this geometry is symmetric or
@@ -2222,11 +2253,15 @@ public:
      * @return integration points.
      */
     virtual void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const
     {
-        KRATOS_ERROR << "Calling CreateIntegrationPoints from geometry base class."
-            << " Please check the definition of derived class. "
-            << *this << std::endl;
+        IntegrationMethod integration_method = rIntegrationInfo.GetIntegrationMethod(0);
+        for (IndexType i = 1; i < LocalSpaceDimension(); ++i) {
+            KRATOS_ERROR_IF(integration_method != rIntegrationInfo.GetIntegrationMethod(i))
+                << "Default creation of integration points only valid if integration method is not varying per direction." << std::endl;
+        }
+        rIntegrationPoints = IntegrationPoints(integration_method);
     }
 
     ///@}
@@ -2246,7 +2281,8 @@ public:
     virtual void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints)
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo)
     {
         KRATOS_ERROR << "Calling CreateQuadraturePointGeometries from geometry base class."
             << " Please check the definition of derived class. "
@@ -2265,15 +2301,17 @@ public:
      */
     virtual void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives)
+        IndexType NumberOfShapeFunctionDerivatives,
+        IntegrationInfo& rIntegrationInfo)
     {
         IntegrationPointsArrayType IntegrationPoints;
-        CreateIntegrationPoints(IntegrationPoints);
+        CreateIntegrationPoints(IntegrationPoints, rIntegrationInfo);
 
         this->CreateQuadraturePointGeometries(
             rResultGeometries,
             NumberOfShapeFunctionDerivatives,
-            IntegrationPoints);
+            IntegrationPoints,
+            rIntegrationInfo);
     }
 
     ///@}
@@ -2510,6 +2548,7 @@ public:
     *         0 -> failed
     *         1 -> converged
     */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead.")
     virtual int ProjectionPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointGlobalCoordinates,
@@ -2518,6 +2557,60 @@ public:
     ) const
     {
         KRATOS_ERROR << "Calling ProjectionPoint within geometry base class."
+            << " Please check the definition within derived class. "
+            << *this << std::endl;
+    }
+
+    /**
+     * @brief Projects a point onto the geometry
+     * Projects a certain point on the geometry, or finds the closest point, depending on the provided initial guess.
+     * The external point does not necessary lay on the geometry.
+     * It shall deal as the interface to the mathematical projection function e.g. the Newton-Raphson.
+     * Thus, the breaking criteria does not necessarily mean that it found a point on the surface, if it is really
+     * the closest if or not.
+     * It shows only if the breaking criteria, defined by the tolerance is reached.
+     * This function requires an initial guess, provided by rProjectionPointLocalCoordinates.
+     * This function can be a very costly operation.
+     * @param rPointLocalCoordinates Local coordinates of the point to be projected
+     * @param rProjectionPointLocalCoordinates Projection point local coordinates. This should be initialized with the initial guess
+     * @param Tolerance Accepted orthogonal error
+     * @return int 0 -> failed
+     *             1 -> converged
+     */
+    virtual int ProjectionPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rProjectionPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        KRATOS_ERROR << "Calling ProjectionPointLocalToLocalSpace within geometry base class."
+            << " Please check the definition within derived class. "
+            << *this << std::endl;
+    }
+
+    /**
+     * @brief Projects a point onto the geometry
+     * Projects a certain point on the geometry, or finds the closest point, depending on the provided initial guess.
+     * The external point does not necessary lay on the geometry.
+     * It shall deal as the interface to the mathematical projection function e.g. the Newton-Raphson.
+     * Thus, the breaking criteria does not necessarily mean that it found a point on the surface, if it is really
+     * the closest if or not.
+     * It shows only if the breaking criteria, defined by the tolerance is reached.
+     * This function requires an initial guess, provided by rProjectionPointLocalCoordinates.
+     * This function can be a very costly operation.
+     * @param rPointLocalCoordinates Global coordinates of the point to be projected
+     * @param rProjectionPointLocalCoordinates Projection point local coordinates. This should be initialized with the initial guess
+     * @param Tolerance Accepted orthogonal error
+     * @return int 0 -> failed
+     *             1 -> converged
+     */
+    virtual int ProjectionPointGlobalToLocalSpace(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectionPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        KRATOS_ERROR << "Calling ProjectionPoinGlobalToLocalSpace within geometry base class."
             << " Please check the definition within derived class. "
             << *this << std::endl;
     }
@@ -2541,6 +2634,7 @@ public:
     *          1 -> inside
     *          2 -> on the boundary
     */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use either \'ClosestPointLocalToLocalSpace\' or \'ClosestPointGlobalToLocalSpace\' instead. Please note that \'rClosestPointGlobalCoordinates\' returns unmodified original value.")
     virtual int ClosestPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rClosestPointGlobalCoordinates,
@@ -2548,25 +2642,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const
     {
-        // 1. Make projection on geometry
-        if (ProjectionPoint(rPointGlobalCoordinates,
-            rClosestPointGlobalCoordinates,
-            rClosestPointLocalCoordinates,
-            Tolerance) == 1)
-        {
-            // 2. If projection converged check if solution lays
-            // within the boundaries of this geometry
-            // Returns either 0, 1 or 2
-            // Or -1 if IsInsideLocalSpace failed
-            return IsInsideLocalSpace(
-                rClosestPointLocalCoordinates,
-                Tolerance);
-        }
-        else
-        {
-            // Projection failed
-            return -1;
-        }
+        return ClosestPointGlobalToLocalSpace(rPointGlobalCoordinates, rClosestPointLocalCoordinates, Tolerance);
     }
 
     /**
@@ -2589,6 +2665,7 @@ public:
     *          1 -> inside
     *          2 -> on the boundary
     */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use either \'ClosestPointLocalToLocalSpace\' or \'ClosestPointGlobalToLocalSpace\' instead.")
     virtual int ClosestPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rClosestPointGlobalCoordinates,
@@ -2596,12 +2673,13 @@ public:
     ) const
     {
         CoordinatesArrayType local_coordinates(ZeroVector(3));
+        const int result = ClosestPointGlobalToLocalSpace(rPointGlobalCoordinates, local_coordinates, Tolerance);
 
-        return ClosestPoint(
-            rPointGlobalCoordinates,
-            rClosestPointGlobalCoordinates,
-            local_coordinates,
-            Tolerance);
+        if (result == 1) {
+            this->GlobalCoordinates(rClosestPointGlobalCoordinates, local_coordinates);
+        }
+
+        return result;
     }
 
     /**
@@ -2624,19 +2702,88 @@ public:
     *          1 -> inside
     *          2 -> on the boundary
     */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use either \'ClosestPointLocalToLocalSpace\' or \'ClosestPointGlobalToLocalSpace\' instead.")
     virtual int ClosestPointLocalCoordinates(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rClosestPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const
     {
-        CoordinatesArrayType global_coordinates(ZeroVector(3));
+        return ClosestPointGlobalToLocalSpace(rPointGlobalCoordinates, rClosestPointLocalCoordinates, Tolerance);
+    }
 
-        return ClosestPoint(
-            rPointGlobalCoordinates,
-            global_coordinates,
+    /**
+     * @brief Calculates the closes point projection
+     * This method calculates the closest point projection of a point in local space coordinates
+     * @param rPointLocalCoordinates Input local coordinates
+     * @param rClosestPointLocalCoordinates Closest point local coordinates. This should be initialized with the initial guess
+     * @param Tolerance Accepted orthogonal error
+     * @return int -1 -> failed
+     *             0 -> outside
+     *             1 -> inside
+     *             2 -> on the boundary
+     */
+    virtual int ClosestPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        // 1. Make projection on geometry
+        const int projection_result = ProjectionPointLocalToLocalSpace(
+            rPointLocalCoordinates,
             rClosestPointLocalCoordinates,
             Tolerance);
+
+        if (projection_result == 1) {
+            // 2. If projection converged check if solution lays
+            // within the boundaries of this geometry
+            // Returns either 0, 1 or 2
+            // Or -1 if IsInsideLocalSpace failed
+            return IsInsideLocalSpace(
+                rClosestPointLocalCoordinates,
+                Tolerance);
+        } else {
+            // Projection failed
+            return -1;
+        }
+    }
+
+    /**
+     * @brief Calculates the closes point projection
+     * This method calculates the closest point projection of a point in global space coordinates
+     * @param rPointLocalCoordinates Input global coordinates
+     * @param rClosestPointLocalCoordinates Closest point local coordinates. This should be initialized with the initial guess
+     * @param Tolerance Accepted orthogonal error
+     * @return int -1 -> failed
+     *             0 -> outside
+     *             1 -> inside
+     *             2 -> on the boundary
+     */
+    virtual int ClosestPointGlobalToLocalSpace(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        // 1. Make projection on geometry
+        const int projection_result = ProjectionPointGlobalToLocalSpace(
+            rPointGlobalCoordinates,
+            rClosestPointLocalCoordinates,
+            Tolerance);
+
+        if (projection_result == 1) {
+            // 2. If projection converged check if solution lays
+            // within the boundaries of this geometry
+            // Returns either 0, 1 or 2
+            // Or -1 if IsInsideLocalSpace failed
+            return IsInsideLocalSpace(
+                rClosestPointLocalCoordinates,
+                Tolerance);
+        } else {
+            // Projection failed
+            return -1;
+        }
     }
 
     /**
@@ -2656,16 +2803,15 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const
     {
-        CoordinatesArrayType global_coordinates(ZeroVector(3));
-
-        if (ClosestPoint(
-            rPointGlobalCoordinates,
-            global_coordinates,
-            Tolerance) < 1)
-        {
+        CoordinatesArrayType local_coordinates(ZeroVector(3));
+        if (ClosestPointGlobalToLocalSpace(rPointGlobalCoordinates, local_coordinates, Tolerance) < 1) {
             // If projection fails, double::max will be returned
             return std::numeric_limits<double>::max();
         }
+
+        // Global coordinates of projected point
+        CoordinatesArrayType global_coordinates(ZeroVector(3));
+        this->GlobalCoordinates(global_coordinates, local_coordinates);
 
         // Distance to projected point
         return norm_2(rPointGlobalCoordinates - global_coordinates);

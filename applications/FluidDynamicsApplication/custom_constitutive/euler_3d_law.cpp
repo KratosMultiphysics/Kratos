@@ -55,7 +55,7 @@ namespace Kratos
         return 3;
     }
 
-    ConstitutiveLaw::SizeType Euler3DLaw::GetStrainSize() {
+    ConstitutiveLaw::SizeType Euler3DLaw::GetStrainSize() const {
         return 6;
     }
 
@@ -79,8 +79,9 @@ namespace Kratos
     int Euler3DLaw::Check(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
-        const ProcessInfo& rCurrentProcessInfo) {
-            
+        const ProcessInfo& rCurrentProcessInfo) const
+    {
+
         return 0;
     }
 

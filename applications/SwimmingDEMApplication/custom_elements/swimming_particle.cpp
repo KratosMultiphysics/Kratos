@@ -29,6 +29,7 @@ SwimmingParticle<TBaseElement>& SwimmingParticle<TBaseElement>::operator=(const 
     mSphericity = rOther.mSphericity;
     mNormOfSlipVel = rOther.mNormOfSlipVel;
     noalias(mSlipVel) = rOther.mSlipVel;
+    mHydrodynamicInteractionLaw = rOther.mHydrodynamicInteractionLaw->Clone();
 
     return *this;
 }
@@ -84,7 +85,7 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                       buoyancy,
                                                       r_current_process_info);
 
-    mHydrodynamicInteractionLaw->ComputeDragForce(r_geometry,
+    mHydrodynamicInteractionLaw->ComputeDragForce(this,
                                                   mRadius,
                                                   mFluidDensity,
                                                   mKinematicViscosity,
