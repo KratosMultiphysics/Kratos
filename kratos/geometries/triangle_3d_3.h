@@ -2331,10 +2331,10 @@ private:
 		if ((f>0.00 && d >= 0.00 && d <= f) || (f<0.00 && d <= 0.00 && d >= f)) {
 			e = Ax*Cy - Ay*Cx;
 
-			if (f > 0.0) {
-				if (e >= 0.0 && e <= f) return true;
-			} else {
-				if (e <= 0.0 && e >= f) return true;
+                        if (f > 0.0) {
+                            if (e >= 0.0 && e <= f) return true;
+                        } else {
+                            if (e <= 0.0 && e >= f) return true;
 			}
 		}
 		return false;
