@@ -78,4 +78,3 @@ bin/*
 
 # External downloaded libs (TPL downloaded libs, etc...)
 external_libraries/tetgen/*
-external_libraries/delaunator-cpp/*
