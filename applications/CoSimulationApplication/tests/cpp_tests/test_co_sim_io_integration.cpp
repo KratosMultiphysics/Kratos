@@ -142,6 +142,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCoSimIOModelPartToKratosModelPa
     const auto& r_world_data_comm = ParallelEnvironment::GetDataCommunicator("World");
     const int my_rank = r_world_data_comm.Rank();
     const int world_size = r_world_data_comm.Size();
+
     Model model;
     auto& kratos_model_part = model.CreateModelPart("kratos_mp");
 
@@ -194,18 +195,46 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCoSimIOModelPartToKratosModelPa
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedKratosModelPartToCoSimIOModelPart_NodesOnly, KratosCosimulationMPIFastSuite)
 {
+    const auto& r_world_data_comm = ParallelEnvironment::GetDataCommunicator("World");
+    const int my_rank = r_world_data_comm.Rank();
+    const int world_size = r_world_data_comm.Size();
+
     Model model;
     auto& kratos_model_part = model.CreateModelPart("kratos_mp");
+    kratos_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
     CoSimIO::ModelPart co_sim_io_model_part("co_sim_io_mp");
 
-    constexpr std::size_t num_nodes = 5;
+    constexpr std::size_t num_local_nodes_per_rank = 5;
+    constexpr std::size_t num_ghost_nodes_per_rank = 3;
 
-    for (std::size_t i=0; i<num_nodes; ++i) {
-        kratos_model_part.CreateNewNode(i+1, i*1.5, i+3.5, i-8.6);
+    const auto get_partner_rank = [my_rank, world_size]() ->int {return (my_rank+1) % world_size;};
+
+    auto get_id = [my_rank](int local_node_index) ->int {
+        return my_rank*num_local_nodes_per_rank + local_node_index+1;
+    };
+    auto get_ghost_id = [&get_partner_rank](int local_node_index) ->int {
+        return get_partner_rank()*num_local_nodes_per_rank + local_node_index+1;
+    };
+
+    // create local nodes
+    for (std::size_t i=0; i<num_local_nodes_per_rank; ++i) {
+        auto node = kratos_model_part.CreateNewNode(get_id(i), 0,0,0);
+        node->FastGetSolutionStepValue(PARTITION_INDEX) = my_rank;
     }
 
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
+    for (std::size_t i=0; i<num_ghost_nodes_per_rank; ++i) {
+        auto node = kratos_model_part.CreateNewNode(get_ghost_id(i), 0,0,0);
+        node->FastGetSolutionStepValue(PARTITION_INDEX) = get_partner_rank();
+    }
+
+    // this calls the ParallelFillCommunicator
+    ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(kratos_model_part, r_world_data_comm)->Execute();
+
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_local_nodes_per_rank+num_ghost_nodes_per_rank);
+    KRATOS_CHECK_EQUAL(kratos_model_part.GetCommunicator().LocalMesh().NumberOfNodes(), num_local_nodes_per_rank);
+    KRATOS_CHECK_EQUAL(kratos_model_part.GetCommunicator().GhostMesh().NumberOfNodes(), num_ghost_nodes_per_rank);
+    KRATOS_CHECK_EQUAL(kratos_model_part.GetCommunicator().GlobalNumberOfNodes(), (num_local_nodes_per_rank)*world_size);
     KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 0);
 
     CoSimIOConversionUtilities::KratosModelPartToCoSimIOModelPart(kratos_model_part, co_sim_io_model_part);
