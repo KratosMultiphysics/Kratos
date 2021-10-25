@@ -157,7 +157,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCoSimIOModelPartToKratosModelPa
     KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfGhostNodes(), 0);
     KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfElements(), 0);
 
-
     CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, kratos_model_part, r_world_data_comm);
 
     CheckDistributedModelPartsAreEqual(kratos_model_part, co_sim_io_model_part);
