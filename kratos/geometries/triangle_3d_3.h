@@ -2262,9 +2262,10 @@ private:
 		}
 
 		// test all edges of triangle 1 against the edges of triangle 2 //
-		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(0), this->GetPoint(1), rPoint1, rPoint2, rPoint3) == true) return true;
-		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(1), this->GetPoint(2), rPoint1, rPoint2, rPoint3) == true) return true;
-		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(2), this->GetPoint(0), rPoint1, rPoint2, rPoint3) == true) return true;
+		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(0), this->GetPoint(1), rPoint1, rPoint2, rPoint3)) return true;
+		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(1), this->GetPoint(2), rPoint1, rPoint2, rPoint3)) return true;
+		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(2), this->GetPoint(0), rPoint1, rPoint2, rPoint3)) return true;
+
 
 		// finally, test if tri1 is totally contained in tri2 or vice versa //
         if (PointInTriangle(i0, i1, this->GetPoint(0), rPoint1, rPoint2, rPoint3)) return true;
