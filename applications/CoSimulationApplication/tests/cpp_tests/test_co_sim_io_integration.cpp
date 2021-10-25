@@ -139,36 +139,36 @@ KRATOS_TEST_CASE_IN_SUITE(KratosModelPartToCoSimIOModelPart, KratosCosimulationF
 
 namespace DistributedTestHelpers {
 
-int GetPartnerRank()
+std::size_t GetPartnerRank()
 {
     const auto& r_world_data_comm = ParallelEnvironment::GetDataCommunicator("World");
-    const int my_rank = r_world_data_comm.Rank();
-    const int world_size = r_world_data_comm.Size();
+    const std::size_t my_rank = r_world_data_comm.Rank();
+    const std::size_t world_size = r_world_data_comm.Size();
 
     return (my_rank+1) % world_size;
 }
 
-int GetId(const int NumLocalNodesPerRank, const int LocalNodeIndex)
+std::size_t GetId(const std::size_t NumLocalNodesPerRank, const std::size_t LocalNodeIndex)
 {
-    const int my_rank = ParallelEnvironment::GetDataCommunicator("World").Rank();
+    const std::size_t my_rank = ParallelEnvironment::GetDataCommunicator("World").Rank();
     return my_rank*NumLocalNodesPerRank + LocalNodeIndex+1;
 }
 
-int GetGhostId(const int NumLocalNodesPerRank, const int LocalNodeIndex)
+std::size_t GetGhostId(const std::size_t NumLocalNodesPerRank, const std::size_t LocalNodeIndex)
 {
     return GetPartnerRank()*NumLocalNodesPerRank + LocalNodeIndex+1;
 }
 
 void CreateDistributedNodes(
     CoSimIO::ModelPart& rCoSimIOModelPart,
-    const int NumLocalNodesPerRank,
-    const int NumGhostNodesPerRank)
+    const std::size_t NumLocalNodesPerRank,
+    const std::size_t NumGhostNodesPerRank)
 {
     KRATOS_CHECK_GREATER(NumLocalNodesPerRank, NumGhostNodesPerRank);
 
     const auto& r_world_data_comm = ParallelEnvironment::GetDataCommunicator("World");
-    const int my_rank = r_world_data_comm.Rank();
-    const int world_size = r_world_data_comm.Size();
+    const std::size_t my_rank = r_world_data_comm.Rank();
+    const std::size_t world_size = r_world_data_comm.Size();
 
     auto create_ghost_nodes = [&](){
         for (std::size_t i=0; i<NumGhostNodesPerRank; ++i) {
@@ -196,20 +196,20 @@ void CreateDistributedNodes(
     KRATOS_CHECK_EQUAL(rCoSimIOModelPart.NumberOfNodes(), NumLocalNodesPerRank+NumGhostNodesPerRank);
     KRATOS_CHECK_EQUAL(rCoSimIOModelPart.NumberOfLocalNodes(), NumLocalNodesPerRank);
     KRATOS_CHECK_EQUAL(rCoSimIOModelPart.NumberOfGhostNodes(), NumGhostNodesPerRank);
-    KRATOS_CHECK_EQUAL(r_world_data_comm.SumAll(rCoSimIOModelPart.NumberOfLocalNodes()), NumLocalNodesPerRank*world_size);
+    KRATOS_CHECK_EQUAL(r_world_data_comm.SumAll(static_cast<int>(rCoSimIOModelPart.NumberOfLocalNodes())), static_cast<int>(NumLocalNodesPerRank*world_size));
     KRATOS_CHECK_EQUAL(rCoSimIOModelPart.NumberOfElements(), 0);
 }
 
 void CreateDistributedNodes(
     Kratos::ModelPart& rKratosModelPart,
-    const int NumLocalNodesPerRank,
-    const int NumGhostNodesPerRank)
+    const std::size_t NumLocalNodesPerRank,
+    const std::size_t NumGhostNodesPerRank)
 {
     KRATOS_CHECK_GREATER(NumLocalNodesPerRank, NumGhostNodesPerRank);
 
     const auto& r_world_data_comm = ParallelEnvironment::GetDataCommunicator("World");
-    const int my_rank = r_world_data_comm.Rank();
-    const int world_size = r_world_data_comm.Size();
+    const std::size_t my_rank = r_world_data_comm.Rank();
+    const std::size_t world_size = r_world_data_comm.Size();
 
     // create local nodes
     for (std::size_t i=0; i<NumLocalNodesPerRank; ++i) {
@@ -289,16 +289,16 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCoSimIOModelPartToKratosModelPa
     // elements that use two local nodes
     for (std::size_t i=0; i<num_ghost_nodes_per_rank; ++i) {
         CoSimIO::ConnectivitiesType conn {
-            DistributedTestHelpers::GetId(num_local_nodes_per_rank, i),
-            DistributedTestHelpers::GetId(num_local_nodes_per_rank, i+1)};
+            static_cast<int>(DistributedTestHelpers::GetId(num_local_nodes_per_rank, i)),
+            static_cast<int>(DistributedTestHelpers::GetId(num_local_nodes_per_rank, i+1))};
         co_sim_io_model_part.CreateNewElement(DistributedTestHelpers::GetId(num_local_nodes_per_rank, i), CoSimIO::ElementType::Line2D2, conn);
     }
 
     // elements that use one local and one ghost node
     for (std::size_t i=0; i<num_ghost_nodes_per_rank; ++i) {
         CoSimIO::ConnectivitiesType conn {
-            DistributedTestHelpers::GetId(num_local_nodes_per_rank, i),
-            DistributedTestHelpers::GetGhostId(num_local_nodes_per_rank, i)};
+            static_cast<int>(DistributedTestHelpers::GetId(num_local_nodes_per_rank, i)),
+            static_cast<int>(DistributedTestHelpers::GetGhostId(num_local_nodes_per_rank, i))};
         co_sim_io_model_part.CreateNewElement(DistributedTestHelpers::GetId(num_local_nodes_per_rank, i)+num_ghost_nodes_per_rank, CoSimIO::ElementType::Line2D2, conn);
     }
 
@@ -329,7 +329,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(KratosDistributedModelPartToCoSimIOModelPa
         std::vector<ModelPart::IndexType> conn {
             static_cast<ModelPart::IndexType>(DistributedTestHelpers::GetId(num_local_nodes_per_rank, i)),
             static_cast<ModelPart::IndexType>(DistributedTestHelpers::GetId(num_local_nodes_per_rank, i+1))};
-        const int elem_id = DistributedTestHelpers::GetId(num_local_nodes_per_rank, i);
+        const std::size_t elem_id = DistributedTestHelpers::GetId(num_local_nodes_per_rank, i);
         kratos_model_part.CreateNewElement("Element2D2N", elem_id, conn, p_props);
     }
 
@@ -338,7 +338,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(KratosDistributedModelPartToCoSimIOModelPa
         std::vector<ModelPart::IndexType> conn {
             static_cast<ModelPart::IndexType>(DistributedTestHelpers::GetId(num_local_nodes_per_rank, i)),
             static_cast<ModelPart::IndexType>(DistributedTestHelpers::GetGhostId(num_local_nodes_per_rank, i))};
-        const int elem_id = DistributedTestHelpers::GetId(num_local_nodes_per_rank, i)+num_ghost_nodes_per_rank;
+        const std::size_t elem_id = DistributedTestHelpers::GetId(num_local_nodes_per_rank, i)+num_ghost_nodes_per_rank;
         kratos_model_part.CreateNewElement("Element2D2N", elem_id, conn, p_props);
     }
 

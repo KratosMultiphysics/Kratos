@@ -104,13 +104,13 @@ void CheckDistributedModelPartsAreEqual(
 
     // check ghost nodes
     // first check if the number of ghost nodes is equal
-    std::vector<int> kratos_ghost_nodes_per_rank(rKratosModelPart.GetCommunicator().TotalProcesses(), 0);
+    std::vector<std::size_t> kratos_ghost_nodes_per_rank(rKratosModelPart.GetCommunicator().TotalProcesses(), 0);
     for (const auto& r_kratos_node : rKratosModelPart.GetCommunicator().GhostMesh().Nodes()) {
         kratos_ghost_nodes_per_rank[r_kratos_node.FastGetSolutionStepValue(PARTITION_INDEX)]++;
     }
 
     for (int part_index=0; part_index<rKratosModelPart.GetCommunicator().TotalProcesses(); ++part_index) {
-        const int num_kratos_nodes_this_rank = kratos_ghost_nodes_per_rank[part_index];
+        const std::size_t num_kratos_nodes_this_rank = kratos_ghost_nodes_per_rank[part_index];
         if (num_kratos_nodes_this_rank > 0) {
             KRATOS_CHECK_EQUAL(rCoSimIOModelPart.GetPartitionModelParts().count(part_index), 1);
             CoSimIO::ModelPart& r_cosimio_part_mp = *rCoSimIOModelPart.GetPartitionModelParts().at(part_index);
