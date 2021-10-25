@@ -2164,8 +2164,7 @@ private:
             isect2[1] = isect2[1] - isect2[0];
         }
 
-        if (isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
-        return true;
+        return (isect1[1]<isect2[0] || isect2[1]<isect1[0]) ? false : true;
     }
 
 	bool ComputeIntervals(
