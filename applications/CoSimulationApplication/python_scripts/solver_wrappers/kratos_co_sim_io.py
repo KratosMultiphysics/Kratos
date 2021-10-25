@@ -24,9 +24,9 @@ class KratosCoSimIO(CoSimulationIO):
         connection_settings = CoSimIO.InfoFromParameters(self.settings)
         connection_settings.SetString("my_name", solver_name)
 
-        if self.data_commnicator.IsDistributed():
+        if self.data_communicator.IsDistributed():
             from KratosMultiphysics.CoSimulationApplication.MPIExtension import CoSimIO as CoSimIOMPI
-            info = CoSimIOMPI.ConnectMPI(connection_settings, self.data_commnicator)
+            info = CoSimIOMPI.ConnectMPI(connection_settings, self.data_communicator)
         else:
             info = CoSimIO.Connect(connection_settings)
 
@@ -50,7 +50,7 @@ class KratosCoSimIO(CoSimulationIO):
         info.SetString("connection_name", self.connection_name)
         info.SetString("identifier", model_part_name.replace(".", "-")) # TODO chec if better solution can be found
 
-        CoSimIO.ImportMesh(info, self.model[model_part_name], self.data_commnicator) # TODO this can also be geometry at some point
+        CoSimIO.ImportMesh(info, self.model[model_part_name], self.data_communicator) # TODO this can also be geometry at some point
 
     def ExportCouplingInterface(self, interface_config):
         model_part_name = interface_config["model_part_name"]
