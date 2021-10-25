@@ -36,7 +36,7 @@ class TestConvergenceCriteriaWrapper(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KM.PRESSURE, uniform(-10, 50))
 
         if KM.IsDistributedRun():
-            KratosMPI.ParallelFillCommunicator(self.model_part).Execute()
+            KratosMPI.ParallelFillCommunicator(self.model_part, KM.Testing.GetDefaultDataCommunicator()).Execute()
 
         data_settings = KM.Parameters("""{
             "model_part_name" : "default",
