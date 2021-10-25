@@ -52,9 +52,9 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
     def ResetLoadingVelocity(self):
         for smp in self.rigid_face_model_part.SubModelParts:
             if smp[IDENTIFIER] == 'TOP':
-                smp[LINEAR_VELOCITY_Y] = self.PlatesDecompressionVelocity
+                smp[LINEAR_VELOCITY_Y] = 0.5 * self.PlatesDecompressionVelocity
             if smp[IDENTIFIER] == 'BOTTOM':
-                smp[LINEAR_VELOCITY_Y] = -self.PlatesDecompressionVelocity
+                smp[LINEAR_VELOCITY_Y] = -0.5 * self.PlatesDecompressionVelocity
     
     def RestoreLoadingVelocity(self):
         for smp in self.rigid_face_model_part.SubModelParts:
@@ -206,7 +206,7 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
     def MeasureForcesAndPressureDeCompression(self):
 
         dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
-        self.strain += -100 * self.length_correction_factor * self.LoadingVelocity * dt / self.height
+        self.strain += -100 * self.length_correction_factor * self.PlatesDecompressionVelocity * dt / self.height
 
         total_force_top = 0.0
         for node in self.top_mesh_nodes:
