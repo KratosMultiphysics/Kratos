@@ -145,7 +145,7 @@ protected:
         Vector StressVector;
         Matrix ConstitutiveMatrix;
         Vector Nu;
-        Matrix GradNu;
+        Matrix GradNe;
         Matrix F;
         double detF;
         double HalfThickness;

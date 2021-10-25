@@ -341,7 +341,7 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculateNewtonCotesShapeFunctionsGradients(BoundedMatrix<double,2,2>& DN_DXContainer)
+    static inline void CalculateNewtonCotesLocalShapeFunctionsGradients(BoundedMatrix<double,2,2>& DN_DeContainer)
     {
         //Line 2-noded
         // nodes:
@@ -349,16 +349,16 @@ public:
         const unsigned int NumNodes = 2;
         const std::vector<double> Xi{-1.0, 1.0};
 
-        noalias(DN_DXContainer) = ZeroMatrix(NumNodes,NumNodes);
+        noalias(DN_DeContainer) = ZeroMatrix(NumNodes,NumNodes);
 
         for (unsigned int integrationPoint = 0; integrationPoint < NumNodes; ++integrationPoint) {
-            DN_DXContainer(integrationPoint,0) = - 0.5;
-            DN_DXContainer(integrationPoint,1) =   0.5;
+            DN_DeContainer(integrationPoint,0) = - 0.5;
+            DN_DeContainer(integrationPoint,1) =   0.5;
         }
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculateNewtonCotesShapeFunctionsGradients(BoundedMatrix<double,3,3>& DN_DXContainer)
+    static inline void CalculateNewtonCotesLocalShapeFunctionsGradients(BoundedMatrix<double,3,3>& DN_DeContainer)
     {
         //Line 3-noded
         // nodes:
@@ -366,12 +366,12 @@ public:
         const unsigned int NumNodes = 3;
         const std::vector<double> Xi{-1.0, 0.0, 1.0};
 
-        noalias(DN_DXContainer) = ZeroMatrix(NumNodes,NumNodes);
+        noalias(DN_DeContainer) = ZeroMatrix(NumNodes,NumNodes);
 
         for (unsigned int integrationPoint = 0; integrationPoint < NumNodes; ++integrationPoint) {
-            DN_DXContainer(integrationPoint,0) =  Xi[integrationPoint] - 0.5;
-            DN_DXContainer(integrationPoint,1) =  Xi[integrationPoint] + 0.5;
-            DN_DXContainer(integrationPoint,2) = -Xi[integrationPoint] * 2.0;
+            DN_DeContainer(integrationPoint,0) =  Xi[integrationPoint] - 0.5;
+            DN_DeContainer(integrationPoint,1) =  Xi[integrationPoint] + 0.5;
+            DN_DeContainer(integrationPoint,2) = -Xi[integrationPoint] * 2.0;
         }
     }
 

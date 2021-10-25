@@ -58,6 +58,7 @@ public:
     using GeoStructuralBaseElement<TDim,TNumNodes>::mStressVector;
     using GeoStructuralBaseElement<TDim,TNumNodes>::N_DOF_ELEMENT;
     using GeoStructuralBaseElement<TDim,TNumNodes>::VoigtSize;
+    using GeoStructuralBaseElement<TDim,TNumNodes>::GetNodalDofValuesVector;
     typedef typename GeoStructuralBaseElement<TDim,TNumNodes>::ElementVariables ElementVariables;
 
     KRATOS_CLASS_POINTER_DEFINITION( GeoCurvedBeamElement );
@@ -148,24 +149,18 @@ protected:
                                     unsigned int GPoint ) const;
 
     virtual void CalculateTransformationMatrix( Matrix &TransformationMatrix,
-                                                const Matrix &GradNu ) const;
+                                                const Matrix &GradNe ) const;
 
     virtual void CalculateNodalCrossDirection( Matrix& NodalCrossDirection ) const override;
 
-    virtual double CalculateAngleAtGaussPoint(const Matrix &GradNu) const;
+    virtual double CalculateAngleAtGaussPoint(const Matrix &GradNe) const;
 
     virtual double CalculateAngleAtNode(unsigned int GPoint,
                                         const BoundedMatrix<double,TNumNodes,TNumNodes> &DN_DXContainer) const;
 
-    virtual void CalculateDeterminantJacobian(unsigned int GPointCross,
+    virtual void CalculateJacobianMatrix(unsigned int GPointCross,
                                               const ElementVariables &rVariables,
                                               BoundedMatrix<double,TDim, TDim> &DeterminantJacobian) const;
-
-    virtual void InitializeElementVariables( ElementVariables &rVariables,
-                                             ConstitutiveLaw::Parameters &rConstitutiveParameters,
-                                             const GeometryType &Geom,
-                                             const PropertiesType &Prop,
-                                             const ProcessInfo &CurrentProcessInfo ) const override;
     
     void CalculateAndAddBodyForce(VectorType &rRightHandSideVector,
                                   ElementVariables &rVariables) const;
@@ -175,9 +170,11 @@ protected:
                                        unsigned int GPoint) const;
     void SetRotationalInertiaVector(const PropertiesType& Prop, Vector& RotationalInertia) const;
 
-    void ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult,
-                                                  Vector& determinants_of_jacobian,
-                                                  const GeometryData::IntegrationMethod& ThisMethod ) const;
+    void InitializeElementVariables( ElementVariables& rVariables,
+                                     ConstitutiveLaw::Parameters& rConstitutiveParameters,
+                                     const GeometryType& Geom,
+                                     const PropertiesType& Prop,
+                                     const ProcessInfo& CurrentProcessInfo ) const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

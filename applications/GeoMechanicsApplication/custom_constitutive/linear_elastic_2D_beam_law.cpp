@@ -90,6 +90,7 @@ void LinearElastic2DBeamLaw::
     const Properties& rMaterialProperties = rValues.GetMaterialProperties();
     const double E = rMaterialProperties[YOUNG_MODULUS];
     const double NU = rMaterialProperties[POISSON_RATIO];
+
     double K = 1.2; // assuming rectangular cross section
     if (rMaterialProperties.Has(PLATE_SHAPE_CORRECTION_FACTOR) && rMaterialProperties[PLATE_SHAPE_CORRECTION_FACTOR] > 0.0) {
         K = rMaterialProperties[PLATE_SHAPE_CORRECTION_FACTOR];
@@ -97,7 +98,7 @@ void LinearElastic2DBeamLaw::
 
     this->CheckClearElasticMatrix(C);
 
-    const double c0 = E / ((1.00 + NU)*(1 - NU));
+    const double c0 = E / (1.00 - NU*NU);
     const double G  = E / (2.0*(1.00 + NU));
 
     C(INDEX_2D_PLANE_STRESS_XX, INDEX_2D_PLANE_STRESS_XX) = c0;
@@ -105,6 +106,21 @@ void LinearElastic2DBeamLaw::
     C(INDEX_2D_PLANE_STRESS_XY, INDEX_2D_PLANE_STRESS_XY) = G/K;
     C(INDEX_2D_PLANE_STRESS_XX, INDEX_2D_PLANE_STRESS_YY) = c0*NU;
     C(INDEX_2D_PLANE_STRESS_YY, INDEX_2D_PLANE_STRESS_XX) = c0*NU;
+
+    KRATOS_CATCH("");
+}
+
+//-------------------------------------------------------------------------------------------------
+void LinearElastic2DBeamLaw::
+    CalculatePK2Stress(const Vector& rStrainVector,
+                       Vector& rStressVector,
+                       ConstitutiveLaw::Parameters& rValues)
+{
+    KRATOS_TRY;
+
+    Matrix C;
+    this->CalculateElasticMatrix(C, rValues);
+    noalias(rStressVector) = prod(C, rStrainVector);
 
     KRATOS_CATCH("");
 }

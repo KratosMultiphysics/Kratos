@@ -165,6 +165,9 @@ protected:
     //  */
     void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
 
+    void CalculatePK2Stress(const Vector& rStrainVector,
+                            Vector& rStressVector,
+                            ConstitutiveLaw::Parameters& rValues) override;
 
     ///@}
 
