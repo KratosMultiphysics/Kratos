@@ -159,8 +159,6 @@ Info FileCommunication::ExportDataImpl(
 
     const fs::path file_name(GetFileName("CoSimIO_data_" + GetConnectionName() + "_" + identifier + "_" + std::to_string(GetDataCommunicator().Rank()), "dat"));
 
-    std::cout << file_name << std::endl;
-
     WaitUntilFileIsRemoved(file_name); // TODO maybe this can be queued somehow ... => then it would not block the sender
 
     const std::size_t size = rData.size();
