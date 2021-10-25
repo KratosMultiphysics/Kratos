@@ -2080,8 +2080,7 @@ private:
     {
         array_1d<double,3> intersection_point;
         const int result = IntersectionUtilities::ComputeTriangleLineIntersection(*this, rPoint1, rPoint2, intersection_point);
-        if (result == 1) return true;
-        else return false;
+        return result == 1 ? true : false;
     }
 
     bool TriangleTriangleOverlap(
