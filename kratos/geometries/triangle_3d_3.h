@@ -2102,7 +2102,7 @@ private:
 
         Plane3D plane_2(rPoint1, rPoint2, rPoint3);
         array_1d<double, 3> distances_2;
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 3; ++i)
             distances_2[i] = plane_2.CalculateSignedDistance(this->GetPoint(i));
         if (AllSameSide(distances_2))
             return false;
