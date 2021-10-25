@@ -190,18 +190,29 @@ void CoSimIOConversionUtilities::KratosModelPartToCoSimIOModelPart(
 {
     KRATOS_TRY
 
-    for (const auto& r_node : rKratosModelPart.GetCommunicator().LocalMesh().Nodes()) {
-        rCoSimIOModelPart.CreateNewNode(
-            r_node.Id(),
-            // TODO: use initial or current coordinates?
-            r_node.X0(),
-            r_node.Y0(),
-            r_node.Z0()
-        );
-    }
+    const int my_rank = rKratosModelPart.GetCommunicator().MyPID();
+    const bool is_distributed = rKratosModelPart.IsDistributed();
 
-    if (rKratosModelPart.IsDistributed()) {
-        for (const auto& r_node : rKratosModelPart.GetCommunicator().GhostMesh().Nodes()) {
+    const auto is_local_node = [my_rank, is_distributed](const Kratos::Node<3>& rNode) -> bool {
+        if (is_distributed) {
+            const int node_rank = rNode.FastGetSolutionStepValue(PARTITION_INDEX);
+            return node_rank == my_rank;
+        } else {
+            return true;
+        }
+    };
+
+    for (const auto& r_node : rKratosModelPart.Nodes()) {
+        // must be done in one loop to preserve order
+        if (is_local_node(r_node)) {
+            rCoSimIOModelPart.CreateNewNode(
+                r_node.Id(),
+                // TODO: use initial or current coordinates?
+                r_node.X0(),
+                r_node.Y0(),
+                r_node.Z0()
+            );
+        } else {
             rCoSimIOModelPart.CreateNewGhostNode(
                 r_node.Id(),
                 // TODO: use initial or current coordinates?
