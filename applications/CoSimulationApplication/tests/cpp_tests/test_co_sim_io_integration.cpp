@@ -288,13 +288,17 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCoSimIOModelPartToKratosModelPa
 
     // elements that use two local nodes
     for (std::size_t i=0; i<num_ghost_nodes_per_rank; ++i) {
-        CoSimIO::ConnectivitiesType conn {DistributedTestHelpers::GetId(num_local_nodes_per_rank, i), DistributedTestHelpers::GetId(num_local_nodes_per_rank, i+1)};
+        CoSimIO::ConnectivitiesType conn {
+            DistributedTestHelpers::GetId(num_local_nodes_per_rank, i),
+            DistributedTestHelpers::GetId(num_local_nodes_per_rank, i+1)};
         co_sim_io_model_part.CreateNewElement(DistributedTestHelpers::GetId(num_local_nodes_per_rank, i), CoSimIO::ElementType::Line2D2, conn);
     }
 
     // elements that use one local and one ghost node
     for (std::size_t i=0; i<num_ghost_nodes_per_rank; ++i) {
-        CoSimIO::ConnectivitiesType conn {DistributedTestHelpers::GetId(num_local_nodes_per_rank, i), DistributedTestHelpers::GetGhostId(num_local_nodes_per_rank, i)};
+        CoSimIO::ConnectivitiesType conn {
+            DistributedTestHelpers::GetId(num_local_nodes_per_rank, i),
+            DistributedTestHelpers::GetGhostId(num_local_nodes_per_rank, i)};
         co_sim_io_model_part.CreateNewElement(DistributedTestHelpers::GetId(num_local_nodes_per_rank, i)+num_ghost_nodes_per_rank, CoSimIO::ElementType::Line2D2, conn);
     }
 
@@ -305,6 +309,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCoSimIOModelPartToKratosModelPa
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(KratosDistributedModelPartToCoSimIOModelPart, KratosCosimulationMPIFastSuite)
 {
+    const auto& r_world_data_comm = ParallelEnvironment::GetDataCommunicator("World");
+
     Model model;
     auto& kratos_model_part = model.CreateModelPart("kratos_mp");
     kratos_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
@@ -315,6 +321,29 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(KratosDistributedModelPartToCoSimIOModelPa
     constexpr std::size_t num_ghost_nodes_per_rank = 3;
 
     DistributedTestHelpers::CreateDistributedNodes(kratos_model_part, num_local_nodes_per_rank, num_ghost_nodes_per_rank);
+
+    Properties::Pointer p_props(kratos_model_part.CreateNewProperties(0));
+
+    // elements that use two local nodes
+    for (std::size_t i=0; i<num_ghost_nodes_per_rank; ++i) {
+        std::vector<ModelPart::IndexType> conn {
+            static_cast<ModelPart::IndexType>(DistributedTestHelpers::GetId(num_local_nodes_per_rank, i)),
+            static_cast<ModelPart::IndexType>(DistributedTestHelpers::GetId(num_local_nodes_per_rank, i+1))};
+        const int elem_id = DistributedTestHelpers::GetId(num_local_nodes_per_rank, i);
+        kratos_model_part.CreateNewElement("Element2D2N", elem_id, conn, p_props);
+    }
+
+    // elements that use one local and one ghost node
+    for (std::size_t i=0; i<num_ghost_nodes_per_rank; ++i) {
+        std::vector<ModelPart::IndexType> conn {
+            static_cast<ModelPart::IndexType>(DistributedTestHelpers::GetId(num_local_nodes_per_rank, i)),
+            static_cast<ModelPart::IndexType>(DistributedTestHelpers::GetGhostId(num_local_nodes_per_rank, i))};
+        const int elem_id = DistributedTestHelpers::GetId(num_local_nodes_per_rank, i)+num_ghost_nodes_per_rank;
+        kratos_model_part.CreateNewElement("Element2D2N", elem_id, conn, p_props);
+    }
+
+    // this calls the ParallelFillCommunicator
+    ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(kratos_model_part, r_world_data_comm)->Execute();
 
     CoSimIOConversionUtilities::KratosModelPartToCoSimIOModelPart(kratos_model_part, co_sim_io_model_part);
 
