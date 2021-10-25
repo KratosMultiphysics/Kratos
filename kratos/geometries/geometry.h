@@ -1400,7 +1400,7 @@ public:
      * @param  ThisGeometry Geometry to intersect with
      * @return              True if the geometries intersect, False in any other case.
      */
-    virtual bool HasIntersection(const GeometryType& ThisGeometry) {
+    virtual bool HasIntersection(const GeometryType& ThisGeometry) const {
       KRATOS_ERROR << "Calling base class 'HasIntersection' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
       return false;
     }
@@ -1414,7 +1414,7 @@ public:
      * @param  rHighPoint Higher point of the box to test the intersection
      * @return            True if the geometry intersects the box, False in any other case.
      */
-    virtual bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) {
+    virtual bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) const {
       KRATOS_ERROR << "Calling base class 'HasIntersection' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
       return false;
     }

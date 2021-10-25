@@ -1135,7 +1135,7 @@ public:
      * @param  ThisGeometry Geometry to intersect with
      * @return True if the geometries intersect, False in any other case.
      */
-    bool HasIntersection(const GeometryType& ThisGeometry) override
+    bool HasIntersection(const GeometryType& ThisGeometry) const override
     {
         Triangle3D3<PointType> triangle_0 (this->pGetPoint( 0 ),
                                            this->pGetPoint( 1 ),
@@ -1169,7 +1169,7 @@ public:
     @param rHighPoint second corner of the box
     @see Triangle3D3::HasIntersection
     */
-    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) const override
     {
         Triangle3D3<PointType> triangle_0 (this->pGetPoint( 0 ),
                                            this->pGetPoint( 1 ),
