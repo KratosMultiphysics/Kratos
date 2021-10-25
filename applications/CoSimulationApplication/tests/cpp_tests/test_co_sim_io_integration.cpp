@@ -164,7 +164,11 @@ void CreateDistributedNodes(
     const int NumLocalNodesPerRank,
     const int NumGhostNodesPerRank)
 {
-    const int my_rank = ParallelEnvironment::GetDataCommunicator("World").Rank();
+    KRATOS_CHECK_GREATER(NumLocalNodesPerRank, NumGhostNodesPerRank);
+
+    const auto& r_world_data_comm = ParallelEnvironment::GetDataCommunicator("World");
+    const int my_rank = r_world_data_comm.Rank();
+    const int world_size = r_world_data_comm.Size();
 
     auto create_ghost_nodes = [&](){
         for (std::size_t i=0; i<NumGhostNodesPerRank; ++i) {
@@ -192,6 +196,7 @@ void CreateDistributedNodes(
     KRATOS_CHECK_EQUAL(rCoSimIOModelPart.NumberOfNodes(), NumLocalNodesPerRank+NumGhostNodesPerRank);
     KRATOS_CHECK_EQUAL(rCoSimIOModelPart.NumberOfLocalNodes(), NumLocalNodesPerRank);
     KRATOS_CHECK_EQUAL(rCoSimIOModelPart.NumberOfGhostNodes(), NumGhostNodesPerRank);
+    KRATOS_CHECK_EQUAL(r_world_data_comm.SumAll(rCoSimIOModelPart.NumberOfLocalNodes()), NumLocalNodesPerRank*world_size);
     KRATOS_CHECK_EQUAL(rCoSimIOModelPart.NumberOfElements(), 0);
 }
 
@@ -200,6 +205,8 @@ void CreateDistributedNodes(
     const int NumLocalNodesPerRank,
     const int NumGhostNodesPerRank)
 {
+    KRATOS_CHECK_GREATER(NumLocalNodesPerRank, NumGhostNodesPerRank);
+
     const auto& r_world_data_comm = ParallelEnvironment::GetDataCommunicator("World");
     const int my_rank = r_world_data_comm.Rank();
     const int world_size = r_world_data_comm.Size();
