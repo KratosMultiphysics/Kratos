@@ -553,5 +553,3 @@ Forces to re-download and replace an existing version of tetgen obtained through
 
 `-DUSE_TRIANGLE_NONFREE_TPL`
 Enables or disables the use of Triangle and its related utilities in the code.
-
-#### Triangle
