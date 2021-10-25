@@ -82,5 +82,19 @@ void CheckModelPartsAreEqual(
     KRATOS_CATCH("")
 }
 
+void CheckDistributedModelPartsAreEqual(
+    const Kratos::ModelPart& rKratosModelPart,
+    const CoSimIO::ModelPart& rCoSimIOModelPart)
+{
+    KRATOS_TRY
+
+    // serial checks
+    CheckModelPartsAreEqual(rKratosModelPart, rCoSimIOModelPart);
+
+    // ...
+
+    KRATOS_CATCH("")
+}
+
 } // namespace Kratos
 } // namespace Testing

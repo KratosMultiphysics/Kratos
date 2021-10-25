@@ -34,5 +34,9 @@ void CheckModelPartsAreEqual(
     const Kratos::ModelPart& rKratosModelPart,
     const CoSimIO::ModelPart& rCoSimIOModelPart);
 
+void CheckDistributedModelPartsAreEqual(
+    const Kratos::ModelPart& rKratosModelPart,
+    const CoSimIO::ModelPart& rCoSimIOModelPart);
+
 } // namespace Kratos
 } // namespace Testing

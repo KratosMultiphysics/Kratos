@@ -137,5 +137,118 @@ KRATOS_TEST_CASE_IN_SUITE(KratosModelPartToCoSimIOModelPart, KratosCosimulationF
     CheckModelPartsAreEqual(kratos_model_part, co_sim_io_model_part);
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCoSimIOModelPartToKratosModelPart_NodesOnly, KratosCosimulationMPIFastSuite)
+{
+    const auto& r_world_data_comm = ParallelEnvironment::GetDataCommunicator("World");
+
+    Model model;
+    auto& kratos_model_part = model.CreateModelPart("kratos_mp");
+
+    CoSimIO::ModelPart co_sim_io_model_part("co_sim_io_mp");
+
+    constexpr std::size_t num_nodes = 5;
+
+    for (std::size_t i=0; i<num_nodes; ++i) {
+        co_sim_io_model_part.CreateNewNode(i+1, i*1.5, i+3.5, i-8.6);
+    }
+
+    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfLocalNodes(), num_nodes);
+    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfGhostNodes(), 0);
+    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfElements(), 0);
+
+
+    CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, kratos_model_part, r_world_data_comm);
+
+    CheckDistributedModelPartsAreEqual(kratos_model_part, co_sim_io_model_part);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedKratosModelPartToCoSimIOModelPart_NodesOnly, KratosCosimulationMPIFastSuite)
+{
+    Model model;
+    auto& kratos_model_part = model.CreateModelPart("kratos_mp");
+
+    CoSimIO::ModelPart co_sim_io_model_part("co_sim_io_mp");
+
+    constexpr std::size_t num_nodes = 5;
+
+    for (std::size_t i=0; i<num_nodes; ++i) {
+        kratos_model_part.CreateNewNode(i+1, i*1.5, i+3.5, i-8.6);
+    }
+
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 0);
+
+    CoSimIOConversionUtilities::KratosModelPartToCoSimIOModelPart(kratos_model_part, co_sim_io_model_part);
+
+    CheckDistributedModelPartsAreEqual(kratos_model_part, co_sim_io_model_part);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCoSimIOModelPartToKratosModelPart, KratosCosimulationMPIFastSuite)
+{
+    const auto& r_world_data_comm = ParallelEnvironment::GetDataCommunicator("World");
+
+    Model model;
+    auto& kratos_model_part = model.CreateModelPart("kratos_mp");
+
+    CoSimIO::ModelPart co_sim_io_model_part("co_sim_io_mp");
+
+    const int node_ids[] = {2,61,159};
+    const std::array<double, 3> node_coords = {1.0, -2.7, 9.44};
+    co_sim_io_model_part.CreateNewNode(node_ids[0], node_coords[0], node_coords[1], node_coords[2]);
+    co_sim_io_model_part.CreateNewNode(node_ids[1], node_coords[1], node_coords[2], node_coords[0]);
+    co_sim_io_model_part.CreateNewNode(node_ids[2], node_coords[2], node_coords[0], node_coords[1]);
+
+    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfNodes(), 3);
+
+    const int elem_ids[] = {1,19,21};
+    const CoSimIO::ElementType elem_types[] = {
+        CoSimIO::ElementType::Point2D,
+        CoSimIO::ElementType::Point2D,
+        CoSimIO::ElementType::Line2D2
+    };
+
+    co_sim_io_model_part.CreateNewElement(elem_ids[0], elem_types[0], {node_ids[0]});
+    co_sim_io_model_part.CreateNewElement(elem_ids[1], elem_types[1], {node_ids[1]});
+    co_sim_io_model_part.CreateNewElement(elem_ids[2], elem_types[2], {node_ids[1], node_ids[2]});
+
+    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfElements(), 3);
+
+    CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, kratos_model_part, r_world_data_comm);
+
+    CheckDistributedModelPartsAreEqual(kratos_model_part, co_sim_io_model_part);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(KratosDistributedModelPartToCoSimIOModelPart, KratosCosimulationMPIFastSuite)
+{
+    Model model;
+    auto& kratos_model_part = model.CreateModelPart("kratos_mp");
+
+    CoSimIO::ModelPart co_sim_io_model_part("co_sim_io_mp");
+
+    constexpr std::size_t num_nodes = 5;
+
+    for (std::size_t i=0; i<num_nodes; ++i) {
+        kratos_model_part.CreateNewNode(i+1, i*1.5, i+3.5, i-8.6);
+    }
+
+    auto p_props = kratos_model_part.CreateNewProperties(0);
+
+    std::vector<IndexType> conn {1,2};
+    kratos_model_part.CreateNewElement("Element2D2N", 1, conn, p_props);
+    conn = {2,3};
+    kratos_model_part.CreateNewElement("Element2D2N", 2, conn, p_props);
+    conn = {3,4,5};
+    kratos_model_part.CreateNewElement("Element2D3N", 3, conn, p_props);
+
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfElements(), 3);
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 1);
+
+    CoSimIOConversionUtilities::KratosModelPartToCoSimIOModelPart(kratos_model_part, co_sim_io_model_part);
+
+    CheckDistributedModelPartsAreEqual(kratos_model_part, co_sim_io_model_part);
+}
+
 } // namespace Testing
 } // namespace Kratos
