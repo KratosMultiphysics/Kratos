@@ -26,9 +26,9 @@ class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
         self.is_strong_coupling = self.co_sim_settings["is_strong_coupling"].GetBool()
 
         connection_settings = CoSimIO.InfoFromParameters(self.project_parameters["co_sim_settings"]["io_settings"])
-        stop
+
         if default_data_comm.IsDistributed():
-            info = MPIExtension.CoSimIO.ConnectMPI(connection_settings)
+            info = MPIExtension.CoSimIO.ConnectMPI(connection_settings, default_data_comm)
         else:
             info = CoSimIO.Connect(connection_settings)
 
