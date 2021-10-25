@@ -91,12 +91,15 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
         rKratosModelPart.AddNodalSolutionStepVariable(PARTITION_INDEX); // to be on the safe side
     }
 
-    // fill ModelPart with received entities
+    // check if nodes are ordered consecutively
+    // this is unfortunately necessary for several resons, e.g. AddElements and the ParallelFillCommunicator
     std::size_t max_node_id = 0;
-    for (const auto& r_node : rCoSimIOModelPart.LocalNodes()) {
+    for (const auto& r_node : rCoSimIOModelPart.Nodes()) {
         KRATOS_ERROR_IF(max_node_id >= static_cast<std::size_t>(r_node.Id())) << "The nodes must be consecutively ordered!" << std::endl;
         max_node_id = r_node.Id();
+    }
 
+    for (const auto& r_node : rCoSimIOModelPart.LocalNodes()) {
         auto p_node = rKratosModelPart.CreateNewNode(
             r_node.Id(),
             r_node.X(),
