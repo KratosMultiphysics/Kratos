@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/parallel_environment.h"
 #include "co_sim_io_conversion_utilities.h"
 
 namespace Kratos {
@@ -73,7 +74,8 @@ const std::map<CoSimIO::ElementType, std::string> elem_name_map {
 
 void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
     const CoSimIO::ModelPart& rCoSimIOModelPart,
-    Kratos::ModelPart& rKratosModelPart)
+    Kratos::ModelPart& rKratosModelPart,
+    const DataCommunicator& rDataComm)
 {
     KRATOS_TRY
 
@@ -82,21 +84,53 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
     KRATOS_ERROR_IF(rKratosModelPart.NumberOfProperties() > 0) << "ModelPart is not empty, it has properties!" << std::endl;
     KRATOS_ERROR_IF(rKratosModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
 
+    const bool is_distributed = rDataComm.IsDistributed();
+    const int my_rank = rDataComm.Rank();
+
+    if (is_distributed) {
+        rKratosModelPart.AddNodalSolutionStepVariable(PARTITION_INDEX); // to be on the safe side
+    }
+
     // fill ModelPart with received entities
     std::size_t max_node_id = 0;
-    for (auto node_it=rCoSimIOModelPart.NodesBegin(); node_it!=rCoSimIOModelPart.NodesEnd(); ++node_it) {
-        const auto& r_node = **node_it;
-
+    for (const auto& r_node : rCoSimIOModelPart.LocalNodes()) {
         KRATOS_ERROR_IF(max_node_id >= static_cast<std::size_t>(r_node.Id())) << "The nodes must be consecutively ordered!" << std::endl;
         max_node_id = r_node.Id();
 
-        rKratosModelPart.CreateNewNode(
+        auto p_node = rKratosModelPart.CreateNewNode(
             r_node.Id(),
             r_node.X(),
             r_node.Y(),
             r_node.Z()
         );
+
+        if (is_distributed) {
+            // alternatively use VariableUtils
+            p_node->FastGetSolutionStepValue(PARTITION_INDEX) = my_rank;
+        }
     };
+
+    KRATOS_ERROR_IF(!is_distributed && rCoSimIOModelPart.GetPartitionModelParts().size()>0) << "Ghost entities exist in CoSimIO ModelPart in serial simulation!" << std::endl;
+
+    for (const auto& r_partition_pair : rCoSimIOModelPart.GetPartitionModelParts()) {
+        const int partition_index = r_partition_pair.first;
+        const std::unique_ptr<CoSimIO::ModelPart>& rp_partition_model_part = r_partition_pair.second;
+
+        max_node_id = 0;
+        for (const auto& r_node : rp_partition_model_part->Nodes()) {
+            KRATOS_ERROR_IF(max_node_id >= static_cast<std::size_t>(r_node.Id())) << "The nodes must be consecutively ordered!" << std::endl;
+            max_node_id = r_node.Id();
+
+            auto p_node = rKratosModelPart.CreateNewNode(
+                r_node.Id(),
+                r_node.X(),
+                r_node.Y(),
+                r_node.Z()
+            );
+
+            p_node->FastGetSolutionStepValue(PARTITION_INDEX) = partition_index;
+        };
+    }
 
     Properties::Pointer p_props;
     if (rCoSimIOModelPart.NumberOfElements() > 0) {
@@ -139,6 +173,11 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
         );
     };
 
+    if (rDataComm.IsDistributed()) {
+        // this calls the ParallelFillCommunicator
+        ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(rKratosModelPart, rDataComm);
+    }
+
     KRATOS_CATCH("")
 }
 
@@ -148,7 +187,7 @@ void CoSimIOConversionUtilities::KratosModelPartToCoSimIOModelPart(
 {
     KRATOS_TRY
 
-    for (const auto& r_node : rKratosModelPart.Nodes()) {
+    for (const auto& r_node : rKratosModelPart.GetCommunicator().LocalMesh().Nodes()) {
         rCoSimIOModelPart.CreateNewNode(
             r_node.Id(),
             // TODO: use initial or current coordinates?
@@ -156,7 +195,20 @@ void CoSimIOConversionUtilities::KratosModelPartToCoSimIOModelPart(
             r_node.Y0(),
             r_node.Z0()
         );
-    };
+    }
+
+    if (rKratosModelPart.IsDistributed()) {
+        for (const auto& r_node : rKratosModelPart.GetCommunicator().GhostMesh().Nodes()) {
+            rCoSimIOModelPart.CreateNewGhostNode(
+                r_node.Id(),
+                // TODO: use initial or current coordinates?
+                r_node.X0(),
+                r_node.Y0(),
+                r_node.Z0(),
+                r_node.FastGetSolutionStepValue(PARTITION_INDEX)
+            );
+        }
+    }
 
     CoSimIO::ConnectivitiesType conn;
     for (const auto& r_elem : rKratosModelPart.Elements()) {

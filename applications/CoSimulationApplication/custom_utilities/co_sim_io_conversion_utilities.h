@@ -63,7 +63,8 @@ public:
 
     static void CoSimIOModelPartToKratosModelPart(
         const CoSimIO::ModelPart& rCoSimIOModelPart,
-        Kratos::ModelPart& rKratosModelPart);
+        Kratos::ModelPart& rKratosModelPart,
+        const DataCommunicator& rDataComm);
 
     static void KratosModelPartToCoSimIOModelPart(
         const Kratos::ModelPart& rKratosModelPart,

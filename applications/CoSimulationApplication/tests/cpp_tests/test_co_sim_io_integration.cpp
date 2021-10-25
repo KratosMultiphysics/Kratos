@@ -15,6 +15,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "includes/parallel_environment.h"
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "custom_utilities/co_sim_io_conversion_utilities.h"
@@ -43,7 +44,9 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIOModelPartToKratosModelPart_NodesOnly, KratosCos
     KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfGhostNodes(), 0);
     KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfElements(), 0);
 
-    CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, kratos_model_part);
+    const auto& r_serial_data_comm = ParallelEnvironment::GetDataCommunicator("Serial");
+
+    CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, kratos_model_part, r_serial_data_comm);
 
     CheckModelPartsAreEqual(kratos_model_part, co_sim_io_model_part);
 }
@@ -97,7 +100,8 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIOModelPartToKratosModelPart, KratosCosimulationF
 
     KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfElements(), 3);
 
-    CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, kratos_model_part);
+    const auto& r_serial_data_comm = ParallelEnvironment::GetDataCommunicator("Serial");
+    CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, kratos_model_part, r_serial_data_comm);
 
     CheckModelPartsAreEqual(kratos_model_part, co_sim_io_model_part);
 }
