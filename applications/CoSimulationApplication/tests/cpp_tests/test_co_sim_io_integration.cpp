@@ -256,10 +256,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCoSimIOModelPartToKratosModelPa
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedKratosModelPartToCoSimIOModelPart_NodesOnly, KratosCosimulationMPIFastSuite)
 {
-    const auto& r_world_data_comm = ParallelEnvironment::GetDataCommunicator("World");
-    const int my_rank = r_world_data_comm.Rank();
-    const int world_size = r_world_data_comm.Size();
-
     Model model;
     auto& kratos_model_part = model.CreateModelPart("kratos_mp");
     kratos_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
@@ -290,6 +286,18 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCoSimIOModelPartToKratosModelPa
 
     DistributedTestHelpers::CreateDistributedNodes(co_sim_io_model_part, num_local_nodes_per_rank, num_ghost_nodes_per_rank);
 
+    // elements that use two local nodes
+    for (std::size_t i=0; i<num_ghost_nodes_per_rank; ++i) {
+        CoSimIO::ConnectivitiesType conn {DistributedTestHelpers::GetId(num_local_nodes_per_rank, i), DistributedTestHelpers::GetId(num_local_nodes_per_rank, i+1)};
+        co_sim_io_model_part.CreateNewElement(DistributedTestHelpers::GetId(num_local_nodes_per_rank, i), CoSimIO::ElementType::Line2D2, conn);
+    }
+
+    // elements that use one local and one ghost node
+    for (std::size_t i=0; i<num_ghost_nodes_per_rank; ++i) {
+        CoSimIO::ConnectivitiesType conn {DistributedTestHelpers::GetId(num_local_nodes_per_rank, i), DistributedTestHelpers::GetGhostId(num_local_nodes_per_rank, i)};
+        co_sim_io_model_part.CreateNewElement(DistributedTestHelpers::GetId(num_local_nodes_per_rank, i)+num_ghost_nodes_per_rank, CoSimIO::ElementType::Line2D2, conn);
+    }
+
     CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, kratos_model_part, r_world_data_comm);
 
     CheckDistributedModelPartsAreEqual(kratos_model_part, co_sim_io_model_part);
@@ -297,10 +305,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCoSimIOModelPartToKratosModelPa
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(KratosDistributedModelPartToCoSimIOModelPart, KratosCosimulationMPIFastSuite)
 {
-    const auto& r_world_data_comm = ParallelEnvironment::GetDataCommunicator("World");
-    const int my_rank = r_world_data_comm.Rank();
-    const int world_size = r_world_data_comm.Size();
-
     Model model;
     auto& kratos_model_part = model.CreateModelPart("kratos_mp");
     kratos_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
