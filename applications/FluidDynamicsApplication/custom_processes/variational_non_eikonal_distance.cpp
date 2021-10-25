@@ -218,7 +218,7 @@ void VariationalNonEikonalDistance::Execute()
     double max_grad_norm_deviation = 1.0e2;
     double norm_grad_norm_deviation = 0.0;
     //for (unsigned iter = 0; iter < 50; ++iter){
-    while (max_grad_norm_deviation > 2.0e-1 && iteration < 5){
+    while (max_grad_norm_deviation > 2.0e-1 && iteration < 50){
         KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, about to solve the LSE" << std::endl;
         mp_solving_strategy->Solve();
         KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, LSE is solved" << std::endl;
@@ -239,7 +239,7 @@ void VariationalNonEikonalDistance::Execute()
             norm_grad_norm_deviation += grad_norm_dev;
         }
         iteration++;
-        KRATOS_INFO("Maximum deviation in the norm of distance gradient") <<
+        KRATOS_INFO("Deviation in the norm of distance gradient") <<
             norm_grad_norm_deviation/static_cast<double>(NumNodes) << std::endl;
     }
     if (max_grad_norm_deviation > 2.0e-1){

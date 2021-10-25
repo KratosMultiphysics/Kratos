@@ -332,10 +332,10 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
     //const double tau = 0.5;
     //const double penalty_curvature = 0.0;//1.0e-3; // Not possible for curvature itself since normalized DISTANCE_GRADIENT is needed.
-    const double penalty_phi0 = 1.0e7/element_size; // <-- For Nitsche's method //1.0e9;//0.0;//
+    const double penalty_phi0 = 1.0e4/element_size; // <-- For Nitsche's method //1.0e9;//0.0;//
 
     double source_coeff = 2.1/(0.1*element_size); //3.0/(8.0*element_size);//1.0e0; 
-    const double radius = 1.339358195e-4/1.25/* 1.339358195e-3/1.2 */ + mean_distance; //20.0*element_size //Usually we have ~10 elements across a Radius, so, this is the expected minimum radius.
+    const double radius = /* 1.339358195e-4/1.25 *//* 1.339358195e-3/1.3 */5.0*element_size + mean_distance; //20.0*element_size //Usually we have ~10 elements across a Radius, so, this is the expected minimum radius.
     if ( radius > (0.1*element_size) ) source_coeff = 2.1/radius;
     //const double dissipative_coefficient = 1.0e-8;
 
@@ -444,9 +444,9 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                         // lhs(i_node, j_node) += - diffusion * weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
                     }
                 }
-                if (step > 1){
+                /* if (step > 1){
                     lhs_Newton_Raphson(i_node, j_node) -= diffusion_prime_to_s * weights(gp) * grad_Ni_dot_grad_phi * grad_Nj_dot_grad_phi;
-                }
+                } */
             }
         }
     }
@@ -489,7 +489,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                     //rhs(i_node*(num_dim + 1) + 0) += pos_weights(pos_gp) * pos_N(pos_gp, i_node);
                     // rhs(i_node) += source_coeff * pos_weights(pos_gp) * pos_N(pos_gp, i_node);
                     // There is no need for the positive source term
-                    rhs(i_node) -= 2.0e0 * source_coeff * pos_weights(pos_gp) * pos_N(pos_gp, i_node);
+                    rhs(i_node) -= 0.5e0 * source_coeff * pos_weights(pos_gp) * pos_N(pos_gp, i_node);
                 }
             }
 
@@ -504,7 +504,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
             for (unsigned int neg_gp = 0; neg_gp < number_of_neg_gauss_points; neg_gp++){
                 for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
                     //rhs(i_node*(num_dim + 1) + 0) -= neg_weights(neg_gp) * neg_N(neg_gp, i_node);
-                    rhs(i_node) -= 2.0e0 * source_coeff * neg_weights(neg_gp) * neg_N(neg_gp, i_node);
+                    rhs(i_node) -= 1.0e0 * source_coeff * neg_weights(neg_gp) * neg_N(neg_gp, i_node);
                 }
             }
         } //else{
@@ -605,9 +605,9 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         //KRATOS_WATCH(nneg)
         double source;
         if (npos != 0)
-            source = -1.0e0;//0.0;//1.0; // There is no need to add positive source term
+            source = -0.5e0;//0.0;//1.0; // There is no need to add positive source term
         else
-            source = -2.0e0;
+            source = -1.0e0;
 
         for (unsigned int gp = 0; gp < number_of_gauss_points; gp++){
             for (unsigned int i_node = 0; i_node < num_nodes; i_node++){

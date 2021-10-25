@@ -259,7 +259,7 @@ void SurfaceSmoothingProcess::Execute()
     for (unsigned int k = 0; k < NumNodes; ++k) {
         auto it_node = mrModelPart.NodesBegin() + k;
         //KRATOS_INFO("SurfaceSmoothingProcess, Nodes Id") << it_node->Id() << std::endl;
-        if (NumNeighbors[it_node->Id()-1] != 0.0 && !it_node->IsFixed(DISTANCE)/* && it_node->GetValue(IS_STRUCTURE) == 0.0 */){
+        if (NumNeighbors[it_node->Id()-1] != 0.0 && !it_node->IsFixed(DISTANCE) ){// && it_node->GetValue(IS_STRUCTURE) == 0.0){
              it_node->FastGetSolutionStepValue(DISTANCE_AUX) =
                 it_node->FastGetSolutionStepValue(DISTANCE_AUX) - 1.0/NumNeighbors[it_node->Id()-1]*DistDiffAvg[it_node->Id()-1];
         }
@@ -267,14 +267,26 @@ void SurfaceSmoothingProcess::Execute()
     //     it_node->Free(DISTANCE_AUX);
     }
 
-    r_smoothing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
+    /* r_smoothing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
 
+    double norm_grad_norm_deviation = 0.0;
     for (int iter = 0; iter<0; ++iter){
         mpGradientCalculator->Execute();
         KRATOS_INFO("SurfaceSmoothingProcess") << "About to solve the LSE, iteration: " << iter+1 << std::endl;
         mp_solving_strategy->Solve();
         KRATOS_INFO("SurfaceSmoothingProcess") << "LSE is solved, iteration: " << iter+1 << std::endl;
-    }
+
+        norm_grad_norm_deviation = 0.0;
+        #pragma omp parallel for
+        for (unsigned int k = 0; k < NumNodes; ++k) {
+            auto it_node = mrModelPart.NodesBegin() + k;
+            const double grad_norm_dev = std::abs(
+                    norm_2( it_node->GetValue(DISTANCE_GRADIENT) ) - 1.0);
+            norm_grad_norm_deviation += grad_norm_dev;
+        }
+        KRATOS_INFO("Deviation in the norm of distance gradient") <<
+            norm_grad_norm_deviation/static_cast<double>(NumNodes) << std::endl;
+    } */
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////

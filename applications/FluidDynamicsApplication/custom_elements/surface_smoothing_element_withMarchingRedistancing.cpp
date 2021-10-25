@@ -265,8 +265,8 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     // Getting data for the given geometry
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info
-    const double he = ElementSizeCalculator<3,4>::GradientsElementSize(DN_DX);
-    const double epsilon = 1.0e-10;//1.7e-9;//6.0e5*dt*he*he;//5.0e5*dt*he*he;//1.0e2*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
+    const double element_size = ElementSizeCalculator<3,4>::GradientsElementSize(DN_DX);
+    //const double epsilon = 5.0e-11;//1.7e-9;//6.0e5*dt*he*he;//5.0e5*dt*he*he;//1.0e2*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
 
     // HINT: 5e-10 is fine for median mesh and exact gradient (1.3e-9 for finer mesh)
     // For the Avg. Gradient value, a larger epsilon is needed.
@@ -313,11 +313,48 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     } */
 
     VectorType grad_phi_old = ZeroVector(num_dim);
-    //VectorType grad_phi_avg = ZeroVector(num_dim);
+    VectorType grad_phi = ZeroVector(num_dim);
+    VectorType grad_phi_avg = ZeroVector(num_dim);
     for(unsigned int i = 0; i<num_nodes; i++){
         for (unsigned int k = 0; k<num_dim; k++){
             grad_phi_old(k) += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)*DN_DX(i,k);
+            grad_phi(k) += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_AUX)*DN_DX(i,k);
         }
+        grad_phi_avg += GetGeometry()[i].GetValue(DISTANCE_GRADIENT)*N[i];
+    }
+
+    const double norm_grad_phi_old = norm_2(grad_phi_old);
+    const double norm_grad_phi = norm_2(grad_phi);
+    const double norm_grad_phi_avg = norm_2(grad_phi_avg);
+    double epsilon = 0.0;
+    double diffusion = 0.0;
+    //KRATOS_INFO("Epsilon") << epsilon << std::endl;
+    //if (std::abs(epsilon) < 1.0e-12){epsilon = 1.0e-12;}
+    const double pseudo_time_step = 1.0e-6;
+
+    const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+    //KRATOS_INFO("STEP") << step << std::endl;
+
+    if (step == 1){
+        epsilon = 1.0e-10;
+    } else{
+        if (norm_grad_phi_avg > 1.0){
+            diffusion = 1.0/norm_grad_phi_avg;
+        } else{
+            diffusion = 2.0-norm_grad_phi_avg;//(3.0 - 2.0*norm_grad_phi_avg)*norm_grad_phi_avg;//
+        }
+
+        /* const double tolerance = 1.0e-3*element_size;
+        if (norm_grad_phi_avg > tolerance){
+            diffusion = 1.0/norm_grad_phi_avg;
+        } else{
+            diffusion = 1.0/tolerance;
+        } */
+
+        epsilon = 1.0 - diffusion;
+
+        epsilon = pseudo_time_step*epsilon;
+        diffusion = pseudo_time_step*diffusion;
     }
 
     for(unsigned int i = 0; i<num_nodes; i++){
@@ -327,15 +364,22 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     }
 
     for(unsigned int i = 0; i<num_nodes; i++){
-        tempMlumped(i,i) = area*N[i];
+        tempMlumped(i,i) = 1.0e4*area*N[i];
 
         for(unsigned int j = 0; j<num_nodes; j++){
-            tempM(i,j) = area*N[i]*N[j];
+            tempM(i,j) = 1.0e4*area*N[i]*N[j];
 
             for (unsigned int k = 0; k<num_dim; k++){
-                tempA(i,j) += area*epsilon*DN_DX(i,k)*DN_DX(j,k);
 
-                tempLaplacianRHS[i] += area*epsilon*DN_DX(i,k)*N[j]*grad_phi_old[k]; //(GradPHIold[j])[k];
+                if (step == 1){
+                    tempA(i,j) += 1.0e4*area*epsilon*DN_DX(i,k)*DN_DX(j,k);
+
+                    tempLaplacianRHS[i] += 1.0e4*area*epsilon*DN_DX(i,k)*N[j]*grad_phi_old[k]; //(GradPHIold[j])[k];
+                } else{
+                    tempA(i,j) += 1.0e4*pseudo_time_step*area*DN_DX(i,k)*DN_DX(j,k);//area*epsilon*DN_DX(i,k)*DN_DX(j,k);
+
+                    tempLaplacianRHS[i] += 1.0e4*diffusion*area*DN_DX(i,k)*N[j]*grad_phi[k];//area*epsilon*DN_DX(i,k)*N[j]*grad_phi_old[k]; //(GradPHIold[j])[k];
+                }
             }
 
             //tempA(i,j) -= 0.5*area*epsilon*n_dot_grad(i)*n_dot_grad(j);
@@ -344,7 +388,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
         //grad_phi_avg += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
     }
 
-    // const double norm_grad_phi_old = norm_2(grad_phi_old); // It is not correct to normalize the gradient.
+    // It is not correct to normalize the gradient.
     // if (norm_grad_phi_old > 1.0-1 && norm_grad_phi_old < 1.0e1)
     //     grad_phi_old = (1.0/norm_grad_phi_old)*grad_phi_old;//1.0/static_cast<double>(num_nodes)*grad_phi_old;//
     // else
@@ -352,230 +396,231 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     //KRATOS_INFO("SurfaceSmoothingElement") << "Start BC" << std::endl;
     ///////////////////////////////////////////////////////////////////////////////
-    GeometryType::GeometriesArrayType faces = GetGeometry().GenerateFaces();
+    if(step == 1){
+        GeometryType::GeometriesArrayType faces = GetGeometry().GenerateFaces();
 
-    bool not_found_surface = true;
-    unsigned int i_face = 0;
+        //bool not_found_surface = true;
+        unsigned int i_face = 0;
 
-    while (i_face < num_faces && not_found_surface) {
-        GeometryType& r_face = faces[i_face];
-        unsigned int contact_node = 0;
-        const unsigned int num_face_nodes = num_nodes - 1;
-        unsigned int n_pos = 0;
+        while (i_face < num_faces /* && not_found_surface */) {
+            GeometryType& r_face = faces[i_face];
+            unsigned int outer_face_node = 0;
+            const unsigned int num_face_nodes = num_nodes - 1;
+            unsigned int n_pos = 0;
 
-        double positive_viscosity = 0.0;
-        double negative_viscosity = 0.0;
+            double positive_viscosity = 0.0;
+            double negative_viscosity = 0.0;
 
-        double contact_angle = 0.0;
-        double contact_angle_weight = 0.0;
-        Vector solid_normal = ZeroVector(num_dim);
+            double contact_angle = 0.0;
+            double contact_angle_weight = 0.0;
+            Vector solid_normal = ZeroVector(num_dim);
 
-        for (unsigned int i=0; i < num_face_nodes; ++i){
-            if ( r_face[i].GetValue(IS_STRUCTURE) == 1.0 ){
-                contact_node++;
-                const double contact_angle_i = r_face[i].FastGetSolutionStepValue(CONTACT_ANGLE);
-                if (contact_angle_i > 1.0e-12)
-                {
-                    contact_angle += contact_angle_i;
-                    contact_angle_weight += 1.0;
-                }
-                solid_normal += r_face[i].FastGetSolutionStepValue(NORMAL);
-            }
-            if ( r_face[i].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
-                n_pos++;
-                positive_viscosity = r_face[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-            } else{
-                negative_viscosity = r_face[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-            }
-        }
-
-        if (contact_node == num_face_nodes){
-            not_found_surface = false;
-
-            double minus_cos_contact_angle = 0.0;
-            const double norm_solid_normal = Kratos::norm_2(solid_normal);
-            solid_normal = (1.0/norm_solid_normal)*solid_normal;
-
-            //MatrixType FaceShapeFunctions;
-            //GeometryType::ShapeFunctionsGradientsType FaceShapeFunctionsGradients;
-            //Kratos::Vector FaceWeights;
-
-            //VectorType solid_normal = ZeroVector(num_dim);
-            //VectorType distance_grad = ZeroVector(num_dim);
-
-            auto IntegrationMethod = GeometryData::GI_GAUSS_1;
-            const unsigned int num_int_pts = (faces[i_face]).IntegrationPointsNumber(IntegrationMethod);
-
-            //FaceShapeFunctions.resize(n_int_pts, n_nodes, false);
-            //FaceShapeFunctionsGradients.resize(n_int_pts, false);
-            //FaceWeights.resize(n_int_pts, false);
-
-            std::vector < GeometryType::CoordinatesArrayType > face_gauss_pts_gl_coords, face_gauss_pts_loc_coords;
-            face_gauss_pts_gl_coords.clear();
-            face_gauss_pts_loc_coords.clear();
-            face_gauss_pts_gl_coords.reserve(num_int_pts);
-            face_gauss_pts_loc_coords.reserve(num_int_pts);
-
-            //std::vector< IntegrationPoint<3> > face_gauss_pts;
-            auto face_gauss_pts = (faces[i_face]).IntegrationPoints(IntegrationMethod);
-
-            VectorType face_jacobians;
-            (faces[i_face]).DeterminantOfJacobian(face_jacobians, IntegrationMethod);
-
-            // Get the original geometry shape function and gradients values over the intersection
-            for (unsigned int i_gauss = 0; i_gauss < num_int_pts; ++i_gauss) {
-                // Store the Gauss points weights
-               const double face_weight = face_jacobians(i_gauss) * face_gauss_pts[i_gauss].Weight();
-
-                // Compute the global coordinates of the face Gauss pt.
-                GeometryType::CoordinatesArrayType global_coords = ZeroVector(num_dim);
-                global_coords = (faces[i_face]).GlobalCoordinates(global_coords, face_gauss_pts[i_gauss].Coordinates());
-
-                // Compute the parent geometry local coordinates of the Gauss pt.
-                GeometryType::CoordinatesArrayType loc_coords = ZeroVector(num_dim);
-                loc_coords = GetGeometry().PointLocalCoordinates(loc_coords, global_coords);
-
-                // Compute shape function values
-                // Obtain the parent subgeometry shape function values
-                double det_jac;
-                Kratos::Vector face_shape_func;
-                face_shape_func = GetGeometry().ShapeFunctionsValues(face_shape_func, loc_coords);
-
-                double temp_value = 0.0;
-
-                // for (unsigned int i = 0; i < num_nodes; i++){
-
-                //     Vector solid_normal = ZeroVector(num_dim);
-                //     Vector corrected_gradient = ZeroVector(num_dim);
-
-                //     if (GetGeometry()[i].GetValue(IS_STRUCTURE) == 1.0){
-                //         if (n_pos > 0 && n_pos < num_face_nodes){ //cut solid surface element
-                //             solid_normal = GetGeometry()[i].FastGetSolutionStepValue(NORMAL);
-                //             const double norm = Kratos::norm_2(solid_normal);
-                //             solid_normal = (1.0/norm)*solid_normal;
-
-                //             const double norm_grad_phi = norm_2(GradPHIold[i]);
-                //             const Vector normal = GradPHIold[i]/norm_grad_phi;
-
-                //             Vector contact_tangential = ZeroVector(num_dim);
-                //             MathUtils<double>::UnitCrossProduct(contact_tangential, normal, solid_normal);
-                //             Vector slip_vector = ZeroVector(num_dim);
-                //             MathUtils<double>::UnitCrossProduct(slip_vector, solid_normal, contact_tangential);
-
-                //             double slip_velocity = inner_prod(slip_vector,
-                //                 GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
-
-                //             Vector contact_vector_macro = ZeroVector(num_dim);
-                //             MathUtils<double>::UnitCrossProduct(contact_vector_macro, contact_tangential, normal);
-                //             const double cos_theta_macro = inner_prod(slip_vector,contact_vector_macro);
-                //             const double theta_macro = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_ANGLE);//std::acos(cos_theta_macro);
-
-                //             double theta_equilibrium = theta_receding;
-                //             if (theta_macro > theta_equilibrium){
-                //                 if (theta_macro >= theta_advancing){
-                //                     theta_equilibrium = theta_advancing;
-                //                 } else {
-                //                     theta_equilibrium = theta_macro;
-                //                     slip_velocity = 0.0;
-                //                 }
-                //             }
-                //             double cos_theta_equilibrium = std::cos(theta_equilibrium);
-
-                //             const double cos_theta_d = cos_theta_equilibrium - zeta/gamma * slip_velocity;//Check the sign of slip velocity
-
-                //             KRATOS_WARNING_IF("SurfaceSmooting", std::abs(cos_theta_d) > 1.0)
-                //                 << "cos_theta_d is larger than one." << std::endl;
-
-                //             double theta_d = 0.0;
-                //             if (std::abs(cos_theta_d) <= 1.0){
-                //                 theta_d = std::acos(cos_theta_d);
-                //             } else if (cos_theta_d > 1.0){
-                //                 theta_d = 0.0;
-                //             } else { //if (cos_theta_d < -1.0){
-                //                 theta_d = PI;
-                //             }
-
-                //             const double effective_viscosity = 0.5*(positive_viscosity + negative_viscosity);
-                //             const double capilary_number = effective_viscosity*slip_velocity/gamma;
-
-                //             if ( std::abs(theta_d - theta_equilibrium) < 6.0e-1 &&
-                //                 capilary_number < 3.0e-1){
-
-                //                 double contact_angle_macro = 0.0;
-
-                //                 const double cubic_contact_angle_macro = std::pow(theta_d, 3.0)
-                //                     + 9*capilary_number*std::log(he/micro_length_scale);
-
-                //                 KRATOS_WARNING_IF("SurfaceSmooting", cubic_contact_angle_macro < 0.0 ||
-                //                     cubic_contact_angle_macro > 31.0)
-                //                     << "Hydrodynamics theory failed to estimate micro contact-angle (large slip velocity)." 
-                //                     << std::endl;
-
-                //                 if (cubic_contact_angle_macro >= 0.0 &&
-                //                         cubic_contact_angle_macro <= 31.0) //std::pow(PI, 3.0))
-                //                     contact_angle_macro = std::pow(cubic_contact_angle_macro, 1.0/3.0);
-                //                 else if (cubic_contact_angle_macro < 0.0)
-                //                     contact_angle_macro = 0.0; //contact_angle_equilibrium;
-                //                 else //if (cubic_contact_angle_micro_gp > 31.0){
-                //                     contact_angle_macro = PI; //contact_angle_equilibrium;
-                //                 //}
-
-                //                 const double cos_contact_angle_macro = std::cos(contact_angle_macro);
-                //                 const double sin_contact_angle_macro = std::sqrt( 1.0 -
-                //                     cos_contact_angle_macro*cos_contact_angle_macro );
-
-                //                 corrected_gradient = norm_grad_phi*( -cos_contact_angle_macro*solid_normal
-                //                     + sin_contact_angle_macro*slip_vector );
-
-                //             } /* else */ {
-                //                 if (std::abs(cos_theta_d) <= 1.0){
-                //                     const double sin_theta_d = std::sqrt( 1.0 - cos_theta_d*cos_theta_d );
-                //                     corrected_gradient = norm_grad_phi*( -cos_theta_d*solid_normal + sin_theta_d*slip_vector );
-                //                 } else if (cos_theta_d > 1.0){
-                //                     corrected_gradient = -norm_grad_phi*solid_normal;
-                //                 } else //if (cos_theta_d < -1.0){
-                //                     corrected_gradient = norm_grad_phi*solid_normal;
-                //                 //}
-                //             }
-
-                //             //corrected_gradient = GradPHIold[i];
-
-                //         } else { //not a cut solid surface element
-                //             corrected_gradient = GradPHIold[i];
-                //         }
-                //     }
-
-                //     temp_value += face_shape_func(i)*Kratos::inner_prod(solid_normal, corrected_gradient);
-                // }
-
-                for (unsigned int i = 0; i < num_nodes; i++){
-                    // tempBCRHS[i] += epsilon * temp_value * face_weight * face_shape_func(i);
-
-                    if (contact_angle_weight > 0.0){
-                        minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
-                    } else{
-                        minus_cos_contact_angle = Kratos::inner_prod(solid_normal,
-                            GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT));
+            for (unsigned int i=0; i < num_face_nodes; ++i){
+                if ( r_face[i].GetValue(IS_STRUCTURE) == 1.0 || r_face[i].Is(BOUNDARY)){
+                    outer_face_node++;
+                    const double contact_angle_i = r_face[i].FastGetSolutionStepValue(CONTACT_ANGLE);
+                    if (contact_angle_i > 1.0e-12)
+                    {
+                        contact_angle += contact_angle_i;
+                        contact_angle_weight += 1.0;
                     }
-                    tempBCRHS[i] += epsilon * minus_cos_contact_angle * face_weight * face_shape_func(i);
+                    solid_normal += r_face[i].FastGetSolutionStepValue(NORMAL);
+                }
+                if ( r_face[i].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
+                    n_pos++;
+                    positive_viscosity = r_face[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+                } else{
+                    negative_viscosity = r_face[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
                 }
             }
-        }
 
-        i_face++;
+            if (outer_face_node == num_face_nodes){
+                //not_found_surface = false;
+
+                double minus_cos_contact_angle = 0.0;
+                const double norm_solid_normal = Kratos::norm_2(solid_normal);
+                solid_normal = (1.0/norm_solid_normal)*solid_normal;
+
+                //MatrixType FaceShapeFunctions;
+                //GeometryType::ShapeFunctionsGradientsType FaceShapeFunctionsGradients;
+                //Kratos::Vector FaceWeights;
+
+                //VectorType solid_normal = ZeroVector(num_dim);
+                //VectorType distance_grad = ZeroVector(num_dim);
+
+                auto IntegrationMethod = GeometryData::GI_GAUSS_1;
+                const unsigned int num_int_pts = (faces[i_face]).IntegrationPointsNumber(IntegrationMethod);
+
+                //FaceShapeFunctions.resize(n_int_pts, n_nodes, false);
+                //FaceShapeFunctionsGradients.resize(n_int_pts, false);
+                //FaceWeights.resize(n_int_pts, false);
+
+                std::vector < GeometryType::CoordinatesArrayType > face_gauss_pts_gl_coords, face_gauss_pts_loc_coords;
+                face_gauss_pts_gl_coords.clear();
+                face_gauss_pts_loc_coords.clear();
+                face_gauss_pts_gl_coords.reserve(num_int_pts);
+                face_gauss_pts_loc_coords.reserve(num_int_pts);
+
+                //std::vector< IntegrationPoint<3> > face_gauss_pts;
+                auto face_gauss_pts = (faces[i_face]).IntegrationPoints(IntegrationMethod);
+
+                VectorType face_jacobians;
+                (faces[i_face]).DeterminantOfJacobian(face_jacobians, IntegrationMethod);
+
+                // Get the original geometry shape function and gradients values over the intersection
+                for (unsigned int i_gauss = 0; i_gauss < num_int_pts; ++i_gauss) {
+                    // Store the Gauss points weights
+                const double face_weight = face_jacobians(i_gauss) * face_gauss_pts[i_gauss].Weight();
+
+                    // Compute the global coordinates of the face Gauss pt.
+                    GeometryType::CoordinatesArrayType global_coords = ZeroVector(num_dim);
+                    global_coords = (faces[i_face]).GlobalCoordinates(global_coords, face_gauss_pts[i_gauss].Coordinates());
+
+                    // Compute the parent geometry local coordinates of the Gauss pt.
+                    GeometryType::CoordinatesArrayType loc_coords = ZeroVector(num_dim);
+                    loc_coords = GetGeometry().PointLocalCoordinates(loc_coords, global_coords);
+
+                    // Compute shape function values
+                    // Obtain the parent subgeometry shape function values
+                    double det_jac;
+                    Kratos::Vector face_shape_func;
+                    face_shape_func = GetGeometry().ShapeFunctionsValues(face_shape_func, loc_coords);
+
+                    double temp_value = 0.0;
+
+                    // for (unsigned int i = 0; i < num_nodes; i++){
+
+                    //     Vector solid_normal = ZeroVector(num_dim);
+                    //     Vector corrected_gradient = ZeroVector(num_dim);
+
+                    //     if (GetGeometry()[i].GetValue(IS_STRUCTURE) == 1.0){
+                    //         if (n_pos > 0 && n_pos < num_face_nodes){ //cut solid surface element
+                    //             solid_normal = GetGeometry()[i].FastGetSolutionStepValue(NORMAL);
+                    //             const double norm = Kratos::norm_2(solid_normal);
+                    //             solid_normal = (1.0/norm)*solid_normal;
+
+                    //             const double norm_grad_phi = norm_2(GradPHIold[i]);
+                    //             const Vector normal = GradPHIold[i]/norm_grad_phi;
+
+                    //             Vector contact_tangential = ZeroVector(num_dim);
+                    //             MathUtils<double>::UnitCrossProduct(contact_tangential, normal, solid_normal);
+                    //             Vector slip_vector = ZeroVector(num_dim);
+                    //             MathUtils<double>::UnitCrossProduct(slip_vector, solid_normal, contact_tangential);
+
+                    //             double slip_velocity = inner_prod(slip_vector,
+                    //                 GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
+
+                    //             Vector contact_vector_macro = ZeroVector(num_dim);
+                    //             MathUtils<double>::UnitCrossProduct(contact_vector_macro, contact_tangential, normal);
+                    //             const double cos_theta_macro = inner_prod(slip_vector,contact_vector_macro);
+                    //             const double theta_macro = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_ANGLE);//std::acos(cos_theta_macro);
+
+                    //             double theta_equilibrium = theta_receding;
+                    //             if (theta_macro > theta_equilibrium){
+                    //                 if (theta_macro >= theta_advancing){
+                    //                     theta_equilibrium = theta_advancing;
+                    //                 } else {
+                    //                     theta_equilibrium = theta_macro;
+                    //                     slip_velocity = 0.0;
+                    //                 }
+                    //             }
+                    //             double cos_theta_equilibrium = std::cos(theta_equilibrium);
+
+                    //             const double cos_theta_d = cos_theta_equilibrium - zeta/gamma * slip_velocity;//Check the sign of slip velocity
+
+                    //             KRATOS_WARNING_IF("SurfaceSmooting", std::abs(cos_theta_d) > 1.0)
+                    //                 << "cos_theta_d is larger than one." << std::endl;
+
+                    //             double theta_d = 0.0;
+                    //             if (std::abs(cos_theta_d) <= 1.0){
+                    //                 theta_d = std::acos(cos_theta_d);
+                    //             } else if (cos_theta_d > 1.0){
+                    //                 theta_d = 0.0;
+                    //             } else { //if (cos_theta_d < -1.0){
+                    //                 theta_d = PI;
+                    //             }
+
+                    //             const double effective_viscosity = 0.5*(positive_viscosity + negative_viscosity);
+                    //             const double capilary_number = effective_viscosity*slip_velocity/gamma;
+
+                    //             if ( std::abs(theta_d - theta_equilibrium) < 6.0e-1 &&
+                    //                 capilary_number < 3.0e-1){
+
+                    //                 double contact_angle_macro = 0.0;
+
+                    //                 const double cubic_contact_angle_macro = std::pow(theta_d, 3.0)
+                    //                     + 9*capilary_number*std::log(he/micro_length_scale);
+
+                    //                 KRATOS_WARNING_IF("SurfaceSmooting", cubic_contact_angle_macro < 0.0 ||
+                    //                     cubic_contact_angle_macro > 31.0)
+                    //                     << "Hydrodynamics theory failed to estimate micro contact-angle (large slip velocity)." 
+                    //                     << std::endl;
+
+                    //                 if (cubic_contact_angle_macro >= 0.0 &&
+                    //                         cubic_contact_angle_macro <= 31.0) //std::pow(PI, 3.0))
+                    //                     contact_angle_macro = std::pow(cubic_contact_angle_macro, 1.0/3.0);
+                    //                 else if (cubic_contact_angle_macro < 0.0)
+                    //                     contact_angle_macro = 0.0; //contact_angle_equilibrium;
+                    //                 else //if (cubic_contact_angle_micro_gp > 31.0){
+                    //                     contact_angle_macro = PI; //contact_angle_equilibrium;
+                    //                 //}
+
+                    //                 const double cos_contact_angle_macro = std::cos(contact_angle_macro);
+                    //                 const double sin_contact_angle_macro = std::sqrt( 1.0 -
+                    //                     cos_contact_angle_macro*cos_contact_angle_macro );
+
+                    //                 corrected_gradient = norm_grad_phi*( -cos_contact_angle_macro*solid_normal
+                    //                     + sin_contact_angle_macro*slip_vector );
+
+                    //             } /* else */ {
+                    //                 if (std::abs(cos_theta_d) <= 1.0){
+                    //                     const double sin_theta_d = std::sqrt( 1.0 - cos_theta_d*cos_theta_d );
+                    //                     corrected_gradient = norm_grad_phi*( -cos_theta_d*solid_normal + sin_theta_d*slip_vector );
+                    //                 } else if (cos_theta_d > 1.0){
+                    //                     corrected_gradient = -norm_grad_phi*solid_normal;
+                    //                 } else //if (cos_theta_d < -1.0){
+                    //                     corrected_gradient = norm_grad_phi*solid_normal;
+                    //                 //}
+                    //             }
+
+                    //             //corrected_gradient = GradPHIold[i];
+
+                    //         } else { //not a cut solid surface element
+                    //             corrected_gradient = GradPHIold[i];
+                    //         }
+                    //     }
+
+                    //     temp_value += face_shape_func(i)*Kratos::inner_prod(solid_normal, corrected_gradient);
+                    // }
+
+                    for (unsigned int i = 0; i < num_nodes; i++){
+                        // tempBCRHS[i] += epsilon * temp_value * face_weight * face_shape_func(i);
+
+                        if (contact_angle_weight > 0.0){
+                            minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
+                        } else{
+                            minus_cos_contact_angle = Kratos::inner_prod(solid_normal,//1.0/norm_grad_phi_old*grad_phi_old);
+                                GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT));
+                        }
+                        tempBCRHS[i] += 1.0e4*epsilon * minus_cos_contact_angle * face_weight * face_shape_func(i);
+                        //In case we use this process for the sake of redistancing, this RHS contribution should be turned off.
+                    }
+                }
+            }
+
+            i_face++;
+        }
     }
     ///////////////////////////////////////////////////////////////////////////////
     //KRATOS_INFO("SurfaceSmoothingElement") << "End BC" << std::endl;
 
-    //const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
-
-    //if (step == 1){
+    if (step == 1){
         noalias(rLeftHandSideMatrix) = tempM + tempA; // + tempMlumped;
-        noalias(rRightHandSideVector) = /* -tempLaplacianRHS + */ tempBCRHS + prod(tempM,PHIold) - prod(rLeftHandSideMatrix,PHIdof);
-    //} else {
-    //    noalias(rLeftHandSideMatrix) = tempM; //+ tempA; // + tempMlumped;
-    //    noalias(rRightHandSideVector) = tempLaplacianRHS - tempBCRHS + prod(tempM,PHIold) - prod(rLeftHandSideMatrix,PHIdof);
-    //}  
+        noalias(rRightHandSideVector) = /* tempLaplacianRHS + */ tempBCRHS + prod(tempM,PHIold) - prod(rLeftHandSideMatrix,PHIdof);
+    } else {
+        noalias(rLeftHandSideMatrix) = tempM + tempA; // + tempMlumped;
+        noalias(rRightHandSideVector) = tempLaplacianRHS + prod(tempM,PHIdof) - prod(rLeftHandSideMatrix,PHIdof);
+    }
 
     KRATOS_CATCH("");
 }
