@@ -90,7 +90,6 @@ install(TARGETS co_sim_io DESTINATION libs )
 if(${USE_MPI})
   message("Enabling mpi extension for CoSimulationApplication")
   add_subdirectory(mpi_extension)
-  install(TARGETS co_sim_io_mpi DESTINATION libs )
 endif(${USE_MPI})
 
 # Define custom targets

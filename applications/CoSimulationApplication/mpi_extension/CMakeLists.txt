@@ -34,6 +34,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 ###############################################################################
 ## installing the resulting libraries
 install(TARGETS KratosCoSimulationMPIExtension DESTINATION libs )
+install(TARGETS co_sim_io_mpi DESTINATION libs )
 
 ###############################################################################
 ## install python module
