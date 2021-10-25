@@ -582,26 +582,6 @@ message("\t Geometry old closest point methods deprecation: https://github.com/K
 # Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
   add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
-else(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
-  set (DELAUNATOR_TAGLIB "delaunator-cpp")
-  ExternalProject_Add (
-    ${DELAUNATOR_TAGLIB}
-    
-    PREFIX            ${DELAUNATOR_TAGLIB}
-    GIT_REPOSITORY    https://github.com/delfrrr/delaunator-cpp
-    GIT_SHALLOW       ON
-    
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND     ""
-    INSTALL_COMMAND   ${CMAKE_COMMAND} -E copy_directory
-                      <SOURCE_DIR> ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/${DELAUNATOR_TAGLIB}
-    
-    LOG_DOWNLOAD      ON
-    LOG_INSTALL       ON
-
-    BUILD_ALWAYS      OFF
-    INSTALL_DIR       ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/${DELAUNATOR_TAGLIB}
-  )
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
 # Compiling the tinyexpr library
