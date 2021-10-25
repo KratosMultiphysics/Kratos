@@ -14,8 +14,8 @@ def Create(*args):
 class KratosCoSimIO(CoSimulationIO):
     """Wrapper for the CoSimIO to be used with Kratos
     """
-    def __init__(self, settings, model, solver_name, data_commnicator):
-        super().__init__(settings, model, solver_name, data_commnicator)
+    def __init__(self, settings, model, solver_name, data_communicator):
+        super().__init__(settings, model, solver_name, data_communicator)
 
         connect_to = self.settings["connect_to"].GetString()
         if connect_to == "":
@@ -50,7 +50,7 @@ class KratosCoSimIO(CoSimulationIO):
         info.SetString("connection_name", self.connection_name)
         info.SetString("identifier", model_part_name.replace(".", "-")) # TODO chec if better solution can be found
 
-        CoSimIO.ImportMesh(info, self.model[model_part_name]) # TODO this can also be geometry at some point
+        CoSimIO.ImportMesh(info, self.model[model_part_name], self.data_commnicator) # TODO this can also be geometry at some point
 
     def ExportCouplingInterface(self, interface_config):
         model_part_name = interface_config["model_part_name"]
