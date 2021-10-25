@@ -175,7 +175,7 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
 
     if (rDataComm.IsDistributed()) {
         // this calls the ParallelFillCommunicator
-        ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(rKratosModelPart, rDataComm);
+        ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(rKratosModelPart, rDataComm)->Execute();
     }
 
     KRATOS_CATCH("")
