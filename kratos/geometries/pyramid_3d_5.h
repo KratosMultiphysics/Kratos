@@ -431,14 +431,12 @@ public:
         const int points_number = 5;
         //setting up return matrix
         Matrix shape_function_values( integration_points_number, points_number );
-        //loop over all integration points
 
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ ) {
-            shape_function_values( pnt, 0 ) = (0.125) * (1 - integration_points[pnt].X()) * (1 - integration_points[pnt].Y()) * (1 - integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 1 ) = (0.125) * (1 + integration_points[pnt].X()) * (1 - integration_points[pnt].Y()) * (1 - integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 2 ) = (0.125) * (1 + integration_points[pnt].X()) * (1 + integration_points[pnt].Y()) * (1 - integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 3 ) = (0.125) * (1 - integration_points[pnt].X()) * (1 + integration_points[pnt].Y()) * (1 - integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 4 ) = (0.5) * (1 + integration_points[pnt].Z()) ;
+        //loop over all integration points
+        for (std::size_t pnt = 0; pnt<integration_points_number; ++pnt) {
+            for (std::size_t i=0; i<points_number; ++i) {
+                shape_function_values( pnt, i ) = ShapeFunctionValueImpl(i, integration_points[pnt]);
+            }
         }
 
         return shape_function_values;

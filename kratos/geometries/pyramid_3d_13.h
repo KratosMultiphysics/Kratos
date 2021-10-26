@@ -479,22 +479,12 @@ public:
         const int points_number = 13;
         //setting up return matrix
         Matrix shape_function_values( integration_points_number, points_number );
-        //loop over all integration points
 
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ ) {
-            shape_function_values( pnt, 0) = (-0.0625) * (1 - integration_points[pnt].X()) * (1 - integration_points[pnt].Y()) * (1 - integration_points[pnt].Z()) * (4 + 3*integration_points[pnt].X() + 3*integration_points[pnt].Y() + 2*integration_points[pnt].X()*integration_points[pnt].Y() + 2*integration_points[pnt].Z() + integration_points[pnt].X()*integration_points[pnt].Z() + integration_points[pnt].Y()*integration_points[pnt].Z() + 2*integration_points[pnt].X()*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 1) = (-0.0625) * (1 + integration_points[pnt].X()) * (1 - integration_points[pnt].Y()) * (1 - integration_points[pnt].Z()) * (4 - 3*integration_points[pnt].X() + 3*integration_points[pnt].Y() - 2*integration_points[pnt].X()*integration_points[pnt].Y() + 2*integration_points[pnt].Z() - integration_points[pnt].X()*integration_points[pnt].Z() + integration_points[pnt].Y()*integration_points[pnt].Z() - 2*integration_points[pnt].X()*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 2) = (-0.0625) * (1 + integration_points[pnt].X()) * (1 + integration_points[pnt].Y()) * (1 - integration_points[pnt].Z()) * (4 - 3*integration_points[pnt].X() - 3*integration_points[pnt].Y() + 2*integration_points[pnt].X()*integration_points[pnt].Y() + 2*integration_points[pnt].Z() - integration_points[pnt].X()*integration_points[pnt].Z() - integration_points[pnt].Y()*integration_points[pnt].Z() + 2*integration_points[pnt].X()*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 3) = (-0.0625) * (1 - integration_points[pnt].X()) * (1 + integration_points[pnt].Y()) * (1 - integration_points[pnt].Z()) * (4 + 3*integration_points[pnt].X() - 3*integration_points[pnt].Y() - 2*integration_points[pnt].X()*integration_points[pnt].Y() + 2*integration_points[pnt].Z() + integration_points[pnt].X()*integration_points[pnt].Z() - integration_points[pnt].Y()*integration_points[pnt].Z() - 2*integration_points[pnt].X()*integration_points[pnt].Y()*integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 4) = (0.5) * (integration_points[pnt].Z()) * (1 + integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 5) = (0.125) * (1 - std::pow(integration_points[pnt].X(),2.0)) * (1 - integration_points[pnt].Y()) * (1 - integration_points[pnt].Z()) * (2 + integration_points[pnt].Y() + integration_points[pnt].Y()*integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 6) = (0.125) * (1 + integration_points[pnt].X()) * (1 - std::pow(integration_points[pnt].Y(),2.0)) * (1 - integration_points[pnt].Z()) * (2 - integration_points[pnt].X() - integration_points[pnt].X()*integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 7) = (0.125) * (1 - std::pow(integration_points[pnt].X(),2.0)) * (1 + integration_points[pnt].Y()) * (1 - integration_points[pnt].Z()) * (2 - integration_points[pnt].Y() - integration_points[pnt].Y()*integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 8) = (0.125) * (1 - integration_points[pnt].X()) * (1 - std::pow(integration_points[pnt].Y(),2.0)) * (1 - integration_points[pnt].Z()) * (2 + integration_points[pnt].X() + integration_points[pnt].X()*integration_points[pnt].Z()) ;
-            shape_function_values( pnt, 9) = (0.25) * (1 - integration_points[pnt].X()) * (1 - integration_points[pnt].Y()) * (1 - std::pow(integration_points[pnt].Z(),2.0)) ;
-            shape_function_values( pnt, 10) = (0.25) * (1 + integration_points[pnt].X()) * (1 - integration_points[pnt].Y()) * (1 - std::pow(integration_points[pnt].Z(),2.0)) ;
-            shape_function_values( pnt, 11) = (0.25) * (1 + integration_points[pnt].X()) * (1 + integration_points[pnt].Y()) * (1 - std::pow(integration_points[pnt].Z(),2.0)) ;
-            shape_function_values( pnt, 12) = (0.25) * (1 - integration_points[pnt].X()) * (1 + integration_points[pnt].Y()) * (1 - std::pow(integration_points[pnt].Z(),2.0)) ;
+        //loop over all integration points
+        for (std::size_t pnt = 0; pnt<integration_points_number; ++pnt) {
+            for (std::size_t i=0; i<points_number; ++i) {
+                shape_function_values( pnt, i ) = ShapeFunctionValueImpl(i, integration_points[pnt]);
+            }
         }
 
         return shape_function_values;
