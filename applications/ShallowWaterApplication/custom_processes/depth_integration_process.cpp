@@ -28,6 +28,18 @@
 namespace Kratos
 {
 
+const Parameters DepthIntegrationProcess::GetDefaultParameters() const
+{
+    auto default_parameters = Parameters(R"(
+    {
+        "volume_model_part_name"    : "",
+        "interface_model_part_name" : "",
+        "direction_of_integration"  : [0.0, 0.0, 1.0],
+        "store_historical_database" : false
+    })");
+    return default_parameters;
+}
+
 DepthIntegrationProcess::DepthIntegrationProcess(
     Model& rModel,
     Parameters ThisParameters
@@ -176,18 +188,6 @@ int DepthIntegrationProcess::Check()
 {
     KRATOS_ERROR_IF(mDirection.size() != 3) << "DepthIntegrationProcess: The direction of integration must have three coordinates." << std::endl;
     return 0;
-}
-
-const Parameters DepthIntegrationProcess::GetDefaultParameters() const
-{
-    auto default_parameters = Parameters(R"(
-    {
-        "volume_model_part_name"    : "",
-        "interface_model_part_name" : "",
-        "direction_of_integration"  : [0.0, 0.0, 1.0],
-        "store_historical_database" : false,
-    })");
-    return default_parameters;
 }
 
 }  // namespace Kratos.
