@@ -645,7 +645,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         ;
 
     py::class_<FillCommunicator, FillCommunicator::Pointer>(m,"FillCommunicator")
-        .def(py::init<ModelPart& >() )
+        .def(py::init([](ModelPart& rModelPart){
+            KRATOS_WARNING("FillCommunicator") << "Using deprecated constructor. Please use constructor with data communicator!";
+            return Kratos::make_shared<FillCommunicator>(rModelPart, ParallelEnvironment::GetDefaultDataCommunicator());
+        }) )
         .def(py::init<ModelPart&, const DataCommunicator& >() )
         .def("Execute", &FillCommunicator::Execute)
         .def("PrintDebugInfo", &FillCommunicator::PrintDebugInfo)

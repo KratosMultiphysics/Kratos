@@ -1,6 +1,6 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: G.Casas (gcasas@cimmne.upc.edu) $
+//   Last Modified by:    $Author: G.Casas (gcasas@cimmne.upc.edu)$
 //   Date:                $Date: 2011-6-13 08:56:42 $
 //   Revision:            $Revision: 1.5 $
 //
@@ -149,7 +149,7 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
             mLastPressureVariation = pressure_spatial_variation;
             const double characteristic_pressure_variation = 0.5 * (pressure_spatial_variation + mLastPressureVariation);
 
-            if (std::abs(characteristic_pressure_variation) < std::numeric_limits<double>::epsilon() || std::abs(reciprocal_of_characteristic_time) < std::numeric_limits<double>::epsilon()){ // unlikely
+            if (std::abs(characteristic_pressure_variation) == 0.0 || std::abs(reciprocal_of_characteristic_time) == 0.0){ // unlikely
                 std::cout << "Uniform problem: stationarity check being performed with dimensional values...! " << "\n";
 
                 if (max_pressure_change_rate <= tol){ // go with the absolute value
@@ -599,7 +599,7 @@ inline double CalculateVol(const double x0, const double y0, const double z0,
 double CalculateElementalVolume(const Geometry<Node <3> >& geom)
 {
     double vol;
-
+    double h;
     if (TDim == 2){
         double x0 = geom[0].X();
         double y0 = geom[0].Y();
@@ -607,7 +607,9 @@ double CalculateElementalVolume(const Geometry<Node <3> >& geom)
         double y1 = geom[1].Y();
         double x2 = geom[2].X();
         double y2 = geom[2].Y();
+
         vol = CalculateArea(x0, y0, x1, y1, x2, y2);
+        h = CalculateDiameter(x0, y0, x1, y1, x2, y2);
     }
 
     else {
@@ -625,13 +627,86 @@ double CalculateElementalVolume(const Geometry<Node <3> >& geom)
         double z3 = geom[3].Z();
 
         vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+        h = CalculateDiameter(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
     }
-
-    if (std::abs(vol) < std::numeric_limits<double>::epsilon()){
+    if (std::abs(vol)/std::pow(h, 3) < std::numeric_limits<double>::epsilon()){
         KRATOS_ERROR << "Element with zero area found with the current geometry "<< geom << std::endl;
     }
 
     return vol;
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+double CalculateDiameter(const double x0, const double y0,
+                        const double x1, const double y1,
+                        const double x2, const double y2)
+{
+    double x10 = x1 - x0;
+    double y10 = y1 - y0;
+
+    double x12 = x1 - x0;
+    double y12 = y1 - y0;
+
+    double x20 = x2 - x0;
+    double y20 = y2 - y0;
+
+    double dist_10 = std::sqrt(std::pow(x10,2) + std::pow(y10,2));
+    double dist_12 = std::sqrt(std::pow(x12,2) + std::pow(y12,2));
+    double dist_20 = std::sqrt(std::pow(x20,2) + std::pow(y20,2));
+
+    double arr[] = {dist_10, dist_12, dist_20};
+
+    double *max = std::max_element(std::begin(arr), std::end(arr));
+
+    return *max;
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+double CalculateDiameter(const double x0, const double y0, const double z0,
+                        const double x1, const double y1, const double z1,
+                        const double x2, const double y2, const double z2,
+                        const double x3, const double y3, const double z3)
+{
+    double x10 = x1 - x0;
+    double y10 = y1 - y0;
+    double z10 = z1 - z0;
+
+    double x12 = x1 - x0;
+    double y12 = y1 - y0;
+    double z12 = z1 - z0;
+
+    double x13 = x1 - x3;
+    double y13 = y1 - y3;
+    double z13 = z1 - z3;
+
+    double x20 = x2 - x0;
+    double y20 = y2 - y0;
+    double z20 = z2 - z0;
+
+    double x23 = x2 - x3;
+    double y23 = y2 - y3;
+    double z23 = z2 - z3;
+
+    double x30 = x3 - x0;
+    double y30 = y3 - y0;
+    double z30 = z3 - z0;
+
+    double dist_10 = std::sqrt(std::pow(x10,2) + std::pow(y10,2) + std::pow(z10,2));
+    double dist_12 = std::sqrt(std::pow(x12,2) + std::pow(y12,2) + std::pow(z12,2));
+    double dist_13 = std::sqrt(std::pow(x13,2) + std::pow(y13,2) + std::pow(z13,2));
+    double dist_20 = std::sqrt(std::pow(x20,2) + std::pow(y20,2) + std::pow(z20,2));
+    double dist_23 = std::sqrt(std::pow(x23,2) + std::pow(y23,2) + std::pow(z23,2));
+    double dist_30 = std::sqrt(std::pow(x30,2) + std::pow(y30,2) + std::pow(z30,2));
+
+    double arr[] = {dist_10, dist_12, dist_13, dist_20, dist_23, dist_30};
+
+    double *max = std::max_element(std::begin(arr), std::end(arr));
+
+    return *max;
 }
 
 //**************************************************************************************************************************************************
@@ -659,7 +734,7 @@ double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >&
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    KRATOS_ERROR_IF(std::abs(vol) < std::numeric_limits<double>::epsilon()) << "Element with zero area found. Its geometry is given by "<< geom << std::endl;
+    KRATOS_ERROR_IF(std::abs(vol) == 0.0) << "Element with zero area found. Its geometry is given by "<< geom << std::endl;
 
     N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
     N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
@@ -700,7 +775,7 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    KRATOS_ERROR_IF(std::abs(vol) < std::numeric_limits<double>::epsilon()) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
+    KRATOS_ERROR_IF(std::abs(vol) == 0.0) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
 
     N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
     N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
@@ -741,7 +816,7 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMas
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    KRATOS_ERROR_IF(std::abs(vol) < std::numeric_limits<double>::epsilon()) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
+    KRATOS_ERROR_IF(std::abs(vol) == 0.0) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
 
     N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
     N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);

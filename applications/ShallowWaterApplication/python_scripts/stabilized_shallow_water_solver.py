@@ -34,7 +34,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         super().Initialize()
         self.main_model_part.ProcessInfo.SetValue(SW.RELATIVE_DRY_HEIGHT, self.settings["relative_dry_height"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(SW.SHOCK_STABILIZATION_FACTOR, self.settings["shock_stabilization_factor"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(SW.SHOCK_STABILIZATION_FACTOR, self.settings["shock_capturing_factor"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KM.DENSITY_AIR, 1e0)
         self.main_model_part.ProcessInfo.SetValue(KM.DENSITY, 1e3)
         self.main_model_part.ProcessInfo.SetValue(SW.INTEGRATE_BY_PARTS, False)
@@ -56,7 +56,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         "time_integration_order"     : 2,
         "relative_dry_height"        : 0.1,
         "stabilization_factor"       : 0.01,
-        "shock_stabilization_factor" : 1.0,
+        "shock_capturing_factor" : 1.0,
         "shock_capturing_type"       : "residual_viscosity"
         }
         """)
@@ -66,8 +66,8 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
     def _CreateScheme(self):
         if self.add_flux_correction:
             time_scheme = SW.FluxCorrectedShallowWaterScheme(self.settings["time_integration_order"].GetInt())
-            if self.settings["shock_stabilization_factor"].GetDouble() > 0.0:
-                self.settings["shock_stabilization_factor"].SetDouble(0.0)
+            if self.settings["shock_capturing_factor"].GetDouble() > 0.0:
+                self.settings["shock_capturing_factor"].SetDouble(0.0)
                 KM.Logger.PrintWarning(self.__class__.__name__, "Detected shock stabilization with flux correction. The shock stabilization factor will be set to 0.")
         else:
             time_scheme = SW.ShallowWaterResidualBasedBDFScheme(self.settings["time_integration_order"].GetInt())
