@@ -763,11 +763,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
 
     noalias(JacobianMatrix) = ZeroMatrix(TDim, TDim);
 
-    // KRATOS_INFO("rVariables.GradNe")         << rVariables.GradNe << std::endl;
-    // KRATOS_INFO("rVariables.NodalCrossDirection") << rVariables.NodalCrossDirection << std::endl;
-    // KRATOS_INFO("CrossEta")         << CrossEta << std::endl;
-    // KRATOS_INFO("t")                << t << std::endl;
-
     for (unsigned int node=0; node < TNumNodes; ++node) {
         const double &Vx = rVariables.NodalCrossDirection(node, INDEX_X);
         const double &Vy = rVariables.NodalCrossDirection(node, INDEX_Y);
@@ -845,18 +840,12 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
                                        + t * Fjy * term_xx;
     }
 
-    // KRATOS_INFO("B") << B << std::endl;
-    // KRATOS_INFO("T") << rVariables.TransformationMatrix << std::endl;
-
     if (BTransformed.size1() != rVariables.TransformationMatrix.size1() ||
         BTransformed.size2() != B.size2()     )
         BTransformed.resize( rVariables.TransformationMatrix.size1(), B.size2(), false );
 
-    // KRATOS_INFO("0-BTransformed") << BTransformed << std::endl;
 
     noalias(BTransformed) = prod(trans(rVariables.TransformationMatrix), B);
-
-    // KRATOS_INFO("1-BTransformed") << BTransformed << std::endl;
 
     // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateBMatrix") << std::endl;
 
@@ -870,8 +859,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
     // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateStrainVector") << std::endl;
-    
-    // KRATOS_INFO("rVariables.DofValuesVector") << rVariables.DofValuesVector << std::endl;
 
     noalias(rVariables.StrainVector) = prod(rVariables.B, rVariables.DofValuesVector);
 
@@ -886,14 +873,7 @@ double GeoCurvedBeamElement<TDim,TNumNodes>::
                                     double detJ,
                                     double weight) const
 {
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateIntegrationCoefficient") << std::endl;
-
     const std::vector<double> CrossWeight{1.0, 1.0};
-
-    // KRATOS_INFO("weight") << weight << std::endl;
-    // KRATOS_INFO("CrossWeight[GPointCross]") << CrossWeight[GPointCross] << std::endl;
-    // KRATOS_INFO("detJ") << detJ << std::endl;
-    // KRATOS_INFO("IntegrationCoefficient") << weight * CrossWeight[GPointCross] * detJ << std::endl;
 
     return weight * CrossWeight[GPointCross] * detJ;
 }
@@ -912,6 +892,118 @@ SizeType GeoCurvedBeamElement<TDim,TNumNodes>::
     GetCrossNumberIntegrationPoints() const
 {
     return N_POINT_CROSS;
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void GeoCurvedBeamElement<TDim,TNumNodes>::
+    CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                 std::vector<Matrix>& rOutput,
+                                 const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateOnIntegrationPoints()") << rVariable << std::endl;
+
+    //Defining necessary variables
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+
+    if ( rOutput.size() != NumGPoints )
+        rOutput.resize(NumGPoints);
+
+    if (rVariable == CAUCHY_STRESS_TENSOR) {
+        const GeometryType::IntegrationPointsArrayType&
+            IntegrationPointsAlong = rGeom.IntegrationPoints( mThisIntegrationMethod );
+        //Loop over integration points
+        for (unsigned int GPointAlong = 0; GPointAlong < IntegrationPointsAlong.size(); ++GPointAlong) {
+            Vector AverageStressVector = ZeroVector(VoigtSize);
+            for (unsigned int GPointCross = 0; GPointCross < GetCrossNumberIntegrationPoints(); ++GPointCross) {
+                int GPoint = GPointAlong * GetCrossNumberIntegrationPoints() + GPointCross;
+                AverageStressVector += mStressVector[GPoint];
+            }
+            AverageStressVector /= GetCrossNumberIntegrationPoints();
+            if ( rOutput[GPointAlong].size2() != TDim )
+                rOutput[GPointAlong].resize(TDim, TDim, false);
+
+            rOutput[GPointAlong] = MathUtils<double>::StrainVectorToTensor(AverageStressVector);
+        }
+    } else if (rVariable == ENGINEERING_STRAIN_TENSOR) {
+        //Previous definitions
+        const PropertiesType& rProp = this->GetProperties();
+        const GeometryType::IntegrationPointsArrayType&
+            IntegrationPointsAlong = rGeom.IntegrationPoints( mThisIntegrationMethod );
+
+        //Containers of variables at all integration points
+        const Matrix& NContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
+
+        //calculating the local gradients
+        const ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
+
+        //Constitutive Law parameters
+        ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,rProp, rCurrentProcessInfo);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+        //Element variables
+        ElementVariables Variables;
+        this->InitializeElementVariables( Variables,
+                                          ConstitutiveParameters,
+                                          rGeom,
+                                          rProp,
+                                          rCurrentProcessInfo );
+
+        //Loop over integration points
+        for (unsigned int GPointAlong = 0; GPointAlong < IntegrationPointsAlong.size(); ++GPointAlong) {
+
+            //Compute Nu, GradNe, B and StrainVector
+            noalias(Variables.GradNe) = DN_De[GPointAlong];
+            noalias(Variables.Nu)     = row(NContainer, GPointAlong);
+
+            this->CalculateTransformationMatrix( Variables.TransformationMatrix,
+                                                 Variables.GradNe );
+
+            Vector AverageStrainVector = ZeroVector(VoigtSize);
+
+            for (unsigned int GPointCross = 0; GPointCross < GetCrossNumberIntegrationPoints(); ++GPointCross) {
+                int GPoint = GPointAlong * GetCrossNumberIntegrationPoints() + GPointCross;
+
+                BoundedMatrix<double,TDim, TDim> JacobianMatrix;
+                this->CalculateJacobianMatrix( GPointCross,
+                                               Variables,
+                                               JacobianMatrix );
+
+                double detJacobian;
+                BoundedMatrix<double,TDim, TDim> InvertJacobianMatrix;
+                MathUtils<double>::InvertMatrix(JacobianMatrix,
+                                                InvertJacobianMatrix,
+                                                detJacobian);
+
+                this->CalculateBMatrix(Variables.B, GPointCross, InvertJacobianMatrix, Variables);
+
+                this->CalculateStrainVector(Variables);
+                AverageStrainVector += Variables.StrainVector;
+            }
+            AverageStrainVector /= GetCrossNumberIntegrationPoints();
+            if ( rOutput[GPointAlong].size2() != TDim )
+                rOutput[GPointAlong].resize(TDim,TDim,false );
+
+            rOutput[GPointAlong] = MathUtils<double>::StrainVectorToTensor(AverageStrainVector);
+        }
+    } else {
+        if ( rOutput.size() != mConstitutiveLawVector.size() )
+            rOutput.resize(mConstitutiveLawVector.size());
+
+        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); ++i ) {
+            rOutput[i].resize(TDim, TDim,false);
+            noalias(rOutput[i]) = ZeroMatrix(TDim,TDim);
+            rOutput[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rOutput[i] );
+        }
+    }
+
+    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateOnIntegrationPoints()") << std::endl;
+
+    KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -109,6 +109,9 @@ public:
     void CalculateMassMatrix( MatrixType& rMassMatrix,
                               const ProcessInfo& rCurrentProcessInfo ) override;
 
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                      std::vector<Matrix>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
