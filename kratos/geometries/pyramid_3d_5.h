@@ -15,6 +15,7 @@
 #define KRATOS_PYRAMID_3D_5_H_INCLUDED
 
 // System includes
+#include <cmath> // std::abs for double
 
 // External includes
 
