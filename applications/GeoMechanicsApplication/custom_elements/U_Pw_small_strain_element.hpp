@@ -245,7 +245,6 @@ protected:
                                    const Matrix &GradNpT,
                                    const Vector &Np );
 
-
     virtual void CalculateAndAddLHS(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
 
     void CalculateAndAddStiffnessMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
@@ -327,7 +326,11 @@ protected:
     void ResetHydraulicDischarge();
     void CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo);
     void CalculateSoilGamma(ElementVariables &rVariables);
-    void CalculateSoilDensity(ElementVariables &rVariables);
+    virtual void CalculateSoilDensity(ElementVariables &rVariables);
+
+    virtual void CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
+                                                          ElementVariables& rVariables,
+                                                          unsigned int GPoint );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -7,8 +7,7 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz,
-//                   Vahid Galavi
+//  Main authors:    Vahid Galavi
 //
 
 
@@ -220,33 +219,6 @@ protected:
                       const bool CalculateStiffnessMatrixFlag,
                       const bool CalculateResidualVectorFlag) override;
 
-    // /**
-    //  * @brief This functions updates the kinematics variables
-    //  * @param rThisKinematicVariables The kinematic variables to be calculated
-    //  * @param PointNumber The integration point considered
-    //  * @param rIntegrationMethod The integration method considered
-    //  */
-    // void CalculateKinematics( ElementVariables& rVariables, const unsigned int &PointNumber ) override;
-
-
-    /**
-     * @brief This functions calculate the derivatives in the current frame
-     * @param rJ The jacobian in the current configuration
-     * @param rInvJ The inverse of the jacobian in the current configuration
-     * @param rDN_DX The gradient derivative of the shape function
-     * @param PointNumber The id of the integration point considered
-     * @param ThisIntegrationMethod The integration method considered
-     * @return The determinant of the jacobian in the current configuration
-     */
-    double CalculateDerivativesOnCurrentConfiguration(Matrix& rJ,
-                                                      Matrix& rInvJ,
-                                                      Matrix& rDN_DX,
-                                                      const IndexType &PointNumber,
-                                                      IntegrationMethod ThisIntegrationMethod) const;
-
-    void CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
-                                                  ElementVariables& rVariables,
-                                                  unsigned int GPoint );
 
     ///@}
     ///@name Protected Operations
@@ -273,20 +245,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
-    /**
-     * It returns the reference configuration deformation gradient determinant
-     * @param PointNumber The integration point considered
-     * @return The reference configuration deformation gradient determinant
-     */
-    double ReferenceConfigurationDeformationGradientDeterminant(const IndexType PointNumber) const;
-
-    /**
-     * It returns the reference configuration deformation gradient
-     * @param PointNumber The integration point considered
-     * @return The reference configuration deformation gradient
-     */
-    Matrix ReferenceConfigurationDeformationGradient(const IndexType PointNumber) const;
 
 
     // Copy constructor

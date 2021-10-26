@@ -196,6 +196,21 @@ protected:
                                                    Matrix& DN_DX,
                                                    const IndexType &PointNumber) const;
 
+    /**
+     * @brief This functions calculate the derivatives in the current frame
+     * @param rJ The jacobian in the current configuration
+     * @param rInvJ The inverse of the jacobian in the current configuration
+     * @param rDN_DX The gradient derivative of the shape function
+     * @param PointNumber The id of the integration point considered
+     * @param ThisIntegrationMethod The integration method considered
+     * @return The determinant of the jacobian in the current configuration
+     */
+    double CalculateDerivativesOnCurrentConfiguration(Matrix& rJ,
+                                                      Matrix& rInvJ,
+                                                      Matrix& rDN_DX,
+                                                      const IndexType &PointNumber,
+                                                      IntegrationMethod ThisIntegrationMethod) const;
+
     virtual unsigned int GetNumberOfDOF() const;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

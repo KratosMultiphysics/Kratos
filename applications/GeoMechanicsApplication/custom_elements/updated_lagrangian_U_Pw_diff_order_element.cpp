@@ -225,9 +225,13 @@ void UpdatedLagrangianUPwDiffOrderElement::
                                  std::vector<Matrix>& rOutput,
                                  const ProcessInfo& rCurrentProcessInfo)
 {
+    const GeometryType& rGeom = GetGeometry();
+    const SizeType Dim = rGeom.WorkingSpaceDimension();
+
+    if (rOutput.size() != mConstitutiveLawVector.size())
+        rOutput.resize(mConstitutiveLawVector.size());
+
     if (rVariable == REFERENCE_DEFORMATION_GRADIENT) {
-        if (rOutput.size() != mConstitutiveLawVector.size())
-            rOutput.resize(mConstitutiveLawVector.size());
 
         ElementVariables Variables;
         this->InitializeElementVariables(Variables,rCurrentProcessInfo);
@@ -235,6 +239,10 @@ void UpdatedLagrangianUPwDiffOrderElement::
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
             this->CalculateDeformationGradient(Variables, GPoint);
+
+            if ( rOutput[GPoint].size2() != Dim )
+                rOutput[GPoint].resize(Dim, Dim, false);
+
             rOutput[GPoint] = Variables.F;
         }
     } else {

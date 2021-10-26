@@ -893,6 +893,30 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
+    CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
+                                             ElementVariables& rVariables,
+                                             unsigned int GPoint )
+{
+    KRATOS_TRY
+
+    Matrix StressTensor = MathUtils<double>::StressVectorToTensor( mStressVector[GPoint] );
+    Matrix ReducedKgMatrix = prod( rVariables.GradNpT,
+                                   rVariables.IntegrationCoefficient *
+                                   Matrix( prod( StressTensor, trans(rVariables.GradNpT) ) ) ); //to be optimized
+
+    Matrix UMatrix(TNumNodes*TDim, TNumNodes*TDim);
+    noalias(UMatrix) = ZeroMatrix(TNumNodes*TDim, TNumNodes*TDim);
+    MathUtils<double>::ExpandAndAddReducedMatrix( UMatrix, ReducedKgMatrix, TDim );
+
+    //Distribute stiffness block matrix into the elemental matrix
+    GeoElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix, UMatrix, TNumNodes, TDim);
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::
     CalculateMassMatrix( MatrixType& rMassMatrix,
                          const ProcessInfo& rCurrentProcessInfo )
 {
@@ -1817,15 +1841,16 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                                            GPoint);
 
     //Calculating current jacobian in order to find deformation gradient
-    Matrix J, InvJ;
+    Matrix J, InvJ, DNu_DX;
     double detJ =
         this->CalculateJacobianOnCurrentConfiguration(J,
                                                       InvJ,
                                                       GPoint);
 
+
 #ifdef KRATOS_COMPILED_IN_WINDOWS
     if (detJ < 0.0) {
-        // KRATOS_INFO("negative detJ")
+        KRATOS_INFO("negative detJ")
         << "ERROR:: ELEMENT ID: "
         << this->Id()
         << " INVERTED. DETJ: "
@@ -1851,7 +1876,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" )
 }
 
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
@@ -1863,8 +1887,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     const GeometryType& rGeom = this->GetGeometry();
 
     //Nodal Variables
-    for (unsigned int i=0; i<TNumNodes; ++i)
-    {
+    for (unsigned int i=0; i<TNumNodes; ++i) {
         rVariables.PressureVector[i] = rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE);
         rVariables.DtPressureVector[i] = rGeom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
     }
