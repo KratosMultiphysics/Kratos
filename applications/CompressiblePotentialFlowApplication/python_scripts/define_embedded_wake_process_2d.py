@@ -272,7 +272,7 @@ class DefineEmbeddedWakeProcess(KratosMultiphysics.Process):
         le_node = -1
         for node in skin_model_part.GetSubModelPart("LeadingEdgeNode").Nodes:
             le_node = node
-        te_weight=0.95
+        te_weight=0.99
         self.wake_model_part.CreateNewNode(1, (1-te_weight)*le_node.X+te_weight*te_node.X, (1-te_weight)*le_node.Y+te_weight*te_node.Y, 0.0)
         self.wake_model_part.CreateNewNode(2, 200.0, te_node.Y, 0.0)
         self.wake_model_part.CreateNewElement("Element2D2N", 1, [1,2], KratosMultiphysics.Properties(0))
