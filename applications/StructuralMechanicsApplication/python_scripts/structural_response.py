@@ -1,9 +1,16 @@
 # importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters, Logger
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+
+try:
+    from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMovingAnalysis
+except ImportError as err:
+    print("MeshMovingAnalysis not available ")
+
 
 import time as timer
 
@@ -35,6 +42,7 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
 
     def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
+        self.model = model
 
         with open(response_settings["primal_settings"].GetString()) as parameters_file:
             ProjectParametersPrimal = Parameters(parameters_file.read())
@@ -71,7 +79,7 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
         Logger.PrintInfo("StrainEnergyResponse", "Starting gradient calculation for response", self.identifier)
 
         startTime = timer.time()
-        self.response_function_utility.CalculateGradient()
+        self.response_function_utility.CalculateGradient(False)
         Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating gradients",round(timer.time() - startTime,2),"s")
 
     def FinalizeSolutionStep(self):
@@ -91,6 +99,138 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
         for node in self.primal_model_part.Nodes:
             gradient[node.Id] = node.GetSolutionStepValue(variable)
         return gradient
+
+
+class StrainEnergyResponseFunctionWithStages(StrainEnergyResponseFunction):
+    def CalculateValue(self):
+        Logger.PrintInfo("StrainEnergyResponse", "Starting primal and gradient calculation for response", self.identifier)
+        value = 0.0
+
+        ## This order should be passed from the input JSON file.
+
+        #modelpart_order = ["Parts_Solid_vol_1","Parts_Solid_vol_2","Parts_Solid_vol_3","Parts_Solid_vol_4"]
+        #load_modelpart_order = ["SurfaceLoad3D_force_vol_1","SurfaceLoad3D_force_vol_2","SurfaceLoad3D_force_vol_3","SurfaceLoad3D_force_vol_4"]
+
+        modelpart_order = ["Parts_Shell_part1","Parts_Shell_part3","Parts_Shell_part2","Parts_Shell_roof1", "Parts_Shell_roof3", "Parts_Shell_roof2"]
+        #modelpart_order = ["Parts_Shell_part1","Parts_Shell_part3","Parts_Shell_part2"]
+        load_modelpart_order = []
+
+        startTime = timer.time()
+        to_super_impose = False
+        i = 1
+        for model_part_name in modelpart_order:
+            print()
+            print("######")
+            print("###### Activating the sub modelpart : ", model_part_name)
+            print("######")
+            KM.VariableUtils().SetFlag(KM.ACTIVE, False, self.primal_model_part.Elements)
+            KM.VariableUtils().SetFlag(KM.ACTIVE, False, self.primal_model_part.Conditions)
+            KM.VariableUtils().SetHistoricalVariableToZero(KM.MESH_DISPLACEMENT, self.primal_model_part.Nodes)
+            for node in self.primal_model_part.Nodes:
+                node.Free(KM.MESH_DISPLACEMENT_X)
+                node.Free(KM.MESH_DISPLACEMENT_Y)
+                node.Free(KM.MESH_DISPLACEMENT_Z)
+
+            for j in range(0,i):
+                elem_sub_model_part = self.primal_model_part.GetSubModelPart(modelpart_order[j])
+                KM.VariableUtils().SetFlag(KM.ACTIVE, True, elem_sub_model_part.Elements)
+
+                # cond_sub_model_part = self.primal_model_part.GetSubModelPart(load_modelpart_order[j])
+                # KM.VariableUtils().SetFlag(KM.ACTIVE, True, cond_sub_model_part.Conditions)
+
+                self.__Reset(elem_sub_model_part, KM.DISPLACEMENT)
+                #self.__Reset(elem_sub_model_part, KM.ROTATION)
+
+            self.primal_analysis.InitializeSolutionStep()
+            self.primal_analysis._GetSolver().Predict()
+            self.primal_analysis._GetSolver().SolveSolutionStep()
+            self.primal_analysis._GetSolver().get_mechanical_solution_strategy().MoveMesh()
+            self.primal_analysis.FinalizeSolutionStep()
+
+            ## Use mesh motion solver to update the mesh.
+            for k_mp in range(0,i):
+                mp = self.primal_model_part.GetSubModelPart(modelpart_order[k_mp])
+                for node in mp.Nodes:
+                    node.SetSolutionStepValue(KM.MESH_DISPLACEMENT, node.GetSolutionStepValue(KM.DISPLACEMENT))
+                for node in mp.Nodes:
+                    node.Fix(KM.MESH_DISPLACEMENT_X)
+                    node.Fix(KM.MESH_DISPLACEMENT_Y)
+                    node.Fix(KM.MESH_DISPLACEMENT_Z)
+
+            #self.__MoveMesh()
+
+            value += self.response_function_utility.CalculateValue()
+
+            self.response_function_utility.CalculateGradient(to_super_impose)
+            to_super_impose = True
+            i += 1
+            self.primal_analysis.OutputSolutionStep()
+            #input("Press Enter to continue...")
+        #self.__UpdateInitialConfiguration()
+        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
+        for node in self.primal_model_part.Nodes:
+            node.Free(KM.MESH_DISPLACEMENT_X)
+            node.Free(KM.MESH_DISPLACEMENT_Y)
+            node.Free(KM.MESH_DISPLACEMENT_Z)
+
+        Logger.PrintInfo("StrainEnergyResponse", "Time needed for primal and gradient calculation",round(timer.time() - startTime,2),"s")
+
+    def CalculateGradient(self):
+        pass
+
+    def __Reset(self, mp, variable):
+        for node in mp.Nodes:
+            node.SetSolutionStepValue(variable, [0.0,0.0,0.0])
+
+    def __MoveMesh(self):
+        print("################ : StartMeshMovement")
+        default_mesh_solver_settings = KM.Parameters("""
+        {
+            "apply_mesh_solver" : true,
+            "problem_data":{
+                "echo_level"    : 0,
+                "start_time"    : 0.0,
+                "end_time"      : 1.0,
+                "parallel_type" : "OpenMP"
+            },
+            "solver_settings" : {
+                "domain_size"     : 3,
+                "echo_level"      : 0,
+                "solver_type"     : "structural_similarity",
+                "model_part_name" : "NONE",
+                "model_import_settings"              : {
+                    "input_type"     : "use_input_model_part"
+                },
+                "time_stepping" : {
+                    "time_step"       : 1.0
+                },
+                "linear_solver_settings" : {
+                    "solver_type" : "amgcl",
+                    "smoother_type":"ilu0",
+                    "krylov_type": "gmres",
+                    "coarsening_type": "aggregation",
+                    "max_iteration": 200,
+                    "verbosity" : 0,
+                    "tolerance": 1e-7
+                },
+                "compute_reactions"                : false,
+                "calculate_mesh_velocity"          : false
+            },
+            "processes" : {
+                "boundary_conditions_process_list" : []
+            }
+        }""")
+        default_mesh_solver_settings["solver_settings"]["model_part_name"].SetString(self.primal_model_part.Name+"_MeshPart")
+        mesh_moving_analysis = MeshMovingAnalysis(self.model, default_mesh_solver_settings)
+        mesh_moving_analysis.Initialize()
+        mesh_moving_analysis.RunSolutionLoop()
+        mesh_moving_analysis.Finalize()
+        print("################ : EndMeshMovement")
+
+    def __UpdateInitialConfiguration(self):
+        for node in self.primal_model_part.Nodes:
+            node.X = node.X0
+            #pass
 
 # ==============================================================================
 class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
