@@ -14,24 +14,24 @@ if(${USE_METIS_5} MATCHES OFF)
 endif(${USE_METIS_5} MATCHES OFF)
 
 add_definitions(-DKRATOS_USE_METIS_5)
-find_package(METIS REQUIRED)
-include_directories(${METIS_INCLUDE_DIR})
-link_directories(${METIS_LIBRARIES})
-install(FILES ${METIS_LIBRARIES} DESTINATION libs)
+# find_package(METIS REQUIRED)
+# include_directories(${METIS_INCLUDE_DIR})
+# link_directories(${METIS_LIBRARIES})
+# install(FILES ${METIS_LIBRARIES} DESTINATION libs)
 
 ## Metis Core sources
 file( GLOB KRATOS_METIS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/metis_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
+    # ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
 )
 
 ## Metis python interface sources
-file(GLOB_RECURSE KRATOS_METIS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
+# file(GLOB_RECURSE KRATOS_METIS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 ## define test sources (cpp tests)
-if(${KRATOS_BUILD_TESTING} MATCHES ON)
- 	file(GLOB KRATOS_METIS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
-endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+# if(${KRATOS_BUILD_TESTING} MATCHES ON)
+ 	# file(GLOB KRATOS_METIS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+# endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 
 add_library(KratosMetisCore SHARED ${KRATOS_METIS_APPLICATION_CORE} ${KRATOS_METIS_APPLICATION_TESTING_SOURCES})
