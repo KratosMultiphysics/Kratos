@@ -1607,13 +1607,12 @@ def _CheckParameters(parameters):
     return parameters
 
 class DataDumper:
-    def __init__(self, file_name, indenting=0):
+    def __init__(self, file_name):
         self.file_name = file_name + '/simulation'
         print(self.file_name)
         self._CheckIfFileExists()
         os.makedirs(self.file_name)
         print(self.file_name)
-        self.indenting=indenting
         self.data_dict = {}
 
     def _CheckIfFileExists(self):
@@ -1624,11 +1623,11 @@ class DataDumper:
             output_name = self.file_name+"_"+str(counter)
         self.file_name = output_name
 
-    def dump(self, identifier):
+    def dump(self, identifier, indenting=0):
         this_file_name = self.file_name+'/'+identifier
         with open(this_file_name+'.json', 'w') as fp:
-            if self.indenting > 0:
-                json.dump(self.data_dict, fp,indent=self.indenting, sort_keys=True)
+            if indenting > 0:
+                json.dump(self.data_dict, fp,indent=indenting, sort_keys=True)
             else:
                 json.dump(self.data_dict, fp,sort_keys=True)
 
@@ -1638,6 +1637,6 @@ class DataDumper:
             self.data_dict["mlmc_levelwise_data"][i] = index.all_data
 
     def saveKratosMdpa(self, model_part):
-        self.data_dict["mdpa"]["Nodes"] = []
+        self.data_dict["mdpa"] = []
         for node in model_part.Nodes:
-            self.data_dict["mdpa"]["Nodes"].append([node.Id, node.X, node.Y, node.Z])
+            self.data_dict["mdpa"].append([node.Id, node.X, node.Y, node.Z])
