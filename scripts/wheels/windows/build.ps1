@@ -22,10 +22,10 @@ function exec_build_cotire($python, $pythonPath) {
 
 function  setup_wheel_dir {
     cd $kratosRoot
-    mkdir c:\wheel
-    cp scripts\wheels\setup.py c:\wheel\setup.py
-    mkdir c:\wheel\KratosMultiphysics
-    mkdir c:\wheel\KratosMultiphysics\.libs
+    mkdir "$($wheelRoot)"
+    cp scripts\wheels\setup.py "$($wheelRoot)\setup.py"
+    mkdir "$($wheelRoot)\KratosMultiphysics"
+    mkdir "$($wheelRoot)\KratosMultiphysics\.libs"
 }
 
 function build_core_wheel ($pythonLocation, $prefixLocation) {
@@ -48,7 +48,7 @@ function build_core_wheel ($pythonLocation, $prefixLocation) {
 
 function build_application_wheel ($pythonPath, $app) {
     setup_wheel_dir
-    cp "$($kratosRoot)\applications\$($app)\$($app).json" c:\wheel\wheel.json
+    cp "$($kratosRoot)\applications\$($app)\$($app).json" "$($wheelRoot)\wheel.json"
     cd $wheelRoot
     & $pythonPath setup.py bdist_wheel #pythonpath
     cp "$($wheelRoot)\dist\*" $wheelOutDir

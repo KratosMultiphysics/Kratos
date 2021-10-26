@@ -65,6 +65,13 @@ endif(NOT DEFINED CMAKE_INSTALL_MESSAGE)
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
 
+# Generate and copy configuration for language servers
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+EXECUTE_PROCESS(
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+    "${CMAKE_BINARY_DIR}/compile_commands.json"
+    "${CMAKE_SOURCE_DIR}/compile_commands.json")
+
 # Include cmake modules
 include(DownloadLib)
 
@@ -509,6 +516,7 @@ message("\t Update of Element, Condition and Scheme Interface: https://github.co
 message("\t VariableComponent and VectorComponentAdaptor are no longer used: https://github.com/KratosMultiphysics/Kratos/pull/6686")
 message("\t Make Check() method of ConstitutiveLaw const: https://github.com/KratosMultiphysics/Kratos/pull/7948")
 message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
+message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
 
 # Compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)

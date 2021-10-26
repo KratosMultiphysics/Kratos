@@ -98,7 +98,9 @@ public:
         Kratos_Hexahedra,
         Kratos_Prism,
         Kratos_Pyramid,
+        Kratos_Nurbs,
         Kratos_Brep,
+        Kratos_Quadrature_Geometry,
         Kratos_generic_family
     };
 
@@ -131,10 +133,18 @@ public:
         Kratos_Point2D,
         Kratos_Point3D,
         Kratos_Sphere3D1,
+        Kratos_Nurbs_Curve,
+        Kratos_Nurbs_Surface,
+        Kratos_Nurbs_Volume,
+        Kratos_Nurbs_Curve_On_Surface,
+        Kratos_Surface_In_Nurbs_Volume,
+        Kratos_Brep_Curve,
         Kratos_Brep_Surface,
-        Kratos_Brep_Curve
+        Kratos_Brep_Curve_On_Surface,
+        Kratos_Quadrature_Point_Geometry,
+        Kratos_Quadrature_Point_Curve_On_Surface_Geometry,
+        Kratos_Quadrature_Point_Surface_In_Volume_Geometry
     };
-
     ///@}
     ///@name Type Definitions
     ///@{
