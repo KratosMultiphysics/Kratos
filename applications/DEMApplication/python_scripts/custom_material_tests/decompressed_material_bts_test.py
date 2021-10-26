@@ -8,7 +8,7 @@ import weakref
 import math
 import datetime
 
-class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
+class DecompressedMaterialBTSTest(DEMAnalysisStage):
 
     def __init__(self, model, parameters):
         super().__init__(model, parameters)
@@ -16,6 +16,8 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
         self.parameters = parameters
         self.compression_stage_completed = False
         self.decompression_stage_completed = False
+        self.time_to_print_bts_graph = False
+
         # Units in Pa and m/s respectively
         self.SigmaHorizontal = self.parameters["material_test_settings"]["SigmaHorizontal"].GetDouble()
         self.SigmaVertical = self.parameters["material_test_settings"]["SigmaVertical"].GetDouble()
@@ -28,7 +30,15 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
         self.PrepareDataForGraph()
         self.ApplyPreCompression()
         self.ApplyDeCompression()
-        self.RestoreLoadingVelocity()
+        self.PrepareBTSTest()
+        self.ApplyLoadingVelocityToBTSPlates()
+    
+    def ApplyLoadingVelocityToBTSPlates(self):
+        for smp in self.rigid_face_model_part.SubModelParts:
+            if smp[IDENTIFIER] == 'TOP_BTS':
+                smp[LINEAR_VELOCITY_Y] = 0.5 * self.LoadingVelocity
+            if smp[IDENTIFIER] == 'BOTTOM_BTS':
+                smp[LINEAR_VELOCITY_Y] = -0.5 * self.LoadingVelocity
 
     def ApplyPreCompression(self):
 
@@ -52,16 +62,9 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
     def ResetLoadingVelocity(self):
         for smp in self.rigid_face_model_part.SubModelParts:
             if smp[IDENTIFIER] == 'TOP':
-                smp[LINEAR_VELOCITY_Y] = 0.5 * self.PlatesDecompressionVelocity
+                smp[LINEAR_VELOCITY_Z] = 0.5 * self.PlatesDecompressionVelocity
             if smp[IDENTIFIER] == 'BOTTOM':
-                smp[LINEAR_VELOCITY_Y] = -0.5 * self.PlatesDecompressionVelocity
-    
-    def RestoreLoadingVelocity(self):
-        for smp in self.rigid_face_model_part.SubModelParts:
-            if smp[IDENTIFIER] == 'TOP':
-                smp[LINEAR_VELOCITY_Y] =  0.5 * self.LoadingVelocity
-            if smp[IDENTIFIER] == 'BOTTOM':
-                smp[LINEAR_VELOCITY_Y] = -0.5 * self.LoadingVelocity
+                smp[LINEAR_VELOCITY_Z] = -0.5 * self.PlatesDecompressionVelocity
 
     def ApplyDeCompression(self):
 
@@ -112,7 +115,7 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
 
     def InitializeMaterialTest(self):
 
-        self.top_mesh_nodes = []; self.bot_mesh_nodes = []; self.top_mesh_fem_nodes = []; self.bot_mesh_fem_nodes = []
+        self.top_mesh_nodes = []; self.bot_mesh_nodes = []; self.top_mesh_nodes_bts = []; self.bot_mesh_nodes_bts = []
         self.xtop_area = 0.0
         self.xbot_area = 0.0
         self.xlat_area = 0.0
@@ -182,14 +185,14 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
 
         total_force_top = 0.0
         for node in self.top_mesh_nodes:
-            force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-            total_force_top += force_node_y
+            force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
+            total_force_top += force_node_z
         self.total_stress_top = total_force_top / self.MeasuringSurface
 
         total_force_bot = 0.0
         for node in self.bot_mesh_nodes:
-            force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-            total_force_bot += force_node_y
+            force_node_z = -node.GetSolutionStepValue(ELASTIC_FORCES)[2]
+            total_force_bot += force_node_z
         self.total_stress_bot = total_force_bot / self.MeasuringSurface
         
         self.total_stress_mean = 0.5 * (self.total_stress_bot + self.total_stress_top)
@@ -208,14 +211,14 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
 
         total_force_top = 0.0
         for node in self.top_mesh_nodes:
-            force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-            total_force_top += force_node_y
+            force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
+            total_force_top += force_node_z
         self.total_stress_top = total_force_top / self.MeasuringSurface
 
         total_force_bot = 0.0
         for node in self.bot_mesh_nodes:
-            force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-            total_force_bot += force_node_y
+            force_node_z = -node.GetSolutionStepValue(ELASTIC_FORCES)[2]
+            total_force_bot += force_node_z
         self.total_stress_bot = total_force_bot / self.MeasuringSurface
         
         self.total_stress_mean = 0.5 * (self.total_stress_bot + self.total_stress_top)
@@ -230,33 +233,29 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
     def MeasureForcesAndPressure(self):
 
         dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
-        self.strain += -100 * self.length_correction_factor * self.LoadingVelocity * dt / self.height
-
+        
         total_force_top = 0.0
-        for node in self.top_mesh_nodes:
+        for node in self.top_mesh_nodes_bts:
             force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
             total_force_top += force_node_y
-        self.total_stress_top = total_force_top / self.MeasuringSurface
 
         total_force_bot = 0.0
-        for node in self.bot_mesh_nodes:
+        for node in self.bot_mesh_nodes_bts:
             force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
             total_force_bot += force_node_y
-        self.total_stress_bot = total_force_bot / self.MeasuringSurface
         
-        self.total_stress_mean = 0.5 * (self.total_stress_bot + self.total_stress_top)
+        total_force_bts = 0.5 * (total_force_bot + total_force_top)
 
-        if self.ConfinementPressure:
-            self.Pressure = min(self.total_stress_mean, self.ConfinementPressure * 1e6)
-            self.ApplyLateralPressure(self.Pressure, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
+        self.total_stress_bts = 2.0 * total_force_bts / (math.pi * self.height * self.diameter)
+        self.strain_bts += -100 * self.LoadingVelocity * dt / self.diameter
 
     def ComputeLoadingVelocity(self):
         top_vel = bot_vel = 0.0
         for smp in self.rigid_face_model_part.SubModelParts:
             if smp[IDENTIFIER] == 'TOP':
-                top_vel = smp[LINEAR_VELOCITY_Y]
+                top_vel = smp[LINEAR_VELOCITY_Z]
             if smp[IDENTIFIER] == 'BOTTOM':
-                bot_vel = smp[LINEAR_VELOCITY_Y]
+                bot_vel = smp[LINEAR_VELOCITY_Z]
         self.LoadingVelocity = top_vel - bot_vel
 
     def ComputeMeasuringSurface(self):
@@ -268,6 +267,11 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
         self.alpha_top = math.pi*self.diameter*self.diameter*0.25/(self.xtop_area + 0.70710678*self.xtopcorner_area)
         self.alpha_bot = math.pi*self.diameter*self.diameter*0.25/(self.xbot_area + 0.70710678*self.xbotcorner_area)
         self.alpha_lat = math.pi*self.diameter*self.height/(self.xlat_area + 0.70710678*self.xtopcorner_area + 0.70710678*self.xbotcorner_area)
+
+    def PrepareBTSTest(self):
+        absolute_path_to_file5 = os.path.join(self.graphs_path, self.problem_name + "_graph_bts.grf")
+        self.graph_export_5 = open(absolute_path_to_file5, 'w')
+        self.time_to_print_bts_graph = True
 
     def PrepareTests(self):
 
@@ -301,7 +305,7 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
         # Cylinder dimensions
         h = self.height
         d = self.diameter
-        y_min = self.y_coordinate_of_cylinder_bottom_base
+        z_min = self.z_coordinate_of_cylinder_bottom_base
 
         eps = 3.0 #2.0
         xlat_area = 0.0
@@ -309,8 +313,8 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
         xtop_area = 0.0
         xbotcorner_area = 0.0
         xtopcorner_area = 0.0
-        y_top_total = 0.0
-        y_bot_total = 0.0
+        z_top_total = 0.0
+        z_bot_total = 0.0
         weight_top = 0.0
         weight_bot = 0.0
 
@@ -326,39 +330,39 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
 
             cross_section = math.pi * r * r
 
-            if (x * x + z * z) >= ((0.5 * d - eps * r) * (0.5 * d - eps * r)):
+            if (x * x + y * y) >= ((0.5 * d - eps * r) * (0.5 * d - eps * r)):
 
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
                 self.LAT.append(node)
 
-                if (y > y_min + eps * r) and (y < y_min + (h - eps * r)):
+                if (z > z_min + eps * r) and (z < z_min + (h - eps * r)):
 
                     self.SKIN.append(element)
                     self.XLAT.append(node)
 
                     xlat_area = xlat_area + cross_section
 
-            if (y <= y_min + eps * r) or (y >= y_min + (h - eps * r)):
+            if (z <= z_min + eps * r) or (z >= z_min + (h - eps * r)):
 
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
                 self.SKIN.append(element)
 
-                if y <= y_min + eps * r:
+                if z <= z_min + eps * r:
 
                     self.BOT.append(node)
-                    y_bot_total += y*r
+                    z_bot_total += z*r
                     weight_bot += r
 
-                elif y >= y_min + (h - eps * r):
+                elif z >= z_min + (h - eps * r):
 
                     self.TOP.append(node)
 
-                    y_top_total += y*r
+                    z_top_total += z*r
                     weight_top += r
 
-                if (x * x + z * z) >= ((0.5 * d - eps * r) * (0.5 * d - eps * r)):
+                if (x * x + y * y) >= ((0.5 * d - eps * r) * (0.5 * d - eps * r)):
 
-                    if y > y_min + h / 2:
+                    if z > z_min + h / 2:
 
                         self.XTOPCORNER.append(node)
                         xtopcorner_area = xtopcorner_area + cross_section
@@ -369,12 +373,12 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
                         xbotcorner_area = xbotcorner_area + cross_section
                 else:
 
-                    if y <= y_min + eps * r:
+                    if z <= z_min + eps * r:
 
                         self.XBOT.append(node)
                         xbot_area = xbot_area + cross_section
 
-                    elif y >= y_min + (h - eps * r):
+                    elif z >= z_min + (h - eps * r):
 
                         self.XTOP.append(node)
                         xtop_area = xtop_area + cross_section
@@ -384,7 +388,7 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
         else:
             self.procedures.KratosPrintInfo(str(h) + " * " + str(d) + " cylinder skin determination" + "\n")
 
-        return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area, y_top_total, weight_top, y_bot_total, weight_bot)
+        return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area, z_top_total, weight_top, z_bot_total, weight_bot)
 
     def ApplyLateralPressure(self, Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat):
 
@@ -400,16 +404,16 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
             cross_section = math.pi * r * r
 
             # normal vector to the center:
-            vect_moduli = math.sqrt(x * x + z * z)
+            vect_moduli = math.sqrt(x * x + y * y)
 
             if vect_moduli > 0.0:
                 vect[0] = -x / vect_moduli
-                vect[1] = 0
-                vect[2] = -z / vect_moduli
+                vect[1] = -y / vect_moduli
+                vect[2] = 0.0
 
             values[0] = cross_section * alpha_lat * Pressure * vect[0]
-            values[1] = 0.0
-            values[2] = cross_section * alpha_lat * Pressure * vect[2]
+            values[1] = cross_section * alpha_lat * Pressure * vect[1]
+            values[2] = 0.0
 
             node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
@@ -426,16 +430,16 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
             cross_section = math.pi * r * r
 
             # normal vector to the center:
-            vect_moduli = math.sqrt(x * x + z * z)
+            vect_moduli = math.sqrt(x * x + y * y)
 
             if vect_moduli > 0.0:
                 vect[0] = -x / vect_moduli
-                vect[1] = 0
-                vect[2] = -z / vect_moduli
+                vect[1] = -y / vect_moduli
+                vect[2] = 0.0
 
             values[0] = cross_section * alpha_lat * Pressure * vect[0] * 0.70710678
-            values[1] = 0.0
-            values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
+            values[1] = cross_section * alpha_lat * Pressure * vect[1] * 0.70710678
+            values[2] = 0.0
 
             node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
@@ -456,12 +460,12 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
 
             if vect_moduli > 0.0:
                 vect[0] = -x / vect_moduli
-                vect[1] = 0
-                vect[2] = -z / vect_moduli
+                vect[1] = -y / vect_moduli
+                vect[2] = 0.0
 
             values[0] = cross_section * alpha_lat * Pressure * vect[0] * 0.70710678
-            values[1] = 0.0
-            values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
+            values[1] = cross_section * alpha_lat * Pressure * vect[1] * 0.70710678
+            values[2] = 0.0
 
             node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
@@ -487,6 +491,12 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
                 self.bot_mesh_nodes = smp.Nodes
                 prepare_check[3] = -1
 
+        for smp in self.rigid_face_model_part.SubModelParts:
+            if smp[IDENTIFIER] == 'TOP_BTS':
+                self.top_mesh_nodes_bts = smp.Nodes
+            if smp[IDENTIFIER] == 'BOTTOM_BTS':
+                self.bot_mesh_nodes_bts = smp.Nodes
+
         for it in range(len(prepare_check)):
             self.total_check += prepare_check[it]
 
@@ -497,14 +507,18 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
 
         if self.graph_counter == self.graph_frequency:
             self.graph_counter = 0
-            self.graph_export_1.write(str("%.6g"%self.strain).rjust(13) + "  " + str("%.6g"%(self.total_stress_mean * 1e-6)).rjust(13) + "  " + str("%.8g"%time).rjust(12) + '\n')
-            self.graph_export_2.write(str("%.8g"%self.strain).rjust(13) + "  " + str("%.6g"%(self.total_stress_top  * 1e-6)).rjust(13) + "  " + str("%.8g"%time).rjust(12) + '\n')
-            self.graph_export_3.write(str("%.8g"%self.strain).rjust(13) + "  " + str("%.6g"%(self.total_stress_bot  * 1e-6)).rjust(13) + "  " + str("%.8g"%time).rjust(12) + '\n')
+            total_stress_q = self.total_stress_mean * 1e-6 - self.ConfinementPressure
+            self.graph_export_1.write(str("%.6g"%self.strain).rjust(13)     + "  " + str("%.6g"%(self.total_stress_mean * 1e-6)).rjust(13) + "  " + str("%.8g"%time).rjust(12) + '\n')
+            self.graph_export_2.write(str("%.8g"%self.strain).rjust(13)     + "  " + str("%.6g"%(self.total_stress_top  * 1e-6)).rjust(13) + "  " + str("%.8g"%time).rjust(12) + '\n')
+            self.graph_export_3.write(str("%.8g"%self.strain).rjust(13)     + "  " + str("%.6g"%(self.total_stress_bot  * 1e-6)).rjust(13) + "  " + str("%.8g"%time).rjust(12) + '\n')
+            self.graph_export_4.write(str("%.8g"%self.strain).rjust(13)     + "  " + str("%.6g"%(total_stress_q)).rjust(13)                + "  " + str("%.8g"%time).rjust(12) + '\n')
             self.graph_export_1.flush()
             self.graph_export_2.flush()
             self.graph_export_3.flush()
-            self.graph_export_4.write(str("%.8g"%self.strain).rjust(15) + "  " + str("%.6g"%(self.total_stress_mean * 1e-6 - self.ConfinementPressure)).rjust(13) + '\n')
             self.graph_export_4.flush()
+            if self.time_to_print_bts_graph:
+                self.graph_export_5.write(str("%.8g"%self.strain_bts).rjust(13) + "  " + str("%.6g"%(self.total_stress_bts  * 1e-6)).rjust(13) + "  " + str("%.8g"%time).rjust(12) + '\n')
+                self.graph_export_5.flush()
         self.graph_counter += 1
     
     def FinalizeGraphs(self):
@@ -526,6 +540,7 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
         self.graph_export_2.close()
         self.graph_export_3.close()
         self.graph_export_4.close()
+        self.graph_export_5.close()
 
 if __name__ == "__main__":
 
@@ -533,4 +548,4 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    DecompressedMaterialTriaxialTest(model, parameters).Run()
+    DecompressedMaterialBTSTest(model, parameters).Run()
