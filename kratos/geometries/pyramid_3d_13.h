@@ -457,39 +457,7 @@ public:
     double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
-        switch ( ShapeFunctionIndex )
-        {
-        case 0:
-            return( (-0.0625) * (1 - rPoint[0]) * (1 - rPoint[1]) * (1 - rPoint[2]) * (4 + 3*rPoint[0] + 3*rPoint[1] + 2*rPoint[0]*rPoint[1] + 2*rPoint[2] + rPoint[0]*rPoint[2] + rPoint[1]*rPoint[2] + 2*rPoint[0]*rPoint[1]*rPoint[2]) );
-        case 1:
-            return( (-0.0625) * (1 + rPoint[0]) * (1 - rPoint[1]) * (1 - rPoint[2]) * (4 - 3*rPoint[0] + 3*rPoint[1] - 2*rPoint[0]*rPoint[1] + 2*rPoint[2] - rPoint[0]*rPoint[2] + rPoint[1]*rPoint[2] - 2*rPoint[0]*rPoint[1]*rPoint[2]) );
-        case 2:
-            return( (-0.0625) * (1 + rPoint[0]) * (1 + rPoint[1]) * (1 - rPoint[2]) * (4 - 3*rPoint[0] - 3*rPoint[1] + 2*rPoint[0]*rPoint[1] + 2*rPoint[2] - rPoint[0]*rPoint[2] - rPoint[1]*rPoint[2] + 2*rPoint[0]*rPoint[1]*rPoint[2]) );
-        case 3:
-            return( (-0.0625) * (1 - rPoint[0]) * (1 + rPoint[1]) * (1 - rPoint[2]) * (4 + 3*rPoint[0] - 3*rPoint[1] - 2*rPoint[0]*rPoint[1] + 2*rPoint[2] + rPoint[0]*rPoint[2] - rPoint[1]*rPoint[2] - 2*rPoint[0]*rPoint[1]*rPoint[2]) );
-        case 4:
-            return( (0.5) * (rPoint[2]) * (1 + rPoint[2]) );
-        case 5:
-            return( (0.125) * (1 - std::pow(rPoint[0],2.0)) * (1 - rPoint[1]) * (1 - rPoint[2]) * (2 + rPoint[1] + rPoint[1]*rPoint[2]) );
-        case 6:
-            return( (0.125) * (1 + rPoint[0]) * (1 - std::pow(rPoint[1],2.0)) * (1 - rPoint[2]) * (2 - rPoint[0] - rPoint[0]*rPoint[2]) );
-        case 7:
-            return( (0.125) * (1 - std::pow(rPoint[0],2.0)) * (1 + rPoint[1]) * (1 - rPoint[2]) * (2 - rPoint[1] - rPoint[1]*rPoint[2]) );
-        case 8:
-            return( (0.125) * (1 - rPoint[0]) * (1 - std::pow(rPoint[1],2.0)) * (1 - rPoint[2]) * (2 + rPoint[0] + rPoint[0]*rPoint[2]) );
-        case 9:
-            return( (0.25) * (1 - rPoint[0]) * (1 - rPoint[1]) * (1 - std::pow(rPoint[2],2.0)) );
-        case 10:
-            return( (0.25) * (1 + rPoint[0]) * (1 - rPoint[1]) * (1 - std::pow(rPoint[2],2.0)) );
-        case 11:
-            return( (0.25) * (1 + rPoint[0]) * (1 + rPoint[1]) * (1 - std::pow(rPoint[2],2.0)) );
-        case 12:
-            return( (0.25) * (1 - rPoint[0]) * (1 + rPoint[1]) * (1 - std::pow(rPoint[2],2.0)) );
-        default:
-            KRATOS_ERROR << "Wrong index of shape function!" << *this  << std::endl;
-        }
-
-        return 0;
+        return ShapeFunctionValueImpl(ShapeFunctionIndex, rPoint);
     }
 
     /**
@@ -773,6 +741,47 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    // see ShapeFunctionValue
+    // special function such that it can also be used in the static methods
+    static double ShapeFunctionValueImpl(
+        IndexType ShapeFunctionIndex,
+        const CoordinatesArrayType& rPoint)
+    {
+        switch ( ShapeFunctionIndex )
+        {
+        case 0:
+            return( (-0.0625) * (1 - rPoint[0]) * (1 - rPoint[1]) * (1 - rPoint[2]) * (4 + 3*rPoint[0] + 3*rPoint[1] + 2*rPoint[0]*rPoint[1] + 2*rPoint[2] + rPoint[0]*rPoint[2] + rPoint[1]*rPoint[2] + 2*rPoint[0]*rPoint[1]*rPoint[2]) );
+        case 1:
+            return( (-0.0625) * (1 + rPoint[0]) * (1 - rPoint[1]) * (1 - rPoint[2]) * (4 - 3*rPoint[0] + 3*rPoint[1] - 2*rPoint[0]*rPoint[1] + 2*rPoint[2] - rPoint[0]*rPoint[2] + rPoint[1]*rPoint[2] - 2*rPoint[0]*rPoint[1]*rPoint[2]) );
+        case 2:
+            return( (-0.0625) * (1 + rPoint[0]) * (1 + rPoint[1]) * (1 - rPoint[2]) * (4 - 3*rPoint[0] - 3*rPoint[1] + 2*rPoint[0]*rPoint[1] + 2*rPoint[2] - rPoint[0]*rPoint[2] - rPoint[1]*rPoint[2] + 2*rPoint[0]*rPoint[1]*rPoint[2]) );
+        case 3:
+            return( (-0.0625) * (1 - rPoint[0]) * (1 + rPoint[1]) * (1 - rPoint[2]) * (4 + 3*rPoint[0] - 3*rPoint[1] - 2*rPoint[0]*rPoint[1] + 2*rPoint[2] + rPoint[0]*rPoint[2] - rPoint[1]*rPoint[2] - 2*rPoint[0]*rPoint[1]*rPoint[2]) );
+        case 4:
+            return( (0.5) * (rPoint[2]) * (1 + rPoint[2]) );
+        case 5:
+            return( (0.125) * (1 - std::pow(rPoint[0],2.0)) * (1 - rPoint[1]) * (1 - rPoint[2]) * (2 + rPoint[1] + rPoint[1]*rPoint[2]) );
+        case 6:
+            return( (0.125) * (1 + rPoint[0]) * (1 - std::pow(rPoint[1],2.0)) * (1 - rPoint[2]) * (2 - rPoint[0] - rPoint[0]*rPoint[2]) );
+        case 7:
+            return( (0.125) * (1 - std::pow(rPoint[0],2.0)) * (1 + rPoint[1]) * (1 - rPoint[2]) * (2 - rPoint[1] - rPoint[1]*rPoint[2]) );
+        case 8:
+            return( (0.125) * (1 - rPoint[0]) * (1 - std::pow(rPoint[1],2.0)) * (1 - rPoint[2]) * (2 + rPoint[0] + rPoint[0]*rPoint[2]) );
+        case 9:
+            return( (0.25) * (1 - rPoint[0]) * (1 - rPoint[1]) * (1 - std::pow(rPoint[2],2.0)) );
+        case 10:
+            return( (0.25) * (1 + rPoint[0]) * (1 - rPoint[1]) * (1 - std::pow(rPoint[2],2.0)) );
+        case 11:
+            return( (0.25) * (1 + rPoint[0]) * (1 + rPoint[1]) * (1 - std::pow(rPoint[2],2.0)) );
+        case 12:
+            return( (0.25) * (1 - rPoint[0]) * (1 + rPoint[1]) * (1 - std::pow(rPoint[2],2.0)) );
+        default:
+            KRATOS_ERROR << "Wrong index of shape function:" << ShapeFunctionIndex  << std::endl;
+        }
+
+        return 0;
+    }
 
     static const IntegrationPointsContainerType AllIntegrationPoints()
     {

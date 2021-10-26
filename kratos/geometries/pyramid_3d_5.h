@@ -408,23 +408,7 @@ public:
     double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
-        switch ( ShapeFunctionIndex )
-        {
-        case 0:
-            return( (0.125) * (1 - rPoint[0]) * (1 - rPoint[1]) * (1 - rPoint[2]) );
-        case 1:
-            return( (0.125) * (1 + rPoint[0]) * (1 - rPoint[1]) * (1 - rPoint[2]) );
-        case 2:
-            return( (0.125) * (1 + rPoint[0]) * (1 + rPoint[1]) * (1 - rPoint[2]) );
-        case 3:
-            return( (0.125) * (1 - rPoint[0]) * (1 + rPoint[1]) * (1 - rPoint[2]) );
-        case 4:
-            return( (0.5) * (1 + rPoint[2]) );
-        default:
-            KRATOS_ERROR << "Wrong index of shape function!" << *this  << std::endl;
-        }
-
-        return 0;
+        return ShapeFunctionValueImpl(ShapeFunctionIndex, rPoint);
     }
 
 
@@ -640,6 +624,31 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    // see ShapeFunctionValue
+    // special function such that it can also be used in the static methods
+    static double ShapeFunctionValueImpl(
+        IndexType ShapeFunctionIndex,
+        const CoordinatesArrayType& rPoint)
+    {
+        switch ( ShapeFunctionIndex )
+        {
+        case 0:
+            return( (0.125) * (1 - rPoint[0]) * (1 - rPoint[1]) * (1 - rPoint[2]) );
+        case 1:
+            return( (0.125) * (1 + rPoint[0]) * (1 - rPoint[1]) * (1 - rPoint[2]) );
+        case 2:
+            return( (0.125) * (1 + rPoint[0]) * (1 + rPoint[1]) * (1 - rPoint[2]) );
+        case 3:
+            return( (0.125) * (1 - rPoint[0]) * (1 + rPoint[1]) * (1 - rPoint[2]) );
+        case 4:
+            return( (0.5) * (1 + rPoint[2]) );
+        default:
+            KRATOS_ERROR << "Wrong index of shape function:" << ShapeFunctionIndex  << std::endl;
+        }
+
+        return 0;
+    }
 
     static const IntegrationPointsContainerType AllIntegrationPoints()
     {
