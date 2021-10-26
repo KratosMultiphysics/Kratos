@@ -66,11 +66,12 @@ namespace Kratos
     KRATOS_TRY
 
     // Initialize heat fluxes contributions
-    mConductiveHeatFlux = 0.0;
-    mConvectiveHeatFlux = 0.0;
-    mRadiativeHeatFlux  = 0.0;
-    mPrescribedHeatFlux = 0.0;
-    mTotalHeatFlux      = 0.0;
+    mConductionDirectHeatFlux   = 0.0;
+    mConductionIndirectHeatFlux = 0.0;
+    mConvectionHeatFlux         = 0.0;
+    mRadiationHeatFlux          = 0.0;
+    mPrescribedHeatFlux         = 0.0;
+    mTotalHeatFlux              = 0.0;
 
     // Initialize environment-related variables for radiation
     if (this->Is(DEMFlags::HAS_RADIATION)) {
@@ -141,7 +142,7 @@ namespace Kratos
     ComputePrescribedHeatFlux(r_process_info);
 
     // Sum up heat fluxes contributions
-    mTotalHeatFlux = mConductiveHeatFlux + mConvectiveHeatFlux + mRadiativeHeatFlux + mPrescribedHeatFlux;
+    mTotalHeatFlux = mConductionDirectHeatFlux + mConductionIndirectHeatFlux + mConvectionHeatFlux + mRadiationHeatFlux + mPrescribedHeatFlux;
 
     KRATOS_CATCH("")
   }
@@ -314,9 +315,9 @@ namespace Kratos
     // Compute heat flux according to selected model
     std::string model = r_process_info[DIRECT_CONDUCTION_MODEL];
 
-    if      (model.compare("batchelor_obrien") == 0) mConductiveHeatFlux += DirectConductionBatchelorOBrien(r_process_info);
-    else if (model.compare("thermal_pipe")     == 0) mConductiveHeatFlux += DirectConductionThermalPipe(r_process_info);
-    else if (model.compare("collisional")      == 0) mConductiveHeatFlux += DirectConductionCollisional(r_process_info);
+    if      (model.compare("batchelor_obrien") == 0) mConductionDirectHeatFlux += DirectConductionBatchelorOBrien(r_process_info);
+    else if (model.compare("thermal_pipe")     == 0) mConductionDirectHeatFlux += DirectConductionThermalPipe(r_process_info);
+    else if (model.compare("collisional")      == 0) mConductionDirectHeatFlux += DirectConductionCollisional(r_process_info);
 
     KRATOS_CATCH("")
   }
@@ -328,10 +329,10 @@ namespace Kratos
     // Compute heat flux according to selected model
     std::string model = r_process_info[INDIRECT_CONDUCTION_MODEL];
 
-    if      (model.compare("surrounding_layer") == 0) mConductiveHeatFlux += IndirectConductionSurroundingLayer(r_process_info);
-    else if (model.compare("voronoi_a")         == 0) mConductiveHeatFlux += IndirectConductionVoronoiA(r_process_info);
-    else if (model.compare("voronoi_b")         == 0) mConductiveHeatFlux += IndirectConductionVoronoiB(r_process_info);
-    else if (model.compare("vargas_mccarthy")   == 0) mConductiveHeatFlux += IndirectConductionVargasMcCarthy(r_process_info);
+    if      (model.compare("surrounding_layer") == 0) mConductionIndirectHeatFlux += IndirectConductionSurroundingLayer(r_process_info);
+    else if (model.compare("voronoi_a")         == 0) mConductionIndirectHeatFlux += IndirectConductionVoronoiA(r_process_info);
+    else if (model.compare("voronoi_b")         == 0) mConductionIndirectHeatFlux += IndirectConductionVoronoiB(r_process_info);
+    else if (model.compare("vargas_mccarthy")   == 0) mConductionIndirectHeatFlux += IndirectConductionVargasMcCarthy(r_process_info);
 
     KRATOS_CATCH("")
   }
@@ -379,8 +380,8 @@ namespace Kratos
     // compute heat flux of continuous methods according to selected model
     std::string model = r_process_info[RADIATION_MODEL];
 
-    if      (model.compare("continuum_zhou")   == 0) mRadiativeHeatFlux += RadiationContinuumZhou(r_process_info);
-    else if (model.compare("continuum_krause") == 0) mRadiativeHeatFlux += RadiationContinuumKrause(r_process_info);
+    if      (model.compare("continuum_zhou")   == 0) mRadiationHeatFlux += RadiationContinuumZhou(r_process_info);
+    else if (model.compare("continuum_krause") == 0) mRadiationHeatFlux += RadiationContinuumKrause(r_process_info);
 
     KRATOS_CATCH("")
   }
@@ -404,7 +405,7 @@ namespace Kratos
     else if (model.compare("sphere_li_mason")      == 0) Nu = NusseltLiMason(r_process_info);
 
     // Compute heat flux
-    mConvectiveHeatFlux += (Nu * fluid_conductivity / char_length) * surface_area * temp_grad;
+    mConvectionHeatFlux += (Nu * fluid_conductivity / char_length) * surface_area * temp_grad;
 
     KRATOS_CATCH("")
   }
