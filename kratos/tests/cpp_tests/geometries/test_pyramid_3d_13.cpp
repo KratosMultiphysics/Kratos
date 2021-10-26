@@ -103,7 +103,6 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13IsInside, KratosCoreGeometriesFastSuite)
     KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
     KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
     KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside2, LocalCoords, EPSILON));
-    KRATOS_WATCH(LocalCoords)
     KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
     KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
 }

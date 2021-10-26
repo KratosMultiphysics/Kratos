@@ -338,13 +338,14 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const override
     {
-        if ( std::abs( rPointLocalCoordinates[0] ) <= (1.0 + Tolerance) )
-        {
-            if ( std::abs( rPointLocalCoordinates[1] ) <= (1.0 + Tolerance) )
-            {
-                if ( std::abs( rPointLocalCoordinates[2] ) <= (1.0 + Tolerance) )
-                {
-                    return 1;
+        if ( std::abs( rPointLocalCoordinates[0] ) <= (1.0 + Tolerance) ) {
+            if ( std::abs( rPointLocalCoordinates[1] ) <= (1.0 + Tolerance) ) {
+                if ( std::abs( rPointLocalCoordinates[2] ) <= (1.0 + Tolerance) ) {
+                    if ( (std::abs(rPointLocalCoordinates[0]) +
+                          std::abs(rPointLocalCoordinates[1]) +
+                          rPointLocalCoordinates[2]) <= (1.0 + Tolerance) ) {
+                        return 1;
+                    }
                 }
             }
         }
