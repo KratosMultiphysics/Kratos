@@ -806,7 +806,7 @@ protected:
     void PrintDebugData(const std::string& rLabel,
                         const std::vector<idxtype>& rPartitionData)
     {
-        if (mVerbosity > 0)
+        if (mVerbosity > 2)
         {
             std::cout << rLabel << std::endl;
             for (int p = 0; p < static_cast<int>(mNumberOfPartitions); p++)
