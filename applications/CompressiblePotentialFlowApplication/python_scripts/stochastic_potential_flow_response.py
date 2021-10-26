@@ -782,8 +782,8 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         """
         mach = abs(self.sample[1])
         alpha = self.sample[2]
-        self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(0.2+mach*0.001)
-        self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(0.0)
+        self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(mach)
+        self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(alpha)
         super().ModifyInitialProperties()
 
 
@@ -1481,8 +1481,8 @@ class BodyFittedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnal
         mach = abs(self.sample[1])
         alpha = self.sample[2]
         print("MACH ALPHA", mach,alpha)
-        self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(0.2+mach*0.001)
-        self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(0.0)
+        self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(mach)
+        self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(alpha)
         super().ModifyInitialProperties()
 
 
