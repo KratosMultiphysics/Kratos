@@ -68,10 +68,14 @@ class VtkOutputProcess(KratosMultiphysics.OutputProcess):
         self.__ScheduleNextOutput()
 
     def IsOutputStep(self):
-        if self.output_control == "time":
-            return self.__GetTime() >= self.next_output
-        else:
-            return self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.next_output
+        ## This change is necessary when outputting the
+        ## result in stage wise optimization simulation.
+
+        # if self.output_control == "time":
+        #     return self.__GetTime() >= self.next_output
+        # else:
+        #     return self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.next_output
+        return True
 
     def __ScheduleNextOutput(self):
         if self.output_interval > 0.0: # Note: if == 0, we'll just always print
