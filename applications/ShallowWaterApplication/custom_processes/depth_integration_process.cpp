@@ -36,6 +36,7 @@ DepthIntegrationProcess::DepthIntegrationProcess(
         mrInterfaceModelPart(rModel.GetModelPart(ThisParameters["interface_model_part_name"].GetString()))
 {
     ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
+    mStoreHistorical = ThisParameters["store_historical_database"].GetBool();
     mDirection = ThisParameters["direction_of_integration"].GetVector();
     mDirection /= norm_2(mDirection);
 
@@ -92,8 +93,8 @@ void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjec
     }
     velocity /= num_nodes;
     double height = max_elevation - min_elevation;
-    rNode.FastGetSolutionStepValue(VELOCITY) = velocity;
-    rNode.FastGetSolutionStepValue(HEIGHT) = height;
+    SetValue(rNode, VELOCITY, velocity);
+    SetValue(rNode, HEIGHT, height);
 }
 
 void DepthIntegrationProcess::GetBoundingVolumeLimits(double& rMin, double& rMax)
@@ -183,7 +184,8 @@ const Parameters DepthIntegrationProcess::GetDefaultParameters() const
     {
         "volume_model_part_name"    : "",
         "interface_model_part_name" : "",
-        "direction_of_integration"  : [0.0, 0.0, 1.0]
+        "direction_of_integration"  : [0.0, 0.0, 1.0],
+        "store_historical_database" : false,
     })");
     return default_parameters;
 }

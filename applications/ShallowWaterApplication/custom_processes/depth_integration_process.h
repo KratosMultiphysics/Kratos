@@ -150,6 +150,7 @@ private:
     ModelPart& mrInterfaceModelPart;
     ModelPart* mpIntegrationModelPart;
     array_1d<double,3> mDirection;
+    bool mStoreHistorical;
 
     ///@}
     ///@name Member Variables
@@ -176,6 +177,15 @@ private:
     void SetIntegrationLine(const NodeType& rNode, const double Bottom, const double Top);
 
     GeometryType::Pointer CreateIntegrationLine(const NodeType& rNode, const double Bottom, const double Top);
+
+    template<class TDataType, class TVarType = Variable<TDataType>>
+    void SetValue(NodeType& rNode, const TVarType& rVariable, TDataType& rValue)
+    {
+        if (mStoreHistorical)
+            rNode.FastGetSolutionStepValue(rVariable) = rValue;
+        else
+            rNode.GetValue(rVariable) = rValue;
+    }
 
     ///@}
     ///@name Private  Access
