@@ -764,7 +764,7 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
     noalias(JacobianMatrix) = ZeroMatrix(TDim, TDim);
 
     // KRATOS_INFO("rVariables.GradNe")         << rVariables.GradNe << std::endl;
-    // if (this->Id()==9) KRATOS_INFO("rVariables.NodalCrossDirection") << rVariables.NodalCrossDirection << std::endl;
+    // KRATOS_INFO("rVariables.NodalCrossDirection") << rVariables.NodalCrossDirection << std::endl;
     // KRATOS_INFO("CrossEta")         << CrossEta << std::endl;
     // KRATOS_INFO("t")                << t << std::endl;
 
@@ -856,7 +856,7 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
 
     noalias(BTransformed) = prod(trans(rVariables.TransformationMatrix), B);
 
-    // if (this->Id()==9) KRATOS_INFO("1-BTransformed") << BTransformed << std::endl;
+    // KRATOS_INFO("1-BTransformed") << BTransformed << std::endl;
 
     // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateBMatrix") << std::endl;
 
@@ -871,7 +871,7 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
     KRATOS_TRY
     // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateStrainVector") << std::endl;
     
-    // if (this->Id()==9) KRATOS_INFO("rVariables.DofValuesVector") << rVariables.DofValuesVector << std::endl;
+    // KRATOS_INFO("rVariables.DofValuesVector") << rVariables.DofValuesVector << std::endl;
 
     noalias(rVariables.StrainVector) = prod(rVariables.B, rVariables.DofValuesVector);
 

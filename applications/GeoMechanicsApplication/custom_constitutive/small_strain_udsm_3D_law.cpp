@@ -1258,7 +1258,9 @@ double& SmallStrainUDSM3DLaw::GetValue( const Variable<double>& rThisVariable, d
    const int index = GetStateVariableIndex(rThisVariable);
 
    KRATOS_DEBUG_ERROR_IF( index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1) )
-                        << "GetValue: State variable does not exist in UDSM. Requested index: " << index << std::endl;
+                        << "GetValue: Variable: "
+                        << rThisVariable
+                        << " does not exist in UDSM. Requested index: " << index << std::endl;
 
    rValue = mStateVariablesFinalized[index];
 
@@ -1292,7 +1294,9 @@ void SmallStrainUDSM3DLaw::SetValue( const Variable<double>& rThisVariable,
    const int index = GetStateVariableIndex(rThisVariable);
 
    KRATOS_DEBUG_ERROR_IF( index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1) )
-                        << "SetValue: State variable does not exist in UDSM. Requested index: " << index << std::endl;
+                        << "GetValue: Variable: "
+                        << rThisVariable
+                        << " does not exist in UDSM. Requested index: " << index << std::endl;
 
    mStateVariablesFinalized[index] = rValue;
 

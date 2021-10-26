@@ -144,12 +144,11 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     Vector StressVector(VoigtSize);
 
     //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
-    {
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
 
         //Compute infinitessimal strain
-        this->CalculateStrain(Variables);
+        this->CalculateStrain(Variables, GPoint);
 
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -201,12 +200,11 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     Vector StressVector(VoigtSize);
 
     //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
-    {
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
 
         //Compute infinitessimal strain
-        this->CalculateStrain(Variables);
+        this->CalculateStrain(Variables, GPoint);
 
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -471,13 +469,12 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
     //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
-    {
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         //Compute Np, GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
 
         //Compute infinitessimal strain
-        this->CalculateStrain(Variables);
+        this->CalculateStrain(Variables, GPoint);
 
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -513,15 +510,13 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
                                                   GPoint,
                                                   Variables.detJ);
 
-        if (CalculateStiffnessMatrixFlag)
-        {
+        if (CalculateStiffnessMatrixFlag) {
             //Contributions to the left hand side
             this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
             this->CalculateAndAddLHSStabilization(rLeftHandSideMatrix, Variables, FICVariables);
         }
 
-        if (CalculateResidualVectorFlag)
-        {
+        if (CalculateResidualVectorFlag) {
             //Contributions to the right hand side
             this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
             this->CalculateAndAddRHSStabilization(rRightHandSideVector, Variables, FICVariables);

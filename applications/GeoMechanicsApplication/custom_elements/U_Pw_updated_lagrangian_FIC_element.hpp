@@ -256,8 +256,6 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    Matrix& CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const;
-
     /**
      * @brief This method clones the element database
      * @param rF0Computed To avoid computing more than once the historical total elastic deformation measure
@@ -336,8 +334,6 @@ protected:
     void CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
                                                   ElementVariables& rVariables,
                                                   unsigned int GPoint );
-
-    void CalculateStrain( ElementVariables& rVariables ) override;
 
     ///@}
     ///@name Protected Operations

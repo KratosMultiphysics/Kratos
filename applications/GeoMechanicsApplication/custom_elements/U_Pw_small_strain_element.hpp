@@ -134,6 +134,7 @@ protected:
     {
         ///Properties variables
         bool IgnoreUndrained;
+        bool UseHenckyStrain;
         bool ConsiderGeometricStiffness;
         double DynamicViscosityInverse;
         double FluidDensity;
@@ -305,7 +306,10 @@ protected:
     virtual void CalculateCauchyAlmansiStrain( ElementVariables &rVariables );
     virtual void CalculateCauchyGreenStrain( ElementVariables &rVariables );
     virtual void CalculateCauchyStrain( ElementVariables &rVariables );
-    virtual void CalculateStrain( ElementVariables &rVariables );
+    virtual void CalculateHenckyStrain( ElementVariables& rVariables );
+    virtual void CalculateStrain( ElementVariables &rVariables, const IndexType& GPoint );
+    virtual void CalculateDeformationGradient( ElementVariables& rVariables,
+                                               const IndexType& GPoint );
 
     void InitializeNodalDisplacementVariables( ElementVariables &rVariables );
     void InitializeNodalPorePressureVariables( ElementVariables &rVariables );

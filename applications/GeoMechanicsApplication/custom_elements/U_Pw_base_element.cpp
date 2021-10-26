@@ -652,22 +652,27 @@ double UPwBaseElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-Matrix& UPwBaseElement<TDim,TNumNodes>::
-    CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const
+double UPwBaseElement<TDim,TNumNodes>::
+    CalculateDerivativesOnInitialConfiguration(Matrix& J0,
+                                               Matrix& InvJ0,
+                                               Matrix& DNu_DX0,
+                                               const IndexType& GPoint) const
 {
     KRATOS_TRY
+    // KRATOS_INFO("0-UPwBaseElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
 
-    DeltaDisplacement.resize(TNumNodes , TDim, false);
+    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( mThisIntegrationMethod );
 
-    for ( IndexType node = 0; node < TNumNodes; ++node ) {
-        const array_1d<double, 3>& current_displacement  = GetGeometry()[node].FastGetSolutionStepValue(DISPLACEMENT);
-        const array_1d<double, 3>& previous_displacement = GetGeometry()[node].FastGetSolutionStepValue(DISPLACEMENT,1);
+    double detJ;
+    GeometryUtils::JacobianOnInitialConfiguration(rGeom, IntegrationPoints[GPoint], J0);
+    const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[GPoint];
+    MathUtils<double>::InvertMatrix( J0, InvJ0, detJ );
+    GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
 
-        for ( IndexType iDim = 0; iDim < TDim; ++iDim )
-            DeltaDisplacement(node, iDim) = current_displacement[iDim] - previous_displacement[iDim];
-    }
+    // KRATOS_INFO("1-UPwBaseElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
 
-    return DeltaDisplacement;
+    return detJ;
 
     KRATOS_CATCH( "" )
 }
@@ -675,25 +680,50 @@ Matrix& UPwBaseElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 double UPwBaseElement<TDim,TNumNodes>::
-    CalculateDerivativesOnInitialConfiguration(const GeometryType& Geometry,
-                                               Matrix& DNu_DX0,
-                                               const IndexType& GPoint,
-                                               IntegrationMethod ThisIntegrationMethod) const
+    CalculateJacobianOnCurrentConfiguration(Matrix& rJ,
+                                            Matrix& rInvJ,
+                                            const IndexType& GPoint) const
 {
     KRATOS_TRY
 
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    // KRATOS_INFO("0-UPwBaseElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
+    const GeometryType& rGeom = this->GetGeometry();
 
-    Matrix J0, InvJ0;
-    double detJ0;
-    GeometryUtils::JacobianOnInitialConfiguration(Geometry, IntegrationPoints[GPoint], J0);
-    const Matrix& DN_De = Geometry.ShapeFunctionsLocalGradients(ThisIntegrationMethod)[GPoint];
-    MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
-    GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
+    double detJ;
+    rJ = rGeom.Jacobian( rJ, GPoint, mThisIntegrationMethod );
+    MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
 
-    return detJ0;
+    // KRATOS_INFO("1-UPwBaseElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
+
+    return detJ;
 
     KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+double UPwBaseElement<TDim,TNumNodes>::
+    CalculateJacobianOnCurrentConfiguration(Matrix& J0,
+                                            Matrix& InvJ0,
+                                            Matrix& GradNpT,
+                                            const IndexType &GPoint) const
+{
+
+    const GeometryType& rGeom = this->GetGeometry();
+    Matrix DisplacementMatrix;
+    GeoElementUtilities::
+        GetNodalVariableMatrix<TDim, TNumNodes>(DisplacementMatrix, rGeom, DISPLACEMENT);
+
+    J0.clear();
+    J0 = this->GetGeometry().Jacobian(J0, GPoint, mThisIntegrationMethod, DisplacementMatrix);
+
+    double detJ0;
+    MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
+
+    const Matrix& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod)[GPoint];
+    noalias( GradNpT ) = prod( DN_De, InvJ0);
+
+    return detJ0;
 }
 
 //----------------------------------------------------------------------------------------

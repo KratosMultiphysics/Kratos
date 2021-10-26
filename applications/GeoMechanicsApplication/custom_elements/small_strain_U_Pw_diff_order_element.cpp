@@ -1255,8 +1255,7 @@ void SmallStrainUPwDiffOrderElement::
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
-
-            noalias(Variables.Nu) = row(Variables.NuContainer, GPoint);;
+            noalias(Variables.Nu) = row(Variables.NuContainer, GPoint);
 
             Matrix J0,InvJ0;
             Variables.detJInitialConfiguration =
@@ -1894,35 +1893,6 @@ double SmallStrainUPwDiffOrderElement::
 }
 
 //----------------------------------------------------------------------------------------
-double SmallStrainUPwDiffOrderElement::
-    CalculateDerivativesOnReferenceConfiguration(Matrix& J0,
-                                                 Matrix& InvJ0,
-                                                 Matrix& DNu_DX0,
-                                                 const IndexType& GPoint) const
-{
-    KRATOS_TRY
-
-    //// KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateDerivativesOnReferenceConfiguration()") << std::endl;
-    const GeometryType& rGeom = this->GetGeometry();
-
-    Matrix deltaDisplacement;
-    deltaDisplacement = this->CalculateDeltaDisplacement(deltaDisplacement);
-
-    // mesh move must be used!
-    double detJ0;
-    J0 = rGeom.Jacobian(J0, GPoint, this->GetIntegrationMethod(), deltaDisplacement);
-    const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(this->GetIntegrationMethod())[GPoint];
-    MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
-    GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
-
-    //// KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateDerivativesOnReferenceConfiguration()") << std::endl;
-
-    return detJ0;
-
-    KRATOS_CATCH( "" )
-}
-
-//----------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
     CalculateBMatrix(Matrix& rB,
                      const Matrix& DNp_DX,
@@ -2473,13 +2443,15 @@ void SmallStrainUPwDiffOrderElement::
 }
 
 //----------------------------------------------------------------------------------------
-void SmallStrainUPwDiffOrderElement::CalculateCauchyStrain( ElementVariables& rVariables )
+void SmallStrainUPwDiffOrderElement::
+    CalculateCauchyStrain( ElementVariables& rVariables )
 {
     noalias(rVariables.StrainVector) = prod(rVariables.B, rVariables.DisplacementVector);
 }
 
 //----------------------------------------------------------------------------------------
-void SmallStrainUPwDiffOrderElement::CalculateCauchyGreenStrain( ElementVariables& rVariables )
+void SmallStrainUPwDiffOrderElement::
+    CalculateCauchyGreenStrain( ElementVariables& rVariables )
 {
     KRATOS_TRY
 
@@ -2567,7 +2539,8 @@ void SmallStrainUPwDiffOrderElement::
 }
 
 //----------------------------------------------------------------------------------------
-void SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain(ElementVariables& rVariables )
+void SmallStrainUPwDiffOrderElement::
+    CalculateCauchyAlmansiStrain(ElementVariables& rVariables )
 {
     KRATOS_TRY
 
@@ -2607,7 +2580,8 @@ void SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain(ElementVariabl
 }
 
 //----------------------------------------------------------------------------------------
-void SmallStrainUPwDiffOrderElement::CalculateHenckyStrain( ElementVariables& rVariables )
+void SmallStrainUPwDiffOrderElement::
+    CalculateHenckyStrain( ElementVariables& rVariables )
 {
     KRATOS_TRY
 
@@ -2672,35 +2646,6 @@ double SmallStrainUPwDiffOrderElement::
 
     KRATOS_CATCH( "" )
 
-}
-
-//----------------------------------------------------------------------------------------
-Matrix& SmallStrainUPwDiffOrderElement::
-    CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const
-{
-    KRATOS_TRY
-
-    //// KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateDeltaDisplacement()") << std::endl;
-
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-
-    DeltaDisplacement.resize(NumUNodes , Dim, false);
-
-    for ( IndexType iNode = 0; iNode < NumUNodes; ++iNode ) {
-        const array_1d<double, 3>& currentDisplacement  = GetGeometry()[iNode].FastGetSolutionStepValue(DISPLACEMENT);
-        const array_1d<double, 3>& previousDisplacement = GetGeometry()[iNode].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-        for ( IndexType iDim = 0; iDim < Dim; ++iDim )
-            DeltaDisplacement(iNode, iDim) = currentDisplacement[iDim] - previousDisplacement[iDim];
-    }
-
-    //// KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateDeltaDisplacement()") << std::endl;
-
-    return DeltaDisplacement;
-
-    KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -111,18 +111,16 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
     this->InitializeElementVariables(Variables,
                                      rCurrentProcessInfo);
 
-    if (rCurrentProcessInfo[NODAL_SMOOTHING] == true)
-    {
+    if (rCurrentProcessInfo[NODAL_SMOOTHING] == true) {
 
         Matrix StressContainer(NumGPoints, mStressVector[0].size());
 
         //Loop over integration points
-        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
-        {
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ ) {
             this->CalculateKinematics(Variables, GPoint);
 
             //Compute infinitessimal strain
-            this->CalculateStrain(Variables);
+            this->CalculateStrain(Variables, GPoint);
 
             //set gauss points variables to constitutivelaw parameters
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -141,17 +139,14 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
             this->UpdateHistoricalDatabase(Variables, GPoint);
         }
         this->ExtrapolateGPValues(StressContainer);
-    }
-    else
-    {
+    } else {
         //Loop over integration points
-        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
-        {
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ ) {
             //Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
 
             //Compute infinitessimal strain
-            this->CalculateStrain(Variables);
+            this->CalculateStrain(Variables, GPoint);
 
             //set gauss points variables to constitutivelaw parameters
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -226,7 +221,7 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
 
         // Cauchy strain: This needs to be investigated which strain measure should be used
         // In some references, e.g. Bathe, suggested to use Almansi strain measure
-        this->CalculateStrain(Variables);
+        this->CalculateStrain(Variables, GPoint);
 
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -279,14 +274,15 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
         if (CalculateResidualVectorFlag)
         {
             //Contributions to the right hand side
+            Matrix J0,InvJ0;
             Variables.detJInitialConfiguration =
-                CalculateDerivativesOnInitialConfiguration(this->GetGeometry(),
-                                                           Variables.GradNpT,
-                                                           GPoint,
-                                                           mThisIntegrationMethod);
+                CalculateDerivativesOnInitialConfiguration(J0,
+                                                           InvJ0,
+                                                           Variables.GradNpTInitialConfiguration,
+                                                           GPoint);
 
             // Calculating operator B
-            this->CalculateBMatrix( Variables.B, Variables.GradNpT, Variables.Np);
+            this->CalculateBMatrix( Variables.B, Variables.GradNpTInitialConfiguration, Variables.Np);
             Variables.IntegrationCoefficient =
                 this->CalculateIntegrationCoefficient(IntegrationPoints,
                                                       GPoint,
@@ -376,15 +372,8 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
      << " nodes:" << this->GetGeometry()
      << std::endl;
 
-    // Deformation gradient
-    // Matrix DF = prod( J, rVariables.InvJ0 );
-    // const double detDF = MathUtils<double>::Det(DF);
-    // rVariables.detF = detDF * this->ReferenceConfigurationDeformationGradientDeterminant(GPoint);
-    // noalias(rVariables.F) = prod(DF, this->ReferenceConfigurationDeformationGradient(GPoint));
-
     noalias(rVariables.F) = prod( J, InvJ0 );
     rVariables.detF = MathUtils<double>::Det(rVariables.F);
-
 }
 
 //----------------------------------------------------------------------------------------
@@ -401,7 +390,7 @@ double UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
     double detJ0;
 
     Matrix deltaDisplacement;
-    deltaDisplacement = this->CalculateDeltaDisplacement(deltaDisplacement);
+    // deltaDisplacement = this->CalculateDeltaDisplacement(deltaDisplacement);
 
     J0 = this->GetGeometry().Jacobian(J0, GPoint, ThisIntegrationMethod, deltaDisplacement);
 
@@ -429,28 +418,6 @@ template< unsigned int TDim, unsigned int TNumNodes >
     MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
     GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
     return detJ;
-}
-
-//----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-Matrix& UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
-    CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const
-{
-    KRATOS_TRY
-
-    DeltaDisplacement.resize(TNumNodes , TDim, false);
-
-    for ( IndexType iNode = 0; iNode < TNumNodes; iNode++ ) {
-        const array_1d<double, 3>& currentDisplacement  = this->GetGeometry()[iNode].FastGetSolutionStepValue(DISPLACEMENT);
-        const array_1d<double, 3>& previousDisplacement = this->GetGeometry()[iNode].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-        for ( IndexType iDim = 0; iDim < TDim; ++iDim )
-            DeltaDisplacement(iNode, iDim) = currentDisplacement[iDim] - previousDisplacement[iDim];
-    }
-
-    return DeltaDisplacement;
-
-    KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
@@ -560,16 +527,6 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
                                          rValues,
                                          rCurrentProcessInfo);
     }
-}
-
-//----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
-    CalculateStrain( ElementVariables& rVariables )
-{
-    //this->CalculateCauchyGreenStrain( rVariables );
-    this->CalculateCauchyStrain( rVariables );
-    //this->CalculateCauchyAlmansiStrain( rVariables );
 }
 
 //----------------------------------------------------------------------------------------

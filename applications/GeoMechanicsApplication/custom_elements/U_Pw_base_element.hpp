@@ -173,19 +173,31 @@ protected:
                                                     const IndexType& PointNumber,
                                                     const double& detJ);
 
-    /**
-     * @brief This methods gives us a matrix with the increment of displacement
-     * @param DeltaDisplacement The matrix containing the increment of displacements
-     * @return DeltaDisplacement: The matrix containing the increment of displacements
-     */
-    Matrix& CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const;
+    double CalculateDerivativesOnInitialConfiguration(Matrix& J0,
+                                                      Matrix& InvJ0,
+                                                      Matrix& DN_DX,
+                                                      const IndexType& PointNumber) const;
 
-    double CalculateDerivativesOnInitialConfiguration(const GeometryType& Geometry,
-                                                      Matrix& DNu_DX0,
-                                                      const IndexType& GPoint,
-                                                      IntegrationMethod ThisIntegrationMethod) const;
+    double CalculateJacobianOnCurrentConfiguration(Matrix& rJ,
+                                                   Matrix& rInvJ,
+                                                   const IndexType& GPoint) const;
+
+    /**
+     * @brief This functions calculate the derivatives in the reference frame
+     * @param J0 The jacobian in the reference configuration
+     * @param InvJ0 The inverse of the jacobian in the reference configuration
+     * @param DN_DX The gradient derivative of the shape function
+     * @param PointNumber The id of the integration point considered
+     * @param ThisIntegrationMethod The integration method considered
+     * @return The determinant of the jacobian in the reference configuration
+     */
+    double CalculateJacobianOnCurrentConfiguration(Matrix& J0,
+                                                   Matrix& InvJ0,
+                                                   Matrix& DN_DX,
+                                                   const IndexType &PointNumber) const;
 
     virtual unsigned int GetNumberOfDOF() const;
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

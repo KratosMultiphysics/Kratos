@@ -115,25 +115,6 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-
-    /**
-     * @brief Called to initialize the element.
-     * Must be called before any calculation is done
-     */
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * @brief Called at the beginning of each solution step
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * @brief Called at the end of eahc solution step
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
     /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
@@ -174,26 +155,6 @@ public:
      */
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
                                       std::vector< Matrix >& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
-     /**
-      * @brief Set a double Value on the Element Constitutive Law
-      * @param rVariable The variable we want to set
-      * @param rValues The values to set in the integration points
-      * @param rCurrentProcessInfo the current process info instance
-      */
-    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-                                      const std::vector<double>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
-     /**
-      * @brief Set a Matrix Value on the Element Constitutive Law
-      * @param rVariable The variable we want to set
-      * @param rValues The values to set in the integration points
-      * @param rCurrentProcessInfo the current process info instance
-      */
-    void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                      const std::vector<Matrix>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
@@ -240,44 +201,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /* Historical total elastic deformation measure */
-    // To avoid computing more than once the historical total elastic deformation measure
-    bool mF0Computed;
-
-    // The historical total elastic deformation measure determinant
-    std::vector<double> mDetF0;
-
-    // The historical total elastic deformation measure
-    std::vector<Matrix> mF0;
-
     ///@}
     ///@name Protected Operators
     ///@{
 
-    Matrix& CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const;
-
-    /**
-     * @brief This method clones the element database
-     * @param rF0Computed To avoid computing more than once the historical total elastic deformation measure
-     * @param rDetF0 The historical total elastic deformation measure determinant
-     * @param rF0 The historical total elastic deformation measure
-     */
-    void CloneUpdatedLagrangianDatabase(const bool rF0Computed,
-                                        const std::vector<double>& rDetF0,
-                                        const std::vector<Matrix>& rF0)
-    {
-        mF0Computed = rF0Computed;
-        mDetF0 = rDetF0;
-        mF0 = rF0;
-    }
-
-    /**
-     * @brief It updates the historical database
-     * @param rThisKinematicVariables The kinematic variables to be calculated
-     * @param PointNumber The integration point considered
-     */
-    void UpdateHistoricalDatabase(ElementVariables& rThisKinematicVariables,
-                                  const IndexType PointNumber);
 
     /**
      * @brief This functions calculates both the RHS and the LHS
@@ -293,28 +220,14 @@ protected:
                       const bool CalculateStiffnessMatrixFlag,
                       const bool CalculateResidualVectorFlag) override;
 
-    /**
-     * @brief This functions updates the kinematics variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated
-     * @param PointNumber The integration point considered
-     * @param rIntegrationMethod The integration method considered
-     */
-    void CalculateKinematics( ElementVariables& rVariables, const unsigned int &PointNumber ) override;
+    // /**
+    //  * @brief This functions updates the kinematics variables
+    //  * @param rThisKinematicVariables The kinematic variables to be calculated
+    //  * @param PointNumber The integration point considered
+    //  * @param rIntegrationMethod The integration method considered
+    //  */
+    // void CalculateKinematics( ElementVariables& rVariables, const unsigned int &PointNumber ) override;
 
-    /**
-     * @brief This functions calculate the derivatives in the reference frame
-     * @param J0 The jacobian in the reference configuration
-     * @param InvJ0 The inverse of the jacobian in the reference configuration
-     * @param DN_DX The gradient derivative of the shape function
-     * @param PointNumber The id of the integration point considered
-     * @param ThisIntegrationMethod The integration method considered
-     * @return The determinant of the jacobian in the reference configuration
-     */
-    double CalculateDerivativesOnReferenceConfiguration(Matrix& J0,
-                                                        Matrix& InvJ0,
-                                                        Matrix& DN_DX,
-                                                        const IndexType &PointNumber,
-                                                        IntegrationMethod ThisIntegrationMethod) const;
 
     /**
      * @brief This functions calculate the derivatives in the current frame
@@ -334,8 +247,6 @@ protected:
     void CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
                                                   ElementVariables& rVariables,
                                                   unsigned int GPoint );
-
-    void CalculateStrain( ElementVariables& rVariables ) override;
 
     ///@}
     ///@name Protected Operations
@@ -380,10 +291,6 @@ private:
 
     // Copy constructor
     UPwUpdatedLagrangianElement(UPwUpdatedLagrangianElement const& rOther);
-        // : UPwSmallStrainElement<TDim,TNumNodes>(rOther),
-        // mF0Computed(rOther.mF0Computed),
-        // mDetF0(rOther.mDetF0),
-        // mF0(rOther.mF0) {}
 
     ///@}
     ///@name Private Operations
@@ -406,18 +313,12 @@ private:
     {
         typedef UPwSmallStrainElement<TDim,TNumNodes> BaseClass;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseClass );
-        rSerializer.save("F0Computed", mF0Computed);
-        rSerializer.save("DetF0", mDetF0);
-        rSerializer.save("F0", mF0);
     }
 
     void load(Serializer& rSerializer) override
     {
         typedef UPwSmallStrainElement<TDim,TNumNodes> BaseClass;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseClass );
-        rSerializer.load("F0Computed", mF0Computed);
-        rSerializer.load("DetF0", mDetF0);
-        rSerializer.load("F0", mF0);
     }
 
 
