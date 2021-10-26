@@ -161,11 +161,7 @@ public:
            mDistanceThreshold(DistanceThreshold),
            mEchoLevel(EchoLevel),
            mZeroToleranceFactor(ZeroToleranceFactor),
-        #ifdef USE_TRIANGLE_NONFREE_TPL
            mConsiderDelaunator(ConsiderDelaunator)
-        #else 
-           mConsiderDelaunator(false) // Until an alternative delaunator is implemented, so the tests don't fail
-        #endif
     {
         GetIntegrationMethod();
     }
@@ -256,6 +252,19 @@ public:
         Condition::Pointer pMasterCond,
         Matrix& rCustomSolution
         );
+
+
+    /**
+     * @brief This utility computes the exact integration of the mortar condition and returns the area
+     * @param pSlaveCond The slave condition
+     * @param pMasterCond The master condition
+     * @return The total area integrated
+     */
+    double TestGetExactAreaIntegration(
+        Condition::Pointer pSlaveCond,
+        Condition::Pointer pMasterCond
+        );
+
 
     /**
      * @brief This utility computes the exact integration of the mortar condition and returns the area

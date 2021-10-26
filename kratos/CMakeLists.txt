@@ -2,6 +2,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
     include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/triangle )
+else(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
+    include_directories(${KRATOS_SOURCE_DIR}/external_libraries/delaunator-cpp/include)
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr )
 

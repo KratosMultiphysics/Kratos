@@ -12,7 +12,6 @@
 //
 //
 
-#ifdef USE_TRIANGLE_NONFREE_TPL
 // System includes
 #include <limits>
 #include <algorithm>
@@ -184,5 +183,3 @@ KRATOS_TEST_CASE_IN_SUITE(DelaunatorRoubustness, KratosExternalLibrariesFastSuit
 
 } // namespace Testing.
 } // namespace Kratos.
-
-#endif
