@@ -7,6 +7,7 @@ if not KratosMultiphysics.IsDistributedRun():
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests or test_classes to create the suits
+import run_cpp_mpi_unit_tests
 import test_nearest_neighbor_mapper
 import test_nearest_element_mapper
 
@@ -63,4 +64,5 @@ def AssembleTestSuites():
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+    run_cpp_mpi_unit_tests.run() # Application-MPI tests are currently not run automatically, hence this hack is temporarily required
     KratosUnittest.runTests(AssembleTestSuites())

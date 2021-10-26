@@ -141,7 +141,7 @@ namespace Testing {
         knot_u[1] = 0.0;
         knot_u[2] = 10.0;
         knot_u[3] = 10.0;
-        Vector knot_v = ZeroVector(2); 
+        Vector knot_v = ZeroVector(2);
         knot_v[0] = 0.0;
         knot_v[1] = 5.0;
 
@@ -294,6 +294,11 @@ namespace Testing {
         array_1d<double, 3> result(0.0);
 
         surface.GlobalCoordinates(result, parameter);
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
+        KRATOS_CHECK_EQUAL(surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(surface.GetGeometryType(), geometry_type);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceCylinder, KratosCoreNurbsGeometriesFastSuite) {
@@ -363,6 +368,11 @@ namespace Testing {
         KRATOS_CHECK_NEAR(derivatives_2[2][0], 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(derivatives_2[2][1], 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(derivatives_2[2][2], 1.0, TOLERANCE);
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
+        KRATOS_CHECK_EQUAL(surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(surface.GetGeometryType(), geometry_type);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceNode, KratosCoreNurbsGeometriesFastSuite) {
@@ -408,6 +418,11 @@ namespace Testing {
         KRATOS_CHECK_NEAR(result[0], 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(result[1], 4.0, TOLERANCE);
         KRATOS_CHECK_NEAR(result[2], 0.0, TOLERANCE);
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
+        KRATOS_CHECK_EQUAL(surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(surface.GetGeometryType(), geometry_type);
     }
 
     /// Check creation of integration of nurbs surface.
@@ -490,6 +505,11 @@ namespace Testing {
         local_coords[1] = integration_points[5][1];
         surface.GlobalCoordinates(global_coords, local_coords);
         KRATOS_CHECK_VECTOR_NEAR(quadrature_points[5].Center(), global_coords, TOLERANCE);
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
+        KRATOS_CHECK_EQUAL(surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(surface.GetGeometryType(), geometry_type);
     }
 
     /// Check refinement of nurbs surface in direction u.
@@ -540,6 +560,11 @@ namespace Testing {
             area += integration_points[i].Weight();
         }
         KRATOS_CHECK_NEAR(area, 50.0, TOLERANCE);
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
+        KRATOS_CHECK_EQUAL(surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(surface.GetGeometryType(), geometry_type);
     }
 
     /// Check refinement of nurbs surface in direction u.
@@ -579,6 +604,11 @@ namespace Testing {
             area += integration_points[i].Weight();
         }
         KRATOS_CHECK_NEAR(area, 50.0, TOLERANCE);
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
+        KRATOS_CHECK_EQUAL(surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(surface.GetGeometryType(), geometry_type);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceQuarterSphere, KratosCoreNurbsGeometriesFastSuite) {
