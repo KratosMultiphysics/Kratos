@@ -210,8 +210,13 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self._RunCVaRXMC()
         print ("FINISHED XMC!")
 
-        self.splineKnotsPsi = self.xmc_analysis.splineKnotsPsi
-        self.splineCoeffsPsi = self.xmc_analysis.splineCoeffsPsi
+        ini_time = time.time()
+        self.splineKnotsPsi = []
+        self.splineCoeffsPsi = []
+        for i in range(self.optiParameters):
+            self.splineKnotsPsi.append(self.xmc_analysis.monteCarloSampler.assemblers[3+2*self.optiParameters+i]._interpolator._spline.get_knots())
+            self.splineCoeffsPsi.append(self.xmc_analysis.monteCarloSampler.assemblers[3+2*self.optiParameters+i]._interpolator._spline.get_coeffs())
+        print("time spent getting knows and coeffs from spline", time.time()-ini_time)
 
         i_spline=0
         # print(self.argmin)
@@ -350,6 +355,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         else:
             optiParameters = self.current_model_part.NumberOfNodes()*2
         # optiParameters = 2
+        self.optiParameters = optiParameters
         optiWeights = [1.0]*(optiParameters+1)# THIS SHOULD BE LEN() == optiparameters
         derivationOrder = 1
         indexSpace = [0,3]
@@ -709,11 +715,15 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             'assemblersForHierarchy':[iCVaRAssembler],
             'tolerancesForHierarchy':[-1],
             'outputFolderPath':folder,
-            'isDataDumped': True,
+            'isDataDumped': False,
             'toleranceSplitting':toleranceSplitting
         }
         self.xmc_analysis = xmc.XMCAlgorithm(**algoInputDict)
         self.xmc_analysis.runXMC()
+
+        ini_time = time.time()
+        self.xmc_analysis.estimation()
+        print("Time spent xmc.estimation()", time.time()-ini_time)
 
         self._value = self.xmc_analysis.estimation(0)[0]['min'] #armgmin is quantile, min is cvar.
         self.argmin = self.xmc_analysis.estimation(0)[0]['argmin'] #armgmin is quantile, min is cvar.
@@ -1143,8 +1153,7 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
             self.auxiliary_mdpa_path_new = self.auxiliary_mdpa_path+"_"+str(self.sample[0])+"_"+str(math.floor(time.time()*100000))[6:]
             if not os.path.exists(self.auxiliary_mdpa_path_new):
                 KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path_new, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SKIP_TIMER).WriteModelPart(copy_model_part)
-            #time.sleep(1)
-            print("SOLVING mdpa:", self.auxiliary_mdpa_path_new)
+    
     def Finalize(self):
 
         super().Finalize()
