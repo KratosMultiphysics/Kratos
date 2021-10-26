@@ -89,8 +89,9 @@ class DesignLoggerVTK( DesignLogger ):
 
         for vtk_io in self.vtk_ios.values():
             vtk_io.ExecuteInitializeSolutionStep()
-            if(vtk_io.IsOutputStep()):
-                vtk_io.PrintOutput()
+            ## Required for stage wise optimization.
+            #if(vtk_io.IsOutputStep()):
+            vtk_io.PrintOutput()
             vtk_io.ExecuteFinalizeSolutionStep()
 
         self.optimization_model_part.ProcessInfo[KM.TIME] = OriginalTime
