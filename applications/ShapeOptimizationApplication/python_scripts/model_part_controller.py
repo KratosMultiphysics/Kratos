@@ -42,12 +42,14 @@ class ModelPartController:
             },
             "mesh_motion" : {
                 "apply_mesh_solver" : false
-            }
+            },
+            "output_optimized_modepart": false
         }""")
 
         self.model_settings.ValidateAndAssignDefaults(default_settings)
         self.model_settings["model_import_settings"].ValidateAndAssignDefaults(default_settings["model_import_settings"])
         self.model_settings["damping"].ValidateAndAssignDefaults(default_settings["damping"])
+        self.output_optimized_mp = self.model_settings["output_optimized_modepart"].GetBool()
 
         self.model = model
 
@@ -65,19 +67,32 @@ class ModelPartController:
         self.design_surfaces = {}
         self.damping_regions = {}
         self.damping_utility = None
+        self.is_initialized = False
 
     # --------------------------------------------------------------------------
     def Initialize(self):
-        self.__ImportOptimizationModelPart()
-        self.__IdentifyDesignSurface()
+        if(not self.is_initialized):
+            self.__ImportOptimizationModelPart()
+            self.__IdentifyDesignSurface()
 
-        self.mesh_controller.Initialize()
+            self.mesh_controller.Initialize()
 
         if self.model_settings["damping"]["apply_damping"].GetBool():
             self.__IdentifyDampingRegions()
             self.damping_utility = KSO.DampingUtilities(
                 self.optimization_model_part, self.damping_regions, self.model_settings["damping"]
             )
+        self.is_initialized = True
+
+    def Finalize(self):
+        if self.output_optimized_mp:
+            self.OutputOptimizedModelpart()
+
+    def OutputOptimizedModelpart(self):
+        input_filename = self.model_settings["model_import_settings"]["input_filename"].GetString()
+        input_filename += "_optimized"
+        model_part_io = KM.ModelPartIO(input_filename, KM.ModelPartIO.WRITE)
+        model_part_io.WriteModelPart(self.optimization_model_part)
 
     # --------------------------------------------------------------------------
     def SetMinimalBufferSize(self, buffer_size):
