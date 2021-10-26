@@ -32,7 +32,7 @@ namespace Kratos {
 /**
  * @class Pyramid3D13
  * @ingroup KratosCore
- * @brief A 13 node pyramid geometry with linear shape functions
+ * @brief A 13 node pyramid geometry with quadratic shape functions
  * @details The node ordering corresponds with:
  *                     4
  *                   ,/|\
