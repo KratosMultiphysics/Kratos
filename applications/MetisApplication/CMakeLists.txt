@@ -35,7 +35,7 @@ file(GLOB_RECURSE KRATOS_METIS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOUR
 
 
 add_library(KratosMetisCore SHARED ${KRATOS_METIS_APPLICATION_CORE} ${KRATOS_METIS_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosMetisCore PUBLIC KratosCore KratosMPICore ${METIS_LIBRARY})
+target_link_libraries(KratosMetisCore PUBLIC KratosCore KratosMPICore)
 set_target_properties(KratosMetisCore PROPERTIES COMPILE_DEFINITIONS "METIS_APPLICATION=EXPORT,API")
 
 ###############################################################
