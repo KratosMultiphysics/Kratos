@@ -236,8 +236,8 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             initial_index = previous_end
             final_index = initial_index + design_surface.NumberOfNodes()*3
             previous_end = final_index
-            s_mp = KM.Vector( s[initial_index:final_index] )
-            c_mp = KM.Vector( c[initial_index:final_index] )
+            s_mp = KM.Vector( self.__GetVector(s[initial_index:final_index]) )
+            c_mp = KM.Vector( self.__GetVector(c[initial_index:final_index]) )
             s_plus_c_mp = KM.Vector( self.__GetVector(s_plus_c[initial_index:final_index]) )
             optimization_utilities.AssignVectorToVariable(design_surface, s_mp, KSO.SEARCH_DIRECTION)
             optimization_utilities.AssignVectorToVariable(design_surface, c_mp, KSO.CORRECTION)
@@ -249,18 +249,23 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
         del(s_plus_c)
 
+    def __GetVector(self, vec_slice):
+        return [i for i in vec_slice]
     # --------------------------------------------------------------------------
     def __getActiveConstraints(self):
         active_constraint_values = []
         active_constraint_variables = []
 
         for constraint in self.constraints:
+            identifier = constraint["identifier"].GetString()
+            constraint_value = self.communicator.getStandardizedValue(identifier)
             if self.__isConstraintActive(constraint):
-                identifier = constraint["identifier"].GetString()
-                constraint_value = self.communicator.getStandardizedValue(identifier)
                 active_constraint_values.append(constraint_value)
+                KM.Logger.PrintInfo("ShapeOpt", "Constraint Active : ", identifier,"  Value : ", constraint_value)
                 active_constraint_variables.append(
                     self.constraint_gradient_variables[identifier]["mapped_gradient"])
+            else:
+                KM.Logger.PrintInfo("ShapeOpt", "Constraint NOT Active : ", identifier,"  Value : ", constraint_value)
 
         return active_constraint_values, active_constraint_variables
 
