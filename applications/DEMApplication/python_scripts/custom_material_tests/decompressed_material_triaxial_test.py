@@ -1,10 +1,8 @@
 import KratosMultiphysics
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-import KratosMultiphysics.DEMApplication as DEM
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 from KratosMultiphysics.DEMApplication import DEM_procedures as DEM_procedures
-import weakref
 import math
 import datetime
 
@@ -33,7 +31,7 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
     def ApplyPreCompression(self):
 
         self._GetSolver().cplusplus_strategy.BreakAllBonds()
-        
+
         print("\n************************************ Applying PreCompression...\n", flush=True)
         while not self.compression_stage_completed:
             self.time = self._GetSolver().AdvanceInTime(self.time)
@@ -48,14 +46,14 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
         ParallelBondUtilities().SetCurrentIndentationAsAReferenceInParallelBonds(self.spheres_model_part)
         PreUtilities().ResetSkinParticles(self.spheres_model_part)
         self._GetSolver().cplusplus_strategy.ComputeSkin(self.spheres_model_part, 1.5)
-        
+
     def ResetLoadingVelocity(self):
         for smp in self.rigid_face_model_part.SubModelParts:
             if smp[IDENTIFIER] == 'TOP':
                 smp[LINEAR_VELOCITY_Y] = 0.5 * self.PlatesDecompressionVelocity
             if smp[IDENTIFIER] == 'BOTTOM':
                 smp[LINEAR_VELOCITY_Y] = -0.5 * self.PlatesDecompressionVelocity
-    
+
     def RestoreLoadingVelocity(self):
         for smp in self.rigid_face_model_part.SubModelParts:
             if smp[IDENTIFIER] == 'TOP':
@@ -75,7 +73,7 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
             self.FinalizeSolutionStepDeCompression()
             self.OutputSolutionStep()
         print("\n*************************** Finished Applying DeCompression!!!\n", flush=True)
-        
+
     def RunSolutionLoop(self):
 
         print("\n************************************ Applying standard triaxial...\n", flush=True)
@@ -95,11 +93,11 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
     def FinalizeSolutionStepPreCompression(self):
         super().FinalizeSolutionStep()
         self.MeasureForcesAndPressurePreCompression()
-        
+
     def FinalizeSolutionStepDeCompression(self):
         super().FinalizeSolutionStep()
         self.MeasureForcesAndPressureDeCompression()
-    
+
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         self.MeasureForcesAndPressure()
@@ -191,16 +189,16 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
             force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
             total_force_bot += force_node_y
         self.total_stress_bot = total_force_bot / self.MeasuringSurface
-        
+
         self.total_stress_mean = 0.5 * (self.total_stress_bot + self.total_stress_top)
 
         if self.SigmaHorizontal:
             self.Pressure = min(self.total_stress_mean, self.SigmaHorizontal)
             self.ApplyLateralPressure(self.Pressure, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
-        
+
         if self.total_stress_mean > self.SigmaVertical:
             self.compression_stage_completed = True
-    
+
     def MeasureForcesAndPressureDeCompression(self):
 
         dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
@@ -217,16 +215,16 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
             force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
             total_force_bot += force_node_y
         self.total_stress_bot = total_force_bot / self.MeasuringSurface
-        
+
         self.total_stress_mean = 0.5 * (self.total_stress_bot + self.total_stress_top)
 
         if self.SigmaHorizontal:
             self.Pressure = min(self.total_stress_mean, self.SigmaHorizontal)
             self.ApplyLateralPressure(self.Pressure, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
-        
+
         if self.total_stress_mean < self.SigmaVerticalAlmostZero:
             self.decompression_stage_completed = True
-            
+
     def MeasureForcesAndPressure(self):
 
         dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
@@ -243,7 +241,7 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
             force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
             total_force_bot += force_node_y
         self.total_stress_bot = total_force_bot / self.MeasuringSurface
-        
+
         self.total_stress_mean = 0.5 * (self.total_stress_bot + self.total_stress_top)
 
         if self.ConfinementPressure:
@@ -294,9 +292,6 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
         self.CN_export = open(absolute_path_to_file, 'w')
 
     def CylinderSkinDetermination(self):
-
-        # SKIN DETERMINATION
-        total_cross_section = 0.0
 
         # Cylinder dimensions
         h = self.height
@@ -506,7 +501,7 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
             self.graph_export_4.write(str("%.8g"%self.strain).rjust(15) + "  " + str("%.6g"%(self.total_stress_mean * 1e-6 - self.ConfinementPressure)).rjust(13) + '\n')
             self.graph_export_4.flush()
         self.graph_counter += 1
-    
+
     def FinalizeGraphs(self):
         # Create a copy and renaming
         absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")

@@ -198,9 +198,6 @@ class MaterialTest():
 
     def CylinderSkinDetermination(self):
 
-        # SKIN DETERMINATION
-        total_cross_section = 0.0
-
         # Cylinder dimensions
         h = self.height
         d = self.diameter

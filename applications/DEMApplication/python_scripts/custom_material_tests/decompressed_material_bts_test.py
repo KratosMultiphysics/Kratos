@@ -1,10 +1,8 @@
 import KratosMultiphysics
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-import KratosMultiphysics.DEMApplication as DEM
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 from KratosMultiphysics.DEMApplication import DEM_procedures as DEM_procedures
-import weakref
 import math
 import datetime
 
@@ -32,7 +30,7 @@ class DecompressedMaterialBTSTest(DEMAnalysisStage):
         self.ApplyDeCompression()
         self.PrepareBTSTest()
         self.ApplyLoadingVelocityToBTSPlates()
-    
+
     def ApplyLoadingVelocityToBTSPlates(self):
         for smp in self.rigid_face_model_part.SubModelParts:
             if smp[IDENTIFIER] == 'TOP_BTS':
@@ -43,7 +41,7 @@ class DecompressedMaterialBTSTest(DEMAnalysisStage):
     def ApplyPreCompression(self):
 
         self._GetSolver().cplusplus_strategy.BreakAllBonds()
-        
+
         print("\n************************************ Applying PreCompression...\n", flush=True)
         while not self.compression_stage_completed:
             self.time = self._GetSolver().AdvanceInTime(self.time)
@@ -52,13 +50,13 @@ class DecompressedMaterialBTSTest(DEMAnalysisStage):
             self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStepPreCompression()
             self.OutputSolutionStep()
-        print("\n*************************** Finished Applying PreCompression!!!\n", flush=True)        
+        print("\n*************************** Finished Applying PreCompression!!!\n", flush=True)
 
         self._GetSolver().cplusplus_strategy.HealAllBonds()
         ParallelBondUtilities().SetCurrentIndentationAsAReferenceInParallelBonds(self.spheres_model_part)
         PreUtilities().ResetSkinParticles(self.spheres_model_part)
         self._GetSolver().cplusplus_strategy.ComputeSkin(self.spheres_model_part, 1.5)
-        
+
     def ResetLoadingVelocity(self):
         for smp in self.rigid_face_model_part.SubModelParts:
             if smp[IDENTIFIER] == 'TOP':
@@ -78,7 +76,7 @@ class DecompressedMaterialBTSTest(DEMAnalysisStage):
             self.FinalizeSolutionStepDeCompression()
             self.OutputSolutionStep()
         print("\n*************************** Finished Applying DeCompression!!!\n", flush=True)
-        
+
     def RunSolutionLoop(self):
 
         print("\n************************************ Applying standard triaxial...\n", flush=True)
@@ -98,11 +96,11 @@ class DecompressedMaterialBTSTest(DEMAnalysisStage):
     def FinalizeSolutionStepPreCompression(self):
         super().FinalizeSolutionStep()
         self.MeasureForcesAndPressurePreCompression()
-        
+
     def FinalizeSolutionStepDeCompression(self):
         super().FinalizeSolutionStep()
         self.MeasureForcesAndPressureDeCompression()
-    
+
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         self.MeasureForcesAndPressure()
@@ -194,16 +192,16 @@ class DecompressedMaterialBTSTest(DEMAnalysisStage):
             force_node_z = -node.GetSolutionStepValue(ELASTIC_FORCES)[2]
             total_force_bot += force_node_z
         self.total_stress_bot = total_force_bot / self.MeasuringSurface
-        
+
         self.total_stress_mean = 0.5 * (self.total_stress_bot + self.total_stress_top)
 
         if self.SigmaHorizontal:
             self.Pressure = min(self.total_stress_mean, self.SigmaHorizontal)
             self.ApplyLateralPressure(self.Pressure, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
-        
+
         if self.total_stress_mean > self.SigmaVertical:
             self.compression_stage_completed = True
-    
+
     def MeasureForcesAndPressureDeCompression(self):
 
         dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
@@ -220,20 +218,20 @@ class DecompressedMaterialBTSTest(DEMAnalysisStage):
             force_node_z = -node.GetSolutionStepValue(ELASTIC_FORCES)[2]
             total_force_bot += force_node_z
         self.total_stress_bot = total_force_bot / self.MeasuringSurface
-        
+
         self.total_stress_mean = 0.5 * (self.total_stress_bot + self.total_stress_top)
 
         if self.SigmaHorizontal:
             self.Pressure = min(self.total_stress_mean, self.SigmaHorizontal)
             self.ApplyLateralPressure(self.Pressure, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
-        
+
         if self.total_stress_mean < self.SigmaVerticalAlmostZero:
             self.decompression_stage_completed = True
-            
+
     def MeasureForcesAndPressure(self):
 
         dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
-        
+
         total_force_top = 0.0
         for node in self.top_mesh_nodes_bts:
             force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
@@ -243,7 +241,7 @@ class DecompressedMaterialBTSTest(DEMAnalysisStage):
         for node in self.bot_mesh_nodes_bts:
             force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
             total_force_bot += force_node_y
-        
+
         total_force_bts = 0.5 * (total_force_bot + total_force_top)
 
         self.total_stress_bts = 2.0 * total_force_bts / (math.pi * self.height * self.diameter)
@@ -298,9 +296,6 @@ class DecompressedMaterialBTSTest(DEMAnalysisStage):
         self.CN_export = open(absolute_path_to_file, 'w')
 
     def CylinderSkinDetermination(self):
-
-        # SKIN DETERMINATION
-        total_cross_section = 0.0
 
         # Cylinder dimensions
         h = self.height
@@ -520,7 +515,7 @@ class DecompressedMaterialBTSTest(DEMAnalysisStage):
                 self.graph_export_5.write(str("%.8g"%self.strain_bts).rjust(13) + "  " + str("%.6g"%(self.total_stress_bts  * 1e-6)).rjust(13) + "  " + str("%.8g"%time).rjust(12) + '\n')
                 self.graph_export_5.flush()
         self.graph_counter += 1
-    
+
     def FinalizeGraphs(self):
         # Create a copy and renaming
         absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")

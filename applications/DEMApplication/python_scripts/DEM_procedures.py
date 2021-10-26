@@ -920,7 +920,7 @@ class DEMFEMProcedures():
         if self.print_CN_graph:
             absolute_path_to_file = os.path.join(self.graphs_path, str(self.DEM_parameters["problem_name"].GetString()) + "_CN.grf")
             self.CN_export = open(absolute_path_to_file, 'w')
-        
+
         def evaluate_computation_of_fem_results():
 
             self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_FEM_RESULTS_OPTION, 0)
