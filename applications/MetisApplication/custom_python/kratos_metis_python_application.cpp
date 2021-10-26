@@ -35,7 +35,7 @@ PYBIND11_MODULE(KratosMetisApplication,m)
         KratosApplication >(m,"KratosMetisApplication")
         .def(py::init<>())
         ;
-    AddProcessesToPython(m);
+    // AddProcessesToPython(m);
 }
 
 }  // namespace Python.
