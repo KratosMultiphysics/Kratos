@@ -58,6 +58,7 @@
 // Coupling with ConvectionDiffusionApplication processes
 #include "custom_processes/update_thermal_model_part_process.hpp"
 #include "custom_processes/set_mesh_velocity_for_thermal_coupling_process.hpp"
+#include "custom_processes/set_material_properties_for_thermal_coupling_process.hpp"
 
 //Processes
 
@@ -201,6 +202,12 @@ void AddCustomProcessesToPython(pybind11::module &m)
     (m, "SetMeshVelocityForThermalCouplingProcess")
         .def(py::init< ModelPart &>())
         .def("Execute", &SetMeshVelocityForThermalCouplingProcess::Execute);
+        ;
+
+    py::class_<SetMaterialPropertiesForThermalCouplingProcess, SetMaterialPropertiesForThermalCouplingProcess::Pointer, ProcessBaseType>
+    (m, "SetMaterialPropertiesForThermalCouplingProcess")
+        .def(py::init< ModelPart &, ModelPart&>())
+        .def("Execute", &SetMaterialPropertiesForThermalCouplingProcess::Execute);
         ;
 
 	py::class_<UpdateConditionsOnFreeSurfaceProcess, UpdateConditionsOnFreeSurfaceProcess::Pointer, ProcessBaseType>(m, "UpdateConditionsOnFreeSurfaceProcess")

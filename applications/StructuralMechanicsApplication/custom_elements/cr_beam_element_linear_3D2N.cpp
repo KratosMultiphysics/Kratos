@@ -252,9 +252,9 @@ void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
         rOutput[1][1] = -1.0 * stress[4] * 0.50 + stress[10] * 0.50;
         rOutput[2][1] = -1.0 * stress[4] * 0.25 + stress[10] * 0.75;
 
-        rOutput[0][2] = 1.0 * stress[5] * 0.75 - stress[11] * 0.25;
-        rOutput[1][2] = 1.0 * stress[5] * 0.50 - stress[11] * 0.50;
-        rOutput[2][2] = 1.0 * stress[5] * 0.25 - stress[11] * 0.75;
+        rOutput[0][2] = -1.0 * stress[5] * 0.75 + stress[11] * 0.25;
+        rOutput[1][2] = -1.0 * stress[5] * 0.50 + stress[11] * 0.50;
+        rOutput[2][2] = -1.0 * stress[5] * 0.25 + stress[11] * 0.75;
     }
     if (rVariable == FORCE) {
         rOutput[0][0] = -1.0 * stress[0] * 0.75 + stress[6] * 0.25;

@@ -31,7 +31,8 @@
                 "YOUNG_MODULUS"       : 210000000000.0,
                 "POISSON_RATIO"       : 0.3,
                 "CROSS_AREA"          : 0.005,
-                "TRUSS_PRESTRESS_PK2" : 250000000.0
+                "TRUSS_PRESTRESS_PK2" : 250000000.0,
+                "COMPUTE_LUMPED_MASS_MATRIX" : true
             },
             "Tables"           : {}
         }

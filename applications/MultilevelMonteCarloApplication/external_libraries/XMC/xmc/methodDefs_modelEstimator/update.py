@@ -1,4 +1,4 @@
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 import numpy as np
 
@@ -29,7 +29,7 @@ def updatePredictorGeometric(data):
         parameters.append(-x[i+1])
     return parameters
 
-@ExaquteTask(returns=1, data={Type: COLLECTION_IN, Depth: 2})
+@task(keep=True, returns=1, data={Type: COLLECTION_IN, Depth: 2})
 def updatePredictorGeometric_Task(data):
     """
     Fit a model of the form y = C*exp(-w.x) where x is the antecedent

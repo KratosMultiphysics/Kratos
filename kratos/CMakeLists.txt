@@ -1,12 +1,12 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/triangle )
+include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr )
 
-SET(ListFolders sources conditions constraints containers elements factories geometries includes integration linear_solvers modeler modified_shape_functions processes response_functions solving_strategies spaces spatial_containers utilities)
+SET(ListFolders sources conditions constraints containers elements factories geometries includes integration linear_solvers mappers modeler modified_shape_functions processes response_functions solving_strategies spaces spatial_containers utilities)
 
 ## Kratos main source code
 SET(LIST_OF_SOURCE_EXCEPTIONS
-    ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_field_to_entities_process.cpp # This is because its dependency on python.h
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_version.cpp # kratos_version is excluded because I separated it to another CU so you didn't have to recompile the whole core every time the version changed, just relink it. In order to not pollute with more .dll / .so a separate .o is created and then using during the linking of KratosCore.dll
 )
 FOREACH(subFolder ${ListFolders})
@@ -32,7 +32,6 @@ ENDFOREACH(subFolder ${ListFolders})
 
 ## Kratos python interface code
 FILE(GLOB_RECURSE KRATOS_PYTHON_SOURCES "python/*.cpp") #all .cpp
-LIST(APPEND KRATOS_PYTHON_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_field_to_entities_process.cpp)
 
 ## Kratos Version
 set( KRATOS_VERSION_SOURCES
@@ -63,8 +62,12 @@ target_compile_definitions(KratosVersion PRIVATE
 
 ## Define library KratosCore to be included in all of the others
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_TEST_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
-target_link_libraries(KratosCore PUBLIC gidpost triangle)
+target_link_libraries(KratosCore PUBLIC gidpost triangle tinyexpr)
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 target_compile_definitions(KratosCore PRIVATE
     KRATOS_MAJOR_VERSION=${KratosMultiphysics_MAJOR_VERSION}
     KRATOS_MINOR_VERSION=${KratosMultiphysics_MINOR_VERSION}
@@ -90,33 +93,28 @@ endif()
 pybind11_add_module(Kratos MODULE THIN_LTO ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(Kratos PRIVATE ${KRATOS_TEST_LIBRARIES} KratosCore)
 
-if(USE_COTIRE MATCHES ON)
+if(CMAKE_UNITY_BUILD MATCHES ON)
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
-    SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j2")
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/memory_info.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_filesystem.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    cotire(KratosVersion)
-    cotire(KratosCore)
-    if(${KRATOS_BUILD_TESTING} MATCHES ON)
-        cotire(KratosTests)
-    endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/memory_info.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_filesystem.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 
-    ## Kratos cannot be compiled with just one unity build as it takes way too much ram
-    SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j2")
+    ## The following are conflicting due to KratosComponents
+    file(GLOB_RECURSE KRATOS_STRATEGIES_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/solving_strategies/*.cpp)
+    FOREACH(exception ${KRATOS_STRATEGIES_SOURCES})
+        set_source_files_properties (${exception} PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    ENDFOREACH(exception ${KRATOS_STRATEGIES_SOURCES})
 
     ## This sources in particular take too much ram by their own
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometrical_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_other_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_variable_utils_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-
-    cotire(Kratos)
-endif(USE_COTIRE MATCHES ON)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometrical_utilities_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_other_utilities_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_variable_utils_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+endif(CMAKE_UNITY_BUILD MATCHES ON)
 
 # Install python scripts
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
@@ -136,6 +134,10 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS Kratos DESTINATION libs )
 install(TARGETS KratosCore DESTINATION libs)
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};Kratos" PARENT_SCOPE)
 
 # Mpi
 if(${USE_MPI} MATCHES ON )

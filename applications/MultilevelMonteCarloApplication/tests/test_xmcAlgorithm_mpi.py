@@ -2,16 +2,18 @@
 This test is designed to ensure the workflow Kratos-XMC works correctly under the following scenarios:
 * workflow is MPI parallel,
 * workflow is serial, only Kratos tasks are MPI parallel and are scheduled by distributed environment scheduler.
-To run the first scenario, the user must load .localEnvironment within xmc/distributedEnvironmentFramework.py:
+To run the first scenario:
 mpirun -n $number_processes python3 test_xmcAlgorithm_mpi.py
 To run with runcompss the second scenario:
 sh test_runcompss_xmcALgorithm_mpi.sh
-In this last case, the appropriate import has to be changed in xmc/distributedEnvironmentFramework.py
+In the latter case, the environment variable EXAQUTE_BACKEND has to be set to pycompss,
 and in test_runcompss_xmcALgorithm_mpi.sh the test to run must be selected.
+In the former case, the environment variable EXAQUTE_BACKEND has to be set to local.
+See the documentation section related to the configuration of COMPSs for details.
 
 Dependencies
 ------------
-- KratosMultiphysics ≥ 9.0."Dev"-14ca0bbc78 configured with the CMAKE flag USE_MPI set to "ON",
+- KratosMultiphysics ≥ 9.0."Dev"-96fb824069 configured with the CMAKE flag USE_MPI set to "ON",
   and applications:
    - FluidDynamicsApplication,
    - LinearSolversApplication,
@@ -35,7 +37,7 @@ import os
 
 # Import XMC, distributed environment API
 import xmc
-from xmc.distributedEnvironmentFramework import get_value_from_remote
+from exaqute import get_value_from_remote
 import xmc.methodDefs_momentEstimator.computeCentralMoments as ccm
 
 
@@ -60,7 +62,9 @@ class WorkFolderScope:
         self.add_to_path = add_to_path
         if self.add_to_path:
             self.currentPythonpath = sys.path
-        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(file_path)), rel_path_work_folder))
+        self.scope = os.path.abspath(
+            os.path.join(os.path.dirname(os.path.realpath(file_path)), rel_path_work_folder)
+        )
 
     def __enter__(self):
         os.chdir(self.scope)
@@ -98,13 +102,17 @@ except ImportError:
 try:
     import KratosMultiphysics
     import KratosMultiphysics.MeshingApplication
+
     is_ParMmg = hasattr(KratosMultiphysics.MeshingApplication, "ParMmgProcess3D")
 except ImportError:
     is_ParMmg = False
 
-class TestXMCAlgorithmMPI(unittest.TestCase):
 
-    @unittest.skipIf(not is_Kratos, "Missing dependency: KratosMultiphysics, MPI or one of required applications. Check the test docstrings for details.")
+class TestXMCAlgorithmMPI(unittest.TestCase):
+    @unittest.skipIf(
+        not is_Kratos,
+        "Missing dependency: KratosMultiphysics, MPI or one of required applications. Check the test docstrings for details.",
+    )
     def mpi_test_mc_Kratos(self):
 
         # read parameters
@@ -115,7 +123,7 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
             "problem_settings/parameters_xmc_asynchronous_mc_RFF.json",
         ]
 
-        with WorkFolderScope("caarc_wind_mpi/", __file__, add_to_path = True):
+        with WorkFolderScope("caarc_wind_mpi/", __file__, add_to_path=True):
             for parametersPath in parametersList:
                 with open(parametersPath, "r") as parameter_file:
                     parameters = json.load(parameter_file)
@@ -133,15 +141,21 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 ]
                 # MonteCarloIndex
                 monteCarloIndexInputDictionary = parameters["monteCarloIndexInputDictionary"]
-                monteCarloIndexInputDictionary["samplerInputDictionary"] = samplerInputDictionary
+                monteCarloIndexInputDictionary[
+                    "samplerInputDictionary"
+                ] = samplerInputDictionary
                 # MonoCriterion
                 criteriaArray = []
                 criteriaInputs = []
                 for monoCriterion in parameters["monoCriteriaInputDictionary"]:
                     criteriaArray.append(
                         xmc.monoCriterion.MonoCriterion(
-                            parameters["monoCriteriaInputDictionary"][monoCriterion]["criteria"],
-                            parameters["monoCriteriaInputDictionary"][monoCriterion]["tolerance"],
+                            parameters["monoCriteriaInputDictionary"][monoCriterion][
+                                "criteria"
+                            ],
+                            parameters["monoCriteriaInputDictionary"][monoCriterion][
+                                "tolerance"
+                            ],
                         )
                     )
                     criteriaInputs.append(
@@ -166,14 +180,21 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                     in parameters["estimationAssemblerInputDictionary"].keys()
                 ):
                     expectationAssembler = xmc.estimationAssembler.EstimationAssembler(
-                        **parameters["estimationAssemblerInputDictionary"]["expectationAssembler"]
+                        **parameters["estimationAssemblerInputDictionary"][
+                            "expectationAssembler"
+                        ]
                     )
-                if "varianceAssembler" in parameters["estimationAssemblerInputDictionary"].keys():
+                if (
+                    "varianceAssembler"
+                    in parameters["estimationAssemblerInputDictionary"].keys()
+                ):
                     varianceAssembler = xmc.estimationAssembler.EstimationAssembler(
                         **parameters["estimationAssemblerInputDictionary"]["varianceAssembler"]
                     )
                 # MonteCarloSampler
-                monteCarloSamplerInputDictionary = parameters["monteCarloSamplerInputDictionary"]
+                monteCarloSamplerInputDictionary = parameters[
+                    "monteCarloSamplerInputDictionary"
+                ]
                 monteCarloSamplerInputDictionary[
                     "indexConstructorDictionary"
                 ] = monteCarloIndexInputDictionary
@@ -205,7 +226,9 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 self.assertGreater(-estimations[0], 0)
                 self.assertEqual(algo.hierarchy()[0][1], 10)
                 # check moment estimator
-                sample_counter = algo.monteCarloSampler.indices[0].qoiEstimator[0]._sampleCounter
+                sample_counter = (
+                    algo.monteCarloSampler.indices[0].qoiEstimator[0]._sampleCounter
+                )
                 S1 = get_value_from_remote(
                     algo.monteCarloSampler.indices[0].qoiEstimator[0].powerSums[0][0]
                 )
@@ -215,10 +238,14 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 self.assertGreater(-h1, 0)
                 self.assertEqual(sample_counter, 10)
                 # check multi moment estimator
-                sample_counter = algo.monteCarloSampler.indices[0].qoiEstimator[1]._sampleCounter
+                sample_counter = (
+                    algo.monteCarloSampler.indices[0].qoiEstimator[1]._sampleCounter
+                )
                 self.assertEqual(sample_counter, 10)
                 # check combined moment estimator
-                sample_counter = algo.monteCarloSampler.indices[0].qoiEstimator[2]._sampleCounter
+                sample_counter = (
+                    algo.monteCarloSampler.indices[0].qoiEstimator[2]._sampleCounter
+                )
                 S1 = get_value_from_remote(
                     algo.monteCarloSampler.indices[0].qoiEstimator[2].powerSums[0][0]
                 )
@@ -228,19 +255,21 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 self.assertGreater(-h1, 0)
                 self.assertEqual(sample_counter, 10)
                 # check multi combined moment estimator
-                sample_counter = algo.monteCarloSampler.indices[0].qoiEstimator[3]._sampleCounter
+                sample_counter = (
+                    algo.monteCarloSampler.indices[0].qoiEstimator[3]._sampleCounter
+                )
                 self.assertEqual(sample_counter, 10)
 
-
-    @unittest.skipIf(not is_Kratos, "Missing dependency: KratosMultiphysics, MPI or one of required applications. Check the test docstrings for details.")
+    @unittest.skipIf(
+        not is_Kratos,
+        "Missing dependency: KratosMultiphysics, MPI or one of required applications. Check the test docstrings for details.",
+    )
     def mpi_test_mlmc_Kratos(self):
 
         # read parameters
-        parametersList = [
-            "problem_settings/parameters_xmc_asynchronous_mlmc_RFF.json"
-        ]
+        parametersList = ["problem_settings/parameters_xmc_asynchronous_mlmc_RFF.json"]
 
-        with WorkFolderScope("caarc_wind_mpi/", __file__, add_to_path = True):
+        with WorkFolderScope("caarc_wind_mpi/", __file__, add_to_path=True):
             for parametersPath in parametersList:
                 with open(parametersPath, "r") as parameter_file:
                     parameters = json.load(parameter_file)
@@ -258,15 +287,21 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 ]
                 # MonteCarloIndex Constructor
                 monteCarloIndexInputDictionary = parameters["monteCarloIndexInputDictionary"]
-                monteCarloIndexInputDictionary["samplerInputDictionary"] = samplerInputDictionary
+                monteCarloIndexInputDictionary[
+                    "samplerInputDictionary"
+                ] = samplerInputDictionary
                 # MonoCriterion
                 criteriaArray = []
                 criteriaInputs = []
                 for monoCriterion in parameters["monoCriteriaInputDictionary"]:
                     criteriaArray.append(
                         xmc.monoCriterion.MonoCriterion(
-                            parameters["monoCriteriaInputDictionary"][monoCriterion]["criteria"],
-                            parameters["monoCriteriaInputDictionary"][monoCriterion]["tolerance"],
+                            parameters["monoCriteriaInputDictionary"][monoCriterion][
+                                "criteria"
+                            ],
+                            parameters["monoCriteriaInputDictionary"][monoCriterion][
+                                "tolerance"
+                            ],
                         )
                     )
                     criteriaInputs.append(
@@ -286,7 +321,9 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                     **parameters["hierarchyOptimiserInputDictionary"]
                 )
                 # MonteCarloSampler
-                monteCarloSamplerInputDictionary = parameters["monteCarloSamplerInputDictionary"]
+                monteCarloSamplerInputDictionary = parameters[
+                    "monteCarloSamplerInputDictionary"
+                ]
                 monteCarloSamplerInputDictionary[
                     "indexConstructorDictionary"
                 ] = monteCarloIndexInputDictionary
@@ -321,7 +358,9 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 for level in algo.hierarchy():
                     self.assertEqual(level[1], 10)
                 # check moment estimator - level 0
-                sample_counter = algo.monteCarloSampler.indices[0].qoiEstimator[0]._sampleCounter
+                sample_counter = (
+                    algo.monteCarloSampler.indices[0].qoiEstimator[0]._sampleCounter
+                )
                 S1 = get_value_from_remote(
                     algo.monteCarloSampler.indices[0].qoiEstimator[0].powerSums[0][0]
                 )
@@ -331,10 +370,14 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 self.assertGreater(-h1, 0)
                 self.assertEqual(sample_counter, 10)
                 # check multi moment estimator - level 1
-                sample_counter = algo.monteCarloSampler.indices[1].qoiEstimator[1]._sampleCounter
+                sample_counter = (
+                    algo.monteCarloSampler.indices[1].qoiEstimator[1]._sampleCounter
+                )
                 self.assertEqual(sample_counter, 10)
                 # check combined moment estimator - level 2
-                sample_counter = algo.monteCarloSampler.indices[2].qoiEstimator[2]._sampleCounter
+                sample_counter = (
+                    algo.monteCarloSampler.indices[2].qoiEstimator[2]._sampleCounter
+                )
                 S1 = get_value_from_remote(
                     algo.monteCarloSampler.indices[2].qoiEstimator[2].powerSums[0][0]
                 )
@@ -343,21 +386,28 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 )
                 self.assertEqual(sample_counter, 10)
                 # check multi combined moment estimator - level 2
-                sample_counter = algo.monteCarloSampler.indices[2].qoiEstimator[3]._sampleCounter
+                sample_counter = (
+                    algo.monteCarloSampler.indices[2].qoiEstimator[3]._sampleCounter
+                )
                 self.assertEqual(sample_counter, 10)
 
-
-    @unittest.skipIf(not is_Kratos, "Missing dependency: KratosMultiphysics, MPI or one of required applications. Check the test docstrings for details.")
-    @unittest.skipIf(not is_ParMmg, "Missing dependency: ParMmg. You need to compile Kratos with ParMmg to run this test.")
+    @unittest.skipIf(
+        not is_Kratos,
+        "Missing dependency: KratosMultiphysics, MPI or one of required applications. Check the test docstrings for details.",
+    )
+    @unittest.skipIf(
+        not is_ParMmg,
+        "Missing dependency: ParMmg. You need to compile Kratos with ParMmg to run this test.",
+    )
     def mpi_test_mlmc_Kratos_ParMmg(self):
 
         # read parameters
         parametersList = [
             "problem_settings/parameters_xmc_asynchronous_mlmc_SAR.json",
-            "problem_settings/parameters_xmc_asynchronous_mlmc_DAR.json"
+            "problem_settings/parameters_xmc_asynchronous_mlmc_DAR.json",
         ]
 
-        with WorkFolderScope("caarc_wind_mpi/", __file__, add_to_path = True):
+        with WorkFolderScope("caarc_wind_mpi/", __file__, add_to_path=True):
             for parametersPath in parametersList:
                 with open(parametersPath, "r") as parameter_file:
                     parameters = json.load(parameter_file)
@@ -375,15 +425,21 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 ]
                 # MonteCarloIndex Constructor
                 monteCarloIndexInputDictionary = parameters["monteCarloIndexInputDictionary"]
-                monteCarloIndexInputDictionary["samplerInputDictionary"] = samplerInputDictionary
+                monteCarloIndexInputDictionary[
+                    "samplerInputDictionary"
+                ] = samplerInputDictionary
                 # MonoCriterion
                 criteriaArray = []
                 criteriaInputs = []
                 for monoCriterion in parameters["monoCriteriaInputDictionary"]:
                     criteriaArray.append(
                         xmc.monoCriterion.MonoCriterion(
-                            parameters["monoCriteriaInputDictionary"][monoCriterion]["criteria"],
-                            parameters["monoCriteriaInputDictionary"][monoCriterion]["tolerance"],
+                            parameters["monoCriteriaInputDictionary"][monoCriterion][
+                                "criteria"
+                            ],
+                            parameters["monoCriteriaInputDictionary"][monoCriterion][
+                                "tolerance"
+                            ],
                         )
                     )
                     criteriaInputs.append(
@@ -403,7 +459,9 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                     **parameters["hierarchyOptimiserInputDictionary"]
                 )
                 # MonteCarloSampler
-                monteCarloSamplerInputDictionary = parameters["monteCarloSamplerInputDictionary"]
+                monteCarloSamplerInputDictionary = parameters[
+                    "monteCarloSamplerInputDictionary"
+                ]
                 monteCarloSamplerInputDictionary[
                     "indexConstructorDictionary"
                 ] = monteCarloIndexInputDictionary
@@ -438,7 +496,9 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 for level in algo.hierarchy():
                     self.assertEqual(level[1], 5)
                 # check moment estimator - level 0
-                sample_counter = algo.monteCarloSampler.indices[0].qoiEstimator[0]._sampleCounter
+                sample_counter = (
+                    algo.monteCarloSampler.indices[0].qoiEstimator[0]._sampleCounter
+                )
                 S1 = get_value_from_remote(
                     algo.monteCarloSampler.indices[0].qoiEstimator[0].powerSums[0][0]
                 )
@@ -448,10 +508,14 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 self.assertGreater(-h1, 0)
                 self.assertEqual(sample_counter, 5)
                 # check multi moment estimator - level 1
-                sample_counter = algo.monteCarloSampler.indices[1].qoiEstimator[1]._sampleCounter
+                sample_counter = (
+                    algo.monteCarloSampler.indices[1].qoiEstimator[1]._sampleCounter
+                )
                 self.assertEqual(sample_counter, 5)
                 # check combined moment estimator - level 2
-                sample_counter = algo.monteCarloSampler.indices[2].qoiEstimator[2]._sampleCounter
+                sample_counter = (
+                    algo.monteCarloSampler.indices[2].qoiEstimator[2]._sampleCounter
+                )
                 S1 = get_value_from_remote(
                     algo.monteCarloSampler.indices[2].qoiEstimator[2].powerSums[0][0]
                 )
@@ -460,7 +524,9 @@ class TestXMCAlgorithmMPI(unittest.TestCase):
                 )
                 self.assertEqual(sample_counter, 5)
                 # check multi combined moment estimator - level 2
-                sample_counter = algo.monteCarloSampler.indices[2].qoiEstimator[3]._sampleCounter
+                sample_counter = (
+                    algo.monteCarloSampler.indices[2].qoiEstimator[3]._sampleCounter
+                )
                 self.assertEqual(sample_counter, 5)
 
 
@@ -468,4 +534,4 @@ if __name__ == "__main__":
     # Define a loader to catch all and only MPI tests
     mpi_loader = unittest.TestLoader()
     mpi_loader.testMethodPrefix = "mpi_test_"
-    unittest.main(testLoader=mpi_loader)
+    unittest.main(testLoader=mpi_loader, verbosity=2)

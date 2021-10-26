@@ -79,13 +79,23 @@ namespace Kratos
         if (mConstitutiveLawVector.size() != r_number_of_integration_points)
             mConstitutiveLawVector.resize(r_number_of_integration_points);
 
-
-        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+        for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number) {
             mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
             mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, row(r_N, point_number));
         }
 
         KRATOS_CATCH("");
+    }
+
+    void Shell3pElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    {
+        ConstitutiveLaw::Parameters constitutive_law_parameters(
+            GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+            mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(
+                constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
+        }
     }
 
     ///@}
@@ -221,6 +231,9 @@ namespace Kratos
                     rOutput[point_number] = bending_stress_cau_car[2] * pow(thickness, 3) / 12;
                 }
             } 
+        }
+        else if (mConstitutiveLawVector[0]->Has(rVariable)) {
+            GetValueOnConstitutiveLaw(rVariable, rOutput);
         }
     }
 
@@ -394,6 +407,106 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
+
+    ///@}
+    ///@name Implicit
+    ///@{
+
+    void Shell3pElement::CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        KRATOS_TRY;
+        // Rayleigh Damping Matrix: alpha*M + beta*K
+
+        // 1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+        double alpha = 0.0;
+        if (GetProperties().Has(RAYLEIGH_ALPHA))
+            alpha = GetProperties()[RAYLEIGH_ALPHA];
+        else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA))
+            alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+
+        double beta = 0.0;
+        if (GetProperties().Has(RAYLEIGH_BETA))
+            beta = GetProperties()[RAYLEIGH_BETA];
+        else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA))
+            beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+
+        // 2.-Calculate StiffnessMatrix and MassMatrix:
+        if (std::abs(alpha) < 1E-12 && std::abs(beta) < 1E-12) {
+            // no damping specified, only setting the matrix to zero
+            const SizeType number_of_nodes = GetGeometry().size();
+            const SizeType mat_size = number_of_nodes * 3;
+            if (rDampingMatrix.size1() != mat_size || rDampingMatrix.size2() != mat_size) {
+                rDampingMatrix.resize(mat_size, mat_size, false);
+            }
+            noalias(rDampingMatrix) = ZeroMatrix(mat_size, mat_size);
+        } else if (std::abs(alpha) > 1E-12 && std::abs(beta) < 1E-12) {
+            // damping only required with the mass matrix
+            CalculateMassMatrix(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
+            rDampingMatrix *= alpha;
+        } else if (std::abs(alpha) < 1E-12 && std::abs(beta) > 1E-12) {
+            // damping only required with the stiffness matrix
+            CalculateLeftHandSide(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
+            rDampingMatrix *= beta;
+        } else {
+            // damping with both mass matrix and stiffness matrix required
+            CalculateLeftHandSide(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
+            rDampingMatrix *= beta;
+
+            Matrix mass_matrix;
+            CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
+            noalias(rDampingMatrix) += alpha  * mass_matrix;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void Shell3pElement::CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        KRATOS_TRY;
+
+        const auto& r_geometry = GetGeometry();
+
+        // definition of problem size
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType mat_size = number_of_nodes * 3;
+
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        // Shape function values for all integration points
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+
+            double integration_weight = r_integration_points[point_number].Weight();
+
+            double thickness = this->GetProperties().GetValue(THICKNESS);
+            double density = this->GetProperties().GetValue(DENSITY);
+            double mass = thickness * density * m_dA_vector[point_number] * integration_weight;
+
+            if (rMassMatrix.size1() != mat_size)
+                rMassMatrix.resize(mat_size, mat_size, false);
+
+            rMassMatrix = ZeroMatrix(mat_size, mat_size);
+
+            for (unsigned int r = 0; r<number_of_nodes; r++)
+            {
+                for (unsigned int s = 0; s<number_of_nodes; s++)
+                {
+                    rMassMatrix(3 * s, 3 * r) = r_N(point_number, s)*r_N(point_number, r) * mass;
+                    rMassMatrix(3 * s + 1, 3 * r + 1) = rMassMatrix(3 * s, 3 * r);
+                    rMassMatrix(3 * s + 2, 3 * r + 2) = rMassMatrix(3 * s, 3 * r);
+                }
+            }
+        }
+        KRATOS_CATCH("")
+    }
+
     ///@}
     ///@name Kinematics
     ///@{
@@ -426,9 +539,9 @@ namespace Kratos
         Matrix H = ZeroMatrix(3, 3);
         CalculateHessian(H, GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod()));
 
-        rKinematicVariables.b_ab_covariant[0] = H(0, 0)*rKinematicVariables.a3[0] + H(1, 0)*rKinematicVariables.a3[1] + H(2, 0)*rKinematicVariables.a3[2];
-        rKinematicVariables.b_ab_covariant[1] = H(0, 1)*rKinematicVariables.a3[0] + H(1, 1)*rKinematicVariables.a3[1] + H(2, 1)*rKinematicVariables.a3[2];
-        rKinematicVariables.b_ab_covariant[2] = H(0, 2)*rKinematicVariables.a3[0] + H(1, 2)*rKinematicVariables.a3[1] + H(2, 2)*rKinematicVariables.a3[2];
+        rKinematicVariables.b_ab_covariant[0] = H(0, 0) * rKinematicVariables.a3[0] + H(1, 0) * rKinematicVariables.a3[1] + H(2, 0) * rKinematicVariables.a3[2];
+        rKinematicVariables.b_ab_covariant[1] = H(0, 1) * rKinematicVariables.a3[0] + H(1, 1) * rKinematicVariables.a3[1] + H(2, 1) * rKinematicVariables.a3[2];
+        rKinematicVariables.b_ab_covariant[2] = H(0, 2) * rKinematicVariables.a3[0] + H(1, 2) * rKinematicVariables.a3[1] + H(2, 2) * rKinematicVariables.a3[2];
     }
 
     /* Computes the transformation matrix T from the contravariant curvilinear basis to
@@ -450,13 +563,13 @@ namespace Kratos
                 - rKinematicVariables.a_ab_covariant[2] * rKinematicVariables.a_ab_covariant[2]);
 
         array_1d<double, 3> a_ab_contravariant;
-        a_ab_contravariant[0] =  inv_det_g_ab * rKinematicVariables.a_ab_covariant[1];
-        a_ab_contravariant[1] =  inv_det_g_ab * rKinematicVariables.a_ab_covariant[0];
+        a_ab_contravariant[0] = inv_det_g_ab * rKinematicVariables.a_ab_covariant[1];
+        a_ab_contravariant[1] = inv_det_g_ab * rKinematicVariables.a_ab_covariant[0];
         a_ab_contravariant[2] = -inv_det_g_ab * rKinematicVariables.a_ab_covariant[2];
 
         //Contravariant base vectors
-        array_1d<double, 3> a_contravariant_1 = rKinematicVariables.a1*a_ab_contravariant[0] + rKinematicVariables.a2*a_ab_contravariant[2];
-        array_1d<double, 3> a_contravariant_2 = rKinematicVariables.a1*a_ab_contravariant[2] + rKinematicVariables.a2*a_ab_contravariant[1];
+        array_1d<double, 3> a_contravariant_1 = rKinematicVariables.a1 * a_ab_contravariant[0] + rKinematicVariables.a2 * a_ab_contravariant[2];
+        array_1d<double, 3> a_contravariant_2 = rKinematicVariables.a1 * a_ab_contravariant[2] + rKinematicVariables.a2 * a_ab_contravariant[1];
 
 
         //Local cartesian coordinates
@@ -552,13 +665,13 @@ namespace Kratos
 
         // Constitive Matrices DMembrane and DCurvature
         rValues.SetStrainVector(rThisConstitutiveVariablesMembrane.StrainVector); //this is the input parameter
-        rValues.SetStressVector(rThisConstitutiveVariablesMembrane.StressVector);    //this is an ouput parameter
+        rValues.SetStressVector(rThisConstitutiveVariablesMembrane.StressVector); //this is an ouput parameter
         rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix); //this is an ouput parameter
 
         mConstitutiveLawVector[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
 
         double thickness = this->GetProperties().GetValue(THICKNESS);
-        noalias(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix) = rThisConstitutiveVariablesMembrane.ConstitutiveMatrix*(pow(thickness, 2) / 12);
+        noalias(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix) = rThisConstitutiveVariablesMembrane.ConstitutiveMatrix * (pow(thickness, 2) / 12);
 
         //Local Cartesian Forces and Moments
         noalias(rThisConstitutiveVariablesMembrane.StressVector) = prod(
@@ -589,13 +702,13 @@ namespace Kratos
 
             array_1d<double, 3> dE_curvilinear;
             // strain
-            dE_curvilinear[0] = r_DN_De(kr, 0)*rActualKinematic.a1(dirr);
-            dE_curvilinear[1] = r_DN_De(kr, 1)*rActualKinematic.a2(dirr);
-            dE_curvilinear[2] = 0.5*(r_DN_De(kr, 0)*rActualKinematic.a2(dirr) + rActualKinematic.a1(dirr)*r_DN_De(kr, 1));
+            dE_curvilinear[0] = r_DN_De(kr, 0) * rActualKinematic.a1(dirr);
+            dE_curvilinear[1] = r_DN_De(kr, 1) * rActualKinematic.a2(dirr);
+            dE_curvilinear[2] = 0.5 * (r_DN_De(kr, 0) * rActualKinematic.a2(dirr) + rActualKinematic.a1(dirr) * r_DN_De(kr, 1));
 
-            rB(0, r) = m_T_vector[IntegrationPointIndex](0, 0)*dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](0, 1)*dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](0, 2)*dE_curvilinear[2];
-            rB(1, r) = m_T_vector[IntegrationPointIndex](1, 0)*dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](1, 1)*dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](1, 2)*dE_curvilinear[2];
-            rB(2, r) = m_T_vector[IntegrationPointIndex](2, 0)*dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](2, 1)*dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](2, 2)*dE_curvilinear[2];
+            rB(0, r) = m_T_vector[IntegrationPointIndex](0, 0) * dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](0, 1) * dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](0, 2) * dE_curvilinear[2];
+            rB(1, r) = m_T_vector[IntegrationPointIndex](1, 0) * dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](1, 1) * dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](1, 2) * dE_curvilinear[2];
+            rB(2, r) = m_T_vector[IntegrationPointIndex](2, 0) * dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](2, 1) * dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](2, 2) * dE_curvilinear[2];
         }
     }
 
@@ -628,19 +741,19 @@ namespace Kratos
         {
             IndexType index = 3 * i;
             //first line
-            da3(0, 0) =  0;
+            da3(0, 0) = 0;
             da3(0, 1) = -r_DN_De(i, 0) * rActualKinematic.a2[2] + r_DN_De(i, 1) * rActualKinematic.a1[2];
-            da3(0, 2) =  r_DN_De(i, 0) * rActualKinematic.a2[1] - r_DN_De(i, 1) * rActualKinematic.a1[1];
+            da3(0, 2) = r_DN_De(i, 0) * rActualKinematic.a2[1] - r_DN_De(i, 1) * rActualKinematic.a1[1];
 
             //second line
-            da3(1, 0) =  r_DN_De(i, 0) * rActualKinematic.a2[2] - r_DN_De(i, 1) * rActualKinematic.a1[2];
-            da3(1, 1) =  0;
+            da3(1, 0) = r_DN_De(i, 0) * rActualKinematic.a2[2] - r_DN_De(i, 1) * rActualKinematic.a1[2];
+            da3(1, 1) = 0;
             da3(1, 2) = -r_DN_De(i, 0) * rActualKinematic.a2[0] + r_DN_De(i, 1) * rActualKinematic.a1[0];
 
             //third line
             da3(2, 0) = -r_DN_De(i, 0) * rActualKinematic.a2[1] + r_DN_De(i, 1) * rActualKinematic.a1[1];
-            da3(2, 1) =  r_DN_De(i, 0) * rActualKinematic.a2[0] - r_DN_De(i, 1) * rActualKinematic.a1[0];
-            da3(2, 2) =  0;
+            da3(2, 1) = r_DN_De(i, 0) * rActualKinematic.a2[0] - r_DN_De(i, 1) * rActualKinematic.a1[0];
+            da3(2, 2) = 0;
 
             for (IndexType j = 0; j < 3; j++)
             {
@@ -652,17 +765,17 @@ namespace Kratos
             }
 
             // curvature vector [K11,K22,K12] referred to curvilinear coordinate system
-            b(0, index)     = 0 - (r_DDN_DDe(i, 0) * rActualKinematic.a3[0] + H(0, 0) * dn(0, 0) + H(1, 0) * dn(0, 1) + H(2, 0) * dn(0, 2));
+            b(0, index) = 0 - (r_DDN_DDe(i, 0) * rActualKinematic.a3[0] + H(0, 0) * dn(0, 0) + H(1, 0) * dn(0, 1) + H(2, 0) * dn(0, 2));
             b(0, index + 1) = 0 - (r_DDN_DDe(i, 0) * rActualKinematic.a3[1] + H(0, 0) * dn(1, 0) + H(1, 0) * dn(1, 1) + H(2, 0) * dn(1, 2));
             b(0, index + 2) = 0 - (r_DDN_DDe(i, 0) * rActualKinematic.a3[2] + H(0, 0) * dn(2, 0) + H(1, 0) * dn(2, 1) + H(2, 0) * dn(2, 2));
 
             //second line
-            b(1, index)     = 0 - (r_DDN_DDe(i, 2) * rActualKinematic.a3[0] + H(0, 1) * dn(0, 0) + H(1, 1) * dn(0, 1) + H(2, 1) * dn(0, 2));
+            b(1, index) = 0 - (r_DDN_DDe(i, 2) * rActualKinematic.a3[0] + H(0, 1) * dn(0, 0) + H(1, 1) * dn(0, 1) + H(2, 1) * dn(0, 2));
             b(1, index + 1) = 0 - (r_DDN_DDe(i, 2) * rActualKinematic.a3[1] + H(0, 1) * dn(1, 0) + H(1, 1) * dn(1, 1) + H(2, 1) * dn(1, 2));
             b(1, index + 2) = 0 - (r_DDN_DDe(i, 2) * rActualKinematic.a3[2] + H(0, 1) * dn(2, 0) + H(1, 1) * dn(2, 1) + H(2, 1) * dn(2, 2));
 
             //third line
-            b(2, index)     = 0 - (r_DDN_DDe(i, 1) * rActualKinematic.a3[0] + H(0, 2) * dn(0, 0) + H(1, 2) * dn(0, 1) + H(2, 2) * dn(0, 2));
+            b(2, index) = 0 - (r_DDN_DDe(i, 1) * rActualKinematic.a3[0] + H(0, 2) * dn(0, 0) + H(1, 2) * dn(0, 1) + H(2, 2) * dn(0, 2));
             b(2, index + 1) = 0 - (r_DDN_DDe(i, 1) * rActualKinematic.a3[1] + H(0, 2) * dn(1, 0) + H(1, 2) * dn(1, 1) + H(2, 2) * dn(1, 2));
             b(2, index + 2) = 0 - (r_DDN_DDe(i, 1) * rActualKinematic.a3[2] + H(0, 2) * dn(2, 0) + H(1, 2) * dn(2, 1) + H(2, 2) * dn(2, 2));
         }
@@ -680,7 +793,7 @@ namespace Kratos
     {
         const auto& r_geometry = GetGeometry();
 
-        const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
+        const Matrix& r_DN_De = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
         const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod());
 
         const SizeType number_of_control_points = GetGeometry().size();
@@ -756,9 +869,9 @@ namespace Kratos
                 array_1d<double, 3> dda3 = ZeroVector(3);
                 int dirt = 4 - static_cast<int>(dirr) - static_cast<int>(dirs);
                 int ddir = static_cast<int>(dirr) - static_cast<int>(dirs);
-                     if (ddir == -1) dda3(dirt - 1) =  r_DN_De(kr, 0) * r_DN_De(ks, 1) - r_DN_De(ks, 0) * r_DN_De(kr, 1);
-                else if (ddir ==  2) dda3(dirt - 1) =  r_DN_De(kr, 0) * r_DN_De(ks, 1) - r_DN_De(ks, 0) * r_DN_De(kr, 1);
-                else if (ddir ==  1) dda3(dirt - 1) = -r_DN_De(kr, 0) * r_DN_De(ks, 1) + r_DN_De(ks, 0) * r_DN_De(kr, 1);
+                if (ddir == -1) dda3(dirt - 1) = r_DN_De(kr, 0) * r_DN_De(ks, 1) - r_DN_De(ks, 0) * r_DN_De(kr, 1);
+                else if (ddir == 2) dda3(dirt - 1) = r_DN_De(kr, 0) * r_DN_De(ks, 1) - r_DN_De(ks, 0) * r_DN_De(kr, 1);
+                else if (ddir == 1) dda3(dirt - 1) = -r_DN_De(kr, 0) * r_DN_De(ks, 1) + r_DN_De(ks, 0) * r_DN_De(kr, 1);
                 else if (ddir == -2) dda3(dirt - 1) = -r_DN_De(kr, 0) * r_DN_De(ks, 1) + r_DN_De(ks, 0) * r_DN_De(kr, 1);
 
                 double c = -(dda3[0] * rActualKinematic.a3_tilde[0] + dda3[1] * rActualKinematic.a3_tilde[1] + dda3[2] * rActualKinematic.a3_tilde[2]

@@ -10,8 +10,21 @@ from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCh
 import os
 import math
 
+# from KratosMultiphysics.gid_output_process import GiDOutputProcess
+
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+
+def BaseJumpedDistance(x, y, z):
+    if (x >= 0.1 and x <= 0.3):
+        return 1.0
+    else:
+        return 0.0
+
+def ConvectionVelocity(x, y, z):
+    vel = KratosMultiphysics.Vector(3, 0.0)
+    vel[0] = 1.0
+    return vel
 
 class BFECCConvectionTest(UnitTest.TestCase):
     def setUp(self):
@@ -22,7 +35,7 @@ class BFECCConvectionTest(UnitTest.TestCase):
         self.print_output = False
         self.check_tolerance = 1.0e-8
         self.print_reference_values = False
-        self.work_folder = "BFECCConvectionTest"
+        self.work_folder = "."#"BFECCConvectionTest"
 
     def runTest(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
@@ -156,7 +169,94 @@ class BFECCConvectionTest(UnitTest.TestCase):
         self.checkResults()
         self.tearDown()
 
+    def testBFECCNodalLimiterConvection(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        KratosMultiphysics.ModelPartIO(GetFilePath("BFECCConvectionTest/Semi1D_1x02_50")).ReadModelPart(model_part)
+        model_part.SetBufferSize(2)
+
+        model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+        model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
+        model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.05)
+
+        # Create the search structure
+        locator = KratosMultiphysics.BinBasedFastPointLocator2D(model_part)
+        locator.UpdateSearchDatabase()
+
+        bfecc_utility = ConvectionDiffusionApplication.BFECCConvection2D(
+            locator,
+            False,  # No partial dt (splitting)
+            True)  # Activating nodal limiter
+
+        for node in model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, BaseJumpedDistance(node.X,node.Y,node.Z))
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, ConvectionVelocity(node.X,node.Y,node.Z))
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1, ConvectionVelocity(node.X,node.Y,node.Z))
+
+        for node in model_part.Nodes:
+            if node.X < 0.001:
+                node.Fix(KratosMultiphysics.DISTANCE)
+
+        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
+        KratosMultiphysics.FindGlobalNodalNeighboursProcess(
+                kratos_comm, model_part).Execute()
+
+        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
+            model_part,
+            KratosMultiphysics.DISTANCE,
+            KratosMultiphysics.DISTANCE_GRADIENT,
+            KratosMultiphysics.NODAL_AREA).Execute()
+
+        for i in range(12):
+            bfecc_utility.CopyScalarVarToPreviousTimeStep(
+               model_part,
+               KratosMultiphysics.DISTANCE)
+            bfecc_utility.BFECCconvect(
+                model_part,
+                KratosMultiphysics.DISTANCE,
+                KratosMultiphysics.VELOCITY,
+                5) # substeps
+            dt = model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
+            model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, float(i)*dt)
+
+        max_distance = -1.0
+        min_distance = +1.0
+        for node in model_part.Nodes:
+            d =  node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            max_distance = max(max_distance, d)
+            min_distance = min(min_distance, d)
+
+        # gid_output = GiDOutputProcess(model_part,
+        #                            "BFECCConvection_test_2D",
+        #                            KratosMultiphysics.Parameters("""
+        #                                {
+        #                                    "result_file_configuration" : {
+        #                                        "gidpost_flags": {
+        #                                            "GiDPostMode": "GiD_PostBinary",
+        #                                            "WriteDeformedMeshFlag": "WriteUndeformed",
+        #                                            "WriteConditionsFlag": "WriteConditions",
+        #                                            "MultiFileFlag": "SingleFile"
+        #                                        },
+        #                                        "nodal_results"       : ["DISTANCE","VELOCITY"]
+        #                                    }
+        #                                }
+        #                                """)
+        #                            )
+
+        # gid_output.ExecuteInitialize()
+        # gid_output.ExecuteBeforeSolutionLoop()
+        # gid_output.ExecuteInitializeSolutionStep()
+        # gid_output.PrintOutput()
+        # gid_output.ExecuteFinalizeSolutionStep()
+        # gid_output.ExecuteFinalize()
+
+        self.assertAlmostEqual(max_distance, 1.0000000000000013)
+        self.assertAlmostEqual(min_distance, 0.0)
+
 if __name__ == '__main__':
     test = BFECCConvectionTest()
     test.testBFECCConvection()
     # test.testBFECCElementalLimiterConvection()
+    test.testBFECCNodalLimiterConvection()

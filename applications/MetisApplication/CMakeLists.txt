@@ -35,7 +35,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 
 add_library(KratosMetisCore SHARED ${KRATOS_METIS_APPLICATION_CORE} ${KRATOS_METIS_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosMetisCore PUBLIC KratosCore ${METIS_LIBRARY} ${MPI_LIBRARIES}) # todo refactor to use DataCommunicator then MPI can be removed
+target_link_libraries(KratosMetisCore PUBLIC KratosCore KratosMPICore ${METIS_LIBRARY})
 set_target_properties(KratosMetisCore PROPERTIES COMPILE_DEFINITIONS "METIS_APPLICATION=EXPORT,API")
 
 ###############################################################
@@ -43,6 +43,12 @@ set_target_properties(KratosMetisCore PROPERTIES COMPILE_DEFINITIONS "METIS_APPL
 pybind11_add_module(KratosMetisApplication MODULE THIN_LTO ${KRATOS_METIS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosMetisApplication PRIVATE KratosMetisCore)
 set_target_properties(KratosMetisApplication PROPERTIES PREFIX "")
+
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosMetisCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosMetisApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -53,12 +59,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMetisApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosMetisCore)
-    cotire(KratosMetisApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/MetisApplication.py KratosMultiphysics/MetisApplication/__init__.py )
@@ -82,3 +82,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosMetisCore DESTINATION libs )
 install(TARGETS KratosMetisApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMetisCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosMetisApplication" PARENT_SCOPE)

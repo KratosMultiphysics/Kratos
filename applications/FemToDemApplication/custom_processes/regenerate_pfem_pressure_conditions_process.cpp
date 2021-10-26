@@ -25,8 +25,8 @@ RegeneratePfemPressureConditionsProcess<TDim>::RegeneratePfemPressureConditionsP
 
 /***********************************************************************************/
 /***********************************************************************************/
-template <>
-void RegeneratePfemPressureConditionsProcess<2>::CreateLineLoads(
+template <SizeType TDim>
+void RegeneratePfemPressureConditionsProcess<TDim>::CreateLineLoads(
     const int Id1,
     const int Id2,
     ElementIterator itElem,
@@ -53,8 +53,8 @@ void RegeneratePfemPressureConditionsProcess<2>::CreateLineLoads(
 
 /***********************************************************************************/
 /***********************************************************************************/
-template <>
-void RegeneratePfemPressureConditionsProcess<3>::CreatePressureLoads(
+template <SizeType TDim>
+void RegeneratePfemPressureConditionsProcess<TDim>::CreatePressureLoads(
     const int Id1,
     const int Id2,
     const int Id3,
@@ -82,13 +82,13 @@ void RegeneratePfemPressureConditionsProcess<3>::CreatePressureLoads(
                                         pProperties, 0);
 
     // Adding the conditions to the computing model part
-    mrModelPart.GetSubModelPart("computing_domain").AddCondition(p_pressure_condition); 
+    mrModelPart.GetSubModelPart("computing_domain").AddCondition(p_pressure_condition);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
-template<>
-void RegeneratePfemPressureConditionsProcess<2>::GenerateLineLoads2Nodes(
+template<SizeType TDim>
+void RegeneratePfemPressureConditionsProcess<TDim>::GenerateLineLoads2Nodes(
     const int NonWetLocalIdNode,
     int& rMaximumConditionId,
     ElementIterator itElem
@@ -109,8 +109,8 @@ void RegeneratePfemPressureConditionsProcess<2>::GenerateLineLoads2Nodes(
 
 /***********************************************************************************/
 /***********************************************************************************/
-template<>
-void RegeneratePfemPressureConditionsProcess<2>::GenerateLineLoads3Nodes(
+template<SizeType TDim>
+void RegeneratePfemPressureConditionsProcess<TDim>::GenerateLineLoads3Nodes(
     int& rMaximumConditionId,
     ElementIterator itElem
     )
@@ -147,8 +147,8 @@ void RegeneratePfemPressureConditionsProcess<2>::GenerateLineLoads3Nodes(
 
 /***********************************************************************************/
 /***********************************************************************************/
-template<>
-void RegeneratePfemPressureConditionsProcess<3>::GeneratePressureLoads3WetNodes(
+template<SizeType TDim>
+void RegeneratePfemPressureConditionsProcess<TDim>::GeneratePressureLoads3WetNodes(
     const int NonWetLocalIdNode,
     int& rMaximumConditionId,
     ElementIterator itElem
@@ -165,14 +165,14 @@ void RegeneratePfemPressureConditionsProcess<3>::GeneratePressureLoads3WetNodes(
     // We only create pressure loads when the surface is skin
     auto& r_elem_neigb = (itElem)->GetValue(NEIGHBOUR_ELEMENTS);
     if (r_elem_neigb[NonWetLocalIdNode].Id() == (itElem)->Id()) {
-        this->CreatePressureLoads(id_2, id_3, id_4, itElem, r_sub_model_part, p_properties, rMaximumConditionId);  
+        this->CreatePressureLoads(id_2, id_3, id_4, itElem, r_sub_model_part, p_properties, rMaximumConditionId);
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
-template<>
-void RegeneratePfemPressureConditionsProcess<3>::GeneratePressureLoads4WetNodes(
+template<SizeType TDim>
+void RegeneratePfemPressureConditionsProcess<TDim>::GeneratePressureLoads4WetNodes(
     int& rMaximumConditionId,
     ElementIterator itElem
     )
@@ -285,7 +285,7 @@ void RegeneratePfemPressureConditionsProcess<2>::CreateNewConditions()
         } else if (wet_nodes_counter == 3) {
             this->GenerateLineLoads3Nodes(maximum_condition_id, it_elem);
         }
-        
+
     }
 }
 

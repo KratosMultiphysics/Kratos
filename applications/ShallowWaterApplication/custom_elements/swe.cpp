@@ -263,10 +263,10 @@ void SWE<TNumNodes, TFramework>::CalculateElementValues(
     ElementVariables& rVariables)
 {
     // Initialize outputs
-    rVariables.projected_momentum = ZeroVector(2);
+    rVariables.projected_momentum = ZeroVector(3);
     rVariables.height = 0.0;
     rVariables.surface_grad = ZeroVector(2);
-    rVariables.velocity = ZeroVector(2);
+    rVariables.velocity = ZeroVector(3);
     rVariables.momentum_div = 0.0;
     rVariables.velocity_div = 0.0;
 

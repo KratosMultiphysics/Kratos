@@ -42,6 +42,10 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mQSVMSDEMCoupled3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mQSVMSDEMCoupled2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mQSVMSDEMCoupled3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+    mAlternativeQSVMSDEMCoupled2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mAlternativeQSVMSDEMCoupled3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mAlternativeQSVMSDEMCoupled2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mAlternativeQSVMSDEMCoupled3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
     mTimeIntegratedQSVMS2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mTimeIntegratedQSVMS3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mDVMS2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -50,6 +54,10 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mDVMSDEMCoupled3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mDVMSDEMCoupled2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mDVMSDEMCoupled3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+    mAlternativeDVMSDEMCoupled2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mAlternativeDVMSDEMCoupled3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mAlternativeDVMSDEMCoupled2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mAlternativeDVMSDEMCoupled3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
     mFIC2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mFIC2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mFIC3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
@@ -133,8 +141,10 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mTwoFluidNavierStokesWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
     mTwoFluidNavierStokesWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
     mVMSAdjointElement2D(0,Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mVMSAdjointElement3D(0,Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
-
+    mVMSAdjointElement3D(0,Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    // Adjoint fluid conditions
+    mAdjointMonolithicWallCondition2D2N(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mAdjointMonolithicWallCondition3D3N(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
 {}
 
 void KratosFluidDynamicsApplication::Register() {
@@ -167,6 +177,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_FLUID_VECTOR_3)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(AUX_ADJOINT_FLUID_VECTOR_1)
     KRATOS_REGISTER_VARIABLE(ADJOINT_FLUID_SCALAR_1)
+    KRATOS_REGISTER_VARIABLE(PRIMAL_RELAXED_SECOND_DERIVATIVE_VALUES)
 
     // Embedded fluid variables
     KRATOS_REGISTER_VARIABLE(EMBEDDED_IS_ACTIVE)
@@ -235,6 +246,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("QSVMSDEMCoupled3D4N",mQSVMSDEMCoupled3D4N);
     KRATOS_REGISTER_ELEMENT("QSVMSDEMCoupled2D4N",mQSVMSDEMCoupled2D4N);
     KRATOS_REGISTER_ELEMENT("QSVMSDEMCoupled3D8N",mQSVMSDEMCoupled3D8N);
+    KRATOS_REGISTER_ELEMENT("AlternativeQSVMSDEMCoupled2D3N",mAlternativeQSVMSDEMCoupled2D3N);
+    KRATOS_REGISTER_ELEMENT("AlternativeQSVMSDEMCoupled3D4N",mAlternativeQSVMSDEMCoupled3D4N);
+    KRATOS_REGISTER_ELEMENT("AlternativeQSVMSDEMCoupled2D4N",mAlternativeQSVMSDEMCoupled2D4N);
+    KRATOS_REGISTER_ELEMENT("AlternativeQSVMSDEMCoupled3D8N",mAlternativeQSVMSDEMCoupled3D8N);
     KRATOS_REGISTER_ELEMENT("TimeIntegratedQSVMS2D3N",mTimeIntegratedQSVMS2D3N);
     KRATOS_REGISTER_ELEMENT("TimeIntegratedQSVMS3D4N",mTimeIntegratedQSVMS3D4N);
     KRATOS_REGISTER_ELEMENT("DVMS2D3N",mDVMS2D3N);
@@ -243,6 +258,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("DVMSDEMCoupled3D4N",mDVMSDEMCoupled3D4N);
     KRATOS_REGISTER_ELEMENT("DVMSDEMCoupled2D4N",mDVMSDEMCoupled2D4N);
     KRATOS_REGISTER_ELEMENT("DVMSDEMCoupled3D8N",mDVMSDEMCoupled3D8N);
+    KRATOS_REGISTER_ELEMENT("AlternativeDVMSDEMCoupled2D3N",mAlternativeDVMSDEMCoupled2D3N);
+    KRATOS_REGISTER_ELEMENT("AlternativeDVMSDEMCoupled3D4N",mAlternativeDVMSDEMCoupled3D4N);
+    KRATOS_REGISTER_ELEMENT("AlternativeDVMSDEMCoupled2D4N",mAlternativeDVMSDEMCoupled2D4N);
+    KRATOS_REGISTER_ELEMENT("AlternativeDVMSDEMCoupled3D8N",mAlternativeDVMSDEMCoupled3D8N);
     KRATOS_REGISTER_ELEMENT("FIC2D3N",mFIC2D3N);
     KRATOS_REGISTER_ELEMENT("FIC2D4N",mFIC2D4N);
     KRATOS_REGISTER_ELEMENT("FIC3D4N",mFIC3D4N);
@@ -346,6 +365,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition3D", mFSPeriodicCondition3D);
     KRATOS_REGISTER_CONDITION("FSPeriodicConditionEdge2D", mFSPeriodicConditionEdge2D);
     KRATOS_REGISTER_CONDITION("FSPeriodicConditionEdge3D", mFSPeriodicConditionEdge3D);
+
+    // Register adjoint conditions
+    KRATOS_REGISTER_CONDITION("AdjointMonolithicWallCondition2D2N", mAdjointMonolithicWallCondition2D2N);
+    KRATOS_REGISTER_CONDITION("AdjointMonolithicWallCondition3D3N", mAdjointMonolithicWallCondition3D3N);
 
     // Register constitutive laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham3DLaw", mBingham3DLaw);

@@ -9,6 +9,9 @@
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_Dempack_dev : public DEM_Dempack {
+
+        typedef DEM_Dempack BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack_dev);
@@ -43,13 +46,15 @@ namespace Kratos {
                                        double equiv_poisson,
                                        double calculation_area,
                                        SphericContinuumParticle* element1,
-                                       SphericContinuumParticle* element2) override;
+                                       SphericContinuumParticle* element2, double indentation) override;
 
         void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
                 double LocalElasticExtraContactForce[3],
+                double ViscoDampingLocalContactForce[3],
                 double LocalCoordSystem[3][3],
                 double LocalDeltDisp[3],
+                double LocalRelVel[3],
                 const double kt_el,
                 const double equiv_shear,
                 double& contact_sigma,

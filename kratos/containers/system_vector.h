@@ -54,7 +54,7 @@ namespace Kratos
 
 /// Provides a SystemVector which implements FEM assemble capabilities, as well as some vector operations
 template<class TDataType=double, class TIndexType=std::size_t>
-class SystemVector
+class SystemVector final
 {
 public:
     ///@name Type Definitions
@@ -69,19 +69,25 @@ public:
     ///@{
 
     SystemVector(const SparseGraph<IndexType>& rGraph){
+        mpComm = rGraph.pGetComm();
         mData.resize(rGraph.Size(),false);
     }
 
     SystemVector(const SparseContiguousRowGraph<IndexType>& rGraph){
+        mpComm = rGraph.pGetComm();
         mData.resize(rGraph.Size(),false);
     }
 
-    SystemVector(IndexType size){
+    SystemVector(IndexType size, DataCommunicator& rComm=ParallelEnvironment::GetDataCommunicator("Serial")){
+        if(rComm.IsDistributed())
+            KRATOS_ERROR << "Attempting to construct a serial system_vector with a distributed communicator" << std::endl;
+        mpComm = &rComm;
         mData.resize(size,false);
     }
 
     /// Copy constructor.
     explicit SystemVector(const SystemVector<TDataType,TIndexType>& rOtherVector){
+        mpComm = rOtherVector.mpComm;
         mData.resize(rOtherVector.size(),false);
 
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
@@ -90,7 +96,17 @@ public:
     }
 
     /// Destructor.
-    virtual ~SystemVector(){}
+    ~SystemVector(){}
+
+    const DataCommunicator& GetComm() const
+    {
+        return *mpComm;
+    }
+
+    const DataCommunicator* pGetComm() const
+    {
+        return mpComm;
+    }
 
     ///@}
     ///@name Operators
@@ -196,9 +212,6 @@ public:
         }
     }
 
-
-
-
     ///@}
     ///@name Access
     ///@{
@@ -214,18 +227,18 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+        std::string Info() const
     {
-std::stringstream buffer;
-    buffer << "SystemVector" ;
-    return buffer.str();
+        std::stringstream buffer;
+        buffer << "SystemVector" ;
+        return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SystemVector";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "SystemVector";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const {
         std::cout << mData << std::endl;
     }
 
@@ -281,6 +294,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    const DataCommunicator* mpComm;
     DenseVector<TDataType> mData;
 
     ///@}

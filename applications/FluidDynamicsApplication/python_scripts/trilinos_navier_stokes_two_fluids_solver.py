@@ -5,6 +5,7 @@ import KratosMultiphysics.mpi as KratosMPI                          # MPI-python
 # Import applications
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dynamics application
+import KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension as KratosTrilinosFluid
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import serial two fluid solver
@@ -16,82 +17,8 @@ def CreateSolver(model, custom_settings):
 
 class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
 
-    @classmethod
-    def GetDefaultParameters(cls):
-
-        default_settings = KratosMultiphysics.Parameters("""{
-            "solver_type": "TwoFluids",
-            "model_part_name": "",
-            "domain_size": -1,
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name",
-                "reorder": false
-            },
-            "material_import_settings": {
-                "materials_filename": ""
-            },
-            "distance_reading_settings"    : {
-                "import_mode"         : "from_mdpa",
-                "distance_file_name"  : "no_distance_file"
-            },
-            "maximum_iterations": 7,
-            "echo_level": 0,
-            "time_order": 2,
-            "time_scheme": "bdf2",
-            "compute_reactions": false,
-            "analysis_type": "non_linear",
-            "reform_dofs_at_each_step": false,
-            "consider_periodic_conditions": false,
-            "relative_velocity_tolerance": 1e-3,
-            "absolute_velocity_tolerance": 1e-5,
-            "relative_pressure_tolerance": 1e-3,
-            "absolute_pressure_tolerance": 1e-5,
-            "linear_solver_settings":   {
-                "solver_type": "amgcl"
-            },
-            "volume_model_part_name" : "volume_model_part",
-            "skin_parts": [""],
-            "no_skin_parts":[""],
-            "time_stepping": {
-                "automatic_time_step" : true,
-                "CFL_number"          : 1,
-                "minimum_delta_time"  : 1e-4,
-                "maximum_delta_time"  : 0.01
-            },
-            "move_mesh_flag": false,
-            "formulation": {
-                "dynamic_tau": 1.0
-            },
-            "bfecc_convection" : false,
-            "bfecc_number_substeps" : 10
-        }""")
-
-        default_settings.AddMissingParameters(super(NavierStokesMPITwoFluidsSolver, cls).GetDefaultParameters())
-        return default_settings
-
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
-        # the constructor of the "grand-parent" (jumping constructor of parent) is called to avoid conflicts in attribute settings
-        super(NavierStokesTwoFluidsSolver, self).__init__(model,custom_settings)
-
-        self.element_name = "TwoFluidNavierStokes"
-        self.condition_name = "NavierStokesWallCondition"
-        self.element_integrates_in_time = True
-        self.element_has_nodal_properties = True
-
-        self.min_buffer_size = 3
-
-        self._bfecc_convection = self.settings["bfecc_convection"].GetBool()
-        if self._bfecc_convection:
-            self._bfecc_convection = False
-            KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "BFECC is not implemented in MPI yet. Switching to standard level set convection.")
-
-        self._reinitialization_type = "variational"
-        self._distance_smoothing = False
-
-        dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
+        super().__init__(model,custom_settings)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Construction of NavierStokesMPITwoFluidsSolver finished.")
 
@@ -116,7 +43,7 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
 
     def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
-            self._epetra_communicator = KratosTrilinos.CreateCommunicator()
+            self._epetra_communicator = KratosTrilinos.CreateEpetraCommunicator(self.main_model_part.GetCommunicator().GetDataCommunicator())
         return self._epetra_communicator
 
     def _CreateScheme(self):
@@ -179,13 +106,11 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
     def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         time_scheme = self._GetScheme()
-        linear_solver = self._GetLinearSolver()
         convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self._GetBuilderAndSolver()
         return KratosTrilinos.TrilinosNewtonRaphsonStrategy(
             computing_model_part,
             time_scheme,
-            linear_solver,
             convergence_criterion,
             builder_and_solver,
             self.settings["maximum_iterations"].GetInt(),
@@ -196,43 +121,73 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
     def _CreateLevelSetConvectionProcess(self):
         # Construct the level set convection process
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        linear_solver = self._GetLinearSolver()
+        levelset_linear_solver = self._GetLevelsetLinearSolver()
         computing_model_part = self.GetComputingModelPart()
         epetra_communicator = self._GetEpetraCommunicator()
+        levelset_convection_settings = self.settings["levelset_convection_settings"]
         if domain_size == 2:
             level_set_convection_process = KratosTrilinos.TrilinosLevelSetConvectionProcess2D(
                 epetra_communicator,
-                KratosMultiphysics.DISTANCE,
                 computing_model_part,
-                linear_solver)
+                levelset_linear_solver,
+                levelset_convection_settings)
         else:
             level_set_convection_process = KratosTrilinos.TrilinosLevelSetConvectionProcess3D(
                 epetra_communicator,
-                KratosMultiphysics.DISTANCE,
                 computing_model_part,
-                linear_solver)
+                levelset_linear_solver,
+                levelset_convection_settings)
 
         return level_set_convection_process
 
-    def _CreateVariationalDistanceProcess(self):
-        # Construct the variational distance calculation process
-        maximum_iterations = 2 #TODO: Make this user-definable
-        linear_solver = self._GetLinearSolver()
-        computing_model_part = self.GetComputingModelPart()
+    def _CreateDistanceReinitializationProcess(self):
+        if (self._reinitialization_type == "variational"):
+            # Construct the variational distance calculation process
+            maximum_iterations = 2 #TODO: Make this user-definable
+            redistancing_linear_solver = self._GetRedistancingLinearSolver()
+            computing_model_part = self.GetComputingModelPart()
+            epetra_communicator = self._GetEpetraCommunicator()
+            if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+                distance_reinitialization_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess2D(
+                    epetra_communicator,
+                    computing_model_part,
+                    redistancing_linear_solver,
+                    maximum_iterations,
+                    KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+            else:
+                distance_reinitialization_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess3D(
+                    epetra_communicator,
+                    computing_model_part,
+                    redistancing_linear_solver,
+                    maximum_iterations,
+                    KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+
+        elif (self._reinitialization_type == "parallel"):
+            if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator2D()
+            else:
+                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator3D()
+
+        elif (self._reinitialization_type == "none"):
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing is turned off.")
+        else:
+            raise Exception("Please use a valid distance reinitialization type or set it as \'none\'. Valid types are: \'variational\' and \'parallel\'.")
+
+        return distance_reinitialization_process
+
+    def _CreateDistanceSmoothingProcess(self):
+        # construct the distance smoothing process
+        linear_solver = self._GetSmoothingLinearSolver()
         epetra_communicator = self._GetEpetraCommunicator()
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-            variational_distance_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess2D(
+            distance_smoothing_process = KratosTrilinosFluid.TrilinosDistanceSmoothingProcess2D(
                 epetra_communicator,
-                computing_model_part,
-                linear_solver,
-                maximum_iterations,
-                KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                self.main_model_part,
+                linear_solver)
         else:
-            variational_distance_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess3D(
+            distance_smoothing_process = KratosTrilinosFluid.TrilinosDistanceSmoothingProcess3D(
                 epetra_communicator,
-                computing_model_part,
-                linear_solver,
-                maximum_iterations,
-                KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                self.main_model_part,
+                linear_solver)
 
-        return variational_distance_process
+        return distance_smoothing_process

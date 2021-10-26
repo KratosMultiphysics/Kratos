@@ -40,7 +40,7 @@ class SmallDisplacementInterfaceElement : public Element
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementInterfaceElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallDisplacementInterfaceElement );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

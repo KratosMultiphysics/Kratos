@@ -22,6 +22,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/result_dabatase.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -276,53 +277,55 @@ protected:
         for (auto& p_var_double : mpNodalVariableDoubleList) {
             const auto& r_var_database = r_node_database.GetVariableData(*p_var_double);
 
-            #pragma omp parallel for reduction(+:check_counter)
-            for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-                auto it_node = it_node_begin + i;
-
-                const double result = GetValue<THistorical>(it_node, p_var_double);
-                const double reference = r_var_database.GetValue(i, time);
+            check_counter = IndexPartition<std::size_t>(r_nodes_array.size()).for_each<SumReduction<IndexType>>([&it_node_begin, &p_var_double, &r_var_database, &time, this] (std::size_t Index){
+                IndexType counter = 0;
+                auto it_node = it_node_begin + Index;
+                const double result = this->GetValue<THistorical>(it_node, p_var_double);
+                const double reference = r_var_database.GetValue(Index, time);
                 if (!CheckValues(result, reference)) {
                     FailMessage(it_node->Id(), "Node", result, reference, p_var_double->Name());
-                    check_counter += 1;
+                    counter += 1;
                 }
-            }
+                return counter;
+            });
         }
+
         for (auto& p_var_array : mpNodalVariableArrayList) {
             const auto& r_var_database = r_node_database.GetVariableData(*p_var_array);
 
-            #pragma omp parallel for reduction(+:check_counter)
-            for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-                auto it_node = it_node_begin + i;
-
-                const auto& r_entity_database = r_var_database.GetEntityData(i);
-                const array_1d<double, 3>& r_result = GetValue<THistorical>(it_node, p_var_array);
+            check_counter = IndexPartition<std::size_t>(r_nodes_array.size()).for_each<SumReduction<IndexType>>([&it_node_begin, &p_var_array, &r_var_database, &time, this] (std::size_t Index){
+                IndexType counter = 0;
+                auto it_node = it_node_begin + Index;
+                const auto& r_entity_database = r_var_database.GetEntityData(Index);
+                const array_1d<double, 3>& r_result = this->GetValue<THistorical>(it_node, p_var_array);
                 for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
                     const double reference = r_entity_database.GetValue(time, i_comp);
                     if (!CheckValues(r_result[i_comp], reference)) {
                         FailMessage(it_node->Id(), "Node", r_result[i_comp], reference, p_var_array->Name());
-                        check_counter += 1;
+                        counter += 1;
                     }
                 }
-            }
+                return counter;
+            });
         }
+
         for (auto& p_var_vector : mpNodalVariableVectorList) {
             const auto& r_var_database = r_node_database.GetVariableData(*p_var_vector);
 
-            #pragma omp parallel for reduction(+:check_counter)
-            for (int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-                auto it_node = it_node_begin + i;
-
-                const auto& r_entity_database = r_var_database.GetEntityData(i);
-                const Vector& r_result = GetValue<THistorical>(it_node, p_var_vector);
+            check_counter = IndexPartition<std::size_t>(r_nodes_array.size()).for_each<SumReduction<IndexType>>([&it_node_begin, &p_var_vector, &r_var_database, &time, this] (std::size_t Index){
+                IndexType counter = 0;
+                auto it_node = it_node_begin + Index;
+                const auto& r_entity_database = r_var_database.GetEntityData(Index);
+                const Vector& r_result = this->GetValue<THistorical>(it_node, p_var_vector);
                 for (IndexType i_comp = 0; i_comp < r_result.size(); ++i_comp) {
                     const double reference = r_entity_database.GetValue(time, i_comp);
                     if (!CheckValues(r_result[i_comp], reference)) {
                         FailMessage(it_node->Id(), "Node", r_result[i_comp], reference, p_var_vector->Name());
-                        check_counter += 1;
+                        counter += 1;
                     }
                 }
-            }
+                return counter;
+            });
         }
 
         // Save the reference

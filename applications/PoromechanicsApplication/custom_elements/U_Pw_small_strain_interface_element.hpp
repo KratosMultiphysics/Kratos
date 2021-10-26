@@ -31,7 +31,7 @@ class KRATOS_API(POROMECHANICS_APPLICATION) UPwSmallStrainInterfaceElement : pub
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( UPwSmallStrainInterfaceElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwSmallStrainInterfaceElement );
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -216,6 +216,17 @@ protected:
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
 
 
+    void CalculateFluxResidual (VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateMixBodyForce (VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateNegInternalForce (VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateExplicitContributions (VectorType& rFluxResidual, VectorType& rBodyForce, VectorType& rNegInternalForces, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLumpedMassMatrix( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
+    
+    
     void InterpolateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues );
 
     template< class TValueType >

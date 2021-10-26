@@ -55,7 +55,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ShallowWater2D3
-    KRATOS_CLASS_POINTER_DEFINITION(ShallowWater2D3);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShallowWater2D3);
 
     ///@}
     ///@name Life Cycle
@@ -181,6 +181,11 @@ public:
      * Getting method to obtain the second time derivative of variable which defines the degrees of freedom
      */
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
+
+    /**
+     * This is called in the beginning of each solution step
+     */
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -317,13 +322,16 @@ protected:
         double shock_stab_factor;
         double rel_dry_height;
         double gravity;
+        double dry_height;
+
+        double damping;
+        array_1d<double,3> boundary_velocity;
 
         double height;
         array_1d<double,3> flow_rate;
         array_1d<double,3> velocity;
 
         array_1d<double,3> topography;
-        array_1d<double,3> wind;
         array_1d<double,3> rain;
         array_1d<double,9> unknown;
         array_1d<double,9> mesh_acc;
@@ -450,6 +458,15 @@ protected:
         const array_1d<double,3>& rVeector);
 
     double StabilizationParameter(const ElementData& rData);
+
+    void ComputeDampingCoefficient(
+        double& rDamping,
+        const double DistanceThreshold,
+        const double MaximumDamping);
+
+    array_1d<double,9> ToNodalVector(const array_1d<double,3>& rVector);
+
+    array_1d<double,9> ToNodalVector(const double& rScalar);
 
     ///@}
     ///@name Protected  Access

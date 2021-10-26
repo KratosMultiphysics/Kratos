@@ -178,7 +178,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "navier_stokes_solver_vmsmonolithic",
+            "solver_type": "monolithic",
             "model_part_name": "FluidModelPart",
             "domain_size": -1,
             "model_import_settings": {
@@ -198,6 +198,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "compute_reactions": false,
             "analysis_type": "non_linear",
             "reform_dofs_at_each_step": true,
+            "assign_neighbour_elements_to_conditions": true,
             "relative_velocity_tolerance": 1e-3,
             "absolute_velocity_tolerance": 1e-5,
             "relative_pressure_tolerance": 1e-3,
@@ -207,7 +208,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
-            "assign_neighbour_elements_to_conditions": true,
             "no_skin_parts":[""],
             "time_stepping"                : {
                 "automatic_time_step" : false,
@@ -271,7 +271,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
 
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
         custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
         super(NavierStokesSolverMonolithic,self).__init__(model,custom_settings)
 
@@ -340,7 +339,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
         self.condition_name = self.formulation.condition_name
         self.element_integrates_in_time = self.formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
-        self.historical_nodal_properties_variables_list = self.formulation.historical_nodal_properties_variables_list 
+        self.historical_nodal_properties_variables_list = self.formulation.historical_nodal_properties_variables_list
         self.non_historical_nodal_properties_variables_list = self.formulation.non_historical_nodal_properties_variables_list
 
     def _SetTimeSchemeBufferSize(self):

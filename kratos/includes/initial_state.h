@@ -167,7 +167,7 @@ class KRATOS_API(KRATOS_CORE) InitialState
 
     //*********************************************
         //this block is needed for refcounting
-        mutable std::atomic<int> mReferenceCounter;
+        mutable std::atomic<int> mReferenceCounter{0};
         friend void intrusive_ptr_add_ref(const InitialState* x)
         {
             x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
@@ -187,7 +187,6 @@ class KRATOS_API(KRATOS_CORE) InitialState
 
         void save(Serializer& rSerializer) const
         {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InitialState );
             rSerializer.save("InitialStrainVector",mInitialStrainVector);
             rSerializer.save("InitialStressVector",mInitialStressVector);
             rSerializer.save("InitialDeformationGradientMatrix",mInitialDeformationGradientMatrix);
@@ -195,7 +194,6 @@ class KRATOS_API(KRATOS_CORE) InitialState
 
         void load(Serializer& rSerializer)
         {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, InitialState );
             rSerializer.load("InitialStrainVector",mInitialStrainVector);
             rSerializer.load("InitialStressVector",mInitialStressVector);
             rSerializer.load("InitialDeformationGradientMatrix",mInitialDeformationGradientMatrix);

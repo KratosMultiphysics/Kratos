@@ -17,7 +17,7 @@ namespace Kratos {
         return type_of_law;
     }
 
-    void BeetstraDragLaw::ComputeForce(Geometry<Node<3> >& r_geometry,
+    void BeetstraDragLaw::ComputeForce(SphericParticle* p_particle,
                                        const double reynolds_number,
                                        double particle_radius,
                                        double fluid_density,
@@ -28,7 +28,7 @@ namespace Kratos {
     {
 
         if (reynolds_number < 1.0){
-            return StokesDragLaw::ComputeForce(r_geometry,
+            return StokesDragLaw::ComputeForce(p_particle,
                                                reynolds_number,
                                                particle_radius,
                                                fluid_density,
@@ -39,7 +39,7 @@ namespace Kratos {
         }
 
         double drag_coeff;
-
+        Geometry<Node<3> >& r_geometry = p_particle->GetGeometry();
         double eps = r_geometry[0].FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
 
         if (eps > 0.999){

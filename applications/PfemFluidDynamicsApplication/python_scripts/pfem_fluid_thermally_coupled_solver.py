@@ -60,7 +60,7 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
                 "compute_contact_forces": false,
                 "block_builder": false,
                 "component_wise": false,
-                "predictor_corrector": true,
+                "predictor_corrector": true,         
                 "time_order": 2,
                 "maximum_velocity_iterations": 1,
                 "maximum_pressure_iterations": 7,
@@ -212,6 +212,7 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
     def SolveSolutionStep(self):
         pfem_is_converged = self.fluid_solver.SolveSolutionStep()
         KratosPfemFluid.SetMeshVelocityForThermalCouplingProcess(self.fluid_solver.main_model_part).Execute()
+        KratosPfemFluid.SetMaterialPropertiesForThermalCouplingProcess(self.fluid_solver.main_model_part,self.thermal_solver.main_model_part).Execute()
         KM.Logger.Print("\nSolution of convection-diffusion at t=" + "{:.3f}".format(self.fluid_solver.main_model_part.ProcessInfo[KM.TIME]) + "s", label="")
         KM.Logger.Flush()
         thermal_is_converged = self.thermal_solver.SolveSolutionStep()
