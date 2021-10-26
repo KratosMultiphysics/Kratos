@@ -1514,31 +1514,35 @@ class BodyFittedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnal
                 qoi_list = [min_pressure]
             print("StochasticAdjointResponse", " Min pressure: ",qoi_list[0], "Number of nodes", self.primal_model_part.NumberOfNodes())
 
-        # pressure_coefficient = []
-        # nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
-        # nodal_value_process.Execute()
-        # if (self.mapping is not True):
-        #     for node in self.adjoint_analysis._GetSolver().main_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
-        #         this_pressure = node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
-        #         pressure_coefficient.append(this_pressure)
-
-        # elif (self.mapping is True):
-        #     for node in self.mapping_reference_model.GetModelPart(self.main_model_part_name).GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
-        #         this_pressure = node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
-        #         pressure_coefficient.append(this_pressure)
-        #     # Fill the rest of the list to match SHAPE_SENSITIVITY data structure length
-        #     pressure_coefficient.extend([0.0]*self.mapping_reference_model.GetModelPart(self.main_model_part_name).GetSubModelPart(self.design_surface_sub_model_part_name).NumberOfNodes()*2)
-        # qoi_list.append(pressure_coefficient)
-
         if (self.mapping is not True):
-            for node in self.adjoint_analysis._GetSolver().main_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
+            find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.adjoint_analysis._GetSolver().main_model_part)
+            find_nodal_h.Execute()
+            for node in selfs.adjoint_analysis._GetSolver().main_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
                 this_shape = list(node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY))
+                this_shape = [value / node.GetValue(KratosMultiphysics.NODAL_H) for value in this_shape]
                 qoi_list.extend(this_shape[0:2])
         elif (self.mapping is True):
+            find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess( self.mapping_reference_model.GetModelPart(self.main_model_part_name))
+            find_nodal_h.Execute()
             for node in self.mapping_reference_model.GetModelPart(self.main_model_part_name).GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
                 this_shape = list(node.GetValue(KratosMultiphysics.SHAPE_SENSITIVITY))
+                this_shape = [value / node.GetValue(KratosMultiphysics.NODAL_H) for value in this_shape]
                 qoi_list.extend(this_shape[0:2])
-        Logger.PrintInfo("StochasticAdjointResponse", "Total number of QoI:",len(qoi_list))
+
+        pressure_coefficient = []
+        if (self.mapping is not True):
+            nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
+            nodal_value_process.Execute()
+            for node in self.adjoint_analysis._GetSolver().main_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
+                this_pressure = node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
+                pressure_coefficient.append(this_pressure)
+
+        elif (self.mapping is True):
+            for node in self.mapping_reference_model.GetModelPart(self.main_model_part_name).GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
+                this_pressure = node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
+                pressure_coefficient.append(this_pressure)
+        qoi_list.extend(pressure_coefficient)
+        print("StochasticAdjointResponse", "Total number of QoI:",len(qoi_list))
         return qoi_list
 
     def MappingAndEvaluateQuantityOfInterest(self):
