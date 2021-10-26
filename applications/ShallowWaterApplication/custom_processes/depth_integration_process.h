@@ -148,6 +148,7 @@ private:
 
     ModelPart& mrVolumeModelPart;
     ModelPart& mrInterfaceModelPart;
+    ModelPart* mpIntegrationModelPart;
     array_1d<double,3> mDirection;
 
     ///@}
@@ -166,7 +167,13 @@ private:
 
     void Integrate(PointerVector<GeometricalObject>& rObjects, NodeType& rNode);
 
-    void GetVolumePartBounds(double& rMin, double& rMax);
+    void GetBoundingVolumeLimits(double& rMin, double& rMax);
+
+    void InitializeIntegrationModelPart();
+
+    void InitializeIntegrationLine();
+
+    void SetIntegrationLine(const NodeType& rNode, const double Bottom, const double Top);
 
     GeometryType::Pointer CreateIntegrationLine(const NodeType& rNode, const double Bottom, const double Top);
 
