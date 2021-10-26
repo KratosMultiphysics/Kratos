@@ -411,7 +411,6 @@ public:
         return ShapeFunctionValueImpl(ShapeFunctionIndex, rPoint);
     }
 
-
     /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -462,7 +461,6 @@ public:
         return rResult;
     }
 
-
     /**
      * Calculates the gradients in terms of local coordinateds
      * of all shape functions in a given point.
@@ -502,7 +500,6 @@ public:
         return rResult;
     }
 
-
     /**
      * Calculates the local gradients of all shape functions in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -518,39 +515,17 @@ public:
         IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod]; //number of integration points
 
         const int integration_points_number = integration_points.size();
-        ShapeFunctionsGradientsType d_shape_f_values( integration_points_number ); //initialising container
+        ShapeFunctionsGradientsType d_shape_f_values(integration_points_number); //initialising container
+
+        Matrix result;
 
         //loop over all integration points
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
-            Matrix result = ZeroMatrix( 5, 3 );
-
-            result( 0, 0 ) =  (-0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 - integration_points[pnt].Z() ) ;
-            result( 0, 1 ) =  (-0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 - integration_points[pnt].Z() ) ;
-            result( 0, 2 ) =  (-0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 - integration_points[pnt].Y() ) ;
-
-            result( 1, 0 ) =  (+0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 - integration_points[pnt].Z() ) ;
-            result( 1, 1 ) =  (-0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 - integration_points[pnt].Z() ) ;
-            result( 1, 2 ) =  (-0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 - integration_points[pnt].Y() ) ;
-
-            result( 2, 0 ) =  (+0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 - integration_points[pnt].Z() ) ;
-            result( 2, 1 ) =  (+0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 - integration_points[pnt].Z() ) ;
-            result( 2, 2 ) =  (-0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Y() ) ;
-
-            result( 3, 0 ) =  (-0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 - integration_points[pnt].Z() ) ;
-            result( 3, 1 ) =  (+0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 - integration_points[pnt].Z() ) ;
-            result( 3, 2 ) =  (-0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Y() ) ;
-
-            result( 4, 0 ) =   0.00 ;
-            result( 4, 1 ) =   0.00 ;
-            result( 4, 2 ) =  +0.50 ;
-
-            d_shape_f_values[pnt] = result;
+        for (std::size_t pnt = 0; pnt<integration_points_number; ++pnt) {
+            d_shape_f_values[pnt] = CalculateShapeFunctionsLocalGradients(result, integration_points[pnt]);
         }
 
         return d_shape_f_values;
     }
-
 
     ///@}
     ///@name Input and output
