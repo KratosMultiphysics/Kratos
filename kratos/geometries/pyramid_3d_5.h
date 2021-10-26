@@ -259,7 +259,6 @@ public:
 
     /**
      * @brief This method gives you number of all edges of this geometry.
-     * @details For example, for a hexahedron, this would be 12
      * @return SizeType containes number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
@@ -275,7 +274,6 @@ public:
 
     /**
      * @brief Returns the number of faces of the current geometry.
-     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
      * @see EdgesNumber
      * @see Edges
      * @see Faces
