@@ -36,7 +36,6 @@ class Optimizer:
     def __init__(self, model, optimization_settings, external_analyzer=EmptyAnalyzer()):
         self._ValidateSettings(optimization_settings)
         self.optimization_settings = optimization_settings
-
         self.model_part_controller = model_part_controller.Create(optimization_settings["model_settings"], model)
         self.analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, self.model_part_controller, external_analyzer)
         self.communicator = communicator_factory.CreateCommunicator(optimization_settings)
@@ -75,6 +74,10 @@ class Optimizer:
         model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
         model_part.AddNodalSolutionStepVariable(KM.DISTANCE_GRADIENT)
 
+        # For mesh movement
+        model_part.AddNodalSolutionStepVariable(KM.MESH_DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KM.MESH_REACTION)
+
     def __AddVariablesToBeUsedByDesignVariables(self):
         add_in_plane_variables = False
         for settings in self.optimization_settings["design_variables"]:
@@ -95,7 +98,7 @@ class Optimizer:
         KM.Logger.Print("===============================================================================")
         KM.Logger.PrintInfo("ShapeOpt", Timer().GetTimeStamp(), ": Starting optimization using the following algorithm: ", algorithm_name)
         KM.Logger.Print("===============================================================================\n")
-
+        self._Initialize()
         algorithm = algorithm_factory.CreateOptimizationAlgorithm(self.optimization_settings,
                                                                   self.analyzer,
                                                                   self.communicator,
@@ -105,6 +108,7 @@ class Optimizer:
         algorithm.RunOptimizationLoop()
         algorithm.FinalizeOptimizationLoop()
 
+        self._Finalize()
         KM.Logger.Print("")
         KM.Logger.Print("===============================================================================")
         KM.Logger.PrintInfo("ShapeOpt", "Finished optimization")
@@ -113,6 +117,12 @@ class Optimizer:
     # ==============================================================================
     # ------------------------------------------------------------------------------
     # ==============================================================================
+    def _Initialize(self):
+        pass
+
+    def _Finalize(self):
+        self.model_part_controller.Finalize()
+
     def _ValidateSettings(self, optimization_settings):
         self._ValidateTopLevelSettings(optimization_settings)
         self._ValidateObjectiveSettingsRecursively(optimization_settings["objectives"])
