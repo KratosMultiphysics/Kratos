@@ -499,14 +499,11 @@ public:
     */
     Vector& ShapeFunctionsValues(Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
-        if(rResult.size() != 5)
-            rResult.resize(5,false);
+        if(rResult.size() != 5) rResult.resize(5,false);
 
-        rResult[0] = (0.125) * (1 - rCoordinates[0]) * (1 - rCoordinates[1]) * (1 - rCoordinates[2]);
-        rResult[1] = (0.125) * (1 + rCoordinates[0]) * (1 - rCoordinates[1]) * (1 - rCoordinates[2]);
-        rResult[2] = (0.125) * (1 + rCoordinates[0]) * (1 + rCoordinates[1]) * (1 - rCoordinates[2]);
-        rResult[3] = (0.125) * (1 - rCoordinates[0]) * (1 + rCoordinates[1]) * (1 - rCoordinates[2]);
-        rResult[4] = (0.5) * (1 + rCoordinates[2]);
+        for (std::size_t i=0; i<5; ++i) {
+            rResult[i] = ShapeFunctionValue(i, rCoordinates);
+        }
 
         return rResult;
     }

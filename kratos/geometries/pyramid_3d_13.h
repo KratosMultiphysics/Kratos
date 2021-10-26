@@ -433,22 +433,11 @@ public:
     */
     Vector& ShapeFunctionsValues(Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
-        if(rResult.size() != 13)
-            rResult.resize(13,false);
+        if(rResult.size() != 13) rResult.resize(13,false);
 
-        rResult[0] = (-0.0625) * (1 - rCoordinates[0]) * (1 - rCoordinates[1]) * (1 - rCoordinates[2]) * (4 + 3*rCoordinates[0] + 3*rCoordinates[1] + 2*rCoordinates[0]*rCoordinates[1] + 2*rCoordinates[2] + rCoordinates[0]*rCoordinates[2] + rCoordinates[1]*rCoordinates[2] + 2*rCoordinates[0]*rCoordinates[1]*rCoordinates[2]) ;
-        rResult[1] = (-0.0625) * (1 + rCoordinates[0]) * (1 - rCoordinates[1]) * (1 - rCoordinates[2]) * (4 - 3*rCoordinates[0] + 3*rCoordinates[1] - 2*rCoordinates[0]*rCoordinates[1] + 2*rCoordinates[2] - rCoordinates[0]*rCoordinates[2] + rCoordinates[1]*rCoordinates[2] - 2*rCoordinates[0]*rCoordinates[1]*rCoordinates[2]) ;
-        rResult[2] = (-0.0625) * (1 + rCoordinates[0]) * (1 + rCoordinates[1]) * (1 - rCoordinates[2]) * (4 - 3*rCoordinates[0] - 3*rCoordinates[1] + 2*rCoordinates[0]*rCoordinates[1] + 2*rCoordinates[2] - rCoordinates[0]*rCoordinates[2] - rCoordinates[1]*rCoordinates[2] + 2*rCoordinates[0]*rCoordinates[1]*rCoordinates[2]) ;
-        rResult[3] = (-0.0625) * (1 - rCoordinates[0]) * (1 + rCoordinates[1]) * (1 - rCoordinates[2]) * (4 + 3*rCoordinates[0] - 3*rCoordinates[1] - 2*rCoordinates[0]*rCoordinates[1] + 2*rCoordinates[2] + rCoordinates[0]*rCoordinates[2] - rCoordinates[1]*rCoordinates[2] - 2*rCoordinates[0]*rCoordinates[1]*rCoordinates[2]) ;
-        rResult[4] = (0.5) * (rCoordinates[2]) * (1 + rCoordinates[2]) ;
-        rResult[5] = (0.125) * (1 - std::pow(rCoordinates[0],2.0)) * (1 - rCoordinates[1]) * (1 - rCoordinates[2]) * (2 + rCoordinates[1] + rCoordinates[1]*rCoordinates[2]) ;
-        rResult[6] = (0.125) * (1 + rCoordinates[0]) * (1 - std::pow(rCoordinates[1],2.0)) * (1 - rCoordinates[2]) * (2 - rCoordinates[0] - rCoordinates[0]*rCoordinates[2]) ;
-        rResult[7] = (0.125) * (1 - std::pow(rCoordinates[0],2.0)) * (1 + rCoordinates[1]) * (1 - rCoordinates[2]) * (2 - rCoordinates[1] - rCoordinates[1]*rCoordinates[2]) ;
-        rResult[8] = (0.125) * (1 - rCoordinates[0]) * (1 - std::pow(rCoordinates[1],2.0)) * (1 - rCoordinates[2]) * (2 + rCoordinates[0] + rCoordinates[0]*rCoordinates[2]) ;
-        rResult[9] = (0.25) * (1 - rCoordinates[0]) * (1 - rCoordinates[1]) * (1 - std::pow(rCoordinates[2],2.0)) ;
-        rResult[10] = (0.25) * (1 + rCoordinates[0]) * (1 - rCoordinates[1]) * (1 - std::pow(rCoordinates[2],2.0)) ;
-        rResult[11] = (0.25) * (1 + rCoordinates[0]) * (1 + rCoordinates[1]) * (1 - std::pow(rCoordinates[2],2.0)) ;
-        rResult[12] = (0.25) * (1 - rCoordinates[0]) * (1 + rCoordinates[1]) * (1 - std::pow(rCoordinates[2],2.0)) ;
+        for (std::size_t i=0; i<13; ++i) {
+            rResult[i] = ShapeFunctionValue(i, rCoordinates);
+        }
 
         return rResult;
     }
