@@ -17,7 +17,10 @@
 // External includes
 
 // Project includes
+#include "containers/pointer_vector.h"
 #include "containers/model.h"
+#include "geometries/geometry.h"
+#include "geometries/nurbs_volume_geometry.h"
 
 #include "processes/process.h"
 
@@ -40,6 +43,13 @@ public:
     /// Pointer definition of ProjectionNurbsVolumeToEmbeddedGeometryProcess
     KRATOS_CLASS_POINTER_DEFINITION(ProjectionNurbsVolumeToEmbeddedGeometryProcess);
 
+    typedef Node<3>                                             NodeType;
+    typedef Geometry<NodeType>                                  GeometryType;
+    typedef typename GeometryType::GeometriesArrayType          GeometriesArrayType;
+    typedef typename GeometryType::CoordinatesArrayType         CoordinatesArrayType;
+    typedef NurbsVolumeGeometry<PointerVector<NodeType>>        NurbsVolumeGeometryType;
+    typedef NurbsVolumeGeometryType::Pointer                    NurbsVolumeGeometryPointerType;
+    typedef typename GeometryType::IntegrationPointsArrayType   IntegrationPointsArrayType;
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
 
@@ -59,17 +69,17 @@ public:
     ///@name Operations
     ///@{
 
+    void MapNodalValues(const Variable<double>& rVariable);
 
-    /// This function will be executed at every time step BEFORE  writing the output
-    void ExecuteBeforeOutputStep() override;
+    void MapNodalValues(const Variable<array_1d<double,3>>& rVariable);
 
     const Parameters GetDefaultParameters() const override
     {
         const Parameters default_parameters = Parameters(R"(
         {
-            "main_model_part_name"                    : "",
-            "nurbs_volume_name"                       : "",
-            "embedded_model_part_name"                : "",
+            "main_model_part_name"                    : "main_model_part",
+            "nurbs_volume_name"                       : "nurbs_volume",
+            "embedded_model_part_name"                : "embedded_model_part",
             "nodal_results": []
         })" );
 
@@ -79,6 +89,7 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
 
     /// Turn back information as a string.
     std::string Info() const override
@@ -103,6 +114,13 @@ private:
 
     Model& mrModel;
     Parameters mThisParameters;
+
+    ///@}
+    ///@name Operations
+    ///@{
+    Point& MapPointToParamterSpace(Point& rResult, const CoordinatesArrayType& rCoordinate);
+
+    Point& MapPointToPhysicalSpace(Point& rResult, const CoordinatesArrayType& rCoordinate);
 
     ///@}
 
