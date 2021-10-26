@@ -209,10 +209,10 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
-    // Pyramid3D13(Pyramid3D13 const& rOther)
-    // : BaseType(rOther)
-    // {
-    // }
+    Pyramid3D13(Pyramid3D13 const& rOther)
+    : BaseType(rOther)
+    {
+    }
 
     /** Copy constructor from a geometry with other point type.
      Construct this geometry as a copy of given geometry which
@@ -225,10 +225,10 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
-    // template<class TOtherPointType> Pyramid3D13(Pyramid3D13<TOtherPointType> const& rOther)
-    // : BaseType(rOther)
-    // {
-    // }
+    template<class TOtherPointType> Pyramid3D13(Pyramid3D13<TOtherPointType> const& rOther)
+    : BaseType(rOther)
+    {
+    }
 
     ///@}
     ///@name Operators
