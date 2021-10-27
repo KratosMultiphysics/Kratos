@@ -18,6 +18,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
 #include "depth_integration_process.h"
 #include "utilities/variable_utils.h"
@@ -57,6 +58,7 @@ DepthIntegrationProcess::DepthIntegrationProcess(
     } else {
         mpIntegrationModelPart = &rModel.CreateModelPart("integration_auxiliary_model_part");
     }
+    mDimension = mrVolumeModelPart.GetProcessInfo()[DOMAIN_SIZE];
 }
 
 void DepthIntegrationProcess::Execute()
@@ -105,6 +107,8 @@ void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjec
     }
     velocity /= num_nodes;
     double height = max_elevation - min_elevation;
+    const array_1d<double,3> momentum = height*velocity;
+    SetValue(rNode, MOMENTUM, momentum);
     SetValue(rNode, VELOCITY, velocity);
     SetValue(rNode, HEIGHT, height);
 }
@@ -144,6 +148,9 @@ void DepthIntegrationProcess::InitializeIntegrationLine()
     VariableUtils().SetFlag(TO_ERASE, true, mpIntegrationModelPart->Nodes());
     mpIntegrationModelPart->RemoveNodesFromAllLevels();
 
+    // Set the element name
+    std::string element_name = (mDimension == 2) ? "Element2D2N" : "Element3D2N";
+
     // Create the integration lines
     ModelPart::PropertiesType::Pointer p_prop;
     if (mpIntegrationModelPart->HasProperties(1)) {
@@ -153,7 +160,7 @@ void DepthIntegrationProcess::InitializeIntegrationLine()
     }
     mpIntegrationModelPart->CreateNewNode(1, 0.0, 0.0, 0.0);
     mpIntegrationModelPart->CreateNewNode(2, 0.0, 0.0, 1.0);
-    mpIntegrationModelPart->CreateNewElement("Element3D2N", 1, {{1, 2}}, p_prop);
+    mpIntegrationModelPart->CreateNewElement(element_name, 1, {{1, 2}}, p_prop);
 }
 
 void DepthIntegrationProcess::SetIntegrationLine(
@@ -181,7 +188,10 @@ Geometry<Node<3>>::Pointer DepthIntegrationProcess::CreateIntegrationLine(
     PointerVector<Node<3>> nodes;
     nodes.push_back(NodeType::Pointer(new NodeType(0, start)));
     nodes.push_back(NodeType::Pointer(new NodeType(0, end)));
-    return Kratos::make_shared<Line3D2<NodeType>>(nodes);
+    if (mDimension == 2)
+        return Kratos::make_shared<Line2D2<NodeType>>(nodes);
+    else
+        return Kratos::make_shared<Line3D2<NodeType>>(nodes);
 }
 
 int DepthIntegrationProcess::Check()

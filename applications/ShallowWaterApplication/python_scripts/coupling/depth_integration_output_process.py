@@ -24,7 +24,7 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
             "direction_of_integration"  : [0.0, 0.0, 1.0],
             "interval"                  : [0.0,"End"],
             "file_settings"             : {},
-            "output_time_settings"      : {},
+            "output_time_settings"      : {}
         }""")
 
     def __init__(self, model, settings):
@@ -52,13 +52,15 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         hdf5_settings.AddValue("model_part_name", settings["interface_model_part_name"])
         hdf5_settings.AddValue("file_settings", settings["file_settings"])
         hdf5_settings.AddValue("output_time_settings", settings["output_time_settings"])
-        data_settings = KM.Parameters("""{"list_of_variables" : ["VELOCITY","HEIGHT"]}""")
+        data_settings = KM.Parameters("""{"list_of_variables" : ["MOMENTUM","VELOCITY","HEIGHT"]}""")
         if self.store_historical:
             hdf5_settings.AddValue("nodal_solution_step_data_settings", data_settings)
         else:
             hdf5_settings.AddValue("nodal_data_value_settings", data_settings)
+        hdf5_process_settings = KM.Parameters()
+        hdf5_process_settings.AddValue("Parameters", hdf5_settings)
         
-        self.hdf5_process = single_mesh_temporal_output_process.Factory(hdf5_settings, model)
+        self.hdf5_process = single_mesh_temporal_output_process.Factory(hdf5_process_settings, model)
 
     def Check(self):
         self.integration_process.Check()
@@ -67,11 +69,21 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
     def ExecuteInitialize(self):
         self.integration_process.ExecuteInitialize()
         self.hdf5_process.ExecuteInitialize()
+        if not self.store_historical:
+            KM.VariableUtils().SetNonHistoricalVariableToZero(KM.VELOCITY, self.interface_model_part.Nodes)
+            KM.VariableUtils().SetNonHistoricalVariableToZero(KM.MOMENTUM, self.interface_model_part.Nodes)
+            KM.VariableUtils().SetNonHistoricalVariableToZero(SW.HEIGHT, self.interface_model_part.Nodes)
 
     def ExecuteBeforeSolutionLoop(self):
         self.integration_process.ExecuteBeforeSolutionLoop()
         self.hdf5_process.ExecuteBeforeSolutionLoop()
 
-    def ExecuteInitializeSolutionStep(self):
-        self.integration_process.ExecuteInitialize()
-        self.hdf5_process.ExecuteInitialize()
+    def ExecuteBeforeOutputStep(self):
+        self.integration_process.Execute()
+
+    def IsOutputStep(self):
+        # return self.hdf5_process.IsOutputstep()
+        return True
+
+    def PrintOutput(self):
+        self.hdf5_process.ExecuteFinalizeSolutionStep()

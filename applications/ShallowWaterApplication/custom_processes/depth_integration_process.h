@@ -151,6 +151,7 @@ private:
     ModelPart* mpIntegrationModelPart;
     array_1d<double,3> mDirection;
     bool mStoreHistorical;
+    int mDimension;
 
     ///@}
     ///@name Member Variables
