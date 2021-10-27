@@ -114,9 +114,9 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
         mTimeCounter = 0.0;
 
         // Check node values
-        if(this->Is(HISTORICAL_VALUE)) {
+        if(this->Is(HISTORICAL_VALUE)) { // Historical values
             CheckNodeHistoricalValues(check_counter);
-        } else {
+        } else { // Non-historical values
             CheckNodeValues(check_counter);
         }
 
