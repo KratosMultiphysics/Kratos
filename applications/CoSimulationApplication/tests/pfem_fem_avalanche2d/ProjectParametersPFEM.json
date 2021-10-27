@@ -19,7 +19,7 @@
         },
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "test2d"
+            "input_filename" : "pfem_fem_avalanche2d/test2d"
         },
         "maximum_pressure_iterations"        : 100,
         "velocity_tolerance"                 : 1e-6,
@@ -56,7 +56,7 @@
         "constitutive_laws_list"             : ["Newtonian2DLaw","None","None"],
         "processes_sub_model_part_list"      : ["VELOCITY_Rwall","VELOCITY_interfaceWall"],
         "material_import_settings"           : {
-            "materials_filename" : "PFEMFluidMaterials.json"
+            "materials_filename" : "pfem_fem_avalanche2d/PFEMFluidMaterials.json"
         }
     },
     "problem_process_list" : [{

@@ -102,7 +102,7 @@
             {
                 "type" : "solver_wrappers.kratos.pfem_fluid_dynamics_wrapper",
                 "solver_wrapper_settings" : {
-                    "input_file"           : "ProjectParametersPFEM",
+                    "input_file"           : "pfem_fem_avalanche2d/ProjectParametersPFEM",
                     "fix_free_vel_model_part" : ["PfemFluidModelPart.InterfaceWall"]
                 },
                 "data" : {
@@ -127,7 +127,7 @@
             {
                 "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
                 "solver_wrapper_settings" : {
-                    "input_file"  : "ProjectParametersFEM"
+                    "input_file"  : "pfem_fem_avalanche2d/ProjectParametersFEM"
                 },
                 "data" : {
                     "disp" : {

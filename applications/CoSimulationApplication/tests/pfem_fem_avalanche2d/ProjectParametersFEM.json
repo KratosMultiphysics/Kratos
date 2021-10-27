@@ -16,10 +16,10 @@
         "scheme_type"                     : "bossak",
         "model_import_settings"           : {
             "input_type"     : "mdpa",
-            "input_filename" : "truss_vertical"
+            "input_filename" : "pfem_fem_avalanche2d/truss_vertical"
         },
         "material_import_settings"        : {
-            "materials_filename" : "StructuralMaterials.json"
+            "materials_filename" : "pfem_fem_avalanche2d/StructuralMaterials.json"
         },
         "time_stepping"                   : {
             "time_step" : 1e-3
@@ -74,7 +74,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["DISPLACEMENT_X"],
-                "input_file_name"  : "pfem_fem_avalanche_test_results.json",
+                "input_file_name"  : "pfem_fem_avalanche2d/pfem_fem_avalanche2d_test_results.json",
                 "model_part_name"  : "Structure.RESULT_middleNode",
                 "time_frequency"   : 1e-02,
                 "tolerance"        : 1e-3
