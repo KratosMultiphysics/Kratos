@@ -676,7 +676,6 @@ namespace Kratos
     double porosity = r_process_info[PRESCRIBED_GLOBAL_POROSITY];
 
     // Compute heat transfer coefficient
-    // Assumption: neighbor wall is treated as a particle with the same radius
     double h = 0.0;
 
     if (mNeighborType == WALL_NEIGHBOR) {
