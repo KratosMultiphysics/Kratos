@@ -995,16 +995,6 @@ public:
         return rResult;
     }
 
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        Vector &rDeterminantsOfJacobian,
-        IntegrationMethod ThisMethod,
-        Matrix &ShapeFunctionsIntegrationPointsValues) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
     ///@}
 
     /**

@@ -3723,6 +3723,7 @@ public:
         return rResult;
     }
 
+    KRATOS_DEPRECATED_MESSAGE("This is signature of \'ShapeFunctionsIntegrationPointsGradients\' is legacy (use any of the alternatives without shape functions calculation).")
     virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         Vector& rDeterminantsOfJacobian,
