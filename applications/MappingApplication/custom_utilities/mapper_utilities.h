@@ -198,8 +198,8 @@ inline double ComputeDistance(const T1& rCoords1,
                       std::pow(rCoords1[2] - rCoords2[2] , 2) );
 }
 
-template <typename T>
-double ComputeMaxEdgeLengthLocal(const T& rEntityContainer);
+template <typename TContainer>
+double ComputeMaxEdgeLengthLocal(const TContainer& rEntityContainer);
 
 double ComputeSearchRadius(const ModelPart& rModelPart, int EchoLevel);
 

@@ -20,6 +20,8 @@ from shell_3p_element_tests import Shell3pElementTests as TShell3pElementTests
 # 3p Shell KL
 from iga_test_factory import ScordelisRoofShell3pTest as ScordelisRoofShell3pTest
 from iga_test_factory import LinearBeamShell3pTest as LinearBeamShell3pTest
+# 3p Shell Kl, solved with additive schwarz preconditioner
+from iga_test_factory import LinearBeamShell3pAdditiveSchwarzTest as LinearBeamShell3pAdditiveSchwarzTest
 # 5p Shell Hierarchic
 from iga_test_factory import Shell5pHierarchicLinearThickBeamTest as TShell5pHierarchicLinearThickBeamTest
 from iga_test_factory import Shell5pHierarchicLinearScordelisTest as TShell5pHierarchicLinearScordelisTest
@@ -72,6 +74,7 @@ def AssembleTestSuites():
         TShell3pElementTests,
         ScordelisRoofShell3pTest,
         LinearBeamShell3pTest,
+        LinearBeamShell3pAdditiveSchwarzTest,
         # 5p Shell Director
         ScordelisRoofShell5pTest,
         # Weak support tests

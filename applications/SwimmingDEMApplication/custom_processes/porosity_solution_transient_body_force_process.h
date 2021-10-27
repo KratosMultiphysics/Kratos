@@ -11,8 +11,8 @@
 //
 //
 
-#ifndef KRATOS_SPATIAL_DEPENDANT_POROSITY_SOLUTION_BODY_FORCE_PROCESS_H
-#define KRATOS_SPATIAL_DEPENDANT_POROSITY_SOLUTION_BODY_FORCE_PROCESS_H
+#ifndef KRATOS_POROSITY_SOLUTION_TRANSIENT_BODY_FORCE_PROCESS_H
+#define KRATOS_POROSITY_SOLUTION_TRANSIENT_BODY_FORCE_PROCESS_H
 
 // System includes
 #include <string>
@@ -52,41 +52,35 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(SWIMMING_DEM_APPLICATION) SpatialDependantPorositySolutionBodyForceProcess : public Process
+class KRATOS_API(SWIMMING_DEM_APPLICATION) PorositySolutionTransientBodyForceProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of SpatialDependantPorositySolutionBodyForceProcess
-    KRATOS_CLASS_POINTER_DEFINITION(SpatialDependantPorositySolutionBodyForceProcess);
+    /// Pointer definition of PorositySolutionTransientBodyForceProcess
+    KRATOS_CLASS_POINTER_DEFINITION(PorositySolutionTransientBodyForceProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    SpatialDependantPorositySolutionBodyForceProcess(
-        ModelPart& rModelPart,
-        const double Density,
-        const double Viscosity,
-        const double IndependentTerm,
-        const double MaximumAlpha,
-        const double Centerx1,
-        const double Centerx2);
+    PorositySolutionTransientBodyForceProcess(
+        ModelPart& rModelPart);
 
     /// Constructor with Kratos parameters.
-    SpatialDependantPorositySolutionBodyForceProcess(
+    PorositySolutionTransientBodyForceProcess(
         ModelPart& rModelPart,
         Parameters& rParameters);
 
     /// Constructor with Kratos model
-    SpatialDependantPorositySolutionBodyForceProcess(
+    PorositySolutionTransientBodyForceProcess(
         Model& rModel,
         Parameters& rParameters);
 
     /// Destructor.
-    ~SpatialDependantPorositySolutionBodyForceProcess() override {}
+    ~PorositySolutionTransientBodyForceProcess() override {}
 
     ///@}
     ///@name Operators
@@ -122,12 +116,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "SpatialDependantPorositySolutionBodyForceProcess" ;
+        buffer << "PorositySolutionTransientBodyForceProcess" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "SpatialDependantPorositySolutionBodyForceProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "PorositySolutionTransientBodyForceProcess";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -139,7 +133,6 @@ public:
 
     ///@}
 
-private:
     ///@name Static Member Variables
     ///@{
 
@@ -154,14 +147,12 @@ private:
     double                                         mMaximumAlpha;
     double                                             mCenterx1;
     double                                             mCenterx2;
+    bool                                      mInitialConditions;
 
     ///@}
     ///@name Protected Operators
     ///@{
 
-    ///@}
-    ///@name Private Operations
-    ///@{
     void CheckDefaultsAndProcessSettings(Parameters &rParameters);
 
     const Parameters GetDefaultParameters() const override;
@@ -170,7 +161,11 @@ private:
 
     void SetBodyForceAndPorosityField();
 
+    void SetFluidProperties();
+
     ///@}
+private:
+
     ///@name Private  Access
     ///@{
 
@@ -185,17 +180,17 @@ private:
     ///@{
 
     /// Default constructor.
-    SpatialDependantPorositySolutionBodyForceProcess() = delete;
+    PorositySolutionTransientBodyForceProcess() = delete;
 
     /// Assignment operator.
-    SpatialDependantPorositySolutionBodyForceProcess& operator=(SpatialDependantPorositySolutionBodyForceProcess const& rOther) = delete;
+    PorositySolutionTransientBodyForceProcess& operator=(PorositySolutionTransientBodyForceProcess const& rOther) = delete;
 
     /// Copy constructor.
-    SpatialDependantPorositySolutionBodyForceProcess(SpatialDependantPorositySolutionBodyForceProcess const& rOther) = delete;
+    PorositySolutionTransientBodyForceProcess(PorositySolutionTransientBodyForceProcess const& rOther) = delete;
 
     ///@}
 
-}; // Class SpatialDependantPorositySolutionBodyForceProcess
+}; // Class PorositySolutionTransientBodyForceProcess
 
 ///@}
 ///@name Type Definitions
@@ -211,4 +206,4 @@ private:
 
 };  // namespace Kratos.
 
-#endif // KRATOS_SPATIAL_DEPENDANT_POROSITY_SOLUTION_BODY_FORCE_PROCESS_H
+#endif // KRATOS_POROSITY_SOLUTION_TRANSIENT_BODY_FORCE_PROCESS_H
