@@ -301,7 +301,9 @@ public:
     }
 
     /// Destructor. Does nothing!!!
-    ~Prism3D15() override {}
+    ~Prism3D15() override {
+        KRATOS_WATCH("Destroyed");
+    }
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
