@@ -380,7 +380,10 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         # marc: READING FROM JSON
         solverWrapperInputDict = parameters["solverWrapperInputDictionary"]
         if not "outputBatchSize" in solverWrapperInputDict.keys():
-            solverWrapperInputDict["outputBatchSize"] = optiParameters+1
+            solverWrapperInputDict["outputBatchSize"] =  self.current_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).NumberOfNodes()*3+1
+        if not "lengthOfQoi" in solverWrapperInputDict.keys():
+            solverWrapperInputDict["lengthOfQoi"] =  self.current_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).NumberOfNodes()*3+1
+
 
         # SampleGenerator
         # marc: READING FROM JSON
@@ -1355,20 +1358,6 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
             qoi_list = [min_pressure]
             print("StochasticAdjointResponse", " Min pressure: ",qoi_list[0], "Number of nodes", self.primal_model_part.NumberOfNodes())
 
-
-        # pressure_coefficient = []
-        # nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
-        # nodal_value_process.Execute()
-        # if (self.mapping is not True):
-            # for node in skin_model_part.Nodes:
-            #     this_pressure = node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
-            #     pressure_coefficient.append(this_pressure)
-            # pressure_coefficient.extend([0.0]*skin_model_part.NumberOfNodes()*2)
-
-        # elif (self.mapping is True):
-        #     raise(Exception("XMC mapping is NOT needed in embedded, as the skin stays the same"))
-        # qoi_list.append(pressure_coefficient)
-
         if (self.mapping is not True):
             for node in skin_model_part.Nodes:
                 distance_gradient=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
@@ -1378,6 +1367,13 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
                 qoi_list.extend(this_shape_sensitivity[0:2])
         elif (self.mapping is True):
             raise(Exception("XMC mapping is NOT needed in embedded, as the skin stays the same"))
+
+        if (self.mapping is not True):
+            pressure_coefficient = [node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT) for node in skin_model_part.Nodes]
+            qoi_list.extend(pressure_coefficient)
+        elif (self.mapping is True):
+            raise(Exception("XMC mapping is NOT needed in embedded, as the skin stays the same"))
+
 
         Logger.PrintInfo("StochasticAdjointResponse", "Total number of QoI:",len(qoi_list))
         return qoi_list
