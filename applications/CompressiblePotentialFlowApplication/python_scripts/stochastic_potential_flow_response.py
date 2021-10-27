@@ -1373,8 +1373,8 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
             for node in skin_model_part.Nodes:
                 distance_gradient=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
                 sensitivity=node.GetSolutionStepValue(KratosMultiphysics.NORMAL_SENSITIVITY)
-                # one negative due to level set and one negative as to minimize the negative
-                this_shape_sensitivity =[-1*-1*sensitivity*i for i in distance_gradient]
+                # one negative due to level set. Optimizing the negative has to be change in opt_parametrs, switching maximization to minimization.
+                this_shape_sensitivity =[-1*sensitivity*i for i in distance_gradient]
                 qoi_list.extend(this_shape_sensitivity[0:2])
         elif (self.mapping is True):
             raise(Exception("XMC mapping is NOT needed in embedded, as the skin stays the same"))
@@ -1542,7 +1542,8 @@ class BodyFittedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnal
         Method evaluating the QoI of the problem: lift coefficient.
         """
         if self.main_qoi == "lift_coefficient":
-            qoi_list = [self.response_function.CalculateValue(self.primal_model_part)]
+            # switching to negative
+            qoi_list = [-1*self.response_function.CalculateValue(self.primal_model_part)]
             print("StochasticAdjointResponse", " Lift Coefficient: ",qoi_list[0],  "Number of nodes", self.primal_model_part.NumberOfNodes())
 
         if self.main_qoi == "min_pressure":
