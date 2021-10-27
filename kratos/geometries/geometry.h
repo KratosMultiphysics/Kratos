@@ -3643,13 +3643,13 @@ public:
     }
 
 
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult ) const
+    void ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult ) const
     {
         ShapeFunctionsIntegrationPointsGradients( rResult, mpGeometryData->DefaultIntegrationMethod() );
-        return rResult;
+        // return rResult;
     }
 
-    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    virtual void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod ) const
     {
@@ -3681,10 +3681,10 @@ public:
             noalias(rResult[pnt]) =  prod( DN_De[pnt], Jinv );
         }
 
-        return rResult;
+        // return rResult;
     }
 
-    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    virtual void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         Vector& rDeterminantsOfJacobian,
         IntegrationMethod ThisMethod ) const
@@ -3719,12 +3719,10 @@ public:
             noalias(rResult[pnt]) =  prod( DN_De[pnt], Jinv );
             rDeterminantsOfJacobian[pnt] = DetJ;
         }
-
-        return rResult;
     }
 
     KRATOS_DEPRECATED_MESSAGE("This is signature of \'ShapeFunctionsIntegrationPointsGradients\' is legacy (use any of the alternatives without shape functions calculation).")
-    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    virtual void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         Vector& rDeterminantsOfJacobian,
         IntegrationMethod ThisMethod,
@@ -3733,7 +3731,6 @@ public:
 
         ShapeFunctionsIntegrationPointsGradients(rResult, rDeterminantsOfJacobian, ThisMethod);
         ShapeFunctionsIntegrationPointsValues = ShapeFunctionsValues(ThisMethod);
-        return rResult;
     }
 
     virtual int Check() const
