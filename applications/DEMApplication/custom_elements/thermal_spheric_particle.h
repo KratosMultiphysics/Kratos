@@ -37,6 +37,16 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   typedef Geometry<Node<3>> GeometryType;
   typedef Properties PropertiesType;
 
+  using TBaseElement::mNeighbourElements;
+  using TBaseElement::GetProperties;
+  using TBaseElement::GetGeometry;
+  using TBaseElement::GetRadius;
+  using TBaseElement::GetDensity;
+  using TBaseElement::GetMass;
+  using TBaseElement::GetYoung;
+  using TBaseElement::GetPoisson;
+  using TBaseElement::SetRadius;
+
   // Definitions
   #define PARTICLE_NEIGHBOR  1
   #define WALL_NEIGHBOR      2
@@ -138,39 +148,52 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double ComputeAverageConductivity();
 
   // Get/Set methods
-  using TBaseElement::mNeighbourElements;
-  using TBaseElement::GetValue;
-  using TBaseElement::GetProperties;
-  using TBaseElement::GetGeometry;
-  using TBaseElement::GetRadius;
-  using TBaseElement::GetDensity;
-  using TBaseElement::GetMass;
-  using TBaseElement::GetYoung;
-  using TBaseElement::GetPoisson;
-  using TBaseElement::SetValue;
-  using TBaseElement::SetRadius;
+  array_1d<double,3> GetParticleCoordinates();
+  array_1d<double,3> GetParticleVelocity();
+  double             GetParticleTemperature();
+  double             GetParticleRadius();
+  double             GetParticleSurfaceArea();
+  double             GetParticleCharacteristicLength();
+  double             GetParticleVolume();
+  double             GetParticleYoung();
+  double             GetParticlePoisson();
+  double             GetParticleDensity();
+  double             GetParticleMass();
+  double             GetParticleHeatCapacity();
+  double             GetParticleConductivity();
+  double             GetParticleEmissivity();
+  double             GetParticleExpansionCoefficient();
+  
+  array_1d<double,3> GetWallCoordinates();
+  double             GetWallTemperature();
+  double             GetWallRadius();
+  double             GetWallYoung();
+  double             GetWallPoisson();
+  double             GetWallDensity();
+  double             GetWallMass();
+  double             GetWallHeatCapacity();
+  double             GetWallConductivity();
+  double             GetWallEmissivity();
 
-  const double& GetParticleTemperature();
-  double GetParticleSurfaceArea();
-  double GetParticleCharacteristicLength();
-  double GetParticleVolume();
-  double GetParticleConductivity();
-  double GetParticleHeatCapacity();
-  double GetParticleEmissivity();
-  double GetParticleExpansionCoefficient();
-  double GetWallTemperature();
-  double GetNeighborTemperature();
-  double GetNeighborDensity();
-  double GetNeighborYoung();
-  double GetNeighborPoisson();
-  double GetNeighborConductivity();
-  double GetNeighborHeatCapacity();
-  double GetNeighborEmissivity();
-  void   SetParticleTemperature(const double temperature);
-  void   SetParticleHeatFlux(const double heat_flux);
-  void   SetParticlePrescribedHeatFluxSurface(const double heat_flux);
-  void   SetParticlePrescribedHeatFluxVolume(const double heat_flux);
-  void   SetParticleRealYoungRatio(const double ratio);
+  array_1d<double,3> GetNeighborCoordinates();
+  double             GetNeighborTemperature();
+  double             GetNeighborRadius();
+  double             GetNeighborYoung();
+  double             GetNeighborPoisson();
+  double             GetNeighborDensity();
+  double             GetNeighborMass();
+  double             GetNeighborHeatCapacity();
+  double             GetNeighborConductivity();
+  double             GetNeighborEmissivity();
+  
+  void               SetParticleTemperature               (const double temperature);
+  void               SetParticleHeatFlux                  (const double heat_flux);
+  void               SetParticlePrescribedHeatFluxSurface (const double heat_flux);
+  void               SetParticlePrescribedHeatFluxVolume  (const double heat_flux);
+  void               SetParticleRadius                    (const double radius);
+  void               SetParticleMomentInertia             (const double moment_inertia);
+  void               SetParticleRealYoungRatio            (const double ratio);
+  void               SetParticleDensity                   (const double density);
 
   // Turn back information as a string.
   virtual std::string Info() const override {
