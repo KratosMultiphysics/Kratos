@@ -473,9 +473,9 @@ public:
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
         IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
         //number of integration points
-        const int integration_points_number = integration_points.size();
+        const std::size_t integration_points_number = integration_points.size();
         //number of nodes in current geometry
-        const int points_number = 13;
+        const std::size_t points_number = 13;
         //setting up return matrix
         Matrix shape_function_values( integration_points_number, points_number );
 
@@ -594,7 +594,7 @@ public:
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
         IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod]; //number of integration points
 
-        const int integration_points_number = integration_points.size();
+        const std::size_t integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values(integration_points_number); //initialising container
 
         Matrix result;
