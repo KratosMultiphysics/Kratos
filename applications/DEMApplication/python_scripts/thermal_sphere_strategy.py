@@ -157,7 +157,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         
         temperature_dependent_radius = 0
         for properties in self.spheres_model_part.Properties:
-            if properties.Has(THERMAL_EXPANSION_COEFFICIENT) and properties[THERMAL_EXPANSION_COEFFICIENT] != 0:
+            if (properties.Has(THERMAL_EXPANSION_COEFFICIENT) and properties[THERMAL_EXPANSION_COEFFICIENT] != 0) or \
+               (properties.HasTable(TEMPERATURE,THERMAL_EXPANSION_COEFFICIENT)):
                 temperature_dependent_radius = 1
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, TEMPERATURE_DEPENDENT_RADIUS_OPTION, temperature_dependent_radius)
         
