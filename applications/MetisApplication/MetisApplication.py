@@ -6,6 +6,7 @@ print("3", flush=True)
 from KratosMetisApplication import *
 print("4", flush=True)
 application = KratosMetisApplication()
+print(application)
 print("5", flush=True)
 application_name = "KratosMetisApplication"
 print("6", flush=True)
