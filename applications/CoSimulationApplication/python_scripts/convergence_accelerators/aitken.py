@@ -53,9 +53,6 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             alpha = min( self.alpha_old, self.init_alpha_max )
             if self.echo_level > 3:
                 cs_tools.cs_print_info(self._ClassName(), ": Doing relaxation in the first iteration with initial factor = {}".format(alpha))
-            ##### Dump the relaxation factor to a file
-            self._PrintAitkenRelaxationParameter(alpha)
-            ##### End of printing
             return alpha * r
 
         else:
@@ -75,19 +72,8 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
                     cs_tools.cs_print_warning(self._ClassName(), "dynamic relaxation factor reaches lower bound: {}".format(self.alpha_min))
             delta_x = alpha * self.R[0]
             self.alpha_old = alpha
-            ##### Dump the relaxation factor to a file
-            self._PrintAitkenRelaxationParameter(alpha)
-            ##### End of printing
             return delta_x
     
-    ## _PrintAitkenRelaxationParameter(alpha)
-    # @param alpha the Aitken relaxation factor
-    # Prints the Aitken relaxation parameter to a text file
-    def _PrintAitkenRelaxationParameter(self, alpha):
-        plot_file_alpha_aitken = "aitken_alpha.txt"
-        with open(plot_file_alpha_aitken, "a") as f:
-            f.write("\t" + str(alpha) + "\n")
-
     @classmethod
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{

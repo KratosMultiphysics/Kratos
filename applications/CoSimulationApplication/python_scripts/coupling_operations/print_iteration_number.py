@@ -33,7 +33,7 @@ class PrintIterationNumberOperation(CoSimulationCouplingOperation):
         self.interval = self.settings["interval"].GetVector()
 
         if(self.model_part.GetCommunicator().MyPID() == 0):
-            output_file_name = self.model_part_name + "_number_iterations.txt"
+            output_file_name = self.model_part_name + "_number_iterations.dat"
             file_handler_settings = KM.Parameters(self.settings["output_file_settings"])
             if file_handler_settings.Has("file_name"):
                 warn_msg = 'Unexpected user-specified entry found in "output_file_settings": {"file_name": '
@@ -64,7 +64,7 @@ class PrintIterationNumberOperation(CoSimulationCouplingOperation):
         pass
 
     def _GetFileHeader(self):
-        header = "#TIME[s]" + "\t" + "AITKEN_ITERATION_NUMBER\n"
+        header = "#TIME[s]" + "\t" + "ITERATION_NUMBER\n"
         return header
 
     @classmethod
