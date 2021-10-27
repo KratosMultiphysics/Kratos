@@ -122,17 +122,17 @@ void DefineEmbeddedWakeProcess::Execute()
         it_elem->SetValue(GEOMETRY_ELEMENTAL_DISTANCES, geometry_elemental_distances);
     }
 
-    // Parameters moving_parameters;
     // // // mWakeOrigin[0] += -0.001;
     // moving_parameters.AddEmptyValue("origin");
-    // moving_parameters["origin"].SetVector(mWakeOrigin);
-    // moving_parameters.AddEmptyValue("rotation_angle");
-    // double angle=-mrModelPart.GetProcessInfo()[ROTATION_ANGLE]*Globals::Pi/180;
-    // mrModelPart.GetProcessInfo()[WAKE_ORIGIN] = mWakeOrigin;
-    // moving_parameters["rotation_angle"].SetDouble(angle);
+    Parameters moving_parameters;
+    moving_parameters.AddEmptyValue("rotation_angle");
+    moving_parameters.AddEmptyValue("rotation_point");
+    moving_parameters["rotation_point"].SetVector(mrModelPart.GetProcessInfo()[WAKE_ORIGIN]);
+    double angle=-mrModelPart.GetProcessInfo()[ROTATION_ANGLE]*Globals::Pi/180;
+    moving_parameters["rotation_angle"].SetDouble(angle);
     // // moving_parameters["rotation_angle"].SetDouble(0.0);
-    // MoveModelPartProcess move_process(mrWakeModelPart, moving_parameters);
-    // move_process.Execute();
+    MoveModelPartProcess move_process(mrWakeModelPart, moving_parameters);
+    move_process.Execute();
 
     KRATOS_ERROR_IF(mrModelPart.GetProcessInfo()[DOMAIN_SIZE]>2) << "DOMAIN_SIZE is greater than 2. DefineEmbeddedWakeProcess is only implemented for 2D cases!" << std::endl;
 

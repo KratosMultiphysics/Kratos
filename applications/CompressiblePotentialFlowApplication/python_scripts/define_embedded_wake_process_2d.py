@@ -272,18 +272,19 @@ class DefineEmbeddedWakeProcess(KratosMultiphysics.Process):
         le_node = -1
         for node in skin_model_part.GetSubModelPart("LeadingEdgeNode").Nodes:
             le_node = node
-        te_weight=0.99
+        te_weight=0.95
         self.wake_model_part.CreateNewNode(1, (1-te_weight)*le_node.X+te_weight*te_node.X, (1-te_weight)*le_node.Y+te_weight*te_node.Y, 0.0)
         self.wake_model_part.CreateNewNode(2, 200.0, te_node.Y, 0.0)
         self.wake_model_part.CreateNewElement("Element2D2N", 1, [1,2], KratosMultiphysics.Properties(0))
+        self.main_model_part.ProcessInfo.SetValue(CPFApp.WAKE_ORIGIN,[(1-te_weight)*le_node.X+te_weight*te_node.X, (1-te_weight)*le_node.Y+te_weight*te_node.Y, 0.0])
 
-        self.moving_parameters = KratosMultiphysics.Parameters()
-        self.moving_parameters.AddEmptyValue("rotation_point")
-        self.moving_parameters["rotation_point"].SetVector([(1-te_weight)*le_node.X+te_weight*te_node.X, (1-te_weight)*le_node.Y+te_weight*te_node.Y, 0.0])
-        self.moving_parameters.AddEmptyValue("rotation_angle")
-        angle=math.radians(-self.main_model_part.ProcessInfo.GetValue(CPFApp.ROTATION_ANGLE))
-        self.moving_parameters["rotation_angle"].SetDouble(angle)
-        CPFApp.MoveModelPartProcess(self.wake_model_part, self.moving_parameters).Execute()
+        # self.moving_parameters = KratosMultiphysics.Parameters()
+        # self.moving_parameters.AddEmptyValue("rotation_point")
+        # self.moving_parameters["rotation_point"].SetVector([(1-te_weight)*le_node.X+te_weight*te_node.X, (1-te_weight)*le_node.Y+te_weight*te_node.Y, 0.0])
+        # self.moving_parameters.AddEmptyValue("rotation_angle")
+        # angle=math.radians(-self.main_model_part.ProcessInfo.GetValue(CPFApp.ROTATION_ANGLE))
+        # self.moving_parameters["rotation_angle"].SetDouble(angle)
+        # CPFApp.MoveModelPartProcess(self.wake_model_part, self.moving_parameters).Execute()
 
     def _MoveAndRotateWake(self):
         ''' This function moves and rotates the wake with the same parameters as the geometry.
