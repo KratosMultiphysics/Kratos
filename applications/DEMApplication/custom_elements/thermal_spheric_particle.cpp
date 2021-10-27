@@ -1383,17 +1383,35 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleYoung() {
-    return GetYoung();
+    if (GetProperties().HasTable(TEMPERATURE, YOUNG_MODULUS)) {
+      const auto& r_table = GetProperties().GetTable(TEMPERATURE, YOUNG_MODULUS);
+      return r_table.GetValue(GetParticleTemperature());
+    }
+    else{
+      return GetYoung();
+    }
   }
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticlePoisson() {
-    return GetPoisson();
+    if (GetProperties().HasTable(TEMPERATURE, POISSON_RATIO)) {
+      const auto& r_table = GetProperties().GetTable(TEMPERATURE, POISSON_RATIO);
+      return r_table.GetValue(GetParticleTemperature());
+    }
+    else {
+      return GetPoisson();
+    }
   }
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleDensity() {
-    return GetDensity();
+    if (GetProperties().HasTable(TEMPERATURE, PARTICLE_DENSITY)) {
+      const auto& r_table = GetProperties().GetTable(TEMPERATURE, PARTICLE_DENSITY);
+      return r_table.GetValue(GetParticleTemperature());
+    }
+    else {
+      return GetDensity();
+    }
   }
 
   template <class TBaseElement>
@@ -1403,26 +1421,50 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleHeatCapacity() {
-    // TODO: Use GetFastProperties?
-    return GetProperties()[SPECIFIC_HEAT];
+    if (GetProperties().HasTable(TEMPERATURE, SPECIFIC_HEAT)) {
+      const auto& r_table = GetProperties().GetTable(TEMPERATURE, SPECIFIC_HEAT);
+      return r_table.GetValue(GetParticleTemperature());
+    }
+    else {
+      // TODO: Use GetFastProperties?
+      return GetProperties()[SPECIFIC_HEAT];
+    }
   }
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleConductivity() {
-    // TODO: Use GetFastProperties?
-    return GetProperties()[THERMAL_CONDUCTIVITY];
+    if (GetProperties().HasTable(TEMPERATURE, THERMAL_CONDUCTIVITY)) {
+      const auto& r_table = GetProperties().GetTable(TEMPERATURE, THERMAL_CONDUCTIVITY);
+      return r_table.GetValue(GetParticleTemperature());
+    }
+    else {
+      // TODO: Use GetFastProperties?
+      return GetProperties()[THERMAL_CONDUCTIVITY];
+    }
   }
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleEmissivity() {
-    // TODO: Use GetFastProperties?
-    return GetProperties()[EMISSIVITY];
+    if (GetProperties().HasTable(TEMPERATURE, EMISSIVITY)) {
+      const auto& r_table = GetProperties().GetTable(TEMPERATURE, EMISSIVITY);
+      return r_table.GetValue(GetParticleTemperature());
+    }
+    else {
+      // TODO: Use GetFastProperties?
+      return GetProperties()[EMISSIVITY];
+    }
   }
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleExpansionCoefficient() {
-    // TODO: Use GetFastProperties?
-    return GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
+    if (GetProperties().HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT)) {
+      const auto& r_table = GetProperties().GetTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT);
+      return r_table.GetValue(GetParticleTemperature());
+    }
+    else {
+      // TODO: Use GetFastProperties?
+      return GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
+    }
   }
 
   template <class TBaseElement>
@@ -1448,17 +1490,35 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetWallYoung() {
-    return mNeighbor_w->GetProperties()[YOUNG_MODULUS];
+    if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, YOUNG_MODULUS)) {
+      const auto& r_table = mNeighbor_w->GetProperties().GetTable(TEMPERATURE, YOUNG_MODULUS);
+      return r_table.GetValue(GetWallTemperature());
+    }
+    else {
+      return mNeighbor_w->GetProperties()[YOUNG_MODULUS];
+    }
   }
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetWallPoisson() {
-    return mNeighbor_w->GetProperties()[POISSON_RATIO];
+    if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, POISSON_RATIO)) {
+      const auto& r_table = mNeighbor_w->GetProperties().GetTable(TEMPERATURE, POISSON_RATIO);
+      return r_table.GetValue(GetWallTemperature());
+    }
+    else {
+      return mNeighbor_w->GetProperties()[POISSON_RATIO];
+    }
   }
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetWallDensity() {
-    return mNeighbor_w->GetProperties()[DENSITY];
+    if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, DENSITY)) {
+      const auto& r_table = mNeighbor_w->GetProperties().GetTable(TEMPERATURE, DENSITY);
+      return r_table.GetValue(GetWallTemperature());
+    }
+    else {
+      return mNeighbor_w->GetProperties()[DENSITY];
+    }
   }
 
   template <class TBaseElement>
@@ -1469,17 +1529,35 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetWallHeatCapacity() {
-    return mNeighbor_w->GetProperties()[SPECIFIC_HEAT];
+    if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, SPECIFIC_HEAT)) {
+      const auto& r_table = mNeighbor_w->GetProperties().GetTable(TEMPERATURE, SPECIFIC_HEAT);
+      return r_table.GetValue(GetWallTemperature());
+    }
+    else {
+      return mNeighbor_w->GetProperties()[SPECIFIC_HEAT];
+    }
   }
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetWallConductivity() {
-    return mNeighbor_w->GetProperties()[THERMAL_CONDUCTIVITY];
+    if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, THERMAL_CONDUCTIVITY)) {
+      const auto& r_table = mNeighbor_w->GetProperties().GetTable(TEMPERATURE, THERMAL_CONDUCTIVITY);
+      return r_table.GetValue(GetWallTemperature());
+    }
+    else {
+      return mNeighbor_w->GetProperties()[THERMAL_CONDUCTIVITY];
+    }
   }
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetWallEmissivity() {
-    return mNeighbor_w->GetProperties()[EMISSIVITY];
+    if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, EMISSIVITY)) {
+      const auto& r_table = mNeighbor_w->GetProperties().GetTable(TEMPERATURE, EMISSIVITY);
+      return r_table.GetValue(GetWallTemperature());
+    }
+    else {
+      return mNeighbor_w->GetProperties()[EMISSIVITY];
+    }
   }
 
   template <class TBaseElement>
