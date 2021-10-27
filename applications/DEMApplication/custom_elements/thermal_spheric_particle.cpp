@@ -1347,6 +1347,39 @@ namespace Kratos
   // Get/Set methods
 
   template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetYoung() {
+    if (GetProperties().HasTable(TEMPERATURE, YOUNG_MODULUS)) {
+      const auto& r_table = GetProperties().GetTable(TEMPERATURE, YOUNG_MODULUS);
+      return r_table.GetValue(GetParticleTemperature());
+    }
+    else {
+      return GetFastProperties()->GetYoung();
+    }
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetPoisson() {
+    if (GetProperties().HasTable(TEMPERATURE, POISSON_RATIO)) {
+      const auto& r_table = GetProperties().GetTable(TEMPERATURE, POISSON_RATIO);
+      return r_table.GetValue(GetParticleTemperature());
+    }
+    else {
+      return GetFastProperties()->GetPoisson();
+    }
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetDensity() {
+    if (GetProperties().HasTable(TEMPERATURE, PARTICLE_DENSITY)) {
+      const auto& r_table = GetProperties().GetTable(TEMPERATURE, PARTICLE_DENSITY);
+      return r_table.GetValue(GetParticleTemperature());
+    }
+    else {
+      return GetFastProperties()->GetDensity();
+    }
+  }
+
+  template <class TBaseElement>
   array_1d<double, 3> ThermalSphericParticle<TBaseElement>::GetParticleCoordinates() {
     return GetGeometry()[0].Coordinates();
   }
@@ -1383,35 +1416,17 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleYoung() {
-    if (GetProperties().HasTable(TEMPERATURE, YOUNG_MODULUS)) {
-      const auto& r_table = GetProperties().GetTable(TEMPERATURE, YOUNG_MODULUS);
-      return r_table.GetValue(GetParticleTemperature());
-    }
-    else{
-      return GetYoung();
-    }
+    return GetYoung();
   }
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticlePoisson() {
-    if (GetProperties().HasTable(TEMPERATURE, POISSON_RATIO)) {
-      const auto& r_table = GetProperties().GetTable(TEMPERATURE, POISSON_RATIO);
-      return r_table.GetValue(GetParticleTemperature());
-    }
-    else {
-      return GetPoisson();
-    }
+    return GetPoisson();
   }
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleDensity() {
-    if (GetProperties().HasTable(TEMPERATURE, PARTICLE_DENSITY)) {
-      const auto& r_table = GetProperties().GetTable(TEMPERATURE, PARTICLE_DENSITY);
-      return r_table.GetValue(GetParticleTemperature());
-    }
-    else {
-      return GetDensity();
-    }
+    return GetDensity();
   }
 
   template <class TBaseElement>

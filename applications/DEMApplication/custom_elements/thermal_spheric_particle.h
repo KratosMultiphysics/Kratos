@@ -41,10 +41,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   using TBaseElement::GetProperties;
   using TBaseElement::GetGeometry;
   using TBaseElement::GetRadius;
-  using TBaseElement::GetDensity;
   using TBaseElement::GetMass;
-  using TBaseElement::GetYoung;
-  using TBaseElement::GetPoisson;
   using TBaseElement::SetRadius;
 
   // Definitions
@@ -148,6 +145,10 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double ComputeAverageConductivity();
 
   // Get/Set methods
+  double GetYoung()   override;
+  double GetPoisson() override;
+  double GetDensity() override;
+
   array_1d<double,3> GetParticleCoordinates();
   array_1d<double,3> GetParticleVelocity();
   double             GetParticleTemperature();
