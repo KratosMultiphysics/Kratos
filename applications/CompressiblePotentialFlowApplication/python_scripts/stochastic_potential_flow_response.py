@@ -42,6 +42,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
                 "xmc_settings": "",
                 "design_surface_sub_model_part_name": "",
                 "auxiliary_mdpa_path": "auxiliary_mdpa",
+                "data_dump_path": "data_dump",
                 "primal_data_transfer_with_python": true,
                 "output_dict_results_file_name": "",
                 "output_pressure_file_path": ""
@@ -110,6 +111,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
         # Store current design
         self.current_model_part = _GetModelPart(model, primal_parameters["solver_settings"])
+        self.data_dumper = DataDumper(response_settings["data_dump_path"].GetString())
 
     def Initialize(self):
 
@@ -236,6 +238,10 @@ class AdjointResponseFunction(ResponseFunctionInterface):
                 shape_sensitivity[1]=1.0
                 print("avoiding spline!")
         print("time spent computing gradients from spline", time.time()-ini_time)
+
+        self.data_dumper.saveXMC(self.xmc_analysis)
+        self.data_dumper.saveKratosMdpa(self.current_model_part.GetSubModelPart(self.design_surface_sub_model_part_name))
+        self.data_dumper.dump("optimization_step_"+str(self.step))
 
     def CalculateValue(self):
         pass
@@ -528,6 +534,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         iDerivativeNormAssemblerSens = list(range(3,3+2*optiParameters,2))
         iBiasAssemblerSens = list(range(4,3+2*optiParameters,2))
         iSensAssembler = list(range(3+2*optiParameters,3+3*optiParameters))
+        self.iSensAssembler = iSensAssembler
 
         # Assemble the actual VaR and CVaR from Phi
         pointwiseAssemblerSchematics = {'constructor':'xmc.estimationAssembler.EstimationAssembler',
@@ -1665,7 +1672,8 @@ class DataDumper:
                 json.dump(self.data_dict, fp,indent=indenting, sort_keys=True)
             else:
                 json.dump(self.data_dict, fp,sort_keys=True)
-
+        print("Data dumped to json. Resetting dict.")
+        self.data_dict = {}
     def saveXMC(self, xmc_analysis):
         self.data_dict["mlmc_levelwise_data"] = {}
         for i, index in enumerate(xmc_analysis.monteCarloSampler.indices):
