@@ -296,6 +296,9 @@ void FromJSONCheckResultProcess::FailMessage(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void FromJSONCheckResultProcess::CheckNodeValues(IndexType& rCheckCounter)
 {
     // Get time
@@ -369,7 +372,9 @@ void FromJSONCheckResultProcess::CheckNodeValues(IndexType& rCheckCounter)
     rCheckCounter = check_counter;
 }
 
-
+/***********************************************************************************/
+/***********************************************************************************/
+    
 void FromJSONCheckResultProcess::CheckNodeHistoricalValues(IndexType& rCheckCounter)
 {
     // Get time
