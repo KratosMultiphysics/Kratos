@@ -645,7 +645,7 @@ public:
      * @param  ThisGeometry Geometry to intersect with
      * @return True if the geometries intersect, False in any other case.
      */
-    bool HasIntersection(const GeometryType& ThisGeometry) const override
+    bool HasIntersection(const GeometryType& rThisGeometry) const override
     {
         const auto geometry_type = rThisGeometry.GetGeometryType();
 
@@ -2076,7 +2076,7 @@ private:
 
     bool LineTriangleOverlap(
         const Point& rPoint1,
-        const Point& rPoint2)
+        const Point& rPoint2) const
     {
         array_1d<double,3> intersection_point;
         const int result = IntersectionUtilities::ComputeTriangleLineIntersection(*this, rPoint1, rPoint2, intersection_point);
@@ -2086,7 +2086,7 @@ private:
     bool TriangleTriangleOverlap(
         const Point& rPoint1,
         const Point& rPoint2,
-        const Point& rPoint3)
+        const Point& rPoint3) const
     {
         // Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
         // and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
@@ -2346,7 +2346,7 @@ private:
         const Point& V0,
         const Point& U0,
         const Point& U1,
-        const Point& U2)
+        const Point& U2) const
     {
         double a,b,c,d0,d1,d2;
         /* is T1 completely inside T2? */
