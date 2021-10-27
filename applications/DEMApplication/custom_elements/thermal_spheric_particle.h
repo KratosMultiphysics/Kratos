@@ -194,7 +194,6 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   void               SetParticleRadius                    (const double radius);
   void               SetParticleMomentInertia             (const double moment_inertia);
   void               SetParticleRealYoungRatio            (const double ratio);
-  void               SetParticleDensity                   (const double density);
 
   // Turn back information as a string.
   virtual std::string Info() const override {

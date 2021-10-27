@@ -194,11 +194,10 @@ namespace Kratos
     double new_radius = GetParticleRadius() * (1.0 + GetParticleExpansionCoefficient() * (GetParticleTemperature() - mPreviousTemperature));
     SetParticleRadius(new_radius);
 
-    // Update density
-    SetParticleDensity(GetParticleMass() / GetParticleVolume());
-
     // Update inertia
     SetParticleMomentInertia(CalculateMomentOfInertia());
+
+    // TODO: update density
 
     KRATOS_CATCH("")
   }
@@ -1709,11 +1708,6 @@ namespace Kratos
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::SetParticleRealYoungRatio(const double ratio) {
     mRealYoungRatio = ratio;
-  }
-
-  template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::SetParticleDensity(const double density) {
-    GetProperties()[PARTICLE_DENSITY] = density;
   }
 
   // Explicit Instantiation
