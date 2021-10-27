@@ -1517,7 +1517,7 @@ class BodyFittedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnal
         if (self.mapping is not True):
             find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.adjoint_analysis._GetSolver().main_model_part)
             find_nodal_h.Execute()
-            for node in selfs.adjoint_analysis._GetSolver().main_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
+            for node in self.adjoint_analysis._GetSolver().main_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
                 this_shape = list(node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY))
                 this_shape = [value / node.GetValue(KratosMultiphysics.NODAL_H) for value in this_shape]
                 qoi_list.extend(this_shape[0:2])
