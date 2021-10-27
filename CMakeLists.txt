@@ -73,6 +73,7 @@ EXECUTE_PROCESS(
     "${CMAKE_SOURCE_DIR}/compile_commands.json")
 
 # Include cmake modules
+include(DownloadLib)
 include(ExternalProject)
 
 # Define custom compiler build types
