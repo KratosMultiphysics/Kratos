@@ -47,6 +47,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.thermal_settings = DEM_parameters["thermal_settings"]
         self.thermal_settings.ValidateAndAssignDefaults(default_settings)
 
+        if (DEM_parameters["solver_settings"]["strategy"].GetString() != "thermal_sphere_strategy"):
+            raise Exception('DEM', '"strategy" not available.')
+
         # General options
         self.thermal_solve_frequency = self.thermal_settings["thermal_solve_frequency"].GetInt()
         self.compute_motion_option   = self.thermal_settings["compute_motion"].GetBool()
@@ -157,8 +160,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         
         temperature_dependent_radius = 0
         for properties in self.spheres_model_part.Properties:
-            if (properties.Has(THERMAL_EXPANSION_COEFFICIENT) and properties[THERMAL_EXPANSION_COEFFICIENT] != 0) or \
-               (properties.HasTable(TEMPERATURE,THERMAL_EXPANSION_COEFFICIENT)):
+            if ((properties.Has(THERMAL_EXPANSION_COEFFICIENT) and properties[THERMAL_EXPANSION_COEFFICIENT] != 0) or \
+                (properties.HasTable(TEMPERATURE,THERMAL_EXPANSION_COEFFICIENT))):
                 temperature_dependent_radius = 1
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, TEMPERATURE_DEPENDENT_RADIUS_OPTION, temperature_dependent_radius)
         

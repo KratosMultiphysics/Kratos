@@ -462,7 +462,7 @@ namespace Kratos
       double Fo        = ComputeFourierNumber();
 
       double a1 = GetParticleDensity() * GetParticleHeatCapacity();
-      double a2 = GetNeighborDensity() * GetNeighborHeatCapacity();
+      double a2 = GetNeighborDensity() * GetNeighborHeatCapacity(); // do not use wall density
       double b1 = a1 * GetParticleConductivity();
       double b2 = a2 * GetNeighborConductivity();
       double c  = a1 / a2;
