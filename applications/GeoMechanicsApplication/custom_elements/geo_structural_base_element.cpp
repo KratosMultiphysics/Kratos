@@ -223,7 +223,14 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
         rRightHandSideVector.resize( N_DOF_ELEMENT, false );
     noalias( rRightHandSideVector ) = ZeroVector( N_DOF_ELEMENT );
 
-    this->CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+    const bool CalculateStiffnessMatrixFlag = true;
+    const bool CalculateResidualVectorFlag = true;
+
+    CalculateAll(rLeftHandSideMatrix,
+                 rRightHandSideVector,
+                 rCurrentProcessInfo,
+                 CalculateStiffnessMatrixFlag,
+                 CalculateResidualVectorFlag);
 
     // KRATOS_INFO("1-GeoStructuralBaseElement::CalculateLocalSystem") << std::endl;
 
@@ -238,7 +245,16 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR << "GeoStructuralBaseElement::CalculateLeftHandSide not implemented, element: " << this->Id() << std::endl;
+    // Calculation flags
+    const bool CalculateStiffnessMatrixFlag = true;
+    const bool CalculateResidualVectorFlag = false;
+    VectorType TempVector;
+
+    CalculateAll(rLeftHandSideMatrix,
+                 TempVector,
+                 rCurrentProcessInfo,
+                 CalculateStiffnessMatrixFlag,
+                 CalculateResidualVectorFlag);
 
     KRATOS_CATCH("");
 }
@@ -257,7 +273,15 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
         rRightHandSideVector.resize( N_DOF_ELEMENT, false );
     noalias( rRightHandSideVector ) = ZeroVector( N_DOF_ELEMENT );
 
-    this->CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
+    const bool CalculateStiffnessMatrixFlag = false;
+    const bool CalculateResidualVectorFlag = true;
+    MatrixType TempMatrix = Matrix();
+
+    CalculateAll(TempMatrix,
+                 rRightHandSideVector,
+                 rCurrentProcessInfo,
+                 CalculateStiffnessMatrixFlag,
+                 CalculateResidualVectorFlag);
 
     // KRATOS_INFO("1-GeoStructuralBaseElement::CalculateRightHandSide") << std::endl;
 
@@ -487,11 +511,24 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 void GeoStructuralBaseElement<TDim,TNumNodes>::
     CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix,
-                              const ProcessInfo& CurrentProcessInfo )
+                              const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    KRATOS_ERROR << "calling the default CalculateStiffnessMatrix method for a particular element ... illegal operation!!" << this->Id() << std::endl;
+    //Resizing mass matrix
+    if ( rStiffnessMatrix.size1() != N_DOF_ELEMENT )
+        rStiffnessMatrix.resize( N_DOF_ELEMENT, N_DOF_ELEMENT, false );
+    noalias( rStiffnessMatrix ) = ZeroMatrix( N_DOF_ELEMENT, N_DOF_ELEMENT );
+
+    const bool CalculateStiffnessMatrixFlag = true;
+    const bool CalculateResidualVectorFlag = false;
+    VectorType TempVector;
+
+    CalculateAll(rStiffnessMatrix,
+                 TempVector,
+                 rCurrentProcessInfo,
+                 CalculateStiffnessMatrixFlag,
+                 CalculateResidualVectorFlag);
 
     KRATOS_CATCH( "" )
 }
@@ -502,7 +539,9 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void GeoStructuralBaseElement<TDim,TNumNodes>::
     CalculateAll( MatrixType& rLeftHandSideMatrix,
                   VectorType& rRightHandSideVector,
-                  const ProcessInfo& CurrentProcessInfo )
+                  const ProcessInfo& rCurrentProcessInfo,
+                  const bool CalculateStiffnessMatrixFlag,
+                  const bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY
 
@@ -515,7 +554,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 void GeoStructuralBaseElement<TDim,TNumNodes>::
     CalculateRHS( VectorType& rRightHandSideVector,
-                  const ProcessInfo& CurrentProcessInfo )
+                  const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -543,7 +582,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
                                 ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                 const GeometryType& rGeom,
                                 const PropertiesType& rProp,
-                                const ProcessInfo& CurrentProcessInfo ) const
+                                const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

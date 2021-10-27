@@ -87,6 +87,26 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    template< unsigned int TDof, unsigned int TNumNodes >
+    static inline void InterpolateVariableWithComponents(Vector& rVector,
+                                                         const Matrix& NContainer,
+                                                         const Vector& VariableWithComponents,
+                                                         const unsigned int& GPoint)
+    {
+        if ( rVector.size() != TDof ) rVector.resize( TDof, false );
+        KRATOS_ERROR_IF(VariableWithComponents.size() != TDof*TNumNodes) << "Wrong size in InterpolateVariableWithComponents" << std::endl;
+
+        noalias(rVector) = ZeroVector(TDof);
+
+        unsigned int index = 0;
+        for (unsigned int i=0; i<TNumNodes; ++i) {
+            for (unsigned int j=0; j<TDof; ++j) {
+                rVector[j] += NContainer(GPoint,i)*VariableWithComponents[index++];
+            }
+        }
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void FillArray1dOutput(array_1d<double,3>& rOutputValue,
                                          const array_1d<double,2>& ComputedValue)
     {
@@ -402,6 +422,24 @@ public:
             for (unsigned int node = 0; node < NumNodes; ++node) {
                 NContainer(integrationPoint,node) = (integrationPoint == node ? 1.0 : 0.0);
             }
+        }
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    static inline void CalculateEquallyDistributedPointsLineShapeFunctions3N(Matrix& NContainer)
+    {
+        //Line 3-noded
+        const unsigned int NumNodes = 3;
+        const std::vector<double> Xi{-1.0/3.0, 1.0/3.0};
+
+        if ( NContainer.size1() != Xi.size() || NContainer.size2() != NumNodes) 
+            NContainer.resize( Xi.size(), NumNodes, false );
+
+        for (unsigned int integrationPoint = 0; integrationPoint < Xi.size(); ++integrationPoint) {
+            const double& X = Xi[integrationPoint];
+            NContainer(integrationPoint, 0) = -0.5 * (1.0 - X) * X;
+            NContainer(integrationPoint, 1) =  0.5 * (1.0 + X) * X;
+            NContainer(integrationPoint, 2) = (1.0 + X) * (1.0 - X);
         }
     }
 

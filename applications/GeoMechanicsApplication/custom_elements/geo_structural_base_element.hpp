@@ -112,7 +112,8 @@ public:
 
 protected:
 
-    static constexpr SizeType N_DOF_ELEMENT = (TDim == 2 ? 3 * TNumNodes: 6 * TNumNodes);
+    static constexpr SizeType N_DOF_NODE = (TDim == 2 ? 3 : 6 );
+    static constexpr SizeType N_DOF_ELEMENT = N_DOF_NODE * TNumNodes;
     static constexpr SizeType VoigtSize = (TDim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRESS);
 
     /// Member Variables
@@ -125,7 +126,7 @@ protected:
         ///Nodal variables
         array_1d<double,TNumNodes*TDim> DisplacementVector;
         array_1d<double,TNumNodes*TDim> VelocityVector;
-        array_1d<double,TNumNodes*TDim> VolumeAcceleration;
+        array_1d<double,TNumNodes*TDim> NodalVolumeAcceleration;
         array_1d<double,TNumNodes*TDim> UVector;
 
         Vector DofValuesVector;
@@ -138,7 +139,7 @@ protected:
         BoundedMatrix<double,TDim, TNumNodes*TDim> NuTot;
 
         Matrix TransformationMatrix;
-        array_1d<double, TDim> BodyAcceleration;
+        array_1d<double, TDim> GaussVolumeAcceleration;
         double IntegrationCoefficient;
         ///Constitutive Law parameters
         Vector StrainVector;
@@ -168,7 +169,7 @@ protected:
                                              ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                              const GeometryType& Geom,
                                              const PropertiesType& Prop,
-                                             const ProcessInfo& CurrentProcessInfo ) const;
+                                             const ProcessInfo& rCurrentProcessInfo ) const;
 
     virtual void GetNodalDofValuesVector(Vector &rNodalVariableVector,
                                          const GeometryType &Geom,
@@ -177,14 +178,16 @@ protected:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     virtual void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix,
-                                           const ProcessInfo& CurrentProcessInfo );
+                                           const ProcessInfo& rCurrentProcessInfo );
 
     virtual void CalculateAll( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               const ProcessInfo& CurrentProcessInfo );
+                               const ProcessInfo& rCurrentProcessInfo,
+                               const bool CalculateStiffnessMatrixFlag,
+                               const bool CalculateResidualVectorFlag );
 
     virtual void CalculateRHS( VectorType& rRightHandSideVector,
-                               const ProcessInfo& CurrentProcessInfo );
+                               const ProcessInfo& rCurrentProcessInfo );
 
     virtual void CalculateNodalCrossDirection( Matrix &NodalCrossDirection ) const;
 

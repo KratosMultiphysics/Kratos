@@ -103,15 +103,16 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix,
-                                const ProcessInfo& rCurrentProcessInfo ) override;
-
     void CalculateMassMatrix( MatrixType& rMassMatrix,
                               const ProcessInfo& rCurrentProcessInfo ) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints( const Variable<array_1d<double,3>>& rVariable,
+                                       std::vector<array_1d<double,3>>& rOutput,
+                                       const ProcessInfo& rCurrentProcessInfo ) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -131,18 +132,19 @@ protected:
                                    const BoundedMatrix<double,TDim, TDim> &InvertDetJacobian,
                                    ElementVariables &rVariables ) const;
 
+    virtual void CalculateLocalBMatrix( Matrix &B,
+                                        unsigned int GPointCross,
+                                        const BoundedMatrix<double,TDim, TDim> &InvertDetJacobian,
+                                        ElementVariables &rVariables ) const;
+
     void CalculateStrainVector(ElementVariables &rVariables) const;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    virtual void CalculateStiffnessMatrix( MatrixType &rStiffnessMatrix,
-                                           const ProcessInfo &CurrentProcessInfo ) override;
-
-    virtual void CalculateAll( MatrixType &rLeftHandSideMatrix,
-                               VectorType &rRightHandSideVector,
-                               const ProcessInfo &CurrentProcessInfo ) override;
-
-    virtual void CalculateRHS( VectorType &rRightHandSideVector,
-                               const ProcessInfo &CurrentProcessInfo ) override;
+    virtual void CalculateAll( MatrixType& rLeftHandSideMatrix,
+                               VectorType& rRightHandSideVector,
+                               const ProcessInfo& rCurrentProcessInfo,
+                               const bool CalculateStiffnessMatrixFlag,
+                               const bool CalculateResidualVectorFlag ) override;
 
     virtual void CalculateAndAddLHS(MatrixType &rLeftHandSideMatrix,
                                     ElementVariables &rVariables) const;
@@ -150,6 +152,9 @@ protected:
     virtual void CalculateAndAddRHS(VectorType &rRightHandSideVector,
                                     ElementVariables &rVariables,
                                     unsigned int GPoint ) const;
+
+    virtual void CalculateLocalInternalForce( VectorType& rRightHandSideVector,
+                                         const ProcessInfo& rCurrentProcessInfo );
 
     virtual void CalculateTransformationMatrix( Matrix &TransformationMatrix,
                                                 const Matrix &GradNe ) const;
@@ -177,7 +182,7 @@ protected:
                                      ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                      const GeometryType& Geom,
                                      const PropertiesType& Prop,
-                                     const ProcessInfo& CurrentProcessInfo ) const override;
+                                     const ProcessInfo& rCurrentProcessInfo ) const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
