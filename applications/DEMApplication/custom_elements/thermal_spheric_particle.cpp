@@ -1512,12 +1512,12 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetWallDensity() {
-    if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, DENSITY)) {
-      const auto& r_table = mNeighbor_w->GetProperties().GetTable(TEMPERATURE, DENSITY);
+    if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, PARTICLE_DENSITY)) {
+      const auto& r_table = mNeighbor_w->GetProperties().GetTable(TEMPERATURE, PARTICLE_DENSITY);
       return r_table.GetValue(GetWallTemperature());
     }
     else {
-      return mNeighbor_w->GetProperties()[DENSITY];
+      return mNeighbor_w->GetProperties()[PARTICLE_DENSITY];
     }
   }
 
