@@ -2,10 +2,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosPfemMeltingApplication ****")
 
-#kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
-#kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConvectionDiffusionApplication)
-#kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingApplication)
-#kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/PFEM2Application)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConvectionDiffusionApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingApplication)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
@@ -14,10 +13,8 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 set( KRATOS_PFEM_MELTING_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pfem_melting_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pfem_melting_application_variables.cpp
-    ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp  #TODO: this should REALLY
-    ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/custom_elements/vms.cpp  #TODO: this should REALLY
-
-
+    #${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp  #TODO: this should REALLY
+    #${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/custom_elements/vms.cpp  #TODO: this should REALLY
 )
 
 ## define python interface sources
@@ -37,7 +34,7 @@ set( KRATOS_PFEM_MELTING_PYTHON_INTERFACE_SOURCES
 ###############################################################
 ## ConvectionDiffusionApplication core library (C++ parts)
 add_library( KratosPfemMeltingCore SHARED ${KRATOS_PFEM_MELTING_APPLICATION_CORE_SOURCES} ${KRATOS_PFEM_MELTING_TESTING_SOURCES} )
-target_link_libraries( KratosPfemMeltingCore PUBLIC KratosCore )
+target_link_libraries( KratosPfemMeltingCore PUBLIC KratosFluidDynamicsCore KratosCore )
 set_target_properties( KratosPfemMeltingCore PROPERTIES COMPILE_DEFINITIONS "PFEM_MELTING_APPLICATION=EXPORT,API")
 
 ## FluidDynamicsApplication python module
