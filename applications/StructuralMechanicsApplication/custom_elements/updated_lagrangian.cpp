@@ -356,6 +356,25 @@ double UpdatedLagrangian::CalculateDerivativesOnReferenceConfiguration(
 
     J0 = this->GetGeometry().Jacobian( J0, PointNumber, ThisIntegrationMethod, delta_displacement);
 
+    const SizeType working_space_dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType local_space_dimension = GetGeometry().LocalSpaceDimension();
+    if (J0.size1() != working_space_dimension || J0.size2() != local_space_dimension)
+        J0.resize(working_space_dimension, local_space_dimension, false);
+
+    const Matrix& r_shape_functions_gradient_in_integration_point = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
+
+    J0.clear();
+    const SizeType points_number = GetGeometry().PointsNumber();
+    for (IndexType i = 0; i < points_number; ++i) {
+        const array_1d<double, 3>& r_coordinates = GetGeometry()[i].GetInitialPosition();
+        for (IndexType k = 0; k < working_space_dimension; ++k) {
+            const double value = r_coordinates[k];
+            for (IndexType m = 0; m < local_space_dimension; ++m) {
+                J0(k, m) += value * r_shape_functions_gradient_in_integration_point(i, m);
+            }
+        }
+    }
+
     const Matrix& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
 
     MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
