@@ -1,0 +1,151 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   0.0000000000   1.0000000000   0.0000000000
+    2   0.0000000000   0.9500000000   0.0000000000
+    3   0.0000000000   0.9000000000   0.0000000000
+    4   0.0000000000   0.8500000000   0.0000000000
+    5   0.0000000000   0.8000000000   0.0000000000
+    6   0.0000000000   0.7500000000   0.0000000000
+    7   0.0000000000   0.7000000000   0.0000000000
+    8   0.0000000000   0.6500000000   0.0000000000
+    9   0.0000000000   0.6000000000   0.0000000000
+   10   0.0000000000   0.5500000000   0.0000000000
+   11   0.0000000000   0.5000000000   0.0000000000
+   12   0.0000000000   0.4500000000   0.0000000000
+   13   0.0000000000   0.4000000000   0.0000000000
+   14   0.0000000000   0.3500000000   0.0000000000
+   15   0.0000000000   0.3000000000   0.0000000000
+   16   0.0000000000   0.2500000000   0.0000000000
+   17   0.0000000000   0.2000000000   0.0000000000
+   18   0.0000000000   0.1500000000   0.0000000000
+   19   0.0000000000   0.1000000000   0.0000000000
+   20   0.0000000000   0.0500000000   0.0000000000
+   21   0.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements TrussElement3D2N// GUI group identifier: wall_fem
+        1          0    21    20
+        2          0    20    19
+        3          0    19    18
+        4          0    18    17
+        5          0    17    16
+        6          0    16    15
+        7          0    15    14
+        8          0    14    13
+        9          0    13    12
+       10          0    12    11
+       11          0    11    10
+       12          0    10     9
+       13          0     9     8
+       14          0     8     7
+       15          0     7     6
+       16          0     6     5
+       17          0     5     4
+       18          0     4     3
+       19          0     3     2
+       20          0     2     1
+End Elements
+
+Begin SubModelPart Parts_Truss_wall_fem // Group wall_fem // Subtree Parts_Truss
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_supports // Group supports // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+           21
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_wall_fem // Group wall_fem // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart RESULT_middleNode
+    Begin SubModelPartNodes
+           17
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
