@@ -137,7 +137,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
             KratosMultiphysics.ModelPartIO(self.skin_model_part_name).ReadModelPart(self.skin_model_part)
         else:
             self.skin_model_part = self.model.GetModelPart("skin")
-            print("GETTING SKIN MODEL PART")
+
         if self.perform_moving:
             # Moving and rotating the skin model part
             angle=math.radians(-self.moving_parameters["rotation_angle"].GetDouble())
