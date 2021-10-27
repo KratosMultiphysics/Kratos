@@ -211,11 +211,10 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         print ("FINISHED XMC!")
 
         ini_time = time.time()
-        self.splineKnotsPsi = []
-        self.splineCoeffsPsi = []
-        for i in range(self.optiParameters):
-            self.splineKnotsPsi.append(self.xmc_analysis.monteCarloSampler.assemblers[3+2*self.optiParameters+i]._interpolator._spline.get_knots())
-            self.splineCoeffsPsi.append(self.xmc_analysis.monteCarloSampler.assemblers[3+2*self.optiParameters+i]._interpolator._spline.get_coeffs())
+        # PhiCoeffs = xmc_analysis.monteCarloSampler.assemblers[0]._interpolator._spline.get_coeffs()
+        # PhiKnots = xmc_analysis.monteCarloSampler.assemblers[0]._interpolator._spline.get_knots()
+        self.splineKnotsPsi = [self.xmc_analysis.monteCarloSampler.assemblers[i]._interpolator._spline.get_knots() for i in self.iSensAssembler]
+        self.splineCoeffsPsi = [self.xmc_analysis.monteCarloSampler.assemblers[i]._interpolator._spline.get_coeffs() for i in self.iSensAssembler]
         print("time spent getting knows and coeffs from spline", time.time()-ini_time)
 
         i_spline=0
@@ -235,6 +234,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
                 node.SetValue(KratosMultiphysics.SHAPE_SENSITIVITY, shape_sensitivity)
             else:
                 shape_sensitivity[1]=1.0
+                print("avoiding spline!")
         print("time spent computing gradients from spline", time.time()-ini_time)
 
     def CalculateValue(self):
@@ -353,7 +353,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         if "optiParameters" in parameters.keys():
             optiParameters = parameters["optiParameters"]
         else:
-            optiParameters = self.current_model_part.NumberOfNodes()*2
+            optiParameters = self.current_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).NumberOfNodes()*2
         # optiParameters = 2
         self.optiParameters = optiParameters
         optiWeights = [1.0]*(optiParameters+1)# THIS SHOULD BE LEN() == optiparameters
@@ -373,7 +373,8 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         # Parameters are [c_mean,r_mean,c_std,r_std,c_time,r_time],
         # marc: READING FROM JSON
         solverWrapperInputDict = parameters["solverWrapperInputDictionary"]
-        solverWrapperInputDict["outputBatchSize"] = optiParameters+1
+        if not "outputBatchSize" in solverWrapperInputDict.keys():
+            solverWrapperInputDict["outputBatchSize"] = optiParameters+1
 
         # SampleGenerator
         # marc: READING FROM JSON
@@ -631,7 +632,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         for i in range(optiParameters):
             mcsErrEst[iInterpErrPsi[i]] = xmc.errorEstimator.ErrorEstimatorQ(
                 error='xmc.methodDefs_errorEstimator.errorEstimation.derivativeUniformInterpolationMSE',
-                parameters=1)
+                parameters=1) # compute interpolation error
             errorOrders[iInterpErrPsi[i]] = {'manifest':'order',
                                     'interpolatorConstants':{'method':'interpolatorConstants',
                                                                 'arguments':[iCVaRAssembler,1]},
@@ -643,7 +644,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
             mcsErrEst[iBiasErrPsi[i]] = xmc.errorEstimator.ErrorEstimatorQ(
                 error='xmc.methodDefs_errorEstimator.errorEstimation.uniformlyInterpolatedDerivativeBiasMSEPosteriori',
-                parameters=1)
+                parameters=1) # computes bias error
             errorOrders[iBiasErrPsi[i]] = {'manifest':'order',
                                     'bias':{'method':'estimation','arguments':[4+2*i]},
                                     'biasParameters':{'method':'predictorParameters',
@@ -651,7 +652,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
             mcsErrEst[iStatErrPsi[i]] = xmc.errorEstimator.ErrorEstimatorQ(
                 error='xmc.methodDefs_errorEstimator.errorEstimation.uniformlyInterpolatedDerivativeVarianceMSEBootstrap',
-                parameters=derivationOrder)
+                parameters=derivationOrder) #computes statistical error
             errorOrders[iStatErrPsi[i]] = {'manifest':'order',
                                     'bootstrapSamples':{'method':'indexEstimation','arguments':[2+2*i,[9]]},
                                     'parameterPoints':{'method':'parameterPoints','arguments':[0]}}
@@ -722,7 +723,9 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self.xmc_analysis.runXMC()
 
         ini_time = time.time()
-        self.xmc_analysis.estimation()
+        self.xmc_analysis.estimation(0)
+        self.xmc_analysis.estimation(iSensAssembler)
+
         print("Time spent xmc.estimation()", time.time()-ini_time)
 
         self._value = self.xmc_analysis.estimation(0)[0]['min'] #armgmin is quantile, min is cvar.
@@ -1153,7 +1156,7 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
             self.auxiliary_mdpa_path_new = self.auxiliary_mdpa_path+"_"+str(self.sample[0])+"_"+str(math.floor(time.time()*100000))[6:]
             if not os.path.exists(self.auxiliary_mdpa_path_new):
                 KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path_new, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SKIP_TIMER).WriteModelPart(copy_model_part)
-    
+
     def Finalize(self):
 
         super().Finalize()
@@ -1164,8 +1167,8 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
         nodal_velocity_process = KCPFApp.ComputeNodalValueProcess(self.primal_model_part, ["VELOCITY", "PRESSURE_COEFFICIENT"])
         nodal_velocity_process.Execute()
 
-        for elem in self.primal_model_part.Elements:
-            elem.Set(KratosMultiphysics.ACTIVE, True)
+        # for elem in self.primal_model_part.Elements:
+            # elem.Set(KratosMultiphysics.ACTIVE, True)
         # gid_output = GiDOutputProcess(
         #         self.primal_model_part,
         #         "gid_output/primal_"+str(self.sample[0])+"_"+str(self.primal_model_part.NumberOfNodes()),
@@ -1176,7 +1179,11 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
         #                         "GiDPostMode": "GiD_PostBinary",
         #                         "MultiFileFlag": "SingleFile"
         #                     },
-        #                     "gauss_point_results" : ["VELOCITY", "PRESSURE_COEFFICIENT"]
+        #                     "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL","GEOMETRY_DISTANCE"],
+        #                     "nodal_nonhistorical_results": ["WING_TIP","TRAILING_EDGE", "KUTTA","WAKE_DISTANCE","WAKE", "UPPER_SURFACE", "LOWER_SURFACE"],
+        #                     "gauss_point_results" : ["WAKE","KUTTA", "VELOCITY", "PRESSURE_COEFFICIENT"],
+        #                     "nodal_flags_results": [],
+        #                     "elemental_conditional_flags_results": ["TO_SPLIT","THERMAL","STRUCTURE","MARKER"]
         #                 }
         #             }
         #             """)
@@ -1234,6 +1241,32 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
 
         self.adjoint_analysis.RunSolutionLoop()
         self.adjoint_analysis.Finalize()
+
+        # gid_output = GiDOutputProcess(
+        #         self.adjoint_model_part,
+        #         "gid_output/adjoint_"+str(self.sample[0])+"_"+str(self.primal_model_part.NumberOfNodes()),
+        #         KratosMultiphysics.Parameters("""
+        #             {
+        #                 "result_file_configuration" : {
+        #                     "gidpost_flags": {
+        #                         "GiDPostMode": "GiD_PostBinary",
+        #                         "MultiFileFlag": "SingleFile"
+        #                     },
+        #                     "nodal_results"       : ["NORMAL_SENSITIVITY","AUXILIARY_VELOCITY_POTENTIAL","GEOMETRY_DISTANCE"],
+        #                     "nodal_nonhistorical_results": ["WING_TIP","TRAILING_EDGE", "KUTTA","WAKE_DISTANCE","WAKE", "UPPER_SURFACE", "LOWER_SURFACE"],
+        #                     "gauss_point_results" : ["WAKE","KUTTA", "VELOCITY", "PRESSURE_COEFFICIENT"],
+        #                     "nodal_flags_results": [],
+        #                     "elemental_conditional_flags_results": ["TO_SPLIT","THERMAL","STRUCTURE","MARKER"]
+        #                 }
+        #             }
+        #             """)
+        #         )
+        # gid_output.ExecuteInitialize()
+        # gid_output.ExecuteBeforeSolutionLoop()
+        # gid_output.ExecuteInitializeSolutionStep()
+        # gid_output.PrintOutput()
+        # gid_output.ExecuteFinalizeSolutionStep()
+        # gid_output.ExecuteFinalize()
         self.response_function = self.adjoint_analysis._GetSolver()._GetResponseFunction()
         self.response_function.InitializeSolutionStep()
 
@@ -1244,7 +1277,8 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
         """
         mach = abs(self.sample[1])
         alpha = self.sample[2]
-        KratosMultiphysics.Logger.PrintInfo("MACH ALPHA", mach, alpha)
+        # KratosMultiphysics.Logger.PrintInfo("MACH ALPHA", mach, alpha)
+        print("MACH ALPHA", mach, alpha)
         for i_boundary, boundary_process in enumerate(self.project_parameters["processes"]["boundary_conditions_process_list"]):
             if boundary_process["python_module"].GetString() == "apply_far_field_process":
                 boundary_process["Parameters"]["mach_infinity"].SetDouble(mach)
@@ -1285,6 +1319,7 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
         find_nodal_h.Execute()
 
         KratosMultiphysics.CompressiblePotentialFlowApplication.PotentialFlowUtilities.ScaleSensitivity(self.adjoint_analysis._GetSolver().main_model_part)
+        # max_value = max([node.GetSolutionStepValue(KratosMultiphysics.NORMAL_SENSITIVITY) for node in self.adjoint_analysis._GetSolver().main_model_part.Nodes])
 
         mapping_parameters = KratosMultiphysics.Parameters("""{
             "mapper_type": "nearest_element",
