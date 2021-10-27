@@ -25,55 +25,28 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT( rModel.HasModelPart( mThisParameters["embedded_model_part_name"].GetString()) )
             << "ProjectionNurbsVolumeToEmbeddedGeometryProcess: Model Part '" <<  mThisParameters["embedded_model_part_name"].GetString() << "' does not exist." << std::endl;
 
-    }
-
-    Point& ProjectionNurbsVolumeToEmbeddedGeometryProcess::MapPointToParamterSpace(Point& rResult, const CoordinatesArrayType& rCoordinate){
-        array_1d<double,3> lower_point;
-        lower_point[0] = -2.1;
-        lower_point[1] = -2.1;
-        lower_point[2] = -2.1;
-        array_1d<double,3> upper_point;
-        upper_point[0] = 2.1;
-        upper_point[1] = 2.1;
-        upper_point[2] = 12.1;
-        rResult[0] = (rCoordinate[0] - lower_point[0])/abs(lower_point[0] - upper_point[0]);
-        rResult[1] = (rCoordinate[1] - lower_point[1])/abs(lower_point[1] - upper_point[1]);
-        rResult[2] = (rCoordinate[2] - lower_point[2])/abs(lower_point[2] - upper_point[2]);
-
-        return rResult;
-    }
-
-    Point& ProjectionNurbsVolumeToEmbeddedGeometryProcess::MapPointToPhysicalSpace(Point& rResult, const CoordinatesArrayType& rCoordinate){
-        array_1d<double,3> lower_point;
-        lower_point[0] = -2.1;
-        lower_point[1] = -2.1;
-        lower_point[2] = -2.1;
-        array_1d<double,3> upper_point;
-        upper_point[0] = 2.1;
-        upper_point[1] = 2.1;
-        upper_point[2] = 12.1;
-
-        rResult[0] = (rCoordinate[0] * abs(lower_point[0] - upper_point[0]) + lower_point[0]);
-        rResult[1] = (rCoordinate[1] * abs(lower_point[1] - upper_point[1]) + lower_point[1]);
-        rResult[2] = (rCoordinate[2] * abs(lower_point[2] - upper_point[2]) + lower_point[2]);
-
-        return rResult;
-    }
-
-    void ProjectionNurbsVolumeToEmbeddedGeometryProcess::MapNodalValues(const Variable<double>& rVariable){
-    }
-
-    void ProjectionNurbsVolumeToEmbeddedGeometryProcess::MapNodalValues(const Variable<array_1d<double,3>>& rVariable){
         ModelPart& main_model_part = mrModel.GetModelPart(mThisParameters["main_model_part_name"].GetString());
         KRATOS_ERROR_IF_NOT( main_model_part.HasGeometry(mThisParameters["nurbs_volume_name"].GetString()) )
             << "ProjectionNurbsVolumeToEmbeddedGeometryProcess: Model Part '" <<  mThisParameters["main_model_part_name"].GetString() << "' does not have Geometry: '"
                 << mThisParameters["nurbs_volume_name"].GetString() << "'. " << std::endl;
-
-        ModelPart& embedded_model_part = mrModel.GetModelPart(mThisParameters["embedded_model_part_name"].GetString());
-
         ModelPart::GeometryType::Pointer p_geometry = main_model_part.pGetGeometry(mThisParameters["nurbs_volume_name"].GetString());
+
         KRATOS_ERROR_IF( p_geometry->GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Nurbs_Volume)
             << "ProjectionNurbsVolumeToEmbeddedGeometryProcess: Geometry: '" <<  mThisParameters["nurbs_volume_name"].GetInt() << "' is no 'Kratos_Nurbs_Volume-Geometry'." << std::endl;
+   }
+
+    void ProjectionNurbsVolumeToEmbeddedGeometryProcess::MapNodalValues(const Variable<double>& rVariable){
+
+    }
+
+    void ProjectionNurbsVolumeToEmbeddedGeometryProcess::MapNodalValues(const Variable<array_1d<double,3>>& rVariable){
+        // Get Model Parts
+        ModelPart& main_model_part = mrModel.GetModelPart(mThisParameters["main_model_part_name"].GetString());
+        ModelPart& embedded_model_part = mrModel.GetModelPart(mThisParameters["embedded_model_part_name"].GetString());
+
+        // Get Nurbs Volume Geometry
+        GeometryPointerType p_geometry = main_model_part.pGetGeometry(mThisParameters["nurbs_volume_name"].GetString());
+
 
         const SizeType number_nodes_embedded = embedded_model_part.NumberOfNodes();
         IntegrationPointsArrayType integration_points(number_nodes_embedded);
@@ -88,7 +61,7 @@ namespace Kratos
             local_point[0] = (node_itr->X() - lower_point[0]) / std::abs( lower_point[0] - upper_point[0]);
             local_point[1] = (node_itr->Y() - lower_point[1]) / std::abs( lower_point[1] - upper_point[1]);
             local_point[2] = (node_itr->Z() - lower_point[2]) / std::abs( lower_point[2] - upper_point[2]);
-            integration_points[i] = IntegrationPoint<3>(local_point[0], local_point[1], local_point[2], 0.0);
+            integration_points[i] = IntegrationPoint<3>(local_point, 0.0);
         }
         IntegrationInfo integration_info = p_geometry->GetDefaultIntegrationInfo();
         GeometriesArrayType geometry_list;

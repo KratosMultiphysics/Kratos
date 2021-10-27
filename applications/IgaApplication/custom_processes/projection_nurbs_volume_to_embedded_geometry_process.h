@@ -45,6 +45,7 @@ public:
 
     typedef Node<3>                                             NodeType;
     typedef Geometry<NodeType>                                  GeometryType;
+    typedef GeometryType::Pointer                               GeometryPointerType;
     typedef typename GeometryType::GeometriesArrayType          GeometriesArrayType;
     typedef typename GeometryType::CoordinatesArrayType         CoordinatesArrayType;
     typedef NurbsVolumeGeometry<PointerVector<NodeType>>        NurbsVolumeGeometryType;
@@ -114,13 +115,6 @@ private:
 
     Model& mrModel;
     Parameters mThisParameters;
-
-    ///@}
-    ///@name Operations
-    ///@{
-    Point& MapPointToParamterSpace(Point& rResult, const CoordinatesArrayType& rCoordinate);
-
-    Point& MapPointToPhysicalSpace(Point& rResult, const CoordinatesArrayType& rCoordinate);
 
     ///@}
 
