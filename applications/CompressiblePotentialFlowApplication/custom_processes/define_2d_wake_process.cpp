@@ -143,7 +143,7 @@ void Define2DWakeProcess::MarkWakeElements()
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
     std::vector<std::size_t> wake_elements_ordered_ids;
 
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(root_model_part.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = root_model_part.ElementsBegin() + i;
 
@@ -202,11 +202,15 @@ void Define2DWakeProcess::CheckIfTrailingEdgeElement(Element& rElement)
 bool Define2DWakeProcess::CheckIfPotentiallyWakeElement(const Element& rElement) const
 {
     // Compute the distance from the trailing edge to the element's center
-    const auto distance_to_element_center =
-        ComputeDistanceFromTrailingEdgeToPoint(rElement.GetGeometry().Center());
+    for (auto& r_node : rElement.GetGeometry()) {
+        const auto distance_to_element_center =
+            ComputeDistanceFromTrailingEdgeToPoint(r_node);
+        if (inner_prod(distance_to_element_center, mWakeDirection) > 0.0)
+            return true;
+    }
 
     // Compute the projection of the distance in the wake direction
-    return inner_prod(distance_to_element_center, mWakeDirection) > 0.0 ? true : false;
+    return false;
 }
 
 // This function computes the distance of the element nodes to the wake
