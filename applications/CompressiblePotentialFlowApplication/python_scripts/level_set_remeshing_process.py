@@ -102,8 +102,6 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         self._CalculateDistance()
 
         ini_time=time.time()
-        if self.do_remeshing:
-            print("EXECUTING LEVEL SET REMESHING. Source nnodes:", self.main_model_part.NumberOfNodes())
         while self.step < self.max_iter and self.do_remeshing:
             self.step += 1
             KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','##### Executing refinement #', self.step, ' #####')
