@@ -30,7 +30,7 @@ If you are already a developer, please create a new branch with the proposed cha
 
 We consider the same branch structure: `subject/short-description`. For example for a fix in the core of a given utility: `core/fix-xxx-utility`. 
 
-If you are not developer, fork this project and open a **PR** with the proposed fix. If you want to become a developer, please check next section.
+If you are not member of the KratosMultiphysics organization you may fork this project and open a **PR** with the proposed fix. On a side note, you are welcome to become a member of our organization and for joining us please see below.
 
 ## Becoming a maintainer 👨‍💻
 
