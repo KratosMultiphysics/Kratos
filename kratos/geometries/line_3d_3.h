@@ -723,14 +723,24 @@ public:
         return 0;
     }
 
+    ///@}
+    ///@name Shape Function Integration Points Gradient
+    ///@{
 
-
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const override
+    void ShapeFunctionsIntegrationPointsGradients(
+        ShapeFunctionsGradientsType &rResult,
+        IntegrationMethod ThisMethod) const override
     {
         KRATOS_ERROR << "Jacobian is not square" << std::endl;
-        return rResult;
     }
 
+    void ShapeFunctionsIntegrationPointsGradients(
+        ShapeFunctionsGradientsType &rResult,
+        Vector &rDeterminantsOfJacobian,
+        IntegrationMethod ThisMethod) const override
+    {
+        KRATOS_ERROR << "Jacobian is not square" << std::endl;
+    }
 
     ///@}
     ///@name Input and output

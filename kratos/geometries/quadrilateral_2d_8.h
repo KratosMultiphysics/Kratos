@@ -1068,7 +1068,7 @@ public:
      * KLUDGE: method call only works with explicit JacobiansType
      * rather than creating JacobiansType within argument list
      */
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod ) const override
     {
@@ -1113,8 +1113,6 @@ public:
                 }
             }
         }//end of loop over integration points
-
-        return rResult;
     }
 
     /**
