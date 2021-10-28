@@ -106,7 +106,7 @@ public:
 
         // This is the adaption of the implemnetation provided in:
         // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
-
+        // Based on Tomas Möller & Ben Trumbore (1997) Fast, Minimum Storage Ray-Triangle Intersection, Journal of Graphics Tools, 2:1, 21-28, DOI: 10.1080/10867651.1997.10487468 
 
         // Get triangle edge vectors and plane normal
         const array_1d<double,3> u = rTriangleGeometry[1] - rTriangleGeometry[0];
