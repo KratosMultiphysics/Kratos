@@ -191,21 +191,36 @@ void DefineEmbeddedWakeProcess::Execute()
         if (r_elem.Is(MARKER)) {
             bool is_upper = false;
             bool is_lower = false;
+            unsigned int n_lower =0;
+            unsigned int n_upper =0;
             for (auto& r_node : r_elem.GetGeometry()) {
                 if (r_node.GetValue(UPPER_SURFACE)) {
                     is_upper = true;
+                    n_upper++;
                 }
                 if (r_node.GetValue(LOWER_SURFACE)) {
                     is_lower = true;
+                    n_lower++;
                 }
             }
-
-            for (auto& r_node : r_elem.GetGeometry()) {
-                // if(r_node.GetValue(UPPER_SURFACE) && r_node.GetValue(LOWER_SURFACE) && !r_node.GetValue(WAKE)){
-                if(is_upper && is_lower && r_node.GetValue(WAKE_DISTANCE) < 0.0) {
-                // if(r_node.GetValue(UPPER_SURFACE) && r_node.GetValue(LOWER_SURFACE)){
-                    r_node.SetValue(TRAILING_EDGE, true);
-                    r_elem.SetValue(KUTTA, true);
+            if (n_upper == 3) {
+                for (auto& r_node : r_elem.GetGeometry()) {
+                    // if(r_node.GetValue(UPPER_SURFACE) && r_node.GetValue(LOWER_SURFACE) && !r_node.GetValue(WAKE)){
+                    if(is_upper && is_lower && r_node.GetValue(WAKE_DISTANCE) < 0.0) {
+                    // if(r_node.GetValue(UPPER_SURFACE) && r_node.GetValue(LOWER_SURFACE)){
+                        r_node.SetValue(TRAILING_EDGE, true);
+                        r_elem.SetValue(KUTTA, true);
+                    }
+                }
+            }
+            if (n_lower == 3) {
+                for (auto& r_node : r_elem.GetGeometry()) {
+                    // if(r_node.GetValue(UPPER_SURFACE) && r_node.GetValue(LOWER_SURFACE) && !r_node.GetValue(WAKE)){
+                    if(is_upper && is_lower && r_node.GetValue(WAKE_DISTANCE) > 0.0) {
+                    // if(r_node.GetValue(UPPER_SURFACE) && r_node.GetValue(LOWER_SURFACE)){
+                        r_node.SetValue(TRAILING_EDGE, true);
+                        r_elem.SetValue(KUTTA, true);
+                    }
                 }
             }
         }
