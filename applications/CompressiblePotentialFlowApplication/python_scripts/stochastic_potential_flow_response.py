@@ -36,6 +36,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             {
                 "response_type": "stochastic_adjoint_lift_potential_jump",
                 "risk_measure": "expected_value",
+                "cvar_interval": [-1.8,-0.1],
                 "main_qoi": "lift_coefficient",
                 "primal_settings": "",
                 "adjoint_settings": "",
@@ -75,6 +76,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self.auxiliary_mdpa_path = response_settings["auxiliary_mdpa_path"].GetString()
         self.risk_measure = response_settings["risk_measure"].GetString()
         self.main_qoi = response_settings["main_qoi"].GetString()
+        self.cvar_interval = response_settings["cvar_interval"].GetVector()
 
         if response_settings.Has("output_dict_results_file_name"):
             self.output_dict_results_file_name = response_settings["output_dict_results_file_name"].GetString()
@@ -229,7 +231,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             if i_spline < len(self.splineKnotsPsi):
                 for i_dim in range(2):
                     coeffs_psi = [*self.splineCoeffsPsi[i_spline+i_dim],0.0,0.0,0.0,0.0]
-                    knots_psi = [-0.9,-0.9,-0.9,*self.splineKnotsPsi[i_spline+i_dim],-0.5,-0.5,-0.5]
+                    knots_psi = [self.cvar_interval[0],self.cvar_interval[0],self.cvar_interval[0],*self.splineKnotsPsi[i_spline+i_dim],self.cvar_interval[1],self.cvar_interval[1],self.cvar_interval[1]]
                     shape_sensitivity[i_dim] = splev(self.argmin,(knots_psi, coeffs_psi,3),der=1)
 
                 i_spline += 2
@@ -370,7 +372,8 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         derivationOrder = 1
         indexSpace = [0,3]
         parameterPointsSpace = [10,10**3+1]
-        parameterPoints = np.linspace(-0.9,-0.5,num=parameterPointsSpace[0]).tolist() #TRY to set this interval as small as possible.
+        print("Using cvar interval:", self.cvar_interval)
+        parameterPoints = np.linspace(self.cvar_interval[0],self.cvar_interval[1],num=parameterPointsSpace[0]).tolist() #TRY to set this interval as small as possible.
         sampleNumberSpace = [10,10**5]
         initialHierarchy = parameters["initialHierarchy"]
         for i, _ in enumerate(initialHierarchy):
