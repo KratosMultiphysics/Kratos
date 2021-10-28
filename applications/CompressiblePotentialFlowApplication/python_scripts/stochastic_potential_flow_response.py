@@ -1304,7 +1304,8 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
         """
         # REPORTING NEGATIVE OF LIFT TO MINIMIZE THE NEGATIVE -> maximize lift
         if self.main_qoi == "lift_coefficient":
-            qoi_list = [-1*self.response_function.CalculateValue(self.adjoint_model_part)]
+            lift_value =self.response_function.CalculateValue(self.adjoint_model_part)
+            qoi_list = [-1*lift_value] if not math.isnan(lift_value) else [0.0]
             print("StochasticAdjointResponse", " Lift Coefficient: ",qoi_list[0], "Number of nodes", self.primal_model_part.NumberOfNodes())
 
         model_part = self.adjoint_model_part
@@ -1362,6 +1363,7 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
             for node in skin_model_part.Nodes:
                 distance_gradient=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
                 sensitivity=node.GetSolutionStepValue(KratosMultiphysics.NORMAL_SENSITIVITY)
+                sensitivity= sensitivity if not math.isnan(sensitivity) else 0.0
                 # one negative due to level set. Optimizing the negative has to be change in opt_parametrs, switching maximization to minimization.
                 this_shape_sensitivity =[-1*sensitivity*i for i in distance_gradient]
                 qoi_list.extend(this_shape_sensitivity[0:2])
