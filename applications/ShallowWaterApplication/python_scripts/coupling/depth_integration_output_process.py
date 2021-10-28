@@ -31,12 +31,10 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         """The constructor of the DepthIntegrationOutputProcess"""
 
         KM.OutputProcess.__init__(self)
+        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        self.settings = settings
-        self.settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
-
-        self.volume_model_part = model[self.settings["volume_model_part_name"].GetString()]
-        self.interface_model_part = model[self.settings["interface_model_part_name"].GetString()]
+        self.volume_model_part = model[settings["volume_model_part_name"].GetString()]
+        self.interface_model_part = model[settings["interface_model_part_name"].GetString()]
         self.store_historical = settings["store_historical_database"].GetBool()
         self.interval = KM.IntervalUtility(settings)
 
@@ -63,27 +61,30 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         self.hdf5_process = single_mesh_temporal_output_process.Factory(hdf5_process_settings, model)
 
     def Check(self):
+        '''Check the processes.'''
         self.integration_process.Check()
         self.hdf5_process.Check()
 
     def ExecuteInitialize(self):
-        self.integration_process.ExecuteInitialize()
-        self.hdf5_process.ExecuteInitialize()
+        '''Initialize the variables.'''
         if not self.store_historical:
             KM.VariableUtils().SetNonHistoricalVariableToZero(KM.VELOCITY, self.interface_model_part.Nodes)
             KM.VariableUtils().SetNonHistoricalVariableToZero(KM.MOMENTUM, self.interface_model_part.Nodes)
             KM.VariableUtils().SetNonHistoricalVariableToZero(SW.HEIGHT, self.interface_model_part.Nodes)
 
     def ExecuteBeforeSolutionLoop(self):
-        self.integration_process.ExecuteBeforeSolutionLoop()
+        '''Write the interface_model_part in HDF5 format.'''
         self.hdf5_process.ExecuteBeforeSolutionLoop()
 
     def ExecuteBeforeOutputStep(self):
+        '''Perform the depth integration over the interface_model_part.'''
         self.integration_process.Execute()
 
     def IsOutputStep(self):
+        '''IsOutputStep.'''
         # return self.hdf5_process.IsOutputstep()
         return True
 
     def PrintOutput(self):
+        '''Print the integrated variables from interface_model_part.'''
         self.hdf5_process.ExecuteFinalizeSolutionStep()
