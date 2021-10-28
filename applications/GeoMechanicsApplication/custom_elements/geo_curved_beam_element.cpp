@@ -741,7 +741,7 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
                                  const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-CalculateLocalInternalForce::CalculateLocalInternalForce") << this->Id() << std::endl;
+    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateLocalInternalForce") << this->Id() << std::endl;
 
     //Previous definitions
     const PropertiesType& rProp = this->GetProperties();
@@ -819,7 +819,7 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
         }
     }
 
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateAll") << std::endl;
+    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateLocalInternalForce") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -843,18 +843,89 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
         rOutput.resize(NumGPoints);
 
     if (rVariable == CAUCHY_STRESS_TENSOR) {
+        //Previous definitions
+        const PropertiesType& rProp = this->GetProperties();
         const GeometryType::IntegrationPointsArrayType&
             IntegrationPointsAlong = rGeom.IntegrationPoints( mThisIntegrationMethod );
+
+        //Containers of variables at all integration points
+        const Matrix& NContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
+
+        //calculating the local gradients
+        const ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
+
+        // GiD accepts equally distributed points
+        // Matrix NContainer;
+        // GeoElementUtilities::CalculateEquallyDistributedPointsLineShapeFunctions3N(NContainer);
+
+        // ShapeFunctionsGradientsType DN_De;
+        // GeoElementUtilities::CalculateEquallyDistributedPointsLineGradientShapeFunctions3N(DN_De);
+
+        //Constitutive Law parameters
+        ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,rProp, rCurrentProcessInfo);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+        //Element variables
+        ElementVariables Variables;
+        this->InitializeElementVariables( Variables,
+                                          ConstitutiveParameters,
+                                          rGeom,
+                                          rProp,
+                                          rCurrentProcessInfo );
+
+        Matrix AverageStresses = ZeroMatrix(VoigtSize, NumGPoints);
+
         //Loop over integration points
         for (unsigned int GPointAlong = 0; GPointAlong < IntegrationPointsAlong.size(); ++GPointAlong) {
+
+            //Compute Nu, GradNe, B and StrainVector
+            noalias(Variables.GradNe) = DN_De[GPointAlong];
+            noalias(Variables.Nu)     = row(NContainer, GPointAlong);
+
+            this->CalculateTransformationMatrix( Variables.TransformationMatrix,
+                                                 Variables.GradNe );
+
             Vector AverageStressVector = ZeroVector(VoigtSize);
+
             for (unsigned int GPointCross = 0; GPointCross < GetCrossNumberIntegrationPoints(); ++GPointCross) {
                 int GPoint = GPointAlong * GetCrossNumberIntegrationPoints() + GPointCross;
-                AverageStressVector += mStressVector[GPoint];
+
+                BoundedMatrix<double,TDim, TDim> JacobianMatrix;
+                this->CalculateJacobianMatrix( GPointCross,
+                                               Variables,
+                                               JacobianMatrix );
+
+                double detJacobian;
+                BoundedMatrix<double,TDim, TDim> InvertJacobianMatrix;
+                MathUtils<double>::InvertMatrix(JacobianMatrix,
+                                                InvertJacobianMatrix,
+                                                detJacobian);
+
+                this->CalculateBMatrix(Variables.B, GPointCross, InvertJacobianMatrix, Variables);
+
+                this->CalculateStrainVector(Variables);
+                //Compute constitutive tensor
+                ConstitutiveParameters.SetStressVector(Variables.StressVector);
+                mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+                AverageStressVector += Variables.StressVector;
             }
             AverageStressVector /= GetCrossNumberIntegrationPoints();
+            for (unsigned i=0; i < AverageStresses.size1(); ++i) {
+                AverageStresses(i, GPointAlong) = AverageStressVector[i];
+            }
+        }
+
+        this->InterpolateOnOutputPoints(AverageStresses);
+
+        //Loop over integration points
+        for (unsigned int GPointAlong = 0; GPointAlong < IntegrationPointsAlong.size(); ++GPointAlong) {
             if ( rOutput[GPointAlong].size2() != TDim )
                 rOutput[GPointAlong].resize(TDim, TDim, false);
+
+            Vector AverageStressVector = ZeroVector(VoigtSize);
+            AverageStressVector = column(AverageStresses, GPointAlong);
 
             rOutput[GPointAlong] = MathUtils<double>::StrainVectorToTensor(AverageStressVector);
         }
@@ -884,9 +955,10 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
                                           rProp,
                                           rCurrentProcessInfo );
 
+        Matrix AverageStrains = ZeroMatrix(VoigtSize, NumGPoints);
+
         //Loop over integration points
         for (unsigned int GPointAlong = 0; GPointAlong < IntegrationPointsAlong.size(); ++GPointAlong) {
-
             //Compute Nu, GradNe, B and StrainVector
             noalias(Variables.GradNe) = DN_De[GPointAlong];
             noalias(Variables.Nu)     = row(NContainer, GPointAlong);
@@ -916,8 +988,20 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
                 AverageStrainVector += Variables.StrainVector;
             }
             AverageStrainVector /= GetCrossNumberIntegrationPoints();
+            for (unsigned i=0; i < AverageStrains.size1(); ++i) {
+                AverageStrains(i, GPointAlong) = AverageStrainVector[i];
+            }
+        }
+
+        this->InterpolateOnOutputPoints(AverageStrains);
+
+        //Loop over integration points
+        for (unsigned int GPointAlong = 0; GPointAlong < IntegrationPointsAlong.size(); ++GPointAlong) {
             if ( rOutput[GPointAlong].size2() != TDim )
                 rOutput[GPointAlong].resize(TDim,TDim,false );
+
+            Vector AverageStrainVector = ZeroVector(VoigtSize);
+            AverageStrainVector = column(AverageStrains, GPointAlong);
 
             rOutput[GPointAlong] = MathUtils<double>::StrainVectorToTensor(AverageStrainVector);
         }
@@ -940,12 +1024,60 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void GeoCurvedBeamElement<TDim,TNumNodes>::
+    InterpolateOnOutputPoints(Matrix &ValuesMatrix) const
+{
+    KRATOS_TRY
+    // KRATOS_INFO("0-GeoCurvedBeamElement::InterpolateOnOutputPoints(Matrix)") << std::endl;
+
+    Vector ValuesVector = ZeroVector(ValuesMatrix.size2());
+
+    for (unsigned int i=0; i < ValuesMatrix.size1(); ++i) {
+        noalias(ValuesVector) = row(ValuesMatrix, i);
+        this->InterpolateOnOutputPoints(ValuesVector);
+        for (unsigned j=0; j < ValuesMatrix.size2(); ++j) {
+            ValuesMatrix(i, j) = ValuesVector[j];
+        }
+    }
+
+    // KRATOS_INFO("1-GeoCurvedBeamElement::InterpolateOnOutputPoints(Matrix)") << std::endl;
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void GeoCurvedBeamElement<TDim,TNumNodes>::
+    InterpolateOnOutputPoints(Vector &Values) const
+{
+    KRATOS_TRY
+    // solve: y = m * x + b
+    // KRATOS_INFO("1-GeoCurvedBeamElement::InterpolateOnOutputPoints(Vector)") << std::endl;
+
+    const std::vector<double> XiOutput{-1.0/3.0, 1.0/3.0};
+    const std::vector<double> Xi{-1.0/sqrt(3.0), 1.0/sqrt(3.0)};
+
+    KRATOS_ERROR_IF_NOT(Values.size() == Xi.size()) << "Wrong size for interpolation" << std::endl;
+
+    const double m = (Values[1]-Values[0]) / (Xi[1]-Xi[0]);
+    const double b = Values[0] - m * Xi[0];
+
+    for (unsigned int i=0; i<Values.size(); ++i)
+        Values[i] = m * XiOutput[i] + b;
+
+    // KRATOS_INFO("1-GeoCurvedBeamElement::InterpolateOnOutputPoints(Vector)") << std::endl;
+    KRATOS_CATCH( "" )
+}
+
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateOnIntegrationPoints( const Variable<array_1d<double,3>>& rVariable,
                                   std::vector<array_1d<double,3>>& rOutput,
                                   const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateOnIntegrationPoints<double,3>()") << std::endl;
+    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateOnIntegrationPoints<double,3>()") << rVariable << std::endl;
 
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -954,8 +1086,7 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
 
     if (rVariable == FORCE || rVariable == MOMENT) {
         //Containers of variables at all integration points
-        //const Matrix& NContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
-
+        // GiD accepts equally distributed points
         Matrix NContainer;
         GeoElementUtilities::CalculateEquallyDistributedPointsLineShapeFunctions3N(NContainer);
 

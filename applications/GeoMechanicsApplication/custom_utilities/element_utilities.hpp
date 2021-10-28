@@ -416,6 +416,8 @@ public:
     static inline void CalculateNewtonCotesShapeFunctions(BoundedMatrix<double,3,3>& NContainer)
     {
         //Line 3-noded
+        // nodes:
+        // 0------2------1
         const unsigned int NumNodes = 3;
 
         for (unsigned int integrationPoint = 0; integrationPoint < NumNodes; ++integrationPoint) {
@@ -429,6 +431,8 @@ public:
     static inline void CalculateEquallyDistributedPointsLineShapeFunctions3N(Matrix& NContainer)
     {
         //Line 3-noded
+        // nodes:
+        // 0------2------1
         const unsigned int NumNodes = 3;
         const std::vector<double> Xi{-1.0/3.0, 1.0/3.0};
 
@@ -440,6 +444,28 @@ public:
             NContainer(integrationPoint, 0) = -0.5 * (1.0 - X) * X;
             NContainer(integrationPoint, 1) =  0.5 * (1.0 + X) * X;
             NContainer(integrationPoint, 2) = (1.0 + X) * (1.0 - X);
+        }
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    static inline void CalculateEquallyDistributedPointsLineGradientShapeFunctions3N(GeometryData::ShapeFunctionsGradientsType& DN_DeContainer)
+    {
+        //Line 3-noded
+        // nodes:
+        // 0------2------1
+        const unsigned int NumNodes = 3;
+        const std::vector<double> Xi{-1.0/3.0, 1.0/3.0};
+
+        if ( DN_DeContainer.size() != Xi.size()) 
+            DN_DeContainer.resize( Xi.size());
+
+        for (unsigned int integrationPoint = 0; integrationPoint < Xi.size(); ++integrationPoint) {
+            if ( DN_DeContainer[integrationPoint].size1() != NumNodes || DN_DeContainer[integrationPoint].size2() != 1) 
+                DN_DeContainer[integrationPoint].resize( NumNodes, 1);
+
+            DN_DeContainer[integrationPoint](0,0) =  Xi[integrationPoint] - 0.5;
+            DN_DeContainer[integrationPoint](1,0) =  Xi[integrationPoint] + 0.5;
+            DN_DeContainer[integrationPoint](2,0) = -Xi[integrationPoint] * 2.0;
         }
     }
 

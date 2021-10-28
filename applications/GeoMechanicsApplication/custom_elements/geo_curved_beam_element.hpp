@@ -184,6 +184,9 @@ protected:
                                      const PropertiesType& Prop,
                                      const ProcessInfo& rCurrentProcessInfo ) const override;
 
+    void InterpolateOnOutputPoints(Matrix &Values) const;
+    void InterpolateOnOutputPoints(Vector &Values) const;
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
