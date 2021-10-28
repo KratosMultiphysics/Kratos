@@ -108,18 +108,24 @@ class AdaptiveRefinement(object):
             original_interp_error = metric_param["hessian_strategy_parameters"]["interpolation_error"].GetDouble()
             original_min_size = metric_param["minimal_size"].GetDouble()
             # set interpolation error for current level
+            if metric_param["hessian_strategy_parameters"].Has("use_interpolation_error_decay"):
+                use_interpolation_error_decay = metric_param["hessian_strategy_parameters"]["use_interpolation_error_decay"].GetBool()
+            else:
+                use_interpolation_error_decay = False
+            metric_param["hessian_strategy_parameters"].RemoveValue("use_interpolation_error_decay")
+
             if current_level > 0:
-                # coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
-                # metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_interpolation_error")
-                # interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
-                # # interp_error = original_interp_error/(coefficient_interp_error*current_level)
-                # metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
-                coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
-                metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_interpolation_error")
-                min_size = original_min_size*(coefficient_interp_error)**(-current_level)
-                # interp_error = original_interp_error/(coefficient_interp_error*current_level)
-                metric_param["minimal_size"].SetDouble(min_size)
-            # print("Setting MINSIZE", metric_param["minimal_size"].GetDouble())
+                if use_interpolation_error_decay:
+                    coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
+                    metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_interpolation_error")
+                    interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
+                    metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
+                else:
+                    coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
+                    metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_interpolation_error")
+                    min_size = original_min_size*(coefficient_interp_error)**(-current_level)
+                    metric_param["minimal_size"].SetDouble(min_size)
+            print("Setting MINSIZE", metric_param["minimal_size"].GetDouble(), "IERR", metric_param["hessian_strategy_parameters"]["interpolation_error"].GetDouble())
             # Setting metric tensor to 0
             domain_size = self.wrapper.GetDomainSize()
             model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
