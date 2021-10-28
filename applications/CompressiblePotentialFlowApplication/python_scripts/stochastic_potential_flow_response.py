@@ -1686,14 +1686,16 @@ class DataDumper:
         self.data_dict["mlmc_levelwise_timings"] = {}
         for i, index in enumerate(xmc_analysis.monteCarloSampler.indices):
             self.data_dict["mlmc_levelwise_timings"][i] = index.all_times
-        self.data_dict["mlmc_levelwise_random_parameters"] = {}
-        for i, index in enumerate(xmc_analysis.monteCarloSampler.indices):
-            this_index_random = index.all_random
-            for j in range(len(this_index_random)):
-                for k in range(len(this_index_random[j][0])):
-                    if not type(this_index_random[j][0][k]) == int:
-                        this_index_random[j][0][k] = float(this_index_random[j][0][k])
-            self.data_dict["mlmc_levelwise_random_parameters"][i] = this_index_random
+        # self.data_dict["mlmc_levelwise_random_parameters"] = {}
+        # for i, index in enumerate(xmc_analysis.monteCarloSampler.indices):
+        #     this_index_random = index.all_random
+        #     print(this_index_random)
+        #     for j in range(len(this_index_random)):
+        #         for k in range(len(this_index_random[j][0])):
+        #             print(this_index_random[j][0][k])
+        #             if not type(this_index_random[j][0][k]) == int:
+        #                 this_index_random[j][0][k] = float(this_index_random[j][0][k])
+        #     self.data_dict["mlmc_levelwise_random_parameters"][i] = this_index_random
     def saveKratosMdpa(self, model_part):
         self.data_dict["mdpa"] = []
         for node in model_part.Nodes:
