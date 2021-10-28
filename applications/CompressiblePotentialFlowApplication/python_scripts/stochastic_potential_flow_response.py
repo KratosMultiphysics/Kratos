@@ -1702,4 +1702,5 @@ class DataDumper:
 
     def writeKratosMdpa(self, model_part, identifier):
         this_file_name = self.file_name+'/'+identifier
+        print("writing Kratos mdpa in", this_file_name)
         KratosMultiphysics.ModelPartIO(this_file_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SKIP_TIMER).WriteModelPart(model_part)
