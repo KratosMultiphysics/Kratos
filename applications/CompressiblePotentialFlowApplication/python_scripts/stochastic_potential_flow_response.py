@@ -123,7 +123,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self.step = self.current_model_part.ProcessInfo[KratosMultiphysics.STEP]
         KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SKIP_TIMER).WriteModelPart( self.current_model_part)
 
-        initial_time = time.time()
+        print("Solving optimization step:", self.step)
         if not self.risk_measure == "cvar":
             self.InitDevelopXMC()
         else:
@@ -239,9 +239,13 @@ class AdjointResponseFunction(ResponseFunctionInterface):
                 print("avoiding spline!")
         print("time spent computing gradients from spline", time.time()-ini_time)
 
+        ini_time = time.time()
         self.data_dumper.saveXMC(self.xmc_analysis)
         self.data_dumper.saveKratosMdpa(self.current_model_part.GetSubModelPart(self.design_surface_sub_model_part_name))
         self.data_dumper.dump("optimization_step_"+str(self.step))
+        self.data_dumper.writeKratosMdpa(self.current_model_part.GetSubModelPart(self.design_surface_sub_model_part_name),"design_"+str(self.step))
+        print("time spent dumping kratos and xmc data", time.time()-ini_time)
+        print("data dumped in:", self.data_dumper.file_name)
 
     def CalculateValue(self):
         pass
@@ -1648,12 +1652,11 @@ def _CheckParameters(parameters):
     return parameters
 
 class DataDumper:
-    def __init__(self, file_name):
-        self.file_name = file_name + '/simulation'
-        print(self.file_name)
+    def __init__(self, file_name, identifier="simulation"):
+        self.file_name = file_name + '/' +identifier
         self._CheckIfFileExists()
+        print("Storing data in:",self.file_name)
         os.makedirs(self.file_name)
-        print(self.file_name)
         self.data_dict = {}
 
     def _CheckIfFileExists(self):
@@ -1677,8 +1680,22 @@ class DataDumper:
         self.data_dict["mlmc_levelwise_data"] = {}
         for i, index in enumerate(xmc_analysis.monteCarloSampler.indices):
             self.data_dict["mlmc_levelwise_data"][i] = index.all_data
-
+        self.data_dict["mlmc_levelwise_timings"] = {}
+        for i, index in enumerate(xmc_analysis.monteCarloSampler.indices):
+            self.data_dict["mlmc_levelwise_timings"][i] = index.all_times
+        self.data_dict["mlmc_levelwise_random_parameters"] = {}
+        for i, index in enumerate(xmc_analysis.monteCarloSampler.indices):
+            this_index_random = index.all_random
+            for j in range(len(this_index_random)):
+                for k in range(len(this_index_random[j][0])):
+                    if not type(this_index_random[j][0][k]) == int:
+                        this_index_random[j][0][k] = float(this_index_random[j][0][k])
+            self.data_dict["mlmc_levelwise_random_parameters"][i] = this_index_random
     def saveKratosMdpa(self, model_part):
         self.data_dict["mdpa"] = []
         for node in model_part.Nodes:
             self.data_dict["mdpa"].append([node.Id, node.X, node.Y, node.Z])
+
+    def writeKratosMdpa(self, model_part, identifier):
+        this_file_name = self.file_name+'/'+identifier
+        KratosMultiphysics.ModelPartIO(this_file_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SKIP_TIMER).WriteModelPart(model_part)

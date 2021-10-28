@@ -54,6 +54,7 @@ class AngleOfAttackResponseFunction(ResponseFunctionInterface):
         self.le_y_gradient = cshape_sensitivity_7*(-cshape_sensitivity_1*cshape_sensitivity_5 + self.reference_direction[1])
 
     def GetValue(self):
+        print("Angle of attack: ", self.aoa)
         return self.aoa
 
     def GetNodalGradient(self, variable):
@@ -124,6 +125,7 @@ class ChordLengthResponseFunction(ResponseFunctionInterface):
         self.le_y_gradient = y_diff/math.sqrt(x_diff**2 + y_diff**2)
 
     def GetValue(self):
+        print("Chord: ", self.chord)
         return self.chord
 
     def GetNodalGradient(self, variable):
@@ -180,8 +182,9 @@ class PerimeterResponseFunction(ResponseFunctionInterface):
         pass
 
     def GetValue(self):
-
-        return self._ComputePerimeter(self.main_model_part)
+        perimeter = self._ComputePerimeter(self.main_model_part)
+        print("Perimeter: ", perimeter)
+        return perimeter
 
     def GetNodalGradient(self, variable):
         gradient = {}
