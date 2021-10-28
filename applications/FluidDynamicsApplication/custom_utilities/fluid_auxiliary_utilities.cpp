@@ -259,14 +259,15 @@ double FluidAuxiliaryUtilities::CalculateFlowRateAuxiliary(
                     cond_flow_rate = CalculateConditionFlowRate(r_geom);
                 } else if (IsSplit(rNodalDistancesTLS)){
                     // Get the current condition parent
-                    const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
-                    const auto& r_parent_geom = r_parent_element.GetGeometry();
+                    const auto p_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)(0);
+                    KRATOS_ERROR_IF_NOT(p_parent_element.get()) << "Condition " << rCondition.Id() << " has no parent element assigned." << std::endl;
+                    const auto& r_parent_geom = p_parent_element->GetGeometry();
 
                     // Get the corresponding face id of the current condition
                     const std::size_t n_parent_faces = r_parent_geom.FacesNumber();
                     DenseMatrix<unsigned int> nodes_in_faces(n_parent_faces, n_parent_faces);
                     r_parent_geom.NodesInFaces(nodes_in_faces);
-                    std::size_t face_id;
+                    std::size_t face_id = 0;
                     for (std::size_t i_face = 0; i_face < n_parent_faces; ++i_face) {
                         std::size_t match_nodes = 0;
                         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
@@ -290,7 +291,7 @@ double FluidAuxiliaryUtilities::CalculateFlowRateAuxiliary(
                     for (std::size_t i_node = 0; i_node < n_nodes_parent; ++i_node) {
                         parent_distances(i_node) = r_parent_geom[i_node].FastGetSolutionStepValue(DISTANCE);
                     }
-                    auto p_mod_sh_func = mod_sh_func_factory(r_parent_element.pGetGeometry(), parent_distances);
+                    auto p_mod_sh_func = mod_sh_func_factory(p_parent_element->pGetGeometry(), parent_distances);
 
                     Vector w_vect;
                     Matrix N_container;
