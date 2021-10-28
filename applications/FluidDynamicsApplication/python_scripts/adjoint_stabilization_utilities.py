@@ -48,12 +48,15 @@ def __IsPlateau(slope, max_slope):
     return math.fabs(slope) <= max_slope
 
 def __CalculateTimeSeriesSlope(time_series_values, time_range):
-    time_values = time_series_values[:, 0]
-    max_time = np.max(time_values)
-    indices_range = np.where(np.logical_and(time_values >= time_range[0], time_values <= time_range[1]))[0]
-    ranged_time_values = max_time - np.take(time_values, indices_range)
-    ranged_values = np.take(time_series_values[:, 1], indices_range)[:-1] / ranged_time_values[1:]
-    return np.polyfit(ranged_time_values[1:], ranged_values, 1)[0]
+    if np.isfinite(time_series_values[-1, 1]):
+        time_values = time_series_values[:, 0]
+        max_time = np.max(time_values)
+        indices_range = np.where(np.logical_and(time_values >= time_range[0], time_values <= time_range[1]))[0]
+        ranged_time_values = max_time - np.take(time_values, indices_range)
+        ranged_values = np.take(time_series_values[:, 1], indices_range)[:-1] / ranged_time_values[1:]
+        return np.polyfit(ranged_time_values[1:], ranged_values, 1)[0]
+    else:
+        return 1e+300
 
 
 def __ExecuteAnalysis(analysis_class_type, adjoint_parameters, stabilization_coefficient, solve_id):
