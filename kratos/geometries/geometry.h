@@ -3646,7 +3646,6 @@ public:
     void ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult ) const
     {
         ShapeFunctionsIntegrationPointsGradients( rResult, mpGeometryData->DefaultIntegrationMethod() );
-        // return rResult;
     }
 
     virtual void ShapeFunctionsIntegrationPointsGradients(
@@ -3680,8 +3679,6 @@ public:
             MathUtils<double>::InvertMatrix(J, Jinv, DetJ);
             noalias(rResult[pnt]) =  prod( DN_De[pnt], Jinv );
         }
-
-        // return rResult;
     }
 
     virtual void ShapeFunctionsIntegrationPointsGradients(
