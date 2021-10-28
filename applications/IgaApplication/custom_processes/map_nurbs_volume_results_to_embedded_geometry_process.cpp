@@ -10,43 +10,39 @@
 //  Main authors:   Manuel Messmer
 
 // Project includes
-#include "projection_nurbs_volume_to_embedded_geometry_process.h"
+#include "map_nurbs_volume_results_to_embedded_geometry_process.h"
 
 namespace Kratos
 {
 
-    ProjectionNurbsVolumeToEmbeddedGeometryProcess::ProjectionNurbsVolumeToEmbeddedGeometryProcess(
+    MapNurbsVolumeResultsToEmbeddedGeometryProcess::MapNurbsVolumeResultsToEmbeddedGeometryProcess(
         Model& rModel, Parameters ThisParameters) : mrModel(rModel), mThisParameters(ThisParameters)
     {
         mThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
         KRATOS_ERROR_IF_NOT( rModel.HasModelPart( mThisParameters["main_model_part_name"].GetString()) )
-            << "ProjectionNurbsVolumeToEmbeddedGeometryProcess: Model Part '" <<  mThisParameters["main_model_part_name"].GetString() << "' does not exist." << std::endl;
+            << "MapNurbsVolumeResultsToEmbeddedGeometryProcess: Model Part '" <<  mThisParameters["main_model_part_name"].GetString() << "' does not exist." << std::endl;
 
         KRATOS_ERROR_IF_NOT( rModel.HasModelPart( mThisParameters["embedded_model_part_name"].GetString()) )
-            << "ProjectionNurbsVolumeToEmbeddedGeometryProcess: Model Part '" <<  mThisParameters["embedded_model_part_name"].GetString() << "' does not exist." << std::endl;
+            << "MapNurbsVolumeResultsToEmbeddedGeometryProcess: Model Part '" <<  mThisParameters["embedded_model_part_name"].GetString() << "' does not exist." << std::endl;
 
         ModelPart& main_model_part = mrModel.GetModelPart(mThisParameters["main_model_part_name"].GetString());
         KRATOS_ERROR_IF_NOT( main_model_part.HasGeometry(mThisParameters["nurbs_volume_name"].GetString()) )
-            << "ProjectionNurbsVolumeToEmbeddedGeometryProcess: Model Part '" <<  mThisParameters["main_model_part_name"].GetString() << "' does not have Geometry: '"
+            << "MapNurbsVolumeResultsToEmbeddedGeometryProcess: Model Part '" <<  mThisParameters["main_model_part_name"].GetString() << "' does not have Geometry: '"
                 << mThisParameters["nurbs_volume_name"].GetString() << "'. " << std::endl;
         ModelPart::GeometryType::Pointer p_geometry = main_model_part.pGetGeometry(mThisParameters["nurbs_volume_name"].GetString());
 
         KRATOS_ERROR_IF( p_geometry->GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Nurbs_Volume)
-            << "ProjectionNurbsVolumeToEmbeddedGeometryProcess: Geometry: '" <<  mThisParameters["nurbs_volume_name"].GetInt() << "' is no 'Kratos_Nurbs_Volume-Geometry'." << std::endl;
+            << "MapNurbsVolumeResultsToEmbeddedGeometryProcess: Geometry: '" <<  mThisParameters["nurbs_volume_name"].GetInt() << "' is no 'Kratos_Nurbs_Volume-Geometry'." << std::endl;
    }
 
-    void ProjectionNurbsVolumeToEmbeddedGeometryProcess::MapNodalValues(const Variable<double>& rVariable){
+    void MapNurbsVolumeResultsToEmbeddedGeometryProcess::MapNodalValues(const Variable<array_1d<double,3>>& rVariable){
 
-    }
-
-    void ProjectionNurbsVolumeToEmbeddedGeometryProcess::MapNodalValues(const Variable<array_1d<double,3>>& rVariable){
         // Get Model Parts
         ModelPart& main_model_part = mrModel.GetModelPart(mThisParameters["main_model_part_name"].GetString());
         ModelPart& embedded_model_part = mrModel.GetModelPart(mThisParameters["embedded_model_part_name"].GetString());
 
         // Get Nurbs Volume Geometry
         GeometryPointerType p_geometry = main_model_part.pGetGeometry(mThisParameters["nurbs_volume_name"].GetString());
-
 
         const SizeType number_nodes_embedded = embedded_model_part.NumberOfNodes();
         IntegrationPointsArrayType integration_points(number_nodes_embedded);
@@ -73,11 +69,10 @@ namespace Kratos
             Vector N = row(quadrature_point.ShapeFunctionsValues(), 0);
             array_1d<double, 3> value = ZeroVector(3);
             for( IndexType j = 0; j < quadrature_point.size(); ++j){
-                value += quadrature_point[j].FastGetSolutionStepValue(DISPLACEMENT,0) * N(j);
+                value += quadrature_point[j].FastGetSolutionStepValue(rVariable,0) * N(j);
             }
-
-                node_itr->FastGetSolutionStepValue(DISPLACEMENT, 0) = value;
-
+            // Write value onto embedded geometry
+            node_itr->FastGetSolutionStepValue(rVariable, 0) = value;
         }
     }
 

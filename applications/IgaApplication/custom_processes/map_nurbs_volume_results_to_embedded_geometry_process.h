@@ -9,8 +9,8 @@
 //
 //  Main authors:   Manuel Messmer
 
-#if !defined(KRATOS_PROJECTION_NURBS_VOLUME_TO_EMBEDDED_GEOMETRY_PROCESS_H_INCLUDED )
-#define  KRATOS_PROJECTION_NURBS_VOLUME_TO_EMBEDDED_GEOMETRY_PROCESS_H_INCLUDED
+#if !defined(KRATOS_MAP_NURBS_VOLUME_RESULTS_TO_EMBEDDED_GEOMETRY_PROCESS_H_INCLUDED )
+#define  KRATOS_MAP_NURBS_VOLUME_RESULTS_TO_EMBEDDED_GEOMETRY_PROCESS_H_INCLUDED
 
 // System includes
 
@@ -30,18 +30,18 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/* @class ProjectionNurbsVolumeToEmbeddedGeometryProcess
+/* @class MapNurbsVolumeResultsToEmbeddedGeometryProcess
  * @ingroup IgaApplication
  * @brief This class outputs the location of the quadrature points within the local space of the containing geometry. */
-class KRATOS_API(IGA_APPLICATION) ProjectionNurbsVolumeToEmbeddedGeometryProcess
+class KRATOS_API(IGA_APPLICATION) MapNurbsVolumeResultsToEmbeddedGeometryProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ProjectionNurbsVolumeToEmbeddedGeometryProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ProjectionNurbsVolumeToEmbeddedGeometryProcess);
+    /// Pointer definition of MapNurbsVolumeResultsToEmbeddedGeometryProcess
+    KRATOS_CLASS_POINTER_DEFINITION(MapNurbsVolumeResultsToEmbeddedGeometryProcess);
 
     typedef Node<3>                                             NodeType;
     typedef Geometry<NodeType>                                  GeometryType;
@@ -59,16 +59,18 @@ public:
     ///@{
 
     /// Constructor
-    ProjectionNurbsVolumeToEmbeddedGeometryProcess(
+    MapNurbsVolumeResultsToEmbeddedGeometryProcess(
         Model& rModel,
         Parameters ThisParameters);
 
     /// Destructor.
-    ~ProjectionNurbsVolumeToEmbeddedGeometryProcess() = default;
+    ~MapNurbsVolumeResultsToEmbeddedGeometryProcess() = default;
 
     ///@}
     ///@name Operations
     ///@{
+
+    void MapGaussPointValues(const Variable<double>& rVariable);
 
     void MapNodalValues(const Variable<double>& rVariable);
 
@@ -95,13 +97,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ProjectionNurbsVolumeToEmbeddedGeometryProcess";
+        return "MapNurbsVolumeResultsToEmbeddedGeometryProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ProjectionNurbsVolumeToEmbeddedGeometryProcess";
+        rOStream << "MapNurbsVolumeResultsToEmbeddedGeometryProcess";
     }
 
     /// Print object's data.
@@ -118,7 +120,7 @@ private:
 
     ///@}
 
-}; // Class ProjectionNurbsVolumeToEmbeddedGeometryProcess
+}; // Class MapNurbsVolumeResultsToEmbeddedGeometryProcess
 
 ///@}
 ///@name Input and output
@@ -126,11 +128,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  ProjectionNurbsVolumeToEmbeddedGeometryProcess& rThis);
+                                  MapNurbsVolumeResultsToEmbeddedGeometryProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ProjectionNurbsVolumeToEmbeddedGeometryProcess& rThis)
+                                  const MapNurbsVolumeResultsToEmbeddedGeometryProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -142,4 +144,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PROJECTION_NURBS_VOLUME_TO_EMBEDDED_GEOMETRY_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_MAP_NURBS_VOLUME_RESULTS_TO_EMBEDDED_GEOMETRY_PROCESS_H_INCLUDED  defined

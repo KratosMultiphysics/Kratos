@@ -17,7 +17,7 @@
 #include "custom_processes/output_quadrature_domain_process.h"
 #include "custom_processes/nitsche_stabilization_model_part_process.h"
 #include "custom_processes/nitsche_stabilization_model_part_process.h"
-#include "custom_processes/projection_nurbs_volume_to_embedded_geometry_process.h"
+#include "custom_processes/map_nurbs_volume_results_to_embedded_geometry_process.h"
 
 #include "iga_application_variables.h"
 
@@ -38,11 +38,9 @@ void AddCustomProcessesToPython(
         .def(py::init<ModelPart& >())
         ;
 
-    py::class_<ProjectionNurbsVolumeToEmbeddedGeometryProcess, ProjectionNurbsVolumeToEmbeddedGeometryProcess::Pointer, Process>(m, "ProjectionNurbsVolumeToEmbeddedGeometryProcess")
+    py::class_<MapNurbsVolumeResultsToEmbeddedGeometryProcess, MapNurbsVolumeResultsToEmbeddedGeometryProcess::Pointer, Process>(m, "MapNurbsVolumeResultsToEmbeddedGeometryProcess")
         .def(py::init<Model&, Parameters >())
-        .def("MapNodalValues", [](ProjectionNurbsVolumeToEmbeddedGeometryProcess& self, const Variable<double>& rVariable){
-            self.MapNodalValues(rVariable);})
-        .def("MapNodalValues", [](ProjectionNurbsVolumeToEmbeddedGeometryProcess& self, const Variable<array_1d<double,3>>& rVariable){
+        .def("MapNodalValues", [](MapNurbsVolumeResultsToEmbeddedGeometryProcess& self, const Variable<array_1d<double,3>>& rVariable){
             self.MapNodalValues(rVariable);})
         ;
 
