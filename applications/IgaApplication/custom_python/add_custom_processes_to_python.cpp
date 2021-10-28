@@ -16,7 +16,6 @@
 
 #include "custom_processes/output_quadrature_domain_process.h"
 #include "custom_processes/nitsche_stabilization_model_part_process.h"
-#include "custom_processes/nitsche_stabilization_model_part_process.h"
 #include "custom_processes/map_nurbs_volume_results_to_embedded_geometry_process.h"
 
 #include "iga_application_variables.h"

@@ -2,7 +2,6 @@ import KratosMultiphysics
 import KratosMultiphysics.IgaApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.IgaApplication.map_nurbs_volume_results_to_embedded_geometry_process import MapNurbsVolumeResultsToEmbeddedGeometryProcess
-from KratosMultiphysics.IgaApplication.iga_output_process import IgaOutputProcess
 
 def run_modelers(current_model, modelers_list):
     from KratosMultiphysics.modeler_factory import KratosModelerFactory

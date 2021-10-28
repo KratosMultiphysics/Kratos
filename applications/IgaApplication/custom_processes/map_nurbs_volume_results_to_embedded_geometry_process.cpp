@@ -11,6 +11,7 @@
 
 // Project includes
 #include "map_nurbs_volume_results_to_embedded_geometry_process.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -47,10 +48,11 @@ namespace Kratos
         const SizeType number_nodes_embedded = embedded_model_part.NumberOfNodes();
         IntegrationPointsArrayType integration_points(number_nodes_embedded);
 
-        const auto node_itr_begin = embedded_model_part.NodesBegin();
         const CoordinatesArrayType lower_point = p_geometry->begin()->GetInitialPosition();
         const CoordinatesArrayType upper_point = (p_geometry->end()-1)->GetInitialPosition();
-        for( IndexType i = 0; i < number_nodes_embedded; ++i){
+
+        const auto node_itr_begin = embedded_model_part.NodesBegin();
+        IndexPartition<IndexType>(embedded_model_part.NumberOfNodes()).for_each([&](IndexType i) {
             auto node_itr = node_itr_begin + i;
             // Map point into parameter space
             CoordinatesArrayType local_point;
@@ -58,12 +60,13 @@ namespace Kratos
             local_point[1] = (node_itr->Y() - lower_point[1]) / std::abs( lower_point[1] - upper_point[1]);
             local_point[2] = (node_itr->Z() - lower_point[2]) / std::abs( lower_point[2] - upper_point[2]);
             integration_points[i] = IntegrationPoint<3>(local_point, 0.0);
-        }
+        });
+
         IntegrationInfo integration_info = p_geometry->GetDefaultIntegrationInfo();
         GeometriesArrayType geometry_list;
         p_geometry->CreateQuadraturePointGeometries(geometry_list, 1, integration_points, integration_info);
 
-        for( IndexType i = 0; i < embedded_model_part.NumberOfNodes(); ++i){
+        IndexPartition<IndexType>(embedded_model_part.NumberOfNodes()).for_each([&](IndexType i) {
             auto node_itr = node_itr_begin + i;
             auto& quadrature_point = geometry_list[i];
             Vector N = row(quadrature_point.ShapeFunctionsValues(), 0);
@@ -73,7 +76,6 @@ namespace Kratos
             }
             // Write value onto embedded geometry
             node_itr->FastGetSolutionStepValue(rVariable, 0) = value;
-        }
+        });
     }
-
 } // End namespace Kratos

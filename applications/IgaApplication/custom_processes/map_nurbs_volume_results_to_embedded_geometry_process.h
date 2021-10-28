@@ -32,7 +32,7 @@ namespace Kratos
 
 /* @class MapNurbsVolumeResultsToEmbeddedGeometryProcess
  * @ingroup IgaApplication
- * @brief This class outputs the location of the quadrature points within the local space of the containing geometry. */
+ **/
 class KRATOS_API(IGA_APPLICATION) MapNurbsVolumeResultsToEmbeddedGeometryProcess
     : public Process
 {
@@ -69,10 +69,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    void MapGaussPointValues(const Variable<double>& rVariable);
-
-    void MapNodalValues(const Variable<double>& rVariable);
 
     void MapNodalValues(const Variable<array_1d<double,3>>& rVariable);
 

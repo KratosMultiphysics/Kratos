@@ -9,7 +9,6 @@ def Factory(settings, model):
     return MapNurbsVolumeResultsToEmbeddedGeometryProcess(model, settings["Parameters"])
 
 class MapNurbsVolumeResultsToEmbeddedGeometryProcess(KratosMultiphysics.Process):
-
     def __init__(self, model, params):
         KratosMultiphysics.Process.__init__(self)
         self.params = params
