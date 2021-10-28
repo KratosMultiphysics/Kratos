@@ -69,8 +69,8 @@ namespace Kratos
 
         for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
             for(unsigned int i_dim = 0; i_dim<Dim; i_dim++){
-                // if ((r_geometry[i_node].Is(SOLID)) && (!r_geometry[i_node].GetValue(TRAILING_EDGE))){
-                if ((r_geometry[i_node].Is(SOLID))){
+                if ((r_geometry[i_node].Is(SOLID)) && (!r_geometry[i_node].GetValue(TRAILING_EDGE))){
+                // if ((r_geometry[i_node].Is(SOLID))){
                     pPrimalElement->GetGeometry()[i_node].GetInitialPosition()[i_dim] += delta;
                     pPrimalElement->GetGeometry()[i_node].Coordinates()[i_dim] += delta;
 
