@@ -271,16 +271,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def InitializeSolutionStep(self):
 
-        time_step_limit=40
-        time_step=self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-
-        print(time_step)
-        if  time_step < time_step_limit:
-            theta=1
-        else:
-            theta=0.5
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_INTEGRATION_THETA,theta)
-
+        self.second_transport=False
         if self.initial_first_order:
             self.theta=1
 
@@ -289,8 +280,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if  time_step < self.initial_first_order_steps:
                 self.theta=1
             else:
-
-                self.theta=0.5
+                self.theta=0.50
+                self.second_transport=False
 
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_INTEGRATION_THETA,self.theta)
 
@@ -313,9 +304,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
             # Perform the level-set convection according to the previous step velocity
-
-            if self.theta==0.5:
-                self.__PredictVariableValue(KratosMultiphysics.VELOCITY,2,1,0.25)
+            
+            if self.second_transport:
+                # self.__PredictVariableValue(KratosMultiphysics.VELOCITY,2,1,0.25)
                 self.__ModifyTimeStep(0.5)
 
 
@@ -367,8 +358,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 file_name="testing.txt"
                 self.__ExportingMassConservationData(file_name,volume_error_ratio,water_volume_after_transport,inlet_volume,outlet_volume,system_volume)
 
-            if self.theta==0.5:
-                self.__ModifyTimeStep(2)
+            if self.second_transport:
+                time=1/0.5
+                self.__ModifyTimeStep(time)
                 self.__RemoveAuxiliarModification(KratosMultiphysics.VELOCITY,0)
 
 
@@ -400,10 +392,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Finalize the solver current step
             self._GetSolutionStrategy().FinalizeSolutionStep()
-
-            if self.theta==0.5:
+            
+            if self.second_transport:
                 self.__PredictVariableValue(KratosMultiphysics.VELOCITY,1,0,0.75)
                 self.__ModifyTimeStep(0.5)
+                
                 self.__AdvancingLevelSetInTime(1)
                 for node in self.main_model_part.Nodes:
                     distance_midpoint=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
@@ -412,12 +405,34 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 self.__AdvancingLevelSetInTime(-1)
                 self.__ModifyTimeStep(2)
                 self.__RemoveAuxiliarModification(KratosMultiphysics.VELOCITY,0)
+        
+            #  Recompute the distance field according to the new level-set position
+                if (self._reinitialization_type == "variational"):
+                    self._GetDistanceReinitializationProcess().Execute()
+                elif (self._reinitialization_type == "parallel"):
+                    adjusting_parameter = 0.05
+                    layers = int(adjusting_parameter*self.main_model_part.GetCommunicator().GlobalNumberOfElements()) # this parameter is essential
+                    max_distance = 1.0 # use this parameter to define the redistancing range
+                    # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
+                    self._GetDistanceReinitializationProcess().CalculateDistances(
+                        self.main_model_part,
+                        self._levelset_variable,
+                        KratosMultiphysics.NODAL_AREA,
+                        layers,
+                        max_distance,
+                        self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        
+                if (self._reinitialization_type != "none"):
+                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
+        
+                # Prepare distance correction for next step
+                self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
 
 
-            # Limit the obtained acceleration for the next step
-            # This limitation should be called on the second solution step onwards (e.g. STEP=3 for BDF2)
-            # We intentionally avoid correcting the acceleration in the first resolution step as this might cause problems with zero initial conditions
+            # # Limit the obtained acceleration for the next step
+            # # This limitation should be called on the second solution step onwards (e.g. STEP=3 for BDF2)
+            # # We intentionally avoid correcting the acceleration in the first resolution step as this might cause problems with zero initial conditions
             if self._apply_acceleration_limitation and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.min_buffer_size:
                 self._GetAccelerationLimitationUtility().Execute()
 
@@ -707,8 +722,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 append_write = 'w' # make a new file if not
             Time=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-            highscore = open(filename,append_write)
-            highscore.write(str(Time)+'\t\t'+str(new_error) +'\t\t'+str(water_volume_after_correction)+'\t\t'+str(inlet) +'\t\t'+ str(outlet) +'\t\t'+str(new_error) +'\t\t'+str(system_volume) +'\t\t'+'\n')
+            highscore = open(filename,append_write) 
+            highscore.write(str(Time)+"\t" +str(new_error) +"\t" +str(water_volume_after_correction)+"\t" +str(inlet) +'\t\t'+ str(outlet) +'\t\t'+str(new_error) +'\t\t'+str(system_volume) +'\t\t'+'\n')
             highscore.close()
 
     # Auxiliar variables in order to perform levelSet
