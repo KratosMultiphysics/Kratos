@@ -228,7 +228,7 @@ class ImposePerturbedInitialConditionProcess(KratosMultiphysics.Process):
         # map P(u_{cn}) into VELOCITY_NOISE variable of Poisson simulation
         # map c*P(u_{cn}) + u_T into VELOCITY variable of Poisson simulation
         if IsDistributedRun():
-            mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMPIMapper(self.model.GetModelPart(self.poisson_parameters["problem_data"]["model_part_name"].GetString()),simulation._GetSolver().main_model_part,self.mapper_parameters)
+            mapper = KratosMultiphysics.MappingApplication.MPIExtension.MPIMapperFactory.CreateMapper(self.model.GetModelPart(self.poisson_parameters["problem_data"]["model_part_name"].GetString()),simulation._GetSolver().main_model_part,self.mapper_parameters)
         else:
             mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMapper(self.model.GetModelPart(self.poisson_parameters["problem_data"]["model_part_name"].GetString()),simulation._GetSolver().main_model_part,self.mapper_parameters)
         mapper.Map(KratosMultiphysics.VELOCITY,KratosMultiphysics.ExaquteSandboxApplication.VELOCITY_NOISE) # map P(u_{cn}) into Poisson problem variable VELOCITY_NOISE
