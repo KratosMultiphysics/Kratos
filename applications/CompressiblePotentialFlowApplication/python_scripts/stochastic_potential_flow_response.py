@@ -123,6 +123,11 @@ class AdjointResponseFunction(ResponseFunctionInterface):
     def InitializeSolutionStep(self):
         self.current_model_part.RemoveSubModelPart("fluid_computational_model_part")
         self.step = self.current_model_part.ProcessInfo[KratosMultiphysics.STEP]
+        ini_time = time.time()
+        print("Removing contents in ", os.path.dirname(self.auxiliary_mdpa_path))
+        shutil.rmtree(os.path.dirname(self.auxiliary_mdpa_path), ignore_errors=True)
+        os.makedirs(os.path.dirname(self.auxiliary_mdpa_path))
+        print("Removing contents finished. Time spent: ", time.time()-ini_time)
         KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SKIP_TIMER).WriteModelPart( self.current_model_part)
 
         print("Solving optimization step:", self.step)
