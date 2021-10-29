@@ -1,9 +1,12 @@
+from re import A
 import KratosMultiphysics as KM
+from KratosMultiphysics.HDF5Application.core.controllers import DefaultController
 import KratosMultiphysics.ShallowWaterApplication as SW
 import KratosMultiphysics.PfemFluidDynamicsApplication as PFEM
 import KratosMultiphysics.DelaunayMeshingApplication as Delaunay
 from KratosMultiphysics.HDF5Application import read_model_part_from_hdf5_process
 from KratosMultiphysics.HDF5Application import single_mesh_temporal_input_process
+from os import path, listdir
 
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
@@ -56,7 +59,8 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
         hdf5_process_settings.AddValue("Parameters", hdf5_settings)
 
         self.hdf5_read = read_model_part_from_hdf5_process.Factory(hdf5_process_settings.Clone(), model)
-        self.hdf5_process = single_mesh_temporal_input_process.Factory(hdf5_process_settings, model)
+        self.hdf5_process = single_mesh_temporal_input_process.Factory(hdf5_process_settings.Clone(), model)
+        self._GetInputTimes(settings['file_settings'])
 
     def Check(self):
         '''Check the processes.'''
@@ -70,8 +74,9 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
         self._MapToBoundaryCondition()
 
     def ExecuteInitializeSolutionStep(self):
-        '''Set the variables in interface_model_part at the current time step.'''
-        self.hdf5_process.ExecuteInitializeSolutionStep() # look for the current time
+        '''Set the variables in the interface_model_part at the current time.'''
+        self._SetCurrentTime()
+        self.hdf5_process.ExecuteInitializeSolutionStep()
         self._CheckInputVariables()
         self._MapToBoundaryCondition()
 
@@ -79,6 +84,31 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
         print("ExecuteInitializeSolutionStep")
         for node in self.interface_model_part.Nodes:
             print(node.GetValue(KM.VELOCITY))
+
+    def _GetInputTimes(self, file_settings):
+        # Get all the file names
+        file_name = file_settings["file_name"].GetString()
+        folder_name = path.dirname(file_name)
+        file_names = [f for f in listdir(folder_name) if path.isfile(path.join(folder_name, f))]
+
+        # Find the common parts of the found names and the file name. The difference are the times
+        self.file_pattern = path.basename(file_name)
+        self.file_pattern = self.file_pattern.replace('<model_part_name>', self.interface_model_part.Name)
+        prefix = path.commonprefix([self.file_pattern, file_names[0]])
+        suffix = self.file_pattern.replace(prefix, '')
+        suffix = path.commonprefix([''.join(reversed(suffix)), ''.join(reversed(file_names[0]))])
+        suffix = ''.join(reversed(suffix))
+        self.times = []
+        for f in file_names:
+            f = f.replace(prefix, '')
+            f = f.replace(suffix, '')
+            self.times.append(float(f))
+        self.times.sort()
+
+    def _SetCurrentTime(self):
+        current_time = self.model_part.ProcessInfo.GetValue(KM.TIME)
+        closest_time = next(filter(lambda x: x>current_time, self.times))
+        self.interface_model_part.ProcessInfo.SetValue(KM.TIME, closest_time)
 
     def _CheckInputVariables(self):
         if self.swap_yz_axis:
