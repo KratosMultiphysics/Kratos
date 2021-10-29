@@ -22,7 +22,7 @@ public:
         return p_clone;
     }
 
-    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() {
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override {
         return std::unique_ptr<DEMDiscontinuumConstitutiveLaw>{new DEM_compound_constitutive_law<MainCL, CohesionCL>(*this)};
     }
 
