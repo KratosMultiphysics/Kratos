@@ -1,9 +1,10 @@
 from re import A
 import KratosMultiphysics as KM
-from KratosMultiphysics.HDF5Application.core.controllers import DefaultController
 import KratosMultiphysics.ShallowWaterApplication as SW
+import KratosMultiphysics.MappingApplication as Mapping
 import KratosMultiphysics.PfemFluidDynamicsApplication as PFEM
 import KratosMultiphysics.DelaunayMeshingApplication as Delaunay
+from KratosMultiphysics.kratos_utilities import GenerateVariableListFromInput
 from KratosMultiphysics.HDF5Application import read_model_part_from_hdf5_process
 from KratosMultiphysics.HDF5Application import single_mesh_temporal_input_process
 from os import path, listdir
@@ -26,6 +27,7 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
             "interface_model_part_name" : "interface_model_part",
             "read_historical_database"  : false,
             "interval"                  : [0.0,"End"],
+            "list_of_variables"         : ["MOMENTUM"],
             "swap_yz_axis"              : false,
             "ignore_vertical_component" : true,
             "file_settings"             : {}
@@ -46,6 +48,7 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
         self.interface_model_part = model.CreateModelPart(interface_model_part_name)
         self.swap_yz_axis = settings["swap_yz_axis"].GetBool()
         self.ignore_vertical_component = settings["ignore_vertical_component"].GetBool()
+        self.variables = GenerateVariableListFromInput(settings["list_of_variables"])
 
         hdf5_settings = KM.Parameters()
         hdf5_settings.AddValue("model_part_name", settings["interface_model_part_name"])
@@ -71,19 +74,22 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
         '''Read the interface_model_part and set the variables.'''
         self.hdf5_read.ExecuteInitialize()
         self._CheckInputVariables()
+        self._CreateMapper()
         self._MapToBoundaryCondition()
 
     def ExecuteInitializeSolutionStep(self):
         '''Set the variables in the interface_model_part at the current time.'''
-        self._SetCurrentTime()
-        self.hdf5_process.ExecuteInitializeSolutionStep()
-        self._CheckInputVariables()
-        self._MapToBoundaryCondition()
+        current_time = self.model_part.ProcessInfo.GetValue(KM.TIME)
+        if self.interval.IsInInterval(current_time):
+            self._SetCurrentTime()
+            self.hdf5_process.ExecuteInitializeSolutionStep()
+            self._CheckInputVariables()
+            self._MapToBoundaryCondition()
 
-        ###
+        ######################################
         print("ExecuteInitializeSolutionStep")
         for node in self.interface_model_part.Nodes:
-            print(node.GetValue(KM.VELOCITY))
+            print(node.GetValue(KM.MOMENTUM))
 
     def _GetInputTimes(self, file_settings):
         # Get all the file names
@@ -127,4 +133,19 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
                 KM.VariableUtils().SetNonHistoricalVariableToZero(KM.VELOCITY_Z, self.interface_model_part.Nodes)
 
     def _MapToBoundaryCondition(self):
-        pass
+        for variable in self.variables:
+            if self.read_historical:
+                self.mapper.Map(variable, variable)
+            else:
+                self.mapper.Map(variable, variable, KM.Mapper.FROM_NON_HISTORICAL)
+
+    def _CreateMapper(self):
+        mapper_settings = KM.Parameters("""{
+            "mapper_type": "nearest_neighbor",
+            "echo_level" : 0
+        }""")
+
+        self.mapper = KM.MapperFactory.CreateMapper(
+            self.interface_model_part,
+            self.model_part,
+            mapper_settings)
