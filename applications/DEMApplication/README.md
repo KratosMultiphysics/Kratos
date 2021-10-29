@@ -97,11 +97,11 @@ This is the package that allows a user to create, run and analyze results of a D
 
 ### Cohesive-DEM
 
-This package combines the features of the previous one also with the simulation of continuum/cohesive materials. Refer to the manual or follow the Tutorials included for more information. It also offers the possibility of tackling both 2D and 3D problems. Check also the manuals or tutorials or load the test examples in the GUI in order to learn how this problem type works.
+This package combines the features of the previous one also with the simulation of continuum/cohesive materials. It also offers the possibility of tackling both 2D and 3D problems. Check also the manuals or tutorials or load the test examples in the GUI in order to learn how this problem type works.
 
 ### Fluid-DEM
 
-This package allows you to simulate a wide spectrum of problems involving the interaction of granular DEM and fluids. This application has only a 3D version.
+This package allows you to simulate a wide spectrum of problems involving the interaction of granular DEM and fluids. This application has only a 3D version. Check also for existing manuals or tutorials to get a feel of how to work with this application.
 
 
 ## Contact
