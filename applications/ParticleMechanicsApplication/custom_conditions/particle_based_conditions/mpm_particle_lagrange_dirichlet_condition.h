@@ -268,6 +268,8 @@ private:
     ///@{
         Node<3>* pBoundaryParticle;
 
+        array_1d<double, 3> m_contact_force;
+
     ///@}
     ///@name Private Operators
     ///@{

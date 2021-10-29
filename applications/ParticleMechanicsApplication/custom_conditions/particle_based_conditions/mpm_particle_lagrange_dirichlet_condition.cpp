@@ -128,21 +128,115 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
         noalias( rRightHandSideVector ) = ZeroVector( matrix_size ); //resetting RHS
     }
+    
+    // Prepare variables
+    GeneralVariables Variables;
+
+    // Calculating shape function
+    MPMShapeFunctionPointValues(Variables.N);
+    Variables.CurrentDisp = this->CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
 
 
-    bool apply_constraints = false;
+    bool apply_constraints = true;
+
+    // Check nodal mass to avoid singularity; only apply condition if particles are inside
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+    {
+        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS) <= std::numeric_limits<double>::epsilon() ) 
+        {
+            apply_constraints=false;      
+        }
+    }  
+
+    if (Is(CONTACT))
+    {
+        // NOTE: the unit_normal_vector is assumed always pointing outside the boundary
+        array_1d<double, 3 > field_displacement = ZeroVector(3);
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            for ( unsigned int j = 0; j < dimension; j++)
+            {
+                field_displacement[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
+            }
+        }
+
+        const double penetration = MathUtils<double>::Dot((field_displacement - m_imposed_displacement), m_unit_normal);
+        // If penetrates, apply constraint, otherwise no
+        if (penetration >= 0.0)
+        {
+            apply_constraints = false;
+
+        }
+
+    }
+    
 
     if (apply_constraints)
     {
-        KRATOS_WATCH("NOT YET IMPLEMENTED")
-    }
-    else{
+        Matrix lagrange_matrix = ZeroMatrix(matrix_size, matrix_size);
 
-        KRATOS_WATCH("Not yet implemented")
+        // Loop over shape functions of displacements
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            const unsigned int ibase = dimension * number_of_nodes;
+            for (unsigned int k = 0; k < dimension; k++)
+            {
+                lagrange_matrix(i* dimension+k, ibase+k) = Variables.N[i];
+                lagrange_matrix(ibase+k, i*dimension + k) = Variables.N[i];
+    }
+        }
+
+        // Calculate LHS Matrix and RHS Vector
         if ( CalculateStiffnessMatrixFlag == true )
         {
-            noalias(rLeftHandSideMatrix) = IdentityMatrix(matrix_size);
+            rLeftHandSideMatrix = lagrange_matrix * this->GetIntegrationWeight();
         }
+
+        if ( CalculateResidualVectorFlag == true )
+        {
+            //last rows of RHS
+            Vector gap_function = ZeroVector(matrix_size);
+            Vector right_hand_side = ZeroVector(matrix_size);
+            for (unsigned int i = 0; i < number_of_nodes; i++)
+            {
+                const array_1d<double, 3>& r_displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+                const int index = dimension * i;
+
+                for (unsigned int j = 0; j < dimension; j++)
+                {
+                    gap_function[index+j] = r_displacement[j] ;
+                }
+
+
+            }
+            right_hand_side = prod(lagrange_matrix, gap_function);
+
+            //first rows of RHS
+            gap_function = ZeroVector(matrix_size);
+            auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
+            const array_1d<double, 3>& r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+
+            for (unsigned int j = 0; j < dimension; j++){
+                gap_function[dimension * number_of_nodes+j] = r_lagrange_multiplier[j];
+            }
+            
+            right_hand_side += prod(lagrange_matrix, gap_function);
+
+            //add imposed displacement
+            for (unsigned int j = 0; j < dimension; j++){
+                right_hand_side[dimension * number_of_nodes+j] -= m_imposed_displacement[j];
+            }
+
+            
+
+            right_hand_side *= this->GetIntegrationWeight();
+            noalias(rRightHandSideVector) = -right_hand_side;
+            
+        }
+        }
+    else{
+
+        KRATOS_WATCH("NO CONDITIONS APPLIED")
 
     }
 
@@ -157,7 +251,9 @@ void MPMParticleLagrangeDirichletCondition::FinalizeSolutionStep( const ProcessI
     KRATOS_TRY
 
     MPMParticleBaseDirichletCondition::FinalizeSolutionStep(rCurrentProcessInfo);
-
+    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
+    const array_1d<double, 3>& r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+    m_contact_force = r_lagrange_multiplier;
 
     KRATOS_CATCH( "" )
 }
@@ -348,6 +444,9 @@ void MPMParticleLagrangeDirichletCondition::CalculateOnIntegrationPoints(const V
     else if (rVariable == MPC_NORMAL) {
         rValues[0] = m_unit_normal;
     }
+    else if (rVariable == MPC_CONTACT_FORCE) {
+        rValues[0] = m_contact_force;
+    }
     else {
         MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
@@ -383,6 +482,9 @@ void MPMParticleLagrangeDirichletCondition::SetValuesOnIntegrationPoints(
     else if (rVariable == MPC_NORMAL) {
         m_unit_normal = rValues[0];
         ParticleMechanicsMathUtilities<double>::Normalize(m_unit_normal);
+    }
+    else if (rVariable == MPC_CONTACT_FORCE) {
+        m_contact_force = rValues[0];
     }
     else {
         MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
