@@ -9,7 +9,7 @@ import KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_an
 import KratosMultiphysics.MappingApplication
 from scipy.interpolate import splev
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
-
+import shutil
 # Import Kratos, XMC, PyCOMPSs API
 import KratosMultiphysics.MultilevelMonteCarloApplication
 import xmc
