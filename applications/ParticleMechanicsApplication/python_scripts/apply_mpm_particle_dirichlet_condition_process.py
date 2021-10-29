@@ -23,6 +23,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 "value"                     : [0.0, "0*t", 0.0],
                 "interval"                  : [0.0, 1e30],
                 "option"                    : "",
+                "max_number_of_mpc_element" : 0,
                 "local_axes"                : {}
             }  """ )
 
@@ -35,6 +36,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         self.model_part_name = settings["model_part_name"].GetString()
         self.model = Model
         self.particles_per_condition = settings["particles_per_condition"].GetInt()
+        self.max_number_of_mpc_element = settings["max_number_of_mpc_element"].GetInt()
         self.imposition_type = settings["imposition_type"].GetString()
         self.is_neumann_boundary = False
         self.option = settings["option"].GetString()
@@ -150,6 +152,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         """
         
         for mpc in self.model_part.Conditions:
+            mpc.Set(KratosMultiphysics.ACTIVE,True)
             current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             mpc_coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
 
@@ -168,3 +171,15 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                             
                         
                 mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,[self.value],self.model_part.ProcessInfo)
+
+        if (self.max_number_of_mpc_element >0):
+            for mpc in self.model_part.Conditions:
+                id_parent = mpc.GetGeometry().GeometryParentId()
+                counter = 0
+                for mpc2 in self.model_part.Conditions:
+                    if (mpc2.Is(KratosMultiphysics.ACTIVE)):
+                        id_parent2 = mpc2.GetGeometry().GeometryParentId()
+                        if (id_parent == id_parent2):
+                            counter +=1
+                if (counter>self.max_number_of_mpc_element):
+                    mpc.Set(KratosMultiphysics.ACTIVE,False)
