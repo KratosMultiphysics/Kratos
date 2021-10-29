@@ -48,6 +48,7 @@ def GetDefaultInputParameters():
             },
 
             "backward_coupling" : {
+                "backward_time_interval" : 1,
                 "meso_scale_length" : 0.2,
                 "meso_scale_length_comment" : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
                 "shape_factor" : 0.5,

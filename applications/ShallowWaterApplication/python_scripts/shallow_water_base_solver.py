@@ -162,8 +162,8 @@ class ShallowWaterBaseSolver(PythonSolver):
     # Add the properties from json file to model parts.
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
-            material_settings = KM.Parameters("""{"Parameters": {} """)
-            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
+            material_settings = KM.Parameters("""{"Parameters": {} }""")
+            material_settings["Parameters"].AddString("materials_filename", materials_filename)
             KM.ReadMaterialsUtility(material_settings, self.model)
             materials_imported = True
         else:

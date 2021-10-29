@@ -1335,7 +1335,7 @@ public:
      *
      * :TODO: TESTING!!!
      */
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod) const override
     {
@@ -1380,13 +1380,10 @@ public:
 
         for(unsigned int i=0; i<integration_points_number; i++)
                 rResult[i] = DN_DX;
-
-
-        return rResult;
     }
 
 
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult
         , Vector& determinants_of_jacobian
         , IntegrationMethod ThisMethod) const override
@@ -1441,9 +1438,6 @@ public:
         }
         for(unsigned int i=0; i<integration_points_number; i++)
                 rResult[i] = DN_DX;
-
-
-        return rResult;
     }
 
 

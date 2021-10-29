@@ -369,14 +369,18 @@ public:
         return rResult;
     }
 
+    ///@}
+    ///@name Geometry Classification
+    ///@{
+
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Brep;
+        return GeometryData::KratosGeometryFamily::Kratos_Brep;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Brep_Curve;
+        return GeometryData::KratosGeometryType::Kratos_Brep_Curve;
     }
 
     ///@}
