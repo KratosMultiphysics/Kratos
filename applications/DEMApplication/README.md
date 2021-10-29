@@ -127,7 +127,7 @@ The new GIDInterface currently under developement can be found [here](https://gi
 
 ### What to do if particles behave strangely
 
-* Check the Young Modulus. Materials with high stiffnes may require smaller time steps to ensure stability.
+* Check the Young Modulus. Materials with high stiffness may require smaller time steps to ensure stability.
 * Check the material density.
 * Check the time step. If the time step is too large, the elements can fail to interact with each other. In the worst case scenarios, the simulation may even crash.
 * Check the frequency of neighbours' search. If the search is not done frequently enough, new contacts may not be detected.
