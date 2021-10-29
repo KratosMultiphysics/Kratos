@@ -1,7 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtilities
-import os
+
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 have_conv_diff = KratosUtilities.CheckIfApplicationsAvailable("ConvectionDiffusionApplication")
@@ -40,7 +40,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "maximum_iterations": 7,
             "echo_level": 0,
             "time_order": 2,
-            "time_scheme":"bdf2",
+            "time_scheme": "bdf2",
             "initial_first_order_steps":0,
             "compute_reactions": false,
             "analysis_type": "non_linear",
@@ -116,45 +116,41 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
         # Set the time integration scheme for two fluid element.
-
         self.time_scheme=custom_settings["time_scheme"].GetString()
-        self.time_order=custom_settings["time_order"].GetInt()
-        self.initial_first_order_steps=custom_settings["initial_first_order_steps"].GetInt()
 
         if self.time_scheme == "theta_scheme":
             self.element_name= "TwoFluidNavierStokesCN"
             self.min_buffer_size = 3
-            self.theta=1
+            self.time_order=custom_settings["time_order"].GetInt()
             if (self.time_order == 1):
-                self.theta=1
-            elif (self.time_order ==2):
-                self.theta=0.5
+                self.theta = 1
+            elif (self.time_order == 2):
+                self.theta = 0.5
             else:
-                raise ValueError("{} time order is not implemented. Use \'1\' for Backward Euler   or \'2\' for CrankNicolson.".format(self.time_order))
-
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_INTEGRATION_THETA,self.theta)
+                raise ValueError("\'theta_scheme\' with \'time_order\' {} is not implemented. Use \'1\' for Backward Euler or \'2\' for Crank-Nicolson.".format(self.time_order))
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_INTEGRATION_THETA, self.theta)
 
         elif self.time_scheme == "bdf2":
             self.element_name = "TwoFluidNavierStokes"
             self.min_buffer_size = 3
         else:
-            raise ValueError("{} time scheme is not implemented. Use \'bdf2\' or \'theta_scheme\'.".format(time_scheme))
+            raise ValueError("\'time_scheme\' {} is not implemented. Use \'bdf2\' or \'theta_scheme\'.".format(self.time_scheme))
 
-
-        self.initial_first_order =False
-        if (self.initial_first_order_steps!=0):
-            if (self.time_scheme == "theta_scheme") and self.time_order==1:
-                KratosMultiphysics.Logger.PrintWarning("NavierStokesTwoFluidsSolver", "initial_first_order_steps {} for {} has not any effect since the same time scheme and order is using during simulation.".format(self.initial_first_order_steps))
+        self.initial_first_order = False
+        self.initial_first_order_steps = custom_settings["initial_first_order_steps"].GetInt()
+        if (self.initial_first_order_steps != 0):
+            if (self.time_scheme == "theta_scheme") and self.time_order == 1:
+                KratosMultiphysics.Logger.PrintWarning("NavierStokesTwoFluidsSolver", "initial_first_order_steps {} for {} has not any effect since the same time scheme and order is using during simulation.".format(self.initial_first_order_steps, self.time_scheme))
             elif self.time_scheme == "bdf2":
-                raise ValueError("{} has not implemented hybrid format between two order integration time scheme'.".format(time_scheme))
+                KratosMultiphysics.Logger.PrintWarning("NavierStokesTwoFluidsSolver", "initial_first_order_steps {} for {} has not any effect since the same time scheme and order is using during simulation.".format(self.initial_first_order_steps, self.time_scheme))
             else:
-                print("hola")
                 self.initial_first_order=True
 
         self.condition_name = "TwoFluidNavierStokesWallCondition"
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
 
+        self.min_buffer_size = 3
 
         # Set the levelset characteristic variables and add them to the convection settings
         # These are required to be set as some of the auxiliary processes admit user-defined variables
@@ -167,9 +163,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
-
-        #FIXME: Then it should be automatised in order to be dependant of simulation time
-
 
         surface_tension = False
         if (self.settings["formulation"].Has("surface_tension")):
@@ -270,20 +263,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
-
         self.second_transport=False
         if self.initial_first_order:
-            self.theta=1
-
-            time_step=self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-
+            time_step=self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP]
             if  time_step < self.initial_first_order_steps:
-                self.theta=1
+                self.theta = 1
             else:
-                self.theta=0.50
-                self.second_transport=False
-
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_INTEGRATION_THETA,self.theta)
+                self.theta = 0.5
+                self.second_transport = True
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_INTEGRATION_THETA, self.theta)
 
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
@@ -297,23 +285,36 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             system_volume = inlet_volume + self.initial_system_volume - outlet_volume
 
         if self._TimeBufferIsInitialized():
-            self.theta=self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME_INTEGRATION_THETA)
-
             if self.time_scheme == "bdf2":
                 # Recompute the BDF2 coefficients
                 (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
-            # Perform the level-set convection according to the previous step velocity
-            
-            if self.second_transport:
-                # self.__PredictVariableValue(KratosMultiphysics.VELOCITY,2,1,0.25)
-                self.__ModifyTimeStep(0.5)
+                # Perform the level-set convection according to the previous step velocity
+                self.__PerformLevelSetConvection()
 
+            elif self.time_scheme == "theta_scheme":
+                # Calculate time step according to theta
+                dt = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
+                transport_dt = dt
+                # transport_dt = self.theta * dt
+                self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, transport_dt)
 
-            self.__PerformLevelSetConvection()
+                # Prepare database for next levelset convection
+                # Velocity prediction at n + theta
+                for node in self.GetComputingModelPart().Nodes:
+                    v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
+                    v_nn = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 2)
+                    v_pred = v_n + self.theta * (v_n - v_nn)
+                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, v_pred)
 
+                # Perform the level-set convection according to the previous step velocity
+                self.__PerformLevelSetConvection()
 
+                # Reset time step for the Navier-Stokes calculation
+                self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, dt)
 
+            else:
+                raise Exception("Unsupported time scheme \'{}\'.".format(self.time_scheme))
 
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
@@ -344,30 +345,59 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._GetSolutionStrategy().InitializeSolutionStep()
 
             # Accumulative water volume error ratio due to level set. Adding source term
-            delta_time=self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
             if self.mass_source:
                 water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
-                volume_error = ((water_volume_after_transport - system_volume) / system_volume)
-                volume_error_ratio=volume_error/delta_time
-                self.initial_system_volume=system_volume
+                volume_error = (water_volume_after_transport - system_volume) / system_volume
+                self.initial_system_volume = system_volume
             else:
-                volume_error_ratio=0
+                volume_error=0
 
-            self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, volume_error_ratio)
-            if self.mass_source:
-                file_name="testing.txt"
-                self.__ExportingMassConservationData(file_name,volume_error_ratio,water_volume_after_transport,inlet_volume,outlet_volume,system_volume)
-
-            if self.second_transport:
-                time=1/0.5
-                self.__ModifyTimeStep(time)
-                self.__RemoveAuxiliarModification(KratosMultiphysics.VELOCITY,0)
-
+            self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, volume_error)
 
     def FinalizeSolutionStep(self):
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
-
         if self._TimeBufferIsInitialized():
+
+                    #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+
+
+            # if self.time_scheme == "theta_scheme" and (1.0 - self.theta) > 1.0e-12:
+            #     # Calculate time step according to theta
+            #     dt = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
+            #     transport_dt = (1.0-self.theta) * dt
+            #     self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, transport_dt)
+
+            #     # Prepare database for next levelset convection
+            #     for node in self.GetComputingModelPart().Nodes:
+            #         v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
+            #         v_n_1 = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 0)
+            #         node.SetValue(KratosMultiphysics.VELOCITY, v_n)
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1, v_n + self.theta*(v_n_1 - v_n))
+
+            #         phi_n_1 = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE, 0)
+            #         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 1, phi_n_1)
+
+            #     # Perform the level-set convection according to the previous step velocity
+            #     self.__PerformLevelSetConvection()
+
+            #     # Revert the database manipulation
+            #     for node in self.GetComputingModelPart().Nodes:
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1, node.GetValue(KratosMultiphysics.VELOCITY))
+
+            #     # Reset time step for the Navier-Stokes calculation
+            #     self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, dt)
+
+            #     KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "2nd level-set convection is performed.")
+
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+
             # Recompute the distance field according to the new level-set position
             if (self._reinitialization_type == "variational"):
                 self._GetDistanceReinitializationProcess().Execute()
@@ -392,53 +422,26 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Finalize the solver current step
             self._GetSolutionStrategy().FinalizeSolutionStep()
-            
-            if self.second_transport:
-                self.__PredictVariableValue(KratosMultiphysics.VELOCITY,1,0,0.75)
-                self.__ModifyTimeStep(0.5)
-                
-                self.__AdvancingLevelSetInTime(1)
-                for node in self.main_model_part.Nodes:
-                    distance_midpoint=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,1,distance_midpoint)
-                self.__PerformLevelSetConvection()
-                self.__AdvancingLevelSetInTime(-1)
-                self.__ModifyTimeStep(2)
-                self.__RemoveAuxiliarModification(KratosMultiphysics.VELOCITY,0)
-        
-            #  Recompute the distance field according to the new level-set position
-                if (self._reinitialization_type == "variational"):
-                    self._GetDistanceReinitializationProcess().Execute()
-                elif (self._reinitialization_type == "parallel"):
-                    adjusting_parameter = 0.05
-                    layers = int(adjusting_parameter*self.main_model_part.GetCommunicator().GlobalNumberOfElements()) # this parameter is essential
-                    max_distance = 1.0 # use this parameter to define the redistancing range
-                    # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
-                    self._GetDistanceReinitializationProcess().CalculateDistances(
-                        self.main_model_part,
-                        self._levelset_variable,
-                        KratosMultiphysics.NODAL_AREA,
-                        layers,
-                        max_distance,
-                        self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
-        
-                if (self._reinitialization_type != "none"):
-                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
-        
-                # Prepare distance correction for next step
-                self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
-
-
-
-            # # Limit the obtained acceleration for the next step
-            # # This limitation should be called on the second solution step onwards (e.g. STEP=3 for BDF2)
-            # # We intentionally avoid correcting the acceleration in the first resolution step as this might cause problems with zero initial conditions
+            # Limit the obtained acceleration for the next step
+            # This limitation should be called on the second solution step onwards (e.g. STEP=3 for BDF2)
+            # We intentionally avoid correcting the acceleration in the first resolution step as this might cause problems with zero initial conditions
             if self._apply_acceleration_limitation and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.min_buffer_size:
                 self._GetAccelerationLimitationUtility().Execute()
 
     def __PerformLevelSetConvection(self):
         # Solve the levelset convection problem
-        self._GetLevelSetConvectionProcess().Execute()
+        # self._GetLevelSetConvectionProcess().Execute()
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        pass
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
 
     # TODO: Remove this method as soon as the subproperties are available
     def _SetPhysicalProperties(self):
@@ -507,26 +510,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 node.SetSolutionStepValue(KratosMultiphysics.DENSITY, rho_2)
                 node.SetSolutionStepValue(KratosMultiphysics.DYNAMIC_VISCOSITY, mu_2)
-
-    def _CreateScheme(self):
-        # "Fake" scheme for those cases in where the element manages the time integration
-        # It is required to perform the nodal update once the current time step is solved
-        domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
-            domain_size,
-            domain_size + 1)
-
-        # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
-        if (self.settings["time_scheme"].GetString() == "bdf2"):
-            time_order = 2
-            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
-        else:
-            if not self.settings["time_scheme"].GetString() == "theta_scheme":
-                err_msg = "Requested elemental time scheme \"" + self.settings["time_scheme"].GetString()+ "\" is not available.\n"
-                err_msg += "Available options are: \"bdf2\""
-                raise Exception(err_msg)
-
-        return scheme
 
     def __SetDistanceFunction(self):
         ## Set the nodal distance function
@@ -716,52 +699,22 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self.model,
             distance_modification_settings)
 
-    def __ExportingMassConservationData(self,filename,new_error,water_volume_after_correction,inlet,outlet,system_volume):
-            if os.path.exists(filename):
-                append_write = 'a' # append if already exists
-            else:
-                append_write = 'w' # make a new file if not
-            Time=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-            highscore = open(filename,append_write) 
-            highscore.write(str(Time)+"\t" +str(new_error) +"\t" +str(water_volume_after_correction)+"\t" +str(inlet) +'\t\t'+ str(outlet) +'\t\t'+str(new_error) +'\t\t'+str(system_volume) +'\t\t'+'\n')
-            highscore.close()
+    def _CreateScheme(self):
+        # "Fake" scheme for those cases in where the element manages the time integration
+        # It is required to perform the nodal update once the current time step is solved
+        domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
+            domain_size,
+            domain_size + 1)
 
-    # Auxiliar variables in order to perform levelSet
-    def __PredictVariableValue(self,kratos_variable_name,origin_buffer,destination_buffer,Time):
-        for node in self.main_model_part.Nodes:
-            # TODO: It should be asked if the buffer size 0 or 1 in order to predict
-            Variable1=node.GetSolutionStepValue(kratos_variable_name,destination_buffer)
-            Variable2=node.GetSolutionStepValue(kratos_variable_name,origin_buffer)
-            PredictedVariable=(Variable1-Variable2)*Time+Variable1
-            node.SetValue(kratos_variable_name,Variable1)
-            node.SetSolutionStepValue(kratos_variable_name,PredictedVariable)
-    def __ModifyTimeStep(self,time_step_factor):
+        # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
+        if (self.settings["time_scheme"].GetString() == "bdf2"):
+            time_order = 2
+            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+        else:
+            if not self.settings["time_scheme"].GetString() == "theta_scheme":
+                err_msg = "Requested elemental time scheme \"" + self.settings["time_scheme"].GetString()+ "\" is not available.\n"
+                err_msg += "Available options are: \"bdf2\""
+                raise Exception(err_msg)
 
-        current_time_step=self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        if not current_time_step==0.0:
-            modified_time_step=current_time_step*time_step_factor
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,modified_time_step)
-    def __AdvancingLevelSetInTime(self,step_to_advanced):
-        current_time=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        delta_time=self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        advancing_time=current_time+delta_time*step_to_advanced
-        self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] = advancing_time
-
-    def __RemoveAuxiliarModification(self,kratos_variable,buffer_position_to_modify):
-        for node in self.main_model_part.Nodes:
-            origin_variable=node.GetValue(kratos_variable)
-            node.SetSolutionStepValue(kratos_variable,buffer_position_to_modify,origin_variable)
-    def __NotLevelSetAcceleration(self,kratos_variable,buffer):
-        for node in self.main_model_part.Nodes:
-            variable_0=node.GetSolutionStepValue(kratos_variable)
-            node.SetSolutionStepValue(kratos_variable,buffer,variable_0)
-
-
-
-
-
-
-
-
-
-
+        return scheme

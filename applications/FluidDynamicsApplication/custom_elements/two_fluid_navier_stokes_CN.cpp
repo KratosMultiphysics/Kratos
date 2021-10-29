@@ -318,7 +318,8 @@ void TwoFluidNavierStokesCN<TElementData>::UpdateIntegrationPointData(
 template <>
 void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::CalculateStrainRate(TwoFluidNavierStokesCNData<2, 3>& rData) const
 {
-    const BoundedMatrix<double,3,2> mid_step_velocity = 0.5 * (rData.Velocity + rData.Velocity_OldStep1);
+    const double theta = rData.theta;
+    const BoundedMatrix<double,3,2> mid_step_velocity = theta*rData.Velocity + (1-theta)*rData.Velocity_OldStep1;
     auto& rDNDX = rData.DN_DX;
     auto& r_strain_rate = rData.StrainRate;
     noalias(r_strain_rate) = ZeroVector(3);
@@ -331,9 +332,9 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::CalculateStrainRa
 
 template <>
 void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::CalculateStrainRate(TwoFluidNavierStokesCNData<3, 4>& rData) const
-
-{   const double  theta=rData.theta;
-    const BoundedMatrix<double,4,3> mid_step_velocity = theta * (rData.Velocity)+(1-theta)* (rData.Velocity_OldStep1);
+{
+    const double theta = rData.theta;
+    const BoundedMatrix<double,4,3> mid_step_velocity = theta*rData.Velocity + (1-theta)*rData.Velocity_OldStep1;;
     auto& rDNDX = rData.DN_DX;
     auto& r_strain_rate = rData.StrainRate;
     noalias(r_strain_rate) = ZeroVector(6);
@@ -361,8 +362,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::ComputeGaussPoint
 
     const double dyn_tau = rData.DynamicTau;
     const double K_darcy = rData.DarcyTerm;
-
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
 
     // TODO: Velocity CRANK NICOLSON at 0.5dt
     const auto &v = rData.Velocity;
@@ -629,8 +628,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::ComputeGaussPoint
     const double dt = rData.DeltaTime;
 
     const double dyn_tau = rData.DynamicTau;
-
-    const auto vconv = rData.Velocity - rData.MeshVelocity;
 
     // TODO: Velocity CRANK NICOLSON at 0.5dt
     const auto &v = rData.Velocity;
@@ -1303,7 +1300,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::ComputeGaussPoint
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vmesh;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &pn = rData.Pressure_OldStep1;
@@ -1425,7 +1421,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::ComputeGaussPoint
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vmesh;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &pn = rData.Pressure_OldStep1;
@@ -1587,7 +1582,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::ComputeGaussPoint
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vmesh;
     const auto &f = rData.BodyForce;
     const auto &pn = rData.Pressure_OldStep1;
     const auto &p=rData.Pressure;
@@ -1785,7 +1779,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::ComputeGaussPoint
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
-    const auto &vconv = v - vmesh;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
     const auto &pn = rData.Pressure_OldStep1;

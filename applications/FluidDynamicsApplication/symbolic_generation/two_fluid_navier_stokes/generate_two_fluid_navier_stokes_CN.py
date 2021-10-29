@@ -59,12 +59,11 @@ for dim in dim_vector:
     p = DefineVector('p',nnodes)                # Pressure
     pn = DefineVector('pn',nnodes)              # Previous steo pressure
     p_cn = theta*p+(1-theta)*pn
-    #FIXME: Enriched Pressure hacemos algo ??        # Enriched Pressure
-    penr_cn= DefineVector('penr_cn',nnodes)
+    penr_cn = DefineVector('penr_cn',nnodes)    # Enriched Pressure
     ## Test functions definition
     w = DefineMatrix('w',nnodes,dim)            # Velocity field test function
     q = DefineVector('q',nnodes)                # Pressure field test function
-    qenr = DefineVector('qenr' ,nnodes)	        # Enriched Pressure field test function
+    qenr = DefineVector('qenr',nnodes)	        # Enriched Pressure field test function
 
     ## Other data definitions
     f = DefineMatrix('f',nnodes,dim)            # Forcing term
@@ -95,7 +94,6 @@ for dim in dim_vector:
     v_cn_gauss=v_cn.transpose()*N
 
     ## Convective velocity definition
-    ## FIXME: vconv 0.5 evaluated
     if (linearisation == "Picard"):
         vconv_cn = DefineMatrix('vconv_CN',nnodes,dim)    # Convective velocity defined a symbol
     elif (linearisation == "FullNR"):
@@ -104,44 +102,35 @@ for dim in dim_vector:
 
     vconv_cn_gauss = vconv_cn.transpose()*N
 
-
-
     ## Compute the stabilization parameters
     vconv_cn_gauss_norm = 0.0
-    for i in range(0, dim):
+    for i in range(dim):
         vconv_cn_gauss_norm += vconv_cn_gauss[i]**2
     vconv_cn_gauss_norm = sqrt(vconv_cn_gauss_norm)
-
 
     tau1 = 1.0/((rho*dyn_tau)/(dt) + (stab_c2*rho*vconv_cn_gauss_norm)/h + (stab_c1*mu)/(h*h) + K_darcy)   # Stabilization parameter 1
     tau2 = mu + (stab_c2*rho*vconv_cn_gauss_norm*h)/stab_c1                                    # Stabilization parameter 2
 
-
     ## Values at Gauss point
-    ## FIXME: LA ACELERACION DEBE SER OTRA ??????
     accel_gauss_cn=((v-vn)/dt).transpose()*N
     p_cn_gauss=p_cn.transpose()*N
-    # FIXME: LA ENRICHMENTE ???
     penr_cn_gauss = penr_cn.transpose()*Nenr
     w_gauss = w.transpose()*N
     q_gauss = q.transpose()*N
     qenr_gauss = qenr.transpose()*Nenr
 
     ## Gradients computation
-    #FIXME: GRADIENTE ???
     grad_v_cn=DN.transpose()*v_cn
     grad_w = DN.transpose()*w
     grad_q = DN.transpose()*q
     grad_qenr = DNenr.transpose()*qenr
     grad_p_cn=DN.transpose()*p_cn
     grad_penr_cn = DNenr.transpose()*penr_cn
-    # FIXME: DIVERGENCIA??
     div_v_cn=div(DN,v_cn)
     div_w = div(DN,w)
     # div_vconv = div(DN,vconv_cn)
     # div_vconv_cn=div(DN,vconv)
 
-    # FIXME: GRADIENTE??
     grad_sym_v_cn_voigt = grad_sym_voigtform(DN,v_cn)   # Symmetric gradient of v in Voigt notation
     grad_sym_w_voigt = grad_sym_voigtform(DN,w)     # Symmetric gradient of w in Voigt notation
     # Recall that the grad(w):sigma contraction equals grad_sym(w)*sigma in Voigt notation since sigma is a symmetric tensor.
@@ -227,9 +216,7 @@ for dim in dim_vector:
     vel_residual_enr_cn = rho*f_gauss - rho*(accel_gauss_cn + convective_cn_term.transpose()) - grad_p_cn - K_darcy*v_cn_gauss - grad_penr_cn
     vel_subscale_enr_cn = vel_residual_enr_cn * tau1
 
-    #FIXME: Enrichmente_without cn
     rv_galerkin_enriched_cn = div_w*penr_cn_gauss
-    # rv_galerkin_enriched = div_w*penr_gauss
 
     if (divide_by_rho):
         rv_galerkin_enriched_cn += qenr_gauss*(volume_error_ratio - div_v_cn[0,0])
@@ -297,4 +284,3 @@ for dim in dim_vector:
 out = open("two_fluid_navier_stokes_CN.cpp",'w')
 out.write(outstring)
 out.close()
-

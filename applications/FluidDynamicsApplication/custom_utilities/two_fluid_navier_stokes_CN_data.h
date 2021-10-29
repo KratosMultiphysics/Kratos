@@ -249,7 +249,7 @@ void CalculateAirMaterialResponse() {
 
 void ComputeStrain()
 {
-    const BoundedMatrix<double, TNumNodes, TDim>& v = Velocity;
+    const BoundedMatrix<double, TNumNodes, TDim>& v = theta*Velocity + (1.0-theta)*Velocity_OldStep1;
     const BoundedMatrix<double, TNumNodes, TDim>& DN = this->DN_DX;
 
     // Compute strain (B*v)
