@@ -173,14 +173,16 @@ protected:
                                                     const IndexType& PointNumber,
                                                     const double& detJ);
 
-    double CalculateDerivativesOnInitialConfiguration(Matrix& J0,
-                                                      Matrix& InvJ0,
-                                                      Matrix& DN_DX,
-                                                      const IndexType& PointNumber) const;
+    void CalculateDerivativesOnInitialConfiguration(double& detJ,
+                                                    Matrix& J0,
+                                                    Matrix& InvJ0,
+                                                    Matrix& DN_DX,
+                                                    const IndexType& PointNumber) const;
 
-    double CalculateJacobianOnCurrentConfiguration(Matrix& rJ,
-                                                   Matrix& rInvJ,
-                                                   const IndexType& GPoint) const;
+    void CalculateJacobianOnCurrentConfiguration(double& detJ,
+                                                 Matrix& rJ,
+                                                 Matrix& rInvJ,
+                                                 const IndexType& GPoint) const;
 
     /**
      * @brief This functions calculate the derivatives in the reference frame
@@ -191,10 +193,11 @@ protected:
      * @param ThisIntegrationMethod The integration method considered
      * @return The determinant of the jacobian in the reference configuration
      */
-    double CalculateJacobianOnCurrentConfiguration(Matrix& J0,
-                                                   Matrix& InvJ0,
-                                                   Matrix& DN_DX,
-                                                   const IndexType &PointNumber) const;
+    void CalculateJacobianOnCurrentConfiguration(double& detJ,
+                                                 Matrix& J0,
+                                                 Matrix& InvJ0,
+                                                 Matrix& DN_DX,
+                                                 const IndexType &PointNumber) const;
 
     /**
      * @brief This functions calculate the derivatives in the current frame

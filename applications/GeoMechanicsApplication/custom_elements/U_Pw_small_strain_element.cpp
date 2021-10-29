@@ -765,11 +765,11 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             noalias(Variables.Np) = row(Variables.NContainer, GPoint);
 
             Matrix J0,InvJ0;
-            Variables.detJInitialConfiguration =
-                CalculateDerivativesOnInitialConfiguration(J0,
-                                                           InvJ0,
-                                                           Variables.GradNpTInitialConfiguration,
-                                                           GPoint);
+            this->CalculateDerivativesOnInitialConfiguration(Variables.detJInitialConfiguration,
+                                                             J0,
+                                                             InvJ0,
+                                                             Variables.GradNpTInitialConfiguration,
+                                                             GPoint);
 
             // Calculating operator B
             this->CalculateBMatrix( Variables.B, Variables.GradNpTInitialConfiguration, Variables.Np);
@@ -952,11 +952,11 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         GeoElementUtilities::CalculateNuElementMatrix<TDim, TNumNodes>(Nut, Variables.NContainer, GPoint);
 
         Matrix J0, InvJ0, DNu_DX0;
-        Variables.detJInitialConfiguration =
-            CalculateDerivativesOnInitialConfiguration(J0,
-                                                       InvJ0,
-                                                       DNu_DX0,
-                                                       GPoint);
+        this->CalculateDerivativesOnInitialConfiguration(Variables.detJInitialConfiguration,
+                                                         J0,
+                                                         InvJ0,
+                                                         DNu_DX0,
+                                                         GPoint);
 
         //calculating weighting coefficient for integration
         Variables.IntegrationCoefficientInitialConfiguration = 
@@ -1835,17 +1835,19 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     // derivative of shape function (displacement)
     Matrix J0, InvJ0, DNu_DX0;
     double detJ0;
-        detJ0 = CalculateDerivativesOnInitialConfiguration(J0,
-                                                           InvJ0,
-                                                           DNu_DX0,
-                                                           GPoint);
+    this->CalculateDerivativesOnInitialConfiguration(detJ0,
+                                                     J0,
+                                                     InvJ0,
+                                                     DNu_DX0,
+                                                     GPoint);
 
     //Calculating current jacobian in order to find deformation gradient
     Matrix J, InvJ, DNu_DX;
-    double detJ =
-        this->CalculateJacobianOnCurrentConfiguration(J,
-                                                      InvJ,
-                                                      GPoint);
+    double detJ;
+    this->CalculateJacobianOnCurrentConfiguration(detJ,
+                                                  J,
+                                                  InvJ,
+                                                  GPoint);
 
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
@@ -1980,11 +1982,11 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     this->CalculateBMatrix(rVariables.B, rVariables.GradNpT, rVariables.Np);
 
     Matrix J0,InvJ0;
-    rVariables.detJInitialConfiguration =
-        CalculateDerivativesOnInitialConfiguration(J0,
-                                                   InvJ0,
-                                                   rVariables.GradNpTInitialConfiguration,
-                                                   GPoint);
+    this->CalculateDerivativesOnInitialConfiguration(rVariables.detJInitialConfiguration,
+                                                     J0,
+                                                     InvJ0,
+                                                     rVariables.GradNpTInitialConfiguration,
+                                                     GPoint);
 
     // KRATOS_INFO("1-UPwSmallStrainElement::CalculateKinematics") << std::endl;
 

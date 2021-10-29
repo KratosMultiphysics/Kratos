@@ -650,8 +650,9 @@ double UPwBaseElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-double UPwBaseElement<TDim,TNumNodes>::
-    CalculateDerivativesOnInitialConfiguration(Matrix& J0,
+void UPwBaseElement<TDim,TNumNodes>::
+    CalculateDerivativesOnInitialConfiguration(double& detJ,
+                                               Matrix& J0,
                                                Matrix& InvJ0,
                                                Matrix& DNu_DX0,
                                                const IndexType& GPoint) const
@@ -662,7 +663,6 @@ double UPwBaseElement<TDim,TNumNodes>::
     const GeometryType& rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( mThisIntegrationMethod );
 
-    double detJ;
     GeometryUtils::JacobianOnInitialConfiguration(rGeom, IntegrationPoints[GPoint], J0);
     const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[GPoint];
     MathUtils<double>::InvertMatrix( J0, InvJ0, detJ );
@@ -670,15 +670,14 @@ double UPwBaseElement<TDim,TNumNodes>::
 
     // KRATOS_INFO("1-UPwBaseElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
 
-    return detJ;
-
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-double UPwBaseElement<TDim,TNumNodes>::
-    CalculateJacobianOnCurrentConfiguration(Matrix& rJ,
+void UPwBaseElement<TDim,TNumNodes>::
+    CalculateJacobianOnCurrentConfiguration(double& detJ,
+                                            Matrix& rJ,
                                             Matrix& rInvJ,
                                             const IndexType& GPoint) const
 {
@@ -687,21 +686,19 @@ double UPwBaseElement<TDim,TNumNodes>::
     // KRATOS_INFO("0-UPwBaseElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
     const GeometryType& rGeom = this->GetGeometry();
 
-    double detJ;
     rJ = rGeom.Jacobian( rJ, GPoint, mThisIntegrationMethod );
     MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
 
     // KRATOS_INFO("1-UPwBaseElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
-
-    return detJ;
 
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-double UPwBaseElement<TDim,TNumNodes>::
-    CalculateJacobianOnCurrentConfiguration(Matrix& J,
+void UPwBaseElement<TDim,TNumNodes>::
+    CalculateJacobianOnCurrentConfiguration(double& detJ,
+                                            Matrix& J,
                                             Matrix& InvJ,
                                             Matrix& GradNpT,
                                             const IndexType &GPoint) const
@@ -716,13 +713,10 @@ double UPwBaseElement<TDim,TNumNodes>::
     J.clear();
     J = this->GetGeometry().Jacobian(J, GPoint, mThisIntegrationMethod, DisplacementMatrix);
 
-    double detJ;
     MathUtils<double>::InvertMatrix( J, InvJ, detJ );
 
     const Matrix& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod)[GPoint];
     noalias( GradNpT ) = prod( DN_De, InvJ);
-
-    return detJ;
 
     KRATOS_CATCH( "" )
 }

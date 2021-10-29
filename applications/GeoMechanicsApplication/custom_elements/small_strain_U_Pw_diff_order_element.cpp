@@ -1258,11 +1258,11 @@ void SmallStrainUPwDiffOrderElement::
             noalias(Variables.Nu) = row(Variables.NuContainer, GPoint);
 
             Matrix J0,InvJ0;
-            Variables.detJInitialConfiguration =
-                CalculateDerivativesOnInitialConfiguration(J0,
-                                                           InvJ0,
-                                                           Variables.DNu_DXInitialConfiguration,
-                                                           GPoint);
+            this->CalculateDerivativesOnInitialConfiguration(Variables.detJInitialConfiguration,
+                                                             J0,
+                                                             InvJ0,
+                                                             Variables.DNu_DXInitialConfiguration,
+                                                             GPoint);
 
             // Calculating operator B
             this->CalculateBMatrix( Variables.B, Variables.DNu_DXInitialConfiguration, Variables.Nu);
@@ -1853,11 +1853,11 @@ void SmallStrainUPwDiffOrderElement::
     rVariables.detJ = rVariables.detJuContainer[GPoint];
 
     Matrix J0,InvJ0;
-    rVariables.detJInitialConfiguration =
-        CalculateDerivativesOnInitialConfiguration(J0,
-                                                   InvJ0,
-                                                   rVariables.DNu_DXInitialConfiguration,
-                                                   GPoint);
+    this->CalculateDerivativesOnInitialConfiguration(rVariables.detJInitialConfiguration,
+                                                     J0,
+                                                     InvJ0,
+                                                     rVariables.DNu_DXInitialConfiguration,
+                                                     GPoint);
 
 
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateKinematics") << std::endl;
@@ -1866,8 +1866,9 @@ void SmallStrainUPwDiffOrderElement::
 }
 
 //----------------------------------------------------------------------------------------
-double SmallStrainUPwDiffOrderElement::
-    CalculateDerivativesOnInitialConfiguration(Matrix& J0,
+void SmallStrainUPwDiffOrderElement::
+    CalculateDerivativesOnInitialConfiguration(double& detJ,
+                                               Matrix& J0,
                                                Matrix& InvJ0,
                                                Matrix& DNu_DX0,
                                                const IndexType& GPoint) const
@@ -1879,15 +1880,12 @@ double SmallStrainUPwDiffOrderElement::
     const GeometryType& rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( this->GetIntegrationMethod() );
 
-    double detJ;
     GeometryUtils::JacobianOnInitialConfiguration(rGeom, IntegrationPoints[GPoint], J0);
     const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(this->GetIntegrationMethod())[GPoint];
     MathUtils<double>::InvertMatrix( J0, InvJ0, detJ );
     GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
 
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
-
-    return detJ;
 
     KRATOS_CATCH( "" )
 }
@@ -2498,17 +2496,19 @@ void SmallStrainUPwDiffOrderElement::
     // derivative of shape function (displacement)
     Matrix J0, InvJ0, DNu_DX0;
     double detJ0;
-        detJ0 = CalculateDerivativesOnInitialConfiguration(J0,
-                                                           InvJ0,
-                                                           DNu_DX0,
-                                                           GPoint);
+    this-> CalculateDerivativesOnInitialConfiguration(detJ0,
+                                                      J0,
+                                                      InvJ0,
+                                                      DNu_DX0,
+                                                      GPoint);
 
     //Calculating current jacobian in order to find deformation gradient
     Matrix J, InvJ;
-    double detJ =
-        this->CalculateJacobianOnCurrentConfiguration(J,
-                                                      InvJ,
-                                                      GPoint);
+    double detJ;
+    this->CalculateJacobianOnCurrentConfiguration(detJ,
+                                                  J,
+                                                  InvJ,
+                                                  GPoint);
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
     if (detJ < 0.0) {
@@ -2626,8 +2626,9 @@ void SmallStrainUPwDiffOrderElement::
 }
 
 //----------------------------------------------------------------------------------------
-double SmallStrainUPwDiffOrderElement::
-    CalculateJacobianOnCurrentConfiguration(Matrix& rJ,
+void SmallStrainUPwDiffOrderElement::
+    CalculateJacobianOnCurrentConfiguration(double& detJ,
+                                            Matrix& rJ,
                                             Matrix& rInvJ,
                                             const IndexType& GPoint) const
 {
@@ -2636,16 +2637,12 @@ double SmallStrainUPwDiffOrderElement::
     // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
     const GeometryType& rGeom = this->GetGeometry();
 
-    double detJ;
     rJ = rGeom.Jacobian( rJ, GPoint, this->GetIntegrationMethod() );
     MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
 
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
 
-    return detJ;
-
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

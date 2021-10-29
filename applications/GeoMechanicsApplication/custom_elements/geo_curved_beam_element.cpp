@@ -969,7 +969,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
             Vector AverageStrainVector = ZeroVector(VoigtSize);
 
             for (unsigned int GPointCross = 0; GPointCross < GetCrossNumberIntegrationPoints(); ++GPointCross) {
-                int GPoint = GPointAlong * GetCrossNumberIntegrationPoints() + GPointCross;
 
                 BoundedMatrix<double,TDim, TDim> JacobianMatrix;
                 this->CalculateJacobianMatrix( GPointCross,

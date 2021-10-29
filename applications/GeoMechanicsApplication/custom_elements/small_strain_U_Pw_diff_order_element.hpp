@@ -247,10 +247,11 @@ protected:
 
     virtual void CalculateKinematics(ElementVariables& rVariables, const unsigned int &PointNumber);
 
-    double CalculateDerivativesOnInitialConfiguration(Matrix& J0,
-                                                      Matrix& InvJ0,
-                                                      Matrix& DN_DX,
-                                                      const IndexType& PointNumber) const;
+    void CalculateDerivativesOnInitialConfiguration(double& detJ,
+                                                    Matrix& J0,
+                                                    Matrix& InvJ0,
+                                                    Matrix& DN_DX,
+                                                    const IndexType& PointNumber) const;
 
     void SetConstitutiveParameters(ElementVariables& rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters);
@@ -320,9 +321,10 @@ protected:
 
     void CalculateSoilDensity(ElementVariables &rVariables);
 
-    double CalculateJacobianOnCurrentConfiguration(Matrix& rJ,
-                                                   Matrix& rInvJ,
-                                                   const IndexType& GPoint) const;
+    void CalculateJacobianOnCurrentConfiguration(double& detJ,
+                                                 Matrix& rJ,
+                                                 Matrix& rInvJ,
+                                                 const IndexType& GPoint) const;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
