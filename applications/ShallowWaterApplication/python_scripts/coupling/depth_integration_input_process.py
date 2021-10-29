@@ -22,40 +22,39 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
     @staticmethod
     def GetDefaultParameters():
         return KM.Parameters("""{
-            "model_part_name"           : "",
-            "interface_model_part_name" : "interface_model_part",
-            "read_historical_database"  : false,
-            "interval"                  : [0.0,"End"],
-            "list_of_variables"         : ["MOMENTUM"],
-            "list_of_variables_to_fix"  : ["MOMENTUM_X","MOMENTUM_Y"],
-            "swap_yz_axis"              : false,
-            "ignore_vertical_component" : true,
-            "file_settings"             : {}
+            "model_part_name"             : "",
+            "interface_model_part_name"   : "interface_model_part",
+            "read_historical_database"    : false,
+            "interval"                    : [0.0,"End"],
+            "list_of_variables"           : ["MOMENTUM"],
+            "list_of_variables_to_fix"    : ["MOMENTUM_X","MOMENTUM_Y"],
+            "default_time_after_interval" : 0.0,
+            "swap_yz_axis"                : false,
+            "ignore_vertical_component"   : true,
+            "file_settings"               : {}
         }""")
 
     def __init__(self, model, settings):
         """The constructor of the DepthIntegrationInputProcess"""
 
         KM.OutputProcess.__init__(self)
-        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
+        self.settings = settings
+        self.settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        self.model_part = model[settings["model_part_name"].GetString()]
-        self.read_historical = settings["read_historical_database"].GetBool()
-        self.interval = KM.IntervalUtility(settings)
-        interface_model_part_name = settings["interface_model_part_name"].GetString()
+        self.model_part = model[self.settings["model_part_name"].GetString()]
+        self.interval = KM.IntervalUtility(self.settings)
+        interface_model_part_name = self.settings["interface_model_part_name"].GetString()
         if model.HasModelPart(interface_model_part_name):
             raise Exception("DepthIntegrationInputProcess: There is an existing interface model part with name '{}'".format(interface_model_part_name))
         self.interface_model_part = model.CreateModelPart(interface_model_part_name)
-        self.swap_yz_axis = settings["swap_yz_axis"].GetBool()
-        self.ignore_vertical_component = settings["ignore_vertical_component"].GetBool()
-        self.variables = GenerateVariableListFromInput(settings["list_of_variables"])
-        self.variables_to_fix = GenerateVariableListFromInput(settings["list_of_variables_to_fix"])
+        self.variables = GenerateVariableListFromInput(self.settings["list_of_variables"])
+        self.variables_to_fix = GenerateVariableListFromInput(self.settings["list_of_variables_to_fix"])
 
         hdf5_settings = KM.Parameters()
-        hdf5_settings.AddValue("model_part_name", settings["interface_model_part_name"])
-        hdf5_settings.AddValue("file_settings", settings["file_settings"])
+        hdf5_settings.AddString("model_part_name", interface_model_part_name)
+        hdf5_settings.AddValue("file_settings", self.settings["file_settings"])
         data_settings = KM.Parameters("""{"list_of_variables" : ["MOMENTUM","VELOCITY","HEIGHT"]}""")
-        if self.read_historical:
+        if self.settings["read_historical_database"].GetBool():
             hdf5_settings.AddValue("nodal_solution_step_data_settings", data_settings)
         else:
             hdf5_settings.AddValue("nodal_data_value_settings", data_settings)
@@ -64,7 +63,7 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
 
         self.hdf5_read = read_model_part_from_hdf5_process.Factory(hdf5_process_settings.Clone(), model)
         self.hdf5_process = single_mesh_temporal_input_process.Factory(hdf5_process_settings.Clone(), model)
-        self._GetInputTimes(settings['file_settings'])
+        self._GetInputTimes(self.settings['file_settings'])
 
     def Check(self):
         '''Check the processes.'''
@@ -86,11 +85,6 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
             self.hdf5_process.ExecuteInitializeSolutionStep()
             self._CheckInputVariables()
             self._MapToBoundaryCondition()
-
-        ######################################
-        print("ExecuteInitializeSolutionStep")
-        for node in self.interface_model_part.Nodes:
-            print(node.GetValue(KM.MOMENTUM))
 
     def _GetInputTimes(self, file_settings):
         # Get all the file names
@@ -118,15 +112,15 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
         self.interface_model_part.ProcessInfo.SetValue(KM.TIME, closest_time)
 
     def _CheckInputVariables(self):
-        if self.swap_yz_axis:
-            if self.read_historical:
+        if self.settings["swap_yz_axis"].GetBool():
+            if self.settings["read_historical_database"].GetBool():
                 SW.ShallowWaterUtilities().SwapYZComponents(KM.MOMENTUM, self.interface_model_part.Nodes)
                 SW.ShallowWaterUtilities().SwapYZComponents(KM.VELOCITY, self.interface_model_part.Nodes)
             else:
                 SW.ShallowWaterUtilities().SwapYZComponentsNonHistorical(KM.MOMENTUM, self.interface_model_part.Nodes)
                 SW.ShallowWaterUtilities().SwapYZComponentsNonHistorical(KM.VELOCITY, self.interface_model_part.Nodes)
-        if self.ignore_vertical_component:
-            if self.read_historical:
+        if self.settings["ignore_vertical_component"].GetBool():
+            if self.settings["read_historical_database"].GetBool():
                 KM.VariableUtils().SetVariableToZero(KM.MOMENTUM_Z, self.interface_model_part.Nodes)
                 KM.VariableUtils().SetVariableToZero(KM.VELOCITY_Z, self.interface_model_part.Nodes)
             else:
@@ -135,7 +129,7 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
 
     def _MapToBoundaryCondition(self):
         for variable in self.variables:
-            if self.read_historical:
+            if self.settings["read_historical_database"].GetBool():
                 self.mapper.Map(variable, variable)
             else:
                 self.mapper.Map(variable, variable, KM.Mapper.FROM_NON_HISTORICAL)
