@@ -64,7 +64,7 @@ class ConvergenceCriteriaWrapper:
             is_converged = self.conv_crit.IsConverged(residual, current_data)
 
         # all ranks of the coupled solver need to know the convergence information
-        is_converged = self.parent_coupled_solver_data_communicator.Broadcast(is_converged, 0)
+        is_converged = bool(self.parent_coupled_solver_data_communicator.Broadcast(bool(is_converged), 0))
 
         return is_converged
 
