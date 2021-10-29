@@ -3,14 +3,9 @@
 
 namespace Kratos {
 
-    DEMContinuumConstitutiveLaw::DEMContinuumConstitutiveLaw() {
-        //KRATOS_INFO("DEM") << " DEMContinuumConstitutiveLaw constructor.." << std::endl;
+    DEMContinuumConstitutiveLaw::DEMContinuumConstitutiveLaw() {}
 
-    } // Class DEMContinuumConstitutiveLaw
-
-    DEMContinuumConstitutiveLaw::DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw &rReferenceContinuumConstitutiveLaw) {
-        //KRATOS_INFO("DEM") << " DEMContinuumConstitutiveLaw copy constructor.." << std::endl;
-    }
+    DEMContinuumConstitutiveLaw::DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw &rReferenceContinuumConstitutiveLaw) {}
 
     std::string DEMContinuumConstitutiveLaw::GetTypeOfLaw() {
         KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::GetTypeOfLaw) shouldn't be accessed, use derived class instead"<<std::endl;
@@ -23,17 +18,16 @@ namespace Kratos {
     }
 
     void DEMContinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        if(verbose) KRATOS_INFO("DEM") << "Assigning DEMContinuumConstitutiveLaw to Properties " << pProp->Id() << std::endl;
+        if (verbose) KRATOS_INFO("DEM")  << "Assigning " << pProp->GetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME) << " to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
         this->Check(pProp);
     }
 
     void DEMContinuumConstitutiveLaw::SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose) {
-        if(verbose) KRATOS_INFO("DEM") << "Assigning DEMContinuumConstitutiveLaw to Properties " << pProp->Id() << std::endl;
+        if(verbose) KRATOS_INFO("DEM") << "Assigning " << pProp->GetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME) << " to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
 
         TransferParametersToProperties(parameters, pProp);
-
         this->Check(pProp);
     }
 

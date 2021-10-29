@@ -43,13 +43,6 @@ namespace Kratos {
         return Kratos::make_unique<DEM_D_Bentonite_Colloid>();
     }
 
-
-
-    void DEM_D_Bentonite_Colloid::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        KRATOS_INFO("DEM") << "Assigning DEM_D_Bentonite_Colloid to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }
-
     std::string DEM_D_Bentonite_Colloid::GetTypeOfLaw() {
         std::string type_of_law = "Linear";
         return type_of_law;

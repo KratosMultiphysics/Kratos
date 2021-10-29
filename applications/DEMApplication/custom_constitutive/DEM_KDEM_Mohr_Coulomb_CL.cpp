@@ -14,12 +14,6 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEM_Mohr_Coulomb::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        KRATOS_INFO("DEM") << "Assigning DEM_KDEM_Mohr_Coulomb to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-        this->Check(pProp);
-    }
-
     void DEM_KDEM_Mohr_Coulomb::Check(Properties::Pointer pProp) const {
         DEM_KDEM::Check(pProp);
 

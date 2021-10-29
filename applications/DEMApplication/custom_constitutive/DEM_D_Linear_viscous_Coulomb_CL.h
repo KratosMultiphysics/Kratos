@@ -24,10 +24,6 @@ namespace Kratos {
 
         ~DEM_D_Linear_viscous_Coulomb() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
-        void Check(Properties::Pointer pProp) const override;
-
         std::string GetTypeOfLaw() override;
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;

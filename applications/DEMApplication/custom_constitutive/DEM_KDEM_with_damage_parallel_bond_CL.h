@@ -19,10 +19,6 @@ namespace Kratos {
 
         ~DEM_KDEM_with_damage_parallel_bond() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
-        void SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose = true) override;
-
         void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp) override;
 
         void Check(Properties::Pointer pProp) const override;

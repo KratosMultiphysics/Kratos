@@ -13,11 +13,6 @@ namespace Kratos {
         return Kratos::make_unique<DEM_D_Linear_confined>();
     }
 
-    void DEM_D_Linear_confined::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        KRATOS_INFO("DEM") << "Assigning DEM_D_Linear_confined to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }
-
     double DEM_D_Linear_confined::CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2,
             const double indentation, double LocalCoordSystem[3][3]) {
 

@@ -29,19 +29,6 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_Dempack::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_Dempack to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }
-
-    void DEM_Dempack::SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose) {
-        KRATOS_INFO("DEM") << "Assigning DEM_Dempack to Properties " << pProp->Id() <<" with given parameters"<< std::endl;
-        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-
-        TransferParametersToProperties(parameters, pProp);
-
-        this->Check(pProp);
-    }
 
     void DEM_Dempack::TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp)  {
         BaseClassType::TransferParametersToProperties(parameters, pProp);
@@ -58,10 +45,6 @@ namespace Kratos {
         pProp->SetValue(SLOPE_LIMIT_COEFF_C3, parameters["CONTACT_TAU_ZERO"].GetDouble());
         pProp->SetValue(SLOPE_LIMIT_COEFF_C3, parameters["CONTACT_INTERNAL_FRICC"].GetDouble());
         pProp->SetValue(SLOPE_LIMIT_COEFF_C3, parameters["SHEAR_ENERGY_COEF"].GetDouble());
-    }
-
-    void DEM_Dempack::Check(Properties::Pointer pProp) const {
-        BaseClassType::Check(pProp);
     }
 
     void DEM_Dempack::CalculateContactArea(double radius, double other_radius, double& calculation_area) {

@@ -19,8 +19,6 @@ namespace Kratos {
 
         DEM_D_Bentonite_Colloid();
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
         std::string GetTypeOfLaw() override;
 
         ~DEM_D_Bentonite_Colloid() {

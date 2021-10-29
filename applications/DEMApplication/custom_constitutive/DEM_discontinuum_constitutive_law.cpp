@@ -6,17 +6,13 @@
 
 namespace Kratos {
 
-    DEMDiscontinuumConstitutiveLaw::DEMDiscontinuumConstitutiveLaw() {
-        //KRATOS_INFO("DEM") << " DEMDiscontinuumConstitutiveLaw constructor..." << std::endl;
+    DEMDiscontinuumConstitutiveLaw::DEMDiscontinuumConstitutiveLaw() {}
 
-    } // Class DEMDiscontinuumConstitutiveLaw
-
-    DEMDiscontinuumConstitutiveLaw::DEMDiscontinuumConstitutiveLaw(const DEMDiscontinuumConstitutiveLaw &rReferenceDiscontinuumConstitutiveLaw) {
-        //KRATOS_INFO("DEM") << " DEMDiscontinuumConstitutiveLaw copy constructor..." << std::endl;
-    }
+    //copy constructor
+    DEMDiscontinuumConstitutiveLaw::DEMDiscontinuumConstitutiveLaw(const DEMDiscontinuumConstitutiveLaw &rReferenceDiscontinuumConstitutiveLaw) {}
 
     void DEMDiscontinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        //if (verbose) KRATOS_INFO("DEM") << "Assigning DEMDiscontinuumConstitutiveLaw to properties " << pProp->Id() << std::endl;
+        if (verbose) KRATOS_INFO("DEM")  << "Assigning " << pProp->GetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME) << " to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
         this->Check(pProp);
     }

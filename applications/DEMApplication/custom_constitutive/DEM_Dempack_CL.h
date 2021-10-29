@@ -30,16 +30,11 @@ namespace Kratos {
         double mHistoryDisp;
         double mHistoryShearFlag;
 
-
         virtual void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps) override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-        void SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose = true) override; 
-        void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp) override; 
-        void Check(Properties::Pointer pProp) const override;
+        void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp) override;
 
-        ~DEM_Dempack() {
-        }
+        ~DEM_Dempack() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 

@@ -26,9 +26,6 @@ namespace Kratos {
 
         ~DEM_D_Conical_damage() {}
 
-
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
         void Check(Properties::Pointer pProp) const override;
 
         std::string GetTypeOfLaw() override;

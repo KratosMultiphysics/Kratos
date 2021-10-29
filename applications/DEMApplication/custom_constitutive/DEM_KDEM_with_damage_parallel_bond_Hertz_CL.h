@@ -19,10 +19,6 @@ namespace Kratos {
 
         ~DEM_KDEM_with_damage_parallel_bond_Hertz() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
-        void SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose) override;
-
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
         void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double bonded_equiv_young,

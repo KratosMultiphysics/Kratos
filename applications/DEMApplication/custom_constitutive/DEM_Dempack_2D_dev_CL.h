@@ -17,8 +17,6 @@ namespace Kratos {
 
         DEM_Dempack2D_dev() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
         ~DEM_Dempack2D_dev() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
