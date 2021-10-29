@@ -107,10 +107,141 @@ public:
 		TLocalVectorType& rLocalVector,
 		GeometryType& rGeometry) const override
 	{
-		if (this->GetBlockSize() == this->GetDomainSize()) // irreducible case
+
+		const unsigned int num_nodes = rGeometry.PointsNumber();
+		const unsigned int dimension = this->GetDomainSize();
+		const unsigned int local_size = num_nodes * dimension;
+
+		if (rLocalVector.size() == local_size) // irreducible case
 		{
 			if (this->GetDomainSize() == 2) this->template RotateAuxPure<2>(rLocalMatrix,rLocalVector,rGeometry);
 			else if (this->GetDomainSize() == 3) this->template RotateAuxPure<3>(rLocalMatrix,rLocalVector,rGeometry);
+		}
+		else if (rLocalVector.size() == dimension + local_size) //lagrange multiplier condition
+		{
+			// TODO: Improve if with dimension --> template it in coordinate_transformation_utilities?; 
+			// if same rotation matrix is used for all nodes then more then 2 boundary particles (2D) can be applied otherwise it is limited 
+			// in this case a constant rotation matrix (from node 1) is assumed 
+			if (dimension==2)
+			{
+				const unsigned int LocalSize = rLocalVector.size();
+
+				unsigned int Index = 0;
+				int rotations_needed = 0;
+				const unsigned int NumBlocks = num_nodes + 1;
+				const unsigned int BlockSize = 2;
+
+				std::vector< BoundedMatrix<double,BlockSize,BlockSize> > rRot(NumBlocks);
+				for(unsigned int j = 0; j < NumBlocks; ++j)
+				{
+					if (j<num_nodes)
+					{
+						// Normals of the nodes (only node 1 is considered)
+						if( this->IsSlip(rGeometry[j]) )
+						{
+							rotations_needed++;
+							LocalRotationOperatorPure(rRot[j],rGeometry[0]);
+						}
+					}
+					else{
+						if( this->IsSlip(rGeometry[0]) )
+						{
+							// normal of node 1 is considered
+							rotations_needed++;
+							LocalRotationOperatorPure(rRot[j],rGeometry[0]);
+						}
+					}
+
+					Index += BlockSize;
+				}
+
+				if(rotations_needed > 0)
+				{
+					BoundedMatrix<double,BlockSize,BlockSize> mat_block, tmp;
+					array_1d<double,BlockSize> aux, aux1;
+
+					for(unsigned int i=0; i<NumBlocks; i++)
+					{
+						for(unsigned int j=0; j<NumBlocks; j++)
+						{
+							this->ReadBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
+							noalias(tmp) = prod(mat_block,trans(rRot[j]));
+							noalias(mat_block) = prod(rRot[i],tmp);
+							this->WriteBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
+						}
+
+						for(unsigned int k=0; k<BlockSize; k++)
+						aux[k] = rLocalVector[i*BlockSize+k];
+
+						noalias(aux1) = prod(rRot[i],aux);
+
+						for(unsigned int k=0; k<BlockSize; k++)
+						rLocalVector[i*BlockSize+k] = aux1[k];
+
+					}
+				}
+			}
+			else 	// dimension=3
+			{
+				const unsigned int LocalSize = rLocalVector.size();
+
+				unsigned int Index = 0;
+				int rotations_needed = 0;
+				const unsigned int NumBlocks = num_nodes + 1;
+				const unsigned int BlockSize = 3;
+
+				std::vector< BoundedMatrix<double,BlockSize,BlockSize> > rRot(NumBlocks);
+				for(unsigned int j = 0; j < NumBlocks; ++j)
+				{
+					if (j<num_nodes)
+					{
+						// Normals of the nodes (only node 1 is considered)
+						if( this->IsSlip(rGeometry[j]) )
+						{
+							rotations_needed++;
+							LocalRotationOperatorPure(rRot[j],rGeometry[0]);
+
+						}
+					}
+					else{
+						if( this->IsSlip(rGeometry[0]) )
+						{
+							
+							rotations_needed++;
+							LocalRotationOperatorPure(rRot[j],rGeometry[0]);
+
+						}
+					}
+
+					Index += BlockSize;
+				}
+
+				if(rotations_needed > 0)
+				{
+					BoundedMatrix<double,BlockSize,BlockSize> mat_block, tmp;
+					array_1d<double,BlockSize> aux, aux1;
+
+					for(unsigned int i=0; i<NumBlocks; i++)
+					{
+						for(unsigned int j=0; j<NumBlocks; j++)
+						{
+							this->ReadBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
+							noalias(tmp) = prod(mat_block,trans(rRot[j]));
+							noalias(mat_block) = prod(rRot[i],tmp);
+							this->WriteBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
+						}
+
+						for(unsigned int k=0; k<BlockSize; k++)
+						aux[k] = rLocalVector[i*BlockSize+k];
+
+						noalias(aux1) = prod(rRot[i],aux);
+
+						for(unsigned int k=0; k<BlockSize; k++)
+						rLocalVector[i*BlockSize+k] = aux1[k];
+
+					}
+				}
+			}
 		}
 		else // mixed formulation case
 		{
@@ -208,7 +339,7 @@ public:
 	{
 		// If it is not a penalty element, do as standard
 		// Otherwise, if it is a penalty element, dont do anything
-		if (!this->IsPenalty(rGeometry))
+		if (!this->IsPenalty(rGeometry) && !this->IsLagrange(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
 		}
@@ -220,7 +351,7 @@ public:
 	{
 		// If it is not a penalty element, do as standard
 		// Otherwise, if it is a penalty element, dont do anything
-		if (!this->IsPenalty(rGeometry))
+		if (!this->IsPenalty(rGeometry) && !this->IsLagrange(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalVector, rGeometry);
 		}
@@ -232,12 +363,12 @@ public:
 			GeometryType& rGeometry) const
 	{
 		// If it is not a penalty condition, do as standard
-		if (!this->IsPenalty(rGeometry))
+		if (!this->IsPenalty(rGeometry) && !this->IsLagrange(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
 		}
-		// Otherwise, do the following modification
-		else
+		// For Penalty, do the following modification
+		else if (this->IsPenalty(rGeometry))
 		{
 			const unsigned int LocalSize = rLocalVector.size();
 
@@ -269,6 +400,35 @@ public:
 				rLocalMatrix = temp_matrix;
 			}
 		}
+		else if (this->IsLagrange(rGeometry))
+		{
+			const unsigned int dimension = this->GetDomainSize();
+
+			for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+			{
+				if(this->IsSlip(rGeometry[itNode]) )
+				{
+					// Remove all other value in LHS than the normal component
+					const unsigned int ibase = dimension * rGeometry.PointsNumber();
+					for (unsigned int k = 0; k < dimension-1; k++){
+						rLocalMatrix(itNode * dimension + k, ibase + k + 1) = 0.0;
+						rLocalMatrix(itNode * dimension + k + 1, ibase + k + 1) = 0.0;
+						rLocalMatrix(ibase + k + 1 ,itNode * dimension + k) = 0.0;
+						rLocalMatrix(ibase + k + 1, itNode * dimension + k +1) = 0.0;
+						rLocalMatrix(ibase + k + 1 ,ibase + k + 1) = 1.0;
+					}
+					
+					// Remove all other value in RHS than the normal component
+					for (unsigned int k = 1; k < dimension; k++){
+                    	rLocalVector[dimension * rGeometry.PointsNumber() + k] = 0.0;
+                	}
+				}
+			}
+
+		}
+		else{
+			KRATOS_WATCH("Error in the Rotation of the conditions!!!")
+		}
 	}
 
 	// An extra function to distinguish the application of slip in condition considering penalty imposition (RHS Version)
@@ -276,12 +436,12 @@ public:
 			GeometryType& rGeometry) const
 	{
 		// If it is not a penalty condition, do as standard
-		if (!this->IsPenalty(rGeometry))
+		if (!this->IsPenalty(rGeometry) && !this->IsLagrange(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalVector, rGeometry);
 		}
 		// Otherwise, if it is a penalty element, dont do anything
-		else
+		else if (this->IsPenalty(rGeometry))
 		{
 			if (rLocalVector.size() > 0)
 			{
@@ -302,20 +462,40 @@ public:
 				}
 			}
 		}
+		else if (this->IsLagrange(rGeometry))
+		{
+			
+			const unsigned int dimension = this->GetDomainSize();
+			for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+			{
+					if(this->IsSlip(rGeometry[itNode]) )
+					{
+						
+						// Remove all other value in RHS than the normal component
+						for (unsigned int k = 1; k < dimension; k++){
+							rLocalVector[dimension * rGeometry.PointsNumber() + k] = 0.0;
+						}
+					}
+			}
 
+		}
+		else{
+			KRATOS_WATCH("Error in the Rotation of the conditions!!!")
+		}
 	}
 
 	// Checking whether it is normal element or penalty element
 	bool IsPenalty(GeometryType& rGeometry) const
 	{
 		bool is_penalty = false;
+		bool is_lagrange = false;
 		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
 		{
 			if(this->IsSlip(rGeometry[itNode]) )
 			{
 				const double identifier = rGeometry[itNode].FastGetSolutionStepValue(mrFlagVariable);
 				const double tolerance  = 1.e-6;
-				if (identifier > 1.00 + tolerance)
+				if (identifier > 1.00 + tolerance && identifier < 2 + tolerance)
 				{
 					is_penalty = true;
 					break;
@@ -324,6 +504,27 @@ public:
 		}
 
 		return is_penalty;
+	}
+	bool IsLagrange(GeometryType& rGeometry) const
+	{
+		bool is_penalty = false;
+		bool is_lagrange = false;
+		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+		{
+			if(this->IsSlip(rGeometry[itNode]) )
+			{
+				const double identifier = rGeometry[itNode].FastGetSolutionStepValue(mrFlagVariable);
+				const double tolerance  = 1.e-6;
+				if (identifier > 2 + tolerance)
+				{
+					is_lagrange = true;
+					break;
+				}
+
+			}
+		}
+
+		return is_lagrange;
 	}
 
 	/// Same functionalities as RotateVelocities, just to have a clear function naming
@@ -338,6 +539,7 @@ public:
 	{
 		TLocalVectorType displacement(this->GetDomainSize());
 		TLocalVectorType Tmp(this->GetDomainSize());
+		TLocalVectorType lagrange(this->GetDomainSize());
 
 		ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
 		#pragma omp parallel for firstprivate(displacement,Tmp)
@@ -366,6 +568,15 @@ public:
 					for(unsigned int i = 0; i < 2; i++) displacement[i] = rDisplacement[i];
 					noalias(Tmp) = prod(rRot,displacement);
 					for(unsigned int i = 0; i < 2; i++) rDisplacement[i] = Tmp[i];
+
+					if (itNode->Has(VECTOR_LAGRANGE_MULTIPLIER))
+					{
+						array_1d<double,3>& rLagrange = itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+						for(unsigned int i = 0; i < 2; i++) lagrange[i] = rLagrange[i];
+						noalias(Tmp) = prod(rRot,lagrange);
+						for(unsigned int i = 0; i < 2; i++) rLagrange[i] = Tmp[i];
+					}
+					
 				}
 			}
 		}
@@ -383,6 +594,7 @@ public:
 	{
 		TLocalVectorType displacement(this->GetDomainSize());
 		TLocalVectorType Tmp(this->GetDomainSize());
+		TLocalVectorType lagrange(this->GetDomainSize());
 
 		ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
 		#pragma omp parallel for firstprivate(displacement,Tmp)
@@ -410,6 +622,14 @@ public:
 					for(unsigned int i = 0; i < 2; i++) displacement[i] = rDisplacement[i];
 					noalias(Tmp) = prod(trans(rRot),displacement);
 					for(unsigned int i = 0; i < 2; i++) rDisplacement[i] = Tmp[i];
+
+					if (itNode->Has(VECTOR_LAGRANGE_MULTIPLIER))
+					{
+						array_1d<double,3>& rLagrange = itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+						for(unsigned int i = 0; i < 2; i++) lagrange[i] = rLagrange[i];
+						noalias(Tmp) = prod(trans(rRot),lagrange);
+						for(unsigned int i = 0; i < 2; i++) rLagrange[i] = Tmp[i];
+					}
 				}
 			}
 		}

@@ -85,6 +85,28 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
         r_lagrange_multiplier[0] *= 0.0;
     }
 
+    // Additional treatment for slip conditions
+    if (Is(SLIP))
+    {
+        GeneralVariables Variables;
+
+        // Calculating shape function
+        MPMShapeFunctionPointValues(Variables.N);
+        array_1d<double, 3 > & r_normal = pBoundaryParticle->FastGetSolutionStepValue(NORMAL);
+        r_normal = m_unit_normal;
+
+        // Here MPC contribution of normal vector are added
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            r_geometry[i].SetLock();
+            r_geometry[i].Set(SLIP);
+            // distinguish between penalty and lagrange in bossak scheme
+            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 3.0;
+            r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_unit_normal;
+            r_geometry[i].UnSetLock();
+        }
+    }
+
 
 }
 
@@ -183,12 +205,12 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
             {
                 lagrange_matrix(i* dimension+k, ibase+k) = Variables.N[i];
                 lagrange_matrix(ibase+k, i*dimension + k) = Variables.N[i];
-    }
+            }
         }
 
         // Calculate LHS Matrix and RHS Vector
         if ( CalculateStiffnessMatrixFlag == true )
-        {
+        {    
             rLeftHandSideMatrix = lagrange_matrix * this->GetIntegrationWeight();
         }
 
@@ -233,7 +255,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
             noalias(rRightHandSideVector) = -right_hand_side;
             
         }
-        }
+    }
     else{
 
         KRATOS_WATCH("NO CONDITIONS APPLIED")
