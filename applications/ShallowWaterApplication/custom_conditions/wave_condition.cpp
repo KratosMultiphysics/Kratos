@@ -181,6 +181,7 @@ void WaveCondition<TNumNodes>::InitializeData(
     ConditionData& rData,
     const ProcessInfo& rProcessInfo)
 {
+    rData.integrate_by_parts = rProcessInfo[INTEGRATE_BY_PARTS]; //since it is passed as const it will return false if it doesn't have INTEGRATE_BY_PARTS
     rData.gravity = rProcessInfo[GRAVITY_Z];
     rData.stab_factor = rProcessInfo[STABILIZATION_FACTOR];
     rData.relative_dry_height = rProcessInfo[RELATIVE_DRY_HEIGHT];
@@ -249,7 +250,6 @@ void WaveCondition<TNumNodes>::AddWaveTerms(
     const array_1d<double,TNumNodes>& rN,
     const double Weight)
 {
-    const bool integrate_by_parts = false;
     const auto z = rData.nodal_z;
     const auto n = rData.normal;
 
@@ -258,19 +258,19 @@ void WaveCondition<TNumNodes>::AddWaveTerms(
         for (IndexType j = 0; j < TNumNodes; ++j)
         {
             double n_ij;
-            if (integrate_by_parts) {
+            if (rData.integrate_by_parts) {
                 n_ij = rN[i] * rN[j];
             } else {
                 n_ij = 0.0;
             }
 
             /// First component
-            MathUtils<double>::AddMatrix(rMatrix, -Weight*n_ij*rData.A1*n[0], 3*i, 3*j);
-            MathUtils<double>::AddVector(rVector,  Weight*n_ij*rData.b1*n[0]*z[j], 3*i);
+            MathUtils<double>::AddMatrix(rMatrix,  Weight*n_ij*rData.A1*n[0], 3*i, 3*j);
+            MathUtils<double>::AddVector(rVector, -Weight*n_ij*rData.b1*n[0]*z[j], 3*i);
 
             /// Second component
-            MathUtils<double>::AddMatrix(rMatrix, -Weight*n_ij*rData.A2*n[1], 3*i, 3*j);
-            MathUtils<double>::AddVector(rVector,  Weight*n_ij*rData.b2*n[1]*z[j], 3*i);
+            MathUtils<double>::AddMatrix(rMatrix,  Weight*n_ij*rData.A2*n[1], 3*i, 3*j);
+            MathUtils<double>::AddVector(rVector, -Weight*n_ij*rData.b2*n[1]*z[j], 3*i);
         }
     }
 }

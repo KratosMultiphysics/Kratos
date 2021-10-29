@@ -186,36 +186,6 @@ public:
     }
 
     /**
-     * @brief Calculates the determinant of a 2x2, 3x3 and 4x4 matrix (using bounded matrix for performance)
-     * @param rInputMatrix The matrix to calculate
-     * @return DetA: The determinant of the matrix
-     */
-    template<class TMatrixType>
-    KRATOS_DEPRECATED_MESSAGE("Please use Det() instead")
-    static inline TDataType DetMat(const TMatrixType& rInputMatrix)
-    {
-        static_assert(std::is_same<typename TMatrixType::value_type, TDataType>::value, "Bad value type.");
-        TDataType rInputMatrixDet;
-
-        if (rInputMatrix.size1() == 1) {
-            rInputMatrixDet = rInputMatrix(0, 0);
-        } else if (rInputMatrix.size1() == 2) {
-            rInputMatrixDet = rInputMatrix(0, 0) * rInputMatrix(1, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 0);
-        } else if (rInputMatrix.size1() == 3) {
-            rInputMatrixDet = rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(2, 2)
-                           + rInputMatrix(1, 0) * rInputMatrix(2, 1) * rInputMatrix(0, 2)
-                           + rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(2, 0)
-                           - rInputMatrix(2, 0) * rInputMatrix(1, 1) * rInputMatrix(0, 2)
-                           - rInputMatrix(2, 1) * rInputMatrix(1, 2) * rInputMatrix(0, 0)
-                           - rInputMatrix(1, 0) * rInputMatrix(0, 1) * rInputMatrix(2,2);
-        } else {
-            rInputMatrixDet = rInputMatrix(0, 1) * rInputMatrix(1, 3) * rInputMatrix(2, 2) * rInputMatrix(3, 0) - rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(2, 3) * rInputMatrix(3, 0) - rInputMatrix(0, 0) * rInputMatrix(1, 3) * rInputMatrix(2, 2) * rInputMatrix(3, 1) + rInputMatrix(0, 0) * rInputMatrix(1, 2) * rInputMatrix(2, 3) * rInputMatrix(3, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 3) * rInputMatrix(2, 0) * rInputMatrix(3, 2) + rInputMatrix(0, 0) * rInputMatrix(1, 3) * rInputMatrix(2, 1) * rInputMatrix(3, 2) + rInputMatrix(0, 1) * rInputMatrix(1, 0) * rInputMatrix(2, 3) * rInputMatrix(3, 2) - rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(2, 3) * rInputMatrix(3, 2) + rInputMatrix(0, 3) * (rInputMatrix(1, 2) * rInputMatrix(2, 1) * rInputMatrix(3, 0) - rInputMatrix(1, 1) * rInputMatrix(2, 2) * rInputMatrix(3, 0) - rInputMatrix(1, 2) * rInputMatrix(2, 0) * rInputMatrix(3, 1) + rInputMatrix(1, 0) * rInputMatrix(2, 2) * rInputMatrix(3, 1) + rInputMatrix(1, 1) * rInputMatrix(2, 0) * rInputMatrix(3, 2) - rInputMatrix(1, 0) * rInputMatrix(2, 1) * rInputMatrix(3, 2)) + (rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(2, 0) - rInputMatrix(0, 0) * rInputMatrix(1, 2) * rInputMatrix(2, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 0) * rInputMatrix(2, 2) + rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(2, 2)) * rInputMatrix(3, 3) + rInputMatrix(0, 2) * (-(rInputMatrix(1, 3) * rInputMatrix(2, 1) * rInputMatrix(3, 0)) + rInputMatrix(1, 1) * rInputMatrix(2, 3) * rInputMatrix(3, 0) + rInputMatrix(1, 3) * rInputMatrix(2, 0) * rInputMatrix(3, 1) - rInputMatrix(1, 0) * rInputMatrix(2, 3) * rInputMatrix(3, 1) - rInputMatrix(1, 1) * rInputMatrix(2, 0) * rInputMatrix(3, 3) + rInputMatrix(1, 0) * rInputMatrix(2, 1) * rInputMatrix(3, 3));
-        }
-
-        return rInputMatrixDet;
-    }
-
-    /**
      * @brief Calculates the cofactor
      * @param rMat The matrix to calculate
      * @param i The index i

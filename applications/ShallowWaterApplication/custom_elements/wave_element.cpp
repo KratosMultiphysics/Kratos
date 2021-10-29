@@ -132,7 +132,7 @@ void WaveElement<TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_ERROR << "WaveElement::GetSecondDerivativesVector This method is not supported by the formulation" << std::endl;
+    KRATOS_ERROR << "WaveElement::GetSecondDerivativesVector. This method is not supported by the formulation" << std::endl;
 }
 
 template<std::size_t TNumNodes>
@@ -154,7 +154,7 @@ const Variable<double>& WaveElement<TNumNodes>::GetUnknownComponent(int Index) c
         case 0: return VELOCITY_X;
         case 1: return VELOCITY_Y;
         case 2: return HEIGHT;
-        default: KRATOS_ERROR << "WaveElement::GetUnknownComponent index out of bounds." << std::endl;
+        default: KRATOS_ERROR << "WaveElement::GetUnknownComponent. Index out of bounds." << std::endl;
     }
 }
 
@@ -174,6 +174,7 @@ typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetUnkn
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo)
 {
+    rData.integrate_by_parts = rCurrentProcessInfo[INTEGRATE_BY_PARTS]; //since it is passed as const it will return false if it doesn't have INTEGRATE_BY_PARTS
     rData.stab_factor = rCurrentProcessInfo[STABILIZATION_FACTOR];
     rData.shock_stab_factor = rCurrentProcessInfo[SHOCK_STABILIZATION_FACTOR];
     rData.relative_dry_height = rCurrentProcessInfo[RELATIVE_DRY_HEIGHT];
@@ -235,10 +236,18 @@ void WaveElement<TNumNodes>::CalculateGaussPointData(
 }
 
 template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::CalculateArtificialViscosityData(
-    ElementData& rData,
-    const array_1d<double,TNumNodes>& rN,
+void WaveElement<TNumNodes>::CalculateArtificialViscosity(
+    BoundedMatrix<double,3,3>& rViscosity,
+    BoundedMatrix<double,2,2>& rDiffusion,
+    const ElementData& rData,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
+{
+}
+
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::CalculateArtificialDamping(
+    BoundedMatrix<double,3,3>& rFriction,
+    const ElementData& rData)
 {
 }
 
@@ -272,7 +281,6 @@ void WaveElement<TNumNodes>::AddWaveTerms(
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
     const double Weight)
 {
-    const bool integrate_by_parts = false;
     const auto z = rData.nodal_z;
     const double l = StabilizationParameter(rData);
 
@@ -292,7 +300,7 @@ void WaveElement<TNumNodes>::AddWaveTerms(
             double g1_ij;
             double g2_ij;
             double d_ij;
-            if (integrate_by_parts) {
+            if (rData.integrate_by_parts) {
                 g1_ij = -rDN_DX(i,0) * rN[j];
                 g2_ij = -rDN_DX(i,1) * rN[j];
             } else {
@@ -347,6 +355,10 @@ void WaveElement<TNumNodes>::AddFrictionTerms(
     Sf(0,0) = rData.gravity*s;
     Sf(1,1) = rData.gravity*s;
 
+    BoundedMatrix<double,3,3> art_s = ZeroMatrix(3,3);
+    this->CalculateArtificialDamping(art_s, rData);
+    Sf += art_s;
+
     BoundedMatrix<double,3,3> ASf1 = prod(rData.A1, Sf);
     BoundedMatrix<double,3,3> ASf2 = prod(rData.A2, Sf);
 
@@ -373,7 +385,43 @@ void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
     const ElementData& rData,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
     const double Weight)
-{}
+{
+    BoundedMatrix<double,3,3> D = ZeroMatrix(3,3);
+    BoundedMatrix<double,2,2> C = ZeroMatrix(2,2);
+    BoundedMatrix<double,2,3> biq = ZeroMatrix(2,3);
+    BoundedMatrix<double,2,3> bjq = ZeroMatrix(2,3);
+    BoundedMatrix<double,3,2> tmp = ZeroMatrix(3,2);
+    array_1d<double,2> bih = ZeroVector(2);
+    array_1d<double,2> bjh = ZeroVector(2);
+
+    this->CalculateArtificialViscosity(D, C, rData, rDN_DX);
+
+    for (IndexType i = 0; i < TNumNodes; ++i)
+    {
+        for (IndexType j = 0; j < TNumNodes; ++j)
+        {
+            biq(0,0) = rDN_DX(i,0);
+            biq(0,2) = rDN_DX(i,1);
+            biq(1,1) = rDN_DX(i,1);
+            biq(1,2) = rDN_DX(i,0);
+
+            bjq(0,0) = rDN_DX(j,0);
+            bjq(0,2) = rDN_DX(j,1);
+            bjq(1,1) = rDN_DX(j,1);
+            bjq(1,2) = rDN_DX(j,0);
+
+            bih[0] = rDN_DX(i,0);
+            bih[1] = rDN_DX(i,1);
+
+            bjh[0] = rDN_DX(j,0);
+            bjh[1] = rDN_DX(j,1);
+
+            tmp = prod(D, trans(bjq));
+            MathUtils<double>::AddMatrix(rMatrix, Weight*prod(biq, tmp), 3*i, 3*j);
+            rMatrix(3*i + 2, 3*j + 2) += inner_prod(bih, Weight*prod(C, bjh));
+        }
+    }
+}
 
 template<>
 void WaveElement<3>::AddMassTerms(

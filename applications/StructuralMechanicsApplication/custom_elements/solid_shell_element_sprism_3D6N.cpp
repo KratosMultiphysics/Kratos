@@ -3805,19 +3805,12 @@ void SolidShellElementSprism3D6N::CbartoFbar(
 
     /* We perform a polar decomposition of the CBar and F(regular) to obtain F_bar */
 
-    /* Decompose C_bar */
-    BoundedMatrix<double, 3, 3> eigen_vector_matrix,  eigen_values_matrix;
-
     // Assemble matrix C_bar
     const Matrix C_bar = MathUtils<double>::VectorToSymmetricTensor(rVariables.C);
 
-    // Decompose matrix C_bar
-    MathUtils<double>::GaussSeidelEigenSystem(C_bar, eigen_vector_matrix, eigen_values_matrix, 1e-24, 100);
-
-    for (IndexType i = 0; i < 3; ++i)
-        eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
-
-    const Matrix U_bar = prod( eigen_values_matrix, trans(eigen_vector_matrix));
+    // Decompose matrix C_bar, get U_bar
+    Matrix U_bar;
+    MathUtils<double>::MatrixSquareRoot(C_bar, U_bar, 1e-24, 100);
 
     /* Decompose F */
     Matrix F = ZeroMatrix(3, 3);
