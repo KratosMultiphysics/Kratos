@@ -50,8 +50,7 @@ class ConvergenceAcceleratorWrapper:
         self.conv_acc.FinalizeNonLinearIteration()
 
     def ComputeAndApplyUpdate(self):
-        if not self.interface_data.IsDefinedOnThisRank():
-            return
+        if not self.interface_data.IsDefinedOnThisRank(): return
 
         current_data = self.interface_data.GetData()
         residual = current_data - self.input_data
