@@ -7,6 +7,7 @@ from KratosMultiphysics.kratos_utilities import GenerateVariableListFromInput
 from KratosMultiphysics.HDF5Application import read_model_part_from_hdf5_process
 from KratosMultiphysics.HDF5Application import single_mesh_temporal_input_process
 from os import path, listdir
+from math import exp
 
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
@@ -29,6 +30,7 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
             "list_of_variables"           : ["MOMENTUM"],
             "list_of_variables_to_fix"    : ["MOMENTUM_X","MOMENTUM_Y"],
             "default_time_after_interval" : 0.0,
+            "semi_period_after_interval"  : 1.0,
             "swap_yz_axis"                : false,
             "ignore_vertical_component"   : true,
             "file_settings"               : {}
@@ -85,6 +87,12 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
             self.hdf5_process.ExecuteInitializeSolutionStep()
             self._CheckInputVariables()
             self._MapToBoundaryCondition()
+        else:
+            self._SetDefaultTime()
+            self.hdf5_process.ExecuteInitializeSolutionStep()
+            self._CheckInputVariables()
+            self._MapToBoundaryCondition()
+            self._SmoothDefaultValue()
 
     def _GetInputTimes(self, file_settings):
         # Get all the file names
@@ -110,6 +118,10 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
         current_time = self.model_part.ProcessInfo.GetValue(KM.TIME)
         closest_time = next(filter(lambda x: x>current_time, self.times))
         self.interface_model_part.ProcessInfo.SetValue(KM.TIME, closest_time)
+
+    def _SetDefaultTime(self):
+        default_time = self.settings["default_time_after_interval"].GetDouble()
+        self.interface_model_part.ProcessInfo.SetValue(KM.TIME, default_time)
 
     def _CheckInputVariables(self):
         if self.settings["swap_yz_axis"].GetBool():
@@ -159,3 +171,13 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
             self.interface_model_part,
             self.model_part,
             mapper_settings)
+
+    def _SmoothDefaultValue(self):
+        elapsed_time = self.model_part.ProcessInfo.GetValue(KM.DELTA_TIME)
+        semi_period = self.settings["semi_period_after_interval"].GetDouble()
+        smooth = exp(elapsed_time / semi_period)
+        for node in self.model_part.Nodes:
+            for variable in self.variables:
+                initial = node.GetSolutionStepValue(variable, 1)
+                increment = node.GetSolutionStepValue(variable) - initial
+                node.SetSolutionStepValue(variable, initial + increment * smooth)
