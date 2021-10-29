@@ -1,4 +1,3 @@
-from re import A
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
 import KratosMultiphysics.MappingApplication as Mapping
@@ -28,6 +27,7 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
             "read_historical_database"  : false,
             "interval"                  : [0.0,"End"],
             "list_of_variables"         : ["MOMENTUM"],
+            "list_of_variables_to_fix"  : ["MOMENTUM_X","MOMENTUM_Y"],
             "swap_yz_axis"              : false,
             "ignore_vertical_component" : true,
             "file_settings"             : {}
@@ -49,6 +49,7 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
         self.swap_yz_axis = settings["swap_yz_axis"].GetBool()
         self.ignore_vertical_component = settings["ignore_vertical_component"].GetBool()
         self.variables = GenerateVariableListFromInput(settings["list_of_variables"])
+        self.variables_to_fix = GenerateVariableListFromInput(settings["list_of_variables_to_fix"])
 
         hdf5_settings = KM.Parameters()
         hdf5_settings.AddValue("model_part_name", settings["interface_model_part_name"])
@@ -139,11 +140,26 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
             else:
                 self.mapper.Map(variable, variable, KM.Mapper.FROM_NON_HISTORICAL)
 
+        for variable in self.variables_to_fix:
+            KM.VariableUtils().ApplyFixity(variable, True, self.model_part.Nodes)
+
     def _CreateMapper(self):
         mapper_settings = KM.Parameters("""{
             "mapper_type": "nearest_neighbor",
-            "echo_level" : 0
+            "echo_level" : 0,
+            "search_settings" : {
+                "search_radius" : 0.0
+            }
         }""")
+        min_point = KM.Point([ 1e6,  1e6,  1e6])
+        max_point = KM.Point([-1e6, -1e6, -1e6])
+        for node in self.model_part.Nodes:
+            for i in range(3):
+                point = KM.Point(node)
+                min_point[i] = min([min_point[i], point[i]])
+                max_point[i] = max([max_point[i], point[i]])
+        distance = 1.05 * (max_point - min_point).norm_2()
+        mapper_settings["search_settings"]["search_radius"].SetDouble(distance)
 
         self.mapper = KM.MapperFactory.CreateMapper(
             self.interface_model_part,
