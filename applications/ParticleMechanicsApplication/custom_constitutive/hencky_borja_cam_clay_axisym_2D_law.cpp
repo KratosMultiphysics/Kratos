@@ -76,7 +76,7 @@ HenckyBorjaCamClayPlasticAxisym2DLaw::~HenckyBorjaCamClayPlasticAxisym2DLaw()
 //*********************************CHECK**********************************************
 //************************************************************************************
 
-int HenckyBorjaCamClayPlasticAxisym2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+int HenckyBorjaCamClayPlasticAxisym2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     HenckyElasticPlasticAxisym2DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
 

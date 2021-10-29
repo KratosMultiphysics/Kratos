@@ -87,11 +87,6 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void UpdateCoordinates()
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
-    }
-
     ///@}
     ///@name Access
     ///@{
@@ -173,11 +168,6 @@ public:
     explicit InterfaceNode(NodePointerType pNode)
         : mpNode(pNode)
     {
-        UpdateCoordinates();
-    }
-
-    void UpdateCoordinates() override
-    {
         noalias(Coordinates()) = mpNode->Coordinates();
     }
 
@@ -210,11 +200,6 @@ public:
 
     explicit InterfaceGeometryObject(GeometryPointerType pGeometry)
         : mpGeometry(pGeometry)
-    {
-        UpdateCoordinates();
-    }
-
-    void UpdateCoordinates() override
     {
         noalias(Coordinates()) = mpGeometry->Center();
     }

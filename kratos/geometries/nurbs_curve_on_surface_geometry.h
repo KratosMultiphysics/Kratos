@@ -279,25 +279,26 @@ public:
     ///@name Projection Point
     ///@{
 
-    /* Makes projection of rPointGlobalCoordinates to
-     * the closest point rProjectedPointGlobalCoordinates on the curve,
-     * with local coordinates rProjectedPointLocalCoordinates.
+    /* @brief Makes projection of rPointGlobalCoordinates to
+     *       the closest point on the curve, with
+     *       local coordinates rProjectedPointLocalCoordinates.
      *
      * @param Tolerance is the breaking criteria.
      * @return 1 -> projection succeeded
      *         0 -> projection failed
      */
-    int ProjectionPoint(
+    int ProjectionPointGlobalToLocalSpace(
         const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const override
     {
+        CoordinatesArrayType point_global_coordinates;
+
         return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
             rProjectedPointLocalCoordinates,
             rPointGlobalCoordinates,
-            rProjectedPointGlobalCoordinates,
+            point_global_coordinates,
             *this,
             20, Tolerance);
     }
@@ -578,6 +579,20 @@ public:
         for (SizeType i = 0; i <= DerivativeOrder; i++) {
             rGlobalSpaceDerivatives[i] = c(i, 0, 0);
         }
+    }
+
+    ///@}
+    ///@name Kratos Geometry Families
+    ///@{
+
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
     }
 
     ///@}
