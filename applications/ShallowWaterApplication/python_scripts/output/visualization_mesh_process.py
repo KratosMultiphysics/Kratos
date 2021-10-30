@@ -30,8 +30,6 @@ class VisualizationMeshProcess(KM.Process):
                 "use_properties_as_dry_wet_flag" : false,
                 "mesh_deformation_mode"          : "use_nodal_displacement",
                 "wet_flag"                       : "FLUID",
-                "topography_variable"            : "TOPOGRAPHY",
-                "free_surface_variable"          : "FREE_SURFACE_ELEVATION",
                 "nodal_variables_to_transfer"    : ["TOPOGRAPHY"],
                 "nonhistorical_variables_to_transfer" : []
             }
@@ -45,26 +43,22 @@ class VisualizationMeshProcess(KM.Process):
         mesh_deformation_mode = settings["mesh_deformation_mode"].GetString()
         if mesh_deformation_mode == "use_z_coordinate":
             self.deform_mesh = True
-        elif mesh_deformation_mode =="use_nodal_displacement":
+        elif mesh_deformation_mode == "use_nodal_displacement":
             self.deform_mesh = False
         else:
             msg = """VisualizationMeshProcess.
-            Unkown 'mesh_deformation_mode'. The possible options are:
+            Unknown 'mesh_deformation_mode' = '{}'. The possible options are:
              - use_z_coordinate
              - use_nodal_displacement
-            The input is {}
             """
             raise Exception(msg.format(mesh_deformation_mode))
-        self.free_surface_variable = KM.KratosGlobals.GetVariable(settings["free_surface_variable"].GetString())
 
-        # Creating the utility for the topographic model part management
-        self.use_topographic_model_part = settings["create_topographic_model_part"].GetBool()
-        if self.use_topographic_model_part:
+        # Creating the topographic model part if specified
+        self.topographic_model_part = None
+        if settings["create_topographic_model_part"].GetBool():
             self.topographic_model_part = Model.CreateModelPart(settings["topographic_model_part_name"].GetString())
-            self.topography_utility = SW.ReplicateModelPartUtility(self.computing_model_part, self.topographic_model_part)
             self.nodal_variables = GenerateVariableListFromInput(settings["nodal_variables_to_transfer"])
             self.nonhistorical_variables = GenerateVariableListFromInput(settings["nonhistorical_variables_to_transfer"])
-            self.topography_variable = KM.KratosGlobals.GetVariable(settings["topography_variable"].GetString())
 
         # The DefineAuxiliaryProperties method duplicates the current number of properties:
         # For each property, it creates another one, which means dry state.
@@ -75,67 +69,114 @@ class VisualizationMeshProcess(KM.Process):
             self.properties_utility.DefineAuxiliaryProperties()
             self.wet_flag = KM.KratosGlobals.GetFlag(settings["wet_flag"].GetString())
 
+
     def ExecuteInitialize(self):
-        if self.use_topographic_model_part:
-            self.topography_utility.Replicate()
+        if self.topographic_model_part is not None:
+            self._DuplicateModelPart()
+
 
     def ExecuteBeforeSolutionLoop(self):
         # Transferring the nodal variables
-        if self.use_topographic_model_part:
-            for variable in self.nodal_variables:
-                self.topography_utility.TransferVariable(variable)
-            for variable in self.nonhistorical_variables:
-                self.topography_utility.TransferNonHistoricalVariable(variable)
+        if self.topographic_model_part is not None:
+            self._TransferVariables()
 
-        # Moving the mesh according to the specified options
-        if self.deform_mesh:
-            SW.ShallowWaterUtilities().SetMeshZCoordinate(self.computing_model_part, self.free_surface_variable)
-            if self.use_topographic_model_part:
-                SW.ShallowWaterUtilities().SetMeshZCoordinate(self.topographic_model_part, self.topography_variable)
-        else:
-            SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(self.computing_model_part)
-            KM.VariableUtils().SetNonHistoricalVariableToZero(KM.DISPLACEMENT, self.computing_model_part.Nodes)
-            if self.use_topographic_model_part:
-                SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(self.topographic_model_part)
-                KM.VariableUtils().SetNonHistoricalVariableToZero(KM.DISPLACEMENT, self.topographic_model_part.Nodes)
+            # Deform the mesh according to the input options
+            if self.deform_mesh:
+                self._DeformMesh()
+            else:
+                self._InitializeDisplacement()
+                self._UpdateDisplacement()
+
 
     def ExecuteBeforeOutputStep(self):
         # Transferring the nodal variables
-        if self.use_topographic_model_part:
-            for variable in self.nodal_variables:
-                self.topography_utility.TransferVariable(variable)
-            for variable in self.nonhistorical_variables:
-                self.topography_utility.TransferNonHistoricalVariable(variable)
+        if self.topographic_model_part is not None:
+            self._TransferVariables()
 
-        # Moving the mesh according to the specified options
-        if self.deform_mesh:
-            self.topography_utility.SetOriginMeshZCoordinate(self.free_surface_variable)
-            if self.use_topographic_model_part:
-                self.topography_utility.SetDestinationMeshZCoordinate(self.topography_variable)
-        else:
-            KM.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
-                self.free_surface_variable,
-                KM.DISPLACEMENT_Z,
-                self.computing_model_part,
-                self.computing_model_part,
-                0)
-            if self.use_topographic_model_part:
-                KM.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
-                    self.topography_variable,
-                    KM.DISPLACEMENT_Z,
-                    self.topographic_model_part,
-                    self.topographic_model_part,
-                    0)
+            # Deform the mesh according to the input options
+            if self.deform_mesh:
+                self._DeformMesh()
+            else:
+                self._UpdateDisplacement()
 
         # Assigning the properties as a flag if need
         if self.use_properties_as_dry_wet_flag:
             self.properties_utility.AssignDryWetProperties(self.wet_flag)
 
+
     def ExecuteAfterOutputStep(self):
         # Restoring the mesh
         if self.deform_mesh:
-            SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(self.computing_model_part)
+            self._RestoreMesh()
 
         # Restoring the properties
         if self.use_properties_as_dry_wet_flag:
             self.properties_utility.RestoreDryWetProperties()
+
+
+    def _DuplicateModelPart(self):
+        element_num_nodes = len(self.computing_model_part.Elements.__iter__().__next__().GetNodes())
+        condition_num_nodes = len(self.computing_model_part.Conditions.__iter__().__next__().GetNodes())
+        reference_element = "Element2D{}N".format(element_num_nodes)
+        reference_condition = "LineCondition2D{}N".format(condition_num_nodes)
+        KM.DuplicateMeshModeler(self.computing_model_part).GenerateMesh(
+            self.topographic_model_part, reference_element, reference_condition)
+        KM.MergeVariableListsUtility().Merge(self.computing_model_part, self.topographic_model_part)
+        # SW.ShallowWaterUtilities().OffsetIds(self.topographic_model_part.Nodes)
+        SW.ShallowWaterUtilities().OffsetIds(self.topographic_model_part.Elements)
+        SW.ShallowWaterUtilities().OffsetIds(self.topographic_model_part.Conditions)
+
+
+    def _TransferVariables(self):
+        for variable in self.nodal_variables:
+            KM.VariableUtils().CopyModelPartNodalVar(
+                variable,
+                self.computing_model_part,
+                self.topographic_model_part,
+                0)
+        for variable in self.nonhistorical_variables:
+            KM.VariableUtils().CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+                variable,
+                self.computing_model_part,
+                self.topographic_model_part,
+                KM.Flags())
+
+
+    def _DeformMesh(self):
+        SW.ShallowWaterUtilities().SetMeshZCoordinate(
+            self.computing_model_part,
+            SW.FREE_SURFACE_ELEVATION)
+        SW.ShallowWaterUtilities().SetMeshZCoordinate(
+            self.topographic_model_part,
+            SW.TOPOGRAPHY)
+
+
+    def _RestoreMesh(self):
+        SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(
+            self.computing_model_part)
+        SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(
+            self.topographic_model_part)
+
+
+    def _InitializeDisplacement(self):
+        KM.VariableUtils().SetNonHistoricalVariableToZero(
+            KM.DISPLACEMENT,
+            self.computing_model_part.Nodes)
+        KM.VariableUtils().SetNonHistoricalVariableToZero(
+            KM.DISPLACEMENT,
+            self.topographic_model_part.Nodes)
+
+
+    def _UpdateDisplacement(self):
+        KM.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
+            SW.FREE_SURFACE_ELEVATION,
+            KM.DISPLACEMENT_Z,
+            self.computing_model_part,
+            self.computing_model_part,
+            0)
+        KM.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
+            SW.TOPOGRAPHY,
+            KM.DISPLACEMENT_Z,
+            self.topographic_model_part,
+            self.topographic_model_part,
+            0)
