@@ -61,6 +61,7 @@
 #include "utilities/sub_model_part_entities_boolean_operation_utility.h"
 #include "utilities/model_part_combination_utilities.h"
 #include "utilities/single_import_model_part.h"
+#include "utilities/rve_periodicity_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -688,6 +689,14 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     auto single_model_part_import = m.def_submodule("SingleImportModelPart");
     single_model_part_import.def("Import", &SingleImportModelPart::Import );
+
+    // RVE periodicity utility
+    py::class_<RVEPeriodicityUtility>(m,"RVEPeriodicityUtility")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, std::size_t>())
+        .def("AssignPeriodicity",&RVEPeriodicityUtility::AssignPeriodicity)
+        .def("Finalize",&RVEPeriodicityUtility::Finalize)
+        ;
 
 }
 

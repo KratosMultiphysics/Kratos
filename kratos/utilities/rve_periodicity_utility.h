@@ -24,19 +24,19 @@
 
 namespace Kratos
 {
-///@addtogroup StructuralMechanicsApplication
+///@addtogroup KratosCore
 ///@{
 ///@name Kratos Classes
 ///@{
 
 /**
  * @class RVEPeriodicityUtility
- * @ingroup StructuralMechanicsApplication
+ * @ingroup KratosCore
  * @brief This defines a class to define periodic BC to a RVE
  * @details It uses MPC in order to set the periodic BC
  * @author Riccardo Rossi
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RVEPeriodicityUtility
+class KRATOS_API(KRATOS_CORE) RVEPeriodicityUtility
 {
   public:
     ///@name Type Definitions
