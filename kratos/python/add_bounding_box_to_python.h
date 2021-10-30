@@ -10,10 +10,8 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_ADD_GEOMETRIES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_GEOMETRIES_TO_PYTHON_H_INCLUDED
-
-
+#ifndef KRATOS_ADD_BOUNDING_BOX_TO_PYTHON_H_INCLUDED
+#define KRATOS_ADD_BOUNDING_BOX_TO_PYTHON_H_INCLUDED
 
 // System includes
 #include <pybind11/pybind11.h>
@@ -36,4 +34,4 @@ void  AddBoundingBoxToPython(pybind11::module& m);
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_GEOMETRIES_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_BOUNDING_BOX_TO_PYTHON_H_INCLUDED  defined 
