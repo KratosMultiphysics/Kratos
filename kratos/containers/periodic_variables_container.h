@@ -56,7 +56,7 @@ namespace Kratos
 /** It is used by PeriodicCondition to identify the Dofs where the periodic condition applies.
  * @see PeriodicCondition
  */
-class PeriodicVariablesContainer
+class PeriodicVariablesContainer final
 {
 public:
     ///@name Type Definitions
@@ -93,7 +93,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~PeriodicVariablesContainer()
+    ~PeriodicVariablesContainer()
     {
     }
 
@@ -116,10 +116,6 @@ public:
     /// Add a scalar variable to the list of variables where periodic conditions will be imposed.
     void Add(DoubleVariableType const& rThisVariable)
     {
-        if(rThisVariable.Key()== 0)
-            KRATOS_THROW_ERROR(std::logic_error,
-                         "Adding uninitialized variable to a list of periodic variables: ",rThisVariable.Name());
-
         mPeriodicDoubleVars.push_back(&rThisVariable);
     }
 
@@ -161,7 +157,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "PeriodicVariablesContainer";
@@ -169,13 +165,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "PeriodicVariablesContainer";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const
     {
         rOStream << "Double Variables:" << std::endl;
         for (DoubleVariablesContainerType::const_iterator it = mPeriodicDoubleVars.begin(); it != mPeriodicDoubleVars.end(); ++it)

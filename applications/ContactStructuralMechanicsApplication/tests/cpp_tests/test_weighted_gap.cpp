@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:	   BSD License
-//				   license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:  Vicente Mataix Ferrandiz
 //
@@ -157,10 +158,11 @@ namespace Kratos
 
             // Pre move mesh NODAL_AREA
             VariableUtils().SetNonHistoricalVariableToZero(NODAL_VOLUME, rModelPart.Nodes());
-            Vector aux_vector;
+            const Vector aux_vector;
+            const auto& r_var = NODAL_VOLUME;
             for (auto& r_cond : rModelPart.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, NODAL_VOLUME, r_process_info);
+                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, r_var, r_process_info);
                 }
             }
 
@@ -312,10 +314,11 @@ namespace Kratos
 
             // Pre move mesh NODAL_AREA
             VariableUtils().SetNonHistoricalVariableToZero(NODAL_VOLUME, rModelPart.Nodes());
-            Vector aux_vector;
+            const Vector aux_vector;
+            const auto& r_var = NODAL_VOLUME;
             for (auto& r_cond : rModelPart.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, NODAL_VOLUME, r_process_info);
+                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, r_var, r_process_info);
                 }
             }
 
@@ -535,10 +538,11 @@ namespace Kratos
 
             // Pre move mesh NODAL_AREA
             VariableUtils().SetNonHistoricalVariableToZero(NODAL_VOLUME, rModelPart.Nodes());
-            Vector aux_vector;
+            const Vector aux_vector;
+            const auto& r_var = NODAL_VOLUME;
             for (auto& r_cond : rModelPart.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, NODAL_VOLUME, r_process_info);
+                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, r_var, r_process_info);
                 }
             }
 
@@ -725,10 +729,11 @@ namespace Kratos
 
             // Pre move mesh NODAL_AREA
             VariableUtils().SetNonHistoricalVariableToZero(NODAL_VOLUME, rModelPart.Nodes());
-            Vector aux_vector;
+            const Vector aux_vector;
+            const auto& r_var = NODAL_VOLUME;
             for (auto& r_cond : rModelPart.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, NODAL_VOLUME, r_process_info);
+                    r_cond.AddExplicitContribution(aux_vector, RECOVERED_STRESS, r_var, r_process_info);
                 }
             }
 
@@ -800,10 +805,11 @@ namespace Kratos
 
             // We compute the explicit contribution
             VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -858,10 +864,11 @@ namespace Kratos
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
             VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
             VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 

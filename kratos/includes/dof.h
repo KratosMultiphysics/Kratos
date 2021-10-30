@@ -319,13 +319,13 @@ public:
     /** Returns variable assigned to this degree of freedom. */
     const VariableData& GetVariable() const
     {
-        return mpNodalData->GetSolutionStepData().pGetVariablesList()->GetDofVariable(mIndex);
+        return mpNodalData->GetSolutionStepData().GetVariablesList().GetDofVariable(mIndex);
     }
 
     /** Returns reaction variable of this degree of freedom. */
     const VariableData& GetReaction() const
     {
-        auto p_reaction = mpNodalData->GetSolutionStepData().pGetVariablesList()->pGetDofReaction(mIndex);
+        auto p_reaction = mpNodalData->GetSolutionStepData().GetVariablesList().pGetDofReaction(mIndex);
         return (p_reaction == nullptr) ? msNone : *p_reaction;
     }
 

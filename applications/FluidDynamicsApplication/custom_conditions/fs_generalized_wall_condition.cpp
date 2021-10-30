@@ -10,7 +10,7 @@ namespace Kratos {
  */
 template<>
 void FSGeneralizedWallCondition<2, 2>::EquationIdVector(
-		EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+		EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
 	if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
 	{
@@ -55,7 +55,7 @@ void FSGeneralizedWallCondition<2, 2>::EquationIdVector(
  */
 template<>
 void FSGeneralizedWallCondition<3, 3>::EquationIdVector(
-		EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+		EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
 	if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
 	{
@@ -102,7 +102,7 @@ void FSGeneralizedWallCondition<3, 3>::EquationIdVector(
  */
 template<>
 void FSGeneralizedWallCondition<2, 2>::GetDofList(
-		DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
+		DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
 	if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
 	{
@@ -149,7 +149,7 @@ void FSGeneralizedWallCondition<2, 2>::GetDofList(
  */
 template<>
 void FSGeneralizedWallCondition<3, 3>::GetDofList(
-		DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
+		DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
 	if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
 	{

@@ -7,7 +7,7 @@ namespace Kratos
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                   VectorType& rRightHandSideVector,
-                                  ProcessInfo& rCurrentProcessInfo)
+                                  const ProcessInfo& rCurrentProcessInfo)
 {
     const int current_component = rCurrentProcessInfo[CURRENT_COMPONENT];
 
@@ -24,7 +24,7 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateLocalSy
     }
 
     else {
-        KRATOS_THROW_ERROR(std::invalid_argument, "The value of CURRENT_COMPONENT passed to the ComputeVelocityLaplacianComponentSimplex element is not 0, 1 or 2, but ", current_component);
+        KRATOS_ERROR << "The value of CURRENT_COMPONENT passed to the ComputeVelocityLaplacianComponentSimplex element is not 0, 1 or 2, but " << current_component << std::endl;
     }
 
     const unsigned int NumNodes(TDim+1), LocalSize(NumNodes);
@@ -72,9 +72,7 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateLocalSy
 //}
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                              ProcessInfo& rCurrentProcessInfo)
-{
+void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
 
@@ -85,9 +83,7 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::EquationIdVector
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                        ProcessInfo& rCurrentProcessInfo)
-{
+void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
     if (rElementalDofList.size() != TNumNodes)
         rElementalDofList.resize(TNumNodes);
 
@@ -97,7 +93,7 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::GetDofList(DofsV
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -105,21 +101,15 @@ int ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::Check(const Proce
     int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
     if(ErrorCode != 0) return ErrorCode;
 
-    if(this->GetGeometry().size() != TDim+1)
-        KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes per element",this->Id());
-
-    if(VELOCITY_LAPLACIAN_Z.Key() == 0)
-
-        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY_LAPLACIAN_Z Key is 0. Check if the application was correctly registered.","");
+    KRATOS_ERROR_IF(this->GetGeometry().size() != TDim+1)<< "Wrong number of nodes for element" << this->Id() << std::endl;
 
     // Checks on nodes
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for(unsigned int i=0; i < this->GetGeometry().size(); ++i)
-    {
-        if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_LAPLACIAN_Z) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY_LAPLACIAN_Z variable on solution step data for node ",this->GetGeometry()[i].Id());
+    for(unsigned int i=0; i<this->GetGeometry().size(); ++i) {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_LAPLACIAN_Z, this->GetGeometry()[i])
     }
+
     return 0;
 
     KRATOS_CATCH("");
@@ -147,7 +137,7 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::AddConsistentMas
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int LocalSize = TNumNodes;
 

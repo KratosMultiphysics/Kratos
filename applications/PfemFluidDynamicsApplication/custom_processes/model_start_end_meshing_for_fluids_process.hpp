@@ -260,12 +260,6 @@ namespace Kratos
                 }
               }
 
-              if (i_node->IsNot(BOUNDARY))
-              {
-
-                if (i_node->SolutionStepsDataHas(CONTACT_FORCE))
-                  noalias(i_node->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
-              }
             }
           }
 

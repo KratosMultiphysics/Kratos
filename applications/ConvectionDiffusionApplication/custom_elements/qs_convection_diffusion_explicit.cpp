@@ -215,6 +215,24 @@ void QSConvectionDiffusionExplicit<3,4>::CalculateMassMatrix(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
+void QSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLumpedMassVector(
+    VectorType& rLumpedMassVector,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    // Initialize the lumped mass vector
+    if (rLumpedMassVector.size() != TNumNodes) {
+        rLumpedMassVector.resize(TNumNodes, false);
+    }
+
+    // Fill the lumped mass vector
+    const double nodal_mass = GetGeometry().DomainSize() / TNumNodes;
+    std::fill(rLumpedMassVector.begin(),rLumpedMassVector.end(),nodal_mass);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes >
 void QSConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
     const Variable<double>& rVariable,
     double& Output,

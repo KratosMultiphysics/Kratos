@@ -263,23 +263,6 @@ public:
         return typename BaseType::Pointer( new LineGaussLobatto3D2( ThisPoints ) );
     }
 
-    Geometry< Point >::Pointer Clone() const
-    {
-        Geometry< Point >::PointsArrayType NewPoints;
-
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-
-        for ( IndexType i = 0 ; i < BaseType::Points().size() ; i++ )
-            NewPoints.push_back(Kratos::make_shared< Point >((*this)[i]));
-
-        //creating a geometry with the new points
-       Geometry< Point >::Pointer p_clone( new LineGaussLobatto3D2< Point >( NewPoints ) );
-
-        p_clone->ClonePoints();
-
-        return p_clone;
-    }
-
     /**
      * @brief Lumping factors for the calculation of the lumped mass matrix
      * @param rResult Vector containing the lumping factors
@@ -662,13 +645,32 @@ public:
         return( rResult );
     }
 
-
-
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const override
+    ShapeFunctionsGradientsType &ShapeFunctionsIntegrationPointsGradients(
+        ShapeFunctionsGradientsType &rResult,
+        IntegrationMethod ThisMethod) const override
     {
         KRATOS_ERROR << "Jacobian is not square" << std::endl;
+        return rResult;
     }
 
+    ShapeFunctionsGradientsType &ShapeFunctionsIntegrationPointsGradients(
+        ShapeFunctionsGradientsType &rResult,
+        Vector &rDeterminantsOfJacobian,
+        IntegrationMethod ThisMethod) const override
+    {
+        KRATOS_ERROR << "Jacobian is not square" << std::endl;
+        return rResult;
+    }
+
+    ShapeFunctionsGradientsType &ShapeFunctionsIntegrationPointsGradients(
+        ShapeFunctionsGradientsType &rResult,
+        Vector &rDeterminantsOfJacobian,
+        IntegrationMethod ThisMethod,
+        Matrix &ShapeFunctionsIntegrationPointsValues) const override
+    {
+        KRATOS_ERROR << "Jacobian is not square" << std::endl;
+        return rResult;
+    }
 
     /** Turn back information as a string.
 

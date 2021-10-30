@@ -39,10 +39,13 @@
 #include "custom_elements/vms.h"
 #include "custom_elements/qs_vms.h"
 #include "custom_elements/qs_vms_dem_coupled.h"
+#include "custom_elements/alternative_qs_vms_dem_coupled.h"
 #include "custom_elements/d_vms.h"
+#include "custom_elements/d_vms_dem_coupled.h"
+#include "custom_elements/alternative_d_vms_dem_coupled.h"
 #include "custom_elements/fic.h"
 #include "custom_elements/symbolic_stokes.h"
-#include "custom_elements/symbolic_navier_stokes.h"
+#include "custom_elements/weakly_compressible_navier_stokes.h"
 #include "custom_elements/embedded_fluid_element.h"
 #include "custom_elements/embedded_fluid_element_discontinuous.h"
 //#include "custom_elements/dynamic_vms.h"
@@ -82,8 +85,8 @@
 #include "custom_utilities/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
-#include "custom_utilities/symbolic_navier_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
+#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
 #include "custom_constitutive/euler_2d_law.h"
@@ -95,6 +98,9 @@
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
+
+// Adjoint fluid conditions
+#include "custom_conditions/adjoint_monolithic_wall_condition.h"
 
 
 namespace Kratos
@@ -268,10 +274,22 @@ private:
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mQSVMSDEMCoupled3D4N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mQSVMSDEMCoupled2D4N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mQSVMSDEMCoupled3D8N;
+    const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mAlternativeQSVMSDEMCoupled2D3N;
+    const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mAlternativeQSVMSDEMCoupled3D4N;
+    const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mAlternativeQSVMSDEMCoupled2D4N;
+    const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mAlternativeQSVMSDEMCoupled3D8N;
     const QSVMS< TimeIntegratedQSVMSData<2,3> > mTimeIntegratedQSVMS2D3N;
     const QSVMS< TimeIntegratedQSVMSData<3,4> > mTimeIntegratedQSVMS3D4N;
     const DVMS< QSVMSData<2,3> > mDVMS2D3N;
     const DVMS< QSVMSData<3,4> > mDVMS3D4N;
+    const DVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mDVMSDEMCoupled2D3N;
+    const DVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mDVMSDEMCoupled3D4N;
+    const DVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mDVMSDEMCoupled2D4N;
+    const DVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mDVMSDEMCoupled3D8N;
+    const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mAlternativeDVMSDEMCoupled2D3N;
+    const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mAlternativeDVMSDEMCoupled3D4N;
+    const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mAlternativeDVMSDEMCoupled2D4N;
+    const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mAlternativeDVMSDEMCoupled3D8N;
     const FIC< FICData<2,3> > mFIC2D3N;
     const FIC< FICData<2,4> > mFIC2D4N;
     const FIC< FICData<3,4> > mFIC3D4N;
@@ -283,12 +301,12 @@ private:
     const SymbolicStokes< SymbolicStokesData<3,4> > mSymbolicStokes3D4N;
     const SymbolicStokes< SymbolicStokesData<3,6> > mSymbolicStokes3D6N;
     const SymbolicStokes< SymbolicStokesData<3,8> > mSymbolicStokes3D8N;
-    const SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > mSymbolicNavierStokes2D3N;
-    const SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > mSymbolicNavierStokes3D4N;
-    const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > > mEmbeddedSymbolicNavierStokes2D3N;
-    const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > > mEmbeddedSymbolicNavierStokes3D4N;
-    const EmbeddedFluidElementDiscontinuous< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > > mEmbeddedSymbolicNavierStokesDiscontinuous2D3N;
-    const EmbeddedFluidElementDiscontinuous< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > > mEmbeddedSymbolicNavierStokesDiscontinuous3D4N;
+    const WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> > mWeaklyCompressibleNavierStokes2D3N;
+    const WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<3,4> > mWeaklyCompressibleNavierStokes3D4N;
+    const EmbeddedFluidElement< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> > > mEmbeddedWeaklyCompressibleNavierStokes2D3N;
+    const EmbeddedFluidElement< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<3,4> > > mEmbeddedWeaklyCompressibleNavierStokes3D4N;
+    const EmbeddedFluidElementDiscontinuous< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> > > mEmbeddedWeaklyCompressibleNavierStokesDiscontinuous2D3N;
+    const EmbeddedFluidElementDiscontinuous< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<3,4> > > mEmbeddedWeaklyCompressibleNavierStokesDiscontinuous3D4N;
     const EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<2,3> > > mEmbeddedQSVMS2D3N;
     const EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > > mEmbeddedQSVMS3D4N;
     const EmbeddedFluidElementDiscontinuous< QSVMS< TimeIntegratedQSVMSData<2,3> > > mEmbeddedQSVMSDiscontinuous2D3N;
@@ -392,8 +410,8 @@ private:
     /// Compressible Navier-Stokes symbolic element
     const CompressibleNavierStokes<2> mCompressibleNavierStokes2D;
     const CompressibleNavierStokes<3> mCompressibleNavierStokes3D;
-    const CompressibleNavierStokesExplicit<2> mCompressibleNavierStokesExplicit2D;
-    const CompressibleNavierStokesExplicit<3> mCompressibleNavierStokesExplicit3D;
+    const CompressibleNavierStokesExplicit<2, 3> mCompressibleNavierStokesExplicit2D;
+    const CompressibleNavierStokesExplicit<3, 4> mCompressibleNavierStokesExplicit3D;
 
     /// Two Fluid Navier-Stokes symbolic element
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> > mTwoFluidNavierStokes2D3N;
@@ -415,6 +433,10 @@ private:
     const NewtonianTwoFluid3DLaw mNewtonianTwoFluid3DLaw;
     const NewtonianTemperatureDependent2DLaw mNewtonianTemperatureDependent2DLaw;
     const NewtonianTemperatureDependent3DLaw mNewtonianTemperatureDependent3DLaw;
+
+    /// Adjoint fluid conditions
+    const AdjointMonolithicWallCondition<2, 2> mAdjointMonolithicWallCondition2D2N;
+    const AdjointMonolithicWallCondition<3, 3> mAdjointMonolithicWallCondition3D3N;
 
     ///@}
     ///@name Private Operators

@@ -15,6 +15,7 @@
 
 // System includes
 #include <string>
+#include <vector>
 
 // External includes
 
@@ -84,6 +85,29 @@ namespace StringUtilities
      * @return The string without white spaces
      */
     std::string KRATOS_API(KRATOS_CORE) RemoveWhiteSpaces(const std::string& rString);
+
+    /**
+     * @brief This method splits a string by a delimiter
+     * @param rString The string to be splitted
+     * @param Delimiter The delimiter by which the string is to be splitted
+     * @return a vector containing the splitted string
+     */
+    std::vector<std::string> KRATOS_API(KRATOS_CORE) SplitStringByDelimiter(
+        const std::string& rString,
+        const char Delimiter);
+
+    /**
+     * @brief This function replaces from a string all times a certain substring is repeated
+     * @param rInputString The input string to replace the substring
+     * @param rStringToBeReplaced The original string to be replaced
+     * @param rStringToReplace The string which replaces the substring
+     * @return The string updated with the new substring
+     */
+    std::string KRATOS_API(KRATOS_CORE) ReplaceAllSubstrings(
+        const std::string& rInputString, 
+        const std::string& rStringToBeReplaced, 
+        const std::string& rStringToReplace
+        );
 
 }; // namespace StringUtilities
 }  // namespace Kratos

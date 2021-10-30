@@ -1,0 +1,63 @@
+{
+    "properties": [
+        {
+            "model_part_name": "PorousDomain.sand",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "SmallStrainUDSM2DPlaneStrainLaw"
+                },
+                "Variables": {
+                    "DENSITY_SOLID": 2650.0,
+                    "DENSITY_WATER": 1000.0,
+                    "POROSITY": 0.395,
+                    "BULK_MODULUS_SOLID": 1.0e9,
+                    "BULK_MODULUS_FLUID": 2e-30,
+                    "PERMEABILITY_XX": 4.5e-30,
+                    "PERMEABILITY_YY": 4.5e-30,
+                    "PERMEABILITY_XY": 0.0,
+                    "DYNAMIC_VISCOSITY": 0.001,
+                    "UDSM_NAME": "../../MohrCoulomb64.dll",
+                    "UDSM_NUMBER": 1,
+                    "IS_FORTRAN_UDSM": true,
+                    "UMAT_PARAMETERS": [30e6,
+                                        0.2,
+                                        1.0e3,
+                                        30,
+                                        0.0,
+                                        1.0e3,
+                                        1,
+                                        0.0]
+                },
+                "Tables": {}
+            }
+        },
+        {
+      "model_part_name":         "PorousDomain.dike",
+      "properties_id":           2,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
+          },
+          "Variables": {
+              "YOUNG_MODULUS"            :  10e12,
+              "POISSON_RATIO"            :  0.0,
+              "DENSITY_SOLID"            :  50.0,
+              "DENSITY_WATER"            :  1000.0,
+              "POROSITY"                 :  0.395,
+              "BULK_MODULUS_SOLID"       :  1.0e12,
+              "BULK_MODULUS_FLUID"       :  2.0e-30,
+              "PERMEABILITY_XX"          :  4.5e-30,
+              "PERMEABILITY_YY"          :  4.5e-30,
+              "PERMEABILITY_XY"          :  0.0,
+              "DYNAMIC_VISCOSITY"        :  1.0e-3,
+              "THICKNESS"                :  1.0,
+              "K0_MAIN_DIRECTION"        :  1,
+              "K0_VALUE_XX"              :  0.5,
+              "K0_VALUE_YY"              :  0.5,
+              "K0_VALUE_ZZ"              :  0.5
+         },
+         "Tables": {}
+      }
+   }]
+}

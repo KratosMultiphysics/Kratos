@@ -31,6 +31,7 @@
 #include "custom_elements/data_containers/k_omega/omega_element_data.h"
 #include "custom_elements/data_containers/k_omega_sst/k_element_data.h"
 #include "custom_elements/data_containers/k_omega_sst/omega_element_data.h"
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
@@ -84,7 +85,7 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
     const double element_length = this->GetGeometry().Length();
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData r_current_data(r_geometry);
+    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -161,7 +162,7 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
     const double element_length = this->GetGeometry().Length();
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData r_current_data(r_geometry);
+    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -270,7 +271,7 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
         primal_variable.GetTimeDerivative().GetTimeDerivative();
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData r_current_data(r_geometry);
+    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
     double variable_value, relaxed_variable_acceleration;
 
     r_current_data.CalculateConstants(rCurrentProcessInfo);
@@ -304,7 +305,7 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
         const double velocity_dot_variable_gradient =
             inner_prod(velocity, variable_gradient);
 
-        RansCalculationUtilities::EvaluateInPoint(
+        FluidCalculationUtilities::EvaluateInPoint(
             r_geometry, gauss_shape_functions,
             std::tie(variable_value, primal_variable),
             std::tie(relaxed_variable_acceleration, relaxed_primal_rate_variable));
@@ -328,8 +329,6 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
             rDampingMatrix, reaction, tau, velocity_convective_terms,
             gauss_weights[g], gauss_shape_functions);
     }
-
-    r_current_data.UpdateElementDataValueContainer(*this);
 
     return scalar_multiplier / static_cast<double>(num_gauss_points);
 

@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -206,6 +207,25 @@ bool ContactUtilities::CheckActivity(
     KRATOS_ERROR_IF(ThrowError && !is_active) << "CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
     return is_active;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool ContactUtilities::CheckModelPartHasRotationDoF(ModelPart& rModelPart)
+{
+    auto& r_nodes_array = rModelPart.Nodes();
+    for(auto& r_node : r_nodes_array) {
+        const auto& r_dofs = r_node.GetDofs();
+        for (auto it_dof = r_dofs.begin(); it_dof != r_dofs.end(); ++it_dof) {
+            const auto& r_variable = (**it_dof).GetVariable();
+            if (r_variable == ROTATION_X || r_variable == ROTATION_Y || r_variable == ROTATION_Z) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 /***********************************************************************************/

@@ -184,7 +184,7 @@ namespace Kratos
    //*********************************DISPLACEMENT***************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUJWwPElement::GetValuesVector( Vector& rValues, int Step )
+   void AxisymUpdatedLagrangianUJWwPElement::GetValuesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       unsigned int element_size          = number_of_nodes * 6;
@@ -209,7 +209,7 @@ namespace Kratos
    //************************************VELOCITY****************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUJWwPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+   void AxisymUpdatedLagrangianUJWwPElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       unsigned int element_size          = number_of_nodes * 6;
@@ -233,7 +233,7 @@ namespace Kratos
    //*********************************ACCELERATION***************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUJWwPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+   void AxisymUpdatedLagrangianUJWwPElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       unsigned int element_size          = number_of_nodes * 6;

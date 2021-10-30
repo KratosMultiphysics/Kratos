@@ -101,7 +101,7 @@ public:
     ///@{
 
     /// Counted pointer of HypoElasticSolid2D
-    KRATOS_CLASS_POINTER_DEFINITION(HypoElasticSolid2D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(HypoElasticSolid2D);
 
     ///@}
     ///@name Life Cycle

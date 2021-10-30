@@ -35,6 +35,8 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
+        std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override;
+
         void InitializeDependentContact(double equiv_radius,
                                         const double equiv_level_of_fouling,
                                         const double equiv_young,
@@ -97,6 +99,7 @@ namespace Kratos {
                                       double LocalElasticContactForce[3],
                                       double ViscoDampingLocalContactForce[3],
                                       const double LocalDeltDisp[3],
+                                      const double LocalRelVel[3],
                                       bool& sliding,
                                       ContactInfoSphericParticle* const element1,
                                       ContactInfoSphericParticle* const element2,
@@ -112,6 +115,7 @@ namespace Kratos {
                                              double LocalElasticContactForce[3],
                                              double ViscoDampingLocalContactForce[3],
                                              const double LocalDeltDisp[3],
+                                             const double LocalReltVel[3],
                                              bool& sliding,
                                              ContactInfoSphericParticle* const element,
                                              Condition* const wall,

@@ -90,14 +90,14 @@ ShellRigid::~ShellRigid()
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ShellRigid::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateAllMatrices(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ShellRigid::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     Matrix lhs(18,18);
     CalculateAllMatrices(lhs,rRightHandSideVector,rCurrentProcessInfo);
@@ -623,7 +623,7 @@ void ShellRigid::CalculateBendingElasticityTensor( BoundedMatrix<double,3,3>& Eb
 void ShellRigid::CalculateAllMatrices(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     BoundedMatrix<double,18,18> mKloc_system;
     BoundedMatrix<double,3,3> mEm;
@@ -727,8 +727,7 @@ void ShellRigid::CalculateAllMatrices(
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
-{
+void ShellRigid::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const {
     int number_of_nodes = 3;
     if(rResult.size() != 18)
         rResult.resize(18,false);
@@ -749,8 +748,7 @@ void ShellRigid::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& Cu
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
-{
+void ShellRigid::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const {
     ElementalDofList.resize(0);
 
     for (unsigned int i=0; i<GetGeometry().size(); i++)
@@ -767,7 +765,7 @@ void ShellRigid::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& Curren
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::GetValuesVector(Vector& values, int Step)
+void ShellRigid::GetValuesVector(Vector& values, int Step) const
 {
     const unsigned int number_of_nodes = 3;
     //const unsigned int dim = 3;
@@ -934,18 +932,6 @@ void ShellRigid::NicePrint(const Matrix& A)
         std::cout << std::endl;
     }
 }
-
-
-//************************************************************************************
-//************************************************************************************
-void ShellRigid::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-
 
 //************************************************************************************
 //************************************************************************************
@@ -1826,7 +1812,7 @@ void ShellRigid::InvertMatrix(const BoundedMatrix<double,3,3>& InputMatrix,
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::Initialize()
+void ShellRigid::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     //calculate local coordinates and rotation matrix
@@ -1849,7 +1835,7 @@ void ShellRigid::Initialize()
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void ShellRigid::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1873,7 +1859,7 @@ void ShellRigid::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ShellRigid::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1914,7 +1900,7 @@ void ShellRigid::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurr
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::GetFirstDerivativesVector(Vector& values, int Step)
+void ShellRigid::GetFirstDerivativesVector(Vector& values, int Step) const
 {
     unsigned int MatSize = 18;
     if(values.size() != MatSize)   values.resize(MatSize,false);
@@ -1931,7 +1917,7 @@ void ShellRigid::GetFirstDerivativesVector(Vector& values, int Step)
 }
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::GetSecondDerivativesVector(Vector& values, int Step)
+void ShellRigid::GetSecondDerivativesVector(Vector& values, int Step) const
 {
     unsigned int MatSize = 18;
     if(values.size() != MatSize) values.resize(MatSize,false);
@@ -1957,56 +1943,28 @@ void ShellRigid::GetSecondDerivativesVector(Vector& values, int Step)
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  ShellRigid::Check(const ProcessInfo& rCurrentProcessInfo)
+int  ShellRigid::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-
-
-    //verify that the variables are correctly initialized
-    if(VELOCITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered","");
-    if(DISPLACEMENT.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered","");
-    if(ACCELERATION.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered","");
-    if(DENSITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered","");
-    if(BODY_FORCE.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"BODY_FORCE has Key zero! (check if the application is correctly registered","");
-    if(THICKNESS.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"THICKNESS has Key zero! (check if the application is correctly registered","");
-
     //verify that the dofs exist
-    for(unsigned int i=0; i<this->GetGeometry().size(); i++)
-    {
-        if(this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing variable DISPLACEMENT on node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ",GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(ROTATION) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing variable ROTATION on node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].HasDofFor(ROTATION_X) == false || this->GetGeometry()[i].HasDofFor(ROTATION_Y) == false || this->GetGeometry()[i].HasDofFor(ROTATION_Z) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing one of the dofs for the variable ROTATION on node ",GetGeometry()[i].Id());
+    for(unsigned int i=0; i<this->GetGeometry().size(); i++) {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, this->GetGeometry()[i])
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, this->GetGeometry()[i])
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, this->GetGeometry()[i])
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, this->GetGeometry()[i])
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, this->GetGeometry()[i])
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_X, this->GetGeometry()[i])
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y, this->GetGeometry()[i])
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_Z, this->GetGeometry()[i])
     }
 
     //Verify that the body force is defined
-    if (this->GetProperties().Has(BODY_FORCE)==false)
-        KRATOS_THROW_ERROR(std::logic_error,"BODY_FORCE not provided for property ",this->GetProperties().Id())
-
-        if (this->GetProperties().Has(THICKNESS)==false)
-            KRATOS_THROW_ERROR(std::logic_error,"THICKNESS not provided for element ",this->Id());
-
-    if (this->GetProperties().Has(DENSITY)==false)
-        KRATOS_THROW_ERROR(std::logic_error,"DENSITY not provided for element ",this->Id());
-
-    if (this->GetProperties().Has(YOUNG_MODULUS)==false)
-        KRATOS_THROW_ERROR(std::logic_error,"YOUNG_MODULUS not provided for element ",this->Id());
-
-    if (this->GetProperties().Has(POISSON_RATIO)==false)
-        KRATOS_THROW_ERROR(std::logic_error,"POISSON_RATIO not provided for element ",this->Id());
-
-
+    KRATOS_ERROR_IF(this->GetProperties().Has(BODY_FORCE)==false) << "BODY_FORCE not provided for property " << this->GetProperties().Id() << std::endl;
+    KRATOS_ERROR_IF(this->GetProperties().Has(THICKNESS)==false) << "THICKNESS not provided for property " << this->GetProperties().Id() << std::endl;
+    KRATOS_ERROR_IF(this->GetProperties().Has(DENSITY)==false) << "DENSITY not provided for property " << this->GetProperties().Id() << std::endl;
+    KRATOS_ERROR_IF(this->GetProperties().Has(YOUNG_MODULUS)==false) << "YOUNG_MODULUS not provided for property " << this->GetProperties().Id() << std::endl;
+    KRATOS_ERROR_IF(this->GetProperties().Has(POISSON_RATIO)==false) << "POISSON_RATIO not provided for property " << this->GetProperties().Id() << std::endl;
 
     return 0;
 

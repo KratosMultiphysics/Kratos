@@ -85,7 +85,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Bingham3DLaw : public PfemFlui
     /**
      * @return Size of the strain vector (in Voigt notation) for the constitutive law
      */
-    SizeType GetStrainSize() override;
+    SizeType GetStrainSize() const override;
 
     void CalculateMaterialResponseCauchy(Parameters& rValues) override;
 
@@ -99,7 +99,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Bingham3DLaw : public PfemFlui
      * @return
      */
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) override;
+              const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Input and output
@@ -130,10 +130,10 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Bingham3DLaw : public PfemFlui
     double GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const override;
 
     /// Get the effective yield shear for the fluid.
-    double GetEffectiveYieldShear(ConstitutiveLaw::Parameters& rParameters) const;
+    virtual double GetEffectiveYieldShear(ConstitutiveLaw::Parameters& rParameters) const;
 
     /// Get the effective dynamic viscosity for the fluid.
-    double GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters& rParameters) const;
+    virtual double GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters& rParameters) const;
 
     ///@}
 

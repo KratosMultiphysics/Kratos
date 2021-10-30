@@ -23,6 +23,10 @@ def  AuxiliarContactSettings():
             "max_number_splits"                                       : 3,
             "inner_loop_iterations"                                   : 5,
             "inner_loop_adaptive"                                     : false,
+            "rotation_relative_tolerance"                             : 1.0e-4,
+            "rotation_absolute_tolerance"                             : 1.0e-9,
+            "rotation_residual_relative_tolerance"                    : 1.0e-4,
+            "rotation_residual_absolute_tolerance"                    : 1.0e-9,
             "contact_displacement_relative_tolerance"                 : 1.0e-4,
             "contact_displacement_absolute_tolerance"                 : 1.0e-9,
             "contact_residual_relative_tolerance"                     : 1.0e-4,
@@ -222,6 +226,10 @@ def  AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_sett
     conv_params.AddValue("displacement_absolute_tolerance", settings["displacement_absolute_tolerance"])
     conv_params.AddValue("residual_relative_tolerance", settings["residual_relative_tolerance"])
     conv_params.AddValue("residual_absolute_tolerance", settings["residual_absolute_tolerance"])
+    conv_params.AddValue("rotation_relative_tolerance", contact_settings["rotation_relative_tolerance"])
+    conv_params.AddValue("rotation_absolute_tolerance", contact_settings["rotation_absolute_tolerance"])
+    conv_params.AddValue("rotation_residual_relative_tolerance", contact_settings["rotation_residual_relative_tolerance"])
+    conv_params.AddValue("rotation_residual_absolute_tolerance", contact_settings["rotation_residual_absolute_tolerance"])
     conv_params.AddValue("contact_displacement_relative_tolerance", contact_settings["contact_displacement_relative_tolerance"])
     conv_params.AddValue("contact_displacement_absolute_tolerance", contact_settings["contact_displacement_absolute_tolerance"])
     conv_params.AddValue("contact_residual_relative_tolerance", contact_settings["contact_residual_relative_tolerance"])

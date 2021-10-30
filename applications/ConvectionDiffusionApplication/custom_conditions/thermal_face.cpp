@@ -58,7 +58,7 @@ Condition::Pointer ThermalFace::Create(
 
 void ThermalFace::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -84,7 +84,7 @@ void ThermalFace::EquationIdVector(
 
 void ThermalFace::GetDofList(
     DofsVectorType& rConditionalDofList,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -111,7 +111,7 @@ void ThermalFace::GetDofList(
 void ThermalFace::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -123,7 +123,7 @@ void ThermalFace::CalculateLocalSystem(
 
 void ThermalFace::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -160,7 +160,7 @@ void ThermalFace::CalculateLeftHandSide(
 
 void ThermalFace::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -201,7 +201,7 @@ inline GeometryData::IntegrationMethod ThermalFace::GetIntegrationMethod()
     return IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(this->GetGeometry());
 }
 
-void ThermalFace::GetValueOnIntegrationPoints(
+void ThermalFace::CalculateOnIntegrationPoints(
     const Variable<array_1d<double,3> > &rVariable,
     std::vector<array_1d<double,3> > &rValues,
     const ProcessInfo &rCurrentProcessInfo)
@@ -229,7 +229,7 @@ void ThermalFace::GetValueOnIntegrationPoints(
     }
 }
 
-void ThermalFace::GetValueOnIntegrationPoints(
+void ThermalFace::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -243,7 +243,7 @@ void ThermalFace::GetValueOnIntegrationPoints(
     }
 }
 
-void ThermalFace::GetValueOnIntegrationPoints(
+void ThermalFace::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 6 > >& rVariable,
     std::vector<array_1d<double, 6 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -257,7 +257,7 @@ void ThermalFace::GetValueOnIntegrationPoints(
     }
 }
 
-void ThermalFace::GetValueOnIntegrationPoints(
+void ThermalFace::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -271,7 +271,7 @@ void ThermalFace::GetValueOnIntegrationPoints(
     }
 }
 
-void ThermalFace::GetValueOnIntegrationPoints(
+void ThermalFace::CalculateOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo)

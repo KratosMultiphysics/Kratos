@@ -26,7 +26,7 @@ QUESTION: Internal_Friction_Angle
 VALUE: 32.0
 HELP: Units Degrees
 QUESTION: Rayleigh_Beta
-VALUE: 0.02
+VALUE: 0.002
 HELP: D = R_alpha*M + r_beta*K
 QUESTION: Rayleigh_Alpha
 VALUE: 0.5
@@ -181,7 +181,7 @@ CONDTYPE: over groups
 CONDMESHTYPE: over face elements
 GROUPALLOW: lines faces
 QUESTION: Modulus
-VALUE: 0.0 
+VALUE: 0.0
 HELP: If it is a function write the expression between ""
 QUESTION: FACE_LOAD_X#CB#(true,false)
 VALUE: true
@@ -319,7 +319,7 @@ CONDTYPE: over groups
 CONDMESHTYPE: over face elements
 GROUPALLOW: surfaces faces
 QUESTION: Modulus
-VALUE: 0.0 
+VALUE: 0.0
 HELP: If it is a function write the expression between ""
 QUESTION: SURF_LOAD_X#CB#(true,false)
 VALUE: true
@@ -409,7 +409,7 @@ BOOK: Plots
 
 CONDITION: list_of_nodes_reaction
 CONDTYPE: over groups
-CONDMESHTYPE: over nodes 
+CONDMESHTYPE: over node
 GROUPALLOW: points lines surfaces nodes
 HELP: Select the nodes/lines to plot the sum of the reaction
 END CONDITION

@@ -22,6 +22,11 @@ public:
         return p_clone;
     }
 
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override {
+        return std::unique_ptr<DEMDiscontinuumConstitutiveLaw>{new DEM_compound_constitutive_law<MainCL, CohesionCL>(*this)};
+    }
+
+
     void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override {
         if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_linear_viscous_Coulomb to Properties " << pProp->Id() << std::endl; // Print this correctly!!!
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -25,6 +25,7 @@
 #include "elements/mesh_element.h"
 #include "elements/distance_calculation_element_simplex.h"
 #include "elements/levelset_convection_element_simplex.h"
+#include "elements/levelset_convection_element_simplex_algebraic_stabilization.h"
 #include "includes/condition.h"
 #include "conditions/mesh_condition.h"
 #include "includes/periodic_condition.h"
@@ -64,6 +65,8 @@
 // Modelers
 #include "modeler/modeler.h"
 #include "modeler/cad_io_modeler.h"
+#include "modeler/cad_tessellation_modeler.h"
+#include "modeler/serial_model_part_combinator_modeler.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -132,7 +135,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///////////////////////////////////////////////////////////////////
     void RegisterVariables();  // This contains the whole list of common variables in the Kratos Core
     void RegisterDeprecatedVariables();           //TODO: remove, this variables should not be there
-    void RegisterC2CVariables();                  //TODO: move to application
     void RegisterCFDVariables();                  //TODO: move to application
     void RegisterALEVariables();                  //TODO: move to application
     void RegisterMappingVariables();              //TODO: move to application
@@ -422,6 +424,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshCondition mSurfaceCondition3D4N;
     const MeshCondition mSurfaceCondition3D8N;
     const MeshCondition mSurfaceCondition3D9N;
+    //prisms
+    const MeshCondition mPrismCondition2D4N;
+    const MeshCondition mPrismCondition3D6N;
+
 
     // Master-Slave base constraint
     const MasterSlaveConstraint mMasterSlaveConstraint;
@@ -433,7 +439,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const PeriodicCondition mPeriodicConditionCorner;
 
     // General elements must be defined
-    const MeshElement mElement;
+    const MeshElement mElement2D1N;
     const MeshElement mElement2D2N;
     const MeshElement mElement2D3N;
     const MeshElement mElement2D6N;
@@ -441,6 +447,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshElement mElement2D8N;
     const MeshElement mElement2D9N;
 
+    const MeshElement mElement3D1N;
     const MeshElement mElement3D2N;
     const MeshElement mElement3D3N;
     const MeshElement mElement3D4N;
@@ -456,10 +463,14 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     const LevelSetConvectionElementSimplex<2,3> mLevelSetConvectionElementSimplex2D3N;
     const LevelSetConvectionElementSimplex<3,4> mLevelSetConvectionElementSimplex3D4N;
+    const LevelSetConvectionElementSimplexAlgebraicStabilization<2,3> mLevelSetConvectionElementSimplexAlgebraicStabilization2D3N;
+    const LevelSetConvectionElementSimplexAlgebraicStabilization<3,4> mLevelSetConvectionElementSimplexAlgebraicStabilization3D4N;
 
     // Modeler
     const Modeler mModeler;
     const CadIoModeler mCadIoModeler;
+    const CadTessellationModeler mCadTessellationModeler;
+    const SerialModelPartCombinatorModeler mSerialModelPartCombinatorModeler;
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;

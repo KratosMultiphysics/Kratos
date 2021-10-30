@@ -205,9 +205,10 @@ namespace Testing
         ModelPart& r_background_model_part = current_model.CreateModelPart("MPMBackgroundModelPart");
         PrepareBackgroundModelPart(r_background_model_part);
         PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
+        const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
 
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
+            MP_COORD, { mp_coordinate }, r_current_process_info);
 
         MPMSearchElementUtility::SearchElement<2>(
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
@@ -224,14 +225,14 @@ namespace Testing
         mp_coordinate[2] = 0.0;
 
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
+            MP_COORD, { mp_coordinate }, r_current_process_info);
 
         MPMSearchElementUtility::SearchElement<2>(
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         std::vector<array_1d<double, 3>> coords;
         r_mpm_model_part.GetElement(2).CalculateOnIntegrationPoints(
-            MP_COORD, coords, r_mpm_model_part.GetProcessInfo());
+            MP_COORD, coords, r_current_process_info);
         KRATOS_CHECK_VECTOR_NEAR(coords[0], mp_coordinate, 1e-6)
         // Check nodes
         KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[0].Id(), 2);
@@ -266,10 +267,12 @@ namespace Testing
         r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, false);
         r_background_model_part.GetProcessInfo().SetValue(PQMPM_SUBPOINT_MIN_VOLUME_FRACTION, 1e-24);
 
+        const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
+
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
+            MP_COORD, { mp_coordinate }, r_current_process_info);
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
+            MP_VOLUME, mp_volume, r_current_process_info);
 
         MPMSearchElementUtility::SearchElement<2>(
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
@@ -306,10 +309,12 @@ namespace Testing
         r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, false);
         r_background_model_part.GetProcessInfo().SetValue(PQMPM_SUBPOINT_MIN_VOLUME_FRACTION, 1e-24);
 
+        const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
+
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
+            MP_COORD, { mp_coordinate }, r_current_process_info);
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
+            MP_VOLUME, mp_volume, r_current_process_info);
 
         MPMSearchElementUtility::SearchElement<2>(
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
@@ -345,10 +350,12 @@ namespace Testing
         r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
         r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, false);
 
+        const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
+
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
+            MP_COORD, { mp_coordinate }, r_current_process_info);
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
+            MP_VOLUME, mp_volume, r_current_process_info);
 
         MPMSearchElementUtility::SearchElement<2>(
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
@@ -357,8 +364,8 @@ namespace Testing
         Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         //KRATOS_WATCH(rGeom.IntegrationPointsNumber())
         KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 9);
-        std::vector<double> result_weight = { 0.0307296, 0.103553,0.0121636, 0.5,
-            0.128553, 0.0214466, 0.103553, 0.0785534, 0.0214466 };
+        std::vector<double> result_weight = { 0.5, 0.0307296, 0.103553, 0.0121636, 0.0785534,
+            0.103553, 0.128553, 0.0214466, 0.0214466 };
         for (size_t i = 0; i < rGeom.IntegrationPointsNumber(); i++)
         {
             //KRATOS_WATCH(rGeom.IntegrationPoints()[i].Weight())
@@ -391,10 +398,12 @@ namespace Testing
         r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
         r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, false);
 
+        const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
+
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
+            MP_COORD, { mp_coordinate }, r_current_process_info);
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
+            MP_VOLUME, mp_volume, r_current_process_info);
 
         MPMSearchElementUtility::SearchElement<2>(
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
@@ -403,7 +412,7 @@ namespace Testing
         Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         //KRATOS_WATCH(rGeom.IntegrationPointsNumber())
         KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 5);
-        std::vector<double> result_weight = { 0.018, 0.162, 0.42, 0.32, 0.08};
+        std::vector<double> result_weight = { 0.42, 0.018, 0.162, 0.32, 0.08};
         for (size_t i = 0; i < rGeom.IntegrationPointsNumber(); i++)
         {
             //KRATOS_WATCH(rGeom.IntegrationPoints()[i].Weight())
@@ -436,10 +445,12 @@ namespace Testing
         r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
         r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, false);
 
+        const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
+
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
+            MP_COORD, { mp_coordinate }, r_current_process_info);
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
+            MP_VOLUME, mp_volume, r_current_process_info);
 
         MPMSearchElementUtility::SearchElement<3>(
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
@@ -481,11 +492,13 @@ namespace Testing
     //
     //    r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
     //    r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, false);
+
+    // const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
     //
     //    r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-    //        MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
+    //        MP_COORD, { mp_coordinate }, r_current_process_info);
     //    r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-    //        MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
+    //        MP_VOLUME, mp_volume, r_current_process_info);
     //
     //    KRATOS_CHECK_EXCEPTION_IS_THROWN(MPMSearchElementUtility::SearchElement<2>(
     //        r_background_model_part, r_mpm_model_part, 1000, 1e-6) ,
@@ -517,11 +530,13 @@ namespace Testing
     //
     //    r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
     //    r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, false);
+
+    // const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
     //
     //    r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-    //        MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
+    //        MP_COORD, { mp_coordinate }, r_current_process_info);
     //    r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-    //        MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
+    //        MP_VOLUME, mp_volume, r_current_process_info);
     //
     //    KRATOS_CHECK_EXCEPTION_IS_THROWN(MPMSearchElementUtility::SearchElement<2>(
     //        r_background_model_part, r_mpm_model_part, 1000, 1e-6) ,
@@ -553,10 +568,12 @@ namespace Testing
         r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
         r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, true);
 
+        const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
+
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
+            MP_COORD, { mp_coordinate }, r_current_process_info);
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
+            MP_VOLUME, mp_volume, r_current_process_info);
 
         Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 1);
@@ -591,10 +608,12 @@ namespace Testing
         r_background_model_part.GetProcessInfo().SetValue(IS_PQMPM, true);
         r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, false);
 
+        const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
+
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
+            MP_COORD, { mp_coordinate }, r_current_process_info);
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
+            MP_VOLUME, mp_volume, r_current_process_info);
 
         MPMSearchElementUtility::SearchElement<2>(
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
@@ -631,10 +650,12 @@ namespace Testing
         r_background_model_part.GetProcessInfo().SetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, true);
         r_background_model_part.GetProcessInfo().SetValue(PQMPM_SUBPOINT_MIN_VOLUME_FRACTION, 0.5);
 
+        const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
+
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_COORD, { mp_coordinate }, r_mpm_model_part.GetProcessInfo());
+            MP_COORD, { mp_coordinate }, r_current_process_info);
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
-            MP_VOLUME, mp_volume, r_mpm_model_part.GetProcessInfo());
+            MP_VOLUME, mp_volume, r_current_process_info);
 
         MPMSearchElementUtility::SearchElement<2>(
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
