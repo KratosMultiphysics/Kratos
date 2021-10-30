@@ -30,20 +30,17 @@ typedef ModelPart::NodesContainerType NodesContainerType;
 
 BoundingBoxType BoundingBoxConstructorWithNodes(NodesContainerType& rNodes)
 {
-    std::vector<Point> points;
-    for (auto it_node = rNodes.begin(); it_node < rNodes.end(); ++it_node) {
-        points.push_back(*it_node);
-    }
-    return BoundingBoxType(points.begin(), points.end());
+    return BoundingBoxType(rNodes.begin(), rNodes.end());
+}
+
+void Set(BoundingBoxType& rBoundingBox, NodesContainerType& rNodes)
+{
+    rBoundingBox.Set(rNodes.begin(), rNodes.end());
 }
 
 void Extend1(BoundingBoxType& rBoundingBox, NodesContainerType& rNodes)
 {
-    std::vector<Point> points;
-    for (auto it_node = rNodes.begin(); it_node < rNodes.end(); ++it_node) {
-        points.push_back(*it_node);
-    }
-    rBoundingBox.Extend(points.begin(), points.end());
+    rBoundingBox.Extend(rNodes.begin(), rNodes.end());
 }
 
 void Extend2(BoundingBoxType& rBoundingBox, double Margin)
@@ -68,15 +65,10 @@ void AddBoundingBoxToPython(pybind11::module& m)
     py::class_<BoundingBoxType, BoundingBoxType::Pointer >(m, "BoundingBox")
     // .def(py::init<>(BoundingBoxConstructorWithNodes))
     .def(py::init([](NodesContainerType& rNodes){
-        std::vector<Point> points;
-        for (auto it_node = rNodes.begin(); it_node < rNodes.end(); ++it_node) {
-            points.push_back(*it_node);
-        }
-        return BoundingBoxType(points.begin(), points.end());
-        // return Kratos::make_shared<BoundingBoxType>(new BoundingBoxType(rNodes.begin(), rNodes.end()));
+        return BoundingBoxType(rNodes.begin(), rNodes.end());
     }))
     .def(py::init<Point, Point>())
-    // .def("Set", &BoundingBoxType::Set)
+    .def("Set", Set)
     .def("Extend", Extend1)
     .def("Extend", Extend2)
     .def("GetMinPoint", GetMinPoint)
