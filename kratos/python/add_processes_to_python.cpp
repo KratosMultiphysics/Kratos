@@ -125,7 +125,7 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<Process, Process::Pointer>(m,"Process")
     .def(py::init<>())
-    .def("Create",&Process::Create)
+    .def("Create", &Process::Create)
     .def("Execute",&Process::Execute)
     .def("ExecuteInitialize",&Process::ExecuteInitialize)
     .def("ExecuteBeforeSolutionLoop",&Process::ExecuteBeforeSolutionLoop)

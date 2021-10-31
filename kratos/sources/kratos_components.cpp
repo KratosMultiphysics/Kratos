@@ -22,6 +22,7 @@
 #include "includes/constitutive_law.h"
 #include "includes/master_slave_constraint.h"
 #include "modeler/modeler.h"
+#include "processes/process.h"
 
 /* Utilities */
 #include "utilities/quaternion.h"
@@ -151,6 +152,7 @@ template class KratosComponents<ConstitutiveLaw>;
 template class KratosComponents<Variable<ConstitutiveLaw::Pointer>>;
 template class KratosComponents<MasterSlaveConstraint>;
 template class KratosComponents<Modeler>;
+template class KratosComponents<Process>;
 
 using RealSparseSpace = UblasSpace<double, boost::numeric::ublas::compressed_matrix<double>, boost::numeric::ublas::vector<double>>;
 using RealDenseSpace = UblasSpace<double, DenseMatrix<double>, DenseVector<double>>;
@@ -161,9 +163,6 @@ template class KratosComponents<LinearSolverFactory<RealSparseSpace, RealDenseSp
 template class KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexDenseSpace>>;
 template class KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
 template class KratosComponents<ExplicitBuilder<RealSparseSpace, RealDenseSpace>>;
-
-// Specialize array of compenents for VariableData
-KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;
 
 }  // namespace Kratos.
 

@@ -21,6 +21,7 @@
 #include "python/add_factories_to_python.h"
 #include "factories/linear_solver_factory.h"
 #include "factories/preconditioner_factory.h"
+#include "factories/process_factory.h"
 #include "factories/register_factories.h"
 
 namespace Kratos
@@ -64,6 +65,9 @@ void  AddFactoriesToPython(pybind11::module& m)
      .def("Create",&PreconditionerFactoryType::Create)
      .def("Has",&PreconditionerFactoryType::Has)
     ;
+
+    m.def("CreateProcess", &ProcessFactory::Create);
+    m.def("HasProcess", &ProcessFactory::Has);
 
     //////////////////////////////////////////////////////////////
     //HERE WE REGISTER SOME COMMON METHODS

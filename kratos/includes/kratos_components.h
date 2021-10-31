@@ -81,34 +81,35 @@ public:
     static void Add(std::string const& Name, TComponentType const& ThisComponent)
     {
         // check if a different object was already registered with this name, since this is undefined behavior
-        auto it_comp =  msComponents.find(Name);
-        KRATOS_ERROR_IF(it_comp != msComponents.end() && typeid(*(it_comp->second)) != typeid(ThisComponent)) << "An object of different type was already registered with name \"" << Name << "\"!" << std::endl;
-        msComponents.insert(ValueType(Name , &ThisComponent));
+        auto it_comp =  GetComponents().find(Name);
+        KRATOS_ERROR_IF(it_comp != GetComponents().end() && typeid(*(it_comp->second)) != typeid(ThisComponent)) << "An object of different type was already registered with name \"" << Name << "\"!" << std::endl;
+        GetComponents().insert(ValueType(Name , &ThisComponent));
     }
 
     static void Remove(std::string const& Name)
     {
-        std::size_t num_erased = msComponents.erase(Name);
+        std::size_t num_erased = GetComponents().erase(Name);
         KRATOS_ERROR_IF(num_erased == 0) << "Trying to remove inexistent component \"" << Name << "\"." << std::endl;
     }
 
     static TComponentType const& Get(std::string const& Name)
     {
-        auto it_comp =  msComponents.find(Name);
+        auto it_comp =  GetComponents().find(Name);
 
-        KRATOS_DEBUG_ERROR_IF(it_comp == msComponents.end()) << GetMessageUnregisteredComponent(Name) << std::endl;
+        KRATOS_DEBUG_ERROR_IF(it_comp == GetComponents().end()) << GetMessageUnregisteredComponent(Name) << std::endl;
 
         return *(it_comp->second);
     }
 
     static ComponentsContainerType & GetComponents()
     {
+        static ComponentsContainerType msComponents;
         return msComponents;
     }
 
     static ComponentsContainerType * pGetComponents()
     {
-        return &msComponents;
+        return &GetComponents();
     }
 
     static void Register()
@@ -127,7 +128,7 @@ public:
 
     static bool Has(std::string const& Name)
     {
-        return (msComponents.find(Name) != msComponents.end());
+        return (GetComponents().find(Name) != GetComponents().end());
     }
 
     ///@}
@@ -149,7 +150,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        for (const auto& r_comp : msComponents) {
+        for (const auto& r_comp : GetComponents()) {
             rOStream << "    " << r_comp.first << std::endl;
         }
     }
@@ -203,7 +204,6 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static ComponentsContainerType msComponents;
 
     ///@}
     ///@name Member Variables
@@ -289,46 +289,47 @@ public:
 
     static void Add(std::string const& Name, VariableData& ThisComponent)
     {
-        msComponents.insert(ValueType(Name, &ThisComponent));
+        GetComponents().insert(ValueType(Name, &ThisComponent));
     }
 
     static void Remove(std::string const& Name)
     {
-        std::size_t num_erased = msComponents.erase(Name);
+        std::size_t num_erased = GetComponents().erase(Name);
         KRATOS_ERROR_IF(num_erased == 0) << "Trying to remove inexistent component \"" << Name << "\"." << std::endl;
     }
 
     static std::size_t Size()
     {
-        return msComponents.size();
+        return GetComponents().size();
     }
 
     static VariableData & Get(std::string const& Name)
     {
-        auto it_comp =  msComponents.find(Name);
+        auto it_comp =  GetComponents().find(Name);
 
-        KRATOS_DEBUG_ERROR_IF(it_comp == msComponents.end()) << GetMessageUnregisteredVariable(Name) << std::endl;
+        KRATOS_DEBUG_ERROR_IF(it_comp == GetComponents().end()) << GetMessageUnregisteredVariable(Name) << std::endl;
 
         return *(it_comp->second);
     }
 
     static VariableData* pGet(std::string const& Name)
     {
-        auto it_comp =  msComponents.find(Name);
+        auto it_comp =  GetComponents().find(Name);
 
-        KRATOS_DEBUG_ERROR_IF(it_comp == msComponents.end()) << GetMessageUnregisteredVariable(Name) << std::endl;
+        KRATOS_DEBUG_ERROR_IF(it_comp == GetComponents().end()) << GetMessageUnregisteredVariable(Name) << std::endl;
 
         return it_comp->second;
     }
 
     static ComponentsContainerType & GetComponents()
     {
+        static ComponentsContainerType msComponents;
         return msComponents;
     }
 
     static ComponentsContainerType * pGetComponents()
     {
-        return &msComponents;
+        return &GetComponents();
     }
 
     static void Register()
@@ -347,7 +348,7 @@ public:
 
     static bool Has(std::string const& Name)
     {
-        return (msComponents.find(Name) != msComponents.end());
+        return (GetComponents().find(Name) != GetComponents().end());
     }
 
     ///@}
@@ -369,7 +370,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        for (const auto& r_comp : msComponents) {
+        for (const auto& r_comp : GetComponents()) {
             rOStream << "    " << r_comp.first << std::endl;
         }
     }
@@ -424,7 +425,6 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static ComponentsContainerType msComponents;
 
     ///@}
     ///@name Member Variables
@@ -472,9 +472,6 @@ private:
     ///@}
 
 }; // Class KratosComponents
-
-template<class TComponentType>
-typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<bool> >;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<int> >;
