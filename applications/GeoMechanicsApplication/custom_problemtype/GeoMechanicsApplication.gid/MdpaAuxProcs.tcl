@@ -67,12 +67,12 @@ proc PressureTable {FileVar TableId TableDict CondName VarName} {
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             set AuxList [list]
             if {[lindex [lindex $Groups $i] 3] eq "Phreatic_Line"} {
-                if {[lindex [lindex $Groups $i] 22] eq "Table_Interpolation"} {
+                if {[lindex [lindex $Groups $i] 23] eq "Table_Interpolation"} {
                     incr MyTableId
                     dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 $MyTableId
                     lappend AuxList $MyTableId
                     puts $MyFileVar "Begin Table $MyTableId TIME $VarName"
-                    set Table [lindex [lindex $Groups $i] 23]
+                    set Table [lindex [lindex $Groups $i] 24]
                     for {set j 2} {$j <= [lindex $Table 1]} {incr j 2} {
                         puts $MyFileVar "  [lindex $Table $j] [lindex $Table [expr { $j+1 }]]"
                     }
@@ -81,12 +81,12 @@ proc PressureTable {FileVar TableId TableDict CondName VarName} {
                 } else {
                     dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 0
                 }
-                if {[lindex [lindex $Groups $i] 24] eq "Table_Interpolation"} {
+                if {[lindex [lindex $Groups $i] 25] eq "Table_Interpolation"} {
                     incr MyTableId
                     dict set MyTableDict [lindex [lindex $Groups $i] 1] Table1 $MyTableId
                     lappend AuxList $MyTableId
                     puts $MyFileVar "Begin Table $MyTableId TIME $VarName"
-                    set Table [lindex [lindex $Groups $i] 25]
+                    set Table [lindex [lindex $Groups $i] 26]
                     for {set j 2} {$j <= [lindex $Table 1]} {incr j 2} {
                         puts $MyFileVar "  [lindex $Table $j] [lindex $Table [expr { $j+1 }]]"
                     }
@@ -97,12 +97,12 @@ proc PressureTable {FileVar TableId TableDict CondName VarName} {
                 }
 
             } elseif {[lindex [lindex $Groups $i] 3] eq "Phreatic_Surface"} {
-                if {[lindex [lindex $Groups $i] 22] eq "Table_Interpolation"} {
+                if {[lindex [lindex $Groups $i] 23] eq "Table_Interpolation"} {
                     incr MyTableId
                     dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 $MyTableId
                     lappend AuxList $MyTableId
                     puts $MyFileVar "Begin Table $MyTableId TIME $VarName"
-                    set Table [lindex [lindex $Groups $i] 23]
+                    set Table [lindex [lindex $Groups $i] 24]
                     for {set j 2} {$j <= [lindex $Table 1]} {incr j 2} {
                         puts $MyFileVar "  [lindex $Table $j] [lindex $Table [expr { $j+1 }]]"
                     }
@@ -111,12 +111,12 @@ proc PressureTable {FileVar TableId TableDict CondName VarName} {
                 } else {
                     dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 0
                 }
-                if {[lindex [lindex $Groups $i] 24] eq "Table_Interpolation"} {
+                if {[lindex [lindex $Groups $i] 25] eq "Table_Interpolation"} {
                     incr MyTableId
                     dict set MyTableDict [lindex [lindex $Groups $i] 1] Table1 $MyTableId
                     lappend AuxList $MyTableId
                     puts $MyFileVar "Begin Table $MyTableId TIME $VarName"
-                    set Table [lindex [lindex $Groups $i] 25]
+                    set Table [lindex [lindex $Groups $i] 26]
                     for {set j 2} {$j <= [lindex $Table 1]} {incr j 2} {
                         puts $MyFileVar "  [lindex $Table $j] [lindex $Table [expr { $j+1 }]]"
                     }
@@ -125,12 +125,12 @@ proc PressureTable {FileVar TableId TableDict CondName VarName} {
                 } else {
                     dict set MyTableDict [lindex [lindex $Groups $i] 1] Table1 0
                 }
-                if {[lindex [lindex $Groups $i] 26] eq "Table_Interpolation"} {
+                if {[lindex [lindex $Groups $i] 27] eq "Table_Interpolation"} {
                     incr MyTableId
                     dict set MyTableDict [lindex [lindex $Groups $i] 1] Table2 $MyTableId
                     lappend AuxList $MyTableId
                     puts $MyFileVar "Begin Table $MyTableId TIME $VarName"
-                    set Table [lindex [lindex $Groups $i] 27]
+                    set Table [lindex [lindex $Groups $i] 28]
                     for {set j 2} {$j <= [lindex $Table 1]} {incr j 2} {
                         puts $MyFileVar "  [lindex $Table $j] [lindex $Table [expr { $j+1 }]]"
                     }
@@ -140,7 +140,7 @@ proc PressureTable {FileVar TableId TableDict CondName VarName} {
                     dict set MyTableDict [lindex [lindex $Groups $i] 1] Table2 0
                 }
             } else {
-                if {[lindex [lindex $Groups $i] 22] eq "Table_Interpolation"} {
+                if {[lindex [lindex $Groups $i] 23] eq "Table_Interpolation"} {
                     incr MyTableId
                     dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 $MyTableId
                     lappend AuxList $MyTableId

@@ -32,7 +32,6 @@ proc AppendGroupVariables {String CondName VarName} {
 }
 
 #-------------------------------------------------------------------------------
-
 proc AppendOutputVariables {String GroupNum QuestionName VarName} {
     upvar $String MyString
     upvar $GroupNum MyGroupNum
@@ -44,7 +43,6 @@ proc AppendOutputVariables {String GroupNum QuestionName VarName} {
 }
 
 #-------------------------------------------------------------------------------
-
 proc WriteConstraintVectorProcess {FileVar GroupNum Groups EntityType VarName TableDict NumGroups} {
     upvar $FileVar MyFileVar
     upvar $GroupNum MyGroupNum
@@ -73,7 +71,6 @@ proc WriteConstraintVectorProcess {FileVar GroupNum Groups EntityType VarName Ta
 }
 
 #-------------------------------------------------------------------------------
-
 proc WritePressureConstraintProcess {FileVar GroupNum Groups EntityType VarName TableDict NumGroups} {
     upvar $FileVar MyFileVar
     upvar $GroupNum MyGroupNum
@@ -183,11 +180,9 @@ proc WritePressureConstraintProcess {FileVar GroupNum Groups EntityType VarName 
                 if {$MyGroupNum < $NumGroups} {
                     puts $MyFileVar "    \},\{"
                 }
-        
             }
         }
     }
-
 }
 
 #-------------------------------------------------------------------------------
