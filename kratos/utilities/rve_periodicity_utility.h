@@ -20,7 +20,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -72,7 +71,9 @@ class KRATOS_API(KRATOS_CORE) RVEPeriodicityUtility
         ModelPart& rDestinationModelPart,
         std::size_t EchoLevel = 0
         ) : mrModelPart(rDestinationModelPart)
-          , mEchoLevel(EchoLevel)  { }
+          , mEchoLevel(EchoLevel)  
+    {
+    }
 
     /// Copy constructor.
     RVEPeriodicityUtility(RVEPeriodicityUtility const& rOther) = delete;
@@ -104,7 +105,7 @@ class KRATOS_API(KRATOS_CORE) RVEPeriodicityUtility
                            ModelPart& rSlaveModelPart,
                            const Matrix& rStrainTensor,
                            const Vector& rDirection,
-                           const double SearchTolerance=1e-6
+                           const double SearchTolerance = 1.0e-6
                            );
 
     /** this function finalizes the computation of the pairings. It can be called ONLY ONCE

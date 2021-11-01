@@ -15,7 +15,8 @@
 // External includes
 
 // Project includes
-#include "rve_periodicity_utility.h"
+#include "includes/model_part.h"
+#include "utilities/rve_periodicity_utility.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
 #include "constraints/linear_master_slave_constraint.h"
 
