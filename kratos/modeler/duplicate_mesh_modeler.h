@@ -169,24 +169,6 @@ public:
 
         Timer::Stop("Generating Mesh");
 
-//			//generating the conditions
-//			id = 1;
-//			for(ModelPart::ConditionsContainerType::iterator iii = OriginModelPart.ConditionsBegin(); iii != OriginModelPart.ConditionsEnd(); iii++)
-//			{
-//				Geometry< Node<3> >& geom = iii->GetGeometry();
-//				double nfree_surf = 0;
-//				for(unsigned int k = 0; k<geom.size(); k++)
-//					nfree_surf += geom[k].FastGetSolutionStepValue(IS_FREE_SURFACE);
-//
-//				if(nfree_surf > 1)
-//				{
-//					Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(id, geom,properties);
-//						DestinationModelPart.Conditions().push_back(p_condition);
-//						id = id + 1;
-//				}
-//			}
-//			std::cout << "Conditions are generated" << std::endl;
-
         KRATOS_CATCH("");
     }
 
