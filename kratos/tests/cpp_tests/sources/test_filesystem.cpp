@@ -249,7 +249,7 @@ KRATOS_TEST_CASE_IN_SUITE(ListDirectory, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(dir_name));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CreateDirectoriesThreadSafe, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPISafeCreateDirectories, KratosCoreFastSuite)
 {
     auto create_dir_test_fct = [](const std::string& rDirName){
         // make sure the dir does not exist already
@@ -257,7 +257,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateDirectoriesThreadSafe, KratosCoreFastSuite)
 
         IndexPartition<> index_part(100);
         index_part.for_each([&rDirName](std::size_t i){
-            FilesystemExtensions::CreateDirectoriesThreadSafe(rDirName);
+            FilesystemExtensions::MPISafeCreateDirectories(rDirName);
         });
 
         KRATOS_CHECK(Kratos::filesystem::exists(rDirName));

@@ -123,7 +123,7 @@ std::vector<std::string> ListDirectory(const std::string& rPath)
     return result;
 }
 
-void CreateDirectoriesThreadSafe(const std::string& rPath)
+void MPISafeCreateDirectories(const std::string& rPath)
 {
     if (!ghc::filesystem::exists(rPath)) {
         ghc::filesystem::create_directories(rPath);

@@ -86,7 +86,7 @@ std::vector<std::string> KRATOS_API(KRATOS_CORE) ListDirectory(const std::string
  *
  * @param rPath                         Path
  */
-void KRATOS_API(KRATOS_CORE) CreateDirectoriesThreadSafe(const std::string& rPath);
+void KRATOS_API(KRATOS_CORE) MPISafeCreateDirectories(const std::string& rPath);
 
 } // namespace FilesystemExtensions
 } // namespace Kratos

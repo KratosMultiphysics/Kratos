@@ -232,7 +232,7 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
         const std::string output_path = mOutputSettings["output_path"].GetString();
 
         // Create folder if it doesn't exist before
-        FilesystemExtensions::CreateDirectoriesThreadSafe(output_path);
+        FilesystemExtensions::MPISafeCreateDirectories(output_path);
 
         output_file_name = Kratos::FilesystemExtensions::JoinPaths({output_path, output_file_name});
     }

@@ -182,7 +182,7 @@ class RestartUtility:
 
     def CreateOutputFolder(self):
         if self.save_restart_files_in_folder:
-            KratosMultiphysics.FilesystemExtensions.CreateDirectoriesThreadSafe(self.__GetFolderPathSave())
+            KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(self.__GetFolderPathSave())
 
     #### Protected functions ####
 

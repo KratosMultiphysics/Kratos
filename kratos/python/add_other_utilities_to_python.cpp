@@ -691,7 +691,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     single_model_part_import.def("Import", &SingleImportModelPart::Import );
 
     auto fs_extensions = m.def_submodule("FilesystemExtensions");
-    fs_extensions.def("CreateDirectoriesThreadSafe", &FilesystemExtensions::CreateDirectoriesThreadSafe );
+    fs_extensions.def("MPISafeCreateDirectories", &FilesystemExtensions::MPISafeCreateDirectories );
 
 }
 
