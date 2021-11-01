@@ -1261,7 +1261,7 @@ namespace Kratos {
             triverts[i] = rGeometry1.GetPoint( i );
         }
 
-        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2) { // Object is a line
+        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2 || geometry_type == GeometryData::KratosGeometryType::Kratos_Line3D2) { // Object is a line
             return LinBoxOverlap( boxcenter, boxhalfsize, triverts);
         } else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3 || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) { // Object is just a triangle
             return TriBoxOverlap( boxcenter, boxhalfsize, triverts );

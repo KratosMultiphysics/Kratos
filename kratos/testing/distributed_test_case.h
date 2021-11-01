@@ -37,7 +37,7 @@ namespace Testing {
 /// Base class for distributed tests.
 /** Implements specific capabilities for tests that need to be run in a distributed environment.
  */
-class DistributedTestCase: public TestCase
+class KRATOS_API(KRATOS_CORE) DistributedTestCase: public TestCase
 {
 public:
     ///@name Life Cycle

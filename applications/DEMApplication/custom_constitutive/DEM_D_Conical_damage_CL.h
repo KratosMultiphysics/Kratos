@@ -35,6 +35,8 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
+        std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override;
+
         void InitializeDependentContact(double equiv_radius,
                                         const double equiv_level_of_fouling,
                                         const double equiv_young,

@@ -3643,16 +3643,19 @@ public:
     }
 
 
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult ) const
+    void ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult ) const
     {
         ShapeFunctionsIntegrationPointsGradients( rResult, mpGeometryData->DefaultIntegrationMethod() );
-        return rResult;
     }
 
-    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    virtual void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod ) const
     {
+        //check that current geometry can perform this operation
+        KRATOS_ERROR_IF_NOT(this->WorkingSpaceDimension() == this->LocalSpaceDimension())
+            << "\'ShapeFunctionsIntegrationPointsGradients\' is not defined for current geometry type as gradients are only defined in the local space." << std::endl;
+
         const unsigned int integration_points_number = this->IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
@@ -3665,22 +3668,28 @@ public:
         const ShapeFunctionsGradientsType& DN_De = ShapeFunctionsLocalGradients( ThisMethod );
 
         //loop over all integration points
-        Matrix J(this->WorkingSpaceDimension(),this->LocalSpaceDimension()),Jinv(this->WorkingSpaceDimension(),this->LocalSpaceDimension());
+        Matrix J(this->WorkingSpaceDimension(), this->LocalSpaceDimension());
+        Matrix Jinv(this->LocalSpaceDimension(), this->WorkingSpaceDimension());
         double DetJ;
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            if(rResult[pnt].size1() != this->WorkingSpaceDimension() ||  rResult[pnt].size2() != this->LocalSpaceDimension())
+            if (rResult[pnt].size1() != (*this).size() || rResult[pnt].size2() != this->LocalSpaceDimension())
                 rResult[pnt].resize( (*this).size(), this->LocalSpaceDimension(), false );
             this->Jacobian(J,pnt, ThisMethod);
-            MathUtils<double>::GeneralizedInvertMatrix( J, Jinv, DetJ );
+            MathUtils<double>::InvertMatrix(J, Jinv, DetJ);
             noalias(rResult[pnt]) =  prod( DN_De[pnt], Jinv );
         }
-
-        return rResult;
     }
 
-    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, Vector& determinants_of_jacobian, IntegrationMethod ThisMethod ) const
+    virtual void ShapeFunctionsIntegrationPointsGradients(
+        ShapeFunctionsGradientsType& rResult,
+        Vector& rDeterminantsOfJacobian,
+        IntegrationMethod ThisMethod ) const
     {
+        //check that current geometry can perform this operation
+        KRATOS_ERROR_IF_NOT(this->WorkingSpaceDimension() == this->LocalSpaceDimension())
+            << "\'ShapeFunctionsIntegrationPointsGradients\' is not defined for current geometry type as gradients are only defined in the local space." << std::endl;
+
         const unsigned int integration_points_number = this->IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
@@ -3688,35 +3697,37 @@ public:
 
         if ( rResult.size() != integration_points_number )
             rResult.resize(  this->IntegrationPointsNumber( ThisMethod ), false  );
-        if ( determinants_of_jacobian.size() != integration_points_number )
-            determinants_of_jacobian.resize(  this->IntegrationPointsNumber( ThisMethod ), false  );
+        if (rDeterminantsOfJacobian.size() != integration_points_number)
+            rDeterminantsOfJacobian.resize(this->IntegrationPointsNumber(ThisMethod), false);
 
         //calculating the local gradients
         const ShapeFunctionsGradientsType& DN_De = ShapeFunctionsLocalGradients( ThisMethod );
 
         //loop over all integration points
         Matrix J(this->WorkingSpaceDimension(),this->LocalSpaceDimension());
-        Matrix Jinv(this->WorkingSpaceDimension(),this->LocalSpaceDimension());
+        Matrix Jinv(this->LocalSpaceDimension(), this->WorkingSpaceDimension());
         double DetJ;
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            if(rResult[pnt].size1() != this->WorkingSpaceDimension() ||  rResult[pnt].size2() != this->LocalSpaceDimension())
+            if (rResult[pnt].size1() != (*this).size() || rResult[pnt].size2() != this->LocalSpaceDimension())
                 rResult[pnt].resize( (*this).size(), this->LocalSpaceDimension(), false );
             this->Jacobian(J,pnt, ThisMethod);
-            MathUtils<double>::GeneralizedInvertMatrix( J, Jinv, DetJ );
+            MathUtils<double>::InvertMatrix( J, Jinv, DetJ );
             noalias(rResult[pnt]) =  prod( DN_De[pnt], Jinv );
-            determinants_of_jacobian[pnt] = DetJ;
+            rDeterminantsOfJacobian[pnt] = DetJ;
         }
-
-        return rResult;
     }
 
-    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, Vector& determinants_of_jacobian, IntegrationMethod ThisMethod, Matrix& ShapeFunctionsIntegrationPointsValues ) const
+    KRATOS_DEPRECATED_MESSAGE("This is signature of \'ShapeFunctionsIntegrationPointsGradients\' is legacy (use any of the alternatives without shape functions calculation).")
+    virtual void ShapeFunctionsIntegrationPointsGradients(
+        ShapeFunctionsGradientsType& rResult,
+        Vector& rDeterminantsOfJacobian,
+        IntegrationMethod ThisMethod,
+        Matrix& ShapeFunctionsIntegrationPointsValues) const
     {
 
-        ShapeFunctionsIntegrationPointsGradients(rResult,determinants_of_jacobian,ThisMethod);
+        ShapeFunctionsIntegrationPointsGradients(rResult, rDeterminantsOfJacobian, ThisMethod);
         ShapeFunctionsIntegrationPointsValues = ShapeFunctionsValues(ThisMethod);
-        return rResult;
     }
 
     virtual int Check() const

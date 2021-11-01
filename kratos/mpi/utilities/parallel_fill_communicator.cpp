@@ -235,7 +235,7 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
     for (const auto& rNode : rModelPart.Nodes())
     {
         const int partition_index = rNode.FastGetSolutionStepValue(PARTITION_INDEX);
-        KRATOS_ERROR_IF(partition_index >= num_processors) << "The partition index is out of range. Invalid model part." << std::endl;
+        KRATOS_ERROR_IF(partition_index >= num_processors) << "The partition index (" << partition_index << ") is out of range (size = " << num_processors << "). Invalid model part." << std::endl;
         if(partition_index != my_rank)
             receive_from_neighbour[partition_index] = true;
     }
