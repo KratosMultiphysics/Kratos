@@ -102,7 +102,7 @@ public:
     ///@name Operations
     ///@{
 
-    void GenerateMesh(ModelPart& rThisModelPart, Element const& rReferenceElement, Condition const& rReferenceCondition)
+    void GenerateMesh(ModelPart& rThisModelPart, Element const& rReferenceElement, Condition const& rReferenceCondition) override
     {
         KRATOS_TRY;
 
@@ -209,21 +209,21 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "DuplicateMeshModeler";
     }
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
 
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 
