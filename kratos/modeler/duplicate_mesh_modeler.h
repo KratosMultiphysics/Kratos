@@ -307,12 +307,6 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    DuplicateMeshModeler & operator=(DuplicateMeshModeler const& rOther);
-
-    /// Copy constructor.
-    DuplicateMeshModeler(DuplicateMeshModeler const& rOther);
-
 
     ///@}
 
