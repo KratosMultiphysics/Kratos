@@ -20,6 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -71,7 +72,7 @@ class KRATOS_API(KRATOS_CORE) RVEPeriodicityUtility
         ModelPart& rDestinationModelPart,
         std::size_t EchoLevel = 0
         ) : mrModelPart(rDestinationModelPart)
-          , mEchoLevel(EchoLevel)  
+          , mEchoLevel(EchoLevel)
     {
     }
 
