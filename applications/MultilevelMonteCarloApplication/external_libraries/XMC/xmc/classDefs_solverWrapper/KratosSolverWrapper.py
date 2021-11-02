@@ -113,7 +113,7 @@ class KratosSolverWrapper(sw.SolverWrapper):
 
         # workaround for Monte Carlo
         if (self.solverWrapperIndex == []):
-            if self.refinement_strategy is not "reading_from_file":
+            if self.refinement_strategy != "reading_from_file":
                 msg = self.__class__.__name__
                 msg += ": Running a single-level Monte Carlo algorithm. "
                 msg += "Default \"refinementStrategy\" is \"reading_from_file\". "
