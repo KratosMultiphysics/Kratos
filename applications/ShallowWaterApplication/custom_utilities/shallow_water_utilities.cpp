@@ -207,7 +207,7 @@ void ShallowWaterUtilities::SetMeshZCoordinate(ModelPart& rModelPart, const Vari
     });
 }
 
-void ShallowWaterUtilities::SetNoDataGiDValueIfDry(ModelPart& rModelPart, const Variable<double>& rVariable)
+void ShallowWaterUtilities::StoreNonHistoricalGiDNoDataIfDry(ModelPart& rModelPart, const Variable<double>& rVariable)
 {
     const double relative_dry_height = rModelPart.GetProcessInfo()[RELATIVE_DRY_HEIGHT];
     const double length = rModelPart.ElementsBegin()->GetGeometry().Length();
@@ -355,8 +355,7 @@ bool ShallowWaterUtilities::IsWet(const double Height, const double DryHeight)
 {
     const double wet_fraction = WetFraction(Height, DryHeight);
     const double threshold = 1.0 - 1e-16;
-    const bool is_wet = (wet_fraction >= threshold);
-    return is_wet;
+    return (wet_fraction >= threshold);
 }
 
 template<>

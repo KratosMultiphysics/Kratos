@@ -143,7 +143,7 @@ public:
     /**
      * @brief Store a double variable as NonHistorical and set the value to no-data if the node is dry
      */
-    void SetNoDataGiDValueIfDry(ModelPart& rModelPart, const Variable<double>& rVariable);
+    void StoreNonHistoricalGiDNoDataIfDry(ModelPart& rModelPart, const Variable<double>& rVariable);
 
     /**
      * @brief Offset the ids of the given container for visualization purpose in GiD

@@ -17,7 +17,7 @@ class VisualizationMeshProcess(KM.Process):
         This process provides several tools for post-processing.
         - Generation of an auxiliary model part for the topography visualization as a separate file.
         - Setting the TOPOGRAPHY and FREE_SURFACE_ELEVATION into DISPLACEMENT_Z or Z-coordinate to view the mesh deformation.
-        - Duplication of the properties to use them as a dry-wet flag.
+        - Saving the HEIGH and FREE_SURFACE_ELEVATION as non-historical only on wet nodes. Dry nodes are set with the no-data value of GiD.
         """
 
         KM.Process.__init__(self)
@@ -27,9 +27,7 @@ class VisualizationMeshProcess(KM.Process):
                 "model_part_name"                : "model_part_name",
                 "topographic_model_part_name"    : "topographic_model_part",
                 "create_topographic_model_part"  : true,
-                "use_properties_as_dry_wet_flag" : false,
                 "mesh_deformation_mode"          : "use_nodal_displacement",
-                "wet_flag"                       : "FLUID",
                 "nodal_variables_to_transfer"    : ["TOPOGRAPHY"],
                 "nonhistorical_variables_to_transfer" : []
             }
@@ -60,15 +58,6 @@ class VisualizationMeshProcess(KM.Process):
             self.nodal_variables = GenerateVariableListFromInput(settings["nodal_variables_to_transfer"])
             self.nonhistorical_variables = GenerateVariableListFromInput(settings["nonhistorical_variables_to_transfer"])
 
-        # The DefineAuxiliaryProperties method duplicates the current number of properties:
-        # For each property, it creates another one, which means dry state.
-        # It should be called only once, otherwise, the number of properties would increase exponentially
-        self.use_properties_as_dry_wet_flag = settings["use_properties_as_dry_wet_flag"].GetBool()
-        if self.use_properties_as_dry_wet_flag:
-            self.properties_utility = SW.PostProcessUtilities(self.computing_model_part)
-            self.properties_utility.DefineAuxiliaryProperties()
-            self.wet_flag = KM.KratosGlobals.GetFlag(settings["wet_flag"].GetString())
-
 
     def ExecuteInitialize(self):
         if self.topographic_model_part is not None:
@@ -76,6 +65,9 @@ class VisualizationMeshProcess(KM.Process):
 
 
     def ExecuteBeforeSolutionLoop(self):
+        # Set the results only over the wet domain as non-historical
+        self._StoreNonHistoricalVariablesGiDNoDataIfDry()
+
         # Transferring the nodal variables
         if self.topographic_model_part is not None:
             self._TransferVariables()
@@ -89,6 +81,9 @@ class VisualizationMeshProcess(KM.Process):
 
 
     def ExecuteBeforeOutputStep(self):
+        # Set the results only over the wet domain as non-historical
+        self._StoreNonHistoricalVariablesGiDNoDataIfDry()
+
         # Transferring the nodal variables
         if self.topographic_model_part is not None:
             self._TransferVariables()
@@ -99,19 +94,10 @@ class VisualizationMeshProcess(KM.Process):
             else:
                 self._UpdateDisplacement()
 
-        # Assigning the properties as a flag if need
-        if self.use_properties_as_dry_wet_flag:
-            self.properties_utility.AssignDryWetProperties(self.wet_flag)
-
-
     def ExecuteAfterOutputStep(self):
         # Restoring the mesh
         if self.deform_mesh:
             self._RestoreMesh()
-
-        # Restoring the properties
-        if self.use_properties_as_dry_wet_flag:
-            self.properties_utility.RestoreDryWetProperties()
 
 
     def _DuplicateModelPart(self):
@@ -180,3 +166,8 @@ class VisualizationMeshProcess(KM.Process):
             self.topographic_model_part,
             self.topographic_model_part,
             0)
+
+
+    def _StoreNonHistoricalVariablesGiDNoDataIfDry(self):
+        SW.ShallowWaterUtilities().StoreNonHistoricalGiDNoDataIfDry(self.computing_model_part, SW.HEIGHT)
+        SW.ShallowWaterUtilities().StoreNonHistoricalGiDNoDataIfDry(self.computing_model_part, SW.FREE_SURFACE_ELEVATION)
