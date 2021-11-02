@@ -482,16 +482,6 @@ protected:
                     const double mass = r_lumped_mass_vector(i_dof);
                     const MatrixRow<LocalSystemMatrixType> substeps_k = row(rk_K, i_dof);
                     r_u = r_u_old + (dt / mass) * inner_prod(mButcherTableau.GetWeights(), substeps_k);
-
-                    if(i_dof == 0)
-                    {
-                        std::cout << "K=";
-                        for(unsigned int i=0; i<mButcherTableau.Order(); ++i)
-                        {
-                            std::cout << "  " << substeps_k[i];
-                        }
-                        std::cout << std::endl;
-                    }
                 } else {
                     r_u = u_n(i_dof);
                 }
