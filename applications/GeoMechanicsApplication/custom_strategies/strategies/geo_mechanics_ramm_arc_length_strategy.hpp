@@ -33,7 +33,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(GeoMechanicsRammArcLengthStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>                           BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>                   BaseType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> GrandMotherType;
     typedef GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>       MotherType;
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>                      TConvergenceCriteriaType;

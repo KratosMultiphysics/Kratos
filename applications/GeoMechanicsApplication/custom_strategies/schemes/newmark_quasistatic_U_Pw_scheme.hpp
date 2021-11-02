@@ -130,15 +130,13 @@ public:
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void Initialize(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
-        mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
-        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] = mGamma/(mBeta*mDeltaTime);
-        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(mTheta*mDeltaTime);
+        SetTimeFactors(rModelPart);
 
         BaseType::mSchemeIsInitialized = true;
 
@@ -154,9 +152,7 @@ public:
     {
         KRATOS_TRY
 
-        mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
-        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] = mGamma/(mBeta*mDeltaTime);
-        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(mTheta*mDeltaTime);
+        SetTimeFactors(rModelPart);
 
         const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -236,6 +232,54 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    void GetDofList( const Element& rElement,
+                     Element::DofsVectorType& rDofList,
+                     const ProcessInfo& rCurrentProcessInfo ) override
+    {
+        const bool isActive = (rElement.IsDefined(ACTIVE)) ? rElement.Is(ACTIVE) : true;
+        if (isActive) rElement.GetDofList(rDofList, rCurrentProcessInfo);
+
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void GetDofList( const Condition& rCondition,
+                     Element::DofsVectorType& rDofList,
+                     const ProcessInfo& rCurrentProcessInfo ) override
+    {
+        const bool isActive = (rCondition.IsDefined(ACTIVE)) ? rCondition.Is(ACTIVE) : true;
+        if (isActive) rCondition.GetDofList(rDofList, rCurrentProcessInfo);
+
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void EquationId(
+        const Element& rElement,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        const bool isActive = (rElement.IsDefined(ACTIVE)) ? rElement.Is(ACTIVE) : true;
+        if (isActive) rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
+        
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void EquationId(
+        const Condition& rCondition,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        const bool isActive = (rCondition.IsDefined(ACTIVE)) ? rCondition.Is(ACTIVE) : true;
+        if (isActive) rCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
+    }
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& A,
@@ -244,8 +288,7 @@ public:
     {
         KRATOS_TRY
 
-        if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING] == true)
-        {
+        if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING] == true) {
             unsigned int Dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
             SizeType StressTensorSize = STRESS_TENSOR_SIZE_2D;
@@ -264,21 +307,16 @@ public:
                 rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) = 0.0;
             });
 
-
             FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
-
 
             // Compute smoothed nodal variables
             block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode) {
                 const double& NodalArea = rNode.FastGetSolutionStepValue(NODAL_AREA);
-                if (NodalArea > 1.0e-20)
-                {
+                if (NodalArea > 1.0e-20) {
                     const double InvNodalArea = 1.0/NodalArea;
                     Matrix& rNodalStress = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                    for(unsigned int i = 0; i < rNodalStress.size1(); i++)
-                    {
-                        for(unsigned int j = 0; j < rNodalStress.size2(); j++)
-                        {
+                    for(unsigned int i = 0; i < rNodalStress.size1(); ++i) {
+                        for(unsigned int j = 0; j < rNodalStress.size2(); ++j) {
                             rNodalStress(i,j) *= InvNodalArea;
                         }
                     }
@@ -286,17 +324,14 @@ public:
                 }
 
                 const double& NodalJointArea = rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA);
-                if (NodalJointArea > 1.0e-20)
-                {
+                if (NodalJointArea > 1.0e-20) {
                     const double InvNodalJointArea = 1.0/NodalJointArea;
                     rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH)  *= InvNodalJointArea;
                     rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) *= InvNodalJointArea;
                 }
             });
 
-        }
-        else
-        {
+        } else {
             FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
         }
 
@@ -465,8 +500,7 @@ public:
             typename DofsArrayType::iterator DofsEnd = rDofSet.begin() + DofSetPartition[k+1];
 
             //Update Displacement and Pressure (DOFs)
-            for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof)
-            {
+            for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof) {
                 if (itDof->IsFree())
                     itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, itDof->EquationId());
             }
@@ -497,6 +531,19 @@ protected:
         mDeltaTime = 0.0;
     }
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    virtual inline void SetTimeFactors(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
+        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] = mGamma/(mBeta*mDeltaTime);
+        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(mTheta*mDeltaTime);
+
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart)
     {
         KRATOS_TRY
