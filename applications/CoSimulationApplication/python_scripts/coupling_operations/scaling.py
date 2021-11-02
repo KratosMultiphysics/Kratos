@@ -36,6 +36,8 @@ class ScalingOperation(CoSimulationCouplingOperation):
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
 
     def Execute(self):
+        if not self.interface_data.IsDefinedOnThisRank(): return
+
         process_info = self.interface_data.GetModelPart().ProcessInfo
         time = process_info[KM.TIME]
         step = process_info[KM.STEP]

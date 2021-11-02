@@ -143,6 +143,11 @@ public:
     void SetMeshZCoordinate(ModelPart& rModelPart, const Variable<double>& rVariable);
 
     /**
+     * @brief Store a double variable as NonHistorical and set the value to no-data if the node is dry
+     */
+    void StoreNonHistoricalGiDNoDataIfDry(ModelPart& rModelPart, const Variable<double>& rVariable);
+
+    /**
      * @brief Swap the Y and Z components of a vector variable
      */
     void SwapYZComponents(const Variable<array_1d<double,3>>& rVariable, NodesContainerType& rNodes)
@@ -259,6 +264,8 @@ private:
     bool IsWet(const GeometryType& rGeometry, const double RelativeDryHeight);
 
     bool IsWet(const GeometryType& rGeometry, const double Height, const double RelativeDryHeight);
+
+    bool IsWet(const double Height, const double DryHeight);
 
     template<class TContainerType>
     array_1d<double,3> EvaluateHydrostaticForce(
