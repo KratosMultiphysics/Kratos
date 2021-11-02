@@ -39,10 +39,11 @@ namespace Kratos
  * Contains all info necessary of a particular RK method.
  * It specifies the coefficients of the particular Runge-Kutta method.
  *
- * Child class must have methods:
- * - static const MatrixType GenerateRKMatrix
- * - static const MatrixType GenerateWeights
- * - static const MatrixType GenerateNodes
+ * Child class must provide methods:
+ * - static const MatrixType() GenerateRKMatrix
+ * - static const VectorType() GenerateWeights
+ * - static const VectorType() GenerateNodes
+ * - std::string Name() const
  */
 template<unsigned int TOrder, typename ChildClass>
 class ButcherTableau
@@ -237,13 +238,12 @@ public:
  * 
  * Formulation: for i = 0...N substeps
  *
- * - The diferential equation is u_t = L(u)
- * - i is the substep
+ * - The diferential equation is u_t = f(t, u)
  * 
  * The Runge-Kutta method is:
- * - k^(i) = L(t + c_i*dt, u^(i-1))               -> Where u^(0) := u^n
- * - u^(i) = u^(0) + \sum_{j=0}^i A_{ij} k^(j)    -> Intermediate steps. u^(N) is not needed, therefore neither is A[N, :]
- * - u^{n+1} = u^n + \sum_{i} B_{i} L(u^(i))      -> Solution
+ * - k^(i) = f(t + c_i*dt, u^(i-1))             -> Where u^(0) := u^n
+ * - u^(i) = u^n + \sum_{j=1}^i A_{ij} k^(j)    -> Intermediate steps. u^(N) is not needed, therefore neither is A[N, :]
+ * - u^{n+1} = u^n + \sum_{i} B_{i} k(u^(i))    -> Solution
  *
  * 
  */
