@@ -691,6 +691,15 @@ public:
         noalias(rPlasticDamageParameters.StrainVector) = rStrainVector;
         rPlasticDamageParameters.CharacteristicLength  = CharateristicLength;
         rPlasticDamageParameters.PlasticDamageProportion = rMaterialProperties[PLASTIC_DAMAGE_PROPORTION];
+        // const double initial_proportion = 0.0;
+        // const double final_proportion = 2.0;
+        // rPlasticDamageParameters.PlasticDamageProportion = initial_proportion * (1.0 - rPlasticDamageParameters.TotalDissipation) + final_proportion * rPlasticDamageParameters.TotalDissipation;
+        // if(rPlasticDamageParameters.PlasticDamageProportion < 0.0){
+        //     rPlasticDamageParameters.PlasticDamageProportion = 0.0;
+        // } else if(rPlasticDamageParameters.PlasticDamageProportion > 1.0){
+        //     rPlasticDamageParameters.PlasticDamageProportion = 1.0;
+        // }
+        // KRATOS_WATCH(rPlasticDamageParameters.PlasticDamageProportion)
     }
 
     void CalculateAnalyticalTangentTensor(

@@ -373,7 +373,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     PlasticDamageParameters &rPDParameters
     )
 {
-    KRATOS_TRY;
+    // KRATOS_TRY;
     const auto& r_mat_properties = rValues.GetMaterialProperties();
     BoundedMatrixType constitutive_matrix_increment;
     CalculateConstitutiveMatrix(rValues, rPDParameters);
@@ -420,8 +420,9 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
             iteration++;
         }
     }
-    KRATOS_ERROR_IF(iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
-    KRATOS_CATCH("");
+    KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+    // KRATOS_ERROR_IF(iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+    // KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -547,6 +548,10 @@ bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
 
     if (rThisVariable == PLASTIC_DISSIPATION) {
         has = true;
+    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
+        has = true;
+    } else if (rThisVariable == WOHLER_STRESS) {
+        has = true;
     } else if (rThisVariable == THRESHOLD) {
         has = true;
     }
@@ -649,6 +654,10 @@ double& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
     rValue = 0.0;
     if (rThisVariable == PLASTIC_DISSIPATION) {
         rValue = mDamageDissipation + mPlasticDissipation;
+    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
+        rValue = mDamageDissipation;
+    } else if (rThisVariable == WOHLER_STRESS) {
+        rValue = mPlasticDissipation;
     } else if (rThisVariable == THRESHOLD) {
         rValue = mThreshold;
     }
