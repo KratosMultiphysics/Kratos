@@ -1,4 +1,3 @@
-#include (ExternalProject)
 set (gidpost_source 
   gidpost.c gidpostInt.c  gidpostfor.c gidpostforAPI.c
   gidpostHash.c hashtab.c recycle.c lookupa.c)

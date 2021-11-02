@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "rve_periodicity_utility.h"
+#include "utilities/rve_periodicity_utility.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
 #include "constraints/linear_master_slave_constraint.h"
 
@@ -75,7 +75,7 @@ void RVEPeriodicityUtility::AssignPeriodicity(
         } else {
 
             double node_distance = 1e50;
-            IndexType closest_node_id = 0;            
+            IndexType closest_node_id = 0;
 
             DataTupletype aux_data;
 

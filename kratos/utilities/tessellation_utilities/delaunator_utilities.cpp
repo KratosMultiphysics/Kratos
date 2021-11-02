@@ -14,7 +14,11 @@
 
 // External includes
 #define REAL double
+#ifdef USE_TRIANGLE_NONFREE_TPL
 #include "triangle.h"
+#else 
+#include <delaunator.hpp>
+#endif
 
 // Project includes
 #include "includes/model_part.h"
@@ -25,6 +29,7 @@ namespace Kratos
 {
 namespace DelaunatorUtilities
 {
+#ifdef USE_TRIANGLE_NONFREE_TPL
 extern "C" {
     void triangulate(char *, struct triangulateio *, struct triangulateio *,struct triangulateio *);
 }
@@ -81,7 +86,7 @@ void CleanTriangulateIO( triangulateio& rTriangles )
     if(rTriangles.edgemarkerlist != nullptr) free(rTriangles.edgemarkerlist   );
     if(rTriangles.normlist != nullptr) free(rTriangles.normlist  );
 };
-
+#endif
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -138,6 +143,7 @@ void CreateTriangleMeshFromNodes(ModelPart& rModelPart)
 
 std::vector<std::size_t> ComputeTrianglesConnectivity(const std::vector<double>& rCoordinates)
 {
+#ifdef USE_TRIANGLE_NONFREE_TPL
     // Creating the containers for the input and output
     struct triangulateio in_mid, out_mid, vorout_mid;
 
@@ -181,6 +187,12 @@ std::vector<std::size_t> ComputeTrianglesConnectivity(const std::vector<double>&
     CleanTriangulateIO(vorout_mid);
 
     return connectivities;
+#else
+    // Calling the library Delaunator
+    delaunator::Delaunator delaunator(rCoordinates);
+    const auto& r_triangles = delaunator.triangles;
+    return r_triangles;
+#endif
 }
 
 /***********************************************************************************/
@@ -188,50 +200,17 @@ std::vector<std::size_t> ComputeTrianglesConnectivity(const std::vector<double>&
 
 std::vector<std::size_t> ComputeTrianglesConnectivity(const std::vector<Point>& rPoints)
 {
-    // Creating the containers for the input and output
-    struct triangulateio in_mid, out_mid, vorout_mid;
+    const std::size_t number_of_nodes = rPoints.size();
+    std::vector<double> coordinates(2*number_of_nodes, 0.0);
 
-    InitializeTriangulateIO(in_mid);
-    InitializeTriangulateIO(out_mid);
-    InitializeTriangulateIO(vorout_mid);
-
-    in_mid.numberofpoints = rPoints.size();
-    in_mid.pointlist = (REAL *) malloc(in_mid.numberofpoints * 2 * sizeof(REAL));
-
-    for(std::size_t i = 0; i < rPoints.size(); ++i) {
-        in_mid.pointlist[2 * i    ] = rPoints[i].X();
-        in_mid.pointlist[2 * i + 1] = rPoints[i].Y();
+    // NOTE: 2D asssumed
+    // Filling coordinates buffer
+    for(std::size_t i=0; i<number_of_nodes; ++i) {
+        const auto& r_point = rPoints[i];
+        coordinates[2*i]   = r_point.X();
+        coordinates[2*i+1] = r_point.Y();
     }
-
-    // "P" suppresses the output .poly file. Saves disk space, but you
-    // lose the ability to maintain constraining segments  on later refinements of the mesh.
-    // "B" Suppresses boundary markers in the output .node, .poly, and .edge output files
-    // "e" outputs edge list (i.e. all the "connectivities")
-    // "Q" Quiet:  No terminal output except errors.
-    // "z" Numbers all items starting from zero (rather than one)
-    // "c" Encloses the convex hull with segments
-    // "D" Conforming Delaunay:  all triangles are truly Delaunay
-    char options1[] = "QPez";
-    triangulate(options1, &in_mid, &out_mid, &vorout_mid);
-
-    const std::size_t number_of_triangles = out_mid.numberoftriangles;
-
-    std::vector<std::size_t> connectivities(3 * number_of_triangles);
-
-    const auto& r_triangles_list = out_mid.trianglelist;
-
-    // Must be copied into a std::vector
-    for (std::size_t i = 0; i < number_of_triangles * 3; i += 3) {
-        connectivities[i] = r_triangles_list[i];
-        connectivities[i + 1] = r_triangles_list[i + 1];
-        connectivities[i + 2] = r_triangles_list[i + 2];
-    }
-
-    CleanTriangulateIO(in_mid);
-    CleanTriangulateIO(out_mid);
-    CleanTriangulateIO(vorout_mid);
-
-    return connectivities;
+    return ComputeTrianglesConnectivity(coordinates);
 }
 
 /***********************************************************************************/
@@ -240,8 +219,10 @@ std::vector<std::size_t> ComputeTrianglesConnectivity(const std::vector<Point>& 
 std::pair<std::vector<std::size_t>, std::vector<double>> ComputeTrianglesConnectivity(
     const std::vector<double>& rCoordinates,
     const std::vector<std::array<double,2>>& rSegments,
-    const double AreaConstraint)
+    const double AreaConstraint
+    )
 {
+#ifdef USE_TRIANGLE_NONFREE_TPL
     // Creating the containers for the input and output
     struct triangulateio in_mid, out_mid, vorout_mid;
 
@@ -303,6 +284,12 @@ std::pair<std::vector<std::size_t>, std::vector<double>> ComputeTrianglesConnect
     CleanTriangulateIO(vorout_mid);
 
     return std::make_pair(connectivities, output_coordinates);
+#else
+    KRATOS_ERROR << "The current implementation requires Triangle. Please avoid this utility" << std::endl;
+    std::vector<std::size_t> connectivities;
+    std::vector<double> output_coordinates;
+    return std::make_pair(connectivities, output_coordinates);
+#endif
 }
 
 } // namespace DelaunatorUtilities
