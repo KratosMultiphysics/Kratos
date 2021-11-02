@@ -44,7 +44,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
             cls.mapper = MappingMPIExtension.MPIMapperFactory.CreateMapper(
                 cls.model_part_origin, cls.model_part_destination, mapper_parameters)
         else:
-            cls.mapper = KratosMapping.MapperFactory.CreateMapper(
+            cls.mapper = KM.MapperFactory.CreateMapper(
                 cls.model_part_origin, cls.model_part_destination, mapper_parameters)
 
 
@@ -95,25 +95,25 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_SWAP_SIGN_Map_scalar(self):
         val = 1.234
         KM.VariableUtils().SetScalarVar(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
-        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.SWAP_SIGN)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.SWAP_SIGN)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, -val)
 
     def test_SWAP_SIGN_InverseMap_scalar(self):
         val = -571.147
         KM.VariableUtils().SetScalarVar(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
-        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.SWAP_SIGN)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.SWAP_SIGN)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_origin), KM.PRESSURE, -val)
 
     def test_SWAP_SIGN_Map_vector(self):
         val = KM.Vector([1.234, -22.845, 11.775])
         KM.VariableUtils().SetVectorVar(KM.FORCE, val, self.interface_model_part_origin.Nodes)
-        self.mapper.Map(KM.FORCE, KM.VELOCITY, KratosMapping.Mapper.SWAP_SIGN)
+        self.mapper.Map(KM.FORCE, KM.VELOCITY, KM.Mapper.SWAP_SIGN)
         self._CheckHistoricalUniformValuesVector(GetNodes(self.interface_model_part_destination), KM.VELOCITY, [(-1)*x for x in val])
 
     def test_SWAP_SIGN_InverseMap_vector(self):
         val = KM.Vector([-51.234, -22.845, 118.775])
         KM.VariableUtils().SetVectorVar(KM.VELOCITY, val, self.interface_model_part_destination.Nodes)
-        self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KratosMapping.Mapper.SWAP_SIGN)
+        self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KM.Mapper.SWAP_SIGN)
         self._CheckHistoricalUniformValuesVector(GetNodes(self.interface_model_part_origin), KM.FORCE, [(-1)*x for x in val])
 
     def test_ADD_VALUES_Map_scalar(self):
@@ -123,7 +123,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE) # set the initial field
 
         KM.VariableUtils().SetScalarVar(KM.PRESSURE, val_2, self.interface_model_part_origin.Nodes)
-        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.ADD_VALUES)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.ADD_VALUES)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val_1+val_2)
 
     def test_ADD_VALUES_InverseMap_scalar(self):
@@ -133,7 +133,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE)
 
         KM.VariableUtils().SetScalarVar(KM.TEMPERATURE, val_2, self.interface_model_part_destination.Nodes)
-        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.ADD_VALUES)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.ADD_VALUES)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_origin), KM.PRESSURE, val_1+val_2)
 
     def test_ADD_VALUES_Map_vector(self):
@@ -143,7 +143,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.mapper.Map(KM.FORCE, KM.VELOCITY) # set the initial field
 
         KM.VariableUtils().SetVectorVar(KM.FORCE, val_2, self.interface_model_part_origin.Nodes)
-        self.mapper.Map(KM.FORCE, KM.VELOCITY, KratosMapping.Mapper.ADD_VALUES)
+        self.mapper.Map(KM.FORCE, KM.VELOCITY, KM.Mapper.ADD_VALUES)
         self._CheckHistoricalUniformValuesVector(GetNodes(self.interface_model_part_destination), KM.VELOCITY, val_1+val_2)
 
     def test_ADD_VALUES_InverseMap_vector(self):
@@ -153,7 +153,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY) # set the initial field
 
         KM.VariableUtils().SetVectorVar(KM.VELOCITY, val_2, self.interface_model_part_destination.Nodes)
-        self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KratosMapping.Mapper.ADD_VALUES)
+        self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KM.Mapper.ADD_VALUES)
         self._CheckHistoricalUniformValuesVector(GetNodes(self.interface_model_part_origin), KM.FORCE, val_1+val_2)
 
     def test_SWAP_SIGN_and_ADD_VALUES_scalar(self):
@@ -163,13 +163,13 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE) # set the initial field
 
         KM.VariableUtils().SetScalarVar(KM.PRESSURE, val_2, self.interface_model_part_origin.Nodes)
-        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.ADD_VALUES | KM.Mapper.SWAP_SIGN)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val_1-val_2)
 
     def test_Map_USE_TRANSPOSE_constant_scalar(self):
         val = 1.234
         KM.VariableUtils().SetScalarVar(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
-        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.USE_TRANSPOSE)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.USE_TRANSPOSE)
 
         sum_origin = KM.VariableUtils().SumHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin, 0)
         sum_destination = KM.VariableUtils().SumHistoricalNodeScalarVariable(KM.TEMPERATURE, self.interface_model_part_destination, 0)
@@ -178,7 +178,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_InverseMap_USE_TRANSPOSE_constant_scalar(self):
         val = 1.234
         KM.VariableUtils().SetScalarVar(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
-        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.USE_TRANSPOSE)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.USE_TRANSPOSE)
 
         sum_origin = KM.VariableUtils().SumHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin, 0)
         sum_destination = KM.VariableUtils().SumHistoricalNodeScalarVariable(KM.TEMPERATURE, self.interface_model_part_destination, 0)
@@ -187,7 +187,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_Map_USE_TRANSPOSE_constant_vector(self):
         val = KM.Vector([1.234, -22.845, 11.83])
         KM.VariableUtils().SetVectorVar(KM.FORCE, val, self.interface_model_part_origin.Nodes)
-        self.mapper.Map(KM.FORCE, KM.VELOCITY, KratosMapping.Mapper.USE_TRANSPOSE)
+        self.mapper.Map(KM.FORCE, KM.VELOCITY, KM.Mapper.USE_TRANSPOSE)
 
         sum_origin = KM.VariableUtils().SumHistoricalNodeVectorVariable(KM.FORCE, self.interface_model_part_origin, 0)
         sum_destination = KM.VariableUtils().SumHistoricalNodeVectorVariable(KM.VELOCITY, self.interface_model_part_destination, 0)
@@ -196,7 +196,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_InverseMap_USE_TRANSPOSE_constant_vector(self):
         val = KM.Vector([1.234, -22.845, 11.83])
         KM.VariableUtils().SetVectorVar(KM.VELOCITY, val, self.interface_model_part_destination.Nodes)
-        self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KratosMapping.Mapper.USE_TRANSPOSE)
+        self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KM.Mapper.USE_TRANSPOSE)
 
         sum_origin = KM.VariableUtils().SumHistoricalNodeVectorVariable(KM.FORCE, self.interface_model_part_origin, 0)
         sum_destination = KM.VariableUtils().SumHistoricalNodeVectorVariable(KM.VELOCITY, self.interface_model_part_destination, 0)
@@ -205,44 +205,44 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_Map_constant_scalar_TO_NON_HISTORICAL(self):
         val = 9.234
         KM.VariableUtils().SetVariable(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
-        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.TO_NON_HISTORICAL)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.TO_NON_HISTORICAL)
         self._CheckUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val)
 
     def test_Map_constant_scalar_FROM_NON_HISTORICAL(self):
         val = -961.234
         KM.VariableUtils().SetNonHistoricalVariable(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
-        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.FROM_NON_HISTORICAL)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.FROM_NON_HISTORICAL)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val)
 
     def test_Map_constant_scalar_both_non_historical(self):
         val = 34.234
         KM.VariableUtils().SetNonHistoricalVariable(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
-        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.FROM_NON_HISTORICAL | KratosMapping.Mapper.TO_NON_HISTORICAL)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.FROM_NON_HISTORICAL | KM.Mapper.TO_NON_HISTORICAL)
         self._CheckUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val)
 
     def test_InverseMap_constant_scalar_TO_NON_HISTORICAL(self):
         val = 8.23554
         KM.VariableUtils().SetVariable(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
-        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.TO_NON_HISTORICAL)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.TO_NON_HISTORICAL)
         self._CheckUniformValuesScalar(GetNodes(self.interface_model_part_origin), KM.PRESSURE, val)
 
     def test_InverseMap_constant_scalar_FROM_NON_HISTORICAL(self):
         val = -96741.234
         KM.VariableUtils().SetNonHistoricalVariable(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
-        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.FROM_NON_HISTORICAL)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.FROM_NON_HISTORICAL)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_origin), KM.PRESSURE, val)
 
     def test_InverseMap_constant_scalar_both_non_historical(self):
         val = 3134.24734
         KM.VariableUtils().SetNonHistoricalVariable(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
-        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.FROM_NON_HISTORICAL | KratosMapping.Mapper.TO_NON_HISTORICAL)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.FROM_NON_HISTORICAL | KM.Mapper.TO_NON_HISTORICAL)
         self._CheckUniformValuesScalar(GetNodes(self.interface_model_part_origin), KM.PRESSURE, val)
 
 
     def test_Map_USE_TRANSPOSE_constant_scalar_TO_NON_HISTORICAL(self):
         val = 17.09
         KM.VariableUtils().SetScalarVar(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
-        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.USE_TRANSPOSE | KratosMapping.Mapper.TO_NON_HISTORICAL)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.USE_TRANSPOSE | KM.Mapper.TO_NON_HISTORICAL)
 
         sum_origin = KM.VariableUtils().SumHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin, 0)
         sum_destination = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.TEMPERATURE, self.interface_model_part_destination)
@@ -251,7 +251,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_Map_USE_TRANSPOSE_constant_scalar_FROM_NON_HISTORICAL(self):
         val = -88.76
         KM.VariableUtils().SetNonHistoricalVariable(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
-        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.USE_TRANSPOSE | KratosMapping.Mapper.FROM_NON_HISTORICAL)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.USE_TRANSPOSE | KM.Mapper.FROM_NON_HISTORICAL)
 
         sum_origin = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin)
         sum_destination = KM.VariableUtils().SumHistoricalNodeScalarVariable(KM.TEMPERATURE, self.interface_model_part_destination, 0)
@@ -260,7 +260,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_Map_USE_TRANSPOSE_constant_scalar_both_non_historical(self):
         val = 101.234
         KM.VariableUtils().SetNonHistoricalVariable(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
-        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.USE_TRANSPOSE | KratosMapping.Mapper.FROM_NON_HISTORICAL | KratosMapping.Mapper.TO_NON_HISTORICAL)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.USE_TRANSPOSE | KM.Mapper.FROM_NON_HISTORICAL | KM.Mapper.TO_NON_HISTORICAL)
 
         sum_origin = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin)
         sum_destination = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.TEMPERATURE, self.interface_model_part_destination)
@@ -269,7 +269,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_InverseMap_USE_TRANSPOSE_constant_scalar_TO_NON_HISTORICAL(self):
         val = 23.189
         KM.VariableUtils().SetScalarVar(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
-        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.USE_TRANSPOSE | KratosMapping.Mapper.TO_NON_HISTORICAL)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.USE_TRANSPOSE | KM.Mapper.TO_NON_HISTORICAL)
 
         sum_origin = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin)
         sum_destination = KM.VariableUtils().SumHistoricalNodeScalarVariable(KM.TEMPERATURE, self.interface_model_part_destination, 0)
@@ -278,7 +278,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_InverseMap_USE_TRANSPOSE_constant_scalar_FROM_NON_HISTORICAL(self):
         val = 651.234
         KM.VariableUtils().SetNonHistoricalVariable(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
-        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.USE_TRANSPOSE | KratosMapping.Mapper.FROM_NON_HISTORICAL)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.USE_TRANSPOSE | KM.Mapper.FROM_NON_HISTORICAL)
 
         sum_origin = KM.VariableUtils().SumHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin, 0)
         sum_destination = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.TEMPERATURE, self.interface_model_part_destination)
@@ -287,7 +287,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_InverseMap_USE_TRANSPOSE_constant_scalar_both_non_historical(self):
         val = 53.761
         KM.VariableUtils().SetNonHistoricalVariable(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
-        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.USE_TRANSPOSE | KratosMapping.Mapper.FROM_NON_HISTORICAL | KratosMapping.Mapper.TO_NON_HISTORICAL)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.USE_TRANSPOSE | KM.Mapper.FROM_NON_HISTORICAL | KM.Mapper.TO_NON_HISTORICAL)
 
         sum_origin = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin)
         sum_destination = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.TEMPERATURE, self.interface_model_part_destination)

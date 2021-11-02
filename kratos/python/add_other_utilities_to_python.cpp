@@ -61,6 +61,7 @@
 #include "utilities/sub_model_part_entities_boolean_operation_utility.h"
 #include "utilities/model_part_combination_utilities.h"
 #include "utilities/single_import_model_part.h"
+#include "includes/kratos_filesystem.h"
 
 namespace Kratos {
 namespace Python {
@@ -645,7 +646,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         ;
 
     py::class_<FillCommunicator, FillCommunicator::Pointer>(m,"FillCommunicator")
-        .def(py::init<ModelPart& >() )
+        .def(py::init([](ModelPart& rModelPart){
+            KRATOS_WARNING("FillCommunicator") << "Using deprecated constructor. Please use constructor with data communicator!";
+            return Kratos::make_shared<FillCommunicator>(rModelPart, ParallelEnvironment::GetDefaultDataCommunicator());
+        }) )
         .def(py::init<ModelPart&, const DataCommunicator& >() )
         .def("Execute", &FillCommunicator::Execute)
         .def("PrintDebugInfo", &FillCommunicator::PrintDebugInfo)
@@ -685,6 +689,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     auto single_model_part_import = m.def_submodule("SingleImportModelPart");
     single_model_part_import.def("Import", &SingleImportModelPart::Import );
+
+    auto fs_extensions = m.def_submodule("FilesystemExtensions");
+    fs_extensions.def("MPISafeCreateDirectories", &FilesystemExtensions::MPISafeCreateDirectories );
 
 }
 

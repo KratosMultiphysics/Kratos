@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "includes/kernel.h"
 #include "utilities/model_part_combination_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
@@ -33,15 +32,10 @@ ModelPart& ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParam
     const int echo_level = ThisParameters["echo_level"].GetInt();
 
     // Retrieve the ModelParts to combine
-    std::vector<std::string> model_parts_names;
-    const auto& r_model_parts_names = ThisParameters["model_parts_list"];
+    std::vector<std::string> model_parts_names = ThisParameters["model_parts_list"].GetStringArray();
 
     // Fill the list
     KRATOS_INFO_IF("ModelPartCombinationUtilities", echo_level > 0) << "The following ModelParts are going to be merged" << std::endl;
-    for (auto& r_name : r_model_parts_names) {
-        const auto& name = r_name.GetString();
-        model_parts_names.push_back(name);
-    }
     KRATOS_ERROR_IF(model_parts_names.size() == 0) << "Empty list of ModelParts" << std::endl;
 
     // Giving information from current ModelParts
@@ -52,7 +46,7 @@ ModelPart& ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParam
         }
     }
 
-    // Retrieve the new ModelPart name 
+    // Retrieve the new ModelPart name
     const auto& r_new_model_part_name = ThisParameters["combined_model_part_name"].GetString();
 
     // Create the new ModelPart
@@ -69,7 +63,7 @@ ModelPart& ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParam
 
     // Finally we combine the model parts
     for (auto& r_name : model_parts_names) {
-        auto& r_model_part = mrModel.GetModelPart(r_name);   
+        auto& r_model_part = mrModel.GetModelPart(r_name);
 
         // Copy variable list from the first ModelPart
         for (auto& r_var : r_model_part.GetNodalSolutionStepVariablesList()) {
@@ -97,7 +91,7 @@ ModelPart& ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParam
         }
         auto pProperties = *(r_combined_model_part.PropertiesBegin().base());
         pProperties->SetId(0);
-        
+
         // Iterate over conditions
         block_for_each(r_combined_model_part.Conditions(), [&pProperties](Condition& rCondition){
             rCondition.SetProperties(pProperties);
@@ -257,7 +251,7 @@ void ModelPartCombinationUtilities::RecursiveAddEntities(
     // Lambda to transfer the model parts
     auto transfer_lambda = [](ModelPart& rDestinationModelPart, ModelPart& rOriginModelPart) {
         FastTransferBetweenModelPartsProcess(rDestinationModelPart, rOriginModelPart).Execute();
-        
+
         // Copy properties
         for (auto it_prop = rOriginModelPart.PropertiesBegin(); it_prop < rOriginModelPart.PropertiesEnd(); it_prop++) {
             if (!rDestinationModelPart.HasProperties(it_prop->Id())) {

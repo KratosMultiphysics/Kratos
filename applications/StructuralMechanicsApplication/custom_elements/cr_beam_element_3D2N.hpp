@@ -230,11 +230,13 @@ public:
 
     /**
      * @brief This function is used to assemble single transformation matrix in the big global rotation matrix
-     * @param SmallMatrix The local transformation matrix
-     * @param BigMatrix The total global rotation matrix
+     * @param rSmallMatrix The local transformation matrix
+     * @param rBigMatrix The total global rotation matrix
      */
-    void AssembleSmallInBigMatrix(Matrix SmallMatrix, BoundedMatrix<double,
-                                  msElementSize,msElementSize>& BigMatrix) const;
+    void AssembleSmallInBigMatrix(
+        const Matrix& rSmallMatrix, 
+        BoundedMatrix<double,msElementSize,msElementSize>& rBigMatrix
+        ) const;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
