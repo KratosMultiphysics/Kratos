@@ -43,9 +43,9 @@ public:
     /// Pointer definition of AssignIntegrationPointsToBackgroundElementsProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignIntegrationPointsToBackgroundElementsProcess);
 
-    // typedef Node<3>                                             NodeType;
-    // typedef Geometry<NodeType>                                  GeometryType;
-    // typedef GeometryType::Pointer                               GeometryPointerType;
+    typedef Node<3>                                             NodeType;
+    typedef Geometry<NodeType>                                  GeometryType;
+    typedef GeometryType::Pointer                               GeometryPointerType;
     // typedef typename GeometryType::GeometriesArrayType          GeometriesArrayType;
     // typedef typename GeometryType::CoordinatesArrayType         CoordinatesArrayType;
     // typedef NurbsVolumeGeometry<PointerVector<NodeType>>        NurbsVolumeGeometryType;

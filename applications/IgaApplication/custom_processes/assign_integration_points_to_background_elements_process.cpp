@@ -36,7 +36,7 @@ namespace Kratos
             << "AssignIntegrationPointsToBackgroundElementsProcess: Geometry: '" <<  mThisParameters["nurbs_volume_name"].GetInt() << "' is no 'Kratos_Nurbs_Volume-Geometry'." << std::endl;
    }
 
-    void MapNurbsVolumeResultsToEmbeddedGeometryProcess::AssignIntegrationPoints(){
+    void AssignIntegrationPointsToBackgroundElementsProcess::AssignIntegrationPoints(){
 
         // Get Model Parts
         ModelPart& main_model_part = mrModel.GetModelPart(mThisParameters["main_model_part_name"].GetString());
