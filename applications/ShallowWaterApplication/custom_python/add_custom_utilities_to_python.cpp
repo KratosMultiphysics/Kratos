@@ -22,7 +22,6 @@
 #include "custom_utilities/estimate_dt_utility.h"
 #include "custom_utilities/replicate_model_part_utility.h"
 #include "custom_utilities/shallow_water_utilities.h"
-#include "custom_utilities/post_process_utilities.h"
 #include "custom_utilities/bfecc_convection_utility.h"
 #include "custom_utilities/move_mesh_utility.h"
 
@@ -125,13 +124,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<Variable<array_1d<double, 3>>>)
         .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<double>>)
         .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<array_1d<double, 3>>>)
-        ;
-
-    py::class_< PostProcessUtilities > (m, "PostProcessUtilities")
-        .def(py::init<ModelPart&>())
-        .def("DefineAuxiliaryProperties", &PostProcessUtilities::DefineAuxiliaryProperties)
-        .def("AssignDryWetProperties", &PostProcessUtilities::AssignDryWetProperties)
-        .def("RestoreDryWetProperties", &PostProcessUtilities::RestoreDryWetProperties)
         ;
 
     py::class_< BFECCConvectionUtility<2> > (m, "BFECCConvectionUtility")
