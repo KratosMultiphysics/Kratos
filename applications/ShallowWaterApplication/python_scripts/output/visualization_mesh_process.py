@@ -16,8 +16,8 @@ class VisualizationMeshProcess(KM.Process):
 
         This process provides several tools for post-processing.
         - Generation of an auxiliary model part for the topography visualization as a separate file.
-        - Setting the TOPOGRAPHY and FREE_SURFACE_ELEVATION into DISPLACEMENT_Z or Z-coordinate to view the mesh deformation.
-        - Saving the HEIGH and FREE_SURFACE_ELEVATION as non-historical only on wet nodes. Dry nodes are set with the no-data value of GiD.
+        - Setting the TOPOGRAPHY and FREE_SURFACE_ELEVATION into DISPLACEMENT_Z or Z-coordinate in order to view the mesh deformation.
+        - Saving the HEIGHT and FREE_SURFACE_ELEVATION as non-historical only on wet nodes. Dry nodes are set with the no-data value of GiD.
         """
 
         KM.Process.__init__(self)
@@ -72,12 +72,12 @@ class VisualizationMeshProcess(KM.Process):
         if self.topographic_model_part is not None:
             self._TransferVariables()
 
-            # Deform the mesh according to the input options
-            if self.deform_mesh:
-                self._DeformMesh()
-            else:
-                self._InitializeDisplacement()
-                self._UpdateDisplacement()
+        # Deform the mesh according to the input options
+        if self.deform_mesh:
+            self._DeformMesh()
+        else:
+            self._InitializeDisplacement()
+            self._UpdateDisplacement()
 
 
     def ExecuteBeforeOutputStep(self):
@@ -88,16 +88,22 @@ class VisualizationMeshProcess(KM.Process):
         if self.topographic_model_part is not None:
             self._TransferVariables()
 
-            # Deform the mesh according to the input options
-            if self.deform_mesh:
-                self._DeformMesh()
-            else:
-                self._UpdateDisplacement()
+        # Deform the mesh according to the input options
+        if self.deform_mesh:
+            self._DeformMesh()
+        else:
+            self._UpdateDisplacement()
+
 
     def ExecuteAfterOutputStep(self):
         # Restoring the mesh
         if self.deform_mesh:
             self._RestoreMesh()
+
+
+    def _StoreNonHistoricalVariablesGiDNoDataIfDry(self):
+        SW.ShallowWaterUtilities().StoreNonHistoricalGiDNoDataIfDry(self.computing_model_part, SW.HEIGHT)
+        SW.ShallowWaterUtilities().StoreNonHistoricalGiDNoDataIfDry(self.computing_model_part, SW.FREE_SURFACE_ELEVATION)
 
 
     def _DuplicateModelPart(self):
@@ -132,25 +138,28 @@ class VisualizationMeshProcess(KM.Process):
         SW.ShallowWaterUtilities().SetMeshZCoordinate(
             self.computing_model_part,
             SW.FREE_SURFACE_ELEVATION)
-        SW.ShallowWaterUtilities().SetMeshZCoordinate(
-            self.topographic_model_part,
-            SW.TOPOGRAPHY)
+        if self.topographic_model_part is not None:
+            SW.ShallowWaterUtilities().SetMeshZCoordinate(
+                self.topographic_model_part,
+                SW.TOPOGRAPHY)
 
 
     def _RestoreMesh(self):
         SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(
             self.computing_model_part)
-        SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(
-            self.topographic_model_part)
+        if self.topographic_model_part is not None:
+            SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(
+                self.topographic_model_part)
 
 
     def _InitializeDisplacement(self):
         KM.VariableUtils().SetNonHistoricalVariableToZero(
             KM.DISPLACEMENT,
             self.computing_model_part.Nodes)
-        KM.VariableUtils().SetNonHistoricalVariableToZero(
-            KM.DISPLACEMENT,
-            self.topographic_model_part.Nodes)
+        if self.topographic_model_part is not None:
+            KM.VariableUtils().SetNonHistoricalVariableToZero(
+                KM.DISPLACEMENT,
+                self.topographic_model_part.Nodes)
 
 
     def _UpdateDisplacement(self):
@@ -160,14 +169,10 @@ class VisualizationMeshProcess(KM.Process):
             self.computing_model_part,
             self.computing_model_part,
             0)
-        KM.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
-            SW.TOPOGRAPHY,
-            KM.DISPLACEMENT_Z,
-            self.topographic_model_part,
-            self.topographic_model_part,
-            0)
-
-
-    def _StoreNonHistoricalVariablesGiDNoDataIfDry(self):
-        SW.ShallowWaterUtilities().StoreNonHistoricalGiDNoDataIfDry(self.computing_model_part, SW.HEIGHT)
-        SW.ShallowWaterUtilities().StoreNonHistoricalGiDNoDataIfDry(self.computing_model_part, SW.FREE_SURFACE_ELEVATION)
+        if self.topographic_model_part is not None:
+            KM.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
+                SW.TOPOGRAPHY,
+                KM.DISPLACEMENT_Z,
+                self.topographic_model_part,
+                self.topographic_model_part,
+                0)
