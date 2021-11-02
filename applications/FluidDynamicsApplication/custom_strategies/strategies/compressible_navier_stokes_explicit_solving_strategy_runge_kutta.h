@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA_4)
-#define KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA_4
+#if !defined(KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA)
+#define KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA
 
 // System includes
 #include <functional>
@@ -23,7 +23,7 @@
 #include "includes/define.h"
 #include "includes/global_variables.h"
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/parallel_utilities.h"
@@ -57,15 +57,16 @@ namespace Kratos
 /** @brief Explicit solving strategy base class
  * @details This is the base class from which we will derive all the explicit strategies (FE, RK4, ...)
  */
-template <class TSparseSpace, class TDenseSpace>
-class CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4 : public ExplicitSolvingStrategyRungeKutta4<TSparseSpace, TDenseSpace>
+template <class TSparseSpace, class TDenseSpace, class TButcherTableau>
+class CompressibleNavierStokesExplicitSolvingStrategyRungeKutta 
+: public ExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, TButcherTableau>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// The base class definition
-    typedef ExplicitSolvingStrategyRungeKutta4<TSparseSpace, TDenseSpace> BaseType;
+    typedef ExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, TButcherTableau> BaseType;
 
     /// The explicit builder and solver definition
     typedef typename BaseType::ExplicitBuilderType ExplicitBuilderType;
@@ -73,8 +74,8 @@ public:
     /// The local vector definition
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
-    /// Pointer definition of CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4
-    KRATOS_CLASS_POINTER_DEFINITION(CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4);
+    /// Pointer definition of CompressibleNavierStokesExplicitSolvingStrategyRungeKutta
+    KRATOS_CLASS_POINTER_DEFINITION(CompressibleNavierStokesExplicitSolvingStrategyRungeKutta);
 
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG(SHOCK_CAPTURING);
@@ -88,7 +89,7 @@ public:
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
-    explicit CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4(
+    explicit CompressibleNavierStokesExplicitSolvingStrategyRungeKutta(
         ModelPart &rModelPart,
         Parameters ThisParameters)
         : BaseType(rModelPart)
@@ -117,7 +118,7 @@ public:
      * @param pExplicitBuilder The pointer to the explicit builder and solver
      * @param MoveMeshFlag The flag to set if the mesh is moved or not
      */
-    explicit CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4(
+    explicit CompressibleNavierStokesExplicitSolvingStrategyRungeKutta(
         ModelPart &rModelPart,
         typename ExplicitBuilderType::Pointer pExplicitBuilder,
         bool MoveMeshFlag = false,
@@ -131,7 +132,7 @@ public:
      * @param rModelPart The model part to be computed
      * @param MoveMeshFlag The flag to set if the mesh is moved or not
      */
-    explicit CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4(
+    explicit CompressibleNavierStokesExplicitSolvingStrategyRungeKutta(
         ModelPart &rModelPart,
         bool MoveMeshFlag = false,
         int RebuildLevel = 0)
@@ -141,11 +142,11 @@ public:
 
     /** Copy constructor.
      */
-    CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4(const CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4 &Other) = delete;
+    CompressibleNavierStokesExplicitSolvingStrategyRungeKutta(const CompressibleNavierStokesExplicitSolvingStrategyRungeKutta &Other) = delete;
 
     /** Destructor.
      */
-    virtual ~CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4() = default;
+    virtual ~CompressibleNavierStokesExplicitSolvingStrategyRungeKutta() = default;
 
     ///@}
     ///@name Operators
@@ -215,7 +216,7 @@ public:
         mShockCapturing = ThisParameters["shock_capturing"].GetBool();
         mCalculateNonConservativeMagnitudes = ThisParameters["calculate_non_conservative_magnitudes"].GetBool();
         if (mShockCapturing && !mCalculateNonConservativeMagnitudes) {
-            KRATOS_WARNING("CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4") << "\'shock_capturing\' requires \'calculate_non_conservative_magnitudes\' to be active. Activating it." << std::endl;
+            KRATOS_WARNING("CompressibleNavierStokesExplicitSolvingStrategyRungeKutta") << "\'shock_capturing\' requires \'calculate_non_conservative_magnitudes\' to be active. Activating it." << std::endl;
             mCalculateNonConservativeMagnitudes = true;
         }
     }
@@ -286,7 +287,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4";
+        return "CompressibleNavierStokesExplicitSolvingStrategyRungeKutta";
     }
 
     /// Print information about this object.
@@ -535,7 +536,7 @@ private:
 
 
     ///@}
-}; /* Class CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4 */
+}; /* Class CompressibleNavierStokesExplicitSolvingStrategyRungeKutta */
 
 ///@}
 
@@ -544,6 +545,12 @@ private:
 
 ///@}
 
+template<class TSparseSpace, class TDenseSpace> 
+using CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4 = CompressibleNavierStokesExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, ButcherTableauRK4>;
+
+template<class TSparseSpace, class TDenseSpace> 
+using CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD = CompressibleNavierStokesExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, ButcherTableauRK3TVD>;
+
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA_4  defined */
+#endif /* KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA  defined */

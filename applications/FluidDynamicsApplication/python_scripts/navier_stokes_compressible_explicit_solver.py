@@ -50,6 +50,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
             },
             "echo_level": 1,
             "time_order": 2,
+            "runge_kutta_order" : 4,
             "move_mesh_flag": false,
             "shock_capturing": true,
             "compute_reactions": false,
@@ -123,12 +124,17 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         strategy_settings.AddEmptyValue("rebuild_level").SetInt(0 if self.settings["reform_dofs_at_each_step"].GetBool() else 1)
         strategy_settings.AddEmptyValue("move_mesh_flag").SetBool(self.settings["move_mesh_flag"].GetBool())
         strategy_settings.AddEmptyValue("shock_capturing").SetBool(self.settings["shock_capturing"].GetBool())
+        
+        rk_order = self.settings["runge_kutta_order"].GetInt()
 
-        strategy = KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4(
-            self.computing_model_part,
-            strategy_settings)
+        rk_startegies = {
+            3: KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD,
+            4: KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4
+        }
 
-        return strategy
+        if rk_order in rk_startegies:
+            return rk_startegies[rk_order](self.computing_model_part, strategy_settings)
+        raise RuntimeError(f"Runge-Kutta method of order {rk_order} not available. Try any of {list(rk_startegies.keys())}.")
 
     def _CreateEstimateDtUtility(self):
         """This method overloads FluidSolver in order to enforce:
