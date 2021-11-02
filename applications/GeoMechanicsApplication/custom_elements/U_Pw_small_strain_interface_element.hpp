@@ -45,6 +45,8 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mRetentionLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
+    using UPwBaseElement<TDim,TNumNodes>::CalculateDerivativesOnInitialConfiguration;
+    using UPwBaseElement<TDim,TNumNodes>::mThisIntegrationMethod;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -63,12 +65,14 @@ public:
     UPwSmallStrainInterfaceElement(IndexType NewId,
                                    GeometryType::Pointer pGeometry,
                                    PropertiesType::Pointer pProperties)
-                                   : UPwBaseElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
+                                   : UPwBaseElement<TDim,TNumNodes>( NewId, pGeometry, pProperties )
+    {
+        /// Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
+        mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+    }
 
     /// Destructor
     ~UPwSmallStrainInterfaceElement() override {}
-
-    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -151,6 +155,7 @@ protected:
 
         ///Constitutive Law parameters
         Vector StrainVector;
+        Vector StressVector;
         Matrix ConstitutiveMatrix;
         Vector Np;
         Matrix GradNpT;
@@ -191,13 +196,13 @@ protected:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void ModifyInactiveElementStress(const double &JointWidth, Vector &StressVector);
 
-    void CalculateOnLobattoIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
-                                            std::vector<array_1d<double,3>>& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateOnLobattoIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
+                                                     std::vector<array_1d<double,3>>& rOutput,
+                                                     const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateOnLobattoIntegrationPoints(const Variable<Matrix>& rVariable,
-                                             std::vector<Matrix>& rOutput,
-                                             const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateOnLobattoIntegrationPoints(const Variable<Matrix>& rVariable,
+                                                     std::vector<Matrix>& rOutput,
+                                                     const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateInitialGap(const GeometryType& Geom);
 
@@ -212,10 +217,10 @@ protected:
                        const bool CalculateStiffnessMatrixFlag,
                        const bool CalculateResidualVectorFlag) override;
 
-    void InitializeElementVariables(InterfaceElementVariables& rVariables,
-                                    const GeometryType& Geom,
-                                    const PropertiesType& Prop,
-                                    const ProcessInfo& CurrentProcessInfo);
+    virtual void InitializeElementVariables(InterfaceElementVariables& rVariables,
+                                            const GeometryType& Geom,
+                                            const PropertiesType& Prop,
+                                            const ProcessInfo& CurrentProcessInfo);
 
     void CalculateRotationMatrix(BoundedMatrix<double,TDim,TDim>& rRotationMatrix, const GeometryType& Geom);
 
@@ -241,44 +246,56 @@ protected:
                                           const unsigned int& GPoint);
 
 
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
+    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
+                                    InterfaceElementVariables& rVariables);
 
-    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
+    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
+                                        InterfaceElementVariables& rVariables);
 
-    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
+    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix,
+                                       InterfaceElementVariables& rVariables);
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
+    virtual void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
+                                                      InterfaceElementVariables& rVariables);
 
-    void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
+    virtual void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix,
+                                                   InterfaceElementVariables& rVariables);
 
-
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
-                            InterfaceElementVariables& rVariables,
-                            unsigned int GPoint);
+    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+                                    InterfaceElementVariables& rVariables,
+                                    unsigned int GPoint);
 
     void CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector,
                                        InterfaceElementVariables& rVariables,
                                        unsigned int GPoint);
 
-    void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
+    void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector,
+                                     InterfaceElementVariables& rVariables);
 
-    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
+    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector,
+                                      InterfaceElementVariables& rVariables);
 
-    void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
+    virtual void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector,
+                                                    InterfaceElementVariables& rVariables);
 
-    void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
+    virtual void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector,
+                                                 InterfaceElementVariables& rVariables);
 
-    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
+    virtual void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector,
+                                              InterfaceElementVariables& rVariables);
 
-    void InterpolateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues );
+    void InterpolateOutputDoubles( std::vector<double>& rOutput,
+                                   const std::vector<double>& GPValues );
 
     template< class TValueType >
-    void InterpolateOutputValues( std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues );
+    void InterpolateOutputValues( std::vector<TValueType>& rOutput,
+                                  const std::vector<TValueType>& GPValues );
 
     void SetRetentionParameters(const InterfaceElementVariables &rVariables,
                                 RetentionLaw::Parameters &rRetentionParameters);
+
     double CalculateFluidPressure( const InterfaceElementVariables &rVariables, const unsigned int &PointNumber );
-    
+
     double CalculateBulkModulus(const Matrix &ConstitutiveMatrix);
 
     void InitializeBiotCoefficients( InterfaceElementVariables &rVariables,
@@ -289,6 +306,7 @@ protected:
                                      const unsigned int &GPoint );
 
     void CalculateSoilGamma(InterfaceElementVariables &rVariables);
+
     void CalculateSoilDensity(InterfaceElementVariables &rVariables);
 
     void SetConstitutiveParameters(InterfaceElementVariables& rVariables,
