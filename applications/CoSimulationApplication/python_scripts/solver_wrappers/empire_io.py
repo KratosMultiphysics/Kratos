@@ -13,16 +13,16 @@ from KratosMultiphysics.CoSimulationApplication.utilities import model_part_util
 # Other imports
 import os
 
-def Create(settings, model, solver_name):
-    return EmpireIO(settings, model, solver_name)
+def Create(*args):
+    return EmpireIO(*args)
 
 communication_folder = ".EmpireIO" # hardcoded in C++
 
 class EmpireIO(CoSimulationIO):
     """IO for the legacy EMPIRE_API
     """
-    def __init__(self, settings, model, solver_name):
-        super().__init__(settings, model, solver_name)
+    def __init__(self, settings, model, solver_name, data_commnicator):
+        super().__init__(settings, model, solver_name, data_commnicator)
         # Note: calling "EMPIRE_API_Connect" is NOT necessary, it is replaced by the next two lines
         KratosCoSim.EMPIRE_API.EMPIRE_API_SetEchoLevel(self.echo_level)
         KratosCoSim.EMPIRE_API.EMPIRE_API_PrintTiming(self.settings["api_print_timing"].GetBool())

@@ -14,6 +14,7 @@ class ProjectionModule:
                 coupling_dem_vars,
                 coupling_fluid_vars,
                 time_filtered_vars,
+                fluid_model_type,
                 flow_field=None,
                 domain_size=3):
 
@@ -28,9 +29,12 @@ class ProjectionModule:
         self.shape_factor = self.backward_coupling_parameters["shape_factor"].GetDouble()
         self.do_impose_flow_from_field = project_parameters["custom_fluid"]["do_impose_flow_from_field_option"].GetBool()
         self.flow_field = flow_field
+        self.use_drew_model = False
+        if fluid_model_type == "advmsDEM" or fluid_model_type == "aqsvmsDEM":
+            self.use_drew_model = True
 
         if self.backward_coupling_parameters.Has("averaging_time_interval"):
-            self.averaging_time_interval = self.backward_coupling_parameters["averaging_time_interval"].GetInt()
+            self.averaging_time_interval = self.backward_coupling_parameters["averaging_time_interval"].GetDouble()
 
          # Create projector_parameters
         self.projector_parameters = Parameters("{}")
@@ -127,7 +131,7 @@ class ProjectionModule:
             self.projector.InterpolateFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.bin_of_objects_fluid)
 
         else:
-            self.projector.HomogenizeFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.meso_scale_length, self.shape_factor, recalculate_neigh)
+            self.projector.HomogenizeFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.meso_scale_length, self.shape_factor, recalculate_neigh, self.use_drew_model)
 
     def ComputePostProcessResults(self, particles_process_info):
         self.projector.ComputePostProcessResults(self.particles_model_part, self.fluid_model_part, self.FEM_DEM_model_part, self.bin_of_objects_fluid, particles_process_info)

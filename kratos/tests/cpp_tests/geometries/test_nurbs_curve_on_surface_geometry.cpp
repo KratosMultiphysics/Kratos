@@ -87,7 +87,7 @@ typedef Node<3> NodeType;
         int q_surface = 2;
 
         // Create a 3D surface
-        auto surface = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<Point>>>(points_surface, p_surface, 
+        auto surface = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<Point>>>(points_surface, p_surface,
             q_surface, knot_vector_u_surface, knot_vector_v_surface);
 
         // Create and return a curve on surface geometry
@@ -170,7 +170,7 @@ typedef Node<3> NodeType;
         int q_surface = 2;
 
         // Create a 3D surface
-        auto surface = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<Point>>>(points_surface, p_surface, 
+        auto surface = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<Point>>>(points_surface, p_surface,
             q_surface, knot_vector_u_surface, knot_vector_v_surface, weights_surface);
 
         // Create and return a curve on surface geometry
@@ -315,8 +315,8 @@ typedef Node<3> NodeType;
 
     ///// Tests
     // Ported from the ANurbs library (https://github.com/oberbichler/ANurbs)
-    KRATOS_TEST_CASE_IN_SUITE(BSplineCurveOnSurfaceBSpline, KratosCoreNurbsGeometriesFastSuite) 
-    {    
+    KRATOS_TEST_CASE_IN_SUITE(BSplineCurveOnSurfaceBSpline, KratosCoreNurbsGeometriesFastSuite)
+    {
         // Create a B-Spline curve on a B-Spline surface
         auto curve_on_surface = GenerateReferenceBSplineCurveOnBSplineSurface3d();
 
@@ -336,12 +336,27 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_VECTOR_NEAR(derivatives[0], positionVct, TOLERANCE);
         KRATOS_CHECK_VECTOR_NEAR(derivatives[1], gradient1, TOLERANCE);
         KRATOS_CHECK_VECTOR_NEAR(derivatives[2], gradient2, TOLERANCE);
+
+        // Check kratos geometry family
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
+        KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryType(), geometry_type);
+
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceNurbs, KratosCoreNurbsGeometriesFastSuite) 
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveOnSurfaceNurbs, KratosCoreNurbsGeometriesFastSuite)
     {
         // Create a Nurbs curve on a Nurbs surface
         auto curve_on_surface = GenerateReferenceNurbsCurveOnNurbsSurface3d();
+
+        // Check kratos geometry family
+        {
+            const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+            const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
+            KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryFamily(), geometry_family);
+            KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryType(), geometry_type);
+        }
 
         // Evaluate the global coordinates of the curve at u = 4.0
         {
@@ -419,6 +434,11 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_NEAR(spans[2], 11.6569, 1e-4);
         KRATOS_CHECK_NEAR(spans[3], 19.2881, 1e-4);
         KRATOS_CHECK_NEAR(spans[4], 23.3137, 1e-4);
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
+        KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryType(), geometry_type);
     }
 
     // test intersection with background surface with not coinciding knot vectors
@@ -442,6 +462,11 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_NEAR(spans[2], 11.6569 / scaling_factor, 1e-4);
         KRATOS_CHECK_NEAR(spans[3], 19.2881 / scaling_factor, 1e-4);
         KRATOS_CHECK_NEAR(spans[4], 23.3137 / scaling_factor, 1e-4);
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface;
+        KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(curve_on_surface.GetGeometryType(), geometry_type);
     }
 
     // test integration of curve on surface
@@ -503,6 +528,14 @@ typedef Node<3> NodeType;
         std::vector<double> local_reference = {0.162409, -0.487862, 0.0};
         quadrature_points[2].Calculate(LOCAL_TANGENT, local_tangent);
         KRATOS_CHECK_VECTOR_NEAR(local_tangent, local_reference, TOLERANCE);
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry;
+
+        for (IndexType i = 0; i < quadrature_points.size(); ++i) {
+            KRATOS_CHECK_EQUAL(quadrature_points[i].GetGeometryFamily(), geometry_family);
+            KRATOS_CHECK_EQUAL(quadrature_points[i].GetGeometryType(), geometry_type);
+        }
     }
 } // namespace Testing.
 } // namespace Kratos.

@@ -29,10 +29,8 @@
 #include "mappers/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 
-namespace Kratos
-{
-namespace MapperUtilities
-{
+namespace Kratos {
+namespace MapperUtilities {
 
 typedef std::size_t SizeType;
 typedef std::size_t IndexType;
@@ -49,111 +47,107 @@ typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
 typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPointerVectorPointer;
 
 using BoundingBoxType = std::array<double, 6>;
-// using BoundingBoxContainerType = std::vector<BoundingBoxType>;
 
-
-template< class TVarType >
 static void FillFunction(const NodeType& rNode,
-                         const TVarType& rVariable,
+                         const Variable<double>& rVariable,
                          double& rValue)
 {
     rValue = rNode.FastGetSolutionStepValue(rVariable);
 }
 
-template< class TVarType >
 static void FillFunctionNonHist(const NodeType& rNode,
-                                const TVarType& rVariable,
+                                const Variable<double>& rVariable,
                                 double& rValue)
 {
     rValue = rNode.GetValue(rVariable);
 }
 
-template< class TVarType >
-static std::function<void(const NodeType&, const TVarType&, double&)>
+static inline std::function<void(const NodeType&, const Variable<double>&, double&)>
 GetFillFunction(const Kratos::Flags& rMappingOptions)
 {
     if (rMappingOptions.Is(MapperFlags::FROM_NON_HISTORICAL))
-        return &FillFunctionNonHist<TVarType>;
-    return &FillFunction<TVarType>;
+        return &FillFunctionNonHist;
+    return &FillFunction;
 }
 
-template< class TVarType >
 static void UpdateFunction(NodeType& rNode,
-                           const TVarType& rVariable,
+                           const Variable<double>& rVariable,
                            const double Value,
                            const double Factor)
 {
     rNode.FastGetSolutionStepValue(rVariable) = Value * Factor;
 }
 
-template< class TVarType >
 static void UpdateFunctionWithAdd(NodeType& rNode,
-                            const TVarType& rVariable,
+                            const Variable<double>& rVariable,
                             const double Value,
                             const double Factor)
 {
     rNode.FastGetSolutionStepValue(rVariable) += Value * Factor;
 }
 
-template< class TVarType >
 static void UpdateFunctionNonHist(NodeType& rNode,
-                            const TVarType& rVariable,
+                            const Variable<double>& rVariable,
                             const double Value,
                             const double Factor)
 {
     rNode.GetValue(rVariable) = Value * Factor;
 }
 
-template< class TVarType >
 static void UpdateFunctionNonHistWithAdd(NodeType& rNode,
-                            const TVarType& rVariable,
+                            const Variable<double>& rVariable,
                             const double Value,
                             const double Factor)
 {
     rNode.GetValue(rVariable) += Value * Factor;
 }
 
-template< class TVarType >
-static std::function<void(NodeType&, const TVarType&, const double, const double)>
+static inline std::function<void(NodeType&, const Variable<double>&, const double, const double)>
 GetUpdateFunction(const Kratos::Flags& rMappingOptions)
 {
     if (rMappingOptions.Is(MapperFlags::ADD_VALUES) && rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL))
-        return &UpdateFunctionNonHistWithAdd<TVarType>;
+        return &UpdateFunctionNonHistWithAdd;
     if (rMappingOptions.Is(MapperFlags::ADD_VALUES))
-        return &UpdateFunctionWithAdd<TVarType>;
+        return &UpdateFunctionWithAdd;
     if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL))
-        return &UpdateFunctionNonHist<TVarType>;
-    return &UpdateFunction<TVarType>;
+        return &UpdateFunctionNonHist;
+    return &UpdateFunction;
 }
 
-template< class TVectorType, class TVarType >
-void UpdateSystemVectorFromModelPart(TVectorType& rVector,
-                        ModelPart& rModelPart,
-                        const TVarType& rVariable,
-                        const Kratos::Flags& rMappingOptions)
+template<class TVectorType, bool TParallel=true>
+void UpdateSystemVectorFromModelPart(
+    TVectorType& rVector,
+    ModelPart& rModelPart,
+    const Variable<double>& rVariable,
+    const Kratos::Flags& rMappingOptions,
+    const bool InParallel=true)
 {
     // Here we construct a function pointer to not have the if all the time inside the loop
-    const auto fill_fct = MapperUtilities::GetFillFunction<TVarType>(rMappingOptions);
+    const auto fill_fct = MapperUtilities::GetFillFunction(rMappingOptions);
 
     const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
 
-    #pragma omp parallel for
-    for (int i=0; i<num_local_nodes; i++) {
+    // necessary bcs the Trilinos Vector is not threadsafe in the default configuration
+    const int num_threads = InParallel ? ParallelUtilities::GetNumThreads() : 1;
+
+    IndexPartition<std::size_t>(num_local_nodes, num_threads).for_each([&](const std::size_t i){
         fill_fct(*(nodes_begin + i), rVariable, rVector[i]);
-    }
+    });
 }
 
-template< class TVectorType, class TVarType >
-void UpdateModelPartFromSystemVector(const TVectorType& rVector,
-            ModelPart& rModelPart,
-            const TVarType& rVariable,
-            const Kratos::Flags& rMappingOptions)
+template<class TVectorType>
+void UpdateModelPartFromSystemVector(
+    const TVectorType& rVector,
+    ModelPart& rModelPart,
+    const Variable<double>& rVariable,
+    const Kratos::Flags& rMappingOptions,
+    const bool InParallel=true)
 {
     const double factor = rMappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1.0 : 1.0;
 
     // Here we construct a function pointer to not have the if all the time inside the loop
-    const auto update_fct = std::bind(MapperUtilities::GetUpdateFunction<TVarType>(rMappingOptions),
+    const auto update_fct = std::bind(MapperUtilities::GetUpdateFunction(rMappingOptions),
                                         std::placeholders::_1,
                                         std::placeholders::_2,
                                         std::placeholders::_3,
@@ -161,15 +155,19 @@ void UpdateModelPartFromSystemVector(const TVectorType& rVector,
     const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
 
-    #pragma omp parallel for
-    for (int i=0; i<num_local_nodes; i++) {
-        update_fct(*(nodes_begin + i), rVariable, rVector[i]);
-    }
+    // necessary bcs the Trilinos Vector is not threadsafe in the default configuration
+    const int num_threads = InParallel ? ParallelUtilities::GetNumThreads() : 1;
 
-    if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL)) {
-        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
-    } else {
-        rModelPart.GetCommunicator().SynchronizeVariable(rVariable);
+    IndexPartition<std::size_t>(num_local_nodes, num_threads).for_each([&](const std::size_t i){
+        update_fct(*(nodes_begin + i), rVariable, rVector[i]);
+    });
+
+    if (rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
+        if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL)) {
+            rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
+        } else {
+            rModelPart.GetCommunicator().SynchronizeVariable(rVariable);
+        }
     }
 }
 
@@ -183,28 +181,9 @@ void UpdateModelPartFromSystemVector(const TVectorType& rVector,
 */
 void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator);
 
-template<class TMapperLocalSystem>
-void CreateMapperLocalSystemsFromNodes(const Communicator& rModelPartCommunicator,
-                                       std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)
-{
-    const std::size_t num_nodes = rModelPartCommunicator.LocalMesh().NumberOfNodes();
-    const auto nodes_ptr_begin = rModelPartCommunicator.LocalMesh().Nodes().ptr_begin();
-
-    if (rLocalSystems.size() != num_nodes) {
-        rLocalSystems.resize(num_nodes);
-    }
-
-    #pragma omp parallel for
-    for (int i = 0; i< static_cast<int>(num_nodes); ++i) {
-        auto it_node = nodes_ptr_begin + i;
-        rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>((*it_node).get());
-    }
-
-    int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
-
-    KRATOS_ERROR_IF_NOT(num_local_systems > 0)
-        << "No mapper local systems were created" << std::endl;
-}
+void CreateMapperLocalSystemsFromNodes(const MapperLocalSystem& rMapperLocalSystemPrototype,
+                                       const Communicator& rModelPartCommunicator,
+                                       std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems);
 
 void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystem& rMapperLocalSystemPrototype,
                                             const Communicator& rModelPartCommunicator,
@@ -219,8 +198,8 @@ inline double ComputeDistance(const T1& rCoords1,
                       std::pow(rCoords1[2] - rCoords2[2] , 2) );
 }
 
-template <typename T>
-double ComputeMaxEdgeLengthLocal(const T& rEntityContainer);
+template <typename TContainer>
+double ComputeMaxEdgeLengthLocal(const TContainer& rEntityContainer);
 
 double ComputeSearchRadius(const ModelPart& rModelPart, int EchoLevel);
 
