@@ -101,7 +101,7 @@ namespace Kratos
         virtual void ReorderFEMneighbours();
         virtual void ComputeForceWithNeighbourFinalOperations();
 
-        virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) override;
+        //virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) override;
         virtual double CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info);
         virtual bool OverlappedParticleRemoval();
         virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info);

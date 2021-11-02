@@ -21,8 +21,7 @@ namespace Kratos {
 
         std::string GetTypeOfLaw() override;
 
-        ~DEM_D_Bentonite_Colloid() {
-        }
+        ~DEM_D_Bentonite_Colloid() {}
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 

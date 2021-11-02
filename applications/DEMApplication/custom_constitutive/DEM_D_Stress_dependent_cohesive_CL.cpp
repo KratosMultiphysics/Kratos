@@ -16,7 +16,7 @@ namespace Kratos {
     }
 
     void DEM_D_Stress_Dependent_Cohesive::Check(Properties::Pointer pProp) const {
-        DEMDiscontinuumConstitutiveLaw::Check(pProp);
+        DEM_D_Linear_viscous_Coulomb::Check(pProp);
         if(!pProp->Has(INITIAL_COHESION)) {
             KRATOS_WARNING("DEM")<<std::endl;
             KRATOS_WARNING("DEM")<<"WARNING: Variable INITIAL_COHESION should be present in the properties when using DEM_D_Stress_Dependent_Cohesive. 0.0 value assigned by default."<<std::endl;

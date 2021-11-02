@@ -25,6 +25,8 @@ namespace Kratos {
 
         std::string GetTypeOfLaw() override;
 
+        virtual void Check(Properties::Pointer pProp) const override;
+
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
         std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override;
@@ -44,7 +46,8 @@ namespace Kratos {
                              double& cohesive_force,
                              SphericParticle* element1,
                              SphericParticle* element2,
-                             bool& sliding, double LocalCoordSystem[3][3]) override;
+                             bool& sliding,
+                             double LocalCoordSystem[3][3]) override;
 
         void CalculateForcesWithFEM(const ProcessInfo& r_process_info,
                                     const double OldLocalElasticContactForce[3],
@@ -60,6 +63,15 @@ namespace Kratos {
                                     bool& sliding) override;
 
         double CalculateNormalForce(const double indentation) override;
+
+        double CalculateNormalForce(SphericParticle* const element1,
+                                            SphericParticle* const element2,
+                                            const double indentation,
+                                            double LocalCoordSystem[3][3]) override;
+
+        double CalculateNormalForce(SphericParticle* const element,
+                                            Condition* const wall,
+                                            const double indentation) override;
 
         double CalculateCohesiveNormalForce(SphericParticle* const element1,
                                             SphericParticle* const element2,

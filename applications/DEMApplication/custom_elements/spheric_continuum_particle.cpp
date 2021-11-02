@@ -711,26 +711,26 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    double SphericContinuumParticle::CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) {
+    // double SphericContinuumParticle::CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) {
 
-        KRATOS_TRY
+    //     KRATOS_TRY
 
-        double max_sqr_period = 0.0;
+    //     double max_sqr_period = 0.0;
 
-        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-            SphericContinuumParticle* r_continuum_ini_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
-            double sqr_period = mContinuumConstitutiveLawArray[i]->LocalPeriod(i, this, r_continuum_ini_neighbour);
-            if (sqr_period > max_sqr_period) { (max_sqr_period = sqr_period); }
-        }
-        for (unsigned int i = mContinuumInitialNeighborsSize; i < mNeighbourElements.size(); i++) {
-            mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithNeighbour(mNeighbourElements[i]);
-            double sqr_period_discontinuum = mDiscontinuumConstitutiveLaw->LocalPeriod(i, this, mNeighbourElements[i]);
-            if (sqr_period_discontinuum > max_sqr_period) { (max_sqr_period = sqr_period_discontinuum); }
-        }
-        return max_sqr_period;
+    //     for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
+    //         SphericContinuumParticle* r_continuum_ini_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
+    //         double sqr_period = mContinuumConstitutiveLawArray[i]->LocalPeriod(i, this, r_continuum_ini_neighbour);
+    //         if (sqr_period > max_sqr_period) { (max_sqr_period = sqr_period); }
+    //     }
+    //     for (unsigned int i = mContinuumInitialNeighborsSize; i < mNeighbourElements.size(); i++) {
+    //         mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithNeighbour(mNeighbourElements[i]);
+    //         double sqr_period_discontinuum = mDiscontinuumConstitutiveLaw->LocalPeriod(i, this, mNeighbourElements[i]);
+    //         if (sqr_period_discontinuum > max_sqr_period) { (max_sqr_period = sqr_period_discontinuum); }
+    //     }
+    //     return max_sqr_period;
 
-        KRATOS_CATCH("")
-    }
+    //     KRATOS_CATCH("")
+    // }
 
     void SphericContinuumParticle::CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info) {
 

@@ -204,10 +204,9 @@ namespace Kratos {
             for (int i = 0; i < 10; i++) CalculateInitialMaxIndentations(r_process_info);
         }
 
-        if (r_process_info[CRITICAL_TIME_OPTION]) {
-            //InitialTimeStepCalculation();   //obsolete call
-            CalculateMaxTimeStep();
-        }
+        // if (r_process_info[CRITICAL_TIME_OPTION]) {
+        //     CalculateMaxTimeStep();
+        // }
 
         r_process_info[PARTICLE_INELASTIC_FRICTIONAL_ENERGY] = 0.0;
 
@@ -309,43 +308,43 @@ namespace Kratos {
         if (r_modelpart_nodal_variables_list.Has(PARTITION_INDEX)) has_mpi = true;
     }
 
-    void ExplicitSolverStrategy::CalculateMaxTimeStep() {
-        KRATOS_TRY
-        ModelPart& r_model_part = GetModelPart();
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+    // void ExplicitSolverStrategy::CalculateMaxTimeStep() {
+    //     KRATOS_TRY
+    //     ModelPart& r_model_part = GetModelPart();
+    //     ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
-        bool has_mpi = false; //check MPI not available in this strategy. refer to continuum strategy
-        //          Check_MPI(has_mpi);
+    //     bool has_mpi = false; //check MPI not available in this strategy. refer to continuum strategy
+    //     //          Check_MPI(has_mpi);
 
-        std::vector<double> thread_maxima(ParallelUtilities::GetNumThreads(), 0.0);
+    //     std::vector<double> thread_maxima(ParallelUtilities::GetNumThreads(), 0.0);
 
-        IndexPartition<unsigned int>(mListOfSphericParticles.size()).for_each([&](unsigned int i){
-            double max_sqr_period = mListOfSphericParticles[i]->CalculateLocalMaxPeriod(has_mpi, r_process_info);
-            if (max_sqr_period > thread_maxima[OpenMPUtils::ThisThread()]) thread_maxima[OpenMPUtils::ThisThread()] = max_sqr_period;
-        });
+    //     IndexPartition<unsigned int>(mListOfSphericParticles.size()).for_each([&](unsigned int i){
+    //         double max_sqr_period = mListOfSphericParticles[i]->CalculateLocalMaxPeriod(has_mpi, r_process_info);
+    //         if (max_sqr_period > thread_maxima[OpenMPUtils::ThisThread()]) thread_maxima[OpenMPUtils::ThisThread()] = max_sqr_period;
+    //     });
 
-        double max_across_threads = 0.0;
-        for (int i = 0; i < ParallelUtilities::GetNumThreads(); i++) {
-            if (thread_maxima[i] > max_across_threads) max_across_threads = thread_maxima[i];
-        }
+    //     double max_across_threads = 0.0;
+    //     for (int i = 0; i < ParallelUtilities::GetNumThreads(); i++) {
+    //         if (thread_maxima[i] > max_across_threads) max_across_threads = thread_maxima[i];
+    //     }
 
-        double critical_period = sqrt(max_across_threads);
-        double beta = 0.03;
-        double critical_timestep = beta * Globals::Pi / critical_period;
+    //     double critical_period = sqrt(max_across_threads);
+    //     double beta = 0.03;
+    //     double critical_timestep = beta * Globals::Pi / critical_period;
 
-        double t = CalculateMaxInletTimeStep();
-        if (t<critical_timestep && t>0.0){critical_timestep = t;}
+    //     double t = CalculateMaxInletTimeStep();
+    //     if (t<critical_timestep && t>0.0){critical_timestep = t;}
 
-        r_process_info[DELTA_TIME] = critical_timestep;
-        KRATOS_INFO("DEM") << " (Critical) Timestep set to " << critical_timestep << ". " << "\n" << std::endl;
+    //     r_process_info[DELTA_TIME] = critical_timestep;
+    //     KRATOS_INFO("DEM") << " (Critical) Timestep set to " << critical_timestep << ". " << "\n" << std::endl;
 
 
-       //PropertiesContainerType pprop1 = *mpInlet_model_part->pProperties();
-       //double young = (*mpInlet_model_part)[YOUNG_MODULUS];  // no funciona pq no forma part de modelpart sino de properties
-       //PropertiesContainerType pprop2 = mpInlet_model_part->PropertiesArray(0);
-       //long unsigned int pprop4 = mpInlet_model_part->NumberOfSubModelParts();
-        KRATOS_CATCH("")
-    }
+    //    //PropertiesContainerType pprop1 = *mpInlet_model_part->pProperties();
+    //    //double young = (*mpInlet_model_part)[YOUNG_MODULUS];  // no funciona pq no forma part de modelpart sino de properties
+    //    //PropertiesContainerType pprop2 = mpInlet_model_part->PropertiesArray(0);
+    //    //long unsigned int pprop4 = mpInlet_model_part->NumberOfSubModelParts();
+    //     KRATOS_CATCH("")
+    // }
 
     double ExplicitSolverStrategy::CalculateMaxInletTimeStep() {
         for (PropertiesIterator props_it = mpInlet_model_part->GetMesh(0).PropertiesBegin(); props_it != mpInlet_model_part->GetMesh(0).PropertiesEnd(); props_it++) {
