@@ -406,8 +406,8 @@ class SIMPMethod:
 
             
             # Filter sensitivities
-            print("\n::[Filter Sensitivities]::")
-            self.filter_utils.ApplyFilterSensitivity(self.config.filter_type , self.config.filter_kernel )
+            #print("\n::[Filter Sensitivities]::")
+            #self.filter_utils.ApplyFilterSensitivity(self.config.filter_type , self.config.filter_kernel )
 
 
             print("\n::[Update Densities with MMA]::")
@@ -415,14 +415,12 @@ class SIMPMethod:
                                                 self.config.initial_volume_fraction,
                                                 opt_itr,  Obj_initial)
 
+            # Filtering of the densities
             if (self.config.density_filter == "density"):
                 print("\n::[Filter Densities]::") 
-                self.filter_utils.ApplyFilterDensity(self.config.density_filter , self.config.filter_kernel )
-
-
-
-
+                self.filter_utils.ApplyFilterDensity(self.config.density_filter , self.config.filter_kernel, opt_itr )
             
+ 
             # Print of results
             print("\n::[RESULTS]::")
             Obj_Function = response[only_F_id]["func"]
