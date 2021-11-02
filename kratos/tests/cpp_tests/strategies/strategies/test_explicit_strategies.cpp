@@ -25,6 +25,7 @@
 #include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta.h"
 
 namespace Kratos
 {
@@ -36,6 +37,11 @@ namespace Testing
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef ExplicitBuilder< SparseSpaceType, LocalSpaceType > ExplicitBuilderType;
     typedef ExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType> ExplicitSolvingStrategyRK4Type;
+
+    typedef ExplicitSolvingStrategyRungeKutta<SparseSpaceType, LocalSpaceType, ButcherTableauForwardEuler> NewExplicitSolvingStrategyRungeKutta1Type;
+    typedef ExplicitSolvingStrategyRungeKutta<SparseSpaceType, LocalSpaceType, ButcherTableauMidPointMethod> NewExplicitSolvingStrategyRungeKutta2Type;
+    typedef ExplicitSolvingStrategyRungeKutta<SparseSpaceType, LocalSpaceType, ButcherTableauRK3TVD> NewExplicitSolvingStrategyRungeKutta3Type;
+    typedef ExplicitSolvingStrategyRungeKutta<SparseSpaceType, LocalSpaceType, ButcherTableauRK4> NewExplicitSolvingStrategyRungeKutta4Type;
 
     class AuxiliaryExplicitStrategiesTestElement : public Element
     {
@@ -109,11 +115,8 @@ namespace Testing
         rModelPart.AddElement(p_elem);
     }
 
-    /**
-     * Checks if the Linear strategy performs correctly the resolution of the system
-     */
-
-    KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta4, KratosCoreFastSuite)
+    template<typename TStrategyType>
+    void RunTest()
     {
         Model current_model;
         ModelPart& r_model_part = current_model.CreateModelPart("TestModelPart");
@@ -126,7 +129,7 @@ namespace Testing
         const bool move_mesh_flag = false;
         const unsigned int rebuild_level = 0;
         auto p_explicit_bs = Kratos::make_shared<ExplicitBuilderType>();
-        auto p_explicit_strategy = Kratos::make_unique<ExplicitSolvingStrategyRK4Type>(
+        auto p_explicit_strategy = Kratos::make_unique<TStrategyType>(
             r_model_part,
             p_explicit_bs,
             move_mesh_flag,
@@ -151,5 +154,36 @@ namespace Testing
         KRATOS_CHECK_NEAR(p_test_node->FastGetSolutionStepValue(TEMPERATURE), 11455.1, 1.0e-1);
     }
 
+    /**
+     * Checks if the Linear strategy performs correctly the resolution of the system
+     */
+
+    KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta4, KratosCoreFastSuite)
+    {
+        RunTest<ExplicitSolvingStrategyRK4Type>();
+    }
+
+
+    KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKuttaNew1, KratosCoreFastSuite)
+    {
+        RunTest<NewExplicitSolvingStrategyRungeKutta1Type>();
+    }
+
+
+    KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKuttaNew2, KratosCoreFastSuite)
+    {
+        RunTest<NewExplicitSolvingStrategyRungeKutta2Type>();
+    }
+
+
+    KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKuttaNew3, KratosCoreFastSuite)
+    {
+        RunTest<NewExplicitSolvingStrategyRungeKutta3Type>();
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKuttaNew4, KratosCoreFastSuite)
+    {
+        RunTest<NewExplicitSolvingStrategyRungeKutta4Type>();
+    }
 } // namespace Testing
 } // namespace Kratos
