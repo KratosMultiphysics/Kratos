@@ -288,12 +288,13 @@ void TwoFluidNavierStokesCN<TElementData>::UpdateIntegrationPointData(
     const typename TElementData::ShapeDerivativesType& rDN_DX) const
 {
     rData.UpdateGeometryValues(IntegrationPointIndex, Weight, rN, rDN_DX);
+
+    // Calculate current material response
     const double d_gauss = inner_prod(rData.Distance, rN);
     if (d_gauss > 0.0)
         rData.CalculateAirMaterialResponse();
     else
         this->CalculateMaterialResponse(rData);
-    rData.ComputeDarcyTerm();
 }
 
 template <class TElementData>
@@ -312,7 +313,6 @@ void TwoFluidNavierStokesCN<TElementData>::UpdateIntegrationPointData(
         rData.CalculateAirMaterialResponse();
     else
         this->CalculateMaterialResponse(rData);
-    rData.ComputeDarcyTerm();
 }
 
 template <>
@@ -334,7 +334,7 @@ template <>
 void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::CalculateStrainRate(TwoFluidNavierStokesCNData<3, 4>& rData) const
 {
     const double theta = rData.theta;
-    const BoundedMatrix<double,4,3> mid_step_velocity = theta * rData.Velocity + (1.0-theta)*rData.Velocity_OldStep1;
+    const BoundedMatrix<double,4,3> mid_step_velocity = theta*rData.Velocity + (1-theta)*rData.Velocity_OldStep1;;
     auto& rDNDX = rData.DN_DX;
     auto& r_strain_rate = rData.StrainRate;
     noalias(r_strain_rate) = ZeroVector(6);
@@ -359,19 +359,17 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::ComputeGaussPoint
     const double h = rData.ElementSize;
 
     const double dt = rData.DeltaTime;
+    const double theta = rData.theta;
 
     const double dyn_tau = rData.DynamicTau;
-    const double K_darcy = rData.DarcyTerm;
 
     // TODO: Velocity CRANK NICOLSON at 0.5dt
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
-    const double theta=rData.theta;
-    const BoundedMatrix<double,3,2> v_CN = theta*v+(1-theta)*vn;
-    const auto &vconv_CN = v_CN - vmesh;
+    const auto &vmeshn = rData.MeshVelocityOldStep;
 
-
+    const BoundedMatrix<double,3,2> vconv = theta*(v-vmesh) + (1-theta)*(vn-vmeshn);
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -397,14 +395,13 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::ComputeGaussPoint
     TwoFluidNavierStokesCNData<3, 4> &rData,
     MatrixType &rLHS)
 {
-
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-    const double K_darcy = rData.DarcyTerm;
 
     const double h = rData.ElementSize;
 
     const double dt = rData.DeltaTime;
+    const double theta = rData.theta;
 
     const double dyn_tau = rData.DynamicTau;
 
@@ -412,9 +409,9 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::ComputeGaussPoint
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
-    const auto &theta=rData.theta;
-    const BoundedMatrix<double,4,3> v_CN = theta*v+(1-theta)*vn;
-    const auto &vconv_CN = v_CN - vmesh;
+    const auto &vmeshn = rData.MeshVelocityOldStep;
+
+    const BoundedMatrix<double,4,3> vconv = theta*(v-vmesh) + (1-theta)*(vn-vmeshn);
 
     // Get constitutive matrix
     const Matrix &C = rData.C;
@@ -440,31 +437,28 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::ComputeGaussPoint
     TwoFluidNavierStokesCNData<2, 3> &rData,
     VectorType &rRHS)
 {
-
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
 
     const double dt = rData.DeltaTime;
+    const double theta = rData.theta;
 
     const double dyn_tau = rData.DynamicTau;
-    const double K_darcy = rData.DarcyTerm;
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
+    const auto &vmeshn = rData.MeshVelocityOldStep;
     const auto &f = rData.BodyForce;
+    const auto &fn = rData.BodyForce_OldStep1;
     const auto &p = rData.Pressure;
     const auto &pn = rData.Pressure_OldStep1;
 
     const auto &stress = rData.ShearStress;
 
-    // TODO: Velocity CRANK NICOLSON at 0.5dt
-    const double  theta=rData.theta;
-    const BoundedMatrix<double,3,2> v_CN = theta*v+(1-theta)*vn;
-
-    const auto vconv_CN = v_CN - vmesh;
+    const BoundedMatrix<double,3,2> vconv = theta*(v-vmesh) + (1-theta)*(vn-vmeshn);
 
     // Get shape function values
     const auto &N = rData.N;
@@ -493,30 +487,28 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::ComputeGaussPoint
     TwoFluidNavierStokesCNData<3, 4> &rData,
     VectorType &rRHS)
 {
-
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
 
     const double dt = rData.DeltaTime;
+    const double theta = rData.theta;
 
     const double dyn_tau = rData.DynamicTau;
-    const double K_darcy = rData.DarcyTerm;
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
+    const auto &vmeshn = rData.MeshVelocityOldStep;
     const auto &f = rData.BodyForce;
+    const auto &fn = rData.BodyForce_OldStep1;
     const auto &p = rData.Pressure;
     const auto &pn = rData.Pressure_OldStep1;
 
     const auto &stress = rData.ShearStress;
 
-    // TODO: Velocity CRANK NICOLSON at 0.5dt
-    const double  theta=rData.theta;
-    const BoundedMatrix<double,4,3> v_CN = theta*v+(1-theta)*vn;
-    const auto vconv_CN = v_CN - vmesh;
+    const BoundedMatrix<double,4,3> vconv = theta*(v-vmesh) + (1-theta)*(vn-vmeshn);
 
     // Get shape function values
     const auto &N = rData.N;
@@ -548,28 +540,25 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::ComputeGaussPoint
     MatrixType &rKee,
     VectorType &rRHS_ee)
 {
-
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
 
     const double dt = rData.DeltaTime;
+    const double theta = rData.theta;
 
     const double dyn_tau = rData.DynamicTau;
-    const double K_darcy = rData.DarcyTerm;
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
+    const auto &vmeshn = rData.MeshVelocityOldStep;
     const auto &f = rData.BodyForce;
-    const auto &pn = rData.Pressure_OldStep1;
+    const auto &fn = rData.BodyForce_OldStep1;
     const auto &p=rData.Pressure;
 
-    // TODO: Velocity CRANK NICOLSON at 0.5dt
-    const double  theta=rData.theta;
-    const BoundedMatrix<double,3,2> v_CN = theta*v+(1-theta)*vn;
-    const auto vconv_CN = v_CN - vmesh;
+    const BoundedMatrix<double,3,2> vconv = theta*(v-vmesh) + (1-theta)*(vn-vmeshn);
 
     // Get shape function values
     const auto &N = rData.N;
@@ -618,29 +607,25 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::ComputeGaussPoint
     MatrixType &rKee,
     VectorType &rRHS_ee)
 {
-
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
 
     const double dt = rData.DeltaTime;
+    const double theta = rData.theta;
 
     const double dyn_tau = rData.DynamicTau;
-    const double K_darcy = rData.DarcyTerm;
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
+    const auto &vmeshn = rData.MeshVelocity;
     const auto &f = rData.BodyForce;
+    const auto &fn = rData.BodyForce_OldStep1;
     const auto &p = rData.Pressure;
-    const auto &pn = rData.Pressure_OldStep1;
 
-    // TODO: Velocity CRANK NICOLSON at 0.5dt
-    // FIXME: Mesh velocity should be evaluated at 0.5dt
-    const double theta=rData.theta;
-    const BoundedMatrix<double,4,3> v_CN = theta*v+(1-theta)*vn;
-    const auto vconv_CN = v_CN - vmesh;
+    const BoundedMatrix<double,4,3> vconv = theta*(v-vmesh) + (1-theta)*(vn-vmeshn);
 
     // Get shape function values
     const auto &N = rData.N;
@@ -922,32 +907,31 @@ void TwoFluidNavierStokesCN<TElementData>::PressureGradientStabilization(
     const auto &v=rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
 
-    // TODO: Velocity CRANK NICOLSON at 0.5dt
-    const double  theta=rData.theta;
-    const BoundedMatrix<double,NumNodes,Dim> v_CN = theta*v+(1-theta)*vn;
+    const double theta = rData.theta;
     const auto vmesh=rData.MeshVelocity;
-    const auto v_convection_CN = v_CN - vmesh;
+    const auto vmeshn=rData.MeshVelocityOldStep;
+    const BoundedMatrix<double,NumNodes,Dim> v_convection = theta*(v-vmesh) + (1-theta)*(vn-vmeshn);
 
     for (unsigned int gp = 0; gp < rInterfaceWeights.size(); ++gp){
 
-        Vector vconv_CN = ZeroVector(Dim);
+        Vector vconv = ZeroVector(Dim);
         double positive_weight = 0.0;
         double negative_weight = 0.0;
 
         for (unsigned int j = 0; j < NumNodes; ++j){
             for (unsigned int dim = 0; dim < Dim; ++dim){
-                vconv_CN[dim] += (rEnrInterfaceShapeFunctionNeg(gp, j) + rEnrInterfaceShapeFunctionPos(gp, j))
-                    *v_convection_CN(j,dim);
+                vconv[dim] += (rEnrInterfaceShapeFunctionNeg(gp, j) + rEnrInterfaceShapeFunctionPos(gp, j))
+                    *v_convection(j,dim);
             }
             positive_weight += rEnrInterfaceShapeFunctionNeg(gp, j);
             negative_weight += rEnrInterfaceShapeFunctionPos(gp, j);
         }
 
-        const double v_conv_CN_norm = norm_2(vconv_CN);
+        const double v_conv_norm = norm_2(vconv);
 
         const double penalty_coefficient = cut_stabilization_coefficient *
             density * 1.0 / (dyn_tau * density / (0.5*dt) + stab_c1 * viscosity / h_elem / h_elem +
-                                stab_c2 * density * v_conv_CN_norm / h_elem) * element_volume / cut_area;
+                                stab_c2 * density * v_conv_norm / h_elem) * element_volume / cut_area;
 
         const auto& r_gp_enriched_interface_shape_derivatives_pos = EnrichedInterfaceShapeDerivativesPos[gp];
         const auto& r_gp_enriched_interface_shape_derivatives_neg = EnrichedInterfaceShapeDerivativesNeg[gp];

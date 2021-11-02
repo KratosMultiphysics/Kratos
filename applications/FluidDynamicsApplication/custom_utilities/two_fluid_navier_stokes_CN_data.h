@@ -51,25 +51,30 @@ typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
 NodalVectorData Velocity;
 NodalVectorData Velocity_OldStep1;
-NodalVectorData MeshVelocity;
-NodalVectorData BodyForce;
-NodalScalarData Pressure_OldStep1;
 NodalScalarData Pressure;
+NodalScalarData Pressure_OldStep1;
+
+NodalVectorData MeshVelocity;
+NodalVectorData MeshVelocityOldStep;
+
+NodalVectorData BodyForce;
+NodalVectorData BodyForce_OldStep1;
+
 NodalScalarData Distance;
+
 NodalScalarData NodalDensity;
+NodalScalarData NodalDensityOldStep;
 NodalScalarData NodalDynamicViscosity;
+NodalScalarData NodalDynamicViscosityOldStep;
+
+Vector ShearStressOldStep;
 
 double Density;
 double DynamicViscosity;
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
-double SmagorinskyConstant;
-double LinearDarcyCoefficient;
-double NonLinearDarcyCoefficient;
-double DarcyTerm;
 double VolumeError;
 double theta;
-
 
 // Auxiliary containers for the symbolically-generated matrices
 BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
@@ -110,23 +115,25 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     FluidElementData<TDim,TNumNodes, true>::Initialize(rElement,rProcessInfo);
 
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
-    const Properties& r_properties = rElement.GetProperties();
 
     this->FillFromHistoricalNodalData(Velocity,VELOCITY,r_geometry);
-
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
+    this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
+    this->FillFromHistoricalNodalData(Pressure_OldStep1,PRESSURE,r_geometry,1);
 
     this->FillFromHistoricalNodalData(Distance, DISTANCE, r_geometry);
 
     this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
+    this->FillFromHistoricalNodalData(MeshVelocityOldStep,MESH_VELOCITY,r_geometry);
+
     this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
-    this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
-    this->FillFromHistoricalNodalData(Pressure_OldStep1,PRESSURE,r_geometry,1);
+    this->FillFromHistoricalNodalData(BodyForce_OldStep1,BODY_FORCE,r_geometry,1);
+
     this->FillFromHistoricalNodalData(NodalDensity, DENSITY, r_geometry);
+    this->FillFromHistoricalNodalData(NodalDensityOldStep, DENSITY, r_geometry, 1);
     this->FillFromHistoricalNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
-    this->FillFromProperties(SmagorinskyConstant, C_SMAGORINSKY, r_properties);
-    this->FillFromProperties(LinearDarcyCoefficient, LIN_DARCY_COEF, r_properties);
-    this->FillFromProperties(NonLinearDarcyCoefficient, NONLIN_DARCY_COEF, r_properties);
+    this->FillFromHistoricalNodalData(NodalDynamicViscosityOldStep, DYNAMIC_VISCOSITY, r_geometry, 1);
+
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
     this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
@@ -325,35 +332,12 @@ void CalculateEffectiveViscosityAtGaussPoint()
             dynamic_viscosity += NodalDynamicViscosity[i];
         }
     }
+
     DynamicViscosity = dynamic_viscosity / navg;
-
-    if (SmagorinskyConstant > 0.0)
-    {
-        const double strain_rate_norm = ComputeStrainNorm();
-
-        double length_scale = SmagorinskyConstant*ElementSize;
-        length_scale *= length_scale; // square
-        this->EffectiveViscosity = DynamicViscosity + 2.0*length_scale*strain_rate_norm;
-    }
-    else this->EffectiveViscosity = DynamicViscosity;
+    this->EffectiveViscosity = DynamicViscosity;
 }
 
-void ComputeDarcyTerm()
-{
-    array_1d<double, 3> convective_velocity(3, 0.0);
-    for (size_t i = 0; i < TNumNodes; i++) {
-        for (size_t j = 0; j < TDim; j++) {
-            convective_velocity[j] += this->N[i] * (Velocity(i, j) - MeshVelocity(i, j));
-        }
-    }
-    const double convective_velocity_norm = MathUtils<double>::Norm(convective_velocity);
-    DarcyTerm = this->EffectiveViscosity * LinearDarcyCoefficient + Density * NonLinearDarcyCoefficient * convective_velocity_norm;
-}
 ///@}
-
-
-
-
 
 };
 
