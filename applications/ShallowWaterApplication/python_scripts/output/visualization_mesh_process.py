@@ -171,7 +171,7 @@ class VisualizationMeshProcess(KM.Process):
         if mesh_deformation_mode == "use_z_coordinate":
             return True
         elif mesh_deformation_mode == "use_nodal_displacement":
-            return = False
+            return False
         else:
             msg = """VisualizationMeshProcess.
             Unknown 'mesh_deformation_mode' = '{}'. The possible options are:
