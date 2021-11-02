@@ -124,49 +124,8 @@ namespace Kratos {
         KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::LocalMaxSearchDistance) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
-    // double DEMContinuumConstitutiveLaw::LocalPeriod(const int i, SphericContinuumParticle* element1,
-    //                                                              SphericContinuumParticle* element2) {
-
-    //     // calculation of equivalent young modulus
-    //     double myYoung = element1->GetYoung();
-    //     double other_young = element2->GetYoung();
-    //     double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
-
-    //     const double my_radius = element1->GetRadius();
-    //     const double other_radius = element2->GetRadius();
-    //     double calculation_area = 0;
-    //     CalculateContactArea(my_radius, other_radius, calculation_area);
-
-    //     double radius_sum = my_radius + other_radius;
-    //     double initial_delta = element1->GetInitialDelta(i);
-    //     double initial_dist = radius_sum - initial_delta;
-
-    //     // calculation of elastic constants
-    //     double kn_el = equiv_young * calculation_area / initial_dist;
-
-    //     const double mRealMass = element1->GetMass();  // { mRealMass = real_mass;  GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = real_mass;}
-    //     const double &other_real_mass = element2->GetMass();
-
-    //     // calculation of damping gamma
-
-    //     const double& damping_gamma = (*mpProperties)[DAMPING_GAMMA];
-
-    //     double equiv_mass = (mRealMass*other_real_mass)/(mRealMass+other_real_mass);
-    //     const double viscous_damping_coeff     = 2.0 * damping_gamma * sqrt(equiv_mass * kn_el);
-    //     //double viscous_damping_coeff = (1-equiv_coefficientOfRestitution) * 2.0 * sqrt(kn_el * equiv_mass);
-
-    //     double rescaled_damping = viscous_damping_coeff/(2*equiv_mass);
-    //     //double a = 1.4142-equiv_gamma*equiv_gamma;
-
-    //     //double sqr_period = kn_el / equiv_mass - rescaled_damping*rescaled_damping;
-    //     double sqr_period = sqrt(2.0) * kn_el / equiv_mass - rescaled_damping*rescaled_damping;   //esta es la correcta en continuu suponiendo un maximo de Kt= Kn
-    //     return sqr_period;
-    // }
-
     bool DEMContinuumConstitutiveLaw::CheckRequirementsOfStressTensor() {
-
         return false;
-
     }
 
 } //kratos

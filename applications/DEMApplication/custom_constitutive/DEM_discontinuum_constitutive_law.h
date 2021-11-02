@@ -83,9 +83,6 @@ namespace Kratos {
         virtual double CalculateCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2, const double indentation);
         virtual double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation);
 
-        // virtual double LocalPeriod(const int i, SphericParticle* element1,SphericParticle* element2);
-
-
     private:
 
         friend class Serializer;

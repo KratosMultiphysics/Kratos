@@ -211,7 +211,6 @@ namespace Kratos {
         virtual void Initialize();
         virtual void AttachSpheresToStickyWalls();
         virtual void DisplayThreadInfo();
-        //virtual void CalculateMaxTimeStep();
         double CalculateMaxInletTimeStep();
         virtual void InitializeClusters();
         virtual void GetClustersForce();

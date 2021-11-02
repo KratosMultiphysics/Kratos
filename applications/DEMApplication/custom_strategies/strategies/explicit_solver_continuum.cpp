@@ -102,10 +102,6 @@ namespace Kratos {
             SetInitialDemContacts();
         }
 
-        // if (r_process_info[CRITICAL_TIME_OPTION]) {
-        //     CalculateMaxTimeStep();
-        // }
-
         ComputeNewNeighboursHistoricalData();
 
         if (fem_model_part.Nodes().size() > 0) {
