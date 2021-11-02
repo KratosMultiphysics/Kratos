@@ -140,7 +140,6 @@ class _FilenameGetterWithDirectoryInitialization(object):
                 os.makedirs(dirname)
             self.data_comm.Barrier()
 
-
 def Create(settings, data_comm):
     '''Return the IO object specified by the setting 'io_type'.
 

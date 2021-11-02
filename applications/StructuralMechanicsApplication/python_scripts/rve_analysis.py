@@ -328,7 +328,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         dy = self.max_corner[1] - self.min_corner[1]
         dz = self.max_corner[2] - self.min_corner[2]
 
-        periodicity_utility = KratosMultiphysics.StructuralMechanicsApplication.RVEPeriodicityUtility(self._GetSolver().GetComputingModelPart())
+        periodicity_utility = KratosMultiphysics.RVEPeriodicityUtility(self._GetSolver().GetComputingModelPart())
 
         # assign periodicity to faces
         search_tolerance = self.geometrical_search_tolerance

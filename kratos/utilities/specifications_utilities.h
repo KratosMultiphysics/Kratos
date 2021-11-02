@@ -98,7 +98,18 @@ namespace SpecificationsUtilities
         {"Line3D3",GeometryData::KratosGeometryType::Kratos_Line3D3},
         {"Point2D",GeometryData::KratosGeometryType::Kratos_Point2D},
         {"Point3D",GeometryData::KratosGeometryType::Kratos_Point3D},
-        {"Sphere3D1",GeometryData::KratosGeometryType::Kratos_Sphere3D1}
+        {"Sphere3D1",GeometryData::KratosGeometryType::Kratos_Sphere3D1},
+        {"NurbsCurve",GeometryData::KratosGeometryType::Kratos_Nurbs_Curve},
+        {"NurbsSurface",GeometryData::KratosGeometryType::Kratos_Nurbs_Surface},
+        {"NurbsVolume",GeometryData::KratosGeometryType::Kratos_Nurbs_Volume},
+        {"NurbsCurveOnSurface",GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface},
+        {"SurfaceInNurbsVolume",GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume},
+        {"BrepCurve",GeometryData::KratosGeometryType::Kratos_Brep_Curve},
+        {"BrepSurface",GeometryData::KratosGeometryType::Kratos_Brep_Surface},
+        {"BrepCurveOnSurface",GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface},
+        {"QuadraturePointGeometry",GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry},
+        {"QuadraturePointCurveOnSurfaceGeometry",GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry},
+        {"QuadraturePointSurfaceInVolumeGeometry",GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry}
     };
 
     // Definition of the map between the dimension and integers

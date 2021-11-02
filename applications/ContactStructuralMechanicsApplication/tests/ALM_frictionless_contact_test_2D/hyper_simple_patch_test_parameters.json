@@ -7,38 +7,36 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-    "model_part_name" : "Structure",
-        "domain_size"     : 2,
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 2,
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
-            "input_type"     : "mdpa",
-            "input_filename" : "ALM_frictionless_contact_test_2D/hyper_simple_patch_test"
+            "input_type"     : "use_input_model_part" // NOTE: This is to skip the reading in the python solver
         },
         "material_import_settings" :{
             "materials_filename": "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_materials.json"
         },
-        "contact_settings":
-        {
+        "contact_settings": {
             "mortar_type"                    : "ALMContactFrictionless"
         },
         "time_stepping"                      : {
             "time_step" : 1.1
         },
-        "clear_storage"                      : true,
-        "line_search"                        : false,
-        "compute_reactions"                  : false,
-        "convergence_criterion"              : "contact_residual_criterion",
-        "displacement_relative_tolerance"    : 0.001,
-        "displacement_absolute_tolerance"    : 1e-9,
-        "residual_relative_tolerance"        : 0.0001,
-        "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
-        "linear_solver_settings"             : {
-                "solver_type": "skyline_lu_factorization"
-        }
+        "convergence_criterion"              : "contact_residual_criterion"
     },
+    "modelers": [{
+        "modeler_name": "SerialModelPartCombinatorModeler",
+        "Parameters": {
+            "model_part_name"                    : "Structure",
+            "model_import_settings"              : {
+                "input_type"     : "mdpa",
+                "input_filename" : ["ALM_frictionless_contact_test_2D/hyper_simple_patch_test1", "ALM_frictionless_contact_test_2D/hyper_simple_patch_test2"]
+            }
+        }
+    }
+    ],
     "processes" : {
         "constraints_process_list" : [{
             "python_module"   : "assign_vector_variable_process",
@@ -88,7 +86,7 @@
             "Parameters"            : {
                 "model_part_name"             : "Structure",
                 "assume_master_slave"         : { "0" : ["Parts_Parts_Auto2"]},
-                "contact_model_part"          : { "0" : ["Contact_Part"]},
+                "contact_model_part"          : { "0" : ["Contact_Part_1", "Contact_Part_2"]},
                 "contact_type"                : "Frictionless"
             }
         }
@@ -102,7 +100,18 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
                 "input_file_name"      : "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_results.json",
-                "model_part_name"      : "Structure.Contact_Part",
+                "model_part_name"      : "Structure.Contact_Part_1",
+                "time_frequency"       : 1.00
+            }
+        },{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+                "input_file_name"      : "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_results.json",
+                "model_part_name"      : "Structure.Contact_Part_2",
                 "time_frequency"       : 1.00
             }
         }
