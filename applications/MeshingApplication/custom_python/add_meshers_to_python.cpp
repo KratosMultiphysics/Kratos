@@ -30,12 +30,14 @@
     #define REAL double
 #endif 
 
-#include "external_includes/trigen_pfem_refine.h"
-#include "external_includes/trigen_pfem_refine_vms.h"
-#include "external_includes/trigen_pfem_refine_segment.h"
-#include "external_includes/trigen_glass_forming.h"
-#include "external_includes/trigen_droplet_refine.h"
-#include "external_includes/trigen_cdt.h"
+#ifdef USE_TRIANGLE_NONFREE_TPL
+    #include "external_includes/trigen_pfem_refine.h"
+    #include "external_includes/trigen_pfem_refine_vms.h"
+    #include "external_includes/trigen_pfem_refine_segment.h"
+    #include "external_includes/trigen_glass_forming.h"
+    #include "external_includes/trigen_droplet_refine.h"
+    #include "external_includes/trigen_cdt.h"
+#endif 
 
 namespace Kratos
 {
@@ -110,6 +112,7 @@ void TetRegenerateMeshVMS(TetGenPfemModelerVms& Mesher, char* ElementName, char*
 }
 #endif
 
+#ifdef USE_TRIANGLE_NONFREE_TPL
 ///////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                       //
 //                                            ADAPTIVE 2D MESHER                         //
@@ -193,6 +196,7 @@ void TriRegenerateMeshVMS(TriGenPFEMModelerVMS& Mesher, char* ElementName, char*
                           KratosComponents<Element>::Get(ElementName),
                           KratosComponents<Condition>::Get(ConditionName),NodeErase, RemNodes, AddNodes, AlphaShape, HFactor     );
 }
+#endif
 
 void  AddMeshersToPython(pybind11::module& m)
 {
@@ -226,6 +230,7 @@ void  AddMeshersToPython(pybind11::module& m)
     ;
 #endif
     
+#ifdef USE_TRIANGLE_NONFREE_TPL
     // Class that allows 2D adaptive remeshing (inserting and erasing nodes)
     py::class_<TriGenPFEMModeler, TriGenPFEMModeler::Pointer >(m, "TriGenPFEMModeler")
     .def(py::init< >())
@@ -256,6 +261,7 @@ void  AddMeshersToPython(pybind11::module& m)
     .def(py::init< >())
     .def("ReGenerateMesh",TriRegenerateMeshWithSegment)
     ;
+#endif
 }
 
 }  // namespace Python.

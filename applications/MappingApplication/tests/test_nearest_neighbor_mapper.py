@@ -92,7 +92,7 @@ class BasicTestsVolume(basic_mapper_tests.BasicMapperTests):
         if data_comm.IsDistributed():
             map_creator = MappingMPIExtension.MPIMapperFactory.CreateMapper
         else:
-            map_creator = KratosMapping.MapperFactory.CreateMapper
+            map_creator = KM.MapperFactory.CreateMapper
 
         non_conform_mapper = map_creator(
             self.model_part_origin,
@@ -112,7 +112,7 @@ class BasicTestsVolume(basic_mapper_tests.BasicMapperTests):
         if data_comm.IsDistributed():
             map_creator = MappingMPIExtension.MPIMapperFactory.CreateMapper
         else:
-            map_creator = KratosMapping.MapperFactory.CreateMapper
+            map_creator = KM.MapperFactory.CreateMapper
 
         non_conform_mapper = map_creator(
             self.model_part_origin,

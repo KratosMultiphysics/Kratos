@@ -469,7 +469,9 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     // Modeler
     const Modeler mModeler;
     const CadIoModeler mCadIoModeler;
+#ifdef USE_TRIANGLE_NONFREE_TPL
     const CadTessellationModeler mCadTessellationModeler;
+#endif
     const SerialModelPartCombinatorModeler mSerialModelPartCombinatorModeler;
 
     // Base constitutive law definition
