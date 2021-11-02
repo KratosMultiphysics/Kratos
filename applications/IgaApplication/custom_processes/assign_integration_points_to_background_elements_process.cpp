@@ -45,6 +45,61 @@ namespace Kratos
         // Get Nurbs Volume Geometry
         GeometryPointerType p_geometry = main_model_part.pGetGeometry(mThisParameters["nurbs_volume_name"].GetString());
 
+        const CoordinatesArrayType lower_point = p_geometry->begin()->GetInitialPosition();
+        const CoordinatesArrayType upper_point = (p_geometry->end()-1)->GetInitialPosition();
+
+        const auto element_itr_begin = embedded_model_part.ElementsBegin();
+        std::cout << "Number of Elements: " << embedded_model_part.NumberOfElements() << std::endl;
+        // Get element type
+        IntegrationPointsArrayType integration_points(embedded_model_part.NumberOfElements());
+
+        for( IndexType i = 0; i < embedded_model_part.NumberOfElements(); ++i){
+            auto element_itr = element_itr_begin + i;
+            auto& tmp_integration_points = element_itr->GetGeometry().IntegrationPoints();
+            // Check if size is one!
+            auto ip_physical_space = element_itr->GetGeometry().Center();
+
+            // Map point into parameter space
+            CoordinatesArrayType local_point;
+            local_point[0] = (ip_physical_space[0] - lower_point[0]) / std::abs( lower_point[0] - upper_point[0]);
+            local_point[1] = (ip_physical_space[1] - lower_point[1]) / std::abs( lower_point[1] - upper_point[1]);
+            local_point[2] = (ip_physical_space[2] - lower_point[2]) / std::abs( lower_point[2] - upper_point[2]);
+
+            integration_points[i] = IntegrationPoint<3>(local_point, tmp_integration_points[0].Weight());
+        }
+
+        IntegrationInfo integration_info = p_geometry->GetDefaultIntegrationInfo();
+        GeometriesArrayType geometry_list;
+        p_geometry->CreateQuadraturePointGeometries(geometry_list, 2, integration_points, integration_info);
+
+
+        embedded_model_part.AddProperties(main_model_part.pGetProperties(0));
+
+        auto& sub_model_part = embedded_model_part.GetSubModelPart("FormFinding");
+        sub_model_part.AddProperties(main_model_part.pGetProperties(0));
+
+        auto p_properties = main_model_part.pGetProperties(0);
+        std::cout << "main_model_part.pGetProperties(0) "  << *p_properties << std::endl;
+
+
+        const auto element_ptr_begin = embedded_model_part.Elements().ptr_begin();
+        const auto& r_proces_info = main_model_part.GetProcessInfo();
+
+        for( IndexType i = 0; i < embedded_model_part.NumberOfElements(); ++i){
+            auto element_ptr = element_ptr_begin + i;
+            IndexType current_id = (*element_ptr)->Id();
+
+            auto& p_quadrature_point = geometry_list(i);
+            //create the new element
+            std::string element_name = "UpdatedLagrangianElement3D8N";
+            ElementType const& r_clone_element = KratosComponents<ElementType>::Get(element_name);
+            Element::Pointer p_element = r_clone_element.Create(current_id, p_quadrature_point, p_properties);
+            p_element->Initialize(r_proces_info);
+            (*element_ptr) = std::move(p_element);
+        }
+        auto points = embedded_model_part.ElementsBegin()->GetGeometry().IntegrationPoints();
+        int id = points.size();
+        std::cout << "embedded_model_part.: " << embedded_model_part.NumberOfElements() << std::endl;
         // const SizeType number_nodes_embedded = embedded_model_part.NumberOfNodes();
         // IntegrationPointsArrayType integration_points(number_nodes_embedded);
 
@@ -62,9 +117,6 @@ namespace Kratos
         //     integration_points[i] = IntegrationPoint<3>(local_point, 0.0);
         // });
 
-        // IntegrationInfo integration_info = p_geometry->GetDefaultIntegrationInfo();
-        // GeometriesArrayType geometry_list;
-        // p_geometry->CreateQuadraturePointGeometries(geometry_list, 1, integration_points, integration_info);
 
         // IndexPartition<IndexType>(embedded_model_part.NumberOfNodes()).for_each([&](IndexType i) {
         //     auto node_itr = node_itr_begin + i;

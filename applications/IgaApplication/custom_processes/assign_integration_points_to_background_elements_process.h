@@ -45,12 +45,13 @@ public:
 
     typedef Node<3>                                             NodeType;
     typedef Geometry<NodeType>                                  GeometryType;
+    typedef Element ElementType;
     typedef GeometryType::Pointer                               GeometryPointerType;
-    // typedef typename GeometryType::GeometriesArrayType          GeometriesArrayType;
-    // typedef typename GeometryType::CoordinatesArrayType         CoordinatesArrayType;
+    typedef typename GeometryType::GeometriesArrayType          GeometriesArrayType;
+    typedef typename GeometryType::CoordinatesArrayType         CoordinatesArrayType;
     // typedef NurbsVolumeGeometry<PointerVector<NodeType>>        NurbsVolumeGeometryType;
     // typedef NurbsVolumeGeometryType::Pointer                    NurbsVolumeGeometryPointerType;
-    // typedef typename GeometryType::IntegrationPointsArrayType   IntegrationPointsArrayType;
+    typedef typename GeometryType::IntegrationPointsArrayType   IntegrationPointsArrayType;
     // typedef std::size_t IndexType;
     // typedef std::size_t SizeType;
 
