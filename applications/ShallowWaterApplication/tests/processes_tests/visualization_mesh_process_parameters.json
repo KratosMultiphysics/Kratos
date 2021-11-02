@@ -38,7 +38,6 @@
                 "model_part_name"                : "main_model_part",
                 "topographic_model_part_name"    : "topographic_model_part",
                 "create_topographic_model_part"  : true,
-                "use_properties_as_dry_wet_flag" : false,
                 "mesh_deformation_mode"          : "use_nodal_displacement",
                 "topography_variable"            : "TOPOGRAPHY",
                 "free_surface_variable"          : "FREE_SURFACE_ELEVATION",
