@@ -16,7 +16,7 @@ class SumDistributedToDistributed(CoSimulationDataTransferOperator):
         to_solver_values = to_solver_data.GetData()
 
         #Sum up values from model_part from all ranks
-        value = sum(data_array)
+        value = float(sum(data_array))
         if from_solver_data.IsDistributed():
             value = from_solver_data.model_part.GetCommunicator().GetDataCommunicator().SumAll(value)
 
