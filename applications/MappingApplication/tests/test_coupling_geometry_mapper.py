@@ -25,7 +25,7 @@ class TestCouplingGeometryMapper(KratosUnittest.TestCase):
     def test_inverse_map_forces(self):
         reference_force = 1.0
         SetConstantVariable(self.interface_model_part_destination,KM.FORCE,reference_force)
-        self.mapper.InverseMap(KM.FORCE, KM.FORCE,KratosMapping.Mapper.USE_TRANSPOSE)
+        self.mapper.InverseMap(KM.FORCE, KM.FORCE,KM.Mapper.USE_TRANSPOSE)
         mapped_results = GetInterfaceResult(self.interface_model_part_origin,KM.FORCE)
         reference_result = [0.2380991480071958, 0.2380991480071958, 0.2380991480071958, 1.3120351229689677, 1.3120351229689677, 1.3120351229689677, 0.6908309106360845, 0.6908309106360845, 0.6908309106360845, 0.9063686826513201, 0.9063686826513201, 0.9063686826513201, 0.9261336708771284, 0.9261336708771284, 0.9261336708771284, 0.9265324648593039, 0.9265324648593039, 0.9265324648593039]
         self.assertVectorAlmostEqual(mapped_results,reference_result)
@@ -172,7 +172,7 @@ def CreateMapper(self):
     dest_interface_string = self.mapper_parameters["modeler_parameters"]["destination_interface_sub_model_part_name"].GetString()
     self.interface_model_part_destination =self.model.GetModelPart(dest_interface_string)
 
-    self.mapper = KratosMapping.MapperFactory.CreateMapper(self.model_part_origin, self.model_part_destination, self.mapper_parameters)
+    self.mapper = KM.MapperFactory.CreateMapper(self.model_part_origin, self.model_part_destination, self.mapper_parameters)
 
 def SetConstantVariable(model_part, variable, reference_value):
     KM.VariableUtils().SetVariable(variable, KM.Vector([reference_value, reference_value, reference_value]), model_part.Nodes)
