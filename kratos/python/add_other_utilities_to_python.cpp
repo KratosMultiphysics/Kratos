@@ -25,6 +25,7 @@
 #include "processes/process.h"
 #include "includes/fill_communicator.h"
 #include "includes/global_pointer_variables.h"
+#include "includes/kratos_filesystem.h"
 
 //Other utilities
 #include "utilities/function_parser_utility.h"
@@ -689,7 +690,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     auto single_model_part_import = m.def_submodule("SingleImportModelPart");
     single_model_part_import.def("Import", &SingleImportModelPart::Import );
-
+  
     // RVE periodicity utility
     py::class_<RVEPeriodicityUtility>(m,"RVEPeriodicityUtility")
         .def(py::init<ModelPart&>())
@@ -698,6 +699,8 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("Finalize",&RVEPeriodicityUtility::Finalize)
         ;
 
+    auto fs_extensions = m.def_submodule("FilesystemExtensions");
+    fs_extensions.def("MPISafeCreateDirectories", &FilesystemExtensions::MPISafeCreateDirectories );
 }
 
 } // namespace Python.
