@@ -37,7 +37,7 @@ class VisualizationMeshProcess(KM.Process):
 
         self.computing_model_part = Model[settings["model_part_name"].GetString()]
 
-        # Getting the deformation mode options and storing the variable for the free surface
+        # Getting the deformation mode options
         mesh_deformation_mode = settings["mesh_deformation_mode"].GetString()
         if mesh_deformation_mode == "use_z_coordinate":
             self.deform_mesh = True
@@ -101,14 +101,14 @@ class VisualizationMeshProcess(KM.Process):
 
 
     def _DuplicateModelPart(self):
+        KM.MergeVariableListsUtility().Merge(self.computing_model_part, self.topographic_model_part)
         element_num_nodes = len(self.computing_model_part.Elements.__iter__().__next__().GetNodes())
         condition_num_nodes = len(self.computing_model_part.Conditions.__iter__().__next__().GetNodes())
         reference_element = "Element2D{}N".format(element_num_nodes)
         reference_condition = "LineCondition2D{}N".format(condition_num_nodes)
         KM.DuplicateMeshModeler(self.computing_model_part).GenerateMesh(
             self.topographic_model_part, reference_element, reference_condition)
-        KM.MergeVariableListsUtility().Merge(self.computing_model_part, self.topographic_model_part)
-        # SW.ShallowWaterUtilities().OffsetIds(self.topographic_model_part.Nodes)
+        SW.ShallowWaterUtilities().OffsetIds(self.topographic_model_part.Nodes)
         SW.ShallowWaterUtilities().OffsetIds(self.topographic_model_part.Elements)
         SW.ShallowWaterUtilities().OffsetIds(self.topographic_model_part.Conditions)
 
