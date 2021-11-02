@@ -792,7 +792,7 @@ public:
      * @param  rHighPoint Higher point of the box to test the intersection
      * @return            True if the geometry intersects the box, False in any other case.
      */
-    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) override
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) const override
     {
         return IntersectionUtilities::ComputeLineBoxIntersection(
             rLowPoint, rHighPoint, this->GetPoint(0), this->GetPoint(1));
