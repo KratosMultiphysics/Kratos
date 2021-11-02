@@ -38,18 +38,7 @@ class VisualizationMeshProcess(KM.Process):
         self.computing_model_part = Model[settings["model_part_name"].GetString()]
 
         # Getting the deformation mode options
-        mesh_deformation_mode = settings["mesh_deformation_mode"].GetString()
-        if mesh_deformation_mode == "use_z_coordinate":
-            self.deform_mesh = True
-        elif mesh_deformation_mode == "use_nodal_displacement":
-            self.deform_mesh = False
-        else:
-            msg = """VisualizationMeshProcess.
-            Unknown 'mesh_deformation_mode' = '{}'. The possible options are:
-             - use_z_coordinate
-             - use_nodal_displacement
-            """
-            raise Exception(msg.format(mesh_deformation_mode))
+        self.deform_mesh = self._GetDeformMeshFlag(settings["mesh_deformation_mode"].GetString())
 
         # Creating the topographic model part if specified
         self.topographic_model_part = None
@@ -176,3 +165,17 @@ class VisualizationMeshProcess(KM.Process):
                 self.topographic_model_part,
                 self.topographic_model_part,
                 0)
+
+
+    def _GetDeformMeshFlag(self, mesh_deformation_mode):
+        if mesh_deformation_mode == "use_z_coordinate":
+            return True
+        elif mesh_deformation_mode == "use_nodal_displacement":
+            return = False
+        else:
+            msg = """VisualizationMeshProcess.
+            Unknown 'mesh_deformation_mode' = '{}'. The possible options are:
+             - use_z_coordinate
+             - use_nodal_displacement
+            """
+            raise Exception(msg.format(mesh_deformation_mode))
