@@ -662,6 +662,18 @@ private:
 ///@name Type Definitions
 ///@{
 
+template <class TSparseSpace, class TDenseSpace>
+using ExplicitSolvingStrategyRungeKutta4 = ExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, ButcherTableauRK4>;
+
+template <class TSparseSpace, class TDenseSpace>
+using ExplicitSolvingStrategyRungeKutta3TVD = ExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, ButcherTableauRK3TVD>;
+
+template <class TSparseSpace, class TDenseSpace>
+using ExplicitSolvingStrategyRungeKutta2 = ExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, ButcherTableauMidPointMethod>;
+
+template <class TSparseSpace, class TDenseSpace>
+using ExplicitSolvingStrategyRungeKutta1 = ExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, ButcherTableauForwardEuler>;
+
 ///@}
 
 } /* namespace Kratos.*/
