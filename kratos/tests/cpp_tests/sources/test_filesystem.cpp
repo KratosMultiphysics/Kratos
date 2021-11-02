@@ -19,6 +19,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/kratos_filesystem.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 namespace Testing {
@@ -246,6 +247,40 @@ KRATOS_TEST_CASE_IN_SUITE(ListDirectory, KratosCoreFastSuite)
     Kratos::filesystem::remove_all(dir_name);
 
     KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(dir_name));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MPISafeCreateDirectories, KratosCoreFastSuite)
+{
+    auto create_dir_test_fct = [](const std::string& rDirName){
+        // make sure the dir does not exist already
+        KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(rDirName));
+
+        IndexPartition<> index_part(100);
+        index_part.for_each([&rDirName](std::size_t i){
+            FilesystemExtensions::MPISafeCreateDirectories(rDirName);
+        });
+
+        KRATOS_CHECK(Kratos::filesystem::exists(rDirName));
+
+        // cleanup afterwards
+        Kratos::filesystem::remove_all(rDirName);
+        KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(rDirName));
+    };
+
+    const std::string base_dir_name("MyCustomDir2");
+    const std::string sub_dir_name("TheSubDir");
+    const std::string sub_sub_dir_name("TheSubSubDir");
+
+    const std::string full_dir_name_1 = Kratos::FilesystemExtensions::JoinPaths({base_dir_name, sub_dir_name});
+    const std::string full_dir_name_2 = Kratos::FilesystemExtensions::JoinPaths({base_dir_name, sub_dir_name, sub_sub_dir_name});
+
+    create_dir_test_fct(base_dir_name);
+    create_dir_test_fct(full_dir_name_1);
+    create_dir_test_fct(full_dir_name_2);
+
+    // final cleanup after test
+    Kratos::filesystem::remove_all(base_dir_name);
+    KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(base_dir_name));
 }
 
 } // namespace Testing

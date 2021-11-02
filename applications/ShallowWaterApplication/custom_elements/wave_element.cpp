@@ -260,7 +260,8 @@ void WaveElement<TNumNodes>::CalculateGeometryData(
     Vector det_j_vector;
     const auto& r_geom = this->GetGeometry();
     const auto integration_method = r_geom.GetDefaultIntegrationMethod();
-    r_geom.ShapeFunctionsIntegrationPointsGradients(rDN_DXContainer, det_j_vector, integration_method, rNContainer);
+    rNContainer = r_geom.ShapeFunctionsValues(integration_method);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(rDN_DXContainer, det_j_vector, integration_method);
 
     const unsigned int number_of_gauss_points = r_geom.IntegrationPointsNumber(integration_method);
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
