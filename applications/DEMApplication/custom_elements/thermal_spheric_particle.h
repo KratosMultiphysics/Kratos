@@ -93,6 +93,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   void ComputeIndirectConductionHeatFlux(const ProcessInfo& r_process_info);
   void ComputeRadiativeHeatFlux(const ProcessInfo& r_process_info);
   void ComputeContinuumRadiativeHeatFlux(const ProcessInfo& r_process_info);
+  void ComputeFrictionHeatFlux(const ProcessInfo& r_process_info);
   void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);
   void ComputePrescribedHeatFlux(const ProcessInfo& r_process_info);
 
@@ -187,6 +188,8 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double             GetNeighborConductivity();
   double             GetNeighborEmissivity();
   
+  double             GetContactDynamicFrictionCoefficient();
+
   void               SetParticleTemperature               (const double temperature);
   void               SetParticleHeatFlux                  (const double heat_flux);
   void               SetParticlePrescribedHeatFluxSurface (const double heat_flux);
@@ -214,8 +217,9 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   // Heat flux components
   double mConductionDirectHeatFlux;
   double mConductionIndirectHeatFlux;
-  double mConvectionHeatFlux;
   double mRadiationHeatFlux;
+  double mFrictionHeatFlux;
+  double mConvectionHeatFlux;
   double mPrescribedHeatFluxSurface;
   double mPrescribedHeatFluxVolume;
   double mPrescribedHeatFlux;

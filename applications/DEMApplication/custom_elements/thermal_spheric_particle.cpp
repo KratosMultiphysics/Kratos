@@ -39,6 +39,7 @@ namespace Kratos
     this->Set(DEMFlags::HAS_INDIRECT_CONDUCTION,          r_process_info[INDIRECT_CONDUCTION_OPTION]);
     this->Set(DEMFlags::HAS_CONVECTION,                   r_process_info[CONVECTION_OPTION]);
     this->Set(DEMFlags::HAS_RADIATION,                    r_process_info[RADIATION_OPTION]);
+    this->Set(DEMFlags::HAS_FRICTION_HEAT,                r_process_info[FRICTION_HEAT_OPTION]);
     this->Set(DEMFlags::HAS_ADJUSTED_CONTACT,             r_process_info[ADJUSTED_CONTACT_OPTION]);
     this->Set(DEMFlags::HAS_TEMPERATURE_DEPENDENT_RADIUS, r_process_info[TEMPERATURE_DEPENDENT_RADIUS_OPTION]);
 
@@ -68,8 +69,9 @@ namespace Kratos
     // Initialize heat fluxes contributions
     mConductionDirectHeatFlux   = 0.0;
     mConductionIndirectHeatFlux = 0.0;
-    mConvectionHeatFlux         = 0.0;
     mRadiationHeatFlux          = 0.0;
+    mFrictionHeatFlux           = 0.0;
+    mConvectionHeatFlux         = 0.0;
     mPrescribedHeatFlux         = 0.0;
     mTotalHeatFlux              = 0.0;
 
@@ -142,7 +144,7 @@ namespace Kratos
     ComputePrescribedHeatFlux(r_process_info);
 
     // Sum up heat fluxes contributions
-    mTotalHeatFlux = mConductionDirectHeatFlux + mConductionIndirectHeatFlux + mConvectionHeatFlux + mRadiationHeatFlux + mPrescribedHeatFlux;
+    mTotalHeatFlux = mConductionDirectHeatFlux + mConductionIndirectHeatFlux + mRadiationHeatFlux + mFrictionHeatFlux + mConvectionHeatFlux + mPrescribedHeatFlux;
 
     KRATOS_CATCH("")
   }
@@ -259,6 +261,7 @@ namespace Kratos
   if (this->Is(DEMFlags::HAS_DIRECT_CONDUCTION))   ComputeDirectConductionHeatFlux(r_process_info);
   if (this->Is(DEMFlags::HAS_INDIRECT_CONDUCTION)) ComputeIndirectConductionHeatFlux(r_process_info);
   if (this->Is(DEMFlags::HAS_RADIATION))           ComputeRadiativeHeatFlux(r_process_info);
+  if (this->Is(DEMFlags::HAS_FRICTION_HEAT))       ComputeFrictionHeatFlux(r_process_info);
 
     KRATOS_CATCH("")
   }
@@ -368,6 +371,21 @@ namespace Kratos
 
     if      (model.compare("continuum_zhou")   == 0) mRadiationHeatFlux += RadiationContinuumZhou(r_process_info);
     else if (model.compare("continuum_krause") == 0) mRadiationHeatFlux += RadiationContinuumKrause(r_process_info);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::ComputeFrictionHeatFlux(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // TODO: need access to normal force and tangential velocity with neighbor
+
+    double friction_coeff = GetContactDynamicFrictionCoefficient();
+    double k1 = GetParticleConductivity();
+    double k2 = GetNeighborConductivity();
+    double partition = k1 / (k1 + k2);
+    mFrictionHeatFlux = 0.0;
 
     KRATOS_CATCH("")
   }
@@ -1670,6 +1688,20 @@ namespace Kratos
       return mNeighbor_p->GetParticleEmissivity();
     else if (mNeighborType == WALL_NEIGHBOR)
       return GetWallEmissivity();
+    else
+      return 0.0;
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetContactDynamicFrictionCoefficient() {
+    if (mNeighborType == PARTICLE_NEIGHBOR) {
+      Properties& properties_of_contact = GetProperties().GetSubProperties(mNeighbor_p->GetProperties().Id());
+      return properties_of_contact[DYNAMIC_FRICTION];
+    }
+    else if (mNeighborType == WALL_NEIGHBOR) {
+      Properties& properties_of_contact = GetProperties().GetSubProperties(mNeighbor_w->GetProperties().Id());
+      return properties_of_contact[DYNAMIC_FRICTION];
+    }
     else
       return 0.0;
   }

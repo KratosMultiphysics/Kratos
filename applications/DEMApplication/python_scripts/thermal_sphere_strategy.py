@@ -19,6 +19,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
             "compute_indirect_conduction"    : false,
             "compute_convection"             : false,
             "compute_radiation"              : false,
+            "compute_friction_heat"          : false,
             "compute_adjusted_contact"       : false,
             "direct_conduction_model"        : "batchelor_obrien",
             "indirect_conduction_model"      : "surrounding_layer",
@@ -59,6 +60,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.compute_indirect_conduction_option = self.thermal_settings["compute_indirect_conduction"].GetBool()
         self.compute_convection_option          = self.thermal_settings["compute_convection"].GetBool()
         self.compute_radiation_option           = self.thermal_settings["compute_radiation"].GetBool()
+        self.compute_friction_heat_option       = self.thermal_settings["compute_friction_heat"].GetBool()
         self.compute_adjusted_contact_option    = self.thermal_settings["compute_adjusted_contact"].GetBool()
 
         # Set models for heat transfer mechanisms
@@ -170,6 +172,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, INDIRECT_CONDUCTION_OPTION, self.compute_indirect_conduction_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, CONVECTION_OPTION,          self.compute_convection_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, RADIATION_OPTION,           self.compute_radiation_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, FRICTION_HEAT_OPTION,       self.compute_friction_heat_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ADJUSTED_CONTACT_OPTION,    self.compute_adjusted_contact_option)
 
         # Models for heat transfer mechanisms
