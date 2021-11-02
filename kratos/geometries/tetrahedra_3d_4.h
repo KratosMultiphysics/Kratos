@@ -1442,7 +1442,7 @@ public:
 
 
     /// detect if two tetrahedra are intersected
-    bool HasIntersection( const BaseType& rThisGeometry) override
+    bool HasIntersection( const BaseType& rThisGeometry) const override
     {
 
         array_1d<Plane, 4>  plane;
@@ -1467,7 +1467,7 @@ public:
     }
 
 
-    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) override
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) const override
     {
         using Triangle3D3Type = Triangle3D3<TPointType>;
         // Check if faces have intersection
@@ -1491,7 +1491,7 @@ public:
 
     void SplitAndDecompose(
         const BaseType& tetra, Plane& plane,
-        std::vector<BaseType>& inside)
+        std::vector<BaseType>& inside) const
     {
 
         // Determine on which side of the plane the points of the tetrahedron lie.
@@ -1642,14 +1642,14 @@ public:
     }
 
 
-    void GetPlanes(array_1d<Plane, 4>& plane)
+    void GetPlanes(array_1d<Plane, 4>& plane) const
     {
         const BaseType& geom_1 = *this;
-        array_1d<double, 3> edge10 = geom_1[1].Coordinates() - geom_1[0].Coordinates();
-        array_1d<double, 3> edge20 = geom_1[2].Coordinates() - geom_1[0].Coordinates();
-        array_1d<double, 3> edge30 = geom_1[3].Coordinates() - geom_1[0].Coordinates();
-        array_1d<double, 3> edge21 = geom_1[2].Coordinates() - geom_1[1].Coordinates();
-        array_1d<double, 3> edge31 = geom_1[3].Coordinates() - geom_1[1].Coordinates();
+        const array_1d<double, 3> edge10 = geom_1[1].Coordinates() - geom_1[0].Coordinates();
+        const array_1d<double, 3> edge20 = geom_1[2].Coordinates() - geom_1[0].Coordinates();
+        const array_1d<double, 3> edge30 = geom_1[3].Coordinates() - geom_1[0].Coordinates();
+        const array_1d<double, 3> edge21 = geom_1[2].Coordinates() - geom_1[1].Coordinates();
+        const array_1d<double, 3> edge31 = geom_1[3].Coordinates() - geom_1[1].Coordinates();
 
         MathUtils<double>::UnitCrossProduct(plane[0].mNormal, edge10, edge20);  // <v0,v2,v1>
         MathUtils<double>::UnitCrossProduct(plane[1].mNormal, edge30, edge10);  // <v0,v1,v3>

@@ -571,7 +571,7 @@ public:
     @param rHighPoint second corner of the box
     @see Triangle2D3::HasIntersection
     */
-    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) const override
     {
         Triangle2D3<PointType> triangle_0 (this->pGetPoint( 0 ),
                                            this->pGetPoint( 1 ),

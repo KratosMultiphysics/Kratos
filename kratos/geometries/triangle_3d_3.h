@@ -609,7 +609,7 @@ public:
     }
 
 
-	bool AllSameSide(array_1d<double, 3> const& Distances)
+	bool AllSameSide(array_1d<double, 3> const& Distances) const
     {
         constexpr double epsilon = std::numeric_limits<double>::epsilon();
 
@@ -633,7 +633,7 @@ public:
 
 	}
 
-	int GetMajorAxis(array_1d<double, 3> const& V)
+	int GetMajorAxis(array_1d<double, 3> const& V) const
     {
         int index = static_cast<int>(std::abs(V[0]) < std::abs(V[1]));
         return (std::abs(V[index]) > std::abs(V[2])) ? index : 2;
@@ -645,7 +645,7 @@ public:
      * @param  ThisGeometry Geometry to intersect with
      * @return True if the geometries intersect, False in any other case.
      */
-    bool HasIntersection(const GeometryType& rThisGeometry) override
+    bool HasIntersection(const GeometryType& rThisGeometry) const override
     {
         const auto geometry_type = rThisGeometry.GetGeometryType();
 
@@ -676,7 +676,7 @@ public:
      * @param rLowPoint first corner of the box
      * @param rHighPoint second corner of the box
      */
-    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint) override
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint) const override
     {
         Point box_center;
         Point box_half_size;
@@ -2035,7 +2035,7 @@ private:
 
     bool LineTriangleOverlap(
         const Point& rPoint1,
-        const Point& rPoint2)
+        const Point& rPoint2) const
     {
         array_1d<double,3> intersection_point;
         const int result = IntersectionUtilities::ComputeTriangleLineIntersection(*this, rPoint1, rPoint2, intersection_point);
@@ -2045,7 +2045,7 @@ private:
     bool TriangleTriangleOverlap(
         const Point& rPoint1,
         const Point& rPoint2,
-        const Point& rPoint3)
+        const Point& rPoint3) const
     {
         // Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
         // and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
@@ -2138,7 +2138,7 @@ private:
 		double& C,
 		double& X0,
 		double& X1
-		)
+		) const
 	{
 		double D0D1 = D0 * D1;
 		double D0D2 = D0 * D2;
@@ -2192,7 +2192,7 @@ private:
         const array_1d<double,3>& N,
 		const Point& rPoint1,
 		const Point& rPoint2,
-		const Point& rPoint3)
+		const Point& rPoint3) const
 	{
 		array_1d<double, 3 > A;
 		int i0, i1;
@@ -2238,9 +2238,9 @@ private:
 		const int& i1,
 		const Point& V0,
 		const Point& V1,
-		const Point& U0,
-		const Point& U1,
-		const Point& U2)
+		const Point&U0,
+		const Point&U1,
+		const Point&U2) const
 	{
 		double Ax, Ay, Bx, By, Cx, Cy, e, d, f;
 		Ax = V1[i0] - V0[i0];
@@ -2275,7 +2275,7 @@ private:
 		const int& i1,
 		const Point& V0,
 		const Point& U0,
-		const Point& U1)
+		const Point& U1) const
 	{
 		Bx = U0[i0] - U1[i0];
 		By = U0[i1] - U1[i1];
@@ -2305,7 +2305,7 @@ private:
         const Point& V0,
         const Point& U0,
         const Point& U1,
-        const Point& U2)
+        const Point& U2) const
     {
         double a,b,c,d0,d1,d2;
         /* is T1 completely inside T2? */
@@ -2339,7 +2339,7 @@ private:
      * 2) normal of the triangle
      * 3) crossproduct (edge from tri, {x,y,z}-direction) gives 3x3=9 more tests
      */
-    inline bool TriBoxOverlap(Point& rBoxCenter, Point& rBoxHalfSize)
+    inline bool TriBoxOverlap(Point& rBoxCenter, Point& rBoxHalfSize) const
     {
         double abs_ex, abs_ey, abs_ez, distance;
         array_1d<double,3 > vert0, vert1, vert2;
@@ -2418,7 +2418,7 @@ private:
      *
      * plane equation: rNormal*x+rDist=0
      */
-    bool PlaneBoxOverlap(const array_1d<double,3>& rNormal, const double& rDist, const array_1d<double,3>& rMaxBox)
+    bool PlaneBoxOverlap(const array_1d<double,3>& rNormal, const double& rDist, const array_1d<double,3>& rMaxBox) const
     {
         array_1d<double,3> vmin, vmax;
         for(int q = 0; q < 3; q++)
@@ -2454,7 +2454,7 @@ private:
                    double& rAbsEdgeY, double& rAbsEdgeZ,
                    array_1d<double,3>& rVertA,
                    array_1d<double,3>& rVertC,
-                   Point& rBoxHalfSize)
+                   Point& rBoxHalfSize) const
     {
         double proj_a, proj_c, rad;
         proj_a = rEdgeY*rVertA[2] - rEdgeZ*rVertA[1];
@@ -2481,7 +2481,7 @@ private:
                    double& rAbsEdgeX, double& rAbsEdgeZ,
                    array_1d<double,3>& rVertA,
                    array_1d<double,3>& rVertC,
-                   Point& rBoxHalfSize)
+                   Point& rBoxHalfSize) const
     {
         double proj_a, proj_c, rad;
         proj_a = rEdgeZ*rVertA[0] - rEdgeX*rVertA[2];
@@ -2508,7 +2508,7 @@ private:
                    double& rAbsEdgeX, double& rAbsEdgeY,
                    array_1d<double,3>& rVertA,
                    array_1d<double,3>& rVertC,
-                   Point& rBoxHalfSize)
+                   Point& rBoxHalfSize) const
     {
         double proj_a, proj_c, rad;
         proj_a = rEdgeX*rVertA[1] - rEdgeY*rVertA[0];
