@@ -116,13 +116,13 @@ namespace Testing
     }
 
     template<typename TStrategyType>
-    void RunTest()
+    void RunTest(const double tolerance)
     {
         Model current_model;
         ModelPart& r_model_part = current_model.CreateModelPart("TestModelPart");
 
         // Set the test model part
-        const double delta_time = 1.5; // Set time step
+        constexpr double delta_time = 0.01; // Set time step. Must be small to preserve stabillity for low order methods
         GenerateTestExplicitStrategiesModelPart(r_model_part); // Create the geometry
 
         // Create the RK4 explicit strategy
@@ -145,13 +145,17 @@ namespace Testing
         p_explicit_strategy->InitializeSolutionStep();
         p_explicit_strategy->SolveSolutionStep();
         p_explicit_strategy->FinalizeSolutionStep();
-        KRATOS_CHECK_NEAR(p_test_node->FastGetSolutionStepValue(TEMPERATURE), 681.238, 1.0e-3);
+        
+        constexpr double analytical_1 = (37.5 / 3.5) + (50 - 37.5/3.5) * std::exp(- 3.5 * delta_time);
+        KRATOS_CHECK_NEAR(p_test_node->FastGetSolutionStepValue(TEMPERATURE), analytical_1, tolerance);
         // 2nd step
         r_model_part.CloneTimeStep(2.0 * delta_time);
         p_explicit_strategy->InitializeSolutionStep();
         p_explicit_strategy->SolveSolutionStep();
         p_explicit_strategy->FinalizeSolutionStep();
-        KRATOS_CHECK_NEAR(p_test_node->FastGetSolutionStepValue(TEMPERATURE), 11455.1, 1.0e-1);
+        
+        constexpr double analytical_2 = (37.5 / 3.5) + (50 - 37.5/3.5) * std::exp(- 3.5 * 2.0 * delta_time);
+        KRATOS_CHECK_NEAR(p_test_node->FastGetSolutionStepValue(TEMPERATURE), analytical_2, tolerance);
     }
 
     /**
@@ -160,30 +164,27 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta4, KratosCoreFastSuite)
     {
-        RunTest<ExplicitSolvingStrategyRK4Type>();
+        RunTest<ExplicitSolvingStrategyRK4Type>(1e-7);
     }
-
 
     KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKuttaNew1, KratosCoreFastSuite)
     {
-        RunTest<NewExplicitSolvingStrategyRungeKutta1Type>();
+        RunTest<NewExplicitSolvingStrategyRungeKutta1Type>(1e-1);
     }
-
 
     KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKuttaNew2, KratosCoreFastSuite)
     {
-        RunTest<NewExplicitSolvingStrategyRungeKutta2Type>();
+        RunTest<NewExplicitSolvingStrategyRungeKutta2Type>(1e-2);
     }
-
 
     KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKuttaNew3, KratosCoreFastSuite)
     {
-        RunTest<NewExplicitSolvingStrategyRungeKutta3Type>();
+        RunTest<NewExplicitSolvingStrategyRungeKutta3Type>(1e-5);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKuttaNew4, KratosCoreFastSuite)
     {
-        RunTest<NewExplicitSolvingStrategyRungeKutta4Type>();
+        RunTest<NewExplicitSolvingStrategyRungeKutta4Type>(1e-7);
     }
 } // namespace Testing
 } // namespace Kratos
