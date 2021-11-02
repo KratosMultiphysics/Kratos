@@ -1277,6 +1277,8 @@ public:
         return mDrillingPenalty;
     }
 
+    std::vector<ConstitutiveLaw::Pointer> GetConstitutiveLawsVector(const Properties& rProps);
+
     /**
     * Parses the shell orthotropic material data from properties
     */
