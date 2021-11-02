@@ -86,18 +86,7 @@ namespace Kratos {
                                                             double equiv_visco_damp_coeff_tangential,
                                                             bool& sliding,
                                                             int failure_id) {
-
-        KRATOS_TRY
-
-         if ((indentation > 0) || (failure_id == 0)) {
-             ViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
-         }
-         if (((indentation > 0) || (failure_id == 0)) && (sliding == false)) {
-             ViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
-             ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
-         }
-
-        KRATOS_CATCH("")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateViscoDamping) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
     void DEMContinuumConstitutiveLaw::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
