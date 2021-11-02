@@ -47,8 +47,6 @@ namespace Kratos {
 
         virtual void InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0);
 
-        virtual void GetContactStiffness(SphericParticle* const element1, SphericParticle* const element2, const double ini_delta, double& kn,double& kt);
-
         virtual void CalculateForces(const ProcessInfo& r_process_info,
                                      const double OldLocalContactForce[3],
                                      double LocalElasticContactForce[3],

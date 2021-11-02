@@ -32,13 +32,6 @@ namespace Kratos {
         KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::Check) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
-    void DEMDiscontinuumConstitutiveLaw::GetContactStiffness(SphericParticle* const element1, SphericParticle* const element2, const double ini_delta, double& kn,double& kt){
-
-      InitializeContact(element1, element2, ini_delta);
-      kn = mKn;
-      kt = mKt;
-    }
-
     void DEMDiscontinuumConstitutiveLaw::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double ini_delta) {
         KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::InitializeContact) shouldn't be accessed, use derived class instead"<<std::endl;
     }

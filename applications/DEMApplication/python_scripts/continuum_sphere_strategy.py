@@ -117,9 +117,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
     def SetContinuumType(self):
         self.continuum_type = True
 
-    def Initial_Critical_Time(self):        # Calls deprecated function
-        (self.cplusplus_strategy).InitialTimeStepCalculation()
-
     def AddAdditionalVariables(self, spheres_model_part, DEM_parameters):
         spheres_model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
         spheres_model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)

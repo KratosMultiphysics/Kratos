@@ -1807,45 +1807,6 @@ double SphericParticle::GetInitialDeltaWithFEM(int index) {//only available in c
 void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    //CRITICAL DELTA CALCULATION
-
-    if (rVariable == DELTA_TIME) {
-        double mass = GetMass();
-        double coeff = r_process_info[NODAL_MASS_COEFF];
-
-        if(coeff > 1.0) {
-            KRATOS_ERROR << "The coefficient assigned for virtual mass is larger than one. Virtual_mass_coeff is "<< coeff << std::endl;
-        }
-        else if ((coeff == 1.0) && (r_process_info[VIRTUAL_MASS_OPTION])) {
-            Output = 9.0E09;
-        }
-        else {
-            if (r_process_info[VIRTUAL_MASS_OPTION]) {
-                mass = mass / (1 - coeff);
-            }
-
-            double eq_mass = 0.5 * mass; //"mass" of the contact
-
-            double kn = 0.0;
-            double kt = 0.0;
-
-            double ini_delta = 0.05 * GetInteractionRadius(); // Hertz needs an initial Delta, linear ignores it
-
-            mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithNeighbour(this);
-            mDiscontinuumConstitutiveLaw->GetContactStiffness(this, this, ini_delta, kn, kt);
-
-            //double K = Globals::Pi * GetYoung() * GetRadius(); //M. Error, should be the same that the local definition.
-
-            Output = 0.34 * sqrt(eq_mass / kn);
-
-            if (this->Is(DEMFlags::HAS_ROTATION)) {
-                //Output *= 0.5; //factor for critical time step when rotation is allowed.
-            }
-        }
-
-        return;
-    }
-
     if (rVariable == PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY) {
 
       const array_1d<double, 3>& vel = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);

@@ -518,40 +518,6 @@ namespace Kratos {
         KRATOS_CATCH("")
     }//ForceOperations;
 
-    void ExplicitSolverStrategy::InitialTimeStepCalculation() // obsoleta delete
-    {
-        KRATOS_TRY
-        ModelPart& r_model_part = GetModelPart();
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
-
-        ElementsIterator it_begin = pElements.ptr_begin();
-        ElementsIterator it_end = pElements.ptr_end();
-
-        double& process_info_delta_time = r_process_info[DELTA_TIME];
-        process_info_delta_time = mMaxTimeStep;
-        double temp_time_step = std::numeric_limits<double>::infinity();
-        double elem_critical_time_step = temp_time_step;
-
-        for (ElementsIterator it = it_begin; it != it_end; it++) {
-            it->Calculate(DELTA_TIME, elem_critical_time_step, r_process_info);
-
-            if (elem_critical_time_step < temp_time_step) {
-                temp_time_step = elem_critical_time_step;
-            }
-
-        }
-
-        temp_time_step /= mSafetyFactor;
-
-        if (temp_time_step < mMaxTimeStep) process_info_delta_time = temp_time_step;
-
-        KRATOS_INFO("DEM") << std::scientific;
-        KRATOS_INFO("DEM") << std::setprecision(3) << "************* Using " << process_info_delta_time << " time step. (Critical: "
-                  << temp_time_step << " with a diving factor: " << mSafetyFactor << " ) *************" << "\n" << std::endl;
-        KRATOS_CATCH("")
-    }
-
     void ExplicitSolverStrategy::GetForce() {
 
         KRATOS_TRY
