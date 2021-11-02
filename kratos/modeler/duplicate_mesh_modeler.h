@@ -54,7 +54,7 @@ namespace Kratos
 
 /** Detail class definition.
  */
-class DuplicateMeshModeler : public Modeler
+class KRATOS_API(KRATOS_CORE) DuplicateMeshModeler : public Modeler
 {
 public:
     ///@name Type Definitions
