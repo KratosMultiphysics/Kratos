@@ -28,8 +28,6 @@ namespace Kratos {
     }
 
     void DEM_KDEM::Check(Properties::Pointer pProp) const {
-        DEMContinuumConstitutiveLaw::Check(pProp);
-
         if(!pProp->Has(STATIC_FRICTION)) {
             if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
                 KRATOS_WARNING("DEM")<<std::endl;
