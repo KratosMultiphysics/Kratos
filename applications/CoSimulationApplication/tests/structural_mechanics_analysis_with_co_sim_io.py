@@ -1,6 +1,9 @@
 from sys import argv
 
 import KratosMultiphysics as KM
+default_data_comm = KM.ParallelEnvironment.GetDefaultDataCommunicator()
+if default_data_comm.IsDistributed():
+    from KratosMultiphysics.CoSimulationApplication import MPIExtension
 
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 from KratosMultiphysics.CoSimulationApplication import CoSimIO
@@ -24,7 +27,11 @@ class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
 
         connection_settings = CoSimIO.InfoFromParameters(self.project_parameters["co_sim_settings"]["io_settings"])
 
-        info = CoSimIO.Connect(connection_settings)
+        if default_data_comm.IsDistributed():
+            info = MPIExtension.CoSimIO.ConnectMPI(connection_settings, default_data_comm)
+        else:
+            info = CoSimIO.Connect(connection_settings)
+
         self.connection_name = info.GetString("connection_name")
         if info.GetInt("connection_status") != CoSimIO.ConnectionStatus.Connected:
             raise Exception("Connecting failed!")

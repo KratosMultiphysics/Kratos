@@ -8,6 +8,7 @@ if not KM.IsDistributedRun():
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import tests
+import run_cpp_mpi_unit_tests
 from test_convergence_criteria import TestConvergenceCriteriaWrapper
 from test_convergence_accelerators import TestConvergenceAcceleratorWrapper
 from test_processes import TestCreatePointBasedEntitiesProcess
@@ -52,4 +53,5 @@ def AssembleTestSuites():
 
 
 if __name__ == '__main__':
+    run_cpp_mpi_unit_tests.run() # Application-MPI tests are currently not run automatically, hence this hack is temporarily required
     KratosUnittest.runTests(AssembleTestSuites())
