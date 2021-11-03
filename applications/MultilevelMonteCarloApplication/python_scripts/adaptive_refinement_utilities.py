@@ -58,7 +58,7 @@ class AdaptiveRefinement(object):
         if not CheckIfApplicationsAvailable("MeshingApplication"):
             raise Exception("[MultilevelMonteCarloApplication]: MeshingApplication cannot be imported, but it is necessary to perform adaptive refinement.")
 
-        if (self.metric is "hessian"):
+        if (self.metric == "hessian"):
             # initialize interpolation error
             original_interp_error = metric_param["hessian_strategy_parameters"]["interpolation_error"].GetDouble()
             # set interpolation error for current level
@@ -125,7 +125,8 @@ class AdaptiveRefinement(object):
             model_coarse.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
             model_coarse.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
             model_coarse.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED, False)
-            if (problem_type in ["monolithic", "FractionalStep"]):
+
+            if (problem_type in ["monolithic", "FractionalStep", "potential_flow"]):
                 model_coarse.GetModelPart(model_part_name).RemoveSubModelPart("fluid_computational_model_part")
 
             # the refinement process empties the coarse model part object and fill it with the refined model part
@@ -171,7 +172,7 @@ class AdaptiveRefinement(object):
         """
         self.ComputeMeshSizeCoarsestLevel()
         current_level = self.current_level
-        if (self.metric is "hessian"):
+        if (self.metric == "hessian"):
             original_interp_error = self.metric_param["hessian_strategy_parameters"]["interpolation_error"].GetDouble()
             domain_size = self.wrapper.GetDomainSize()
             if (domain_size == 2):

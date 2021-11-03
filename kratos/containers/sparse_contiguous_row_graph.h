@@ -27,6 +27,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/serializer.h"
 #include "includes/lock_object.h"
+#include "includes/parallel_environment.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
@@ -62,7 +63,7 @@ namespace Kratos
 */
 
 template<typename TIndexType=std::size_t>
-class SparseContiguousRowGraph
+class SparseContiguousRowGraph final
 {
 public:
     ///@name Type Definitions
@@ -81,10 +82,12 @@ public:
     /// Default constructor. - needs to be public for communicator, but it will fail if used in any other mode
     SparseContiguousRowGraph()
     {
+        mpComm = &ParallelEnvironment::GetDataCommunicator("Serial");
     }
 
     SparseContiguousRowGraph(IndexType GraphSize)
     {
+        mpComm = &ParallelEnvironment::GetDataCommunicator("Serial");
         mGraph.resize(GraphSize,false);
         mLocks.resize(GraphSize);
 
@@ -97,7 +100,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~SparseContiguousRowGraph(){}
+    ~SparseContiguousRowGraph(){}
 
     /// Assignment operator. TODO: decide if we do want to allow it
     SparseContiguousRowGraph& operator=(SparseContiguousRowGraph const& rOther)=delete;
@@ -109,7 +112,18 @@ public:
     /// Copy constructor.
     SparseContiguousRowGraph(const SparseContiguousRowGraph& rOther)
     {
+        mpComm = rOther.mpComm;
         this->AddEntries(rOther);
+    }
+
+    const DataCommunicator& GetComm() const
+    {
+        return *mpComm;
+    }
+
+    const DataCommunicator* pGetComm() const
+    {
+        return mpComm;
     }
 
     ///@}
@@ -399,7 +413,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "SparseContiguousRowGraph" ;
@@ -407,10 +421,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SparseContiguousRowGraph";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "SparseContiguousRowGraph";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const {}
 
     ///@}
     ///@name Friends
@@ -464,6 +478,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    DataCommunicator* mpComm;
     GraphType mGraph;
     std::vector<LockObject> mLocks;
 

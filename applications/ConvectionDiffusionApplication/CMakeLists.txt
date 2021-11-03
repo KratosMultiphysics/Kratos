@@ -14,6 +14,8 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conv_diff_2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conv_diff_3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/laplacian_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/mixed_laplacian_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_laplacian_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_convection_diffusion_explicit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/d_convection_diffusion_explicit.cpp
 
@@ -87,3 +89,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install Targets
 install(TARGETS KratosConvectionDiffusionCore DESTINATION libs )
 install(TARGETS KratosConvectionDiffusionApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosConvectionDiffusionCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosConvectionDiffusionApplication" PARENT_SCOPE)

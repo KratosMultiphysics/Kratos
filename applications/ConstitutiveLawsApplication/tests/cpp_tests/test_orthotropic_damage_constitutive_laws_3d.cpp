@@ -1,5 +1,5 @@
-// KRATOS   ___                _   _ _         _   _             __                       _
-//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
 //      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
 //     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
@@ -24,26 +24,26 @@
 #include "constitutive_laws_application_variables.h"
 
 // Integrator
-#include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
+#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
 
 // Yield surfaces
-#include "custom_advanced_constitutive/yield_surfaces/generic_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/rankine_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/tresca_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
 
 // Plastic potentials
-#include "custom_advanced_constitutive/plastic_potentials/generic_plastic_potential.h"
-#include "custom_advanced_constitutive/plastic_potentials/von_mises_plastic_potential.h"
-#include "custom_advanced_constitutive/plastic_potentials/tresca_plastic_potential.h"
-#include "custom_advanced_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
-#include "custom_advanced_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/tresca_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
 // Constitutive law
-#include "custom_advanced_constitutive/generic_small_strain_orthotropic_damage.h"
+#include "custom_constitutive/generic_small_strain_orthotropic_damage.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
@@ -58,7 +58,7 @@ typedef Node<3> NodeType;
     * Check the correct calculation of the integrated stress with the CL's
     */
 
-KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageInternalVariables, KratosStructuralMechanicsFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageInternalVariables, KratosConstitutiveLawsFastSuite) {
     //
     // Test: check correct behavior of internal and calculated variables
     //
@@ -93,7 +93,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageInter
     KRATOS_CHECK_NEAR(internal_variables_r[5], 0.5, 1.e-5);  // = True
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageLinear, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageLinear, KratosConstitutiveLawsFastSuite)
 {
     typedef GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
     typedef GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> VM;
@@ -202,7 +202,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageLinea
     KRATOS_CHECK_VECTOR_NEAR(SJres, TestSJ, 0.0001e+06);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageExponential, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageExponential, KratosConstitutiveLawsFastSuite)
 {
     typedef GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
     typedef GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> VM;

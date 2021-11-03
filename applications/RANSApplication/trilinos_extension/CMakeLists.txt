@@ -47,3 +47,5 @@ install(TARGETS KratosRANSTrilinosExtension DESTINATION libs )
 ###############################################################################
 ## install python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/TrilinosExtension.py" DESTINATION "KratosMultiphysics/RANSApplication")
+
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosRANSTrilinosExtension" PARENT_SCOPE)

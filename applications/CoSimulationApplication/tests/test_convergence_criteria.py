@@ -7,7 +7,7 @@ from testing_utilities import DummySolverWrapper
 from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterion
 from KratosMultiphysics.CoSimulationApplication.convergence_criteria.convergence_criteria_wrapper import ConvergenceCriteriaWrapper
 
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 import numpy as np
 from random import uniform
 
@@ -24,7 +24,7 @@ class TestConvergenceCriteriaWrapper(KratosUnittest.TestCase):
         self.dimension = 3
         self.model_part.ProcessInfo[KM.DOMAIN_SIZE] = self.dimension
 
-        self.my_pid = KM.DataCommunicator.GetDefault().Rank()
+        self.my_pid = KM.Testing.GetDefaultDataCommunicator().Rank()
         self.num_nodes = self.my_pid % 5 + 3 # num_nodes in range (3 ... 7)
         if self.my_pid == 4:
             self.num_nodes = 0 # in order to emulate one partition not having local nodes
@@ -36,25 +36,21 @@ class TestConvergenceCriteriaWrapper(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KM.PRESSURE, uniform(-10, 50))
 
         if KM.IsDistributedRun():
-            KratosMPI.ParallelFillCommunicator(self.model_part).Execute()
+            KratosMPI.ParallelFillCommunicator(self.model_part, KM.Testing.GetDefaultDataCommunicator()).Execute()
 
         data_settings = KM.Parameters("""{
             "model_part_name" : "default",
             "variable_name"   : "PRESSURE"
         }""")
         self.interface_data = CouplingInterfaceData(data_settings, self.model)
-        self.interface_data.Initialize()
 
         self.dummy_solver_wrapper = DummySolverWrapper({"data_4_testing" : self.interface_data})
 
     def test_wrapper(self):
-        conv_acc_settings = KM.Parameters("""{
-            "type"      : "relative_norm_previous_residual",
+        conv_crit_settings = KM.Parameters("""{
+            "type"      : "patched_mock_testing",
             "data_name" : "data_4_testing"
         }""")
-        conv_crit_wrapper = ConvergenceCriteriaWrapper(conv_acc_settings, self.dummy_solver_wrapper)
-
-        data_init = self.interface_data.GetData()
 
         conv_crit_mock = Mock()
 
@@ -64,7 +60,13 @@ class TestConvergenceCriteriaWrapper(KratosUnittest.TestCase):
         }
         conv_crit_mock.configure_mock(**attrs)
 
-        conv_crit_wrapper.conv_crit = conv_crit_mock
+        with patch('KratosMultiphysics.CoSimulationApplication.convergence_criteria.convergence_criteria_wrapper.CreateConvergenceCriterion') as p:
+            p.return_value = conv_crit_mock
+            conv_crit_wrapper = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper, KM.Testing.GetDefaultDataCommunicator())
+
+        self.assertEqual(conv_crit_wrapper.executing_rank, self.my_pid == 0) # only rank zero is the executing one
+
+        data_init = self.interface_data.GetData()
 
         conv_crit_wrapper.InitializeSolutionStep()
 
@@ -79,8 +81,8 @@ class TestConvergenceCriteriaWrapper(KratosUnittest.TestCase):
 
         self.assertEqual(conv_crit_mock.IsConverged.call_count, int(self.my_pid == 0)) # only one rank calls "IsConverged"
 
-        global_exp_res = np.array(np.concatenate(KM.DataCommunicator.GetDefault().GathervDoubles(exp_res, 0)))
-        global_rand_data_inp = np.array(np.concatenate(KM.DataCommunicator.GetDefault().GathervDoubles(rand_data, 0)))
+        global_exp_res = np.array(np.concatenate(KM.Testing.GetDefaultDataCommunicator().GathervDoubles(exp_res, 0)))
+        global_rand_data_inp = np.array(np.concatenate(KM.Testing.GetDefaultDataCommunicator().GathervDoubles(rand_data, 0)))
         if self.my_pid == 0:
             # numpy arrays cannot be compared using the mock-functions, hence using the numpy functions
             np.testing.assert_array_equal(global_exp_res, conv_crit_mock.IsConverged.call_args[0][0])
@@ -103,7 +105,6 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
             "variable_name"   : "PRESSURE"
         }""")
         self.interface_data = CouplingInterfaceData(data_settings, self.model)
-        self.interface_data.Initialize()
 
         self.dummy_solver_wrapper = DummySolverWrapper({"data_4_testing" : self.interface_data})
 
@@ -115,7 +116,7 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
             "rel_tolerance"  : 1e-12,
             "echo_level"     : 0
         }""")
-        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper)
+        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper, KM.Testing.GetDefaultDataCommunicator())
 
         sol_values = [
             (2e-1, False),
@@ -139,7 +140,7 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
             "rel_tolerance"  : 1e-5,
             "echo_level"     : 0
         }""")
-        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper)
+        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper, KM.Testing.GetDefaultDataCommunicator())
 
         sol_values = [
             (2e-1, False),
@@ -165,7 +166,7 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
             "rel_tolerance"  : 1e-12,
             "echo_level"     : 0
         }""")
-        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper)
+        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper, KM.Testing.GetDefaultDataCommunicator())
 
         sol_values = [
             (2e-1, False),
@@ -189,7 +190,7 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
             "rel_tolerance"  : 1e-5,
             "echo_level"     : 0
         }""")
-        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper)
+        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper, KM.Testing.GetDefaultDataCommunicator())
 
         sol_values = [
             (2e-1, False),

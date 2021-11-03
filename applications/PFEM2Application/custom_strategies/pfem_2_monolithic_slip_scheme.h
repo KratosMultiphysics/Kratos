@@ -226,7 +226,6 @@ namespace Kratos {
             KRATOS_TRY
 
             //Initializing the non linear iteration for the current element
-            //(rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
             //KRATOS_WATCH(LHS_Contribution);
             //basic operations for the element considered
             rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
@@ -247,7 +246,6 @@ namespace Kratos {
         {
 
             //Initializing the non linear iteration for the current element
-            rCurrentElement.InitializeNonLinearIteration(CurrentProcessInfo);
 
             //basic operations for the element considered
             rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
@@ -272,7 +270,6 @@ namespace Kratos {
             KRATOS_TRY
 
             //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
-            rCurrentCondition.InitializeNonLinearIteration(CurrentProcessInfo);
             rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
             rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
@@ -293,7 +290,6 @@ namespace Kratos {
 
             //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
             //Initializing the non linear iteration for the current condition
-            rCurrentCondition.InitializeNonLinearIteration(rCurrentProcessInfo);
 
             //basic operations for the element considered
             rCurrentCondition.CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
@@ -407,7 +403,6 @@ namespace Kratos {
 
             for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem)
             {
-                (*itElem)->InitializeNonLinearIteration(CurrentProcessInfo);
                 //KRATOS_WATCH(LHS_Contribution);
                 //basic operations for the element considered
                 (*itElem)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);

@@ -1,5 +1,5 @@
-// KRATOS   ___                _   _ _         _   _             __                       _
-//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
 //      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
 //     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
@@ -25,7 +25,7 @@
 
 namespace Kratos
 {
-    enum class SofteningType {Linear = 0, Exponential = 1, HardeningDamage = 2};
+    enum class SofteningType {Linear = 0, Exponential = 1, HardeningDamage = 2, CurveFittingDamage = 3};
 
     enum class TangentOperatorEstimation {Analytic = 0, FirstOrderPerturbation = 1, SecondOrderPerturbation = 2, Secant = 3, SecondOrderPerturbationV2 = 4};
 
@@ -33,6 +33,8 @@ namespace Kratos
 ///@{
     // Constitutive laws variables
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, Vector, HIGH_CYCLE_FATIGUE_COEFFICIENTS)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, Vector, STRESS_LIMITS)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, Vector, HARDENING_PARAMETERS)
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, double, FATIGUE_REDUCTION_FACTOR)
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, int, LOCAL_NUMBER_OF_CYCLES)
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, double, WOHLER_STRESS)
@@ -105,11 +107,14 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, double, EXPONENTIAL_SATURATION_YIELD_STRESS)
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, double, ACCUMULATED_PLASTIC_STRAIN)
     KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONSTITUTIVE_LAWS_APPLICATION, EULER_ANGLES)
-    KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, Vector, HARDENING_MODULI_VECTOR)
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, double, OGDEN_BETA_1)
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, double, OGDEN_BETA_2)
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, Vector, MULTI_LINEAR_ELASTICITY_MODULI)
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, Vector, MULTI_LINEAR_ELASTICITY_STRAINS)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, Vector, STRAIN_DAMAGE_CURVE)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, Vector, STRESS_DAMAGE_CURVE)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, Vector, EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, Vector, PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE)
 
     // D+D- Damage Constitutive laws variables, additional Masonry 2D & 3D
     KRATOS_DEFINE_APPLICATION_VARIABLE(CONSTITUTIVE_LAWS_APPLICATION, double, DAMAGE_ONSET_STRESS_COMPRESSION)

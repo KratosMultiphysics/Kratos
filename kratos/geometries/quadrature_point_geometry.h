@@ -280,7 +280,23 @@ public:
         p_geometry->SetData(rGeometry.GetData());
         return p_geometry;
     }
-    
+
+    ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Calculate with array_1d<double, 3>
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const override
+    {
+        if (rVariable == CHARACTERISTIC_GEOMETRY_LENGTH)
+        {
+            rOutput = this->IntegrationPoints()[0];
+            mpGeometryParent->Calculate(rVariable, rOutput);
+        }
+    }
+
     ///@}
     ///@name  Geometry Shape Function Container
     ///@{
@@ -518,6 +534,20 @@ public:
     }
 
     ///@}
+    ///@name Kratos Geometry Families
+    ///@{
+
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
+    }
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -654,7 +684,7 @@ const GeometryDimension QuadraturePointGeometry<
     TWorkingSpaceDimension,
     TLocalSpaceDimension,
     TDimension>::msGeometryDimension(
-        TLocalSpaceDimension,
+        TDimension,
         TWorkingSpaceDimension,
         TLocalSpaceDimension);
 

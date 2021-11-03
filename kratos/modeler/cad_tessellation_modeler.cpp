@@ -10,10 +10,10 @@
 //  Main authors:    Dagmawi Bekel
 //                   Ruben Zorrilla
 //
-
+#ifdef USE_TRIANGLE_NONFREE_TPL
 // Project includes
 #include "includes/define.h"
-#include "utilities/delaunator_utilities.h"
+#include "utilities/tessellation_utilities/delaunator_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "cad_tessellation_modeler.h"
 
@@ -134,7 +134,7 @@ std::vector<array_1d<double, 2>> CadTessellationModeler::ComputeBoundaryTessella
         << "Missing \"absolute_chordal_error\" in CadTessellationModeler Parameters" << std::endl;
     const double chordal_error = mParameters["absolute_chordal_error"].GetDouble();
 
-    auto tessellation = NurbsCurveTessellation<2, ContainerNodeType>::ComputeTessellation(
+    auto tessellation = CurveTessellation<ContainerNodeType>::ComputeTessellation(
         rBoundarySegment,
         rBoundarySegment.PolynomialDegree(0),
         rBoundarySegment.pGetCurveOnSurface()->pGetCurve()->DomainInterval(),
@@ -354,3 +354,4 @@ double CadTessellationModeler::ComputeDiscretizationError(
 }
 
 } // namespace Kratos
+#endif

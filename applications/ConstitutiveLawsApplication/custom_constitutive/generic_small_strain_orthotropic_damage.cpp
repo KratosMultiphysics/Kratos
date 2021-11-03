@@ -1,5 +1,5 @@
-// KRATOS   ___                _   _ _         _   _             __                       _
-//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
 //      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
 //     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
@@ -117,7 +117,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
 
         // Now we compute the principal stresses
         array_1d<double, Dimension> principal_stresses_vector;
-        ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses_vector, predictive_stress_vector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses_vector, predictive_stress_vector);
 
         BoundedMatrix<double, Dimension, Dimension> predictive_stress_tensor;
         predictive_stress_tensor = MathUtils<double>::StressVectorToTensor(predictive_stress_vector);
@@ -138,7 +138,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
             const double F = uniaxial_stress - thresholds[i];
             if (F > tolerance) { // Damage Case
                 is_damaging = true;
-                const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+                const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
                 TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damages[i], thresholds[i], rValues, characteristic_length);
             }
         } // Damages computed
@@ -291,7 +291,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::FinalizeMater
 
         // Now we compute the principal stresses
         array_1d<double, Dimension> principal_stresses_vector;
-        ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses_vector, predictive_stress_vector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses_vector, predictive_stress_vector);
 
         double uniaxial_stress = 0.0;
         // Now we compute the damages on each direction...
@@ -301,7 +301,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::FinalizeMater
             }
             const double F = uniaxial_stress - mThresholds[i];
             if (F > tolerance) { // Damage Case
-                const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+                const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
                 TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, mDamages[i], mThresholds[i], rValues, characteristic_length);
             }
         } // Damages computed
@@ -479,7 +479,7 @@ int GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     const int check_integrator = TConstLawIntegratorType::Check(rMaterialProperties);

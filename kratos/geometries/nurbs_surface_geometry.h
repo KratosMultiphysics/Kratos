@@ -210,8 +210,45 @@ public:
     }
 
     ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Calculate with array_1d<double, 3>
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const override
+    {
+        if (rVariable == CHARACTERISTIC_GEOMETRY_LENGTH)
+        {
+            const CoordinatesArrayType local_coordinates = rOutput;
+            CalculateEstimatedKnotLengthness(rOutput, local_coordinates);
+        }
+    }
+
+    ///@}
     ///@name Get and Set functions
     ///@{
+
+    void SetInternals(
+        const PointsArrayType& rThisPoints,
+        const SizeType PolynomialDegreeU,
+        const SizeType PolynomialDegreeV,
+        const Vector& rKnotsU,
+        const Vector& rKnotsV,
+        const Vector& rWeights)
+    {
+        this->Points() = rThisPoints;
+        mPolynomialDegreeU = PolynomialDegreeU;
+        mPolynomialDegreeV = PolynomialDegreeV;
+        mKnotsU = rKnotsU;
+        mKnotsV = rKnotsV;
+        mWeights = rWeights;
+
+        CheckAndFitKnotVectors();
+
+        KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
+            << "Number of control points and weights do not match!" << std::endl;
+    }
 
     /// @return returns the polynomial degree 'p' in u direction.
     SizeType PolynomialDegreeU() const
@@ -257,7 +294,16 @@ public:
      * @return true if NURBS, false if B-Splines only (all weights are considered as 1) */
     bool IsRational() const
     {
-        return mWeights.size() != 0;
+        if (mWeights.size() == 0)
+            return false;
+        else {
+            for (IndexType i = 0; i < mWeights.size(); ++i) {
+                if (std::abs(mWeights[i] - 1.0) > 1e-8) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     /* Get Weights vector. All values are 1.0 for B-Splines, for NURBS those can be unequal 1.0.
@@ -306,7 +352,7 @@ public:
      * @param return vector of span intervals.
      * @param index of direction: 0: U; 1: V.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex) const
+    void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex) const override
     {
         rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
 
@@ -401,6 +447,53 @@ public:
         return result;
     }
 
+    void CalculateEstimatedKnotLengthness(
+        CoordinatesArrayType& rKnotLengthness,
+        const CoordinatesArrayType& rLocalCoordinates) const
+    {
+        const IndexType SpanU = NurbsUtilities::GetLowerSpan(PolynomialDegreeU(), KnotsU(), rLocalCoordinates[0]);
+        const IndexType SpanV = NurbsUtilities::GetLowerSpan(PolynomialDegreeV(), KnotsV(), rLocalCoordinates[1]);
+
+        CoordinatesArrayType p1, p2, p3, p4;
+        CoordinatesArrayType gp1, gp2, gp3, gp4;
+        p1[0] = mKnotsU[SpanU];
+        p1[1] = mKnotsV[SpanV];
+        p1[2] = 0;
+
+        p2[0] = mKnotsU[SpanU + 1];
+        p2[1] = mKnotsV[SpanV];
+        p2[2] = 0;
+
+        p3[0] = mKnotsU[SpanU + 1];
+        p3[1] = mKnotsV[SpanV + 1];
+        p3[2] = 0;
+
+        p4[0] = mKnotsU[SpanU];
+        p4[1] = mKnotsV[SpanV + 1];
+        p4[2] = 0;
+
+        GlobalCoordinates(gp1, p1);
+        GlobalCoordinates(gp2, p2);
+        GlobalCoordinates(gp3, p3);
+        GlobalCoordinates(gp4, p4);
+
+        rKnotLengthness[0] = (norm_2(gp1 - gp2) + norm_2(gp3 - gp4)) / 2;
+        rKnotLengthness[1] = (norm_2(gp1 - gp4) + norm_2(gp2 - gp3)) / 2;
+        rKnotLengthness[2] = 0;
+    }
+
+    ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree of the underlying surface.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        return IntegrationInfo(
+            { PolynomialDegreeU() + 1, PolynomialDegreeV() + 1 },
+            { IntegrationInfo::QuadratureMethod::GAUSS, IntegrationInfo::QuadratureMethod::GAUSS });
+    }
+
     ///@}
     ///@name Integration Points
     ///@{
@@ -409,7 +502,8 @@ public:
      * @param return integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
         const SizeType points_in_u = PolynomialDegreeU() + 1;
         const SizeType points_in_v = PolynomialDegreeV() + 1;
@@ -469,7 +563,8 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints) override
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) override
     {
         // shape function container.
         NurbsSurfaceShapeFunction shape_function_container(
@@ -555,8 +650,6 @@ public:
     *
     * @param rPointGlobalCoordinates the point to which the
     *        projection has to be found.
-    * @param rProjectedPointGlobalCoordinates the location of the
-    *        projection in global coordinates.
     * @param rProjectedPointLocalCoordinates the location of the
     *        projection in local coordinates.
     *        The variable is as initial guess!
@@ -566,15 +659,20 @@ public:
     *         0 -> failed
     *         1 -> converged
     */
-    int ProjectionPoint(
+    int ProjectionPointGlobalToLocalSpace(
         const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) const override
+    ) const override
     {
-        return (int) ProjectionNurbsGeometryUtilities::NewtonRaphsonSurface(rProjectedPointLocalCoordinates,
-            rPointGlobalCoordinates, rProjectedPointGlobalCoordinates, (*this));
+        CoordinatesArrayType point_global_coordinates;
+
+        return ProjectionNurbsGeometryUtilities::NewtonRaphsonSurface(
+            rProjectedPointLocalCoordinates,
+            rPointGlobalCoordinates,
+            point_global_coordinates,
+            *this,
+            20, Tolerance);
     }
 
     /** This method maps from dimension space to working space.
@@ -715,6 +813,20 @@ public:
         }
 
         return rResult;
+    }
+
+    ///@}
+    ///@name Geometry Family
+    ///@{
+
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::Kratos_Nurbs_Surface;
     }
 
     ///@}

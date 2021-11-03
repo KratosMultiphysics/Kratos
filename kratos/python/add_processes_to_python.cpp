@@ -31,6 +31,7 @@
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_for_entities_process.h"
 #include "processes/find_global_nodal_elemental_neighbours_process.h"
+#include "processes/find_intersected_geometrical_objects_process.h"
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/node_erase_process.h" // TODO: To be removed
 #include "processes/entity_erase_process.h"
@@ -66,12 +67,10 @@
 #include "processes/time_averaging_process.h"
 #include "processes/from_json_check_result_process.h"
 #include "processes/set_initial_state_process.h"
+#include "processes/split_internal_interfaces_process.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
-
-#include "utilities/python_function_callback_utility.h"
-
 
 namespace Kratos
 {
@@ -186,6 +185,11 @@ void  AddProcessesToPython(pybind11::module& m)
     }))
     .def("ClearNeighbours",&FindGlobalNodalElementalNeighboursProcess::ClearNeighbours)
     .def("GetNeighbourIds",&FindGlobalNodalElementalNeighboursProcess::GetNeighbourIds)
+    ;
+
+    py::class_<FindIntersectedGeometricalObjectsProcess, FindIntersectedGeometricalObjectsProcess::Pointer, Process>
+        (m, "FindIntersectedGeometricalObjectsProcess")
+    .def(py::init<Model&, Parameters>())
     ;
 
     // Find NODAL_H (Historical variables stored)
@@ -304,18 +308,11 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess2D")
         .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
         .def(py::init<ModelPart&, LinearSolverType::Pointer, Parameters>())
-        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer>())
-        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double>())
-        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double>())
-        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int>())
     ;
+
     py::class_<LevelSetConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess3D")
         .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
         .def(py::init<ModelPart&, LinearSolverType::Pointer, Parameters>())
-        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer>())
-        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double>())
-        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double>())
-        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int>())
     ;
 
     py::class_<ApplyConstantScalarValueProcess, ApplyConstantScalarValueProcess::Pointer, Process>(m,"ApplyConstantScalarValueProcess")
@@ -406,6 +403,7 @@ void  AddProcessesToPython(pybind11::module& m)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<2>)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)
+        .def_readonly_static("USE_POSITIVE_EPSILON_FOR_ZERO_VALUES", &CalculateDiscontinuousDistanceToSkinProcessFlags::USE_POSITIVE_EPSILON_FOR_ZERO_VALUES)
         ;
 
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<3>, CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess3D")
@@ -415,6 +413,7 @@ void  AddProcessesToPython(pybind11::module& m)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<3>)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)
+        .def_readonly_static("USE_POSITIVE_EPSILON_FOR_ZERO_VALUES", &CalculateDiscontinuousDistanceToSkinProcessFlags::USE_POSITIVE_EPSILON_FOR_ZERO_VALUES)
         ;
 
     // Continuous distance computation methods
@@ -675,6 +674,10 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<TimeAveragingProcess, TimeAveragingProcess::Pointer, Process>(m, "TimeAveragingProcess")
+    .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<SplitInternalInterfacesProcess, SplitInternalInterfacesProcess::Pointer, Process>(m, "SplitInternalInterfacesProcess")
     .def(py::init<Model&, Parameters>())
     ;
 

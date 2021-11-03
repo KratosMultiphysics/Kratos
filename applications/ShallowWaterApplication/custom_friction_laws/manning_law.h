@@ -22,7 +22,6 @@
 
 // Project includes
 #include "friction_law.h"
-#include "shallow_water_application_variables.h"
 
 
 namespace Kratos
@@ -69,10 +68,22 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /**
+     * @brief Default Constructor
+     */
     ManningLaw() {}
 
-    /// Destructor.
+    /**
+     * @brief Constructor with data
+     */
+    ManningLaw(
+        const GeometryType& rGeometry,
+        const Properties& rProperty,
+        const ProcessInfo& rProcessInfo);
+
+    /**
+     * @brief Initialize the friction law variables
+     */
     virtual ~ManningLaw() {}
 
     ///@}
@@ -87,7 +98,10 @@ public:
     /**
      * @brief Initialize the friction law variables
      */
-    void Initialize(const GeometryType& rGeometry, const ProcessInfo& rProcessInfo) override;
+    void Initialize(
+        const GeometryType& rGeometry,
+        const Properties& rProperty,
+        const ProcessInfo& rProcessInfo) override;
 
     /**
      * @brief Calculate the LHS coefficient for the given data
@@ -128,28 +142,10 @@ public:
         buffer << "ManningLaw";
         return buffer.str();
     }
-    
-    /**
-     * @brief Print information about this object.
-     */
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "ManningLaw";
-    }
-
-    /**
-     * @brief Print object's data.
-     */
-    void PrintData(std::ostream& rOStream) const override {}
-
-    ///@}
-    ///@name Friends
-    ///@{
-
 
     ///@}
 
-private:
+protected:
 
     ///@name Member variables
     ///@{
@@ -159,6 +155,9 @@ private:
     double mEpsilon;
 
     ///@}
+
+private:
+
     ///@name Un accessible methods
     ///@{
 

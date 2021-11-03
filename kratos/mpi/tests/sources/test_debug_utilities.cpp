@@ -29,7 +29,7 @@ namespace Testing {
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableValue, KratosMPICoreFastSuite)
 {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_size = r_comm.Size();
 
     Model model;
@@ -49,7 +49,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableVal
     }
 
     // Build the communicator
-    ParallelFillCommunicator(model_part).Execute();
+    ParallelFillCommunicator(model_part, r_comm).Execute();
 
     MpiDebugUtilities::CheckHistoricalVariable(model_part, PRESSURE);
     MpiDebugUtilities::CheckHistoricalVariable(model_part, TEMPERATURE);
@@ -57,7 +57,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableVal
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFixity, KratosMPICoreFastSuite)
 {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_size = r_comm.Size();
 
     Model model;
@@ -80,14 +80,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFix
     }
 
     // Build the communicator
-    ParallelFillCommunicator(model_part).Execute();
+    ParallelFillCommunicator(model_part, r_comm).Execute();
 
     MpiDebugUtilities::CheckHistoricalVariable(model_part, PRESSURE);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableValueError, KratosMPICoreFastSuite)
 {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
     const int world_size = r_comm.Size();
 
@@ -106,7 +106,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableVal
     }
 
     // Build the communicator
-    ParallelFillCommunicator(model_part).Execute();
+    ParallelFillCommunicator(model_part, r_comm).Execute();
 
     std::stringstream error_message;
 
@@ -120,7 +120,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableVal
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFixityError, KratosMPICoreFastSuite)
 {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
     const int world_size = r_comm.Size();
 
@@ -142,7 +142,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFix
     }
 
     // Build the communicator
-    ParallelFillCommunicator(model_part).Execute();
+    ParallelFillCommunicator(model_part, r_comm).Execute();
 
     std::stringstream error_message;
 
@@ -156,7 +156,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFix
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableCombinedError, KratosMPICoreFastSuite)
 {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
     const int world_size = r_comm.Size();
 
@@ -178,7 +178,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableCom
     }
 
     // Build the communicator
-    ParallelFillCommunicator(model_part).Execute();
+    ParallelFillCommunicator(model_part, r_comm).Execute();
 
     std::stringstream error_message;
 
@@ -193,7 +193,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableCom
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariableValue, KratosMPICoreFastSuite)
 {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_size = r_comm.Size();
 
     Model model;
@@ -211,7 +211,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariable
     }
 
     // Build the communicator
-    ParallelFillCommunicator(model_part).Execute();
+    ParallelFillCommunicator(model_part, r_comm).Execute();
 
     MpiDebugUtilities::CheckNonHistoricalVariable(model_part, model_part.Nodes(), PRESSURE);
     MpiDebugUtilities::CheckNonHistoricalVariable(model_part, model_part.Nodes(), TEMPERATURE);
@@ -219,7 +219,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariable
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariableValueError, KratosMPICoreFastSuite)
 {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
     const int world_size = r_comm.Size();
 
@@ -237,7 +237,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariable
     }
 
     // Build the communicator
-    ParallelFillCommunicator(model_part).Execute();
+    ParallelFillCommunicator(model_part, r_comm).Execute();
 
     std::stringstream error_message;
 
@@ -252,7 +252,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariable
 // This will work with #5091 or when we move to C++17
 // KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckMultipleHistoricalVariablesValue, KratosMPICoreFastSuite)
 // {
-//     const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+//     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
 //     const int world_rank = r_comm.Rank();
 //     const int world_size = r_comm.Size();
 
@@ -273,7 +273,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariable
 //     }
 
 //     // Build the communicator
-//     ParallelFillCommunicator(model_part).Execute();
+//     ParallelFillCommunicator(model_part, r_comm).Execute();
 
 //     MpiDebugUtilities::CheckNodalHistoricalDatabase(model_part);
 // }

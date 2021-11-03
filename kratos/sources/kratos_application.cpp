@@ -49,6 +49,9 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mSurfaceCondition3D4N( 0, GeometryType::Pointer(new Quadrilateral3D4<NodeType >(GeometryType::PointsArrayType(4)))),
       mSurfaceCondition3D8N( 0, GeometryType::Pointer(new Quadrilateral3D8<NodeType >(GeometryType::PointsArrayType(8)))),
       mSurfaceCondition3D9N( 0, GeometryType::Pointer(new Quadrilateral3D9<NodeType >(GeometryType::PointsArrayType(9)))),
+      //prisms
+      mPrismCondition2D4N( 0, GeometryType::Pointer(new Quadrilateral2D4<NodeType >(GeometryType::PointsArrayType(4)))),
+      mPrismCondition3D6N( 0, GeometryType::Pointer(new Prism3D6<NodeType >(GeometryType::PointsArrayType(6)))),
 
       // Master-Slave Constraint
       mMasterSlaveConstraint(),
@@ -72,9 +75,11 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mElement3D2N( 0, GeometryType::Pointer(new Line3D2<NodeType >(GeometryType::PointsArrayType(2)))),
       mElement3D3N( 0, GeometryType::Pointer(new Triangle3D3<NodeType >(GeometryType::PointsArrayType(3)))),
       mElement3D4N( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
+      mElement3D5N( 0, GeometryType::Pointer(new Pyramid3D5<NodeType >(GeometryType::PointsArrayType(5)))),
       mElement3D6N( 0, GeometryType::Pointer(new Prism3D6<NodeType >(GeometryType::PointsArrayType(6)))),
       mElement3D8N( 0, GeometryType::Pointer(new Hexahedra3D8<NodeType >(GeometryType::PointsArrayType(8)))),
       mElement3D10N( 0, GeometryType::Pointer(new Tetrahedra3D10<NodeType >(GeometryType::PointsArrayType(10)))),
+      mElement3D13N( 0, GeometryType::Pointer(new Pyramid3D13<NodeType >(GeometryType::PointsArrayType(13)))),
       mElement3D15N( 0, GeometryType::Pointer(new Prism3D15<NodeType >(GeometryType::PointsArrayType(15)))),
       mElement3D20N( 0, GeometryType::Pointer(new Hexahedra3D20<NodeType >(GeometryType::PointsArrayType(20)))),
       mElement3D27N( 0, GeometryType::Pointer(new Hexahedra3D27<NodeType >(GeometryType::PointsArrayType(27)))),
@@ -83,6 +88,8 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mDistanceCalculationElementSimplex3D4N( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
       mLevelSetConvectionElementSimplex2D3N( 0, GeometryType::Pointer(new Triangle2D3<NodeType >(GeometryType::PointsArrayType(3)))),
       mLevelSetConvectionElementSimplex3D4N( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
+      mLevelSetConvectionElementSimplexAlgebraicStabilization2D3N( 0, GeometryType::Pointer(new Triangle2D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      mLevelSetConvectionElementSimplexAlgebraicStabilization3D4N( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
 
       // Components
       mpVariableData(KratosComponents<VariableData>::pGetComponents()),
@@ -144,6 +151,10 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D4N", mSurfaceCondition3D4N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D8N", mSurfaceCondition3D8N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D9N", mSurfaceCondition3D9N);
+    //prism conditions
+    KRATOS_REGISTER_CONDITION("PrismCondition2D4N", mPrismCondition2D4N);
+    KRATOS_REGISTER_CONDITION("PrismCondition3D6N", mPrismCondition3D6N);
+
 
     //master-slave constraints
     KRATOS_REGISTER_CONSTRAINT("MasterSlaveConstraint",mMasterSlaveConstraint);
@@ -166,9 +177,11 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_ELEMENT("Element3D2N", mElement3D2N)
     KRATOS_REGISTER_ELEMENT("Element3D3N", mElement3D3N)
     KRATOS_REGISTER_ELEMENT("Element3D4N", mElement3D4N)
+    KRATOS_REGISTER_ELEMENT("Element3D5N", mElement3D5N)
     KRATOS_REGISTER_ELEMENT("Element3D6N", mElement3D6N)
     KRATOS_REGISTER_ELEMENT("Element3D8N", mElement3D8N)
     KRATOS_REGISTER_ELEMENT("Element3D10N", mElement3D10N)
+    KRATOS_REGISTER_ELEMENT("Element3D13N", mElement3D13N)
     KRATOS_REGISTER_ELEMENT("Element3D15N", mElement3D15N)
     KRATOS_REGISTER_ELEMENT("Element3D20N", mElement3D20N)
     KRATOS_REGISTER_ELEMENT("Element3D27N", mElement3D27N)
@@ -177,10 +190,15 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_ELEMENT("DistanceCalculationElementSimplex3D4N", mDistanceCalculationElementSimplex3D4N)
     KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplex2D3N", mLevelSetConvectionElementSimplex2D3N)
     KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplex3D4N", mLevelSetConvectionElementSimplex3D4N)
+    KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplexAlgebraicStabilization2D3N", mLevelSetConvectionElementSimplexAlgebraicStabilization2D3N)
+    KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplexAlgebraicStabilization3D4N", mLevelSetConvectionElementSimplexAlgebraicStabilization3D4N)
 
     KRATOS_REGISTER_MODELER("Modeler", mModeler);
     KRATOS_REGISTER_MODELER("CadIoModeler", mCadIoModeler);
+#ifdef USE_TRIANGLE_NONFREE_TPL
     KRATOS_REGISTER_MODELER("CadTessellationModeler", mCadTessellationModeler);
+#endif
+    KRATOS_REGISTER_MODELER("SerialModelPartCombinatorModeler", mSerialModelPartCombinatorModeler);
 
     // Register general geometries:
     // Point register:
@@ -208,6 +226,8 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_GEOMETRY("Tetrahedra3D10", mTetrahedra3D10Prototype);
     KRATOS_REGISTER_GEOMETRY("Prism3D6", mPrism3D6Prototype);
     KRATOS_REGISTER_GEOMETRY("Prism3D15", mPrism3D15Prototype);
+    KRATOS_REGISTER_GEOMETRY("Pyramid3D5", mPyramid3D5Prototype);
+    KRATOS_REGISTER_GEOMETRY("Pyramid3D13", mPyramid3D13Prototype);
     KRATOS_REGISTER_GEOMETRY("Hexahedra3D8", mHexahedra3D8Prototype);
     KRATOS_REGISTER_GEOMETRY("Hexahedra3D20", mHexahedra3D20Prototype);
     KRATOS_REGISTER_GEOMETRY("Hexahedra3D27", mHexahedra3D27Prototype);

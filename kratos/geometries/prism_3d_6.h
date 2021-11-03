@@ -631,7 +631,7 @@ public:
         return faces;
     }
 
-    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) const override
     {
         // Check if faces have intersection
         if(FaceType1(this->pGetPoint(0),this->pGetPoint(2), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))

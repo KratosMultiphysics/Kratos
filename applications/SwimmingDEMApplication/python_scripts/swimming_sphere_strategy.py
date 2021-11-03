@@ -43,7 +43,7 @@ class SwimmingStrategy(BaseStrategy):
     def CreateCPlusPlusStrategy(self):
         self.SetVariablesAndOptions()
 
-        if self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Verlet_Velocity':
+        if self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet':
             self.cplusplus_strategy = DEM.IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                                   self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                                   self.search_strategy, self.solver_settings)
@@ -75,8 +75,7 @@ class SwimmingStrategy(BaseStrategy):
     def GetHydrodynamicLawParametersIfItExists(self, properties):
         if self.project_parameters.Has('properties'):
             for p in self.project_parameters["properties"]:
-                if p['properties_id'].GetInt() == int(properties.Id) and p.Has('hydrodynamic_law_parameters'):
-                    return p['hydrodynamic_law_parameters']
+                return p['hydrodynamic_law_parameters']
         return None
 
     @staticmethod

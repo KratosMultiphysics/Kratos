@@ -1,5 +1,5 @@
-// KRATOS   ___                _   _ _         _   _             __                       _
-//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
 //      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
 //     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
@@ -67,7 +67,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
     Vector& r_strain_vector = rValues.GetStrainVector();
 
     Vector& r_integrated_stress_vector = rValues.GetStressVector();
-    const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::
+    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::
         CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
@@ -122,7 +122,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
 
-    const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::
+    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::
         CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
@@ -205,7 +205,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateAnalyticalTangen
         prod(Matrix(prod(r_C, aux_compliance_incr)), r_stress);
     const BoundedVectorType right_vector = prod(r_C, r_plastic_flow);
 
-    noalias(rPDParameters.TangentTensor) += -outer_prod(right_vector, left_vector) / denominator;
+    noalias(rPDParameters.TangentTensor) = r_C -outer_prod(right_vector, left_vector) / denominator;
 }
 
 /***********************************************************************************/
@@ -1034,7 +1034,7 @@ int AssociativePlasticDamageModel<TYieldSurfaceType>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     // The auxiliar output
     int aux_out = 0;

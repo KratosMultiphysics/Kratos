@@ -17,7 +17,7 @@
 
 // Project includes
 #include "processes/fast_transfer_between_model_parts_process.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -85,25 +85,30 @@ void FastTransferBetweenModelPartsProcess::Execute()
 
 void FastTransferBetweenModelPartsProcess::TransferWithoutFlags()
 {
-    const SizeType num_nodes = mrOriginModelPart.Nodes().size();
+    const SizeType num_nodes = mrOriginModelPart.NumberOfNodes();
 
-    if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
+    if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES))
         mrDestinationModelPart.AddNodes(mrOriginModelPart.NodesBegin(),mrOriginModelPart.NodesEnd());
 
-    const SizeType num_elements = mrOriginModelPart.Elements().size();
+    const SizeType num_elements = mrOriginModelPart.NumberOfElements();
 
     if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
         mrDestinationModelPart.AddElements(mrOriginModelPart.ElementsBegin(),mrOriginModelPart.ElementsEnd());
 
-    const SizeType num_conditions = mrOriginModelPart.Conditions().size();
+    const SizeType num_conditions = mrOriginModelPart.NumberOfConditions();
 
     if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS))
         mrDestinationModelPart.AddConditions(mrOriginModelPart.ConditionsBegin(),mrOriginModelPart.ConditionsEnd());
 
-    const SizeType num_constraints = mrOriginModelPart.MasterSlaveConstraints().size();
+    const SizeType num_constraints = mrOriginModelPart.NumberOfMasterSlaveConstraints();
 
     if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS))
         mrDestinationModelPart.AddMasterSlaveConstraints(mrOriginModelPart.MasterSlaveConstraintsBegin(),mrOriginModelPart.MasterSlaveConstraintsEnd());
+
+    const SizeType num_geometries = mrOriginModelPart.NumberOfGeometries();
+
+    if (num_geometries != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::GEOMETRIES || mEntity == EntityTransfered::NODESANDGEOMETRIES))
+        mrDestinationModelPart.AddGeometries(mrOriginModelPart.GeometriesBegin(),mrOriginModelPart.GeometriesEnd());
 }
 
 /***********************************************************************************/
@@ -112,10 +117,11 @@ void FastTransferBetweenModelPartsProcess::TransferWithoutFlags()
 void FastTransferBetweenModelPartsProcess::TransferWithFlags()
 {
     // Auxiliar sizes
-    const int num_nodes = static_cast<int>(mrOriginModelPart.Nodes().size());
-    const int num_elements = static_cast<int>(mrOriginModelPart.Elements().size());
-    const int num_conditions = static_cast<int>(mrOriginModelPart.Conditions().size());
-    const int num_constraints = static_cast<int>(mrOriginModelPart.MasterSlaveConstraints().size());
+    const int num_nodes = static_cast<int>(mrOriginModelPart.NumberOfNodes());
+    const int num_elements = static_cast<int>(mrOriginModelPart.NumberOfElements());
+    const int num_conditions = static_cast<int>(mrOriginModelPart.NumberOfConditions());
+    const int num_constraints = static_cast<int>(mrOriginModelPart.NumberOfMasterSlaveConstraints());
+    const int num_geometries = static_cast<int>(mrOriginModelPart.NumberOfGeometries());
 
     #pragma omp parallel
     {
@@ -124,8 +130,9 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
         ElementsArrayType elements_buffer_vector;
         ConditionsArrayType conditions_buffer_vector;
         MasterSlaveConstraintArrayType constraints_buffer_vector;
+        GeometriesMapType geometries_buffer_vector;
 
-        if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
+        if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES)) {
             const auto it_node_begin = mrOriginModelPart.NodesBegin();
             #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_nodes; ++i) {
@@ -160,7 +167,7 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
 
         if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS)) {
             const auto it_const_begin = mrOriginModelPart.MasterSlaveConstraintsBegin();
-            #pragma omp for
+            #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_constraints; ++i) {
                 auto it_const = it_const_begin + i;
                 if (it_const->Is(mFlag)) {
@@ -169,10 +176,20 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
             }
         }
 
+        if (num_geometries != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::GEOMETRIES || mEntity == EntityTransfered::NODESANDGEOMETRIES)) {
+            const auto it_geom_begin = mrOriginModelPart.GeometriesBegin();
+            #pragma omp for
+            for(int i = 0; i < num_geometries; ++i) {
+                auto it_geom = it_geom_begin;
+                for (int j = 0; j < i; ++j) it_geom++;
+                geometries_buffer_vector.insert(it_geom.operator->());
+            }
+        }
+
         // We transfer
         #pragma omp critical
         {
-            if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
+            if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES))
                 mrDestinationModelPart.AddNodes(nodes_buffer_vector.begin(),nodes_buffer_vector.end());
 
             if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
@@ -183,6 +200,9 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
 
             if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS))
                 mrDestinationModelPart.AddMasterSlaveConstraints(constraints_buffer_vector.begin(),constraints_buffer_vector.end());
+
+            if (num_geometries != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::GEOMETRIES || mEntity == EntityTransfered::NODESANDGEOMETRIES))
+                mrDestinationModelPart.AddGeometries(geometries_buffer_vector.begin(),geometries_buffer_vector.end());
         }
     }
 }
@@ -192,25 +212,37 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
 
 void FastTransferBetweenModelPartsProcess::ReorderAllIds(ModelPart& rThisModelPart)
 {
-    NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    const auto it_node_begin = nodes_array.begin();
-    for(IndexType i = 0; i < nodes_array.size(); ++i)
+    auto& r_nodes_array = rThisModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each([&](std::size_t i) {
         (it_node_begin + i)->SetId(i + 1);
+    });
 
-    ElementsArrayType& element_array = rThisModelPart.Elements();
-    const auto it_elem_begin = element_array.begin();
-    for(IndexType i = 0; i < element_array.size(); ++i)
+    auto& r_element_array = rThisModelPart.Elements();
+    const auto it_elem_begin = r_element_array.begin();
+    IndexPartition<std::size_t>(r_element_array.size()).for_each([&](std::size_t i) {
         (it_elem_begin + i)->SetId(i + 1);
+    });
 
-    ConditionsArrayType& condition_array = rThisModelPart.Conditions();
-    const auto it_cond_begin = condition_array.begin();
-    for(IndexType i = 0; i < condition_array.size(); ++i)
+    auto& r_condition_array = rThisModelPart.Conditions();
+    const auto it_cond_begin = r_condition_array.begin();
+    IndexPartition<std::size_t>(r_condition_array.size()).for_each([&](std::size_t i) {
         (it_cond_begin + i)->SetId(i + 1);
+    });
 
-    MasterSlaveConstraintArrayType& constraint_array = rThisModelPart.MasterSlaveConstraints();
-    const auto it_const_begin = constraint_array.begin();
-    for(IndexType i = 0; i < constraint_array.size(); ++i)
+    auto& r_constraint_array = rThisModelPart.MasterSlaveConstraints();
+    const auto it_const_begin = r_constraint_array.begin();
+    IndexPartition<std::size_t>(r_constraint_array.size()).for_each([&](std::size_t i) {
         (it_const_begin + i)->SetId(i + 1);
+    });
+
+    auto& r_geometries_array = rThisModelPart.Geometries();
+    const auto it_geom_begin = r_geometries_array.begin();
+    IndexPartition<std::size_t>(r_geometries_array.size()).for_each([&](std::size_t i) {
+        auto it_geom = it_geom_begin;
+        for (IndexType j = 0; j < i; ++j) it_geom++;
+        it_geom->SetId(i + 1);
+    });
 }
 
 /***********************************************************************************/
@@ -219,18 +251,20 @@ void FastTransferBetweenModelPartsProcess::ReorderAllIds(ModelPart& rThisModelPa
 void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
 {
     // Reordering ids (necessary for consistency)
-    ModelPart& root_model_part = mrOriginModelPart.GetRootModelPart();
-    ReorderAllIds(root_model_part);
+    ModelPart& r_root_model_part = mrOriginModelPart.GetRootModelPart();
+    ReorderAllIds(r_root_model_part);
 
     // Getting the auxiliar values
-    const SizeType total_num_nodes = root_model_part.Nodes().size();
-    const int num_nodes = static_cast<int>(mrOriginModelPart.Nodes().size());
-    const SizeType total_num_elements = root_model_part.Elements().size();
-    const int num_elements = static_cast<int>(mrOriginModelPart.Elements().size());
-    const SizeType total_num_conditions = root_model_part.Conditions().size();
-    const int num_conditions = static_cast<int>(mrOriginModelPart.Conditions().size());
-    const SizeType total_num_constraints = root_model_part.MasterSlaveConstraints().size();
-    const int num_constraints = static_cast<int>(mrOriginModelPart.MasterSlaveConstraints().size());
+    const SizeType total_num_nodes = r_root_model_part.NumberOfNodes();
+    const int num_nodes = static_cast<int>(mrOriginModelPart.NumberOfNodes());
+    const SizeType total_num_elements = r_root_model_part.NumberOfElements();
+    const int num_elements = static_cast<int>(mrOriginModelPart.NumberOfElements());
+    const SizeType total_num_conditions = r_root_model_part.NumberOfConditions();
+    const int num_conditions = static_cast<int>(mrOriginModelPart.NumberOfConditions());
+    const SizeType total_num_constraints = r_root_model_part.NumberOfMasterSlaveConstraints();
+    const int num_constraints = static_cast<int>(mrOriginModelPart.NumberOfMasterSlaveConstraints());
+    const SizeType total_num_geometries = r_root_model_part.NumberOfGeometries();
+    const int num_geometries = static_cast<int>(mrOriginModelPart.NumberOfGeometries());
 
     #pragma omp parallel
     {
@@ -239,8 +273,9 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
         ElementsArrayType elements_buffer_vector;
         ConditionsArrayType conditions_buffer_vector;
         MasterSlaveConstraintArrayType constraints_buffer_vector;
+        GeometriesMapType geometries_buffer_vector;
 
-        if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
+        if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES)) {
             const auto it_node_begin = mrOriginModelPart.NodesBegin();
             #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_nodes; ++i) {
@@ -273,7 +308,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
 
         if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS)) {
             const auto it_const_begin = mrOriginModelPart.MasterSlaveConstraintsBegin();
-            #pragma omp for
+            #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_constraints; ++i) {
                 auto it_const = it_const_begin + i;
                 MasterSlaveConstraint::Pointer p_new_const = it_const->Clone(total_num_constraints + i + 1);
@@ -281,10 +316,21 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
             }
         }
 
+        if (num_geometries != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::GEOMETRIES || mEntity == EntityTransfered::NODESANDGEOMETRIES)) {
+            const auto it_geom_begin = mrOriginModelPart.GeometriesBegin();
+            #pragma omp for
+            for(int i = 0; i < num_geometries; ++i) {
+                auto it_geom = it_geom_begin;
+                for (int j = 0; j < i; ++j) it_geom++;
+                auto p_new_geom = it_geom->Create(total_num_geometries + i + 1, *it_geom);
+                geometries_buffer_vector.insert(p_new_geom);
+            }
+        }
+
         // We add to the model part
         #pragma omp critical
         {
-            if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
+            if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES))
                 mrDestinationModelPart.AddNodes(nodes_buffer_vector.begin(),nodes_buffer_vector.end());
 
             if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
@@ -295,6 +341,9 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
 
             if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS))
                 mrDestinationModelPart.AddMasterSlaveConstraints(constraints_buffer_vector.begin(),constraints_buffer_vector.end());
+
+            if (num_geometries != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::GEOMETRIES || mEntity == EntityTransfered::NODESANDGEOMETRIES))
+                mrDestinationModelPart.AddGeometries(geometries_buffer_vector.begin(),geometries_buffer_vector.end());
         }
     }
 }
@@ -305,18 +354,20 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
 void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
 {
     // Reordering ids (necessary for consistency)
-    ModelPart& root_model_part = mrOriginModelPart.GetRootModelPart();
-    ReorderAllIds(root_model_part);
+    ModelPart& r_root_model_part = mrOriginModelPart.GetRootModelPart();
+    ReorderAllIds(r_root_model_part);
 
     // Getting the auxiliar values
-    const SizeType total_num_nodes = root_model_part.Nodes().size();
-    const int num_nodes = static_cast<int>(mrOriginModelPart.Nodes().size());
-    const SizeType total_num_elements = root_model_part.Elements().size();
-    const int num_elements = static_cast<int>(mrOriginModelPart.Elements().size());
-    const SizeType total_num_conditions = root_model_part.Conditions().size();
-    const int num_conditions = static_cast<int>(mrOriginModelPart.Conditions().size());
-    const SizeType total_num_constraints = root_model_part.MasterSlaveConstraints().size();
-    const int num_constraints = static_cast<int>(mrOriginModelPart.MasterSlaveConstraints().size());
+    const SizeType total_num_nodes = r_root_model_part.NumberOfNodes();
+    const int num_nodes = static_cast<int>(mrOriginModelPart.NumberOfNodes());
+    const SizeType total_num_elements = r_root_model_part.NumberOfElements();
+    const int num_elements = static_cast<int>(mrOriginModelPart.NumberOfElements());
+    const SizeType total_num_conditions = r_root_model_part.NumberOfConditions();
+    const int num_conditions = static_cast<int>(mrOriginModelPart.NumberOfConditions());
+    const SizeType total_num_constraints = r_root_model_part.NumberOfMasterSlaveConstraints();
+    const int num_constraints = static_cast<int>(mrOriginModelPart.NumberOfMasterSlaveConstraints());
+    const SizeType total_num_geometries = r_root_model_part.NumberOfGeometries();
+    const int num_geometries = static_cast<int>(mrOriginModelPart.NumberOfGeometries());
 
     #pragma omp parallel
     {
@@ -325,8 +376,9 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
         ElementsArrayType elements_buffer_vector;
         ConditionsArrayType conditions_buffer_vector;
         MasterSlaveConstraintArrayType constraints_buffer_vector;
+        GeometriesMapType geometries_buffer_vector;
 
-        if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
+        if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES)) {
             const auto it_node_begin = mrOriginModelPart.NodesBegin();
             #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_nodes; ++i) {
@@ -365,7 +417,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
 
         if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS)) {
             const auto it_const_begin = mrOriginModelPart.MasterSlaveConstraintsBegin();
-            #pragma omp for
+            #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_constraints; ++i) {
                 auto it_const = it_const_begin + i;
                 if (it_const->Is(mFlag)) {
@@ -375,10 +427,21 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
             }
         }
 
+        if (num_geometries != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::GEOMETRIES || mEntity == EntityTransfered::NODESANDGEOMETRIES)) {
+            const auto it_geom_begin = mrOriginModelPart.GeometriesBegin();
+            #pragma omp for
+            for(int i = 0; i < num_geometries; ++i) {
+                auto it_geom = it_geom_begin;
+                for (int j = 0; j < i; ++j) it_geom++;
+                auto p_new_geom = it_geom->Create(total_num_geometries + i + 1, *it_geom);
+                geometries_buffer_vector.insert(p_new_geom);
+            }
+        }
+
         // We add to the model part
         #pragma omp critical
         {
-            if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
+            if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES))
                 mrDestinationModelPart.AddNodes(nodes_buffer_vector.begin(),nodes_buffer_vector.end());
 
             if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
@@ -389,6 +452,9 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
 
             if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS))
                 mrDestinationModelPart.AddMasterSlaveConstraints(constraints_buffer_vector.begin(),constraints_buffer_vector.end());
+
+            if (num_geometries != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::GEOMETRIES || mEntity == EntityTransfered::NODESANDGEOMETRIES))
+                mrDestinationModelPart.AddGeometries(geometries_buffer_vector.begin(),geometries_buffer_vector.end());
         }
     }
 }

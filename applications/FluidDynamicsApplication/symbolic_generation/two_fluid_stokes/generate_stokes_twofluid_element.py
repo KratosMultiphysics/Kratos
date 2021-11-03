@@ -1,6 +1,6 @@
 from sympy import *
 from KratosMultiphysics import *
-from sympy_fe_utilities import *
+from KratosMultiphysics.sympy_fe_utilities import *
 
 do_simplifications = False
 dim = 3 #spatial dimensions
@@ -13,7 +13,10 @@ else:
     nnodes = 4
     strain_size = 6   
 
-
+initial_tabs = 0
+max_index=30
+optimizations='basic'
+replace_indices=False
 
 impose_partion_of_unity = False
 N,DN = DefineShapeFunctions(nnodes, dim, impose_partion_of_unity)
@@ -165,17 +168,17 @@ tau_denom_out = OutputSymbolicVariable(tau_denom,mode)
 templatefile = open("stokes_twofluid_cpp_template_3D.cpp")
 outstring=templatefile.read()
 
-outstring = outstring.replace("//substitute_lhs",   OutputMatrix_CollectingFactors(lhs,"lhs",mode) )
-outstring = outstring.replace("//substitute_rhs", OutputVector_CollectingFactors(rhs,"rhs",mode))
+outstring = outstring.replace("//substitute_lhs",   OutputMatrix_CollectingFactors(lhs,"lhs",mode,initial_tabs, max_index, optimizations,replace_indices) )
+outstring = outstring.replace("//substitute_rhs", OutputVector_CollectingFactors(rhs,"rhs",mode,initial_tabs, max_index, optimizations,replace_indices))
 outstring = outstring.replace("replace_tau_denom", tau_denom_out)
 
 
 #####################################################################
 #####################################################################  
-outstring = outstring.replace("//substitute_enrichment_V",   OutputMatrix_CollectingFactors(V,"V",mode) )
-outstring = outstring.replace("//substitute_enrichment_H",   OutputMatrix_CollectingFactors(H,"H",mode))
-outstring = outstring.replace("//substitute_enrichment_Kee", OutputMatrix_CollectingFactors(Kee,"Kee",mode))
-outstring = outstring.replace("//substitute_enrichment_rhs_ee", OutputVector_CollectingFactors(rhs_ee,"rhs_ee",mode))
+outstring = outstring.replace("//substitute_enrichment_V",   OutputMatrix_CollectingFactors(V,"V",mode,initial_tabs, max_index, optimizations,replace_indices) )
+outstring = outstring.replace("//substitute_enrichment_H",   OutputMatrix_CollectingFactors(H,"H",mode,initial_tabs, max_index, optimizations,replace_indices))
+outstring = outstring.replace("//substitute_enrichment_Kee", OutputMatrix_CollectingFactors(Kee,"Kee",mode,initial_tabs, max_index, optimizations,replace_indices))
+outstring = outstring.replace("//substitute_enrichment_rhs_ee", OutputVector_CollectingFactors(rhs_ee,"rhs_ee",mode,initial_tabs, max_index, optimizations,replace_indices))
 #####################################################################
 #####################################################################  
 

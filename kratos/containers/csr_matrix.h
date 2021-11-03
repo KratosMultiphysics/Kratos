@@ -24,6 +24,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
 #include "includes/key_hash.h"
+#include "includes/parallel_environment.h"
 
 // Project includes
 #include "includes/define.h"
@@ -54,7 +55,7 @@ namespace Kratos
 
 /// This class implements "serial" CSR matrix, including capabilities for FEM assembly
 template< class TDataType=double, class TIndexType=std::size_t>
-class CsrMatrix
+class CsrMatrix final
 {
 public:
     ///@name Type Definitions
@@ -74,12 +75,23 @@ public:
     ///@{
     CsrMatrix() //needs to be public, since one could use the low level API to construc the CSR matrix
     {
+        mpComm = &ParallelEnvironment::GetDataCommunicator("Serial");
     }
+
+    CsrMatrix(const DataCommunicator& rComm) //needs to be public, since one could use the low level API to construc the CSR matrix
+    {
+        if(rComm.IsDistributed())
+            KRATOS_ERROR << "Attempting to construct a serial CsrMatrix with a distributed communicator" << std::endl;
+
+        mpComm = &rComm;
+    }
+    
 
     /// constructor.
     template<class TGraphType>
     CsrMatrix(const TGraphType& rSparseGraph)
     {
+        mpComm = rSparseGraph.pGetComm();
         TIndexType row_data_size=0;
         TIndexType col_data_size=0;
         rSparseGraph.ExportCSRArrays(mpRowIndicesData,row_data_size,mpColIndicesData, col_data_size);
@@ -97,6 +109,7 @@ public:
 
     explicit CsrMatrix(const CsrMatrix<TDataType,TIndexType>& rOtherMatrix)
     {
+        mpComm = rOtherMatrix.mpComm;
         ResizeIndex1Data(rOtherMatrix.mRowIndices.size());
         ResizeIndex2Data(rOtherMatrix.mColIndices.size());
         ResizeValueData(rOtherMatrix.mValuesVector.size());
@@ -139,7 +152,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~CsrMatrix(){
+    ~CsrMatrix(){
         AssignIndex1Data(nullptr,0);
         AssignIndex2Data(nullptr,0);
         AssignValueData(nullptr,0);        
@@ -151,6 +164,7 @@ public:
     //move assignement operator
     CsrMatrix& operator=(CsrMatrix&& rOtherMatrix)
     {
+        mpComm = rOtherMatrix.mpComm;
         mIsOwnerOfData=rOtherMatrix.mIsOwnerOfData;
         rOtherMatrix.mIsOwnerOfData=false;
 
@@ -178,6 +192,16 @@ public:
         AssignValueData(nullptr,0);
         mNrows=0;
         mNcols=0;
+    }
+
+    const DataCommunicator& GetComm() const
+    {
+        return *mpComm;
+    }
+
+    const DataCommunicator* pGetComm() const
+    {
+        return mpComm;
     }
 
     void SetValue(const TDataType value)
@@ -589,7 +613,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "CsrMatrix" ;
@@ -597,10 +621,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "CsrMatrix";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "CsrMatrix";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const {
         rOStream << "size1 : " << size1() <<std::endl;
         rOStream << "size2 : " << size2() <<std::endl;
         rOStream << "nnz : " << nnz() <<std::endl; 
@@ -695,6 +719,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    const DataCommunicator* mpComm;
     bool mIsOwnerOfData = true;
     IndexType* mpRowIndicesData = nullptr;
     IndexType* mpColIndicesData = nullptr;

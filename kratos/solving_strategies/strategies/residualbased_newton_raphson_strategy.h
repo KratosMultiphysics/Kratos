@@ -20,15 +20,12 @@
 
 // Project includes
 #include "includes/define.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
+#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-
-/* Factories */
-#include "factories/linear_solver_factory.h"
-#include "factories/register_factories.h"
 
 namespace Kratos
 {
@@ -65,7 +62,7 @@ template <class TSparseSpace,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
 class ResidualBasedNewtonRaphsonStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
   public:
     ///@name Type Definitions
@@ -75,7 +72,9 @@ class ResidualBasedNewtonRaphsonStrategy
     // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedNewtonRaphsonStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
+
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
@@ -102,15 +101,6 @@ class ResidualBasedNewtonRaphsonStrategy
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
-
-    /// Linear solver factory
-    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
-
-    /// Convergence criteria factory
-    typedef Factory< TConvergenceCriteriaType > ConvergenceCriteriaFactoryType;
-
-    /// Scheme factory
-    typedef Factory<TSchemeType> SchemeFactoryType;
 
     ///@}
     ///@name Life Cycle
@@ -627,7 +617,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
-    typename BaseType::Pointer Create(
+    typename SolvingStrategyType::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters
         ) const override
@@ -1257,8 +1247,6 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@name Static Member Variables
     ///@{
 
-    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
-
     ///@}
     ///@name Member Variables
     ///@{
@@ -1396,28 +1384,17 @@ class ResidualBasedNewtonRaphsonStrategy
 
         // Saving the convergence criteria to be used
         if (ThisParameters["convergence_criteria_settings"].Has("name")) {
-            mpConvergenceCriteria = ConvergenceCriteriaFactoryType().Create(ThisParameters["convergence_criteria_settings"]);
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
         }
 
         // Saving the scheme
         if (ThisParameters["scheme_settings"].Has("name")) {
-            mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
         }
 
         // Setting up the default builder and solver
         if (ThisParameters["builder_and_solver_settings"].Has("name")) {
-            const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
-            if (KratosComponents<TBuilderAndSolverType>::Has( r_name )) {
-                // Defining the linear solver
-                auto p_linear_solver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
-
-                // Defining the builder and solver
-                mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(p_linear_solver, ThisParameters["builder_and_solver_settings"]);
-            } else {
-                KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
-                                "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
-                                KratosComponents<TBuilderAndSolverType>() << std::endl;
-            }
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
         }
     }
 

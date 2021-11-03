@@ -6,6 +6,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 
 # Other imports
 from KratosMultiphysics.CoSimulationApplication.utilities import model_part_utilities
+from KratosMultiphysics.CoSimulationApplication.utilities.data_communicator_utilities import GetRankZeroDataCommunicator
 
 def Create(settings, model, solver_name):
     return FLOWerWrapper(settings, model, solver_name)
@@ -77,3 +78,9 @@ class FLOWerWrapper(CoSimulationSolverWrapper):
 
     def _GetIOType(self):
         return "empire_io" # FLOWer currently only supports the EmpireIO
+
+    def _GetDataCommunicator(self):
+        # this solver does not support MPI
+        # more specifically the EmpireIO does not support MPI
+        # since FLOWer only uses the EmpireIO this has to be hardcoded (for now)
+        return GetRankZeroDataCommunicator()

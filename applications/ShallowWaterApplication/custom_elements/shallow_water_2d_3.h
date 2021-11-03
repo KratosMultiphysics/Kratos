@@ -322,6 +322,7 @@ protected:
         double shock_stab_factor;
         double rel_dry_height;
         double gravity;
+        double dry_height;
 
         double damping;
         array_1d<double,3> boundary_velocity;
@@ -331,7 +332,6 @@ protected:
         array_1d<double,3> velocity;
 
         array_1d<double,3> topography;
-        array_1d<double,3> wind;
         array_1d<double,3> rain;
         array_1d<double,9> unknown;
         array_1d<double,9> mesh_acc;

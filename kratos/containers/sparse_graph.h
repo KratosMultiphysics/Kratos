@@ -27,6 +27,7 @@
 #include "utilities/parallel_utilities.h"
 #include "includes/ublas_interface.h"
 #include "includes/serializer.h"
+#include "includes/parallel_environment.h"
 
 namespace Kratos
 {
@@ -61,7 +62,7 @@ namespace Kratos
 */
 
 template<class TIndexType=std::size_t>
-class SparseGraph
+class SparseGraph final
 {
 public:
     ///@name Type Definitions
@@ -79,19 +80,30 @@ public:
 
     SparseGraph(IndexType N)
     {
+        mpComm = &ParallelEnvironment::GetDataCommunicator("Serial"); //that's the only option
     }
 
     /// Default constructor.
     SparseGraph()
     {
+        mpComm = &ParallelEnvironment::GetDataCommunicator("Serial"); //thats the only option
+    }
+
+    SparseGraph(DataCommunicator& rComm)
+    {
+        if(rComm.IsDistributed())
+            KRATOS_ERROR << "Attempting to construct a serial CsrMatrix with a distributed communicator" << std::endl;
+
+        mpComm = &rComm;
     }
 
     /// Destructor.
-    virtual ~SparseGraph(){}
+    ~SparseGraph(){}
 
     /// Copy constructor. 
     SparseGraph(const SparseGraph& rOther)
     :
+        mpComm(rOther.mpComm),
         mGraph(rOther.mGraph)
     {
     }
@@ -104,6 +116,15 @@ public:
     ///@}
     ///@name Operators
     ///@{
+    const DataCommunicator& GetComm() const
+    {
+        return *mpComm;
+    }
+
+    const DataCommunicator* pGetComm() const
+    {
+        return mpComm;
+    }
 
     IndexType Size() const
     {
@@ -380,7 +401,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "SparseGraph" ;
@@ -388,10 +409,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SparseGraph";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "SparseGraph";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const {}
 
     ///@}
     ///@name Friends
@@ -445,6 +466,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    DataCommunicator* mpComm;
     GraphType mGraph;
 
 

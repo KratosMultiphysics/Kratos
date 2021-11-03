@@ -1,6 +1,5 @@
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
-import KratosMultiphysics as KM
 
 # Other imports
 import numpy as np
@@ -134,40 +133,36 @@ class SDoFSolver(object):
                                      self.load_impulse])
 
     def InitializeOutput(self):
-        data_comm = KM.DataCommunicator.GetDefault()
-        if data_comm.Rank()==0:
-            with open(self.output_file_name, "w") as results_sdof:
-                results_sdof.write("time"+ " " +
-                                   "displacement" + " " +
-                                   "velocity" + " " +
-                                   "acceleration" + " " +
-                                   "root point displacement" + " " +
-                                   "root point velocity" + " " +
-                                   "root point acceleration" + " " +
-                                   "relative displacement" + " " +
-                                   "relative velocity" + " " +
-                                   "relative accleration" + " " +
-                                   "reaction" + "\n")
-            self.OutputSolutionStep()
+        with open(self.output_file_name, "w") as results_sdof:
+            results_sdof.write("time"+ " " +
+                                "displacement" + " " +
+                                "velocity" + " " +
+                                "acceleration" + " " +
+                                "root point displacement" + " " +
+                                "root point velocity" + " " +
+                                "root point acceleration" + " " +
+                                "relative displacement" + " " +
+                                "relative velocity" + " " +
+                                "relative accleration" + " " +
+                                "reaction" + "\n")
+        self.OutputSolutionStep()
 
     def OutputSolutionStep(self):
-        data_comm = KM.DataCommunicator.GetDefault()
-        if data_comm.Rank()==0:
-            reaction = self.CalculateReaction()
-            if self.write_output_file:
-                with open(self.output_file_name, "a") as results_sdof:
-                    #outputs results
-                    results_sdof.write(str(np.around(self.time, 3)) + " " +
-                                    str(self.dx[0]) + " " +
-                                    str(self.dx[1]) + " " +
-                                    str(self.dx[2]) + " " +
-                                    str(self.dx_f[0]) + " " +
-                                    str(self.dx_f[1]) + " " +
-                                    str(self.dx_f[2]) + " " +
-                                    str(self.dx[0] - self.dx_f[0]) + " " +
-                                    str(self.dx[1] - self.dx_f[1]) + " " +
-                                    str(self.dx[2] - self.dx_f[2]) + " " +
-                                    str(reaction) + "\n")
+        reaction = self.CalculateReaction()
+        if self.write_output_file:
+            with open(self.output_file_name, "a") as results_sdof:
+                #outputs results
+                results_sdof.write(str(np.around(self.time, 3)) + " " +
+                                str(self.dx[0]) + " " +
+                                str(self.dx[1]) + " " +
+                                str(self.dx[2]) + " " +
+                                str(self.dx_f[0]) + " " +
+                                str(self.dx_f[1]) + " " +
+                                str(self.dx_f[2]) + " " +
+                                str(self.dx[0] - self.dx_f[0]) + " " +
+                                str(self.dx[1] - self.dx_f[1]) + " " +
+                                str(self.dx[2] - self.dx_f[2]) + " " +
+                                str(reaction) + "\n")
 
 
     def AdvanceInTime(self, current_time):
