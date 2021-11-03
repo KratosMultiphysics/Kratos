@@ -114,21 +114,20 @@ namespace Kratos
       ComputeHeatFluxWithNeighbor(r_process_info);
     }
 
-    // Compute heat fluxes with neighbor walls
-    // TODO: mNeighbourPotentialRigidFaces stores also the non-contact walls, but discretized into sub-elements
-    //       mNeighbourRigidFaces stores only the contact walls, but not discretized
-
-    //for (unsigned int i = 0; i < mNeighbourPotentialRigidFaces.size(); i++) {
-    //  if (mNeighbourPotentialRigidFaces[i] == NULL) continue;
-    //  mNeighbor_w = dynamic_cast<DEMWall*>(mNeighbourPotentialRigidFaces[i]);
-    //  mNeighborType = WALL_NEIGHBOR;
-    //  ComputeHeatFluxWithNeighbor(r_process_info);
-    //}
-
+    // Compute heat fluxes with contact neighbor walls
     for (unsigned int i = 0; i < mNeighbourRigidFaces.size(); i++) {
       if (mNeighbourRigidFaces[i] == NULL) continue;
       mNeighbor_w    = dynamic_cast<DEMWall*>(mNeighbourRigidFaces[i]);
-      mNeighborType  = WALL_NEIGHBOR;
+      mNeighborType  = WALL_NEIGHBOR_CONTACT;
+      mNeighborIndex = i;
+      ComputeHeatFluxWithNeighbor(r_process_info);
+    }
+
+    // Compute heat fluxes with noncontact neighbor walls
+    for (unsigned int i = 0; i < mNeighbourNonContactRigidFaces.size(); i++) {
+      if (mNeighbourNonContactRigidFaces[i] == NULL) continue;
+      mNeighbor_w = dynamic_cast<DEMWall*>(mNeighbourNonContactRigidFaces[i]);
+      mNeighborType = WALL_NEIGHBOR_NONCONTACT;
       mNeighborIndex = i;
       ComputeHeatFluxWithNeighbor(r_process_info);
     }
@@ -332,7 +331,7 @@ namespace Kratos
     KRATOS_TRY
 
     // TODO: radiation with walls not yet implemented
-    if (mNeighborType == WALL_NEIGHBOR)
+    if (mNeighborType & WALL_NEIGHBOR)
       return;
 
     // Check if particles are close enough
@@ -515,7 +514,7 @@ namespace Kratos
     double min_dist = r_process_info[MIN_CONDUCTION_DISTANCE];
     double h = 0.0;
 
-    if (mNeighborType == PARTICLE_NEIGHBOR) {
+    if (mNeighborType & PARTICLE_NEIGHBOR) {
       double particle_radius = GetParticleRadius();
       double neighbor_radius = GetNeighborRadius();
       double r_min = std::min(particle_radius, neighbor_radius);
@@ -539,7 +538,7 @@ namespace Kratos
       // Heat transfer coefficient from integral expression solved numerically
       h = fluid_conductivity * AdaptiveSimpsonIntegration(r_process_info, mContactRadiusAdjusted, upp_lim, params, &ThermalSphericParticle::EvalIntegrandSurrLayer);
     }
-    else if (mNeighborType == WALL_NEIGHBOR) {
+    else if (mNeighborType & WALL_NEIGHBOR) {
       double a, b, c, r_in, r_out;
       double particle_radius = GetParticleRadius();
 
@@ -587,7 +586,7 @@ namespace Kratos
     // Compute heat transfer coefficient
     double h = 0.0;
 
-    if (mNeighborType == WALL_NEIGHBOR) {
+    if (mNeighborType & WALL_NEIGHBOR) {
       // Compute voronoi edge radius from porosity
       double rij = 0.56 * particle_radius * pow((1.0 - porosity), -1.0/3.0);
 
@@ -696,7 +695,7 @@ namespace Kratos
     // Compute heat transfer coefficient
     double h = 0.0;
 
-    if (mNeighborType == WALL_NEIGHBOR) {
+    if (mNeighborType & WALL_NEIGHBOR) {
       // Compute voronoi edge radius from porosity
       double rij = 0.56 * particle_radius * pow((1.0 - porosity), -1.0/3.0);
       
@@ -797,7 +796,7 @@ namespace Kratos
 
     // Assumption 2 : Model developed for mono-sized particles, but the average radius is being used (if neighbor is a wall, it is assumed as a particle with the same radius)
     double particle_radius = GetParticleRadius();
-    double neighbor_radius = (mNeighborType == PARTICLE_NEIGHBOR) ? GetNeighborRadius() : particle_radius;
+    double neighbor_radius = (mNeighborType & PARTICLE_NEIGHBOR) ? GetNeighborRadius() : particle_radius;
     double avg_radius      = (particle_radius + neighbor_radius) / 2.0;
 
     // Compute heat flux
@@ -1140,8 +1139,8 @@ namespace Kratos
   bool ThermalSphericParticle<TBaseElement>::CheckAdiabaticNeighbor(void) {
     KRATOS_TRY
 
-    return ((mNeighborType == PARTICLE_NEIGHBOR && mNeighbor_p->Is(DEMFlags::IS_ADIABATIC)) ||
-            (mNeighborType == WALL_NEIGHBOR     && mNeighbor_w->Is(DEMFlags::IS_ADIABATIC)));
+    return ((mNeighborType & PARTICLE_NEIGHBOR && mNeighbor_p->Is(DEMFlags::IS_ADIABATIC)) ||
+            (mNeighborType & WALL_NEIGHBOR     && mNeighbor_w->Is(DEMFlags::IS_ADIABATIC)));
 
     KRATOS_CATCH("")
   }
@@ -1164,12 +1163,12 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::ComputeDistanceToNeighbor() {
     KRATOS_TRY
 
-    if (mNeighborType == PARTICLE_NEIGHBOR) {
+    if (mNeighborType & PARTICLE_NEIGHBOR) {
       array_1d<double, 3> direction;
       noalias(direction) = GetParticleCoordinates() - GetNeighborCoordinates();
       return DEM_MODULUS_3(direction);
     }
-    else if (mNeighborType == WALL_NEIGHBOR) {
+    else if (mNeighborType & WALL_NEIGHBOR_CONTACT) {
       // Computing the distance again, as it is done in SphericParticle::ComputeBallToRigidFaceContactForce
       double distance = 0.0;
       array_1d<double, 4>& weight = this->mContactConditionWeights[mNeighborIndex];
@@ -1179,6 +1178,27 @@ namespace Kratos
       DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
       array_1d<double, 3> dummy2 = ZeroVector(3);
       array_1d<double, 3> dummy3 = ZeroVector(3);
+      int dummy4 = 0;
+
+      mNeighbor_w->ComputeConditionRelativeData(mNeighborIndex, this, dummy1, distance, weight, dummy2, dummy3, dummy4);
+
+      return distance;
+    }
+    else if (mNeighborType & WALL_NEIGHBOR_NONCONTACT) {
+      // Computing the distance again, as it is done in SphericParticle::ComputeBallToRigidFaceContactForce
+      double distance = 0.0;
+
+      // Weight vector defines the indexes of the wall nodes in RigidEdge2D::ComputeConditionRelativeData
+      // (assuming that they are always 0 and 1, so the first 2 weights are set to 0.5)
+      array_1d<double, 4> weight = ZeroVector(4);
+      weight[0] = 0.5;
+      weight[1] = 0.5;
+
+      // Dummy variables: not used now
+      double dummy1[3][3];
+      DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
+      array_1d<double, 3>  dummy2 = ZeroVector(3);
+      array_1d<double, 3>  dummy3 = ZeroVector(3);
       int dummy4 = 0;
 
       mNeighbor_w->ComputeConditionRelativeData(mNeighborIndex, this, dummy1, distance, weight, dummy2, dummy3, dummy4);
@@ -1198,12 +1218,12 @@ namespace Kratos
 
     // Corrected distance based on a corrected contact radius
 
-    if (mNeighborType == PARTICLE_NEIGHBOR) {
+    if (mNeighborType & PARTICLE_NEIGHBOR) {
       double r1 = GetParticleRadius();
       double r2 = GetNeighborRadius();
       return sqrt(r1 * r1 - mContactRadiusAdjusted * mContactRadiusAdjusted) + sqrt(r2 * r2 - mContactRadiusAdjusted * mContactRadiusAdjusted);
     }
-    else if (mNeighborType == WALL_NEIGHBOR) {
+    else if (mNeighborType & WALL_NEIGHBOR) {
       double r = GetParticleRadius();
       return sqrt(r * r - mContactRadiusAdjusted * mContactRadiusAdjusted);
     }
@@ -1225,7 +1245,7 @@ namespace Kratos
     double Fo_neighbor;
 
     // Assumption: average of both particles
-    if (mNeighborType == PARTICLE_NEIGHBOR)
+    if (mNeighborType & PARTICLE_NEIGHBOR)
       Fo_neighbor = GetNeighborConductivity() * col_time_max / (GetNeighborDensity() * GetNeighborHeatCapacity() * Rc_max * Rc_max);
     else
       Fo_neighbor = Fo_particle;
@@ -1274,12 +1294,12 @@ namespace Kratos
     double Rc = 0.0;
 
     if (mNeighborInContact) {
-      if (mNeighborType == PARTICLE_NEIGHBOR) {
+      if (mNeighborType & PARTICLE_NEIGHBOR) {
         double r1 = GetParticleRadius();
         double r2 = GetNeighborRadius();
         Rc = sqrt(fabs(r1 * r1 - pow(((r1 * r1 - r2 * r2 + mNeighborDistance * mNeighborDistance) / (2.0 * mNeighborDistance)), 2.0)));
       }
-      else if (mNeighborType == WALL_NEIGHBOR) {
+      else if (mNeighborType & WALL_NEIGHBOR) {
         double r = GetParticleRadius();
         Rc = sqrt(r * r - mNeighborDistance * mNeighborDistance);
       }
@@ -1294,12 +1314,12 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::ComputeEffectiveRadius() {
     KRATOS_TRY
 
-    if (mNeighborType == PARTICLE_NEIGHBOR) {
+    if (mNeighborType & PARTICLE_NEIGHBOR) {
       double particle_radius = GetParticleRadius();
       double neighbor_radius = GetNeighborRadius();
       return particle_radius * neighbor_radius / (particle_radius + neighbor_radius);
     }
-    else if (mNeighborType == WALL_NEIGHBOR) {
+    else if (mNeighborType & WALL_NEIGHBOR) {
       return GetParticleRadius();
     }
     else {
@@ -1313,12 +1333,12 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::ComputeEffectiveMass() {
     KRATOS_TRY
 
-    if (mNeighborType == PARTICLE_NEIGHBOR) {
+    if (mNeighborType & PARTICLE_NEIGHBOR) {
       double particle_mass = GetParticleMass();
       double neighbor_mass = GetNeighborMass();
       return particle_mass * neighbor_mass / (particle_mass + neighbor_mass);
     }
-    else if (mNeighborType == WALL_NEIGHBOR) {
+    else if (mNeighborType & WALL_NEIGHBOR) {
       return GetParticleMass();
     }
     else {
@@ -1616,9 +1636,9 @@ namespace Kratos
 
   template <class TBaseElement>
   array_1d<double, 3> ThermalSphericParticle<TBaseElement>::GetNeighborCoordinates() {
-    if (mNeighborType == PARTICLE_NEIGHBOR)
+    if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleCoordinates();
-    else if (mNeighborType == WALL_NEIGHBOR)
+    else if (mNeighborType & WALL_NEIGHBOR)
       return GetWallCoordinates();
     else
       return vector<double>();
@@ -1626,9 +1646,9 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborTemperature() {
-    if (mNeighborType == PARTICLE_NEIGHBOR)
+    if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleTemperature();
-    else if (mNeighborType == WALL_NEIGHBOR)
+    else if (mNeighborType & WALL_NEIGHBOR)
       return GetWallTemperature();
     else
       return 0.0;
@@ -1636,9 +1656,9 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborRadius() {
-    if (mNeighborType == PARTICLE_NEIGHBOR)
+    if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleRadius();
-    else if (mNeighborType == WALL_NEIGHBOR)
+    else if (mNeighborType & WALL_NEIGHBOR)
       return GetWallRadius();
     else
       return 0.0;
@@ -1646,9 +1666,9 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborYoung() {
-    if (mNeighborType == PARTICLE_NEIGHBOR)
+    if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleYoung();
-    else if (mNeighborType == WALL_NEIGHBOR)
+    else if (mNeighborType & WALL_NEIGHBOR)
       return GetWallYoung();
     else
       return 0.0;
@@ -1656,9 +1676,9 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborPoisson() {
-    if (mNeighborType == PARTICLE_NEIGHBOR)
+    if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticlePoisson();
-    else if (mNeighborType == WALL_NEIGHBOR)
+    else if (mNeighborType & WALL_NEIGHBOR)
       return GetWallPoisson();
     else
       return 0.0;
@@ -1666,9 +1686,9 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborDensity() {
-    if (mNeighborType == PARTICLE_NEIGHBOR)
+    if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleDensity();
-    else if (mNeighborType == WALL_NEIGHBOR)
+    else if (mNeighborType & WALL_NEIGHBOR)
       return GetWallDensity();
     else
       return 0.0;
@@ -1676,9 +1696,9 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborMass() {
-    if (mNeighborType == PARTICLE_NEIGHBOR)
+    if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleMass();
-    else if (mNeighborType == WALL_NEIGHBOR)
+    else if (mNeighborType & WALL_NEIGHBOR)
       return GetWallMass();
     else
       return 0.0;
@@ -1686,9 +1706,9 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborHeatCapacity() {
-    if (mNeighborType == PARTICLE_NEIGHBOR)
+    if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleHeatCapacity();
-    else if (mNeighborType == WALL_NEIGHBOR)
+    else if (mNeighborType & WALL_NEIGHBOR)
       return GetWallHeatCapacity();
     else
       return 0.0;
@@ -1696,9 +1716,9 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborConductivity() {
-    if (mNeighborType == PARTICLE_NEIGHBOR)
+    if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleConductivity();
-    else if (mNeighborType == WALL_NEIGHBOR)
+    else if (mNeighborType & WALL_NEIGHBOR)
       return GetWallConductivity();
     else
       return 0.0;
@@ -1706,9 +1726,9 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborEmissivity() {
-    if (mNeighborType == PARTICLE_NEIGHBOR)
+    if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleEmissivity();
-    else if (mNeighborType == WALL_NEIGHBOR)
+    else if (mNeighborType & WALL_NEIGHBOR)
       return GetWallEmissivity();
     else
       return 0.0;
@@ -1716,11 +1736,11 @@ namespace Kratos
 
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetContactDynamicFrictionCoefficient() {
-    if (mNeighborType == PARTICLE_NEIGHBOR) {
+    if (mNeighborType & PARTICLE_NEIGHBOR) {
       Properties& properties_of_contact = GetProperties().GetSubProperties(mNeighbor_p->GetProperties().Id());
       return properties_of_contact[DYNAMIC_FRICTION];
     }
-    else if (mNeighborType == WALL_NEIGHBOR) {
+    else if (mNeighborType & WALL_NEIGHBOR) {
       Properties& properties_of_contact = GetProperties().GetSubProperties(mNeighbor_w->GetProperties().Id());
       return properties_of_contact[DYNAMIC_FRICTION];
     }

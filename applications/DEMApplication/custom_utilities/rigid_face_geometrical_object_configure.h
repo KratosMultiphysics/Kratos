@@ -560,20 +560,27 @@ public:
           return;
       }
 
-      if ( (ContactExists == false) && (distance_point_to_edge < Radius ) ) {
-        unsigned int vertex_to_check = -1;
-        if(eta<0.0){ vertex_to_check = 0;}
-        else if(eta>1.0){ vertex_to_check = 1;}
-        double distance_point_to_vertex = 0.0;
-        ContactExists = GeometryFunctions::VertexCheck( Coord[vertex_to_check], DE_Geom[0].Coordinates(), Radius, local_coord_system, distance_point_to_vertex);
+      if (ContactExists == false) {
+        if (distance_point_to_edge < Radius) {
+          unsigned int vertex_to_check = -1;
+          if      (eta < 0.0) { vertex_to_check = 0; }
+          else if (eta > 1.0) { vertex_to_check = 1; }
+          double distance_point_to_vertex = 0.0;
+          ContactExists = GeometryFunctions::VertexCheck(Coord[vertex_to_check], DE_Geom[0].Coordinates(), Radius, local_coord_system, distance_point_to_vertex);
 
-        if(ContactExists) {
-          ContactType             = 3;
-          Weight[vertex_to_check] = 1.0; //the rest weights stay 0.0;
-          ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_vertex, Weight, ContactType, Distance_Array, Normal_Array, Weight_Array, Id_Array, ContactType_Array);
-          return;
+          if (ContactExists) {
+            ContactType = 3;
+            Weight[vertex_to_check] = 1.0; //the rest weights stay 0.0;
+            ContactExists = DistanceHierarchy(rObj_1, rObj_2, local_coord_system, distance_point_to_vertex, Weight, ContactType, Distance_Array, Normal_Array, Weight_Array, Id_Array, ContactType_Array);
+            return;
+          }
         }
-      } // (ContactExists == false) && (distance_point_to_edge < Radius )
+        else { // noncontact rigid face (distance_point_to_edge >= Radius)
+          if ((eta >= 0.0) && (eta <= 1.0))
+            rObj_1->mNeighbourNonContactRigidFaces.push_back(rObj_2);
+        }
+      }
+
       return;
     }//DoubleHierarchyMethod2D
 

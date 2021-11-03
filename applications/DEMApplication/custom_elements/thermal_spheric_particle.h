@@ -45,9 +45,12 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   using TBaseElement::SetRadius;
 
   // Definitions
-  #define PARTICLE_NEIGHBOR  1
-  #define WALL_NEIGHBOR      2
-  #define STEFAN_BOLTZMANN   5.670374419e-8
+  #define STEFAN_BOLTZMANN 5.670374419e-8
+
+  #define PARTICLE_NEIGHBOR          0  // binary = 000 (bitwise operator)
+  #define WALL_NEIGHBOR              4  // binary = 100 (bitwise operator)
+  #define WALL_NEIGHBOR_NONCONTACT   6  // binary = 110 (bitwise operator)
+  #define WALL_NEIGHBOR_CONTACT      7  // binary = 111 (bitwise operator)
 
   struct IntegrandParams
   {

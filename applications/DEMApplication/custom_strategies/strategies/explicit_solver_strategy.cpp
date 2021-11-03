@@ -1806,6 +1806,7 @@ namespace Kratos {
             for (int i = 0; i < number_of_particles; i++) {
                 SphericParticle* p_sphere_i = mListOfSphericParticles[i];
                 p_sphere_i->mNeighbourRigidFaces.resize(0);
+                p_sphere_i->mNeighbourNonContactRigidFaces.resize(0);
                 p_sphere_i->mContactConditionWeights.resize(0);
 
                 Distance_Array.clear();

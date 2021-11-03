@@ -106,6 +106,7 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     mContactingNeighbourIds = rOther.mContactingNeighbourIds;
     mContactingFaceNeighbourIds = rOther.mContactingFaceNeighbourIds;
     mNeighbourRigidFaces = rOther.mNeighbourRigidFaces;
+    mNeighbourNonContactRigidFaces = rOther.mNeighbourNonContactRigidFaces;
     mNeighbourPotentialRigidFaces = rOther.mNeighbourPotentialRigidFaces;
     mContactConditionWeights = rOther.mContactConditionWeights;
     mContactConditionContactTypes = rOther.mContactConditionContactTypes;

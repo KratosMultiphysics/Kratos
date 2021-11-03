@@ -1271,10 +1271,10 @@ namespace Kratos {
 
         normalize( normal_unit_vector, DistParticleToEdge);
 
+        eta = projection_on_edge / module_edge_vector;
+
         if (DistParticleToEdge < Radius)
         {
-            eta = projection_on_edge/module_edge_vector;
-
             if ((eta>=0.0) && (eta<=1.0))
             {
                 double dummy_length = 0.0;
