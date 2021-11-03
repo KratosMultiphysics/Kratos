@@ -24,7 +24,7 @@ class CompoundLawTestSolution(DEM_analysis_stage.DEMAnalysisStage, KratosUnittes
     def Finalize(self):
         tolerance = 1e-8
         for node in self.spheres_model_part.Nodes:
-            if node.Id == 2:
+            if node.Id == 1:
                 self.assertAlmostEqual(node.Z, -0.30304679046603883, delta=tolerance)
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
