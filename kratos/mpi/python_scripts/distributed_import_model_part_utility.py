@@ -70,6 +70,8 @@ class DistributedImportModelPartUtility:
 
                 # Original .mdpa file reading
                 model_part_io = KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename, import_flags)
+                
+                KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "Starting with Metis partitioning.")
 
                 if not partition_in_memory:
                     ## Serial partition of the original .mdpa file
