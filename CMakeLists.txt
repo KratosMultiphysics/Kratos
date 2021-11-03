@@ -582,7 +582,8 @@ message("\t Geometry old closest point methods deprecation: https://github.com/K
 
 # Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
-  add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
+    add_definitions(-DUSE_TRIANGLE_NONFREE_TPL)
+    add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
 # Compiling the tinyexpr library
