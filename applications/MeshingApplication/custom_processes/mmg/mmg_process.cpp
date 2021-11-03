@@ -1168,24 +1168,128 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
     // Iterate over nodes
     auto& r_nodes_array = mrThisModelPart.Nodes();
     const SizeType initial_num = r_nodes_array.size();
+    const SizeType initial_num_cond = mrThisModelPart.Conditions().size();
 
     // Marking all nodes as "superfluous"
     VariableUtils().SetFlag(TO_ERASE, true, r_nodes_array);
 
     // Saving the nodes that belong to an element
-    block_for_each(mrThisModelPart.Elements(),
-        [&](Element& rElement) {
-
+    for(auto& rElement : mrThisModelPart.Elements()){
         auto& r_geom = rElement.GetGeometry();
 
         for (IndexType i_node = 0; i_node < r_geom.size(); ++i_node){
             r_geom[i_node].Set(TO_ERASE, false);
         }
-    });
+    }
 
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
+    VariableUtils().SetFlag(TO_ERASE, false, mrThisModelPart.Conditions());
+    VariableUtils().SetFlag(MARKER, true, mrThisModelPart.Nodes());
+    std::vector<std::size_t> list_of_ids_to_remove;
+    // Check if there are conditions that contain any of the superflous nodes.
+    for(int i_cond = 0; i_cond < static_cast<int>(mrThisModelPart.Conditions().size()); ++i_cond ){
+        const auto it = mrThisModelPart.Conditions().begin() + i_cond;
+        auto& r_geom = it->GetGeometry();
+        for (IndexType i = 0; i < r_geom.size(); ++i){
+            if (r_geom[i].IsNot(MARKER)) {
+                it->Set(TO_ERASE, true);
+                list_of_ids_to_remove.push_back(it->Id());
+            }
+        }
+    }
+
+    // Next check that the conditions are oriented accordingly
+    // to do so begin by putting all of the conditions in a map
+    typedef std::unordered_map<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > hashmap;
+    hashmap faces_map;
+
+    for (auto it_cond = mrThisModelPart.ConditionsBegin(); it_cond != mrThisModelPart.ConditionsEnd(); it_cond++) {
+        it_cond->Set(VISITED, false); //mark
+
+        GeometryType& r_geometry = it_cond->GetGeometry();
+
+        const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
+
+        if (geometry_type == GeometryData::Kratos_Triangle3D3  || geometry_type == GeometryData::Kratos_Line2D2) {
+            DenseVector<int> ids(r_geometry.size());
+
+            for(IndexType i=0; i<ids.size(); i++) {
+                ids[i] = r_geometry[i].Id();
+            }
+
+            //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+            std::sort(ids.begin(), ids.end());
+
+            // Insert a pointer to the condition identified by the hash value ids
+            hashmap::iterator it_face = faces_map.find(ids);
+            if(it_face != faces_map.end() ) { // Already defined geometry
+                it_face->second.push_back(*it_cond.base());
+            } else {
+                faces_map.insert( hashmap::value_type(ids, std::vector<Condition::Pointer>({*it_cond.base()})) );
+            }
+        }
+    }
+
+    // Now loop for all the elements and for each face of the element check if it is in the "faces_map"
+    // if it happens to be there check the orientation
+    for (auto it_elem = mrThisModelPart.ElementsBegin(); it_elem != mrThisModelPart.ElementsEnd(); it_elem++) {
+        GeometryType& r_geometry = it_elem->GetGeometry();
+        const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
+
+        if (geometry_type == GeometryData::Kratos_Tetrahedra3D4  || geometry_type == GeometryData::Kratos_Triangle2D3) {
+            // Allocate a work array long enough to contain the Ids of a face
+            DenseVector<int> aux( r_geometry.size() - 1);
+
+            // Loop over the faces
+            for(IndexType outer_node_index=0; outer_node_index< r_geometry.size(); outer_node_index++) {
+                // We put in "aux" the indices of all of the nodes which do not
+                // coincide with the face_index we are currently considering telling in other words:
+                // face_index will contain the local_index of the node which is NOT on the face
+                // localindex_node_on_face the local_index of one of the nodes on the face
+                IndexType counter = 0;
+                for(IndexType i=0; i<r_geometry.size(); i++) {
+                    if(i != outer_node_index) {
+                        aux[counter++] = r_geometry[i].Id();
+                    }
+                }
+
+                //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+                std::sort(aux.begin(), aux.end());
+
+                hashmap::iterator it_face = faces_map.find(aux);
+                if(it_face != faces_map.end()) { // It was actually found!!
+                    // Mark the condition as visited. This will be useful for a check at the endif
+                    std::vector<Condition::Pointer>& list_conditions = it_face->second;
+                    for (Condition::Pointer p_cond : list_conditions) {
+                        p_cond->Set(VISITED,true);
+                    }
+                }
+
+            }
+        }
+    }
+
+    //check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
+    for (auto& r_cond : mrThisModelPart.Conditions()) {
+        if (r_cond.IsNot(VISITED)) {
+            r_cond.Set(TO_ERASE, true);
+            list_of_ids_to_remove.push_back(r_cond.Id());
+        }
+    }
+
+
+    for (auto  id_cond : list_of_ids_to_remove) {
+        // KRATOS_INFO("MmgProcess") << "Removing condition #" << id_cond << std::endl;
+        mrThisModelPart.RemoveConditionFromAllLevels(id_cond);
+    }
+
+
+    // mrThisModelPart.RemoveConditionFromAllLevels(TO_ERASE);
+
     const SizeType final_num = mrThisModelPart.Nodes().size();
+    const SizeType final_num_cond = mrThisModelPart.Conditions().size();
     KRATOS_INFO("MmgProcess") << "In total " << (initial_num - final_num) <<" superfluous nodes were cleared" << std::endl;
+    KRATOS_INFO("MmgProcess") << "In total " << (initial_num_cond - final_num_cond) <<" wrong conditions were cleared" << std::endl;
 
     KRATOS_CATCH("");
 }
