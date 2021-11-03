@@ -229,6 +229,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   ThermalSphericParticle<TBaseElement>* mNeighbor_p;
   DEMWall*                              mNeighbor_w;
   int                                   mNeighborType;
+  int                                   mNeighborIndex;
 
   // Interaction properties
   bool   mNeighborInContact;         // flag for contact interaction

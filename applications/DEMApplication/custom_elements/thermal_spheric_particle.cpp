@@ -127,8 +127,9 @@ namespace Kratos
 
     for (unsigned int i = 0; i < mNeighbourRigidFaces.size(); i++) {
       if (mNeighbourRigidFaces[i] == NULL) continue;
-      mNeighbor_w   = dynamic_cast<DEMWall*>(mNeighbourRigidFaces[i]);
-      mNeighborType = WALL_NEIGHBOR;
+      mNeighbor_w    = dynamic_cast<DEMWall*>(mNeighbourRigidFaces[i]);
+      mNeighborType  = WALL_NEIGHBOR;
+      mNeighborIndex = i;
       ComputeHeatFluxWithNeighbor(r_process_info);
     }
 
@@ -1163,9 +1164,30 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::ComputeDistanceToNeighbor() {
     KRATOS_TRY
 
-    array_1d<double, 3> direction;
-    noalias(direction) = GetParticleCoordinates() - GetNeighborCoordinates();
-    return DEM_MODULUS_3(direction);
+    if (mNeighborType == PARTICLE_NEIGHBOR) {
+      array_1d<double, 3> direction;
+      noalias(direction) = GetParticleCoordinates() - GetNeighborCoordinates();
+      return DEM_MODULUS_3(direction);
+    }
+    else if (mNeighborType == WALL_NEIGHBOR) {
+      // Computing the distance again, as it is done in SphericParticle::ComputeBallToRigidFaceContactForce
+      double distance = 0.0;
+      array_1d<double, 4>& weight = this->mContactConditionWeights[mNeighborIndex];
+
+      // Dummy variables: not used now
+      double dummy1[3][3];
+      DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
+      array_1d<double, 3> dummy2 = ZeroVector(3);
+      array_1d<double, 3> dummy3 = ZeroVector(3);
+      int dummy4 = 0;
+
+      mNeighbor_w->ComputeConditionRelativeData(mNeighborIndex, this, dummy1, distance, weight, dummy2, dummy3, dummy4);
+
+      return distance;
+    }
+    else {
+      return 0.0;
+    }
 
     KRATOS_CATCH("")
   }
@@ -1174,7 +1196,7 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::ComputeDistanceToNeighborAdjusted() {
     KRATOS_TRY
 
-    // Fixed distance based on a fixed contact radius
+    // Corrected distance based on a corrected contact radius
 
     if (mNeighborType == PARTICLE_NEIGHBOR) {
       double r1 = GetParticleRadius();
