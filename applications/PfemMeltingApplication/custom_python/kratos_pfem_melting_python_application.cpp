@@ -1,7 +1,7 @@
-// KRATOS 
-// _____   __               __  __      _ _   _             
-//|  __ \ / _|             |  \/  |    | | | (_)            
-//| |__) | |_ ___ _ __ ___ | \  / | ___| | |_ _ _ __   __ _ 
+// KRATOS
+// _____   __               __  __      _ _   _
+//|  __ \ / _|             |  \/  |    | | | (_)
+//| |__) | |_ ___ _ __ ___ | \  / | ___| | |_ _ _ __   __ _
 //|  ___/|  _/ _ \ '_ ` _ \| |\/| |/ _ \ | __| | '_ \ / _` |
 //| |    | ||  __/ | | | | | |  | |  __/ | |_| | | | | (_| |
 //|_|    |_| \___|_| |_| |_|_|  |_|\___|_|\__|_|_| |_|\__, |
@@ -24,6 +24,7 @@
 #include "pfem_melting_application.h"
 //#include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 //#include "custom_python/add_custom_response_functions_to_python.h"
 
 namespace Kratos
@@ -44,6 +45,7 @@ PYBIND11_MODULE(KratosPfemMeltingApplication,m)
            ;
     //AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
+    AddCustomProcessesToPython(m);
     //AddCustomResponseFunctionsToPython(m);
 
     // Registering variables in python

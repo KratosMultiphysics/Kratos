@@ -1,7 +1,7 @@
-// KRATOS 
-// _____   __               __  __      _ _   _             
-//|  __ \ / _|             |  \/  |    | | | (_)            
-//| |__) | |_ ___ _ __ ___ | \  / | ___| | |_ _ _ __   __ _ 
+// KRATOS
+// _____   __               __  __      _ _   _
+//|  __ \ / _|             |  \/  |    | | | (_)
+//| |__) | |_ ___ _ __ ___ | \  / | ___| | |_ _ _ __   __ _
 //|  ___/|  _/ _ \ '_ ` _ \| |\/| |/ _ \ | __| | '_ \ / _` |
 //| |    | ||  __/ | | | | | |  | |  __/ | |_| | | | | (_| |
 //|_|    |_| \___|_| |_| |_|_|  |_|\___|_|\__|_|_| |_|\__, |
@@ -46,11 +46,11 @@ void KratosPfemMeltingApplication::Register() {
     KRATOS_INFO("") <<
     " KRATOS                                                     " << std::endl <<
     " _____   __               __  __      _ _   _               " << std::endl <<
-    "|  __ \ / _|             |  \/  |    | | | (_)              " << std::endl << 
-    "| |__) | |_ ___ _ __ ___ | \  / | ___| | |_ _ _ __   __ _   " << std::endl <<
-    "|  ___/|  _/ _ \ '_ ` _ \| |\/| |/ _ \ | __| | '_ \ / _` |  " << std::endl << 
-    "| |    | ||  __/ | | | | | |  | |  __/ | |_| | | | | (_| |  " << std::endl << 
-    "|_|    |_| \___|_| |_| |_|_|  |_|\___|_|\__|_|_| |_|\__, |  " << std::endl << 
+    "|  __ \\ / _|             |  \\/  |    | | | (_)              " << std::endl <<
+    "| |__) | |_ ___ _ __ ___ | \\  / | ___| | |_ _ _ __   __ _   " << std::endl <<
+    "|  ___/|  _/ _ \\ '_ ` _ \\| |\\/| |/ _ \\ | __| | '_ \\ / _` |  " << std::endl <<
+    "| |    | ||  __/ | | | | | |  | |  __/ | |_| | | | | (_| |  " << std::endl <<
+    "|_|    |_| \\___|_| |_| |_|_|  |_|\\___|_|\\__|_|_| |_|\\__, |  " << std::endl <<
     "                                                     __/ |  " << std::endl <<
     "                                                    |___/ APPLICATION " << std::endl;
 
@@ -64,10 +64,7 @@ void KratosPfemMeltingApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INITIAL_POSITION)
 
     KRATOS_REGISTER_ELEMENT("LagrangianFluidVMS2D",mLagrangianFluidVMS2D);
-    mLagrangianFluidVMS2D;
     KRATOS_REGISTER_ELEMENT("LagrangianFluidVMS3D",mLagrangianFluidVMS3D);
-    mLagrangianFluidVMS3D;
-
 
 }
 

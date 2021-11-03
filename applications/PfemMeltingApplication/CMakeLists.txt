@@ -21,6 +21,7 @@ set( KRATOS_PFEM_MELTING_APPLICATION_CORE_SOURCES
 set( KRATOS_PFEM_MELTING_PYTHON_INTERFACE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_pfem_melting_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 )
 
 #    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp

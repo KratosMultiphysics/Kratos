@@ -90,7 +90,7 @@ namespace Kratos
         //creating an auxiliary list for the new nodes
         PointVector list_of_nodes;
 
-        //*************
+        //  *************
         // Bucket types
         typedef Bucket< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
 

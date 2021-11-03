@@ -1,7 +1,7 @@
-// KRATOS 
-// _____   __               __  __      _ _   _             
-//|  __ \ / _|             |  \/  |    | | | (_)            
-//| |__) | |_ ___ _ __ ___ | \  / | ___| | |_ _ _ __   __ _ 
+// KRATOS
+// _____   __               __  __      _ _   _
+//|  __ \ / _|             |  \/  |    | | | (_)
+//| |__) | |_ ___ _ __ ___ | \  / | ___| | |_ _ _ __   __ _
 //|  ___/|  _/ _ \ '_ ` _ \| |\/| |/ _ \ | __| | '_ \ / _` |
 //| |    | ||  __/ | | | | | |  | |  __/ | |_| | | | | (_| |
 //|_|    |_| \___|_| |_| |_|_|  |_|\___|_|\__|_|_| |_|\__, |
@@ -174,7 +174,7 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-	
+
 	//     int pepe=0;
      //KRATOS_THROW_ERROR(std::logic_error, "!!!!!!!!!!!  FIRST TIME < FIRST !!!!!!!!", pepe);
         return Kratos::make_intrusive< LagrangianFluidVMS >(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties);
@@ -292,7 +292,7 @@ public:
 
         const ProcessInfo& rConstProcessInfo = rCurrentProcessInfo; // Taking const reference for thread safety
 
-        //****************************************************
+        // ****************************************************
         // Resize and set to zero the RHS
         if(rRightHandSideVector.size() != LocalSize)
             rRightHandSideVector.resize(LocalSize,false);
@@ -305,11 +305,11 @@ public:
 
        Matrix MassMatrix = ZeroMatrix(LocalSize, LocalSize);
 
-       //****************************************************
+       // ****************************************************
         //Get Vector of BDF coefficients
         const Vector& BDFVector = rConstProcessInfo[BDF_COEFFICIENTS];
 
-       //****************************************************
+       // ****************************************************
         // Get this element's geometric properties
         double Area;
         array_1d<double, TNumNodes> N;
@@ -414,7 +414,7 @@ public:
         const double c2 = r_properties[NONLIN_DARCY_COEF];
 
 
-        //****************************************************
+        //  ****************************************************
         //compute LHS and RHS + first part of mass computation
         for (unsigned int igauss = 0; igauss < Ngauss.size1(); igauss++)
         {
@@ -429,7 +429,7 @@ public:
 //             else
 //                 negative_volume += wGauss;
 
-            //****************************************************
+            //  ****************************************************
             // Calculate this element's fluid properties
             double Density;
             this->EvaluateInPoint(Density, DENSITY, N);
@@ -458,7 +458,7 @@ public:
             this->AddConsistentMassMatrixContribution(MassMatrix, N, Density, wGauss);
 
 
-            //****************************************************
+            //  ****************************************************
             //enrichment variables
             if (ndivisions > 1)
             {
@@ -571,7 +571,7 @@ public:
 
         }
 
-        //****************************************************
+        //  ****************************************************
         //consider contributions of mass to LHS and RHS
         //add Mass Matrix to the LHS with the correct coefficient
         noalias(rLeftHandSideMatrix) += BDFVector[0]*MassMatrix;
@@ -593,7 +593,7 @@ public:
         }
         noalias(rRightHandSideVector) -= prod(MassMatrix,aaa);
 
-        //****************************************************
+        //  ****************************************************
         //finalize computation of the residual
         // Now calculate an additional contribution to the residual: r -= rLeftHandSideMatrix * (u,p)
         VectorType U = ZeroVector(LocalSize);
@@ -612,7 +612,7 @@ public:
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, U);
 //                KRATOS_WATCH("line 517");
 
-        //****************************************************
+        //  ****************************************************
         //finalize computation of enrichment terms
         //(do static condensation) of enrichment terms
         //note that it each step we assume that the enrichment starts from 0
@@ -928,7 +928,7 @@ void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
- 
+
         // Resize and set to zero the matrix
         // Note that we don't clean the RHS because it will already contain body force (and stabilization) contributions
         if (rDampingMatrix.size1() != LocalSize)
@@ -1001,7 +1001,7 @@ void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
         double K, G, PDivV, L, qF; // Temporary results
 
         array_1d<double,3> BodyForce = ZeroVector(3);
-        this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc); 
+        this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc);
         BodyForce *= Density;
 
         double Temperature;
@@ -1061,7 +1061,7 @@ void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
 
                 }
 
-              
+
                 // Write remaining terms to velocity block
                 for (unsigned int d = 0; d < TDim; ++d)
                     rDampingMatrix(FirstRow + d, FirstCol + d) += K;
@@ -1069,7 +1069,7 @@ void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
                 // Write q-p stabilization block
                 rDampingMatrix(FirstRow + TDim, FirstCol + TDim) += Weight * TauOne * L;
 
-                 
+
                 // Update reference column index for next iteration
                 FirstCol += BlockSize;
             }
@@ -1082,9 +1082,9 @@ void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
                 qF += rShapeDeriv(i, d) * BodyForce[d];
             }
             rDampRHS[FirstRow + TDim] += Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
-            
-            //rDampRHS[FirstRow + TDim] += (-1.0) * Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)  
-            rDampRHS[FirstRow + TDim]-= Weight * aux_var_polymer / TNumNodes;		 
+
+            //rDampRHS[FirstRow + TDim] += (-1.0) * Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
+            rDampRHS[FirstRow + TDim]-= Weight * aux_var_polymer / TNumNodes;
 
             // Update reference indices
             FirstRow += BlockSize;
