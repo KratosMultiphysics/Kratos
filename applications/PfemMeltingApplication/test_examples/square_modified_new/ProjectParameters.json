@@ -5,7 +5,7 @@
         "parallel_type"         : "OpenMP",
         "echo_level"            : 0,
         "start_time"            : 0.0,
-        "end_time"              : 1000.0,
+        "end_time"              : 100.0,
         "laser_import_settings" : {
                         "laser_filename": "LaserSettings.json"
                 },
@@ -36,12 +36,12 @@
                         },
                         "file_label"          : "time",
                         "output_control_type" : "time",
-                        "output_frequency"    : 0.0001,
+                        "output_frequency"    : 0.1,
                         "body_output"         : true,
                         "node_output"         : false,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["VELOCITY","PRESSURE","TEMPERATURE","FACE_HEAT_FLUX","BODY_FORCE","ARRHENIUS_COEFFICIENT", "VISCOSITY", "CONDUCTIVITY", "SPECIFIC_HEAT"],
+                        "nodal_results"       : ["VELOCITY","PRESSURE","TEMPERATURE","FACE_HEAT_FLUX","BODY_FORCE","ARRHENIUS_COEFFICIENT", "VISCOSITY", "CONDUCTIVITY", "SPECIFIC_HEAT", "IS_STRUCTURE","IS_FREE_SURFACE" ],
                         "gauss_point_results" : []
                     },
                     "point_data_configuration"  : []
@@ -100,14 +100,14 @@
             "no_skin_parts"               : [],
             "time_stepping"               : {
                 "automatic_time_step" : false,
-                "time_step"           : 0.01
+                "time_step"           : 0.005
             },
             "alpha":0.0,
 	    "move_mesh_strategy": 2,	
             "formulation"                 : {
                 "element_type"             : "vms",
                 "use_orthogonal_subscales" : false,
-                "dynamic_tau"              : 1.0
+                "dynamic_tau"              : 0.0
             }
         },
         "thermal_solver_settings" : {
@@ -125,7 +125,7 @@
             "time_integration_method" : "implicit",
             "transient_parameters" : {
                 "dynamic_tau": 0.0,
-                "theta"    : 1.0
+                "theta"    : 0.5
             },
 	    "reform_dofs_at_each_step": true,
             "line_search"                        : false,
