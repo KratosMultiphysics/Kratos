@@ -221,7 +221,8 @@ class NeuralNetworkAnalysis(AnalysisStage):
                 output = process.Predict(self.model, data_structure_in)
                 if not output is None:
                     data_out.UpdateData(output)
-            data_structure_in.CheckLookbackAndUpdate(data_out.ExportAsArray())
+            if hasattr(data_structure_in, 'lookback_data'):
+                data_structure_in.CheckLookbackAndUpdate(data_out.ExportAsArray())
             for process in self._GetListOfProcesses():
                prediction = process.TransformPredictions(self._GetListOfProcesses(), data_in = data_structure_in, data_out = data_out)
                if not prediction is None:

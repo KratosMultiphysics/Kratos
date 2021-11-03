@@ -34,6 +34,10 @@ class LookbackProcess(PreprocessingProcess):
                 self.features_as_timesteps = settings["features_as_timesteps"].GetBool()
             except RuntimeError:
                 self.features_as_timesteps = False
+            try:
+                self.only_input = settings["only_input"].GetBool()
+            except RuntimeError:
+                self.only_input = False
             
 
     def Preprocess(self, data_structure_in, data_structure_out):
@@ -49,10 +53,11 @@ class LookbackProcess(PreprocessingProcess):
 
         for i in reversed(range(self.lookback)):
             
-            data_in_lookback = data_structure_out.ExportAsArray()
-            new_data_in = np.zeros_like(data_in_lookback)
-            new_data_in[i+1:] = data_in_lookback[:-i-1]
-            new_data_structure_in.CheckLookbackAndUpdate(new_data_in)
+            if not self.only_input:
+                data_in_lookback = data_structure_out.ExportAsArray()
+                new_data_in = np.zeros_like(data_in_lookback)
+                new_data_in[i+1:] = data_in_lookback[:-i-1]
+                new_data_structure_in.CheckLookbackAndUpdate(new_data_in)
 
             if self.record:
                 data_in_record = data_structure_in.ExportAsArray()

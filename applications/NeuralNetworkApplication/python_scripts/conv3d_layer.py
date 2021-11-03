@@ -9,9 +9,9 @@ import kerastuner as kt
 def Factory(settings):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return Conv2DLayer(settings)
+    return Conv3DLayer(settings)
 
-class Conv2DLayer(NeuralNetworkLayerClass):
+class Conv3DLayer(NeuralNetworkLayerClass):
     """This class generates a base class for a Conv1D layer
 
     Public member variables:
@@ -33,12 +33,15 @@ class Conv2DLayer(NeuralNetworkLayerClass):
             "filters"                  : 1,
             "kernel_size_1"            : 1,
             "kernel_size_2"            : 1,
+            "kernel_size_3"            : 1,
             "strides_1"                : 1,
             "strides_2"                : 1,
+            "strides_3"                : 1,
             "padding"                  : "valid",
             "data_format"              : "channels_last",
             "dilation_rate_1"          : 1,
             "dilation_rate_2"          : 1,
+            "dilation_rate_3"          : 1,
             "groups"                   : 1,
             "activation"               : "",
             "use_bias"                 : true,
@@ -62,11 +65,11 @@ class Conv2DLayer(NeuralNetworkLayerClass):
         self.dtype = settings["dtype"].GetString()
         self.dynamic = settings["dynamic"].GetBool()
         self.filters = settings["filters"].GetInt()
-        self.kernel_size = tuple((settings["kernel_size_1"].GetInt(), settings["kernel_size_2"].GetInt()))
-        self.strides = tuple((settings["strides_1"].GetInt(), settings["strides_2"].GetInt()))
+        self.kernel_size = tuple((settings["kernel_size_1"].GetInt(), settings["kernel_size_2"].GetInt(), settings["kernel_size_3"].GetInt()))
+        self.strides = tuple((settings["strides_1"].GetInt(), settings["strides_2"].GetInt(), settings["strides_3"].GetInt()))
         self.padding = settings["padding"].GetString()
         self.data_format = settings["data_format"].GetString()
-        self.dilation_rate = tuple((settings["dilation_rate_1"].GetInt(), settings["dilation_rate_2"].GetInt()))
+        self.dilation_rate = tuple((settings["dilation_rate_1"].GetInt(), settings["dilation_rate_2"].GetInt(), settings["dilation_rate_3"].GetInt()))
         self.groups = settings["groups"].GetInt()
         if not settings["activation"].GetString() == "":
             self.activation = settings["activation"].GetString()
@@ -96,7 +99,7 @@ class Conv2DLayer(NeuralNetworkLayerClass):
         if self.tunable:
             setattr(self,self.tunable_variable,LoadTunableParametersUtility(self.tuning_parameters).Load(hp))
         
-        self.layer = layers.Conv2D(self.filters, self.kernel_size, strides=self.strides, padding=self.padding, 
+        self.layer = layers.Conv3D(self.filters, self.kernel_size, strides=self.strides, padding=self.padding, 
         data_format=self.data_format, dilation_rate=self.dilation_rate, groups= self.groups, activation=self.activation,
         use_bias=self.use_bias, kernel_initializer=self.kernel_initializer,bias_initializer=self.bias_initializer,
         kernel_regularizer=self.kernel_regularizer, bias_regularizer=self.bias_regularizer,activity_regularizer=self.activity_regularizer,

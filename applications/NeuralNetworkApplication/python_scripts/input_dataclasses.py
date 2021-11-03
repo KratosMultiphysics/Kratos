@@ -40,6 +40,7 @@ class DataWithLookback(NeuralNetworkData):
     lookback_state: bool = False
     only_lookback: bool = False
     record_data: bool = False
+    reorder_partitions: int = 1
 
     def ExportAsArray(self):
         if self.data.all() != None:
@@ -58,12 +59,16 @@ class DataWithLookback(NeuralNetworkData):
                     new_array = np.reshape(new_array, (1, new_array.shape[0], new_array.shape[1]))
                 except IndexError:
                     new_array = np.reshape(new_array, (1, new_array.shape[0], 1))
+                if self.reorder_partitions > 1:
+                    new_array = self.Reorder(new_array, self.reorder_partitions)
                 return new_array
             else:
                 try:
                     new_array = np.reshape(self.data, (1, self.data.shape[0], self.data.shape[1]))
                 except IndexError:
                     new_array = np.reshape(self.data, (1, self.data.shape[0], 1))
+                if self.reorder_partitions > 1:
+                    new_array = self.Reorder(new_array, self.reorder_partitions)
                 return new_array
         else:
             new_array = self.lookback_data
@@ -71,7 +76,17 @@ class DataWithLookback(NeuralNetworkData):
                 new_array = np.reshape(new_array, (1, new_array.shape[0], new_array.shape[1]))
             except IndexError:
                 new_array = np.reshape(new_array, (1, new_array.shape[0], 1))
+            if self.reorder_partitions > 1:
+                new_array = self.Reorder(new_array, self.reorder_partitions)
             return new_array
+
+    def Reorder(self, array, number_of_partitions):
+        partitions = np.dsplit(array, number_of_partitions)
+        new_array = array
+        for i in range(len(partitions)):
+            new_array[...,i::number_of_partitions] = partitions[i]
+        
+        return new_array
 
     def ExportDataOnly(self):
         return self.data
@@ -338,7 +353,11 @@ class ListDataWithLookback(ListNeuralNetworkData):
     
     def SetFeaturesAsTimesteps(self, switch_to = True):
         self.features_as_timesteps = switch_to
-    
+
+    def SetReorder(self, number_of_partitions):
+        for entry in self.data_array:
+            entry.reorder_partitions = number_of_partitions
+
     def GetLookbackIndex(self):
         return self.lookback_index
     
@@ -376,10 +395,10 @@ class ListDataWithLookback(ListNeuralNetworkData):
                 data_length = self.data_array[0].GetDataShape()[0]
         
         # Calculate the feature length
-        if self.only_lookback:
-            feature_length = lookback_length
-        elif data_only:
+        if data_only:
             feature_length = data_length
+        elif self.only_lookback:
+            feature_length = lookback_length
         else:
             feature_length = data_length + lookback_length
         # Reshape for output

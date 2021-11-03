@@ -246,7 +246,10 @@ class DataGeneratorProcess(KM.Process):
                             input_value_list.append(condition.GetValue(variable))
             # Reorder if indicated
             if self.input_order == 'sources_first':
-                input_value_list = self._OrderSourcesFirst(input_value_list, self.dict_output.items())
+                try:
+                    input_value_list = self._OrderSourcesFirst(input_value_list, self.dict_output.items())
+                except IndexError:
+                    pass
 
             # Writing input file
             if (self.write_output_file):
@@ -283,7 +286,10 @@ class DataGeneratorProcess(KM.Process):
                         output_value_list.append(condition.GetValue(variable))
             # Reorder if indicated
             if self.output_order == 'sources_first':
-                output_value_list = self._OrderSourcesFirst(output_value_list, self.dict_output.items())
+                try:
+                    output_value_list = self._OrderSourcesFirst(output_value_list, self.dict_output.items())
+                except IndexError:
+                    pass
             if (self.write_output_file):
                 if self.output_format == "ascii":
                     self.training_output_file.write(' '.join(str(v) for v in output_value_list) + '\n')

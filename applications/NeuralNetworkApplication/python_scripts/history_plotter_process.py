@@ -42,7 +42,8 @@ class HistoryPlotterProcess(NeuralNetworkProcess):
 
         for variable in self.variables:
             figure, ax = plt.subplots() 
-            getattr(ax,self.axis)(dictionary[variable][self.burn_up:])
+            epochs = range(self.burn_up, len(dictionary[variable][:]))
+            getattr(ax,self.axis)(epochs, dictionary[variable][self.burn_up:])
             ax.set_xlabel("Epochs")
             ax.set_ylabel(variable)
             figure.savefig(self.output_name + "_" + variable + "." + self.output_format)
