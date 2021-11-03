@@ -18,11 +18,11 @@
 // Project includes
 #include "includes/define_python.h"
 #include "add_modeler_to_python.h"
-#include "modeler/modeler.h"
+#include "modeler/modeler_factory.h"
 #include "modeler/edge_swapping_2d_modeler.h"
 #include "modeler/connectivity_preserve_modeler.h"
-#include "modeler/modeler_factory.h"
 #include "modeler/serial_model_part_combinator_modeler.h"
+#include "modeler/duplicate_mesh_modeler.h"
 
 namespace Kratos
 {
@@ -92,6 +92,10 @@ void  AddModelerToPython(pybind11::module& m)
     py::class_< SerialModelPartCombinatorModeler, SerialModelPartCombinatorModeler::Pointer, Modeler >(m,"SerialModelPartCombinatorModeler")
         .def(py::init< >())
         .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_< DuplicateMeshModeler, DuplicateMeshModeler::Pointer, Modeler >(m,"DuplicateMeshModeler")
+        .def(py::init<ModelPart&>())
     ;
 }
 
