@@ -237,6 +237,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("__getitem__", [](GeometryType& self, unsigned int i){return self(i);} )
     .def("__iter__",    [](GeometryType& self){return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
     .def("__len__",     [](GeometryType& self){return self.PointsNumber();} )
+    .def("GeometryParentId", [](GeometryType& self){ return(self.GetGeometryParent(0)).Id(); })
     ;
 
     // 2D

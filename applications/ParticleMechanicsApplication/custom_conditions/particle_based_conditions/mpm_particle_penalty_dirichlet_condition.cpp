@@ -142,7 +142,19 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
     Variables.CurrentDisp = this->CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
 
     // Check contact: Check contact penetration: if <0 apply constraint, otherwise no
-    bool apply_constraints = true;
+    bool apply_constraints = false;
+    GeometryType& r_geometry = GetGeometry();
+    int counter =0;
+
+    //Check matrix singularities
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+        if (nodal_mass > std::numeric_limits<double>::epsilon() )
+            counter+=1;
+            if(counter>number_of_nodes-2)
+                apply_constraints=true;
+    }
     if (Is(CONTACT))
     {
         // NOTE: the unit_normal_vector is assumed always pointing outside the boundary
@@ -184,11 +196,21 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 
         // Calculate gap_function: nodal_displacement - imposed_displacement
         Vector gap_function = ZeroVector(matrix_size);
+        Vector imposed_displacement = ZeroVector(matrix_size);
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
             for ( unsigned int j = 0; j < dimension; j++)
             {
-                gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j) - m_imposed_displacement[j]);
+                // gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j) - m_imposed_displacement[j]);
+                gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j) );
+            }
+        }
+
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            for ( unsigned int j = 0; j < dimension; j++)
+            {
+                imposed_displacement[block_size * i + j] = Variables.N[i] * m_imposed_displacement[j];
             }
         }
 
@@ -202,6 +224,8 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         if ( CalculateResidualVectorFlag == true )
         {
             noalias(rRightHandSideVector) -= prod(prod(trans(shape_function), shape_function), gap_function);
+            noalias(rRightHandSideVector) -= imposed_displacement;
+
             rRightHandSideVector *= m_penalty * this->GetIntegrationWeight();
         }
     }
