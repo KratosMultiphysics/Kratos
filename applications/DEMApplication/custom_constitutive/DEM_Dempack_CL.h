@@ -38,6 +38,9 @@ namespace Kratos {
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
+
+        void Check(Properties::Pointer pProp) const override;
+
         virtual void CalculateContactArea(double radius,
                                           double other_radius,
                                           double &calculation_area) override;
