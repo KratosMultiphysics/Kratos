@@ -39,8 +39,6 @@
                 "topographic_model_part_name"    : "topographic_model_part",
                 "create_topographic_model_part"  : true,
                 "mesh_deformation_mode"          : "use_nodal_displacement",
-                "topography_variable"            : "TOPOGRAPHY",
-                "free_surface_variable"          : "FREE_SURFACE_ELEVATION",
                 "nodal_variables_to_transfer"    : ["TOPOGRAPHY"]
             }
         }],

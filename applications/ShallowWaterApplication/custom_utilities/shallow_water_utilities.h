@@ -146,6 +146,18 @@ public:
     void StoreNonHistoricalGiDNoDataIfDry(ModelPart& rModelPart, const Variable<double>& rVariable);
 
     /**
+     * @brief Offset the ids of the given container for visualization purpose in GiD
+     */
+    template<class TContainerType>
+    void OffsetIds(TContainerType& rContainer)
+    {
+        const std::size_t offset = rContainer.size();
+        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+            rEntity.SetId(rEntity.Id() + offset);
+        });
+    }
+
+    /**
      * @brief Compute the L-2 norm for the given double variable
      */
     template<bool THistorical>
