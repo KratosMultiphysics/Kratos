@@ -52,7 +52,7 @@ void TransientPwElement<TDim,TNumNodes>::
     if (rElementalDofList.size() != N_DOF)
       rElementalDofList.resize( N_DOF );
 
-    for (unsigned int i = 0; i < TNumNodes; i++)
+    for (unsigned int i = 0; i < TNumNodes; ++i)
     {
         rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
     }
@@ -75,7 +75,7 @@ void TransientPwElement<TDim,TNumNodes>::
     if (rResult.size() != N_DOF)
       rResult.resize( N_DOF, false );
 
-    for (unsigned int i = 0; i < TNumNodes; i++)
+    for (unsigned int i = 0; i < TNumNodes; ++i)
     {
         rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
     }
@@ -134,8 +134,7 @@ void TransientPwElement<TDim,TNumNodes>::
     if ( rValues.size() != N_DOF )
         rValues.resize( N_DOF, false );
 
-    for ( unsigned int i = 0; i < TNumNodes; i++ )
-    {
+    for ( unsigned int i = 0; i < TNumNodes; ++i ) {
         rValues[i] = 0.0;
     }
 
@@ -154,8 +153,7 @@ void TransientPwElement<TDim,TNumNodes>::
     if ( rValues.size() != N_DOF )
         rValues.resize( N_DOF, false );
 
-    for ( unsigned int i = 0; i < TNumNodes; i++ )
-    {
+    for ( unsigned int i = 0; i < TNumNodes; ++i ) {
         rValues[i] = 0.0;
     }
 
@@ -174,8 +172,7 @@ void TransientPwElement<TDim,TNumNodes>::
     if ( rValues.size() != N_DOF )
         rValues.resize( N_DOF, false );
 
-    for ( unsigned int i = 0; i < TNumNodes; i++ )
-    {
+    for ( unsigned int i = 0; i < TNumNodes; ++i ) {
         rValues[i] = 0.0;
     }
 
@@ -198,15 +195,13 @@ void TransientPwElement<TDim,TNumNodes>::
     if ( mConstitutiveLawVector.size() != NumGPoints )
         mConstitutiveLawVector.resize( NumGPoints );
 
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-    {
+    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i ) {
         mConstitutiveLawVector[i] = nullptr;
     }
 
     if ( mRetentionLawVector.size() != NumGPoints )
         mRetentionLawVector.resize( NumGPoints );
-    for ( unsigned int i = 0; i < mRetentionLawVector.size(); i++ )
-    {
+    for ( unsigned int i = 0; i < mRetentionLawVector.size(); ++i ) {
         //RetentionLawFactory::Pointer pRetentionFactory;
         mRetentionLawVector[i] = RetentionLawFactory::Clone(Prop);
         mRetentionLawVector[i]->
@@ -236,8 +231,7 @@ int TransientPwElement<TDim,TNumNodes>::
     if (Geom.DomainSize() < 1.0e-15)
         KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
 
-    for ( unsigned int i = 0; i < TNumNodes; i++ )
-    {
+    for ( unsigned int i = 0; i < TNumNodes; ++i ) {
         if ( Geom[i].SolutionStepsDataHas( WATER_PRESSURE ) == false )
             KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
 
@@ -263,12 +257,9 @@ int TransientPwElement<TDim,TNumNodes>::
     if ( Prop.Has( POROSITY ) == false || Prop[POROSITY] < 0.0 || Prop[POROSITY] > 1.0 )
         KRATOS_ERROR << "POROSITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-
-    if ( TDim == 2 )
-    {
+    if ( TDim == 2 ) {
         // If this is a 2D problem, nodes must be in XY plane
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
+        for (unsigned int i=0; i<TNumNodes; ++i) {
             if (Geom[i].Z() != 0.0)
                 KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << Geom[i].Id() << std::endl;
         }
@@ -293,8 +284,7 @@ int TransientPwElement<TDim,TNumNodes>::
     if (!Prop.Has( BIOT_COEFFICIENT ))
         KRATOS_ERROR << "BIOT_COEFFICIENT does not exist in the material properties in element" << this->Id() << std::endl;
 
-    if (TDim > 2)
-    {
+    if (TDim > 2) {
         if ( Prop.Has( PERMEABILITY_ZZ ) == false || Prop[PERMEABILITY_ZZ] < 0.0 )
             KRATOS_ERROR << "PERMEABILITY_ZZ does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
@@ -304,7 +294,6 @@ int TransientPwElement<TDim,TNumNodes>::
         if ( Prop.Has( PERMEABILITY_ZX ) == false || Prop[PERMEABILITY_ZX] < 0.0 )
             KRATOS_ERROR << "PERMEABILITY_ZX does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
     }
-
 
     // Verify that the constitutive law has the correct dimension
 
@@ -339,8 +328,7 @@ void TransientPwElement<TDim,TNumNodes>::
     RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
 
     //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
-    {
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Initialize retention law
         mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
     }
@@ -359,6 +347,7 @@ void TransientPwElement<TDim,TNumNodes>::
     InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
+
     // nothing
 
     KRATOS_CATCH("");
@@ -395,8 +384,7 @@ void TransientPwElement<TDim,TNumNodes>::
     RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
 
     //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
-    {
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
         // retention law
         mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
     }
@@ -430,12 +418,11 @@ void TransientPwElement<TDim,TNumNodes>::
         if ( rOutput.size() != mRetentionLawVector.size() )
             rOutput.resize(mRetentionLawVector.size());
 
-        for ( unsigned int i = 0;  i < mRetentionLawVector.size(); i++ )
-        {
-            rOutput[i] = mRetentionLawVector[i]->GetValue( rVariable, rOutput[i] );
+        for ( unsigned int i = 0;  i < mRetentionLawVector.size(); ++i ) {
+            rOutput[i] = 0.0;
         }
     }
-    
+
     // KRATOS_INFO("1-TransientPwElement::CalculateOnIntegrationPoints()") << std::endl;
 
     KRATOS_CATCH( "" )
@@ -451,19 +438,14 @@ void TransientPwElement<TDim,TNumNodes>::
     KRATOS_TRY
     // KRATOS_INFO("0-TransientPwElement::CalculateOnIntegrationPoints<double,3>()") << std::endl;
 
-    if (rVariable == FLUID_FLUX_VECTOR)
-    {
+    if (rVariable == FLUID_FLUX_VECTOR) {
         BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    }
-    else
-    {
+    } else {
         if ( rOutput.size() != mRetentionLawVector.size() )
             rOutput.resize(mRetentionLawVector.size());
 
-        for ( unsigned int i = 0;  i < mRetentionLawVector.size(); i++ )
-        {
+        for ( unsigned int i = 0;  i < mRetentionLawVector.size(); ++i ) {
             noalias(rOutput[i]) = ZeroVector(3);
-            rOutput[i] = mRetentionLawVector[i]->GetValue( rVariable, rOutput[i] );
         }
     }
 
@@ -483,20 +465,15 @@ void TransientPwElement<TDim,TNumNodes>::
     // KRATOS_INFO("0-TransientPwElement::CalculateOnIntegrationPoints()") << rVariable << std::endl;
 
 
-    if (rVariable == PERMEABILITY_MATRIX)
-    {
+    if (rVariable == PERMEABILITY_MATRIX) {
         BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    }
-    else
-    {
+    } else {
         if ( rOutput.size() != mRetentionLawVector.size() )
             rOutput.resize(mRetentionLawVector.size());
 
-        for ( unsigned int i = 0;  i < mRetentionLawVector.size(); i++ )
-        {
+        for ( unsigned int i = 0;  i < mRetentionLawVector.size(); ++i ) {
             rOutput[i].resize(TDim,TDim,false);
             noalias(rOutput[i]) = ZeroMatrix(TDim,TDim);
-            rOutput[i] = mRetentionLawVector[i]->GetValue( rVariable, rOutput[i] );
         }
     }
 
@@ -534,8 +511,7 @@ void TransientPwElement<TDim,TNumNodes>::
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
     //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
-    {
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         //Compute GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
 
@@ -556,7 +532,7 @@ void TransientPwElement<TDim,TNumNodes>::
         Variables.IntegrationCoefficient =
             this->CalculateIntegrationCoefficient(IntegrationPoints,
                                                   GPoint,
-                                                  Variables.detJ0);
+                                                  Variables.detJ);
 
         //Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -732,7 +708,8 @@ void TransientPwElement<TDim,TNumNodes>::
                                  rVariables);
 
     //Distribute fluid body flow block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector,rVariables.PVector);
+    GeoElementUtilities::
+        AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector,rVariables.PVector);
 
     // KRATOS_INFO("1-TransientPwElement::CalculateAndAddFluidBodyFlow()") << std::endl;
     KRATOS_CATCH("");
@@ -752,7 +729,8 @@ void TransientPwElement<TDim,TNumNodes>::
                                        rVariables);
 
     //Distribute compressibility block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
+    GeoElementUtilities::
+        AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
 
     // KRATOS_INFO("1-TransientPwElement::CalculateAndAddCompressibilityFlow()") << std::endl;
     KRATOS_CATCH("");
@@ -772,7 +750,7 @@ void TransientPwElement<TDim,TNumNodes>::
     noalias(rVariables.Np) = row(rVariables.NContainer, PointNumber);
     noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[PointNumber];
 
-    rVariables.detJ0 = rVariables.detJContainer[PointNumber];
+    rVariables.detJ = rVariables.detJContainer[PointNumber];
 
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateKinematics") << std::endl;
 
