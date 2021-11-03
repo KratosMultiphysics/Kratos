@@ -1,18 +1,15 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
-from KratosMultiphysics import eigen_solver_factory
-
 import KratosMultiphysics.IgaApplication as IGA
 
 
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return NitscheStabilizationProcess(model, settings["Parameters"])
+    return AssignIntegrationPointsToBackgroundElementsProcess(model, settings["Parameters"])
 
-class NitscheStabilizationProcess(KratosMultiphysics.Process):
-    """This class is used in order to compute automatically the Nitsche stabilization factor.
+class AssignIntegrationPointsToBackgroundElementsProcess(KratosMultiphysics.Process):
+    """This class assigns the integration points of an embedded geometry to the elements of the background mesh.
 
     Only the member variables listed below should be accessed directly.
 
@@ -30,8 +27,10 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
         """
         KratosMultiphysics.Process.__init__(self)
         self.process = IGA.AssignIntegrationPointsToBackgroundElementsProcess(model, params)
-        self.model = model
 
     def ExecuteBeforeOutputStep(self):
-        # Get the model parts which divide the problem
+        """AssignIntegrationPoints must not be called in Initialize(), as output_quadrature_domain must be called a priori!
+
+        However, the .cpp-Implementation takes care that this process is only called once!
+        """
         self.process.AssignIntegrationPoints()
