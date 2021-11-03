@@ -14,8 +14,8 @@ def Create(*args):
 class KratosCoSimIO(CoSimulationIO):
     """Wrapper for the CoSimIO to be used with Kratos
     """
-    def __init__(self, settings, model, solver_name, data_commnicator):
-        super().__init__(settings, model, solver_name, data_commnicator)
+    def __init__(self, settings, model, solver_name, data_communicator):
+        super().__init__(settings, model, solver_name, data_communicator)
 
         connect_to = self.settings["connect_to"].GetString()
         if connect_to == "":
@@ -24,7 +24,12 @@ class KratosCoSimIO(CoSimulationIO):
         connection_settings = CoSimIO.InfoFromParameters(self.settings)
         connection_settings.SetString("my_name", solver_name)
 
-        info = CoSimIO.Connect(connection_settings)
+        if self.data_communicator.IsDistributed():
+            from KratosMultiphysics.CoSimulationApplication.MPIExtension import CoSimIO as CoSimIOMPI
+            info = CoSimIOMPI.ConnectMPI(connection_settings, self.data_communicator)
+        else:
+            info = CoSimIO.Connect(connection_settings)
+
         if info.GetInt("connection_status") != CoSimIO.ConnectionStatus.Connected:
             raise Exception("Connecting failed!")
 
@@ -45,7 +50,7 @@ class KratosCoSimIO(CoSimulationIO):
         info.SetString("connection_name", self.connection_name)
         info.SetString("identifier", model_part_name.replace(".", "-")) # TODO chec if better solution can be found
 
-        CoSimIO.ImportMesh(info, self.model[model_part_name]) # TODO this can also be geometry at some point
+        CoSimIO.ImportMesh(info, self.model[model_part_name], self.data_communicator) # TODO this can also be geometry at some point
 
     def ExportCouplingInterface(self, interface_config):
         model_part_name = interface_config["model_part_name"]

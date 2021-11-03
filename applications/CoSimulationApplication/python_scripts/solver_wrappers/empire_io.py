@@ -21,8 +21,8 @@ communication_folder = ".EmpireIO" # hardcoded in C++
 class EmpireIO(CoSimulationIO):
     """IO for the legacy EMPIRE_API
     """
-    def __init__(self, settings, model, solver_name, data_commnicator):
-        super().__init__(settings, model, solver_name, data_commnicator)
+    def __init__(self, settings, model, solver_name, data_communicator):
+        super().__init__(settings, model, solver_name, data_communicator)
         # Note: calling "EMPIRE_API_Connect" is NOT necessary, it is replaced by the next two lines
         KratosCoSim.EMPIRE_API.EMPIRE_API_SetEchoLevel(self.echo_level)
         KratosCoSim.EMPIRE_API.EMPIRE_API_PrintTiming(self.settings["api_print_timing"].GetBool())
