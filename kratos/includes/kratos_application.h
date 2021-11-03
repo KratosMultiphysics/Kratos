@@ -58,6 +58,8 @@
 #include "geometries/tetrahedra_3d_10.h"
 #include "geometries/prism_3d_6.h"
 #include "geometries/prism_3d_15.h"
+#include "geometries/pyramid_3d_5.h"
+#include "geometries/pyramid_3d_13.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
@@ -390,6 +392,9 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     //Prisms:
     const Prism3D6<NodeType> mPrism3D6Prototype = Prism3D6<NodeType>( GeometryType::PointsArrayType(6));
     const Prism3D15<NodeType> mPrism3D15Prototype = Prism3D15<NodeType>( GeometryType::PointsArrayType(15));
+    //Pyramids:
+    const Pyramid3D5<NodeType> mPyramid3D5Prototype = Pyramid3D5<NodeType>( GeometryType::PointsArrayType(5));
+    const Pyramid3D13<NodeType> mPyramid3D13Prototype = Pyramid3D13<NodeType>( GeometryType::PointsArrayType(13));
     //Hexahedra:
     const Hexahedra3D8<NodeType> mHexahedra3D8Prototype = Hexahedra3D8<NodeType>( GeometryType::PointsArrayType(8));
     const Hexahedra3D20<NodeType> mHexahedra3D20Prototype = Hexahedra3D20<NodeType>( GeometryType::PointsArrayType(20));
@@ -451,9 +456,11 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshElement mElement3D2N;
     const MeshElement mElement3D3N;
     const MeshElement mElement3D4N;
+    const MeshElement mElement3D5N;
     const MeshElement mElement3D6N;
     const MeshElement mElement3D8N;
     const MeshElement mElement3D10N;
+    const MeshElement mElement3D13N;
     const MeshElement mElement3D15N;
     const MeshElement mElement3D20N;
     const MeshElement mElement3D27N;
