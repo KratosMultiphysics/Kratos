@@ -14,8 +14,6 @@
 // System includes
 #include <unordered_set>
 
-// External includes
-End Nodes\n\n"
 // Project includes
 #include "includes/model_part_io.h"
 #include "input_output/logger.h"
@@ -23,6 +21,7 @@ End Nodes\n\n"
 #include "utilities/openmp_utils.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 
+// External includes
 // this needs to be included last to avoid redefinition problems in win
 #include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
 namespace fs = ghc::filesystem;
