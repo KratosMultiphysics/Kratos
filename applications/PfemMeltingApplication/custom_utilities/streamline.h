@@ -42,7 +42,7 @@
 #include "utilities/binbased_fast_point_locator.h"
 #include "includes/deprecated_variables.h"
 //#include "utilities/enrichment_utilities.h"
-
+//#
 #include <boost/timer.hpp>
 #include "utilities/timer.h"
 
@@ -158,7 +158,7 @@ namespace Kratos
 void RungeKutta4ElementbasedSI(ModelPart& rModelPart, unsigned int substeps)
     {
 	double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
-        //dt *=0.5;
+        dt *=0.5; 
 	BinBasedFastPointLocator<TDim> SearchStructure(rModelPart);
 	SearchStructure.UpdateSearchDatabase();
 
@@ -201,7 +201,7 @@ void RungeKutta4ElementbasedSI(ModelPart& rModelPart, unsigned int substeps)
 
 	    Node < 3 > ::Pointer pparticle = *(iparticle.base());
 
-if(iparticle->FastGetSolutionStepValue(IS_INTERFACE) == 0.0) {
+if(iparticle->FastGetSolutionStepValue(IS_STRUCTURE) == 0.0) {
                 initial_position = pparticle->GetInitialPosition() + pparticle->FastGetSolutionStepValue(DISPLACEMENT);
 
 		Element::Pointer pelement;
@@ -270,10 +270,10 @@ if(iparticle->FastGetSolutionStepValue(IS_INTERFACE) == 0.0) {
 
 }
 
-	       if(iparticle->FastGetSolutionStepValue(IS_INTERFACE) == 0.0)
+	       if(iparticle->FastGetSolutionStepValue(IS_STRUCTURE) == 0.0)
 		{
 
-		//is_found1=false;
+		is_found1=false;	
 		if(is_found1==true)
 			if(is_found2==true)
 				if(is_found3==true)

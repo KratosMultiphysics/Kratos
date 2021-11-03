@@ -1,7 +1,7 @@
-// KRATOS
-// _____   __               __  __      _ _   _
-//|  __ \ / _|             |  \/  |    | | | (_)
-//| |__) | |_ ___ _ __ ___ | \  / | ___| | |_ _ _ __   __ _
+// KRATOS 
+// _____   __               __  __      _ _   _             
+//|  __ \ / _|             |  \/  |    | | | (_)            
+//| |__) | |_ ___ _ __ ___ | \  / | ___| | |_ _ _ __   __ _ 
 //|  ___/|  _/ _ \ '_ ` _ \| |\/| |/ _ \ | __| | '_ \ / _` |
 //| |    | ||  __/ | | | | | |  | |  __/ | |_| | | | | (_| |
 //|_|    |_| \___|_| |_| |_|_|  |_|\___|_|\__|_|_| |_|\__, |
@@ -50,12 +50,12 @@
 
 namespace Kratos
 {
-
+  
   template< class T, std::size_t dim >
     class DistanceCalculator1
     {
     public:
-
+      
       double operator()(T const& p1, T const& p2)
       {
 	double dist = 0.0;
@@ -66,19 +66,19 @@ namespace Kratos
 	  }
         return dist; //square distance because it is easier to work without the square root//
       }
-
+      
     };
-
+  
   template<std::size_t TDim> class FaceHeatFlux
     {
     public:
       KRATOS_CLASS_POINTER_DEFINITION(FaceHeatFlux<TDim>);
-
-
+      
+      
       void FaceHeatFluxDistribution(ModelPart & rLagrangianModelPart, double x, double y, double z, double radius, double face_heat_flux)
       {
         KRATOS_TRY
-
+	  
 	  //defintions for spatial search
 	  typedef Node < 3 > PointType;
         typedef Node < 3 > ::Pointer PointTypePointer;
@@ -86,96 +86,96 @@ namespace Kratos
         typedef std::vector<PointType::Pointer>::iterator PointIterator;
         typedef std::vector<double> DistanceVector;
         typedef std::vector<double>::iterator DistanceIterator;
-
+	
         //creating an auxiliary list for the new nodes
         PointVector list_of_nodes;
 
         //  *************
         // Bucket types
         typedef Bucket< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-
+	
         typedef Tree< KDTreePartition<BucketType> > tree; //Kdtree;
-
-
+	
+	
         //starting calculating time of construction of the kdtree
         boost::timer kdtree_construction;
-
+	
         for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
 	     node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
 	  {
             PointTypePointer pnode = *(node_it.base());
-
+	    
             //putting the nodes of the destination_model part in an auxiliary list
             list_of_nodes.push_back(pnode);
 	  }
-
+	
         std::cout << "kdt constructin time " << kdtree_construction.elapsed() << std::endl;
-
+	
         //create a spatial database with the list of new nodes
         unsigned int bucket_size = 20;
         tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
-
+	
         //work arrays
         Node < 3 > work_point(0, 0.0, 0.0, 0.0);
         unsigned int MaximumNumberOfResults = 10000;
         PointVector Results(MaximumNumberOfResults);
         DistanceVector SquaredResultsDistances(MaximumNumberOfResults);
-
-
+	
+	
         //if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(NODAL_H) == false)
 	//  KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
-
+        
         double sigma = 0.0;
         if (TDim == 2)
 	  sigma = 10.0 / (7.0 * 3.1415926);
         else
 	  sigma = 1.0 / 3.1415926;
-
+	
         work_point.X() = x;
 	work_point.Y() = y;
 	work_point.Z() = z;
 
 	//double radius = 1.5 * node_it->FastGetSolutionStepValue(NODAL_H);
-
+		
         //find all of the new nodes within the radius
         int number_of_points_in_radius;
-
+		
         //look between the new nodes which of them is inside the radius of the circumscribed cyrcle
         number_of_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, Results.begin(), SquaredResultsDistances.begin(), MaximumNumberOfResults);
-
+		
         if (number_of_points_in_radius > 0)
 	{
-
+		    
 	//double& temperature = (node_it)->FastGetSolutionStepValue(TEMPERATURE);
-
+		    
 	//double temperature_aux = 0.0;
-
+		    
 		//double tot_weight = 0.0;
-		double maximunweight = SPHCubicKernel(sigma, 0.0, radius);
+		double maximunweight = SPHCubicKernel(sigma, 0.0, radius);    
 		for (int k = 0; k < number_of_points_in_radius; k++)
 		{
 			double distance = sqrt(*(SquaredResultsDistances.begin() + k));
-
+	
 			double weight = SPHCubicKernel(sigma, distance, radius);
-
+			
 			PointIterator it_found = Results.begin() + k;
-
+			
 			if((*it_found)->FastGetSolutionStepValue(IS_FREE_SURFACE)==1) //MATERIAL_VARIABLE
 			  {
-
+			
 			    double& aux= (*it_found)->FastGetSolutionStepValue(FACE_HEAT_FLUX);
-                            aux =  face_heat_flux * weight / maximunweight;
+                            aux =  face_heat_flux * weight / maximunweight; 
 			}
-		}
+		}	     
 	  }
         KRATOS_CATCH("")
 	  }
-
-
+      
+ 
  void FlameDistribution(ModelPart & rLagrangianModelPart, double limit)
       {
         KRATOS_TRY
-
+	  
 	  //defintions for spatial search
 	double volume0, volume1, rho;
         double volume_total=0, volume_total1=0; double arrehnius0=0.0; double arrhenius1=0.0;
@@ -183,9 +183,9 @@ namespace Kratos
 
         double density=0.0;
         double activation_energy=0.0;
-        double arrhenius_coefficient=0.0;
-        double heat_of_vaporization=0.0;
-        double temperature=0.0;
+        double arrhenius_coefficient=0.0;  
+        double heat_of_vaporization=0.0;  
+        double temperature=0.0;  
         double R=8.31; //universal gas constant
         double aux_var_polymer=0.0;
 
@@ -196,7 +196,7 @@ namespace Kratos
 	  {
 
 		    if(node_it->X()<0.0072)
-			{
+			{		
 		        volume0 = node_it->FastGetSolutionStepValue(RADIATIVE_INTENSITY,0);
 		        volume1 = node_it->FastGetSolutionStepValue(RADIATIVE_INTENSITY,1);
 			rho = node_it->FastGetSolutionStepValue(DENSITY);
@@ -209,17 +209,17 @@ namespace Kratos
 					sum_of_ARR = sum_of_ARR + arrehnius0;
 					sum_of_ARRpartial = sum_of_ARRpartial + arrhenius1;
 				}
-			}
+			}		
 	  }
 	heat_of_combustion=abs(sum_of_ARR-sum_of_ARRpartial);
 
 	for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin(); node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
 	  {
-		if( node_it->FastGetSolutionStepValue(IS_FREE_SURFACE)==1)
+		if( node_it->FastGetSolutionStepValue(IS_FREE_SURFACE)==1) 
 
 		{
-
-			if(node_it->Y()>=0.11478 && node_it->Y()<0.55)
+  
+			if(node_it->Y()>=0.11478 and node_it->Y()<0.55)
 				{
 				double aux=pow( (0.43522-(node_it->Y() - 0.11478))/0.43522,8);
 				face_heat_flux= 150000.0 * aux;// + heat_of_combustion * pow(abs((0.5555-node_it->Y())/0.555),3);
@@ -229,14 +229,14 @@ namespace Kratos
 					{
 					double aux=pow( (0.43522-(0.3037 - 0.11478))/0.43522,8);
 					face_heat_flux= 150000.0 * aux;// + heat_of_combustion * pow(abs((0.5555-node_it->Y())/0.555),3);
-
+					
 					}
 				node_it->FastGetSolutionStepValue(FACE_HEAT_FLUX)=face_heat_flux;
 
 
 
 				}
-
+			
 			else
 				{
 				node_it->FastGetSolutionStepValue(FACE_HEAT_FLUX)=50000.0;
@@ -244,7 +244,7 @@ namespace Kratos
 				}
 
 
-		}
+		}	
 	}
 
 
@@ -258,13 +258,13 @@ namespace Kratos
 
 
     private:
-
+      
       inline double SPHCubicKernel(const double sigma, const double r, const double hmax)
       {
         double h_half = 0.5 * hmax;
         const double s = r / h_half;
         const double coeff = sigma / pow(h_half, static_cast<int>(TDim));
-
+	
         if (s <= 1.0)
 	  return coeff * (1.0 - 1.5 * s * s + 0.75 * s * s * s);
         else if (s <= 2.0)
@@ -272,7 +272,7 @@ namespace Kratos
         else
             return 0.0;
       }
-
+      
 
 
     };

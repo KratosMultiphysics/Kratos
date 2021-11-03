@@ -8,7 +8,7 @@
                 "INITIAL_POSITION_Y" : 0.99997,
                 "INITIAL_POSITION_Z"      : 0.5299,
                 "RADIOUS"     : 0.8,
-                "FACE_HEAT_FLUX"     : 100000.0
+                "FACE_HEAT_FLUX"     : 10000000.0
             },
             "Tables": {
                 "Table1" : {

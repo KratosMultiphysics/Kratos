@@ -4,8 +4,8 @@
         "properties_id"   : 1,
         "Material"        : {
             "Variables" : {
-                "CONDUCTIVITY"      : 10.0,
-                "SPECIFIC_HEAT"     : 1.76
+                "CONDUCTIVITY"      : 1000.0,
+                "SPECIFIC_HEAT"     : 1920.0
             },
             "Tables"    : {}
         }

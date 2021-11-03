@@ -100,7 +100,7 @@ namespace Kratos
  */
 template< unsigned int TDim,
           unsigned int TNumNodes = TDim + 1 >
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) VMS : public Element
+class VMS : public Element
 {
 public:
     ///@name Type Definitions
