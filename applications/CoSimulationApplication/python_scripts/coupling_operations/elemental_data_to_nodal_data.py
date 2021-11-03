@@ -21,6 +21,8 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
 
     def Execute(self):
+        if not self.interface_data.IsDefinedOnThisRank(): return
+
         process_info = self.interface_data.GetModelPart().ProcessInfo
         time = process_info[KM.TIME]
 
@@ -31,9 +33,7 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
 
         model_part_interface = self.interface_data.GetModelPart()
 
-        #ConversionUtilities.ConvertElementalDataToNodalData(model_part_interface)
-        ConversionUtilities.ConvertElementalDataToNodalData(model_part_interface, KM.FORCE, KM.FORCE)
-
+        ConversionUtilities.ConvertElementalDataToNodalData(model_part_interface, KM.FORCE, KM.FORCE) # TODO this should be configurable
 
         if self.echo_level > 0:
             cs_tools.cs_print_info("Elemental_data_to_Nodal_data", "Done")

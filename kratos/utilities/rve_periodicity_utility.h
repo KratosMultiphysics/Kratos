@@ -24,19 +24,19 @@
 
 namespace Kratos
 {
-///@addtogroup StructuralMechanicsApplication
+///@addtogroup KratosCore
 ///@{
 ///@name Kratos Classes
 ///@{
 
 /**
  * @class RVEPeriodicityUtility
- * @ingroup StructuralMechanicsApplication
+ * @ingroup KratosCore
  * @brief This defines a class to define periodic BC to a RVE
  * @details It uses MPC in order to set the periodic BC
  * @author Riccardo Rossi
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RVEPeriodicityUtility
+class KRATOS_API(KRATOS_CORE) RVEPeriodicityUtility
 {
   public:
     ///@name Type Definitions
@@ -72,7 +72,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RVEPeriodicityUtility
         ModelPart& rDestinationModelPart,
         std::size_t EchoLevel = 0
         ) : mrModelPart(rDestinationModelPart)
-          , mEchoLevel(EchoLevel)  { }
+          , mEchoLevel(EchoLevel)
+    {
+    }
 
     /// Copy constructor.
     RVEPeriodicityUtility(RVEPeriodicityUtility const& rOther) = delete;
@@ -104,7 +106,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RVEPeriodicityUtility
                            ModelPart& rSlaveModelPart,
                            const Matrix& rStrainTensor,
                            const Vector& rDirection,
-                           const double SearchTolerance=1e-6
+                           const double SearchTolerance = 1.0e-6
                            );
 
     /** this function finalizes the computation of the pairings. It can be called ONLY ONCE

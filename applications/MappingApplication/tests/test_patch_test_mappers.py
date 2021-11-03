@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as KM
 
 import KratosMultiphysics.MappingApplication as KratosMapping
@@ -91,7 +90,7 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
             "mapper_type" : \"""" + mapper_name + """\"
          }""")
 
-        self.mapper = KratosMapping.MapperFactory.CreateMapper(self.mp_origin,
+        self.mapper = KM.MapperFactory.CreateMapper(self.mp_origin,
                                                                self.mp_destination,
                                                                mapper_settings)
 
@@ -133,10 +132,10 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
 
         self.mapper.UpdateInterface()
 
-        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.ADD_VALUES)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.ADD_VALUES)
         self._check_results_scalar_const(self.mp_destination, 2*mapping_value, KM.TEMPERATURE)
 
-        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.ADD_VALUES | KM.Mapper.SWAP_SIGN)
         self._check_results_scalar_const(self.mp_destination, mapping_value, KM.TEMPERATURE)
 
         # Vector Mapping
@@ -146,10 +145,10 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         self.mapper.Map(KM.FORCE, KM.VELOCITY)
         self._check_results_vector_const(self.mp_destination, mapping_value, KM.VELOCITY)
 
-        self.mapper.Map(KM.FORCE, KM.VELOCITY, KratosMapping.Mapper.ADD_VALUES)
+        self.mapper.Map(KM.FORCE, KM.VELOCITY, KM.Mapper.ADD_VALUES)
         self._check_results_vector_const(self.mp_destination, [2*x for x in mapping_value], KM.VELOCITY)
 
-        self.mapper.Map(KM.FORCE, KM.VELOCITY, KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
+        self.mapper.Map(KM.FORCE, KM.VELOCITY, KM.Mapper.ADD_VALUES | KM.Mapper.SWAP_SIGN)
         self._check_results_vector_const(self.mp_destination, mapping_value, KM.VELOCITY)
 
         ### InverseMap ###
@@ -160,10 +159,10 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE)
         self._check_results_scalar_const(self.mp_origin, mapping_value, KM.PRESSURE)
 
-        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.ADD_VALUES)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.ADD_VALUES)
         self._check_results_scalar_const(self.mp_origin, 2*mapping_value, KM.PRESSURE)
 
-        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KM.Mapper.ADD_VALUES | KM.Mapper.SWAP_SIGN)
         self._check_results_scalar_const(self.mp_origin, mapping_value, KM.PRESSURE)
 
         # Vector Mapping
@@ -173,12 +172,12 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY)
         self._check_results_vector_const(self.mp_origin, mapping_value, KM.FORCE)
 
-        self.mapper.UpdateInterface(KratosMapping.Mapper.REMESHED)
+        self.mapper.UpdateInterface(KM.Mapper.REMESHED)
 
-        self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KratosMapping.Mapper.ADD_VALUES)
+        self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KM.Mapper.ADD_VALUES)
         self._check_results_vector_const(self.mp_origin, [2*x for x in mapping_value], KM.FORCE)
 
-        self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
+        self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KM.Mapper.ADD_VALUES | KM.Mapper.SWAP_SIGN)
         self._check_results_vector_const(self.mp_origin, mapping_value, KM.FORCE)
 
 
@@ -186,7 +185,7 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         # Check mapping of a non-constant field
 
         if use_transpose:
-            mapper_flag = KratosMapping.Mapper.USE_TRANSPOSE
+            mapper_flag = KM.Mapper.USE_TRANSPOSE
         else:
             mapper_flag=KM.Flags()
 
