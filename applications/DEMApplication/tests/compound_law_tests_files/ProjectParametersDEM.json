@@ -16,7 +16,7 @@
 "dem_inlet_option"                 : false,
 "GravityX"                         : 0.0,
 "GravityY"                         : 0.0,
-"GravityZ"                         : -9.81,
+"GravityZ"                         : 0.0,
 
 "EnergyCalculationOption"          : false,
 "VelocityTrapOption"               : false,
@@ -49,22 +49,22 @@
 "AutomaticTimestep"                : false,
 "DeltaTimeSafetyFactor"            : 1.0,
 "MaxTimeStep"                      : 1e-3,
-"FinalTime"                        : 1.0,
+"FinalTime"                        : 0.07,
 "ControlTime"                      : 4.0,
-"NeighbourSearchFrequency"         : 50,
+"NeighbourSearchFrequency"         : 1,
 
 "GraphExportFreq"                  : 1e-0,
 "VelTrapGraphExportFreq"           : 1e-0,
-"OutputTimeStep"                   : 1e-3,
-"PostBoundingBox"                  : true,
-"PostDisplacement"                 : false,
+"OutputTimeStep"                   : 1e-0,
+"PostBoundingBox"                  : false,
+"PostDisplacement"                 : true,
 "PostVelocity"                     : true,
-"PostTotalForces"                  : false,
+"PostTotalForces"                  : true,
 "PostRigidElementForces"           : false,
-"PostRadius"                       : true,
-"PostAngularVelocity"              : true,
+"PostRadius"                       : false,
+"PostAngularVelocity"              : false,
 "PostParticleMoment"               : false,
-"PostEulerAngles"                  : true,
+"PostEulerAngles"                  : false,
 "PostRollingResistanceMoment"      : false,
 "PostCharacteristicLength"         : false,
 
@@ -84,5 +84,5 @@
 "PostGroupId"                      : false,
 "PostExportId"                     : false,
 
-"problem_name" : "sticky_wall_test"
+"problem_name" : "compound_law_test"
 }
