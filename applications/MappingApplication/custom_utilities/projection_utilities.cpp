@@ -242,6 +242,7 @@ bool ComputeProjection(const GeometryType& rGeometry,
 
     } else if (geom_family == GeometryData::Kratos_Tetrahedra ||
                geom_family == GeometryData::Kratos_Prism ||
+               geom_family == GeometryData::Kratos_Pyramid ||
                geom_family == GeometryData::Kratos_Hexahedra) { // Volume projection
         rPairingIndex = ProjectIntoVolume(rGeometry, rPointToProject, LocalCoordTol, rShapeFunctionValues, rEquationIds, rProjectionDistance, ComputeApproximation);
         is_full_projection = (rPairingIndex == PairingIndex::Volume_Inside);
