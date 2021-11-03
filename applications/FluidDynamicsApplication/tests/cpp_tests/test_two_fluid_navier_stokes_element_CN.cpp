@@ -518,6 +518,7 @@ namespace Kratos {
                 it_node->FastGetSolutionStepValue(DENSITY) = pElemProp->GetValue(DENSITY);
                 it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
                 it_node->FastGetSolutionStepValue(BODY_FORCE_Z) = -9.81;
+                it_node->FastGetSolutionStepValue(BODY_FORCE_Z, 1) = -9.81;
             }
 
             for (unsigned int i = 0; i < 4; i++) {

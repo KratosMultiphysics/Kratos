@@ -75,7 +75,7 @@ for dim in dim_vector:
     stress = DefineVector('stress',strain_size)
 
     ## Other simbols definition
-    dt  = Symbol('dt', positive = True)
+    dt = Symbol('dt', positive = True)
     theta  = Symbol('theta', positive = True)
 
     mu  = Symbol('mu', positive = True)
@@ -88,8 +88,7 @@ for dim in dim_vector:
     stab_c1 = Symbol('stab_c1', positive = True)
     stab_c2 = Symbol('stab_c2', positive = True)
 
-    volume_error_ratio = Symbol('volume_error_ratio')
-    volume_error_ratio_n = Symbol('volume_error_ratio_n')
+    volume_error_time_ratio = Symbol('volume_error_time_ratio')
 
     ## Convective velocity definition
     if (linearisation == "Picard"):
@@ -106,7 +105,7 @@ for dim in dim_vector:
     ## Values at Gauss point
     f_gauss = f_theta.transpose()*N
     v_gauss = v_theta.transpose()*N
-    p_gauss = p_theta.transpose()*N
+    p_gauss = p.transpose()*N #NOTE: We evaluate p-related terms at n+1 as temporal component makes no sense in this case
 
     penr_gauss = penr.transpose()*Nenr
 
@@ -119,8 +118,8 @@ for dim in dim_vector:
     qenr_gauss = qenr.transpose()*Nenr
 
     ## Gradients computation
-    grad_v = DN.transpose()*v
-    grad_p = DN.transpose()*p
+    grad_v = DN.transpose()*v_theta
+    grad_p = DN.transpose()*p #NOTE: We evaluate p-related terms at n+1 as temporal component makes no sense in this case
 
     grad_penr = DNenr.transpose()*penr
 
@@ -128,13 +127,13 @@ for dim in dim_vector:
     grad_q = DN.transpose()*q
     grad_qenr = DNenr.transpose()*qenr
 
-    div_v = div(DN,v)
+    div_v = div(DN,v_theta)
 
     div_vconv = div(DN,vconv)
 
     div_w = div(DN,w)
 
-    grad_sym_v_voigt = grad_sym_voigtform(DN,v)     # Symmetric gradient of v in Voigt notation
+    grad_sym_v_voigt = grad_sym_voigtform(DN,v_theta)     # Symmetric gradient of v in Voigt notation
     grad_sym_w_voigt = grad_sym_voigtform(DN,w)     # Symmetric gradient of w in Voigt notation
     # Recall that the grad(w):sigma contraction equals grad_sym(w)*sigma in Voigt notation since sigma is a symmetric tensor.
 
@@ -160,9 +159,9 @@ for dim in dim_vector:
     rv_galerkin += rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss
 
     if (divide_by_rho):
-        rv_galerkin += q_gauss*(volume_error_ratio - div_v[0,0])
+        rv_galerkin += q_gauss*(volume_error_time_ratio - div_v[0,0])
     else:
-        rv_galerkin += rho*q_gauss*(volume_error_ratio - div_v[0,0])
+        rv_galerkin += rho*q_gauss*(volume_error_time_ratio - div_v[0,0])
 
     # Stabilization functional terms at n+theta
     # Momentum conservation residual
@@ -171,9 +170,9 @@ for dim in dim_vector:
 
     # Mass conservation residual
     if (divide_by_rho):
-        mas_residual = -div_v[0,0] + volume_error_ratio
+        mas_residual = -div_v[0,0] + volume_error_time_ratio
     else:
-        mas_residual = -rho*div_v[0,0] + rho*volume_error_ratio
+        mas_residual = -rho*div_v[0,0] + rho*volume_error_time_ratio
 
     vel_subscale = tau1*vel_residual
     mas_subscale = tau2*mas_residual
@@ -184,7 +183,7 @@ for dim in dim_vector:
     else:
         rv_stab = rho*grad_q.transpose()*vel_subscale
     rv_stab += rho*vconv_gauss.transpose()*grad_w*vel_subscale
-    rv_stab += rho*div_vconv*w_gauss.transpose()*vel_subscale #TODO: Check why they deactivated this
+    rv_stab += rho*div_vconv*w_gauss.transpose()*vel_subscale
     rv_stab += div_w*mas_subscale
 
     ## Add the stabilization terms to the original residual terms
@@ -229,16 +228,16 @@ for dim in dim_vector:
     rv_galerkin_enriched = div_w*penr_gauss
 
     if (divide_by_rho):
-        rv_galerkin_enriched += qenr_gauss*(volume_error_ratio - div_v[0,0])
+        rv_galerkin_enriched += qenr_gauss*(volume_error_time_ratio - div_v[0,0])
         rv_stab_enriched = grad_qenr.transpose()*vel_subscale_enr
         rv_stab_enriched -= grad_q.transpose()*tau1*grad_penr
     else:
-        rv_galerkin_enriched += qenr_gauss*rho*(volume_error_ratio - div_v[0,0])
+        rv_galerkin_enriched += qenr_gauss*rho*(volume_error_time_ratio - div_v[0,0])
         rv_stab_enriched = rho*grad_qenr.transpose()*vel_subscale_enr
         rv_stab_enriched -= rho*grad_q.transpose()*tau1*grad_penr
 
     rv_stab_enriched -= rho*vconv_gauss.transpose()*grad_w*tau1*grad_penr
-    #rv_stab_enriched -= rho*div_vconv*w_gauss.transpose()*tau1*grad_penr
+    # rv_stab_enriched -= rho*div_vconv*w_gauss.transpose()*tau1*grad_penr //FIXME: Why do not add this?
 
     rv_enriched = rv_galerkin_enriched
     ## Add the stabilization terms to the original residual terms

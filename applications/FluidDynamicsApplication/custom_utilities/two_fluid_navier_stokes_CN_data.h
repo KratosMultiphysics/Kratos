@@ -73,7 +73,7 @@ double Density;
 double DynamicViscosity;
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
-double VolumeError;
+double VolumeError; //TODO: RENAME TO VolumeErrorTimeRatio
 double theta;
 
 // Auxiliary containers for the symbolically-generated matrices
@@ -136,7 +136,6 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
-    this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
     this->FillFromProcessInfo(theta,TIME_INTEGRATION_THETA,rProcessInfo);
 
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
@@ -155,6 +154,19 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
         else
             NumNegativeNodes++;
     }
+
+    // In here we calculate the volume error temporary ratio (note that the input value is a relative measure of the volume loss)
+    // Also note that we do consider time varying time step but a constant theta (we incur in a small error when switching from BE to CN)
+    // Note as well that there is a minus sign (this comes from the divergence sign)
+    if (IsCut()) {
+        const double previous_dt = rProcessInfo.GetPreviousTimeStepInfo().GetValue(DELTA_TIME);
+        this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
+        double ratio_dt = (1.0-theta)*previous_dt + theta*DeltaTime;
+        VolumeError /= -ratio_dt;
+    } else {
+        VolumeError = 0.0;
+    }
+
 }
 
 void UpdateGeometryValues(

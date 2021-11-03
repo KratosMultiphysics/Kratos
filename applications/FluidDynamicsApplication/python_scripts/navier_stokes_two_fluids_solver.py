@@ -295,20 +295,43 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             elif self.time_scheme == "theta_scheme":
                 # Calculate time step according to theta
                 dt = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
-                transport_dt = dt
-                # transport_dt = self.theta * dt
+                transport_dt = self.theta * dt
                 self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, transport_dt)
 
-                # Prepare database for next levelset convection
-                # Velocity prediction at n + theta
-                for node in self.GetComputingModelPart().Nodes:
-                    v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
-                    v_nn = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 2)
-                    v_pred = v_n + self.theta * (v_n - v_nn)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, v_pred)
+                #FIXME: THE PREDICT DOES NOT WORK
+                #FIXME: THIS IS WHY THE BACKWARD-EULER WAS NOT WORKING
+                #FIXME: THE PREDICT DOES NOT WORK
+                #FIXME: THIS IS WHY THE BACKWARD-EULER WAS NOT WORKING
+                #FIXME: THE PREDICT DOES NOT WORK
+                #FIXME: THIS IS WHY THE BACKWARD-EULER WAS NOT WORKING
+                # # Prepare database for next levelset convection
+                # # Velocity prediction at n + theta
+                # for node in self.GetComputingModelPart().Nodes:
+                #     v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
+                #     v_nn = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 2)
+                #     v_pred = v_n + self.theta * (v_n - v_nn)
+                #     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, v_pred)
+                #FIXME: THE PREDICT DOES NOT WORK
+                #FIXME: THIS IS WHY THE BACKWARD-EULER WAS NOT WORKING
+                #FIXME: THE PREDICT DOES NOT WORK
+                #FIXME: THIS IS WHY THE BACKWARD-EULER WAS NOT WORKING
+                #FIXME: THE PREDICT DOES NOT WORK
+                #FIXME: THIS IS WHY THE BACKWARD-EULER WAS NOT WORKING
+
+                # # Prepare database for next levelset convection
+                # for node in self.GetComputingModelPart().Nodes:
+                #     v_0 = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 0)
+                #     v_1 = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
+                #     v_2 = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 2)
+                #     node.SetValue(KratosMultiphysics.VELOCITY, v_0)
+                #     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, v_1 + self.theta*(v_1 - v_2))
 
                 # Perform the level-set convection according to the previous step velocity
                 self.__PerformLevelSetConvection()
+
+                # # Revert the database manipulation
+                # for node in self.GetComputingModelPart().Nodes:
+                #     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, node.GetValue(KratosMultiphysics.VELOCITY))
 
                 # Reset time step for the Navier-Stokes calculation
                 self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, dt)
@@ -356,47 +379,33 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def FinalizeSolutionStep(self):
         if self._TimeBufferIsInitialized():
+            if self.time_scheme == "theta_scheme" and (1.0 - self.theta) > 1.0e-12:
+                # Calculate time step according to theta
+                dt = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
+                transport_dt = (1.0-self.theta) * dt
+                self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, transport_dt)
 
-                    #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+                # # Prepare database for next levelset convection
+                # for node in self.GetComputingModelPart().Nodes:
+                #     v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
+                #     v_n_1 = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 0)
+                #     node.SetValue(KratosMultiphysics.VELOCITY, v_n)
+                #     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1, v_n + self.theta*(v_n_1 - v_n))
 
+                #     phi_n_1 = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE, 0)
+                #     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 1, phi_n_1)
 
-            # if self.time_scheme == "theta_scheme" and (1.0 - self.theta) > 1.0e-12:
-            #     # Calculate time step according to theta
-            #     dt = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
-            #     transport_dt = (1.0-self.theta) * dt
-            #     self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, transport_dt)
+                # Perform the level-set convection according to the previous step velocity
+                self.__PerformLevelSetConvection()
 
-            #     # Prepare database for next levelset convection
-            #     for node in self.GetComputingModelPart().Nodes:
-            #         v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
-            #         v_n_1 = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 0)
-            #         node.SetValue(KratosMultiphysics.VELOCITY, v_n)
-            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1, v_n + self.theta*(v_n_1 - v_n))
+                # # Revert the database manipulation
+                # for node in self.GetComputingModelPart().Nodes:
+                #     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1, node.GetValue(KratosMultiphysics.VELOCITY))
 
-            #         phi_n_1 = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE, 0)
-            #         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 1, phi_n_1)
+                # Reset time step for the Navier-Stokes calculation
+                self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, dt)
 
-            #     # Perform the level-set convection according to the previous step velocity
-            #     self.__PerformLevelSetConvection()
-
-            #     # Revert the database manipulation
-            #     for node in self.GetComputingModelPart().Nodes:
-            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1, node.GetValue(KratosMultiphysics.VELOCITY))
-
-            #     # Reset time step for the Navier-Stokes calculation
-            #     self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, dt)
-
-            #     KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "2nd level-set convection is performed.")
-
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "2nd level-set convection is performed.")
 
             # Recompute the distance field according to the new level-set position
             if (self._reinitialization_type == "variational"):
@@ -430,18 +439,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def __PerformLevelSetConvection(self):
         # Solve the levelset convection problem
-        # self._GetLevelSetConvectionProcess().Execute()
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        pass
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
-        #FIXME: ACTIVATE TRANSPORT AFTER FIXING ELEMENT @Uxue
+        self._GetLevelSetConvectionProcess().Execute()
 
     # TODO: Remove this method as soon as the subproperties are available
     def _SetPhysicalProperties(self):

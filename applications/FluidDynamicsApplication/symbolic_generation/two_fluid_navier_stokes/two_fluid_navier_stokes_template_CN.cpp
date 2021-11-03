@@ -469,11 +469,7 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::ComputeGaussPoint
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    double volume_error_ratio = 0.0;
-    if (rData.IsCut()) {
-        const double volume_error =-rData.VolumeError;
-        volume_error_ratio = volume_error / dt;
-    }
+    const double volume_error_time_ratio = rData.VolumeError;
 
     auto &rhs = rData.rhs;
 
@@ -519,11 +515,7 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::ComputeGaussPoint
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    double volume_error_ratio = 0.0;
-    if (rData.IsCut()) {
-        const double volume_error = -rData.VolumeError;
-        volume_error_ratio = volume_error / dt;
-    }
+    const double volume_error_time_ratio = rData.VolumeError;
 
     auto &rhs = rData.rhs;
 
@@ -557,6 +549,7 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::ComputeGaussPoint
     const auto &f = rData.BodyForce;
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p=rData.Pressure;
+    const auto &pn=rData.Pressure_OldStep1;
 
     const BoundedMatrix<double,3,2> vconv = theta*(v-vmesh) + (1-theta)*(vn-vmeshn);
 
@@ -571,11 +564,7 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::ComputeGaussPoint
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    double volume_error_ratio = 0.0;
-    if (rData.IsCut()) {
-        const double volume_error = -rData.VolumeError;
-        volume_error_ratio = volume_error / dt;
-    }
+    const double volume_error_time_ratio = rData.VolumeError;
 
     auto &V = rData.V;
     auto &H = rData.H;
@@ -624,6 +613,7 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::ComputeGaussPoint
     const auto &f = rData.BodyForce;
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p = rData.Pressure;
+    const auto &pn = rData.Pressure_OldStep1;
 
     const BoundedMatrix<double,4,3> vconv = theta*(v-vmesh) + (1-theta)*(vn-vmeshn);
 
@@ -638,11 +628,7 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::ComputeGaussPoint
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    double volume_error_ratio = 0.0;
-    if (rData.IsCut()) {
-        const double volume_error =-rData.VolumeError;
-        volume_error_ratio = volume_error / dt;
-    }
+    const double volume_error_time_ratio = rData.VolumeError;
 
     auto &V = rData.V;
     auto &H = rData.H;
@@ -1007,7 +993,6 @@ void TwoFluidNavierStokesCN<TElementData>::CondenseEnrichmentWithContinuity(
                     double sum_d = di + dj;
                     double Ni = dj / sum_d;
                     double Nj = di / sum_d;
-                    //FIXME: ESTO QUE ES???
                     double penalty_coeff = max_diag * 0.001;
                     rKeeTot(i, i) += penalty_coeff * Ni * Ni;
                     rKeeTot(i, j) -= penalty_coeff * Ni * Nj;
