@@ -5,13 +5,13 @@ import KratosMultiphysics.ShallowWaterApplication as SW
 # Importing useful utilities
 from KratosMultiphysics.kratos_utilities import GenerateVariableListFromInput
 
-def Factory(settings, Model):
+def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return VisualizationMeshProcess(Model, settings["Parameters"])
+    return VisualizationMeshProcess(model, settings["Parameters"])
 
 class VisualizationMeshProcess(KM.Process):
-    def __init__(self, Model, settings):
+    def __init__(self, model, settings):
         """ VisualizationMeshProcess.
 
         This process provides several tools for post-processing.
@@ -35,7 +35,7 @@ class VisualizationMeshProcess(KM.Process):
             )
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.computing_model_part = Model[settings["model_part_name"].GetString()]
+        self.computing_model_part = model[settings["model_part_name"].GetString()]
 
         # Getting the deformation mode options
         self.deform_mesh = self._GetDeformMeshFlag(settings["mesh_deformation_mode"].GetString())
@@ -43,9 +43,14 @@ class VisualizationMeshProcess(KM.Process):
         # Creating the topographic model part if specified
         self.topographic_model_part = None
         if settings["create_topographic_model_part"].GetBool():
-            self.topographic_model_part = Model.CreateModelPart(settings["topographic_model_part_name"].GetString())
-            self.nodal_variables = GenerateVariableListFromInput(settings["nodal_variables_to_transfer"])
-            self.nonhistorical_variables = GenerateVariableListFromInput(settings["nonhistorical_variables_to_transfer"])
+            self.topographic_model_part = model.CreateModelPart(settings["topographic_model_part_name"].GetString())
+        else:
+            if model.Has(settings["topographic_model_part_name"].GetString()):
+                self.topographic_model_part = model.GetModelPart(settings["topographic_model_part_name"].GetString())
+
+        # Creating the variables list
+        self.nodal_variables = GenerateVariableListFromInput(settings["nodal_variables_to_transfer"])
+        self.nonhistorical_variables = GenerateVariableListFromInput(settings["nonhistorical_variables_to_transfer"])
 
 
     def ExecuteInitialize(self):
