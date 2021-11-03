@@ -1154,6 +1154,10 @@ private:
             return std::string("Kratos_Prism3D15");
         case GeometryData::Kratos_Prism3D6 :
             return std::string("Kratos_Prism3D6");
+        case GeometryData::Kratos_Pyramid3D13 :
+            return std::string("Kratos_Pyramid3D13");
+        case GeometryData::Kratos_Pyramid3D5 :
+            return std::string("Kratos_Pyramid3D5");
         case GeometryData::Kratos_Quadrilateral2D4 :
             return std::string("Kratos_Quadrilateral2D4");
         case GeometryData::Kratos_Quadrilateral2D8 :
