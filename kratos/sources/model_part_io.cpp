@@ -136,7 +136,7 @@ void ModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
     }
     (*mpStream) << "Begin Nodes" << std::endl;
     for(NodesContainerType::const_iterator it_node = rThisNodes.begin() ; it_node != rThisNodes.end() ; ++it_node)
-        (*mpStream) << "\t" << it_node->Id() << "\t" << it_node->X()  << "\t" << it_node->Y() << "\t" << it_node->Z() << std::endl;
+        (*mpStream) << "\t" << it_node->Id() << "\t" << it_node->X()  << "\t" << it_node->Y() << "\t" << it_node->Z() << "\n";
     (*mpStream) << "End Nodes" << std::endl << std::endl;
 }
 
