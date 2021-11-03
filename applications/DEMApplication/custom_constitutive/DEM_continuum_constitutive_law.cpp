@@ -15,7 +15,9 @@ namespace Kratos {
         return type_of_law;
     }
 
-    void DEMContinuumConstitutiveLaw::Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps) {
+    void DEMContinuumConstitutiveLaw::Initialize(SphericContinuumParticle* element1,
+                                                 SphericContinuumParticle* element2,
+                                                 Properties::Pointer pProps) {
         mpProperties = pProps;
     }
 
@@ -45,7 +47,6 @@ namespace Kratos {
         return p_clone;
     }
 
-
     void DEMContinuumConstitutiveLaw::CalculateViscoDamping(double LocalRelVel[3],
                                                             double ViscoDampingLocalContactForce[3],
                                                             double indentation,
@@ -69,8 +70,15 @@ namespace Kratos {
         KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::ComputeParticleRotationalMoments) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
-    void DEMContinuumConstitutiveLaw::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area, BoundedMatrix<double, 3, 3>* mSymmStressTensor,
-                                                             SphericContinuumParticle* element1, SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) {
+    void DEMContinuumConstitutiveLaw::AddPoissonContribution(const double equiv_poisson,
+                                                             double LocalCoordSystem[3][3],
+                                                             double& normal_force,
+                                                             double calculation_area,
+                                                             BoundedMatrix<double, 3, 3>* mSymmStressTensor,
+                                                             SphericContinuumParticle* element1, SphericContinuumParticle* element2,
+                                                             const ProcessInfo& r_process_info,
+                                                             const int i_neighbor_count,
+                                                             const double indentation) {
     }
 
 

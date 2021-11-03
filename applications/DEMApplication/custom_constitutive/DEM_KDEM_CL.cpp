@@ -111,13 +111,24 @@ namespace Kratos {
         return a;
     }
 
-    void DEM_KDEM::GetContactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) {
+    void DEM_KDEM::GetContactArea(const double radius,
+                                  const double other_radius,
+                                  const Vector& vector_of_initial_areas,
+                                  const int neighbour_position,
+                                  double& calculation_area) {
         if (vector_of_initial_areas.size()) calculation_area = vector_of_initial_areas[neighbour_position];
         else CalculateContactArea(radius, other_radius, calculation_area);
     }
 
-    void DEM_KDEM::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
-                                             double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) {
+    void DEM_KDEM::CalculateElasticConstants(double& kn_el,
+                                             double& kt_el,
+                                             double initial_dist,
+                                             double equiv_young,
+                                             double equiv_poisson,
+                                             double calculation_area,
+                                             SphericContinuumParticle* element1,
+                                             SphericContinuumParticle* element2,
+                                             double indentation) {
 
         KRATOS_TRY
 
@@ -159,9 +170,7 @@ namespace Kratos {
 
         const double my_mass    = element1->GetMass();
         const double other_mass = element2->GetMass();
-
         const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
-
         const double damping_gamma = (*mpProperties)[DAMPING_GAMMA];
 
         equiv_visco_damp_coeff_normal     = 2.0 * damping_gamma * sqrt(equiv_mass * kn_el);
@@ -218,43 +227,43 @@ namespace Kratos {
     }
 
     void DEM_KDEM::CalculateForces(const ProcessInfo& r_process_info,
-                                double OldLocalElasticContactForce[3],
-                                double LocalElasticContactForce[3],
-                                double LocalElasticExtraContactForce[3],
-                                double LocalCoordSystem[3][3],
-                                double LocalDeltDisp[3],
-                                const double kn_el,
-                                const double kt_el,
-                                double& contact_sigma,
-                                double& contact_tau,
-                                double& failure_criterion_state,
-                                double equiv_young,
-                                double equiv_shear,
-                                double indentation,
-                                double calculation_area,
-                                double& acumulated_damage,
-                                SphericContinuumParticle* element1,
-                                SphericContinuumParticle* element2,
-                                int i_neighbour_count,
-                                int time_steps,
-                                bool& sliding,
-                                double &equiv_visco_damp_coeff_normal,
-                                double &equiv_visco_damp_coeff_tangential,
-                                double LocalRelVel[3],
-                                double ViscoDampingLocalContactForce[3]) {
+                                   double OldLocalElasticContactForce[3],
+                                   double LocalElasticContactForce[3],
+                                   double LocalElasticExtraContactForce[3],
+                                   double LocalCoordSystem[3][3],
+                                   double LocalDeltDisp[3],
+                                   const double kn_el,
+                                   const double kt_el,
+                                   double& contact_sigma,
+                                   double& contact_tau,
+                                   double& failure_criterion_state,
+                                   double equiv_young,
+                                   double equiv_shear,
+                                   double indentation,
+                                   double calculation_area,
+                                   double& acumulated_damage,
+                                   SphericContinuumParticle* element1,
+                                   SphericContinuumParticle* element2,
+                                   int i_neighbour_count,
+                                   int time_steps,
+                                   bool& sliding,
+                                   double &equiv_visco_damp_coeff_normal,
+                                   double &equiv_visco_damp_coeff_tangential,
+                                   double LocalRelVel[3],
+                                   double ViscoDampingLocalContactForce[3]) {
 
         KRATOS_TRY
         CalculateNormalForces(LocalElasticContactForce,
-                kn_el,
-                equiv_young,
-                indentation,
-                calculation_area,
-                acumulated_damage,
-                element1,
-                element2,
-                i_neighbour_count,
-                time_steps,
-            r_process_info);
+                              kn_el,
+                              equiv_young,
+                              indentation,
+                              calculation_area,
+                              acumulated_damage,
+                              element1,
+                              element2,
+                              i_neighbour_count,
+                              time_steps,
+                              r_process_info);
 
         CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
                                    equiv_visco_damp_coeff_tangential,
@@ -295,16 +304,16 @@ namespace Kratos {
     }
 
     void DEM_KDEM::CalculateNormalForces(double LocalElasticContactForce[3],
-            const double kn_el,
-            double equiv_young,
-            double indentation,
-            double calculation_area,
-            double& acumulated_damage,
-            SphericContinuumParticle* element1,
-            SphericContinuumParticle* element2,
-            int i_neighbour_count,
-            int time_steps,
-            const ProcessInfo& r_process_info) {
+                                         const double kn_el,
+                                         double equiv_young,
+                                         double indentation,
+                                         double calculation_area,
+                                         double& acumulated_damage,
+                                         SphericContinuumParticle* element1,
+                                         SphericContinuumParticle* element2,
+                                         int i_neighbour_count,
+                                         int time_steps,
+                                         const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
 
