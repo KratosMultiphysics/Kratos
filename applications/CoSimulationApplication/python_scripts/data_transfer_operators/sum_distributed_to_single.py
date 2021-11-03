@@ -19,12 +19,8 @@ class SumDistributedToSingle(CoSimulationDataTransferOperator):
             raise Exception('Interface data "{}" of solver "{}" requires to be of size 1, got: {}'.format(to_solver_data.name, to_solver_data.solver_name, to_solver_data_size))
 
         data_array = from_solver_data.GetData()
-
-        # Get Value from solver, if not existent set 0
-        if data_array.size == 0:
-            value = float(0)
-        else:
-            value = sum(data_array)  
+        
+        value = float(sum(data_array))        
         
         if from_solver_data.IsDistributed():
             value = from_solver_data.model_part.GetCommunicator().GetDataCommunicator().SumAll(value)
