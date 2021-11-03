@@ -8,14 +8,14 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_io im
 from KratosMultiphysics.CoSimulationApplication import CoSimIO
 
 
-def Create(settings, model, solver_name):
-    return KratosCoSimIO(settings, model, solver_name)
+def Create(*args):
+    return KratosCoSimIO(*args)
 
 class KratosCoSimIO(CoSimulationIO):
     """Wrapper for the CoSimIO to be used with Kratos
     """
-    def __init__(self, settings, model, solver_name):
-        super().__init__(settings, model, solver_name)
+    def __init__(self, settings, model, solver_name, data_commnicator):
+        super().__init__(settings, model, solver_name, data_commnicator)
 
         connect_to = self.settings["connect_to"].GetString()
         if connect_to == "":

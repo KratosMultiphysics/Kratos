@@ -5,7 +5,7 @@ from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import C
 from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper import ConvergenceAcceleratorWrapper
 from testing_utilities import DummySolverWrapper
 
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 import numpy as np
 from random import uniform
 
@@ -34,7 +34,7 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KM.PRESSURE, uniform(-10, 50))
 
         if KM.IsDistributedRun():
-            KratosMPI.ParallelFillCommunicator(self.model_part).Execute()
+            KratosMPI.ParallelFillCommunicator(self.model_part, KM.Testing.GetDefaultDataCommunicator()).Execute()
 
         data_settings = KM.Parameters("""{
             "model_part_name" : "default",
@@ -46,10 +46,9 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
 
     def test_accelerator_without_support_for_distributed_data(self):
         conv_acc_settings = KM.Parameters("""{
-            "type"      : "constant_relaxation",
+            "type"      : "patched_mock_testing",
             "data_name" : "data_4_testing"
         }""")
-        conv_acc_wrapper = ConvergenceAcceleratorWrapper(conv_acc_settings, self.dummy_solver_wrapper)
 
         exp_inp = self.interface_data.GetData()
         update_solution_return_value = [uniform(-10, 50) for _ in range(self.num_nodes)]
@@ -64,7 +63,9 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
         }
         conv_acc_mock.configure_mock(**attrs)
 
-        conv_acc_wrapper.conv_acc = conv_acc_mock
+        with patch('KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper.CreateConvergenceAccelerator') as p:
+            p.return_value = conv_acc_mock
+            conv_acc_wrapper = ConvergenceAcceleratorWrapper(conv_acc_settings, self.dummy_solver_wrapper)
 
         conv_acc_wrapper.InitializeSolutionStep()
 
@@ -94,12 +95,10 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
 
     def test_accelerator_with_support_for_distributed_data(self):
         conv_acc_settings = KM.Parameters("""{
-            "type"      : "constant_relaxation",
+            "type"      : "patched_mock_testing",
             "data_name" : "data_4_testing"
         }""")
-        conv_acc_wrapper = ConvergenceAcceleratorWrapper(conv_acc_settings, self.dummy_solver_wrapper)
 
-        exp_inp = self.interface_data.GetData()
         update_solution_return_value = [uniform(-10, 50) for _ in range(self.num_nodes)]
 
         conv_acc_mock = Mock()
@@ -110,13 +109,17 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
         }
         conv_acc_mock.configure_mock(**attrs)
 
-        conv_acc_wrapper.conv_acc = conv_acc_mock
+        with patch('KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper.CreateConvergenceAccelerator') as p:
+            p.return_value = conv_acc_mock
+            conv_acc_wrapper = ConvergenceAcceleratorWrapper(conv_acc_settings, self.dummy_solver_wrapper)
 
-        conv_acc_wrapper.InitializeSolutionStep()
+        exp_inp = self.interface_data.GetData()
 
         self.assertEqual(conv_acc_mock.SupportsDistributedData.call_count, 1)
         self.assertFalse(conv_acc_wrapper.gather_scatter_required)
         self.assertTrue(conv_acc_wrapper.executing_rank)
+
+        conv_acc_wrapper.InitializeSolutionStep()
 
         conv_acc_wrapper.InitializeNonLinearIteration()
 

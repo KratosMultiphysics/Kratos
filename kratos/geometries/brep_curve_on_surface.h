@@ -585,6 +585,10 @@ public:
         return mpCurveOnSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
     }
 
+    ///@}
+    ///@name Geometry Classification
+    ///@{
+
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Brep;
@@ -592,12 +596,8 @@ public:
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Brep_Curve;
+        return GeometryData::Kratos_Brep_Curve_On_Surface;
     }
-    ///@}
-    ///@name Input and output
-    ///@{
-
 
     ///@}
     ///@name Information

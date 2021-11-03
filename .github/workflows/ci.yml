@@ -18,6 +18,8 @@ jobs:
         compiler: [gcc, clang]
     env:
       KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
+      OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
+      OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
@@ -80,7 +82,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        mpiexec --oversubscribe -np 3 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
+        mpiexec -np 3 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPICore C++ tests (4 Cores)
       shell: bash
@@ -89,7 +91,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        mpiexec --oversubscribe -np 4 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
+        mpiexec -np 4 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running Python MPI tests (2 Cores)
       shell: bash
@@ -105,7 +107,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 3 -f--oversubscribe
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 3
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
@@ -113,7 +115,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 4 -f--oversubscribe
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 4
 
   windows:
     runs-on: windows-latest
@@ -374,6 +376,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       KRATOS_BUILD_TYPE: Custom
+      OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
+      OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
@@ -419,7 +423,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        mpiexec --oversubscribe -np 3 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
+        mpiexec -np 3 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPICore C++ tests (4 Cores)
       shell: bash
@@ -428,7 +432,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        mpiexec --oversubscribe -np 4 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
+        mpiexec -np 4 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running Python MPI tests (2 Cores)
       shell: bash
@@ -444,7 +448,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 3 -f--oversubscribe
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 3
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
@@ -452,4 +456,4 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 4 -f--oversubscribe
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 4

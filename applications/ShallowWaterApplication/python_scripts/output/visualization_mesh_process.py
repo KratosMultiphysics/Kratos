@@ -27,9 +27,7 @@ class VisualizationMeshProcess(KM.Process):
                 "model_part_name"                : "model_part_name",
                 "topographic_model_part_name"    : "topographic_model_part",
                 "create_topographic_model_part"  : true,
-                "use_properties_as_dry_wet_flag" : false,
                 "mesh_deformation_mode"          : "use_nodal_displacement",
-                "wet_flag"                       : "FLUID",
                 "topography_variable"            : "TOPOGRAPHY",
                 "free_surface_variable"          : "FREE_SURFACE_ELEVATION",
                 "nodal_variables_to_transfer"    : ["TOPOGRAPHY"],
@@ -66,20 +64,14 @@ class VisualizationMeshProcess(KM.Process):
             self.nonhistorical_variables = GenerateVariableListFromInput(settings["nonhistorical_variables_to_transfer"])
             self.topography_variable = KM.KratosGlobals.GetVariable(settings["topography_variable"].GetString())
 
-        # The DefineAuxiliaryProperties method duplicates the current number of properties:
-        # For each property, it creates another one, which means dry state.
-        # It should be called only once, otherwise, the number of properties would increase exponentially
-        self.use_properties_as_dry_wet_flag = settings["use_properties_as_dry_wet_flag"].GetBool()
-        if self.use_properties_as_dry_wet_flag:
-            self.properties_utility = SW.PostProcessUtilities(self.computing_model_part)
-            self.properties_utility.DefineAuxiliaryProperties()
-            self.wet_flag = KM.KratosGlobals.GetFlag(settings["wet_flag"].GetString())
-
     def ExecuteInitialize(self):
         if self.use_topographic_model_part:
             self.topography_utility.Replicate()
 
     def ExecuteBeforeSolutionLoop(self):
+        # Set the results only over the wet domain as non-historical
+        self._StoreNonHistoricalVariablesGiDNoDataIfDry()
+
         # Transferring the nodal variables
         if self.use_topographic_model_part:
             for variable in self.nodal_variables:
@@ -100,6 +92,9 @@ class VisualizationMeshProcess(KM.Process):
                 KM.VariableUtils().SetNonHistoricalVariableToZero(KM.DISPLACEMENT, self.topographic_model_part.Nodes)
 
     def ExecuteBeforeOutputStep(self):
+        # Set the results only over the wet domain as non-historical
+        self._StoreNonHistoricalVariablesGiDNoDataIfDry()
+
         # Transferring the nodal variables
         if self.use_topographic_model_part:
             for variable in self.nodal_variables:
@@ -127,15 +122,11 @@ class VisualizationMeshProcess(KM.Process):
                     self.topographic_model_part,
                     0)
 
-        # Assigning the properties as a flag if need
-        if self.use_properties_as_dry_wet_flag:
-            self.properties_utility.AssignDryWetProperties(self.wet_flag)
-
     def ExecuteAfterOutputStep(self):
         # Restoring the mesh
         if self.deform_mesh:
             SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(self.computing_model_part)
 
-        # Restoring the properties
-        if self.use_properties_as_dry_wet_flag:
-            self.properties_utility.RestoreDryWetProperties()
+    def _StoreNonHistoricalVariablesGiDNoDataIfDry(self):
+        SW.ShallowWaterUtilities().StoreNonHistoricalGiDNoDataIfDry(self.computing_model_part, SW.HEIGHT)
+        SW.ShallowWaterUtilities().StoreNonHistoricalGiDNoDataIfDry(self.computing_model_part, SW.FREE_SURFACE_ELEVATION)
