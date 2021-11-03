@@ -972,7 +972,7 @@ public:
      * @param  rOtherGeometry Geometry to intersect with
      * @return True if the geometries intersect, False in any other case.
      */
-    bool HasIntersection(const BaseType& rOtherGeometry) override
+    bool HasIntersection(const BaseType& rOtherGeometry) const override
     {
         const double tolerance = std::numeric_limits<double>::epsilon();
         // We get the local points
@@ -1001,7 +1001,7 @@ public:
      * @param  rHighPoint Higher point of the box to test the intersection
      * @return            True if the geometry intersects the box, False in any other case.
      */
-    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) override
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) const override
     {
         const double tolerance = std::numeric_limits<double>::epsilon();
         // We get the local points
