@@ -20,7 +20,6 @@
 #include "containers/pointer_vector.h"
 #include "containers/model.h"
 #include "geometries/geometry.h"
-#include "geometries/nurbs_volume_geometry.h"
 
 #include "processes/process.h"
 
@@ -45,15 +44,13 @@ public:
 
     typedef Node<3>                                             NodeType;
     typedef Geometry<NodeType>                                  GeometryType;
-    typedef Element ElementType;
     typedef GeometryType::Pointer                               GeometryPointerType;
     typedef typename GeometryType::GeometriesArrayType          GeometriesArrayType;
     typedef typename GeometryType::CoordinatesArrayType         CoordinatesArrayType;
-    // typedef NurbsVolumeGeometry<PointerVector<NodeType>>        NurbsVolumeGeometryType;
-    // typedef NurbsVolumeGeometryType::Pointer                    NurbsVolumeGeometryPointerType;
     typedef typename GeometryType::IntegrationPointsArrayType   IntegrationPointsArrayType;
-    // typedef std::size_t IndexType;
-    // typedef std::size_t SizeType;
+
+    typedef std::size_t IndexType;
+    typedef std::size_t SizeType;
 
     ///@}
     ///@name Life Cycle
@@ -114,6 +111,7 @@ private:
 
     Model& mrModel;
     Parameters mThisParameters;
+    bool mIsAssignedFlag;
 
     ///@}
 
