@@ -87,7 +87,7 @@ public:
         NumberOfIntegrationMethods
     };
 
-    enum KratosGeometryFamily
+    enum class KratosGeometryFamily
     {
         Kratos_NoElement,
         Kratos_Point,
@@ -101,10 +101,11 @@ public:
         Kratos_Nurbs,
         Kratos_Brep,
         Kratos_Quadrature_Geometry,
-        Kratos_generic_family
+        Kratos_generic_family,
+        NumberOfGeometryFamilies
     };
 
-    enum KratosGeometryType
+    enum class KratosGeometryType
     {
         Kratos_generic_type,
         Kratos_Hexahedra3D20,
@@ -143,7 +144,8 @@ public:
         Kratos_Brep_Curve_On_Surface,
         Kratos_Quadrature_Point_Geometry,
         Kratos_Quadrature_Point_Curve_On_Surface_Geometry,
-        Kratos_Quadrature_Point_Surface_In_Volume_Geometry
+        Kratos_Quadrature_Point_Surface_In_Volume_Geometry,
+        NumberOfGeometryTypes
     };
     ///@}
     ///@name Type Definitions
