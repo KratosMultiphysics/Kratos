@@ -8,9 +8,11 @@ if not KM.IsDistributedRun():
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import tests
+import run_cpp_mpi_unit_tests
 from test_convergence_criteria import TestConvergenceCriteriaWrapper
 from test_convergence_accelerators import TestConvergenceAcceleratorWrapper
 from test_processes import TestCreatePointBasedEntitiesProcess
+from co_simulation_test_factory import TestCoSimulationCases
 
 
 def AssembleTestSuites():
@@ -39,6 +41,7 @@ def AssembleTestSuites():
     ################################################################################
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['mpi_validation']
+    validationSuite.addTest(TestCoSimulationCases('test_sdof_fsi'))
 
     ################################################################################
     # Create a test suit that contains all the tests:
@@ -50,4 +53,5 @@ def AssembleTestSuites():
 
 
 if __name__ == '__main__':
+    run_cpp_mpi_unit_tests.run() # Application-MPI tests are currently not run automatically, hence this hack is temporarily required
     KratosUnittest.runTests(AssembleTestSuites())

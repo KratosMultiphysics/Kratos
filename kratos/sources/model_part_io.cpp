@@ -14,8 +14,6 @@
 // System includes
 #include <unordered_set>
 
-// External includes
-
 // Project includes
 #include "includes/model_part_io.h"
 #include "input_output/logger.h"
@@ -23,6 +21,7 @@
 #include "utilities/openmp_utils.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 
+// External includes
 // this needs to be included last to avoid redefinition problems in win
 #include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
 namespace fs = ghc::filesystem;
@@ -131,11 +130,14 @@ std::size_t ModelPartIO::ReadNodesNumber()
 
 void ModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
 {
-    mpStream->precision(10);
-    (*mpStream) << "Begin Nodes\n" << std::scientific;
-    for(auto it_node = rThisNodes.begin() ; it_node != rThisNodes.end() ; it_node++)
+    // Printing or not with scientific precision
+    if (mOptions.Is(IO::SCIENTIFIC_PRECISION)) {
+        (*mpStream) << std::setprecision(10) << std::scientific;
+    }
+    (*mpStream) << "Begin Nodes" << std::endl;
+    for(NodesContainerType::const_iterator it_node = rThisNodes.begin() ; it_node != rThisNodes.end() ; ++it_node)
         (*mpStream) << "\t" << it_node->Id() << "\t" << it_node->X()  << "\t" << it_node->Y() << "\t" << it_node->Z() << "\n";
-    (*mpStream) << "End Nodes\n\n";
+    (*mpStream) << "End Nodes" << std::endl << std::endl;
 }
 
 void ModelPartIO::ReadProperties(Properties& rThisProperties)

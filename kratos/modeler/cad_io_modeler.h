@@ -21,6 +21,7 @@
 // Project includes
 #include "modeler.h"
 #include "input_output/cad_json_input.h"
+#include "input_output/cad_json_output.h"
 
 
 namespace Kratos
@@ -79,6 +80,8 @@ public:
     ///@{
 
     void SetupGeometryModel() override;
+
+    void SetupModelPart() override;
 
     ///@}
     ///@name Input and output

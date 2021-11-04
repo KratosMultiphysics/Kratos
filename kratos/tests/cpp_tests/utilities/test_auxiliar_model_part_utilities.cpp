@@ -225,6 +225,21 @@ std::vector<double> PostComputeSetData(const DataLocation DataLoc, ModelPart& th
         return output_values;
 }
 
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_CopySubModelPartStructure, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& this_model_part = current_model.CreateModelPart("Main");
+    ModelPart& this_copy_model_part = current_model.CreateModelPart("MainCopied");
+    Initialize(this_model_part);
+    auto& r_sub = this_model_part.CreateSubModelPart("SubModel");
+    r_sub.CreateSubModelPart("SubSubModel");
+    AuxiliarModelPartUtilities::CopySubModelPartStructure(this_model_part, this_copy_model_part);
+
+    KRATOS_CHECK_EQUAL(this_model_part.HasSubModelPart("Pikachu,pika,pika,pi"), this_copy_model_part.HasSubModelPart("Pikachu,pika,pika,pi"));
+    KRATOS_CHECK_EQUAL(this_model_part.HasSubModelPart("SubModel"), this_copy_model_part.HasSubModelPart("SubModel"));
+    auto& r_sub_copy = this_copy_model_part.GetSubModelPart("SubModel");
+    KRATOS_CHECK_EQUAL(r_sub.HasSubModelPart("SubSubModel"), r_sub_copy.HasSubModelPart("SubSubModel"));
+}
 
 /******************************************************************************************/
 /* Testing for GetData and SetData for 6 different DataLocations */
