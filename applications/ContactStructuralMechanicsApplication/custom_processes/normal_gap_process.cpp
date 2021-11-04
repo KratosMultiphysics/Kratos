@@ -95,27 +95,21 @@ void NormalGapProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeNormalGap(NodesA
     array_1d<double, 3> normal, auxiliar_coordinates, components_gap;
     double gap = 0.0;
 
-    // The first iterator
-    const auto it_node_begin = rNodes.begin();
-
-    #pragma omp parallel for firstprivate(gap, normal, auxiliar_coordinates, components_gap)
-    for(int i = 0; i < static_cast<int>(rNodes.size()); ++i) {
-        auto it_node = it_node_begin + i;
-
-        if (it_node->Is(SLAVE) == mSearchOrientation) {
+    block_for_each(rNodes, [&gap, &normal, &auxiliar_coordinates, &components_gap, this](NodeType& rNode) {
+        if (rNode.Is(SLAVE) == this->mSearchOrientation) {
             // We compute the gap
-            noalias(normal) = it_node->FastGetSolutionStepValue(NORMAL);
-            noalias(auxiliar_coordinates) = it_node->GetValue(AUXILIAR_COORDINATES);
-            noalias(components_gap) = ( it_node->Coordinates() - auxiliar_coordinates);
+            noalias(normal) = rNode.FastGetSolutionStepValue(NORMAL);
+            noalias(auxiliar_coordinates) = rNode.GetValue(AUXILIAR_COORDINATES);
+            noalias(components_gap) = ( rNode.Coordinates() - auxiliar_coordinates);
             gap = inner_prod(components_gap, - normal);
 
             // We activate if the node is close enough
             if (norm_2(auxiliar_coordinates) > ZeroTolerance)
-                it_node->SetValue(NORMAL_GAP, gap);
+                rNode.SetValue(NORMAL_GAP, gap);
         } else {
-            it_node->SetValue(NORMAL_GAP, 0.0);
+            rNode.SetValue(NORMAL_GAP, 0.0);
         }
-    }
+    });
 
     KRATOS_CATCH("")
 }
