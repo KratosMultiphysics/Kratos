@@ -20,9 +20,7 @@
 #include "add_custom_utilities_to_python.h"
 #include "custom_utilities/move_shallow_water_particle_utility.h"
 #include "custom_utilities/estimate_dt_utility.h"
-#include "custom_utilities/replicate_model_part_utility.h"
 #include "custom_utilities/shallow_water_utilities.h"
-#include "custom_utilities/post_process_utilities.h"
 #include "custom_utilities/bfecc_convection_utility.h"
 #include "custom_utilities/move_mesh_utility.h"
 
@@ -101,6 +99,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SetMeshZCoordinateToZero", &ShallowWaterUtilities::SetMeshZCoordinateToZero)
         .def("SetMeshZ0CoordinateToZero", &ShallowWaterUtilities::SetMeshZ0CoordinateToZero)
         .def("SetMeshZCoordinate", &ShallowWaterUtilities::SetMeshZCoordinate)
+        .def("StoreNonHistoricalGiDNoDataIfDry", &ShallowWaterUtilities::StoreNonHistoricalGiDNoDataIfDry)
         .def("ComputeL2Norm", &ShallowWaterUtilities::ComputeL2Norm<true>)
         .def("ComputeL2Norm", &ShallowWaterUtilities::ComputeL2NormAABB<true>)
         .def("ComputeL2NormNonHistorical", &ShallowWaterUtilities::ComputeL2Norm<false>)
@@ -109,28 +108,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeHydrostaticForces", ComputeHydrostaticForces2<ElementsContainerType>)
         .def("ComputeHydrostaticForces", ComputeHydrostaticForces1<ConditionsContainerType>)
         .def("ComputeHydrostaticForces", ComputeHydrostaticForces2<ConditionsContainerType>)
+        .def("OffsetIds", &ShallowWaterUtilities::OffsetIds<NodesContainerType>)
+        .def("OffsetIds", &ShallowWaterUtilities::OffsetIds<ElementsContainerType>)
+        .def("OffsetIds", &ShallowWaterUtilities::OffsetIds<ConditionsContainerType>)
         ;
 
     py::class_< EstimateTimeStepUtility > (m, "EstimateTimeStepUtility")
         .def(py::init<ModelPart&, Parameters>())
         .def("Execute", &EstimateTimeStepUtility::Execute)
-        ;
-
-    py::class_< ReplicateModelPartUtility > (m, "ReplicateModelPartUtility")
-        .def(py::init<ModelPart&, ModelPart&>())
-        .def(py::init<ModelPart&, ModelPart&, bool>())
-        .def("Replicate", &ReplicateModelPartUtility::Replicate)
-        .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<Variable<double>>)
-        .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<Variable<array_1d<double, 3>>>)
-        .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<double>>)
-        .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<array_1d<double, 3>>>)
-        ;
-
-    py::class_< PostProcessUtilities > (m, "PostProcessUtilities")
-        .def(py::init<ModelPart&>())
-        .def("DefineAuxiliaryProperties", &PostProcessUtilities::DefineAuxiliaryProperties)
-        .def("AssignDryWetProperties", &PostProcessUtilities::AssignDryWetProperties)
-        .def("RestoreDryWetProperties", &PostProcessUtilities::RestoreDryWetProperties)
         ;
 
     py::class_< BFECCConvectionUtility<2> > (m, "BFECCConvectionUtility")

@@ -640,14 +640,10 @@ public:
         return( rResult );
     }
 
-
-
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const override
+    void ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const override
     {
         std::cout<<"This method (ShapeFunctionsLocalGradients) has no meaning for this type of geometry (Sphere)."<<std::endl;
-        return( rResult );
     }
-
 
     /** Turn back information as a string.
 

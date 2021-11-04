@@ -207,6 +207,19 @@ void ShallowWaterUtilities::SetMeshZCoordinate(ModelPart& rModelPart, const Vari
     });
 }
 
+void ShallowWaterUtilities::StoreNonHistoricalGiDNoDataIfDry(ModelPart& rModelPart, const Variable<double>& rVariable)
+{
+    const double relative_dry_height = rModelPart.GetProcessInfo()[RELATIVE_DRY_HEIGHT];
+    const double length = rModelPart.ElementsBegin()->GetGeometry().Length();
+    const double dry_height = relative_dry_height * length;
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        const double height = rNode.FastGetSolutionStepValue(HEIGHT);
+        const bool is_wet = IsWet(height, dry_height);
+        const double value = (is_wet) ? rNode.FastGetSolutionStepValue(rVariable) : std::numeric_limits<float>::lowest();
+        rNode.SetValue(rVariable, value);
+    });
+}
+
 template<bool THistorical>
 double ShallowWaterUtilities::ComputeL2Norm(ModelPart& rModelPart, const Variable<double>& rVariable)
 {
@@ -335,11 +348,14 @@ bool ShallowWaterUtilities::IsWet(const GeometryType& rGeometry, const double Re
 bool ShallowWaterUtilities::IsWet(const GeometryType& rGeometry, const double Height, const double RelativeDryHeight)
 {
     const double epsilon = RelativeDryHeight * rGeometry.Length();
-    const double wet_fraction = WetFraction(Height, epsilon);
-    const double threshold = 1.0 - 1e-16;
-    const bool is_wet = (wet_fraction >= threshold);
-    return is_wet;
+    return IsWet(Height, epsilon);
+}
 
+bool ShallowWaterUtilities::IsWet(const double Height, const double DryHeight)
+{
+    const double wet_fraction = WetFraction(Height, DryHeight);
+    const double threshold = 1.0 - 1e-16;
+    return (wet_fraction >= threshold);
 }
 
 template<>
