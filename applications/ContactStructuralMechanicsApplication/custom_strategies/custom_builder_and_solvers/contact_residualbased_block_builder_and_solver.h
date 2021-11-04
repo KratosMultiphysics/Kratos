@@ -335,23 +335,21 @@ private:
     void FreeIsolatedNodes(ModelPart& rModelPart)
     {
         KRATOS_ERROR_IF_NOT(rModelPart.HasSubModelPart("Contact")) << "CONTACT MODEL PART NOT CREATED" << std::endl;
-        ModelPart& contact_model_part = rModelPart.GetSubModelPart("Contact");
+        ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
 
         // We release the LM
-        auto& nodes_array = contact_model_part.Nodes();
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
-            if (it_node->Is(ISOLATED) == true) {
-                if (it_node->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
-                    it_node->Free(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
-                else if (it_node->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X)) {
-                    it_node->Free(VECTOR_LAGRANGE_MULTIPLIER_X);
-                    it_node->Free(VECTOR_LAGRANGE_MULTIPLIER_Y);
-                    it_node->Free(VECTOR_LAGRANGE_MULTIPLIER_Z);
+        auto& r_nodes_array = r_contact_model_part.Nodes();
+        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            if (rNode.Is(ISOLATED)) {
+                if (rNode.SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
+                    rNode.Free(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
+                } else if (rNode.SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X)) {
+                    rNode.Free(VECTOR_LAGRANGE_MULTIPLIER_X);
+                    rNode.Free(VECTOR_LAGRANGE_MULTIPLIER_Y);
+                    rNode.Free(VECTOR_LAGRANGE_MULTIPLIER_Z);
                 }
             }
-        }
+        });
     }
 
     ///@}
