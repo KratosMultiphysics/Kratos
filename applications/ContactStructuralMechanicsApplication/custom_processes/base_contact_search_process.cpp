@@ -1447,21 +1447,19 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveIn
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
 
     // We compute now the normal gap and set the nodes under certain threshold as active
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = r_nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == !this->Is(BaseContactSearchProcess::INVERTED_SEARCH)) {
-//             if (it_node->GetValue(NORMAL_GAP) < ZeroTolerance) {
-            if (it_node->GetValue(NORMAL_GAP) < GapThreshold * it_node->FastGetSolutionStepValue(NODAL_H)) {
-                SetActiveNode(it_node, common_epsilon, scale_factor);
+    block_for_each(r_nodes_array, [this, &common_epsilon, &scale_factor](NodeType& rNode) {
+        if (rNode.Is(SLAVE) == !this->Is(BaseContactSearchProcess::INVERTED_SEARCH)) {
+//             if (rNode.GetValue(NORMAL_GAP) < ZeroTolerance) {
+            if (rNode.GetValue(NORMAL_GAP) < GapThreshold * rNode.FastGetSolutionStepValue(NODAL_H)) {
+                SetActiveNode(rNode, common_epsilon, scale_factor);
             } else {
             #ifdef KRATOS_DEBUG
-                KRATOS_WARNING_IF("BaseContactSearchProcess", it_node->Is(ACTIVE)) << "WARNING: A node that used to be active is not active anymore. Check that. Node ID: " << it_node->Id() << std::endl;
+                KRATOS_WARNING_IF("BaseContactSearchProcess", rNode.Is(ACTIVE)) << "WARNING: A node that used to be active is not active anymore. Check that. Node ID: " << rNode.Id() << std::endl;
             #endif
-                SetInactiveNode(it_node);
+                SetInactiveNode(rNode);
             }
         }
-    }
+    });
 
     KRATOS_CATCH("")
 }
@@ -1471,7 +1469,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveIn
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
-    NodesArrayType::iterator ItNode,
+    NodeType& rNode,
     const double CommonEpsilon,
     const double ScaleFactor
     )
@@ -1479,15 +1477,15 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
     KRATOS_TRY
 
     // We activate
-    ItNode->Set(ACTIVE, true);
-    ItNode->Set(MARKER, true);
+    rNode.Set(ACTIVE, true);
+    rNode.Set(MARKER, true);
 
     // Set SLIP flag
     if (mrMainModelPart.Is(SLIP)) {
-        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || this->Is(BaseContactSearchProcess::PURE_SLIP)) {
-            ItNode->Set(SLIP, true);
-        } else if (!ItNode->IsDefined(SLIP)) {
-            ItNode->Set(SLIP, false);
+        if (rNode.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || this->Is(BaseContactSearchProcess::PURE_SLIP)) {
+            rNode.Set(SLIP, true);
+        } else if (!rNode.IsDefined(SLIP)) {
+            rNode.Set(SLIP, false);
         }
     }
 
@@ -1498,26 +1496,26 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode(NodesArrayType::iterator ItNode)
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode(Node<3>& rNode)
 {
     KRATOS_TRY
 
     // If the node has been already actived we do not inactivate
-    if (ItNode->IsNot(MARKER)) {
+    if (rNode.IsNot(MARKER)) {
         // Auxiliar zero array
         const array_1d<double, 3> zero_array = ZeroVector(3);
 
-        if (ItNode->Is(ACTIVE) ) {
-            ItNode->Set(ACTIVE, false);
+        if (rNode.Is(ACTIVE) ) {
+            rNode.Set(ACTIVE, false);
             switch(mTypeSolution) {
                 case TypeSolution::VectorLagrangeMultiplier :
-                    noalias(ItNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = zero_array;
+                    noalias(rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = zero_array;
                     break;
                 case TypeSolution::ScalarLagrangeMultiplier :
-                    ItNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
+                    rNode.FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
                     break;
                 case TypeSolution::NormalContactStress :
-                    ItNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = 0.0;
+                    rNode.FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = 0.0;
                     break;
                 case TypeSolution::FrictionlessPenaltyMethod :
                     break;
@@ -1531,7 +1529,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode
         }
 
         // We set the gap to zero (in order to have something "visible" to post process)
-        ItNode->SetValue(NORMAL_GAP, 0.0);
+        rNode.SetValue(NORMAL_GAP, 0.0);
     }
 
     KRATOS_CATCH("")

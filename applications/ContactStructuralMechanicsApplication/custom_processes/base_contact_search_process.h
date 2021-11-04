@@ -320,21 +320,21 @@ protected:
 
     /**
      * @brief This method sets as active a node and it sets to an explicit approximation its LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param CommonEpsilon The penalty value
      * @param ScaleFactor The scale factor
      */
     virtual void SetActiveNode(
-        NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double CommonEpsilon,
         const double ScaleFactor = 1.0
         );
 
     /**
      * @brief This method sets as inactive a node and it sets to zero its LM
-     * @param ItNode The node iterator to set
+     * @param ItNode The node reference to set
      */
-    virtual void SetInactiveNode(NodesArrayType::iterator ItNode);
+    virtual void SetInactiveNode(NodeType& rNode);
 
     /**
      * @brief This method add a new pair to the computing model part
