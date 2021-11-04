@@ -375,12 +375,12 @@ public:
 
     virtual GeometryData::KratosGeometryFamily GetGeometryFamily() const
     {
-        return GeometryData::Kratos_generic_family;
+        return GeometryData::KratosGeometryFamily::Kratos_generic_family;
     }
 
     virtual GeometryData::KratosGeometryType GetGeometryType() const
     {
-        return GeometryData::Kratos_generic_type;
+        return GeometryData::KratosGeometryType::Kratos_generic_type;
     }
 
     ///@}

@@ -223,12 +223,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Point;
+        return GeometryData::KratosGeometryFamily::Kratos_Point;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Sphere3D1;
+        return GeometryData::KratosGeometryType::Kratos_Sphere3D1;
     }
 
     ///@}

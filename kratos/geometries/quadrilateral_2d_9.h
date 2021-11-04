@@ -290,12 +290,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Quadrilateral;
+        return GeometryData::KratosGeometryFamily::Kratos_Quadrilateral;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Quadrilateral2D9;
+        return GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9;
     }
 
     /**

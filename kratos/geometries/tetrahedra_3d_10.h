@@ -287,12 +287,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Tetrahedra;
+        return GeometryData::KratosGeometryFamily::Kratos_Tetrahedra;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Tetrahedra3D10;
+        return GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10;
     }
 
     /**

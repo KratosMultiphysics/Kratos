@@ -77,7 +77,7 @@ void MPINormalCalculationUtils::OrientFaces(ModelPart& rModelPart,
         Geometry< Node<3> >& rGeom = itElem->GetGeometry();
         GeometryData::KratosGeometryType GeoType = rGeom.GetGeometryType();
 
-        if (GeoType == GeometryData::Kratos_Tetrahedra3D4  || GeoType == GeometryData::Kratos_Triangle2D3)
+        if (GeoType == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || GeoType == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
         {
             bool Switched = this->OrientElement(rGeom);
             if (Switched)
@@ -110,9 +110,9 @@ void MPINormalCalculationUtils::OrientFaces(ModelPart& rModelPart,
         GeometryData::KratosGeometryType GeoType = rGeom.GetGeometryType();
         array_1d<double,3> FaceNormal(3,0.0);
 
-        if ( GeoType == GeometryData::Kratos_Triangle3D3 )
+        if (GeoType == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
             FaceNormal3D(FaceNormal,rGeom);
-        else if ( GeoType == GeometryData::Kratos_Line2D2 )
+        else if (GeoType == GeometryData::KratosGeometryType::Kratos_Line2D2)
             FaceNormal2D(FaceNormal,rGeom);
 
         const unsigned int NumNodes = rGeom.PointsNumber();

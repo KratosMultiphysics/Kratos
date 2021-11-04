@@ -301,12 +301,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Triangle;
+        return GeometryData::KratosGeometryFamily::Kratos_Triangle;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Triangle2D6;
+        return GeometryData::KratosGeometryType::Kratos_Triangle2D6;
     }
 
     ///@}

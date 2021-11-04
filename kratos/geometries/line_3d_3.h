@@ -232,12 +232,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Linear;
+        return GeometryData::KratosGeometryFamily::Kratos_Linear;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Line3D3;
+        return GeometryData::KratosGeometryType::Kratos_Line3D3;
     }
 
     ///@}

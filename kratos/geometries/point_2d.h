@@ -219,11 +219,11 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Point;
+        return GeometryData::KratosGeometryFamily::Kratos_Point;
     }
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Point2D;
+        return GeometryData::KratosGeometryType::Kratos_Point2D;
     }
 
     ///@}
