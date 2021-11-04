@@ -10,7 +10,7 @@
     "solver_settings" :
     {
         "type" : "coupled_solvers.gauss_seidel_strong",
-        "echo_level" : 4,
+        "echo_level" : 0,
         "num_coupling_iterations" : 12,
         "convergence_accelerators" : [
             {
@@ -31,7 +31,7 @@
         "coupling_operations" : {
             "compute_boundary_force_process": {
                 "type"       : "compute_boundary_force",
-                "echo_level" : 2,
+                "echo_level" : 0,
                 "solver"            : "pfem",
                 "model_part_name"   : "PfemFluidModelPart.InterfaceWall",
                 "write_output_file" : false,
@@ -43,14 +43,14 @@
             },
             "print_iteration_number_process": {
                 "type"       : "print_iteration_number",
-                "echo_level" : 3,
+                "echo_level" : 0,
                 "solver"            : "pfem",
                 "model_part_name"   : "PfemFluidModelPart.Fluid",
                 "interval"               : [0.0,"End"]
             },
             "reset_pfem_kinematics_fluid": {
                 "type"       : "reset_pfem_kinematics",
-                "echo_level" : 3,
+                "echo_level" : 0,
                 "solver"            : "pfem",
                 "model_part_name"   : "PfemFluidModelPart.Fluid",
                 "interval"               : [0.0,"End"]
