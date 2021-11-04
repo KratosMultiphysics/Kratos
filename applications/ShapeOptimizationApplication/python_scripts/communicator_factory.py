@@ -234,7 +234,7 @@ class Communicator:
     # --------------------------------------------------------------------------
     def __translateGradientToStandardForm(self, response_id, gradient):
         response_type = self.list_of_responses[response_id]["type"]
-        scaling_factor = self.list_of_responses[response_id]["scaling_factor"]
+        scaling_factor = 1.0#self.list_of_responses[response_id]["scaling_factor"]
 
         if response_type == "maximization" or response_type == ">" or response_type == ">=":
             scaling_factor *= -1
