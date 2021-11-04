@@ -11,7 +11,7 @@ penalty               	= 3             # Penalty Factor - Recomended: 3
 continuation_strategy 	= 0             # Options: Activated=1, Deactivated=0
 E_min                 	= 0.000000001   # Elastic modulus of void material
 initial_volume_fraction = 0.15			# Initial densitiy distribution
-density_filter			= "density"		# density filter active if "density" else unactive
+density_filter			= "densit"		# density filter active if "density" else unactive
 
 #========================================================================================
 # FILTERING OPTIONS FOR SIMP APPROACH
@@ -23,7 +23,7 @@ filter_type = "sensitivity"
 filter_kernel = "linear"
 # options: "linear"
 
-filter_radius     		  	  = 0.75
+filter_radius     		  	  = 1.5
 max_elements_in_filter_radius = 500 # Defines max number of elements considered within
 							        # specified filter radius (reduces memory footprint)
 
@@ -38,7 +38,7 @@ q_max = 2 # Recomended: 2
 # OPTIMIZATION ALGORITHM
 #========================================================================================
     
-optimization_algorithm = "MMA_algorithm"  #"MMA_algorithm"  #"oc_algorithm" für OC und "MMA_algorithm" für MMA
+optimization_algorithm = "oc_algorithm"  #"MMA_algorithm"  #"oc_algorithm" für OC und "MMA_algorithm" für MMA
 # options: "oc_algorithm"
     
 # General convergence criterions

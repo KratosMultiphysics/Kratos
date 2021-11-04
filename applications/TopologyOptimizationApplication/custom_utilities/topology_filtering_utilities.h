@@ -350,10 +350,10 @@ public:
 				double H_sum = 0;
 				array_1d<double,3> elemental_distance;
 				double distance = 0.0;
-				double e = 2.71828182845904523536;
 				double beta_0= 1;
 				double beta_max = 150;
 				double tau = 50;
+				double nu = 0.5;
 
 				for(int ElementPositionItem_j = 0; ElementPositionItem_j < num_nodes_found; ElementPositionItem_j++)
 				{
@@ -371,10 +371,11 @@ public:
 
 				// Calculate filtered sensitivities and assign to the elements
 				
+				// Heavyside PRojection
 				double x_try = 0;
 				x_try = Hxdx_sum / (H_sum);
 				double beta = std::min(beta_max,beta_0*pow(2,((Opt_iter-1)/tau)));
-				x_phys_filtered[i++]= ((std::tanh(beta*0.5)+std::tanh(beta*(x_try-0.5)))/(std::tanh(beta*0.5)+std::tanh(beta*(1-0.5))));
+				x_phys_filtered[i++]= ((std::tanh(beta*nu)+std::tanh(beta*(x_try-nu)))/(std::tanh(beta*nu)+std::tanh(beta*(1-nu))));
 			}
 
 			// Overwrite sensitivities with filtered sensitivities

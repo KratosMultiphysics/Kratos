@@ -406,7 +406,7 @@ class SIMPMethod:
 
             
             # Filter sensitivities
-            #print("\n::[Filter Sensitivities]::")
+           # print("\n::[Filter Sensitivities]::")
             #self.filter_utils.ApplyFilterSensitivity(self.config.filter_type , self.config.filter_kernel )
 
 
