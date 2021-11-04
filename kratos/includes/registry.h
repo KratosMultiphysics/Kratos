@@ -68,10 +68,10 @@ public:
     ///@{
 
     /// Default constructor.
-    Registry();
+    Registry(){}
 
     /// Destructor.
-    virtual ~Registry();
+    virtual ~Registry(){}
 
     ///@}
     ///@name Operators
@@ -82,6 +82,36 @@ public:
     ///@name Operations
     ///@{
 
+
+    template< typename TItemType, class... TArgumentsList >
+    RegistryItem& AddItem(std::string const& ItemFullName, TArgumentsList&&... Arguments){
+
+        auto item_path = SplitFullName(ItemFullName);
+        KRATOS_ERROR_IF(item_path.empty()) << "The item full name is empty" << std::endl;
+
+        RegistryItem* p_current_item = &GetRootRegistryItem();
+
+        for(int i = 0 ; i < item_path.size() - 1 ; i++){
+            auto& item_name = item_path[i];
+            if(p_current_item->HasItem(item_name)){
+                p_current_item = p_current_item->GetItem(item_name);
+            }
+            else{
+                p_current_item = p_current_item->AddItem<RegistryItem>(item_name);
+            }
+        }
+
+        // I am doing the last one out of the loop to create it with the given type and argument
+        auto& item_name = item_path.back();
+        if(p_current_item->HasItem(item_name)){
+            KRATOS_ERROR << "The item \"" << ItemFullName << "\" is already registered." << std::endl;
+        }
+        else{
+            p_current_item = p_current_item->AddItem<TItemType>(item_name, std::forward<TArgumentsList>(Arguments)...);
+        }
+
+        return *p_current_item;
+    }
 
     ///@}
     ///@name Access
@@ -180,6 +210,7 @@ private:
     ///@{
 
         RegistryItem& GetRootRegistryItem();
+        std::vector<std::string> SplitFullName(std::string const& FullName);
 
 
     ///@}

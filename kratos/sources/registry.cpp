@@ -54,5 +54,17 @@ namespace {
 
     }
 
+    std::vector<std::string> SplitFullName(std::string const& FullName){
+        std::istringstream iss(FullName);
+        std::vector<std::string> result;
+        std::string name;
+
+        while (std::getline(iss, name, '.')){
+            result.push_back(name);
+        }
+
+        return result;
+    }
+
 
 } // namespace Kratos.
