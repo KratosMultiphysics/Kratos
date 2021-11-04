@@ -47,10 +47,10 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   // Definitions
   #define STEFAN_BOLTZMANN 5.670374419e-8
 
-  #define PARTICLE_NEIGHBOR          0  // binary = 000 (bitwise operator)
-  #define WALL_NEIGHBOR              4  // binary = 100 (bitwise operator)
-  #define WALL_NEIGHBOR_NONCONTACT   6  // binary = 110 (bitwise operator)
-  #define WALL_NEIGHBOR_CONTACT      7  // binary = 111 (bitwise operator)
+  #define PARTICLE_NEIGHBOR          4   // binary = 100 (to use in bitwise operations)
+  #define WALL_NEIGHBOR              3   // binary = 011 (to use in bitwise operations)
+  #define WALL_NEIGHBOR_NONCONTACT   2   // binary = 010 (to use in bitwise operations)
+  #define WALL_NEIGHBOR_CONTACT      1   // binary = 001 (to use in bitwise operations)
 
   struct IntegrandParams
   {
