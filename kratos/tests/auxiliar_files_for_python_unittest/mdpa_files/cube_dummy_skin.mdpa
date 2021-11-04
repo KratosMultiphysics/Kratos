@@ -1,0 +1,22 @@
+Begin Properties 0
+End Properties
+
+Begin Nodes
+	1	0	0	0
+	2	1	0	0
+  	3	1	1	0
+	4	0	1	0
+	5	0	0	1
+	6	1	0	1
+  	7	1	1	1
+	8	0	1	1
+End Nodes
+
+Begin Elements	Element3D4N
+End Elements
+
+Begin Conditions	SurfaceCondition3D3N
+
+    8   0   4   7   3
+
+End Conditions
