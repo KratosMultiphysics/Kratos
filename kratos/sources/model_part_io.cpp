@@ -14,8 +14,6 @@
 // System includes
 #include <unordered_set>
 
-// External includes
-
 // Project includes
 #include "includes/model_part_io.h"
 #include "input_output/logger.h"
@@ -23,6 +21,7 @@
 #include "utilities/openmp_utils.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 
+// External includes
 // this needs to be included last to avoid redefinition problems in win
 #include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
 namespace fs = ghc::filesystem;
@@ -40,20 +39,13 @@ ModelPartIO::ModelPartIO(std::string const& Filename, const Flags Options)
     std::fstream::openmode OpenMode;
 
     // Set the mode
-    if (mOptions.Is(IO::READ))
-    {
+    if (mOptions.Is(IO::READ)) {
         OpenMode = std::fstream::in;
-    }
-    else if (mOptions.Is(IO::APPEND))
-    {
+    } else if (mOptions.Is(IO::APPEND)) {
         OpenMode = std::fstream::in | std::fstream::app;
-    }
-    else if (mOptions.Is(IO::WRITE))
-    {
+    } else if (mOptions.Is(IO::WRITE)) {
         OpenMode = std::fstream::out;
-    }
-    else
-    {
+    } else {
         // If none of the READ, WRITE or APPEND are defined we will take READ as
         // default.
         OpenMode = std::fstream::in;
@@ -138,9 +130,13 @@ std::size_t ModelPartIO::ReadNodesNumber()
 
 void ModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
 {
+    // Printing or not with scientific precision
+    if (mOptions.Is(IO::SCIENTIFIC_PRECISION)) {
+        (*mpStream) << std::setprecision(10) << std::scientific;
+    }
     (*mpStream) << "Begin Nodes" << std::endl;
-    for(NodesContainerType::const_iterator it_node = rThisNodes.begin() ; it_node != rThisNodes.end() ; it_node++)
-        (*mpStream) << "\t" << it_node->Id() << "\t" << it_node->X()  << "\t" << it_node->Y() << "\t" << it_node->Z() << std::endl;
+    for(NodesContainerType::const_iterator it_node = rThisNodes.begin() ; it_node != rThisNodes.end() ; ++it_node)
+        (*mpStream) << "\t" << it_node->Id() << "\t" << it_node->X()  << "\t" << it_node->Y() << "\t" << it_node->Z() << "\n";
     (*mpStream) << "End Nodes" << std::endl << std::endl;
 }
 
@@ -429,8 +425,6 @@ void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
     KRATOS_CATCH("")
 }
 
-//       void ReadGeometries(NodesContainerType& rThisNodes, GeometriesContainerType& rResults);
-
 void ModelPartIO::ReadMesh(MeshType & rThisMesh)
 {
     KRATOS_ERROR << "ModelPartIO does not implement this method." << std::endl;
@@ -515,7 +509,7 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
+void ModelPartIO::WriteModelPart(ModelPart& rThisModelPart)
 {
     KRATOS_ERROR_IF_NOT(mOptions.Is(IO::WRITE) || mOptions.Is(IO::APPEND)) << "ModelPartIO needs to be created in write or append mode to write a ModelPart!" << std::endl;
 
@@ -565,11 +559,9 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
             // a chance to the derived class to process and renumber
             // the nodes before reading elements/conditions.
             ScanNodeBlock();
-        }
-        else if (word == "Elements") {
+        } else if (word == "Elements") {
             FillNodalConnectivitiesFromElementBlock(rAuxConnectivities);
-        }
-        else if (word == "Conditions") {
+        } else if (word == "Conditions") {
             FillNodalConnectivitiesFromConditionBlock(rAuxConnectivities);
         }
         else {
@@ -638,14 +630,11 @@ std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
             // a chance to the derived class to process and renumber
             // the nodes before reading elements/conditions.
             ScanNodeBlock();
-        }
-        else if (word == "Elements") {
+        } else if (word == "Elements") {
             FillNodalConnectivitiesFromElementBlockInList(rAuxConnectivities, rElementsIds);
-        }
-        else if (word == "Conditions") {
+        } else if (word == "Conditions") {
             FillNodalConnectivitiesFromConditionBlockInList(rAuxConnectivities, rConditionsIds);
-        }
-        else {
+        } else {
             SkipBlock(word);
         }
     }
@@ -675,8 +664,8 @@ std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
 }
 
 void ModelPartIO::FillNodalConnectivitiesFromElementBlockInList(
-    ConnectivitiesContainerType &rNodalConnectivities,
-    std::unordered_set<SizeType> &rElementsIds)
+    ConnectivitiesContainerType& rNodalConnectivities,
+    std::unordered_set<SizeType>& rElementsIds)
 {
     KRATOS_TRY;
 
@@ -748,7 +737,7 @@ void ModelPartIO::FillNodalConnectivitiesFromElementBlockInList(
 
 void ModelPartIO::FillNodalConnectivitiesFromConditionBlockInList(
     ConnectivitiesContainerType& rNodalConnectivities,
-    std::unordered_set<SizeType> &rConditionsIds)
+    std::unordered_set<SizeType>& rConditionsIds)
 {
     KRATOS_TRY;
 
