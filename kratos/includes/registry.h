@@ -106,6 +106,8 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const;
 
+    std::string ToJson(std::string const& Indentation) const;
+
 
     ///@}
     ///@name Friends
@@ -155,6 +157,8 @@ private:
     ///@name Static Member Variables
     ///@{
 
+        static RegistryItem* mspRootRegistryItem;
+
 
     ///@}
     ///@name Member Variables
@@ -174,6 +178,8 @@ private:
     ///@}
     ///@name Private  Access
     ///@{
+
+        RegistryItem& GetRootRegistryItem();
 
 
     ///@}
