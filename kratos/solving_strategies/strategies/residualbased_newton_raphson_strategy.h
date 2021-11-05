@@ -1021,6 +1021,7 @@ class ResidualBasedNewtonRaphsonStrategy
                     {
                         TSparseSpace::SetToZero(rA);
                         TSparseSpace::SetToZero(rDx);
+                        //TSystemVectorType dx_prediction(rDx);
                         TSparseSpace::SetToZero(rb);
 
                         p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
@@ -1031,11 +1032,19 @@ class ResidualBasedNewtonRaphsonStrategy
                             CalculateResidualNorm(r_model_part, new_residual, r_dof_set, rb);
                             KRATOS_WATCH(new_residual)
                             if (new_residual > old_residual) {
+                                
                                 KRATOS_WATCH("*******")
                                 KRATOS_WATCH(old_residual)
                                 KRATOS_WATCH(new_residual)
                                 KRATOS_WATCH("*******")
-                                //TSparseSpace::InplaceMult(rDx, -1.0);
+                                TSparseSpace::InplaceMult(rDx, -1.0);
+                                UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
+                                p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+                                CalculateResidualNorm(r_model_part, new_residual, r_dof_set, rb);
+                                KRATOS_WATCH(new_residual)
+                                
+                                KRATOS_ERROR << "DD" << std::endl;
+
                                 while (new_residual > old_residual && iteration < 20) {
                                     TSparseSpace::InplaceMult(rDx, 0.5);
                                     UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
