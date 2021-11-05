@@ -944,7 +944,7 @@ class ResidualBasedNewtonRaphsonStrategy
         auto& r_dof_set = p_builder_and_solver->GetDofSet();
 
         double old_residual = 0.0;
-        double new_residual = 0.0;
+        double new_residual = 1.0e9;
         const bool damped = true;
 
         TSystemMatrixType& rA  = *mpA;
@@ -998,8 +998,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
         // ******** we compute old_residual
         CalculateResidualNorm(r_model_part, old_residual, r_dof_set, rb);
-        if (damped)
-            KRATOS_WATCH(old_residual)
 
         //Iteration Cycle... performed only for NonLinearProblems
         while (is_converged == false &&
@@ -1021,12 +1019,35 @@ class ResidualBasedNewtonRaphsonStrategy
                 {
                     if (GetKeepSystemConstantDuringIterations() == false)
                     {
-                        //A = 0.00;
                         TSparseSpace::SetToZero(rA);
                         TSparseSpace::SetToZero(rDx);
                         TSparseSpace::SetToZero(rb);
 
                         p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+                        if (damped) {
+                            int iteration = 0;
+                            UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
+                            p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+                            CalculateResidualNorm(r_model_part, new_residual, r_dof_set, rb);
+                            KRATOS_WATCH("*******")
+                            KRATOS_WATCH(old_residual)
+                            KRATOS_WATCH(new_residual)
+                            KRATOS_WATCH("*******")
+                            if (new_residual > old_residual) {
+                                //TSparseSpace::InplaceMult(rDx, -1.0);
+                                while (new_residual > old_residual && iteration < 4) {
+                                    TSparseSpace::InplaceMult(rDx, 0.5);
+                                    UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
+                                    p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+                                    CalculateResidualNorm(r_model_part, new_residual, r_dof_set, rb);
+                                    iteration++;
+                                    KRATOS_WATCH(new_residual)
+                                }
+                                old_residual = new_residual;
+                                //TSparseSpace::SetToZero(rDx);
+                                //TSparseSpace::SetToZero(rb);
+                            }
+                        }
                     }
                     else
                     {
@@ -1053,7 +1074,7 @@ class ResidualBasedNewtonRaphsonStrategy
             EchoInfo(iteration_number);
 
             // Updating the results stored in the database
-            UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
+            //UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
 
             p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
             mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
