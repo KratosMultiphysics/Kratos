@@ -102,6 +102,8 @@ class ResidualBasedNewtonRaphsonStrategy
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
+    typedef std::size_t SizeType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -897,6 +899,39 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_CATCH("");
     }
 
+
+
+
+    void CalculateResidualNorm(
+        ModelPart& rModelPart,
+        TDataType& rResidualSolutionNorm,
+        DofsArrayType& rDofSet,
+        const TSystemVectorType& rb
+        )
+    {
+        // Initialize
+        TDataType residual_solution_norm = TDataType();
+        SizeType dof_num = 0;
+
+        // Auxiliar values
+        TDataType residual_dof_value = 0.0;
+        const auto it_dof_begin = rDofSet.begin();
+        const int number_of_dof = static_cast<int>(rDofSet.size());
+
+        #pragma omp parallel for firstprivate(residual_dof_value) reduction(+:residual_solution_norm, dof_num)
+        for (int i = 0; i < number_of_dof; i++) {
+            auto it_dof = it_dof_begin + i;
+
+            if (!it_dof->IsFixed()) {
+                const IndexType dof_id = it_dof->EquationId();
+                residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
+                residual_solution_norm += std::pow(residual_dof_value, 2);
+                dof_num++;
+            }
+        }
+        rResidualSolutionNorm = std::sqrt(residual_solution_norm) / dof_num;
+    }
+
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
@@ -907,6 +942,10 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
         auto& r_dof_set = p_builder_and_solver->GetDofSet();
+
+        double old_residual = 0.0;
+        double new_residual = 0.0;
+        const bool damped = true;
 
         TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
@@ -956,6 +995,11 @@ class ResidualBasedNewtonRaphsonStrategy
 
             is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
         }
+
+        // ******** we compute old_residual
+        CalculateResidualNorm(r_model_part, old_residual, r_dof_set, rb);
+        if (damped)
+            KRATOS_WATCH(old_residual)
 
         //Iteration Cycle... performed only for NonLinearProblems
         while (is_converged == false &&
