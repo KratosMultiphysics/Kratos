@@ -39,7 +39,7 @@ namespace {
     }
 
     std::string Registry::ToJson(std::string const& Indentation) const {
-        return const_cast<Registry*>(this)->GetRootRegistryItem().ToJson(Indentation);
+        return GetRootRegistryItem().ToJson(Indentation);
     }
 
     RegistryItem& Registry::GetRootRegistryItem(){

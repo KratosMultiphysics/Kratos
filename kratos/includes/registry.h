@@ -84,7 +84,7 @@ public:
 
 
     template< typename TItemType, class... TArgumentsList >
-    RegistryItem& AddItem(std::string const& ItemFullName, TArgumentsList&&... Arguments){
+    static RegistryItem& AddItem(std::string const& ItemFullName, TArgumentsList&&... Arguments){
 
         auto item_path = SplitFullName(ItemFullName);
         KRATOS_ERROR_IF(item_path.empty()) << "The item full name is empty" << std::endl;
@@ -209,8 +209,8 @@ private:
     ///@name Private  Access
     ///@{
 
-        RegistryItem& GetRootRegistryItem();
-        std::vector<std::string> SplitFullName(std::string const& FullName);
+        static RegistryItem& GetRootRegistryItem();
+        static std::vector<std::string> SplitFullName(std::string const& FullName);
 
 
     ///@}
