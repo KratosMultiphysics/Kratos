@@ -72,7 +72,7 @@ namespace Kratos {
             Matrix DN_De = triangle->ShapeFunctionLocalGradient(0);
 
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
-                GeometryData::GI_GAUSS_1,
+                GeometryData::IntegrationMethod::GI_GAUSS_1,
                 integration_points[0],
                 N_i,
                 DN_De);
@@ -114,7 +114,7 @@ namespace Kratos {
             auto triangle = GeneratePointsTriangle2D3();
 
             auto quadrature_points = CreateQuadraturePointsUtility<NodeType>::Create(
-                triangle, GeometryData::GI_GAUSS_3);
+                triangle, GeometryData::IntegrationMethod::GI_GAUSS_3);
 
             KRATOS_CHECK_EQUAL(quadrature_points.size(), 4);
             KRATOS_CHECK_EQUAL(quadrature_points[0]->size(), 3);
@@ -122,8 +122,8 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(quadrature_points[0]->LocalSpaceDimension(), 2);
             KRATOS_CHECK_EQUAL(quadrature_points[0]->Dimension(), 2);
 
-            KRATOS_CHECK_MATRIX_NEAR(quadrature_points[0]->ShapeFunctionsLocalGradients()[0], triangle->ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_3)[0], 1e-6);
-            KRATOS_CHECK_MATRIX_NEAR(quadrature_points[1]->ShapeFunctionsLocalGradients()[0], triangle->ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_3)[1], 1e-6);
+            KRATOS_CHECK_MATRIX_NEAR(quadrature_points[0]->ShapeFunctionsLocalGradients()[0], triangle->ShapeFunctionsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_3)[0], 1e-6);
+            KRATOS_CHECK_MATRIX_NEAR(quadrature_points[1]->ShapeFunctionsLocalGradients()[0], triangle->ShapeFunctionsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_3)[1], 1e-6);
 
             const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
             const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
@@ -159,8 +159,8 @@ namespace Kratos {
             auto triangle = GeneratePointsTriangle2D3Update();
 
             //auto integration_method = triangle->GetDefaultIntegrationMethod();
-            auto integration_points = triangle->IntegrationPoints(GeometryData::GI_GAUSS_3);
-            auto r_N = triangle->ShapeFunctionsValues(GeometryData::GI_GAUSS_3);
+            auto integration_points = triangle->IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_3);
+            auto r_N = triangle->ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_3);
             Matrix N_i = ZeroMatrix(1, triangle->size());
             for (IndexType j = 0; j < triangle->size(); ++j) {
                 N_i(0, j) = r_N(0, j);
@@ -168,7 +168,7 @@ namespace Kratos {
             Matrix DN_De = triangle->ShapeFunctionLocalGradient(0);
 
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container_2(
-                GeometryData::GI_GAUSS_3,
+                GeometryData::IntegrationMethod::GI_GAUSS_3,
                 integration_points[0],
                 N_i,
                 DN_De);
@@ -202,14 +202,14 @@ namespace Kratos {
             auto p_this_quadrature_point = GenerateQuadraturePointGeometry();
 
             auto triangle = GeneratePointsTriangle2D3Update();
-            auto integration_points = triangle->IntegrationPoints(GeometryData::GI_GAUSS_3);
+            auto integration_points = triangle->IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_3);
 
             CreateQuadraturePointsUtility<NodeType>::UpdateFromLocalCoordinates(
                 p_this_quadrature_point, integration_points[0],
                 integration_points[0].Weight(), *(triangle.get()));
 
             //auto integration_method = triangle->GetDefaultIntegrationMethod();
-            auto r_N = triangle->ShapeFunctionsValues(GeometryData::GI_GAUSS_3);
+            auto r_N = triangle->ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_3);
             Matrix N_i = ZeroMatrix(1, triangle->size());
             for (IndexType j = 0; j < triangle->size(); ++j) {
                 N_i(0, j) = r_N(0, j);

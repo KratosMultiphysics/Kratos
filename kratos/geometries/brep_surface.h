@@ -633,7 +633,7 @@ template<class TContainerPointType, class TContainerPointEmbeddedType = TContain
 template<class TContainerPointType, class TContainerPointEmbeddedType> const
 GeometryData BrepSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
 
 template<class TContainerPointType, class TContainerPointEmbeddedType>

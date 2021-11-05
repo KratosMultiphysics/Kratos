@@ -383,13 +383,13 @@ namespace Kratos
                 int_sh_func,
                 int_grads,
                 w_int,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
         } else if (rInterfaceSide == "negative") {
             rpModifiedShapeFunctions->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
                 int_sh_func,
                 int_grads,
                 w_int,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
         } else {
             KRATOS_ERROR << "Interface side must be either 'positive' or 'negative'. Got " << rInterfaceSide;
         }

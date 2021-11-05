@@ -246,7 +246,7 @@ void TetrahedralMeshOrientationCheck::SwapNegativeElements()
 bool TetrahedralMeshOrientationCheck::Orient(GeometryType& rGeometry)
 {
     const IndexType point_index = 0;
-    const GeometryData::IntegrationMethod integration_method = GeometryData::GI_GAUSS_1;
+    const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
 
     // Re-orient the element if needed
     const double det_J = rGeometry.DeterminantOfJacobian(point_index,integration_method);

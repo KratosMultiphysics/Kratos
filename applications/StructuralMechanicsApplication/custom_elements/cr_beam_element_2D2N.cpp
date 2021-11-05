@@ -295,7 +295,7 @@ CrBeamElement2D2N::CalculateBodyForces() const
     KRATOS_TRY
     // getting shapefunctionvalues for linear SF
     const Matrix& Ncontainer =
-        GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+        GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
     BoundedVector<double, 3> equivalent_line_load = ZeroVector(3);
     BoundedVector<double, msElementSize> body_forces_global =
@@ -747,7 +747,7 @@ void CrBeamElement2D2N::CalculateOnIntegrationPoints(
 
     // Element with two nodes can only represent results at one node
     const auto& r_geometry = GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(Kratos::GeometryData::GI_GAUSS_3);
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
     const SizeType write_points_number = r_integration_points.size();
     if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
@@ -800,7 +800,7 @@ CrBeamElement2D2N::IntegrationMethod
 CrBeamElement2D2N::GetIntegrationMethod() const
 {
     // do this to have 3GP as an output in GID
-    return Kratos::GeometryData::GI_GAUSS_3;
+    return Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3;
 }
 
 BoundedVector<double, CrBeamElement2D2N::msElementSize>

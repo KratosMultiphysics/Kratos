@@ -507,7 +507,7 @@ void MPINormalCalculationUtils::DetectEdges(ModelPart &rModelPart,
 bool MPINormalCalculationUtils::OrientElement(Geometry<Node<3> > &rGeom)
 {
     const unsigned int PointIndex = 0;
-    const GeometryData::IntegrationMethod Method = GeometryData::GI_GAUSS_1;
+    const GeometryData::IntegrationMethod Method = GeometryData::IntegrationMethod::GI_GAUSS_1;
 
     // Re-orient the element if needed
     double DetJ = rGeom.DeterminantOfJacobian(PointIndex,Method);
@@ -529,7 +529,7 @@ void MPINormalCalculationUtils::NormalContribution(Geometry<Node<3> > &rGeom)
     const unsigned int Dim = rGeom.WorkingSpaceDimension();
 
     const unsigned int PointIndex = 0;
-    const GeometryData::IntegrationMethod Method = GeometryData::GI_GAUSS_1;
+    const GeometryData::IntegrationMethod Method = GeometryData::IntegrationMethod::GI_GAUSS_1;
     double DetJ = rGeom.DeterminantOfJacobian(PointIndex,Method);
 
     Geometry< Node<3> >::ShapeFunctionsGradientsType DN_DX;

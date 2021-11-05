@@ -73,7 +73,7 @@ public:
     - GI_GAUSS_4 gaussian integration with order 4.
     - GI_GAUSS_5 gaussian integration with order 5.
     */
-    enum IntegrationMethod {
+    enum class IntegrationMethod {
         GI_GAUSS_1,
         GI_GAUSS_2,
         GI_GAUSS_3,
