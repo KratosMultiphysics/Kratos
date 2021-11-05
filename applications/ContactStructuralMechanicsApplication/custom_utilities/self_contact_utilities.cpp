@@ -211,15 +211,12 @@ void ComputeSelfContactPairing(
     }
 
     std::size_t master_counter = 0, slave_counter = 0;
-    #pragma omp parallel for firstprivate(master_counter,slave_counter)
-    for(int i = 0; i < num_conditions; ++i) {
-        auto it_cond = it_cond_begin + i;
-
+    block_for_each(r_conditions_array, [&master_counter, &slave_counter, &EchoLevel](Condition& rCond) {
         master_counter = 0;
         slave_counter = 0;
 
         // The slave geometry
-        auto& r_geometry = it_cond->GetGeometry();
+        auto& r_geometry = rCond.GetGeometry();
         const std::size_t number_of_nodes = r_geometry.size();
 
         // Count flags
@@ -237,14 +234,14 @@ void ComputeSelfContactPairing(
 
         // Check if the condition is active
         if (slave_counter == number_of_nodes || master_counter == number_of_nodes) {
-            it_cond->Set(ACTIVE, true);
+            rCond.Set(ACTIVE, true);
         } else {
-            KRATOS_WARNING_IF("SelfContactUtilities", EchoLevel > 0) << "Condition " << it_cond->Id() << " must be isolated for sharing MASTER/SLAVE nodes in it" << std::endl;
-            it_cond->Set(ACTIVE, false);
-            it_cond->Set(SLAVE, false);
-            it_cond->Set(MASTER, true);
+            KRATOS_WARNING_IF("SelfContactUtilities", EchoLevel > 0) << "Condition " << rCond.Id() << " must be isolated for sharing MASTER/SLAVE nodes in it" << std::endl;
+            rCond.Set(ACTIVE, false);
+            rCond.Set(SLAVE, false);
+            rCond.Set(MASTER, true);
         }
-    }
+    });
 
     KRATOS_CATCH("")
 }
