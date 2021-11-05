@@ -131,6 +131,14 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryAddAndRemove, KratosCoreFastSuite)
     KRATOS_CHECK(Registry::HasItem("path.to.the.registry.new_item"));
     auto& new_item = Registry::GetItem("path.to.the.registry.new_item");    
     KRATOS_CHECK_STRING_EQUAL(new_item.Name(),"new_item");
+
+    Registry::RemoveItem("item_in_root");
+    KRATOS_CHECK_IS_FALSE(Registry::HasItem("item_in_root"));
+    KRATOS_CHECK(Registry::HasItem("path.to.the.registry.new_item"));
+
+    Registry::RemoveItem("path.to.the.registry.new_item");
+    KRATOS_CHECK_IS_FALSE(Registry::HasItem("item_in_root"));
+    KRATOS_CHECK_IS_FALSE(Registry::HasItem("path.to.the.registry.new_item"));
 }
 
 // KRATOS_TEST_CASE_IN_SUITE(KratosComponentsGetNonExistingElement, KratosCoreFastSuite)
