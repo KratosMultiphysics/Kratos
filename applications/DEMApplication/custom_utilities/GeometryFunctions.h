@@ -1078,8 +1078,8 @@ namespace Kratos {
         return false;
     }//FastFacetCheck
 
-    static inline bool FacetCheck(const GeometryType&  Coord, const array_1d <double,3>& Particle_Coord, double rad,
-                                  double LocalCoordSystem[3][3], double& DistPToB, std::vector<double>& Weight, unsigned int& current_edge_index)
+    static inline bool FacetCheck(const GeometryType&  Coord, const array_1d <double,3>& Particle_Coord, double rad, double LocalCoordSystem[3][3],
+                                  double& DistPToB, std::vector<double>& Weight, unsigned int& current_edge_index, bool& inside)
     {
         int facet_size = Coord.size();
         //Calculate Normal
@@ -1121,37 +1121,34 @@ namespace Kratos {
             DistPToB += N[i]*PC[i];
         }
 
+        // Check if particle is inside FE (also when contact is not possible)
+
+        array_1d <double, 3> IntersectionCoord;
+        for (unsigned int i = 0; i < 3; i++)
+          IntersectionCoord[i] = Particle_Coord[i] - DistPToB * N[i];
+
+        std::vector<double> Area;
+        Area.resize(facet_size);
+
+        for (int i = 0; i < facet_size; i++) {
+          double this_area = 0.0;
+          if (InsideOutside(Coord[i],
+                            Coord[(i + 1) % facet_size],
+                            IntersectionCoord,
+                            normal_flag * N,
+                            this_area) == false) {
+            current_edge_index = i;
+            inside = false;
+            return false;
+          }
+          else {
+            inside = true;
+            Area[i] = this_area; //the area adjacent to vertex[ID] is assigned as Area[ID] so further treatment shall be done for the Weight calculation
+          }
+        }//for every vertex
+
         if (DistPToB < rad )
         {
-            array_1d <double,3> IntersectionCoord;
-
-            for (unsigned int i = 0; i<3; i++)
-            {
-                IntersectionCoord[i] = Particle_Coord[i] - DistPToB*N[i];
-            }
-
-            std::vector<double> Area;
-            Area.resize(facet_size);
-
-            for (int i = 0; i<facet_size; i++)
-            {
-                double this_area = 0.0;
-                if (InsideOutside(Coord[i],
-                                  Coord[(i+1)%facet_size],
-                                  IntersectionCoord,
-                                  normal_flag*N,
-                                  this_area) == false)
-                {
-                    current_edge_index = i;
-                    return false;
-                }
-                else
-                {
-                    Area[i] = this_area; //the area adjacent to vertex[ID] is assigned as Area[ID] so further treatment shall be done for the Weight calculation
-                }
-
-            }//for every vertex
-
             double auxiliar_unit_vector[3];
             CrossProduct( N,A,auxiliar_unit_vector );
             normalize( auxiliar_unit_vector );

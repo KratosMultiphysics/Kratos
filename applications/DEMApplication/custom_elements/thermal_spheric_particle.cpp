@@ -124,6 +124,10 @@ namespace Kratos
     }
 
     // Compute heat fluxes with noncontact neighbor walls
+    // ATTENTION:
+    // Only one element of a noncontact wall is elected to represent the entire wall,
+    // which is the edge(2D)/face(3D) intersected by the normal vector between the wall and the particle.
+    // This elected element represents an infinity wall.
     for (unsigned int i = 0; i < mNeighbourNonContactRigidFaces.size(); i++) {
       if (mNeighbourNonContactRigidFaces[i] == NULL) continue;
       mNeighbor_w = dynamic_cast<DEMWall*>(mNeighbourNonContactRigidFaces[i]);
@@ -1188,17 +1192,23 @@ namespace Kratos
       // Computing the distance again, as it is done in SphericParticle::ComputeBallToRigidFaceContactForce
       double distance = 0.0;
 
-      // Weight vector defines the indexes of the wall nodes in RigidEdge2D::ComputeConditionRelativeData
-      // (assuming that they are always 0 and 1, so the first 2 weights are set to 0.5)
-      array_1d<double, 4> weight = ZeroVector(4);
-      weight[0] = 0.5;
-      weight[1] = 0.5;
+      // ATTENTION:
+      // Weight vector defines the indexes of the wall nodes in RigidEdge2D::ComputeConditionRelativeData.
+      // It is also used to compute the number of points in RigidFace3D::ComputeConditionRelativeData.
+      // It is here initialized in such a way that the sum of the n first positions is 1.0, where n is the
+      // number of wall nodes.
+      double w = 1.0 / mNeighbor_w->GetGeometry().size();
+      array_1d<double, 4> weight;
+      weight[0] = w;
+      weight[1] = w;
+      weight[2] = w;
+      weight[3] = w;
 
       // Dummy variables: not used now
       double dummy1[3][3];
       DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
-      array_1d<double, 3>  dummy2 = ZeroVector(3);
-      array_1d<double, 3>  dummy3 = ZeroVector(3);
+      array_1d<double, 3> dummy2 = ZeroVector(3);
+      array_1d<double, 3> dummy3 = ZeroVector(3);
       int dummy4 = 0;
 
       mNeighbor_w->ComputeConditionRelativeData(mNeighborIndex, this, dummy1, distance, weight, dummy2, dummy3, dummy4);
