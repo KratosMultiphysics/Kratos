@@ -73,7 +73,7 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             delta_x = alpha * self.R[0]
             self.alpha_old = alpha
             return delta_x
-    
+
     @classmethod
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{

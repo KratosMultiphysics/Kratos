@@ -99,7 +99,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
             for conv_crit in self.convergence_criteria_list:
                 conv_crit.FinalizeNonLinearIteration()
 
-            is_converged = all([conv_crit.IsConverged() for conv_crit in self.convergence_criteria_list])# and k >= 2# This and is required for Aitken relaxation!!!
+            is_converged = all([conv_crit.IsConverged() for conv_crit in self.convergence_criteria_list])
 
             if is_converged:
                 if self.echo_level > 0:
@@ -155,3 +155,4 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
 
         for solver in self.solver_wrappers.values():
             solver.ExportData(export_config)
+
