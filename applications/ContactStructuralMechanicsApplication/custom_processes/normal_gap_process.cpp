@@ -92,20 +92,18 @@ void NormalGapProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeNormalGap(NodesA
 {
     KRATOS_TRY
 
-    array_1d<double, 3> normal, auxiliar_coordinates, components_gap;
-    double gap = 0.0;
-
-    block_for_each(rNodes, [&gap, &normal, &auxiliar_coordinates, &components_gap, this](NodeType& rNode) {
+    struct auxiliar {array_1d<double, 3> normal, auxiliar_coordinates, components_gap; double gap = 0.0; };
+    block_for_each(rNodes, auxiliar(), [this](NodeType& rNode, auxiliar& aux) {
         if (rNode.Is(SLAVE) == this->mSearchOrientation) {
             // We compute the gap
-            noalias(normal) = rNode.FastGetSolutionStepValue(NORMAL);
-            noalias(auxiliar_coordinates) = rNode.GetValue(AUXILIAR_COORDINATES);
-            noalias(components_gap) = ( rNode.Coordinates() - auxiliar_coordinates);
-            gap = inner_prod(components_gap, - normal);
+            noalias(aux.normal) = rNode.FastGetSolutionStepValue(NORMAL);
+            noalias(aux.auxiliar_coordinates) = rNode.GetValue(AUXILIAR_COORDINATES);
+            noalias(aux.components_gap) = ( rNode.Coordinates() - aux.auxiliar_coordinates);
+            aux.gap = inner_prod(aux.components_gap, - aux.normal);
 
             // We activate if the node is close enough
-            if (norm_2(auxiliar_coordinates) > ZeroTolerance)
-                rNode.SetValue(NORMAL_GAP, gap);
+            if (norm_2(aux.auxiliar_coordinates) > ZeroTolerance)
+                rNode.SetValue(NORMAL_GAP, aux.gap);
         } else {
             rNode.SetValue(NORMAL_GAP, 0.0);
         }
