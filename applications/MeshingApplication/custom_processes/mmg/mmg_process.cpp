@@ -1014,8 +1014,8 @@ void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
     KRATOS_TRY;
 
     // Next check that the conditions are oriented accordingly to do so begin by putting all of the conditions in a set
-    typedef std::unordered_map<DenseVector<IndexType>, std::vector<IndexType>, KeyHasherRange<DenseVector<IndexType>>, KeyComparorRange<DenseVector<IndexType>> > IndexCondMapTypeType;
-    IndexCondMapTypeType faces_map;
+    typedef std::unordered_map<DenseVector<IndexType>, std::vector<IndexType>, KeyHasherRange<DenseVector<IndexType>>, KeyComparorRange<DenseVector<IndexType>> > HashMapType;
+    HashMapType faces_map;
 
     // Iterate over conditions
     auto& r_conditions_array = mrThisModelPart.Conditions();
@@ -1037,13 +1037,13 @@ void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
         std::sort(ids.begin(), ids.end());
 
         // Insert a pointer to the condition identified by the hash value ids
-        IndexCondMapTypeType::iterator it_face = faces_map.find(ids);
+        HashMapType::iterator it_face = faces_map.find(ids);
         if(it_face != faces_map.end() ) { // Already defined vector
             (it_face->second).push_back(r_cond.Id());
         } else {
             std::vector<IndexType> aux_cond_id(1);
             aux_cond_id[0] = r_cond.Id();
-            faces_map.insert( IndexCondMapTypeType::value_type(std::pair<DenseVector<IndexType>, std::vector<IndexType>>({ids, aux_cond_id})) );
+            faces_map.insert( HashMapType::value_type(std::pair<DenseVector<IndexType>, std::vector<IndexType>>({ids, aux_cond_id})) );
         }
     }
 
