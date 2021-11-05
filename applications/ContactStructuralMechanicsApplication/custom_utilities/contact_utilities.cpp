@@ -158,23 +158,18 @@ void ContactUtilities::ComputeStepJump(
     // Iterate over the nodes
     NodesArrayType& r_nodes_array = rModelPart.Nodes();
 
-    // Node iterator
-    const auto it_node_begin = r_nodes_array.begin();
-
     // We compute the half jump
     array_1d<double, 3> new_delta_disp;
-    #pragma omp parallel for firstprivate(new_delta_disp)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i)  {
-        auto it_node = it_node_begin + i;
-        const array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-        const array_1d<double, 3>& r_previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
-        const array_1d<double, 3>& r_previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+    block_for_each(r_nodes_array, [&new_delta_disp, &velocity_constant, &acceleration_constant, &DeltaTime](NodeType& rNode) {
+        const array_1d<double, 3>& r_current_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+        const array_1d<double, 3>& r_previous_velocity = rNode.FastGetSolutionStepValue(VELOCITY, 1);
+        const array_1d<double, 3>& r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
         noalias(new_delta_disp) = velocity_constant * DeltaTime * (r_current_velocity + r_previous_velocity) + acceleration_constant * std::pow(DeltaTime, 2) * r_previous_acceleration;
-        if (it_node->IsFixed(DISPLACEMENT_X)) new_delta_disp[0] = 0.0;
-        if (it_node->IsFixed(DISPLACEMENT_Y)) new_delta_disp[1] = 0.0;
-        if (it_node->IsFixed(DISPLACEMENT_Z)) new_delta_disp[2] = 0.0;
-        it_node->SetValue(DELTA_COORDINATES, new_delta_disp);
-    }
+        if (rNode.IsFixed(DISPLACEMENT_X)) new_delta_disp[0] = 0.0;
+        if (rNode.IsFixed(DISPLACEMENT_Y)) new_delta_disp[1] = 0.0;
+        if (rNode.IsFixed(DISPLACEMENT_Z)) new_delta_disp[2] = 0.0;
+        rNode.SetValue(DELTA_COORDINATES, new_delta_disp);
+    });
 }
 
 /***********************************************************************************/
@@ -265,13 +260,10 @@ void ContactUtilities::ActivateConditionWithActiveNodes(ModelPart& rModelPart)
 {
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
     KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
-    const auto it_cond_begin = r_conditions_array.begin();
 
     bool is_active = false;
-    #pragma omp parallel for firstprivate(is_active)
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-        auto it_cond = it_cond_begin + i;
-        const GeometryType& r_geometry = it_cond->GetGeometry();
+    block_for_each(r_conditions_array, [&is_active](Condition& rCond) {
+        const GeometryType& r_geometry = rCond.GetGeometry();
         if (r_geometry.NumberOfGeometryParts() > 0) {
             const GeometryType& r_parent_geometry = r_geometry.GetGeometryPart(0);
             is_active = false;
@@ -281,9 +273,9 @@ void ContactUtilities::ActivateConditionWithActiveNodes(ModelPart& rModelPart)
                     break;
                 }
             }
-            it_cond->Set(ACTIVE, is_active);
+            rCond.Set(ACTIVE, is_active);
         }
-    }
+    });
 }
 
 /***********************************************************************************/
