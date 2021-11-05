@@ -27,6 +27,25 @@ namespace {
 
     RegistryItem* Registry::mspRootRegistryItem = nullptr;
 
+    RegistryItem& Registry::GetItem(std::string const& ItemFullName){
+        auto item_path = SplitFullName(ItemFullName);
+        
+        RegistryItem* p_current_item = &GetRootRegistryItem();
+
+        for(std::size_t i = 0 ; i < item_path.size() ; i++){
+            auto& item_name = item_path[i];
+            if(p_current_item->HasItem(item_name)){
+                p_current_item = &p_current_item->GetItem(item_name);
+            }
+            else{
+                KRATOS_ERROR << "The item \"" << ItemFullName << "\" is not found in the registry. The item \"" << p_current_item->Name() << "\" does not have \"" << item_name << "\"" << std::endl;
+            }
+        }
+
+        return *p_current_item;
+    }
+
+
     std::string Registry::Info() const{
         return "Registry";
     }
@@ -54,7 +73,7 @@ namespace {
 
     }
 
-    std::vector<std::string> SplitFullName(std::string const& FullName){
+    std::vector<std::string> Registry::SplitFullName(std::string const& FullName){
         std::istringstream iss(FullName);
         std::vector<std::string> result;
         std::string name;
@@ -62,6 +81,9 @@ namespace {
         while (std::getline(iss, name, '.')){
             result.push_back(name);
         }
+
+        KRATOS_ERROR_IF(result.empty()) << "The item full name is empty" << std::endl;
+
 
         return result;
     }

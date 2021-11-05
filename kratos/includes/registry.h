@@ -90,13 +90,13 @@ public:
 
         RegistryItem* p_current_item = &GetRootRegistryItem();
 
-        for(int i = 0 ; i < item_path.size() - 1 ; i++){
+        for(std::size_t i = 0 ; i < item_path.size() - 1 ; i++){
             auto& item_name = item_path[i];
             if(p_current_item->HasItem(item_name)){
-                p_current_item = p_current_item->GetItem(item_name);
+                p_current_item = &p_current_item->GetItem(item_name);
             }
             else{
-                p_current_item = p_current_item->AddItem<RegistryItem>(item_name);
+                p_current_item = &p_current_item->AddItem<RegistryItem>(item_name);
             }
         }
 
@@ -106,7 +106,7 @@ public:
             KRATOS_ERROR << "The item \"" << ItemFullName << "\" is already registered." << std::endl;
         }
         else{
-            p_current_item = p_current_item->AddItem<TItemType>(item_name, std::forward<TArgumentsList>(Arguments)...);
+            p_current_item = &p_current_item->AddItem<TItemType>(item_name, std::forward<TArgumentsList>(Arguments)...);
         }
 
         return *p_current_item;
@@ -116,6 +116,7 @@ public:
     ///@name Access
     ///@{
 
+    static RegistryItem& GetItem(std::string const& ItemFullName);
 
     ///@}
     ///@name Inquiry
