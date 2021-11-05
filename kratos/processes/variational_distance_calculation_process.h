@@ -433,9 +433,9 @@ protected:
         if (num_elements > 0)
         {
             const auto geometry_family = mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily();
-            KRATOS_ERROR_IF( (TDim == 2) && (geometry_family != GeometryData::Kratos_Triangle) )
+            KRATOS_ERROR_IF( (TDim == 2) && (geometry_family != GeometryData::KratosGeometryFamily::Kratos_Triangle) )
             << "In 2D the element type is expected to be a triangle." << std::endl;
-            KRATOS_ERROR_IF( (TDim == 3) && (geometry_family != GeometryData::Kratos_Tetrahedra) )
+            KRATOS_ERROR_IF( (TDim == 3) && (geometry_family != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) )
             << "In 3D the element type is expected to be a tetrahedron" << std::endl;
         }
 
