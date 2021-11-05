@@ -143,6 +143,16 @@ public:
     void SetMeshZCoordinate(ModelPart& rModelPart, const Variable<double>& rVariable);
 
     /**
+     * @brief Swap the Y and Z coordinates of the nodes
+     */
+    void SwapYZCoordinates(ModelPart& rModelPart);
+
+    /**
+     * @brief Swap the Y and Z coordinates of the nodes
+     */
+    void SwapY0Z0Coordinates(ModelPart& rModelPart);
+
+    /**
      * @brief Store a double variable as NonHistorical and set the value to no-data if the node is dry
      */
     void StoreNonHistoricalGiDNoDataIfDry(ModelPart& rModelPart, const Variable<double>& rVariable);
@@ -174,12 +184,21 @@ public:
      * @brief Offset the ids of the given container for visualization purpose in GiD
      */
     template<class TContainerType>
+    void OffsetIds(TContainerType& rContainer, const double Offset)
+    {
+        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+            rEntity.SetId(rEntity.Id() + Offset);
+        });
+    }
+
+    /**
+     * @brief Offset the ids of the given container for visualization purpose in GiD
+     */
+    template<class TContainerType>
     void OffsetIds(TContainerType& rContainer)
     {
         const std::size_t offset = rContainer.size();
-        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
-            rEntity.SetId(rEntity.Id() + offset);
-        });
+        OffsetIds(rContainer, offset);
     }
 
     /**
