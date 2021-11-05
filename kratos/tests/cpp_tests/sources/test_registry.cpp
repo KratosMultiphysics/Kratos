@@ -112,6 +112,19 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryValue, KratosCoreFastSuite)
     KRATOS_WATCH(registry_item.ToJson());
 }
 
+
+KRATOS_TEST_CASE_IN_SUITE(RegistryAddAndRemove, KratosCoreFastSuite)
+{
+    Registry::AddItem<RegistryItem>("item_in_root");
+    auto& item_in_root = Registry::GetItem("item_in_root");    
+    KRATOS_CHECK_STRING_EQUAL(item_in_root.Name(),"item_in_root");
+
+
+    Registry::AddItem<RegistryItem>("path.to.the.registry.new_item");
+    auto& new_item = Registry::GetItem("path.to.the.registry.new_item");    
+    KRATOS_CHECK_STRING_EQUAL(new_item.Name(),"new_item");
+}
+
 // KRATOS_TEST_CASE_IN_SUITE(KratosComponentsGetNonExistingElement, KratosCoreFastSuite)
 // {
 //     KRATOS_CHECK(KratosComponents<Element>::Has("Element2D2N"));
