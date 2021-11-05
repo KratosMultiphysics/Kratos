@@ -1014,8 +1014,8 @@ void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
     KRATOS_TRY;
 
     // Next check that the conditions are oriented accordingly to do so begin by putting all of the conditions in a set
-    typedef std::unordered_map<DenseVector<IndexType>, std::vector<IndexType>, KeyHasherRange<DenseVector<IndexType>>, KeyComparorRange<DenseVector<IndexType>> > HashMapType;
-    HashMapType faces_map;
+    typedef std::unordered_map<DenseVector<IndexType>, std::vector<IndexType>, KeyHasherRange<DenseVector<IndexType>>, KeyComparorRange<DenseVector<IndexType>> > IndexCondMapTypeType;
+    IndexCondMapTypeType faces_map;
 
     // Iterate over conditions
     auto& r_conditions_array = mrThisModelPart.Conditions();
@@ -1037,13 +1037,13 @@ void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
         std::sort(ids.begin(), ids.end());
 
         // Insert a pointer to the condition identified by the hash value ids
-        HashMapType::iterator it_face = faces_map.find(ids);
+        IndexCondMapTypeType::iterator it_face = faces_map.find(ids);
         if(it_face != faces_map.end() ) { // Already defined vector
             (it_face->second).push_back(r_cond.Id());
         } else {
             std::vector<IndexType> aux_cond_id(1);
             aux_cond_id[0] = r_cond.Id();
-            faces_map.insert( HashMapType::value_type(std::pair<DenseVector<IndexType>, std::vector<IndexType>>({ids, aux_cond_id})) );
+            faces_map.insert( IndexCondMapTypeType::value_type(std::pair<DenseVector<IndexType>, std::vector<IndexType>>({ids, aux_cond_id})) );
         }
     }
 
@@ -1174,64 +1174,58 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
     VariableUtils().SetFlag(TO_ERASE, true, r_nodes_array);
 
     // Saving the nodes that belong to an element
-    for(auto& rElement : mrThisModelPart.Elements()){
+    block_for_each(mrThisModelPart.Elements(),
+        [&](Element& rElement) {
+
         auto& r_geom = rElement.GetGeometry();
 
         for (IndexType i_node = 0; i_node < r_geom.size(); ++i_node){
             r_geom[i_node].Set(TO_ERASE, false);
         }
-    }
+    });
 
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
 
-    // Next check that the conditions are oriented accordingly
-    // to do so begin by putting all of the conditions in a map
-    typedef std::unordered_map<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > hashmap;
-    hashmap faces_map;
+    // Check which conditions do not have a parent element
+    typedef std::unordered_map<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > IndexCondMapType;
+    IndexCondMapType faces_map;
 
-    for (auto it_cond = mrThisModelPart.ConditionsBegin(); it_cond != mrThisModelPart.ConditionsEnd(); it_cond++) {
-        it_cond->Set(TO_ERASE, true);
-
-        GeometryType& r_geometry = it_cond->GetGeometry();
-
+    for (auto& r_cond :  mrThisModelPart.Conditions()) {
+        auto& r_geometry = r_cond.GetGeometry();
         const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
 
         if (geometry_type == GeometryData::Kratos_Triangle3D3  || geometry_type == GeometryData::Kratos_Line2D2) {
+            // Set all conditions to erase to later discard those with a parent element
+            r_cond.Set(TO_ERASE, true);
             DenseVector<int> ids(r_geometry.size());
 
             for(IndexType i=0; i<ids.size(); i++) {
                 ids[i] = r_geometry[i].Id();
             }
 
-            //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+            // Sort the ids to be hashed
             std::sort(ids.begin(), ids.end());
 
             // Insert a pointer to the condition identified by the hash value ids
-            hashmap::iterator it_face = faces_map.find(ids);
-            if(it_face != faces_map.end() ) { // Already defined geometry
-                it_face->second.push_back(*it_cond.base());
+            if(faces_map.find(ids) != faces_map.end() ) { // Already defined geometry
+                faces_map[ids].push_back(&r_cond);
             } else {
-                faces_map.insert( hashmap::value_type(ids, std::vector<Condition::Pointer>({*it_cond.base()})) );
+                faces_map[ids] = std::vector<Condition::Pointer>({&r_cond});
             }
         }
     }
 
-    // Now loop for all the elements and for each face of the element check if it is in the "faces_map"
-    // if it happens to be there check the orientation
-    for (auto it_elem = mrThisModelPart.ElementsBegin(); it_elem != mrThisModelPart.ElementsEnd(); it_elem++) {
-        GeometryType& r_geometry = it_elem->GetGeometry();
+    // Check faces of elements and mark conditions that match them
+    for (auto& r_elem : mrThisModelPart.Elements()) {
+        auto& r_geometry = r_elem.GetGeometry();
         const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
 
         if (geometry_type == GeometryData::Kratos_Tetrahedra3D4  || geometry_type == GeometryData::Kratos_Triangle2D3) {
-            // Allocate a work array long enough to contain the Ids of a face
             DenseVector<int> aux( r_geometry.size() - 1);
 
             // Loop over the faces
             for(IndexType outer_node_index=0; outer_node_index< r_geometry.size(); outer_node_index++) {
-                // We put in "aux" the indices of all of the nodes which do not
-                // coincide with the face_index we are currently considering telling in other words:
-                // face_index will contain the local_index of the node which is NOT on the face
-                // localindex_node_on_face the local_index of one of the nodes on the face
+                // Loop again the nodes discarding the "outer" node, in order to get each face of the geometry
                 IndexType counter = 0;
                 for(IndexType i=0; i<r_geometry.size(); i++) {
                     if(i != outer_node_index) {
@@ -1239,14 +1233,11 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
                     }
                 }
 
-                //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+                // Order ids to use them in the map
                 std::sort(aux.begin(), aux.end());
-
-                hashmap::iterator it_face = faces_map.find(aux);
-                if(it_face != faces_map.end()) { // It was actually found!!
+                if(faces_map.find(aux) != faces_map.end()) { // It was actually found!!
                     // Mark the condition as visited. This will be useful for a check at the endif
-                    std::vector<Condition::Pointer>& list_conditions = it_face->second;
-                    for (Condition::Pointer p_cond : list_conditions) {
+                    for (auto p_cond : faces_map[aux]) {
                         p_cond->Set(TO_ERASE,false);
                     }
                 }
