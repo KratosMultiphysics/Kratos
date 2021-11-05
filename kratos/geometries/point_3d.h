@@ -555,13 +555,6 @@ public:
 //       return 0;
 //          }
 //
-//
-//
-//          virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod) const
-//     	{
-//     		  KRATOS_ERROR << "Jacobian is not square" << std::endl;
-//     	}
-
     /*
 
 

@@ -41,6 +41,8 @@ namespace Kratos {
 
         virtual DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
 
+        virtual std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique();
+
         virtual void CalculateContactArea(double radius, double other_radius, double &calculation_area);
 
         virtual void CalculateElasticConstants(double &kn_el,
