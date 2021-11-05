@@ -207,6 +207,20 @@ void ShallowWaterUtilities::SetMeshZCoordinate(ModelPart& rModelPart, const Vari
     });
 }
 
+void ShallowWaterUtilities::SwapYZCoordinates(ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+        std::swap(rNode.Y(), rNode.Z());
+    });
+}
+
+void ShallowWaterUtilities::SwapY0Z0Coordinates(ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+        std::swap(rNode.Y0(), rNode.Z0());
+    });
+}
+
 void ShallowWaterUtilities::StoreNonHistoricalGiDNoDataIfDry(ModelPart& rModelPart, const Variable<double>& rVariable)
 {
     const double relative_dry_height = rModelPart.GetProcessInfo()[RELATIVE_DRY_HEIGHT];
