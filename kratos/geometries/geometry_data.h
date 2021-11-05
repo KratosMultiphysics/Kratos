@@ -84,7 +84,7 @@ public:
         GI_EXTENDED_GAUSS_3,
         GI_EXTENDED_GAUSS_4,
         GI_EXTENDED_GAUSS_5,
-        NumberOfIntegrationMethods
+        NumberOfIntegrationMethods // Note that this entry needs to be always the last to be used as integration methods counter
     };
 
     enum class KratosGeometryFamily
@@ -102,7 +102,7 @@ public:
         Kratos_Brep,
         Kratos_Quadrature_Geometry,
         Kratos_generic_family,
-        NumberOfGeometryFamilies
+        NumberOfGeometryFamilies // Note that this entry needs to be always the last to be used as geometry families counter
     };
 
     enum class KratosGeometryType
@@ -145,7 +145,7 @@ public:
         Kratos_Quadrature_Point_Geometry,
         Kratos_Quadrature_Point_Curve_On_Surface_Geometry,
         Kratos_Quadrature_Point_Surface_In_Volume_Geometry,
-        NumberOfGeometryTypes
+        NumberOfGeometryTypes // Note that this entry needs to be always the last to be used as geometry types counter
     };
     ///@}
     ///@name Type Definitions
