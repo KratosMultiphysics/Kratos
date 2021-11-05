@@ -109,7 +109,7 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteInitialize()
 
     /* We restart the PMMG mesh and solution */
     mPMmgUtilities.SetEchoLevel(mEchoLevel);
-    mPMmgUtilities.InitMesh();
+    mPMmgUtilities.InitMesh(mrThisModelPart.GetCommunicator().GetDataCommunicator());
 
     KRATOS_CATCH("");
 }
