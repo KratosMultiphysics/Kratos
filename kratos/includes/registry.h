@@ -122,6 +122,7 @@ public:
     ///@name Inquiry
     ///@{
 
+    static bool HasItem(std::string const& ItemFullName);
 
     ///@}
     ///@name Input and output

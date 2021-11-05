@@ -45,6 +45,22 @@ namespace {
         return *p_current_item;
     }
 
+    bool Registry::HasItem(std::string const& ItemFullName){
+        auto item_path = SplitFullName(ItemFullName);
+        
+        RegistryItem* p_current_item = &GetRootRegistryItem();
+
+        for(std::size_t i = 0 ; i < item_path.size() ; i++){
+            auto& item_name = item_path[i];
+            if(p_current_item->HasItem(item_name)){
+                p_current_item = &p_current_item->GetItem(item_name);
+            }
+            else{
+               return false;
+            }
+        }
+        return true;    
+    }
 
     std::string Registry::Info() const{
         return "Registry";
