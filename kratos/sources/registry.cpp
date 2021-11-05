@@ -45,6 +45,30 @@ namespace {
         return *p_current_item;
     }
 
+    void Registry::RemoveItem(std::string const& ItemFullName){
+        auto item_path = SplitFullName(ItemFullName);
+        
+        RegistryItem* p_current_item = &GetRootRegistryItem();
+
+        for(std::size_t i = 0 ; i < item_path.size() - 1 ; i++){
+            auto& item_name = item_path[i];
+            if(p_current_item->HasItem(item_name)){
+                p_current_item = &p_current_item->GetItem(item_name);
+            }
+            else{
+                KRATOS_ERROR << "The item \"" << ItemFullName << "\" is not found in the registry. The item \"" << p_current_item->Name() << "\" does not have \"" << item_name << "\"" << std::endl;
+            }
+        }
+
+        auto& item_name = item_path.back();
+        if(p_current_item->HasItem(item_name)){
+            p_current_item->RemoveItem(item_name);
+        }
+        else{
+            KRATOS_ERROR << "The item \"" << ItemFullName << "\" is not found in the registry. The item \"" << p_current_item->Name() << "\" does not have \"" << item_name << "\"" << std::endl;
+        }
+    }
+
     bool Registry::HasItem(std::string const& ItemFullName){
         auto item_path = SplitFullName(ItemFullName);
         

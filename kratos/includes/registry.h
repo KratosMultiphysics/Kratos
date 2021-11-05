@@ -118,6 +118,9 @@ public:
 
     static RegistryItem& GetItem(std::string const& ItemFullName);
 
+
+    static void RemoveItem(std::string const& ItemName);
+    
     ///@}
     ///@name Inquiry
     ///@{
