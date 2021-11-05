@@ -503,7 +503,7 @@ def AssembleTestSuites():
               TBeamContactTest,
               TBeamContactWithTyingTest,
               TBeamContactWithFrictionTest,
-              TPlateTest,
+              TPlateTest,  # FIXME: OMP failing
               ### VALIDATION
               #####TComponentsALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
               TALMHertzSimpleTestContact,
@@ -518,7 +518,7 @@ def AssembleTestSuites():
               TALMMeshMovingMatchingTestContact,
               TALMMeshMovingNotMatchingTestContact,
               TALMTaylorPatchFrictionalTestContact,
-              TALMMeshMovingMatchingTestFrictionalPureSlipContact,
+              TALMMeshMovingMatchingTestFrictionalPureSlipContact, # TODO: Fix this
               TALMMeshMovingNotMatchingTestFrictionalPureSlipContact,
               TALMHertzTestFrictionalContact,
               TALMBlockTestFrictionalContact, # TODO: Fix this
