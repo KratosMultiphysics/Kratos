@@ -159,8 +159,8 @@ void ContactUtilities::ComputeStepJump(
     NodesArrayType& r_nodes_array = rModelPart.Nodes();
 
     // We compute the half jump
-    array_1d<double, 3> new_delta_disp;
-    block_for_each(r_nodes_array, [&new_delta_disp, &velocity_constant, &acceleration_constant, &DeltaTime](NodeType& rNode) {
+    array_1d<double, 3> new_delta_disp = ZeroVector(3);
+    block_for_each(r_nodes_array, new_delta_disp, [&velocity_constant, &acceleration_constant, &DeltaTime](NodeType& rNode, array_1d<double, 3>& new_delta_disp) {
         const array_1d<double, 3>& r_current_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
         const array_1d<double, 3>& r_previous_velocity = rNode.FastGetSolutionStepValue(VELOCITY, 1);
         const array_1d<double, 3>& r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
@@ -262,7 +262,7 @@ void ContactUtilities::ActivateConditionWithActiveNodes(ModelPart& rModelPart)
     KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
 
     bool is_active = false;
-    block_for_each(r_conditions_array, [&is_active](Condition& rCond) {
+    block_for_each(r_conditions_array, is_active, [&](Condition& rCond, bool& is_active) {
         const GeometryType& r_geometry = rCond.GetGeometry();
         if (r_geometry.NumberOfGeometryParts() > 0) {
             const GeometryType& r_parent_geometry = r_geometry.GetGeometryPart(0);
