@@ -23,6 +23,7 @@
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/variable_utils.h"
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -1021,7 +1022,7 @@ class ResidualBasedNewtonRaphsonStrategy
                     {
                         TSparseSpace::SetToZero(rA);
                         TSparseSpace::SetToZero(rDx);
-                        //TSystemVectorType dx_prediction(rDx);
+                        TSystemVectorType dx_prediction(rDx);
                         TSparseSpace::SetToZero(rb);
 
                         p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
@@ -1037,12 +1038,17 @@ class ResidualBasedNewtonRaphsonStrategy
                                 KRATOS_WATCH(old_residual)
                                 KRATOS_WATCH(new_residual)
                                 KRATOS_WATCH("*******")
+
+
                                 TSparseSpace::InplaceMult(rDx, -1.0);
                                 UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
                                 p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
                                 CalculateResidualNorm(r_model_part, new_residual, r_dof_set, rb);
+
+
+
                                 KRATOS_WATCH(new_residual)
-                                
+
                                 KRATOS_ERROR << "DD" << std::endl;
 
                                 while (new_residual > old_residual && iteration < 20) {
