@@ -32,9 +32,8 @@ void AALMAdaptPenaltyValueProcess::Execute()
     const double max_gap_factor = r_process_info[MAX_GAP_FACTOR];
     const bool initialize = (r_process_info[STEP] == 1 && r_process_info[NL_ITERATION_NUMBER] == 1);
     
-    // We iterate over the node
+    // We iterate over the nodes
     NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
-
     block_for_each(r_nodes_array, [&](NodeType& rNode) {
         // Initial value
         const double penalty_parameter = initialize ? initial_penalty_parameter : rNode.GetValue(INITIAL_PENALTY);
