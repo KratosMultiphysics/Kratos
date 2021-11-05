@@ -161,15 +161,12 @@ public:
 
         // We initailize the contact force
         auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
 
         // We save the current WEIGHTED_GAP in the buffer and reset the CONTACT_FORCE
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
-            it_node->SetValue(CONTACT_FORCE, zero_array);
-            it_node->FastGetSolutionStepValue(WEIGHTED_GAP, 1) = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-        }
+        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            rNode.SetValue(CONTACT_FORCE, zero_array);
+            rNode.FastGetSolutionStepValue(WEIGHTED_GAP, 1) = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
+        });
 
         // Compute weighted gap
         ComputeWeightedGap(rModelPart);
