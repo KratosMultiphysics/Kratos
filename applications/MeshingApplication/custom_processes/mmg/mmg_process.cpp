@@ -1183,20 +1183,6 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
     }
 
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
-    VariableUtils().SetFlag(TO_ERASE, false, mrThisModelPart.Conditions());
-    VariableUtils().SetFlag(MARKER, true, mrThisModelPart.Nodes());
-    std::vector<std::size_t> list_of_ids_to_remove;
-    // Check if there are conditions that contain any of the superflous nodes.
-    for(int i_cond = 0; i_cond < static_cast<int>(mrThisModelPart.Conditions().size()); ++i_cond ){
-        const auto it = mrThisModelPart.Conditions().begin() + i_cond;
-        auto& r_geom = it->GetGeometry();
-        for (IndexType i = 0; i < r_geom.size(); ++i){
-            if (r_geom[i].IsNot(MARKER)) {
-                it->Set(TO_ERASE, true);
-                list_of_ids_to_remove.push_back(it->Id());
-            }
-        }
-    }
 
     // Next check that the conditions are oriented accordingly
     // to do so begin by putting all of the conditions in a map
@@ -1204,7 +1190,7 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
     hashmap faces_map;
 
     for (auto it_cond = mrThisModelPart.ConditionsBegin(); it_cond != mrThisModelPart.ConditionsEnd(); it_cond++) {
-        it_cond->Set(VISITED, false); //mark
+        it_cond->Set(TO_ERASE, true);
 
         GeometryType& r_geometry = it_cond->GetGeometry();
 
@@ -1261,30 +1247,14 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
                     // Mark the condition as visited. This will be useful for a check at the endif
                     std::vector<Condition::Pointer>& list_conditions = it_face->second;
                     for (Condition::Pointer p_cond : list_conditions) {
-                        p_cond->Set(VISITED,true);
+                        p_cond->Set(TO_ERASE,false);
                     }
                 }
-
             }
         }
     }
 
-    //check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
-    for (auto& r_cond : mrThisModelPart.Conditions()) {
-        if (r_cond.IsNot(VISITED)) {
-            r_cond.Set(TO_ERASE, true);
-            list_of_ids_to_remove.push_back(r_cond.Id());
-        }
-    }
-
-
-    for (auto  id_cond : list_of_ids_to_remove) {
-        // KRATOS_INFO("MmgProcess") << "Removing condition #" << id_cond << std::endl;
-        mrThisModelPart.RemoveConditionFromAllLevels(id_cond);
-    }
-
-
-    // mrThisModelPart.RemoveConditionFromAllLevels(TO_ERASE);
+    mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 
     const SizeType final_num = mrThisModelPart.Nodes().size();
     const SizeType final_num_cond = mrThisModelPart.Conditions().size();
