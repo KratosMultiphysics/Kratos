@@ -97,31 +97,30 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActi
     const bool consider_gap_threshold = BaseType::mThisParameters["consider_gap_threshold"].GetBool();
 
     // We compute now the normal gap and set the nodes under certain threshold as active
-    bool auxiliar_check = false;
-    bool has_weighted_gap = false;
-    block_for_each(r_nodes_array, [this, &auxiliar_length, &auxiliar_check, &has_weighted_gap, &reference_auxiliar_length, &consider_gap_threshold, &static_check_movement, &predict_correct_lagrange_multiplier, &a, &b, &common_epsilon](NodeType& rNode) {
+    struct auxiliar {bool auxiliar_check = false; bool has_weighted_gap = false; double auxiliar_length = 0.0;};
+    block_for_each(r_nodes_array, auxiliar(), [this, &reference_auxiliar_length, &consider_gap_threshold, &static_check_movement, &predict_correct_lagrange_multiplier, &a, &b, &common_epsilon](NodeType& rNode, auxiliar& aux) {
         if (rNode.Is(SLAVE) == this->IsNotInvertedSearch()) {
-            auxiliar_check = false;
-            auxiliar_length = reference_auxiliar_length;
-            has_weighted_gap = rNode.SolutionStepsDataHas(WEIGHTED_GAP);
-            const double weighted_gap = has_weighted_gap ? rNode.FastGetSolutionStepValue(WEIGHTED_GAP) : 0.0;
-            if (rNode.Is(ACTIVE) && has_weighted_gap) {
+            aux.auxiliar_check = false;
+            aux.auxiliar_length = reference_auxiliar_length;
+            aux.has_weighted_gap = rNode.SolutionStepsDataHas(WEIGHTED_GAP);
+            const double weighted_gap = aux.has_weighted_gap ? rNode.FastGetSolutionStepValue(WEIGHTED_GAP) : 0.0;
+            if (rNode.Is(ACTIVE) && aux.has_weighted_gap) {
                 const double nodal_area = rNode.Has(NODAL_AREA) ? rNode.GetValue(NODAL_AREA) : 1.0;
-                auxiliar_check = (weighted_gap/nodal_area < auxiliar_length) ? true : false;
+                aux.auxiliar_check = (weighted_gap/nodal_area < aux.auxiliar_length) ? true : false;
             }
             // We do the static check
-            if (static_check_movement && has_weighted_gap) {
+            if (static_check_movement && aux.has_weighted_gap) {
                 const double movement_check = weighted_gap - rNode.FastGetSolutionStepValue(WEIGHTED_GAP, 1);
                 if (movement_check > -(std::abs(weighted_gap) * 1.0e-3)) {
                     // If we consider the threshold
                     if (consider_gap_threshold) {
-                        if (auxiliar_length < GapThreshold) {
-                            auxiliar_length = GapThreshold;
+                        if (aux.auxiliar_length < GapThreshold) {
+                            aux.auxiliar_length = GapThreshold;
                         }
                     }
                 }
             }
-            if ((rNode.GetValue(NORMAL_GAP) < auxiliar_length) || auxiliar_check) {
+            if ((rNode.GetValue(NORMAL_GAP) < aux.auxiliar_length) || aux.auxiliar_check) {
                 if (predict_correct_lagrange_multiplier) {
                     SetActiveNodeWithRegression(rNode, a, b);
                 } else { // We just mark it
