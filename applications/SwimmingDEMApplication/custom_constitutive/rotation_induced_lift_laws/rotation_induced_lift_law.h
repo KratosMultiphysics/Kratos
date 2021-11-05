@@ -21,7 +21,7 @@ namespace Kratos {
 
         RotationInducedLiftLaw(){}
 
-        RotationInducedLiftLaw(Parameters& r_parameters){}
+        RotationInducedLiftLaw(Parameters r_parameters){}
 
         ~RotationInducedLiftLaw(){}
 

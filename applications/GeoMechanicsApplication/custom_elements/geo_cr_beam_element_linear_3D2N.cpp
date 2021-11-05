@@ -59,6 +59,19 @@ GeoCrBeamElementLinear3D2N::Create(IndexType NewId,
 //-------------------------------------------------------------------------------------------------
 GeoCrBeamElementLinear3D2N::~GeoCrBeamElementLinear3D2N() {}
 
+
+//----------------------------------------------------------------------------------------
+void GeoCrBeamElementLinear3D2N::
+    ResetConstitutiveLaw()
+{
+    KRATOS_TRY
+
+    mInternalGlobalForcesFinalized         = ZeroVector(msElementSize);
+    mInternalGlobalForcesFinalizedPrevious = ZeroVector(msElementSize);
+
+    KRATOS_CATCH( "" )
+}
+
 //-------------------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear3D2N::
     CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,

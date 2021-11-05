@@ -43,7 +43,7 @@ namespace Testing {
         knot_u[1] = 0.0;
         knot_u[2] = 10.0;
         knot_u[3] = 10.0;
-        Vector knot_v = ZeroVector(2); 
+        Vector knot_v = ZeroVector(2);
         knot_v[0] = 0.0;
         knot_v[1] = 5.0;
 
@@ -87,6 +87,11 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(brep_curve_on_surface.Dimension(), 1);
         KRATOS_CHECK_EQUAL(brep_curve_on_surface.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(brep_curve_on_surface.LocalSpaceDimension(), 2);
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Brep;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface;
+        KRATOS_CHECK_EQUAL(brep_curve_on_surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(brep_curve_on_surface.GetGeometryType(), geometry_type);
     }
 
     ///// Test Copy Constructor
@@ -102,6 +107,11 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(brep_curve_on_surface.Dimension(), brep_curve_on_surface_2.Dimension());
         KRATOS_CHECK_EQUAL(brep_curve_on_surface.WorkingSpaceDimension(), brep_curve_on_surface_2.WorkingSpaceDimension());
         KRATOS_CHECK_EQUAL(brep_curve_on_surface.LocalSpaceDimension(), brep_curve_on_surface_2.LocalSpaceDimension());
+
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Brep;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface;
+        KRATOS_CHECK_EQUAL(brep_curve_on_surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(brep_curve_on_surface.GetGeometryType(), geometry_type);
     }
 } // namespace Testing.
 } // namespace Kratos.

@@ -868,6 +868,61 @@ namespace Kratos
             KRATOS_CHECK_EQUAL(a(1,0), 0.0);
             KRATOS_CHECK_EQUAL(a(0,1), 0.0);
             KRATOS_CHECK_EQUAL(a(1,1), 1.0);
+
+            BoundedMatrix<double,3,3> c = IdentityMatrix(3);
+            BoundedMatrix<double,2,2> d = IdentityMatrix(2);
+
+            MathUtils<double>::AddMatrix(c, d, 0 ,0);
+
+            KRATOS_CHECK_EQUAL(c(0,0), 2.0);
+            KRATOS_CHECK_EQUAL(c(1,0), 0.0);
+            KRATOS_CHECK_EQUAL(c(0,1), 0.0);
+            KRATOS_CHECK_EQUAL(c(1,1), 2.0);
+            KRATOS_CHECK_EQUAL(c(2,2), 1.0);
+        }
+
+        /** Checks if it calculates the vector operations
+         */
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsVectorOperations, KratosCoreFastSuite)
+        {
+            array_1d<double,3> a = ZeroVector(3);
+            array_1d<double,2> b (2, 1.0);
+        
+            MathUtils<double>::AddVector(a, b, 0);
+
+            KRATOS_CHECK_EQUAL(a[0], 1.0);
+            KRATOS_CHECK_EQUAL(a[1], 1.0);
+            KRATOS_CHECK_EQUAL(a[2], 0.0);
+        }
+
+        /** Checks if it calculates the Factorial
+         */
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsFactorial, KratosCoreFastSuite)
+        {
+            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(0), 1);
+            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(1), 1);
+            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(2), 2);
+            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(6), 720);
+            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(8), 40320);
+        }
+
+        /** Checks if the exponential of a matrix is performed correctly
+         */
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsExponentialOfMatrix, KratosCoreFastSuite)
+        {
+            BoundedMatrix<double, 3, 3> A(3, 3), exp_A(3, 3);
+            noalias(A)     = IdentityMatrix(3);
+            noalias(exp_A) = IdentityMatrix(3);
+            A(1, 1) = 2.0;
+            A(2, 2) = 3.0;
+
+            MathUtils<double>::CalculateExponentialOfMatrix(A, exp_A, 1e-8, 2000);
+
+            // We compute the exp of each term
+            A(0, 0) = std::exp(A(0, 0));
+            A(1, 1) = std::exp(A(1, 1));
+            A(2, 2) = std::exp(A(2, 2));
+            KRATOS_CHECK_MATRIX_NEAR(exp_A, A, 1.0e-8);
         }
 
     } // namespace Testing

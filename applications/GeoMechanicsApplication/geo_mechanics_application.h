@@ -46,6 +46,8 @@
 #include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
 
 // elements
+#include "custom_elements/transient_Pw_element.hpp"
+#include "custom_elements/steady_state_Pw_element.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
 #include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
@@ -56,23 +58,26 @@
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
+#include "custom_elements/small_strain_U_Pw_diff_order_axisymmetric_element.hpp"
+#include "custom_elements/U_Pw_small_strain_axisymmetric_element.hpp"
+#include "custom_elements/U_Pw_small_strain_axisymmetric_FIC_element.hpp"
 
 /* geo structural element */
 #include "custom_elements/geo_cr_beam_element_3D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_2D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_linear_2D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_linear_3D2N.hpp"
-#include "custom_elements/geo_truss_element_3D2N.hpp"
-#include "custom_elements/geo_truss_element_linear_3D2N.hpp"
-#include "custom_elements/geo_cable_element_3D2N.hpp"
+#include "custom_elements/geo_truss_element.hpp"
+#include "custom_elements/geo_linear_truss_element.hpp"
+#include "custom_elements/geo_cable_element.hpp"
 
 // constitutive models
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
 #include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
-#include "custom_constitutive/linear_plane_strain_K0_law.h"
-#include "custom_constitutive/linear_plane_strain_2D_law.h"
-#include "custom_constitutive/linear_plane_stress_2D_law.h"
+#include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
 
 #include "custom_constitutive/small_strain_udsm_3D_law.hpp"
 #include "custom_constitutive/small_strain_udsm_2D_plane_strain_law.hpp"
@@ -83,6 +88,9 @@
 #include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
 #include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
 #include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
+
+#include "custom_constitutive/linear_elastic_2D_interface_law.h"
+#include "custom_constitutive/linear_elastic_3D_interface_law.h"
 
 
 namespace Kratos {
@@ -268,6 +276,32 @@ private:
     ///@{
 
     // elements
+    // transient one-phase flow elements:
+    const TransientPwElement<2,3> mTransientPwElement2D3N;
+    const TransientPwElement<2,4> mTransientPwElement2D4N;
+    const TransientPwElement<3,4> mTransientPwElement3D4N;
+    const TransientPwElement<3,8> mTransientPwElement3D8N;
+
+    const TransientPwElement<2,6> mTransientPwElement2D6N;
+    const TransientPwElement<2,8> mTransientPwElement2D8N;
+    const TransientPwElement<2,9> mTransientPwElement2D9N;
+    const TransientPwElement<3,10> mTransientPwElement3D10N;
+    const TransientPwElement<3,20> mTransientPwElement3D20N;
+    const TransientPwElement<3,27> mTransientPwElement3D27N;
+
+    // Steady-State one-phase flow elements:
+    const SteadyStatePwElement<2,3> mSteadyStatePwElement2D3N;
+    const SteadyStatePwElement<2,4> mSteadyStatePwElement2D4N;
+    const SteadyStatePwElement<3,4> mSteadyStatePwElement3D4N;
+    const SteadyStatePwElement<3,8> mSteadyStatePwElement3D8N;
+
+    const SteadyStatePwElement<2,6> mSteadyStatePwElement2D6N;
+    const SteadyStatePwElement<2,8> mSteadyStatePwElement2D8N;
+    const SteadyStatePwElement<2,9> mSteadyStatePwElement2D9N;
+    const SteadyStatePwElement<3,10> mSteadyStatePwElement3D10N;
+    const SteadyStatePwElement<3,20> mSteadyStatePwElement3D20N;
+    const SteadyStatePwElement<3,27> mSteadyStatePwElement3D27N;
+
     // small strain elements:
     const UPwSmallStrainElement<2,3> mUPwSmallStrainElement2D3N;
     const UPwSmallStrainElement<2,4> mUPwSmallStrainElement2D4N;
@@ -306,6 +340,20 @@ private:
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D10N;
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D20N;
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D27N;
+
+    // small strain axisymmtric elements:
+    const UPwSmallStrainAxisymmetricElement<2,3> mUPwSmallStrainAxisymmetricElement2D3N;
+    const UPwSmallStrainAxisymmetricElement<2,4> mUPwSmallStrainAxisymmetricElement2D4N;
+    const UPwSmallStrainAxisymmetricElement<2,6> mUPwSmallStrainAxisymmetricElement2D6N;
+    const UPwSmallStrainAxisymmetricElement<2,8> mUPwSmallStrainAxisymmetricElement2D8N;
+    const UPwSmallStrainAxisymmetricElement<2,9> mUPwSmallStrainAxisymmetricElement2D9N;
+
+    const UPwSmallStrainAxisymmetricFICElement<2,3> mUPwSmallStrainAxisymmetricFICElement2D3N;
+    const UPwSmallStrainAxisymmetricFICElement<2,4> mUPwSmallStrainAxisymmetricFICElement2D4N;
+
+    const SmallStrainUPwDiffOrderAxisymmetricElement mSmallStrainUPwDiffOrderAxisymmetricElement2D6N;
+    const SmallStrainUPwDiffOrderAxisymmetricElement mSmallStrainUPwDiffOrderAxisymmetricElement2D8N;
+    const SmallStrainUPwDiffOrderAxisymmetricElement mSmallStrainUPwDiffOrderAxisymmetricElement2D9N;
 
     // interface elements
     const UPwSmallStrainInterfaceElement<2,4> mUPwSmallStrainInterfaceElement2D4N;
@@ -347,9 +395,14 @@ private:
     const GeoCrBeamElement3D2N mGeoCrBeamElement3D2N;
     const GeoCrBeamElementLinear2D2N mGeoCrBeamElementLinear2D2N;
     const GeoCrBeamElementLinear3D2N mGeoCrBeamElementLinear3D2N;
-    const GeoTrussElement3D2N mGeoTrussElement3D2N;
-    const GeoTrussElementLinear3D2N mGeoTrussLinearElement3D2N;
-    const GeoCableElement3D2N mGeoCableElement3D2N;
+    const GeoTrussElement<2,2> mGeoTrussElement2D2N;
+    const GeoTrussElement<3,2> mGeoTrussElement3D2N;
+
+    const GeoLinearTrussElement<2,2> mGeoLinearTrussElement2D2N;
+    const GeoLinearTrussElement<3,2> mGeoLinearTrussElement3D2N;
+
+    const GeoCableElement<2,2> mGeoCableElement2D2N;
+    const GeoCableElement<3,2> mGeoCableElement3D2N;
 
     // conditions
     const UPwForceCondition<2,1> mUPwForceCondition2D1N;
@@ -389,12 +442,12 @@ private:
     const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D9N;
 
     // constitutive models
-    const BilinearCohesive3DLaw   mBilinearCohesive3DLaw;
-    const BilinearCohesive2DLaw   mBilinearCohesive2DLaw;
-    const LinearPlaneStrainK0Law  mLinearPlaneStrainK0Law;
-    const LinearPlaneStrain2DLaw  mLinearPlaneStrain2DLaw;
-    const ElasticIsotropicK03DLaw mElasticIsotropicK03DLaw;
-    const LinearPlaneStress2DLaw  mLinearPlaneStress2DLaw;
+    const BilinearCohesive3DLaw             mBilinearCohesive3DLaw;
+    const BilinearCohesive2DLaw             mBilinearCohesive2DLaw;
+    const LinearPlaneStrainK0Law            mLinearPlaneStrainK0Law;
+    const GeoLinearElasticPlaneStrain2DLaw  mLinearElasticPlaneStrain2DLaw;
+    const ElasticIsotropicK03DLaw           mElasticIsotropicK03DLaw;
+    const GeoLinearElasticPlaneStress2DLaw  mLinearElasticPlaneStress2DLaw;
 
     const SmallStrainUDSM3DLaw            mSmallStrainUDSM3DLaw;
     const SmallStrainUDSM2DPlaneStrainLaw mSmallStrainUDSM2DPlaneStrainLaw;
@@ -405,6 +458,9 @@ private:
     const SmallStrainUMAT2DPlaneStrainLaw mSmallStrainUMAT2DPlaneStrainLaw;
     const SmallStrainUMAT2DInterfaceLaw   mSmallStrainUMAT2DInterfaceLaw;
     const SmallStrainUMAT3DInterfaceLaw   mSmallStrainUMAT3DInterfaceLaw;
+
+    const LinearElastic2DInterfaceLaw     mLinearElastic2DInterfaceLaw;
+    const LinearElastic3DInterfaceLaw     mLinearElastic3DInterfaceLaw;
 
     /// Assignment operator.
     KratosGeoMechanicsApplication& operator=(KratosGeoMechanicsApplication const& rOther);

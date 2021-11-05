@@ -96,7 +96,9 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
             noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
             noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * FluidDensity*BodyAcceleration;
 
-            noalias(LocalFluidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
+            noalias(LocalFluidFlux) =  PORE_PRESSURE_SIGN_FACTOR
+                                     * DynamicViscosityInverse
+                                     * prod(LocalPermeabilityMatrix,GradPressureTerm);
 
             noalias(FluidFlux) = prod(trans(RotationMatrix),LocalFluidFlux);
 
@@ -121,7 +123,6 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
 
         //Create constitutive law parameters:
         Vector StrainVector(TDim);
-        Vector StressVectorDynamic(TDim);
         Matrix ConstitutiveMatrix(TDim,TDim);
         Vector Np(TNumNodes);
         Matrix GradNpT(TNumNodes,TDim);
@@ -131,7 +132,6 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-        ConstitutiveParameters.SetStressVector(StressVectorDynamic);
         ConstitutiveParameters.SetStrainVector(StrainVector);
         ConstitutiveParameters.SetShapeFunctionsValues(Np);
         ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
@@ -152,12 +152,12 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
             noalias(Np) = row(NContainer,GPoint);
 
             //compute constitutive tensor and/or stresses
-            UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UpdateElementalVariableStressVector(StressVectorDynamic, GPoint);
+            ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
             mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
-            noalias(LocalStressVector) = StressVectorDynamic;
+            noalias(LocalStressVector) = mStressVector[GPoint];
 
-            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalStressVector);
+            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], LocalStressVector);
         }
     }
     else if (rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR)
@@ -384,7 +384,8 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
 
     //Element variables
     InterfaceElementVariables Variables;
-    this->InitializeElementVariables(Variables, ConstitutiveParameters, Geom, Prop, CurrentProcessInfo);
+    this->InitializeElementVariables(Variables, Geom, Prop, CurrentProcessInfo);
+    this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
     //Auxiliary variables
     const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
@@ -393,6 +394,8 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
 
     // create general parametes of retention law
     RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), CurrentProcessInfo);
+
+    const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -428,28 +431,26 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
                                                                     Variables.JointWidth );
 
         //Compute constitutive tensor and stresses
-        UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
+        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UpdateStressVector(Variables, GPoint);
 
         this->CalculateRetentionResponse( Variables,
                                           RetentionParameters,
                                           GPoint );
 
-        // calculate Bulk modulus from stiffness matrix
-        const double BulkModulus = this->CalculateBulkModulus(Variables.ConstitutiveMatrix);
-        this->InitializeBiotCoefficients(Variables, BulkModulus);
+        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
-                                              detJContainer[GPoint],
-                                              IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient =
+            this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                  GPoint,
+                                                  detJContainer[GPoint]);
 
         //Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
 
         //Contributions to the right hand side
-        if (CalculateResidualVectorFlag)  this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+        if (CalculateResidualVectorFlag)  this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
     }
 
     KRATOS_CATCH( "" )

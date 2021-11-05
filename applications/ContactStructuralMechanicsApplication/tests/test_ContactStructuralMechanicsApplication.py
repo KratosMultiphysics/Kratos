@@ -1,6 +1,12 @@
-# import Kratos
+# Import Kratos
 import KratosMultiphysics
+
+# Import CPP tests
 import run_cpp_unit_tests
+
+# Import kratos_utilities
+import KratosMultiphysics.kratos_utilities as kratos_utilities
+has_CL_application = kratos_utilities.CheckIfApplicationsAvailable("ConstitutiveLawsApplication")
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -34,8 +40,8 @@ from SmallTests import ALMHyperSimpleSlopePatchTestContact                      
 from SmallTests import ALMThreeDSimplestPatchMatchingTestContact                   as TALMThreeDSimplestPatchMatchingTestContact
 
 # Penalty frictionless tests
-from SmallTests import PenaltyFrictionlessHyperSimplePatchFrictionalTestContact as TPenaltyFrictionlessHyperSimplePatchFrictionalTestContact
-from SmallTests import PenaltyThreeDSimplestPatchMatchingTestContact            as TPenaltyThreeDSimplestPatchMatchingTestContact
+from SmallTests import PenaltyFrictionlessHyperSimplePatchTestContact as TPenaltyFrictionlessHyperSimplePatchTestContact
+from SmallTests import PenaltyThreeDSimplestPatchMatchingTestContact  as TPenaltyThreeDSimplestPatchMatchingTestContact
 
 # Components ALM frictionless tests
 from SmallTests import ComponentsALMHyperSimpleTrianglePatchTestContact                      as TComponentsALMHyperSimpleTrianglePatchTestContact
@@ -193,9 +199,11 @@ def AssembleTestSuites():
 
     # Test ProcessFactoryUtility
     smallSuite.addTest(TTestProcessFactory('test_process_factory'))
+    smallSuite.addTest(TTestProcessFactory('test_processes_list_factory'))
+
+    # Test normal check
     smallSuite.addTest(TTestCheckNormals('test_check_normals'))
     smallSuite.addTest(TTestCheckNormals('test_check_normals_quads'))
-    smallSuite.addTest(TTestProcessFactory('test_processes_list_factory'))
 
     # Mesh tying tests
     smallSuite.addTest(TSimplePatchTestTwoDMeshTying('test_execution'))
@@ -208,11 +216,13 @@ def AssembleTestSuites():
     smallSuite.addTest(TALMHyperSimplePatchTestWithEliminationContact('test_execution'))
     smallSuite.addTest(TALMHyperSimplePatchTestWithEliminationWithConstraintContact('test_execution'))
     smallSuite.addTest(TALMHyperSimpleSlopePatchTestContact('test_execution'))
-    smallSuite.addTest(TALMThreeDSimplestPatchMatchingTestContact('test_execution'))
+    if has_CL_application:
+        smallSuite.addTest(TALMThreeDSimplestPatchMatchingTestContact('test_execution'))
 
     # Penalty frictionless tests
-    smallSuite.addTest(TPenaltyFrictionlessHyperSimplePatchFrictionalTestContact('test_execution'))
-    smallSuite.addTest(TPenaltyThreeDSimplestPatchMatchingTestContact('test_execution'))
+    smallSuite.addTest(TPenaltyFrictionlessHyperSimplePatchTestContact('test_execution'))
+    if has_CL_application:
+        smallSuite.addTest(TPenaltyThreeDSimplestPatchMatchingTestContact('test_execution'))
 
     # Components ALM frictionless tests
     smallSuite.addTest(TComponentsALMHyperSimpleTrianglePatchTestContact('test_execution'))
@@ -220,7 +230,8 @@ def AssembleTestSuites():
     smallSuite.addTest(TComponentsALMHyperSimplePatchTestWithEliminationContact('test_execution'))
     smallSuite.addTest(TComponentsALMHyperSimplePatchTestWithEliminationWithConstraintContact('test_execution'))
     smallSuite.addTest(TComponentsALMHyperSimpleSlopePatchTestContact('test_execution'))
-    smallSuite.addTest(TComponentsALMThreeDSimplestPatchMatchingTestContact('test_execution'))
+    if has_CL_application:
+        smallSuite.addTest(TComponentsALMThreeDSimplestPatchMatchingTestContact('test_execution'))
 
     # ALM frictional tests
     smallSuite.addTest(TALMHyperSimplePatchFrictionalTestContact('test_execution'))
@@ -240,8 +251,9 @@ def AssembleTestSuites():
     # MPC contact test
     smallSuite.addTest(TTwoDSimplestPatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TTwoDSimplestWithFrictionPatchMatchingTestContact('test_execution'))
-    smallSuite.addTest(TThreeDSimplestPatchMatchingTestContact('test_execution'))
-    smallSuite.addTest(TThreeDSimplestWithFrictionPatchMatchingTestContact('test_execution'))
+    if has_CL_application:
+        smallSuite.addTest(TThreeDSimplestPatchMatchingTestContact('test_execution'))
+        smallSuite.addTest(TThreeDSimplestWithFrictionPatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
     smallSuite.addTest(TThreeDPatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TThreeDPatchNotMatchingTestContact('test_execution'))
@@ -252,6 +264,9 @@ def AssembleTestSuites():
 
     # Fill with all small tests
     nightlySuite.addTests(smallSuite)
+
+    # Test normal check
+    nightlySuite.addTest(TTestCheckNormals('test_check_normals_s_shape'))
 
     # Exact integration tests
     nightlySuite.addTest(TTestDoubleCurvatureIntegration('test_moving_mesh_integration_quad'))
@@ -272,9 +287,10 @@ def AssembleTestSuites():
     nightlySuite.addTest(TALMSimpleSlopePatchTestContact('test_execution'))
     nightlySuite.addTest(TALMSimplePatchNotMatchingATestContact('test_execution'))
     nightlySuite.addTest(TALMSimplePatchNotMatchingBTestContact('test_execution'))
-    nightlySuite.addTest(TALMThreeDSimplestPatchTestTriQuadContact('test_execution'))
-    nightlySuite.addTest(TALMThreeDSimplestPatchTestQuadTriContact('test_execution'))
-    nightlySuite.addTest(TALMThreeDSimplestPatchMatchingAdaptativeTestContact('test_execution'))
+    if has_CL_application:
+        nightlySuite.addTest(TALMThreeDSimplestPatchTestTriQuadContact('test_execution'))
+        nightlySuite.addTest(TALMThreeDSimplestPatchTestQuadTriContact('test_execution'))
+        nightlySuite.addTest(TALMThreeDSimplestPatchMatchingAdaptativeTestContact('test_execution'))
     nightlySuite.addTest(TALMThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
     nightlySuite.addTest(TALMThreeDPatchComplexGeomTestContact('test_execution'))
     nightlySuite.addTest(TALMTThreeDPatchMatchingTestContact('test_execution'))
@@ -290,9 +306,10 @@ def AssembleTestSuites():
     nightlySuite.addTest(TComponentsALMSimpleSlopePatchTestContact('test_execution'))
     nightlySuite.addTest(TComponentsALMSimplePatchNotMatchingATestContact('test_execution'))
     nightlySuite.addTest(TComponentsALMSimplePatchNotMatchingBTestContact('test_execution'))
-    nightlySuite.addTest(TComponentsALMThreeDSimplestPatchTestTriQuadContact('test_execution'))
-    nightlySuite.addTest(TComponentsALMThreeDSimplestPatchTestQuadTriContact('test_execution'))
-    nightlySuite.addTest(TComponentsALMThreeDSimplestPatchMatchingAdaptativeTestContact('test_execution'))
+    if has_CL_application:
+        nightlySuite.addTest(TComponentsALMThreeDSimplestPatchTestTriQuadContact('test_execution'))
+        nightlySuite.addTest(TComponentsALMThreeDSimplestPatchTestQuadTriContact('test_execution'))
+        nightlySuite.addTest(TComponentsALMThreeDSimplestPatchMatchingAdaptativeTestContact('test_execution'))
     nightlySuite.addTest(TComponentsALMThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
     nightlySuite.addTest(TComponentsALMThreeDPatchComplexGeomTestContact('test_execution'))
     nightlySuite.addTest(TComponentsALMTThreeDPatchMatchingTestContact('test_execution'))
@@ -331,7 +348,8 @@ def AssembleTestSuites():
     validationSuite.addTest(TComponentsALMHertzCompleteTestContact('test_execution'))
 
     # Penalty frictionless tests
-    validationSuite.addTest(TExplicitPenaltyThreeDSimplestPatchMatchingTestContact('test_execution'))
+    if has_CL_application:
+        validationSuite.addTest(TExplicitPenaltyThreeDSimplestPatchMatchingTestContact('test_execution'))
 
     # Exact integration tests
     validationSuite.addTest(TTestDoubleCurvatureIntegration('test_double_curvature_integration_triangle'))
@@ -347,8 +365,9 @@ def AssembleTestSuites():
     validationSuite.addTest(TTestMortarMapperCore('test_mortar_mapping_quad'))
 
     # Some large displacement tests
-    validationSuite.addTest(TLargeDisplacementPatchTestHexa('test_execution'))
-    validationSuite.addTest(TMeshTyingValidationTest('test_execution'))
+    if has_CL_application:
+        validationSuite.addTest(TLargeDisplacementPatchTestHexa('test_execution'))
+        validationSuite.addTest(TMeshTyingValidationTest('test_execution'))
 
     # ALM frictionless tests
     validationSuite.addTest(TALMTaylorPatchDynamicTestContact('test_execution'))
@@ -356,8 +375,9 @@ def AssembleTestSuites():
     validationSuite.addTest(TALMMeshMovingNotMatchingTestContact('test_execution'))
     #validationSuite.addTest(TALMIroningTestContact('test_execution'))
     #validationSuite.addTest(TALMIroningDieTestContact('test_execution'))
-    validationSuite.addTest(TALMLargeDisplacementPatchTestTetra('test_execution'))
-    validationSuite.addTest(TALMLargeDisplacementPatchTestHexa('test_execution'))
+    if has_CL_application:
+        validationSuite.addTest(TALMLargeDisplacementPatchTestTetra('test_execution'))
+        validationSuite.addTest(TALMLargeDisplacementPatchTestHexa('test_execution'))
     validationSuite.addTest(TALMMultiLayerContactTest('test_execution'))
     validationSuite.addTest(TALMSelfContactContactTest('test_execution'))
 
@@ -365,8 +385,9 @@ def AssembleTestSuites():
     validationSuite.addTest(TComponentsALMTaylorPatchDynamicTestContact('test_execution'))
     validationSuite.addTest(TComponentsALMMeshMovingMatchingTestContact('test_execution'))
     validationSuite.addTest(TComponentsALMMeshMovingNotMatchingTestContact('test_execution'))
-    validationSuite.addTest(TComponentsALMLargeDisplacementPatchTestTetra('test_execution'))
-    validationSuite.addTest(TComponentsALMLargeDisplacementPatchTestHexa('test_execution'))
+    if has_CL_application:
+        validationSuite.addTest(TComponentsALMLargeDisplacementPatchTestTetra('test_execution'))
+        validationSuite.addTest(TComponentsALMLargeDisplacementPatchTestHexa('test_execution'))
     validationSuite.addTest(TComponentsALMMultiLayerContactTest('test_execution'))
     validationSuite.addTest(TComponentsALMSelfContactContactTest('test_execution'))
 
@@ -375,8 +396,9 @@ def AssembleTestSuites():
     validationSuite.addTest(TALMTaylorPatchFrictionalTestContact('test_execution'))
     validationSuite.addTest(TALMMeshMovingMatchingTestFrictionalPureSlipContact('test_execution'))
     validationSuite.addTest(TALMMeshMovingNotMatchingTestFrictionalPureSlipContact('test_execution'))
-    validationSuite.addTest(TALMHertzTestFrictionalContact('test_execution'))
-    validationSuite.addTest(TALMBlockTestFrictionalContact('test_execution'))
+    if has_CL_application:
+        validationSuite.addTest(TALMHertzTestFrictionalContact('test_execution'))
+        validationSuite.addTest(TALMBlockTestFrictionalContact('test_execution'))
 
     # MPC contact test
     validationSuite.addTest(TBeamAxilContactTest('test_execution'))
@@ -391,7 +413,7 @@ def AssembleTestSuites():
     allSuite.addTests(nightlySuite) # Already contains the smallSuite
     validationSuite.addTests(allSuite) # Validation contains all
 
-    # Manual list for debugging
+    ## Manual list for debugging
     #allSuite.addTests(
         #KratosUnittest.TestLoader().loadTestsFromTestCases([
             #### STANDALONE
@@ -425,7 +447,7 @@ def AssembleTestSuites():
             #TALMThreeDPatchComplexGeomTestContact,
             #TALMTThreeDPatchMatchingTestContact,
             #TALMThreeDPatchNotMatchingTestContact,
-            #TPenaltyFrictionlessHyperSimplePatchFrictionalTestContact,
+            #TPenaltyFrictionlessHyperSimplePatchTestContact,
             #TPenaltyThreeDSimplestPatchMatchingTestContact,
             #TComponentsALMHyperSimpleTrianglePatchTestContact,
             #TComponentsALMHyperSimplePatchTestContact,
@@ -480,7 +502,7 @@ def AssembleTestSuites():
             #TBeamContactWithTyingTest,
             #TBeamContactWithFrictionTest,
             #TPlateTest,
-            ##### VALIDATION
+            #### VALIDATION
             ######TComponentsALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
             #TALMHertzSimpleTestContact,
             #TALMHertzCompleteTestContact,
@@ -497,7 +519,7 @@ def AssembleTestSuites():
             #TALMMeshMovingMatchingTestFrictionalPureSlipContact,
             #TALMMeshMovingNotMatchingTestFrictionalPureSlipContact,
             #TALMHertzTestFrictionalContact,
-            #TALMBlockTestFrictionalContact,
+            #TALMBlockTestFrictionalContact, # TODO: Fix this
             #####TALMIroningTestContact,
             #####TALMIroningDieTestContact,
             #TLargeDisplacementPatchTestHexa,
@@ -513,7 +535,7 @@ def AssembleTestSuites():
             #TComponentsALMLargeDisplacementPatchTestHexa,
             #TComponentsALMMultiLayerContactTest,
             #TComponentsALMSelfContactContactTest,
-            ####TMultiLayerContactTest,
+            ##TMultiLayerContactTest,
         #])
     #)
 

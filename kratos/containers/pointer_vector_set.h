@@ -71,7 +71,7 @@ template<class TDataType,
          class TEqualType = std::equal_to<typename TGetKeyType::result_type>,
          class TPointerType = typename TDataType::Pointer,
          class TContainerType = std::vector<TPointerType> >
-class PointerVectorSet
+class PointerVectorSet final
 {
 public:
     ///@name Type Definitions
@@ -129,7 +129,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~PointerVectorSet() {}
+    ~PointerVectorSet() {}
 
 
     ///@}
@@ -592,7 +592,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "Pointer vector set (size = " << size() << ") : ";
@@ -602,13 +602,13 @@ public:
 
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const
     {
         std::copy(begin(), end(), std::ostream_iterator<TDataType>(rOStream, "\n "));
     }

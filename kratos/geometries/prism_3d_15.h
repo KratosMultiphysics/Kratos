@@ -1228,7 +1228,7 @@ public:
      *
      * :TODO: TESTING!!!
      */
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod ) const override
     {
@@ -1272,8 +1272,6 @@ public:
                 }
             }
         }//end of loop over integration points
-
-        return rResult;
     }
 
     /** This method gives gradient of all shape functions evaluated

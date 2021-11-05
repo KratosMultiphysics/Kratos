@@ -28,7 +28,7 @@
 #include "includes/process_info.h"
 
 // Application includes
-#include "../FluidDynamicsApplication/fluid_dynamics_application_variables.h"
+#include "fluid_dynamics_application_variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
 

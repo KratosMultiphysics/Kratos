@@ -123,13 +123,13 @@ public:
         MatrixType N_pos_face;                          // Positive interface Gauss pts. shape functions values
         ShapeFunctionsGradientsType DN_DX_pos_face;     // Positive interface Gauss pts. shape functions gradients values
         VectorType w_gauss_pos_face;                    // Positive interface Gauss pts. weights
-        std::vector<VectorType> pos_face_area_normals;  // Positive interface unit normal vector in each Gauss pt.
+        std::vector<array_1d<double,3>> pos_face_area_normals;  // Positive interface unit normal vector in each Gauss pt.
 
         // Negative face geometry data
         MatrixType N_neg_face;                          // Positive interface Gauss pts. shape functions values
         ShapeFunctionsGradientsType DN_DX_neg_face;     // Positive interface Gauss pts. shape functions gradients values
         VectorType w_gauss_neg_face;                    // Positive interface Gauss pts. weights
-        std::vector<VectorType> neg_face_area_normals;  // Positive interface unit normal vector in each Gauss pt.
+        std::vector<array_1d<double,3>> neg_face_area_normals;  // Positive interface unit normal vector in each Gauss pt.
 
         unsigned int n_pos = 0;     // Number of positive distance nodes
         unsigned int n_neg = 0;     // Number of negative distance nodes

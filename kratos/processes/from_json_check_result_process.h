@@ -256,81 +256,14 @@ protected:
     /**
      * @brief This method check the nodal values
      * @param rCheckCounter The check counter
-     * @tparam THistorical If the value is historical or not
      */
-    template<bool THistorical>
-    void CheckNodeValues(IndexType& rCheckCounter)
-    {
-        // Get time
-        const double time = mrModelPart.GetProcessInfo().GetValue(TIME);
-
-        // Node database
-        const auto& r_node_database = GetNodeDatabase();
-
-        // Iterate over nodes
-        const auto& r_nodes_array = GetNodes();
-        const auto it_node_begin = r_nodes_array.begin();
-
-        // Auxiliar check counter (MVSC does not accept references)
-        IndexType check_counter = rCheckCounter;
-
-        for (auto& p_var_double : mpNodalVariableDoubleList) {
-            const auto& r_var_database = r_node_database.GetVariableData(*p_var_double);
-
-            check_counter = IndexPartition<std::size_t>(r_nodes_array.size()).for_each<SumReduction<IndexType>>([&it_node_begin, &p_var_double, &r_var_database, &time, this] (std::size_t Index){
-                IndexType counter = 0;
-                auto it_node = it_node_begin + Index;
-                const double result = this->GetValue<THistorical>(it_node, p_var_double);
-                const double reference = r_var_database.GetValue(Index, time);
-                if (!CheckValues(result, reference)) {
-                    FailMessage(it_node->Id(), "Node", result, reference, p_var_double->Name());
-                    counter += 1;
-                }
-                return counter;
-            });
-        }
-
-        for (auto& p_var_array : mpNodalVariableArrayList) {
-            const auto& r_var_database = r_node_database.GetVariableData(*p_var_array);
-
-            check_counter = IndexPartition<std::size_t>(r_nodes_array.size()).for_each<SumReduction<IndexType>>([&it_node_begin, &p_var_array, &r_var_database, &time, this] (std::size_t Index){
-                IndexType counter = 0;
-                auto it_node = it_node_begin + Index;
-                const auto& r_entity_database = r_var_database.GetEntityData(Index);
-                const array_1d<double, 3>& r_result = this->GetValue<THistorical>(it_node, p_var_array);
-                for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
-                    const double reference = r_entity_database.GetValue(time, i_comp);
-                    if (!CheckValues(r_result[i_comp], reference)) {
-                        FailMessage(it_node->Id(), "Node", r_result[i_comp], reference, p_var_array->Name());
-                        counter += 1;
-                    }
-                }
-                return counter;
-            });
-        }
-
-        for (auto& p_var_vector : mpNodalVariableVectorList) {
-            const auto& r_var_database = r_node_database.GetVariableData(*p_var_vector);
-
-            check_counter = IndexPartition<std::size_t>(r_nodes_array.size()).for_each<SumReduction<IndexType>>([&it_node_begin, &p_var_vector, &r_var_database, &time, this] (std::size_t Index){
-                IndexType counter = 0;
-                auto it_node = it_node_begin + Index;
-                const auto& r_entity_database = r_var_database.GetEntityData(Index);
-                const Vector& r_result = this->GetValue<THistorical>(it_node, p_var_vector);
-                for (IndexType i_comp = 0; i_comp < r_result.size(); ++i_comp) {
-                    const double reference = r_entity_database.GetValue(time, i_comp);
-                    if (!CheckValues(r_result[i_comp], reference)) {
-                        FailMessage(it_node->Id(), "Node", r_result[i_comp], reference, p_var_vector->Name());
-                        counter += 1;
-                    }
-                }
-                return counter;
-            });
-        }
-
-        // Save the reference
-        rCheckCounter = check_counter;
-    }
+    void CheckNodeValues(IndexType& rCheckCounter);
+    
+    /**
+     * @brief This method check the nodal historical values
+     * @param rCheckCounter The check counter
+     */
+    void CheckNodeHistoricalValues(IndexType& rCheckCounter);
 
     /**
      * @brief This method check the GP values
@@ -462,42 +395,6 @@ private:
 
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief This gets the double value
-     * @param itNode Node iterator
-     * @param pVariable The double variable
-     * @tparam THistorical If the value is historical or not
-     */
-    template<bool THistorical>
-    double GetValue(
-        NodesArrayType::const_iterator& itNode,
-        const Variable<double>* pVariable
-        );
-
-    /**
-     * @brief This gets the array value
-     * @param itNode Node iterator
-     * @param pVariable The array variable
-     * @tparam THistorical If the value is historical or not
-     */
-    template<bool THistorical>
-    const array_1d<double, 3>& GetValue(
-        NodesArrayType::const_iterator& itNode,
-        const Variable<array_1d<double, 3>>* pVariable
-        );
-
-    /**
-     * @brief This gets the vector value
-     * @param itNode Node iterator
-     * @param pVariable The vector variable
-     * @tparam THistorical If the value is historical or not
-     */
-    template<bool THistorical>
-    const Vector& GetValue(
-        NodesArrayType::const_iterator& itNode,
-        const Variable<Vector>* pVariable
-        );
 
     ///@}
     ///@name Un accessible methods

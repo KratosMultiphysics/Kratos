@@ -13,8 +13,6 @@
 
 #include "two_fluid_navier_stokes.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
-#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
-#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 
 namespace Kratos
 {
@@ -428,6 +426,13 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
+    // Mass correction term
+    double volume_error_ratio = 0.0;
+    if (rData.IsCut()) {
+        const double volume_error =-rData.VolumeError;
+        volume_error_ratio = volume_error / dt;
+    }
+
     auto &rhs = rData.rhs;
 
     //substitute_rhs_2D
@@ -470,6 +475,13 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+
+    // Mass correction term
+    double volume_error_ratio = 0.0;
+    if (rData.IsCut()) {
+        const double volume_error = -rData.VolumeError;
+        volume_error_ratio = volume_error / dt;
+    }
 
     auto &rhs = rData.rhs;
 
@@ -517,6 +529,13 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+
+    // Mass correction term
+    double volume_error_ratio = 0.0;
+    if (rData.IsCut()) {
+        const double volume_error = -rData.VolumeError;
+        volume_error_ratio = volume_error / dt;
+    }
 
     auto &V = rData.V;
     auto &H = rData.H;
@@ -578,6 +597,13 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+
+    // Mass correction term
+    double volume_error_ratio = 0.0;
+    if (rData.IsCut()) {
+        const double volume_error =-rData.VolumeError;
+        volume_error_ratio = volume_error / dt;
+    }
 
     auto &V = rData.V;
     auto &H = rData.H;
@@ -672,7 +698,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
     MatrixType& rEnrInterfaceShapeFunctionNeg,
     GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
     Vector& rInterfaceWeightsNeg,
-    std::vector<Vector>& rInterfaceNormalsNeg,
+    std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
     ModifiedShapeFunctions::Pointer pModifiedShapeFunctions)
 {
     Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
@@ -713,8 +739,7 @@ ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokes
     const GeometryType::Pointer pGeometry,
     const Vector& rDistances)
 {
-    auto p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
-    return p_modified_sh_func;
+    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
 }
 
 template <>
@@ -722,8 +747,7 @@ ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokes
         const GeometryType::Pointer pGeometry,
         const Vector& rDistances)
 {
-    auto p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
-    return p_modified_sh_func;
+    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
 }
 
 template <class TElementData>
@@ -751,7 +775,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
     const Vector& rCurvature,
     const Vector& rInterfaceWeights,
     const Matrix& rInterfaceShapeFunctions,
-    const std::vector<Vector>& rInterfaceNormalsNeg,
+    const std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
     VectorType& rRHS)
 {
     for (unsigned int intgp = 0; intgp < rInterfaceWeights.size(); ++intgp){
@@ -997,7 +1021,7 @@ void TwoFluidNavierStokes<TElementData>::AddSurfaceTensionContribution(
     Matrix int_shape_function, int_shape_function_enr_neg, int_shape_function_enr_pos;
     GeometryType::ShapeFunctionsGradientsType int_shape_derivatives;
     Vector int_gauss_pts_weights;
-    std::vector<Vector> int_normals_neg;
+    std::vector<array_1d<double,3>> int_normals_neg;
     Vector gauss_pts_curvature;
 
     ComputeSplitInterface(

@@ -18,7 +18,6 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/define.h"
-/* #include "includes/element.h" */
 #include "includes/serializer.h"
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
@@ -29,7 +28,6 @@
 #include "custom_elements/two_step_updated_lagrangian_element.h"
 
 #include "includes/model_part.h"
-/* #include "includes/node.h" */
 
 namespace Kratos
 {
@@ -63,14 +61,6 @@ namespace Kratos
   template <unsigned int TDim>
   class TwoStepUpdatedLagrangianVPImplicitElement : public TwoStepUpdatedLagrangianElement<TDim>
   {
-
-  protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
 
   public:
     ///@name Type Definitions
@@ -320,9 +310,6 @@ namespace Kratos
 
     ///@}
   protected:
-    /* double mMaterialDeviatoricCoefficient=0; */
-    /* double mMaterialVolumetricCoefficient=0; */
-    /* double mMaterialDensity=0; */
 
     ///@name Protected static Member Variables
     ///@{
@@ -385,14 +372,14 @@ namespace Kratos
                                     const double Weight);
 
     virtual void ComputeBulkMatrixLump(MatrixType &BulkMatrix,
-                                       const double Weight){};
+                                       const double Weight) override {};
 
     virtual void ComputeBulkMatrixConsistent(MatrixType &BulkMatrix,
-                                             const double Weight){};
+                                             const double Weight) override {};
 
     virtual void ComputeBulkMatrix(MatrixType &BulkMatrix,
                                    const ShapeFunctionsType &rN,
-                                   const double Weight){};
+                                   const double Weight) override {};
 
     /* virtual void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix, */
     /* 						   const double Weight){}; */

@@ -78,6 +78,18 @@ void GeoCrBeamElement2D2N::InitializeSolutionStep(const ProcessInfo& rCurrentPro
     KRATOS_CATCH("")
 }
 
+//----------------------------------------------------------------------------------------
+void GeoCrBeamElement2D2N::
+    ResetConstitutiveLaw()
+{
+    KRATOS_TRY
+
+    mInternalGlobalForcesFinalized = ZeroVector(msElementSize);
+    mInternalGlobalForcesFinalizedPrevious= ZeroVector(msElementSize);
+
+    KRATOS_CATCH( "" )
+}
+
 //----------------------------------------------------------------------------------------------------
 void GeoCrBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {

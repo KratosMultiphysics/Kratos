@@ -440,7 +440,7 @@ public:
    * @param NumberOfResults    [description]
    * @param MaxNumberOfResults [description]
    */
-  void SearchObjectsInRadius(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
+  void SearchObjectsInRadius(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, const std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
 
     struct tls_type
     {
@@ -470,7 +470,7 @@ public:
    * @param NumberOfResults    [description]
    * @param MaxNumberOfResults [description]
    */
-  void SearchObjectsInRadius(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
+  void SearchObjectsInRadius(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, const std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
     PointType Low, High;
     SearchStructureType Box;
 
@@ -497,7 +497,7 @@ public:
    * @param NumberOfResults    [description]
    * @param MaxNumberOfResults [description]
    */
-virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
+virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, const std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
     PointType Low, High;
     SearchStructureType Box;
 
@@ -524,7 +524,7 @@ virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, Siz
    * @param NumberOfResults    [description]
    * @param MaxNumberOfResults [description]
    */
-virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
+virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, const std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
     PointType Low, High;
     SearchStructureType Box;
 

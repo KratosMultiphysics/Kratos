@@ -129,3 +129,6 @@ install(TARGETS KratosExternalSolversApplication DESTINATION libs )
 # Install blas and lapack
 install(FILES ${BLAS_LIBRARIES} DESTINATION libs)
 install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
+
+# Define custom targets
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosExternalSolversApplication" PARENT_SCOPE)

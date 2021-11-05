@@ -34,6 +34,9 @@ typedef std::size_t IndexType;
 
 public:
 
+    typedef Node <3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template< unsigned int TDim, unsigned int TNumNodes >
     static inline void CalculateNuMatrix(BoundedMatrix<double,TDim,TDim*TNumNodes>& rNu,
@@ -127,8 +130,8 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculatePermeabilityMatrix(BoundedMatrix<double,2,2>& rPermeabilityMatrix,
-                                                   const Element::PropertiesType& Prop)
+    static inline void FillPermeabilityMatrix(BoundedMatrix<double,2,2>& rPermeabilityMatrix,
+                                              const Element::PropertiesType& Prop)
     {
         //2D
         rPermeabilityMatrix(0,0) = Prop[PERMEABILITY_XX];
@@ -139,8 +142,8 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculatePermeabilityMatrix(BoundedMatrix<double,3,3>& rPermeabilityMatrix,
-                                                   const Element::PropertiesType& Prop)
+    static inline void FillPermeabilityMatrix(BoundedMatrix<double,3,3>& rPermeabilityMatrix,
+                                              const Element::PropertiesType& Prop)
     {
         //3D
         rPermeabilityMatrix(0,0) = Prop[PERMEABILITY_XX];
@@ -196,21 +199,47 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    template< unsigned int TDim>
+    static inline void AssembleDensityMatrix(BoundedMatrix<double,TDim+1, TDim+1> &DensityMatrix,
+                                             const double &Density)
+    {
+        for (unsigned int idim = 0; idim < TDim; ++idim)
+        {
+            for (unsigned int jdim = 0; jdim < TDim; ++jdim)
+            {
+                DensityMatrix(idim, jdim) = Density;
+            }
+        }
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    static inline void AssembleDensityMatrix(Matrix &DensityMatrix,
+                                             const double &Density)
+    {
+        for (unsigned int idim = 0; idim < DensityMatrix.size1(); ++idim)
+        {
+            for (unsigned int jdim = 0; jdim < DensityMatrix.size2(); ++jdim)
+            {
+                DensityMatrix(idim, jdim) = Density;
+            }
+        }
+    }
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template< unsigned int TDim, unsigned int TNumNodes >
     static inline void AssembleUBlockMatrix(Matrix &rLeftHandSideMatrix,
                                             const BoundedMatrix<double,TDim*TNumNodes, TDim*TNumNodes> &UBlockMatrix)
     {
-        unsigned int Global_i, Global_j, Local_i, Local_j;
-
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            Global_i = i * (TDim + 1);
-            Local_i  = i * TDim;
+            const unsigned int Global_i = i * (TDim + 1);
+            const unsigned int Local_i  = i * TDim;
 
             for (unsigned int j = 0; j < TNumNodes; j++)
             {
-                Global_j = j * (TDim + 1);
-                Local_j  = j * TDim;
+                const unsigned int Global_j = j * (TDim + 1);
+                const unsigned int Local_j  = j * TDim;
 
                 for (unsigned int idim = 0; idim < TDim; ++idim)
                 {
@@ -229,17 +258,15 @@ public:
                                             const double &TNumNodes,
                                             const double &TDim)
     {
-        unsigned int Global_i, Global_j, Local_i, Local_j;
-
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            Global_i = i * (TDim + 1);
-            Local_i  = i * TDim;
+            const unsigned int Global_i = i * (TDim + 1);
+            const unsigned int Local_i  = i * TDim;
 
             for (unsigned int j = 0; j < TNumNodes; j++)
             {
-                Global_j = j * (TDim + 1);
-                Local_j  = j * TDim;
+                const unsigned int Global_j = j * (TDim + 1);
+                const unsigned int Local_j  = j * TDim;
 
                 for (unsigned int idim = 0; idim < TDim; ++idim)
                 {
@@ -257,16 +284,14 @@ public:
     static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix,
                                              const BoundedMatrix<double,TDim*TNumNodes,TNumNodes>& UPBlockMatrix)
     {
-        unsigned int Global_i, Global_j, Local_i;
-
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            Global_i = i * (TDim + 1);
-            Local_i = i * TDim;
+            const unsigned int Global_i = i * (TDim + 1);
+            const unsigned int Local_i = i * TDim;
 
             for (unsigned int j = 0; j < TNumNodes; j++)
             {
-                Global_j = j * (TDim + 1) + TDim;
+                const unsigned int Global_j = j * (TDim + 1) + TDim;
 
                 for (unsigned int dim = 0; dim < TDim; ++dim)
                 {
@@ -281,16 +306,14 @@ public:
     static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix,
                                              const BoundedMatrix<double,TNumNodes,TNumNodes*TDim>& PUBlockMatrix)
     {
-        unsigned int Global_i, Global_j, Local_j;
-
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            Global_i = i * (TDim + 1) + TDim;
+            const unsigned int Global_i = i * (TDim + 1) + TDim;
 
             for (unsigned int j = 0; j < TNumNodes; j++)
             {
-                Global_j = j * (TDim + 1);
-                Local_j = j * TDim;
+                const unsigned int Global_j = j * (TDim + 1);
+                const unsigned int Local_j = j * TDim;
 
                 for (unsigned int dim = 0; dim < TDim; ++dim)
                 {
@@ -305,15 +328,13 @@ public:
     static inline void AssemblePBlockMatrix(Matrix& rLeftHandSideMatrix,
                                             const BoundedMatrix<double,TNumNodes,TNumNodes> &PBlockMatrix)
     {
-        unsigned int Global_i, Global_j;
-
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            Global_i = i * (TDim + 1) + TDim;
+            const unsigned int Global_i = i * (TDim + 1) + TDim;
 
             for (unsigned int j = 0; j < TNumNodes; j++)
             {
-                Global_j = j * (TDim + 1) + TDim;
+                const unsigned int Global_j = j * (TDim + 1) + TDim;
 
                 rLeftHandSideMatrix(Global_i,Global_j) += PBlockMatrix(i,j);
             }
@@ -325,12 +346,10 @@ public:
     static inline void AssembleUBlockVector(Vector& rRightHandSideVector,
                                             const array_1d<double,TDim*TNumNodes>& UBlockVector)
     {
-        unsigned int Global_i, Local_i;
-
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            Global_i = i * (TDim + 1);
-            Local_i  = i * TDim;
+            const unsigned int Global_i = i * (TDim + 1);
+            const unsigned int Local_i  = i * TDim;
 
             for (unsigned int dim = 0; dim < TDim; ++dim)
             {
@@ -344,11 +363,9 @@ public:
     static inline void AssemblePBlockVector(Vector& rRightHandSideVector,
                                             const array_1d<double, TNumNodes> &PBlockVector)
     {
-        unsigned int Global_i;
-
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            Global_i = i * (TDim + 1) + TDim;
+            const unsigned int Global_i = i * (TDim + 1) + TDim;
 
             rRightHandSideVector[Global_i] += PBlockVector[i];
         }
@@ -360,6 +377,7 @@ public:
         //Line 2-noded
         const unsigned int NumNodes = 2;
         const std::vector<double> Xi{-1.0, 1.0};
+
         noalias(DN_DXContainer) = ZeroMatrix(NumNodes,NumNodes);
 
         for (unsigned int integrationPoint = 0; integrationPoint < NumNodes; ++integrationPoint)
@@ -384,6 +402,27 @@ public:
             DN_DXContainer(integrationPoint,1) = -Xi[integrationPoint] * 2.0;
             DN_DXContainer(integrationPoint,2) =  Xi[integrationPoint] + 0.5;
         }
+    }
+
+    /**
+     * Calculates the radius of axisymmetry
+     * @param N: The Gauss Point shape function
+     * @param Geom: The geometry studied
+     * @return Radius: The radius of axisymmetry
+     */
+
+    static inline double CalculateRadius(const Vector N, const GeometryType& Geom)
+    {
+        double Radius = 0.0;
+
+        for (unsigned int iNode = 0; iNode < Geom.size(); iNode++)
+        {
+            // Displacement from the reference to the current configuration
+            const array_1d<double, 3 >& CurrentPosition = Geom[iNode].Coordinates();
+            Radius += CurrentPosition[0] * N[iNode];
+        }
+
+        return Radius;
     }
 
 
