@@ -28,9 +28,6 @@ void ComputeDynamicFactorProcess::Execute()
     // Getting process info
     ProcessInfo& r_process_info = mrThisModelPart.GetProcessInfo();
 
-    // Getting logistic factor
-    double logistic_factor = 1.0;
-
     // Impact time duration
     const double max_gap_factor = r_process_info.Has(MAX_GAP_FACTOR) ? r_process_info[MAX_GAP_FACTOR] : 1.0;
     const double max_gap_threshold = r_process_info.Has(MAX_GAP_THRESHOLD) ? r_process_info[MAX_GAP_THRESHOLD] : 0.0;
@@ -38,7 +35,7 @@ void ComputeDynamicFactorProcess::Execute()
 
     // We iterate over the node
     NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
-    block_for_each(r_nodes_array, [&logistic_factor,&max_gap_threshold, &common_epsilon, &max_gap_factor](NodeType& rNode) {
+    block_for_each(r_nodes_array, [&max_gap_threshold, &common_epsilon, &max_gap_factor](NodeType& rNode) {
         // Computing only on SLAVE nodes
         if (rNode.Is(SLAVE) && rNode.Is(ACTIVE)) {
             // Weighted values
@@ -49,7 +46,7 @@ void ComputeDynamicFactorProcess::Execute()
 
             // Computing actual logistic factor
             if (max_gap_threshold > 0.0 && current_gap <= 0.0) {
-                logistic_factor = ComputeLogisticFactor(max_gap_threshold, current_gap);
+                const double logistic_factor = ComputeLogisticFactor(max_gap_threshold, current_gap);
                 rNode.SetValue(INITIAL_PENALTY, common_epsilon * (1.0 + logistic_factor * max_gap_factor));
             } else {
                 rNode.SetValue(INITIAL_PENALTY, common_epsilon);
