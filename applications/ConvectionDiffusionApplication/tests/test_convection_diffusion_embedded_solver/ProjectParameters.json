@@ -29,7 +29,7 @@
         "solution_absolute_tolerance"        : 1e-7,
         "residual_relative_tolerance"        : 1e-5,
         "residual_absolute_tolerance"        : 1e-7,
-        "problem_domain_sub_model_part_list" : ["CNVDFFParts_Domain"],
+        "problem_domain_sub_model_part_list" : ["Parts_Domain"],
         "processes_sub_model_part_list"      : [],
         "time_stepping"                      : {
             "time_step" : 1.0
@@ -50,7 +50,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
-                "model_part_name" : "ThermalModelPart.CNVDFFParts_Domain",
+                "model_part_name" : "ThermalModelPart.Parts_Domain",
                 "variable_name"   : "HEAT_FLUX",
                 "value"           : 1.0,
                 "constrained"     : false

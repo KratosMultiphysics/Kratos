@@ -1,6 +1,6 @@
 {
     "properties" : [{
-        "model_part_name" : "ThermalModelPart.CNVDFFParts_Domain",
+        "model_part_name" : "ThermalModelPart.Parts_Domain",
         "properties_id"   : 1,
         "Material"        : {
             "Variables" : {
