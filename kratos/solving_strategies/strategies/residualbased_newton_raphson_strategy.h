@@ -1022,7 +1022,7 @@ class ResidualBasedNewtonRaphsonStrategy
                     {
                         TSparseSpace::SetToZero(rA);
                         TSparseSpace::SetToZero(rDx);
-                        TSystemVectorType dx_prediction(rDx);
+                        // TSystemVectorType dx_prediction(rDx);
                         TSparseSpace::SetToZero(rb);
 
                         p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
