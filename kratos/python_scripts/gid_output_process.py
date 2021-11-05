@@ -29,7 +29,7 @@ class GiDOutputProcess(KM.Process):
                 "MultiFileFlag": "SingleFile"
             },
             "file_label": "time",
-            "time_label_format": "",
+            "time_label_format": "{:.12f}",
             "output_control_type": "step",
             "output_interval": 1.0,
             "flush_after_output": false,
@@ -198,7 +198,7 @@ class GiDOutputProcess(KM.Process):
         else:
             msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
             raise Exception(msg)
-        
+
         self.time_label_format = result_file_configuration["time_label_format"].GetString()
 
         output_control_type = result_file_configuration["output_control_type"].GetString()
@@ -282,7 +282,7 @@ class GiDOutputProcess(KM.Process):
         self.printed_step_count += 1
         self.model_part.ProcessInfo[PRINTED_STEP] = self.printed_step_count
         if self.output_label_is_time:
-            label = self._GetPrettyTime(time)
+            label = time
         else:
             label = self.printed_step_count
 
@@ -290,12 +290,11 @@ class GiDOutputProcess(KM.Process):
             self.__write_mesh(label)
             self.__initialize_results(label)
 
-        time_label = self._GetPrettyTime(time) # should this be label instead of time_label?
-        self.__write_nodal_results(time_label)
-        self.__write_gp_results(time_label)
-        self.__write_nonhistorical_nodal_results(time_label)
-        self.__write_nodal_flags(time_label)
-        self.__write_elemental_conditional_flags(time_label)
+        self.__write_nodal_results(time)
+        self.__write_gp_results(time)
+        self.__write_nonhistorical_nodal_results(time)
+        self.__write_nodal_flags(time)
+        self.__write_elemental_conditional_flags(time)
 
         if self.flush_after_output and self.multifile_flag != MultiFileFlag.MultipleFiles:
             if self.body_io is not None:
@@ -365,7 +364,7 @@ class GiDOutputProcess(KM.Process):
                                 WriteConditionsFlag.WriteConditionsOnly) # Cuts are conditions, so we always print conditions in the cut ModelPart
 
     def __get_pretty_time(self,time):
-        pretty_time = "{0:.12g}".format(time)
+        pretty_time = self.time_label_format.format(time)
         pretty_time = float(pretty_time)
         return pretty_time
 
@@ -741,9 +740,3 @@ class GiDOutputProcess(KM.Process):
 
         # Restart .post.lst files
         self.__restart_list_files(additional_list_files) # FIXME
-
-    def _GetPrettyTime(self, time):
-        if self.time_label_format:
-            return float(self.time_label_format.format(time))
-        else:
-            return time
