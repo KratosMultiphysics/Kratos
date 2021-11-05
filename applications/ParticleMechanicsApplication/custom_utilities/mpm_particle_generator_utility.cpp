@@ -750,7 +750,7 @@ namespace MPMParticleGeneratorUtility
         DenseVector<Matrix> jac_vec(int_points.size());
         rGeom.Jacobian(jac_vec, IntegrationMethod);
         for (size_t i = 0; i < int_points.size(); ++i) {
-            rIntVolumes[i] = MathUtils<double>::DetMat(jac_vec[i]) * int_points[i].Weight();
+            rIntVolumes[i] = MathUtils<double>::Det(jac_vec[i]) * int_points[i].Weight();
         }
     }
 

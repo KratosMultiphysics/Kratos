@@ -74,21 +74,23 @@ void NearestNeighborLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     else ResizeToZero(rLocalMappingMatrix, rOriginIds, rDestinationIds, rPairingStatus);
 }
 
-std::string NearestNeighborLocalSystem::PairingInfo(const int EchoLevel) const
+void NearestNeighborLocalSystem::PairingInfo(std::ostream& rOStream, const int EchoLevel) const
 {
     KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
 
-    std::stringstream buffer;
-    buffer << "NearestNeighborLocalSystem based on " << mpNode->Info();
-    if (EchoLevel > 1) { // TODO leave here?
-        buffer << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
+    rOStream << "NearestNeighborLocalSystem based on " << mpNode->Info();
+    if (EchoLevel > 3) {
+        rOStream << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
+    }
+}
+
+void NearestNeighborLocalSystem::SetPairingStatusForPrinting()
+{
         if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
             mpNode->SetValue(PAIRING_STATUS, 0);
         } else {
             mpNode->SetValue(PAIRING_STATUS, -1);
         }
-    }
-    return buffer.str();
 }
 
 }  // namespace Kratos.

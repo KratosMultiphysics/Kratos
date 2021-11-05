@@ -23,7 +23,7 @@ namespace Kratos {
 
         std::string GetTypeOfLaw() override;
 
-        void ComputeForce(Geometry<Node<3> >& r_geometry,
+        void ComputeForce(SphericParticle* r_geometry,
                           const double reynolds_number,
                           double particle_radius,
                           double fluid_density,

@@ -75,8 +75,7 @@ class SwimmingStrategy(BaseStrategy):
     def GetHydrodynamicLawParametersIfItExists(self, properties):
         if self.project_parameters.Has('properties'):
             for p in self.project_parameters["properties"]:
-                if p['properties_id'].GetInt() == int(properties.Id) and p.Has('hydrodynamic_law_parameters'):
-                    return p['hydrodynamic_law_parameters']
+                return p['hydrodynamic_law_parameters']
         return None
 
     @staticmethod

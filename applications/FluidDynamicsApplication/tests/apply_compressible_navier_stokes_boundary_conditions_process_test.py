@@ -183,7 +183,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
                 "supersonic_boundary_conditions" : [
                     {
                         "variable_name" : "TEMPERATURE",
-                        "value" : 273.15,
+                        "value" : 273,
                         "interval" : [0, "End"]
                     }
                 ]
@@ -253,7 +253,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
 
             self.assertTrue(node.IsFixed(KratosMultiphysics.TEMPERATURE),
                 msg="Failed to fix supersonic boundary condition (Node #%d)." % node.Id)
-            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), 273.15,
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), 273,
                 msg="Failed to set value for supersonic boundary condition (Node #%d)." % node.Id)
 
         for node in self.model["main_model_part.closed_boundaries"].Nodes:
