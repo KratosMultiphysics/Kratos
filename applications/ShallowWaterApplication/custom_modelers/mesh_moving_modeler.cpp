@@ -65,7 +65,8 @@ void MeshMovingModeler::SetupModelPart()
     ModelPart& fixed_model_part = mpModel->GetModelPart(fixed_model_part_name);
     ModelPart& moving_model_part = mpModel->GetModelPart(moving_model_part_name);
     const double relative_dry_height = mParameters["relative_dry_height"].GetDouble();
-    ShallowWaterUtilities().IdentifyWetDomain(fixed_model_part, TO_COPY, relative_dry_height);
+    ShallowWaterUtilities().FlagWetElements(fixed_model_part, TO_COPY, relative_dry_height);
+    ExtrapolateFlagToNodes(fixed_model_part, TO_COPY);
 
     // Nodes
     for (auto& r_node : fixed_model_part.Nodes())

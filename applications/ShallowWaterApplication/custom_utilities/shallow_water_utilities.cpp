@@ -159,14 +159,38 @@ void ShallowWaterUtilities::IdentifySolidBoundary(ModelPart& rSkinModelPart, dou
     });
 }
 
-void ShallowWaterUtilities::IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double RelativeDryHeight)
+void ShallowWaterUtilities::FlagWetElements(ModelPart& rModelPart, Flags WetFlag, double RelativeDryHeight)
+{
+    if (RelativeDryHeight < 0.0) {
+        RelativeDryHeight = rModelPart.GetProcessInfo()[RELATIVE_DRY_HEIGHT];
+    }
+    block_for_each(rModelPart.Elements(), [&](Element& rElement){
+        const auto& r_geom = rElement.GetGeometry();
+        const bool is_wet = IsWet(r_geom, RelativeDryHeight);
+        rElement.Set(WetFlag, is_wet);
+    });
+}
+
+void ShallowWaterUtilities::ExtrapolateElementalFlagToNodes(ModelPart& rModelPart, Flags Flag)
 {
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        rNode.Set(WetFlag, false);
+        rNode.Set(Flag, false);
     });
-
-    IdentifyWetEntities(rModelPart.Elements(), WetFlag, RelativeDryHeight);
-    IdentifyWetEntities(rModelPart.Conditions(), WetFlag, RelativeDryHeight);
+    block_for_each(rModelPart.Elements(), [&](Element& rElement){
+        const auto& r_geom = rElement.GetGeometry();
+        for (auto& r_node : r_geom)
+        {
+            if (rElement.Is(Flag))
+            {
+                if (r_node.IsNot(Flag))
+                {
+                    r_node.SetLock();
+                    r_node.Set(Flag);
+                    r_node.UnSetLock();
+                }
+            }
+        }
+    });
 }
 
 void ShallowWaterUtilities::NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable)
