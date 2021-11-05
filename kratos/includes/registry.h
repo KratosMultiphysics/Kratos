@@ -87,7 +87,6 @@ public:
     static RegistryItem& AddItem(std::string const& ItemFullName, TArgumentsList&&... Arguments){
 
         auto item_path = SplitFullName(ItemFullName);
-        KRATOS_ERROR_IF(item_path.empty()) << "The item full name is empty" << std::endl;
 
         RegistryItem* p_current_item = &GetRootRegistryItem();
 
