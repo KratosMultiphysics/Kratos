@@ -1235,8 +1235,8 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
 
                 // Order ids to use them in the map
                 std::sort(aux.begin(), aux.end());
-                if(faces_map.find(aux) != faces_map.end()) { // It was actually found!!
-                    // Mark the condition as visited. This will be useful for a check at the endif
+                if(faces_map.find(aux) != faces_map.end()) {
+                    // Found condition in element face, do not erase
                     for (auto p_cond : faces_map[aux]) {
                         p_cond->Set(TO_ERASE,false);
                     }
