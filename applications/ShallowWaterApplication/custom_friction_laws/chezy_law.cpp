@@ -25,16 +25,21 @@
 namespace Kratos
 {
 
-void ChezyLaw::Initialize(const GeometryType& rGeometry, const ProcessInfo& rProcessInfo)
+ChezyLaw::ChezyLaw(
+    const GeometryType& rGeometry,
+    const Properties& rProperty,
+    const ProcessInfo& rProcessInfo)
 {
-    double chezy = 0.0;
-    for (auto& r_node : rGeometry)
-    {
-        chezy += r_node.FastGetSolutionStepValue(CHEZY);
-    }
-    chezy /= rGeometry.size();
-    mCoefficient = 1. / std::pow(chezy, 2);
+    this->Initialize(rGeometry, rProperty, rProcessInfo);
+}
 
+void ChezyLaw::Initialize(
+    const GeometryType& rGeometry,
+    const Properties& rProperty,
+    const ProcessInfo& rProcessInfo)
+{
+    const double chezy = rProperty.GetValue(CHEZY);
+    mCoefficient = 1. / std::pow(chezy, 2);
     mEpsilon = rGeometry.Length() * rProcessInfo[RELATIVE_DRY_HEIGHT];
 }
 

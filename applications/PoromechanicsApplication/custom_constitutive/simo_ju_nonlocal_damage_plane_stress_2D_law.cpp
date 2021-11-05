@@ -37,7 +37,7 @@ SimoJuNonlocalDamagePlaneStress2DLaw::~SimoJuNonlocalDamagePlaneStress2DLaw() {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-int SimoJuNonlocalDamagePlaneStress2DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
+int SimoJuNonlocalDamagePlaneStress2DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo) const
 {
     int ierr = NonlocalDamage3DLaw::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
     if(ierr != 0) return ierr;

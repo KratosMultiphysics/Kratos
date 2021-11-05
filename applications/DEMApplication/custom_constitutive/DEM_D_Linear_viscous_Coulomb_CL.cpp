@@ -11,6 +11,10 @@ namespace Kratos {
         return p_clone;
     }
 
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_Linear_viscous_Coulomb::CloneUnique() {
+        return Kratos::make_unique<DEM_D_Linear_viscous_Coulomb>();
+    }
+
     void DEM_D_Linear_viscous_Coulomb::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Linear_viscous_Coulomb to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
@@ -31,7 +35,7 @@ namespace Kratos {
     /////////////////////////
 
     void DEM_D_Linear_viscous_Coulomb::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
-        
+
         //Get equivalent Radius
         const double my_radius       = element1->GetRadius();
         const double other_radius    = element2->GetRadius();

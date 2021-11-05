@@ -67,9 +67,9 @@
 #include "custom_elements/geo_cr_beam_element_2D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_linear_2D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_linear_3D2N.hpp"
-#include "custom_elements/geo_truss_element_3D2N.hpp"
-#include "custom_elements/geo_truss_element_linear_3D2N.hpp"
-#include "custom_elements/geo_cable_element_3D2N.hpp"
+#include "custom_elements/geo_truss_element.hpp"
+#include "custom_elements/geo_linear_truss_element.hpp"
+#include "custom_elements/geo_cable_element.hpp"
 
 // constitutive models
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
@@ -395,9 +395,14 @@ private:
     const GeoCrBeamElement3D2N mGeoCrBeamElement3D2N;
     const GeoCrBeamElementLinear2D2N mGeoCrBeamElementLinear2D2N;
     const GeoCrBeamElementLinear3D2N mGeoCrBeamElementLinear3D2N;
-    const GeoTrussElement3D2N mGeoTrussElement3D2N;
-    const GeoTrussElementLinear3D2N mGeoTrussLinearElement3D2N;
-    const GeoCableElement3D2N mGeoCableElement3D2N;
+    const GeoTrussElement<2,2> mGeoTrussElement2D2N;
+    const GeoTrussElement<3,2> mGeoTrussElement3D2N;
+
+    const GeoLinearTrussElement<2,2> mGeoLinearTrussElement2D2N;
+    const GeoLinearTrussElement<3,2> mGeoLinearTrussElement3D2N;
+
+    const GeoCableElement<2,2> mGeoCableElement2D2N;
+    const GeoCableElement<3,2> mGeoCableElement3D2N;
 
     // conditions
     const UPwForceCondition<2,1> mUPwForceCondition2D1N;

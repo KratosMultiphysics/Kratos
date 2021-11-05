@@ -19,18 +19,20 @@ namespace Kratos
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwSmallStrainElement<TDim,TNumNodes>::Create(IndexType NewId,
-                                                               NodesArrayType const& ThisNodes,
-                                                               PropertiesType::Pointer pProperties) const
+Element::Pointer UPwSmallStrainElement<TDim,TNumNodes>::
+    Create(IndexType NewId,
+           NodesArrayType const& ThisNodes,
+           PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer( new UPwSmallStrainElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwSmallStrainElement<TDim,TNumNodes>::Create(IndexType NewId,
-                                                               GeometryType::Pointer pGeom,
-                                                               PropertiesType::Pointer pProperties) const
+Element::Pointer UPwSmallStrainElement<TDim,TNumNodes>::
+    Create(IndexType NewId,
+           GeometryType::Pointer pGeom,
+           PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer( new UPwSmallStrainElement( NewId, pGeom, pProperties ) );
 }

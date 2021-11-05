@@ -41,8 +41,6 @@ namespace Testing
         p_elem_prop->SetValue(YOUNG_MODULUS, 4.32e8);
         p_elem_prop->SetValue(POISSON_RATIO, 0.0);
         p_elem_prop->SetValue(THICKNESS, 0.25);
-        const auto& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStress2DLaw");
-        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
         auto p_quadrature_point = TestCreationUtilityScordelisRoof::GetQuadraturePointGeometry(
             rModelPart, PolynomialDegree, IntegrationPoint);

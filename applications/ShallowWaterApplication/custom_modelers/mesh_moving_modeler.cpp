@@ -85,6 +85,7 @@ void MeshMovingModeler::SetupModelPart()
     }
 
     // Elements: we need to clone the geometry with the new nodes
+    std::unordered_map<std::size_t, std::size_t> old_to_new_elem_id;
     std::size_t last_elem_id = 0;
     ModelPart::ElementsContainerType aux_array_with_element_pointers;
     for (auto& r_elem : fixed_model_part.Elements())
@@ -96,6 +97,7 @@ void MeshMovingModeler::SetupModelPart()
                 new_elem_nodes.push_back(moving_model_part.pGetNode(r_node.Id()));
             }
             auto new_elem = r_elem.Clone(++last_elem_id, new_elem_nodes);
+            old_to_new_elem_id[r_elem.Id()] = last_elem_id;
             new_elem->SetProperties(moving_model_part.pGetProperties(r_elem.GetProperties().Id()));
             aux_array_with_element_pointers.push_back(new_elem);
         }
@@ -103,6 +105,7 @@ void MeshMovingModeler::SetupModelPart()
     moving_model_part.AddElements(aux_array_with_element_pointers.begin(), aux_array_with_element_pointers.end());
 
     // Conditions: we need to clone the geometry with the new nodes
+    std::unordered_map<std::size_t, std::size_t> old_to_new_cond_id;
     std::size_t last_cond_id = 0;
     ModelPart::ConditionsContainerType aux_array_with_condition_pointers;
     for (auto& r_cond : fixed_model_part.Conditions())
@@ -114,11 +117,42 @@ void MeshMovingModeler::SetupModelPart()
                 new_cond_nodes.push_back(moving_model_part.pGetNode(r_node.Id()));
             }
             auto new_cond = r_cond.Clone(++last_cond_id, new_cond_nodes);
+            old_to_new_cond_id[r_cond.Id()] = last_cond_id;
             new_cond->SetProperties(moving_model_part.pGetProperties(r_cond.GetProperties().Id()));
             aux_array_with_condition_pointers.push_back(new_cond);
         }
     }
     moving_model_part.AddConditions(aux_array_with_condition_pointers.begin(), aux_array_with_condition_pointers.end());
+
+    // SubModelParts
+    for (const auto& sub_model_part : fixed_model_part.SubModelParts())
+    {
+        auto& dest_sub_model_part = moving_model_part.CreateSubModelPart(sub_model_part.Name());
+
+        std::vector<std::size_t> nodes_ids;
+        std::vector<std::size_t> elements_ids;
+        std::vector<std::size_t> conditions_ids;
+
+        for (auto& r_node : sub_model_part.Nodes()) {
+            if (r_node.Is(TO_COPY)) {
+                nodes_ids.push_back(r_node.Id());
+            }
+        }
+        for (auto& r_elem : sub_model_part.Elements()) {
+            if (r_elem.Is(TO_COPY)) {
+                elements_ids.push_back(old_to_new_elem_id[r_elem.Id()]);
+            }
+        }
+        for (auto& r_cond : sub_model_part.Conditions()) {
+            if (r_cond.Is(TO_COPY)) {
+                conditions_ids.push_back(old_to_new_cond_id[r_cond.Id()]);
+            }
+        }
+
+        dest_sub_model_part.AddNodes(nodes_ids);
+        dest_sub_model_part.AddElements(elements_ids);
+        dest_sub_model_part.AddConditions(conditions_ids);
+    }
 
     // Generate the conditions for the shoreline
     auto skin_settings = Parameters();

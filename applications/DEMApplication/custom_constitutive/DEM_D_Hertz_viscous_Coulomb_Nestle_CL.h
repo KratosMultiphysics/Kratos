@@ -20,6 +20,8 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
+        std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override;
+
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         void CalculateViscoDampingForce(double LocalRelVel[3], double ViscoDampingLocalContactForce[3], SphericParticle* const element1, SphericParticle* const element2);

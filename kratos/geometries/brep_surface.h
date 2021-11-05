@@ -124,6 +124,7 @@ public:
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mOuterLoopArray(rOther.mOuterLoopArray)
         , mInnerLoopArray(rOther.mInnerLoopArray)
+        , mEmbeddedEdgesArray(rOther.mEmbeddedEdgesArray)
         , mIsTrimmed(rOther.mIsTrimmed)
     {
     }
@@ -136,6 +137,7 @@ public:
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mOuterLoopArray(rOther.mOuterLoopArray)
         , mInnerLoopArray(rOther.mInnerLoopArray)
+        , mEmbeddedEdgesArray(rOther.mEmbeddedEdgesArray)
         , mIsTrimmed(rOther.mIsTrimmed)
     {
     }
@@ -154,6 +156,7 @@ public:
         mpNurbsSurface = rOther.mpNurbsSurface;
         mOuterLoopArray = rOther.mOuterLoopArray;
         mInnerLoopArray = rOther.mInnerLoopArray;
+        mEmbeddedEdgesArray = rOther.mEmbeddedEdgesArray;
         mIsTrimmed = rOther.mIsTrimmed;
         return *this;
     }
@@ -166,6 +169,7 @@ public:
         mpNurbsSurface = rOther.mpNurbsSurface;
         mOuterLoopArray = rOther.mOuterLoopArray;
         mInnerLoopArray = rOther.mInnerLoopArray;
+        mEmbeddedEdgesArray = rOther.mEmbeddedEdgesArray;
         mIsTrimmed = rOther.mIsTrimmed;
         return *this;
     }
@@ -281,6 +285,21 @@ public:
         mEmbeddedEdgesArray = EmbeddedEdges;
     }
 
+    /// Access the nested loop of outer loops.
+    const BrepCurveOnSurfaceLoopArrayType& GetOuterLoops() const {
+        return mOuterLoopArray;
+    }
+
+    /// Access the nested loop of inner loops.
+    const BrepCurveOnSurfaceLoopArrayType& GetInnerLoops() const {
+        return mInnerLoopArray;
+    }
+
+    /// Access the array of embedded edges.
+    const BrepCurveOnSurfaceArrayType& GetEmbeddedEdges() const {
+        return mEmbeddedEdgesArray;
+    }
+
     ///@}
     ///@name Dynamic access to internals
     ///@{
@@ -354,8 +373,6 @@ public:
     *
     * @param rPointGlobalCoordinates the point to which the
     *        projection has to be found.
-    * @param rProjectedPointGlobalCoordinates the location of the
-    *        projection in global coordinates.
     * @param rProjectedPointLocalCoordinates the location of the
     *        projection in local coordinates.
     *        The variable is as initial guess!
@@ -365,16 +382,17 @@ public:
     *         0 -> failed
     *         1 -> converged
     */
-    int ProjectionPoint(
+    int ProjectionPointGlobalToLocalSpace(
         const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) const override
+    ) const override
     {
-        return mpNurbsSurface->ProjectionPoint(
-            rPointGlobalCoordinates, rProjectedPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
+        return mpNurbsSurface->ProjectionPointGlobalToLocalSpace(
+            rPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
     }
+
+
 
     /*
     * @brief This method maps from dimension space to working space.
@@ -491,14 +509,18 @@ public:
         return rResult;
     }
 
+    ///@}
+    ///@name Geometry Family
+    ///@{
+
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Brep;
+        return GeometryData::KratosGeometryFamily::Kratos_Brep;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Brep_Surface;
+        return GeometryData::KratosGeometryType::Kratos_Brep_Surface;
     }
 
     ///@}
@@ -563,6 +585,7 @@ private:
         rSerializer.save("NurbsSurface", mpNurbsSurface);
         rSerializer.save("OuterLoopArray", mOuterLoopArray);
         rSerializer.save("InnerLoopArray", mInnerLoopArray);
+        rSerializer.save("EmbeddedEdgesArray", mEmbeddedEdgesArray);
         rSerializer.save("IsTrimmed", mIsTrimmed);
     }
 
@@ -572,6 +595,7 @@ private:
         rSerializer.load("NurbsSurface", mpNurbsSurface);
         rSerializer.load("OuterLoopArray", mOuterLoopArray);
         rSerializer.load("InnerLoopArray", mInnerLoopArray);
+        rSerializer.load("EmbeddedEdgesArray", mEmbeddedEdgesArray);
         rSerializer.load("IsTrimmed", mIsTrimmed);
     }
 

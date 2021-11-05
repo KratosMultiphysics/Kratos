@@ -760,11 +760,6 @@ public:
         return ZeroVector(3);
     }
 
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
     /**
      * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
@@ -827,6 +822,29 @@ public:
 
         return rResult ;
     }
+
+    ///@}
+    ///@name Shape Function Integration Points Gradient
+    ///@{
+
+    void ShapeFunctionsIntegrationPointsGradients(
+        ShapeFunctionsGradientsType &rResult,
+        IntegrationMethod ThisMethod) const override
+    {
+        KRATOS_ERROR << "Jacobian is not square" << std::endl;
+    }
+
+    void ShapeFunctionsIntegrationPointsGradients(
+        ShapeFunctionsGradientsType &rResult,
+        Vector &rDeterminantsOfJacobian,
+        IntegrationMethod ThisMethod) const override
+    {
+        KRATOS_ERROR << "Jacobian is not square" << std::endl;
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
 
     /** Turn back information as a string.
 

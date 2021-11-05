@@ -10,10 +10,10 @@
 //  Main authors:    Dagmawi Bekel
 //                   Ruben Zorrilla
 //
-
+#if USE_TRIANGLE_NONFREE_TPL
 // Project includes
 #include "includes/define.h"
-#include "utilities/delaunator_utilities.h"
+#include "utilities/tessellation_utilities/delaunator_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "cad_tessellation_modeler.h"
 
@@ -354,3 +354,4 @@ double CadTessellationModeler::ComputeDiscretizationError(
 }
 
 } // namespace Kratos
+#endif

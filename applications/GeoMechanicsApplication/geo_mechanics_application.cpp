@@ -174,8 +174,11 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mGeoCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mGeoCrBeamElementLinear2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mGeoCrBeamElementLinear3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+    mGeoTrussElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mGeoTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
-    mGeoTrussLinearElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+    mGeoLinearTrussElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+    mGeoLinearTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+    mGeoCableElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mGeoCableElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
 
     // conditions
@@ -347,8 +350,11 @@ void KratosGeoMechanicsApplication::Register() {
 
 
     // Register geo structural elements
+    KRATOS_REGISTER_ELEMENT("GeoTrussElement2D2N", mGeoTrussElement2D2N)
     KRATOS_REGISTER_ELEMENT("GeoTrussElement3D2N", mGeoTrussElement3D2N)
-    KRATOS_REGISTER_ELEMENT("GeoTrussLinearElement3D2N", mGeoTrussLinearElement3D2N)
+    KRATOS_REGISTER_ELEMENT("GeoLinearTrussElement2D2N", mGeoLinearTrussElement2D2N)
+    KRATOS_REGISTER_ELEMENT("GeoLinearTrussElement3D2N", mGeoLinearTrussElement3D2N)
+    KRATOS_REGISTER_ELEMENT("GeoCableElement2D2N", mGeoCableElement2D2N)
     KRATOS_REGISTER_ELEMENT("GeoCableElement3D2N", mGeoCableElement3D2N)
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElement3D2N", mGeoCrBeamElement3D2N)
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElement2D2N", mGeoCrBeamElement2D2N)
