@@ -20,9 +20,15 @@ class EmbeddedSolverDirichletCircleAnalysis(ConvectionDiffusionAnalysis):
     def ApplyBoundaryConditions(self):
         super().ApplyBoundaryConditions()
 
+        # Set source term
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, 0, 1.0)
+
         # Set penalty coefficient
         self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.ConvectionDiffusionApplication.PENALTY_DIRICHLET] = 1.0e0
-
+        # Set boundary value for Nitsche imposition of DBC
+        for elem in self._GetSolver().GetComputingModelPart().Elements:
+            elem.SetValue(KratosMultiphysics.ConvectionDiffusionApplication.EMBEDDED_SCALAR, 0.0)
 
 @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class TestEmbeddedSolver(KratosUnittest.TestCase):
