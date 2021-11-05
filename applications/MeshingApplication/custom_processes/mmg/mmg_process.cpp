@@ -288,6 +288,7 @@ void MmgProcess<TMMGLibrary>::ExecuteFinalize()
     // Nodes not belonging to an element are removed
     if(mRemoveRegions) {
         CleanSuperfluousNodes();
+        CleanSuperfluousConditions();
     }
 
     // Save the mesh in an .mdpa format
@@ -1168,7 +1169,6 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
     // Iterate over nodes
     auto& r_nodes_array = mrThisModelPart.Nodes();
     const SizeType initial_num = r_nodes_array.size();
-    const SizeType initial_num_cond = mrThisModelPart.Conditions().size();
 
     // Marking all nodes as "superfluous"
     VariableUtils().SetFlag(TO_ERASE, true, r_nodes_array);
@@ -1185,6 +1185,18 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
     });
 
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
+    const SizeType final_num = mrThisModelPart.Nodes().size();
+    KRATOS_INFO("MmgProcess") << "In total " << (initial_num - final_num) <<" superfluous nodes were cleared" << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::CleanSuperfluousConditions()
+{
+    KRATOS_TRY;
+
+    const SizeType initial_num_cond = mrThisModelPart.Conditions().size();
 
     // Check which conditions do not have a parent element
     typedef std::unordered_map<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > IndexCondMapType;
@@ -1247,9 +1259,7 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
 
     mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 
-    const SizeType final_num = mrThisModelPart.Nodes().size();
     const SizeType final_num_cond = mrThisModelPart.Conditions().size();
-    KRATOS_INFO("MmgProcess") << "In total " << (initial_num - final_num) <<" superfluous nodes were cleared" << std::endl;
     KRATOS_INFO("MmgProcess") << "In total " << (initial_num_cond - final_num_cond) <<" wrong conditions were cleared" << std::endl;
 
     KRATOS_CATCH("");
