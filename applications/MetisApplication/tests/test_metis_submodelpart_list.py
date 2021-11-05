@@ -44,7 +44,7 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
         results = [["Main.submodelpart_liquid" , [133, 381, 228]],
                    ["Main.submodelpart_solid" ,  [280, 810, 552]]]
         ReadModelPart(self.file_name, model_part, settings)
-        for submodel_part_name in results:
+        for i_result in results:
             submodel_part_name = i_result[0]
             submodel_part = current_model[submodel_part_name]
             local_number_nodes = submodel_part.GetCommunicator().LocalMesh().NumberOfNodes()
@@ -92,7 +92,7 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
                    ["Main.submodelpart_liquid.mainPart" , [85, 193, 118]],
                    ["Main.submodelpart_solid" , [280,810,552]]]
         ReadModelPart(self.file_name, model_part, settings)
-        for submodel_part_name in results:
+        for i_result in results:
             submodel_part_name = i_result[0]
             submodel_part = current_model[submodel_part_name]
             local_number_nodes = submodel_part.GetCommunicator().LocalMesh().NumberOfNodes()
