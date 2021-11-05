@@ -18,6 +18,7 @@
 
 // Project includes
 #include "shallow_water_utilities.h"
+#include "phase_function.h"
 
 
 namespace Kratos
@@ -45,7 +46,7 @@ void ShallowWaterUtilities::ComputeVelocity(ModelPart& rModelPart, bool PerformP
         const double rel_dry_h = rModelPart.GetProcessInfo()[RELATIVE_DRY_HEIGHT];
         block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
             const double h = r_node.FastGetSolutionStepValue(HEIGHT);
-            const double inv_h = InverseHeight(h, rel_dry_h * r_node.GetValue(NODAL_H));
+            const double inv_h = PhaseFunction::InverseHeight(h, rel_dry_h * r_node.GetValue(NODAL_H));
             r_node.FastGetSolutionStepValue(VELOCITY) = inv_h * r_node.FastGetSolutionStepValue(MOMENTUM);
         });
     }
@@ -72,7 +73,7 @@ void ShallowWaterUtilities::ComputeSmoothVelocity(ModelPart& rModelPart)
         }
         height /= num_nodes;
         CalculateMassMatrix(r_local_mass_matrix, r_geom);
-        r_local_mass_matrix *= InverseHeight(height, rel_dry_h * r_geom.Length());
+        r_local_mass_matrix *= PhaseFunction::InverseHeight(height, rel_dry_h * r_geom.Length());
         Vector nodal_velocity_x(num_nodes);
         Vector nodal_velocity_y(num_nodes);
         nodal_velocity_x = num_nodes * prod(r_local_mass_matrix, nodal_discharge_x);
@@ -105,7 +106,7 @@ void ShallowWaterUtilities::ComputeFroude(ModelPart& rModelPart, const double Ep
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
         const double height = rNode.FastGetSolutionStepValue(HEIGHT);
         const double velocity = norm_2(rNode.FastGetSolutionStepValue(VELOCITY));
-        const double inverse_c = std::sqrt(InverseHeight(height, Epsilon) / g);
+        const double inverse_c = std::sqrt(PhaseFunction::InverseHeight(height, Epsilon) / g);
         GetValue<THistorical>(rNode, FROUDE) = velocity * inverse_c;
     });
 }
@@ -270,18 +271,6 @@ double ShallowWaterUtilities::ComputeL2NormAABB(
     return std::sqrt(l2_norm);
 }
 
-double ShallowWaterUtilities::InverseHeight(const double Height, const double Epsilon)
-{
-    const double h4 = std::pow(Height, 4);
-    const double epsilon4 = std::pow(Epsilon, 4);
-    return std::sqrt(2) * std::max(Height, .0) / std::sqrt(h4 + std::max(h4, epsilon4));
-}
-
-double ShallowWaterUtilities::WetFraction(const double Height, const double Epsilon)
-{
-    return Height * InverseHeight(Height, Epsilon);
-}
-
 void ShallowWaterUtilities::CalculateMassMatrix(Matrix& rMassMatrix, const GeometryType& rGeometry)
 {
     const size_t num_nodes = rGeometry.size();
@@ -367,7 +356,7 @@ bool ShallowWaterUtilities::IsWet(const GeometryType& rGeometry, const double He
 
 bool ShallowWaterUtilities::IsWet(const double Height, const double DryHeight)
 {
-    const double wet_fraction = WetFraction(Height, DryHeight);
+    const double wet_fraction = PhaseFunction::WetFraction(Height, DryHeight);
     const double threshold = 1.0 - 1e-16;
     return (wet_fraction >= threshold);
 }

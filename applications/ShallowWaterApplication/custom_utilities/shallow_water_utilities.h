@@ -95,10 +95,6 @@ public:
     template<bool THistorical>
     void ComputeEnergy(ModelPart& rModelPart);
 
-    double InverseHeight(const double Height, const double Epsilon);
-
-    double WetFraction(double Height, double Epsilon);
-
     void FlipScalarVariable(Variable<double>& rOriginVariable, Variable<double>& rDestinationVariable, ModelPart& rModelPart);
 
     void IdentifySolidBoundary(ModelPart& rModelPart, double SeaWaterLevel, Flags SolidBoundaryFlag);
