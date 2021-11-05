@@ -210,10 +210,10 @@ void ComputeSelfContactPairing(
         }
     }
 
-    std::size_t master_counter = 0, slave_counter = 0;
-    block_for_each(r_conditions_array, [&master_counter, &slave_counter, &EchoLevel](Condition& rCond) {
-        master_counter = 0;
-        slave_counter = 0;
+    struct counter_containers {std::size_t master = 0, slave = 0;};
+    block_for_each(r_conditions_array, counter_containers(), [&EchoLevel](Condition& rCond, counter_containers& counter) {
+        counter.master = 0;
+        counter.slave = 0;
 
         // The slave geometry
         auto& r_geometry = rCond.GetGeometry();
@@ -222,18 +222,18 @@ void ComputeSelfContactPairing(
         // Count flags
         for (auto& r_node : r_geometry) {
             if (r_node.Is(MASTER)) {
-                ++master_counter;
+                ++counter.master;
             }
             if (r_node.Is(SLAVE)) {
-                ++slave_counter;
+                ++counter.slave;
             }
         }
 
         // Check
-        KRATOS_ERROR_IF((slave_counter + master_counter) > number_of_nodes) << "The MASTER/SLAVE flags are inconsistent" << std::endl;
+        KRATOS_ERROR_IF((counter.slave + counter.master) > number_of_nodes) << "The MASTER/SLAVE flags are inconsistent" << std::endl;
 
         // Check if the condition is active
-        if (slave_counter == number_of_nodes || master_counter == number_of_nodes) {
+        if (counter.slave == number_of_nodes || counter.master == number_of_nodes) {
             rCond.Set(ACTIVE, true);
         } else {
             KRATOS_WARNING_IF("SelfContactUtilities", EchoLevel > 0) << "Condition " << rCond.Id() << " must be isolated for sharing MASTER/SLAVE nodes in it" << std::endl;
