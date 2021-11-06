@@ -103,14 +103,6 @@ public:
 
     void ExtrapolateElementalFlagToNodes(ModelPart& rModelPart, Flags Flag);
 
-    template<class TContainerType>
-    void CopyFlag(Flags OriginFlag, Flags DestinationFlag, TContainerType& rContainer)
-    {
-        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
-            rEntity.Set(DestinationFlag, rEntity.Is(OriginFlag));
-        });
-    }
-
     void NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable);
 
     template<class TVarType>
