@@ -20,6 +20,7 @@ from shallow_water_test_factory import TestMacDonaldTransitionBenchmark
 from shallow_water_test_factory import TestDamBreakBenchmark
 from shallow_water_test_factory import TestDryDamBreakBenchmark
 from shallow_water_test_factory import TestPlanarSurfaceInParabolaBenchmark
+from shallow_water_test_factory import TestMeshMovingStrategy
 from processes_tests.test_convergence_output_process import TestConvergenceOutputProcess
 
 def AssembleTestSuites():
@@ -55,6 +56,7 @@ def AssembleTestSuites():
     nightlySuite.addTests(smallSuite)
     nightlySuite.addTest(TestShallowWaterElement('test_execution'))
     nightlySuite.addTest(TestSemiLagrangianShallowWaterElement('test_execution'))
+    nightlySuite.addTest(TestMeshMovingStrategy('test_execution'))
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
