@@ -2,11 +2,32 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-import KratosMultiphysics.base_convergence_criteria_factory as convergence_criteria_factory
+
+# Auxiliary function to check the parallel type at runtime
+#TODO: Delete this once we come up with the final factory-based design
+def _CheckIsDistributed():
+    if KratosMultiphysics.ParallelEnvironment.HasDataCommunicator("World"):
+        world_data_comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator("World")
+        return world_data_comm.IsDistributed()
+    else:
+        return False
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication
+
+# If required, import parallel applications and modules
+if _CheckIsDistributed():
+    import KratosMultiphysics.mpi as KratosMPI
+    import KratosMultiphysics.MetisApplication as KratosMetis
+    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
+    import KratosMultiphysics.mpi.distributed_import_model_part_utility as distributed_import_model_part_utility
+
+# Importing factories
+if _CheckIsDistributed():
+    import KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory as linear_solver_factory
+else:
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+    import KratosMultiphysics.base_convergence_criteria_factory as convergence_criteria_factory
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
@@ -229,6 +250,10 @@ class ConvectionDiffusionSolver(PythonSolver):
         if (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
             target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
 
+        # If MPI distributed, add the PARTITION_INDEX
+        if _CheckIsDistributed():
+            target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
@@ -270,7 +295,13 @@ class ConvectionDiffusionSolver(PythonSolver):
     def ImportModelPart(self):
         """This function imports the ModelPart"""
         if self.solver_imports_model_part:
-            self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
+            if not _CheckIsDistributed():
+                self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
+            else:
+                self.distributed_model_part_importer = distributed_import_model_part_utility.DistributedImportModelPartUtility(
+                    self.main_model_part,
+                    self.settings)
+                self.distributed_model_part_importer.ImportModelPart()
 
     def PrepareModelPart(self):
         if not self.is_restarted():
@@ -287,6 +318,10 @@ class ConvectionDiffusionSolver(PythonSolver):
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
 
             self._set_and_fill_buffer()
+
+        # Create the MPI communicators
+        if _CheckIsDistributed():
+            self.distributed_model_part_importer.CreateCommunicators()
 
         if (self.settings["echo_level"].GetInt() > 0):
             KratosMultiphysics.Logger.PrintInfo(self.model)
@@ -552,8 +587,12 @@ class ConvectionDiffusionSolver(PythonSolver):
         return conv_params
 
     def _create_convergence_criterion(self):
-        convergence_criterion = convergence_criteria_factory.ConvergenceCriteriaFactory(self._get_convergence_criterion_settings())
-        return convergence_criterion.convergence_criterion
+        if not self.main_model_part.IsDistributed():
+            convergence_criterion = convergence_criteria_factory.ConvergenceCriteriaFactory(self._get_convergence_criterion_settings())
+            return convergence_criterion.convergence_criterion
+        else:
+            convergence_criterion = self.__base_convergence_criteria_factory_mpi(self._get_convergence_criterion_settings())
+            return convergence_criterion
 
     def _create_linear_solver(self):
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
@@ -561,10 +600,35 @@ class ConvectionDiffusionSolver(PythonSolver):
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
-        if self.settings["block_builder"].GetBool():
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        if not self.main_model_part.IsDistributed():
+            # Set the serial builder and solver
+            if self.settings["block_builder"].GetBool():
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+            else:
+                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         else:
-            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+            # Set the Epetra vectors communicator
+            epetra_communicator = self.get_epetra_communicator()
+
+            # Set the guess_row_size (guess about the number of zero entries) for the Trilinos builder and solver
+            domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+            if domain_size == 3:
+                guess_row_size = 20
+            else:
+                guess_row_size = 10
+
+            # Set the parallel builder and solver
+            if self.settings["block_builder"].GetBool():
+                builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolver(
+                    epetra_communicator,
+                    guess_row_size,
+                    linear_solver)
+            else:
+                builder_and_solver = KratosTrilinos.TrilinosEliminationBuilderAndSolver(
+                    epetra_communicator,
+                    guess_row_size,
+                    linear_solver)
+
         return builder_and_solver
 
     @classmethod
@@ -591,41 +655,69 @@ class ConvectionDiffusionSolver(PythonSolver):
         computing_model_part = self.GetComputingModelPart()
         convection_diffusion_scheme = self.get_solution_scheme()
         builder_and_solver = self.get_builder_and_solver()
-        return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
-                                                              convection_diffusion_scheme,
-                                                              builder_and_solver,
-                                                              self.settings["compute_reactions"].GetBool(),
-                                                              self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                              False,
-                                                              self.settings["move_mesh_flag"].GetBool())
+        if not computing_model_part.IsDistributed():
+            return KratosMultiphysics.ResidualBasedLinearStrategy(
+                computing_model_part,
+                convection_diffusion_scheme,
+                builder_and_solver,
+                self.settings["compute_reactions"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                False,
+                self.settings["move_mesh_flag"].GetBool())
+        else:
+            return KratosTrilinos.TrilinosLinearStrategy(
+                computing_model_part,
+                convection_diffusion_scheme,
+                builder_and_solver,
+                self.settings["compute_reactions"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                False,
+                self.settings["move_mesh_flag"].GetBool())
 
     def _create_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         convection_diffusion_scheme = self.get_solution_scheme()
         convection_diffusion_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
-        return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
-                                        convection_diffusion_scheme,
-                                        convection_diffusion_convergence_criterion,
-                                        builder_and_solver,
-                                        self.settings["max_iteration"].GetInt(),
-                                        self.settings["compute_reactions"].GetBool(),
-                                        self.settings["reform_dofs_at_each_step"].GetBool(),
-                                        self.settings["move_mesh_flag"].GetBool())
+        if not computing_model_part.IsDistributed():
+            return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
+                computing_model_part,
+                convection_diffusion_scheme,
+                convection_diffusion_convergence_criterion,
+                builder_and_solver,
+                self.settings["max_iteration"].GetInt(),
+                self.settings["compute_reactions"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                self.settings["move_mesh_flag"].GetBool())
+        else:
+            return KratosTrilinos.TrilinosNewtonRaphsonStrategy(
+                computing_model_part,
+                convection_diffusion_scheme,
+                convection_diffusion_convergence_criterion,
+                builder_and_solver,
+                self.settings["max_iteration"].GetInt(),
+                self.settings["compute_reactions"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                self.settings["move_mesh_flag"].GetBool())
 
     def _create_line_search_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         convection_diffusion_scheme = self.get_solution_scheme()
         convection_diffusion_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
-        return KratosMultiphysics.LineSearchStrategy(computing_model_part,
-                            convection_diffusion_scheme,
-                            convection_diffusion_convergence_criterion,
-                            builder_and_solver,
-                            self.settings["max_iteration"].GetInt(),
-                            self.settings["compute_reactions"].GetBool(),
-                            self.settings["reform_dofs_at_each_step"].GetBool(),
-                            self.settings["move_mesh_flag"].GetBool())
+        if not computing_model_part.IsDistributed():
+            return KratosMultiphysics.LineSearchStrategy(
+                computing_model_part,
+                convection_diffusion_scheme,
+                convection_diffusion_convergence_criterion,
+                builder_and_solver,
+                self.settings["max_iteration"].GetInt(),
+                self.settings["compute_reactions"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                self.settings["move_mesh_flag"].GetBool())
+        else:
+            err_msg = "\'line_search\' solution strategy is not MPI compatible."
+            raise Exception(err_msg)
 
     def _ConvectionDiffusionVariablesCheck(self, custom_settings):
         default_settings = self.GetDefaultParameters()
@@ -653,3 +745,52 @@ class ConvectionDiffusionSolver(PythonSolver):
         if not custom_conv_diff_variables.Has(variable_entry):
             custom_conv_diff_variables.AddEmptyValue(variable_entry).SetString(variable_name)
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "\'{0}\' in \'convection_diffusion_variables\' not defined, taking default \'{1}\'.".format(variable_entry, variable_name))
+
+    #TODO: THIS MUST BE IMPLEMENTED IN A base_convergence_criteria_factory_mpi.py
+    #TODO: THEN WE CAN IMPORT IT AS convergence_criteria_factory TO AVOID DISTINGUISHING THE SERIAL AND THE PARALLEL FACTORIES
+    def __base_convergence_criteria_factory_mpi(self, convergence_criterion_parameters):
+        # Note that all the convergence settings are introduced via a Kratos parameters object.
+        D_RT = convergence_criterion_parameters["solution_relative_tolerance"].GetDouble()
+        D_AT = convergence_criterion_parameters["solution_absolute_tolerance"].GetDouble()
+        R_RT = convergence_criterion_parameters["residual_relative_tolerance"].GetDouble()
+        R_AT = convergence_criterion_parameters["residual_absolute_tolerance"].GetDouble()
+
+        echo_level = convergence_criterion_parameters["echo_level"].GetInt()
+        convergence_crit = convergence_criterion_parameters["convergence_criterion"].GetString()
+
+        if(echo_level >= 1):
+            KratosMultiphysics.Logger.PrintInfo("::[ConvergenceCriterionFactory]:: ", "CONVERGENCE CRITERION : " +
+                convergence_criterion_parameters["convergence_criterion"].GetString())
+
+        if(convergence_crit == "solution_criterion"):
+            convergence_criterion = KratosTrilinos.TrilinosDisplacementCriteria(D_RT, D_AT)
+            convergence_criterion.SetEchoLevel(echo_level)
+
+        elif(convergence_crit == "residual_criterion"):
+            convergence_criterion = KratosTrilinos.TrilinosResidualCriteria(R_RT, R_AT)
+            convergence_criterion.SetEchoLevel(echo_level)
+
+        elif(convergence_crit == "and_criterion"):
+            Displacement = KratosTrilinos.TrilinosDisplacementCriteria(D_RT, D_AT)
+            Displacement.SetEchoLevel(echo_level)
+            Residual = KratosTrilinos.TrilinosResidualCriteria(R_RT, R_AT)
+            Residual.SetEchoLevel(echo_level)
+            convergence_criterion = KratosTrilinos.TrilinosAndCriteria(Residual, Displacement)
+
+        elif(convergence_crit == "or_criterion"):
+            Displacement = KratosTrilinos.TrilinosDisplacementCriteria(D_RT, D_AT)
+            Displacement.SetEchoLevel(echo_level)
+            Residual = KratosTrilinos.TrilinosResidualCriteria(R_RT, R_AT)
+            Residual.SetEchoLevel(echo_level)
+            convergence_criterion = KratosTrilinos.TrilinosOrCriteria(Residual, Displacement)
+        else:
+            err_msg =  "The requested convergence criterion \"" + convergence_crit + "\" is not available!\n"
+            err_msg += "Available options are: \"solution_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\""
+            raise Exception(err_msg)
+
+        return convergence_criterion
+
+    def get_epetra_communicator(self):
+        if not hasattr(self, '_epetra_communicator'):
+            self._epetra_communicator = KratosTrilinos.CreateCommunicator()
+        return self._epetra_communicator

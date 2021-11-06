@@ -41,23 +41,25 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
             },
             "echo_level" : 0
         }""")
-        results = {"Main.submodelpart_liquid" : [133, 381, 228],
-                   "Main.submodelpart_solid" :  [280, 810, 552]}
+        results = [["Main.submodelpart_liquid" , [133, 381, 228]],
+                   ["Main.submodelpart_solid" ,  [280, 810, 552]]]
         ReadModelPart(self.file_name, model_part, settings)
-        for submodel_part_name in results:
+        for i_result in results:
+            submodel_part_name = i_result[0]
             submodel_part = current_model[submodel_part_name]
             local_number_nodes = submodel_part.GetCommunicator().LocalMesh().NumberOfNodes()
             local_number_elements = submodel_part.GetCommunicator().LocalMesh().NumberOfElements()
             local_number_conditions = submodel_part.GetCommunicator().LocalMesh().NumberOfConditions()
-            self.assertTrue(local_number_nodes > 0)
-            self.assertTrue(local_number_elements > 0)
-            self.assertTrue(local_number_conditions > 0)
-            total_nodes = submodel_part.GetCommunicator().GetDataCommunicator().SumAll(local_number_nodes)
-            total_elements =submodel_part.GetCommunicator().GetDataCommunicator().SumAll(local_number_elements)
-            total_conditions = submodel_part.GetCommunicator().GetDataCommunicator().SumAll(local_number_conditions)
-            self.assertEqual(total_nodes, results.get(submodel_part_name)[0])
-            self.assertEqual(total_elements, results.get(submodel_part_name)[1])
-            self.assertEqual(total_conditions, results.get(submodel_part_name)[2])
+            if self.size<=10: #if too many partitions are used, some may end up with no nodes/elems
+                self.assertTrue(local_number_nodes > 0)
+                self.assertTrue(local_number_elements > 0)
+                self.assertTrue(local_number_conditions > 0)
+            total_nodes = submodel_part.GetCommunicator().GlobalNumberOfNodes()
+            total_elements = submodel_part.GetCommunicator().GlobalNumberOfElements()
+            total_conditions = submodel_part.GetCommunicator().GlobalNumberOfConditions()
+            self.assertEqual(total_nodes, i_result[1][0])
+            self.assertEqual(total_elements, i_result[1][1])
+            self.assertEqual(total_conditions, i_result[1][2])
 
         total_main_nodes = model_part.GetCommunicator().GlobalNumberOfNodes()
         total_main_elements = model_part.GetCommunicator().GlobalNumberOfElements()
@@ -86,24 +88,26 @@ class TestMetisSubModelPartList(KratosUnittest.TestCase):
             },
             "echo_level" : 0
         }""")
-        results = {"Main.submodelpart_liquid.ingate" : [81, 188, 110],
-                   "Main.submodelpart_liquid.mainPart" : [85, 193, 118],
-                   "Main.submodelpart_solid" : [280,810,552]}
+        results = [["Main.submodelpart_liquid.ingate" , [81, 188, 110]],
+                   ["Main.submodelpart_liquid.mainPart" , [85, 193, 118]],
+                   ["Main.submodelpart_solid" , [280,810,552]]]
         ReadModelPart(self.file_name, model_part, settings)
-        for submodel_part_name in results:
+        for i_result in results:
+            submodel_part_name = i_result[0]
             submodel_part = current_model[submodel_part_name]
             local_number_nodes = submodel_part.GetCommunicator().LocalMesh().NumberOfNodes()
             local_number_elements = submodel_part.GetCommunicator().LocalMesh().NumberOfElements()
             local_number_conditions = submodel_part.GetCommunicator().LocalMesh().NumberOfConditions()
-            self.assertTrue(local_number_nodes > 0)
-            self.assertTrue(local_number_elements > 0)
-            self.assertTrue(local_number_conditions > 0)
-            total_nodes = submodel_part.GetCommunicator().GetDataCommunicator().SumAll(local_number_nodes)
-            total_elements =submodel_part.GetCommunicator().GetDataCommunicator().SumAll(local_number_elements)
-            total_conditions = submodel_part.GetCommunicator().GetDataCommunicator().SumAll(local_number_conditions)
-            self.assertEqual(total_nodes, results.get(submodel_part_name)[0])
-            self.assertEqual(total_elements, results.get(submodel_part_name)[1])
-            self.assertEqual(total_conditions, results.get(submodel_part_name)[2])
+            if self.size<=10: #if too many partitions are used, some may end up with no nodes/elems
+                self.assertTrue(local_number_nodes > 0)
+                self.assertTrue(local_number_elements > 0)
+                self.assertTrue(local_number_conditions > 0)
+            total_nodes = submodel_part.GetCommunicator().GlobalNumberOfNodes()
+            total_elements = submodel_part.GetCommunicator().GlobalNumberOfElements()
+            total_conditions = submodel_part.GetCommunicator().GlobalNumberOfConditions()
+            self.assertEqual(total_nodes, i_result[1][0])
+            self.assertEqual(total_elements, i_result[1][1])
+            self.assertEqual(total_conditions, i_result[1][2])
 
         total_main_nodes = model_part.GetCommunicator().GlobalNumberOfNodes()
         total_main_elements = model_part.GetCommunicator().GlobalNumberOfElements()

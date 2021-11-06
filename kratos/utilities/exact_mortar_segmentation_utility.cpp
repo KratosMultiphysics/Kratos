@@ -1102,6 +1102,24 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::T
 
 template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
 double ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::TestGetExactAreaIntegration(
+    Condition::Pointer pSlaveCond,
+    Condition::Pointer pMasterCond
+    )
+{
+    // Initalize values
+    double area = 0.0;
+    double local_area = 0.0;
+    const bool is_inside = GetExactAreaIntegration(pSlaveCond->GetGeometry(), pSlaveCond->GetValue(NORMAL), pMasterCond->GetGeometry(), pMasterCond->GetValue(NORMAL), local_area);
+    if (is_inside) area += local_area;
+
+    return area;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+double ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::TestGetExactAreaIntegration(
     ModelPart& rMainModelPart,
     Condition::Pointer pSlaveCond
     )

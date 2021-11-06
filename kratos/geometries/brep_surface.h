@@ -124,6 +124,7 @@ public:
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mOuterLoopArray(rOther.mOuterLoopArray)
         , mInnerLoopArray(rOther.mInnerLoopArray)
+        , mEmbeddedEdgesArray(rOther.mEmbeddedEdgesArray)
         , mIsTrimmed(rOther.mIsTrimmed)
     {
     }
@@ -136,6 +137,7 @@ public:
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mOuterLoopArray(rOther.mOuterLoopArray)
         , mInnerLoopArray(rOther.mInnerLoopArray)
+        , mEmbeddedEdgesArray(rOther.mEmbeddedEdgesArray)
         , mIsTrimmed(rOther.mIsTrimmed)
     {
     }
@@ -154,6 +156,7 @@ public:
         mpNurbsSurface = rOther.mpNurbsSurface;
         mOuterLoopArray = rOther.mOuterLoopArray;
         mInnerLoopArray = rOther.mInnerLoopArray;
+        mEmbeddedEdgesArray = rOther.mEmbeddedEdgesArray;
         mIsTrimmed = rOther.mIsTrimmed;
         return *this;
     }
@@ -166,6 +169,7 @@ public:
         mpNurbsSurface = rOther.mpNurbsSurface;
         mOuterLoopArray = rOther.mOuterLoopArray;
         mInnerLoopArray = rOther.mInnerLoopArray;
+        mEmbeddedEdgesArray = rOther.mEmbeddedEdgesArray;
         mIsTrimmed = rOther.mIsTrimmed;
         return *this;
     }
@@ -279,6 +283,21 @@ public:
     void AddEmbeddedEdges(BrepCurveOnSurfaceArrayType EmbeddedEdges)
     {
         mEmbeddedEdgesArray = EmbeddedEdges;
+    }
+
+    /// Access the nested loop of outer loops.
+    const BrepCurveOnSurfaceLoopArrayType& GetOuterLoops() const {
+        return mOuterLoopArray;
+    }
+
+    /// Access the nested loop of inner loops.
+    const BrepCurveOnSurfaceLoopArrayType& GetInnerLoops() const {
+        return mInnerLoopArray;
+    }
+
+    /// Access the array of embedded edges.
+    const BrepCurveOnSurfaceArrayType& GetEmbeddedEdges() const {
+        return mEmbeddedEdgesArray;
     }
 
     ///@}
@@ -566,6 +585,7 @@ private:
         rSerializer.save("NurbsSurface", mpNurbsSurface);
         rSerializer.save("OuterLoopArray", mOuterLoopArray);
         rSerializer.save("InnerLoopArray", mInnerLoopArray);
+        rSerializer.save("EmbeddedEdgesArray", mEmbeddedEdgesArray);
         rSerializer.save("IsTrimmed", mIsTrimmed);
     }
 
@@ -575,6 +595,7 @@ private:
         rSerializer.load("NurbsSurface", mpNurbsSurface);
         rSerializer.load("OuterLoopArray", mOuterLoopArray);
         rSerializer.load("InnerLoopArray", mInnerLoopArray);
+        rSerializer.load("EmbeddedEdgesArray", mEmbeddedEdgesArray);
         rSerializer.load("IsTrimmed", mIsTrimmed);
     }
 

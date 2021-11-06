@@ -496,7 +496,7 @@ public:
     }
 
     /// Detect if this triangle is intersected with another geometry
-    bool HasIntersection( const BaseType& rThisGeometry ) override
+    bool HasIntersection( const BaseType& rThisGeometry ) const override
     {
         if (rThisGeometry.LocalSpaceDimension() < this->LocalSpaceDimension()) {
             return IntersectionUtilities::TriangleLineIntersection2D(
@@ -518,7 +518,7 @@ public:
      * @param rLowPoint first corner of the box
      * @param rHighPoint second corner of the box
      */
-    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) const override
     {
         Point box_center;
         Point box_half_size;
@@ -980,7 +980,7 @@ public:
      * @return the gradients of all shape functions with regard to the global coordinates
 
     */
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod ) const override
     {
@@ -1018,11 +1018,9 @@ public:
         }
         for(unsigned int i=0; i<integration_points_number; i++)
             rResult[i] = DN_DX;
-
-        return rResult;
     }
 
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         Vector& determinants_of_jacobian,
         IntegrationMethod ThisMethod ) const override
@@ -1067,8 +1065,6 @@ public:
 
         for(unsigned int i=0; i<integration_points_number; i++)
             determinants_of_jacobian[i] = detJ;
-
-        return rResult;
     }
 
     /**
@@ -1601,7 +1597,7 @@ private:
                            const Point& V2,
                            const Point& U0,
                            const Point& U1,
-                           const Point& U2)
+                           const Point& U2) const
     {
         short index;
         double d1,d2;
@@ -1732,7 +1728,7 @@ private:
 
 
 // sort so that a<=b //
-    void Sort(double& a, double& b)
+    void Sort(double& a, double& b) const
     {
         if(a>b)
         {
@@ -1759,7 +1755,7 @@ private:
                                 double& C,
                                 double& X0,
                                 double& X1
-                              )
+                              ) const
     {
         if(D0D1>0.00)
         {
@@ -1824,7 +1820,7 @@ private:
                            const Point& V2,
                            const Point& U0,
                            const Point& U1,
-                           const Point& U2)
+                           const Point& U2) const
     {
         array_1d<double, 3 > A;
         short i0,i1;
@@ -1887,7 +1883,7 @@ private:
                                 const Point& V1,
                                 const Point&U0,
                                 const Point&U1,
-                                const Point&U2)
+                                const Point&U2) const
     {
 
         double Ax,Ay,Bx,By,Cx,Cy,e,d,f;
@@ -1913,8 +1909,8 @@ private:
 //   this edge to edge test is based on Franlin Antonio's gem:
 //   "Faster Line Segment Intersection", in Graphics Gems III,
 //   pp. 199-202
-    bool Edge_Edge_Test(double& Ax,
-                        double& Ay,
+    bool Edge_Edge_Test(const double& Ax,
+                        const double& Ay,
                         double& Bx,
                         double& By,
                         double& Cx,
@@ -1926,7 +1922,7 @@ private:
                         const short& i1,
                         const Point&V0,
                         const Point&U0,
-                        const Point&U1)
+                        const Point&U1) const
     {
         Bx=U0[i0]-U1[i0];
         By=U0[i1]-U1[i1];
@@ -1964,7 +1960,7 @@ private:
                       const Point& V0,
                       const Point& U0,
                       const Point& U1,
-                      const Point& U2)
+                      const Point& U2) const
     {
         double a,b,c,d0,d1,d2;
         // is T1 completly inside T2? //
@@ -2000,7 +1996,7 @@ private:
      * 2) normal of the triangle
      * 3) crossproduct (edge from tri, {x,y,z}-direction) gives 3x3=9 more tests
      */
-    inline bool TriBoxOverlap(Point& rBoxCenter, Point& rBoxHalfSize)
+    inline bool TriBoxOverlap(Point& rBoxCenter, Point& rBoxHalfSize) const
     {
         double abs_ex, abs_ey;
         array_1d<double,3 > vert0, vert1, vert2;
@@ -2073,7 +2069,7 @@ private:
                    double& rAbsEdgeX, double& rAbsEdgeY,
                    array_1d<double,3>& rVertA,
                    array_1d<double,3>& rVertC,
-                   Point& rBoxHalfSize)
+                   Point& rBoxHalfSize) const
     {
         double proj_a, proj_c, rad;
         proj_a = rEdgeX*rVertA[1] - rEdgeY*rVertA[0];

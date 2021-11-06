@@ -554,6 +554,48 @@ namespace Testing
         KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3LineIntersection, KratosCoreGeometriesFastSuite) {
+        Triangle3D3<Point> triangle(
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(0.0, 0.0, 4.0),
+            std::make_shared<Point>(0.0, 4.0, 0.0)
+            );
+        Line3D2<Point> line(
+            std::make_shared<Point>(1.0, 0.0, 0.0),
+            std::make_shared<Point>(-1.0, 3.0, 1.0)
+            );
+
+        KRATOS_CHECK(triangle.HasIntersection(line));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarLineNoIntersection, KratosCoreGeometriesFastSuite) {
+        Triangle3D3<Point> triangle(
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(0.0, 0.0, 4.0),
+            std::make_shared<Point>(0.0, 4.0, 0.0)
+            );
+        Line3D2<Point> line(
+            std::make_shared<Point>(0.0, 2.0, 1.0),
+            std::make_shared<Point>(0.0, 6.0, 1.0)
+            );
+
+        KRATOS_CHECK_IS_FALSE(triangle.HasIntersection(line));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelLineNoIntersection, KratosCoreGeometriesFastSuite) {
+        Triangle3D3<Point> triangle(
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(0.0, 0.0, 4.0),
+            std::make_shared<Point>(0.0, 4.0, 0.0)
+            );
+        Line3D2<Point> line(
+            std::make_shared<Point>(1.0, 0.0, 0.0),
+            std::make_shared<Point>(1.0, 3.0, 1.0)
+            );
+
+        KRATOS_CHECK_IS_FALSE(triangle.HasIntersection(line));
+    }
+
     /**
     * Test an overlaping box and triangle (intersects a triangle edge) HasIntersection
     */
