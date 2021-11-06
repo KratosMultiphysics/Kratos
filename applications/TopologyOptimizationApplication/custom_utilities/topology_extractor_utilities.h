@@ -141,7 +141,6 @@ public:
 
 		// Initializing mesh nodes
 		rExtractedModelPart.Nodes() = rModelPart.Nodes();
-		const DataCommunicator& r_comm = rModelPart.GetCommunicator().GetDataCommunicator();
 
 		// Extracting mesh elements which are only above the threshold value
 		std::cout<<"  Extracting elements with X_PHYS > " << threshold <<std::endl;
