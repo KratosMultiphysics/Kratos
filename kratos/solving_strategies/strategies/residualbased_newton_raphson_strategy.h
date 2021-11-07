@@ -1032,8 +1032,8 @@ class ResidualBasedNewtonRaphsonStrategy
                             CalculateResidualNorm(r_model_part, new_residual, r_dof_set, rb);
                             if (new_residual > old_residual) {
                                 
-                                std::cout << "NR: Damping required ->" << "new residual is " + std::to_string(new_residual / old_residual) 
-                                    + " greater than the  old one" << std::endl;
+                                std::cout << "NR: Damping required -> " << "new residual is " + std::to_string(new_residual / old_residual) 
+                                    + " greater than the old one" << std::endl;
 
                                 TSparseSpace::SetToZero(rb);
                                 TSparseSpace::InplaceMult(rDx, -1.0);
@@ -1046,7 +1046,7 @@ class ResidualBasedNewtonRaphsonStrategy
                                     CalculateResidualNorm(r_model_part, new_residual, r_dof_set, rb);
                                     iteration++;
                                 }
-                                std::cout << "Damping converged in " << std::to_string(iteration) + " iterations" << std::endl;
+                                std::cout << "NR: Damping converged in " << std::to_string(iteration) + " iterations" << std::endl;
                                 old_residual = new_residual;
                             }
                         }
