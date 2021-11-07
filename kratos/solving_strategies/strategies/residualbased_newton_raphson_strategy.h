@@ -1031,14 +1031,15 @@ class ResidualBasedNewtonRaphsonStrategy
                             p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
                             CalculateResidualNorm(r_model_part, new_residual, r_dof_set, rb);
                             if (new_residual > old_residual) {
-                                
                                 std::cout << "NR: Damping required -> " << "new residual is " + std::to_string(new_residual / old_residual) 
                                     + " greater than the old one" << std::endl;
 
                                 TSparseSpace::SetToZero(rb);
                                 TSparseSpace::InplaceMult(rDx, -1.0);
+                                const int echo = BaseType::GetEchoLevel();
+                                BaseType::SetEchoLevel(0);
 
-                                while (new_residual > old_residual && iteration < 20) {
+                                while (new_residual > old_residual && iteration < 999) {
                                     TSparseSpace::SetToZero(rb);
                                     TSparseSpace::InplaceMult(rDx, 0.5);
                                     UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
@@ -1048,6 +1049,7 @@ class ResidualBasedNewtonRaphsonStrategy
                                 }
                                 std::cout << "NR: Damping converged in " << std::to_string(iteration) + " iterations" << std::endl;
                                 old_residual = new_residual;
+                                BaseType::SetEchoLevel(echo);
                             }
                         }
                     }
