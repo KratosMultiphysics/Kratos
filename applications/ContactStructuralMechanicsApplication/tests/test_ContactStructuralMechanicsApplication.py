@@ -499,7 +499,7 @@ def AssembleTestSuites():
               TALMEvolutionLoadFrictionTestContact,
               TBeamAxilSimpleContactTest,
               TBeamAxilContactTest,
-              TBeamAxilTetraContactTest, # FIXME: OMP failing
+              TBeamAxilTetraContactTest,
               TBeamContactTest,
               TBeamContactWithTyingTest,
               TBeamContactWithFrictionTest,
