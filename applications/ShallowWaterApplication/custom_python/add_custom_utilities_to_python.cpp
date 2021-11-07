@@ -37,6 +37,8 @@ typedef ModelPart::ElementsContainerType ElementsContainerType;
 
 typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
+typedef ModelPart::PropertiesContainerType PropertiesContainerType;
+
 template<class TContainerType>
 array_1d<double,3> ComputeHydrostaticForces1(
     ShallowWaterUtilities& rUtility,
@@ -99,6 +101,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SetMeshZCoordinateToZero", &ShallowWaterUtilities::SetMeshZCoordinateToZero)
         .def("SetMeshZ0CoordinateToZero", &ShallowWaterUtilities::SetMeshZ0CoordinateToZero)
         .def("SetMeshZCoordinate", &ShallowWaterUtilities::SetMeshZCoordinate)
+        .def("SwapYZCoordinates", &ShallowWaterUtilities::SwapYZCoordinates)
+        .def("SwapY0Z0Coordinates", &ShallowWaterUtilities::SwapY0Z0Coordinates)
         .def("StoreNonHistoricalGiDNoDataIfDry", &ShallowWaterUtilities::StoreNonHistoricalGiDNoDataIfDry)
         .def("ComputeL2Norm", &ShallowWaterUtilities::ComputeL2Norm<true>)
         .def("ComputeL2Norm", &ShallowWaterUtilities::ComputeL2NormAABB<true>)
@@ -112,9 +116,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeHydrostaticForces", ComputeHydrostaticForces2<ElementsContainerType>)
         .def("ComputeHydrostaticForces", ComputeHydrostaticForces1<ConditionsContainerType>)
         .def("ComputeHydrostaticForces", ComputeHydrostaticForces2<ConditionsContainerType>)
-        .def("OffsetIds", &ShallowWaterUtilities::OffsetIds<NodesContainerType>)
-        .def("OffsetIds", &ShallowWaterUtilities::OffsetIds<ElementsContainerType>)
-        .def("OffsetIds", &ShallowWaterUtilities::OffsetIds<ConditionsContainerType>)
+        .def("OffsetIds", [](ShallowWaterUtilities& self, NodesContainerType&      rContainer){self.OffsetIds(rContainer);})
+        .def("OffsetIds", [](ShallowWaterUtilities& self, ElementsContainerType&   rContainer){self.OffsetIds(rContainer);})
+        .def("OffsetIds", [](ShallowWaterUtilities& self, ConditionsContainerType& rContainer){self.OffsetIds(rContainer);})
+        .def("OffsetIds", [](ShallowWaterUtilities& self, PropertiesContainerType& rContainer){self.OffsetIds(rContainer);})
+        .def("OffsetIds", [](ShallowWaterUtilities& self, NodesContainerType&      rContainer, const double Value){self.OffsetIds(rContainer, Value);})
+        .def("OffsetIds", [](ShallowWaterUtilities& self, ElementsContainerType&   rContainer, const double Value){self.OffsetIds(rContainer, Value);})
+        .def("OffsetIds", [](ShallowWaterUtilities& self, ConditionsContainerType& rContainer, const double Value){self.OffsetIds(rContainer, Value);})
+        .def("OffsetIds", [](ShallowWaterUtilities& self, PropertiesContainerType& rContainer, const double Value){self.OffsetIds(rContainer, Value);})
         ;
 
     py::class_< EstimateTimeStepUtility > (m, "EstimateTimeStepUtility")

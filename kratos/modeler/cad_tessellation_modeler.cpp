@@ -10,7 +10,7 @@
 //  Main authors:    Dagmawi Bekel
 //                   Ruben Zorrilla
 //
-#ifdef USE_TRIANGLE_NONFREE_TPL
+#if USE_TRIANGLE_NONFREE_TPL
 // Project includes
 #include "includes/define.h"
 #include "utilities/tessellation_utilities/delaunator_utilities.h"

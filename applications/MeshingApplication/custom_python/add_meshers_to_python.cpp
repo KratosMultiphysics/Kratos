@@ -30,7 +30,7 @@
     #define REAL double
 #endif 
 
-#ifdef USE_TRIANGLE_NONFREE_TPL
+#if USE_TRIANGLE_NONFREE_TPL
     #include "external_includes/trigen_pfem_refine.h"
     #include "external_includes/trigen_pfem_refine_vms.h"
     #include "external_includes/trigen_pfem_refine_segment.h"
@@ -112,7 +112,7 @@ void TetRegenerateMeshVMS(TetGenPfemModelerVms& Mesher, char* ElementName, char*
 }
 #endif
 
-#ifdef USE_TRIANGLE_NONFREE_TPL
+#if USE_TRIANGLE_NONFREE_TPL
 ///////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                       //
 //                                            ADAPTIVE 2D MESHER                         //
@@ -230,7 +230,7 @@ void  AddMeshersToPython(pybind11::module& m)
     ;
 #endif
     
-#ifdef USE_TRIANGLE_NONFREE_TPL
+#if USE_TRIANGLE_NONFREE_TPL
     // Class that allows 2D adaptive remeshing (inserting and erasing nodes)
     py::class_<TriGenPFEMModeler, TriGenPFEMModeler::Pointer >(m, "TriGenPFEMModeler")
     .def(py::init< >())
