@@ -110,7 +110,7 @@ namespace MPMParticleGeneratorUtility
                     // Set element type
                     std::string element_type_name = "UpdatedLagrangian";
                     if (IsMixedFormulation) {
-                        if (background_geo_type == GeometryData::Kratos_Triangle2D3) element_type_name = "UpdatedLagrangianUP";
+                        if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) element_type_name = "UpdatedLagrangianUP";
                         else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
                     }
                     else if (IsAxisSymmetry && domain_size == 3) KRATOS_ERROR << "Axisymmetric elements must be used in a 2D domain. You specified a 3D domain." << std::endl;
@@ -776,7 +776,7 @@ namespace MPMParticleGeneratorUtility
         const GeometryData::KratosGeometryType geo_type = rGeom.GetGeometryType();
         const SizeType domain_size = rGeom.WorkingSpaceDimension();
 
-        if (geo_type == GeometryData::Kratos_Tetrahedra3D4 || geo_type == GeometryData::Kratos_Triangle2D3)
+        if (geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
         {
             switch (ParticlesPerElement)
             {
@@ -819,7 +819,7 @@ namespace MPMParticleGeneratorUtility
                 break;
             }
         }
-        else if (geo_type == GeometryData::Kratos_Hexahedra3D8 || geo_type == GeometryData::Kratos_Quadrilateral2D4)
+        else if (geo_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8 || geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
         {
             switch (ParticlesPerElement)
             {
@@ -857,7 +857,7 @@ namespace MPMParticleGeneratorUtility
         const GeometryData::KratosGeometryType geo_type = rGeom.GetGeometryType();
         const SizeType domain_size = rGeom.WorkingSpaceDimension();
 
-        if (geo_type == GeometryData::Kratos_Point2D  || geo_type == GeometryData::Kratos_Point3D)
+        if (geo_type == GeometryData::KratosGeometryType::Kratos_Point2D  || geo_type == GeometryData::KratosGeometryType::Kratos_Point3D)
         {
             switch (ParticlesPerCondition)
             {
@@ -883,7 +883,7 @@ namespace MPMParticleGeneratorUtility
 
 
         }
-        else if (geo_type == GeometryData::Kratos_Line2D2  || geo_type == GeometryData::Kratos_Line3D2)
+        else if (geo_type == GeometryData::KratosGeometryType::Kratos_Line2D2  || geo_type == GeometryData::KratosGeometryType::Kratos_Line3D2)
         {
             switch (ParticlesPerCondition)
             {
@@ -913,7 +913,7 @@ namespace MPMParticleGeneratorUtility
 
 
         }
-        else if (geo_type == GeometryData::Kratos_Triangle3D3)
+        else if (geo_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
         {
             switch (ParticlesPerCondition)
             {
@@ -951,7 +951,7 @@ namespace MPMParticleGeneratorUtility
             }
 
         }
-        else if (geo_type == GeometryData::Kratos_Quadrilateral3D4)
+        else if (geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4)
         {
             switch (ParticlesPerCondition)
             {
