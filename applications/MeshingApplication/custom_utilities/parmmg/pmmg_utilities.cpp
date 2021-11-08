@@ -24,6 +24,8 @@
 
 // Project includes
 #include "custom_utilities/parmmg/pmmg_utilities.h"
+#include "mpi/includes/mpi_data_communicator.h"
+
 
 // NOTE: The following contains the license of the PMMG library
 /* =============================================================================
@@ -370,13 +372,16 @@ Element::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateFirstTypeElement(
 /***********************************************************************************/
 
 template<>
-void ParMmgUtilities<PMMGLibrary::PMMG3D>::InitMesh()
+void ParMmgUtilities<PMMGLibrary::PMMG3D>::InitMesh(const DataCommunicator& rDataCommunicator)
 {
     mParMmgMesh = nullptr;
 
     // We init the PMMG mesh and sol
     if (GetDiscretization() == DiscretizationOption::STANDARD) {
-        PMMG_Init_parMesh( PMMG_ARG_start, PMMG_ARG_ppParMesh, &mParMmgMesh, PMMG_ARG_pMesh, PMMG_ARG_pMet, PMMG_ARG_dim, 3, PMMG_ARG_MPIComm, MPI_COMM_WORLD, PMMG_ARG_end);
+        KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "ParMMG requires a distributed DataCommunicator!" << std::endl;
+        KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDefinedOnThisRank()) << "This rank is not part of this MPI_Comm!" << std::endl;
+        MPI_Comm the_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
+        PMMG_Init_parMesh( PMMG_ARG_start, PMMG_ARG_ppParMesh, &mParMmgMesh, PMMG_ARG_pMesh, PMMG_ARG_pMet, PMMG_ARG_dim, 3, PMMG_ARG_MPIComm, the_mpi_comm, PMMG_ARG_end);
     } else {
         KRATOS_ERROR << "Discretization type: " << static_cast<int>(GetDiscretization()) << " not fully implemented" << std::endl;
     }
