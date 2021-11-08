@@ -90,13 +90,17 @@ public:
     // --------------------------------------------------------------------------
     void Initialize() override
     {
-        if (mIsMappingInitialized == false)
-        {
-            SetIntegrationMethod();
-            FindNeighbourConditions();
-        }
+        SetIntegrationMethod();
+        FindNeighbourConditions();
 
         MapperVertexMorphing::Initialize();
+    }
+
+    void Update() override
+    {
+        FindNeighbourConditions();
+
+        MapperVertexMorphing::Update();
     }
     // --------------------------------------------------------------------------
 
@@ -210,31 +214,30 @@ private:
         {
             mAreaWeightedNodeSum = false;
             if (number_of_gauss_points == 1)
-                mIntegrationMethod = GeometryData::GI_GAUSS_1;
+                mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
             else if (number_of_gauss_points == 2)
-                mIntegrationMethod = GeometryData::GI_GAUSS_2;
+                mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
             else if (number_of_gauss_points == 3)
-                mIntegrationMethod = GeometryData::GI_GAUSS_3;
+                mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
             else if (number_of_gauss_points == 4)
-                mIntegrationMethod = GeometryData::GI_GAUSS_4;
+                mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
             else if (number_of_gauss_points == 5)
-                mIntegrationMethod = GeometryData::GI_GAUSS_5;
+                mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
             else
             {
-                std::cout << "\n> number_of_gauss_points: " << number_of_gauss_points << " not valid! USING DEFAULT: 2 " << std::endl;
-                mIntegrationMethod = GeometryData::GI_GAUSS_2;
+                KRATOS_WARNING("ShapeOpt::MapperVertexMorphingImprovedIntegration") << "\n> Number_of_gauss_points: " << number_of_gauss_points << " not valid! Using default: 2 " << std::endl;
+                mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
             }
         }
         else{
-            std::cout << "\n> Integration method " << integration_method << " unknown!" << std::endl;
-            exit(-1);
+            KRATOS_ERROR << "\n> Integration method " << integration_method << " unknown!" << std::endl;
         }
     }
 
     // --------------------------------------------------------------------------
     void FindNeighbourConditions()
     {
-        std::cout << "> Computing neighbour conditions ..." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Computing neighbour conditions ..." << std::endl;
         FindConditionsNeighboursProcess find_conditions_neighbours_process(mrOriginModelPart, mrOriginModelPart.GetProcessInfo()[DOMAIN_SIZE]);
         find_conditions_neighbours_process.Execute();
     }
@@ -255,7 +258,7 @@ private:
             if (mAreaWeightedNodeSum){
                 // Computation of weight according specified weighting function
                 // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
-                double Aij = mpFilterFunction->compute_weight(node_j.Coordinates(),node_i.Coordinates());
+                double Aij = mpFilterFunction->ComputeWeight(node_j.Coordinates(),node_i.Coordinates());
                 Aij *= nodalAreas[node_j.GetValue(MAPPING_ID)];
 
                 // Add values to list
@@ -266,7 +269,7 @@ private:
             }
             else
             {
-                const WeakPointerVector<Condition>& rConditions = node_j.GetValue(NEIGHBOUR_CONDITIONS);
+                const GlobalPointersVector<Condition>& rConditions = node_j.GetValue(NEIGHBOUR_CONDITIONS);
 
                 // loop conditions
                 for(unsigned int c_itr=0; c_itr<rConditions.size(); c_itr++)
@@ -301,7 +304,7 @@ private:
 
                         // Computation of weight according specified weighting function
                         // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
-                        double Aij = mpFilterFunction->compute_weight(gp_i_coord,node_i.Coordinates());
+                        double Aij = mpFilterFunction->ComputeWeight(gp_i_coord,node_i.Coordinates());
 
                         // multiply with evaluation of shape function at gauss point
                         Aij *= geom_i.ShapeFunctionValue(pointNumber,localNodeIndex,mIntegrationMethod);;
@@ -338,7 +341,7 @@ private:
                 const int& i = node_i.GetValue(MAPPING_ID);
 
                 // Get all neighbour conditions
-                const WeakPointerVector<Condition>& rConditions = node_i.GetValue(NEIGHBOUR_CONDITIONS);
+                const GlobalPointersVector<Condition>& rConditions = node_i.GetValue(NEIGHBOUR_CONDITIONS);
 
                 // loop conditions
                 for(unsigned int c_itr=0; c_itr<rConditions.size(); c_itr++)

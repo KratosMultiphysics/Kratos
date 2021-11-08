@@ -4,7 +4,7 @@ The Fluid Dynamics Application contains the core developments in Computational F
 
 ### Features:
 
-- Stabilized FEM solvers for incompressible flow problems.
+- Stabilized FEM solvers for incompressible and compressible flow problems.
 
 - Support for MPI parallelization (with Trilinos Application).
 
@@ -12,6 +12,6 @@ The Fluid Dynamics Application contains the core developments in Computational F
 
 - Arbitrary Lagrangian-Eulerian (ALE) formulation allows for mesh deformation during the simulation (see MeshMovingApplication).
 
-- Support for Fluid-Structure Interaction (see FSIapplication).
+- Support for Fluid-Structure Interaction (see FSIApplication).
 
 - Thermally-coupled flows (with ConvectionDiffusionApplication).

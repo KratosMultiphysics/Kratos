@@ -5,9 +5,6 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 #Base class to develop other solvers
 class ModelManager(object):
     """The base class for solid mechanic model build process.
@@ -16,7 +13,7 @@ class ModelManager(object):
     adding nodal variables and dofs.
 
     """
-    def __init__(self, custom_settings):
+    def __init__(self, Model, custom_settings):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -48,8 +45,8 @@ class ModelManager(object):
         self.settings["input_file_settings"].ValidateAndAssignDefaults(default_settings["input_file_settings"])
 
         # Set void model
-        self.model = self._create_model()
-        self.main_model_part = self._create_main_model_part()
+        self.model = Model
+        self.main_model_part = self._get_main_model_part()
 
         # Process Info
         self.process_info = self.main_model_part.ProcessInfo
@@ -68,23 +65,27 @@ class ModelManager(object):
 
     #
     def ExecuteBeforeSolutionLoop(self):
-        pass
+        self._update_composite_solving_parts()
     #
     def ExecuteInitializeSolutionStep(self):
-        if( self._domain_parts_updated() ):
+        if self._update_solving_parts():
             self._update_composite_solving_parts()
             # print(" UPDATE_SOLVING_PARTS Initialize")
     #
     def ExecuteFinalizeSolutionStep(self):
         pass
+
     #
     def ExecuteBeforeOutputStep(self):
-        if( self._domain_parts_updated() ):
+        if self._domain_parts_changed():
+            self._clean_composite_solving_parts()
+        if self._update_solving_parts():
             self._update_composite_solving_parts()
             # print(" UPDATE_SOLVING_PARTS Before output")
+
     #
     def ExecuteAfterOutputStep(self):
-        if( self._domain_parts_updated() ):
+        if self._update_solving_parts():
             self._update_composite_solving_parts()
             # print(" UPDATE_SOLVING_PARTS After output")
 
@@ -100,6 +101,8 @@ class ModelManager(object):
         input_filename = self.settings["input_file_settings"]["name"].GetString()
 
         if(self.settings["input_file_settings"]["type"].GetString() == "mdpa"):
+
+            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
             # Import model part from mdpa file.
             print(self._class_prefix()+" Reading file: "+ input_filename + ".mdpa")
             #print("   " + os.path.join(problem_path, input_filename) + ".mdpa ")
@@ -118,33 +121,38 @@ class ModelManager(object):
 
         elif(self.settings["input_file_settings"]["type"].GetString() == "rest"):
             # Import model part from restart file.
-            restart_path = os.path.join(problem_path, self.settings["input_file_settings"]["name"].GetString() + "__" + str(self.settings["input_file_settings"]["label"].GetInt() ) )
+            file_label = None
+            if self.settings["input_file_settings"]["label"].IsInt():
+                file_label = str(self.settings["input_file_settings"]["label"].GetInt())
+            elif self.settings["input_file_settings"]["label"].IsDouble():
+                file_label = self._float_to_str(self.settings["input_file_settings"]["label"].GetDouble())
+            else:
+                raise Exception("Restart file label is not double or int")
+
+            restart_file = self.settings["input_file_settings"]["name"].GetString() + "__" + file_label
+            restart_path = os.path.join(problem_path, restart_file)
             if(os.path.exists(restart_path+".rest") == False):
                 raise Exception("Restart file not found: " + restart_path + ".rest")
-            print("   Loading Restart file: ", restart_path + ".rest ")
+            #print("   Loading Restart file: ", restart_path + ".rest ")
+            print("   Loading Restart file: ", restart_file + ".rest ")
             # set serializer flag
             serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
             # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
             # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
 
-            serializer = KratosMultiphysics.Serializer(restart_path, serializer_flag)
+            serializer = KratosMultiphysics.FileSerializer(restart_path, serializer_flag)
             serializer.Load(self.main_model_part.Name, self.main_model_part)
 
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
             self.main_model_part.ProcessInfo[KratosSolid.RESTART_STEP_TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-
-            #I use it to rebuild the contact conditions.
-            load_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] +1
-            self.main_model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
             # print("   Finished loading model part from restart file ")
 
-            print( self.main_model_part )
-
-            self._build_composite_solving_parts()
 
         else:
             raise Exception("Other input options are not yet implemented.")
 
+        # build composite solving parts
+        self._build_composite_solving_parts()
 
         dofs = self.main_model_part.NumberOfNodes() * self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         #print (self._class_prefix()+" Finished importing model part")
@@ -188,15 +196,12 @@ class ModelManager(object):
 
 
     #### Model manager internal methods ####
-
-    def _create_model(self):
-        model = KratosMultiphysics.Model()
-        return model
+    def _get_main_model_part(self):
+        if not hasattr(self, '_main_model_part'):
+            self.main_model_part = self._create_main_model_part()
+        return self.main_model_part
 
     def _create_main_model_part(self):
-        # Defining the model_part
-        if not hasattr(self, 'model'):
-            self.model = self._create_model()
         main_model_part = self.model.CreateModelPart(self.settings["model_name"].GetString())
         return main_model_part
 
@@ -212,18 +217,18 @@ class ModelManager(object):
         self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] != 'NOT_DEFINED']
         self.nodal_variables.sort()
 
+        #print(" Variables :",self.nodal_variables)
+
         for variable in self.nodal_variables:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
             #print(" Added variable ", KratosMultiphysics.KratosGlobals.GetVariable(variable),"(",variable,")")
 
-        print(self.nodal_variables)
         print(self._class_prefix()+" General Variables ADDED")
 
 
     def _set_input_variables(self):
-        variables_list = self.settings["variables"]
-        for i in range(0, variables_list.size() ):
-            self.nodal_variables.append(variables_list[i].GetString())
+        for variable in self.settings["variables"]:
+            self.nodal_variables.append(variable.GetString())
 
     #
     def _execute_after_reading(self):
@@ -236,11 +241,10 @@ class ModelManager(object):
         self._build_solving_model_part()
 
         # Build composite solving model parts
-        self._build_composite_solving_parts()
-        self._update_composite_solving_parts()
+        # self._build_composite_solving_parts()
 
         # Build output model part
-        #self._create_sub_model_part(self.settings["output_model_part"].GetString())
+        # self._create_sub_model_part(self.settings["output_model_part"].GetString())
 
     #
     def _build_bodies(self):
@@ -364,7 +368,7 @@ class ModelManager(object):
 
     #
     def _build_composite_solving_parts(self):
-
+        self.current_update_time = self.process_info[KratosMultiphysics.TIME]
         print(self._class_prefix()+" Composite Solving Parts")
         solving_parts = self.settings["composite_solving_parts"]
         for i in range(0,solving_parts.size()):
@@ -374,9 +378,16 @@ class ModelManager(object):
 
     #
     def _update_composite_solving_parts(self):
-        print(self._class_prefix()+" Update Solving Parts")
+        self.current_update_time = self.process_info[KratosMultiphysics.TIME]
+        #print(self._class_prefix()+" Update Solving Parts")
         for transfer in self.transfer_solving_parts:
             transfer.Execute()
+
+    #
+    def _clean_composite_solving_parts(self):
+        #print(self._class_prefix()+" Clean Solving Parts")
+        for transfer in self.transfer_solving_parts:
+            transfer.ExecuteFinalizeSolutionStep()
 
     #
     def _clean_body_parts(self):
@@ -392,18 +403,42 @@ class ModelManager(object):
                     #print(self._class_prefix()+" Body Part Removed: "+ body_parts_name_list[j].GetString())
 
     #
+    def _update_solving_parts(self):
+        update_time = False
+        if self._domain_parts_updated():
+            update_time  = not self._check_current_time_step(self.current_update_time)
+
+        return update_time
+
+    #
+    def _domain_parts_changed(self):
+        update_time = False
+        if not update_time and self.process_info.Has(KratosSolid.MESHING_STEP_TIME):
+            update_time = self._check_current_time_step(self.process_info[KratosSolid.MESHING_STEP_TIME])
+            #print(" MESHING_STEP_TIME ",self.process_info[KratosSolid.MESHING_STEP_TIME], update_time)
+
+        if not update_time and self.process_info.Has(KratosSolid.CONTACT_STEP_TIME):
+            update_time = self._check_current_time_step(self.process_info[KratosSolid.CONTACT_STEP_TIME])
+            #print(" CONTACT_STEP_TIME ",self.process_info[KratosSolid.CONTACT_STEP_TIME], update_time)
+
+        return update_time
+
+    #
     def _domain_parts_updated(self):
         update_time = False
         if not self._is_not_restarted():
             if self.process_info.Has(KratosSolid.RESTART_STEP_TIME):
                 update_time = self._check_current_time_step(self.process_info[KratosSolid.RESTART_STEP_TIME])
-                # print(" RESTART_STEP_TIME ",self.process_info[KratosSolid.RESTART_STEP_TIME], update_time)
+                #print(" RESTART_STEP_TIME ",self.process_info[KratosSolid.RESTART_STEP_TIME], update_time)
 
         if not update_time and self.process_info.Has(KratosSolid.MESHING_STEP_TIME):
             update_time = self._check_previous_time_step(self.process_info[KratosSolid.MESHING_STEP_TIME])
+            #print(" MESHING_STEP_TIME ",self.process_info[KratosSolid.MESHING_STEP_TIME], update_time)
+
 
         if not update_time and self.process_info.Has(KratosSolid.CONTACT_STEP_TIME):
             update_time = self._check_previous_time_step(self.process_info[KratosSolid.CONTACT_STEP_TIME])
+            #print(" CONTACT_STEP_TIME ",self.process_info[KratosSolid.CONTACT_STEP_TIME], update_time)
 
         return update_time
     #
@@ -432,11 +467,8 @@ class ModelManager(object):
             return False
     #
     def _is_not_restarted(self):
-        if self.process_info.Has(KratosMultiphysics.IS_RESTARTED):
-            if self.process_info[KratosMultiphysics.IS_RESTARTED]:
-                return False
-            else:
-                return True
+        if self.process_info[KratosMultiphysics.IS_RESTARTED]:
+            return False
         else:
             return True
     #
@@ -459,6 +491,22 @@ class ModelManager(object):
                     os.remove(f)
                 except OSError:
                     pass
+    #
+    @classmethod
+    def _float_to_str(self,f):
+        float_string = repr(f)
+        if 'e' in float_string:  # detect scientific notation
+            digits, exp = float_string.split('e')
+            digits = digits.replace('.', '').replace('-', '')
+            exp = int(exp)
+            zero_padding = '0' * (abs(int(exp)) - 1)  # minus 1 for decimal point in the sci notation
+            sign = '-' if f < 0 else ''
+            if exp > 0:
+                float_string = '{}{}{}.0'.format(sign, digits, zero_padding)
+            else:
+                float_string = '{}0.{}{}'.format(sign, zero_padding, digits)
+        return float_string
+
     #
     @classmethod
     def _class_prefix(self):

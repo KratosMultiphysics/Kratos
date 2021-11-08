@@ -1,0 +1,107 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "adjoint_test",
+        "parallel_type" : "OpenMP",
+        "time_step"     : 1.0,
+        "start_time"    : 0.0,
+        "end_time"      : 0.99,
+        "echo_level"    : 0
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "stationary",
+        "analysis_type"                      : "linear",
+        "model_part_name"                    : "ThermalModelPart",
+        "domain_size"                        : 2,
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "adjoint_test"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "ConvectionDiffusionMaterials.json"
+        },
+        "element_replace_settings"  :{
+            "element_name" : "LaplacianElement",
+            "condition_name" : "ThermalFace"
+        },
+        "line_search"                        : false,
+        "echo_level"                         : 0,
+        "compute_reactions"                  : false,
+        "max_iteration"                      : 10,
+        "convergence_criterion"              : "residual_criterion",
+        "solution_relative_tolerance"        : 1e-5,
+        "solution_absolute_tolerance"        : 1e-7,
+        "residual_relative_tolerance"        : 1e-5,
+        "residual_absolute_tolerance"        : 1e-7,
+        "problem_domain_sub_model_part_list" : ["Parts_solid"],
+        "processes_sub_model_part_list"      : ["HeatFlux2D_right","ImposedTemperature2D_left"],
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        }
+    },
+    "processes"        : {
+        "initial_conditions_process_list" : [],
+        "constraints_process_list"        : [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "ThermalModelPart.ImposedTemperature2D_left",
+                "variable_name"   : "TEMPERATURE",
+                "constrained"     : true,
+                "value"           : 300.0,
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "apply_thermal_face_process",
+            "kratos_module" : "KratosMultiphysics.ConvectionDiffusionApplication",
+            "Parameters"    : {
+                "model_part_name"        : "ThermalModelPart.HeatFlux2D_right",
+                "ambient_temperature"    : 150.0,
+                "add_ambient_radiation"  : false,
+                "emissivity"             : 0.0,
+                "add_ambient_convection" : true,
+                "convection_coefficient" : 2.0,
+                "interval"               : [0.0,"End"]
+            }
+        }],
+        "list_other_processes"            : []
+    },
+    "output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "ThermalModelPart",
+                "output_name"            : "diffusion_test_primal",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "time",
+                        "output_control_type" : "time",
+                        "output_interval"    : 0.01,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["TEMPERATURE"],
+                        "gauss_point_results" : []
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }],
+        "vtk_output" : []
+    },
+    "restart_options"  : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    }
+}

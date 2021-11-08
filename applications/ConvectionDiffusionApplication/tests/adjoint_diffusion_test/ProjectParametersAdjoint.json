@@ -1,0 +1,92 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "adjoint_test",
+        "parallel_type" : "OpenMP",
+        "time_step"     : 1.0,
+        "start_time"    : 0.0,
+        "end_time"      : 0.99,
+        "echo_level"    : 0
+    },
+    "solver_settings": {
+        "solver_type": "adjoint_stationary",
+        "model_part_name": "AdjointModelPart",
+        "primal_model_part_name": "ThermalModelPart",
+        "domain_size": 2,
+        "response_function_settings": {
+            "response_type": "point_temperature",
+            "custom_settings": {
+                "model_part_name": "HeatFlux2D_right"
+            }
+        },
+        "sensitivity_settings": {
+            "sensitivity_model_part_name": "Parts_solid",
+            "nodal_solution_step_sensitivity_variables": [ "SHAPE_SENSITIVITY" ],
+            "build_mode": "static",
+            "nodal_solution_step_sensitivity_calculation_is_thread_safe": false
+        },
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "adjoint_test"
+        },
+        "material_import_settings": {
+            "materials_filename": "ConvectionDiffusionMaterials.json"
+        },
+        "echo_level": 0,
+        "time_stepping": {
+            "time_step": 1.0
+        }
+    },
+    "processes"        : {
+        "initial_conditions_process_list" : [],
+        "constraints_process_list"        : [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "AdjointModelPart.ImposedTemperature2D_left",
+                "variable_name"   : "ADJOINT_HEAT_TRANSFER",
+                "constrained"     : true,
+                "value"           : 0.0,
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "list_other_processes"            : []
+    },
+    "output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "AdjointModelPart",
+                "output_name"            : "diffusion_test_adjoint",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "time",
+                        "output_control_type" : "time",
+                        "output_interval"    : 0.01,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["TEMPERATURE","ADJOINT_HEAT_TRANSFER","SHAPE_SENSITIVITY","HEAT_FLUX","CONDUCTIVITY"],
+                        "gauss_point_results" : []
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }]
+    },
+    "restart_options"  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    }
+}

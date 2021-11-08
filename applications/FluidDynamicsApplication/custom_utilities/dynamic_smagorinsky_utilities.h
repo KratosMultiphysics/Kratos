@@ -15,7 +15,6 @@
 #include <map>
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -27,6 +26,7 @@
 
 #include "includes/cfd_variables.h"
 #include "fluid_dynamics_application_variables.h"
+#include "includes/global_pointer_variables.h"
 
 #ifndef KRATOS_DYNAMIC_SMAGORINSKY_UTILITIES_H_INCLUDED
 #define	KRATOS_DYNAMIC_SMAGORINSKY_UTILITIES_H_INCLUDED
@@ -581,8 +581,9 @@ private:
                            Matrix& rMassMatrix, ///@todo This matrix and the next vector should be transformed to static members once we find a threadsafe way to do so
                            Vector& rAuxVector,
                            Vector& rResidual,
-                           ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo)
     {
+        const auto& r_const_elem_ref = rElement;
         rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Dynamic stabilization terms
@@ -590,7 +591,7 @@ private:
 
         // Dynamic Terms
         rElement.CalculateMassMatrix(rMassMatrix,rCurrentProcessInfo);
-        rElement.GetSecondDerivativesVector(rAuxVector,0);
+        r_const_elem_ref.GetSecondDerivativesVector(rAuxVector,0);
 
         noalias(rResidual) -= prod(rMassMatrix,rAuxVector);
 

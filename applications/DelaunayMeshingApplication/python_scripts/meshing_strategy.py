@@ -4,9 +4,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 def CreateMeshingStrategy(main_model_part, custom_settings):
     return MeshingStrategy(main_model_part, custom_settings)
 
@@ -91,8 +88,6 @@ class MeshingStrategy(object):
         self.number_of_nodes      = 0
         self.number_of_elements   = 0
         self.number_of_conditions = 0
-
-        print(self._class_prefix()+" Ready")
 
     #
     def GetMeshers(self):
@@ -205,7 +200,6 @@ class MeshingStrategy(object):
             mesher.ExecuteMeshing()
 
         self.FinalizeMeshGeneration()
-
 
     #
     def SetEchoLevel(self, echo_level):

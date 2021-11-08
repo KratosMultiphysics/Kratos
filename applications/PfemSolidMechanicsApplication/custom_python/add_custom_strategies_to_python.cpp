@@ -23,7 +23,7 @@ namespace Kratos
 
 namespace Python
 {
-using namespace  pybind11;
+namespace py = pybind11;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
@@ -39,9 +39,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 
   // Residual Based Bossak Scheme Type
-  class_<ResidualBasedBossakSchemeType, typename ResidualBasedBossakSchemeType::Pointer, SchemeType>
+  py::class_<ResidualBasedBossakSchemeType, typename ResidualBasedBossakSchemeType::Pointer, SchemeType>
       (m,"ResidualBasedBossakScheme")
-      .def(init< double , double >())
+      .def(py::init< double , double >())
       .def("Initialize", &ResidualBasedBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
       ;
 

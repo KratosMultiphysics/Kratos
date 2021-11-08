@@ -85,7 +85,7 @@ LinearSolidElement&  LinearSolidElement::operator=(LinearSolidElement const& rOt
 
 Element::Pointer LinearSolidElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared< LinearSolidElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+    return Kratos::make_intrusive< LinearSolidElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -123,7 +123,7 @@ Element::Pointer LinearSolidElement::Clone( IndexType NewId, NodesArrayType cons
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared< LinearSolidElement >(NewElement);
+    return Kratos::make_intrusive< LinearSolidElement >(NewElement);
 }
 
 
@@ -147,7 +147,7 @@ LinearSolidElement::IntegrationMethod LinearSolidElement::GetIntegrationMethod()
 //************************************************************************************
 //************************************************************************************
 
-void LinearSolidElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void LinearSolidElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
     //NEEDED TO DEFINE THE DOFS OF THE ELEMENT
     rElementalDofList.resize( 0 );
@@ -166,7 +166,7 @@ void LinearSolidElement::GetDofList( DofsVectorType& rElementalDofList, ProcessI
 //************************************************************************************
 //************************************************************************************
 
-void LinearSolidElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void LinearSolidElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     //NEEDED TO DEFINE GLOBAL IDS FOR THE CORRECT ASSEMBLY
     const SizeType number_of_nodes  = GetGeometry().size();
@@ -190,7 +190,7 @@ void LinearSolidElement::EquationIdVector( EquationIdVectorType& rResult, Proces
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void LinearSolidElement::GetValuesVector( Vector& rValues, int Step )
+void LinearSolidElement::GetValuesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
     const SizeType number_of_nodes  = GetGeometry().size();
@@ -216,7 +216,7 @@ void LinearSolidElement::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void LinearSolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void LinearSolidElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
     const SizeType number_of_nodes  = GetGeometry().size();
@@ -240,7 +240,7 @@ void LinearSolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void LinearSolidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void LinearSolidElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
     const SizeType number_of_nodes  = GetGeometry().size();
@@ -267,24 +267,6 @@ void LinearSolidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 //************************************************************************************
 //(see element.h)
 
-//*********************************GET VALUE METHODS**********************************
-//************************************************************************************
-//(see element.h)
-
-void LinearSolidElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
-{
-  KRATOS_TRY
-
-  if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
-    {
-      CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-
-  return;
-
-  KRATOS_CATCH( "" )
-
-}
 
 
 //************* STARTING - ENDING  METHODS
@@ -292,7 +274,7 @@ void LinearSolidElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rV
 //************************************************************************************
 
 
-void LinearSolidElement::Initialize()
+void LinearSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -327,53 +309,33 @@ void LinearSolidElement::Initialize()
 ////************************************************************************************
 ////************************************************************************************
 
-void LinearSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void LinearSolidElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+
+}
+
+
+////************************************************************************************
+////************************************************************************************
+void LinearSolidElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo )
+{
+
+}
+
+////************************************************************************************
+////************************************************************************************
+
+void LinearSolidElement::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
+{
+
+}
+
+////************************************************************************************
+////************************************************************************************
+
+void LinearSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-
-    //call the constitutive law to initialize the solution step
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-        mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
-                GetGeometry(),
-                row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
-                rCurrentProcessInfo );
-
-
-    KRATOS_CATCH( "" )
-}
-
-
-////************************************************************************************
-////************************************************************************************
-void LinearSolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
-
-}
-
-////************************************************************************************
-////************************************************************************************
-
-void LinearSolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
-
-}
-
-////************************************************************************************
-////************************************************************************************
-
-void LinearSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    //call the constitutive law to finalize the solution step
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-      mConstitutiveLawVector[i]->FinalizeSolutionStep( GetProperties(),
-	      GetGeometry(),
-              row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
-	      rCurrentProcessInfo );
-
-    //IF INTERNAL VARIABLES EXIST; THE MATERIAL RESPONSE MUST BE FINALIZED ALSO
-    //see constitutive_law.h and other solid elements
 
 
     //explicit case:
@@ -396,7 +358,7 @@ void LinearSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo 
 //************************************************************************************
 //************************************************************************************
 
-void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
 
     KRATOS_TRY
@@ -565,7 +527,7 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
 
 void LinearSolidElement::AddExplicitContribution(const VectorType& rRHSVector,
 						    const Variable<VectorType>& rRHSVariable,
-						    Variable<array_1d<double,3> >& rDestinationVariable,
+						    const Variable<array_1d<double,3> >& rDestinationVariable,
 						    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -716,7 +678,7 @@ void LinearSolidElement::CalculateInfinitesimalStrain( Vector& rStrainVector, co
         for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
 
-            array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
             H ( 0 , 0 ) += Displacement[0]*rDN_DX ( i , 0 );
             H ( 0 , 1 ) += Displacement[0]*rDN_DX ( i , 1 );
@@ -738,7 +700,7 @@ void LinearSolidElement::CalculateInfinitesimalStrain( Vector& rStrainVector, co
 
         for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
-            array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
             H ( 0 , 0 ) += Displacement[0]*rDN_DX ( i , 0 );
             H ( 0 , 1 ) += Displacement[0]*rDN_DX ( i , 1 );
@@ -811,7 +773,7 @@ Vector& LinearSolidElement::CalculateVolumeForce( Vector& rVolumeForce, const Ve
 //************************************************************************************
 //************************************************************************************
 
-void LinearSolidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void LinearSolidElement::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -854,7 +816,7 @@ void LinearSolidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessIn
 //************************************************************************************
 //************************************************************************************
 
-void LinearSolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void LinearSolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1109,7 +1071,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
 //************************************************************************************
 //************************************************************************************
 
-int LinearSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int LinearSolidElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -1117,19 +1079,11 @@ int LinearSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
     int ErrorCode = 0;
     ErrorCode = Element::Check(rCurrentProcessInfo);
 
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
-
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
     for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
-	Node<3> &rNode = this->GetGeometry()[i];
+	const Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
 	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
 

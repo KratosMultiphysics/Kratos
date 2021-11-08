@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 
@@ -31,7 +31,7 @@
 #include "includes/define.h"
 #include "containers/pointer_vector_set.h"
 #include "containers/pointer_vector_map.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "geometries/geometry.h"
 #include "containers/flags.h"
 #include "containers/data_value_container.h"
@@ -61,19 +61,19 @@ namespace Kratos
 ///@{
 
 /// Mesh is the second level of abstraction in the data structure which hold Nodes, Elements and Conditions and their Properties.
-/** 
+/**
  * Mesh is the second level of abstraction in the data structure which hold Nodes, Elements and Conditions and their Properties.
- * In other words, Mesh is a complete pack of all type of entities without any additional data associated with them. 
- * So a set of Elements and Conditions with their Nodes and Properties can be grouped together as a Mesh and send to 
- * procedures like mesh refinement, material optimization, mesh movement or any other procedure which works on entities 
+ * In other words, Mesh is a complete pack of all type of entities without any additional data associated with them.
+ * So a set of Elements and Conditions with their Nodes and Properties can be grouped together as a Mesh and send to
+ * procedures like mesh refinement, material optimization, mesh movement or any other procedure which works on entities
  * without needing additional data for their processes.
 */
 template<class TNodeType, class TPropertiesType, class TElementType, class TConditionType>
 class Mesh : public DataValueContainer, public Flags
 {
 public:
-    
- 
+
+
     ///@name Type Definitions
     ///@{
 
@@ -99,7 +99,13 @@ public:
     typedef Mesh<TNodeType, TPropertiesType, TElementType, TConditionType> MeshType;
 
     /// Nodes container. Which is a vector set of nodes with their Id's as key.
-    typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
+    typedef PointerVectorSet<NodeType,
+                            IndexedObject,
+                            std::less<typename IndexedObject::result_type>,
+                            std::equal_to<typename IndexedObject::result_type>,
+                            typename NodeType::Pointer,
+                            std::vector< typename NodeType::Pointer >
+                            > NodesContainerType;
 
     /** Iterator over the nodes. This iterator is an indirect
     iterator over Node::Pointer which turn back a reference to
@@ -132,7 +138,13 @@ public:
     /*       typedef PointerVectorMap<GeometryType> GeometriesContainerType; */
 
     /// Element container. A vector set of Elements with their Id's as key.
-    typedef PointerVectorSet<ElementType, IndexedObject> ElementsContainerType;
+    typedef PointerVectorSet<ElementType,
+                            IndexedObject,
+                            std::less<typename IndexedObject::result_type>,
+                            std::equal_to<typename IndexedObject::result_type>,
+                            typename ElementType::Pointer,
+                            std::vector< typename ElementType::Pointer >
+                            > ElementsContainerType;
 
     /** Iterator over the Elements. This iterator is an indirect
     iterator over Elements::Pointer which turn back a reference to
@@ -147,7 +159,13 @@ public:
     typedef typename ElementsContainerType::const_iterator ElementConstantIterator;
 
     /// Conditions container. A vector set of Conditions with their Id's as key.
-    typedef PointerVectorSet<ConditionType, IndexedObject> ConditionsContainerType;
+    typedef PointerVectorSet<ConditionType,
+                            IndexedObject,
+                            std::less<typename IndexedObject::result_type>,
+                            std::equal_to<typename IndexedObject::result_type>,
+                            typename ConditionType::Pointer,
+                            std::vector< typename ConditionType::Pointer >
+                            > ConditionsContainerType;
 
     /** Iterator over the Conditions. This iterator is an indirect
     iterator over Conditions::Pointer which turn back a reference to
@@ -185,7 +203,7 @@ public:
     ///@{
 
     /// Default constructor.
-    Mesh() : Flags() 
+    Mesh() : Flags()
         , mpNodes(new NodesContainerType())
         , mpProperties(new PropertiesContainerType())
         , mpElements(new ElementsContainerType())
@@ -229,10 +247,10 @@ public:
         typename ElementsContainerType::Pointer p_elements(new ElementsContainerType(*mpElements));
         typename ConditionsContainerType::Pointer p_conditions(new ConditionsContainerType(*mpConditions));
         typename MasterSlaveConstraintContainerType::Pointer p_master_slave_constraints(new MasterSlaveConstraintContainerType(*mpMasterSlaveConstraints));
-	
+
         return Mesh(p_nodes, p_properties, p_elements, p_conditions, p_master_slave_constraints);
     }
-    
+
     void Clear()
     {
         Flags::Clear();
@@ -241,12 +259,13 @@ public:
         mpProperties->clear();
         mpElements->clear();
         mpConditions->clear();
+        mpMasterSlaveConstraints->clear();
     }
 
     ///@}
     ///@name Informations
     ///@{
-    
+
     /** Dimensional space of the mesh geometries
 	@return SizeType, working space dimension of this geometry.
     */
@@ -255,17 +274,17 @@ public:
     {
       SizeType dimension = 3;
 
-      // NOTE: possible segmentacion fault if a Element or Condition  
-      // is created using the base class of geometry, then the mpGeometryData 
+      // NOTE: possible segmentacion fault if a Element or Condition
+      // is created using the base class of geometry, then the mpGeometryData
       // of the geometry is a null pointer and has not any mWorkingSpaceDimension
       if(NumberOfElements()!=0)
-	dimension = (mpElements->begin())->WorkingSpaceDimension();
+	dimension = (mpElements->begin())->GetGeometry().WorkingSpaceDimension();
       else if(NumberOfConditions()!=0)
-	dimension = (mpConditions->begin())->WorkingSpaceDimension();
+	dimension = (mpConditions->begin())->GetGeometry().WorkingSpaceDimension();
       else if(NumberOfNodes()!=0)
 	dimension = (mpNodes->begin())->Dimension();
 
-      return dimension;	
+      return dimension;
     }
 
     ///@}
@@ -276,7 +295,6 @@ public:
     {
         return mpNodes->size();
     }
-
 
     /** Inserts a node in the mesh.
     */
@@ -289,7 +307,16 @@ public:
     typename NodeType::Pointer pGetNode(IndexType NodeId)
     {
         auto i = mpNodes->find(NodeId);
-        KRATOS_ERROR_IF(i == mpNodes->end()) << " node index not found: " << NodeId << ".";
+        KRATOS_ERROR_IF(i == mpNodes->end()) << "Node index not found: " << NodeId << "." << std::endl;
+        return *i.base();
+    }
+
+    /** Returns the Node::Pointer  corresponding to it's identifier */
+    const typename NodeType::Pointer pGetNode(const IndexType NodeId) const
+    {
+        const auto& r_nodes = *mpNodes;
+        auto i = r_nodes.find(NodeId);
+        KRATOS_ERROR_IF(i == r_nodes.end()) << "Node index not found: " << NodeId << "." << std::endl;
         return *i.base();
     }
 
@@ -297,14 +324,16 @@ public:
     NodeType& GetNode(IndexType NodeId)
     {
         auto i = mpNodes->find(NodeId);
-        KRATOS_ERROR_IF(i == mpNodes->end()) << " node index not found: " << NodeId << ".";
+        KRATOS_ERROR_IF(i == mpNodes->end()) << "Node index not found: " << NodeId << "." << std::endl;
         return *i;
     }
 
+    /** Returns a reference node corresponding to it's identifier */
     const NodeType& GetNode(IndexType NodeId) const
     {
-        auto i = mpNodes->find(NodeId);
-        KRATOS_ERROR_IF(i == mpNodes->end()) << " node index not found: " << NodeId << ".";
+        const auto& r_nodes = *mpNodes;
+        auto i = r_nodes.find(NodeId);
+        KRATOS_ERROR_IF(i == r_nodes.end()) << "Node index not found: " << NodeId << "." << std::endl;
         return *i;
     }
 
@@ -374,10 +403,11 @@ public:
         return mpNodes->GetContainer();
     }
 
-	bool HasNode(IndexType NodeId) const
-	{
-		return (mpNodes->find(NodeId) != mpNodes->end());
-	}
+    bool HasNode(IndexType NodeId) const
+    {
+        const auto& r_nodes = *mpNodes;
+        return (r_nodes.find(NodeId) != r_nodes.end());
+    }
 
     ///@}
     ///@name Properties
@@ -387,7 +417,6 @@ public:
     {
         return mpProperties->size();
     }
-
 
     /** Inserts a properties in the mesh.
     */
@@ -454,6 +483,11 @@ public:
         return *mpProperties;
     }
 
+    const PropertiesContainerType& Properties() const
+    {
+        return *mpProperties;
+    }
+
     typename PropertiesContainerType::Pointer pProperties()
     {
         return mpProperties;
@@ -469,10 +503,11 @@ public:
         return mpProperties->GetContainer();
     }
 
-	bool HasProperties(IndexType NodeId) const
-	{
-		return (mpProperties->find(NodeId) != mpProperties->end());
-	}
+    bool HasProperties(IndexType NodeId) const
+    {
+        const auto& r_properties = *mpProperties;
+        return (r_properties.find(NodeId) != r_properties.end());
+    }
 
     ///@}
     ///@name Elements
@@ -494,7 +529,16 @@ public:
     typename ElementType::Pointer pGetElement(IndexType ElementId)
     {
         auto i = mpElements->find(ElementId);
-        KRATOS_ERROR_IF(i == mpElements->end()) << " element index not found: " << ElementId << ".";
+        KRATOS_ERROR_IF(i == mpElements->end()) << "Element index not found: " << ElementId << "." << std::endl;
+        return *i.base();
+    }
+
+    /** Returns the Element::Pointer  corresponding to it's identifier */
+    const typename ElementType::Pointer pGetElement(const IndexType ElementId) const
+    {
+        const auto& r_elements = *mpElements;
+        auto i = r_elements.find(ElementId);
+        KRATOS_ERROR_IF(i == r_elements.end()) << "Element index not found: " << ElementId << "." << std::endl;
         return *i.base();
     }
 
@@ -502,14 +546,16 @@ public:
     ElementType& GetElement(IndexType ElementId)
     {
         auto i = mpElements->find(ElementId);
-        KRATOS_ERROR_IF(i == mpElements->end()) << " element index not found: " << ElementId << ".";
+        KRATOS_ERROR_IF(i == mpElements->end()) << "Element index not found: " << ElementId << "." << std::endl;
         return *i;
     }
 
+    /** Returns a reference element corresponding to it's identifier */
     const ElementType& GetElement(IndexType ElementId) const
     {
-        auto i = mpElements->find(ElementId);
-        KRATOS_ERROR_IF(i == mpElements->end()) << " element index not found: " << ElementId << ".";
+        const auto& r_elements = *mpElements;
+        auto i = r_elements.find(ElementId);
+        KRATOS_ERROR_IF(i == r_elements.end()) << "Element index not found: " << ElementId << "." << std::endl;
         return *i;
     }
 
@@ -580,10 +626,11 @@ public:
     }
 
 
-	bool HasElement(IndexType ElementId) const
-	{
-		return (mpElements->find(ElementId) != mpElements->end());
-	}
+    bool HasElement(IndexType ElementId) const
+    {
+        const auto& r_elements = *mpElements;
+        return (r_elements.find(ElementId) != r_elements.end());
+    }
 
     ///@}
     ///@name Conditions
@@ -605,7 +652,16 @@ public:
     typename ConditionType::Pointer pGetCondition(IndexType ConditionId)
     {
         auto i = mpConditions->find(ConditionId);
-        KRATOS_ERROR_IF(i == mpConditions->end()) << " condition index not found: " << ConditionId << ".";
+        KRATOS_ERROR_IF(i == mpConditions->end()) << "Condition index not found: " << ConditionId << "." << std::endl;
+        return *i.base();
+    }
+
+    /** Returns the Condition::Pointer  corresponding to it's identifier */
+    const typename ConditionType::Pointer pGetCondition(const IndexType ConditionId) const
+    {
+        const auto& r_conditions = *mpConditions;
+        auto i = r_conditions.find(ConditionId);
+        KRATOS_ERROR_IF(i == r_conditions.end()) << "Condition index not found: " << ConditionId << "." << std::endl;
         return *i.base();
     }
 
@@ -613,14 +669,16 @@ public:
     ConditionType& GetCondition(IndexType ConditionId)
     {
         auto i = mpConditions->find(ConditionId);
-        KRATOS_ERROR_IF(i == mpConditions->end()) << " condition index not found: " << ConditionId << ".";
+        KRATOS_ERROR_IF(i == mpConditions->end()) << "Condition index not found: " << ConditionId << "." << std::endl;
         return *i;
     }
 
+    /** Returns a reference condition corresponding to it's identifier */
     const ConditionType& GetCondition(IndexType ConditionId) const
     {
-        auto i = mpConditions->find(ConditionId);
-        KRATOS_ERROR_IF(i == mpConditions->end()) << " condition index not found: " << ConditionId << ".";
+        const auto& r_conditions = *mpConditions;
+        auto i = r_conditions.find(ConditionId);
+        KRATOS_ERROR_IF(i == r_conditions.end()) << "Condition index not found: " << ConditionId << "." << std::endl;
         return *i;
     }
 
@@ -690,17 +748,15 @@ public:
         return mpConditions->GetContainer();
     }
 
-	bool HasCondition(IndexType ConditionId) const
-	{
-		return (mpConditions->find(ConditionId) != mpConditions->end());
-	}
-
+    bool HasCondition(IndexType ConditionId) const
+    {
+        const auto& r_conditions = *mpConditions;
+        return (r_conditions.find(ConditionId) != r_conditions.end());
+    }
 
     ///@}
     ///@name MasterSlaveConstraints
     ///@{
-
-
 
     SizeType NumberOfMasterSlaveConstraints() const
     {
@@ -798,10 +854,9 @@ public:
         return mpMasterSlaveConstraints->GetContainer();
     }
 
-
     bool HasMasterSlaveConstraint(IndexType MasterSlaveConstraintId) const
     {
-            return (mpMasterSlaveConstraints->find(MasterSlaveConstraintId) != mpMasterSlaveConstraints->end());
+        return (mpMasterSlaveConstraints->find(MasterSlaveConstraintId) != mpMasterSlaveConstraints->end());
     }
 
 
@@ -947,7 +1002,7 @@ private:
         rSerializer.save("Properties",mpProperties);
         rSerializer.save("Elements",mpElements);
         rSerializer.save("Conditions",mpConditions);
-        rSerializer.save("Conditions",mpMasterSlaveConstraints);
+        rSerializer.save("Constraints",mpMasterSlaveConstraints);
     }
 
     void load(Serializer& rSerializer) override
@@ -958,7 +1013,7 @@ private:
         rSerializer.load("Properties",mpProperties);
         rSerializer.load("Elements",mpElements);
         rSerializer.load("Conditions",mpConditions);
-        rSerializer.load("Conditions",mpMasterSlaveConstraints);
+        rSerializer.load("Constraints",mpMasterSlaveConstraints);
     }
 
 
@@ -984,6 +1039,7 @@ private:
         mpProperties = rOther.mpProperties;
         mpElements = rOther.mpElements;
         mpConditions = rOther.mpConditions;
+        mpMasterSlaveConstraints = rOther.mpMasterSlaveConstraints;
     }
 
 
@@ -1023,6 +1079,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MESH_H_INCLUDED  defined 
+#endif // KRATOS_MESH_H_INCLUDED  defined
 
 

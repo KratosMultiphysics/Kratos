@@ -19,8 +19,6 @@
 
 
 // System includes
-#include <string>
-#include <iostream>
 
 
 // External includes
@@ -29,9 +27,9 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "custom_utilities/interface_object.h"
-#include "custom_utilities/interface_node.h"
-#include "custom_utilities/interface_geometry_object.h"
+
+#include "custom_searching/interface_object.h"
+#include "custom_modelers/mapping_geometries_modeler.h"
 
 
 namespace Kratos
@@ -59,7 +57,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosMappingApplication : public KratosApplication
+class KRATOS_API(MAPPING_APPLICATION) KratosMappingApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
@@ -193,6 +191,8 @@ private:
     const InterfaceObject           mInterfaceObject;
     const InterfaceNode             mInterfaceNode;
     const InterfaceGeometryObject   mInterfaceGeometryObject;
+
+    const MappingGeometriesModeler  mMappingGeometriesModeler;
 
     ///@}
     ///@name Private Operators

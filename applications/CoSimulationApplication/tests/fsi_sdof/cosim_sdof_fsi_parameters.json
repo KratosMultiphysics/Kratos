@@ -1,0 +1,97 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 1.2,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_weak",
+        "echo_level" : 0,
+        "predictors" : [
+            {
+                "type" : "average_value_based",
+                "solver"         : "fluid",
+                "data_name"      : "load"
+            }
+        ],
+        "data_transfer_operators" : {
+            "transfer_forces" : {
+                "type" : "sum_distributed_to_single"
+            },
+            "transfer_disp" : {
+                "type" : "copy_single_to_distributed"
+            }
+        },
+        "coupling_sequence":
+        [
+        {
+            "name": "sdof",
+            "input_data_list": [
+                {
+                    "data"              : "load",
+                    "from_solver"       : "fluid",
+                    "from_solver_data"  : "load",
+                    "data_transfer_operator" : "transfer_forces",
+                    "data_transfer_operator_options" : ["swap_sign"]
+                }
+            ],
+            "output_data_list": [
+                {
+                    "data"           : "disp",
+                    "to_solver"      : "fluid",
+                    "to_solver_data" : "disp",
+                    "data_transfer_operator" : "transfer_disp"
+                }
+            ]
+        },
+        {
+            "name": "fluid",
+            "output_data_list": [],
+            "input_data_list": []
+        }
+        ],
+        "solvers" :
+        {
+            "fluid":
+            {
+                "type" : "solver_wrappers.kratos.fluid_dynamics_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "fsi_sdof/ProjectParametersCFD"
+                },
+                "data" : {
+                    "disp" : {
+                        "model_part_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
+                        "variable_name" : "MESH_DISPLACEMENT_Y"
+                    },
+                    "load" : {
+                        "model_part_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
+                        "variable_name" : "REACTION_Y"
+                    }
+                }
+            },
+            "sdof" :
+            {
+                "type" : "solver_wrappers.sdof.sdof_solver_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "fsi_sdof/ProjectParametersSdof"
+                },
+                "data" : {
+                    "disp" : {
+                        "model_part_name" : "Sdof",
+                        "variable_name" : "SCALAR_DISPLACEMENT",
+                        "location"      : "model_part"
+                    },
+                    "load" : {
+                        "model_part_name" : "Sdof",
+                        "variable_name" : "SCALAR_FORCE",
+                        "location"      : "model_part"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -32,7 +32,7 @@ namespace Kratos
  * The functionality is limited to large displacements
  */
 
-class HenckyElasticPlasticPlaneStrainUP2DLaw : public HenckyElasticPlasticUP3DLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) HenckyElasticPlasticPlaneStrainUP2DLaw : public HenckyElasticPlasticUP3DLaw
 {
 public:
     /**
@@ -42,9 +42,9 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
 
-    typedef MPMFlowRule::Pointer                MPMFlowRulePointer;
-    typedef MPMYieldCriterion::Pointer    YieldCriterionPointer;
-    typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
+    typedef ParticleFlowRule::Pointer                MPMFlowRulePointer;
+    typedef ParticleYieldCriterion::Pointer    YieldCriterionPointer;
+    typedef ParticleHardeningLaw::Pointer        HardeningLawPointer;
     typedef Properties::Pointer            PropertiesPointer;
 
     /**
@@ -107,7 +107,7 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return 3;
     };

@@ -24,9 +24,6 @@
 #include "includes/define.h"
 #include "includes/key_hash.h"
 #include "containers/variable.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
-#include "includes/kratos_components.h"
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
@@ -35,25 +32,25 @@ namespace Kratos
 {
 ///@name Kratos Globals
 ///@{
-   
+
 ///@}
 ///@name Type Definitions
 ///@{
 
     typedef std::size_t IndexType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
     /**
      * @class IndexDatabase
      * @ingroup KratosCore
@@ -271,7 +268,7 @@ namespace Kratos
 
         typedef std::unordered_map<IndexType, IndexType> BaseType;
         typedef iterator IteratorType;
-        
+
         ///@}
         ///@name Life Cycle
         ///@{
@@ -314,13 +311,13 @@ namespace Kratos
         * @brief It checks if an ID exists in the map
         * @param IndexOrigin The condition ID to remove
         * @return If the ID already exists or not
-        */     
+        */
         bool Has(const IndexType IndexOrigin) override
         {
             BaseType::iterator map = find(IndexOrigin);
             if(map != end())
                 return true;
-            
+
             return false;
         }
 
@@ -328,7 +325,7 @@ namespace Kratos
         * @brief It adds a new ID to the map
         * @param IndexOrigin The condition ID to remove
         * @param IndexNewEntity The new created entity ID
-        */     
+        */
         void AddId(
             const IndexType IndexOrigin,
             const IndexType IndexNewEntity = 0
@@ -336,11 +333,11 @@ namespace Kratos
         {
             insert({IndexOrigin, IndexNewEntity});
         }
-        
+
         /**
         * @brief It removes one particular pair from the map
         * @param IndexOrigin The condition ID to remove
-        */     
+        */
         void RemoveId(const IndexType IndexOrigin) override
         {
             BaseType::iterator map = find(IndexOrigin);
@@ -387,7 +384,7 @@ namespace Kratos
                 buffer << "The condition " << it->first << " related with the new condition " << it->second << std::endl;
             return buffer.str();
         }
-        
+
         void save( Serializer& rSerializer ) const override
         {
 //             KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
@@ -398,7 +395,7 @@ namespace Kratos
 //             KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         }
     }; // Class IndexMap
-    
+
     KRATOS_DEFINE_VARIABLE( IndexSet::Pointer, INDEX_SET )         // An unordened set of which contains the indexes with the paired
     KRATOS_DEFINE_VARIABLE( IndexMap::Pointer, INDEX_MAP )         // An unordened map of which contains the indexes with the paired
     KRATOS_DEFINE_VARIABLE( double, TANGENT_FACTOR )               // The factor between the tangent and normal behaviour

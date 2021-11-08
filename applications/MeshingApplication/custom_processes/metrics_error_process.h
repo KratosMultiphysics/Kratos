@@ -7,7 +7,8 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz 
+//                   Anna Rehr
 //
 
 #if !defined(KRATOS_ERROR_METRICS_PROCESS)
@@ -47,6 +48,7 @@ namespace Kratos
  * @ingroup MeshingApplication
  * @brief This class is can be used to compute the metrics of the model part with a error already computed
  * @author Vicente Mataix Ferrandiz
+ * @author Anna Rehr
  */
 template<SizeType TDim>
 class KRATOS_API(MESHING_APPLICATION) MetricErrorProcess
@@ -65,7 +67,7 @@ public:
     typedef Node <3>                                                                NodeType;
 
     /// Definition of the iterators
-    typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
+    typedef GlobalPointersVector< Element >::iterator                         WeakElementItType;
     typedef NodesArrayType::iterator                                              NodeItType;
     typedef ElementsArrayType::iterator                                        ElementItType;
 
@@ -117,6 +119,11 @@ public:
      * @brief We initialize the Metrics of the MMG sol using the Hessian Metric matrix approach
      */
     void Execute() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -223,12 +230,6 @@ private:
      * @brief In this final step the metric is computed
      */
     void CalculateMetric();
-
-    /**
-     * @brief This computes the element size depending of the geometry and it assigns to the ELEMENT_H variable
-     * @param itElement The element iterator
-     */
-    void ComputeElementSize(ElementItType itElement);
 
     ///@}
     ///@name Private  Access

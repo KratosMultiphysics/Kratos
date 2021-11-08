@@ -8,10 +8,10 @@
                             "name": "LinearElasticPlaneStress2DLaw"
                     },
                     "Variables": {
-                            "KratosMultiphysics.DENSITY": 7.85000E+03,
-                            "KratosMultiphysics.YOUNG_MODULUS": 2.06900E+11,
-                            "KratosMultiphysics.POISSON_RATIO": 2.90000E-01,
-                            "KratosMultiphysics.THICKNESS": 1.00000E+00
+                            "DENSITY": 7.85000E+03,
+                            "YOUNG_MODULUS": 2.06900E+11,
+                            "POISSON_RATIO": 2.90000E-01,
+                            "THICKNESS": 1.00000E+00
                     },
                     "Tables": {}
             }

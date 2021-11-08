@@ -1,21 +1,20 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
-
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
 
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Importing the base class
-from python_solver import PythonSolver
+from KratosMultiphysics.python_solver import PythonSolver
 
+# Other imports
+from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
+from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+from KratosMultiphysics import auxiliary_solver_utilities
+from KratosMultiphysics import kratos_utilities
 
-def CreateSolver(model, custom_settings):
-    return MechanicalSolver(model, custom_settings)
-
+# Other imports
+from importlib import import_module
 
 class MechanicalSolver(PythonSolver):
     """The base class for structural mechanics solvers.
@@ -44,80 +43,37 @@ class MechanicalSolver(PythonSolver):
     settings -- Kratos parameters containing solver settings.
     """
     def __init__(self, model, custom_settings):
-        super(MechanicalSolver, self).__init__(model, custom_settings)
+        old_unused_settings = [
+            "use_computing_model_part",
+            "computing_model_part_name",
+            "problem_domain_sub_model_part_list",
+            "processes_sub_model_part_list"
+        ]
 
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "model_part_name" : "",
-            "domain_size" : -1,
-            "echo_level": 0,
-            "buffer_size": 2,
-            "analysis_type": "non_linear",
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
-            },
-            "computing_model_part_name" : "computing_domain",
-            "material_import_settings" :{
-                "materials_filename": ""
-            },
-            "time_stepping" : { },
-            "rotation_dofs": false,
-            "reform_dofs_at_each_step": false,
-            "line_search": false,
-            "compute_reactions": true,
-            "block_builder": true,
-            "clear_storage": false,
-            "move_mesh_flag": true,
-            "multi_point_constraints_used": true,
-            "convergence_criterion": "residual_criterion",
-            "displacement_relative_tolerance": 1.0e-4,
-            "displacement_absolute_tolerance": 1.0e-9,
-            "residual_relative_tolerance": 1.0e-4,
-            "residual_absolute_tolerance": 1.0e-9,
-            "max_iteration": 10,
-            "linear_solver_settings":{
-                "solver_type": "SuperLUSolver",
-                "max_iteration": 500,
-                "tolerance": 1e-9,
-                "scaling": false,
-                "verbosity": 1
-            },
-            "problem_domain_sub_model_part_list": ["solid"],
-            "processes_sub_model_part_list": [""],
-            "auxiliary_variables_list" : [],
-            "auxiliary_dofs_list" : [],
-            "auxiliary_reaction_list" : []
-        }
-        """)
+        for old_setting in old_unused_settings:
+            if custom_settings.Has(old_setting):
+                KratosMultiphysics.Logger.PrintWarning("::[MechanicalSolver]:: ", 'Settings contain no longer used setting, please remove it: "{}"'.format(old_setting))
+                custom_settings.RemoveValue(old_setting)
 
-        # temporary warnings, to be removed
-        if custom_settings.Has("bodies_list"):
-            custom_settings.RemoveValue("bodies_list")
-            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "bodies_list", '
-            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            self.print_warning_on_rank_zero("Bodies list", warning)
-        if custom_settings.Has("solver_type"):
-            custom_settings.RemoveValue("solver_type")
-            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "solver_type", '
-            warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
-            warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
-            self.print_warning_on_rank_zero("Solver type", warning)
-        if custom_settings.Has("time_integration_method"):
-            custom_settings.RemoveValue("time_integration_method")
-            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "time_integration_method", '
-            warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
-            warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
-            self.print_warning_on_rank_zero("Time integration method", warning)
 
-        # Overwrite the default settings with user-provided parameters.
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings_have_use_block_builder = custom_settings.Has("block_builder")
+
+        if settings_have_use_block_builder:
+            kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "block_builder", please move it to "builder_and_solver_settings" as "use_block_builder"')
+            if not custom_settings.Has("builder_and_solver_settings"):
+                custom_settings.AddEmptyValue("builder_and_solver_settings")
+
+            custom_settings["builder_and_solver_settings"].AddValue("use_block_builder", custom_settings["block_builder"])
+            custom_settings.RemoveValue("block_builder")
+
+        self._validate_settings_in_baseclass=True # To be removed eventually
+        super().__init__(model, custom_settings)
+
         model_part_name = self.settings["model_part_name"].GetString()
 
         if model_part_name == "":
             raise Exception('Please specify a model_part name!')
 
-        # This will be changed once the Model is fully supported!
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model[model_part_name]
         else:
@@ -127,13 +83,67 @@ class MechanicalSolver(PythonSolver):
                 raise Exception('Please specify a "domain_size" >= 0!')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
-        self.print_on_rank_zero("::[MechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Construction finished")
 
         # Set if the analysis is restarted
         if self.settings["model_import_settings"]["input_type"].GetString() == "rest":
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
         else:
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
+
+    @classmethod
+    def GetDefaultParameters(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "solver_type" : "mechanical_solver",
+            "model_part_name" : "",
+            "domain_size" : -1,
+            "echo_level": 0,
+            "buffer_size": 2,
+            "analysis_type": "non_linear",
+            "model_import_settings": {
+                "input_type": "mdpa"
+            },
+            "material_import_settings" :{
+                "materials_filename": ""
+            },
+            "time_stepping" : { },
+            "volumetric_strain_dofs": false,
+            "rotation_dofs": false,
+            "pressure_dofs": false,
+            "displacement_control": false,
+            "reform_dofs_at_each_step": false,
+            "line_search": false,
+            "use_old_stiffness_in_first_iteration": false,
+            "compute_reactions": true,
+            "builder_and_solver_settings" : {
+                "use_block_builder" : true,
+                "use_lagrange_BS"   : false,
+                "advanced_settings" : { }
+            },
+            "clear_storage": false,
+            "move_mesh_flag": true,
+            "multi_point_constraints_used": true,
+            "convergence_criterion": "residual_criterion",
+            "displacement_relative_tolerance": 1.0e-4,
+            "displacement_absolute_tolerance": 1.0e-9,
+            "residual_relative_tolerance": 1.0e-4,
+            "residual_absolute_tolerance": 1.0e-9,
+            "max_iteration": 10,
+            "linear_solver_settings": { },
+            "auxiliary_variables_list" : [],
+            "auxiliary_dofs_list" : [],
+            "auxiliary_reaction_list" : []
+        }""")
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        return this_defaults
+
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        super().ValidateSettings()
+
+        # Validate some subparameters
+        self.settings["builder_and_solver_settings"].ValidateAndAssignDefaults(self.GetDefaultParameters()["builder_and_solver_settings"])
 
     def AddVariables(self):
         # this can safely be called also for restarts, it is internally checked if the variables exist already
@@ -152,12 +162,17 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
+        if self.settings["volumetric_strain_dofs"].GetBool():
+            # Add specific variables for the problem (rotation dofs).
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN)
+        if self.settings["displacement_control"].GetBool():
+            # Add displacement-control variables
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOAD_FACTOR)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.PRESCRIBED_DISPLACEMENT)
         # Add variables that the user defined in the ProjectParameters
-        for i in range(self.settings["auxiliary_variables_list"].size()):
-            variable_name = self.settings["auxiliary_variables_list"][i].GetString()
-            variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
-            self.main_model_part.AddNodalSolutionStepVariable(variable)
-        self.print_on_rank_zero("::[MechanicalSolver]:: ", "Variables ADDED")
+        auxiliary_solver_utilities.AddVariables(self.main_model_part, self.settings["auxiliary_variables_list"])
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
         return 2
@@ -171,30 +186,14 @@ class MechanicalSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,self.main_model_part)
+        if self.settings["volumetric_strain_dofs"].GetBool():
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VOLUMETRIC_STRAIN, StructuralMechanicsApplication.REACTION_STRAIN,self.main_model_part)
+        if self.settings["displacement_control"].GetBool():
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.LOAD_FACTOR, StructuralMechanicsApplication.PRESCRIBED_DISPLACEMENT,self.main_model_part)
 
         # Add dofs that the user defined in the ProjectParameters
-        if (self.settings["auxiliary_dofs_list"].size() != self.settings["auxiliary_reaction_list"].size()):
-                raise Exception("DoFs list and reaction list should be the same long")
-        for i in range(self.settings["auxiliary_dofs_list"].size()):
-            dof_variable_name = self.settings["auxiliary_dofs_list"][i].GetString()
-            reaction_variable_name = self.settings["auxiliary_reaction_list"][i].GetString()
-            if (KratosMultiphysics.KratosGlobals.HasDoubleVariable(dof_variable_name)): # Double variable
-                dof_variable = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name)
-                reaction_variable = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name)
-                KratosMultiphysics.VariableUtils().AddDof(dof_variable, reaction_variable,self.main_model_part)
-            elif (KratosMultiphysics.KratosGlobals.HasArrayVariable(dof_variable_name)): # Components variable
-                dof_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_X")
-                reaction_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_X")
-                KratosMultiphysics.VariableUtils().AddDof(dof_variable_x, reaction_variable_x, self.main_model_part)
-                dof_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_Y")
-                reaction_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_Y")
-                KratosMultiphysics.VariableUtils().AddDof(dof_variable_y, reaction_variable_y, self.main_model_part)
-                dof_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_Z")
-                reaction_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_Z")
-                KratosMultiphysics.VariableUtils().AddDof(dof_variable_z, reaction_variable_z, self.main_model_part)
-            else:
-                self.print_warning_on_rank_zero("auxiliary_reaction_list list", "The variable " + dof_variable_name + "is not a compatible type")
-        self.print_on_rank_zero("::[MechanicalSolver]:: ", "DOF's ADDED")
+        auxiliary_solver_utilities.AddDofs(self.main_model_part, self.settings["auxiliary_dofs_list"], self.settings["auxiliary_reaction_list"])
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):
         """This function imports the ModelPart
@@ -211,31 +210,19 @@ class MechanicalSolver(PythonSolver):
 
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
-        self.print_on_rank_zero("::[MechanicalSolver]:: ", "Initializing ...")
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Initializing ...")
         # The mechanical solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
         mechanical_solution_strategy = self.get_mechanical_solution_strategy()
         mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-        if not self.is_restarted():
-            mechanical_solution_strategy.Initialize()
-        else:
-            # SetInitializePerformedFlag is not a member of SolvingStrategy but
-            # is used by ResidualBasedNewtonRaphsonStrategy.
-            try:
-                mechanical_solution_strategy.SetInitializePerformedFlag(True)
-            except AttributeError:
-                pass
-        self.Check()
-        self.print_on_rank_zero("::[MechanicalSolver]:: ", "Finished initialization.")
-
-    def Solve(self):
-        if self.settings["clear_storage"].GetBool():
-            self.Clear()
-        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
-        mechanical_solution_strategy.Solve()
+        mechanical_solution_strategy.Initialize()
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished initialization.")
 
     def InitializeSolutionStep(self):
+        if self.settings["clear_storage"].GetBool():
+            self.Clear()
+            self.Initialize() #required after clearing
         self.get_mechanical_solution_strategy().InitializeSolutionStep()
 
     def Predict(self):
@@ -243,6 +230,10 @@ class MechanicalSolver(PythonSolver):
 
     def SolveSolutionStep(self):
         is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        if not is_converged:
+            msg  = "Solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+            msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
+            KratosMultiphysics.Logger.PrintWarning("::[MechanicalSolver]:: ",msg)
         return is_converged
 
     def FinalizeSolutionStep(self):
@@ -257,12 +248,20 @@ class MechanicalSolver(PythonSolver):
         return new_time
 
     def ComputeDeltaTime(self):
-        return self.settings["time_stepping"]["time_step"].GetDouble()
+        if self.settings["time_stepping"].Has("time_step"):
+            return self.settings["time_stepping"]["time_step"].GetDouble()
+        elif self.settings["time_stepping"].Has("time_step_table"):
+            current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            time_step_table = self.settings["time_stepping"]["time_step_table"].GetMatrix()
+            tb = KratosMultiphysics.PiecewiseLinearTable()
+            for interval in range(time_step_table.Size1()):
+                tb.AddRow(time_step_table[interval, 0], time_step_table[interval, 1])
+            return tb.GetValue(current_time)
+        else:
+            raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
     def GetComputingModelPart(self):
-        if not self.main_model_part.HasSubModelPart(self.settings["computing_model_part_name"].GetString()):
-            raise Exception("The ComputingModelPart was not created yet!")
-        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+        return self.main_model_part
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -314,15 +313,20 @@ class MechanicalSolver(PythonSolver):
         return self._mechanical_solution_strategy
 
     def import_constitutive_laws(self):
-        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
-        if (materials_filename != ""):
-            # Add constitutive laws and material properties from json file to model parts.
-            material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
-            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
-            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
+        if self.settings["material_import_settings"].Has("custom_reader"): # We use our own file for reading
+            custom_reader = import_module(self.settings["material_import_settings"]["custom_reader"].GetString())
+            custom_reader.ReadMaterials(self.model, self.settings["material_import_settings"])
             materials_imported = True
-        else:
-            materials_imported = False
+        else: # We follow the normal path
+            materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
+            if materials_filename != "":
+                # Add constitutive laws and material properties from json file to model parts.
+                material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+                material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
+                KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
+                materials_imported = True
+            else:
+                materials_imported = False
         return materials_imported
 
     def is_restarted(self):
@@ -333,23 +337,13 @@ class MechanicalSolver(PythonSolver):
     #### Private functions ####
 
     def _execute_after_reading(self):
-        """Prepare computing model part and import constitutive laws. """
-        # Auxiliary parameters object for the CheckAndPepareModelProcess
-        params = KratosMultiphysics.Parameters("{}")
-        params.AddValue("model_part_name",self.settings["model_part_name"])
-        params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
-        params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-        params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-        # Assign mesh entities from domain and process sub model parts to the computing model part.
-        import check_and_prepare_model_process_structural
-        check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.model, params).Execute()
-
+        """Import constitutive laws."""
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()
         if materials_imported:
-            self.print_on_rank_zero("::[MechanicalSolver]:: ", "Constitutive law was successfully imported.")
+            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Constitutive law was successfully imported.")
         else:
-            self.print_on_rank_zero("::[MechanicalSolver]:: ", "Constitutive law was not imported.")
+            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Constitutive law was not imported.")
 
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information. """
@@ -402,6 +396,7 @@ class MechanicalSolver(PythonSolver):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
         conv_params = KratosMultiphysics.Parameters("{}")
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
+        conv_params.AddValue("volumetric_strain_dofs",self.settings["volumetric_strain_dofs"])
         conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
         conv_params.AddValue("echo_level",self.settings["echo_level"])
         conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
@@ -412,26 +407,30 @@ class MechanicalSolver(PythonSolver):
         return conv_params
 
     def _create_convergence_criterion(self):
-        import convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
-        import linear_solver_factory
-        linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-        return linear_solver
+        linear_solver_configuration = self.settings["linear_solver_settings"]
+        if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
+            return linear_solver_factory.ConstructSolver(linear_solver_configuration)
+        else:
+            KratosMultiphysics.Logger.PrintInfo('::[MechanicalSolver]:: No linear solver was specified, using fastest available solver')
+            return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
-        if self.settings["block_builder"].GetBool():
-            if self.settings["multi_point_constraints_used"].GetBool():
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithConstraints(linear_solver)
+        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
+            bs_params = self.settings["builder_and_solver_settings"]["advanced_settings"]
+            if not self.settings["builder_and_solver_settings"]["use_lagrange_BS"].GetBool():
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
             else:
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(linear_solver, bs_params)
         else:
             if self.settings["multi_point_constraints_used"].GetBool():
-                raise Exception("To use MPCs you also have to set \"block_builder\" to \"true\"")
-            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
+            else:
+                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver
 
     def _create_solution_scheme(self):
@@ -457,11 +456,9 @@ class MechanicalSolver(PythonSolver):
     def _create_linear_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
         builder_and_solver = self.get_builder_and_solver()
         return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
                                                               mechanical_scheme,
-                                                              linear_solver,
                                                               builder_and_solver,
                                                               self.settings["compute_reactions"].GetBool(),
                                                               self.settings["reform_dofs_at_each_step"].GetBool(),
@@ -471,18 +468,18 @@ class MechanicalSolver(PythonSolver):
     def _create_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
         mechanical_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
-        return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
                                                                      mechanical_scheme,
-                                                                     linear_solver,
                                                                      mechanical_convergence_criterion,
                                                                      builder_and_solver,
                                                                      self.settings["max_iteration"].GetInt(),
                                                                      self.settings["compute_reactions"].GetBool(),
                                                                      self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                      self.settings["move_mesh_flag"].GetBool())
+        strategy.SetUseOldStiffnessInFirstIterationFlag(self.settings["use_old_stiffness_in_first_iteration"].GetBool())
+        return strategy
 
     def _create_line_search_strategy(self):
         computing_model_part = self.GetComputingModelPart()
@@ -490,7 +487,7 @@ class MechanicalSolver(PythonSolver):
         linear_solver = self.get_linear_solver()
         mechanical_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
-        return KratosMultiphysics.LineSearchStrategy(computing_model_part,
+        strategy = KratosMultiphysics.LineSearchStrategy(computing_model_part,
                                                      mechanical_scheme,
                                                      linear_solver,
                                                      mechanical_convergence_criterion,
@@ -499,3 +496,5 @@ class MechanicalSolver(PythonSolver):
                                                      self.settings["compute_reactions"].GetBool(),
                                                      self.settings["reform_dofs_at_each_step"].GetBool(),
                                                      self.settings["move_mesh_flag"].GetBool())
+        strategy.SetUseOldStiffnessInFirstIterationFlag(self.settings["use_old_stiffness_in_first_iteration"].GetBool())
+        return strategy

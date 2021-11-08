@@ -16,37 +16,26 @@
 
 // External includes
 
-//this defines are to minimize compilation problems under windows. We could actually use them only when compiling with msvc
-#define AMGCL_RUNTIME_DISABLE_MULTICOLOR_GS
-#define AMGCL_RUNTIME_DISABLE_PARALLEL_ILU0
-#define AMGCL_RUNTIME_DISABLE_SPAI1
-#define AMGCL_RUNTIME_DISABLE_CHEBYSHEV
-
 // Project includes
 #include "includes/define_python.h"
 #include "spaces/ublas_space.h"
 #include "add_amgcl_solver_to_python.h"
 
-#ifndef KRATOS_DISABLE_AMGCL
 #include "linear_solvers/amgcl_solver.h"
 #include "linear_solvers/amgcl_ns_solver.h"
-#endif
 
-namespace Kratos
-{
+namespace Kratos {
+namespace Python {
 
-namespace Python
-{
 void  AddAMGCLSolverToPython(pybind11::module& m)
 {
-#ifndef KRATOS_DISABLE_AMGCL
 	typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
 
-    using namespace pybind11;
+    namespace py = pybind11;
 
-    enum_<AMGCLSmoother>(m,"AMGCLSmoother")
+    py::enum_<AMGCLSmoother>(m,"AMGCLSmoother")
     .value("SPAI0", SPAI0)
     .value("SPAI1", SPAI1)
     .value("ILU0", ILU0)
@@ -55,7 +44,7 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
     .value("CHEBYSHEV",CHEBYSHEV)
     ;
 
-    enum_<AMGCLIterativeSolverType>(m,"AMGCLIterativeSolverType")
+    py::enum_<AMGCLIterativeSolverType>(m,"AMGCLIterativeSolverType")
     .value("GMRES", GMRES)
     .value("LGMRES", LGMRES)
     .value("FGMRES", FGMRES)
@@ -65,7 +54,7 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
     .value("BICGSTAB2",BICGSTAB2)
     ;
 
-    enum_<AMGCLCoarseningType>(m,"AMGCLCoarseningType")
+    py::enum_<AMGCLCoarseningType>(m,"AMGCLCoarseningType")
     .value("RUGE_STUBEN", RUGE_STUBEN)
     .value("AGGREGATION", AGGREGATION)
     .value("SA",SA)
@@ -73,28 +62,24 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
     ;
 
     typedef AMGCLSolver<SpaceType,  LocalSpaceType> AMGCLSolverType;
-    class_<AMGCLSolverType,  std::shared_ptr<AMGCLSolverType>, LinearSolverType>
+    py::class_<AMGCLSolverType,  std::shared_ptr<AMGCLSolverType>, LinearSolverType>
     (m, "AMGCLSolver")
-    .def(init<AMGCLSmoother,AMGCLIterativeSolverType,double,int,int,int>() )
-    .def(init<AMGCLSmoother,AMGCLIterativeSolverType,AMGCLCoarseningType ,double,int,int,int, bool>())
-    .def(init<>())
-    .def(init<Parameters>())
+    .def(py::init<AMGCLSmoother,AMGCLIterativeSolverType,double,int,int,int>() )
+    .def(py::init<AMGCLSmoother,AMGCLIterativeSolverType,AMGCLCoarseningType ,double,int,int,int, bool>())
+    .def(py::init<>())
+    .def(py::init<Parameters>())
     .def( "GetResidualNorm",&AMGCLSolverType::GetResidualNorm)
-    .def( "GetIterationsNumber",&AMGCLSolverType::GetIterationsNumber)
     ;
 
 
     typedef AMGCL_NS_Solver<SpaceType,  LocalSpaceType> AMGCL_NS_SolverType;
-    class_<AMGCL_NS_SolverType,std::shared_ptr<AMGCL_NS_SolverType>, LinearSolverType >
+    py::class_<AMGCL_NS_SolverType,std::shared_ptr<AMGCL_NS_SolverType>, LinearSolverType >
     (m, "AMGCL_NS_Solver")
-    .def(init<Parameters>())
+    .def(py::init<Parameters>())
     ;
-#endif
-
 
 }
 
 }  // namespace Python.
 
 } // Namespace Kratos
-

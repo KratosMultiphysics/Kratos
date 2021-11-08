@@ -27,10 +27,6 @@ namespace Kratos {
 KratosHDF5Application::KratosHDF5Application() : KratosApplication("HDF5Application") {}
 
 void KratosHDF5Application::Register() {
- 	// calling base class register to register Kratos components
- 	KratosApplication::Register();
- 	std::cout << "Initializing KratosHDF5Application... " << std::endl;
-
-
+ 	KRATOS_INFO("") << "Initializing KratosHDF5Application..." << std::endl;
 }
 }  // namespace Kratos.

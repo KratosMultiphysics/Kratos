@@ -11,43 +11,25 @@
 //                   Riccardo Rossi
 //
 
-
 // System includes
 
 // External includes
 
 // Project includes
 #include "includes/define_python.h"
-//#include "containers/hash_data_value_container.h"
-// #include "containers/variables_list_data_value_container.h"
-// #include "containers/vector_component_adaptor.h"
-#include "containers/flags.h"
-//#include "containers/all_variables_data_value_container.h"
-// #include "includes/kratos_flags.h"
 #include "includes/dem_variables.h"
-// #include "includes/constitutive_law.h"
 #include "python/add_dem_variables_to_python.h"
-// #include "python/vector_python_interface.h"
-// #include "python/vector_scalar_operator_python.h"
-// #include "python/vector_vector_operator_python.h"
-// #include "python/bounded_vector_python_interface.h"
-
-// #include "includes/convection_diffusion_settings.h"
-// #include "includes/radiation_settings.h"
-#include "utilities/timer.h"
 
 namespace Kratos
 {
-//KRATOS_CREATE_FLAG(STRUCTURE,   63);
 
 namespace Python
 {
-using namespace pybind11;
 
 void  AddDEMVariablesToPython(pybind11::module& m)
 {
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TOTAL_FORCES )
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DAMP_FORCES )   
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DAMP_FORCES )
     //variables in the general Discrete_element class & MPI & gidio
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FRAME_OF_REFERENCE_TYPE )
@@ -58,16 +40,16 @@ void  AddDEMVariablesToPython(pybind11::module& m)
     //variables for the neighbour search
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SEARCH_RADIUS_INCREMENT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SEARCH_RADIUS_INCREMENT_FOR_WALLS )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, OLD_NEIGHBOURS_IDS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INI_NEIGHBOURS_IDS)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONTINUUM_INI_NEIGHBOURS_IDS)        
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONTINUUM_INI_NEIGHBOURS_IDS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NEIGHBOURS_IDS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NEIGHBOURS_IDS_DOUBLE )
-            
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENT_TYPE )     
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENT_TYPE )
 
     // Swimming DEM Application BEGINNING
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PERMEABILITY)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NUMBER_OF_INIT_BASSET_STEPS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, COUPLING_TYPE)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NON_NEWTONIAN_OPTION )
@@ -92,6 +74,7 @@ void  AddDEMVariablesToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DISPERSE_FRACTION )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DISPERSE_FRACTION_RATE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FLUID_FRACTION )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FLUID_FRACTION_OLD )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FLUID_FRACTION_RATE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FLUID_FRACTION_FILTERED )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PHASE_FRACTION )
@@ -156,7 +139,7 @@ void  AddDEMVariablesToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PARTICLE_ROTATE_SPRING_FAILURE_TYPE)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,DEM_DELTA_TIME)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,FIXED_MESH_OPTION)
-            
+
     // for DEM Sintering
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ATOMIC_VOLUME )

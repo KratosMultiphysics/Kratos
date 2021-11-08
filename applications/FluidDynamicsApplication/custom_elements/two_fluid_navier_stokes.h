@@ -25,6 +25,8 @@
 #include "custom_elements/fluid_element.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "utilities/geometry_utilities.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
+#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 
 namespace Kratos
 {
@@ -66,7 +68,7 @@ class TwoFluidNavierStokes : public FluidElement<TElementData>
 public:
 
     /// Counted pointer of
-    KRATOS_CLASS_POINTER_DEFINITION(TwoFluidNavierStokes);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoFluidNavierStokes);
 
     ///@name Type Definitions
     ///@{
@@ -168,7 +170,7 @@ public:
     void CalculateLocalSystem(
         MatrixType &rLeftHandSideMatrix,
         VectorType &rRightHandSideVector,
-        ProcessInfo &rCurrentProcessInfo) override;
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Computes the elemental RHS elemental contribution
     /**
@@ -179,7 +181,7 @@ public:
      */
     void CalculateRightHandSide(
         VectorType &rRightHandSideVector,
-        ProcessInfo &rCurrentProcessInfo) override;
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Auxiliar element check function
     /**
@@ -187,7 +189,7 @@ public:
      * current element check implementations
      * @param rCurrentProcessInfo reference to the current process info
      */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Inquiry
@@ -215,6 +217,20 @@ public:
     ///@name Input and output
     ///@{
 
+    /// Function to visualize the divergence field
+
+    /**
+     * @brief Get the Value On Integration Points object (used to visualize the divergence field)
+     *
+     * @param rVariable Variable to be retrieved (implementation supports DIVERGENCE)
+     * @param rValues Vector for the values at the Gauss integration points
+     * @param rCurrentProcessInfo ProcessInfo object
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<double> &rVariable,
+        std::vector<double> &rValues,
+        const ProcessInfo &rCurrentProcessInfo ) override;
+
     ///@}
     ///@name Friends
     ///@{
@@ -238,9 +254,9 @@ protected:
 
     /**
      * @brief Computes time integrated LHS and RHS arrays
-     * This method computes both the Left Hand Side and 
-     * Right Hand Side time integrated contributions. 
-     * @param rData Reference to the element data container 
+     * This method computes both the Left Hand Side and
+     * Right Hand Side time integrated contributions.
+     * @param rData Reference to the element data container
      * @param rLHS Reference to the Left Hand Side matrix to be filled
      * @param rRHS Reference to the Right Hand Side vector to be filled
      */
@@ -268,15 +284,6 @@ protected:
     void AddTimeIntegratedRHS(
         TElementData& rData,
         VectorType& rRHS) override;
-    
-    /**
-     * @brief Computes the material response
-     * This method computes the material response taking into account if the 
-     * element is air or fluid. The material response is saved in the data container.
-     * @param rData Reference to the element data container
-     */
-    void CalculateMaterialResponse(
-        TElementData& rData) const override;
 
     /**
      * @brief Computes the LHS Gauss pt. contribution
@@ -300,7 +307,7 @@ protected:
 
     /**
      * @brief Computes the pressure enrichment contributions
-     * This method computes the pressure enrichment contributions for 
+     * This method computes the pressure enrichment contributions for
      * a Gauss pt. in both the left hand side and righ hand side of the equations.
      * @param rData Reference to the element data container
      * @param rV Contribution related to the pressure enrichment DOFs in the N-S standard equations
@@ -314,6 +321,36 @@ protected:
 		MatrixType& rH,
 		MatrixType& rKee,
 		VectorType& rRHS_ee);
+
+    /// Set up the element's data and constitutive law for the current integration point.
+    /** @param[in/out] rData Container for the current element's data.
+     *  @param[in] Weight Integration point weight.
+     *  @param[in] rN Values of nodal shape functions at the integration point.
+     *  @param[in] rDN_DX Values of nodal shape function gradients at the integration point.
+     */
+    void UpdateIntegrationPointData(
+        TElementData& rData,
+        unsigned int IntegrationPointIndex,
+        double Weight,
+        const typename TElementData::MatrixRowType& rN,
+        const typename TElementData::ShapeDerivativesType& rDN_DX) const override;
+
+    /// Set up the element's data for a cut element and constitutive law for the current integration point.
+    /** @param[in/out] rData Container for the current element's data.
+     *  @param[in] Weight Integration point weight.
+     *  @param[in] rN Values of nodal shape functions at the integration point.
+     *  @param[in] rDN_DX Values of nodal shape function gradients at the integration point.
+     *  @param[in] rNenr Values of nodal enriched shape functions at the integration point.
+     *  @param[in] rDN_DXenr Values of nodal enriched shape functions gradients at the integration point.
+     */
+    void UpdateIntegrationPointData(
+        TElementData& rData,
+        unsigned int IntegrationPointIndex,
+        double Weight,
+        const typename TElementData::MatrixRowType& rN,
+        const typename TElementData::ShapeDerivativesType& rDN_DX,
+        const typename TElementData::MatrixRowType& rNenr,
+        const typename TElementData::ShapeDerivativesType& rDN_DXenr) const;
 
     ///@}
     ///@name Protected  Access
@@ -362,6 +399,7 @@ private:
      * @param rShapeDerivativesNeg  Negative side shape functions derivatives values
      * @param rEnrichedShapeDerivativesPos Positive side enrichment shape functions derivatives values
      * @param rEnrichedShapeDerivativesNeg Negative side enrichment shape functions derivatives values
+     * @param pModifiedShapeFunctions Pointer to the element splitting utility
      */
     void ComputeSplitting(
 		TElementData& rData,
@@ -372,7 +410,82 @@ private:
         GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesPos,
         GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesNeg,
         GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesPos,
-        GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesNeg);
+        GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesNeg,
+        ModifiedShapeFunctions::Pointer pModifiedShapeFunctions);
+
+    /**
+     * @brief This method computes the standard and enrichment shape functions for the interfaces
+     * @param rData Element data container
+     * @param rInterfaceShapeFunctionNeg Negative side shape functions at the interface-gauss-points
+     * @param rEnrInterfaceShapeFunctionPos Enriched shape functions at the interface-gauss-points Positive side
+     * @param rEnrInterfaceShapeFunctionNeg Enriched shape functions at the interface-gauss-points Negative side
+     * @param rInterfaceShapeDerivativesNeg Negative side shape functions derivatives at the interface-gauss-points
+     * @param rInterfaceWeightsNeg Negative side weights for the interface-gauss-points
+     * @param rInterfaceNormalsNeg Negative side normal vectors for the interface-gauss-points
+     * @param pModifiedShapeFunctions Pointer to the element splitting utility
+     */
+    void ComputeSplitInterface(
+        const TElementData& rData,
+        MatrixType& rInterfaceShapeFunctionNeg,
+        MatrixType& rEnrInterfaceShapeFunctionPos,
+        MatrixType& rEnrInterfaceShapeFunctionNeg,
+        GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+        Vector& rInterfaceWeightsNeg,
+        std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
+        ModifiedShapeFunctions::Pointer pModifiedShapeFunctions);
+
+    /**
+     * @brief This function returns the ModifiedShapeFunctions object according to TDim
+     * @param pGeometry Pointer to the element geometry
+     * @param rDistances Distance at the nodes
+     */
+    ModifiedShapeFunctions::UniquePointer pGetModifiedShapeFunctionsUtility(
+        const GeometryType::Pointer pGeometry,
+        const Vector& rDistances);
+
+    /**
+     * @brief Calculates curvature at the gauss points of the interface.
+     * @param rInterfaceCurvature Vector containing curvature values at the gauss points
+     * @param rInterfaceShapeFunctions Shape functions calculated at the interface gauss points
+     */
+    void CalculateCurvatureOnInterfaceGaussPoints(
+        const Matrix& rInterfaceShapeFunctions,
+        Vector& rInterfaceCurvature);
+
+    /**
+     * @brief Computes the surface tension on the interface and implement its effect on the RHS vector
+     * @param SurfaceTensionCoefficient surface tension coefficient
+     * @param rCurvature curvature calculated at the interface gauss points
+     * @param rInterfaceWeights Weights associated with interface gauss points
+     * @param rInterfaceShapeFunctions Shape functions calculated at the interface gauss points
+     * @param rInterfaceNormalsNeg Normal vectors (negative side) associated with interface gauss points
+     * @param rRHS The effect of pressure discontinuity is implemented as an interfacial integral on the RHS
+     */
+    void SurfaceTension(
+        const double SurfaceTensionCoefficient,
+        const Vector& rCurvature,
+        const Vector& rInterfaceWeights,
+        const Matrix& rInterfaceShapeFunctions,
+        const std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
+        VectorType& rRHS);
+
+    /**
+     * @brief Computes the enriched LHS/RHS terms associated with the pressure stabilizations at the interface
+     * @param rInterfaceWeightsNeg Negative side weights for the interface-gauss-points
+     * @param rEnrInterfaceShapeFunctionPos Enriched shape functions at the interface-gauss-points Positive side
+     * @param rEnrInterfaceShapeFunctionNeg Enriched shape functions at the interface-gauss-points Negative side
+     * @param rInterfaceShapeDerivativesNeg Shape functions derivatives at the interface-gauss-points
+     * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
+     * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
+     */
+    void PressureGradientStabilization(
+        const TElementData& rData,
+        const Vector& rInterfaceWeights,
+        const Matrix& rEnrInterfaceShapeFunctionPos,
+        const Matrix& rEnrInterfaceShapeFunctionNeg,
+        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
+        MatrixType& rKeeTot,
+		VectorType& rRHSeeTot);
 
     /**
      * @brief Condense the enrichment
@@ -386,7 +499,7 @@ private:
      * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
      * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
      */
-	void CondenseEnrichment(
+	void CondenseEnrichmentWithContinuity(
 		const TElementData& rData,
 		Matrix& rLeftHandSideMatrix,
 		VectorType& rRightHandSideVector,
@@ -394,6 +507,37 @@ private:
 		const MatrixType& rHTot,
 		MatrixType& rKeeTot,
 		const VectorType& rRHSeeTot);
+
+    /**
+     * @brief Condense the enrichment without penalty
+     * This method performs the static condensation of the enrichment terms, by adding
+     * its local contributions to both the LHS and RHS elemental matrices.
+     * Pressure continuity along cut edges is not penalized in this function
+     * Volume ratio is not checked in this function
+     * @param rLeftHandSideMatrix Reference to the element Left Hand Side matrix
+     * @param rRightHandSideVector Reference to the element Right Hand Side vector
+     * @param rVTot Common N-S equations term associated to pressure enrichment DOFs
+     * @param rHTot Pressure enrichment contribution related to velocity and pressure DOFs
+     * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
+     * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
+     */
+	void CondenseEnrichment(
+		Matrix& rLeftHandSideMatrix,
+		VectorType& rRightHandSideVector,
+		const MatrixType& rVTot,
+		const MatrixType& rHTot,
+		MatrixType& rKeeTot,
+		const VectorType& rRHSeeTot);
+
+    void AddSurfaceTensionContribution(
+        const TElementData& rData,
+        ModifiedShapeFunctions::Pointer pModifiedShapeFunctions,
+        Matrix &rLeftHandSideMatrix,
+        VectorType &rRightHandSideVector,
+        const MatrixType &rHtot,
+        const MatrixType &rVtot,
+        MatrixType &rKeeTot,
+        VectorType &rRHSeeTot);
 
     ///@}
     ///@name Private  Access

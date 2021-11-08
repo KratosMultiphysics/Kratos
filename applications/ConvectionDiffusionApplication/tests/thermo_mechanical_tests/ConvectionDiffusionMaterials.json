@@ -1,0 +1,14 @@
+{
+    "properties" : [{
+        "model_part_name" : "ThermalModelPart.Parts_Solid_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "Variables" : {
+                "DENSITY"           : 1.2039,
+                "CONDUCTIVITY"      : 0.83052,
+                "SPECIFIC_HEAT"     : 1004.84
+            },
+            "Tables"    : {}
+        }
+    }]
+}

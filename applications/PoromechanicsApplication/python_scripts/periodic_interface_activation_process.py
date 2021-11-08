@@ -12,19 +12,19 @@ class PeriodicInterfaceActivationProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
-        model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part = Model[settings["model_part_name"].GetString()]
 
-        params = KratosMultiphysics.Parameters("{}")
-        params.AddValue("model_part_name",settings["model_part_name"])
-        params.AddValue("dimension",settings["dimension"])
-        params.AddValue("stress_limit",settings["stress_limit"])
+        self.params = KratosMultiphysics.Parameters("{}")
+        self.params.AddValue("model_part_name",settings["model_part_name"])
+        self.params.AddValue("dimension",settings["dimension"])
+        self.params.AddValue("stress_limit",settings["stress_limit"])
 
-        self.process = KratosPoro.PeriodicInterfaceProcess(model_part, params)
+        self.process = KratosPoro.PeriodicInterfaceProcess(self.model_part, self.params)
 
         if(settings["dimension"].GetInt() == 2):
-            self.FindNodalNeigh = KratosMultiphysics.FindNodalNeighboursProcess(model_part,2,5)
+            self.FindNodalNeigh = KratosMultiphysics.FindNodalNeighboursProcess(self.model_part)
         else:
-            self.FindNodalNeigh = KratosMultiphysics.FindNodalNeighboursProcess(model_part,10,10)
+            self.FindNodalNeigh = KratosMultiphysics.FindNodalNeighboursProcess(self.model_part)
 
     def ExecuteInitialize(self):
 

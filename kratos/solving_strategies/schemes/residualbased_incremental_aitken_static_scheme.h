@@ -10,24 +10,18 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 #if !defined( KRATOS_RESIDUALBASED_INCREMENTAL_AITKEN_STATIC_SCHEME_H_INCLUDED )
 #define  KRATOS_RESIDUALBASED_INCREMENTAL_AITKEN_STATIC_SCHEME_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-
 
 namespace Kratos
 {
@@ -66,7 +60,11 @@ public:
     /// Pointer definition of ResidualBasedIncrementalAitkenStaticScheme
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedIncrementalAitkenStaticScheme);
 
+    typedef Scheme<TSparseSpace,TDenseSpace> BaseSchemeType;
+
     typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
+
+    typedef ResidualBasedIncrementalAitkenStaticScheme<TSparseSpace, TDenseSpace> ClassType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -76,17 +74,31 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    //typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    //typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    /** @param DefaultOmega Default relaxation factor to use in the first iteration, where Aitken's factor cannot be computed. Use a value between 0 and 1.
-      */
-    ResidualBasedIncrementalAitkenStaticScheme(double DefaultOmega):
+    /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedIncrementalAitkenStaticScheme() : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters Default relaxation factor to use in the first iteration, where Aitken's factor cannot be computed. Use a value between 0 and 1.
+    */
+    explicit ResidualBasedIncrementalAitkenStaticScheme(Parameters ThisParameters) :
+        ResidualBasedIncrementalAitkenStaticScheme([](Parameters x) -> double {x.ValidateAndAssignDefaults(StaticGetDefaultParameters()); return x["default_omega"].GetDouble(); }(ThisParameters))
+    {
+    }
+
+    /**
+     * @brief Default constructor.
+     * @param DefaultOmega Default relaxation factor to use in the first iteration, where Aitken's factor cannot be computed. Use a value between 0 and 1.
+    */
+    explicit ResidualBasedIncrementalAitkenStaticScheme(double DefaultOmega):
         mDefaultOmega(DefaultOmega),
         mOldOmega(DefaultOmega)
     {}
@@ -103,6 +115,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseSchemeType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /// Initialize the iteration counter at the begining of each solution step
     /**
@@ -122,21 +143,6 @@ public:
         }
         TSparseSpace::SetToZero(mPreviousDx);
         mIterationCounter = 0;
-    }
-
-    /// Increase the iteration counter at the begining of each iteration
-    /**
-      * @param r_model_part The problem's ModelPart
-      * @param A System matrix
-      * @param Dx Solution vector (containing the increment of the unknowns obtained in the present iteration)
-      * @param b Right hand side vector
-      */
-    void InitializeNonLinIteration(ModelPart &r_model_part,
-                                           TSystemMatrixType &A,
-                                           TSystemVectorType &Dx,
-                                           TSystemVectorType &b) override
-    {
-        BaseType::InitializeNonLinIteration(r_model_part,A,Dx,b);
     }
 
 
@@ -197,6 +203,25 @@ public:
         mOldOmega = Omega;
     }
 
+    static Parameters StaticGetDefaultParameters()
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"          : "ResidualBasedIncrementalAitkenStaticScheme",
+            "default_omega" : 0.1
+        })");
+
+        return default_parameters;
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        return StaticGetDefaultParameters();
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -206,11 +231,27 @@ public:
     ///@name Inquiry
     ///@{
 
-
     ///@}
     ///@name Input and output
     ///@{
 
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedIncrementalAitkenStaticScheme";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends

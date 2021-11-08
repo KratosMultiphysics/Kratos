@@ -2,20 +2,18 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_WEAK_POINTER_VECTOR_H_INCLUDED )
 #define  KRATOS_WEAK_POINTER_VECTOR_H_INCLUDED
-
-
 
 // System includes
 #include <functional>
@@ -25,7 +23,6 @@
 #include <vector>
 
 // External includes
-#include <boost/weak_ptr.hpp>
 
 
 // Project includes
@@ -64,9 +61,9 @@ namespace Kratos
     deleting.
  */
 template<class TDataType,
-         class TPointerType = Kratos::weak_ptr<TDataType>,
+         class TPointerType = typename TDataType::WeakPointer,
          class TContainerType = std::vector<TPointerType> >
-class WeakPointerVector
+class WeakPointerVector final
 {
 public:
     ///@name Type Definitions
@@ -110,12 +107,12 @@ public:
 
     WeakPointerVector(const WeakPointerVector& rOther) :  mData(rOther.mData) {}
 
-    WeakPointerVector(const TContainerType& rContainer) :  mData(rContainer)
+    explicit WeakPointerVector(const TContainerType& rContainer) :  mData(rContainer)
     {
     }
 
     /// Destructor.
-    virtual ~WeakPointerVector() {}
+    ~WeakPointerVector() {}
 
 
     ///@}
@@ -355,7 +352,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "WeakPointerVector (size = " << size() << ") : ";
@@ -364,13 +361,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const
     {
         std::copy(begin(), end(), std::ostream_iterator<TDataType>(rOStream, "\t "));
     }
@@ -497,4 +494,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_WEAK_POINTER_VECTOR_H_INCLUDED  defined 
+#endif // KRATOS_WEAK_POINTER_VECTOR_H_INCLUDED  defined

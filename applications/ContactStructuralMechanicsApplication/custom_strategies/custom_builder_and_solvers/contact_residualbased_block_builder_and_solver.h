@@ -1,11 +1,11 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -29,7 +29,7 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -65,12 +65,18 @@ class ContactResidualBasedBlockBuilderAndSolver
 public:
     ///@name Type Definitions
     ///@{
-    
+
     /// Pointer definition of ContactResidualBasedBlockBuilderAndSolver
     KRATOS_CLASS_POINTER_DEFINITION(ContactResidualBasedBlockBuilderAndSolver);
 
+    /// Builder and solver base class
+    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseBuilderAndSolverType;
+
     /// Definitions dependent of the base class
     typedef TBuilderAndSolver BaseType;
+
+    /// The definition of the current class
+    typedef ContactResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver, TBuilderAndSolver> ClassType;
 
     typedef typename BaseType::TSchemeType TSchemeType;
 
@@ -85,6 +91,26 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor
+     */
+    explicit ContactResidualBasedBlockBuilderAndSolver() : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     */
+    explicit ContactResidualBasedBlockBuilderAndSolver(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : BaseType(pNewLinearSystemSolver)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
 
     /** Constructor.
      */
@@ -104,10 +130,27 @@ public:
     ///@name Operators
     ///@{
 
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseBuilderAndSolverType::Pointer Create(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(pNewLinearSystemSolver,ThisParameters);
+    }
+
     /**
      * @brief This method imposses the BC of Dirichlet. It will fill with 0 the corresponding DoF
      * @param pScheme The pointer to the scheme considered
-     * @param rModelPart The model part of the problem to solve 
+     * @param rModelPart The model part of the problem to solve
      * @param A The LHS of the system
      * @param Dx The current solution increment
      * @param b The RHS of the system
@@ -121,16 +164,16 @@ public:
         ) override
     {
         FixIsolatedNodes(rModelPart);
-        
+
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
-        
+
         FreeIsolatedNodes(rModelPart);
     }
-    
+
     /**
      * @brief This method buils the RHS of the system of equations
      * @param pScheme The pointer to the scheme considered
-     * @param rModelPart The model part of the problem to solve 
+     * @param rModelPart The model part of the problem to solve
      * @param b The RHS of the system
      */
     void BuildRHS(
@@ -140,15 +183,37 @@ public:
         ) override
     {
         FixIsolatedNodes(rModelPart);
-        
+
         BaseType::BuildRHS(pScheme, rModelPart, b);
-        
+
         FreeIsolatedNodes(rModelPart);
     }
-    
-    ///@}
-    ///@name Operations
-    ///@{
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "contact_block_builder_and_solver"
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "contact_block_builder_and_solver";
+    }
 
     ///@}
     ///@name Access
@@ -180,6 +245,15 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -195,11 +269,11 @@ protected:
     ///@}
 
 private:
-    ///@name Static Member Variables 
+    ///@name Static Member Variables
     ///@{
 
     ///@}
-    ///@name Member Variables 
+    ///@name Member Variables
     ///@{
 
     ///@}
@@ -214,78 +288,70 @@ private:
     {
         KRATOS_ERROR_IF_NOT(rModelPart.HasSubModelPart("Contact")) << "CONTACT MODEL PART NOT CREATED" << std::endl;
         KRATOS_ERROR_IF_NOT(rModelPart.HasSubModelPart("ComputingContact")) << "CONTACT COMPUTING MODEL PART NOT CREATED" << std::endl;
-        ModelPart& contact_model_part = rModelPart.GetSubModelPart("Contact"); 
-        ModelPart& computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact"); 
-        
+        ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
+        ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
+
         // We reset the flag
-        auto& nodes_array = contact_model_part.Nodes();
-        #pragma omp parallel for 
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            (nodes_array.begin() + i)->Set(VISITED, false);
-            (nodes_array.begin() + i)->Set(ISOLATED, false);
-        }
-        
+        auto& r_nodes_array = r_contact_model_part.Nodes();
+        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            rNode.Set(VISITED, false);
+            rNode.Set(ISOLATED, false);
+        });
+
         // Now we set the flag in the nodes
-        auto& conditions_array = computing_contact_model_part.Conditions();
-        
-        #pragma omp parallel for 
-        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
-            auto it_cond = conditions_array.begin() + i;
-            auto& geom = it_cond->GetGeometry();
-            for (std::size_t i_node = 0; i_node < geom.size(); ++i_node) {
-                geom[i_node].SetLock();
-                if (geom[i_node].Is(VISITED) == false) {
-                    geom[i_node].Set(ISOLATED, it_cond->Is(ISOLATED));
-                    geom[i_node].Set(VISITED, true);
+        auto& r_conditions_array = r_computing_contact_model_part.Conditions();
+        block_for_each(r_conditions_array, [&](Condition& rCond) {
+            auto& r_parent_geometry = rCond.GetGeometry().GetGeometryPart(0);
+            for (std::size_t i_node = 0; i_node < r_parent_geometry.size(); ++i_node) {
+                r_parent_geometry[i_node].SetLock();
+                if (r_parent_geometry[i_node].Is(VISITED) == false) {
+                    r_parent_geometry[i_node].Set(ISOLATED, rCond.Is(ISOLATED));
+                    r_parent_geometry[i_node].Set(VISITED, true);
                 } else {
-                    geom[i_node].Set(ISOLATED, geom[i_node].Is(ISOLATED) && it_cond->Is(ISOLATED));
+                    r_parent_geometry[i_node].Set(ISOLATED, r_parent_geometry[i_node].Is(ISOLATED) && rCond.Is(ISOLATED));
                 }
-                geom[i_node].UnSetLock();
+                r_parent_geometry[i_node].UnSetLock();
             }
-        }
-        
+        });
+
         // We fix the LM
-        #pragma omp parallel for 
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
-            if (it_node->Is(ISOLATED) == true) {
-                if (it_node->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
-                    it_node->Fix(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
-                else if (it_node->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X)) {
-                    it_node->Fix(VECTOR_LAGRANGE_MULTIPLIER_X);
-                    it_node->Fix(VECTOR_LAGRANGE_MULTIPLIER_Y);
-                    it_node->Fix(VECTOR_LAGRANGE_MULTIPLIER_Z);
+        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            if (rNode.Is(ISOLATED)) {
+                if (rNode.SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
+                    rNode.Fix(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
+                } else if (rNode.SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X)) {
+                    rNode.Fix(VECTOR_LAGRANGE_MULTIPLIER_X);
+                    rNode.Fix(VECTOR_LAGRANGE_MULTIPLIER_Y);
+                    rNode.Fix(VECTOR_LAGRANGE_MULTIPLIER_Z);
                 }
             }
-        }
+        });
     }
-    
+
     /**
-     * @brief This method releases the ISOLATED nodes 
+     * @brief This method releases the ISOLATED nodes
      * @param rModelPart The model part to compute
      */
     void FreeIsolatedNodes(ModelPart& rModelPart)
     {
         KRATOS_ERROR_IF_NOT(rModelPart.HasSubModelPart("Contact")) << "CONTACT MODEL PART NOT CREATED" << std::endl;
-        ModelPart& contact_model_part = rModelPart.GetSubModelPart("Contact");
-        
+        ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
+
         // We release the LM
-        auto& nodes_array = contact_model_part.Nodes();
-        #pragma omp parallel for 
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
-            if (it_node->Is(ISOLATED) == true) {
-                if (it_node->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
-                    it_node->Free(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
-                else if (it_node->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X)) {
-                    it_node->Free(VECTOR_LAGRANGE_MULTIPLIER_X);
-                    it_node->Free(VECTOR_LAGRANGE_MULTIPLIER_Y);
-                    it_node->Free(VECTOR_LAGRANGE_MULTIPLIER_Z);
+        auto& r_nodes_array = r_contact_model_part.Nodes();
+        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            if (rNode.Is(ISOLATED)) {
+                if (rNode.SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
+                    rNode.Free(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
+                } else if (rNode.SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X)) {
+                    rNode.Free(VECTOR_LAGRANGE_MULTIPLIER_X);
+                    rNode.Free(VECTOR_LAGRANGE_MULTIPLIER_Y);
+                    rNode.Free(VECTOR_LAGRANGE_MULTIPLIER_Z);
                 }
             }
-        }
+        });
     }
-    
+
     ///@}
     ///@name Private Operations
     ///@{

@@ -39,7 +39,7 @@ namespace Kratos
 
 
 
-class HenckyBorjaCamClayPlasticPlaneStrain2DLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) HenckyBorjaCamClayPlasticPlaneStrain2DLaw
     : public HenckyElasticPlasticPlaneStrain2DLaw
 
 {
@@ -51,9 +51,9 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
 
-    typedef MPMFlowRule::Pointer                MPMFlowRulePointer;
-    typedef MPMYieldCriterion::Pointer    YieldCriterionPointer;
-    typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
+    typedef ParticleFlowRule::Pointer                MPMFlowRulePointer;
+    typedef ParticleYieldCriterion::Pointer    YieldCriterionPointer;
+    typedef ParticleHardeningLaw::Pointer        HardeningLawPointer;
     typedef Properties::Pointer            PropertiesPointer;
 
     /**
@@ -115,7 +115,7 @@ public:
      * @param CurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) const override;
 
 
 

@@ -28,31 +28,24 @@
 
 // ==============================================================================
 
-namespace Kratos
+namespace Kratos {
+namespace Python {
+
+PYBIND11_MODULE(KratosShapeOptimizationApplication, m)
 {
+    namespace py = pybind11;
 
-namespace Python
-{
+    py::class_<KratosShapeOptimizationApplication,
+        KratosShapeOptimizationApplication::Pointer,
+        KratosApplication >(m, "KratosShapeOptimizationApplication")
+        .def(py::init<>())
+        ;
 
-using namespace pybind11;
+    AddCustomUtilitiesToPython(m);
 
+    //registering variables in python
 
-
-  PYBIND11_MODULE(KratosShapeOptimizationApplication, m)
-  {
-
-	  class_<KratosShapeOptimizationApplication,
-			  KratosShapeOptimizationApplication::Pointer,
-			  KratosApplication >(m, "KratosShapeOptimizationApplication")
-        .def(init<>())
-			;
-
-	AddCustomUtilitiesToPython(m);
-
-
-	//registering variables in python
-
-	// Geometry variables
+    // Geometry variables
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, NORMALIZED_SURFACE_NORMAL);
 
     // Optimization variables
@@ -81,6 +74,7 @@ using namespace pybind11;
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC9DX_MAPPED);
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, SEARCH_DIRECTION);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, CORRECTION);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, CONTROL_POINT_UPDATE);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, CONTROL_POINT_CHANGE);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, SHAPE_UPDATE);
@@ -92,11 +86,30 @@ using namespace pybind11;
 
     // For mapping
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MAPPING_ID);
+
+    // Bead optimization
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ALPHA);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ALPHA_MAPPED);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DF1DALPHA);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DF1DALPHA_MAPPED);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DPDALPHA);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DPDALPHA_MAPPED);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DLDALPHA);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, BEAD_DIRECTION);
+
+    // For auxiliary operations
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_VARIABLE);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_VARIABLE_MAPPED);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VECTOR_VARIABLE);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VECTOR_VARIABLE_MAPPED);
+
+    // For in plane mapping operations
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, BACKGROUND_COORDINATE);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, BACKGROUND_NORMAL);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, OUT_OF_PLANE_DELTA);
   }
 
-
 }  // namespace Python.
-
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

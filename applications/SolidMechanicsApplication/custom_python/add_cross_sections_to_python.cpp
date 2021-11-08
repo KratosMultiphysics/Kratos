@@ -24,7 +24,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 void Helper_SetCrossSectionsOnIntegrationPoints_Thin(ShellThinElement3D3N& el, const pybind11::list& seclist)
 {
@@ -51,8 +51,8 @@ void Helper_SetCrossSectionsOnIntegrationPoints_Thick(ShellThickElement3D4N& el,
 void AddCrossSectionsToPython(pybind11::module& m)
 {
 
-  class_<ShellCrossSection, ShellCrossSection::Pointer >(m,"ShellCrossSection")
-      .def(init<>())
+  py::class_<ShellCrossSection, ShellCrossSection::Pointer >(m,"ShellCrossSection")
+      .def(py::init<>())
       .def("BeginStack", &ShellCrossSection::BeginStack)
       .def("AddPly", &ShellCrossSection::AddPly)
       .def("EndStack", &ShellCrossSection::EndStack)
@@ -66,14 +66,14 @@ void AddCrossSectionsToPython(pybind11::module& m)
       DECLARE_GET_THIS_TYPE_FROM_PROPERTIES_PYTHON_AS_POINTER(ShellCrossSection)
       ;
 
-  class_<Variable<ShellCrossSection::Pointer>, VariableData>(m,"ShellCrossSectionVariable")
+  py::class_<Variable<ShellCrossSection::Pointer>, VariableData>(m,"ShellCrossSectionVariable")
       ;
 
-  class_<ShellThinElement3D3N, ShellThinElement3D3N::Pointer, Element >(m,"ShellThinElement3D3N")
+  py::class_<ShellThinElement3D3N, ShellThinElement3D3N::Pointer, Element >(m,"ShellThinElement3D3N")
       .def("SetCrossSectionsOnIntegrationPoints", &Helper_SetCrossSectionsOnIntegrationPoints_Thin)
       ;
 
-  class_<ShellThickElement3D4N, ShellThickElement3D4N::Pointer, Element >(m,"ShellThickElement3D4N")
+  py::class_<ShellThickElement3D4N, ShellThickElement3D4N::Pointer, Element >(m,"ShellThickElement3D4N")
       .def("SetCrossSectionsOnIntegrationPoints", &Helper_SetCrossSectionsOnIntegrationPoints_Thick)
       ;
 

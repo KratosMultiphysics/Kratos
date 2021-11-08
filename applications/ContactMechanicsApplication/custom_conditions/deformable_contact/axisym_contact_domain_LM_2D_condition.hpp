@@ -72,7 +72,7 @@ public:
 
 
     /// Counted pointer of AxisymContactDomainLM2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymContactDomainLM2DCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AxisymContactDomainLM2DCondition );
 
     ///@}
     ///@name Life Cycle
@@ -175,13 +175,13 @@ protected:
      * Initialize Variables
      */
     void InitializeConditionVariables (ConditionVariables& rVariables,
-				     const ProcessInfo& rCurrentProcessInfo) override;
+                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate Condition Kinematics
      */
     void CalculateKinematics(ConditionVariables& rVariables,
-			     ProcessInfo& rCurrentProcessInfo,
+			     const ProcessInfo& rCurrentProcessInfo,
 			     const unsigned int& rPointNumber) override;
 
     /**

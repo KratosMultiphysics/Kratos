@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
+//
 //
 
 #if !defined(KRATOS_STRUCTURED_MESH_GENERATOR_PROCESS_H_INCLUDED )
@@ -84,6 +84,12 @@ namespace Kratos
 
 	  void Execute() override;
 
+      int Check() override;
+
+      /**
+       * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+       */
+      const Parameters GetDefaultParameters() const override;
 
       ///@}
       ///@name Access
@@ -158,8 +164,6 @@ namespace Kratos
 		  std::size_t GetNodeId(std::size_t I, std::size_t J, std::size_t K);
 
 		  void GetLocalCoordinatesRange(Point& rMinPoint, Point& rMaxPoint);
-
-          void Check();
 
           bool CheckDomainGeometry();
 

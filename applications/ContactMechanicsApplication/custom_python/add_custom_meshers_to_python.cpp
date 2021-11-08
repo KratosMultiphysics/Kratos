@@ -27,18 +27,18 @@ namespace Python
 void  AddCustomMeshersToPython(pybind11::module& m)
 {
 
-  using namespace pybind11;
+  namespace py = pybind11;
 
   // Class that allows 3D contact domain spatial search
-  class_<ContactDomain3DMesher, typename ContactDomain3DMesher::Pointer, Mesher>
+  py::class_<ContactDomain3DMesher, typename ContactDomain3DMesher::Pointer, Mesher>
       (m,"ContactDomain3DMesher")
-      .def(init< >())
+      .def(py::init< >())
       ;
 
   // Class that allows 2D contact domain spatial search
-  class_<ContactDomain2DMesher, typename ContactDomain2DMesher::Pointer, Mesher>
+  py::class_<ContactDomain2DMesher, typename ContactDomain2DMesher::Pointer, Mesher>
       (m,"ContactDomain2DMesher")
-      .def(init< >())
+      .def(py::init< >())
       ;
 
 }

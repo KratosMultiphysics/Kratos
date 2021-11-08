@@ -5,12 +5,9 @@ message("**** configuring KratosSolidMechanicsApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-#include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../ConstitutiveModelsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
-if(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
-    message(SEND_ERROR "The ConsitutiveModelsApplication must be compiled before this one. Set CONSTITUTIVE_MODELS_APPLICATION=ON in the configure file.")
-endif(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConstitutiveModelsApplication)
 
 ## Generate variables with the sources
 set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
@@ -172,6 +169,12 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 	## DEPRECATED CONSTITUTIVE LAWS IMPLEMENTATION ##
 )
 
+## generate variables with the testing sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+  file(GLOB_RECURSE KRATOS_SOLID_MECHANICS_APPLICATION_TESTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
+
 ## Generate variables with the sources
 set( KRATOS_SOLID_MECHANICS_APPLICATION_PYTHON_INTERFACE
         # Custom python
@@ -183,7 +186,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
 )
 
-add_library(KratosSolidMechanicsCore SHARED ${KRATOS_SOLID_MECHANICS_APPLICATION_CORE})
+add_library(KratosSolidMechanicsCore SHARED ${KRATOS_SOLID_MECHANICS_APPLICATION_CORE} ${KRATOS_SOLID_MECHANICS_APPLICATION_TESTS})
 #target_link_libraries(KratosSolidMechanicsCore PUBLIC KratosCore KratosConstitutiveModelsCore)
 target_link_libraries(KratosSolidMechanicsCore PUBLIC KratosCore)
 set_target_properties(KratosSolidMechanicsCore PROPERTIES COMPILE_DEFINITIONS "SOLID_MECHANICS_APPLICATION=EXPORT,API")
@@ -193,6 +196,12 @@ set_target_properties(KratosSolidMechanicsCore PROPERTIES COMPILE_DEFINITIONS "S
 pybind11_add_module(KratosSolidMechanicsApplication MODULE THIN_LTO ${KRATOS_SOLID_MECHANICS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosSolidMechanicsApplication PRIVATE KratosSolidMechanicsCore)
 set_target_properties(KratosSolidMechanicsApplication PROPERTIES PREFIX "")
+
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosSolidMechanicsCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosSolidMechanicsApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -204,30 +213,29 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosSolidMechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-# install testing files
-if(${INSTALL_TESTING_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
+# Add to the KratosMultiphisics Python module
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/SolidMechanicsApplication.py KratosMultiphysics/SolidMechanicsApplication/__init__.py )
+
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
+
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+  )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
-# install the python files
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/constitutive_laws DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
-
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("TestApplication subdir inc_dirs = ${inc_dirs}")
-
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosSolidMechanicsCore)
-    cotire(KratosSolidMechanicsApplication)
-endif(USE_COTIRE MATCHES ON)
-
+# Install targets
 install(TARGETS KratosSolidMechanicsCore DESTINATION libs )
 install(TARGETS KratosSolidMechanicsApplication DESTINATION libs )
 
-# Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/SolidMechanicsApplication.py" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/beam_profiles.csv" DESTINATION KratosMultiphysics )
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosSolidMechanicsCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosSolidMechanicsApplication" PARENT_SCOPE)

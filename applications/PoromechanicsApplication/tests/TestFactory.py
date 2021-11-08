@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from poromechanics_analysis import PoromechanicsAnalysis
+from KratosMultiphysics.PoromechanicsApplication.poromechanics_analysis import PoromechanicsAnalysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:

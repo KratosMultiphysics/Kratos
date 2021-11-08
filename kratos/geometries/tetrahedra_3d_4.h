@@ -33,25 +33,25 @@ namespace Kratos
  * @class Tetrahedra3D4
  * @ingroup KratosCore
  * @brief A four node tetrahedra geometry with linear shape functions
- * @details The node ordering corresponds with:       
+ * @details The node ordering corresponds with:
  *                             v
  *                            .
  *                          ,/
  *                         /
- *                      2                                                            
- *                    ,/|`\                                                       
- *                  ,/  |  `\                         
- *                ,/    '.   `\                      
- *              ,/       |     `\                 
- *            ,/         |       `\                
- *           0-----------'.--------1 --> u        
- *            `\.         |      ,/               
- *               `\.      |    ,/                     
- *                  `\.   '. ,/                      
- *                     `\. |/                                
- *                        `3                                   
+ *                      2
+ *                    ,/|`\
+ *                  ,/  |  `\
+ *                ,/    '.   `\
+ *              ,/       |     `\
+ *            ,/         |       `\
+ *           0-----------'.--------1 --> u
+ *            `\.         |      ,/
+ *               `\.      |    ,/
+ *                  `\.   '. ,/
+ *                     `\. |/
+ *                        `3
  *                           `\.
- *                              ` w       
+ *                              ` w
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -209,11 +209,29 @@ public:
         this->Points().push_back(pPoint4);
     }
 
-    Tetrahedra3D4( const PointsArrayType& ThisPoints)
+    explicit Tetrahedra3D4( const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
         if( this->PointsNumber() != 4)
             KRATOS_ERROR << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Id
+    explicit Tetrahedra3D4(
+        const IndexType GeometryId,
+        const PointsArrayType& rThisPoints
+    ) : BaseType(GeometryId, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF( this->PointsNumber() != 4 ) << "Invalid points number. Expected 2, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Name
+    explicit Tetrahedra3D4(
+        const std::string& rGeometryName,
+        const PointsArrayType& rThisPoints
+    ) : BaseType( rGeometryName, rThisPoints, &msGeometryData )
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 4) << "Invalid points number. Expected 2, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -242,7 +260,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Tetrahedra3D4(Tetrahedra3D4<TOtherPointType> const& rOther)
+    template<class TOtherPointType> explicit Tetrahedra3D4(Tetrahedra3D4<TOtherPointType> const& rOther)
         : BaseType(rOther)
     {
     }
@@ -252,11 +270,11 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Tetrahedra;
+        return GeometryData::KratosGeometryFamily::Kratos_Tetrahedra;
     }
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Tetrahedra3D4;
+        return GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4;
     }
 
     /**
@@ -299,34 +317,78 @@ public:
         return *this;
     }
 
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
-     * Operations
+     * @brief Creates a new geometry pointer
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
      */
-
-    typename BaseType::Pointer Create(PointsArrayType const& ThisPoints) const override
+    typename BaseType::Pointer Create(
+        PointsArrayType const& rThisPoints
+    ) const override
     {
-        return typename BaseType::Pointer(new Tetrahedra3D4(ThisPoints));
+        return typename BaseType::Pointer(new Tetrahedra3D4(rThisPoints));
     }
 
-    // Geometry< Point<3> >::Pointer Clone() const override
-    // {
-    //     Geometry< Point<3> >::PointsArrayType NewPoints;
+    /**
+     * @brief It creates a new geometry pointer
+     * @param NewId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return a Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+    ) const override
+    {
+        return typename BaseType::Pointer( new Tetrahedra3D4( NewGeometryId, rThisPoints ) );
+    }
 
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
-    //     }
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const BaseType& rGeometry
+    ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Tetrahedra3D4( rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
 
-    //     //creating a geometry with the new points
-    //     Geometry< Point<3> >::Pointer p_clone( new Tetrahedra3D4< Point<3> >( NewPoints ) );
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        const BaseType& rGeometry
+    ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Tetrahedra3D4( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
 
-    //     return p_clone;
-    // }
-
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors(Vector& rResult) const override
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    Vector& LumpingFactors(
+        Vector& rResult,
+        const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+        )  const override
     {
         if(rResult.size() != 4)
             rResult.resize(4, false);
@@ -355,8 +417,8 @@ public:
      */
     double Length() const override
     {
-        constexpr double factor = 2.0396489026555;                              // (12/sqrt(2)) ^ 1/3);
-        return  factor * std::pow(std::fabs(Volume()), 0.33333333333333);            // sqrt(fabs( DeterminantOfJacobian(PointType())));
+        constexpr double factor = 2.0396489026555;       // (12/sqrt(2)) ^ 1/3);
+        return  factor * std::cbrt(std::fabs(Volume())); // sqrt(fabs( DeterminantOfJacobian(PointType())));
     }
 
     /**
@@ -758,6 +820,133 @@ public:
       return normFactor * Volume() / std::pow(std::sqrt(1.0/6.0 * (sa + sb + sc + sd + se + sf)), 3.0);
     }
 
+
+    /** Calculates the min dihedral angle quality metric.
+     * Calculates the min dihedral angle quality metric.
+     * The min dihedral angle is min angle between two faces of the element
+     * In radians
+     * @return [description]
+     */
+    double MinDihedralAngle() const override {
+      Vector dihedral_angles(6);
+      ComputeDihedralAngles(dihedral_angles);
+      double min_dihedral_angle = 1000.0;
+      for (unsigned int i = 0; i < 6; i++)
+      {
+         if (dihedral_angles[i]<min_dihedral_angle)  min_dihedral_angle=dihedral_angles[i];
+      }
+      return min_dihedral_angle;
+    }
+
+    /** Calculates the max dihedral angle quality metric.
+     * Calculates the max dihedral angle quality metric.
+     * The max dihedral angle is max angle between two faces of the element
+     * In radians
+     * @return [description]
+     */
+    double MaxDihedralAngle() const override {
+        Vector dihedral_angles(6);
+        ComputeDihedralAngles(dihedral_angles);
+        double max_dihedral_angle = -1000.0;
+        for (unsigned int i = 0; i < 6; i++)
+        {
+            if (dihedral_angles[i] > max_dihedral_angle)  max_dihedral_angle = dihedral_angles[i];
+        }
+        return max_dihedral_angle;
+    }
+
+
+
+    /** Calculates the min solid angle quality metric.
+     * Calculates the min solid angle quality metric.
+     * The min solid angle  [stereoradians] is the lowest solid angle "seen" from any of the 4 nodes of the geometry
+     * In stereo radians
+     * @return [description]
+     */
+    double MinSolidAngle() const override {
+      Vector solid_angles(4);
+      ComputeSolidAngles(solid_angles);
+      double min_solid_angle = 1000.0;
+      for (unsigned int i = 0; i < 4; i++)
+      {
+        if (solid_angles[i]<min_solid_angle) min_solid_angle = solid_angles[i];
+      }
+      return min_solid_angle;
+
+    }
+
+
+    /** Implements the calculus of the 4 solid angles of the tetra
+     *Implements the calculus of the 4 solid angles of the tetra
+     *
+     * @return   The solid angles of the geometry
+    */
+    inline void ComputeSolidAngles(Vector& rSolidAngles) const override
+    {
+      if(rSolidAngles.size() != 4)
+          rSolidAngles.resize(4, false);
+
+      Vector dihedral_angles(6);
+      ComputeDihedralAngles(dihedral_angles);
+
+      rSolidAngles[0] = dihedral_angles[0] + dihedral_angles[1] + dihedral_angles[2]  - Globals::Pi;
+      rSolidAngles[1] = dihedral_angles[0] + dihedral_angles[3] + dihedral_angles[4]  - Globals::Pi;
+      rSolidAngles[2] = dihedral_angles[2] + dihedral_angles[4] + dihedral_angles[5]  - Globals::Pi;
+      rSolidAngles[3] = dihedral_angles[1] + dihedral_angles[3] + dihedral_angles[5]  - Globals::Pi;
+    }
+
+
+    /** Implements the calculus of the 6 diheadral angles of the tetra
+     *Implements the calculus of the 6 diheadral angles of the tetra
+     *
+     * @return   The dihedral angles of the geometry
+    */
+    inline void ComputeDihedralAngles(Vector& rDihedralAngles) const override
+    {
+      if(rDihedralAngles.size() != 6)
+          rDihedralAngles.resize(6, false);
+
+
+      BoundedMatrix<double, 4, 3 > coords;
+      for (unsigned int i = 0; i < 4; i++)
+      {
+          const array_1d<double, 3 > & xyz = this->GetPoint(i);
+          for (unsigned int j = 0; j < 3; j++)
+              coords(i, j) = xyz[j];
+      }
+      //we have to check 6 different angles (one per edge)
+      //to get an easy-to-read algorithm, we find the angles by creating the normal planes to each face and then find the angles between them
+      //to do so, we create a list of 3 nodes per angle. face1 is defined with nodes 0,1,2a , and face2 is defined with nodes 0,1,2b
+      const int node0[]  = {0, 0, 0, 1, 1, 2};
+      const int node1[]  = {1, 3, 2, 3, 2, 3};
+      const int node2a[] = {2, 1, 1, 0, 0, 0};
+      const int node2b[] = {3, 2, 3, 2, 3, 1};
+
+      array_1d<double,3> edge1,edge2a,edge2b,normal1,normal2;
+
+     //now we only loop through the six edges to see which one has the lowest angle
+      for (unsigned int i = 0; i < 6; i++)
+      {
+        //first we find the edges
+        for (unsigned int j = 0; j < 3; ++j)
+        {
+            edge1[j]  = coords(node1[i],j)  - coords(node0[i],j) ;
+            edge2a[j] = coords(node2a[i],j) - coords(node0[i],j) ;
+            edge2b[j] = coords(node2b[i],j) - coords(node0[i],j) ;
+        }
+        //now we find the normals to the planes
+        MathUtils<double>::CrossProduct(normal1,edge1,edge2a);
+        MathUtils<double>::CrossProduct(normal2,edge1,edge2b);
+        normal1 /= std::sqrt(normal1[0]*normal1[0] + normal1[1]*normal1[1] + normal1[2]*normal1[2]);
+        normal2 /= std::sqrt(normal2[0]*normal2[0] + normal2[1]*normal2[1] + normal2[2]*normal2[2]);
+
+        //and finally the cos of the angle:
+        const double angle_cos = (  normal1[0]*normal2[0] + normal1[1]*normal2[1] + normal1[2]*normal2[2] );
+        rDihedralAngles[i] = std::acos(angle_cos);
+      }
+
+    }
+
     /**
     * Returns a matrix of the local coordinates of all points
     * @param rResult a Matrix that will be overwritten by the results
@@ -893,7 +1082,7 @@ public:
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) override
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -914,30 +1103,35 @@ public:
         return false;
     }
 
-    /** This method gives you number of all edges of this
-    geometry.
-    @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
+    ///@}
+    ///@name Edge
+    ///@{
+
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
      */
-    // will be used by refinement algorithm, thus uncommented. janosch.
     SizeType EdgesNumber() const override
     {
         return 6;
     }
 
-    SizeType FacesNumber() const override
-    {
-        return 4;
-    }
-
-    /** This method gives you all edges of this geometry.
-
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
      */
-    GeometriesArrayType Edges(void) override
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -963,13 +1157,37 @@ public:
         return edges;
     }
 
-    GeometriesArrayType Faces(void) override
+    ///@}
+    ///@name Face
+    ///@{
+
+    /**
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
+     */
+    SizeType FacesNumber() const override
+    {
+        return 4;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
         faces.push_back( FacePointerType(new FaceType(
-                                             this->pGetPoint(0),
                                              this->pGetPoint(2),
+                                             this->pGetPoint(3),
                                              this->pGetPoint(1))) );
         faces.push_back( FacePointerType(new FaceType(
                                              this->pGetPoint(0),
@@ -980,8 +1198,8 @@ public:
                                              this->pGetPoint(1),
                                              this->pGetPoint(3))) );
         faces.push_back( FacePointerType(new FaceType(
+                                             this->pGetPoint(0),
                                              this->pGetPoint(2),
-                                             this->pGetPoint(3),
                                              this->pGetPoint(1))) );
         return faces;
     }
@@ -1117,7 +1335,7 @@ public:
      *
      * :TODO: TESTING!!!
      */
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod) const override
     {
@@ -1162,13 +1380,10 @@ public:
 
         for(unsigned int i=0; i<integration_points_number; i++)
                 rResult[i] = DN_DX;
-
-
-        return rResult;
     }
 
 
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult
         , Vector& determinants_of_jacobian
         , IntegrationMethod ThisMethod) const override
@@ -1223,14 +1438,11 @@ public:
         }
         for(unsigned int i=0; i<integration_points_number; i++)
                 rResult[i] = DN_DX;
-
-
-        return rResult;
     }
 
 
     /// detect if two tetrahedra are intersected
-    bool HasIntersection( const BaseType& rThisGeometry) override
+    bool HasIntersection( const BaseType& rThisGeometry) const override
     {
 
         array_1d<Plane, 4>  plane;
@@ -1255,7 +1467,7 @@ public:
     }
 
 
-    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) override
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) const override
     {
         using Triangle3D3Type = Triangle3D3<TPointType>;
         // Check if faces have intersection
@@ -1279,7 +1491,7 @@ public:
 
     void SplitAndDecompose(
         const BaseType& tetra, Plane& plane,
-        std::vector<BaseType>& inside)
+        std::vector<BaseType>& inside) const
     {
 
         // Determine on which side of the plane the points of the tetrahedron lie.
@@ -1430,14 +1642,14 @@ public:
     }
 
 
-    void GetPlanes(array_1d<Plane, 4>& plane)
+    void GetPlanes(array_1d<Plane, 4>& plane) const
     {
         const BaseType& geom_1 = *this;
-        array_1d<double, 3> edge10 = geom_1[1].Coordinates() - geom_1[0].Coordinates();
-        array_1d<double, 3> edge20 = geom_1[2].Coordinates() - geom_1[0].Coordinates();
-        array_1d<double, 3> edge30 = geom_1[3].Coordinates() - geom_1[0].Coordinates();
-        array_1d<double, 3> edge21 = geom_1[2].Coordinates() - geom_1[1].Coordinates();
-        array_1d<double, 3> edge31 = geom_1[3].Coordinates() - geom_1[1].Coordinates();
+        const array_1d<double, 3> edge10 = geom_1[1].Coordinates() - geom_1[0].Coordinates();
+        const array_1d<double, 3> edge20 = geom_1[2].Coordinates() - geom_1[0].Coordinates();
+        const array_1d<double, 3> edge30 = geom_1[3].Coordinates() - geom_1[0].Coordinates();
+        const array_1d<double, 3> edge21 = geom_1[2].Coordinates() - geom_1[1].Coordinates();
+        const array_1d<double, 3> edge31 = geom_1[3].Coordinates() - geom_1[1].Coordinates();
 
         MathUtils<double>::UnitCrossProduct(plane[0].mNormal, edge10, edge20);  // <v0,v2,v1>
         MathUtils<double>::UnitCrossProduct(plane[1].mNormal, edge30, edge10);  // <v0,v1,v3>
@@ -1515,11 +1727,12 @@ protected:
      */
 
 private:
+    ///@name Static Member Variables
+    ///@{
 
-    /**
-     * Static Member Variables
-     */
     static const GeometryData msGeometryData;
+
+    static const GeometryDimension msGeometryDimension;
 
 
     ///@}
@@ -1584,8 +1797,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -1621,8 +1833,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values(integration_points_number);
@@ -1674,15 +1885,15 @@ private:
         {
             {
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5)
+                    GeometryData::IntegrationMethod::GI_GAUSS_5)
             }
         };
         return shape_functions_values;
@@ -1695,15 +1906,15 @@ private:
         {
             {
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_1),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_2),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_3),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_4),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_5)
+                    GeometryData::IntegrationMethod::GI_GAUSS_5)
             }
         };
         return shape_functions_local_gradients;
@@ -1833,11 +2044,16 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Tetrahedra3D4<TPointType>::msGeometryData(
-    3, 3, 3, GeometryData::GI_GAUSS_1,
+    &msGeometryDimension,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     Tetrahedra3D4<TPointType>::AllIntegrationPoints(),
     Tetrahedra3D4<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
+
+template<class TPointType>
+const GeometryDimension Tetrahedra3D4<TPointType>::msGeometryDimension(
+    3, 3, 3);
 
 }// namespace Kratos.
 

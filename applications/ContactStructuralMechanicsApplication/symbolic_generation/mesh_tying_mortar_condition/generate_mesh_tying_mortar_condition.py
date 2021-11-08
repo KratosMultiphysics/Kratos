@@ -1,11 +1,12 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-from KratosMultiphysics import *
-from KratosMultiphysics.ContactStructuralMechanicsApplication  import *
+# Import KratosMultiphysics
+import KratosMultiphysics
+import KratosMultiphysics.ContactStructuralMechanicsApplication
 
-from sympy import *
-from custom_sympy_fe_utilities import *
-import operator
+# Import sympy utils
+import sympy
+from KratosMultiphysics.ContactStructuralMechanicsApplication import custom_sympy_fe_utilities
 
 do_simplifications = False
 mode = "c" #to output to a c++ file
@@ -49,21 +50,21 @@ for dim, nnodeselement, nnodeselement_master, tensor in zip(dim_combinations, nn
     number_dof = tensor * (nnodes_master + 2 * nnodes)
 
     #Defining the unknowns
-    u1 = DefineMatrix('u1',nnodes,tensor) #u1(i,j) is displacement of node i component j at domain 1
-    u2 = DefineMatrix('u2',nnodes_master,tensor) #u2(i,j) is displacement of node i component j at domain 2
-    lm = DefineMatrix('lm',nnodes,tensor)
+    u1 = custom_sympy_fe_utilities.DefineMatrix('u1',nnodes,tensor) #u1(i,j) is displacement of node i component j at domain 1
+    u2 = custom_sympy_fe_utilities.DefineMatrix('u2',nnodes_master,tensor) #u2(i,j) is displacement of node i component j at domain 2
+    lm = custom_sympy_fe_utilities.DefineMatrix('lm',nnodes,tensor)
 
     # Define test functions
-    w1 = DefineMatrix('w1',nnodes,tensor)
-    w2 = DefineMatrix('w2',nnodes_master,tensor)
-    wlm = DefineMatrix('wlm',nnodes, tensor)
+    w1 = custom_sympy_fe_utilities.DefineMatrix('w1',nnodes,tensor)
+    w2 = custom_sympy_fe_utilities.DefineMatrix('w2',nnodes_master,tensor)
+    wlm = custom_sympy_fe_utilities.DefineMatrix('wlm',nnodes, tensor)
 
-    DOperator = DefineMatrix('DOperator',nnodes,nnodes)
-    MOperator = DefineMatrix('MOperator',nnodes,nnodes_master)
+    DOperator = custom_sympy_fe_utilities.DefineMatrix('DOperator',nnodes,nnodes)
+    MOperator = custom_sympy_fe_utilities.DefineMatrix('MOperator',nnodes,nnodes_master)
 
     # Define dofs & test function vector
-    dofs = Matrix( zeros(number_dof, 1) )
-    testfunc = Matrix( zeros(number_dof, 1) )
+    dofs = sympy.Matrix( sympy.zeros(number_dof, 1) )
+    testfunc = sympy.Matrix( sympy.zeros(number_dof, 1) )
     count = 0
 
     for i in range(0,nnodes_master):
@@ -103,20 +104,20 @@ for dim, nnodeselement, nnodeselement_master, tensor in zip(dim_combinations, nn
         rv_galerkin -= (wlm.row(node) * (Du1Mu2.row(node)).transpose())[0,0]
 
     if(do_simplifications):
-        rv_galerkin = simplify(rv_galerkin)
+        rv_galerkin = sympy.simplify(rv_galerkin)
 
     #############################################################################
     # Complete functional
-    rv = Matrix( zeros(1, 1) )
+    rv = sympy.Matrix( sympy.zeros(1, 1) )
     rv[0,0] = rv_galerkin
 
-    rhs,lhs = Compute_RHS_and_LHS(rv.copy(), testfunc, dofs, False)
+    rhs,lhs = custom_sympy_fe_utilities.Compute_RHS_and_LHS(rv.copy(), testfunc, dofs, False)
     print("LHS= ",lhs.shape)
     print("RHS= ",rhs.shape)
     print("LHS and RHS have been created!")
 
-    lhs_out = OutputMatrix_CollectingFactors(lhs,"lhs", mode, 1, number_dof)
-    rhs_out = OutputVector_CollectingFactors(rhs,"rhs", mode, 1, number_dof)
+    lhs_out = custom_sympy_fe_utilities.OutputMatrix_CollectingFactors(lhs,"lhs", mode, 1, number_dof)
+    rhs_out = custom_sympy_fe_utilities.OutputVector_CollectingFactors(rhs,"rhs", mode, 1, number_dof)
     print("Substitution strings are ready....")
 
     lhs_string += lhs_template_begin_string

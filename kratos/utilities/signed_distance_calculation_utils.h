@@ -289,7 +289,7 @@ public:
                 //const array_1d<double,3>& center_coords = it->Coordinates();
 
                 //now loop all of its neighbours and calculate the distance value
-//                for (WeakPointerVector< Node<3> >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin();
+//                for (GlobalPointersVector< Node<3> >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin();
 //                        in != it->GetValue(NEIGHBOUR_NODES).end(); in++)
 //                {
 //                    const array_1d<double,3>& coords = in->Coordinates();
@@ -472,7 +472,7 @@ public:
             double zc = in->Z();
 
             double h = 0.0;
-            for (WeakPointerVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+            for (GlobalPointersVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
                     i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
             {
                 double x = i->X();

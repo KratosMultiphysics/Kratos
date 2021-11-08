@@ -60,7 +60,8 @@
 		    "time_integration_settings" : {
 			"solution_type"      : "Quasi-static",
 			"analysis_type"      : "Non-linear",
-			"integration_method" : "Static"
+			"integration_method" : "Static",
+			"buffer_size" : 3
 		    },
 		    "solving_strategy_settings" : {
 			"line_search"            : true,
@@ -127,6 +128,7 @@
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 2,
             "meshing_before_output" : true,
+	    "echo_level"            : 1,
             "meshing_domains" : [{
                 "python_module": "meshing_domain",
                 "model_part_name": "Solid_Piece",
@@ -204,6 +206,7 @@
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 2,
             "meshing_before_output" : true,
+	    "echo_level"            : 1,
             "meshing_domains" : [{
                 "python_module": "contact_domain",
                 "model_part_name": "contact_domain",
@@ -298,6 +301,26 @@
             "output_frequency"    : 1.0e-7,
             "json_output"         : false
         }
+    },{
+    "python_module" : "nodal_variable_recording_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "Parameters"    : {
+            "model_part_name"     : "Solid_Tool",
+            "variable_name"       : "CONTACT_FORCE",
+            "output_file_name"    : "cutting_forces",
+            "single_entities"     : false
+        }
+    },{
+    "python_module" : "volume_shaping_process",
+        "kratos_module" : "KratosMultiphysics.PfemApplication",
+        "Parameters"    : {
+            "model_part_name"     : "Solid_Tool",
+           "flags_list" : ["CONTACT"],
+           "properties" : {
+        "WEAR_COEFFICIENT" : 0.06,
+        "INDENTATION_HARDNESS" : 9e9
+        }
+        }
     }],
     "output_configuration"     : {
         "result_file_configuration" : {
@@ -314,7 +337,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT_REACTION","NORMAL","CONTACT_FORCE","PRESSURE","TEMPERATURE","DISPLACEMENT"],
+            "nodal_results"       : ["DISPLACEMENT_REACTION","NORMAL","CONTACT_FORCE","PRESSURE","TEMPERATURE","DISPLACEMENT","VOLUME_WEAR"],
             "nodal_flags_results" : [],
             "gauss_point_results" : ["CAUCHY_STRESS_TENSOR","GREEN_LAGRANGE_STRAIN_TENSOR","VON_MISES_STRESS","PLASTIC_STRAIN","PLASTIC_DISSIPATION","DELTA_PLASTIC_STRAIN","DELTA_PLASTIC_DISSIPATION"],
             "additional_list_files": [2,5,10,20]

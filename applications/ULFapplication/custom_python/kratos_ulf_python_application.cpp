@@ -64,16 +64,16 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 
 PYBIND11_MODULE(KratosULFApplication,m)
 {
 
-    class_<KratosULFApplication,
+    py::class_<KratosULFApplication,
            KratosULFApplication::Pointer,
            KratosApplication>(m,"KratosULFApplication")
-           .def(init<>())
+           .def(py::init<>())
            ;
     AddCustomUtilitiesToPython(m);
     //AddCustomIOToPython();
@@ -100,8 +100,8 @@ PYBIND11_MODULE(KratosULFApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,SUBSCALE_VELOCITY);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m,VISCOUS_STRESSX );
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m,VISCOUS_STRESSY );
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m,VISCOUS_STRESSZ ); 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m,PRINCIPAL_DIRECTION_1 ); 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m,VISCOUS_STRESSZ );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m,PRINCIPAL_DIRECTION_1 );
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m,PRINCIPAL_DIRECTION_2 );
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m,NORMAL_GEOMETRIC );
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m,ADHESION_FORCE );
@@ -119,7 +119,7 @@ PYBIND11_MODULE(KratosULFApplication,m)
 //     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,SOLID_LIQIUD_SURFTENS_COEFF);
 //     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,SOLID_AIR_SURFTENS_COEFF);
 
- 
+
 }
 
 

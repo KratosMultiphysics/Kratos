@@ -4,11 +4,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 # Import the mechanical solver base class
-import solid_mechanics_segregated_solver as BaseSolver
+import KratosMultiphysics.SolidMechanicsApplication.solid_mechanics_segregated_solver as BaseSolver
 
 def CreateSolver(custom_settings, Model):
     return CompositeSolver(Model, custom_settings)

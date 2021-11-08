@@ -11,17 +11,11 @@
 //                   Pablo Becker
 //
 
-#if !defined(KRATOS_SHALLOW_WATER_PARTICLE_H_INCLUDED )
-#define  KRATOS_SHALLOW_WATER_PARTICLE_H_INCLUDED
-
+#ifndef KRATOS_SHALLOW_WATER_PARTICLE_H_INCLUDED
+#define KRATOS_SHALLOW_WATER_PARTICLE_H_INCLUDED
 
 
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
-
 
 
 // External includes
@@ -29,8 +23,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/array_1d.h"
-#include "includes/serializer.h"
 #include "geometries/point.h"
 #include "includes/model_part.h"
 
@@ -114,17 +106,17 @@ public:
     }
 
     // Returning references
-    float& GetScalar1()
+    double& GetScalar1()
     {
         return this->mScalar1;
     }
 
-    float& GetVector1(const unsigned int i)
+    double& GetVector1(const unsigned int i)
     {
         return this->mVector1[i];
     }
 
-    array_1d<float,3>& GetVector1()
+    array_1d<double,3>& GetVector1()
     {
         return this->mVector1;
     }
@@ -135,8 +127,8 @@ public:
     }
 
 private:
-    float mScalar1;
-    array_1d<float,3> mVector1;
+    double mScalar1;
+    array_1d<double,3> mVector1;
     bool mEraseFlag;
 
 };

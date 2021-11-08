@@ -76,9 +76,13 @@ public:
   ///BaseLengths
   typedef ContactDomainUtilities::BaseLengths         BaseLengths;
 
+  typedef GlobalPointersVector<Node<3> >       NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Element>     ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
+
   ///For 3D contact surfaces definition
-  typedef ContactDomainUtilities::ScalarBaseType  ScalarBaseType;
-  typedef ContactDomainUtilities::SurfaceBase           SurfaceBase;
+  typedef ContactDomainUtilities::ScalarBaseType   ScalarBaseType;
+  typedef ContactDomainUtilities::SurfaceBase         SurfaceBase;
 
 protected:
 
@@ -182,7 +186,7 @@ protected:
   } ContactTangentVariables;
 
 
-  typedef struct
+  struct ConditionVariables
   {
     double  detF;
     double  detJ;
@@ -236,10 +240,10 @@ protected:
       return *pNcontainer;
     };
 
-  } ConditionVariables;
+  };
 
 
-  typedef struct
+  struct ContactVariables
   {
 
     //Iteration counter:
@@ -292,7 +296,7 @@ protected:
     NodeType& GetMasterNode()           { return (*mpMasterNode); }
 
 
-  } ContactVariables;
+  };
 
 
 
@@ -357,7 +361,7 @@ protected:
 public:
 
   /// Counted pointer of ContactDomainCondition
-  KRATOS_CLASS_POINTER_DEFINITION( ContactDomainCondition );
+  KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( ContactDomainCondition );
 
 
   ///@}
@@ -421,27 +425,27 @@ public:
   /**
    * Sets on rConditionalDofList the degrees of freedom of the considered element geometry
    */
-  void GetDofList(DofsVectorType& rConditionalDofList, ProcessInfo& rCurrentProcessInfo) override;
+  void GetDofList(DofsVectorType& rConditionalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
   /**
    * Sets on rResult the ID's of the element degrees of freedom
    */
-  void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+  void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
   /**
    * Sets on rValues the nodal displacements
    */
-  void GetValuesVector(Vector& rValues, int Step = 0) override;
+  void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
   /**
    * Sets on rValues the nodal velocities
    */
-  void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+  void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
   /**
    * Sets on rValues the nodal accelerations
    */
-  void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+  void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 
 
@@ -453,7 +457,7 @@ public:
    * interface to the constitutive law!
    * Note, that these functions expect a std::vector of values for the
    * specified variable type that contains a value for each integration point!
-   * SetValueOnIntegrationPoints: set the values for given Variable.
+   * SetValuesOnIntegrationPoints: set the values for given Variable.
    * GetValueOnIntegrationPoints: get the values for given Variable.
    */
 
@@ -461,32 +465,16 @@ public:
   /**
    * Set a double Value on the Condition Constitutive Law
    */
-  void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+  void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
   /**
    * Set a Vector Value on the Condition Constitutive Law
    */
-  void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+  void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable, const std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * Set a Matrix Value on the Condition Constitutive Law
    */
-  void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-  //GET:
-  /**
-   * Set on rVariable a double Value from the Condition Constitutive Law
-   */
-  void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-  /**
-   * Set on rVariable a Vector Value from the Condition Constitutive Law
-   */
-  void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-  /**
-   * Set on rVariable a Matrix Value from the Condition Constitutive Law
-   */
-  void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+  void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable, const std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -496,30 +484,30 @@ public:
    * Called to initialize the element.
    * Must be called before any calculation is done
    */
-  void Initialize() override;
+  void Initialize(const ProcessInfo& CurrentProcessInfo) override;
 
 
   /**
    * Called at the beginning of each solution step
    */
-  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+  void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
   /**
    * this is called for non-linear analysis at the beginning of the iteration process
    */
-  void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
+  void InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override;
 
 
   /**
    * this is called for non-linear analysis at the end of the iteration process
    */
-  void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
+  void FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override;
 
 
   /**
    * Called at the end of eahc solution step
    */
-  void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+  void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
 
 
@@ -534,7 +522,7 @@ public:
    * @param rCurrentProcessInfo: the current process info instance
    */
 
-  void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+  void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * this function provides a more general interface to the condition.
@@ -549,7 +537,7 @@ public:
                             const std::vector< Variable< MatrixType > >& rLHSVariables,
                             std::vector< VectorType >& rRightHandSideVectors,
                             const std::vector< Variable< VectorType > >& rRHSVariables,
-                            ProcessInfo& rCurrentProcessInfo) override;
+                            const ProcessInfo& rCurrentProcessInfo);
 
   /**
    * this is called during the assembling process in order
@@ -557,7 +545,7 @@ public:
    * @param rRightHandSideVector: the elemental right hand side vector
    * @param rCurrentProcessInfo: the current process info instance
    */
-  void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+  void CalculateRightHandSide(VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo) override;
 
 
   /**
@@ -569,7 +557,7 @@ public:
    */
   void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
                               const std::vector< Variable< VectorType > >& rRHSVariables,
-                              ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo);
 
   /**
    * this is called during the assembling process in order
@@ -577,7 +565,7 @@ public:
    * @param rLeftHandSideVector: the elemental left hand side vector
    * @param rCurrentProcessInfo: the current process info instance
    */
-  void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
+  void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
 
   /**
@@ -591,7 +579,7 @@ public:
    */
   virtual void AddExplicitContribution(const VectorType& rRHSVector,
                                        const Variable<VectorType>& rRHSVariable,
-                                       Variable<array_1d<double,3> >& rDestinationVariable,
+                                       const Variable<array_1d<double,3> >& rDestinationVariable,
                                        const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -621,7 +609,7 @@ public:
    * or that no common error is found.
    * @param rCurrentProcessInfo
    */
-  int Check(const ProcessInfo& rCurrentProcessInfo) override;
+  int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
   //std::string Info() const;
 
@@ -687,7 +675,7 @@ protected:
   /**
    * Calculate Tau stabilization or Penalty factor
    */
-  virtual void CalculateContactFactor(ProcessInfo& rCurrentProcessInfo)
+  virtual void CalculateContactFactor(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
   };
@@ -712,7 +700,7 @@ protected:
    * Calculates the condition contributions
    */
   virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
-                                        ProcessInfo& rCurrentProcessInfo);
+                                        const ProcessInfo& rCurrentProcessInfo);
   /**
    * Clear Nodal Forces
    */
@@ -722,7 +710,7 @@ protected:
   /**
    * Calculate Nodal Forces
    */
-  void CalculateNodalForces (ProcessInfo& CurrentProcessInfo);
+  void CalculateNodalForces (const ProcessInfo& CurrentProcessInfo);
 
 
   /**
@@ -742,7 +730,7 @@ protected:
    * Calculate Condition Kinematics
    */
   virtual void CalculateKinematics(ConditionVariables& rVariables,
-                                   ProcessInfo& rCurrentProcessInfo,
+                                   const ProcessInfo& rCurrentProcessInfo,
                                    const unsigned int& rPointNumber);
 
   /**
@@ -754,7 +742,7 @@ protected:
    * Calculation of the Contact Multipliers or Penalty Factors
    */
   virtual void CalculateExplicitFactors(ConditionVariables& rVariables,
-                                        ProcessInfo& rCurrentProcessInfo)
+                                        const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 
@@ -775,14 +763,14 @@ protected:
    */
   virtual void CalculateRelativeVelocity(ConditionVariables& rVariables,
                                          PointType & TangentVelocity,
-                                         ProcessInfo& rCurrentProcessInfo);
+                                         const ProcessInfo& rCurrentProcessInfo);
 
   /**
    *  Parameters for friction law Relative Tangent Displacement:
    */
   virtual void CalculateRelativeDisplacement(ConditionVariables& rVariables,
                                              PointType & TangentDisplacement,
-                                             ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo);
 
   /**
    * Calculate current tangent vector
@@ -819,7 +807,7 @@ protected:
    * Calculation of the tangent via perturbation of the dofs variables : testing purposes
    */
   void CalculatePerturbedLeftHandSide (MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo);
+                                       const ProcessInfo& rCurrentProcessInfo);
 
   /**
    * Calculate LHS

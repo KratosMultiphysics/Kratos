@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -185,6 +185,12 @@ struct scalar_of< static_matrix<T, N, M> > {
     typedef typename scalar_of<T>::type type;
 };
 
+/// Replace scalar type in the static matrix.
+template <class T, int N, int M, class S>
+struct replace_scalar<static_matrix<T, N, M>, S> {
+    typedef static_matrix<S, N, M> type;
+};
+
 /// RHS type corresponding to a non-scalar type.
 template <class T, int N>
 struct rhs_of< static_matrix<T, N, N> > {
@@ -324,25 +330,6 @@ struct inverse_impl< static_matrix<T, N, N> >
 
 
 } // namespace math
-
-namespace relaxation {
-template <class Backend> struct spai1;
-} //namespace relaxation
-
-namespace backend {
-
-template <class Backend>
-struct relaxation_is_supported<
-    Backend, relaxation::spai1,
-    typename std::enable_if<
-        amgcl::is_static_matrix<
-            typename Backend::value_type
-            >::value
-        >::type
-    > : std::false_type
-{};
-
-} // namespace backend
 } // namespace amgcl
 
 #endif

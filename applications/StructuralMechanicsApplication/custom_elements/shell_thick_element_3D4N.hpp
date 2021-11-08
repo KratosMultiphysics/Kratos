@@ -15,16 +15,18 @@
 
 
 // System includes
+#include <type_traits>
 
 // External includes
 
 // Project includes
 #include "custom_elements/base_shell_element.h"
+#include "custom_utilities/shell_utilities.h"
+#include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
+#include "custom_utilities/shellq4_local_coordinate_system.hpp"
 
 namespace Kratos
 {
-
-
 ///@name Kratos Globals
 ///@{
 ///@}
@@ -32,10 +34,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 ///@}
-
-class ShellQ4_CoordinateTransformation;
-
-class ShellQ4_LocalCoordinateSystem;
 
 ///@name  Enum's
 ///@{
@@ -60,70 +58,48 @@ class ShellQ4_LocalCoordinateSystem;
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D4N : public BaseShellElement
+
+template <ShellKinematics TKinematics>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D4N :
+    public BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellQ4_CorotationalCoordinateTransformation,
+        ShellQ4_CoordinateTransformation>::type>
 {
 public:
 
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(ShellThickElement3D4N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThickElement3D4N);
 
-    typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
-
-    typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
-
-    typedef array_1d<double, 3> Vector3Type;
+    using BaseType = BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellQ4_CorotationalCoordinateTransformation,
+        ShellQ4_CoordinateTransformation>::type>;
 
     typedef Quaternion<double> QuaternionType;
+
+    using GeometryType = Element::GeometryType;
+
+    using PropertiesType = Element::PropertiesType;
+
+    using NodesArrayType = Element::NodesArrayType;
+
+    using MatrixType = Element::MatrixType;
+
+    using VectorType = Element::VectorType;
+
+    using SizeType = Element::SizeType;
+
+    using Element::GetGeometry;
+
+    using Element::GetProperties;
+
+    using Vector3Type = typename BaseType::Vector3Type;
 
     ///@}
 
     ///@name Classes
     ///@{
-
-    /** \brief JacobianOperator
-     *
-     * This class is a utility to compute at a given integration point,
-     * the Jacobian, its inverse, its determinant
-     * and the derivatives of the shape functions in the local
-     * cartesian coordinate system.
-     */
-    class JacobianOperator
-    {
-    public:
-
-        JacobianOperator();
-
-        void Calculate(const ShellQ4_LocalCoordinateSystem & CS, const Matrix & dN);
-
-        inline const Matrix & Jacobian()const
-        {
-            return mJac;
-        }
-
-        inline const Matrix & Inverse()const
-        {
-            return mInv;
-        }
-
-        inline const Matrix & XYDerivatives()const
-        {
-            return mXYDeriv;
-        }
-
-        inline double Determinant()const
-        {
-            return mDet;
-        }
-
-    private:
-
-        Matrix mJac;     /*!< Jacobian matrix */
-        Matrix mInv;     /*!< Inverse of the Jacobian matrix */
-        Matrix mXYDeriv; /*!< Shape function derivatives in cartesian coordinates */
-        double mDet;     /*!< Determinant of the Jacobian matrix */
-    };
 
     /** \brief MITC4Params
      *
@@ -140,8 +116,7 @@ public:
      *     International Journal for Numerical Methods in Eng.,
      *     vol. 21, 367-383, 1985
      */
-    struct MITC4Params
-    {
+    struct MITC4Params {
 
         double Ax;
         double Ay;
@@ -152,7 +127,7 @@ public:
         Matrix Transformation;
         Matrix ShearStrains;
 
-        MITC4Params(const ShellQ4_LocalCoordinateSystem & LCS);
+        MITC4Params(const ShellQ4_LocalCoordinateSystem& LCS);
 
     };
 
@@ -178,11 +153,11 @@ public:
 
         inline void Initialize(const GeometryType& geom);
 
-        inline void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+        inline void InitializeSolutionStep();
 
-        inline void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+        inline void FinalizeSolutionStep();
 
-        inline void FinalizeNonLinearIteration(const Vector& displacementVector, ProcessInfo& CurrentProcessInfo);
+        inline void FinalizeNonLinearIteration(const Vector& displacementVector);
 
     private:
 
@@ -237,7 +212,7 @@ public:
          * after the standard strain-displacement matrix has been computed, as well as the standard
          * generalized strains, but before the computation of the constitutive laws.
          */
-        inline void GaussPointComputation_Step1(double xi, double eta, const JacobianOperator& jac,
+        inline void GaussPointComputation_Step1(double xi, double eta, const ShellUtilities::JacobianOperator& jac,
                                                 Vector& generalizedStrains,
                                                 EASOperatorStorage& storage);
 
@@ -278,20 +253,13 @@ public:
     ///@{
 
     ShellThickElement3D4N(IndexType NewId,
-                          GeometryType::Pointer pGeometry,
-                          bool NLGeom = false);
+                          GeometryType::Pointer pGeometry);
 
     ShellThickElement3D4N(IndexType NewId,
                           GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties,
-                          bool NLGeom = false);
+                          PropertiesType::Pointer pProperties);
 
-    ShellThickElement3D4N(IndexType NewId,
-                          GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties,
-                          CoordinateTransformationBasePointerType pCoordinateTransformation);
-
-    ~ShellThickElement3D4N() override;
+    ~ShellThickElement3D4N() override = default;
 
     ///@}
 
@@ -311,7 +279,7 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
-        ) const override;
+    ) const override;
 
     /**
      * @brief Creates a new element
@@ -324,35 +292,36 @@ public:
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
-        ) const override;
+    ) const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
-
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
-
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     // More results calculation on integration points to interface with python
+
+    using BaseType::CalculateOnIntegrationPoints;
+
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-        3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    // Calculate functions
-    void Calculate(const Variable<Matrix >& rVariable,
-        Matrix& Output,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    /**
+    * This method provides the place to perform checks on the completeness of the input
+    * and the compatibility with the problem options as well as the contitutive laws selected
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rCurrentProcessInfo
+    * this method is: MANDATORY
+    */
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     ///@}
@@ -370,7 +339,7 @@ protected:
     /**
      * Protected empty constructor
      */
-    ShellThickElement3D4N() : BaseShellElement()
+    ShellThickElement3D4N() : BaseType()
     {
     }
 
@@ -382,38 +351,34 @@ private:
     ///@{
 
     void CalculateStressesFromForceResultants(VectorType& rstresses,
-        const double& rthickness);
+            const double& rthickness);
 
-    void CalculateLaminaStrains(ShellCrossSection::Pointer & section, const Vector& generalizedStrains, std::vector<VectorType> & rlaminateStrains);
+    void CalculateLaminaStrains(ShellCrossSection::Pointer& section, const Vector& generalizedStrains, std::vector<VectorType>& rlaminateStrains);
 
-    void CalculateLaminaStresses(ShellCrossSection::Pointer & section, ShellCrossSection::SectionParameters parameters, const std::vector<VectorType> & rlaminateStrains, std::vector<VectorType> & rlaminateStresses);
+    void CalculateLaminaStresses(ShellCrossSection::Pointer& section, ShellCrossSection::SectionParameters parameters, const std::vector<VectorType>& rlaminateStrains, std::vector<VectorType>& rlaminateStresses);
 
-    double CalculateTsaiWuPlaneStress(const std::vector<VectorType> & rlaminateStresses, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
+    double CalculateTsaiWuPlaneStress(const std::vector<VectorType>& rlaminateStresses, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
 
     void CalculateVonMisesStress(const Vector& generalizedStresses,
-        const Variable<double>& rVariable, double& rVon_Mises_Result);
+                                 const Variable<double>& rVariable, double& rVon_Mises_Result);
 
     void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable,
-        int& iJob, bool& bGlobal);
+            int& iJob, bool& bGlobal);
 
     double CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& refCoordinateSystem, const double& meanThickness);
 
-    void DecimalCorrection(Vector& a);
-
-    void SetupOrientationAngles() override;
-
     void CalculateBMatrix(double xi, double eta,
-                          const JacobianOperator& Jac, const MITC4Params& params,
+                          const ShellUtilities::JacobianOperator& Jac, const MITC4Params& params,
                           const Vector& N,
                           Matrix& B, Vector& Bdrill);
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag) override;
+                      VectorType& rRightHandSideVector,
+                      const ProcessInfo& rCurrentProcessInfo,
+                      const bool CalculateStiffnessMatrixFlag,
+                      const bool CalculateResidualVectorFlag) override;
 
-    void AddBodyForces(const array_1d<double,4> & dA, VectorType& rRightHandSideVector);
+    void AddBodyForces(const array_1d<double,4>& dA, VectorType& rRightHandSideVector);
 
     bool TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
@@ -423,7 +388,7 @@ private:
     * Returns the behavior of this shell (thin/thick)
     * @return the shell behavior
     */
-    ShellCrossSection::SectionBehaviorType GetSectionBehavior() override;
+    ShellCrossSection::SectionBehaviorType GetSectionBehavior() const override;
 
     ///@}
 
@@ -433,8 +398,6 @@ private:
 
     ///@name Member Variables
     ///@{
-
-    CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
     EASOperatorStorage mEASStorage; /*!< The storage instance for the EAS Operator */
 

@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "pan_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.001,
         "start_time"      : 0.000,
         "end_time"        : 1.000,
         "echo_level"      : 0
@@ -12,6 +9,11 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 0.001
+        },
         "buffer_size"                        : 3,
         "analysis_type"                      : "arc_length",
         "model_import_settings"              : {
@@ -30,7 +32,7 @@
         "residual_absolute_tolerance"        : 1e-4,
         "max_iteration"                      : 10,
         "linear_solver_settings":{
-                "solver_type": "SkylineLUFactorizationSolver"
+                "solver_type": "skyline_lu_factorization"
         },
         "arc_length_settings": {
                 "Ide": 5,
@@ -45,9 +47,8 @@
                 "etmxa": 5,
                 "etmna": 0.1
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1", "DISPLACEMENT_Displacement_Auto2","DISPLACEMENT_Displacement_Auto3","POINTLOAD_PointLoad_Auto4"]
     },
+    "processes" : {
     "constraints_process_list" : [
     {
         "python_module" : "assign_vector_variable_process",
@@ -56,7 +57,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,false,false],
             "value"           : [0.0,0.0,0.0]
@@ -69,7 +70,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+            "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,true,false],
             "value"           : [0.0,0.0,0.0]
@@ -82,7 +83,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto3",
+            "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto3",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,false,true],
             "value"           : [0.0,0.0,0.0]
@@ -95,27 +96,13 @@
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "POINTLOAD_PointLoad_Auto4",
+            "model_part_name" : "Structure.POINTLOAD_PointLoad_Auto4",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : -1.0e3,
             "direction"       : [0.0,0.0,"t"],
             "interval"        : [0.0,"End"]
         }
     }],
-    "json_output_process" : [
-    {
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables" : ["DISPLACEMENT_Z","POINT_LOAD_Z"],
-            "output_file_name" : "sprism_test/pan_test_results.json",
-            "model_part_name"  : "POINTLOAD_PointLoad_Auto4",
-            "time_frequency"   : 0.01
-        }
-    }
-    ],
     "json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
@@ -125,7 +112,7 @@
         "Parameters"            : {
             "check_variables" : ["DISPLACEMENT_Z","POINT_LOAD_Z"],
             "input_file_name" : "sprism_test/pan_test_results.json",
-            "model_part_name"  : "POINTLOAD_PointLoad_Auto4",
+            "model_part_name"  : "Structure.POINTLOAD_PointLoad_Auto4",
             "time_frequency"   : 0.01
         }
     }
@@ -136,17 +123,21 @@
         "help"                 : "",
         "process_name"         : "SPRISMProcess",
         "Parameters":{
-            "model_part_name"  : "Parts_Parts_Auto1"
+            "model_part_name"  : "Structure.Parts_Parts_Auto1"
             }
-    }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
+    }]},
+    "_json_output_process" : [
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables" : ["DISPLACEMENT_Z","POINT_LOAD_Z"],
+            "output_file_name" : "sprism_test/pan_test_results.json",
+            "model_part_name"  : "Structure.POINTLOAD_PointLoad_Auto4",
+            "time_frequency"   : 0.01
+        }
     }
+    ]
 }

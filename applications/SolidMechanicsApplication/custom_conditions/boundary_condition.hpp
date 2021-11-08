@@ -19,6 +19,7 @@
 #include "includes/condition.h"
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
 #include "utilities/beam_math_utilities.hpp"
+#include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
@@ -58,7 +59,7 @@ public:
     typedef GeometryData::SizeType                      SizeType;
 
     // Counted pointer of BoundaryCondition
-    KRATOS_CLASS_POINTER_DEFINITION( BoundaryCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BoundaryCondition );
     ///@}
 
 protected:
@@ -273,17 +274,17 @@ public:
     /**
      * Called at the beginning of each solution step
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the beginning of each iteration
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************* GETTING METHODS
@@ -292,31 +293,31 @@ public:
      * Sets on rConditionDofList the degrees of freedom of the considered element geometry
      */
     void GetDofList(DofsVectorType& rConditionDofList,
-		    ProcessInfo& rCurrentProcessInfo ) override;
+		    const ProcessInfo& rCurrentProcessInfo ) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-			  ProcessInfo& rCurrentProcessInfo ) override;
+			  const ProcessInfo& rCurrentProcessInfo ) const override;
 
     /**
      * Sets on rValues the nodal displacements
      */
     void GetValuesVector(Vector& rValues,
-			 int Step = 0 ) override;
+			 int Step = 0 ) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
     void GetFirstDerivativesVector(Vector& rValues,
-				   int Step = 0 ) override;
+				   int Step = 0 ) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
     void GetSecondDerivativesVector(Vector& rValues,
-				    int Step = 0 ) override;
+				    int Step = 0 ) const override;
 
 
     //************* COMPUTING  METHODS
@@ -331,7 +332,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 			      VectorType& rRightHandSideVector,
-			      ProcessInfo& rCurrentProcessInfo ) override;
+			      const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
       * this is called during the assembling process in order
@@ -340,7 +341,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-				ProcessInfo& rCurrentProcessInfo ) override;
+				const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * this is called during the assembling process in order
@@ -349,7 +350,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-			       ProcessInfo& rCurrentProcessInfo) override;
+			       const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -358,7 +359,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateMassMatrix(MatrixType& rMassMatrix,
-			     ProcessInfo& rCurrentProcessInfo ) override;
+			     const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
       * this is called during the assembling process in order
@@ -367,7 +368,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-				ProcessInfo& rCurrentProcessInfo ) override;
+				const ProcessInfo& rCurrentProcessInfo ) override;
 
 
     /**
@@ -381,16 +382,9 @@ public:
      */
     void AddExplicitContribution(const VectorType& rRHS,
 					 const Variable<VectorType>& rRHSVariable,
-					 Variable<array_1d<double,3> >& rDestinationVariable,
+					 const Variable<array_1d<double,3> >& rDestinationVariable,
 					 const ProcessInfo& rCurrentProcessInfo) override;
 
-
-    /**
-     * Get on rVariable a double Value
-     */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-				     std::vector<double>& rValues,
-				     const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Calculate a double Variable
@@ -410,7 +404,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     ///@}
     ///@name Access
@@ -455,18 +449,18 @@ protected:
     /**
      * Check dof for a vector variable
      */
-    virtual bool HasVariableDof(VariableVectorType& rVariable);
+    virtual bool HasVariableDof(VariableVectorType& rVariable) const;
 
     /**
      * Check dof for a double variable
      */
-    virtual bool HasVariableDof(VariableScalarType& rVariable);
+    virtual bool HasVariableDof(VariableScalarType& rVariable) const;
 
 
     /**
      * Get condition size from the dofs
      */
-    virtual unsigned int GetDofsSize();
+    virtual unsigned int GetDofsSize() const;
 
     /**
      * Initialize System Matrices
@@ -536,16 +530,6 @@ protected:
      * Get Node Movements for energy computation
      */
     void GetNodalDeltaMovements(Vector& rValues, const int& rNode);
-
-    /**
-     * Calculation of the Position Increment
-     */
-    virtual Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
-
-    /**
-     * Calculation of the Total Position Increment
-     */
-    virtual Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
 
     /**
      * Get Current Value, buffer 0 with FastGetSolutionStepValue

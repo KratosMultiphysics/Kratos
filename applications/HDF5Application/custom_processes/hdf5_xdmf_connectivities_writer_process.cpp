@@ -29,13 +29,12 @@ XdmfConnectivitiesWriterProcess::XdmfConnectivitiesWriterProcess(const std::stri
     const int num_points = mpFile->GetDataDimensions(node_ids_path)[0];
     mpFile->ReadDataSet(node_ids_path, node_ids, 0, num_points);
 
+    mKratosToXdmfIdMap.reserve(num_points);
     // Set the parametric coordinate ids.
-    mKratosToXdmfIdTable.resize(num_points);
-#pragma omp parallel for
-    for (int i = 0; i < num_points; ++i)
-    {
-        // Here we expect the ids are one-based indices.
-        mKratosToXdmfIdTable(node_ids[i] - 1) = i;
+    for (int i = 0; i < num_points; ++i) {
+        const auto p = mKratosToXdmfIdMap.insert(IdMapType::value_type(node_ids[i], i));
+        KRATOS_ERROR_IF_NOT(p.second) << "Node #" << node_ids[i] << " at position "
+            << i << " already exists at position " << p.first->second << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -53,7 +52,28 @@ void XdmfConnectivitiesWriterProcess::Execute()
     for (const auto& name : mpFile->GetGroupNames(mPrefix + "/Conditions"))
         CreateXdmfConnectivities(mPrefix + "/Conditions/" + name, mPrefix + "/Xdmf/Conditions/" + name);
 
+    KRATOS_ERROR_IF(mpFile->HasPath(mPrefix + "/Xdmf/SubModelParts")) << "Path \"" << mPrefix + "/Xdmf/SubModelParts\" exists." << std::endl;
+    CreateXdmfConnectivitiesForSubModelParts(mPrefix + "/SubModelParts", mPrefix + "/Xdmf/SubModelParts");
+
     KRATOS_CATCH("");
+}
+
+void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivitiesForSubModelParts(const std::string& rPath, const std::string& rDestinationPrefix) const
+{
+    CreateXdmfPoints(rPath, rDestinationPrefix);
+    for (const auto& r_name : mpFile->GetGroupNames(rPath))
+    {
+        if (r_name == "Conditions" ||  r_name == "Elements")
+        {
+            for (const auto& r_item_name : mpFile->GetGroupNames(rPath + "/" + r_name))
+                CreateXdmfConnectivities(rPath + "/" + r_name + "/" + r_item_name,  rDestinationPrefix + "/" + r_name + "/" + r_item_name);
+
+        }
+        else
+        {
+            CreateXdmfConnectivitiesForSubModelParts(rPath + "/" + r_name, rDestinationPrefix + "/" + r_name);
+        }
+    }
 }
 
 void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivities(const std::string& rKratosConnectivitiesPath, const std::string& rXdmfConnectivitiesPath) const
@@ -68,13 +88,10 @@ void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivities(const std::string
     xdmf_connectivities.resize(kratos_connectivities.size1(), kratos_connectivities.size2(), false);
 
 #pragma omp parallel for
-    for (int i = 0; i < block_size; ++i)
-    {
-        for (unsigned j = 0; j < kratos_connectivities.size2(); ++j)
-        {
+    for (int i = 0; i < block_size; ++i) {
+        for (unsigned j = 0; j < kratos_connectivities.size2(); ++j) {
             const int kratos_id = kratos_connectivities(i, j);
-            // Here we expect the ids are one-based indices.
-            xdmf_connectivities(i, j) = mKratosToXdmfIdTable(kratos_id - 1);
+            xdmf_connectivities(i, j) = mKratosToXdmfIdMap.at(kratos_id);
         }
     }
 
@@ -88,6 +105,32 @@ void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivities(const std::string
     mpFile->WriteAttribute(rXdmfConnectivitiesPath, "Dimension", tmp);
     mpFile->ReadAttribute(rKratosConnectivitiesPath, "NumberOfNodes", tmp);
     mpFile->WriteAttribute(rXdmfConnectivitiesPath, "NumberOfNodes", tmp);
+
+    KRATOS_CATCH("");
+}
+    
+void XdmfConnectivitiesWriterProcess::CreateXdmfPoints(
+    const std::string& rKratosNodeIdsPath,
+    const std::string& rXdmfNodeIdsPath) const
+{
+    KRATOS_TRY
+
+    if (mpFile->IsDataSet(rKratosNodeIdsPath + "/NodeIds")) {
+        Vector<int> kratos_ids, xdmf_ids;
+        const int block_size = mpFile->GetDataDimensions(rKratosNodeIdsPath + "/NodeIds")[0];
+        mpFile->ReadDataSet(rKratosNodeIdsPath + "/NodeIds", kratos_ids, 0, block_size);
+
+        xdmf_ids.resize(kratos_ids.size(), false);
+
+ #pragma omp parallel for
+        for (int i = 0; i < block_size; ++i) {
+                xdmf_ids[i] = mKratosToXdmfIdMap.at(kratos_ids[i]);
+        }
+
+        WriteInfo info;
+
+        mpFile->WriteDataSet(rXdmfNodeIdsPath + "/Points", xdmf_ids, info);
+    }
 
     KRATOS_CATCH("");
 }

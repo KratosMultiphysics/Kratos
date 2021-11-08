@@ -27,6 +27,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
 #include "integration/quadrilateral_collocation_integration_points.h"
+#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -54,17 +55,17 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A four node 3D quadrilateral geometry with bi-linear shape functions
  * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
- * The node ordering corresponds with: 
+ * The node ordering corresponds with:
  *            v
  *            ^
  *            |
- *      3-----------2 
- *      |     |     |         
- *      |     |     |          
- *      |     +---- | --> u    
- *      |           |          
- *      |           |          
- *      0-----------1      
+ *      3-----------2
+ *      |     |     |
+ *      |     |     |
+ *      |     +---- | --> u
+ *      |           |
+ *      |           |
+ *      0-----------1
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -82,10 +83,17 @@ public:
      */
     typedef Geometry<TPointType> BaseType;
 
+    typedef Geometry<TPointType> GeometryType;
+
     /**
      * Type of edge geometry
      */
     typedef Line3D2<TPointType> EdgeType;
+
+    /**
+     * Type of face geometry
+     */
+    typedef Quadrilateral3D4<TPointType> FaceType;
 
     /**
      * Pointer definition of Quadrilateral3D4
@@ -232,11 +240,29 @@ public:
         this->Points().push_back( pFourthPoint );
     }
 
-    Quadrilateral3D4( const PointsArrayType& ThisPoints )
+    explicit Quadrilateral3D4( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 4 )
             KRATOS_ERROR << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Id
+    explicit Quadrilateral3D4(
+        const IndexType GeometryId,
+        const PointsArrayType& rThisPoints
+    ) : BaseType(GeometryId, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF( this->PointsNumber() != 4 ) << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Id
+    explicit Quadrilateral3D4(
+        const std::string& rGeometryName,
+        const PointsArrayType& rThisPoints
+    ) : BaseType(rGeometryName, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 4) << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -265,7 +291,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Quadrilateral3D4( Quadrilateral3D4<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Quadrilateral3D4( Quadrilateral3D4<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -277,12 +303,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Quadrilateral;
+        return GeometryData::KratosGeometryFamily::Kratos_Quadrilateral;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Quadrilateral3D4;
+        return GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4;
     }
 
     ///@}
@@ -328,27 +354,45 @@ public:
     ///@name Operations
     ///@{
 
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param ThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer( new Quadrilateral3D4( ThisPoints ) );
+        return typename BaseType::Pointer( new Quadrilateral3D4( NewGeometryId, rThisPoints ) );
     }
 
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        const BaseType& rGeometry
+        ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Quadrilateral3D4( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
 
-    // Geometry< Point<3> >::Pointer  Clone() const override
-    // {
-    //     Geometry< Point<3> >::PointsArrayType NewPoints;
-
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //         NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
-    //     }
-
-    //     //creating a geometry with the new points
-    //     Geometry< Point<3> >::Pointer p_clone( new Quadrilateral3D4< Point<3> >( NewPoints ) );
-
-    //     return p_clone;
-    // }
+     /// Returns number of points per direction.
+    SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override
+    {
+        if ((LocalDirectionIndex == 0) || (LocalDirectionIndex == 1)) {
+            return 2;
+        }
+        KRATOS_ERROR << "Possible direction index reaches from 0-1. Given direction index: "
+            << LocalDirectionIndex << std::endl;
+    }
 
     /**
      * returns the local coordinates of all nodes of the current geometry
@@ -367,14 +411,6 @@ public:
         rResult( 2, 1 ) =  1.0;
         rResult( 3, 0 ) = -1.0;
         rResult( 3, 1 ) =  1.0;
-        return rResult;
-    }
-
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-        if(rResult.size() != 4) rResult.resize( 4, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 4.00 );
         return rResult;
     }
 
@@ -425,8 +461,8 @@ public:
     {
         // Finite element way
         Vector temp;
-        DeterminantOfJacobian( temp, GeometryData::GI_GAUSS_3 );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( GeometryData::GI_GAUSS_3 );
+        DeterminantOfJacobian( temp, GeometryData::IntegrationMethod::GI_GAUSS_3 );
+        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( GeometryData::IntegrationMethod::GI_GAUSS_3 );
         double area = 0.0;
 
         for ( unsigned int i = 0; i < integration_points.size(); i++ )
@@ -529,7 +565,7 @@ public:
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) override
+        ) const override
     {
         PointLocalCoordinatesImplementation( rResult, rPoint, true );
 
@@ -987,42 +1023,35 @@ public:
         return rResult;
     }
 
-    /** This method gives you number of all edges of this
-    geometry. This method will gives you number of all the edges
-    with one dimension less than this geometry. for example a
-    triangle would return three or a tetrahedral would return
-    four but won't return nine related to its six edge lines.
+    ///@}
+    ///@name Edge
+    ///@{
 
-    @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
-    */
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
+     */
     SizeType EdgesNumber() const override
     {
         return 4;
     }
 
-
-    /** FacesNumber
-    @return SizeType containes number of this geometry edges/faces.
-    */
-    SizeType FacesNumber() const override
-    {
-        return EdgesNumber();
-    }
-
-    /** This method gives you all edges of this geometry. This
-    method will gives you all the edges with one dimension less
-    than this geometry. for example a triangle would return
-    three lines as its edges or a tetrahedral would return four
-    triangle as its edges but won't return its six edge
-    lines by this method.
-
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
-    */
-    GeometriesArrayType Edges( void ) override
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
+     */
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -1031,6 +1060,38 @@ public:
         edges.push_back( EdgePointerType( new EdgeType( this->pGetPoint( 2 ), this->pGetPoint( 3 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType( this->pGetPoint( 3 ), this->pGetPoint( 0 ) ) ) );
         return edges;
+    }
+
+    ///@}
+    ///@name Face
+    ///@{
+
+    /**
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
+     */
+    SizeType FacesNumber() const override
+    {
+        return 1;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
+    {
+        GeometriesArrayType faces = GeometriesArrayType();
+
+        faces.push_back( Kratos::make_shared<FaceType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 2 ), this->pGetPoint( 3 )) );
+        return faces;
     }
 
     //Connectivities of faces required
@@ -1068,6 +1129,38 @@ public:
         NodesInFaces(2,3)=2;
     }
 
+    /**
+     * @brief Test the intersection with another geometry
+     * @details decomposes in smaller triangles
+     * @param  ThisGeometry Geometry to intersect with
+     * @return True if the geometries intersect, False in any other case.
+     */
+    bool HasIntersection(const GeometryType& ThisGeometry) const override
+    {
+        Triangle3D3<PointType> triangle_0 (this->pGetPoint( 0 ),
+                                           this->pGetPoint( 1 ),
+                                           this->pGetPoint( 2 )
+        );
+        Triangle3D3<PointType> triangle_1 (this->pGetPoint( 2 ),
+                                           this->pGetPoint( 3 ),
+                                           this->pGetPoint( 0 )
+        );
+        Triangle3D3<PointType> triangle_2 (ThisGeometry.pGetPoint( 0 ),
+                                           ThisGeometry.pGetPoint( 1 ),
+                                           ThisGeometry.pGetPoint( 2 )
+        );
+        Triangle3D3<PointType> triangle_3 (ThisGeometry.pGetPoint( 2 ),
+                                           ThisGeometry.pGetPoint( 3 ),
+                                           ThisGeometry.pGetPoint( 0 )
+        );
+
+        if      ( triangle_0.HasIntersection(triangle_2) ) return true;
+        else if ( triangle_1.HasIntersection(triangle_2) ) return true;
+        else if ( triangle_0.HasIntersection(triangle_3) ) return true;
+        else if ( triangle_1.HasIntersection(triangle_3) ) return true;
+        else return false;
+    }
+
     /** This method checks if an axis-aliged bounding box (AABB)
     intersects the quadrilateral
 
@@ -1076,7 +1169,7 @@ public:
     @param rHighPoint second corner of the box
     @see Triangle3D3::HasIntersection
     */
-    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) const override
     {
         Triangle3D3<PointType> triangle_0 (this->pGetPoint( 0 ),
                                            this->pGetPoint( 1 ),
@@ -1161,63 +1254,23 @@ public:
         return rResult;
     }
 
-    /**
-     * Calculates the Gradients of the shape functions.
-     * Calculates the gradients of the shape functions with regard to
-     * the global coordinates in all
-     * integration points (\f$ \frac{\partial N^i}{\partial X_j} \f$)
-     *
-     * @param rResult a container which takes the calculated gradients
-     * @param ThisMethod the given IntegrationMethod
-     *
-     * @return the gradients of all shape functions with regard to the global coordinates
-     * KLUDGE: method call only works with explicit JacobiansType rather than creating
-     * JacobiansType within argument list
-    */
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    ///@}
+    ///@name Shape Function Integration Points Gradient
+    ///@{
+
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
-        IntegrationMethod ThisMethod ) const override
+        IntegrationMethod ThisMethod) const override
     {
-        const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
+        KRATOS_ERROR << "Jacobian is not square" << std::endl;
+    }
 
-        if ( integration_points_number == 0 )
-        {
-            KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
-        }
-
-        if ( rResult.size() != integration_points_number )
-        {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            ShapeFunctionsGradientsType temp( integration_points_number );
-            rResult.swap( temp );
-        }
-
-        // Calculating the local gradients
-        const ShapeFunctionsGradientsType& shape_functions_local_gradient = msGeometryData.ShapeFunctionsLocalGradients( ThisMethod );
-
-        //getting the inverse jacobian matrices
-        JacobiansType temp( integration_points_number );
-
-        JacobiansType invJ = InverseOfJacobian( temp, ThisMethod );
-
-        //loop over all integration points
-        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
-            rResult[pnt].resize( 4, 2, false );
-
-            for ( int i = 0; i < 4; i++ )
-            {
-                for ( int j = 0; j < 2; j++ )
-                {
-                    rResult[pnt]( i, j ) =
-                        ( shape_functions_local_gradient[pnt]( i, 0 ) * invJ[pnt]( j, 0 ) )
-                        + ( shape_functions_local_gradient[pnt]( i, 1 ) * invJ[pnt]( j, 1 ) );
-                }
-            }
-        }//end of loop over integration points
-
-        return rResult;
+    void ShapeFunctionsIntegrationPointsGradients(
+        ShapeFunctionsGradientsType &rResult,
+        Vector &rDeterminantsOfJacobian,
+        IntegrationMethod ThisMethod) const override
+    {
+        KRATOS_ERROR << "Jacobian is not square" << std::endl;
     }
 
     ///@}
@@ -1459,6 +1512,115 @@ public:
     }
 
     ///@}
+    ///@name Spatial Operations
+    ///@{
+
+    /**
+    * @brief Projects a certain point on the geometry, or finds
+    *        the closest point, depending on the provided
+    *        initial guess. The external point does not necessary
+    *        lay on the geometry.
+    *        It shall deal as the interface to the mathematical
+    *        projection function e.g. the Newton-Raphson.
+    *        Thus, the breaking criteria does not necessarily mean
+    *        that it found a point on the surface, if it is really
+    *        the closest if or not. It shows only if the breaking
+    *        criteria, defined by the tolerance is reached.
+    *
+    *        This function requires an initial guess, provided by
+    *        rProjectedPointLocalCoordinates.
+    *        This function can be a very costly operation.
+    *
+    * @param rPointGlobalCoordinates the point to which the
+    *        projection has to be found.
+    * @param rProjectedPointGlobalCoordinates the location of the
+    *        projection in global coordinates.
+    * @param rProjectedPointLocalCoordinates the location of the
+    *        projection in local coordinates.
+    *        The variable is as initial guess!
+    * @param Tolerance accepted of orthogonal error to projection.
+    * @return It is chosen to take an int as output parameter to
+    *         keep more possibilities within the interface.
+    *         0 -> failed
+    *         1 -> converged
+    */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead.")
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        KRATOS_WARNING("ProjectionPoint") << "This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead." << std::endl;
+
+        const int result = ProjectionPointGlobalToLocalSpace(rPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
+
+        this->GlobalCoordinates(rProjectedPointGlobalCoordinates, rProjectedPointLocalCoordinates);
+
+        return result;
+    }
+
+    int ProjectionPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rProjectionPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        // Calculate the global coordinates of the coordinates to be projected
+        CoordinatesArrayType pt_gl_coords;
+        this->GlobalCoordinates(pt_gl_coords, rPointLocalCoordinates);
+
+        // Calculate the projection point local coordinates
+        return this->ProjectionPointGlobalToLocalSpace(pt_gl_coords, rProjectionPointLocalCoordinates, Tolerance);
+    }
+
+    int ProjectionPointGlobalToLocalSpace(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectionPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        // Max number of iterations
+        const std::size_t max_number_of_iterations = 10;
+
+        // We do a first guess in the center of the geometry
+        CoordinatesArrayType proj_pt_gl_coords = this->Center();
+        array_1d<double, 3> normal = this->UnitNormal(proj_pt_gl_coords);
+
+        // Some auxiliar variables
+        double distance;
+        std::size_t iter;
+
+        // We iterate until we find the properly projected point
+        for (iter = 0; iter < max_number_of_iterations; ++iter) {
+            // We compute the distance, if it is not in the plane we project
+            proj_pt_gl_coords = GeometricalProjectionUtilities::FastProject<CoordinatesArrayType>(
+                proj_pt_gl_coords,
+                rPointGlobalCoordinates,
+                normal,
+                distance);
+
+            // If the normal corresponds means that we have converged
+            if (norm_2(this->UnitNormal(proj_pt_gl_coords) - normal) < Tolerance) {
+                break;
+            }
+
+            // Compute normal
+            noalias(normal) = this->UnitNormal(proj_pt_gl_coords);
+        }
+
+        PointLocalCoordinates(rProjectionPointLocalCoordinates, proj_pt_gl_coords);
+
+        // We do check to print warning
+        if (iter >= max_number_of_iterations - 1) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
+    ///@}
     ///@name Friends
     ///@{
 
@@ -1472,8 +1634,10 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -1483,12 +1647,12 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PointsArrayType );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PointsArrayType );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
 
     Quadrilateral3D4(): BaseType( PointsArrayType(), &msGeometryData ) {}
@@ -1595,8 +1759,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -1636,7 +1799,7 @@ private:
     static ShapeFunctionsGradientsType CalculateShapeFunctionsIntegrationPointsLocalGradients( typename BaseType::IntegrationMethod ThisMethod )
     {
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -1703,25 +1866,25 @@ private:
         {
             {
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -1736,16 +1899,16 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_1 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_2 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_3 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_4 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_5 )
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_1 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;
@@ -1804,14 +1967,19 @@ template<class TPointType> inline std::ostream& operator << (
 
 ///@}
 
-template<class TPointType> const
-GeometryData Quadrilateral3D4<TPointType>::msGeometryData(
-    2, 3, 2,
-    GeometryData::GI_GAUSS_2,
+template<class TPointType>
+const GeometryData Quadrilateral3D4<TPointType>::msGeometryData(
+    &msGeometryDimension,
+    GeometryData::IntegrationMethod::GI_GAUSS_2,
     Quadrilateral3D4<TPointType>::AllIntegrationPoints(),
     Quadrilateral3D4<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
+
+template<class TPointType>
+const GeometryDimension Quadrilateral3D4<TPointType>::msGeometryDimension(
+    2, 3, 2);
+
 }// namespace Kratos.
 
 #endif // KRATOS_QUADRILATERAL_3D_4_H_INCLUDED  defined

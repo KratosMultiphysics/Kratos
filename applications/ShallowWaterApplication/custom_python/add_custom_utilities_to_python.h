@@ -10,9 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
-
+#ifndef KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
+#define KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
 
 
 // System includes 
@@ -32,7 +31,7 @@ namespace Kratos
 namespace Python
 {
 
-  void  AddCustomUtilitiesToPython(pybind11::module& m);
+    void AddCustomUtilitiesToPython(pybind11::module& m);
 
 }  // namespace Python.
   

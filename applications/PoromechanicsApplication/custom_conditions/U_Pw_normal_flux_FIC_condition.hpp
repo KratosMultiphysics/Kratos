@@ -52,7 +52,10 @@ public:
     UPwNormalFluxFICCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwNormalFluxCondition<TDim,TNumNodes>(NewId, pGeometry) {}
     
     // Constructor 2
-    UPwNormalFluxFICCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwNormalFluxCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
+    UPwNormalFluxFICCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwNormalFluxCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) 
+    {
+        mThisIntegrationMethod = this->GetIntegrationMethod();
+    }
 
     // Destructor
     ~UPwNormalFluxFICCondition() override {}
@@ -60,7 +63,9 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
- 
+
+    GeometryData::IntegrationMethod GetIntegrationMethod() override;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:   

@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 def CreateMesher(main_model_part, meshing_parameters):
     return Mesher(main_model_part, meshing_parameters)
 
@@ -21,8 +18,6 @@ class Mesher(object):
         self.model_part = self.main_model_part
         if( self.main_model_part.Name != self.MeshingParameters.GetSubModelPartName() ):
             self.model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
-
-        print(self._class_prefix()+" Ready")
 
     #
     def Initialize(self, dimension):

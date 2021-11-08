@@ -2,12 +2,12 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Antonia Larese 
+//  Main authors:    Antonia Larese
 //
 
 
@@ -25,7 +25,7 @@
 #include "spaces/ublas_space.h"
 
 //strategies
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -37,7 +37,7 @@ namespace Kratos
 
 	namespace Python
 	{
-		using namespace pybind11;
+		namespace py = pybind11;
 
 		void  AddCustomStrategiesToPython(pybind11::module& pymodule)
 		{
@@ -45,12 +45,12 @@ namespace Kratos
 			typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
 			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-			typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+			typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
 			//********************************************************************
 			//********************************************************************
-// 			class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+// 			py::class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
 // 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
 // 				("TestStrategy",
 // 				init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )

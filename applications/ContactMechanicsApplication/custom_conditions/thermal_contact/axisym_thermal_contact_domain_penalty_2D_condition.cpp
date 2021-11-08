@@ -67,7 +67,7 @@ AxisymThermalContactDomainPenalty2DCondition&  AxisymThermalContactDomainPenalty
 
 Condition::Pointer AxisymThermalContactDomainPenalty2DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared<AxisymThermalContactDomainPenalty2DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
+  return Kratos::make_intrusive<AxisymThermalContactDomainPenalty2DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -144,7 +144,7 @@ void AxisymThermalContactDomainPenalty2DCondition::CalculateRadius(double & rCur
 
 
 void AxisymThermalContactDomainPenalty2DCondition::CalculateKinematics(GeneralVariables& rVariables,
-						    ProcessInfo& rCurrentProcessInfo,
+						    const ProcessInfo& rCurrentProcessInfo,
 						    const unsigned int& rPointNumber)
 {
     KRATOS_TRY
@@ -215,7 +215,7 @@ void AxisymThermalContactDomainPenalty2DCondition::CalculateAndAddRHS(VectorType
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  AxisymThermalContactDomainPenalty2DCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int  AxisymThermalContactDomainPenalty2DCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

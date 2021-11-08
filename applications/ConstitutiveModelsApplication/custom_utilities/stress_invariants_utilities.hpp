@@ -96,7 +96,6 @@ namespace Kratos
                Lode = std::asin( -Lode) / 3.0;
             }
 
-            //std::cout << " THISLODE " << Lode << " Stress;atrox " << StressTensor << " Stress " << rStress <<
          }
 
          static inline void CalculateDerivativeVectors( const MatrixType& rStressMatrix, VectorType& C1, VectorType & C2)
@@ -152,7 +151,7 @@ namespace Kratos
                C2(i) = 2.0*rStress(i);
 
             if ( J2 > 1E-5) {
-               C2 /= 2.0 * J2;
+               C2 /= (2.0 * J2);
             }
             else {
                C2 = ZeroVector(6);

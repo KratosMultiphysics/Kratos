@@ -13,22 +13,19 @@
 #if !defined(KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVERCOMPONENTWISE )
 #define  KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVERCOMPONENTWISE
 
-
 /* System includes */
 #include <set>
 
-#ifdef _OPENMP
+/* External includes */
+#ifdef KRATOS_SMP_OPENMP
 #include <omp.h>
 #endif
-
-
-/* External includes */
-
 
 /* Project includes */
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
-
+#include "includes/global_pointer_variables.h"
+#include "utilities/builtin_timer.h"
 
 namespace Kratos
 {
@@ -103,6 +100,7 @@ public:
 
 
     typedef BuilderAndSolver<TSparseSpace,TDenseSpace, TLinearSolver> BaseType;
+    typedef ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace, TLinearSolver> ResidualBasedEliminationBuilderAndSolverType;
 
     typedef typename BaseType::TSchemeType TSchemeType;
 
@@ -128,16 +126,36 @@ public:
 
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
-    /*@} */
-    /**@name Life Cycle
-    */
-    /*@{ */
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-    /** Constructor.
-    */
-    ResidualBasedEliminationBuilderAndSolverComponentwise(
+    /**
+     * @brief Default constructor. (with parameters)
+     */
+    explicit ResidualBasedEliminationBuilderAndSolverComponentwise(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : ResidualBasedEliminationBuilderAndSolverType(pNewLinearSystemSolver)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                     : "ResidualBasedEliminationBuilderAndSolverComponentwise",
+            "components_wise_variable" : "SCALAR_VARIABLE_OR_COMPONENT"
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        rVar = KratosComponents<TVariableType>::Get(ThisParameters["components_wise_variable"].GetString());
+    }
+
+    /**
+     * @brief Default constructor. Constructor.
+     */
+    explicit ResidualBasedEliminationBuilderAndSolverComponentwise(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,TVariableType const& Var)
-        : ResidualBasedEliminationBuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewLinearSystemSolver)
+        : ResidualBasedEliminationBuilderAndSolverType(pNewLinearSystemSolver)
         , rVar(Var)
     {
 
@@ -180,7 +198,7 @@ public:
         TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
 
         //create a partition of the element array
-        int number_of_threads = OpenMPUtils::GetNumThreads();
+        int number_of_threads = ParallelUtilities::GetNumThreads();
 
 #ifdef _OPENMP
         int A_size = A.size1();
@@ -200,8 +218,7 @@ public:
             KRATOS_WATCH( element_partition );
         }
 
-
-        double start_prod = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
 
         #pragma omp parallel for firstprivate(number_of_threads) schedule(static,1)
         for(int k=0; k<number_of_threads; k++)
@@ -213,7 +230,7 @@ public:
             //vector containing the localization in the system of the different
             //terms
             Element::EquationIdVectorType EquationId;
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+            const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
             typename ElementsArrayType::ptr_iterator it_begin=pElements.ptr_begin()+element_partition[k];
             typename ElementsArrayType::ptr_iterator it_end=pElements.ptr_begin()+element_partition[k+1];
 
@@ -225,7 +242,6 @@ public:
             {
 
                 //calculate elemental contribution
-                (*it)->InitializeNonLinearIteration(CurrentProcessInfo);
                 (*it)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
                 Geometry< Node<3> >& geom = (*it)->GetGeometry();
@@ -235,7 +251,7 @@ public:
                     EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
 
                 //assemble the elemental contribution
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                 this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
 #else
                 this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId);
@@ -255,7 +271,7 @@ public:
 
             Condition::EquationIdVectorType EquationId;
 
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+            const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
             typename ConditionsArrayType::ptr_iterator it_begin=ConditionsArray.ptr_begin()+condition_partition[k];
             typename ConditionsArrayType::ptr_iterator it_end=ConditionsArray.ptr_begin()+condition_partition[k+1];
@@ -267,7 +283,6 @@ public:
             {
 
                 //calculate elemental contribution
-                (*it)->InitializeNonLinearIteration(CurrentProcessInfo);
                 (*it)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
                 Geometry< Node<3> >& geom = (*it)->GetGeometry();
@@ -278,17 +293,15 @@ public:
                     EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
                 }
 
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                 this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
 #else
                 this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId);
 #endif
             }
         }
-        if (this->GetEchoLevel()>0)
-        {
-            double stop_prod = OpenMPUtils::GetCurrentTime();
-            std::cout << "parallel building time: " << stop_prod - start_prod << std::endl;
+        if (this->GetEchoLevel()>0) {
+            std::cout << "parallel building time: " << timer.ElapsedSeconds() << std::endl;
         }
 
 #ifdef _OPENMP
@@ -329,9 +342,9 @@ public:
         BaseType::mDofSet.clear();
         BaseType::mDofSet.reserve(mActiveNodes.size() );
 
-        for(WeakPointerVector< Node<3> >::iterator iii = mActiveNodes.begin(); iii!=mActiveNodes.end(); iii++)
+        for(GlobalPointersVector< Node<3> >::iterator iii = mActiveNodes.begin(); iii!=mActiveNodes.end(); iii++)
         {
-            BaseType::mDofSet.push_back( iii->pGetDof(rVar).get() );
+            BaseType::mDofSet.push_back( iii->pGetDof(rVar) );
         }
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
@@ -423,13 +436,14 @@ public:
 #endif
             }
         }
-        if(Dx.size() != BaseType::mEquationSystemSize)
-            Dx.resize(BaseType::mEquationSystemSize,false);
-        if(b.size() != BaseType::mEquationSystemSize)
-            b.resize(BaseType::mEquationSystemSize,false);
-
-        //
-
+        if (Dx.size() != BaseType::mEquationSystemSize) {
+            Dx.resize(BaseType::mEquationSystemSize, false);
+        }
+        TSparseSpace::SetToZero(Dx);
+        if (b.size() != BaseType::mEquationSystemSize) {
+            b.resize(BaseType::mEquationSystemSize, false);
+        }
+        TSparseSpace::SetToZero(b);
 
         //if needed resize the vector for the calculation of reactions
         if(BaseType::mCalculateReactionsFlag == true)
@@ -480,6 +494,27 @@ public:
     /**@name Inquiry */
     /*@{ */
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedEliminationBuilderAndSolverComponentwise";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     /*@} */
     /**@name Friends */
@@ -516,25 +551,24 @@ protected:
         unsigned int pos = (mActiveNodes.begin())->GetDofPosition(rVar);
         //constructing the system matrix row by row
         int index_i;
-        for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin();
+        for(GlobalPointersVector< Node<3> >::iterator in = mActiveNodes.begin();
                 in!=mActiveNodes.end(); in++)
         {
-            Node<3>::DofType& current_dof = in->GetDof(rVar,pos);
+            const Node<3>::DofType& current_dof = in->GetDof(rVar,pos);
             if( current_dof.IsFixed() == false)
             {
                 index_i = (current_dof).EquationId();
-                WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+                GlobalPointersVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
                 std::vector<int>& indices = index_list[index_i];
                 indices.reserve(neighb_nodes.size()+1);
 
                 //filling the first neighbours list
                 indices.push_back(index_i);
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
-
-                    Node<3>::DofType& neighb_dof = i->GetDof(rVar,pos);
+                    const Node<3>::DofType& neighb_dof = i->GetDof(rVar,pos);
                     if(neighb_dof.IsFixed() == false )
                     {
                         int index_j = (neighb_dof).EquationId();
@@ -594,28 +628,28 @@ protected:
         #pragma omp parallel for firstprivate(number_of_threads,pos) schedule(static,1)
         for(int k=0; k<number_of_threads; k++)
         {
-            WeakPointerVector< Node<3> >::iterator it_begin = mActiveNodes.begin()+partition[k];
-            WeakPointerVector< Node<3> >::iterator it_end = mActiveNodes.begin()+partition[k+1];
+            GlobalPointersVector< Node<3> >::iterator it_begin = mActiveNodes.begin()+partition[k];
+            GlobalPointersVector< Node<3> >::iterator it_end = mActiveNodes.begin()+partition[k+1];
 
-            for(WeakPointerVector< Node<3> >::iterator in = it_begin;
+            for(GlobalPointersVector< Node<3> >::iterator in = it_begin;
                     in!=it_end; in++)
             {
-                Node<3>::DofType& current_dof = in->GetDof(rVar,pos);
+                const Node<3>::DofType& current_dof = in->GetDof(rVar,pos);
                 if( current_dof.IsFixed() == false)
                 {
                     int index_i = (current_dof).EquationId();
-                    WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+                    GlobalPointersVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
                     std::vector<int>& indices = index_list[index_i];
                     indices.reserve(neighb_nodes.size()+1);
 
                     //filling the first neighbours list
                     indices.push_back(index_i);
-                    for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                    for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                             i != neighb_nodes.end(); i++)
                     {
 
-                        Node<3>::DofType& neighb_dof = i->GetDof(rVar,pos);
+                        const Node<3>::DofType& neighb_dof = i->GetDof(rVar,pos);
                         if(neighb_dof.IsFixed() == false )
                         {
                             int index_j = (neighb_dof).EquationId();
@@ -689,7 +723,7 @@ private:
     /**@name Member Variables */
     /*@{ */
     TVariableType const & rVar;
-    WeakPointerVector<Node<3> > mActiveNodes;
+    GlobalPointersVector<Node<3> > mActiveNodes;
 
     /*@} */
     /**@name Private Operators*/

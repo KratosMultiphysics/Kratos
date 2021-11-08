@@ -16,7 +16,6 @@
 
 namespace Kratos
 {
-
 /** \brief ShellT3_CoordinateTransformation
 *
 * This class represents a basic (linear) coordinate transformation that can be used
@@ -31,7 +30,7 @@ class ShellT3_CoordinateTransformation
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( ShellT3_CoordinateTransformation );
+    KRATOS_CLASS_POINTER_DEFINITION(ShellT3_CoordinateTransformation);
 
     typedef Element::GeometryType GeometryType;
 
@@ -41,7 +40,7 @@ public:
 
 public:
 
-    ShellT3_CoordinateTransformation(const GeometryType::Pointer & pGeometry)
+    ShellT3_CoordinateTransformation(const GeometryType::Pointer& pGeometry)
         : mpGeometry(pGeometry)
     {
     }
@@ -52,40 +51,40 @@ public:
 
 private:
 
-    ShellT3_CoordinateTransformation(const ShellT3_CoordinateTransformation & other);
+    ShellT3_CoordinateTransformation(const ShellT3_CoordinateTransformation& other);
 
-    ShellT3_CoordinateTransformation & operator = (const ShellT3_CoordinateTransformation & other);
+    ShellT3_CoordinateTransformation& operator = (const ShellT3_CoordinateTransformation& other);
 
 public:
 
     virtual ShellT3_CoordinateTransformation::Pointer Create(GeometryType::Pointer pGeometry)const
     {
-        return ShellT3_CoordinateTransformation::Pointer( new ShellT3_CoordinateTransformation( pGeometry ) );
+        return ShellT3_CoordinateTransformation::Pointer(new ShellT3_CoordinateTransformation(pGeometry));
     }
 
     virtual void Initialize()
     {
     }
 
-    virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+    virtual void InitializeSolutionStep()
     {
     }
 
-    virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+    virtual void FinalizeSolutionStep()
     {
     }
 
-    virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+    virtual void InitializeNonLinearIteration()
     {
     }
 
-    virtual void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+    virtual void FinalizeNonLinearIteration()
     {
     }
 
     virtual ShellT3_LocalCoordinateSystem CreateReferenceCoordinateSystem()const
     {
-        const GeometryType & geom = GetGeometry();
+        const GeometryType& geom = GetGeometry();
         return ShellT3_LocalCoordinateSystem(geom[0].GetInitialPosition(),
                                              geom[1].GetInitialPosition(),
                                              geom[2].GetInitialPosition());
@@ -96,55 +95,53 @@ public:
         return CreateReferenceCoordinateSystem();
     }
 
-    virtual Vector CalculateLocalDisplacements(const ShellT3_LocalCoordinateSystem & LCS,
-            const VectorType & globalDisplacements)
+    virtual Vector CalculateLocalDisplacements(const ShellT3_LocalCoordinateSystem& LCS,
+            const VectorType& globalDisplacements)
     {
         MatrixType R(18, 18);
-        LCS.ComputeTotalRotationMatrix( R );
-        return prod( R, globalDisplacements );
+        LCS.ComputeTotalRotationMatrix(R);
+        return prod(R, globalDisplacements);
     }
 
-    virtual void FinalizeCalculations(const ShellT3_LocalCoordinateSystem & LCS,
-                                      const VectorType & globalDisplacements,
-                                      const VectorType & localDisplacements,
-                                      MatrixType & rLeftHandSideMatrix,
-                                      VectorType & rRightHandSideVector,
+    virtual void FinalizeCalculations(const ShellT3_LocalCoordinateSystem& LCS,
+                                      const VectorType& globalDisplacements,
+                                      const VectorType& localDisplacements,
+                                      MatrixType& rLeftHandSideMatrix,
+                                      VectorType& rRightHandSideVector,
                                       const bool RHSrequired,
                                       const bool LHSrequired)
     {
         MatrixType R(18, 18);
-        LCS.ComputeTotalRotationMatrix( R );
+        LCS.ComputeTotalRotationMatrix(R);
 
-        if(LHSrequired)
-        {
+        if (LHSrequired) {
             MatrixType temp(18, 18);
-            noalias( temp ) = prod( trans( R ), rLeftHandSideMatrix );
-            noalias( rLeftHandSideMatrix ) = prod( temp, R );
+            noalias(temp) = prod(trans(R), rLeftHandSideMatrix);
+            noalias(rLeftHandSideMatrix) = prod(temp, R);
         }
 
-        if(RHSrequired)
-        {
-            rRightHandSideVector = prod( trans( R ), rRightHandSideVector );
+        if (RHSrequired) {
+            rRightHandSideVector = prod(trans(R), rRightHandSideVector);
         }
     }
 
-    virtual MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem & LCS,
+    virtual MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem& LCS,
             const Vector& globalDisplacements,
             size_t nodeid)
     {
-        return IdentityMatrix(3,3);
+        return IdentityMatrix(3);
     }
 
-    virtual MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem & LCS,
+    virtual MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem& LCS,
             const Vector& globalDisplacements,
             const Vector& N)
     {
-        return IdentityMatrix(3,3);
+        return IdentityMatrix(3);
     }
 
 public:
 
-    inline const GeometryType & GetGeometry()const
+    inline const GeometryType& GetGeometry()const
     {
         return *mpGeometry;
     }

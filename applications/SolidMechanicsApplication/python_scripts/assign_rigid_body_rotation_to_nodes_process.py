@@ -8,7 +8,7 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import math
 import sys
 
-import assign_scalar_to_nodes_process as BaseProcess
+from KratosMultiphysics.SolidMechanicsApplication.assign_scalar_to_nodes_process import AssignScalarToNodesProcess
 
 def Factory(custom_settings, Model):
     if( not isinstance(custom_settings,KratosMultiphysics.Parameters) ):
@@ -16,7 +16,7 @@ def Factory(custom_settings, Model):
     return AssignRigidBodyRotationToNodesProcess(Model, custom_settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class AssignRigidBodyRotationToNodesProcess(BaseProcess.AssignScalarToNodesProcess):
+class AssignRigidBodyRotationToNodesProcess(AssignScalarToNodesProcess):
     def __init__(self, Model, custom_settings ):
         KratosMultiphysics.Process.__init__(self)
 
@@ -59,7 +59,7 @@ class AssignRigidBodyRotationToNodesProcess(BaseProcess.AssignScalarToNodesProce
         params.AddValue("constrained", self.settings["constrained"])
         params.AddValue("interval",self.settings["interval"])
 
-        BaseProcess.AssignScalarToNodesProcess.__init__(self, Model, params)
+        AssignScalarToNodesProcess.__init__(self, Model, params)
 
     #
     def CheckVariableType(self,name):

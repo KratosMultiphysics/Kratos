@@ -5,28 +5,26 @@ import KratosMultiphysics.mpi as mpi
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
-import dam_MPI_thermo_mechanic_solver
+from KratosMultiphysics.DamApplication import dam_MPI_thermo_mechanic_solver
 
 
 def CreateSolver(main_model_part, custom_settings):
-    
+
     return DamMPIUPThermoMechanicSolver(main_model_part, custom_settings)
 
 
 class DamMPIUPThermoMechanicSolver(dam_MPI_thermo_mechanic_solver.DamMPIThermoMechanicSolver):
 
-    def __init__(self, main_model_part, custom_settings): 
-        
+    def __init__(self, main_model_part, custom_settings):
+
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part    
-        
+        self.main_model_part = main_model_part
+
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -106,18 +104,17 @@ class DamMPIUPThermoMechanicSolver(dam_MPI_thermo_mechanic_solver.DamMPIThermoMe
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        
+
         # Construct the linear solver
-        import trilinos_linear_solver_factory
         self.thermal_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["thermal_solver_settings"]["linear_solver_settings"])
         self.mechanical_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["mechanical_solver_settings"]["linear_solver_settings"])
 
         print("Construction of Dam_MPI_UP_ThermoMechanicSolver finished")
 
     def AddVariables(self):
-        
+
         super(DamMPIUPThermoMechanicSolver, self).AddVariables()
-        
+
         ## Fluid variables
         # Add pressure
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
@@ -126,7 +123,7 @@ class DamMPIUPThermoMechanicSolver(dam_MPI_thermo_mechanic_solver.DamMPIThermoMe
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Dt2_PRESSURE)
 
     def AddDofs(self):
-        
+
         for node in self.main_model_part.Nodes:
             ## Solid dofs
             node.AddDof(KratosMultiphysics.DISPLACEMENT_X,KratosMultiphysics.REACTION_X)
@@ -150,10 +147,10 @@ class DamMPIUPThermoMechanicSolver(dam_MPI_thermo_mechanic_solver.DamMPIThermoMe
     def _ConstructScheme(self, scheme_type, solution_type):
 
         rayleigh_m = self.settings["mechanical_solver_settings"]["rayleigh_m"].GetDouble()
-        rayleigh_k = self.settings["mechanical_solver_settings"]["rayleigh_k"].GetDouble()  
-        
+        rayleigh_k = self.settings["mechanical_solver_settings"]["rayleigh_k"].GetDouble()
+
         beta=0.25
         gamma=0.5
         scheme = KratosDam.TrilinosDamUPScheme(beta,gamma,rayleigh_m,rayleigh_k)
-        
+
         return scheme

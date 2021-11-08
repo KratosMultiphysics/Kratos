@@ -52,7 +52,7 @@ Element::Pointer AxisymTotalLagrangian::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<AxisymTotalLagrangian>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<AxisymTotalLagrangian>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //************************************************************************************
@@ -64,7 +64,7 @@ Element::Pointer AxisymTotalLagrangian::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<AxisymTotalLagrangian>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<AxisymTotalLagrangian>( NewId, pGeom, pProperties );
 }
 
 //******************************* DESTRUCTOR *****************************************
@@ -82,7 +82,7 @@ double AxisymTotalLagrangian::GetIntegrationWeight(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const IndexType PointNumber,
     const double detJ
-    )
+    ) const
 {
     // We calculate the axisymmetric coefficient
     Vector N;
@@ -99,7 +99,6 @@ double AxisymTotalLagrangian::GetIntegrationWeight(
 
 void AxisymTotalLagrangian::save( Serializer& rSerializer ) const
 {
-    rSerializer.save( "Name", "AxisymTotalLagrangian" );
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, TotalLagrangian );
 }
 

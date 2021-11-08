@@ -192,40 +192,11 @@ void HyperElasticPlastic3DLaw::InitializeMaterial( const Properties& rMaterialPr
 
   mElasticLeftCauchyGreen       = identity_matrix<double> (3);
 
+  mpHardeningLaw->SetProperties(rMaterialProperties);
+
   mpFlowRule->InitializeMaterial( mpYieldCriterion, mpHardeningLaw, rMaterialProperties );
   //mpFlowRule->InitializeMaterial( rMaterialProperties );
-
 }
-
-//************************************************************************************
-//************************************************************************************
-
-
-void HyperElasticPlastic3DLaw::InitializeSolutionStep( const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry, //this is just to give the array of nodes
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-  mpHardeningLaw->SetProperties(rMaterialProperties);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-
-void HyperElasticPlastic3DLaw::FinalizeSolutionStep( const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry, //this is just to give the array of nodes
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-
-}
-
-
-
-//************* COMPUTING  METHODS
-//************************************************************************************
-//************************************************************************************
 
 
 //*****************************MATERIAL RESPONSES*************************************
@@ -425,7 +396,7 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
 
-        if( ReturnMappingVariables.Options.Is(FlowRule::NOT_RETURN_MAPPING_COMPUTED) )
+        if( ReturnMappingVariables.Options.IsNot(FlowRule::RETURN_MAPPING_COMPUTED) )
         {
             KRATOS_ERROR << " ReturnMappingCall was not performed  ...error in the constitutive calculation..." << std::endl;
         }

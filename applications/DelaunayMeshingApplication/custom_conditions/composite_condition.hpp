@@ -52,31 +52,18 @@ public:
 
     ///@name Type Definitions
     ///@{
-    typedef Condition ConditionType;
-
-    /// Conditions container. A vector set of Conditions with their Id's as key.
+    typedef Condition                                                ConditionType;
     typedef PointerVectorSet<ConditionType, IndexedObject> ConditionsContainerType;
-
-    /** Iterator over the Conditions. This iterator is an indirect
-    iterator over Conditions::Pointer which turn back a reference to
-    Condition by * operator and not a pointer for more convenient
-    usage. */
-    typedef ConditionsContainerType::iterator ConditionIterator;
-
-    /** Const iterator over the Conditions. This iterator is an indirect
-    iterator over Conditions::Pointer which turn back a reference to
-    Condition by * operator and not a pointer for more convenient
-    usage. */
-    typedef ConditionsContainerType::const_iterator ConditionConstantIterator;
-
+    typedef ConditionsContainerType::iterator                    ConditionIterator;
+    typedef ConditionsContainerType::const_iterator      ConditionConstantIterator;
+    typedef GeometryData::SizeType                                        SizeType;
 
     /// Counted pointer of CompositeCondition
-    KRATOS_CLASS_POINTER_DEFINITION( CompositeCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( CompositeCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
-
 
     /// Default constructors.
     CompositeCondition(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -85,7 +72,6 @@ public:
 
     ///Copy constructor
     CompositeCondition(CompositeCondition const& rOther);
-
 
     /// Destructor.
     virtual ~CompositeCondition();
@@ -96,7 +82,6 @@ public:
 
     /// Assignment operator.
     CompositeCondition& operator=(CompositeCondition const& rOther);
-
 
     ///@}
     ///@name Operations
@@ -172,12 +157,12 @@ public:
 
     ConditionsContainerType::Pointer pChildConditions()
     {
-      return ConditionsContainerType::Pointer(&mChildConditions);
+        return ConditionsContainerType::Pointer(&mChildConditions);
     }
 
     void SetChildConditions(ConditionsContainerType::Pointer pOtherChildConditions)
     {
-      mChildConditions = (*pOtherChildConditions);
+        mChildConditions = (*pOtherChildConditions);
     }
 
     ConditionsContainerType::ContainerType& ChildConditionsArray()
@@ -228,27 +213,27 @@ public:
     /**
      * Sets on rConditionalDofList the degrees of freedom of the considered element geometry
      */
-    void GetDofList(DofsVectorType& rConditionalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rConditionalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 
 
@@ -260,7 +245,7 @@ public:
      * interface to the constitutive law!
      * Note, that these functions expect a std::vector of values for the
      * specified variable type that contains a value for each integration point!
-     * SetValueOnIntegrationPoints: set the values for given Variable.
+     * SetValuesOnIntegrationPoints: set the values for given Variable.
      * GetValueOnIntegrationPoints: get the values for given Variable.
      */
 
@@ -268,29 +253,12 @@ public:
     /**
      * Set a Vector Value on the Condition Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable, const std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Set a Matrix Value on the Condition Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    //GET:
-    /**
-     * Set on rVariable a double Value from the Condition Constitutive Law
-     */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Set on rVariable a Vector Value from the Condition Constitutive Law
-     */
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Set on rVariable a Matrix Value from the Condition Constitutive Law
-     */
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
+    void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable, const std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************* STARTING - ENDING  METHODS
@@ -299,23 +267,23 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override;
 
     /**
      * Called at the end of eahc solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
 
     //************* COMPUTING  METHODS
@@ -329,7 +297,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -337,7 +305,7 @@ public:
       * @param rRightHandSideVector: the elemental right hand side vector
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -345,7 +313,7 @@ public:
      * @param rLeftHandSideVector: the elemental left hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -353,7 +321,7 @@ public:
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -361,7 +329,7 @@ public:
       * @param rDampingMatrix: the elemental damping matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -374,7 +342,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable,
-				 Variable<array_1d<double,3> >& rDestinationVariable,
+				 const Variable<array_1d<double,3> >& rDestinationVariable,
 				 const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -406,7 +374,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     //std::string Info() const;
 
@@ -487,7 +455,7 @@ private:
     void InitializeChildren();
 
     //check problem type definition and if coincides return active true
-    bool IsActive(ConditionIterator iChildCondition, const ProcessInfo& rCurrentProcessInfo);
+    bool IsActive(const Condition& rChildCondition, const ProcessInfo& rCurrentProcessInfo) const;
 
     //set specific data value to condition children
     template<class TVariableType> void SetValueToChildren(const TVariableType& rThisVariable){
@@ -499,6 +467,12 @@ private:
 	}
 
     }
+
+    /**
+     * Get element size from the dofs
+     */
+    virtual SizeType GetDofsSize(const ProcessInfo& rCurrentProcessInfo);
+
     ///@}
     ///@name Private  Access
     ///@{

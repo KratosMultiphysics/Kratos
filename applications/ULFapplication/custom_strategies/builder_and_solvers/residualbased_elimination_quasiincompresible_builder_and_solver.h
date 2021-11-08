@@ -199,9 +199,9 @@ public:
     )
     {
         KRATOS_TRY
-	
+
 	//KRATOS_WATCH("ENTERED SETUP DOFSET OF BUILDER AND SOLVER OF ULF")
-	mActiveNodes.clear(); 
+	mActiveNodes.clear();
         mActiveNodes.reserve(r_model_part.Nodes().size() );
 
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
@@ -219,7 +219,7 @@ public:
         BaseType::mDofSet.clear();
         BaseType::mDofSet.reserve(mActiveNodes.size()*TDim );
 
-        for(WeakPointerVector< Node<3> >::iterator iii = mActiveNodes.begin(); iii!=mActiveNodes.end(); iii++)
+        for(GlobalPointersVector< Node<3> >::iterator iii = mActiveNodes.begin(); iii!=mActiveNodes.end(); iii++)
         {
 
 	     BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_X).get());
@@ -409,8 +409,6 @@ public:
             //assemble the elemental contribution
             AssembleLHS(A,LHS_Contribution,EquationId);
             AssembleRHS(b,RHS_Contribution,EquationId);
-            // clean local elemental memory
-            pScheme->CleanMemory(*it);
         }
         LHS_Contribution.resize(0,0,false);
 
@@ -477,17 +475,12 @@ public:
 
                 		}
                 */
-                // clean local elemental memory
-                pScheme->CleanMemory(*it);
 
                 //					#pragma omp critical
                 //					{
                 //						//assemble the elemental contribution
                 //						AssembleLHS(A,LHS_Contribution,EquationId);
                 //						AssembleRHS(b,RHS_Contribution,EquationId);
-                //
-                //						// clean local elemental memory
-                //						pScheme->CleanMemory(*it);
                 //					}
             }
         }
@@ -621,7 +614,7 @@ public:
     TSystemVectorType mMdiagInv;
     TSystemVectorType mpreconditioner;
     unsigned int mnumber_of_active_nodes;
-    WeakPointerVector<Node<3> > mActiveNodes;
+    GlobalPointersVector<Node<3> > mActiveNodes;
 
 //private:
     /**@name Static Member Variables */
@@ -631,7 +624,7 @@ public:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-  //  WeakPointerVector<Node<3> > mActiveNodes;
+  //  GlobalPointersVector<Node<3> > mActiveNodes;
 
     /*@} */
     /**@name Private Operations*/
@@ -925,17 +918,12 @@ public:
 
                 		}
                 */
-                // clean local elemental memory
-                pScheme->CleanMemory(*it);
 
                 //					#pragma omp critical
                 //					{
                 //						//assemble the elemental contribution
                 //						AssembleLHS(A,LHS_Contribution,EquationId);
                 //						AssembleRHS(b,RHS_Contribution,EquationId);
-                //
-                //						// clean local elemental memory
-                //						pScheme->CleanMemory(*it);
                 //					}
             }
         }
@@ -1024,7 +1012,7 @@ public:
         unsigned int dof_position = r_model_part.NodesBegin()->GetDofPosition(DISPLACEMENT_X);
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
         {
-            WeakPointerVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
             if( neighb_nodes.size() != 0 )
             {
                 //first row in the block
@@ -1038,7 +1026,7 @@ public:
                 }
 
                 //filling and order the first neighbours list
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
                     unsigned int tmp = (i->GetDof(DISPLACEMENT_X,dof_position)).EquationId();
@@ -1097,7 +1085,7 @@ public:
 
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
         {
-            WeakPointerVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
             if( neighb_nodes.size() != 0 )
             {
                 //first row in the block
@@ -1115,7 +1103,7 @@ public:
                 indices.push_back(row_index/TDim);
 
                 //filling and order the first neighbours list
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
                     unsigned int tmp = (i->GetDof(DISPLACEMENT_X,dof_position)).EquationId();
@@ -1169,7 +1157,7 @@ public:
 
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
         {
-            WeakPointerVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
             if( neighb_nodes.size() != 0 )
             {
                 //first row in the block
@@ -1183,7 +1171,7 @@ public:
                 }
 
                 //filling and order the first neighbours list
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
                     unsigned int tmp = (i->GetDof(DISPLACEMENT_X,dof_position)).EquationId();

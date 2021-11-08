@@ -1,14 +1,7 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.mpi as KratosMPI
-
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication","TrilinosApplication")
 
 # Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 
@@ -26,11 +19,28 @@ class convergence_criterion:
 
         echo_level = convergence_criterion_parameters["echo_level"].GetInt()
 
-        if(echo_level >= 1 and KratosMPI.mpi.rank == 0):
+        rotation_dofs = False
+        if convergence_criterion_parameters.Has("rotation_dofs"):
+            rotation_dofs = convergence_criterion_parameters["rotation_dofs"].GetBool()
+
+        volumetric_strain_dofs = False
+        if convergence_criterion_parameters.Has("volumetric_strain_dofs"):
+            volumetric_strain_dofs = convergence_criterion_parameters["volumetric_strain_dofs"].GetBool()
+
+        if(echo_level >= 1):
             KratosMultiphysics.Logger.PrintInfo("::[Mechanical Solver]::", "MPI CONVERGENCE CRITERION : " + convergence_criterion_parameters["convergence_criterion"].GetString())
 
         if(convergence_crit == "displacement_criterion"):
-            self.mechanical_convergence_criterion = TrilinosApplication.TrilinosDisplacementCriteria(D_RT, D_AT)
+            if rotation_dofs:
+                self.mechanical_convergence_criterion = TrilinosApplication.TrilinosMixedGenericCriteria(
+                    [(KratosMultiphysics.DISPLACEMENT, D_RT, D_AT),
+                    (KratosMultiphysics.ROTATION, D_RT, D_AT)])
+            elif volumetric_strain_dofs:
+                self.mechanical_convergence_criterion = TrilinosApplication.TrilinosMixedGenericCriteria(
+                    [(KratosMultiphysics.DISPLACEMENT, D_RT, D_AT),
+                    (KratosMultiphysics.VOLUMETRIC_STRAIN, D_RT, D_AT)])
+            else:
+                self.mechanical_convergence_criterion = TrilinosApplication.TrilinosDisplacementCriteria(D_RT, D_AT)
             self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
 
         elif(convergence_crit == "residual_criterion"):

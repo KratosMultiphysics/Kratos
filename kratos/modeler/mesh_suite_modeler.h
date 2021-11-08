@@ -511,7 +511,7 @@ public:
         for(int i = 0 ; i < nn.len ; i++)
         {
             int numb_of_neighb = nn[i].len;
-            WeakPointerVector< Node<3> >& neighbours = (r_model_nodes[i+1].GetValues(NEIGHBOUR_NODES));
+            GlobalPointersVector< Node<3> >& neighbours = (r_model_nodes[i+1].GetValues(NEIGHBOUR_NODES));
             //PointerVector< Node<3> >& neighbours = (r_model_nodes[i+1].GetValues(NEIGHBOUR_NODES));
 
             neighbours.clear();

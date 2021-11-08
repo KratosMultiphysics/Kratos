@@ -33,15 +33,13 @@ public:
 
     void Initialize(
         const Element& rElement, const ProcessInfo& rProcessInfo) override {
-        this->FillFromNodalData(Velocity, VELOCITY, rElement.GetGeometry());
+        this->FillFromHistoricalNodalData(Velocity, VELOCITY, rElement.GetGeometry());
         this->FillFromHistoricalNodalData(
             Velocity_OldStep1, VELOCITY, rElement.GetGeometry(), 1);
     }
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo) {
         const Geometry<Node<3> >& r_geometry = rElement.GetGeometry();
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-
         for (unsigned int i = 0; i < 3; i++) {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_geometry[i]);
         }
@@ -57,15 +55,13 @@ public:
 
     void Initialize(
         const Element& rElement, const ProcessInfo& rProcessInfo) override {
-        this->FillFromNodalData(Pressure, PRESSURE, rElement.GetGeometry());
+        this->FillFromHistoricalNodalData(Pressure, PRESSURE, rElement.GetGeometry());
         this->FillFromHistoricalNodalData(
             Pressure_OldStep1, PRESSURE, rElement.GetGeometry(), 1);
     }
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo) {
         const Geometry<Node<3> >& r_geometry = rElement.GetGeometry();
-        KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
-
         for (unsigned int i = 0; i < 3; i++) {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE, r_geometry[i]);
         }
@@ -84,7 +80,6 @@ public:
     }
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo) {
-        KRATOS_CHECK_VARIABLE_KEY(C_SMAGORINSKY);
         return 0;
     }
 };
@@ -100,7 +95,6 @@ public:
     }
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo) {
-        KRATOS_CHECK_VARIABLE_KEY(KINEMATIC_VISCOSITY);
         return 0;
     }
 };
@@ -117,8 +111,6 @@ public:
     }
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo) {
-        KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
-        KRATOS_CHECK_VARIABLE_KEY(OSS_SWITCH);
         return 0;
     }
 };
@@ -126,7 +118,7 @@ public:
 void FluidElementDataTestEmptyModelPart(
     ModelPart& rModelPart, double DeltaTime, unsigned int BufferSize) {
     rModelPart.SetBufferSize(BufferSize);
-    Properties::Pointer p_properties = rModelPart.pGetProperties(0);
+    Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
 
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -143,11 +135,11 @@ void FluidElementDataTestEmptyModelPart(
 
 void FluidElementDataTestCompleteModelPart(
     ModelPart& rModelPart, double DeltaTime, unsigned int BufferSize) {
-    
+
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
     rModelPart.AddNodalSolutionStepVariable(PRESSURE);
     rModelPart.SetBufferSize(BufferSize);
-    Properties::Pointer p_properties = rModelPart.pGetProperties(0);
+    Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
 
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -168,7 +160,7 @@ void FluidElementDataTestCompleteModelPart(
 
     // Element data
     r_element.SetValue(C_SMAGORINSKY,0.16);
-    
+
     // ProcessInfo
     rModelPart.GetProcessInfo().SetValue(OSS_SWITCH,1);
 
@@ -183,7 +175,7 @@ void FluidElementDataTestCompleteModelPart(
         }
     }
 }
-    
+
 KRATOS_TEST_CASE_IN_SUITE(FluidElementDataRead, FluidDynamicsApplicationFastSuite) {
 
     TestNodalScalarData nodal_scalar_data;
@@ -197,8 +189,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataRead, FluidDynamicsApplicationFastSuit
 
     constexpr double DeltaTime = 0.1;
     FluidElementDataTestCompleteModelPart(full_model_part,DeltaTime,2);
-    Element& r_element = *(full_model_part.ElementsBegin());
-    ProcessInfo& r_process_info = full_model_part.GetProcessInfo();
+    const Element& r_element = *(full_model_part.ElementsBegin());
+    const ProcessInfo& r_process_info = full_model_part.GetProcessInfo();
 
     nodal_scalar_data.Initialize(r_element,r_process_info);
     KRATOS_CHECK_EQUAL(nodal_scalar_data.Pressure[0], 11.0);
@@ -234,8 +226,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataCheck, FluidDynamicsApplicationFastSui
     constexpr double DeltaTime = 0.1;
     FluidElementDataTestEmptyModelPart(empty_model_part,DeltaTime,1);
 
-    Element& r_element = *(empty_model_part.ElementsBegin());
-    ProcessInfo& r_process_info = empty_model_part.GetProcessInfo();
+    const Element& r_element = *(empty_model_part.ElementsBegin());
+    const ProcessInfo& r_process_info = empty_model_part.GetProcessInfo();
 
     // historical data container should not work with variables not added to model part
     int out;
@@ -246,7 +238,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataCheck, FluidDynamicsApplicationFastSui
     out = TestNodalVectorData::Check(r_element, r_process_info),
         "Missing VELOCITY variable in solution step data for node 1.");
 
-    // Other containers can work with non-initialized variables, but should return 0 
+    // Other containers can work with non-initialized variables, but should return 0
     out = TestElementData::Check(r_element,r_process_info);
     KRATOS_CHECK_EQUAL(out,0);
     out = TestPropertiesData::Check(r_element,r_process_info);
@@ -257,7 +249,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataCheck, FluidDynamicsApplicationFastSui
     TestElementData element_data;
     TestPropertiesData properties_data;
     TestProcessInfoData process_info_data;
-    
+
     element_data.Initialize(r_element,r_process_info);
     KRATOS_CHECK_EQUAL(element_data.CSmagorinsky, 0.0);
 

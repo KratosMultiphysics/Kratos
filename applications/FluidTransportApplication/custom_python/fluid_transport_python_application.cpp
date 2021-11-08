@@ -34,14 +34,14 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 PYBIND11_MODULE(KratosFluidTransportApplication, m)
 {
-	class_<KratosFluidTransportApplication,
+	py::class_<KratosFluidTransportApplication,
 	KratosFluidTransportApplication::Pointer,
     KratosApplication>(m, "KratosFluidTransportApplication")
-	.def(init<>());
+	.def(py::init<>());
 
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
@@ -50,7 +50,9 @@ PYBIND11_MODULE(KratosFluidTransportApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PECLET);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,THETA);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PHI_THETA);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,NODAL_ANALYTIC_SOLUTION);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,PHI_GRADIENT);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,NODAL_PHI_GRADIENT);
 }
 
 

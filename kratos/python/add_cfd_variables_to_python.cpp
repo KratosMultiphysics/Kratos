@@ -29,7 +29,7 @@ namespace Kratos
 
 namespace Python
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     void  AddCFDVariablesToPython(pybind11::module& m)
     {

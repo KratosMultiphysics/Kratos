@@ -1,6 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
-
-import KratosMultiphysics.KratosUnittest as KratosUnittest
+﻿import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 
 import os
@@ -12,11 +10,6 @@ def GetFilePath(fileName):
 
 
 class TestReorder(KratosUnittest.TestCase):
-
-    def setUp(self):
-        if (sys.version_info < (3, 2)):
-            self.assertRaisesRegex = self.assertRaisesRegexp
-
     def test_reorder(self):
         current_model = KratosMultiphysics.Model()
 

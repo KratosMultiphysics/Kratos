@@ -77,7 +77,7 @@ namespace Kratos
          NodesArrayType const& ThisNodes,
          PropertiesType::Pointer pProperties) const
    {
-     return Kratos::make_shared<PointRigidContactCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+     return Kratos::make_intrusive<PointRigidContactCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
    }
 
 
@@ -86,7 +86,7 @@ namespace Kratos
 
    Condition::Pointer PointRigidContactCondition::Clone( IndexType NewId, NodesArrayType const& ThisNodes ) const
    {
-     return Kratos::make_shared<PointRigidContactCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
+     return Kratos::make_intrusive<PointRigidContactCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
    }
 
 
@@ -102,7 +102,7 @@ namespace Kratos
    //***********************************************************************************
 
    void PointRigidContactCondition::GetDofList(DofsVectorType& rConditionDofList,
-         ProcessInfo& rCurrentProcessInfo)
+         const ProcessInfo& rCurrentProcessInfo) const
    {
       KRATOS_TRY
 
@@ -126,7 +126,7 @@ namespace Kratos
    //***********************************************************************************
 
    void PointRigidContactCondition::EquationIdVector(EquationIdVectorType& rResult,
-         ProcessInfo& rCurrentProcessInfo)
+         const ProcessInfo& rCurrentProcessInfo) const
    {
       KRATOS_TRY
 
@@ -153,7 +153,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void PointRigidContactCondition::GetValuesVector(Vector& rValues, int Step)
+   void PointRigidContactCondition::GetValuesVector(Vector& rValues, int Step) const
    {
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -176,7 +176,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void PointRigidContactCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+   void PointRigidContactCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -199,7 +199,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void PointRigidContactCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+   void PointRigidContactCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -249,7 +249,7 @@ namespace Kratos
 
    void PointRigidContactCondition::AddExplicitContribution(const VectorType& rRHSVector,
          const Variable<VectorType>& rRHSVariable,
-         Variable<array_1d<double,3> >& rDestinationVariable,
+         const Variable<array_1d<double,3> >& rDestinationVariable,
          const ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
@@ -303,7 +303,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void PointRigidContactCondition::Initialize()
+   void PointRigidContactCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -314,8 +314,8 @@ namespace Kratos
       noalias(mContactStressVector) = ZeroVector(voigt_size);
 
       mpFrictionLaw = GetProperties()[FRICTION_LAW]->Clone();
-      //mpFrictionLaw = Kratos::make_shared<CoulombAdhesionFrictionLaw>();
-      //mpFrictionLaw = Kratos::make_shared<HardeningCoulombFrictionLaw>();
+      //mpFrictionLaw = Kratos::make_intrusive<CoulombAdhesionFrictionLaw>();
+      //mpFrictionLaw = Kratos::make_intrusive<HardeningCoulombFrictionLaw>();
 
       KRATOS_CATCH( "" )
    }
@@ -323,7 +323,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void PointRigidContactCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+   void PointRigidContactCondition::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
 
@@ -340,7 +340,7 @@ namespace Kratos
 
    //************************************************************************************
    //************************************************************************************
-   void PointRigidContactCondition::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+   void PointRigidContactCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -352,14 +352,14 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void PointRigidContactCondition::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+   void PointRigidContactCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
    {
    }
 
    //************************************************************************************
    //************************************************************************************
 
-   void PointRigidContactCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+   void PointRigidContactCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
 
@@ -437,7 +437,7 @@ namespace Kratos
    //************************************************************************************
 
    void PointRigidContactCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
-         ProcessInfo& rCurrentProcessInfo)
+         const ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -577,7 +577,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void PointRigidContactCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+   void PointRigidContactCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
    {
       //create local system components
       LocalSystemComponents LocalSystem;
@@ -602,7 +602,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void PointRigidContactCondition::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
+   void PointRigidContactCondition::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, const ProcessInfo& rCurrentProcessInfo )
    {
       //create local system components
       LocalSystemComponents LocalSystem;
@@ -639,7 +639,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void PointRigidContactCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+   void PointRigidContactCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
    {
       //create local system components
       LocalSystemComponents LocalSystem;
@@ -670,7 +670,7 @@ namespace Kratos
          const std::vector< Variable< MatrixType > >& rLHSVariables,
          std::vector< VectorType >& rRightHandSideVectors,
          const std::vector< Variable< VectorType > >& rRHSVariables,
-         ProcessInfo& rCurrentProcessInfo )
+         const ProcessInfo& rCurrentProcessInfo )
    {
       //create local system components
       LocalSystemComponents LocalSystem;
@@ -721,7 +721,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void PointRigidContactCondition::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+   void PointRigidContactCondition::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -733,7 +733,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void PointRigidContactCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+   void PointRigidContactCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -778,7 +778,7 @@ namespace Kratos
    //***********************************************************************************
 
 
-   int PointRigidContactCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+   int PointRigidContactCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
    {
       return 0;
    }

@@ -30,7 +30,7 @@ namespace Kratos
 //*******************************CONSTRUCTOR******************************************
 //************************************************************************************
 ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion()
-    :MPMYieldCriterion()
+    :ParticleYieldCriterion()
 {
 
 }
@@ -39,7 +39,7 @@ ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion()
 //************************************************************************************
 
 ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion(HardeningLawPointer pHardeningLaw)
-    :MPMYieldCriterion(pHardeningLaw)
+    :ParticleYieldCriterion(pHardeningLaw)
 {
 
 }
@@ -50,7 +50,7 @@ ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion(HardeningLawPointer
 
 ModifiedCamClayYieldCriterion& ModifiedCamClayYieldCriterion::operator=(ModifiedCamClayYieldCriterion const& rOther)
 {
-    MPMYieldCriterion::operator=(rOther);
+    ParticleYieldCriterion::operator=(rOther);
     return *this;
 }
 
@@ -58,7 +58,7 @@ ModifiedCamClayYieldCriterion& ModifiedCamClayYieldCriterion::operator=(Modified
 //************************************************************************************
 
 ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion(ModifiedCamClayYieldCriterion const& rOther)
-    :MPMYieldCriterion(rOther)
+    :ParticleYieldCriterion(rOther)
 {
 
 }
@@ -109,9 +109,9 @@ void ModifiedCamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vecto
     preconsolidation_stress = mpHardeningLaw->CalculateHardening(preconsolidation_stress, rAlpha, rOldPreconsolidationPressure);
 
     rFirstDerivative.resize(3, false);
-    rFirstDerivative[0] = 2.0 * mean_stress_p - preconsolidation_stress; // (df/dP)
+    rFirstDerivative[0] = 2.0 * mean_stress_p - preconsolidation_stress;     // (df/dP)
     rFirstDerivative[1] = 2.0 * deviatoric_q / std::pow(shear_M, 2);         // (df/dQ)
-    rFirstDerivative[2] = - mean_stress_p;                              // (df/dP_c)
+    rFirstDerivative[2] = - mean_stress_p;                                   // (df/dP_c)
 }
 
 //*******************************CALCULATE SECOND YIELD FUNCTION DERIVATIVE *****************
@@ -130,19 +130,14 @@ void ModifiedCamClayYieldCriterion::CalculateYieldFunctionSecondDerivative(const
 
 }
 
-double ModifiedCamClayYieldCriterion::GetPI()
-{
-    return std::atan(1.0)*4.0;
-}
-
 void ModifiedCamClayYieldCriterion::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMYieldCriterion )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParticleYieldCriterion )
 }
 
 void ModifiedCamClayYieldCriterion::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMYieldCriterion )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ParticleYieldCriterion )
 }
 
 

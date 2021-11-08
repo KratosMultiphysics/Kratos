@@ -280,7 +280,7 @@ public:
 
       unsigned int NodeId = 0;
       if( rModelPart.IsSubModelPart() )
-	NodeId = this->GetMaxNodeId( *(rModelPart.GetParentModelPart()) );
+	NodeId = this->GetMaxNodeId( rModelPart.GetParentModelPart());
       else
 	NodeId = this->GetMaxNodeId( rModelPart );
 
@@ -291,7 +291,7 @@ public:
 
       ModelPart* pMainModelPart = &rModelPart;
       if( rModelPart.IsSubModelPart() )
-	pMainModelPart = rModelPart.GetParentModelPart();
+	pMainModelPart = &rModelPart.GetParentModelPart();
 
       for(ModelPart::SubModelPartIterator i_mp= pMainModelPart->SubModelPartsBegin() ; i_mp!=pMainModelPart->SubModelPartsEnd(); i_mp++)
 	{
@@ -533,7 +533,7 @@ protected:
 	{
 	  if( ie->GetGeometry().size() > 1){
 
-	    GeneratrixPoint = Kratos::make_shared<NodeType>(id, ie->GetGeometry()[0].X(), ie->GetGeometry()[0].Y(), ie->GetGeometry()[0].Z());
+	    GeneratrixPoint = Kratos::make_intrusive<NodeType>(id, ie->GetGeometry()[0].X(), ie->GetGeometry()[0].Y(), ie->GetGeometry()[0].Z());
 	    GeneratrixPoints.push_back( GeneratrixPoint );
 
 	    //std::cout<<" Point ["<<ie->GetGeometry()[0].X()<<", "<<ie->GetGeometry()[0].Y()<<", "<<ie->GetGeometry()[0].Z()<<"] "<<std::endl;
@@ -546,7 +546,7 @@ protected:
       ElementsContainerType::iterator LastElement = rModelPart.ElementsEnd()-1;
       int num_nodes = LastElement->GetGeometry().size()-1;
 
-      GeneratrixPoint = Kratos::make_shared<NodeType>(id,LastElement->GetGeometry()[num_nodes].X(),LastElement->GetGeometry()[num_nodes].Y(),LastElement->GetGeometry()[num_nodes].Z());
+      GeneratrixPoint = Kratos::make_intrusive<NodeType>(id,LastElement->GetGeometry()[num_nodes].X(),LastElement->GetGeometry()[num_nodes].Y(),LastElement->GetGeometry()[num_nodes].Z());
       GeneratrixPoints.push_back( GeneratrixPoint );
 
       std::cout<<"  [DEFINED BY:"<<GeneratrixPoints.size()<<" control points]"<<std::endl;
@@ -677,10 +677,10 @@ protected:
       //add elements to computing model part: (in order to be written)
       ModelPart* pComputingModelPart = NULL;
       if( rModelPart.IsSubModelPart() )
-	for(ModelPart::SubModelPartIterator i_mp= rModelPart.GetParentModelPart()->SubModelPartsBegin() ; i_mp!=rModelPart.GetParentModelPart()->SubModelPartsEnd(); i_mp++)
+	for(ModelPart::SubModelPartIterator i_mp= rModelPart.GetParentModelPart().SubModelPartsBegin() ; i_mp!=rModelPart.GetParentModelPart().SubModelPartsEnd(); i_mp++)
 	  {
 	    if( i_mp->Is(ACTIVE) )  //computing_domain
-	      pComputingModelPart = &rModelPart.GetParentModelPart()->GetSubModelPart(i_mp->Name());
+	      pComputingModelPart = &rModelPart.GetParentModelPart().GetSubModelPart(i_mp->Name());
 	  }
       else{
 	for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
@@ -693,14 +693,14 @@ protected:
       // Create surface of the cylinder/tube with quadrilateral shell conditions
       unsigned int ElementId = 0;
       if( rModelPart.IsSubModelPart() )
-	ElementId = this->GetMaxElementId( *(rModelPart.GetParentModelPart()) );
+	ElementId = this->GetMaxElementId( rModelPart.GetParentModelPart());
       else
 	ElementId = this->GetMaxElementId( rModelPart );
 
 
       unsigned int NodeId = 0;
       if( rModelPart.IsSubModelPart() )
-	NodeId = this->GetMaxNodeId( *(rModelPart.GetParentModelPart()) );
+	NodeId = this->GetMaxNodeId( rModelPart.GetParentModelPart());
       else
 	NodeId = this->GetMaxNodeId( rModelPart );
 
@@ -744,7 +744,7 @@ protected:
 	    FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
 
 	  pFace    = Kratos::make_shared<Quadrilateral3D4<NodeType> >(FaceNodes);
-	  pElement = Kratos::make_shared<Element>(ElementId, pFace, pProperties);
+	  pElement = Kratos::make_intrusive<Element>(ElementId, pFace, pProperties);
 
 	  rModelPart.AddElement(pElement);
 	  pElement->Set(ACTIVE,false);
@@ -769,7 +769,7 @@ protected:
 	    FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
 
 	  pFace    = Kratos::make_shared<Quadrilateral3D4<NodeType> >(FaceNodes);
-          pElement = Kratos::make_shared<Element>(ElementId, pFace, pProperties);
+          pElement = Kratos::make_intrusive<Element>(ElementId, pFace, pProperties);
 
 	  rModelPart.AddElement(pElement);
 	  pElement->Set(ACTIVE,false);

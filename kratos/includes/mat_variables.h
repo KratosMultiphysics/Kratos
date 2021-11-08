@@ -26,12 +26,10 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
 #include "includes/kratos_components.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 #include "containers/periodic_variables_container.h"
 
 #undef  KRATOS_EXPORT_MACRO
@@ -125,11 +123,14 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE( double, NORMAL_COMPRESSION_SLOPE )
   KRATOS_DEFINE_VARIABLE( double, SWELLING_SLOPE )
   KRATOS_DEFINE_VARIABLE( double, ALPHA_SHEAR )
+  KRATOS_DEFINE_VARIABLE( Vector, ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS )
 
   // Strain
   //KRATOS_DEFINE_VARIABLE( double, DETERMINANT_F )
   //KRATOS_DEFINE_VARIABLE( Vector, DEFORMATION_GRADIENT);
   KRATOS_DEFINE_VARIABLE( Vector, INITIAL_STRAIN_VECTOR )
+  KRATOS_DEFINE_VARIABLE( Vector, INITIAL_STRESS_VECTOR )
+  KRATOS_DEFINE_VARIABLE( Matrix, INITIAL_DEFORMATION_GRADIENT_MATRIX )
 
   KRATOS_DEFINE_VARIABLE( Vector, GREEN_LAGRANGE_STRAIN_VECTOR )
   //KRATOS_DEFINE_VARIABLE( Vector, GREEN_LAGRANGE_STRAIN_TENSOR )
@@ -162,6 +163,10 @@ namespace Kratos
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( WATER_VELOCITY )
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( WATER_ACCELERATION )
 
+  KRATOS_DEFINE_VARIABLE( double, STRESS_INV_P )
+  KRATOS_DEFINE_VARIABLE( double, STRESS_INV_J2 )
+  KRATOS_DEFINE_VARIABLE( double, STRESS_INV_THETA )
+  KRATOS_DEFINE_VARIABLE( Matrix, INVERSE_DEFORMATION_GRADIENT )
 }  // namespace Kratos.
 
 #undef  KRATOS_EXPORT_MACRO

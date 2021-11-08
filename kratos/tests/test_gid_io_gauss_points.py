@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as UnitTest
 
@@ -32,7 +30,7 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
 
     def setUp(self):
         self.setModelPart()
-        self.workFolder = "gid_io"
+        self.workFolder = "auxiliar_files_for_python_unittest/gid_io"
 
     def tearDown(self):
         with WorkFolderScope(self.workFolder):

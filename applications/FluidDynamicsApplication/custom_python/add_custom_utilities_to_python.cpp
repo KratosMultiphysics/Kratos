@@ -27,14 +27,18 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
+#include "custom_utilities/fluid_auxiliary_utilities.h"
+#include "custom_utilities/fluid_post_process_utilities.h"
 #include "custom_utilities/drag_utilities.h"
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/estimate_dt_utilities.h"
+#include "custom_utilities/fluid_characteristic_numbers_utilities.h"
 #include "custom_utilities/fractional_step_settings_periodic.h"
 #include "custom_utilities/fractional_step_settings.h"
 #include "custom_utilities/integration_point_to_node_transformation_utility.h"
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/compressible_element_rotation_utility.h"
+#include "custom_utilities/acceleration_limitation_utilities.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -47,69 +51,60 @@ namespace Python
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     // Dynamic Smagorinsky utilitites
-    class_<DynamicSmagorinskyUtils>(m,"DynamicSmagorinskyUtils")
-    .def(init<ModelPart&,unsigned int>())
+    py::class_<DynamicSmagorinskyUtils>(m,"DynamicSmagorinskyUtils")
+        .def(py::init<ModelPart&,unsigned int>())
         .def("StoreCoarseMesh",&DynamicSmagorinskyUtils::StoreCoarseMesh)
         .def("CalculateC",&DynamicSmagorinskyUtils::CalculateC)
         .def("CorrectFlagValues",&DynamicSmagorinskyUtils::CorrectFlagValues)
         ;
 
     // Estimate time step utilities
-    class_<EstimateDtUtility < 2 > >(m,"EstimateDtUtility2D")
-        .def(init< ModelPart&, const double, const double, const double >())
-        .def(init< ModelPart&, Parameters& >())
-        .def("SetCFL",&EstimateDtUtility < 2 > ::SetCFL)
-        .def("SetDtMax",&EstimateDtUtility < 2 > ::SetDtMin)
-        .def("SetDtMax",&EstimateDtUtility < 2 > ::SetDtMax)
-        .def("EstimateDt",&EstimateDtUtility < 2 > ::EstimateDt)
-        .def("CalculateLocalCFL",&EstimateDtUtility < 2 > ::CalculateLocalCFL)
+    py::class_<EstimateDtUtility>(m,"EstimateDtUtility")
+        .def(py::init< ModelPart&, const double, const double, const double >())
+        .def(py::init< ModelPart&, Parameters& >())
+        .def("SetCFL",&EstimateDtUtility::SetCFL)
+        .def("SetDtMax",&EstimateDtUtility::SetDtMin)
+        .def("SetDtMax",&EstimateDtUtility::SetDtMax)
+        .def("EstimateDt",&EstimateDtUtility::EstimateDt)
         ;
 
-    class_<EstimateDtUtility < 3 > >(m,"EstimateDtUtility3D")
-        .def(init< ModelPart&, const double, const double, const double >())
-        .def(init< ModelPart&, Parameters& >())
-        .def("SetCFL",&EstimateDtUtility < 3 > ::SetCFL)
-        .def("SetDtMax",&EstimateDtUtility < 3 > ::SetDtMin)
-        .def("SetDtMax",&EstimateDtUtility < 3 > ::SetDtMax)
-        .def("EstimateDt",&EstimateDtUtility < 3 > ::EstimateDt)
-        .def("CalculateLocalCFL",&EstimateDtUtility < 3 > ::CalculateLocalCFL)
+    // Fluid characteristic numbers utilities
+    py::class_<FluidCharacteristicNumbersUtilities>(m,"FluidCharacteristicNumbersUtilities")
+        .def_static("CalculateLocalCFL",(void (*)(ModelPart&)) &FluidCharacteristicNumbersUtilities::CalculateLocalCFL)
         ;
 
     // Periodic boundary conditions utilities
     typedef void (PeriodicConditionUtilities::*AddDoubleVariableType)(Properties&,Variable<double>&);
-    typedef void (PeriodicConditionUtilities::*AddVariableComponentType)(Properties&,VariableComponent< VectorComponentAdaptor< array_1d<double, 3> > >&);
 
     AddDoubleVariableType AddDoubleVariable = &PeriodicConditionUtilities::AddPeriodicVariable;
-    AddVariableComponentType AddVariableComponent = &PeriodicConditionUtilities::AddPeriodicVariable;
 
-    class_<PeriodicConditionUtilities>(m,"PeriodicConditionUtilities")
-        .def(init<ModelPart&,unsigned int>())
+    py::class_<PeriodicConditionUtilities>(m,"PeriodicConditionUtilities")
+        .def(py::init<ModelPart&,unsigned int>())
         .def("SetUpSearchStructure",&PeriodicConditionUtilities::SetUpSearchStructure)
         .def("DefinePeriodicBoundary",&PeriodicConditionUtilities::DefinePeriodicBoundary)
         .def("AddPeriodicVariable",AddDoubleVariable)
-        .def("AddPeriodicVariable",AddVariableComponent)
     ;
 
     // Base settings
     typedef SolverSettings<SparseSpaceType,LocalSpaceType,LinearSolverType> BaseSettingsType;
 
-    class_ < BaseSettingsType >(m, "BaseSettingsType" );
+    py::class_ < BaseSettingsType >(m, "BaseSettingsType" );
 
     // Fractional step settings
-    enum_<FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel>(m,"StrategyLabel")
+    py::enum_<FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel>(m,"StrategyLabel")
         .value("Velocity",FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::Velocity)
         .value("Pressure",FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::Pressure)
         //.value("EddyViscosity",FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::EddyViscosity)
     ;
 
-    enum_<FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::TurbulenceModelLabel>(m,"TurbulenceModelLabel")
+    py::enum_<FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::TurbulenceModelLabel>(m,"TurbulenceModelLabel")
         .value("SpalartAllmaras",FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SpalartAllmaras)
     ;
 
@@ -120,9 +115,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     BuildTurbModelType SetTurbModel_Build = &FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel;
     PassTurbModelType SetTurbModel_Pass = &FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel;
 
-    class_< FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>,BaseSettingsType>
+    py::class_< FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>,BaseSettingsType>
         (m,"FractionalStepSettings")
-        .def(init<ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
+        .def(py::init<ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
         .def("SetStrategy",ThisSetStrategyOverload)
         .def("SetTurbulenceModel",SetTurbModel_Build)
         .def("SetTurbulenceModel",SetTurbModel_Pass)
@@ -130,9 +125,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SetEchoLevel",&FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetEchoLevel)
     ;
 
-    class_< FractionalStepSettingsPeriodic<SparseSpaceType,LocalSpaceType,LinearSolverType>,BaseSettingsType>
+    py::class_< FractionalStepSettingsPeriodic<SparseSpaceType,LocalSpaceType,LinearSolverType>,BaseSettingsType>
         (m,"FractionalStepSettingsPeriodic")
-        .def(init<ModelPart&,unsigned int,unsigned int,bool,bool,bool,const Kratos::Variable<int>&>())
+        .def(py::init<ModelPart&,unsigned int,unsigned int,bool,bool,bool,const Kratos::Variable<int>&>())
         .def("SetStrategy",&FractionalStepSettingsPeriodic<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetStrategy)
         .def("GetStrategy",&FractionalStepSettingsPeriodic<SparseSpaceType,LocalSpaceType,LinearSolverType>::pGetStrategy)
         .def("SetEchoLevel",&FractionalStepSettingsPeriodic<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetEchoLevel)
@@ -141,31 +136,56 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // Transform from integration point to nodes utilities
     typedef IntegrationPointToNodeTransformationUtility<2,3> IntegrationPointToNodeTransformationUtility2DType;
     typedef IntegrationPointToNodeTransformationUtility<3,4> IntegrationPointToNodeTransformationUtility3DType;
-    class_<IntegrationPointToNodeTransformationUtility2DType>(m,"IntegrationPointToNodeTransformationUtility2D")
-        .def(init<>())
+    py::class_<IntegrationPointToNodeTransformationUtility2DType>(m,"IntegrationPointToNodeTransformationUtility2D")
+        .def(py::init<>())
         .def("TransformFromIntegrationPointsToNodes",&IntegrationPointToNodeTransformationUtility2DType::TransformFromIntegrationPointsToNodes<double>)
         ;
-    class_<IntegrationPointToNodeTransformationUtility3DType>(m,"IntegrationPointToNodeTransformationUtility3D")
-        .def(init<>())
+    py::class_<IntegrationPointToNodeTransformationUtility3DType>(m,"IntegrationPointToNodeTransformationUtility3D")
+        .def(py::init<>())
         .def("TransformFromIntegrationPointsToNodes",&IntegrationPointToNodeTransformationUtility3DType::TransformFromIntegrationPointsToNodes<double>)
         ;
 
     // Calculate embedded drag utilities
-    class_< DragUtilities> (m,"DragUtilities")
-        .def(init<>())
+    py::class_< DragUtilities> (m,"DragUtilities")
+        .def(py::init<>())
         .def("CalculateBodyFittedDrag", &DragUtilities::CalculateBodyFittedDrag)
         .def("CalculateEmbeddedDrag", &DragUtilities::CalculateEmbeddedDrag)
         ;
 
-    class_<CoordinateTransformationUtils<LocalSpaceType::MatrixType,LocalSpaceType::VectorType,double>,
-            CoordinateTransformationUtils<LocalSpaceType::MatrixType,LocalSpaceType::VectorType,double>::Pointer>(m,"CoordinateTransformationUtils");
+    py::class_<
+        CompressibleElementRotationUtility<LocalSpaceType::MatrixType,LocalSpaceType::VectorType>,
+        CompressibleElementRotationUtility<LocalSpaceType::MatrixType,LocalSpaceType::VectorType>::Pointer,
+        CoordinateTransformationUtils<LocalSpaceType::MatrixType,LocalSpaceType::VectorType,double> >
+        (m,"CompressibleElementRotationUtility")
+        .def(py::init<const unsigned int,const Kratos::Flags&>())
+        ;
 
-    class_<CompressibleElementRotationUtility<LocalSpaceType::MatrixType,LocalSpaceType::VectorType>,
-            CompressibleElementRotationUtility<LocalSpaceType::MatrixType,LocalSpaceType::VectorType>::Pointer,
-            CoordinateTransformationUtils<LocalSpaceType::MatrixType,LocalSpaceType::VectorType,double> >
-    (m,"CompressibleElementRotationUtility")
-    .def(init<const unsigned int,const Variable<double>&>())
-    ;
+    // Limit the maximal accelearation inside a time step to a physically possible value
+    py::class_<
+        AccelerationLimitationUtilities>
+        (m,"AccelerationLimitationUtilities")
+        .def(py::init< ModelPart&, const double >())
+        .def("SetLimitAsMultipleOfGravitionalAcceleration", &AccelerationLimitationUtilities::SetLimitAsMultipleOfGravitionalAcceleration)
+        .def("Execute", &AccelerationLimitationUtilities::Execute)
+        ;
+
+    // Auxiliary utilities
+    py::class_<FluidAuxiliaryUtilities>(m, "FluidAuxiliaryUtilities")
+        .def_static("CalculateFlowRate", &FluidAuxiliaryUtilities::CalculateFlowRate)
+        .def_static("CalculateFlowRatePositiveSkin", [](const ModelPart& rModelPart){return FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(rModelPart);})
+        .def_static("CalculateFlowRatePositiveSkin", [](const ModelPart& rModelPart, const Flags& rSkinFlag){return FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(rModelPart, rSkinFlag);})
+        .def_static("CalculateFlowRateNegativeSkin", [](const ModelPart& rModelPart){return FluidAuxiliaryUtilities::CalculateFlowRateNegativeSkin(rModelPart);})
+        .def_static("CalculateFlowRateNegativeSkin", [](const ModelPart& rModelPart, const Flags& rSkinFlag){return FluidAuxiliaryUtilities::CalculateFlowRateNegativeSkin(rModelPart, rSkinFlag);})
+        .def_static("CalculateFluidVolume", &FluidAuxiliaryUtilities::CalculateFluidVolume)
+        .def_static("CalculateFluidPositiveVolume", &FluidAuxiliaryUtilities::CalculateFluidPositiveVolume)
+        .def_static("CalculateFluidNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidNegativeVolume)
+        ;
+
+    // Post process utilities
+    py::class_< FluidPostProcessUtilities > (m,"FluidPostProcessUtilities")
+        .def(py::init<>())
+        .def("CalculateFlow", &FluidPostProcessUtilities::CalculateFlow)
+        ;
 
 }
 

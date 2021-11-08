@@ -7,7 +7,7 @@ import KratosMultiphysics.ConvectionDiffusionApplication
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.FluidTransportApplication
 
-from fluid_transport_analysis import FluidTransportAnalysis
+from KratosMultiphysics.FluidTransportApplication.fluid_transport_analysis import FluidTransportAnalysis
 
 if __name__ == "__main__":
 

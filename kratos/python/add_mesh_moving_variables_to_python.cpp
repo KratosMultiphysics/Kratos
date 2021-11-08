@@ -24,7 +24,7 @@ namespace Kratos
 
 namespace Python
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     void  AddALEVariablesToPython(pybind11::module& m)
     {
@@ -34,6 +34,7 @@ namespace Python
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,MESH_RHS)
 
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,LAPLACIAN_DIRECTION)
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,MESH_POISSON_RATIO)
 
     }
 }  // namespace Python.

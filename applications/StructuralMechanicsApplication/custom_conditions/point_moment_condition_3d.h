@@ -16,9 +16,7 @@
 
 // External includes
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/base_load_condition.h"
-#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -51,7 +49,7 @@ public:
     ///@{
 
     // Counted pointer of PointMomentCondition3D
-    KRATOS_CLASS_POINTER_DEFINITION( PointMomentCondition3D );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PointMomentCondition3D );
 
     ///@}
     ///@name Life Cycle
@@ -81,16 +79,41 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
 
-    Condition::Pointer Create(
+    /**
+     * @brief Creates a new condition pointer and clones the previous condition data
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone (
         IndexType NewId,
-        NodesArrayType const& rThisNodes,
-        PropertiesType::Pointer pProperties
+        NodesArrayType const& ThisNodes
         ) const override;
 
     /**
@@ -100,8 +123,8 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -110,8 +133,8 @@ public:
      */
     void GetDofList(
         DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * Sets on rValues the nodal displacements
@@ -121,7 +144,7 @@ public:
     void GetValuesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * Sets on rValues the nodal velocities
@@ -131,7 +154,7 @@ public:
     void GetFirstDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * Sets on rValues the nodal accelerations
@@ -141,7 +164,7 @@ public:
     void GetSecondDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
 
     /**
@@ -151,7 +174,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
 
     ///@}
@@ -167,6 +190,27 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "PointMomentCondition3D #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "PointMomentCondition3D #" << Id();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
 
     ///@}
     ///@name Friends
@@ -200,7 +244,7 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
@@ -208,7 +252,7 @@ protected:
     /**
      * It calcules the integration weight for the point moment
      */
-    virtual double GetPointMomentIntegrationWeight();
+    virtual double GetPointMomentIntegrationWeight() const;
 
     ///@}
     ///@name Protected  Access

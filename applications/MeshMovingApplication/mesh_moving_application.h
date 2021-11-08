@@ -27,9 +27,6 @@
 #include "custom_elements/laplacian_meshmoving_element.h"
 #include "custom_elements/structural_meshmoving_element.h"
 
-#include "includes/mesh_moving_variables.h"
-#include "includes/variables.h"
-
 namespace Kratos {
 
 ///@name Kratos Globals
@@ -56,7 +53,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosMeshMovingApplication : public KratosApplication {
+class KRATOS_API(MESH_MOVING_APPLICATION) KratosMeshMovingApplication : public KratosApplication {
 public:
   ///@name Type Definitions
   ///@{

@@ -201,7 +201,6 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
             print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
         #self.material_law.FinalizeMaterialResponsePK2( self.parameters )
-        self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
 
         self.material_law.CalculateMaterialResponseKirchhoff( self.parameters )
         if( self.echo_level > 0 ):
@@ -211,7 +210,6 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
             print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
         self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-        self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
 
         self.material_law.CalculateMaterialResponseCauchy( self.parameters )
         if( self.echo_level > 0 ):
@@ -221,9 +219,6 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
             print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
         self.material_law.FinalizeMaterialResponseCauchy( self.parameters )
-        self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
-
-
 
     def _GetItemFromModule(self,my_string):
         splitted = my_string.split(".")

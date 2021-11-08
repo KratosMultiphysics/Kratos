@@ -77,7 +77,7 @@ UpdatedLagrangianSegregatedFluidElement&  UpdatedLagrangianSegregatedFluidElemen
 
 Element::Pointer UpdatedLagrangianSegregatedFluidElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared< UpdatedLagrangianSegregatedFluidElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+  return Kratos::make_intrusive< UpdatedLagrangianSegregatedFluidElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -105,13 +105,13 @@ Element::Pointer UpdatedLagrangianSegregatedFluidElement::Clone( IndexType NewId
     NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
   }
 
-  //commented: it raises a segmentation fault in make_shared bad alloc
+  //commented: it raises a segmentation fault in make_intrusive bad alloc
   NewElement.mStepVariable = mStepVariable;
 
   NewElement.SetData(this->GetData());
   NewElement.SetFlags(this->GetFlags());
 
-  return Kratos::make_shared< UpdatedLagrangianSegregatedFluidElement >(NewElement);
+  return Kratos::make_intrusive< UpdatedLagrangianSegregatedFluidElement >(NewElement);
 }
 
 
@@ -125,7 +125,7 @@ UpdatedLagrangianSegregatedFluidElement::~UpdatedLagrangianSegregatedFluidElemen
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangianSegregatedFluidElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
   rElementalDofList.resize( 0 );
 
@@ -162,9 +162,9 @@ void UpdatedLagrangianSegregatedFluidElement::GetDofList( DofsVectorType& rEleme
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangianSegregatedFluidElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
-  this->SetProcessInformation(rCurrentProcessInfo);
+  //this->SetProcessInformation(rCurrentProcessInfo);
 
   const SizeType number_of_nodes = GetGeometry().size();
   const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
@@ -205,34 +205,13 @@ void UpdatedLagrangianSegregatedFluidElement::EquationIdVector( EquationIdVector
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangianSegregatedFluidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
     this->SetProcessInformation(rCurrentProcessInfo);
 
     FluidElement::InitializeExplicitContributions();
-
-    switch(mStepVariable)
-    {
-      case VELOCITY_STEP:
-        {
-
-          for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-            mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
-                                                               GetGeometry(),
-                                                               row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
-                                                               rCurrentProcessInfo );
-          break;
-        }
-      case PRESSURE_STEP:
-        {
-          break;
-        }
-      default:
-        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
-    }
-
 
     KRATOS_CATCH( "" )
 
@@ -241,7 +220,7 @@ void UpdatedLagrangianSegregatedFluidElement::InitializeSolutionStep( ProcessInf
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangianSegregatedFluidElement::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -253,7 +232,7 @@ void UpdatedLagrangianSegregatedFluidElement::InitializeNonLinearIteration( Proc
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangianSegregatedFluidElement::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -264,7 +243,7 @@ void UpdatedLagrangianSegregatedFluidElement::FinalizeNonLinearIteration( Proces
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangianSegregatedFluidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -293,7 +272,7 @@ void UpdatedLagrangianSegregatedFluidElement::FinalizeSolutionStep( ProcessInfo&
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::GetValuesVector( Vector& rValues, int Step )
+void UpdatedLagrangianSegregatedFluidElement::GetValuesVector( Vector& rValues, int Step ) const
 {
   const SizeType number_of_nodes = GetGeometry().size();
   const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
@@ -337,7 +316,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetValuesVector( Vector& rValues, 
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void UpdatedLagrangianSegregatedFluidElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
   const SizeType number_of_nodes = GetGeometry().size();
   const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
@@ -379,7 +358,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetFirstDerivativesVector( Vector&
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void UpdatedLagrangianSegregatedFluidElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
   const SizeType number_of_nodes = GetGeometry().size();
   const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
@@ -743,6 +722,82 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddRHS(LocalSystemComp
   KRATOS_CATCH( "" )
 }
 
+
+
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables)
+{
+  KRATOS_TRY
+
+
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        FluidElement::CalculateAndAddDynamicLHS(rLeftHandSideMatrix, rVariables);
+
+        //KRATOS_WARNING("")<<" DynamicLHS "<<rLeftHandSideMatrix<<std::endl;
+
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+
+        const unsigned int MatSize = this->GetDofsSize();
+
+        if(rLeftHandSideMatrix.size1() != MatSize)
+          rLeftHandSideMatrix.resize (MatSize, MatSize, false);
+
+        noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
+
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
+  }
+
+  KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables)
+{
+  KRATOS_TRY
+
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        FluidElement::CalculateAndAddDynamicRHS(rRightHandSideVector, rVariables);
+
+        //KRATOS_WARNING("")<<" DynamicRHS "<<rRightHandSideVector<<std::endl;
+
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+        const unsigned int MatSize = this->GetDofsSize();
+
+        if ( rRightHandSideVector.size() != MatSize )
+          rRightHandSideVector.resize( MatSize, false );
+
+        noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
+
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
+  }
+
+  KRATOS_CATCH( "" )
+}
+
+
 //************************************************************************************
 //************************************************************************************
 
@@ -773,7 +828,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddInternalForces(Vect
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangianSegregatedFluidElement::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -807,7 +862,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateMassMatrix( MatrixType& r
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangianSegregatedFluidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -841,7 +896,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateDampingMatrix( MatrixType
 //************************************************************************************
 //************************************************************************************
 
-unsigned int UpdatedLagrangianSegregatedFluidElement::GetDofsSize()
+unsigned int UpdatedLagrangianSegregatedFluidElement::GetDofsSize() const
 {
   KRATOS_TRY
 
@@ -1384,7 +1439,6 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateStabilizationTau(ElementD
     double element_size = rGeometry.AverageEdgeLength();
 
     rVariables.Tau = (element_size * element_size * TimeStep) / ( Density * mean_velocity * TimeStep * element_size + Density * element_size * element_size +  8.0 * Viscosity * TimeStep );
-
   }
 
   KRATOS_CATCH( "" )
@@ -1423,11 +1477,11 @@ void UpdatedLagrangianSegregatedFluidElement::GetFreeSurfaceFaces(std::vector<st
   // }
 
   //based in existance of neighbour elements (proper detection for triangles and tetrahedra)
-  WeakPointerVector<Element>& neighb_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
+  ElementWeakPtrVectorType& nElements = this->GetValue(NEIGHBOUR_ELEMENTS);
   unsigned int face=0;
-  for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
+  for(auto& i_nelem : nElements)
   {
-    if (ne->Id() == this->Id())  // If there is no shared element in face nf (the Id coincides)
+    if(i_nelem.Id() == this->Id())  // If there is no shared element in face nf (the Id coincides)
     {
       std::vector<SizeType> Nodes;
       unsigned int WallNodes  = 0;
@@ -1614,7 +1668,7 @@ double& UpdatedLagrangianSegregatedFluidElement::CalculateVolumeChange( double& 
 //************************************************************************************
 //************************************************************************************
 
-int  UpdatedLagrangianSegregatedFluidElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  UpdatedLagrangianSegregatedFluidElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
   KRATOS_TRY
 
@@ -1638,7 +1692,7 @@ int  UpdatedLagrangianSegregatedFluidElement::Check( const ProcessInfo& rCurrent
   for(SizeType i=0; i<this->GetGeometry().size(); ++i)
   {
     // Nodal data
-    Node<3> &rNode = this->GetGeometry()[i];
+    const Node<3> &rNode = this->GetGeometry()[i];
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,rNode);
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE_VELOCITY,rNode);
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE_ACCELERATION,rNode);

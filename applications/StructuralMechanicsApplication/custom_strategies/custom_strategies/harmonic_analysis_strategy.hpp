@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "utilities/builtin_timer.h"
 
 // Application includes
@@ -51,7 +51,7 @@ template<class TSparseSpace,
          class TLinearSolver
          >
 class HarmonicAnalysisStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -59,7 +59,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(HarmonicAnalysisStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TSchemeType::Pointer SchemePointerType;
 
@@ -92,7 +92,7 @@ public:
         BuilderAndSolverPointerType pBuilderAndSolver,
         bool UseMaterialDampingFlag = false
         )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
+        : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
     {
         KRATOS_TRY
 
@@ -263,19 +263,20 @@ public:
             {
                 for( auto& node : r_model_part.Nodes() )
                 {
-                    ModelPart::NodeType::DofsContainerType node_dofs = node.GetDofs();
+                    ModelPart::NodeType::DofsContainerType& node_dofs = node.GetDofs();
                     const std::size_t n_node_dofs = node_dofs.size();
                     const Matrix& r_node_eigenvectors = node.GetValue(EIGENVECTOR_MATRIX);
 
-                    if( node_dofs.IsSorted() == false )
-                    {
-                        node_dofs.Sort();
-                    }
+                    // TO BE VERIFIED!! In the current implmentation of Dofs there are nor reordered and only pushec back. 
+                    // if( node_dofs.IsSorted() == false )
+                    // {
+                    //     node_dofs.Sort();
+                    // }
 
                     for( std::size_t j = 0; j < n_node_dofs; ++j )
                     {
                         const auto it_dof = std::begin(node_dofs) + j;
-                        r_modal_matrix(it_dof->EquationId(), i) = r_node_eigenvectors(i, j);
+                        r_modal_matrix((*it_dof)->EquationId(), i) = r_node_eigenvectors(i, j);
                     }
                 }
             }
@@ -428,15 +429,16 @@ public:
                 const std::size_t n_node_dofs = node_dofs.size();
                 const Matrix& r_node_eigenvectors = node.GetValue(EIGENVECTOR_MATRIX);
 
-                if (node_dofs.IsSorted() == false)
-                {
-                    node_dofs.Sort();
-                }
+            // TO BE VERIFIED!! In the current implmentation of Dofs there are nor reordered and only pushec back. 
+                // if (node_dofs.IsSorted() == false)
+                // {
+                //     node_dofs.Sort();
+                // }
 
                 for (std::size_t j = 0; j < n_node_dofs; j++)
                 {
                     auto it_dof = std::begin(node_dofs) + j;
-                    modal_displacement[it_dof->EquationId()] = modal_displacement[it_dof->EquationId()] + mode_weight * r_node_eigenvectors(i,j);
+                    modal_displacement[(*it_dof)->EquationId()] = modal_displacement[(*it_dof)->EquationId()] + mode_weight * r_node_eigenvectors(i,j);
                 }
             }
         }
@@ -597,26 +599,27 @@ private:
 
             for( auto it_dof = std::begin(rNodeDofs); it_dof != std::end(rNodeDofs); it_dof++ )
             {
-                if( !it_dof->IsFixed() )
+                auto& p_dof = *it_dof;
+                if( !p_dof->IsFixed() )
                 {
-                    const auto modal_displacement = rModalDisplacement( it_dof->EquationId() );
+                    const auto modal_displacement = rModalDisplacement( p_dof->EquationId() );
                     //displacement
                     if( std::real( modal_displacement ) < 0 )
                     {
-                        it_dof->GetSolutionStepValue(step) = -1 * std::abs( modal_displacement );
+                        p_dof->GetSolutionStepValue(step) = -1 * std::abs( modal_displacement );
                     }
                     else
                     {
-                        it_dof->GetSolutionStepValue(step) = std::abs( modal_displacement );
+                        p_dof->GetSolutionStepValue(step) = std::abs( modal_displacement );
                     }
 
                     //phase angle
-                    it_dof->GetSolutionStepReactionValue(step) = std::arg( modal_displacement );
+                    p_dof->GetSolutionStepReactionValue(step) = std::arg( modal_displacement );
                 }
                 else
                 {
-                    it_dof->GetSolutionStepValue(step) = 0.0;
-                    it_dof->GetSolutionStepReactionValue(step) = 0.0;
+                    p_dof->GetSolutionStepValue(step) = 0.0;
+                    p_dof->GetSolutionStepReactionValue(step) = 0.0;
                 }
             }
         }

@@ -30,7 +30,6 @@
 #include "includes/serializer.h"
 #include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
-#include "boost/make_shared.hpp"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -108,7 +107,7 @@ public:
     ///@{
 
     /// Pointer definition of VMS
-    KRATOS_CLASS_POINTER_DEFINITION(VMS);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(VMS);
 
     ///base type: an IndexedObject that automatically has a unique number
     typedef IndexedObject BaseType;
@@ -141,8 +140,6 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
 
     typedef array_1d<double, TNumNodes> ShapeFunctionsType;
     typedef BoundedMatrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
@@ -214,14 +211,14 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< VMS<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive< VMS<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< VMS<TDim, TNumNodes> >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< VMS<TDim, TNumNodes> >(NewId, pGeom, pProperties);
     }
 
     /// Provides local contributions from body forces and OSS projection terms
@@ -236,7 +233,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -256,7 +253,7 @@ public:
      * @param rCurrentProcessInfo Process info instance
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -277,7 +274,7 @@ public:
      * expected to contain values for OSS_SWITCH, DYNAMIC_TAU and DELTA_TIME
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -326,7 +323,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -384,7 +381,7 @@ public:
      */
     void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -437,7 +434,7 @@ public:
         noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
     }
 
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override
     {
     }
 
@@ -611,7 +608,7 @@ public:
      * @param rCurrentProcessInfo the current process info object (unused)
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+                          const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
@@ -619,21 +616,21 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo) override;
+                    const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
     /**
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    void GetFirstDerivativesVector(Vector& Values, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& Values, int Step = 0) const override;
 
     /// Returns ACCELERATION_X, ACCELERATION_Y, (ACCELERATION_Z,) 0 for each node
     /**
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    void GetSecondDerivativesVector(Vector& Values, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& Values, int Step = 0) const override;
 
     /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
     /**
@@ -645,9 +642,10 @@ public:
      * @param Output Will be filled with the values of the variable on integrartion points
      * @param rCurrentProcessInfo Process info instance
      */
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-            std::vector<array_1d<double, 3 > >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Obtain a double elemental variable, evaluated on gauss points.
     /**
@@ -661,9 +659,10 @@ public:
      * @param Output Will be filled with the values of the variable on integrartion points
      * @param rCurrentProcessInfo Process info instance
      */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-            std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == TAUONE || rVariable == TAUTWO || rVariable == MU || rVariable == TAU)
         {
@@ -796,21 +795,24 @@ public:
     }
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-            std::vector<array_1d<double, 6 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 6 > >& rVariable,
+        std::vector<array_1d<double, 6 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-            std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-            std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     ///@}
@@ -830,7 +832,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
@@ -838,31 +840,12 @@ public:
         int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
         if(ErrorCode != 0) return ErrorCode;
 
-        // Check that all required variables have been registered
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-        KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY);
-        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-        KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
-        KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-        KRATOS_CHECK_VARIABLE_KEY(VISCOSITY);
-        KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE);
-        KRATOS_CHECK_VARIABLE_KEY(OSS_SWITCH);
-        KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU);
-        KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
-        KRATOS_CHECK_VARIABLE_KEY(ADVPROJ);
-        KRATOS_CHECK_VARIABLE_KEY(DIVPROJ);
-        KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
-        KRATOS_CHECK_VARIABLE_KEY(C_SMAGORINSKY);
-        KRATOS_CHECK_VARIABLE_KEY(ERROR_RATIO);
-        // Additional variables, only required to print results:
-        // SUBSCALE_VELOCITY, SUBSCALE_PRESSURE, TAUONE, TAUTWO, MU, VORTICITY.
-
         // Checks on nodes
 
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {
-            Node<3> &rNode = this->GetGeometry()[i];
+            const auto &rNode = this->GetGeometry()[i];
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,rNode);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,rNode);

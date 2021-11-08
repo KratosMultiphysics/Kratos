@@ -1,0 +1,82 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "nonlinear_force_3D2NBeamCr_test",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "Static",
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 3,
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "beam_test/nonlinear_force_3D2NBeamCr_test"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "beam_test/nonlinear_force_3D2NBeamCr_test_material.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 0.1
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 1e-7,
+        "displacement_absolute_tolerance"    : 1e-7,
+        "residual_relative_tolerance"        : 1e-7,
+        "residual_absolute_tolerance"        : 1e-7,
+        "max_iteration"                      : 100,
+        "rotation_dofs"                      : true
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_dirichlet",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.ROTATION_dirichlet",
+                "variable_name"   : "ROTATION",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.PointLoad3D_neumann",
+                "variable_name"   : "POINT_LOAD",
+                "modulus"         : "50000.0*t",
+                "direction"       : [0.0,1.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "list_other_processes"     : [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["DISPLACEMENT","REACTION"],
+                "gauss_points_check_variables" : ["FORCE","MOMENT"],
+                "input_file_name"  : "beam_test/nonlinear_force_3D2NBeamCr_test_results.json",
+                "model_part_name"  : "Structure",
+                "time_frequency"   : 0.01
+            }
+        }]
+    }
+}

@@ -45,7 +45,7 @@ public:
     ///@name Type Definitions
     ///@{
     // Counted pointer of AxisymmetricPointLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymmetricPointLoadCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AxisymmetricPointLoadCondition );
     ///@}
 
     ///@name Life Cycle
@@ -103,7 +103,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     ///@}
     ///@name Access

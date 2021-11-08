@@ -1,0 +1,13 @@
+# Ignore everything
+*
+# But not these files...
+!kratos_doxyfile
+!py_filter.sh
+!README
+!kratos_small.png
+!.gitignore
+
+# ...even if they are in subdirectories
+!*/
+html/*
+latex/*

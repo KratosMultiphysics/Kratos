@@ -1,9 +1,8 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
 
 def Factory(settings, Model):
-    if(not isinstance(settings, KratosMultiphysics.Parameters)):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignFlagProcess(Model, settings["Parameters"])
 
@@ -18,16 +17,16 @@ class AssignFlagProcess(KratosMultiphysics.Process):
     Model -- the container of the different model parts.
     settings -- Kratos parameters containing solver settings.
     """
-    
+
     def __init__(self, Model, settings ):
         """ The default constructor of the class
-        
+
         Keyword arguments:
         self -- It signifies an instance of a class.
         Model -- the container of the different model parts.
         settings -- Kratos parameters containing solver settings.
         """
-        
+
         KratosMultiphysics.Process.__init__(self)
 
         #The value can be a double or a string (function)

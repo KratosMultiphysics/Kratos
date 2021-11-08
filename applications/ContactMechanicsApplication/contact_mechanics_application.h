@@ -34,9 +34,8 @@
 #include "includes/variables.h"
 
 // elements
-#include "custom_elements/rigid_body_element.hpp"
-#include "custom_elements/translatory_rigid_body_element.hpp"
 #include "custom_elements/rigid_body_segregated_V_element.hpp"
+#include "custom_elements/translatory_rigid_body_segregated_V_element.hpp"
 
 // conditions
 #include "custom_conditions/deformable_contact/contact_domain_condition.hpp"
@@ -66,7 +65,8 @@
 #include "custom_friction/coulomb_adhesion_friction_law.hpp"
 #include "custom_friction/hardening_coulomb_friction_law.hpp"
 
-//#include "custom_conditions/rigid_body_links/rigid_body_point_link_condition.hpp"
+// rigid body links
+#include "custom_conditions/rigid_body_links/rigid_body_point_link_segregated_V_condition.hpp"
 
 // Core applications
 #include "contact_mechanics_application_variables.h"
@@ -120,24 +120,19 @@ public:
 	///@name Operators
 	///@{
 
-
 	///@}
 	///@name Operations
 	///@{
 
 	void Register() override;
 
-
-
 	///@}
 	///@name Access
 	///@{
 
-
 	///@}
 	///@name Inquiry
 	///@{
-
 
 	///@}
 	///@name Input and output
@@ -167,7 +162,7 @@ public:
 		rOStream << std::endl;
 		rOStream << "Conditions:" << std::endl;
 		KratosComponents<Condition>().PrintData(rOStream);
-    }
+        }
 
 
 	///@}
@@ -226,8 +221,9 @@ private:
 
 	//elements
 	const RigidBodyElement                                             mRigidBodyElement;
-	const TranslatoryRigidBodyElement                       mTranslatoryRigidBodyElement;
 	const RigidBodySegregatedVElement                       mRigidBodySegregatedVElement;
+        const TranslatoryRigidBodyElement                       mTranslatoryRigidBodyElement;
+        const TranslatoryRigidBodyElement            mTranslatoryRigidBodySegregatedVElement;
 
 	//conditions
 	const ContactDomainLM3DCondition                       mContactDomainLMCondition3D4N;
@@ -249,17 +245,19 @@ private:
 	const EPPointRigidContactPenalty3DCondition       mEPPointRigidContactPenalty3DCondition;
 	const EPAxisymPointRigidContactPenalty2DCondition mEPAxisymPointRigidContactPenalty2DCondition;
 
-        const HydraulicRigidContactPenalty3DCondition mHydraulicRigidContactPenalty3DCondition;
+        const HydraulicRigidContactPenalty3DCondition             mHydraulicRigidContactPenalty3DCondition;
         const HydraulicAxisymRigidContactPenalty2DCondition mHydraulicAxisymRigidContactPenalty2DCondition;
 
         //friction laws
-        const FrictionLaw                                                       mFrictionLaw;
-        const CoulombAdhesionFrictionLaw                         mCoulombAdhesionFrictionLaw;
-        const HardeningCoulombFrictionLaw                       mHardeningCoulombFrictionLaw;
+        const FrictionLaw                                                           mFrictionLaw;
+        const CoulombAdhesionFrictionLaw                             mCoulombAdhesionFrictionLaw;
+        const HardeningCoulombFrictionLaw                           mHardeningCoulombFrictionLaw;
 
-        // const RigidBodyPointLinkCondition                   mRigidBodyPointLinkCondition2D1N;
-        // const RigidBodyPointLinkCondition                   mRigidBodyPointLinkCondition3D1N;
+        const RigidBodyPointLinkCondition                       mRigidBodyPointLinkCondition2D1N;
+        const RigidBodyPointLinkCondition                       mRigidBodyPointLinkCondition3D1N;
 
+        const RigidBodyPointLinkSegregatedVCondition mRigidBodyPointLinkSegregatedVCondition2D1N;
+        const RigidBodyPointLinkSegregatedVCondition mRigidBodyPointLinkSegregatedVCondition3D1N;
 
 	///@}
 	///@name Private Operators

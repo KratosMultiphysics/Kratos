@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
@@ -35,18 +35,16 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
 #include "includes/kratos_components.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 #include "containers/periodic_variables_container.h"
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
 
-//TODO: move to the Kratos DEM_application or eventually to the FluidDynamicsAsNeeded
+//TODO: move to the Kratos DEMApplication or eventually to the FluidDynamicsAsNeeded
 namespace Kratos
 {
      //for DEM Application:
@@ -55,7 +53,6 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, RADIUS )
     KRATOS_DEFINE_VARIABLE( double, SEARCH_RADIUS_INCREMENT )
     KRATOS_DEFINE_VARIABLE( double, SEARCH_RADIUS_INCREMENT_FOR_WALLS )
-    KRATOS_DEFINE_VARIABLE( double, AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION )
     KRATOS_DEFINE_VARIABLE( double, DEM_DELTA_TIME )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( TOTAL_FORCES )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( DAMP_FORCES )
@@ -82,6 +79,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
 
     // Swimming DEM Application BEGINNING
+    KRATOS_DEFINE_VARIABLE( Matrix, PERMEABILITY)
     KRATOS_DEFINE_VARIABLE( int, NUMBER_OF_INIT_BASSET_STEPS )
     KRATOS_DEFINE_VARIABLE( int, COUPLING_TYPE)
     KRATOS_DEFINE_VARIABLE( int, NON_NEWTONIAN_OPTION )
@@ -106,6 +104,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, DISPERSE_FRACTION )
     KRATOS_DEFINE_VARIABLE( double, DISPERSE_FRACTION_RATE )
     KRATOS_DEFINE_VARIABLE( double, FLUID_FRACTION )
+    KRATOS_DEFINE_VARIABLE( double, FLUID_FRACTION_OLD )
     KRATOS_DEFINE_VARIABLE( double, FLUID_FRACTION_RATE )
     KRATOS_DEFINE_VARIABLE( double, PHASE_FRACTION )
     KRATOS_DEFINE_VARIABLE( double, PHASE_FRACTION_RATE )
@@ -129,7 +128,7 @@ namespace Kratos
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( SLIP_VELOCITY )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( ADDITIONAL_FORCE )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( ADDITIONAL_FORCE_OLD )
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( ADDITIONAL_FORCE_OLD_OLD )                  
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( ADDITIONAL_FORCE_OLD_OLD )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( HYDRODYNAMIC_FORCE )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( HYDRODYNAMIC_MOMENT )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( FLUID_VEL_PROJECTED )

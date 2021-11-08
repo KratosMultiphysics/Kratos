@@ -14,22 +14,17 @@
 #if !defined(KRATOS_ITERATIVE_SOLVER_H_INCLUDED )
 #define  KRATOS_ITERATIVE_SOLVER_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/preconditioner.h"
-
 
 namespace Kratos
 {
@@ -88,6 +83,9 @@ public:
 
     typedef  TPreconditionerType PreconditionerType;
 
+    /// The index type definition to be consistent
+    typedef typename TSparseSpaceType::IndexType IndexType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -142,7 +140,7 @@ public:
         "solver_type": "IterativeSolver",
         "tolerance" : 1.0e-6,
         "max_iteration" : 200,
-        "preconditioner_type" : "None",
+        "preconditioner_type": "none",
         "scaling":false
         }  )" );
 
@@ -289,7 +287,7 @@ public:
         mMaxIterationsNumber = NewMaxIterationsNumber;
     }
 
-    virtual unsigned int GetMaxIterationsNumber()
+    virtual IndexType GetMaxIterationsNumber()
     {
         return mMaxIterationsNumber;
     }
@@ -299,7 +297,7 @@ public:
         mIterationsNumber = NewIterationNumber;
     }
 
-    virtual unsigned int GetIterationsNumber()
+    IndexType GetIterationsNumber() override
     {
         return mIterationsNumber;
     }
@@ -402,7 +400,7 @@ protected:
 
     double mFirstResidualNorm;
 
-    unsigned int mIterationsNumber;
+    IndexType mIterationsNumber;
 
     double mBNorm;
 
@@ -459,7 +457,7 @@ private:
 
     double mTolerance;
 
-    unsigned int mMaxIterationsNumber;
+    IndexType mMaxIterationsNumber;
 
     ///@}
     ///@name Private Operators

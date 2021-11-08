@@ -62,7 +62,7 @@ template<class TKeyType,class TDataType,
 
          class TCompareType = std::less<TKeyType>,
          class TContainerType = std::vector<std::pair<TKeyType, TDataType> > >
-class VectorMap
+class VectorMap final
 {
 public:
     ///@name Type Definitions
@@ -102,15 +102,17 @@ public:
 
     VectorMap(const VectorMap& rOther) :  mData(rOther.mData), mSortedPartSize(rOther.mSortedPartSize), mMaxBufferSize(rOther.mMaxBufferSize) {}
 
-    VectorMap(const TContainerType& rContainer) :  mData(rContainer), mSortedPartSize(size_type()), mMaxBufferSize(100)
+    explicit VectorMap(const TContainerType& rContainer) :  mData(rContainer), mSortedPartSize(size_type()), mMaxBufferSize(100)
     {
         Sort();
-        std::unique(mData.begin(), mData.end(), EqualKeyTo());
+        auto p = [](const value_type& v1, const value_type& v2) -> bool {
+            return v1.first == v2.first;
+        };
+        std::unique(mData.begin(), mData.end(), p);
     }
 
     /// Destructor.
-    virtual ~VectorMap() {}
-
+    ~VectorMap() {}
 
     ///@}
     ///@name Operators
@@ -440,7 +442,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "vector map (size = " << size() << ") : ";
@@ -449,13 +451,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const
     {
         for(typename TContainerType::const_iterator i = mData.begin() ; i != mData.end() ; i++)
             rOStream << "(" << i->first << " , " << (i->second) << ")" << std::endl;
@@ -535,11 +537,7 @@ private:
     {
         key_type mKey;
     public:
-        EqualKeyTo(key_type k) : mKey(k) {}
-        bool operator()(value_type a, value_type b) const
-        {
-            return a.first == b.first;
-        }
+        explicit EqualKeyTo(key_type k) : mKey(k) {}
         bool operator()(value_type a) const
         {
             return a.first == mKey;

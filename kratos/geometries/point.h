@@ -29,7 +29,6 @@
 #include "includes/define.h"
 #include "containers/array_1d.h"
 #include "includes/serializer.h"
-#include "includes/kratos_components.h"
 
 namespace Kratos
 {
@@ -55,7 +54,7 @@ namespace Kratos
 
 /// Point class.
 /** Point class. Stores coordinates of a point and have some basic
-    operations defined. 
+    operations defined.
 
 @see Geometry
 @see Node
@@ -109,18 +108,18 @@ public:
 
     /** Constructor using coordinates stored in given array. Initialize
     this point with the coordinates in the array. */
-    Point(CoordinatesArrayType const &rOtherCoordinates)
+    explicit Point(CoordinatesArrayType const &rOtherCoordinates)
         : BaseType(rOtherCoordinates) {}
 
     /** Constructor using coordinates stored in given array. Initialize
     this point with the coordinates in the array. */
     template <class TVectorType>
-    Point(vector_expression<TVectorType> const &rOtherCoordinates)
+    explicit Point(vector_expression<TVectorType> const &rOtherCoordinates)
         : BaseType(rOtherCoordinates) {}
 
     /** Constructor using coordinates stored in given std::vector. Initialize
     this point with the coordinates in the array. */
-    Point(std::vector<double> const &rOtherCoordinates) : BaseType()
+    explicit Point(std::vector<double> const &rOtherCoordinates) : BaseType()
     {
         SizeType size = rOtherCoordinates.size();
         size = (mDimension < size) ? mDimension : size;
@@ -224,7 +223,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream &rOStream) const
     {
-        rOStream << "("  << this->operator[](0)
+        rOStream << " ("  << this->operator[](0)
                  << ", " << this->operator[](1)
                  << ", " << this->operator[](2)
                  << ")";
@@ -263,8 +262,6 @@ public:
 }; // Class Point
 
 ///@}
-
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Point>;
 
 ///@name Type Definitions
 ///@{

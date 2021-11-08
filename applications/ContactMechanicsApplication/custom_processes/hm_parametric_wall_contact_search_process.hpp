@@ -212,7 +212,7 @@ namespace Kratos
                      else if( Dimension == 3 )
                        pGeometry = Kratos::make_shared<Point3DType>(*nd);
 
-                     //pCondition= Kratos::make_shared<RigidBodyPointRigidContactCondition>(id, pGeometry, mpProperties, mpParametricWall);
+                     //pCondition= Kratos::make_intrusive<RigidBodyPointRigidContactCondition>(id, pGeometry, mpProperties, mpParametricWall);
 
                      ContactConditions.push_back(pCondition);
 
@@ -334,10 +334,10 @@ namespace Kratos
             std::string ConditionName = CustomParameters["hydraulic_condition_type"].GetString();
 
             if ( ConditionName == "HydraulicPointContactCondition2D1N" ) {
-              return  Kratos::make_shared<HydraulicRigidContactPenalty3DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
+              return  Kratos::make_intrusive<HydraulicRigidContactPenalty3DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
             }
             else if ( ConditionName == "HydraulicAxisymPointContactCondition2D1N") {
-              return  Kratos::make_shared<HydraulicAxisymRigidContactPenalty2DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
+              return  Kratos::make_intrusive<HydraulicAxisymRigidContactPenalty2DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
             } else {
               std::cout << ConditionName << std::endl;
               KRATOS_ERROR << "the specified hydraulic contact condition does not exist " << std::endl;

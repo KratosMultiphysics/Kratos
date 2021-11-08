@@ -1,0 +1,43 @@
+{
+    "name"                : "FLOWer Solver",
+    "num_steps"           : 5,
+    "coupling_interfaces" : [
+        {
+            "comm_name"            : "Interface_1_coupling",
+            "sub_model_part_name"  : "NoSlip2D_FSI",
+            "data_field_recv" : {
+                "data_field_name" : "external_solver_Interface_1_disp",
+                "variables"       : ["DISPLACEMENT"]
+            },
+            "data_field_send" : {
+                "data_field_name" : "external_solver_Interface_1_force",
+                "variables"       : ["FORCE"]
+            }
+        },
+        {
+            "comm_name"            : "Interface_2_Outlet",
+            "sub_model_part_name"  : "Outlet2D_Outlet",
+            "data_field_recv" : {
+                "data_field_name" : "external_solver_Interface_2_rot",
+                "variables"       : ["ROTATION"]
+            }
+        },
+        {
+            "comm_name"            : "Interface_Inlet_vel",
+            "receive_interface"    : true,
+            "sub_model_part_name"  : "AutomaticInlet2D_Inlet",
+            "data_field_send" : {
+                "data_field_name" : "external_solver_Interface_inlet_velocity",
+                "variables"       : ["VELOCITY"]
+            }
+        }
+    ],
+    "mdpa_file_name"      : "generic_mdpa_files/Mok_CFD",
+    "debugging_settings" : {
+        "dry_run"            : false,
+        "print_colors"       : true,
+        "echo_level"         : 0,
+        "api_print_timing"   : false,
+        "solving_time"       : 0.0
+    }
+}

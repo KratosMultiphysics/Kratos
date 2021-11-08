@@ -54,7 +54,8 @@ namespace Kratos
 template<class TSparseSpace,
          class TDenseSpace
          >
-class DisplacementCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class DisplacementCriteria
+    : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
@@ -63,6 +64,9 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementCriteria );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+
+    /// The definition of the current class
+    typedef DisplacementCriteria< TSparseSpace, TDenseSpace > ClassType;
 
     typedef TSparseSpace SparseSpaceType;
 
@@ -82,15 +86,33 @@ public:
     ///@name Life Cycle
     ///@{
 
+    //* Constructor.
+    explicit DisplacementCriteria()
+        : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit DisplacementCriteria(Kratos::Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
+
     /** Constructor.
     */
     explicit DisplacementCriteria(
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm)
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+        : BaseType(),
+          mRatioTolerance(NewRatioTolerance),
+          mAlwaysConvergedNorm(AlwaysConvergedNorm)
     {
-        mRatioTolerance = NewRatioTolerance;
-        mAlwaysConvergedNorm = AlwaysConvergedNorm;
     }
 
     /** Copy constructor.
@@ -111,6 +133,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * Compute relative and absolute error.
@@ -218,10 +253,33 @@ public:
         BaseType::FinalizeSolutionStep(rModelPart, rDofSet, A, Dx, b);
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "displacement_criteria";
+    }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                            : "displacement_criteria",
+            "displacement_relative_tolerance" : 1.0e-4,
+            "displacement_absolute_tolerance" : 1.0e-9
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
 
     ///@}
     ///@name Access
@@ -232,6 +290,27 @@ public:
     ///@name Inquiry
     ///@{
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "DisplacementCriteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -259,6 +338,16 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mAlwaysConvergedNorm = ThisParameters["displacement_absolute_tolerance"].GetDouble();
+        mRatioTolerance = ThisParameters["displacement_relative_tolerance"].GetDouble();
+    }
 
     ///@}
     ///@name Protected  Access
@@ -346,13 +435,13 @@ private:
             if (it_dof->IsFree()) {
                 dof_id = it_dof->EquationId();
                 variation_dof_value = Dx[dof_id];
-                final_correction_norm += variation_dof_value * variation_dof_value;
+                final_correction_norm += std::pow(variation_dof_value, 2);
                 dof_num++;
             }
         }
 
         rDofNum = dof_num;
-        return final_correction_norm;
+        return std::sqrt(final_correction_norm);
     }
 
     ///@}

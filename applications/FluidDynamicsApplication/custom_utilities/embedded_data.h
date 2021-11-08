@@ -36,11 +36,16 @@ using NodalScalarData = typename TFluidData::NodalScalarData;
 using NodalVectorData = typename TFluidData::NodalVectorData;
 
 typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
-typedef std::vector< Vector > InterfaceNormalsType;
+typedef std::vector<array_1d<double,3>> InterfaceNormalsType;
 
 ///@}
 ///@name Public Members
 ///@{
+
+bool IsSlip;
+
+double SlipLength;
+double PenaltyCoefficient;
 
 NodalScalarData Distance;
 
@@ -64,21 +69,36 @@ size_t NumNegativeNodes;
 ///@{
 
 void Initialize(
-    const Element& rElement, const ProcessInfo& rProcessInfo) override {
+    const Element& rElement,
+    const ProcessInfo& rProcessInfo) override
+{
     TFluidData::Initialize(rElement, rProcessInfo);
     const Geometry<Node<3> >& r_geometry = rElement.GetGeometry();
-    this->FillFromNodalData(Distance, DISTANCE, r_geometry);
+    this->FillFromHistoricalNodalData(Distance, DISTANCE, r_geometry);
 
     NumPositiveNodes = 0;
     NumNegativeNodes = 0;
+
+    IsSlip = rElement.Is(SLIP) ? true : false;
+}
+
+/**
+ * @brief Fills the boundary condition data fields
+ * This method needs to be called in cut elements. It fills the data structure fields related to the boundary
+ * condition imposition (slip length for the slip formulation and penalty coefficient for both formulations).
+ * @param rProcessInfo
+ */
+void InitializeBoundaryConditionData(const ProcessInfo &rProcessInfo)
+{
+    if (IsSlip){
+        this->FillFromProcessInfo(SlipLength, SLIP_LENGTH, rProcessInfo);
+    }
+    this->FillFromProcessInfo(PenaltyCoefficient, PENALTY_COEFFICIENT, rProcessInfo);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
-    
-    KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
-
     for (unsigned int i = 0; i < TFluidData::NumNodes; i++) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE,r_geometry[i]);
     }

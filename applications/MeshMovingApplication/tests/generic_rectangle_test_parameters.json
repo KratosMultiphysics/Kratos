@@ -1,0 +1,42 @@
+{
+    "problem_data" : {
+        "problem_name"    : "UNSET",
+        "parallel_type"   : "UNSET",
+        "echo_level"      : 0,
+        "start_time"      : 0.1,
+        "end_time"        : 0.5
+    },
+    "solver_settings" : {
+        "domain_size"     : -1,
+        "echo_level"      : 0,
+        "model_part_name" : "MainModelPart",
+        "solver_type"     : "UNSET",
+        "model_import_settings" : {
+            "input_type"          : "mdpa",
+            "input_filename"      : "UNSET",
+            "partition_in_memory" : true,
+            "reorder_consecutive" : true
+        },
+        "time_stepping" : {
+            "time_step" : 0.1
+        }
+    },
+    "processes" : {
+        "boundary_conditions_process_list" : [{
+            "python_module" : "fix_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.FixedBoundary",
+                "variable_name"   : "MESH_DISPLACEMENT"
+            }
+        },{
+            "python_module" : "impose_ale_rectangle_test_motion_process",
+            "process_name"  : "ImposeALERectangleTestMotionProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.MovingBoundary"
+            }
+        }]
+    },
+    "output_processes" : { }
+}

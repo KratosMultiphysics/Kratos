@@ -131,7 +131,7 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return 6;
     };
@@ -163,17 +163,6 @@ public:
     void InitializeMaterial( const Properties& rMaterialProperties,
                              const GeometryType& rElementGeometry,
                              const Vector& rShapeFunctionsValues ) override;
-
-
-    void InitializeSolutionStep( const Properties& rMaterialProperties,
-                                 const GeometryType& rElementGeometry, //this is just to give the array of nodes
-                                 const Vector& rShapeFunctionsValues ,
-                                 const ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeSolutionStep( const Properties& rMaterialProperties,
-                               const GeometryType& rElementGeometry, //this is just to give the array of nodes
-                               const Vector& rShapeFunctionsValues ,
-                               const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Computes the material response:

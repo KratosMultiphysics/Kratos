@@ -1,11 +1,8 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.HDF5Application as KratosHDF5
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):

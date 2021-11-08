@@ -15,7 +15,7 @@
 // External includes
 #ifdef KRATOS_USE_AMATRIX
 #include "boost/numeric/ublas/matrix.hpp" // for the sparse space dense vector
-#endif // KRATOS_USE_AMATRIX
+#endif                                    // KRATOS_USE_AMATRIX
 
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -26,123 +26,134 @@
 #include "spaces/ublas_space.h"
 
 // builder_and_solvers
+#include "solving_strategies/builder_and_solvers/explicit_builder.h"
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_periodic.h"
 
 //strategies
-#include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_strategies/strategies/fs_strategy.h"
-#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
-#include "custom_strategies/strategies/residualbased_simple_steady_scheme.h"
-#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
-#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent_no_reaction.h"
-#include "custom_strategies/strategies/gear_scheme.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
+#include "custom_strategies/strategies/fractional_step_strategy.h"
 
-// convergence criteria
-#include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
+//schemes
+#include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
+#include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
+#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
+#include "custom_strategies/strategies/compressible_navier_stokes_explicit_solving_strategy_runge_kutta_4.h"
+
+// adjoint schemes
+#include "custom_strategies/schemes/simple_steady_adjoint_scheme.h"
+#include "custom_strategies/schemes/velocity_bossak_adjoint_scheme.h"
+
+// sensitivity builder schemes
+#include "custom_strategies/schemes/simple_steady_sensitivity_builder_scheme.h"
+#include "custom_strategies/schemes/velocity_bossak_sensitivity_builder_scheme.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
-
-
 namespace Kratos
 {
-
 namespace Python
 {
-using namespace pybind11;
 
-void  AddCustomStrategiesToPython(pybind11::module& m)
+void AddCustomStrategiesToPython(pybind11::module &m)
 {
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SparseSpaceType;
+    namespace py = pybind11;
+
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
+    typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
 
     //********************************************************************
     //********************************************************************
 
-    class_< ResidualBasedBlockBuilderAndSolverPeriodic< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-            typename ResidualBasedBlockBuilderAndSolverPeriodic< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
-            ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >
-            (m,"ResidualBasedBlockBuilderAndSolverPeriodic")
-            .def(init<LinearSolverType::Pointer, const Variable<int>& >());
+    py::class_<
+        ResidualBasedBlockBuilderAndSolverPeriodic<SparseSpaceType, LocalSpaceType, LinearSolverType>,
+        typename ResidualBasedBlockBuilderAndSolverPeriodic<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
+        ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(m, "ResidualBasedBlockBuilderAndSolverPeriodic")
+    .def(py::init<LinearSolverType::Pointer, const Variable<int> &>());
 
-    class_< FSStrategy< SparseSpaceType,LocalSpaceType, LinearSolverType >,
-            typename FSStrategy< SparseSpaceType,LocalSpaceType, LinearSolverType >::Pointer,
-            BaseSolvingStrategyType >
-            (m,"FSStrategy")
-            .def(init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,bool,double,double,int,int,unsigned int,unsigned int,bool>())
-            .def(init< ModelPart&, SolverSettings< SparseSpaceType,LocalSpaceType, LinearSolverType >&, bool >() )
-            .def(init< ModelPart&, SolverSettings< SparseSpaceType,LocalSpaceType, LinearSolverType >&, bool, const Kratos::Variable<int>& >() )
-            .def("CalculateReactions",&FSStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::CalculateReactions)
-            .def("AddIterationStep",&FSStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::AddIterationStep)
-            .def("ClearExtraIterationSteps",&FSStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::ClearExtraIterationSteps)
-            ;
+    py::class_<
+        CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>,
+        typename CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>::Pointer,
+        ExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4")
+    .def(py::init<ModelPart&, bool, int>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
 
+    py::class_<
+        FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>,
+        typename FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
+        BaseSolvingStrategyType>(m, "FractionalStepStrategy")
+    .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool>())
+    .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, bool>())
+    .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, const Kratos::Variable<int> &>())
+    .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, bool, const Kratos::Variable<int> &>())
+    .def("CalculateReactions", [](FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>& self) {
+        KRATOS_WARNING("FractionalStepStrategy") << "\'CalculateReactions()\' exposure is deprecated. Use the constructor with the \'CalculateReactionsFlag\' instead." << std::endl;
+        self.CalculateReactions();})
+    .def("AddIterationStep", &FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::AddIterationStep)
+    .def("ClearExtraIterationSteps", &FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::ClearExtraIterationSteps);
 
-    class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent< SparseSpaceType, LocalSpaceType >,
-            typename ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent< SparseSpaceType, LocalSpaceType >::Pointer,
-            BaseSchemeType  >
-            (m,"ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")
-            .def(init<double,double,unsigned int,Process::Pointer >() )
-            .def(init<double,double,unsigned int >())// constructor without a turbulence model
-            .def(init<double,unsigned int,const Kratos::Variable<int>&>())// constructor without a turbulence model for periodic boundary conditions
-            ;
+    py::class_<
+        ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<SparseSpaceType, LocalSpaceType>,
+        typename ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<SparseSpaceType, LocalSpaceType>::Pointer,
+        BaseSchemeType>(m, "ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")
+    .def(py::init<double, double, unsigned int, Process::Pointer>())
+    .def(py::init<double, double, unsigned int, double, Process::Pointer>())
+    .def(py::init<double, double, unsigned int>())                        // constructor without a turbulence model
+    .def(py::init<double, unsigned int, const Kratos::Variable<int> &>()) // constructor without a turbulence model for periodic boundary conditions
+    ;
 
-    typedef ResidualBasedSimpleSteadyScheme< SparseSpaceType, LocalSpaceType > ResidualBasedSimpleSteadySchemeType;
-    class_< ResidualBasedSimpleSteadySchemeType,
-            typename ResidualBasedSimpleSteadySchemeType::Pointer,
-            BaseSchemeType >
-        (m,"ResidualBasedSimpleSteadyScheme")
-        .def(init<double,double,unsigned int,Process::Pointer >() )
-        .def(init<double,double,unsigned int >())// constructor without a turbulence model
-        .def("GetVelocityRelaxationFactor",&ResidualBasedSimpleSteadySchemeType::GetVelocityRelaxationFactor)
-        .def("SetVelocityRelaxationFactor",&ResidualBasedSimpleSteadySchemeType::SetVelocityRelaxationFactor)
-        .def("GetPressureRelaxationFactor",&ResidualBasedSimpleSteadySchemeType::GetPressureRelaxationFactor)
-        .def("SetPressureRelaxationFactor",&ResidualBasedSimpleSteadySchemeType::SetPressureRelaxationFactor)
+    typedef ResidualBasedSimpleSteadyScheme<SparseSpaceType, LocalSpaceType> ResidualBasedSimpleSteadySchemeType;
+    py::class_<
+        ResidualBasedSimpleSteadySchemeType,
+        typename ResidualBasedSimpleSteadySchemeType::Pointer,
+        BaseSchemeType>(m, "ResidualBasedSimpleSteadyScheme")
+    .def(py::init<double, double, unsigned int, Process::Pointer>())
+    .def(py::init<double, double, unsigned int>()) // constructor without a turbulence model
+    .def("GetVelocityRelaxationFactor", &ResidualBasedSimpleSteadySchemeType::GetVelocityRelaxationFactor)
+    .def("SetVelocityRelaxationFactor", &ResidualBasedSimpleSteadySchemeType::SetVelocityRelaxationFactor)
+    .def("GetPressureRelaxationFactor", &ResidualBasedSimpleSteadySchemeType::GetPressureRelaxationFactor)
+    .def("SetPressureRelaxationFactor", &ResidualBasedSimpleSteadySchemeType::SetPressureRelaxationFactor)
+    ;
+
+    py::class_<
+        BDF2TurbulentScheme<SparseSpaceType, LocalSpaceType>,
+        typename BDF2TurbulentScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        BaseSchemeType>(m, "BDF2TurbulentScheme")
+    .def(py::init<>())                 // default constructor
+    .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
+    ;
+
+    using  SimpleSteadyAdjointSchemeType = SimpleSteadyAdjointScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<SimpleSteadyAdjointSchemeType, typename SimpleSteadyAdjointSchemeType::Pointer, BaseSchemeType>
+        (m, "SimpleSteadyAdjointScheme")
+        .def(py::init<AdjointResponseFunction::Pointer, const std::size_t, const std::size_t>())
         ;
 
+    using  VelocityBossakAdjointSchemeType = VelocityBossakAdjointScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<VelocityBossakAdjointSchemeType, typename VelocityBossakAdjointSchemeType::Pointer, BaseSchemeType>
+        (m, "VelocityBossakAdjointScheme")
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer, const std::size_t, const std::size_t>())
+        ;
 
-    class_< ResidualBasedPredictorCorrectorBDFSchemeTurbulent< SparseSpaceType, LocalSpaceType >,
-            typename ResidualBasedPredictorCorrectorBDFSchemeTurbulent< SparseSpaceType, LocalSpaceType >::Pointer,
-            BaseSchemeType >
-            (m,"ResidualBasedPredictorCorrectorBDFSchemeTurbulent")
-            .def(init<unsigned int,Process::Pointer >() )
-            .def(init<unsigned int >())// constructor without a turbulence model
-            .def(init<unsigned int,Kratos::Variable<double>&>())// constructor with a non-default flag for slip conditions
-            ;
+    using SimpleSteadySensitivityBuilderSchemeType = SimpleSteadySensitivityBuilderScheme;
+    py::class_<SimpleSteadySensitivityBuilderSchemeType, typename SimpleSteadySensitivityBuilderSchemeType::Pointer, SensitivityBuilderScheme>
+        (m, "SimpleSteadySensitivityBuilderScheme")
+        .def(py::init<const std::size_t, const std::size_t>())
+        ;
 
-    class_<ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction<SparseSpaceType, LocalSpaceType>,
-            typename ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction<SparseSpaceType, LocalSpaceType>::Pointer,
-		 ResidualBasedPredictorCorrectorBDFSchemeTurbulent<SparseSpaceType, LocalSpaceType>  >
-		(m,"ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction")
-                .def(init<unsigned int, Process::Pointer >())
-		.def(init<unsigned int >())// constructor without a turbulence model
-		.def(init<unsigned int, Kratos::Variable<double>&>())// constructor with a non-default flag for slip conditions
-		;
+    using VelocityBossakSensitivityBuilderSchemeType = VelocityBossakSensitivityBuilderScheme;
+    py::class_<VelocityBossakSensitivityBuilderSchemeType, typename VelocityBossakSensitivityBuilderSchemeType::Pointer, SensitivityBuilderScheme>
+        (m, "VelocityBossakSensitivityBuilderScheme")
+        .def(py::init<const double, const std::size_t, const std::size_t>())
+        ;
 
-    class_< GearScheme< SparseSpaceType, LocalSpaceType >,
-            typename GearScheme< SparseSpaceType, LocalSpaceType >::Pointer,
-            BaseSchemeType >
-            (m,"GearScheme").
-            def(init<>()) // default constructor
-            .def(init< Process::Pointer >()) // constructor passing a turbulence model
-            ;
-
-	// Convergence criteria
-    class_< VelPrCriteria< SparseSpaceType, LocalSpaceType >,
-            typename VelPrCriteria< SparseSpaceType, LocalSpaceType >::Pointer,
-            ConvergenceCriteria< SparseSpaceType, LocalSpaceType  >>
-            (m,"VelPrCriteria")
-            .def(init< double, double, double, double>())
-            .def("SetEchoLevel",&VelPrCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
-            ;
 }
 
-}  // namespace Python.
+} // namespace Python.
 
 } // Namespace Kratos
-

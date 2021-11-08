@@ -82,8 +82,9 @@ function(_pybind11_add_lto_flags target_name prefer_thin_lto)
       endif()
     elseif (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
       # Intel equivalent to LTO is called IPO
-      _pybind11_return_if_cxx_and_linker_flags_work(HAS_INTEL_IPO
-      "-ipo" "-ipo" PYBIND11_LTO_CXX_FLAGS PYBIND11_LTO_LINKER_FLAGS)
+      # DISABLED because it causes random segmentation-faults!
+      # _pybind11_return_if_cxx_and_linker_flags_work(HAS_INTEL_IPO
+      # "-ipo" "-ipo" PYBIND11_LTO_CXX_FLAGS PYBIND11_LTO_LINKER_FLAGS)
     elseif(MSVC)
       # cmake only interprets libraries as linker flags when they start with a - (otherwise it
       # converts /LTCG to \LTCG as if it was a Windows path).  Luckily MSVC supports passing flags

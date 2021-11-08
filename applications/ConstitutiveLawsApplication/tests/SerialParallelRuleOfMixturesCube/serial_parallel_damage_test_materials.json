@@ -1,0 +1,46 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Parts_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "SerialParallelRuleOfMixturesLaw",
+                "combination_factors"          : [0.7, 0.3],
+                "parallel_behaviour_directions" : [1,0,0,0,0,0]
+            },
+            "Variables"        : {
+            },
+            "Tables"           : {}
+        },
+        "sub_properties" : [{
+            "properties_id"   : 11,
+            "Material"        : {
+                "constitutive_law" : {
+                    "name" : "SmallStrainIsotropicDamage3DVonMisesVonMises"
+                },
+                "Variables"        : {
+                    "DENSITY"                   : 7850.0,
+                    "YOUNG_MODULUS"             : 100e9,
+                    "POISSON_RATIO"             : 0.29,
+                    "FRACTURE_ENERGY"           : 1.0e5,
+                    "YIELD_STRESS"              : 620.0e6,
+                    "SOFTENING_TYPE"            : 1
+                },
+                "Tables"           : {}
+            }
+        },{
+            "properties_id"   : 12,
+            "Material"        : {
+                "constitutive_law" : {
+                    "name" : "LinearElastic3DLaw"
+                },
+                "Variables"        : {
+                    "DENSITY"       : 2000.0,
+                    "YOUNG_MODULUS" : 2.1e11,
+                    "POISSON_RATIO" : 0.2
+                },
+                "Tables"           : {}
+            }
+        }]
+    }]
+    }

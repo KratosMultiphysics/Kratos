@@ -1,6 +1,6 @@
 {
     "properties" : [{
-        "model_part_name" : "Parts_Surace_T3_thin",
+        "model_part_name" : "Structure.Parts_Surace_T3_thin",
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
@@ -15,7 +15,7 @@
             "Tables"           : {}
         }
     },{
-        "model_part_name" : "Parts_Surface_T3_thick",
+        "model_part_name" : "Structure.Parts_Surface_T3_thick",
         "properties_id"   : 2,
         "Material"        : {
             "constitutive_law" : {
@@ -30,7 +30,7 @@
             "Tables"           : {}
         }
     },{
-        "model_part_name" : "Parts_Surface_Q4_thick",
+        "model_part_name" : "Structure.Parts_Surface_Q4_thick",
         "properties_id"   : 3,
         "Material"        : {
             "constitutive_law" : {
@@ -45,7 +45,7 @@
             "Tables"           : {}
         }
     },{
-        "model_part_name" : "Parts_Surface_Q4_thin",
+        "model_part_name" : "Structure.Parts_Surface_Q4_thin",
         "properties_id"   : 4,
         "Material"        : {
             "constitutive_law" : {

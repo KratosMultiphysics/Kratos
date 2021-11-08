@@ -18,9 +18,10 @@
 // External includes
 
 // Project includes
-#include "utilities/math_utils.h"
 #include "utilities/mortar_utilities.h"
+#include "includes/variables.h"
 #include "includes/mapping_variables.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -468,6 +469,28 @@ private:
     ///@{
 
     ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        rSerializer.save("NMaster", NMaster);
+        rSerializer.save("NSlave", NSlave);
+        rSerializer.save("PhiLagrangeMultipliers", PhiLagrangeMultipliers);
+        rSerializer.save("DetjSlave", DetjSlave);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        rSerializer.load("NMaster", NMaster);
+        rSerializer.load("NSlave", NSlave);
+        rSerializer.load("PhiLagrangeMultipliers", PhiLagrangeMultipliers);
+        rSerializer.load("DetjSlave", DetjSlave);
+    }
+
+    ///@}
     ///@name Private  Access
     ///@{
 
@@ -515,7 +538,7 @@ public:
     ~MortarKinematicVariablesWithDerivatives() override= default;
 
     // Shape functions local derivatives for contact pair
-    Matrix DNDeMaster = ScalarMatrix(TNumNodes, TDim - 1, 0.0);
+    Matrix DNDeMaster = ScalarMatrix(TNumNodesMaster, TDim - 1, 0.0);
     Matrix DNDeSlave = ScalarMatrix(TNumNodes, TDim - 1, 0.0);
 
     /*
@@ -623,6 +646,30 @@ private:
     ///@{
 
     ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseClassType );
+        rSerializer.save("DNDeMaster", DNDeMaster);
+        rSerializer.save("DNDeSlave", DNDeSlave);
+        rSerializer.save("jSlave", jSlave);
+        rSerializer.save("jMaster", jMaster);
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseClassType );
+        rSerializer.load("DNDeMaster", DNDeMaster);
+        rSerializer.load("DNDeSlave", DNDeSlave);
+        rSerializer.load("jSlave", jSlave);
+        rSerializer.load("jMaster", jMaster);
+    }
+
+    ///@}
     ///@name Private  Access
     ///@{
 
@@ -646,10 +693,9 @@ private:
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
- * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
 class DerivativeData
 {
 public:
@@ -733,7 +779,6 @@ public:
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
@@ -786,7 +831,6 @@ public:
     /**
      * @brief This method reset to zero the cell vertex derivatives
      */
-
     virtual void ResetDerivatives()
     {
         // Derivatives
@@ -903,6 +947,54 @@ private:
     ///@{
 
     ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        rSerializer.save("PenaltyParameter", PenaltyParameter);
+        rSerializer.save("ScaleFactor", ScaleFactor);
+        rSerializer.save("NormalSlave", NormalSlave);
+        rSerializer.save("NormalMaster", NormalMaster);
+        rSerializer.save("X1", X1);
+        rSerializer.save("u1", u1);
+        rSerializer.save("X2", X2);
+        rSerializer.save("u2", u2);
+        rSerializer.save("DeltaDetjSlave", DeltaDetjSlave);
+        rSerializer.save("DeltaPhi", DeltaPhi);
+        rSerializer.save("DeltaN1", DeltaN1);
+        rSerializer.save("DeltaN2", DeltaN2);
+        rSerializer.save("DeltaNormalSlave", DeltaNormalSlave);
+        rSerializer.save("DeltaNormalMaster", DeltaNormalMaster);
+        rSerializer.save("DeltaCellVertex", DeltaCellVertex);
+        rSerializer.save("Ae", Ae);
+        rSerializer.save("DeltaAe", DeltaAe);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        rSerializer.load("PenaltyParameter", PenaltyParameter);
+        rSerializer.load("ScaleFactor", ScaleFactor);
+        rSerializer.load("NormalSlave", NormalSlave);
+        rSerializer.load("NormalMaster", NormalMaster);
+        rSerializer.load("X1", X1);
+        rSerializer.load("u1", u1);
+        rSerializer.load("X2", X2);
+        rSerializer.load("u2", u2);
+        rSerializer.load("DeltaDetjSlave", DeltaDetjSlave);
+        rSerializer.load("DeltaPhi", DeltaPhi);
+        rSerializer.load("DeltaN1", DeltaN1);
+        rSerializer.load("DeltaN2", DeltaN2);
+        rSerializer.load("DeltaNormalSlave", DeltaNormalSlave);
+        rSerializer.load("DeltaNormalMaster", DeltaNormalMaster);
+        rSerializer.load("DeltaCellVertex", DeltaCellVertex);
+        rSerializer.load("Ae", Ae);
+        rSerializer.load("DeltaAe", DeltaAe);
+    }
+
+    ///@}
     ///@name Private  Access
     ///@{
 
@@ -926,19 +1018,18 @@ private:
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
- * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
 class DerivativeDataFrictional
-    : public DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>
+    : public DerivativeData<TDim, TNumNodes, TNumNodesMaster>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// The base class type
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> BaseClassType;
+    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster> BaseClassType;
 
     /// The bounded matrix employed class
     typedef BoundedMatrix<double, TNumNodes, TDim> GeometryDoFMatrixSlaveType;
@@ -1071,6 +1162,28 @@ private:
     ///@{
 
     ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseClassType );
+        rSerializer.save("TangentFactor", TangentFactor);
+        rSerializer.save("u1old", u1old);
+        rSerializer.save("u2old", u2old);
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseClassType );
+        rSerializer.load("TangentFactor", TangentFactor);
+        rSerializer.load("u1old", u1old);
+        rSerializer.load("u2old", u2old);
+    }
+
+    ///@}
     ///@name Private  Access
     ///@{
 
@@ -1182,7 +1295,8 @@ public:
     {
         // We calculate the inverse of D operator
         double auxdet;
-        const GeometryMatrixSlaveType inv_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(DOperator, auxdet);
+        GeometryMatrixSlaveType inv_D_operator;
+        MathUtils<double>::InvertMatrix(DOperator, inv_D_operator, auxdet);
 
         // We calculate the P operator
         const GeometryMatrixMasterType POperator = prod(inv_D_operator, MOperator);
@@ -1263,6 +1377,24 @@ private:
     ///@{
 
     ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        rSerializer.save("DOperator", DOperator);
+        rSerializer.save("MOperator", MOperator);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        rSerializer.load("DOperator", DOperator);
+        rSerializer.load("MOperator", MOperator);
+    }
+
+    ///@}
     ///@name Private  Access
     ///@{
 
@@ -1287,10 +1419,9 @@ private:
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
  * @tparam TFrictional If the problem is frictional or not
- * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const SizeType TNumNodesMaster = TNumNodes>
 class MortarOperatorWithDerivatives
     : public MortarOperator<TNumNodes, TNumNodesMaster>
 {
@@ -1302,9 +1433,9 @@ public:
 
     typedef MortarKinematicVariables<TNumNodes, TNumNodesMaster>                                   KinematicVariables;
 
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataFrictionalType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>                   DerivativeDataFrictionalType;
 
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>        DerivativeFrictionalessDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster>                          DerivativeFrictionalessDataType;
 
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
 
@@ -1417,7 +1548,6 @@ public:
                 BaseClassType::MOperator(i_node, j_node) += det_j_slave * rIntegrationWeight * phi * n2;
 
                 for (IndexType i = 0; i < DoFSizeSlaveGeometry; ++i) {
-
                     DeltaMOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi* n2
                                                        + det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n2
                                                        + det_j_slave * rIntegrationWeight * phi* delta_n2[i][j_node];
@@ -1508,6 +1638,26 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseClassType );
+        rSerializer.save("DeltaDOperator", DeltaDOperator);
+        rSerializer.save("DeltaMOperator", DeltaMOperator);
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseClassType );
+        rSerializer.load("DeltaDOperator", DeltaDOperator);
+        rSerializer.load("DeltaMOperator", DeltaMOperator);
+    }
 
     ///@}
     ///@name Private  Access
@@ -1618,26 +1768,15 @@ public:
             const GeometryMatrixType normalized_Me = Me/norm_me;
 
             // We compute the normalized inverse
-            double aux_det = MathUtils<double>::DetMat<GeometryMatrixType>(normalized_Me);
-            if (std::abs(aux_det) >= tolerance) {
-                const GeometryMatrixType normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);
-
+            double aux_det;
+            GeometryMatrixType normalized_inv_Me;
+            MathUtils<double>::InvertMatrix(normalized_Me, normalized_inv_Me, aux_det, -1.0);
+            const bool good_condition_number = MathUtils<double>::CheckConditionNumber(normalized_Me, normalized_inv_Me, tolerance, false);
+            if (good_condition_number) {
                 noalias(Ae) = (1.0/norm_me) * prod(De, normalized_inv_Me);
                 return true;
             }
-        #ifdef KRATOS_DEBUG
-            else {
-                KRATOS_WARNING("Matrix cannot be inverted") << "WARNING:: Me matrix can not be inverted. Determinant: " << aux_det << std::endl;
-                KRATOS_WATCH(normalized_Me);
-            }
-        #endif
         }
-    #ifdef KRATOS_DEBUG
-        else {
-            KRATOS_WARNING("Matrix cannot be inverted") << "WARNING:: Me matrix can not be inverted. Norm: " << norm_me << std::endl;
-            KRATOS_WATCH(Me);
-        }
-    #endif
 
         noalias(Ae) = IdentityMatrix(TNumNodes);
         return false;
@@ -1738,6 +1877,24 @@ private:
     ///@{
 
     ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        rSerializer.save("Me", Me);
+        rSerializer.save("De", De);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        rSerializer.load("Me", Me);
+        rSerializer.load("De", De);
+    }
+
+    ///@}
     ///@name Private  Access
     ///@{
 
@@ -1762,10 +1919,9 @@ private:
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
  * @tparam TFrictional If the problem is frictional or not
- * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const SizeType TNumNodesMaster = TNumNodes>
 class DualLagrangeMultiplierOperatorsWithDerivatives
     : public DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>
 {
@@ -1777,9 +1933,9 @@ public:
 
     typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TNumNodesMaster>          KinematicVariablesType;
 
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataFrictionalType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>                   DerivativeDataFrictionalType;
 
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>        DerivativeFrictionalessDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster>                          DerivativeFrictionalessDataType;
 
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
 
@@ -1871,7 +2027,6 @@ public:
      */
     bool CalculateDeltaAe(DerivativeDataType& rDerivativeData)
     {
-        double aux_det;
         const double tolerance = std::numeric_limits<double>::epsilon();
 
         // We compute the norm
@@ -1881,10 +2036,13 @@ public:
         const GeometryMatrixType normalized_Me = BaseClassType::Me/norm_Me;
 
         // We compute the normalized inverse
-        aux_det = MathUtils<double>::DetMat<GeometryMatrixType>(normalized_Me);
-        if (std::abs(aux_det) < tolerance) return false;
-
-        const GeometryMatrixType normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);
+        double aux_det;
+        GeometryMatrixType normalized_inv_Me;
+        MathUtils<double>::InvertMatrix(normalized_Me, normalized_inv_Me, aux_det, -1.0);
+        const bool good_condition_number = MathUtils<double>::CheckConditionNumber(normalized_Me, normalized_inv_Me, tolerance, false);
+        if (!good_condition_number) {
+            return false;
+        }
 
         // Now we compute the inverse
         const GeometryMatrixType inv_Me = normalized_inv_Me/norm_Me;
@@ -1977,6 +2135,26 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseClassType );
+        rSerializer.save("DeltaMe", DeltaMe);
+        rSerializer.save("DeltaDe", DeltaDe);
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseClassType );
+        rSerializer.load("DeltaMe", DeltaMe);
+        rSerializer.load("DeltaDe", DeltaDe);
+    }
 
     ///@}
     ///@name Private  Access

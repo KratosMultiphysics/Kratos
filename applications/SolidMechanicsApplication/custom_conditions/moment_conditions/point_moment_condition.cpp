@@ -50,7 +50,7 @@ namespace Kratos
 						  NodesArrayType const& ThisNodes,
 						  PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<PointMomentCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<PointMomentCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -65,7 +65,7 @@ namespace Kratos
     NewCondition.SetFlags(this->GetFlags());
 
     //-----------//
-    return Kratos::make_shared<PointMomentCondition>(NewCondition);
+    return Kratos::make_intrusive<PointMomentCondition>(NewCondition);
   }
 
 
@@ -246,19 +246,13 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  int PointMomentCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int PointMomentCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 
     // Perform base condition checks
     int ErrorCode = 0;
     ErrorCode = MomentCondition::Check(rCurrentProcessInfo);
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD);
-    KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD_VECTOR);
-    KRATOS_CHECK_VARIABLE_KEY(PLANE_MOMENT_LOAD);
-    KRATOS_CHECK_VARIABLE_KEY(PLANE_MOMENT_LOAD_VECTOR);
 
     return ErrorCode;
 

@@ -24,31 +24,25 @@
 #include "custom_python/add_custom_io_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
-namespace Kratos
-{
-
-namespace Python
-{
-
-using namespace pybind11;
+namespace Kratos {
+namespace Python {
 
 PYBIND11_MODULE(KratosHDF5Application,m)
 {
-    class_<KratosHDF5Application,
-           KratosHDF5Application::Pointer,
-           KratosApplication >(m,"KratosHDF5Application")
-           .def(init<>())
-           ;
+    namespace py = pybind11;
 
-	AddCustomIOToPython(m);
-	AddCustomProcessesToPython(m);
+    py::class_<KratosHDF5Application,
+        KratosHDF5Application::Pointer,
+        KratosApplication >(m,"KratosHDF5Application")
+        .def(py::init<>())
+        ;
 
-	//registering variables in python
-  }
+    AddCustomIOToPython(m);
+    AddCustomProcessesToPython(m);
+}
 
 
 }  // namespace Python.
-
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

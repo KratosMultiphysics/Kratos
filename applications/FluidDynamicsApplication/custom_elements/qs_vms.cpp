@@ -16,6 +16,7 @@
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
+#include "custom_utilities/qsvms_dem_coupled_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "custom_utilities/fluid_element_time_integration_detail.h"
 
@@ -58,14 +59,14 @@ QSVMS<TElementData>::~QSVMS()
 template< class TElementData >
 Element::Pointer QSVMS<TElementData>::Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<QSVMS>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<QSVMS>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
 template< class TElementData >
 Element::Pointer QSVMS<TElementData>::Create(IndexType NewId,GeometryType::Pointer pGeom,Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<QSVMS>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<QSVMS>(NewId, pGeom, pProperties);
 }
 
 template <class TElementData>
@@ -94,24 +95,17 @@ void QSVMS<TElementData>::Calculate(const Variable<Matrix>& rVariable,
 // Inquiry
 
 template< class TElementData >
-int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
-    // Extra variables
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
-
-    // Output variables (for Calculate() functions)
-    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_PRESSURE);
-
-    for(unsigned int i=0; i<NumNodes; ++i)
+    const auto &r_geom = this->GetGeometry();
+    for (unsigned int i = 0; i < NumNodes; ++i)
     {
-        Node<3>& rNode = this->GetGeometry()[i];
+        const auto& rNode = r_geom[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,rNode);
     }
@@ -122,7 +116,7 @@ int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+void QSVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 3 > > const& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -142,20 +136,19 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(
 
         for (unsigned int g = 0; g < NumGauss; g++)
         {
-            data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
-            this->CalculateMaterialResponse(data);
+            this->UpdateIntegrationPointData(data, g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
 
             this->SubscaleVelocity(data, rValues[g]);
         }
     }
     else {
-        FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
 
 template< class TElementData >
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+void QSVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<double> const& rVariable,
     std::vector<double>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -175,43 +168,42 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(
 
         for (unsigned int g = 0; g < NumGauss; g++)
         {
-            data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
-            this->CalculateMaterialResponse(data);
+            this->UpdateIntegrationPointData(data, g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
 
             this->SubscalePressure(data,rValues[g]);
         }
 
     }
     else {
-        FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+void QSVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 6>> const& rVariable,
     std::vector<array_1d<double, 6>>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+void QSVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<Vector> const& rVariable,
     std::vector<Vector>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+void QSVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<Matrix> const& rVariable,
     std::vector<Matrix>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -566,9 +558,9 @@ void QSVMS<TElementData>::AddBoundaryTraction(TElementData& rData,
         for (unsigned int d = 0; d < Dim; d++) {
             const unsigned int row = i*BlockSize + d;
             for (unsigned int col = 0; col < LocalSize; col++) {
-                rLHS(row,col) += wni*normal_stress_operator(d,col);
+                rLHS(row,col) -= wni*normal_stress_operator(d,col);
             }
-            rRHS[row] -= wni*(shear_stress[d]-p_gauss*rUnitNormal[d]);
+            rRHS[row] += wni*(shear_stress[d]-p_gauss*rUnitNormal[d]);
         }
     }
 }
@@ -680,8 +672,7 @@ void QSVMS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProces
 
     for (unsigned int g = 0; g < NumGauss; g++)
     {
-        data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
-        this->CalculateMaterialResponse(data);
+        this->UpdateIntegrationPointData(data, g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
 
         array_1d<double, 3> MomentumRes = ZeroVector(3);
         double MassRes = 0.0;
@@ -793,5 +784,10 @@ template class QSVMS< QSVMSData<3,8> >;
 template class QSVMS< TimeIntegratedQSVMSData<2,3> >;
 template class QSVMS< TimeIntegratedQSVMSData<3,4> >;
 
+template class QSVMS< QSVMSDEMCoupledData<2,3> >;
+template class QSVMS< QSVMSDEMCoupledData<3,4> >;
+
+template class QSVMS< QSVMSDEMCoupledData<2,4> >;
+template class QSVMS< QSVMSDEMCoupledData<3,8> >;
 
 } // namespace Kratos

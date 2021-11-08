@@ -32,6 +32,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -70,7 +71,7 @@ public:
     ///@{
 
     /// Pointer definition of StokesWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(StokesWallCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StokesWallCondition);
 
     typedef Node < 3 > NodeType;
 
@@ -93,8 +94,6 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -178,7 +177,7 @@ public:
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<StokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<StokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
 
@@ -189,7 +188,7 @@ public:
       @param pProperties Pointer to the element's properties
       */
     Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override {
-        return Kratos::make_shared< StokesWallCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< StokesWallCondition >(NewId, pGeom, pProperties);
     }
 
 
@@ -197,9 +196,10 @@ public:
     /** The actual local contributions are computed in the Damping functions
       @see CalculateLocalVelocityContribution
       */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                      VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = TDim + 1;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -212,14 +212,20 @@ public:
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+        if( this->Is(OUTLET) )
+        {
+            ApplyNeumannCondition(rLeftHandSideMatrix,rRightHandSideVector);
+        }
     }
 
     /// Return a matrix of the correct size, filled with zeros (for compatibility with time schemes).
     /** The actual local contributions are computed in the Damping functions
       @see DampingMatrix
       */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = TDim + 1;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -234,8 +240,9 @@ public:
     /** The actual local contributions are computed in the Damping functions
       @see CalculateLocalVelocityContribution
       */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = TDim + 1;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -244,12 +251,18 @@ public:
             rRightHandSideVector.resize(LocalSize);
 
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+        if( this->Is(OUTLET) )
+        {
+            Matrix tmp;
+            ApplyNeumannCondition(tmp,rRightHandSideVector);
+        }
     }
 
 
 
     /// Check that all data required by this condition is available and reasonable
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY;
 
@@ -261,23 +274,7 @@ public:
         }
         else
         {
-            // Check that all required variables have been registered
-            if(VELOCITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-            if(PRESSURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
-            if(DENSITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
-            if(VISCOSITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
-            if(IS_STRUCTURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
-             if(EXTERNAL_PRESSURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"EXTERNAL_PRESSURE Key is 0. Check if the application was correctly registered.","");
-
-
                 // Checks on nodes
-
                 // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
                 for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
                 {
@@ -307,8 +304,9 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     /// Returns a list of the element's Dofs
@@ -316,8 +314,9 @@ public:
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void GetDofList(DofsVectorType& ConditionDofList,
-                            ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(
+        DofsVectorType& ConditionDofList,
+        const ProcessInfo& CurrentProcessInfo) const override;
 
 
     ///@}
@@ -377,8 +376,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    void CalculateNormal(array_1d<double,3>& An );
 
 
     void ApplyNeumannCondition(MatrixType &rLocalMatrix, VectorType &rLocalVector);

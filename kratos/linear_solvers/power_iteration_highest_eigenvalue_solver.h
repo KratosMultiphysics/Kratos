@@ -15,7 +15,9 @@
 #define  KRATOS_POWER_ITERATION_HIGHEST_EIGENVALUE_SOLVER_H_INCLUDED
 
 // System includes
+
 // External includes
+#include "boost/range/algorithm/max_element.hpp"
 
 // Project includes
 #include "spaces/ublas_space.h"

@@ -1,0 +1,234 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1  -1.0000000000   3.0000000000  -1.0000000000
+    2  -1.0000000000   1.0000000000  -1.0000000000
+    3   1.0000000000   3.0000000000  -1.0000000000
+    4   1.0000000000   1.0000000000  -1.0000000000
+    5  -1.0000000000   3.0000000000   2.0000000000
+    6  -1.0000000000   1.0000000000   2.0000000000
+    7   1.0000000000   3.0000000000   2.0000000000
+    8  -1.0000000000  -1.0000000000  -1.0000000000
+    9   0.4284166667  -0.4284166667   0.5331614937
+   10   1.0000000000   1.0000000000   2.0000000000
+   11   1.0000000000  -1.0000000000  -1.0000000000
+   12  -1.0000000000  -1.0000000000   2.0000000000
+   13   1.0000000000  -1.0000000000   2.0000000000
+End Nodes
+
+
+Begin Elements Element3D4N// GUI group identifier: Solid Auto1
+        1          0     4     2     8    10
+        2          0     8    11     4     9
+        3          0     8    11     9    12
+        4          0    11     4     9    13
+        5          0     9    11    13    12
+        6          0    13     9    12    10
+        7          0    13     9    10     4
+        8          0    10    12     6     8
+        9          0     4     8     9    10
+       10          0     9    12    10     8
+       11          0     8     2     6    10
+End Elements
+
+Begin Elements Element3D4N// GUI group identifier: Solid Auto2
+       12          0     3     1     2     7
+       13          0     2     4     3    10
+       14          0     7     6     5     2
+       15          0     6     7    10     2
+       16          0     2     1     5     7
+       17          0    10     7     3     2
+End Elements
+
+Begin Conditions SurfaceCondition3D3N// GUI group identifier: Load on surfaces Auto3
+    1 0 4 2 8
+    2 0 8 11 4
+End Conditions
+
+Begin Conditions SurfaceCondition3D3N// GUI group identifier: Load on surfaces Auto4
+    3 0 3 1 2
+    4 0 2 4 3
+End Conditions
+
+Begin Conditions SurfaceCondition3D3N// GUI group identifier: Load on surfaces Auto5
+    5 0 4 11 13
+    6 0 13 10 4
+    7 0 11 8 12
+    8 0 12 13 11
+    9 0 8 2 6
+    10 0 6 12 8
+End Conditions
+
+Begin Conditions SurfaceCondition3D3N// GUI group identifier: Load on surfaces Auto6
+    11 0 3 4 10
+    12 0 10 7 3
+    13 0 2 1 5
+    14 0 5 6 2
+    15 0 1 3 7
+    16 0 7 5 1
+End Conditions
+
+Begin Conditions SurfaceCondition3D3N// GUI group identifier: Load on surfaces Auto7
+    17 0 7 5 6
+    18 0 6 10 7
+End Conditions
+
+Begin Conditions SurfaceCondition3D3N// GUI group identifier: Load on surfaces Auto8
+    19 0 10 6 12
+    20 0 12 13 10
+End Conditions
+
+Begin SubModelPart Parts_Solid_Solid_Auto1 // Group Solid Auto1 // Subtree Parts_Solid
+    Begin SubModelPartNodes
+            2
+            4
+            6
+            8
+            9
+           10
+           11
+           12
+           13
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Parts_Solid_Solid_Auto2 // Group Solid Auto2 // Subtree Parts_Solid
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+           10
+    End SubModelPartNodes
+    Begin SubModelPartElements
+           12
+           13
+           14
+           15
+           16
+           17
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart SurfaceLoad3D_Load_on_surfaces_Auto3 // Group Load on surfaces Auto3 // Subtree SurfaceLoad3D
+    Begin SubModelPartNodes
+            2
+            4
+            8
+           11
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+            1
+            2
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart SurfaceLoad3D_Load_on_surfaces_Auto4 // Group Load on surfaces Auto4 // Subtree SurfaceLoad3D
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+            3
+            4
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart SurfaceLoad3D_Load_on_surfaces_Auto5 // Group Load on surfaces Auto5 // Subtree SurfaceLoad3D
+    Begin SubModelPartNodes
+            2
+            4
+            6
+            8
+           10
+           11
+           12
+           13
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+            5
+            6
+            7
+            8
+            9
+           10
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart SurfaceLoad3D_Load_on_surfaces_Auto6 // Group Load on surfaces Auto6 // Subtree SurfaceLoad3D
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+           10
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+           11
+           12
+           13
+           14
+           15
+           16
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart SurfaceLoad3D_Load_on_surfaces_Auto7 // Group Load on surfaces Auto7 // Subtree SurfaceLoad3D
+    Begin SubModelPartNodes
+            5
+            6
+            7
+           10
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+           17
+           18
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart SurfaceLoad3D_Load_on_surfaces_Auto8 // Group Load on surfaces Auto8 // Subtree SurfaceLoad3D
+    Begin SubModelPartNodes
+            6
+           10
+           12
+           13
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+           19
+           20
+    End SubModelPartConditions
+End SubModelPart

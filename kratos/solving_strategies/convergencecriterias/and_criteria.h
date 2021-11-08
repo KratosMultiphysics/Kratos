@@ -67,6 +67,9 @@ public:
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
+    /// The definition of the current class
+    typedef And_Criteria< TSparseSpace, TDenseSpace > ClassType;
+
     typedef TSparseSpace SparseSpaceType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -83,6 +86,27 @@ public:
     ///@name Life Cycle
     ///@{
 
+    //* Constructor.
+    explicit And_Criteria()
+        : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @details It takes two different convergence criteria in order to work
+     * @param ThisParameters The configuration parameters
+     */
+    explicit And_Criteria(Kratos::Parameters ThisParameters)
+        :BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+    }
+
     /**
      * @brief Default constructor.
      * @details It takes two different convergence criteria in order to work
@@ -96,6 +120,9 @@ public:
            mpFirstCriterion(pFirstCriterion),
            mpSecondCriterion(pSecondCriterion)
     {
+        this->mActualizeRHSIsNeeded = false;
+        if(mpFirstCriterion->GetActualizeRHSflag()) this->mActualizeRHSIsNeeded = true;
+        if(mpSecondCriterion->GetActualizeRHSflag()) this->mActualizeRHSIsNeeded = true;
     }
 
     /**
@@ -107,6 +134,9 @@ public:
          mpFirstCriterion(rOther.mpFirstCriterion),
          mpSecondCriterion(rOther.mpSecondCriterion)
      {
+        this->mActualizeRHSIsNeeded = false;
+        if(mpFirstCriterion->GetActualizeRHSflag()) this->mActualizeRHSIsNeeded = true;
+        if(mpSecondCriterion->GetActualizeRHSflag()) this->mActualizeRHSIsNeeded = true;
      }
 
     /** Destructor.
@@ -116,6 +146,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief It sets the level of echo for the solving strategy
@@ -287,9 +330,41 @@ public:
         KRATOS_CATCH("");
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                     : "and_criteria",
+            "first_criterion_settings" : {
+                "name"                            : "residual_criteria",
+                "residual_absolute_tolerance"     : 1.0e-4,
+                "residual_relative_tolerance"     : 1.0e-9
+            },
+            "second_criterion_settings" : {
+                "name"                            : "displacement_criteria",
+                "displacement_relative_tolerance" : 1.0e-4,
+                "displacement_absolute_tolerance" : 1.0e-9
+            }
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "and_criteria";
+    }
 
     ///@}
     ///@name Access
@@ -298,6 +373,28 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "And_Criteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends

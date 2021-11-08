@@ -39,7 +39,7 @@ namespace Kratos
 /// Rigid Body Element for 3D space dimension
 
 /**
- * Nodal Variables: DISPLACEMENT, STEP_DISPLACEMENT, VELOCITY, ACCELERATION, ROTATION, STEP_ROTATION, DELTA_ROTATION, ANGULAR_VELOCITY, ANGULAR_ACCELERATION
+ * Nodal Variables: DISPLACEMENT, STEP_DISPLACEMENT, VELOCITY, ACCELERATION, ROTATION, STEP_ROTATION, ANGULAR_VELOCITY, ANGULAR_ACCELERATION
  * Nodal Dofs: DISPLACEMENT, ROTATION
  */
 
@@ -60,9 +60,11 @@ public:
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
     ///Type for size
     typedef GeometryData::SizeType                              SizeType;
+    ///Type of vector
+    typedef array_1d<double,3>                                 ArrayType;
 
     /// Counted pointer of RigidBodyElement
-    KRATOS_CLASS_POINTER_DEFINITION( RigidBodyElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( RigidBodyElement );
 
     ///@}
 
@@ -94,12 +96,12 @@ protected:
       const ProcessInfo* pProcessInfo;
 
      public:
-      
+
       //section properties
       RigidBodyProperties RigidBody;
-      Vector VolumeForce;
+      ArrayType VolumeForce;
       Matrix DeltaPosition;
-      
+
       void SetProcessInfo(const ProcessInfo& rProcessInfo)
       {
         pProcessInfo=&rProcessInfo;
@@ -109,16 +111,15 @@ protected:
       {
         return *pProcessInfo;
       }
-      
+
       void Initialize(const unsigned int& dimension, const ProcessInfo& rProcessInfo)
       {
-        VolumeForce.resize(dimension);
-        noalias(VolumeForce) = ZeroVector(dimension);
+        noalias(VolumeForce) = ZeroVector(3);
         DeltaPosition.resize(1,dimension,false);
         noalias(DeltaPosition) = ZeroMatrix(1, dimension);
         pProcessInfo=&rProcessInfo;
       }
-      
+
     };
 
 
@@ -213,27 +214,27 @@ public:
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
-    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 
     //************* STARTING - ENDING  METHODS
@@ -242,28 +243,28 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
       /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Called at the end of eahc solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     //************* COMPUTING  METHODS
 
@@ -275,7 +276,7 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -283,7 +284,7 @@ public:
      * @param rRightHandSideVector: the elemental right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -292,7 +293,7 @@ public:
      * @param rLeftHandSideVector: the elemental left hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -304,7 +305,7 @@ public:
      */
     void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
 						VectorType& rRightHandSideVector,
-						ProcessInfo& rCurrentProcessInfo) override;
+						const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -313,7 +314,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-				       ProcessInfo& rCurrentProcessInfo) override;
+				       const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -323,7 +324,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-				       ProcessInfo& rCurrentProcessInfo) override;
+				       const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -331,7 +332,7 @@ public:
      * @param rMassMatrix: the elemental mass matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -347,11 +348,8 @@ public:
      * @param rDestinationVariable: variable in the database to which the rRHSVector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
      */
-    void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo) override;
+    void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, const Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo) override;
 
-
-    //************************************************************************************
-    //************************************************************************************
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -359,7 +357,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -420,12 +418,12 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    
+
     /**
      * Calculates the elemental dynamic contributions
      */
     void CalculateDynamicSystem(LocalSystemComponents& rLocalSystem,
-                                ProcessInfo& rCurrentProcessInfo);
+                                const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Initialize System Matrices
@@ -437,18 +435,7 @@ protected:
     /**
      * Transform Vector Variable from Global Frame to the Spatial Local Frame
      */
-    Vector& MapToInitialLocalFrame(Vector& rVariable);
-
-
-    /**
-     * Get Current Value, buffer 0 with FastGetSolutionStepValue
-     */
-    Vector& GetNodalCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
-
-    /**
-     * Get Previous Value, buffer 1 with FastGetSolutionStepValue
-     */
-    Vector& GetNodalPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
+    ArrayType& MapToInitialLocalFrame(ArrayType& rVariable);
 
 
     /**
@@ -468,7 +455,7 @@ protected:
       */
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                     ElementVariables& rVariables);
-    
+
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
@@ -493,29 +480,33 @@ protected:
       */
     virtual void GetTimeIntegrationParameters(double& rP0,double& rP1,double& rP2,
                                               const ProcessInfo& rCurrentProcessInfo);
-    
+
     /**
      * Calculation of the Volume Force of the Element
      */
-    virtual Vector& CalculateVolumeForce(Vector& rVolumeForce);
+    virtual ArrayType& CalculateVolumeForce(ArrayType& rVolumeForce);
 
 
     /**
      * Calculation Complementary Method : Inertial Matrix Calculation Part 1
      */
-    virtual void CalculateRotationLinearPartTensor(Vector& rRotationVector, Matrix& rRotationTensor);
+    virtual void CalculateRotationLinearPartTensor(ArrayType& rRotationVector, Matrix& rRotationTensor);
 
 
     /**
       * Update rigid body nodes and positions
       */
-    virtual void UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo);
+    virtual void UpdateRigidBodyNodes(const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Get element size from the dofs
      */
-    virtual SizeType GetDofsSize();
+    virtual SizeType GetDofsSize() const;
 
+    /**
+     * Map Local To Global system
+     */
+    virtual void MapLocalToGlobalSystem(LocalSystemComponents& rLocalSystem);
 
     ///@}
     ///@name Protected  Access

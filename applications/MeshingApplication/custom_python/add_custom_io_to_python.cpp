@@ -7,7 +7,9 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:
+//  Main authors: Pooyan Dadvand
+//                Josep Maria Carbonell Puigbo
+//                Vicente Matix Ferrandiz
 //
 
 // System includes
@@ -17,122 +19,40 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/define_python.h"
-// #include "includes/datafile_io.h"
-// #include "includes/gid_io.h"
-#include "custom_io/pfem_gid_io.h"
-#include "python/add_io_to_python.h"
 #include "custom_python/add_custom_io_to_python.h"
+
+#ifdef INCLUDE_MMG
+    #include "custom_io/mmg/mmg_io.h"
+#endif
 
 namespace Kratos
 {
 namespace Python
 {
-using namespace pybind11;
-    
-typedef GidIO<PfemGidGaussPointsContainer,PfemGidMeshContainer> GidIOType;
-typedef GidIO<> GidIOBaseType;
-
-void WriteNodeMesh( GidIOType& dummy, GidIOType::MeshType& rThisMesh )
-{
-    KRATOS_INFO("WriteNodeMesh") << "Writing Node Mesh" << std::endl;
-    dummy.WriteNodeMesh( rThisMesh );
-}
-void WriteMesh( GidIOType& dummy, GidIOType::MeshType& rThisMesh )
-{
-    dummy.WriteMesh( rThisMesh );
-}
-
-void DoublePrintOnGaussPoints( GidIOType& dummy, const Variable<double>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
-{
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
-}
-
-void VectorPrintOnGaussPoints( GidIOType& dummy, const Variable<Vector>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
-{
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
-}
-
-void MatrixPrintOnGaussPoints( GidIOType& dummy, const Variable<Matrix>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
-{
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
-}
-
-void (GidIOType::*pointer_to_double_write_nodal_results)(
-    Variable<double> const& rVariable,
-    GidIOType::NodesContainerType& rNodes, double SolutionTag,
-    std::size_t SolutionStepNumber ) = &GidIOType::WriteNodalResults;
-void (GidIOType::*pointer_to_array1d_write_nodal_results)(
-    Variable<array_1d<double, 3> > const& rVariable,
-    GidIOType::NodesContainerType& rNodes, double SolutionTag,
-    std::size_t SolutionStepNumber) = &GidIOType::WriteNodalResults;
-
-
-//         void (GidIOType::*pointer_to_double_write_nodal_results)( Variable<double> const& rVariable,
-//               GidIOType::NodesContainerType& rNodes, double SolutionTag,
-//               std::size_t SolutionStepNumber ) = &GidIO::WriteNodalResults;
-//         void (GidIOType::*pointer_to_array1d_write_nodal_results)(
-//               Variable<array_1d<double, 3> > const& rVariable, GidIOType::NodesContainerType& rNodes,
-//               double SolutionTag, std::size_t SolutionStepNumber) = &GidIOType::WriteNodalResults;
-
-//         void (GidIOType::*pointer_to_double_print_on_gauss_points)(const Variable<double >& rVariable,
-//               ModelPart& r_model_part, double SolutionTag)
-//                 = &GidIOType::PrintOnGaussPoints;
-//         void (GidIOType::*pointer_to_matrix_print_on_gauss_points)(const Variable<Matrix >& rVariable,
-//               ModelPart& r_model_part, double SolutionTag)
-//                 = &GidIOType::PrintOnGaussPoints;
-//         void (GidIOType::*pointer_to_vector_print_on_gauss_points)(const Variable<Vector >& rVariable,
-//               ModelPart& r_model_part, double SolutionTag)
-//                 = &GidIOType::PrintOnGaussPoints;
+namespace py = pybind11;
 
 void  AddCustomIOToPython(pybind11::module& m)
 {
-
-    class_<GidIOType, GidIOType::Pointer,DatafileIO>(m, 
-        "PFEMGidIO",init<std::string const&, GiD_PostMode,
-        MultiFileFlag,
-        WriteDeformedMeshFlag,
-        WriteConditionsFlag>())
-    //.def(init<std::string const&>())
-    .def(init<std::string const&,
-         std::string const&,
-         std::string const&,
-         std::string const&,
-         std::string const&,
-         std::string const&,
-         GiD_PostMode,
-         MultiFileFlag,
-         WriteDeformedMeshFlag,
-         WriteConditionsFlag>())
-    .def("WriteMesh",WriteMesh)
-    .def("WriteNodeMesh",WriteNodeMesh)
-
-    .def("InitializeMesh",&GidIOType::InitializeMesh)
-    .def("FinalizeMesh",&GidIOType::FinalizeMesh)
-
-    .def("InitializeResults",&GidIOType::InitializeResults)
-    .def("FinalizeResults",&GidIOType::FinalizeResults)
-
-    .def("WriteNodalResults",pointer_to_double_write_nodal_results)
-    .def("WriteNodalResults",pointer_to_array1d_write_nodal_results)
-//                     .def("WriteNodalResults",pointer_to_vector_write_nodal_results)
-//                     .def("WriteNodalResults",pointer_to_matrix_write_nodal_results)
-
-//                     .def("PrintOnGaussPoints", pointer_to_double_print_on_gauss_points)
-//                     .def("PrintOnGaussPoints", pointer_to_vector_print_on_gauss_points)
-//                     .def("PrintOnGaussPoints", pointer_to_matrix_print_on_gauss_points)
-    .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
-    .def("PrintOnGaussPoints", VectorPrintOnGaussPoints)
-    .def("PrintOnGaussPoints", MatrixPrintOnGaussPoints)
-//                     .def("CondPrintOnGaussPoints", pointer_to_double_cond_print_on_gauss_points)
-
-    .def("Flush",&GidIOType::Flush)
-    .def("CloseResultFile",&GidIOType::CloseResultFile)
-    //.def("",&DatafileIO::)
-    //.def(self_ns::str(self))
+#ifdef INCLUDE_MMG
+    py::class_<MmgIO<MMGLibrary::MMG2D>, MmgIO<MMGLibrary::MMG2D>::Pointer, IO>(m, "MmgIO2D")
+    .def(py::init<std::string const&>())
+    .def(py::init<std::string const&, Parameters>())
+    .def(py::init<std::string const&, Parameters, const Flags>())
+    .def("GetMmgVersion", &MmgIO<MMGLibrary::MMG2D>::GetMmgVersion)
     ;
+    py::class_<MmgIO<MMGLibrary::MMG3D>, MmgIO<MMGLibrary::MMG3D>::Pointer, IO>(m, "MmgIO3D")
+    .def(py::init<std::string const&>())
+    .def(py::init<std::string const&, Parameters>())
+    .def(py::init<std::string const&, Parameters, const Flags>())
+    .def("GetMmgVersion", &MmgIO<MMGLibrary::MMG3D>::GetMmgVersion)
+    ;
+    py::class_<MmgIO<MMGLibrary::MMGS>, MmgIO<MMGLibrary::MMGS>::Pointer, IO>(m, "MmgIOS")
+    .def(py::init<std::string const&>())
+    .def(py::init<std::string const&, Parameters>())
+    .def(py::init<std::string const&, Parameters, const Flags>())
+    .def("GetMmgVersion", &MmgIO<MMGLibrary::MMGS>::GetMmgVersion)
+    ;
+#endif
 
 }
 }  // namespace Python.

@@ -4,8 +4,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.ULFApplication import *
 
-CheckForPreviousImport()
-
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(ACCELERATION)
@@ -48,7 +46,7 @@ class RungeKuttaFracStepSolver:
         #neighbour search
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
-        self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
+        self.neighbour_search = FindNodalNeighboursProcess(model_part)
 
         # self.move_mesh_strategy = 2
         pDiagPrecond = DiagonalPreconditioner()
@@ -69,9 +67,9 @@ class RungeKuttaFracStepSolver:
         # self.MoveMeshFlag = True
 
         if (self.domain_size == 2):
-            self.neigh_finder = FindNodalNeighboursProcess(self.model_part, 9, 18)
+            self.neigh_finder = FindNodalNeighboursProcess(self.model_part)
         if (self.domain_size == 3):
-            self.neigh_finder = FindNodalNeighboursProcess(self.model_part, 20, 30)
+            self.neigh_finder = FindNodalNeighboursProcess(self.model_part)
         # calculate normals
         self.normal_tools = NormalCalculationUtils()
 
@@ -83,10 +81,10 @@ class RungeKuttaFracStepSolver:
 
         if(domain_size == 2):
             self.Mesher = TriGenPFEMModeler()
-            self.fluid_neigh_finder = FindNodalNeighboursProcess(self.model_part,9,18)
+            self.fluid_neigh_finder = FindNodalNeighboursProcess(self.model_part)
             self.condition_neigh_finder = FindConditionsNeighboursProcess(self.model_part,2, 10)
-            self.elem_neighbor_finder = FindElementalNeighboursProcess(self.model_part, 2, 10)            
-     
+            self.elem_neighbor_finder = FindElementalNeighboursProcess(self.model_part, 2, 10)
+
         self.mark_fluid_process = MarkFluidProcess(self.model_part);
         self.UlfUtils = UlfUtils()
 
@@ -95,7 +93,7 @@ class RungeKuttaFracStepSolver:
         (self.neighbour_search).Execute()
         # calculate the normals to the overall domain
         self.normal_tools.CalculateOnSimplex(
-            self.model_part.Conditions,
+            self.model_part,
             self.domain_size)
         # for SLIP condition we need to save these Conditions in a list
         # by now SLIP conditions are identified by FLAG_VARIABLE=3.0. this is
@@ -111,16 +109,16 @@ class RungeKuttaFracStepSolver:
             raise Exception(msg)
 
         (self.solver).SetEchoLevel(self.echo_level)
-        
+
         (self.neigh_finder).Execute()
         (self.fluid_neigh_finder).Execute();
         (self.mark_free_surface_process).Execute();
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(IS_FREE_SURFACE,0,0.0)
-        
+
         Hfinder  = FindNodalHProcess(self.model_part);
         Hfinder.Execute();
-        self.Remesh(); 
+        self.Remesh();
 
     def Solve(self):
 
@@ -129,7 +127,7 @@ class RungeKuttaFracStepSolver:
         self.Remesh();
 
         (self.neigh_finder).Execute()
-        #setting pressure to zero at free-surface to solve the Poisson's equation        
+        #setting pressure to zero at free-surface to solve the Poisson's equation
         for node in (self.model_part).Nodes:
             node.Free(PRESSURE)
             if(node.GetSolutionStepValue(IS_FREE_SURFACE)== 1.0):
@@ -145,14 +143,14 @@ class RungeKuttaFracStepSolver:
     def SetEchoLevel(self, level):
         (self.solver).SetEchoLevel(level)
 
-    def Remesh(self):	
+    def Remesh(self):
 
         alpha_shape=1.4;
         h_factor=0.2
 
         if(self.domain_size == 2):
-            for node in (self.model_part).Nodes: 
-                node.SetSolutionStepValue(NODAL_H,0,0.002) 
+            for node in (self.model_part).Nodes:
+                node.SetSolutionStepValue(NODAL_H,0,0.002)
 
 
         self.node_erase_process = NodeEraseProcess(self.model_part);
@@ -167,8 +165,8 @@ class RungeKuttaFracStepSolver:
         ((self.model_part).Conditions).clear();
 
         if (self.domain_size == 2):
-            (self.Mesher).ReGenerateMesh("Fluid2DGLS_expl","Condition2D", self.model_part, self.node_erase_process, True, True, alpha_shape, h_factor)
-             
+            (self.Mesher).ReGenerateMesh("Fluid2DGLS_expl","LineCondition2D2N", self.model_part, self.node_erase_process, True, True, alpha_shape, h_factor)
+
         for node in (self.model_part).Nodes:
             node.Set(TO_ERASE, False)
 
@@ -176,7 +174,7 @@ class RungeKuttaFracStepSolver:
         (self.elem_neighbor_finder).Execute()
         (self.condition_neigh_finder).Execute();
 
-        (self.mark_free_surface_process).Execute(); 
+        (self.mark_free_surface_process).Execute();
 
- 
+
 

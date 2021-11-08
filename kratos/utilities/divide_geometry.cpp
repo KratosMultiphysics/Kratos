@@ -54,12 +54,8 @@ namespace Kratos
 
         const array_1d<double, 3> point_coords = this->Coordinates();
         std::stringstream coordinates_buffer;
-        std::ostringstream stm;
-        for (unsigned int i = 0; i < 3; ++i) {
-            stm << point_coords(i);
-            coordinates_buffer << stm.str() << " ";
-        }
-        rOStream << "\tCoordinates: " << coordinates_buffer.str() << std::endl;
+        coordinates_buffer << "\tCoordinates: ( " << point_coords(0) << " , " << point_coords(1) << " , " << point_coords(2) << " )";
+        rOStream << coordinates_buffer.str() << std::endl;
     };
 
     /// DivideGeometry implementation
@@ -122,4 +118,33 @@ namespace Kratos
         }
     };
 
+    std::vector<DivideGeometry::IndexedPointGeometryPointerType> DivideGeometry::GetPositiveSubdivisions() const
+    {
+        return mPositiveSubdivisions;
+    }
+
+    std::vector<DivideGeometry::IndexedPointGeometryPointerType> DivideGeometry::GetNegativeSubdivisions() const
+    {
+        return mNegativeSubdivisions;
+    }
+
+    std::vector<DivideGeometry::IndexedPointGeometryPointerType> DivideGeometry::GetPositiveInterfaces() const
+    {
+        return mPositiveInterfaces;
+    }
+
+    std::vector<DivideGeometry::IndexedPointGeometryPointerType> DivideGeometry::GetNegativeInterfaces() const
+    {
+        return mNegativeInterfaces;
+    }
+
+    std::vector<unsigned int> DivideGeometry::GetPositiveInterfacesParentIds() const
+    {
+        return mPositiveInterfacesParentIds;
+    }
+
+    std::vector<unsigned int> DivideGeometry::GetNegativeInterfacesParentIds() const
+    {
+        return mNegativeInterfacesParentIds;
+    }
 };

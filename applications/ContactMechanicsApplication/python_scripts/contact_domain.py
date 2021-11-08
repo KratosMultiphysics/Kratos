@@ -4,9 +4,6 @@ import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 # Import the meshing domain (the base class for the mesher derivation)
 import meshing_domain
 

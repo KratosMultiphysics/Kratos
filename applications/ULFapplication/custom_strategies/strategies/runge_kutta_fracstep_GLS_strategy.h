@@ -25,7 +25,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 //#include "incompressible_fluid_application.h"
 #include "ULF_application.h"
@@ -96,7 +96,7 @@ namespace Kratos
     class TLinearSolver
     >
     class RungeKuttaFracStepStrategy
-    : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
     {
     public:
       /**@name Type Definitions */
@@ -107,7 +107,7 @@ namespace Kratos
 
       KRATOS_CLASS_POINTER_DEFINITION(  RungeKuttaFracStepStrategy );
 
-      typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+      typedef ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
       typedef typename BaseType::TDataType TDataType;
 
@@ -156,7 +156,7 @@ namespace Kratos
 			       //unsigned int laplacian_form = 2, //1 = laplacian, 2 = discrete laplacian
 			       //bool predictor_corrector = false
 			       )
-      : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false)
+      : ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false)
 	{
 	  KRATOS_TRY
 	    //std::cout << "SONO QUI" << std::endl;
@@ -1090,7 +1090,7 @@ namespace Kratos
 		    double p=0.0; 
 		    unsigned int counter=0;
 		
-		    for (WeakPointerVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+		    for (GlobalPointersVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
 			 i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
 		      {
 			//If the a node is a node of a "good neighbor"

@@ -21,7 +21,7 @@
 #include "custom_elements/steady_convection_diffusion_FIC_element.hpp"
 #include "includes/convection_diffusion_settings.h"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/element_size_calculator.h"
+#include "utilities/element_size_calculator.h"
 
 #include "fluid_transport_application_variables.h"
 
@@ -34,7 +34,7 @@ class KRATOS_API(FLUID_TRANSPORT_APPLICATION) TransientConvectionDiffusionFICEle
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( TransientConvectionDiffusionFICElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( TransientConvectionDiffusionFICElement );
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -74,6 +74,10 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
                         VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
@@ -91,6 +95,9 @@ protected:
 
     void CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo) override;
 
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

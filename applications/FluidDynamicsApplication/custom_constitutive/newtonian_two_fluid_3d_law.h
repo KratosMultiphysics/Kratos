@@ -37,7 +37,7 @@ public:
      * Type Definitions
      */
     typedef std::size_t             SizeType;
-    
+
     /**
      * Counted pointer of NewtonianTwoFluid3DLaw
      */
@@ -72,6 +72,20 @@ public:
 
 
     /**
+     * This function is designed to be called once to perform all the checks needed
+     * on the input provided. Checks can be "expensive" as the function is designed
+     * to catch user's errors.
+     * @param rMaterialProperties
+     * @param rElementGeometry
+     * @param rCurrentProcessInfo
+     * @return
+     */
+    int Check(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const ProcessInfo& rCurrentProcessInfo) const override;
+
+    /**
      * Input and output
      */
 
@@ -93,13 +107,10 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
-    double ComputeEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
+
+    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
 
     ///@}
-
-
-
 private:
 
     ///@name Static Member Variables
@@ -118,7 +129,7 @@ private:
     ///@name Private Operations
     ///@{
     ///@}
-    
+
     void EvaluateInPoint(double& rResult,
         const Variable<double>& rVariable,
         ConstitutiveLaw::Parameters& rParameters) const;
@@ -141,4 +152,4 @@ private:
 
 }; // Class NewtonianTwoFluid3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_NEWTONIAN_TWO_FLUID_3D_H_INCLUDED  defined 
+#endif // KRATOS_NEWTONIAN_TWO_FLUID_3D_H_INCLUDED  defined

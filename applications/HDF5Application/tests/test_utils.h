@@ -69,6 +69,7 @@ class TestModelPartFactory
                                                      std::vector<std::string> const& rNodalVariables = {});
 
         static void AssignDataValueContainer(DataValueContainer& rData,
+                                             Flags& rFlags,
                                              std::vector<std::string> const& rVariables = {});
 
     private:
@@ -107,7 +108,7 @@ void CompareConditions(HDF5::ConditionsContainerType& rConditions1, HDF5::Condit
 
 void CompareModelParts(ModelPart& rModelPart1, ModelPart& rModelPart2);
 
-void CompareDataValueContainers(DataValueContainer const& rData1, DataValueContainer const& rData2);
+void CompareDataValueContainers(DataValueContainer const& rData1, Flags const& rFlags1, DataValueContainer const& rData2, Flags const& rFlags2);
 
 void CompareNonHistoricalNodalData(HDF5::NodesContainerType& rNodes1,
                                    HDF5::NodesContainerType& rNodes2);

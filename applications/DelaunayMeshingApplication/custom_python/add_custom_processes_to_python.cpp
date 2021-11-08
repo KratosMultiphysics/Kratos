@@ -32,6 +32,7 @@
 #include "custom_processes/refine_elements_in_edges_mesher_process.hpp"
 #include "custom_processes/refine_conditions_mesher_process.hpp"
 #include "custom_processes/remove_nodes_mesher_process.hpp"
+#include "custom_processes/transfer_between_model_parts_process.hpp"
 
 // MiddleMeshing processes
 #include "custom_processes/refine_elements_on_size_mesher_process.hpp"
@@ -53,6 +54,7 @@ namespace Python
 typedef Process::Pointer                           ProcessPointer;
 typedef MesherProcess::Pointer               MesherProcessPointer;
 typedef std::vector<MesherProcessPointer>  MesherProcessContainer;
+typedef std::vector<Flags> FlagsContainer;
 
 void Push_Back_Process( MesherProcessContainer& ThisProcessContainer,
                         MesherProcessPointer ThisProcess )
@@ -63,123 +65,130 @@ void Push_Back_Process( MesherProcessContainer& ThisProcessContainer,
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
 
-  using namespace pybind11;
+  namespace py = pybind11;
 
   //**********MESHER PROCESS*********//
 
   //mesher process container
-  class_<MesherProcessContainer>(m,"MesherProcessContainer")
-      .def( init<>() )
+  py::class_<MesherProcessContainer>(m,"MesherProcessContainer")
+      .def( py::init<>() )
       .def( "PushBack", Push_Back_Process )
       ;
 
-  class_<MesherProcess, MesherProcess::Pointer, Process>(m,"MesherProcess")
-      .def(init<>())
+  py::class_<MesherProcess, MesherProcess::Pointer, Process>(m,"MesherProcess")
+      .def(py::init<>())
       ;
 
   //***************NEIGHBOURS**************//
 
-  class_<NodalNeighboursSearchProcess, NodalNeighboursSearchProcess::Pointer, MesherProcess>
+  py::class_<NodalNeighboursSearchProcess, NodalNeighboursSearchProcess::Pointer, MesherProcess>
       (m,"NodalNeighboursSearch")
-      .def(init<ModelPart&, int, int, int>())
+      .def(py::init<ModelPart&, int, int, int>())
       .def("CleanNeighbours", &NodalNeighboursSearchProcess::ClearNeighbours)
       ;
 
-  class_<ElementalNeighboursSearchProcess, ElementalNeighboursSearchProcess::Pointer, MesherProcess>
+  py::class_<ElementalNeighboursSearchProcess, ElementalNeighboursSearchProcess::Pointer, MesherProcess>
       (m,"ElementalNeighboursSearch")
-      .def(init<ModelPart&, int, int, int>())
+      .def(py::init<ModelPart&, int, int, int>())
       .def("CleanNeighbours", &ElementalNeighboursSearchProcess::ClearNeighbours)
       ;
 
 
   //***************BOUNDARY**************//
 
-  class_<BuildModelPartBoundaryProcess, BuildModelPartBoundaryProcess::Pointer, MesherProcess>
+  py::class_<BuildModelPartBoundaryProcess, BuildModelPartBoundaryProcess::Pointer, MesherProcess>
       (m,"BuildModelPartBoundary")
-      .def(init<ModelPart&, std::string, int>())
+      .def(py::init<ModelPart&, std::string, int>())
       .def("SearchConditionMasters", &BuildModelPartBoundaryProcess::SearchConditionMasters)
       ;
 
 
   //**********MODEL STRUCTURE*********//
 
-  class_<SettleModelStructureProcess, SettleModelStructureProcess::Pointer, Process>
+  py::class_<SettleModelStructureProcess, SettleModelStructureProcess::Pointer, Process>
       (m,"ModelStructure")
-      .def(init<ModelPart&, Flags, int>())
+      .def(py::init<ModelPart&, Flags, int>())
       .def("ExecuteInitialize", &SettleModelStructureProcess::ExecuteInitialize)
       .def("ExecuteFinalize", &SettleModelStructureProcess::ExecuteFinalize)
       ;
+
+    //**********TRANSFER BETWEEN MODEL PARTS*********//
+    py::class_<TransferBetweenModelPartsProcess, TransferBetweenModelPartsProcess::Pointer, Process>(m, "TransferEntitiesProcess")
+        .def(py::init<ModelPart &, ModelPart &, const std::string>())
+        .def(py::init<ModelPart &, ModelPart &, const std::string, const FlagsContainer &>())
+        .def(py::init<ModelPart &, ModelPart &, const std::string, const FlagsContainer &, const FlagsContainer &>())
+        .def("Execute", &TransferBetweenModelPartsProcess::Execute);
 
 
   //**********MESHER PROCESSES*********//
 
 
-  class_<RefineElementsOnThresholdMesherProcess, RefineElementsOnThresholdMesherProcess::Pointer, MesherProcess>
+  py::class_<RefineElementsOnThresholdMesherProcess, RefineElementsOnThresholdMesherProcess::Pointer, MesherProcess>
       (m,"RefineElementsOnThreshold")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
+      .def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
       ;
 
-  class_<RefineElementsOnSizeMesherProcess, RefineElementsOnSizeMesherProcess::Pointer, MesherProcess>
+  py::class_<RefineElementsOnSizeMesherProcess, RefineElementsOnSizeMesherProcess::Pointer, MesherProcess>
       (m,"RefineElementsOnSize")
-      .def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
+      .def(py::init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
       ;
 
-  class_<RefineElementsInEdgesMesherProcess, RefineElementsInEdgesMesherProcess::Pointer, MesherProcess>
+  py::class_<RefineElementsInEdgesMesherProcess, RefineElementsInEdgesMesherProcess::Pointer, MesherProcess>
       (m,"RefineElementsInEdges")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
+      .def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
       ;
 
-  class_<RefineConditionsMesherProcess, RefineConditionsMesherProcess::Pointer, MesherProcess>
+  py::class_<RefineConditionsMesherProcess, RefineConditionsMesherProcess::Pointer, MesherProcess>
       (m,"RefineConditions")
-      .def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
+      .def(py::init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
       ;
 
-  class_<RemoveNodesMesherProcess, RemoveNodesMesherProcess::Pointer, MesherProcess>
+  py::class_<RemoveNodesMesherProcess, RemoveNodesMesherProcess::Pointer, MesherProcess>
       (m,"RemoveNodes")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
+      .def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
       ;
 
-  class_<GenerateNewNodesMesherProcess, GenerateNewNodesMesherProcess::Pointer, MesherProcess>
+  py::class_<GenerateNewNodesMesherProcess, GenerateNewNodesMesherProcess::Pointer, MesherProcess>
       (m,"GenerateNewNodes")
-      .def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
+      .def(py::init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
       ;
 
-  class_<SelectElementsMesherProcess, SelectElementsMesherProcess::Pointer, MesherProcess>
+  py::class_<SelectElementsMesherProcess, SelectElementsMesherProcess::Pointer, MesherProcess>
       (m,"SelectElements")
-      .def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
+      .def(py::init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
       ;
 
-  class_<GenerateNewElementsMesherProcess, GenerateNewElementsMesherProcess::Pointer, MesherProcess>
+  py::class_<GenerateNewElementsMesherProcess, GenerateNewElementsMesherProcess::Pointer, MesherProcess>
       (m,"GenerateNewElements")
-      .def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
+      .def(py::init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
       ;
 
-  class_<GenerateNewConditionsMesherProcess, GenerateNewConditionsMesherProcess::Pointer, BuildModelPartBoundaryProcess>
+  py::class_<GenerateNewConditionsMesherProcess, GenerateNewConditionsMesherProcess::Pointer, BuildModelPartBoundaryProcess>
       (m,"GenerateNewConditions")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
+      .def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
       ;
 
-  class_<PrintMeshOutputMesherProcess, PrintMeshOutputMesherProcess::Pointer, MesherProcess>
+  py::class_<PrintMeshOutputMesherProcess, PrintMeshOutputMesherProcess::Pointer, MesherProcess>
       (m,"PrintMeshOutput")
-      .def(init<ModelPart&,  MesherUtilities::MeshingParameters&, std::string, int>())
+      .def(py::init<ModelPart&,  MesherUtilities::MeshingParameters&, std::string, int>())
       ;
 
 
   //********MODEL VOLUME CALCULATION*********//
 
-  class_<ModelVolumeCalculationProcess, ModelVolumeCalculationProcess::Pointer, Process>
+  py::class_<ModelVolumeCalculationProcess, ModelVolumeCalculationProcess::Pointer, Process>
       (m,"ModelVolumeCalculation")
-      .def(init<ModelPart&, bool, int>())
+      .def(py::init<ModelPart&, bool, int>())
       .def("ExecuteInitializeSolutionStep", &ModelVolumeCalculationProcess::ExecuteInitializeSolutionStep)
       .def("ExecuteFinalizeSolutionStep", &ModelVolumeCalculationProcess::ExecuteFinalizeSolutionStep)
       ;
 
   //********CONSTANT ROTATION CALCULATION*********//
 
-  class_<ConstantRotationProcess, ConstantRotationProcess::Pointer, Process>
+  py::class_<ConstantRotationProcess, ConstantRotationProcess::Pointer, Process>
       (m,"ConstantRotationProcess")
-      .def(init<ModelPart&, const double, const double, const double, const double, const double, const double>())
-      .def(init< ModelPart&, Parameters& >())
+      .def(py::init<ModelPart&, const double, const double, const double, const double, const double, const double>())
+      .def(py::init< ModelPart&, Parameters& >())
       ;
 
 

@@ -73,7 +73,7 @@ SmallDisplacementElement&  SmallDisplacementElement::operator=(SmallDisplacement
 
 Element::Pointer SmallDisplacementElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared< SmallDisplacementElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+  return Kratos::make_intrusive< SmallDisplacementElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -104,7 +104,7 @@ Element::Pointer SmallDisplacementElement::Clone( IndexType NewId, NodesArrayTyp
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared< SmallDisplacementElement >(NewElement);
+    return Kratos::make_intrusive< SmallDisplacementElement >(NewElement);
 }
 
 
@@ -234,7 +234,7 @@ void SmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH, const M
         for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
 
-            array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
             rH ( 0 , 0 ) += Displacement[0]*rDN_DX ( i , 0 );
             rH ( 0 , 1 ) += Displacement[0]*rDN_DX ( i , 1 );
@@ -248,7 +248,7 @@ void SmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH, const M
         for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
 
-            array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
             rH ( 0 , 0 ) += Displacement[0]*rDN_DX ( i , 0 );
             rH ( 0 , 1 ) += Displacement[0]*rDN_DX ( i , 1 );
@@ -391,7 +391,7 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
 //************************************************************************************
 //************************************************************************************
 
-int SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -403,7 +403,7 @@ int SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
-	Node<3> &rNode = this->GetGeometry()[i];
+	const Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
 	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
 

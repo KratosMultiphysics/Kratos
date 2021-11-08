@@ -50,17 +50,17 @@ void ConnectivitiesData::WriteData(File& rFile, const std::string& rPath, WriteI
     int ws_dim, dim, num_nodes;
     if (KratosComponents<ElementType>::Has(mName))
     {
-        const auto& r_elem = KratosComponents<ElementType>::Get(mName);
-        ws_dim = r_elem.WorkingSpaceDimension();
-        dim = r_elem.GetGeometry().Dimension();
-        num_nodes = r_elem.GetGeometry().size();
+        const auto& r_geom = KratosComponents<ElementType>::Get(mName).GetGeometry();
+        ws_dim = r_geom.WorkingSpaceDimension();
+        dim = r_geom.Dimension();
+        num_nodes = r_geom.size();
     }
     else
     {
-        const auto& r_cond = KratosComponents<ConditionType>::Get(mName);
-        ws_dim = r_cond.WorkingSpaceDimension();
-        dim = r_cond.GetGeometry().Dimension();
-        num_nodes = r_cond.GetGeometry().size();
+        const auto& r_geom = KratosComponents<ConditionType>::Get(mName).GetGeometry();
+        ws_dim = r_geom.WorkingSpaceDimension();
+        dim = r_geom.Dimension();
+        num_nodes = r_geom.size();
     }
     rFile.WriteAttribute(rPath, "Name", mName);
     rFile.WriteAttribute(rPath, "WorkingSpaceDimension", ws_dim);

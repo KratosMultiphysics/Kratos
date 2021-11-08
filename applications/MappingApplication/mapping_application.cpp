@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -13,77 +13,82 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "containers/model.h"
 
 #include "mapping_application.h"
 #include "mapping_application_variables.h"
+#include "mappers/mapper_define.h"
+#include "custom_utilities/mapper_backend.h"
 
+#include "geometries/point_3d.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/prism_3d_6.h"
 #include "geometries/hexahedra_3d_8.h"
 
-#include "custom_utilities/mapper_factory.h"
+#include "factories/mapper_factory.h"
 
 #include "custom_mappers/nearest_neighbor_mapper.h"
 #include "custom_mappers/nearest_element_mapper.h"
+#include "custom_mappers/coupling_geometry_mapper.h"
 
-#ifdef KRATOS_USING_MPI
-#include "mpi.h"
-#endif
+// Macros for registering mappers
+// wil be removed once using the core factories
+#define KRATOS_REGISTER_MAPPER(MapperType, MapperName)                                                \
+    {                                                                                                 \
+    Model current_model;                                                                              \
+    ModelPart& dummy_model_part = current_model.CreateModelPart("dummy");                             \
+    MapperFactory<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::Register    \
+        (MapperName, Kratos::make_shared<MapperType<                                                  \
+        MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>                        \
+        (dummy_model_part, dummy_model_part));                                                        \
+    }
+
+#define KRATOS_REGISTER_MAPPER_WITH_BACKEND(MapperType, MapperName)                                   \
+    {                                                                                                 \
+    Model current_model;                                                                              \
+    ModelPart& dummy_model_part = current_model.CreateModelPart("dummy");                             \
+    MapperFactory<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::Register    \
+        (MapperName, Kratos::make_shared<MapperType<                                                  \
+        MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType,MapperBackend<           \
+                MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>>               \
+        (dummy_model_part, dummy_model_part));                                                        \
+    }
 
 namespace Kratos
 {
 
 KratosMappingApplication::KratosMappingApplication() :
     KratosApplication("MappingApplication"),
-    mInterfaceObject(0.0, 0.0, 0.0),
+    mInterfaceObject(array_1d<double, 3>(0.0)),
     mInterfaceNode(),
     mInterfaceGeometryObject()
 {}
 
 void KratosMappingApplication::Register()
 {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
+    KRATOS_INFO("") << "    KRATOS ______  ___                      _____\n"
+                    << "           ___   |/  /_____ ___________________(_)_____________ _\n"
+                    << "           __  /|_/ /_  __ `/__  __ \\__  __ \\_  /__  __ \\_  __ `/\n"
+                    << "           _  /  / / / /_/ /__  /_/ /_  /_/ /  / _  / / /  /_/ /\n"
+                    << "           /_/  /_/  \\__,_/ _  .___/_  .___//_/  /_/ /_/_\\__, /\n"
+                    << "                            /_/     /_/                 /____/\n"
+                    << "Initializing KratosMappingApplication..." << std::endl;
 
-    std::stringstream banner;
-    banner << "    KRATOS ______  ___                      _____  "                          << std::endl;
-    banner << "           ___   |/  /_____ ___________________(_)_____________ _  "          << std::endl;
-    banner << "           __  /|_/ /_  __ `/__  __ \\__  __ \\_  /__  __ \\_  __ `/  "       << std::endl;
-    banner << "           _  /  / / / /_/ /__  /_/ /_  /_/ /  / _  / / /  /_/ /  "           << std::endl;
-    banner << "           /_/  /_/  \\__,_/ _  .___/_  .___//_/  /_/ /_/_\\__, /  "          << std::endl;
-    banner << "                            /_/     /_/                 /____/ Application"   << std::endl;
+    KRATOS_REGISTER_MAPPER_WITH_BACKEND(NearestNeighborMapper, "nearest_neighbor");
+    KRATOS_REGISTER_MAPPER_WITH_BACKEND(NearestElementMapper,  "nearest_element");
+    KRATOS_REGISTER_MAPPER(CouplingGeometryMapper,  "coupling_geometry");
 
-    banner << "Initializing KratosMappingApplication... " << std::endl;
+    KRATOS_REGISTER_MODELER("MappingGeometriesModeler", mMappingGeometriesModeler);
 
-    int rank = 0;
-
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    int mpi_initialized = 0;
-    MPI_Initialized(&mpi_initialized);
-    if (mpi_initialized)   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
-
-    if (rank == 0) std::cout << banner.str();
-
-    Model dummy_model;
-
-    ModelPart& dummy_model_part = dummy_model.CreateModelPart("dummy");
-
-    MapperFactory::Register("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper>(dummy_model_part, dummy_model_part));
-    MapperFactory::Register("nearest_element",  Kratos::make_shared<NearestElementMapper>(dummy_model_part, dummy_model_part));
-
-    // Needed to exchange Information abt the found neighbors (i.e. only for debugging)
-    KRATOS_REGISTER_VARIABLE( NEIGHBOR_RANK )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NEIGHBOR_COORDINATES )
-
+    KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )
+    KRATOS_REGISTER_VARIABLE( PAIRING_STATUS )
+    KRATOS_REGISTER_VARIABLE( CURRENT_COORDINATES )
+    KRATOS_REGISTER_VARIABLE( IS_PROJECTED_LOCAL_SYSTEM)
+    KRATOS_REGISTER_VARIABLE( IS_DUAL_MORTAR)
 }
 }  // namespace Kratos.

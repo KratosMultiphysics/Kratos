@@ -1,10 +1,11 @@
-// KRATOS  ___|  |       |       |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//           | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License: BSD License
-//   license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:  Vicente Mataix Ferrandiz
 //
@@ -103,7 +104,7 @@ namespace Kratos
             for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
             {
                 Vector N;
-                const PointType& local_point = integration_points[point_number].Coordinates();
+                const PointType& local_point = PointType{integration_points[point_number].Coordinates()};
                 triangle0.ShapeFunctionsValues( N, local_point );
                 const double det_j = triangle0.DeterminantOfJacobian( local_point );
                 const double weight = integration_points[point_number].Weight();
@@ -119,7 +120,7 @@ namespace Kratos
             {
                 Vector N1, N2, N3;
                 
-                const PointType& local_point_0 = integration_points[point_number].Coordinates();
+                const PointType& local_point_0 = PointType{integration_points[point_number].Coordinates()};
                 
                 PointType gp_global;
                 
@@ -213,7 +214,7 @@ namespace Kratos
             for (IndexType point_number = 0; point_number < integration_pointsQuadrilateral.size(); ++point_number)
             {
                 Vector N;
-                const PointType& local_point = integration_pointsQuadrilateral[point_number].Coordinates();
+                const PointType& local_point = PointType{integration_pointsQuadrilateral[point_number].Coordinates()};
                 quadrilateral_0.ShapeFunctionsValues( N, local_point );
                 const double det_j = quadrilateral_0.DeterminantOfJacobian( local_point );
                 const double weight = integration_pointsQuadrilateral[point_number].Weight();
@@ -229,7 +230,7 @@ namespace Kratos
             {
                 Vector N1, N2;
                 
-                const PointType& local_point_0 = integration_pointsTriangle[point_number].Coordinates();
+                const PointType& local_point_0 = PointType{integration_pointsTriangle[point_number].Coordinates()};
                 
                 PointType gp_global;
                 
@@ -338,7 +339,7 @@ namespace Kratos
             for (IndexType point_number = 0; point_number < integration_pointsQuadrilateral.size(); ++point_number)
             {
                 Vector N;
-                const PointType& local_point = integration_pointsQuadrilateral[point_number].Coordinates();
+                const PointType& local_point = PointType{integration_pointsQuadrilateral[point_number].Coordinates()};
                 quadrilateral_0.ShapeFunctionsValues( N, local_point );
                 const double det_j = quadrilateral_0.DeterminantOfJacobian( local_point );
                 const double weight = integration_pointsQuadrilateral[point_number].Weight();
@@ -354,7 +355,7 @@ namespace Kratos
             {
                 Vector N1, N2, N3, N4;
                 
-                const PointType& local_point_0 = integration_pointsTriangle[point_number].Coordinates();
+                const PointType& local_point_0 = PointType{integration_pointsTriangle[point_number].Coordinates()};
                 
                 PointType gp_global;
                 
@@ -422,7 +423,7 @@ namespace Kratos
             for (IndexType point_number = 0; point_number < integration_pointsQuadrilateral.size(); ++point_number)
             {
                 Vector N;
-                const PointType& local_point = integration_pointsQuadrilateral[point_number].Coordinates();
+                const PointType& local_point = PointType{integration_pointsQuadrilateral[point_number].Coordinates()};
                 quadrilateral_0.ShapeFunctionsValues( N, local_point );
                 const double det_j = quadrilateral_0.DeterminantOfJacobian( local_point );
                 const double weight = integration_pointsQuadrilateral[point_number].Weight();
@@ -438,7 +439,7 @@ namespace Kratos
             {
                 Vector N1, N2, N3, N4;
                 
-                const PointType& local_point_0 = integration_pointsTriangle[point_number].Coordinates();
+                const PointType& local_point_0 = PointType{integration_pointsTriangle[point_number].Coordinates()};
                 
                 PointType gp_global;
                 

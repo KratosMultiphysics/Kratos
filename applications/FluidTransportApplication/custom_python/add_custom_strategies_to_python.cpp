@@ -23,7 +23,7 @@
 #include "custom_strategies/schemes/explicit_forward_euler_scheme.hpp"
 
 //strategies
-//#include "solving_strategies/strategies/solving_strategy.h"
+//#include "solving_strategies/strategies/implicit_solving_strategy.h"
 
 //builders and solvers
 
@@ -37,7 +37,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
@@ -46,7 +46,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
     //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    //typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    //typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     //typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
     //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
 
@@ -55,13 +55,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    class_< GeneralizedNewmarkGN11SchemeType, typename GeneralizedNewmarkGN11SchemeType::Pointer, BaseSchemeType >
+    py::class_< GeneralizedNewmarkGN11SchemeType, typename GeneralizedNewmarkGN11SchemeType::Pointer, BaseSchemeType >
     (m, "GeneralizedNewmarkGN11Scheme")
-    .def(init< double >());
+    .def(py::init< double >());
 
-    class_< ExplicitForwardEulerSchemeType, typename ExplicitForwardEulerSchemeType::Pointer, BaseSchemeType >
+    py::class_< ExplicitForwardEulerSchemeType, typename ExplicitForwardEulerSchemeType::Pointer, BaseSchemeType >
     (m, "ExplicitForwardEulerScheme")
-    .def(init< double >());
+    .def(py::init< double >());
 
 }
 

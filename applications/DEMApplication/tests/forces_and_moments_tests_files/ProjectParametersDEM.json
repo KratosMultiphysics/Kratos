@@ -1,0 +1,128 @@
+{
+    "Dimension"                      : 3,
+    "PeriodicDomainOption"           : false,
+    "BoundingBoxOption"              : false,
+    "AutomaticBoundingBoxOption"     : false,
+    "BoundingBoxEnlargementFactor"   : 1.1,
+    "BoundingBoxStartTime"           : 0.0,
+    "BoundingBoxStopTime"            : 1000.0,
+    "BoundingBoxMaxX"                : 10,
+    "BoundingBoxMaxY"                : 10,
+    "BoundingBoxMaxZ"                : 10,
+    "BoundingBoxMinX"                : -10,
+    "BoundingBoxMinY"                : -10,
+    "BoundingBoxMinZ"                : -10,
+    "dem_inlet_option"               : false,
+    "GravityX"                       : 0.0,
+    "GravityY"                       : -9.81,
+    "GravityZ"                       : 0.0,
+    "RotationOption"                 : true,
+    "CleanIndentationsOption"        : false,
+    "solver_settings"                : {
+        "RemoveBallsInitiallyTouchingWalls" : false,
+        "strategy"                          : "sphere_strategy",
+        "material_import_settings"           : {
+            "materials_filename" : "MaterialsDEM.json"
+        }
+    },
+    "processes"        : {
+        "constraints_process_list" : [],
+        "loads_process_list"       : [{
+            "python_module" : "processes.apply_forces_and_moments_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.Ball1",
+		"force_settings" : {
+                    "value"                : [100.0, "30.0*t", "2000.0*(x+y)"],
+                    "table"                : [null, null, null]
+                },
+                "moment_settings" : {
+                    "value"                : [-50.0, "15.0*(x+z)", "600.0*t"],
+                    "table"                : [null, null, null]
+                },
+                "interval"             : [0.0, 0.2]
+            }
+        },{
+            "python_module" : "processes.apply_forces_and_moments_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.Ball2",
+		"force_settings" : {
+                    "value"                : [null, null, null],
+                    "table"                : [1, 2, 3]
+                },
+                "moment_settings" : {
+                    "value"                : [null, null, null],
+                    "table"                : [4, 5, 6]
+                },
+                "interval"             : [0.0, 1.0e30]
+            }
+        },{
+            "python_module" : "processes.apply_forces_and_moments_to_walls_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.Cube1",
+		"force_settings" : {
+                    "value"                : ["-90.0*t", 300.0, "250.0*(x+y)"],
+                    "table"                : [null, null, null]
+                },
+                "moment_settings" : {
+                    "value"                : ["(y**2+z)", "-700.0*t", 800.0],
+                    "table"                : [null, null, null]
+                },
+                "interval"             : [0.2, 0.4]
+            }
+        },{
+            "python_module" : "processes.apply_forces_and_moments_to_walls_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.Cube2",
+		"force_settings" : {
+                    "value"                : [null, null, null],
+                    "table"                : [7, 8, 9]
+                },
+                "moment_settings" : {
+                    "value"                : [null, null, null],
+                    "table"                : [10, 11, 12]
+                },
+                "interval"                 : [0.0, 1.0e30]
+            }
+        }],
+        "list_other_processes"     : []
+    },
+    "VirtualMassCoefficient"         : 1.0,
+    "RollingFrictionOption"          : false,
+    "GlobalDamping"                  : 0.0,
+    "ContactMeshOption"              : false,
+    "OutputFileType"                 : "Binary",
+    "Multifile"                      : "multiple_files",
+    "ElementType"                    : "SphericPartDEMElement3D",
+    "TranslationalIntegrationScheme" : "Symplectic_Euler",
+    "RotationalIntegrationScheme"    : "Direct_Integration",
+    "MaxTimeStep"                    : 0.0002,
+    "FinalTime"                      : 0.4,
+    "NeighbourSearchFrequency"       : 50,
+    "GraphExportFreq"                : 0.001,
+    "VelTrapGraphExportFreq"         : 0.001,
+    "OutputTimeStep"                 : 0.01,
+    "PostBoundingBox"                : false,
+    "PostLocalContactForce"          : false,
+    "PostDisplacement"               : false,
+    "PostRadius"                     : false,
+    "PostVelocity"                   : true,
+    "PostAngularVelocity"            : true,
+    "PostElasticForces"              : false,
+    "PostContactForces"              : false,
+    "PostRigidElementForces"         : false,
+    "PostStressStrainOption"         : false,
+    "PostTangentialElasticForces"    : false,
+    "PostTotalForces"                : false,
+    "PostAppliedForces"              : true,
+    "PostPressure"                   : false,
+    "PostShearStress"                : false,
+    "PostNonDimensionalVolumeWear"   : false,
+    "PostParticleMoment"             : false,
+    "PostEulerAngles"                : false,
+    "PostRollingResistanceMoment"    : false,
+    "problem_name"                   : "forces_and_moments_process"
+}

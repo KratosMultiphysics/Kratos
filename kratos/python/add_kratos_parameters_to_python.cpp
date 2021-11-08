@@ -5,8 +5,7 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 Kratos default license:
-//kratos/license.txt
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -18,13 +17,11 @@
 // Project includes
 #include "includes/define_python.h"
 #include "includes/kratos_parameters.h"
-
 #include "add_kratos_parameters_to_python.h"
 
 namespace Kratos {
 
 namespace Python {
-
 
 pybind11::list items(Parameters const& self)
 {
@@ -55,29 +52,44 @@ void Append(Parameters &rParameters, const T& obj) {
     rParameters.Append(obj);
 }
 
+Parameters GetValue(Parameters &rParameters, const std::string& rEntry) {
+    return rParameters.GetValue(rEntry);
+}
+
+Parameters GetArrayItem(Parameters &rParameters, const std::size_t Index) {
+    return rParameters.GetArrayItem(Index);
+}
 
 void  AddKratosParametersToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
-
-
-    class_<Parameters, Parameters::Pointer >(m,"Parameters")
-    .def(init<>())
-    .def(init<const std::string&>())
-    .def(init<Parameters const&>())
+    py::class_<Parameters, Parameters::Pointer >(m,"Parameters")
+    .def(py::init<>())
+    .def(py::init<const std::string&>())
+    .def(py::init<std::ifstream&>())
+    .def(py::init<Parameters const&>())
+    .def("__copy__", [](const Parameters& self) {auto a = Kratos::make_shared<Parameters>(self); return a;})
+    .def("__copy__", [](const Parameters& self, py::object memo) {auto a = Kratos::make_shared<Parameters>(self); return a;}) // used for the copy module
+    .def("__deepcopy__", [](const Parameters& self) {auto a = Kratos::make_shared<Parameters>(); Parameters& r_a = *a;r_a = self; return a;})
+    .def("__deepcopy__", [](const Parameters& self, py::object memo) {auto a = Kratos::make_shared<Parameters>(); Parameters& r_a = *a;r_a = self; return a;}) // used for the copy module
     .def("WriteJsonString", &Parameters::WriteJsonString)
     .def("PrettyPrintJsonString", &Parameters::PrettyPrintJsonString)
     .def("Has", &Parameters::Has)
     .def("Clone", &Parameters::Clone)
     .def("AddValue", &Parameters::AddValue)
     .def("AddEmptyValue", &Parameters::AddEmptyValue)
+    .def("AddEmptyArray", &Parameters::AddEmptyArray)
     .def("RemoveValue", &Parameters::RemoveValue)
-    .def("ValidateAndAssignDefaults",&Parameters::ValidateAndAssignDefaults)
-    .def("RecursivelyValidateAndAssignDefaults",&Parameters::RecursivelyValidateAndAssignDefaults)
+    .def("ValidateAndAssignDefaults", &Parameters::ValidateAndAssignDefaults)
+    .def("RecursivelyValidateAndAssignDefaults", &Parameters::RecursivelyValidateAndAssignDefaults)
+    .def("AddMissingParameters", &Parameters::AddMissingParameters)
+    .def("RecursivelyAddMissingParameters", &Parameters::RecursivelyAddMissingParameters)
+    .def("ValidateDefaults", &Parameters::ValidateDefaults)
+    .def("RecursivelyValidateDefaults", &Parameters::RecursivelyValidateDefaults)
     .def("IsEquivalentTo",&Parameters::IsEquivalentTo)
-    .def("HasSameKeysAndTypeOfValuesAs",&Parameters::HasSameKeysAndTypeOfValuesAs)    
-    //.def("GetValue", &Parameters::GetValue) //Do not export this method. users shall adopt the operator [] syntax
+    .def("HasSameKeysAndTypeOfValuesAs",&Parameters::HasSameKeysAndTypeOfValuesAs)
+    //.def("GetValue", GetValue) //Do not export this method. users shall adopt the operator [] syntax
     .def("IsNull", &Parameters::IsNull)
     .def("IsNumber", &Parameters::IsNumber)
     .def("IsDouble", &Parameters::IsDouble)
@@ -92,6 +104,7 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("GetInt", &Parameters::GetInt)
     .def("GetBool", &Parameters::GetBool)
     .def("GetString", &Parameters::GetString)
+    .def("GetStringArray", &Parameters::GetStringArray)
     .def("GetVector", &Parameters::GetVector)
     .def("GetMatrix", &Parameters::GetMatrix)
     .def("SetDouble", &Parameters::SetDouble)
@@ -100,17 +113,24 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("SetString", &Parameters::SetString)
     .def("SetVector", &Parameters::SetVector)
     .def("SetMatrix", &Parameters::SetMatrix)
+    .def("AddDouble", &Parameters::AddDouble)
+    .def("AddInt", &Parameters::AddInt)
+    .def("AddBool", &Parameters::AddBool)
+    .def("AddString", &Parameters::AddString)
+    .def("AddVector", &Parameters::AddVector)
+    .def("AddMatrix", &Parameters::AddMatrix)
+    .def("SetStringArray", &Parameters::SetStringArray)
     .def("size", &Parameters::size)
-    //.def("GetArrayItem", &Parameters::GetArrayItem) //Do not export this method. users shall adopt the operator [] syntax
+    //.def("GetArrayItem", GetArrayItem) //Do not export this method. users shall adopt the operator [] syntax
     .def("__setitem__", &Parameters::SetValue)
-    .def("__getitem__", &Parameters::GetValue)
+    .def("__getitem__", GetValue)
     .def("__setitem__", &Parameters::SetArrayItem)
-    .def("__getitem__", &Parameters::GetArrayItem)
-    .def("__iter__", [](Parameters& self){ return make_iterator(self.begin(), self.end()); } , keep_alive<0,1>()) 
+    .def("__getitem__", GetArrayItem)
+    .def("__iter__", [](Parameters& self){ return py::make_iterator(self.begin(), self.end()); } , py::keep_alive<0,1>())
     .def("items", &items )
     .def("keys", &keys )
     .def("values", &values )
-    .def("__repr__",&Parameters::Info)
+    .def("__str__", PrintObject<Parameters>)
     .def("AddEmptyList", &Parameters::AddEmptyArray)
     .def("Append", Append<int>) // created due to ambiguous overload int/bool...
     .def("Append", Append<bool>) // created due to ambiguous overload int/bool...
@@ -120,9 +140,7 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("Append", Append<std::string>) // created due to ambiguous overload int/bool...
     .def("Append", Append<Parameters>) // created due to ambiguous overload int/bool...
     ;
-
 }
-
 
 } // namespace Python.
 

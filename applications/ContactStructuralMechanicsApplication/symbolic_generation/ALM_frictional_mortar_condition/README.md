@@ -12,4 +12,4 @@ Run:
 python generate_frictional_mortar_condition.py
 ~~~
 Then  file "_ALM_frictional_mortar_contact_condition.cpp_" is generated automatically. Such file should be copied within the "_custom_conditions_" folder of the
-**ContactStructuralMechanicsApplication**. The corresponding header file "_ALM_frictional_mortar_contact_condition.h_", which implements the element is already stored in the custom_elements folder.
+**ContactStructuralMechanicsApplication**. The corresponding header file "_ALM_frictional_mortar_contact_condition.h_", which implements the element is already stored in the _custom_conditions_ folder.

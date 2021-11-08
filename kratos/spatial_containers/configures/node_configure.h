@@ -27,7 +27,7 @@
 #include "includes/define.h"
 #include "geometries/point.h"
 #include "containers/pointer_vector_set.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "utilities/contact_pair.h"
 
 namespace Kratos {
@@ -152,8 +152,8 @@ public:
     {
         auto radiusExtension = PointType(Radius, Radius, Radius);
 
-        rLowPoint  = *rObject - radiusExtension;
-        rHighPoint = *rObject + radiusExtension;
+        rLowPoint  = PointType{*rObject - radiusExtension};
+        rHighPoint = PointType{*rObject + radiusExtension};
     }
 
     /** @brief Calculates the Center of the object.

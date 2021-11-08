@@ -3,11 +3,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 # Import the mechanical solver base class
-import solid_mechanics_monolithic_solver as BaseSolver
+import KratosMultiphysics.SolidMechanicsApplication.solid_mechanics_monolithic_solver as BaseSolver
 
 def CreateSolver(custom_settings, Model):
     return ImplicitMonolithicSolver(Model, custom_settings)
@@ -42,7 +39,7 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
 
         # Validate and transfer settings
         if( custom_settings.Has("solving_strategy_settings") ):
-            from json_settings_utility import JsonSettingsUtility
+            from KratosMultiphysics.SolidMechanicsApplication.json_settings_utility import JsonSettingsUtility
             JsonSettingsUtility.TransferMatchingSettingsToDestination(custom_settings["solving_strategy_settings"], implicit_solver_settings["solving_strategy_settings"])
 
         self.implicit_solver_settings = implicit_solver_settings["solving_strategy_settings"]
@@ -71,7 +68,9 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
             self.process_info[KratosSolid.RAYLEIGH_BETA]  = 0.0
 
         # compute dynamic tangent lhs and rhs
-        self.process_info[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT] = False
+        if not self.process_info.Has(KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT):
+            self.process_info[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT] = False
+
         if( integration_method.find("Step") != -1 ):
             self.process_info[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT] = True
 

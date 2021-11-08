@@ -62,7 +62,7 @@ namespace Kratos
 
   Element::Pointer BeamElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<BeamElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<BeamElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
   //*******************************DESTRUCTOR*******************************************
@@ -95,7 +95,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
+  void BeamElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
   {
     const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
@@ -123,7 +123,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+  void BeamElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
   {
 
     const SizeType number_of_nodes  = GetGeometry().size();
@@ -164,7 +164,7 @@ namespace Kratos
   //*********************************DISPLACEMENT***************************************
   //************************************************************************************
 
-  void BeamElement::GetValuesVector(Vector& rValues, int Step)
+  void BeamElement::GetValuesVector(Vector& rValues, int Step) const
   {
     KRATOS_TRY
 
@@ -205,7 +205,7 @@ namespace Kratos
   //************************************VELOCITY****************************************
   //************************************************************************************
 
-  void BeamElement::GetFirstDerivativesVector(Vector& rValues, int Step)
+  void BeamElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
   {
     KRATOS_TRY
 
@@ -246,7 +246,7 @@ namespace Kratos
   //*********************************ACCELERATION***************************************
   //************************************************************************************
 
-  void BeamElement::GetSecondDerivativesVector(Vector& rValues, int Step)
+  void BeamElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
   {
     KRATOS_TRY
 
@@ -286,30 +286,11 @@ namespace Kratos
   }
 
 
-  //*********************************GET DOUBLE VALUE***********************************
-  //************************************************************************************
-
-  void  BeamElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-						  std::vector<double>& rValues,
-						  const ProcessInfo& rCurrentProcessInfo )
-  {
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-  }
-
-  //**********************************GET VECTOR VALUE**********************************
-  //************************************************************************************
-
-  void BeamElement::GetValueOnIntegrationPoints( const Variable<array_1d<double, 3 > >& rVariable,
-						 std::vector< array_1d<double, 3 > >& rValues,
-						 const ProcessInfo& rCurrentProcessInfo )
-  {
-    this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-  }
 
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::Initialize()
+  void BeamElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -329,7 +310,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+  void BeamElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -342,7 +323,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+  void BeamElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -352,7 +333,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+  void BeamElement::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -363,7 +344,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+  void BeamElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -376,7 +357,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  unsigned int BeamElement::GetDofsSize()
+  unsigned int BeamElement::GetDofsSize() const
   {
     KRATOS_TRY
 
@@ -607,7 +588,7 @@ namespace Kratos
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
     //Calculate Delta Position
-    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+    ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
@@ -628,70 +609,12 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
-  //*************************COMPUTE DELTA POSITION*************************************
-  //************************************************************************************
-
-
-  Matrix& BeamElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
-  {
-    KRATOS_TRY
-
-    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
-
-    rDeltaPosition.resize(number_of_nodes,dimension,false);
-    noalias(rDeltaPosition) = ZeroMatrix(number_of_nodes,dimension);
-
-    for ( SizeType i = 0; i < number_of_nodes; i++ )
-      {
-       array_1d<double, 3 > & CurrentStepDisplacement = GetGeometry()[i].FastGetSolutionStepValue(STEP_DISPLACEMENT,0);
-
-       for ( SizeType j = 0; j < dimension; j++ )
-	  {
-	    rDeltaPosition(i,j) = CurrentStepDisplacement[j];
-	  }
-
-      }
-
-    return rDeltaPosition;
-
-    KRATOS_CATCH( "" )
-  }
-
-  //*************************COMPUTE TOTAL DELTA POSITION*******************************
-  //************************************************************************************
-
-  Matrix& BeamElement::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
-  {
-    KRATOS_TRY
-
-    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
-
-    rDeltaPosition.resize(number_of_nodes,dimension,false);
-    noalias(rDeltaPosition) = ZeroMatrix(number_of_nodes,dimension);
-
-    for ( SizeType i = 0; i < number_of_nodes; i++ )
-      {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-
-        for ( SizeType j = 0; j < dimension; j++ )
-	  {
-            rDeltaPosition(i,j) = CurrentDisplacement[j];
-	  }
-
-      }
-
-    return rDeltaPosition;
-
-    KRATOS_CATCH( "" )
-  }
   //************************************************************************************
   //************************************************************************************
 
 
   void BeamElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
-					      ProcessInfo& rCurrentProcessInfo )
+					      const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -751,7 +674,7 @@ namespace Kratos
   //************************************************************************************
 
   void BeamElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
-					    ProcessInfo& rCurrentProcessInfo )
+					    const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -1021,7 +944,7 @@ namespace Kratos
   //************************************************************************************
 
   void  BeamElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
-					    ProcessInfo& rCurrentProcessInfo)
+					    const ProcessInfo& rCurrentProcessInfo)
   {
 
     KRATOS_TRY
@@ -1052,7 +975,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+  void BeamElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -1082,7 +1005,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+  void BeamElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -1195,7 +1118,7 @@ namespace Kratos
 
   void BeamElement::AddExplicitContribution(const VectorType& rRHSVector,
 					    const Variable<VectorType>& rRHSVariable,
-					    Variable<array_1d<double,3> >& rDestinationVariable,
+					    const Variable<array_1d<double,3> >& rDestinationVariable,
 					    const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
@@ -1366,7 +1289,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+  void BeamElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -1419,7 +1342,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+  void BeamElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -1464,7 +1387,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+  void BeamElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -1512,7 +1435,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
+  void BeamElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
   {
 
     KRATOS_TRY
@@ -1525,7 +1448,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+  void BeamElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
   {
     KRATOS_TRY
 
@@ -1537,7 +1460,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+  void BeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -1634,7 +1557,7 @@ namespace Kratos
    * or that no common error is found.
    * @param rCurrentProcessInfo
    */
-  int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
+  int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 
@@ -1642,24 +1565,11 @@ namespace Kratos
     int ErrorCode = 0;
     ErrorCode = Element::Check(rCurrentProcessInfo);
 
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
-
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(CROSS_SECTION_AREA);
-    KRATOS_CHECK_VARIABLE_KEY(LOCAL_INERTIA_TENSOR);
-    //KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
-
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
     for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
-	Node<3> &rNode = this->GetGeometry()[i];
+	const Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION,rNode);
 	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
@@ -1717,5 +1627,3 @@ namespace Kratos
 
 
 } // Namespace Kratos
-
-

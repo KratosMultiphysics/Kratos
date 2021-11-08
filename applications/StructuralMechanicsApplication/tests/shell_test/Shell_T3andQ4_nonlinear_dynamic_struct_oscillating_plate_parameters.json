@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "Shell_T3andQ4_nonlinear_dynamic_struct_oscillating_plate",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1,
         "start_time"      : 0.0,
         "end_time"        : 25,
         "echo_level"      : 0
@@ -12,6 +9,11 @@
     "solver_settings"          : {
         "solver_type"                        : "Dynamic",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        },
         "analysis_type"                      : "non_linear",
         "time_integration_method"            : "implicit",
         "scheme_type"                        : "newmark",
@@ -30,7 +32,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-            "solver_type"         : "AMGCL",
+            "solver_type"         : "amgcl",
             "max_iteration"       : 200,
             "tolerance"           : 1e-7,
             "provide_coordinates" : false,
@@ -39,10 +41,9 @@
             "coarsening_type"     : "aggregation",
             "scaling"             : false
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Surface_T3_thin","Parts_Surface_T3_thick","Parts_Surface_Q4_thick","Parts_Surface_Q4_thin"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_edge","ROTATION_edge","SurfaceLoad3D_Surface_Q4_thick","SurfaceLoad3D_Surface_Q4_thin","SurfaceLoad3D_Surface_T3_thick","SurfaceLoad3D_Surface_T3_thin"],
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -50,7 +51,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_edge",
+            "model_part_name" : "Structure.DISPLACEMENT_edge",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0],
@@ -63,7 +64,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_edge",
+            "model_part_name" : "Structure.ROTATION_edge",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0],
@@ -79,7 +80,7 @@
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SurfaceLoad3D_Surface_Q4_thick",
+            "model_part_name" : "Structure.SurfaceLoad3D_Surface_Q4_thick",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 0.25,
             "direction"       : [0.0,0.0,-1],
@@ -93,7 +94,7 @@
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SurfaceLoad3D_Surface_Q4_thin",
+            "model_part_name" : "Structure.SurfaceLoad3D_Surface_Q4_thin",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 0.25,
             "direction"       : [0.0,0.0,-1],
@@ -107,7 +108,7 @@
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SurfaceLoad3D_Surface_T3_thick",
+            "model_part_name" : "Structure.SurfaceLoad3D_Surface_T3_thick",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 0.25,
             "direction"       : [0.0,0.0,-1],
@@ -121,13 +122,26 @@
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SurfaceLoad3D_Surface_T3_thin",
+            "model_part_name" : "Structure.SurfaceLoad3D_Surface_T3_thin",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 0.25,
             "direction"       : [0.0,0.0,-1],
             "interval"        : [0.0,"End"]
         }
     }],
+    "json_check_process": [
+    {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"  : ["DISPLACEMENT_Z"],
+            "input_file_name"  : "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_oscillating_plate_results.json",
+            "model_part_name"  : "Structure.GENERIC_ref_node",
+            "time_frequency"   : 2
+        }
+    }]},
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -148,29 +162,6 @@
         },
         "point_data_configuration"  : []
     },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
-	"json_check_process": [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"  : ["DISPLACEMENT_Z"],
-            "input_file_name"  : "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_oscillating_plate_results.json",
-            "model_part_name"  : "GENERIC_ref_node",
-            "time_frequency"   : 2
-        }
-    }],
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",
@@ -180,7 +171,7 @@
         "Parameters"            : {
             "output_variables" : ["DISPLACEMENT_Z"],
             "output_file_name" : "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_oscillating_plate_results.json",
-            "model_part_name"  : "GENERIC_ref_node",
+            "model_part_name"  : "Structure.GENERIC_ref_node",
             "time_frequency"   : 2
         }
     }]

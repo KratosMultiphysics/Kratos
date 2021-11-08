@@ -247,11 +247,6 @@ class EigensolverStrategy
     //check the builder and solver
     mpBuilderAndSolver->Check(this->GetModelPart());
 
-    //check internal variable build level
-    KRATOS_CHECK_VARIABLE_KEY(BUILD_LEVEL);
-    KRATOS_CHECK_VARIABLE_KEY(EIGENVALUE_VECTOR);
-    KRATOS_CHECK_VARIABLE_KEY(EIGENVECTOR_MATRIX);
-
     return 0;
 
     KRATOS_CATCH("")
@@ -432,18 +427,18 @@ class EigensolverStrategy
     //set up the system, operation performed just once unless it is required to reform the dof set at each iteration
 
     //setting up the list of the DOFs to be solved
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
     mpBuilderAndSolver->SetUpDofSet(mpScheme, this->GetModelPart());
-    double end_time = OpenMPUtils::GetCurrentTime();
-    if (this->mEchoLevel >= 2)
-      KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+    // double end_time = OpenMPUtils::GetCurrentTime();
+    // if (this->mEchoLevel >= 2)
+    //   KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
 
     //shaping correctly the system
-    begin_time = OpenMPUtils::GetCurrentTime();
+    // begin_time = OpenMPUtils::GetCurrentTime();
     mpBuilderAndSolver->SetUpSystem();
-    end_time = OpenMPUtils::GetCurrentTime();
-    if (this->mEchoLevel >= 2)
-      KRATOS_INFO("setup_system_time") << ": setup_system_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+    // end_time = OpenMPUtils::GetCurrentTime();
+    // if (this->mEchoLevel >= 2)
+    //   KRATOS_INFO("setup_system_time") << ": setup_system_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
 
     KRATOS_CATCH("")
   }
@@ -547,17 +542,17 @@ class EigensolverStrategy
 
       // the jth column index of EIGENVECTOR_MATRIX corresponds to the jth nodal dof. therefore,
       // the dof ordering must not change.
-      if(NodeDofs.IsSorted() == false)
-      {
-        NodeDofs.Sort();
-      }
+      // if(NodeDofs.IsSorted() == false)
+      // {
+      //   NodeDofs.Sort();
+      // }
 
       // fill the EIGENVECTOR_MATRIX
       for (std::size_t i = 0; i < NumEigenvalues; i++)
         for (std::size_t j = 0; j < NumNodeDofs; j++)
         {
           auto itDof = std::begin(NodeDofs) + j;
-          rNodeEigenvectors(i,j) = rEigenvectors(i,itDof->EquationId());
+          rNodeEigenvectors(i,j) = rEigenvectors(i,(*itDof)->EquationId());
         }
     }
 

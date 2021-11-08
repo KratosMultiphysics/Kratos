@@ -72,7 +72,7 @@ LargeDisplacementVElement&  LargeDisplacementVElement::operator=(LargeDisplaceme
 
 Element::Pointer LargeDisplacementVElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared< LargeDisplacementVElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+  return Kratos::make_intrusive< LargeDisplacementVElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -102,7 +102,7 @@ Element::Pointer LargeDisplacementVElement::Clone( IndexType NewId, NodesArrayTy
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared< LargeDisplacementVElement >(NewElement);
+    return Kratos::make_intrusive< LargeDisplacementVElement >(NewElement);
 }
 
 
@@ -120,7 +120,7 @@ LargeDisplacementVElement::~LargeDisplacementVElement()
 
 
 
-void LargeDisplacementVElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementVElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
     rElementalDofList.resize( 0 );
 
@@ -140,7 +140,7 @@ void LargeDisplacementVElement::GetDofList( DofsVectorType& rElementalDofList, P
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
@@ -191,7 +191,7 @@ void LargeDisplacementVElement::CalculateAndAddLHS(LocalSystemComponents& rLocal
 //************************************************************************************
 //************************************************************************************
 
-LargeDisplacementVElement::SizeType LargeDisplacementVElement::GetDofsSize()
+LargeDisplacementVElement::SizeType LargeDisplacementVElement::GetDofsSize() const
 {
   KRATOS_TRY
 
@@ -229,9 +229,9 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
 
       for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
-        array_1d<double, 3> & CurrentPosition      = GetGeometry()[i].Coordinates();
-        array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+        const array_1d<double, 3> & CurrentPosition      = GetGeometry()[i].Coordinates();
+        const array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        const array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
         array_1d<double, 3> PreviousPosition       = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
         KRATOS_WARNING("")<<" Node["<<GetGeometry()[i].Id()<<"]: (Position: (pre)"<<PreviousPosition<<",(cur)"<<CurrentPosition<<")"<<std::endl;
         //KRATOS_WARNING("")<<" (Displacement: (pre)"<<CurrentDisplacement<<",(cur)"<<PreviousDisplacement<<")"<<std::endl;
@@ -239,8 +239,8 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
       for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
         if( GetGeometry()[i].SolutionStepsDataHas(CONTACT_FORCE) ){
-          array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
-          array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
+          const array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
+          const array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
           KRATOS_WARNING("")<<" (Contact: (pre)"<<PreContactForce<<",(cur)"<<ContactForce<<")["<<GetGeometry()[i].Id()<<"]"<<std::endl;
         }
 
@@ -297,7 +297,7 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
 //************************************************************************************
 //************************************************************************************
 
-int  LargeDisplacementVElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  LargeDisplacementVElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -309,7 +309,7 @@ int  LargeDisplacementVElement::Check( const ProcessInfo& rCurrentProcessInfo )
     for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
-	Node<3> &rNode = this->GetGeometry()[i];
+	const Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
 	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
 

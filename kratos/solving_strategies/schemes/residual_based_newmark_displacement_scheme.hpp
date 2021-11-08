@@ -55,6 +55,8 @@ public:
 
     typedef Scheme<TSparseSpace,TDenseSpace>                                        BaseType;
 
+    typedef ResidualBasedNewmarkDisplacementScheme<TSparseSpace, TDenseSpace>      ClassType;
+
     typedef typename BaseType::TDataType                                           TDataType;
 
     typedef typename BaseType::DofsArrayType                                   DofsArrayType;
@@ -77,11 +79,25 @@ public:
 
     typedef ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>  DerivedBaseType;
 
-    typedef typename BaseType::LocalSystemComponents               LocalSystemComponentsType;
-
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Constructor. The Newmark method (parameters)
+     * @param ThisParameters Dummy parameters
+     */
+    explicit ResidualBasedNewmarkDisplacementScheme(Parameters ThisParameters)
+        :DerivedBaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
+
+    /**
+     * @brief Default constructor. The Newmark method
+     */
     explicit ResidualBasedNewmarkDisplacementScheme()
       :DerivedBaseType(0.0)
     {
@@ -99,13 +115,39 @@ public:
      */
     BaseTypePointer Clone() override
     {
-      return BaseTypePointer( new ResidualBasedNewmarkDisplacementScheme(*this) );
+        return BaseTypePointer( new ResidualBasedNewmarkDisplacementScheme(*this) );
     }
 
     /** Destructor.
      */
     ~ResidualBasedNewmarkDisplacementScheme
     () override {}
+
+        /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "newmark_scheme"
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = DerivedBaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "newmark_scheme";
+    }
 
     ///@}
     ///@name Operators
@@ -114,6 +156,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     ///@}
     ///@name Access
@@ -126,6 +177,24 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedNewmarkDisplacementScheme";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends

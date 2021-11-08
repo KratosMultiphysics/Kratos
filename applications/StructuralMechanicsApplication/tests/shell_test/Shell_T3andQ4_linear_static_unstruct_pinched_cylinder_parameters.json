@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "Shell_T3andQ4_linear_static_unstruct_pinched_cylinder",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -12,6 +9,11 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -27,10 +29,9 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_Surface_Q4_thick","Parts_Surface_T3_thick","Parts_Surface_Q4_thin","Parts_Surface_T3_thin"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_sym_XY","DISPLACEMENT_sym_XZ","DISPLACEMENT_sym_YZ","DISPLACEMENT_Dirichlet","ROTATION_sym_XY","ROTATION_sym_XZ","ROTATION_sym_YZ","PointLoad3D_Neumann"],
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -38,7 +39,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_sym_XY",
+            "model_part_name" : "Structure.DISPLACEMENT_sym_XY",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,false,true],
             "value"           : [0.0,0.0,0.0],
@@ -51,7 +52,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_sym_XZ",
+            "model_part_name" : "Structure.DISPLACEMENT_sym_XZ",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,true,false],
             "value"           : [0.0,0.0,0.0],
@@ -64,7 +65,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_sym_YZ",
+            "model_part_name" : "Structure.DISPLACEMENT_sym_YZ",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,false,false],
             "value"           : [0.0,0.0,0.0],
@@ -77,7 +78,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Dirichlet",
+            "model_part_name" : "Structure.DISPLACEMENT_Dirichlet",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,false,true],
             "value"           : [0.0,0.0,0.0],
@@ -90,7 +91,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_sym_XY",
+            "model_part_name" : "Structure.ROTATION_sym_XY",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,true,false],
             "value"           : [0.0,0.0,0.0],
@@ -103,7 +104,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_sym_XZ",
+            "model_part_name" : "Structure.ROTATION_sym_XZ",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,false,true],
             "value"           : [0.0,0.0,0.0],
@@ -116,7 +117,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_sym_YZ",
+            "model_part_name" : "Structure.ROTATION_sym_YZ",
             "variable_name"   : "ROTATION",
             "constrained"     : [false,true,true],
             "value"           : [0.0,0.0,0.0],
@@ -132,13 +133,27 @@
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "PointLoad3D_Neumann",
+            "model_part_name" : "Structure.PointLoad3D_Neumann",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : 0.25,
             "direction"       : [0.0,0.0,-1],
             "interval"        : [0.0,"End"]
         }
     }],
+	"json_check_process": [
+    {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"  : ["DISPLACEMENT_Z"],
+            "input_file_name"  : "shell_test/Shell_T3andQ4_linear_static_unstruct_pinched_cylinder_results.json",
+            "model_part_name"  : "Structure.GENERIC_ref_node",
+            "time_frequency"   : 0.01
+        }
+    }]
+    },
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -159,29 +174,6 @@
         },
         "point_data_configuration"  : []
     },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
-	"json_check_process": [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"  : ["DISPLACEMENT_Z"],
-            "input_file_name"  : "shell_test/Shell_T3andQ4_linear_static_unstruct_pinched_cylinder_results.json",
-            "model_part_name"  : "GENERIC_ref_node",
-            "time_frequency"   : 0.01
-        }
-    }],
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",
@@ -191,7 +183,7 @@
         "Parameters"            : {
             "output_variables" : ["DISPLACEMENT_Z"],
             "output_file_name" : "shell_test/Shell_T3andQ4_linear_static_unstruct_pinched_cylinder_results.json",
-            "model_part_name"  : "GENERIC_ref_node",
+            "model_part_name"  : "Structure.GENERIC_ref_node",
             "time_frequency"   : 0.01
         }
     }]

@@ -1,0 +1,63 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   0.0000000000   1.0000000000   1.0000000000
+    2   0.0000000000   1.0000000000   0.0000000000
+    3   0.0000000000   0.0000000000   1.0000000000
+    4   1.0000000000   1.0000000000   1.0000000000
+    5   0.0000000000   0.0000000000   0.0000000000
+    6   1.0000000000   1.0000000000   0.0000000000
+    7   1.0000000000   0.0000000000   1.0000000000
+    8   1.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements Element3D8N// GUI group identifier: Parts Auto2
+        1          0          4          1          2          6          7          3          5          8 
+End Elements
+
+Begin SubModelPart Parts_Parts_Auto2 // Group Parts Auto2 // Subtree Parts
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            3
+            5
+            7
+            8
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto2 // Group Displacement Auto2 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+            2
+            4
+            6
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

@@ -70,7 +70,7 @@ namespace Kratos
 
   Element::Pointer LargeDisplacementBeamElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<LargeDisplacementBeamElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<LargeDisplacementBeamElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
   //*******************************DESTRUCTOR*******************************************
@@ -101,11 +101,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamElement::Initialize()
+  void LargeDisplacementBeamElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
-    BeamElement::Initialize();
+    BeamElement::Initialize(rCurrentProcessInfo);
 
     //------------- REDUCED QUADRATURE INTEGRATION
 
@@ -202,7 +202,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+  void LargeDisplacementBeamElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -276,7 +276,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+  void LargeDisplacementBeamElement::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -287,7 +287,7 @@ namespace Kratos
   ////************************************************************************************
   ////************************************************************************************
 
-  void LargeDisplacementBeamElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+  void LargeDisplacementBeamElement::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -300,7 +300,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+  void LargeDisplacementBeamElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -485,7 +485,6 @@ namespace Kratos
 
     if( this->Is(BeamElement::FINALIZED_STEP) ){
 
-      rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
 
       for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
@@ -531,22 +530,10 @@ namespace Kratos
     }
     else{
 
-      // if( mIterationCounter == 0 ){
-
 	rVariables.PreviousCurvatureVector = mPreviousCurvatureVectors[rPointNumber];
       	rVariables.CurrentCurvatureVector = mPreviousCurvatureVectors[rPointNumber];
 
 	this->CalculateCurrentCurvature(rVariables, STEP_ROTATION);
-
-      // }
-      // else{
-
-      // 	rVariables.PreviousCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
-      // 	rVariables.CurrentCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
-
-      // 	this->CalculateCurrentCurvature(rVariables, DELTA_ROTATION);
-      // }
-
     }
 
     KRATOS_CATCH( "" )
@@ -642,7 +629,7 @@ namespace Kratos
 
 
   void LargeDisplacementBeamElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
-							     ProcessInfo& rCurrentProcessInfo )
+							     const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -1692,14 +1679,14 @@ namespace Kratos
   //************************************************************************************
 
   //Inertia in the SPATIAL configuration
-  void LargeDisplacementBeamElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
+  void LargeDisplacementBeamElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
   {
 
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
+    unsigned int MatSize            = number_of_nodes * ( dimension * 2 );
 
     if(rLeftHandSideMatrix.size1() != MatSize)
       rLeftHandSideMatrix.resize (MatSize, MatSize, false);
@@ -1748,8 +1735,6 @@ namespace Kratos
 
     Vector CurrentStepRotationVector(3);
     noalias(CurrentStepRotationVector) = ZeroVector(3);
-    Vector PreviousStepRotationVector(3);
-    noalias(PreviousStepRotationVector) = ZeroVector(3);
 
     Vector AngularVelocityVector(3);
     noalias(AngularVelocityVector) = ZeroVector(3);
@@ -1788,14 +1773,9 @@ namespace Kratos
 
 	ReferenceNodeQuaternions.push_back(QuaternionValue);
 
-
 	//Current Step Rotation Vector
 	CurrentValueVector = GetNodalCurrentValue( STEP_ROTATION, CurrentValueVector, i );
 	noalias(CurrentStepRotationVector) += rVariables.N[i] * CurrentValueVector;
-
-	//Previous Step Rotation Vector
-	PreviousValueVector = GetNodalPreviousValue( STEP_ROTATION, PreviousValueVector, i );
-	noalias(PreviousStepRotationVector) += rVariables.N[i] * PreviousValueVector;
 
 	//Angular Velocity Vector
 	CurrentValueVector = GetNodalCurrentValue( ANGULAR_VELOCITY, CurrentValueVector, i );
@@ -1813,7 +1793,6 @@ namespace Kratos
 
 
     //Set step variables to local frame (current Frame is the local frame)
-    PreviousStepRotationVector        = this->MapToInitialLocalFrame( PreviousStepRotationVector );
     CurrentStepRotationVector         = this->MapToInitialLocalFrame( CurrentStepRotationVector );
     AngularVelocityVector             = this->MapToInitialLocalFrame( AngularVelocityVector );
     CurrentAngularAccelerationVector  = this->MapToInitialLocalFrame( CurrentAngularAccelerationVector );
@@ -1888,7 +1867,7 @@ namespace Kratos
     Matrix LinearPartRotationTensor(3,3);
     noalias(LinearPartRotationTensor) = ZeroMatrix(3,3);
 
-    Vector StepRotationVector = PreviousStepRotationVector; //CurrentStepRotationVector;
+    Vector StepRotationVector = CurrentStepRotationVector;
 
     double NormStepRotation =  norm_2(StepRotationVector);
     if( NormStepRotation != 0 ){
@@ -1940,7 +1919,7 @@ namespace Kratos
   //************************************************************************************
 
   //Inertia in the SPATIAL configuration
-  void LargeDisplacementBeamElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+  void LargeDisplacementBeamElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
   {
     KRATOS_TRY
 
@@ -2360,7 +2339,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+  void LargeDisplacementBeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
   {
 
     KRATOS_TRY
@@ -2772,7 +2751,7 @@ namespace Kratos
    * or that no common error is found.
    * @param rCurrentProcessInfo
    */
-  int  LargeDisplacementBeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
+  int  LargeDisplacementBeamElement::Check(const ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 

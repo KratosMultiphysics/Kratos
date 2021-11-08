@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -83,14 +83,18 @@ struct value_type {
 /** \note Used in rows() */
 template <class Matrix, class Enable = void>
 struct rows_impl {
-    typedef typename Matrix::ROWS_NOT_IMPLEMENTED type;
+    static size_t get(const Matrix &A) {
+        return A.rows();
+    }
 };
 
 /// Implementation for function returning the number of columns in a matrix.
 /** \note Used in cols() */
 template <class Matrix, class Enable = void>
 struct cols_impl {
-    typedef typename Matrix::COLS_NOT_IMPLEMENTED type;
+    static size_t get(const Matrix &A) {
+        return A.cols();
+    }
 };
 
 /// Implementation for function returning number of bytes allocated for a matrix/vector.
@@ -134,7 +138,9 @@ struct val_data_impl {
 /** \note Used in nonzeros() */
 template <class Matrix, class Enable = void>
 struct nonzeros_impl {
-    typedef typename Matrix::NONZEROS_NOT_IMPLEMENTED type;
+    static size_t get(const Matrix &A) {
+        return A.nonzeros();
+    }
 };
 
 /// Implementation for function returning the number of nonzeros in a matrix row.
@@ -151,7 +157,7 @@ struct row_nonzeros_impl {
  */
 template <class Matrix, class Enable = void>
 struct row_iterator {
-    typedef typename Matrix::ROW_ITERATOR_NOT_IMPLEMENTED type;
+    typedef typename Matrix::row_iterator type;
 };
 
 /// Implementation for function returning row iterator for a matrix.
@@ -162,7 +168,10 @@ struct row_iterator {
  */
 template <class Matrix, class Enable = void>
 struct row_begin_impl {
-    typedef typename Matrix::ROW_BEGIN_NOT_IMPLEMENTED type;
+    static typename row_iterator<Matrix>::type
+    get(const Matrix &A, size_t row) {
+        return A.row_begin(row);
+    }
 };
 
 /// Implementation for matrix-vector product.
@@ -219,6 +228,12 @@ struct axpbypcz_impl {
 template <class Alpha, class Vector1, class Vector2, class Beta, class Vector3, class Enable = void>
 struct vmul_impl {
     typedef typename Vector1::VMUL_NOT_IMPLEMENTED type;
+};
+
+/// Reinterpret the vector as containing the given value type
+template <class T, class Vector, class Enable = void>
+struct reinterpret_impl {
+    typedef typename T::REINTERPRET_NOT_IMPLEMENTED type;
 };
 
 /** @} */
@@ -375,6 +390,13 @@ void vmul(Alpha alpha, const Vector1 &x, const Vector2 &y, Beta beta, Vector3 &z
     AMGCL_TIC("vmul");
     vmul_impl<Alpha, Vector1, Vector2, Beta, Vector3>::apply(alpha, x, y, beta, z);
     AMGCL_TOC("vmul");
+}
+
+/// Reinterpret the vector as containing the given value type
+template <class T, class Vector>
+typename reinterpret_impl<T, typename std::decay<Vector>::type>::return_type
+reinterpret(Vector &&x) {
+    return reinterpret_impl<T, typename std::decay<Vector>::type>::get(std::forward<Vector>(x));
 }
 
 /// Is the relaxation supported by the backend?

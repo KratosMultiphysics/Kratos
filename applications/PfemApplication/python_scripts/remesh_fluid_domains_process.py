@@ -3,7 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
-KratosMultiphysics.CheckForPreviousImport()
 
 import remesh_domains_process
 

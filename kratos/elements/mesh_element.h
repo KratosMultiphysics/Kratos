@@ -53,13 +53,13 @@ public:
 
     /// We define the base class Element
     typedef Element BaseType;
-    
+
     /// Dfinition of the index type
     typedef BaseType::IndexType IndexType;
 
     /// Definition of the size type
     typedef BaseType::SizeType SizeType;
-    
+
     /// Definition of the node type
     typedef BaseType::NodeType NodeType;
 
@@ -71,10 +71,10 @@ public:
 
     /// Definition of nodes container type, redefined from GeometryType
     typedef BaseType::NodesArrayType NodesArrayType;
-    
+
     /// Counted pointer of MeshElement
-    KRATOS_CLASS_POINTER_DEFINITION( MeshElement);
-    
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MeshElement);
+
     ///@}
 
 public:
@@ -94,7 +94,7 @@ public:
      * @param rThisNodes The array of nodes that will define the geometry that will define the element
      */
     MeshElement(
-        IndexType NewId, 
+        IndexType NewId,
         const NodesArrayType& rThisNodes
         );
 
@@ -104,7 +104,7 @@ public:
      * @param pGeometry The pointer to the geometry that will define the element
      */
     MeshElement(
-        IndexType NewId, 
+        IndexType NewId,
         GeometryType::Pointer pGeometry
         );
 
@@ -115,8 +115,8 @@ public:
      * @param pProperties The pointer to the properties that will define the behaviour of the element
      */
     MeshElement(
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry, 
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         );
 
@@ -136,7 +136,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-   
+
     /**
      * @brief Creates a new element pointer
      * @param NewId the ID of the new element
@@ -145,7 +145,7 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Create(
-        IndexType NewId, 
+        IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
         ) const override;
@@ -171,14 +171,162 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Clone (
-        IndexType NewId, 
+        IndexType NewId,
         NodesArrayType const& ThisNodes
         ) const override;
+
+    /**
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable. (This is the double version)
+     * @details The "AddExplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET-/UNSET-LOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<double >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable. (This is the vector version)
+     * @details The "AddExplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET-/UNSET-LOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(
+        const VectorType& rRHS,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<array_1d<double,3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable. (This is the matrix version)
+     * @details The "AddExplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET-/UNSET-LOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(
+        const MatrixType& rLHSMatrix,
+        const Variable<MatrixType>& rLHSVariable,
+        const Variable<Matrix>& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+     void CalculateOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector< array_1d<double, 3 > >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 6 > >& rVariable,
+        std::vector< array_1d<double, 6 > >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector >& rVariable,
+        std::vector< Vector >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix >& rVariable,
+        std::vector< Matrix >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element integration points
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::Pointer>& rVariable,
+        std::vector<ConstitutiveLaw::Pointer>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     ///@}
     ///@name Input and output
     ///@{
-    
+
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @details This can be used to enhance solvers and analysis
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
+        
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -199,7 +347,7 @@ public:
     {
         pGetGeometry()->PrintData(rOStream);
     }
-        
+
     ///@}
 
 private:
@@ -211,7 +359,7 @@ private:
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
-        
+
     ///@}
 
 }; // Class MeshElement

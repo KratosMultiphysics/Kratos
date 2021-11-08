@@ -32,19 +32,19 @@ namespace Kratos
  * @class Hexahedra3D8
  * @ingroup KratosCore
  * @brief An eight node hexahedra geometry with linear shape functions
- * @details The node ordering corresponds with: 
+ * @details The node ordering corresponds with:
  *             v
- *      3----------2            
- *      |\     ^   |\          
- *      | \    |   | \        
- *      |  \   |   |  \       
- *      |   7------+---6        
- *      |   |  +-- |-- | -> u   
- *      0---+---\--1   |        
- *       \  |    \  \  |        
- *        \ |     \  \ |         
- *         \|      w  \|         
- *          4----------5   
+ *      3----------2
+ *      |\     ^   |\
+ *      | \    |   | \
+ *      |  \   |   |  \
+ *      |   7------+---6
+ *      |   |  +-- |-- | -> u
+ *      0---+---\--1   |
+ *       \  |    \  \  |
+ *        \ |     \  \ |
+ *         \|      w  \|
+ *          4----------5
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -221,11 +221,29 @@ public:
         this->Points().push_back( pPoint8 );
     }
 
-    Hexahedra3D8( const PointsArrayType& ThisPoints )
+    explicit Hexahedra3D8( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 8 )
             KRATOS_ERROR << "Invalid points number. Expected 8, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Id
+    explicit Hexahedra3D8(
+        const IndexType GeometryId,
+        const PointsArrayType& rThisPoints
+        ) : BaseType( GeometryId, rThisPoints, &msGeometryData )
+    {
+        KRATOS_ERROR_IF( this->PointsNumber() != 8 ) << "Invalid points number. Expected 8, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Name
+    explicit Hexahedra3D8(
+        const std::string& rGeometryName,
+        const PointsArrayType& rThisPoints
+    ) : BaseType( rGeometryName, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 8) << "Invalid points number. Expected 8, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -254,7 +272,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Hexahedra3D8( Hexahedra3D8<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Hexahedra3D8( Hexahedra3D8<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -264,12 +282,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Hexahedra;
+        return GeometryData::KratosGeometryFamily::Kratos_Hexahedra;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Hexahedra3D8;
+        return GeometryData::KratosGeometryType::Kratos_Hexahedra3D8;
     }
 
     /**
@@ -317,36 +335,35 @@ public:
      * Operations
      */
 
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer( new Hexahedra3D8( ThisPoints ) );
+        return typename BaseType::Pointer( new Hexahedra3D8( NewGeometryId, rThisPoints ) );
     }
 
-    // Geometry< Point<3> >::Pointer Clone() const override
-    // {
-    //     Geometry< Point<3> >::PointsArrayType NewPoints;
-
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //         NewPoints.push_back(Kratos::make_shared< Point<3> >((*this)[i]));
-    //     }
-
-    //     //creating a geometry with the new points
-    //     Geometry< Point<3> >::Pointer p_clone( new Hexahedra3D8< Point<3> >( NewPoints ) );
-
-    //     return p_clone;
-    // }
-
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        const BaseType& rGeometry
+    ) const override
     {
-        if(rResult.size() != 8)
-            rResult.resize( 8, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 8.00 );
-        return rResult;
+        auto p_geometry = typename BaseType::Pointer( new Hexahedra3D8( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
     }
-
 
     /**
      * Information
@@ -479,10 +496,10 @@ public:
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) override
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -513,18 +530,13 @@ public:
         return 12;
     }
 
-    SizeType FacesNumber() const override
-    {
-        return 6;
-    }
-
     /** This method gives you all edges of this geometry.
 
     @return GeometriesArrayType containes this geometry edges.
     @see EdgesNumber()
     @see Edge()
      */
-    GeometriesArrayType Edges( void ) override
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -567,7 +579,31 @@ public:
         return edges;
     }
 
-    GeometriesArrayType Faces( void ) override
+    ///@}
+    ///@name Face
+    ///@{
+
+    /**
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
+     */
+    SizeType FacesNumber() const override
+    {
+        return 6;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -605,23 +641,23 @@ public:
     }
 
 
-    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) const override
     {
         using Quadrilateral3D4Type = Quadrilateral3D4<TPointType>;
         // Check if faces have intersection
-        if(Quadrilateral3D4Type(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(2), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
-            return true;
-        if(Quadrilateral3D4Type(this->pGetPoint(4),this->pGetPoint(5), this->pGetPoint(6), this->pGetPoint(7)).HasIntersection(rLowPoint, rHighPoint))
+        if(Quadrilateral3D4Type(this->pGetPoint(3),this->pGetPoint(2), this->pGetPoint(1), this->pGetPoint(0)).HasIntersection(rLowPoint, rHighPoint))
             return true;
         if(Quadrilateral3D4Type(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(5), this->pGetPoint(4)).HasIntersection(rLowPoint, rHighPoint))
             return true;
-        if(Quadrilateral3D4Type(this->pGetPoint(3),this->pGetPoint(2), this->pGetPoint(6), this->pGetPoint(7)).HasIntersection(rLowPoint, rHighPoint))
+        if(Quadrilateral3D4Type(this->pGetPoint(2),this->pGetPoint(6), this->pGetPoint(5), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
             return true;
-        if(Quadrilateral3D4Type(this->pGetPoint(0),this->pGetPoint(4), this->pGetPoint(7), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+        if(Quadrilateral3D4Type(this->pGetPoint(7),this->pGetPoint(6), this->pGetPoint(2), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
             return true;
-        if(Quadrilateral3D4Type(this->pGetPoint(1),this->pGetPoint(5), this->pGetPoint(6), this->pGetPoint(2)).HasIntersection(rLowPoint, rHighPoint))
+        if(Quadrilateral3D4Type(this->pGetPoint(7),this->pGetPoint(3), this->pGetPoint(0), this->pGetPoint(4)).HasIntersection(rLowPoint, rHighPoint))
             return true;
-        
+        if(Quadrilateral3D4Type(this->pGetPoint(4),this->pGetPoint(5), this->pGetPoint(6), this->pGetPoint(7)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+
         CoordinatesArrayType local_coordinates;
         // if there are no faces intersecting the box then or the box is inside the hexahedron or it does not have intersection
         if(IsInside(rLowPoint,local_coordinates))
@@ -694,7 +730,7 @@ public:
       rResult[4] =  0.125*( 1.0 - rCoordinates[0] )*( 1.0 - rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ;
       rResult[5] =  0.125*( 1.0 + rCoordinates[0] )*( 1.0 - rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ;
       rResult[6] =  0.125*( 1.0 + rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ;
-      rResult[7] =  0.125*( 1.0 - rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ;        
+      rResult[7] =  0.125*( 1.0 - rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ;
         return rResult;
     }
 
@@ -904,8 +940,10 @@ private:
     /**
      * Static Member Variables
      */
+
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -986,7 +1024,7 @@ private:
         typename BaseType::IntegrationMethod ThisMethod )
     {
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
-        IntegrationPointsArrayType& integration_points = all_integration_points[ThisMethod];
+        IntegrationPointsArrayType& integration_points = all_integration_points[static_cast<int>(ThisMethod)];
 
         //number of integration points
         const int integration_points_number = integration_points.size();
@@ -1053,8 +1091,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -1168,15 +1205,15 @@ private:
         {
             {
                 Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -1192,15 +1229,15 @@ private:
         {
             {
                 Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;
@@ -1247,12 +1284,17 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Hexahedra3D8<TPointType>::msGeometryData(
-    3, 3, 3, GeometryData::GI_GAUSS_2,
+    &msGeometryDimension,
+    GeometryData::IntegrationMethod::GI_GAUSS_2,
     Hexahedra3D8<TPointType>::AllIntegrationPoints(),
     Hexahedra3D8<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
 
+template<class TPointType> const
+GeometryDimension Hexahedra3D8<TPointType>::msGeometryDimension(
+    3, 3, 3);
+
 }// namespace Kratos.
 
-#endif // KRATOS_HEXAHEDRA_3D_8_H_INCLUDED  defined 
+#endif // KRATOS_HEXAHEDRA_3D_8_H_INCLUDED  defined

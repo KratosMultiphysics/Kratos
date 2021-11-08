@@ -211,6 +211,22 @@ class QR {
             return r[i*row_stride + j*col_stride];
         }
 
+        // Returns the Frobenius norm of matrix R.
+        value_type normR() const {
+            value_type normR = 0;
+
+            const int row_stride = (Order == row_major ? nmax : 1);
+            const int col_stride = (Order == row_major ? 1 : m);
+
+            for (int i = 0; i < n; ++i){
+                for (int j = 0; j < n; ++j){
+                    normR += std::pow(r[i*row_stride + j*col_stride], 2);
+                }
+            }
+
+            return std::sqrt(normR);
+        }
+
         // Returns element of the matrix Q.
         value_type Q(int i, int j) const {
             const int row_stride = (Order == row_major ? nmax : 1);

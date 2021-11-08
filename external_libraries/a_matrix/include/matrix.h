@@ -1,7 +1,9 @@
 #pragma once
 
 // A matrix Library to be simple and fast
+#include <algorithm>
 #include <cmath>
+#include <sstream>
 #include <limits>
 #include "matrix_storage.h"
 #include "matrix_iterator.h"
@@ -20,10 +22,9 @@ class Matrix : public MatrixExpression<Matrix<TDataType, TSize1, TSize2>,
     using base_type::size;
     using base_type::size1;
     using base_type::size2;
-    
+
     using iterator = RandomAccessIterator<TDataType>;
     using const_iterator = RandomAccessIterator<const TDataType>;
-
 
     Matrix() {}
 
@@ -43,7 +44,7 @@ class Matrix : public MatrixExpression<Matrix<TDataType, TSize1, TSize2>,
 
     explicit Matrix(std::initializer_list<TDataType> InitialValues)
         : base_type(InitialValues) {}
-	 
+
     template <typename TExpressionType, std::size_t TCategory>
     Matrix& operator=(
         MatrixExpression<TExpressionType, TCategory> const& Other) {
@@ -127,19 +128,13 @@ class Matrix : public MatrixExpression<Matrix<TDataType, TSize1, TSize2>,
         return *this;
     }
 
-    MatrixUnaryMinusExpression<Matrix> operator-() const {
-        return MatrixUnaryMinusExpression<Matrix>(*this);
-    }
-
     void resize(std::size_t NewSize1, std::size_t NewSize2) {
         base_type::resize(NewSize1, NewSize2);
     }
 
     void resize(std::size_t NewSize) { base_type::resize(NewSize); }
 
-    void swap(Matrix& Other){
-        base_type::swap(Other);
-    }
+    void swap(Matrix& Other) { base_type::swap(Other); }
 
     iterator begin() { return iterator(data()); }
 
@@ -176,9 +171,40 @@ class Matrix : public MatrixExpression<Matrix<TDataType, TSize1, TSize2>,
 
     Matrix& noalias() { return *this; }
 
-    TransposeMatrix<Matrix<TDataType, TSize1, TSize2>> transpose() {
+    bool check_aliasing(const data_type* From, const data_type* To) const {
+        const data_type* const end_pointer = data() + size();
+        bool check1 = ((From <= data()) && (data() < To));
+        bool check2 = ((From < end_pointer) && (end_pointer < To));  // I'm not sure if should be =< To. Pooyan.
+        bool check3 = ((From > data()) && (To <= end_pointer));
+
+        return (check1 || check2 || check3);
+    }
+
+        TransposeMatrix<Matrix<TDataType, TSize1, TSize2>> transpose() {
         return TransposeMatrix<Matrix<TDataType, TSize1, TSize2>>(*this);
     }
+
+    MatrixRow<Matrix<TDataType, TSize1, TSize2>> row(std::size_t i) {
+        return MatrixRow<Matrix<TDataType, TSize1, TSize2>>(*this, i);
+    }
+
+    MatrixColumn<Matrix<TDataType, TSize1, TSize2>> column(std::size_t i) {
+        return MatrixColumn<Matrix<TDataType, TSize1, TSize2>>(*this, i);
+    }
+
+	void fill(data_type const& value) {
+        for (std::size_t i = 0; i < size(); i++)
+            at(i) = value;
+
+	}
+
+	void fill_identity() {
+		fill(0.00);
+		const std::size_t next_diagonal = size1() + 1;
+        for (std::size_t i = 0; i < size(); i+= next_diagonal)
+            at(i) = 1.00;
+
+	}
 };
 
 template <typename TDataType, std::size_t TSize1, std::size_t TSize2>
@@ -191,15 +217,78 @@ bool operator!=(Matrix<TDataType, TSize1, TSize2> const& First,
 template <typename TDataType, std::size_t TSize1, std::size_t TSize2>
 inline std::ostream& operator<<(std::ostream& rOStream,
     Matrix<TDataType, TSize1, TSize2> const& TheMatrix) {
-    rOStream << '{';
+    constexpr char matrix_prefix = '[';
+    constexpr char matrix_suffix = ']';
+    constexpr char row_prefix = '[';
+    constexpr char row_suffix = ']';
+    const std::string row_separator = ",\n ";
+    const std::string col_separator = ", ";
+
+    if (TheMatrix.size() == 0) {
+        rOStream << matrix_prefix << matrix_suffix;
+        return rOStream;
+    }
+
+    std::size_t column_width{0};
+
+    for (std::size_t j = 0; j < TheMatrix.size2(); j++) {
+        for (std::size_t i = 0; i < TheMatrix.size1(); i++) {
+            std::stringstream coeffStream;
+            coeffStream.copyfmt(rOStream);
+            coeffStream << TheMatrix(i, j);
+            column_width = std::max(column_width, coeffStream.str().length());
+        }
+    }
+
+    rOStream << matrix_prefix;
+
     for (std::size_t i = 0; i < TheMatrix.size1(); i++) {
-        for (std::size_t j = 0; j < TheMatrix.size2(); j++)
-            rOStream << TheMatrix(i, j) << ',';
+        rOStream << row_prefix;
+
+        if (column_width != 0) {
+            rOStream.width(column_width);
+        }
+
+        rOStream << TheMatrix(i, 0);
+
+        for (std::size_t j = 1; j < TheMatrix.size2(); j++) {
+            rOStream << col_separator;
+
+            if (column_width != 0) {
+                rOStream.width(column_width);
+            }
+
+            rOStream << TheMatrix(i, j);
+        }
+
+        rOStream << row_suffix;
+
+        if (i < TheMatrix.size1() - 1) {
+            rOStream << row_separator;
+        }
+    }
+
+    rOStream << matrix_suffix;
+
+    return rOStream;
+}
+
+#ifndef AMATRIX_NO_IO_OPERATOR
+template <typename TExpressionType, std::size_t TCategory>
+inline std::ostream& operator<<(std::ostream& rOStream,
+    MatrixExpression<TExpressionType, TCategory> const& TheMatrixExpression) {
+    auto& expression = TheMatrixExpression.expression();
+
+    rOStream << '{';
+    for (std::size_t i = 0; i < expression.size1(); i++) {
+        for (std::size_t j = 0; j < expression.size2(); j++)
+            rOStream << expression(i, j) << ',';
         rOStream << '\n';
     }
     rOStream << '}';
 
     return rOStream;
 }
+#endif
 
 }  // namespace AMatrix

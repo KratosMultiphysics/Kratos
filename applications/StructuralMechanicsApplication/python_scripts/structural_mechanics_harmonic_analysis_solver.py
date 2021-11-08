@@ -1,49 +1,37 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
-
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
 
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import base class file
-import structural_mechanics_solver
-
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return HarmonicAnalysisSolver(model, custom_settings)
 
-
-class HarmonicAnalysisSolver(structural_mechanics_solver.MechanicalSolver):
+class HarmonicAnalysisSolver(MechanicalSolver):
     """The structural mechanics harmonic analysis solver.
 
     This class creates the mechanical solvers for the harmonic analysis.
-    It currently supports the Feast solver.
-
-    Public member variables:
-    harmonic_analysis_settings -- settings for the eigenvalue solvers.
 
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, model, custom_settings):
-        # Set defaults and validate custom settings.
-        self.harmonic_analysis_settings = KratosMultiphysics.Parameters("""
-        {
+        # Construct the base solver.
+        super().__init__(model, custom_settings)
+        KratosMultiphysics.Logger.PrintInfo("::[HarmonicAnalysisSolver]:: ", "Construction finished")
+
+    @classmethod
+    def GetDefaultParameters(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
             "scheme_type"   : "dynamic",
             "harmonic_analysis_settings" : {
                 "use_effective_material_damping" : false
             }
-        }
-        """)
-        self.validate_and_transfer_matching_settings(custom_settings, self.harmonic_analysis_settings)
-        # Validate the remaining settings in the base class.
-
-        # Construct the base solver.
-        super(HarmonicAnalysisSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[HarmonicAnalysisSolver]:: ", "Construction finished")
+        }""")
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        return this_defaults
 
     #### Private functions ####
 
@@ -52,7 +40,7 @@ class HarmonicAnalysisSolver(structural_mechanics_solver.MechanicalSolver):
 
         The scheme determines the initial force vector on all system dofs.
         """
-        if self.harmonic_analysis_settings["scheme_type"].GetString() == "dynamic":
+        if self.settings["scheme_type"].GetString() == "dynamic":
             solution_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
         else:
             err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
@@ -77,4 +65,4 @@ class HarmonicAnalysisSolver(structural_mechanics_solver.MechanicalSolver):
         return StructuralMechanicsApplication.HarmonicAnalysisStrategy(computing_model_part,
                                                                     eigen_scheme,
                                                                     builder_and_solver,
-                                                                    self.harmonic_analysis_settings["harmonic_analysis_settings"]["use_effective_material_damping"].GetBool())
+                                                                    self.settings["harmonic_analysis_settings"]["use_effective_material_damping"].GetBool())

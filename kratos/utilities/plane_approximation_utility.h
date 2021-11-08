@@ -194,7 +194,7 @@ private:
         // Solve the A matrix eigenvalue problem
         BoundedMatrix<double, TDim, TDim> a_mat, eigenval_mat, eigenvector_mat;
         SetMatrixA(rPointsCoords, rPlaneBasePointCoords, a_mat);
-        bool converged = MathUtils<double>::EigenSystem<TDim>(a_mat, eigenvector_mat, eigenval_mat);
+        bool converged = MathUtils<double>::GaussSeidelEigenSystem(a_mat, eigenvector_mat, eigenval_mat);
         KRATOS_ERROR_IF(!converged) << "Plane normal can't be computed. Eigenvalue problem did not converge." << std::endl;
 
         // Find the minimum eigenvalue
@@ -210,7 +210,7 @@ private:
         // Set as plane normal the eigenvector associated to the minimum eigenvalue
         noalias(rPlaneNormal) = ZeroVector(3);
         for (unsigned int i = 0; i < TDim; ++i){
-            rPlaneNormal(i) = eigenvector_mat(min_eigval_id,i);
+            rPlaneNormal(i) = eigenvector_mat(i, min_eigval_id);
         }
     }
 

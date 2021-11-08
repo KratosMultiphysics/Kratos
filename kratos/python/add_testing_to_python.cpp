@@ -15,6 +15,7 @@
 
 // Project includes
 #include "includes/define_python.h"
+#include "includes/parallel_environment.h"
 #include "testing/testing.h"
 #include "add_testing_to_python.h"
 
@@ -30,9 +31,9 @@ void ListOfAllTestCases() {
 }
 
 void  AddTestingToPython(pybind11::module& m) {
-	using namespace pybind11;
+	namespace py = pybind11;
 
-    class_<Testing::Tester, Kratos::shared_ptr<Testing::Tester> > TesterPyBind(m, "Tester");
+    py::class_<Testing::Tester, Kratos::shared_ptr<Testing::Tester> > TesterPyBind(m, "Tester");
 
     // Properties
     TesterPyBind
@@ -54,13 +55,18 @@ void  AddTestingToPython(pybind11::module& m) {
         .def_static("ListOfAllTestCases", ListOfAllTestCases)
     ;
 
-    enum_<Testing::Tester::Verbosity>(TesterPyBind, "Verbosity")
+    py::enum_<Testing::Tester::Verbosity>(TesterPyBind, "Verbosity")
         .value("QUITE", Testing::Tester::Verbosity::QUITE)
         .value("PROGRESS", Testing::Tester::Verbosity::PROGRESS)
         .value("TESTS_LIST", Testing::Tester::Verbosity::TESTS_LIST)
         .value("FAILED_TESTS_OUTPUTS", Testing::Tester::Verbosity::FAILED_TESTS_OUTPUTS)
         .value("TESTS_OUTPUTS", Testing::Tester::Verbosity::TESTS_OUTPUTS)
     ;
+
+    auto m_testing = m.def_submodule("Testing");
+    m_testing.def("GetDefaultDataCommunicator", []() -> DataCommunicator& {
+        return ParallelEnvironment::GetDefaultDataCommunicator();
+    }, py::return_value_policy::reference);
 }
 
 }  // namespace Python.

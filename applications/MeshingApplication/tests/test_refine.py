@@ -1,6 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
-
-import KratosMultiphysics.KratosUnittest as KratosUnittest
+﻿import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 import KratosMultiphysics.MeshingApplication
 import math
@@ -16,13 +14,13 @@ class TestRedistance(KratosUnittest.TestCase):
         for elem in Elements:
             vol += elem.GetArea()
         return vol
-    
+
     def _ComputeSurfaceArea(self,Conditions):
         area = 0.0
         for cond in Conditions:
             area += cond.GetArea()
-        return area       
-        
+        return area
+
     def test_refine_all(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
@@ -31,20 +29,20 @@ class TestRedistance(KratosUnittest.TestCase):
         model_part.SetBufferSize(2)
 
         #IMPORTANT! must compute the neighbours first!!
-        KratosMultiphysics.FindNodalNeighboursProcess(model_part,10,10).Execute()
-        
+        KratosMultiphysics.FindNodalNeighboursProcess(model_part).Execute()
+
         original_vol = self._ComputeVolume(model_part.Elements)
         #original_surface = self._ComputeSurfaceArea(model_part.Conditions)
-        
+
         for elem in model_part.Elements:
             elem.SetValue(KratosMultiphysics.SPLIT_ELEMENT,True)
-            
+
         refiner = KratosMultiphysics.MeshingApplication.LocalRefineTetrahedraMesh(model_part)
-        
+
         refine_on_reference = False
         interpolate_internal_variables = True
         refiner.LocalRefineMesh( refine_on_reference, interpolate_internal_variables)
-        
+
         refined_vol = self._ComputeVolume(model_part.Elements)
         refined_surface = self._ComputeSurfaceArea(model_part.Conditions)
 
@@ -53,7 +51,7 @@ class TestRedistance(KratosUnittest.TestCase):
         #self.assertAlmostEqual(refined_surface, original_surface, 9)
         self.assertEqual(len(model_part.Elements), 1992)
         self.assertEqual(len(model_part.Nodes), 482)
-        
+
     def test_refine_half(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
@@ -61,23 +59,23 @@ class TestRedistance(KratosUnittest.TestCase):
         KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere")).ReadModelPart(model_part)
         model_part.SetBufferSize(2)
         print(model_part)
-        
+
         original_vol = self._ComputeVolume(model_part.Elements)
         #original_surface = self._ComputeSurfaceArea(model_part.Conditions)
-        
+
         for elem in model_part.Elements:
             if(elem.Id % 2 == 0):
                 elem.SetValue(KratosMultiphysics.SPLIT_ELEMENT,True)
-            
+
         #IMPORTANT! must compute the neighbours first!!
-        KratosMultiphysics.FindNodalNeighboursProcess(model_part,10,10).Execute()
-        
+        KratosMultiphysics.FindNodalNeighboursProcess(model_part).Execute()
+
         refiner = KratosMultiphysics.MeshingApplication.LocalRefineTetrahedraMesh(model_part)
-        
+
         refine_on_reference = False
         interpolate_internal_variables = True
         refiner.LocalRefineMesh( refine_on_reference, interpolate_internal_variables)
-        
+
         refined_vol = self._ComputeVolume(model_part.Elements)
         refined_surface = self._ComputeSurfaceArea(model_part.Conditions)
 
@@ -86,7 +84,7 @@ class TestRedistance(KratosUnittest.TestCase):
         #self.assertAlmostEqual(refined_surface, original_surface, 9)
         self.assertEqual(len(model_part.Elements), 2010)
         self.assertEqual(len(model_part.Nodes), 462)
-                         
+
     def test_refine_half_and_improve(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
@@ -94,25 +92,25 @@ class TestRedistance(KratosUnittest.TestCase):
         KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere")).ReadModelPart(model_part)
         model_part.SetBufferSize(2)
         print(model_part)
-        
+
         original_vol = self._ComputeVolume(model_part.Elements)
         #original_surface = self._ComputeSurfaceArea(model_part.Conditions)
-        
+
         for elem in model_part.Elements:
             if(elem.Id % 2 == 0):
                 elem.SetValue(KratosMultiphysics.SPLIT_ELEMENT,True)
-            
+
         #IMPORTANT! must compute the neighbours first!!
-        KratosMultiphysics.FindNodalNeighboursProcess(model_part,10,10).Execute()
-        
+        KratosMultiphysics.FindNodalNeighboursProcess(model_part).Execute()
+
         refiner = KratosMultiphysics.MeshingApplication.LocalRefineTetrahedraMesh(model_part)
-        
+
         refine_on_reference = False
         interpolate_internal_variables = True
         refiner.LocalRefineMesh( refine_on_reference, interpolate_internal_variables)
 
-        KratosMultiphysics.FindNodalNeighboursProcess(model_part,10,10).Execute()
-        
+        KratosMultiphysics.FindNodalNeighboursProcess(model_part).Execute()
+
         reconnector = KratosMultiphysics.MeshingApplication.TetrahedraReconnectUtility(model_part)
         simIter = 2
         iterations = 2
@@ -131,7 +129,7 @@ class TestRedistance(KratosUnittest.TestCase):
         reconnector.OptimizeQuality(model_part, simIter, iterations, ProcessByNode, ProcessByFace, ProcessByEdge, saveToFile, removeFreeVertexes, evaluateInParallel, reInsertNodes, debugMode,minAngle)
         meshIsValid = reconnector.EvaluateQuality()
         reconnector.FinalizeOptimization(removeFreeVertexes)
-                        
+
         refined_vol = self._ComputeVolume(model_part.Elements)
         refined_surface = self._ComputeSurfaceArea(model_part.Conditions)
 

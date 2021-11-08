@@ -44,7 +44,7 @@ public:
     ///@name Type Definitions
     ///@{
     // Counted pointer of LineLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( LineLoadCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineLoadCondition );
     ///@}
 
     ///@name Life Cycle
@@ -104,7 +104,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     ///@}
     ///@name Access

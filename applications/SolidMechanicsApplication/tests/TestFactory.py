@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import MainSolid
+import KratosMultiphysics.SolidMechanicsApplication.solid_analysis as solid_analysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:
@@ -24,9 +24,10 @@ class TestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            self.model = KratosMultiphysics.Model()
             if( self.file_parameters == None ):
                 self.file_parameters = self.file_name + "_parameters.json"
-            self.test = MainSolid.Solution(self.file_parameters,self.file_name)
+            self.test = solid_analysis.Solution(self.model, self.file_parameters, self.file_name)
 
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):

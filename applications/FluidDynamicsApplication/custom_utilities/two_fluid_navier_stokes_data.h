@@ -18,7 +18,7 @@
 
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_element_data.h"
-#include "custom_utilities/element_size_calculator.h"
+#include "utilities/element_size_calculator.h"
 #include "custom_utilities/fluid_element_utilities.h"
 
 namespace Kratos {
@@ -65,7 +65,10 @@ double DynamicViscosity;
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
 double SmagorinskyConstant;
-
+double LinearDarcyCoefficient;
+double NonLinearDarcyCoefficient;
+double DarcyTerm;
+double VolumeError;
 double bdf0;
 double bdf1;
 double bdf2;
@@ -110,19 +113,22 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
     const Properties& r_properties = rElement.GetProperties();
-    this->FillFromNodalData(Velocity,VELOCITY,r_geometry);
+    this->FillFromHistoricalNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
     this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
-	this->FillFromNodalData(Distance, DISTANCE, r_geometry);
-    this->FillFromNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
-    this->FillFromNodalData(BodyForce,BODY_FORCE,r_geometry);
-    this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
-    this->FillFromNodalData(NodalDensity, DENSITY, r_geometry);
-    this->FillFromNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
+    this->FillFromHistoricalNodalData(Distance, DISTANCE, r_geometry);
+    this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
+    this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
+    this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
+    this->FillFromHistoricalNodalData(NodalDensity, DENSITY, r_geometry);
+    this->FillFromHistoricalNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
     this->FillFromProperties(SmagorinskyConstant, C_SMAGORINSKY, r_properties);
+    this->FillFromProperties(LinearDarcyCoefficient, LIN_DARCY_COEF, r_properties);
+    this->FillFromProperties(NonLinearDarcyCoefficient, NONLIN_DARCY_COEF, r_properties);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
-
+    this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
+    
     const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
     bdf0 = BDFVector[0];
     bdf1 = BDFVector[1];
@@ -136,7 +142,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     noalias(rhs_ee) = ZeroVector(TNumNodes);
 
     NumPositiveNodes = 0;
-	NumNegativeNodes = 0;
+    NumNegativeNodes = 0;
 
     for (unsigned int i = 0; i < TNumNodes; i++){
         if(Distance[i] > 0)
@@ -154,75 +160,64 @@ void UpdateGeometryValues(
 {
     FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex, NewWeight,rN,rDN_DX);
     ElementSize = ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(rDN_DX);
+    CalculateDensityAtGaussPoint();
 }
 
 void UpdateGeometryValues(
     unsigned int IntegrationPointIndex,
-	double NewWeight,
-	const MatrixRowType& rN,
-	const BoundedMatrix<double, TNumNodes, TDim>& rDN_DX,
-	const MatrixRowType& rNenr,
-	const BoundedMatrix<double, TNumNodes, TDim>& rDN_DXenr)
+    double NewWeight,
+    const MatrixRowType& rN,
+    const BoundedMatrix<double, TNumNodes, TDim>& rDN_DX,
+    const MatrixRowType& rNenr,
+    const BoundedMatrix<double, TNumNodes, TDim>& rDN_DXenr)
 {
-	FluidElementData<TDim, TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex, NewWeight, rN, rDN_DX);
-	ElementSize = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rDN_DX);
-	noalias(this->Nenr) = rNenr;
-	noalias(this->DN_DXenr) = rDN_DXenr;
+    FluidElementData<TDim, TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex, NewWeight, rN, rDN_DX);
+    ElementSize = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rDN_DX);
+    noalias(this->Nenr) = rNenr;
+    noalias(this->DN_DXenr) = rDN_DXenr;
+    CalculateDensityAtGaussPoint();
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
 
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-	KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
-    KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE);
-    KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
-
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,r_geometry[i]);
-		KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,r_geometry[i]);
     }
 
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
-    KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU);
-    KRATOS_CHECK_VARIABLE_KEY(BDF_COEFFICIENTS);
-
     return 0;
 }
 
 bool IsCut() {
-	return (NumPositiveNodes > 0) && (NumNegativeNodes > 0);
+    return (NumPositiveNodes > 0) && (NumNegativeNodes > 0);
 }
 
 bool IsAir() {
-	return (NumPositiveNodes == TNumNodes);
+    return (NumPositiveNodes == TNumNodes);
 }
 
 void CalculateAirMaterialResponse() {
-	const unsigned int strain_size = 3 * (TDim - 1);
+    const unsigned int strain_size = 3 * (TDim - 1);
 
-	if(this->C.size1() != strain_size)
-		this->C.resize(strain_size,strain_size,false);
-	if(this->ShearStress.size() != strain_size)
-		this->ShearStress.resize(strain_size,false);
+    if(this->C.size1() != strain_size)
+        this->C.resize(strain_size,strain_size,false);
+    if(this->ShearStress.size() != strain_size)
+        this->ShearStress.resize(strain_size,false);
 
     ComputeStrain();
 
     CalculateEffectiveViscosityAtGaussPoint();
 
-	const double mu = this->EffectiveViscosity;
-	const double c1 = 2.0*mu;
-	const double c2 = mu;
-
-	this->C.clear();
+    const double mu = this->EffectiveViscosity;
+    const double c1 = 2.0*mu;
+    const double c2 = mu;
+    this->C.clear();
     BoundedMatrix<double, strain_size, strain_size> c_mat = this->C;
     Vector& stress = this->ShearStress;
     Vector& strain = this->StrainRate;
@@ -230,28 +225,28 @@ void CalculateAirMaterialResponse() {
     FluidElementUtilities<TNumNodes>::GetNewtonianConstitutiveMatrix(mu, c_mat);
     this->C = c_mat;
 
-	if (TDim == 2)
-	{
+    if (TDim == 2)
+    {
         const double trace = strain[0] + strain[1];
-        const double volumetric_part = trace/3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
+        const double volumetric_part = trace/2.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
 
-		stress[0] = c1 * strain[0] - volumetric_part;
-		stress[1] = c1 * strain[1] - volumetric_part;
-		stress[2] = c2 * strain[2];
-	}
+        stress[0] = c1 * (strain[0] - volumetric_part);
+        stress[1] = c1 * (strain[1] - volumetric_part);
+        stress[2] = c2 * strain[2];
+    }
 
-	else if (TDim == 3)
-	{
+    else if (TDim == 3)
+    {
         const double trace = strain[0] + strain[1] + strain[2];
         const double volumetric_part = trace/3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
 
-		stress[0] = c1*(strain[0] - volumetric_part);
-		stress[1] = c1*(strain[1] - volumetric_part);
-		stress[2] = c1*(strain[2] - volumetric_part);
-		stress[3] = c2*strain[3];
-		stress[4] = c2*strain[4];
-		stress[5] = c2*strain[5];
-	}
+        stress[0] = c1*(strain[0] - volumetric_part);
+        stress[1] = c1*(strain[1] - volumetric_part);
+        stress[2] = c1*(strain[2] - volumetric_part);
+        stress[3] = c2*strain[3];
+        stress[4] = c2*strain[4];
+        stress[5] = c2*strain[5];
+    }
 }
 
 void ComputeStrain()
@@ -263,19 +258,19 @@ void ComputeStrain()
     // 3D strain computation
     if (TDim == 3)
     {
-		this->StrainRate[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0);
-		this->StrainRate[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1) + DN(3,1)*v(3,1);
-		this->StrainRate[2] = DN(0,2)*v(0,2) + DN(1,2)*v(1,2) + DN(2,2)*v(2,2) + DN(3,2)*v(3,2);
-		this->StrainRate[3] = DN(0,0)*v(0,1) + DN(0,1)*v(0,0) + DN(1,0)*v(1,1) + DN(1,1)*v(1,0) + DN(2,0)*v(2,1) + DN(2,1)*v(2,0) + DN(3,0)*v(3,1) + DN(3,1)*v(3,0);
-		this->StrainRate[4] = DN(0,1)*v(0,2) + DN(0,2)*v(0,1) + DN(1,1)*v(1,2) + DN(1,2)*v(1,1) + DN(2,1)*v(2,2) + DN(2,2)*v(2,1) + DN(3,1)*v(3,2) + DN(3,2)*v(3,1);
-		this->StrainRate[5] = DN(0,0)*v(0,2) + DN(0,2)*v(0,0) + DN(1,0)*v(1,2) + DN(1,2)*v(1,0) + DN(2,0)*v(2,2) + DN(2,2)*v(2,0) + DN(3,0)*v(3,2) + DN(3,2)*v(3,0);
+        this->StrainRate[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0);
+        this->StrainRate[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1) + DN(3,1)*v(3,1);
+        this->StrainRate[2] = DN(0,2)*v(0,2) + DN(1,2)*v(1,2) + DN(2,2)*v(2,2) + DN(3,2)*v(3,2);
+        this->StrainRate[3] = DN(0,0)*v(0,1) + DN(0,1)*v(0,0) + DN(1,0)*v(1,1) + DN(1,1)*v(1,0) + DN(2,0)*v(2,1) + DN(2,1)*v(2,0) + DN(3,0)*v(3,1) + DN(3,1)*v(3,0);
+        this->StrainRate[4] = DN(0,1)*v(0,2) + DN(0,2)*v(0,1) + DN(1,1)*v(1,2) + DN(1,2)*v(1,1) + DN(2,1)*v(2,2) + DN(2,2)*v(2,1) + DN(3,1)*v(3,2) + DN(3,2)*v(3,1);
+        this->StrainRate[5] = DN(0,0)*v(0,2) + DN(0,2)*v(0,0) + DN(1,0)*v(1,2) + DN(1,2)*v(1,0) + DN(2,0)*v(2,2) + DN(2,2)*v(2,0) + DN(3,0)*v(3,2) + DN(3,2)*v(3,0);
     }
     // 2D strain computation
     else if (TDim == 2)
     {
-		this->StrainRate[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0);
-		this->StrainRate[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1);
-		this->StrainRate[2] = DN(0,1)*v(0,0) + DN(0,0)*v(0,1) + DN(1,1)*v(1,0) + DN(1,0)*v(1,1) + DN(2,1)*v(2,0) + DN(2,0)*v(2,1);
+        this->StrainRate[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0);
+        this->StrainRate[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1);
+        this->StrainRate[2] = DN(0,1)*v(0,0) + DN(0,0)*v(0,1) + DN(1,1)*v(1,0) + DN(1,0)*v(1,1) + DN(2,1)*v(2,0) + DN(2,0)*v(2,1);
     }
 }
 
@@ -333,8 +328,7 @@ void CalculateEffectiveViscosityAtGaussPoint()
         }
     }
     DynamicViscosity = dynamic_viscosity / navg;
-
-
+    
     if (SmagorinskyConstant > 0.0)
     {
         const double strain_rate_norm = ComputeStrainNorm();
@@ -344,6 +338,18 @@ void CalculateEffectiveViscosityAtGaussPoint()
         this->EffectiveViscosity = DynamicViscosity + 2.0*length_scale*strain_rate_norm;
     }
     else this->EffectiveViscosity = DynamicViscosity;
+}
+
+void ComputeDarcyTerm()
+{
+    array_1d<double, 3> convective_velocity(3, 0.0);
+    for (size_t i = 0; i < TNumNodes; i++) {
+        for (size_t j = 0; j < TDim; j++) {
+            convective_velocity[j] += this->N[i] * (Velocity(i, j) - MeshVelocity(i, j));
+        }
+    }
+    const double convective_velocity_norm = MathUtils<double>::Norm(convective_velocity);
+    DarcyTerm = this->EffectiveViscosity * LinearDarcyCoefficient + Density * NonLinearDarcyCoefficient * convective_velocity_norm;
 }
 ///@}
 

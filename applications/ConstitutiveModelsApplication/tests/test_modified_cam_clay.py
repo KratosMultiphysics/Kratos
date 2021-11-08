@@ -127,7 +127,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         self.parameters.SetDeterminantF(self.detF)
         self.material_law.CalculateMaterialResponseKirchhoff(self.parameters)
         self.material_law.FinalizeMaterialResponseKirchhoff(self.parameters)
-        self.material_law.FinalizeSolutionStep(self.properties, self.geometry, self.N, self.model_part.ProcessInfo)
+
         for step in range(0, nIncr):
 
             #Actualize strain
@@ -139,7 +139,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             self.parameters.SetDeterminantF( self.detF )
             self.material_law.CalculateMaterialResponseKirchhoff( self.parameters )
             self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-            self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
 
         self.stress = self.parameters.GetStressVector()
 

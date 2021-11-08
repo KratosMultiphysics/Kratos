@@ -24,15 +24,15 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 PYBIND11_MODULE(KratosPfemApplication,m)
 {
 
-  class_<KratosPfemApplication,
+  py::class_<KratosPfemApplication,
          KratosPfemApplication::Pointer,
          KratosApplication>(m,"KratosPfemApplication")
-      .def(init<>())
+      .def(py::init<>())
       ;
 
   AddCustomProcessesToPython(m);
@@ -40,6 +40,9 @@ PYBIND11_MODULE(KratosPfemApplication,m)
   //registering variables in python ( if must to be seen from python )
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PROPERTIES_VECTOR )
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MATERIAL_PERCENTAGE )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, WEAR_COEFFICIENT )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INDENTATION_HARDNESS )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VOLUME_WEAR )
 }
 
 

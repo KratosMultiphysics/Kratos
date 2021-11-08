@@ -32,22 +32,22 @@ namespace Kratos
  * @class Prism3D15
  * @ingroup KratosCore
  * @brief A fifteen node prism geometry with quadratic shape functions
- * @details The node ordering corresponds with: 
- *                 3                          
- *               ,/|`\                    
- *             12  |  14               
- *           ,/    |    `\          
- *          4------13-----5       
- *          |      9      |        
- *          |      |      |        
- *          |      |      |       
- *          |      |      |       
- *          10     |      11       
- *          |      0      |        
- *          |    ,/ `\    |       
- *          |  ,6     `8  |        
- *          |,/         `\|       
- *          1------7------2          
+ * @details The node ordering corresponds with:
+ *                 3
+ *               ,/|`\
+ *             12  |  14
+ *           ,/    |    `\
+ *          4------13-----5
+ *          |      9      |
+ *          |      |      |
+ *          |      |      |
+ *          |      |      |
+ *          10     |      11
+ *          |      0      |
+ *          |    ,/ `\    |
+ *          |  ,6     `8  |
+ *          |,/         `\|
+ *          1------7------2
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -244,11 +244,29 @@ public:
         this->Points().push_back( pPoint15 );
     }
 
-    Prism3D15( const PointsArrayType& ThisPoints )
-        : BaseType( ThisPoints, &msGeometryData )
+    Prism3D15( const PointsArrayType& rThisPoints )
+        : BaseType( rThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 15 )
             KRATOS_ERROR << "Invalid points number. Expected 15, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Id
+    explicit Prism3D15(
+        const IndexType GeometryId,
+        const PointsArrayType& rThisPoints
+        ) : BaseType(GeometryId, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF( this->PointsNumber() != 15 ) << "Invalid points number. Expected 15, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Name
+    explicit Prism3D15(
+        const std::string& rGeometryName,
+        const PointsArrayType& rThisPoints
+        ) : BaseType(rGeometryName, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 15) << "Invalid points number. Expected 15, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -287,12 +305,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Prism;
+        return GeometryData::KratosGeometryFamily::Kratos_Prism;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Prism3D15;
+        return GeometryData::KratosGeometryType::Kratos_Prism3D15;
     }
 
     /**
@@ -340,37 +358,35 @@ public:
      * Operations
      */
 
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer( new Prism3D15( ThisPoints ) );
+        return typename BaseType::Pointer( new Prism3D15( NewGeometryId, rThisPoints ) );
     }
 
-    //     Geometry< Point<3> >::Pointer Clone() const override
-    // {
-    //     Geometry< Point<3> >::PointsArrayType NewPoints;
-
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
-    //     }
-
-    //     //creating a geometry with the new points
-    //     Geometry< Point<3> >::Pointer p_clone( new Prism3D15< Point<3> >( NewPoints ) );
-
-    //     return p_clone;
-    // }
-
-
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        const BaseType& rGeometry
+    ) const override
     {
-	if(rResult.size() != 15)
-           rResult.resize( 15, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 15.00 );
-        return rResult;
+        auto p_geometry = typename BaseType::Pointer( new Prism3D15( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
     }
-
 
     /**
      * Informations
@@ -452,7 +468,7 @@ public:
      */
     double DomainSize() const override
     {
-        return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return Volume();
     }
 
 
@@ -530,7 +546,7 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
@@ -538,10 +554,10 @@ public:
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
-        ) override
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -643,7 +659,7 @@ public:
      * integration point index of given integration method.
      *
      * @param DeltaPosition Matrix with the nodes position increment which describes
-     * the configuration where the jacobian has to be calculated.     
+     * the configuration where the jacobian has to be calculated.
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
@@ -998,31 +1014,35 @@ public:
         return rResult;
     }
 
+    ///@}
+    ///@name Edge
+    ///@{
 
-    /** This method gives you number of all edges of this
-    geometry.
-    @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
      */
-    // will be used by refinement algorithm, thus uncommented. janosch.
     SizeType EdgesNumber() const override
     {
         return 9;
     }
 
-    SizeType FacesNumber() const override
-    {
-        return 5;
-    }
-
-    /** This method gives you all edges of this geometry.
-
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
      */
-    GeometriesArrayType Edges( void ) override
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -1065,7 +1085,31 @@ public:
         return edges;
     }
 
-    GeometriesArrayType Faces( void ) override
+    ///@}
+    ///@name Face
+    ///@{
+
+    /**
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
+     */
+    SizeType FacesNumber() const override
+    {
+        return 5;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -1184,7 +1228,7 @@ public:
      *
      * :TODO: TESTING!!!
      */
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod ) const override
     {
@@ -1228,8 +1272,6 @@ public:
                 }
             }
         }//end of loop over integration points
-
-        return rResult;
     }
 
     /** This method gives gradient of all shape functions evaluated
@@ -1295,19 +1337,13 @@ public:
         rOStream << "    Jacobian in the origin\t : " << jacobian;
     }
 
-protected:
-
-    /**
-     * there are no protected class members
-     */
-
 private:
+    ///@name Static Member Variables
+    ///@{
 
-    /**
-     * Static Member Variables
-     */
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -1409,8 +1445,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -1459,8 +1494,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -1543,11 +1577,11 @@ private:
         {
             {
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 )
 
             }
         };
@@ -1564,11 +1598,11 @@ private:
         {
             {
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_3 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 )
             }
         };
         return shape_functions_local_gradients;
@@ -1593,15 +1627,11 @@ private:
  * Input and output
  */
 
-/**
- * input stream function
- */
+/// input stream function
 template<class TPointType> inline std::istream& operator >> (
     std::istream& rIStream, Prism3D15<TPointType>& rThis );
 
-/**
- * output stream function
- */
+/// output stream function
 template<class TPointType> inline std::ostream& operator << (
     std::ostream& rOStream, const Prism3D15<TPointType>& rThis )
 {
@@ -1615,12 +1645,17 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Prism3D15<TPointType>::msGeometryData(
-    3, 3, 3, GeometryData::GI_GAUSS_3,
+    &msGeometryDimension,
+    GeometryData::IntegrationMethod::GI_GAUSS_3,
     Prism3D15<TPointType>::AllIntegrationPoints(),
     Prism3D15<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
 
+template<class TPointType> const
+GeometryDimension Prism3D15<TPointType>::msGeometryDimension(
+    3, 3, 3);
+
 }// namespace Kratos.
 
-#endif // KRATOS_PRISM_3D_15_H_INCLUDED  defined 
+#endif // KRATOS_PRISM_3D_15_H_INCLUDED  defined

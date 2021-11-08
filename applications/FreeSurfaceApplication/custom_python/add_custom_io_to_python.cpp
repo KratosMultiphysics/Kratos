@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Antonia Larese
@@ -38,22 +38,28 @@ void WriteMesh( GidIOType& dummy, GidIOType::MeshType& rThisMesh )
     dummy.WriteMesh( rThisMesh );
 }
 
-void DoublePrintOnGaussPoints( GidIOType& dummy, const Variable<double>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+void BoolPrintOnGaussPoints( GidIOType& dummy, const Variable<bool>& rVariable,
+                               ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
+}
+
+void DoublePrintOnGaussPoints( GidIOType& dummy, const Variable<double>& rVariable,
+                               ModelPart& rModelPart, double SolutionTag )
+{
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 void VectorPrintOnGaussPoints( GidIOType& dummy, const Variable<Vector>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+                               ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 void MatrixPrintOnGaussPoints( GidIOType& dummy, const Variable<Matrix>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+                               ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 void (GidIOType::*pointer_to_double_write_nodal_results)(
@@ -87,14 +93,14 @@ void  AddCustomIOToPython(pybind11::module& pymodule)
 {
 
 
-    using namespace pybind11;
+    namespace py = pybind11;
 
-    class_<GidIOType, GidIOType::Pointer>(pymodule, "EdgebasedGidIO")
-        .def(init<std::string const&, GiD_PostMode,
+    py::class_<GidIOType, GidIOType::Pointer>(pymodule, "EdgebasedGidIO")
+        .def(py::init<std::string const&, GiD_PostMode,
         MultiFileFlag,
         WriteDeformedMeshFlag,
         WriteConditionsFlag>())
-    //.def(init<std::string const&>())
+    //.def(py::init<std::string const&>())
     .def("WriteMesh",WriteMesh)
     .def("WriteNodeMesh",WriteNodeMesh)
 
@@ -112,6 +118,7 @@ void  AddCustomIOToPython(pybind11::module& pymodule)
 //                     .def("PrintOnGaussPoints", pointer_to_double_print_on_gauss_points)
 //                     .def("PrintOnGaussPoints", pointer_to_vector_print_on_gauss_points)
 //                     .def("PrintOnGaussPoints", pointer_to_matrix_print_on_gauss_points)
+    .def("PrintOnGaussPoints", BoolPrintOnGaussPoints)
     .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
     .def("PrintOnGaussPoints", VectorPrintOnGaussPoints)
     .def("PrintOnGaussPoints", MatrixPrintOnGaussPoints)
@@ -126,6 +133,7 @@ void  AddCustomIOToPython(pybind11::module& pymodule)
 
 }
 }  // namespace Python.
+
 
 } // Namespace Kratos
 
