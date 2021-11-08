@@ -12,8 +12,9 @@
 #define SPECTRA_UPPER_HESSENBERG_EIGEN_H
 
 #include <Eigen/Core>
-#include <Eigen/Eigenvalues>
 #include <stdexcept>
+
+#include "UpperHessenbergSchur.h"
 
 namespace Spectra {
 
@@ -32,7 +33,7 @@ private:
     using ComplexVector = Eigen::Matrix<Complex, Eigen::Dynamic, 1>;
 
     Index m_n;                             // Size of the matrix
-    Eigen::RealSchur<Matrix> m_realSchur;  // Schur decomposition solver
+    UpperHessenbergSchur<Scalar> m_schur;  // Schur decomposition solver
     Matrix m_matT;                         // Schur T matrix
     Matrix m_eivec;                        // Storing eigenvectors
     ComplexVector m_eivalues;              // Eigenvalues
@@ -219,13 +220,9 @@ public:
         const Scalar scale = mat.cwiseAbs().maxCoeff();
 
         // Reduce to real Schur form
-        Matrix Q = Matrix::Identity(m_n, m_n);
-        m_realSchur.computeFromHessenberg(mat / scale, Q, true);
-        if (m_realSchur.info() != Eigen::Success)
-            throw std::runtime_error("UpperHessenbergEigen: eigen decomposition failed");
-
-        m_matT = m_realSchur.matrixT();
-        m_eivec = m_realSchur.matrixU();
+        m_schur.compute(mat / scale);
+        m_schur.swap_T(m_matT);
+        m_schur.swap_U(m_eivec);
 
         // Compute eigenvalues from matT
         m_eivalues.resize(m_n);

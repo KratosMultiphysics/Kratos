@@ -1,4 +1,4 @@
-from KratosMultiphysics.ShapeOptimizationApplication.analyzer_base import AnalyzerBaseClass
+from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
 
 class CustomAnalyzer(AnalyzerBaseClass):
     """

@@ -54,6 +54,23 @@ void DefineEmbeddedWakeProcess::ExecuteInitialize() {
         rNode.SetValue(KUTTA, false);
     });
 
+    const auto free_stream_velocity = mrModelPart.GetProcessInfo().GetValue(FREE_STREAM_VELOCITY);
+    KRATOS_ERROR_IF(free_stream_velocity.size() != 3)
+        << "The free stream velocity should be a vector with 3 components!"
+        << std::endl;
+    const double norm = norm_2(free_stream_velocity);
+    KRATOS_ERROR_IF(norm < std::numeric_limits<double>::epsilon())
+        << "The norm of the free stream velocity should be different than 0."
+        << std::endl;
+    // The wake direction is the free stream direction
+    const auto wake_direction = free_stream_velocity / norm;
+    array_1d<double, 3> wake_normal;
+
+    wake_normal[0] = -wake_direction[1];
+    wake_normal[1] = wake_direction[0];
+    wake_normal[2] = 0.0;
+    mrModelPart.GetRootModelPart().GetProcessInfo()[WAKE_NORMAL] = wake_normal;
+
     KRATOS_CATCH("");
 }
 

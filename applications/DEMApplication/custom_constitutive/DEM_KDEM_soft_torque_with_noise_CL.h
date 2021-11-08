@@ -10,6 +10,8 @@ namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEM_soft_torque_with_noise : public DEM_KDEM_soft_torque {
 
+        typedef DEM_KDEM_soft_torque BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_soft_torque_with_noise);
@@ -19,7 +21,7 @@ namespace Kratos {
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
         void Check(Properties::Pointer pProp) const override;
-        void Initialize(SphericContinuumParticle* owner_sphere) override;
+        void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps) override;
 
         ~DEM_KDEM_soft_torque_with_noise() {
         }
@@ -33,6 +35,9 @@ namespace Kratos {
         double GetInternalFricc(SphericContinuumParticle* element1) override;
 
     private:
+        double mPerturbedTauZero;
+        double mPerturbedInternalFriction;
+
         double rand_normal(const double mean, const double stddev);
 
         friend class Serializer;

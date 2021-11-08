@@ -19,7 +19,7 @@
 #include "containers/model.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
-#include "utilities/delaunator_utilities.h"
+#include "utilities/tessellation_utilities/delaunator_utilities.h"
 // DEBUG
 #include "includes/gid_io.h"
 #include "input_output/vtk_output.h"
@@ -1095,6 +1095,24 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::T
     }
 
     return solution;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+double ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::TestGetExactAreaIntegration(
+    Condition::Pointer pSlaveCond,
+    Condition::Pointer pMasterCond
+    )
+{
+    // Initalize values
+    double area = 0.0;
+    double local_area = 0.0;
+    const bool is_inside = GetExactAreaIntegration(pSlaveCond->GetGeometry(), pSlaveCond->GetValue(NORMAL), pMasterCond->GetGeometry(), pMasterCond->GetValue(NORMAL), local_area);
+    if (is_inside) area += local_area;
+
+    return area;
 }
 
 /***********************************************************************************/

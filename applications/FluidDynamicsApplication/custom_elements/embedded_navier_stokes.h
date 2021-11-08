@@ -88,7 +88,7 @@ public:
         MatrixType                  N_pos_int;              // Positive interface Gauss pts. shape functions values
         ShapeFunctionsGradientsType DN_DX_pos_int;          // Positive interface Gauss pts. shape functions gradients values
         VectorType                  w_gauss_pos_int;        // Positive interface Gauss pts. weights
-        std::vector<VectorType>     pos_int_unit_normals;   // Positive interface unit normal vector in each Gauss pt.
+        std::vector<array_1d<double,3>> pos_int_unit_normals;   // Positive interface unit normal vector in each Gauss pt.
 
         std::vector<unsigned int>   int_vec_identifiers;    // Interior (fluid) nodes identifiers
         std::vector<unsigned int>   out_vec_identifiers;    // Outside (stucture) nodes identifiers
@@ -220,7 +220,7 @@ public:
             const unsigned int n_gauss = (rData.pos_int_unit_normals).size();
 
             for (unsigned int i_gauss = 0;  i_gauss < n_gauss; ++i_gauss) {
-                Vector& normal = rData.pos_int_unit_normals[i_gauss];
+                array_1d<double,3>& normal = rData.pos_int_unit_normals[i_gauss];
                 const double n_norm = norm_2(normal);
                 normal /= std::max(n_norm, tol);
             }

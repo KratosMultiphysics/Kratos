@@ -12,6 +12,7 @@ file( GLOB_RECURSE KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_friction_laws/*.cpp
 )
 
@@ -76,3 +77,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install( TARGETS KratosShallowWaterCore DESTINATION libs )
 install( TARGETS KratosShallowWaterApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosShallowWaterCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosShallowWaterApplication" PARENT_SCOPE)

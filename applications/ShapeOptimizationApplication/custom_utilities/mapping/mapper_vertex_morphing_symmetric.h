@@ -21,7 +21,7 @@
 #include "spatial_containers/spatial_containers.h"
 #include "spaces/ublas_space.h"
 #include "mapper_base.h"
-#include "filter_function.h"
+#include "custom_utilities/filter_function.h"
 #include "symmetry_base.h"
 
 // ==============================================================================

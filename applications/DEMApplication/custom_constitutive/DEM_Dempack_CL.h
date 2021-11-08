@@ -11,6 +11,9 @@
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_Dempack : public DEMContinuumConstitutiveLaw {
+
+        typedef DEMContinuumConstitutiveLaw BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack);
@@ -28,9 +31,12 @@ namespace Kratos {
         double mHistoryShearFlag;
 
 
-        virtual void Initialize(SphericContinuumParticle* owner_sphere) override;
+        virtual void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps) override;
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
+        void SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose = true) override; 
+        void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp) override; 
+        void Check(Properties::Pointer pProp) const override;
 
         ~DEM_Dempack() {
         }

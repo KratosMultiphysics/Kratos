@@ -701,10 +701,14 @@ private:
         r_slave_geometry.PointLocalCoordinates(aux_coords, r_slave_geometry.Center());
         const array_1d<double, 3> slave_normal = r_slave_geometry.UnitNormal(aux_coords);
 
+        // The model part as const to avoid race conditions
+        const auto& r_const_origin_model_part = mOriginModelPart;
+        const auto& r_const_destination_model_part = mDestinationModelPart;
+
         for (auto it_pair = pIndexesPairs->begin(); it_pair != pIndexesPairs->end(); ++it_pair ) {
             const IndexType master_id = pIndexesPairs->GetId(it_pair); // MASTER
 
-            const auto& r_master_geometry = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? mOriginModelPart.pGetCondition(master_id)->GetGeometry() : mOriginModelPart.pGetElement(master_id)->GetGeometry();
+            const auto& r_master_geometry = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? r_const_origin_model_part.GetCondition(master_id).GetGeometry() : r_const_origin_model_part.GetElement(master_id).GetGeometry();
             r_master_geometry.PointLocalCoordinates(aux_coords, r_master_geometry.Center());
             const array_1d<double, 3> master_normal = r_master_geometry.UnitNormal(aux_coords);
 
@@ -770,12 +774,12 @@ private:
                                 const auto& r_slave_node_coordinates = r_slave_geometry[i_node].Coordinates();
 
                                 // Iterating over other paired geometrical objects
-                                const auto& r_index_masp_master = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? mOriginModelPart.pGetCondition(master_id)->GetValue(INDEX_SET) : mOriginModelPart.pGetElement(master_id)->GetValue(INDEX_SET);
+                                const auto& r_index_masp_master = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? r_const_origin_model_part.GetCondition(master_id).GetValue(INDEX_SET) : r_const_origin_model_part.GetElement(master_id).GetValue(INDEX_SET);
                                 for (auto it_master_pair = r_index_masp_master->begin(); it_master_pair != r_index_masp_master->end(); ++it_master_pair ) {
 
                                     const IndexType auxiliar_slave_id = r_index_masp_master->GetId(it_master_pair);
                                     if (pGeometricalObject->Id() != auxiliar_slave_id) {
-                                        GeometryType& r_auxiliar_slave_geometry =  mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED) ? mDestinationModelPart.pGetCondition(auxiliar_slave_id)->GetGeometry() : mDestinationModelPart.pGetElement(auxiliar_slave_id)->GetGeometry();
+                                        GeometryType& r_auxiliar_slave_geometry =  const_cast<GeometryType&>(mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED) ? r_const_destination_model_part.GetCondition(auxiliar_slave_id).GetGeometry() : r_const_destination_model_part.GetElement(auxiliar_slave_id).GetGeometry());
 
                                         for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
                                             // The auxiliar node coordinates
@@ -808,13 +812,13 @@ private:
         for (IndexType i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove) {
             if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
                 for (auto& id : geometrical_objects_to_erase ) {
-                    auto p_cond = r_root_model_part.pGetCondition(id);
-                    p_cond->Set(TO_ERASE, true);
+                    auto& r_cond = r_root_model_part.GetCondition(id);
+                    r_cond.Set(TO_ERASE, true);
                 }
             } else {
                 for (auto& id : geometrical_objects_to_erase ) {
-                    auto p_elem = r_root_model_part.pGetElement(id);
-                    p_elem->Set(TO_ERASE, true);
+                    auto& r_elem = r_root_model_part.GetElement(id);
+                    r_elem.Set(TO_ERASE, true);
                 }
             }
             pIndexesPairs->RemoveId(indexes_to_remove[i_to_remove]);
@@ -849,10 +853,13 @@ private:
         r_slave_geometry.PointLocalCoordinates(aux_coords, r_slave_geometry.Center());
         const array_1d<double, 3> slave_normal = r_slave_geometry.UnitNormal(aux_coords);
 
+        // The model part as const to avoid race conditions
+        const auto& r_const_origin_model_part = mOriginModelPart;
+
         for (auto it_pair = pIndexesPairs->begin(); it_pair != pIndexesPairs->end(); ++it_pair ) {
             const IndexType master_id = pIndexesPairs->GetId(it_pair); // MASTER
 
-            const auto& r_master_geometry = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? mOriginModelPart.pGetCondition(master_id)->GetGeometry() : mOriginModelPart.pGetElement(master_id)->GetGeometry();
+            const auto& r_master_geometry = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? r_const_origin_model_part.GetCondition(master_id).GetGeometry() : r_const_origin_model_part.GetElement(master_id).GetGeometry();
             r_master_geometry.PointLocalCoordinates(aux_coords, r_master_geometry.Center());
             const array_1d<double, 3> master_normal = r_master_geometry.UnitNormal(aux_coords);
 
@@ -873,13 +880,13 @@ private:
         for (IndexType i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove) {
             if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
                 for (auto& id : geometrical_objects_to_erase ) {
-                    auto p_cond = r_root_model_part.pGetCondition(id);
-                    p_cond->Set(TO_ERASE, true);
+                    auto& r_cond = r_root_model_part.GetCondition(id);
+                    r_cond.Set(TO_ERASE, true);
                 }
             } else {
                 for (auto& id : geometrical_objects_to_erase ) {
-                    auto p_elem = r_root_model_part.pGetElement(id);
-                    p_elem->Set(TO_ERASE, true);
+                    auto& r_elem = r_root_model_part.GetElement(id);
+                    r_elem.Set(TO_ERASE, true);
                 }
             }
             pIndexesPairs->RemoveId(indexes_to_remove[i_to_remove]);

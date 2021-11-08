@@ -68,7 +68,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Initialize(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -227,19 +227,19 @@ namespace Kratos
     rElementalVariables.DeviatoricInvariant = 1;
     rElementalVariables.EquivalentStrainRate = 1;
     rElementalVariables.VolumetricDefRate = 1;
-    rElementalVariables.SpatialDefRate.resize(voigtsize);
-    rElementalVariables.MDGreenLagrangeMaterial.resize(voigtsize);
-    rElementalVariables.Fgrad.resize(TDim, TDim);
-    rElementalVariables.InvFgrad.resize(TDim, TDim);
-    rElementalVariables.FgradVel.resize(TDim, TDim);
-    rElementalVariables.InvFgradVel.resize(TDim, TDim);
-    rElementalVariables.SpatialVelocityGrad.resize(TDim, TDim);
+    rElementalVariables.SpatialDefRate.resize(voigtsize, false);
+    rElementalVariables.MDGreenLagrangeMaterial.resize(voigtsize, false);
+    rElementalVariables.Fgrad.resize(TDim, TDim, false);
+    rElementalVariables.InvFgrad.resize(TDim, TDim, false);
+    rElementalVariables.FgradVel.resize(TDim, TDim, false);
+    rElementalVariables.InvFgradVel.resize(TDim, TDim, false);
+    rElementalVariables.SpatialVelocityGrad.resize(TDim, TDim, false);
 
     rElementalVariables.MeanPressure = 0;
-    rElementalVariables.CurrentTotalCauchyStress.resize(voigtsize);
-    rElementalVariables.UpdatedTotalCauchyStress.resize(voigtsize);
-    rElementalVariables.CurrentDeviatoricCauchyStress.resize(voigtsize);
-    rElementalVariables.UpdatedDeviatoricCauchyStress.resize(voigtsize);
+    rElementalVariables.CurrentTotalCauchyStress.resize(voigtsize, false);
+    rElementalVariables.UpdatedTotalCauchyStress.resize(voigtsize, false);
+    rElementalVariables.CurrentDeviatoricCauchyStress.resize(voigtsize, false);
+    rElementalVariables.UpdatedDeviatoricCauchyStress.resize(voigtsize, false);
   }
 
   template <unsigned int TDim>
@@ -260,12 +260,12 @@ namespace Kratos
     if (rLeftHandSideMatrix.size1() != LocalSize)
       rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
-    rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
     if (rRightHandSideVector.size() != LocalSize)
-      rRightHandSideVector.resize(LocalSize);
+      rRightHandSideVector.resize(LocalSize, false);
 
-    rRightHandSideVector = ZeroVector(LocalSize);
+    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
     // Shape functions and integration points
     ShapeFunctionDerivativesArrayType DN_DX;

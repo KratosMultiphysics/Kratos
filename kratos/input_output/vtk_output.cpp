@@ -232,13 +232,7 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
         const std::string output_path = mOutputSettings["output_path"].GetString();
 
         // Create folder if it doesn't exist before
-        if (!Kratos::filesystem::is_directory(output_path) && rModelPart.GetCommunicator().MyPID() == 0) {
-            Kratos::filesystem::create_directories(output_path);
-        }
-
-        // All ranks must wait until the folder is created otherwise writing might fail
-        // if some ranks are faster and try to create files in a not-yet existing folder
-        rModelPart.GetCommunicator().GetDataCommunicator().Barrier();
+        FilesystemExtensions::MPISafeCreateDirectories(output_path);
 
         output_file_name = Kratos::FilesystemExtensions::JoinPaths({output_path, output_file_name});
     }
@@ -406,6 +400,7 @@ void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& r
         { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,    10 },
         { GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,     12 },
         { GeometryData::KratosGeometryType::Kratos_Prism3D6,         13 },
+        { GeometryData::KratosGeometryType::Kratos_Pyramid3D5,       14 },
         { GeometryData::KratosGeometryType::Kratos_Line2D3,          21 },
         { GeometryData::KratosGeometryType::Kratos_Line3D3,          21 },
         { GeometryData::KratosGeometryType::Kratos_Triangle2D6,      22 },

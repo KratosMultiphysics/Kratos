@@ -8,6 +8,8 @@ namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEMFabric2D : public DEM_KDEM2D {
 
+        typedef DEM_KDEM2D BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEMFabric2D);

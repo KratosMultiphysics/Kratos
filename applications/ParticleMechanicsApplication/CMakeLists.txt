@@ -83,3 +83,6 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 install(TARGETS KratosParticleMechanicsCore DESTINATION libs )
 install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
 
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosParticleMechanicsCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosParticleMechanicsApplication" PARENT_SCOPE)

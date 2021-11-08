@@ -28,13 +28,13 @@ class DEM2DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEM
             normal_impact_vel = node.GetSolutionStepValue(Kratos.VELOCITY_X)
             if node.Id == 1:
                 if self.time > 0.2:
-                    self.assertAlmostEqual(normal_impact_vel, 6.076801447242313, delta=tolerance)
+                    self.assertAlmostEqual(normal_impact_vel, 6.135616337653889, delta=tolerance)
             if node.Id == 2:
                 if self.time > 0.2:
-                    self.assertAlmostEqual(normal_impact_vel, 8.604163136887411, delta=tolerance)
+                    self.assertAlmostEqual(normal_impact_vel, 3.532381836682557, delta=tolerance)
             if node.Id == 3:
                 if self.time > 0.2:
-                    self.assertAlmostEqual(normal_impact_vel, 10.016439272775422, delta=tolerance)
+                    self.assertAlmostEqual(normal_impact_vel, 9.828777134668575, delta=tolerance)
 
 
     def Finalize(self):

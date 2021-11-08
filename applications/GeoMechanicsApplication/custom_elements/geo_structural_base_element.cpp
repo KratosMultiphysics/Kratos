@@ -22,7 +22,7 @@ Element::Pointer GeoStructuralBaseElement<TDim,TNumNodes>::
             NodesArrayType const& ThisNodes,
             PropertiesType::Pointer pProperties ) const
 {
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default Create method for a particular element ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the default Create method for a particular element ... illegal operation!!" << std::endl;
 
     return Element::Pointer( new GeoStructuralBaseElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
 }
@@ -34,7 +34,7 @@ Element::Pointer GeoStructuralBaseElement<TDim,TNumNodes>::
             GeometryType::Pointer pGeom,
             PropertiesType::Pointer pProperties ) const
 {
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default Create method for a particular element ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the default Create method for a particular element ... illegal operation!!" << std::endl;
 
     return Element::Pointer( new GeoStructuralBaseElement( NewId, pGeom, pProperties ) );
 }
@@ -53,56 +53,59 @@ int GeoStructuralBaseElement<TDim,TNumNodes>::
     for ( unsigned int i = 0; i < TNumNodes; i++ )
     {
         if ( Geom[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", Geom[i].Id() )
+            KRATOS_ERROR << "missing variable DISPLACEMENT on node " << Geom[i].Id() << std::endl;
+
         if ( Geom[i].SolutionStepsDataHas( VELOCITY ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable VELOCITY on node ", Geom[i].Id() )
+            KRATOS_ERROR << "missing variable VELOCITY on node " << Geom[i].Id() << std::endl;
+
         if ( Geom[i].SolutionStepsDataHas( ACCELERATION ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable ACCELERATION on node ", Geom[i].Id() )
+            KRATOS_ERROR << "missing variable ACCELERATION on node " << Geom[i].Id() << std::endl;
+
         if ( Geom[i].SolutionStepsDataHas( ROTATION ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable ROTATION on node ", Geom[i].Id() )
+            KRATOS_ERROR << "missing variable ROTATION on node " << Geom[i].Id() << std::endl;
 
         if ( Geom[i].HasDofFor( DISPLACEMENT_X ) == false ||
              Geom[i].HasDofFor( DISPLACEMENT_Y ) == false ||
              Geom[i].HasDofFor( DISPLACEMENT_Z ) == false   )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", Geom[i].Id() )
+            KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node " << Geom[i].Id() << std::endl;
 
         if ( Geom[i].HasDofFor( ROTATION_X ) == false ||
              Geom[i].HasDofFor( ROTATION_Y ) == false ||
              Geom[i].HasDofFor( ROTATION_Z ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable ROTATION on node ", Geom[i].Id() )
+            KRATOS_ERROR << "missing one of the dofs for the variable ROTATION on node " << Geom[i].Id() << std::endl;
     }
 
     // Verify ProcessInfo variables
     // Verify properties
     if ( Prop.Has( DENSITY ) == false ||
          Prop[DENSITY] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero, is not defined or has an invalid value at element", this->Id() )
+        KRATOS_ERROR << "DENSITY has Key zero, is not defined or has an invalid value at element " << this->Id() << std::endl;
 
     if ( Prop.Has( YOUNG_MODULUS ) == false )
     {
         if ( Prop.Has( UDSM_NAME ) == false )
         {
-          KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero or is not defined at element", this->Id() )
+            KRATOS_ERROR << "YOUNG_MODULUS has Key zero or is not defined at element " << this->Id() << std::endl;
         }
     }
     else
     {
         if ( Prop[YOUNG_MODULUS] <= 0.0 )
-            KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has an invalid value at element", this->Id() )
+            KRATOS_ERROR << "YOUNG_MODULUS has an invalid value at element " << this->Id() << std::endl;
     }
 
     if ( Prop.Has( POISSON_RATIO ) == false )
     {
         if ( Prop.Has( UDSM_NAME ) == false )
         {
-            KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has Key zero or is not defined at element", this->Id() )
+            KRATOS_ERROR << "POISSON_RATIO has Key zero or is not defined at element" << this->Id() << std::endl;
         }
     }
     else
     {
         const double& PoissonRatio = Prop[POISSON_RATIO];
         if ( PoissonRatio < 0.0 || PoissonRatio >= 0.5 )
-            KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has an invalid value at element", this->Id() )
+            KRATOS_ERROR << "POISSON_RATIO has an invalid value at element" << this->Id() << std::endl;
     }
 
     // If this is a 2D problem, check that nodes are in XY plane
@@ -111,7 +114,7 @@ int GeoStructuralBaseElement<TDim,TNumNodes>::
         for (unsigned int i=0; i<TNumNodes; i++)
         {
             if (Geom[i].Z() != 0.0)
-                KRATOS_THROW_ERROR( std::logic_error," Node with non-zero Z coordinate found. Id: ", Geom[i].Id() )
+                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << Geom[i].Id() << std::endl;
         }
     }
 
@@ -194,7 +197,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     }
     else
     {
-        KRATOS_THROW_ERROR( std::logic_error," Unspecified dimension in GetDofList: ", this->Id() )
+        KRATOS_ERROR << " Unspecified dimension in GetDofList: " << this->Id() << std::endl;
     }
 
 
@@ -243,7 +246,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY;
 
-    KRATOS_THROW_ERROR(std::logic_error,"GeoStructuralBaseElement::CalculateLeftHandSide not implemented","");
+    KRATOS_ERROR << "GeoStructuralBaseElement::CalculateLeftHandSide not implemented, element: " << this->Id() << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -306,7 +309,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     }
     else
     {
-        KRATOS_THROW_ERROR( std::logic_error, "undefined dimension in EquationIdVector... illegal operation!!", this->Id() )
+        KRATOS_ERROR << "undefined dimension in EquationIdVector... illegal operation!! element: " << this->Id() << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -319,7 +322,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateMassMatrix method for a particular element ... illegal operation!!", this->Id() )
+    KRATOS_ERROR << "calling the default CalculateMassMatrix method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -500,7 +503,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateStiffnessMatrix method for a particular element ... illegal operation!!", this->Id() )
+    KRATOS_ERROR << "calling the default CalculateStiffnessMatrix method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -515,7 +518,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateAll method for a particular element ... illegal operation!!", this->Id() )
+    KRATOS_ERROR << "calling the default CalculateAll method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -528,7 +531,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateRHS method for a particular element ... illegal operation!!", this->Id() )
+    KRATOS_ERROR << "calling the default CalculateRHS method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -540,7 +543,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY;
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateCrossDirection method for a particular element ... illegal operation!!", this->Id() )
+    KRATOS_ERROR << "calling the default CalculateCrossDirection method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -640,7 +643,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     }
     else
     {
-        KRATOS_THROW_ERROR( std::logic_error," Unspecified dimension in GetDofList: ", this->Id() )
+        KRATOS_ERROR << " Unspecified dimension in GetDofList: " << this->Id() << std::endl;
     }
 }
 
@@ -648,7 +651,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 SizeType GeoStructuralBaseElement<TDim,TNumNodes>::GetNumberOfDOF() const
 {
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default GetNumberOfDOF method for a particular element ... illegal operation!!", this->Id() )
+    KRATOS_ERROR << "calling the default GetNumberOfDOF method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     SizeType N_DOF = 0;
     TDim == 2 ? N_DOF = 3 : N_DOF = 6;
@@ -661,7 +664,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 SizeType GeoStructuralBaseElement<TDim,TNumNodes>::GetVoigtSize() const
 {
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default GetVoigtSize method for a particular element ... illegal operation!!", this->Id() )
+    KRATOS_ERROR << "calling the default GetVoigtSize method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     unsigned int VoigtSize;
     TDim == 3 ? VoigtSize = VOIGT_SIZE_3D : VoigtSize = VOIGT_SIZE_2D_PLANE_STRESS;
@@ -719,9 +722,9 @@ SizeType GeoStructuralBaseElement<TDim,TNumNodes>::
     GetIntegrationPointsNumber() const
 {
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default GetIntegrationPointsNumber method for a particular element ... illegal operation!!", this->Id() )
+    KRATOS_ERROR << "calling the default GetIntegrationPointsNumber method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
-    return 0;    
+    return 0;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -189,6 +189,9 @@ template <class TContainerType>
 double CalculateArea(TContainerType& rContainer);
 
 template <int Dim, int NumNodes>
+void ComputePotentialJump(ModelPart& rWakeModelPart);
+
+template <int Dim, int NumNodes>
 void AddKuttaConditionPenaltyTerm(const Element& rElement,
                               Matrix& rLeftHandSideMatrix,
                               Vector& rRightHandSideVector,

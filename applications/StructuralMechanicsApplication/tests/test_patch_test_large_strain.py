@@ -48,7 +48,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.ProcessInfo[KratosMultiphysics.DELTA_TIME] = 1.0
         delta_time = mp.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         time = mp.ProcessInfo[KratosMultiphysics.TIME]
-        step =-buffer_size
+        step =-buffer_size + 1
         time = time - delta_time * buffer_size
         mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
         for i in range(0, buffer_size):
@@ -56,6 +56,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             time = time + delta_time
             mp.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
             mp.CloneTimeStep(time)
+        return delta_time
 
     def _ResetDisplacementAndPosition(self,mp):
         zero = KratosMultiphysics.Vector(3)
@@ -90,32 +91,32 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,u)
 
-    def _define_movement(self,dim):
+    def _define_movement(self,dim, coeff = 1.0):
         if(dim == 2):
             #define the applied motion - the idea is that the displacement is defined as u = A*xnode + b
             #so that the displcement is linear and the exact F = I + A
             A = KratosMultiphysics.Matrix(3,3)
-            A[0,0] =   0.10;  A[0,1] = 0.12; A[0,2] = 0.0
-            A[1,0] = - 0.05;  A[1,1] = 0.07; A[1,2] = 0.0
-            A[2,0] =   0.00;  A[2,1] = 0.0;  A[2,2] = 0.0
+            A[0,0] = coeff *   0.10;  A[0,1] = coeff * 0.12; A[0,2] = coeff * 0.0
+            A[1,0] = coeff * - 0.05;  A[1,1] = coeff * 0.07; A[1,2] = coeff * 0.0
+            A[2,0] = coeff *   0.00;  A[2,1] = coeff * 0.0;  A[2,2] = coeff * 0.0
 
             b = KratosMultiphysics.Vector(3)
-            b[0] =  0.05
-            b[1] = -0.02
-            b[2] =  0.00
+            b[0] = coeff *  0.05
+            b[1] = coeff * -0.02
+            b[2] = coeff *  0.00
 
         else:
             #define the applied motion - the idea is that the displacement is defined as u = A*xnode + b
             #so that the displcement is linear and the exact F = I + A
             A = KratosMultiphysics.Matrix(3,3)
-            A[0,0] =   0.10; A[0,1] = 0.12; A[0,2] = 0.0
-            A[1,0] = - 0.05; A[1,1] = 0.07; A[1,2] = 0.1
-            A[2,0] = - 0.02; A[2,1] = 0.0;  A[2,2] = -0.3
+            A[0,0] = coeff *   0.10; A[0,1] = coeff * 0.12; A[0,2] = coeff *  0.0
+            A[1,0] = coeff * - 0.05; A[1,1] = coeff * 0.07; A[1,2] = coeff *  0.1
+            A[2,0] = coeff * - 0.02; A[2,1] = coeff * 0.0;  A[2,2] = coeff * -0.3
 
             b = KratosMultiphysics.Vector(3)
-            b[0] =  0.05
-            b[1] = -0.02
-            b[2] =  0.07
+            b[0] = coeff *   0.05
+            b[1] = coeff * - 0.02
+            b[2] = coeff *   0.07
 
         return A,b
 
@@ -183,7 +184,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             self.assertAlmostEqual(d[1], u[1])
             self.assertAlmostEqual(d[2], u[2])
 
-    def _check_outputs(self,mp,A,dim):
+    def _check_outputs(self,mp,A,dim, tolerance = 1.0e-4):
 
         E = mp.GetProperties()[1].GetValue(KratosMultiphysics.YOUNG_MODULUS)
         NU =mp.GetProperties()[1].GetValue(KratosMultiphysics.POISSON_RATIO)
@@ -231,7 +232,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR, mp.ProcessInfo)
             for strain in out:
                 for i in range(len(reference_strain)):
-                    self.assertTrue((abs((reference_strain[i] - strain[i])/strain[i]) < 1.0e-4))
+                    check = abs((reference_strain[i] - strain[i])/strain[i])
+                    #print(reference_strain, "\t", strain, "\t", check)
+                    self.assertLess(check, tolerance)
 
         #finally compute stress
         if(dim == 2):
@@ -260,7 +263,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR, mp.ProcessInfo)
             for stress in out:
                 for i in range(len(reference_stress)):
-                    self.assertTrue((abs((reference_stress[i] - stress[i])/stress[i]) < 1.0e-4))
+                    check = abs((reference_stress[i] - stress[i])/stress[i])
+                    #print(reference_stress, "\t", stress, "\t", check)
+                    self.assertLess(check, tolerance)
 
     def _compare_TL_UL_2D_triangle(self, builder_and_type, linearize_on_old_iteration):
         dim = 2
@@ -752,32 +757,41 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.CreateNewElement("UpdatedLagrangianElement2D3N", 3, [3,4,5], mp.GetProperties()[1])
         mp.CreateNewElement("UpdatedLagrangianElement2D3N", 4, [4,1,5], mp.GetProperties()[1])
 
-        A,b = self._define_movement(dim)
-
-        self._set_buffer(mp)
+        dt = self._set_buffer(mp)
 
         self._ResetDisplacementAndPosition(mp)
-        self._apply_BCs(bcs,A,b)
-        self._solve(mp, builder_and_type, linearize_on_old_iteration)
-        self._check_results(mp,A,b)
-        self._check_outputs(mp,A,dim)
-        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
-        #self.__post_process(mp)
+
+        step = mp.ProcessInfo[KratosMultiphysics.STEP]
+        time = mp.ProcessInfo[KratosMultiphysics.TIME]
+        end_time = 1.0
+        while time <= end_time:
+            A,b = self._define_movement(dim, step * 0.05)
+            self._apply_BCs(bcs,A,b)
+            self._solve(mp, builder_and_type, linearize_on_old_iteration)
+            self._check_results(mp,A,b)
+            self._check_outputs(mp,A,dim, 5.0e-3)
+            self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations[step - 1])
+            #self.__post_process(mp)
+
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+            mp.ProcessInfo[KratosMultiphysics.STEP] = step
 
     def test_UL_2D_triangle_block(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = False
-        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,13 )
+        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,[5, 5] )
 
     def test_UL_2D_triangle_linearized_on_old_iteration(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = True
-        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,2 )
+        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,[2, 2])
 
     def test_UL_2D_triangle_elimination(self):
         builder_type = "elimination_builder"
         linearize_on_old_iteration = False
-        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,13 )
+        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,[5, 5] )
 
     def _UL_2D_quadrilateral(self, builder_and_type, linearize_on_old_iteration,expected_iterations):
         dim = 2
