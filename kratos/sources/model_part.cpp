@@ -59,6 +59,7 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
 /// Destructor.
 ModelPart::~ModelPart()
 {
+    // Question: Can we call the ModelPart::Clear() here as well?
     mpCommunicator->Clear();
 
     for(auto i_mesh = mMeshes.begin() ; i_mesh != mMeshes.end() ; i_mesh++)
@@ -71,16 +72,34 @@ ModelPart::~ModelPart()
 
 void ModelPart::Clear()
 {
-    // Wipe all of the submodelparts
+    KRATOS_TRY
+
+    // Call recursively clear of all submodel parts
+    for (auto& r_sub_model_part : mSubModelParts) {
+        r_sub_model_part.Clear();
+    }
+
+    // Clear sub model parts list
     mSubModelParts.clear();
+
+    // Clear meshes
+    for(auto& r_mesh : mMeshes) {
+        r_mesh.Clear();
+    }
+
+    // Clear meshes list
+    mMeshes.clear();
+
+    // Clear geometries
+    mGeometries.Clear();
+
     mTables.clear();
 
     mpCommunicator->Clear();
 
-    for(auto i_mesh = mMeshes.begin() ; i_mesh != mMeshes.end() ; i_mesh++)
-      i_mesh->Clear();
+    this->AssignFlags(Flags());
 
-    this->AssignFlags( Flags() ); 
+    KRATOS_CATCH("");
 }
 
 ModelPart::IndexType ModelPart::CreateSolutionStep()

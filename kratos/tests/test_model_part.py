@@ -60,9 +60,12 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfSubModelParts(), 0)
 
     def test_clear_model_part(self):
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
+        model_part.SetBufferSize(3)
+        model_part.ProcessInfo[KratosMultiphysics.PRESSURE] = 1.0
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         model_part.CreateSubModelPart("Inlets")
         model_part.CreateSubModelPart("Temp")
         out = model_part.CreateSubModelPart("Outlet")
@@ -78,7 +81,7 @@ class TestModelPart(KratosUnittest.TestCase):
         subsub1.CreateNewNode(3,3.0,0.0,0.0)
         subsub2.CreateNewNode(4,4.0,0.0,0.0)
         subout.CreateNewNode(5,5.0,0.0,0.0)
-        
+
 
         self.assertTrue(1 in model_part.Nodes)
         self.assertTrue(2 in model_part.Nodes)
@@ -110,10 +113,13 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertTrue(4 in subsub2.Nodes)
         self.assertFalse(5 in out.Nodes) #however node 5 does not belong any longer to the submodelpart out
         # self.assertTrue(5 in subout.Nodes) #cannot query this since subout does not exist any longer
+        self.assertEqual(out.GetBufferSize(), 3)
+        self.assertEqual(out.ProcessInfo[KratosMultiphysics.PRESSURE], 1.0)
+        self.assertTrue(out.HasNodalSolutionStepVariable(KratosMultiphysics.PRESSURE))
 
-        model_part.Set(SLAVE)
-        self.assertTrue(model_part.Is(SLAVE))
-        
+        model_part.Set(KratosMultiphysics.SLAVE)
+        self.assertTrue(model_part.Is(KratosMultiphysics.SLAVE))
+
         model_part.Clear()
 
         self.assertEqual(model_part.NumberOfSubModelParts(),0)
@@ -126,7 +132,7 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertFalse(4 in model_part.Nodes)
         self.assertFalse(5 in model_part.Nodes)
 
-        self.assertFalse(model_part.Is(SLAVE))
+        self.assertFalse(model_part.Is(KratosMultiphysics.SLAVE))
 
     def test_variables_list(self):
         current_model = KratosMultiphysics.Model()
