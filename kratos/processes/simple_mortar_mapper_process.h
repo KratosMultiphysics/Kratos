@@ -902,14 +902,14 @@ private:
 
     /**
      * @brief This method fills the database
-     * @param pGeometricalObject Pointer of a geometrical object
+     * @param rGeometricalObject Reference of a geometrical object
      * @param rTreePoints The search tree
      * @param AllocationSize The allocation size of the tree
      * @param SearchFactor The search factor of the tree
      */
     template<class TEntity>
     void FillDatabase(
-        typename TEntity::Pointer pGeometricalObject,
+        TEntity& rGeometricalObject,
         KDTreeType& rTreePoints,
         const SizeType AllocationSize,
         const double SearchFactor
@@ -918,7 +918,7 @@ private:
         // Initialize values
         PointVector points_found(AllocationSize);
 
-        GeometryType& r_geometry = pGeometricalObject->GetGeometry();
+        GeometryType& r_geometry = rGeometricalObject.GetGeometry();
         const Point center = r_geometry.Center();
 
         double radius = 0.0;
@@ -934,11 +934,11 @@ private:
 
         if (number_points_found > 0) {
             // In case of missing is created
-            if (!pGeometricalObject->Has(INDEX_SET))
-                pGeometricalObject->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
+            if (!rGeometricalObject.Has(INDEX_SET))
+                rGeometricalObject.SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
 
             // Accessing to the index set
-            IndexSet::Pointer indexes_set = pGeometricalObject->GetValue(INDEX_SET);
+            IndexSet::Pointer indexes_set = rGeometricalObject.GetValue(INDEX_SET);
 
             for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
                 auto p_geometrical_object_master = points_found[i_point]->GetGeometricalObject();

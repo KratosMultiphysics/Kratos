@@ -320,24 +320,14 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
         KDTreeType tree_points(point_list_destination.begin(), point_list_destination.end(), bucket_size);
 
         if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
-            auto& r_destination_conditions_array = mDestinationModelPart.Conditions();
-            const auto it_cond_begin = r_destination_conditions_array.begin();
-
             // Iterate over conditions
-            for(IndexType i = 0; i < r_destination_conditions_array.size(); ++i) {
-                auto it_cond = it_cond_begin + i;
-
-                FillDatabase<Condition>((*it_cond.base()), tree_points, allocation_size, search_factor);
+            for(auto& r_cond : mDestinationModelPart.Conditions()) {
+                FillDatabase<Condition>(r_cond, tree_points, allocation_size, search_factor);
             }
         } else {
-            auto& r_destination_elements_array = mDestinationModelPart.Elements();
-            const auto it_elem_begin = r_destination_elements_array.begin();
-
             // Iterate over elements
-            for(IndexType i = 0; i < r_destination_elements_array.size(); ++i) {
-                auto it_elem = it_elem_begin + i;
-
-                FillDatabase<Element>((*it_elem.base()), tree_points, allocation_size, search_factor);
+            for(auto& r_elem : mDestinationModelPart.Elements()) {
+                FillDatabase<Element>(r_elem, tree_points, allocation_size, search_factor);
             }
         }
     }
@@ -1092,10 +1082,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
 {
     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
         /* Conditions */
-        // First we clear database
-        auto& r_master_conditions_array = mOriginModelPart.Conditions();
-
-        block_for_each(r_master_conditions_array, [&](Condition& rCond){
+        block_for_each(mOriginModelPart.Conditions(), [&](Condition& rCond){
             if (!rCond.Has(INDEX_SET)) {
                 rCond.SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
             } else {
@@ -1104,10 +1091,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
         });
     } else {
         /* Elements */
-        // First we clear database
-        auto& r_master_elements_array = mOriginModelPart.Elements();
-
-        block_for_each(r_master_elements_array, [&](Element& rElem){
+        block_for_each(mOriginModelPart.Elements(), [&](Element& rElem){
             if (!rElem.Has(INDEX_SET)) {
                 rElem.SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
             } else {
@@ -1198,10 +1182,7 @@ template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumN
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::UpdateInterface()
 {
     if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
-        // Iterate in the conditions
-        auto& r_destination_conditions_array = mDestinationModelPart.Conditions();
-
-        block_for_each(r_destination_conditions_array, [&](Condition& rCond){
+        block_for_each(mDestinationModelPart.Conditions(), [&](Condition& rCond){
             // Reset the index set
             if (rCond.Has(INDEX_SET)) {
                 (rCond.GetValue(INDEX_SET))->clear();
@@ -1212,10 +1193,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Upda
             }
         });
     } else {
-        // Iterate in the elements
-        auto& r_destination_elements_array = mDestinationModelPart.Elements();
-
-        block_for_each(r_destination_elements_array, [&](Element& rElem){
+        block_for_each(mDestinationModelPart.Elements(), [&](Element& rElem){
             // Reset the index set
             if (rElem.Has(INDEX_SET)) {
                 (rElem.GetValue(INDEX_SET))->clear();
