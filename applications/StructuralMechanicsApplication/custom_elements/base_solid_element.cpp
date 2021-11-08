@@ -40,19 +40,19 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             switch ( integration_order )
             {
             case 1:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
                 break;
             case 2:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
                 break;
             case 3:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
                 break;
             case 4:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
                 break;
             case 5:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
                 break;
             default:
                 KRATOS_WARNING("BaseSolidElement") << "Integration order " << integration_order << " is not available, using default integration order for the geometry" << std::endl;

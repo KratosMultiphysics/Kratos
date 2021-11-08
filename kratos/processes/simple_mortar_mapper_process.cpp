@@ -637,15 +637,15 @@ IntegrationMethod SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodes
     const int integration_order = mThisParameters["integration_order"].GetInt();
     switch ( integration_order )
     {
-        case 1: return GeometryData::GI_GAUSS_1;
-        case 2: return GeometryData::GI_GAUSS_2;
-        case 3: return GeometryData::GI_GAUSS_3;
-        case 4: return GeometryData::GI_GAUSS_4;
-        case 5: return GeometryData::GI_GAUSS_5;
-        default: return GeometryData::GI_GAUSS_2;
+        case 1: return GeometryData::IntegrationMethod::GI_GAUSS_1;
+        case 2: return GeometryData::IntegrationMethod::GI_GAUSS_2;
+        case 3: return GeometryData::IntegrationMethod::GI_GAUSS_3;
+        case 4: return GeometryData::IntegrationMethod::GI_GAUSS_4;
+        case 5: return GeometryData::IntegrationMethod::GI_GAUSS_5;
+        default: return GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
 
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 /***********************************************************************************/
