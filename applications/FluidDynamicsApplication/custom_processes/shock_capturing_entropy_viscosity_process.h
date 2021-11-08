@@ -59,13 +59,13 @@ public:
 
     struct InfNormData
     {
-        double Entropy;
+        double EntropyResidual;
         double Density;
         double TotalVelocity;
     };
 
 
-    class ElementAreaComputer
+    class ElementVolumeComputer
     {
     public:
         void SetDimension(unsigned int Dimension)
@@ -84,6 +84,7 @@ public:
 
         double operator()(const Element& rElement) const
         {
+            KRATOS_DEBUG_ERROR_IF_NOT(mComputeImpl) << "Use SetDimension before attempting to use ElementVolumeComputer" << std::endl;
             return mComputeImpl(rElement.GetGeometry());
         }
 
@@ -91,7 +92,7 @@ public:
         static double ComputeGeometryVolume(const Geometry<NodeType>& rGeometry);
 
     private:
-        auto mComputeImpl = &ComputeGeometryVolume<2>;
+        decltype(ComputeGeometryVolume<2>) * mComputeImpl = nullptr;
     };
 
     /**
@@ -107,7 +108,11 @@ public:
         Vector TimeDerivative;
         Matrix Flux;
 
-        VariableTotalDerivativeUtil(
+        TotalDerivativeUtil()
+            : TotalDerivativeUtil(0, 0)
+        {}
+        
+        TotalDerivativeUtil(
             const std::size_t NumberOfDimensions,
             const std::size_t NumberOfNodes)
             : Value{NumberOfNodes, 0.0},
@@ -116,7 +121,7 @@ public:
         {
         }
 
-        LoadNodalValues(
+        void LoadNodalValues(
             const Variable<double>& rVariable,
             const NodeType& rNode,
             const std::size_t NodeIndex,
@@ -126,21 +131,21 @@ public:
             KRATOS_TRY
 
             const auto old_value = rNode.FastGetSolutionStepValue(rVariable, 1);
-            Value = rNode.FastGetSolutionStepValue(rVariable);
-            TimeDerivative[NodeIndex] = (Value - old_value) / DeltaTime;
-            column(Flux, i) = Value * Velocity;
+            Value[NodeIndex] = rNode.FastGetSolutionStepValue(rVariable);
+            TimeDerivative[NodeIndex] = (Value[NodeIndex] - old_value) / DeltaTime;
+            column(Flux, NodeIndex) = Value[NodeIndex] * Velocity;
 
             KRATOS_CATCH("")
         }
 
-        ComputeAtGaussPoint(
-            const Row<Matrix>& rShapeFunctions,
+        double ComputeAtGaussPoint(
+            const MatrixRow<const Matrix>& rShapeFunctions,
             const Matrix& rShapeFunctionsGradents) const
         {
             KRATOS_TRY
 
-            const double divergence = Divergence(rShapeFunctionsGradents, EntropyRD.Flux);
-            const double time_derivative = inner_prod(EntropyRD.TimeDerivative, rShapeFunctions);
+            const double divergence = Divergence(rShapeFunctionsGradents, Flux);
+            const double time_derivative = inner_prod(TimeDerivative, rShapeFunctions);
             return time_derivative + divergence;
 
             KRATOS_CATCH("") // Catching possible error in divergence computation
@@ -154,7 +159,7 @@ public:
          * @param rNodalValues Values of the magnitude at the nodes. [ndims x nnodes]
          * @return Result
          */
-        double Divergence(const Matrix& rShapeFunGradients, const Matrix& rNodalValues);
+        static double Divergence(const Matrix& rShapeFunGradients, const Matrix& rNodalValues);
     };
     
 
@@ -174,9 +179,7 @@ public:
     /// Constructor with model part
     ShockCapturingEntropyViscosityProcess(
         ModelPart& rModelPart,
-        Parameters rParameters)
-        : Process()
-        , mrModelPart(rModelPart);
+        Parameters rParameters);
 
     ///@}
     ///@name Operators
@@ -265,8 +268,13 @@ private:
      */
     void ComputeNodalEntropies();
 
-
     void ComputeArtificialMagnitudes();
+
+    void DistributeVariablesToNodes(
+        Element& rElement,
+        const double ArtificialDynamicViscosity,
+        const double ArtificialBulkViscosity,
+        const double ArtificialConductivity) const;
     
     static double ComputeEntropy(const double Density, const double Pressure, const double Gamma);
     
@@ -306,9 +314,10 @@ private:
      *  
      */
     static InfNormData ComputeInfNorms(
-        const TotalDerivativeUtil& EntropyTotalDerivative,
-        const TotalDerivativeUtil& DensityTotalDerivative,
-        const Vector& TotalVelocities);
+        const Geometry<NodeType>& rGeometry,
+        const TotalDerivativeUtil& rEntropyTotalDerivative,
+        const TotalDerivativeUtil& rDensityTotalDerivative,
+        const Vector& rTotalVelocities);
 
 
 

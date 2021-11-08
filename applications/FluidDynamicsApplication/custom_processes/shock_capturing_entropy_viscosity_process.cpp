@@ -34,7 +34,7 @@ ShockCapturingEntropyViscosityProcess::ShockCapturingEntropyViscosityProcess(
 
 
 
-const Parameters ElementAreaComputer::GetDefaultParameters() const
+const Parameters ShockCapturingEntropyViscosityProcess::GetDefaultParameters() const
 {
     return Parameters(R"(
     {
@@ -50,20 +50,22 @@ const Parameters ElementAreaComputer::GetDefaultParameters() const
 
 
 template<>
-static double ElementAreaComputer::ComputeGeometryVolume<3>(const Geometry<NodeType>& rGeometry)
+double ShockCapturingEntropyViscosityProcess::ElementVolumeComputer::ComputeGeometryVolume<3>(
+    const Geometry<NodeType>& rGeometry)
 {
     return rGeometry.Area();
 }
 
 
 template<>
-static double ElementAreaComputer::ComputeGeometryVolume<3>(const Geometry<NodeType>& rGeometry)
+double ShockCapturingEntropyViscosityProcess::ElementVolumeComputer::ComputeGeometryVolume<3>(
+    const Geometry<NodeType>& rGeometry)
 {
     return rGeometry.Volume();
 }
 
 
-double ShockCapturingEntropyViscosityProcess::ResidualData::
+double ShockCapturingEntropyViscosityProcess::TotalDerivativeUtil::
 Divergence(const Matrix& rShapeFunGradients, const Matrix& rNodalValues)
 {
     KRATOS_TRY
@@ -103,15 +105,14 @@ void ShockCapturingEntropyViscosityProcess::ExecuteFinalizeSolutionStep()
     }
 
     ComputeNodalEntropies();
-    ComputeElementalArtificialMagnitudes();
-    ProjectArtificialMagnitudesToNodes();
+    ComputeArtificialMagnitudes();
 }
 
 
 void ShockCapturingEntropyViscosityProcess::UpdateMeshDependentData()
 {
-    const auto domain_size = mrModelPart.GetProcessInfo.GetValue(DOMAIN_SIZE);
-    mElementVolumeCalculator.SetDimension(domain_size);
+    const auto domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
+    mElementVolumeComputer.SetDimension(domain_size);
     CalculateNodalAreaProcess<false> nodal_area_process(mrModelPart, domain_size);
     nodal_area_process.Execute();
 }
@@ -130,7 +131,7 @@ void ShockCapturingEntropyViscosityProcess::ComputeNodalEntropies()
         r_node.FastGetSolutionStepValue(ENTROPY) = entropy;
 
         r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);
-        r_node.SetValue(ARTIFFICIAL_CONDUCTIVITY, 0.0);
+        r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
         r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);
     });
 }
@@ -147,26 +148,26 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
         const auto inf_norm = ComputeElementalInfNormData(r_element, delta_time, heat_capacity_ratio);
         const double h2 = ComputeHSquared(r_element);
 
-        const double mu_e = mTunableConstant * h2 * inf_norm.Density * inf_norm.Residual;
+        const double mu_e = mTunableConstant * h2 * inf_norm.Density * inf_norm.EntropyResidual;
         const double mu_max = mTunableConstantMax * std::sqrt(h2) * inf_norm.Density * inf_norm.TotalVelocity;
 
         const double mu_h = std::min(mu_e, mu_max);
         const double mu_bulk = mArtificialBulkViscosityPrandtl * mu_h / inf_norm.Density;
         const double kappa = mArtificialConductivityPrandtl * mu_h / (heat_capacity_ratio - 1.0);
 
-        DistributeVariablesToNodes(mu_h, mu_bulk, kappa);
+        DistributeVariablesToNodes(r_element, mu_h, mu_bulk, kappa);
     });
 
     KRATOS_CATCH("")
 }
 
-void DistributeVariablesToNodes(
-    const Element& rElement,
+void ShockCapturingEntropyViscosityProcess::DistributeVariablesToNodes(
+    Element& rElement,
     const double ArtificialDynamicViscosity,
     const double ArtificialBulkViscosity,
-    const double ArtificialConductivity)
+    const double ArtificialConductivity) const
 {
-    const auto& r_geometry = rElement.GetGeometry();
+    auto& r_geometry = rElement.GetGeometry();
     const double element_volume = mElementVolumeComputer(rElement);
     
     for(unsigned int i=0; i<r_geometry.size(); ++i)
@@ -176,8 +177,8 @@ void DistributeVariablesToNodes(
         r_node.SetLock();
         r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) += weight * ArtificialDynamicViscosity;
         r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY) += weight * ArtificialBulkViscosity;
-        r_node.GetValue(ARTIFFICIAL_CONDUCTIVITY) += weight * ArtificialConductivity;
-        r_node.UnsetLock();
+        r_node.GetValue(ARTIFICIAL_CONDUCTIVITY) += weight * ArtificialConductivity;
+        r_node.UnSetLock();
     }
 }
 
@@ -208,17 +209,17 @@ double ShockCapturingEntropyViscosityProcess::ComputeHSquared(const Element& rEl
 }
 
 
-InfNormData ShockCapturingEntropyViscosityProcess::ComputeElementalInfNormData(
+ShockCapturingEntropyViscosityProcess::InfNormData ShockCapturingEntropyViscosityProcess::ComputeElementalInfNormData(
     const Element& rElement,
     const double DeltaTime,
-    const double HeatCapacityRatio) const
+    const double HeatCapacityRatio)
 {
     TotalDerivativeUtil entropy_td;
     TotalDerivativeUtil density_td;
     Vector total_velocities;
 
     std::tie(entropy_td, density_td, total_velocities) = BuildTotalDerivativeUtils(rElement, DeltaTime, HeatCapacityRatio);
-    return ComputeInfNorms(entropy_td, density_td, total_velocities);
+    return ComputeInfNorms(rElement.GetGeometry(), entropy_td, density_td, total_velocities);
 }
 
 std::tuple<ShockCapturingEntropyViscosityProcess::TotalDerivativeUtil, ShockCapturingEntropyViscosityProcess::TotalDerivativeUtil, Vector>
@@ -231,11 +232,12 @@ ShockCapturingEntropyViscosityProcess::BuildTotalDerivativeUtils(const Element& 
     // Loading nodal values
     TotalDerivativeUtil entropy_total_derivative(r_geometry.size(), r_geometry.LocalSpaceDimension());
     TotalDerivativeUtil density_total_derivative(r_geometry.size(), r_geometry.LocalSpaceDimension());
+    Vector total_velocities(r_geometry.size(), 0.0);
 
     for(unsigned int i=0; i<r_geometry.size(); ++i)
     {
         const auto velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY);
-        const auto temperature = r_geometry[i].FastGetSolutionStepValue(VELOCITY);
+        const auto temperature = r_geometry[i].FastGetSolutionStepValue(TEMPERATURE);
         
         total_velocities[i] = norm_2(velocity) + std::sqrt(HeatCapacityRatio * temperature);
 
@@ -255,19 +257,19 @@ ShockCapturingEntropyViscosityProcess::BuildTotalDerivativeUtils(const Element& 
 
 
 ShockCapturingEntropyViscosityProcess::InfNormData ShockCapturingEntropyViscosityProcess::ComputeInfNorms(
-    const TotalDerivativeUtil& EntropyTotalDerivative,
-    const TotalDerivativeUtil& DensityTotalDerivative
-    const Vector& TotalVelocities
-    )
+    const Geometry<NodeType>& rGeometry,
+    const TotalDerivativeUtil& rEntropyTotalDerivative,
+    const TotalDerivativeUtil& rDensityTotalDerivative,
+    const Vector& rTotalVelocities)
 {
     KRATOS_TRY
 
     constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
-    const auto n_gauss_points = r_geometry.IntegrationPointsNumber(integration_method);
+    const auto n_gauss_points = rGeometry.IntegrationPointsNumber(integration_method);
     
-    const auto& r_shape_functions = r_geometry.ShapeFunctionsValues(integration_method);
+    const auto& r_shape_functions = rGeometry.ShapeFunctionsValues(integration_method);
     GeometryData::ShapeFunctionsGradientsType r_shape_functions_gradients;
-    r_geometry.ShapeFunctionsIntegrationPointsGradients(r_shape_functions_gradients, integration_method);
+    rGeometry.ShapeFunctionsIntegrationPointsGradients(r_shape_functions_gradients, integration_method);
 
     double max_residual = 0.0;  // max(Dh1, Dh2) in the paper
     double max_density = 0.0;
@@ -278,16 +280,18 @@ ShockCapturingEntropyViscosityProcess::InfNormData ShockCapturingEntropyViscosit
         const auto N = row(r_shape_functions, g);
         const auto& G = r_shape_functions_gradients[g];
 
-        const double entropy_residual = EntropyTotalDerivative.ComputeAtGaussPoint(N, G);
-        const double density_residual = DensityTotalDerivative.ComputeAtGaussPoint(N, G);
+        const double entropy_residual = rEntropyTotalDerivative.ComputeAtGaussPoint(N, G);
+        const double density_residual = rDensityTotalDerivative.ComputeAtGaussPoint(N, G);
 
-        const double specific_entropy_residual = inner_prod(EntropyTotalDerivative.Value, N) * density_residual;
+        const double specific_entropy_residual = inner_prod(rEntropyTotalDerivative.Value, N) * density_residual;
 
         const double max_gp_residual = std::max(entropy_residual, specific_entropy_residual);
+        const double density = inner_prod(rDensityTotalDerivative.Value, N);
+        const double total_velocity = inner_prod(rTotalVelocities, N);
         
         max_residual =  std::max(max_residual, max_gp_residual);
-        max_density = std::max(max_density, DensityTotalDerivative.Value);
-        max_total_velocity = std::max(max_total_velocity, TotalVelocities[i])
+        max_density = std::max(max_density, density);
+        max_total_velocity = std::max(max_total_velocity, total_velocity);
     }
 
     return {max_residual, max_density, max_total_velocity};
