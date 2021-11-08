@@ -21,7 +21,7 @@
 #include "includes/model_part.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/parallel_utilities.h"
-#include "utilities/parallel_levelset_distance_calculator.h"
+#include "utilities/parallel_distance_calculator.h"
 
 namespace Kratos
 {

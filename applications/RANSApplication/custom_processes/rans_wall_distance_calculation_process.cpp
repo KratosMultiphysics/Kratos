@@ -21,7 +21,7 @@
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
-#include "utilities/parallel_levelset_distance_calculator.h"
+#include "utilities/parallel_distance_calculator.h"
 #include "utilities/variable_utils.h"
 
 // Application includes

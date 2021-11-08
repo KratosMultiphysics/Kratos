@@ -26,7 +26,7 @@
 #include "utilities/body_normal_calculation_utils.h"
 #include "utilities/body_distance_calculation_utils.h"
 #include "utilities/signed_distance_calculation_utils.h"
-#include "utilities/parallel_levelset_distance_calculator.h"
+#include "utilities/parallel_distance_calculator.h"
 #include "utilities/brute_force_point_locator.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"

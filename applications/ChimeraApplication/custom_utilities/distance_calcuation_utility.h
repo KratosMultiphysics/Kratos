@@ -21,7 +21,7 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/variational_distance_calculation_process.h"
-#include "utilities/parallel_levelset_distance_calculator.h"
+#include "utilities/parallel_distance_calculator.h"
 #include "processes/calculate_distance_to_skin_process.h"
 #include "utilities/variable_utils.h"
 
@@ -132,5 +132,3 @@ public:
 }  // namespace Kratos.
 
 #endif // DISTANCE_CALCULATION_UTILITY  defined
-
-
