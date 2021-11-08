@@ -621,4 +621,7 @@ void ParallelDistanceCalculator<TDim>::AssignDistanceSign(
     KRATOS_CATCH("")
 }
 
+template class ParallelDistanceCalculator<2>;
+template class ParallelDistanceCalculator<3>;
+
 }  // namespace Kratos.
