@@ -349,11 +349,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::ResetNodalArea()
 {
-    // Iterating over nodes
-    auto& r_nodes_array = mDestinationModelPart.Nodes();
-
     // We set to zero
-    VariableUtils().SetHistoricalVariableToZero(NODAL_AREA, r_nodes_array);
+    VariableUtils().SetNonHistoricalVariableToZero(NODAL_AREA, mDestinationModelPart.Nodes());
 }
 
 /***********************************************************************************/
