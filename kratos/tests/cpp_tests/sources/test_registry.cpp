@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <numeric>
 
 // External includes
 
@@ -139,6 +140,75 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryAddAndRemove, KratosCoreFastSuite)
     Registry::RemoveItem("path.to.the.registry.new_item");
     KRATOS_CHECK_IS_FALSE(Registry::HasItem("item_in_root"));
     KRATOS_CHECK_IS_FALSE(Registry::HasItem("path.to.the.registry.new_item"));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RegistryParallelAddAndRemove, KratosCoreFastSuite)
+{
+    std::size_t size = 1000;
+
+    IndexPartition<int>(size).for_each(
+        [&](int i){
+                std::string item_name = "item_" + std::to_string(i);
+                KRATOS_CHECK_IS_FALSE(Registry::HasItem(item_name));
+            }
+        );
+
+    IndexPartition<int>(size).for_each(
+        [&](int i){
+                std::string item_name = "item_" + std::to_string(i);
+                Registry::AddItem<RegistryItem>(item_name);
+                KRATOS_CHECK(Registry::HasItem(item_name));
+                auto& item = Registry::GetItem(item_name);    
+                KRATOS_CHECK_STRING_EQUAL(item.Name(),item_name);
+            }
+        );
+
+    IndexPartition<int>(size).for_each(
+        [&](int i){
+                std::string item_name = "item_" + std::to_string(i);
+                KRATOS_CHECK(Registry::HasItem(item_name));
+                auto& item = Registry::GetItem(item_name);    
+                KRATOS_CHECK_STRING_EQUAL(item.Name(),item_name);
+            }
+        );
+
+    IndexPartition<int>(size).for_each(
+        [&](int i){
+                std::string item_name = "item_" + std::to_string(i);
+                std::string item_path = std::string("path.to.the.registry.new_item.") + item_name;
+                Registry::AddItem<RegistryItem>(item_path);
+                KRATOS_CHECK(Registry::HasItem(item_path));
+                auto& item = Registry::GetItem(item_path);    
+                KRATOS_CHECK_STRING_EQUAL(item.Name(),item_name);
+            }
+        );
+
+    IndexPartition<int>(size).for_each(
+        [&](int i){
+                std::string item_name = "item_" + std::to_string(i);
+                std::string item_path = std::string("path.to.the.registry.new_item.") + item_name;
+                KRATOS_CHECK(Registry::HasItem(item_path));
+                auto& item = Registry::GetItem(item_path);    
+                KRATOS_CHECK_STRING_EQUAL(item.Name(),item_name);
+            }
+        );
+
+    IndexPartition<int>(size).for_each(
+        [&](int i){
+                std::string item_name = "item_" + std::to_string(i);
+                Registry::RemoveItem(item_name);
+                KRATOS_CHECK_IS_FALSE(Registry::HasItem(item_name));
+            }
+        );
+
+    IndexPartition<int>(size).for_each(
+        [&](int i){
+                std::string item_name = std::string("path.to.the.registry.new_item.item_") + std::to_string(i);
+                Registry::RemoveItem(item_name);
+                KRATOS_CHECK_IS_FALSE(Registry::HasItem(item_name));
+            }
+        );
+
 }
 
 // KRATOS_TEST_CASE_IN_SUITE(KratosComponentsGetNonExistingElement, KratosCoreFastSuite)
