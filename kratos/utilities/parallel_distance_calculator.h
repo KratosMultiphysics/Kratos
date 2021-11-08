@@ -74,6 +74,9 @@ public:
     /// Default constructor.
     ParallelDistanceCalculator() {};
 
+    /// Copy constructor.
+    ParallelDistanceCalculator(ParallelDistanceCalculator<TDim> const& rOther) = delete;
+
     /// Destructor.
     virtual ~ParallelDistanceCalculator() {};
 
@@ -290,15 +293,8 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    ParallelDistanceCalculator<TDim>& operator=(ParallelDistanceCalculator<TDim> const& rOther) {};
-
-    /// Copy constructor.
-    ParallelDistanceCalculator(ParallelDistanceCalculator<TDim> const& rOther) {};
-
 
     ///@}
-
 }; // Class ParallelDistanceCalculator
 
 ///@}
