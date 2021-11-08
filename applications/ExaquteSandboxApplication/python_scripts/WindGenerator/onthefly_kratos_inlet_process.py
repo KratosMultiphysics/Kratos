@@ -481,16 +481,15 @@ class ImposeMPIWindInletProcess(ImposeWindInletProcess):
             node.Fix(KratosMultiphysics.VELOCITY_Y)
             node.Fix(KratosMultiphysics.VELOCITY_Z)
 
-    def ExecuteInitializeSolutionStep(self):
-        if self.data_comm.Rank() == 0:
-            super().ExecuteInitializeSolutionStep()
-        # map from current model part of interest to reference model part
         mapping_parameters = KratosMultiphysics.Parameters("""{
             "mapper_type": "nearest_element",
             "echo_level" : 0
             }""")
-        mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMPIMapper(self.model_part, self.mpi_model_part,mapping_parameters)
-        mapper.Map(KratosMultiphysics.VELOCITY, \
+        self.mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMPIMapper(self.model_part, self.mpi_model_part,mapping_parameters)
+
+    def ExecuteInitializeSolutionStep(self):
+        if self.data_comm.Rank() == 0:
+            super().ExecuteInitializeSolutionStep()
+        # map from current model part of interest to reference model part
+        self.mapper.Map(KratosMultiphysics.VELOCITY, \
             KratosMultiphysics.VELOCITY)
-        self.mpi_model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.VELOCITY)
-        self.mpi_model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.PRESSURE)
