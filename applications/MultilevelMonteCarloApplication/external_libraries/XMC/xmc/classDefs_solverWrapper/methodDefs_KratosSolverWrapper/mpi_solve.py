@@ -525,7 +525,7 @@ def executeInstanceDeterministicAdaptiveRefinementAuxLev2_Task(pickled_model,pic
 # @task(keep=True, filename=FILE_OUT, pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_0)
 @constraint(computing_units=computing_units_mlmc_execute_0)
 @mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0, processes_per_node=ppn_mlmc_execute_0, pickled_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1}, pickled_mapping_reference_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1})
-@task(keep=True, filename=FILE_OUT, pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_0)
+@task(keep=True, pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_0)
 def executeInstanceReadingFromFileAuxLev0_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     # Import Kratos
     import KratosMultiphysics
