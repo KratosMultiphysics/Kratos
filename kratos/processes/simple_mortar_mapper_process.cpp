@@ -889,24 +889,19 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             }
         }
 
-        auto& r_nodes_array = mDestinationModelPart.Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
-
         // We compute the residual norm
         for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
             residual_norm[i_size] = 0.0;
         }
 
-        IndexPartition<std::size_t>(r_nodes_array.size()).for_each([&](std::size_t Index){
-            auto it_node = it_node_begin + Index;
-            NodeType::Pointer pnode = *(it_node.base());
+        block_for_each(mDestinationModelPart.Nodes(), [&](NodeType& rNode) {
             if(mOptions.Is(DESTINATION_IS_HISTORICAL)) {
-                MortarUtilities::AddAreaWeightedNodalValue<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(pnode, *mpDestinationVariable, ref_area);
+                MortarUtilities::AddAreaWeightedNodalValue<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(rNode, *mpDestinationVariable, ref_area);
             } else {
-                MortarUtilities::AddAreaWeightedNodalValue<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(pnode, *mpDestinationVariable, ref_area);
+                MortarUtilities::AddAreaWeightedNodalValue<TVarType, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(rNode, *mpDestinationVariable, ref_area);
             }
             for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
-                const double value = MortarUtilities::GetAuxiliarValue<TVarType>(pnode, i_size);
+                const double value = MortarUtilities::GetAuxiliarValue<TVarType>(rNode, i_size);
                 AtomicAdd(residual_norm[i_size], std::pow(value, 2));
             }
         });
