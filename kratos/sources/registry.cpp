@@ -28,6 +28,7 @@ namespace {
     RegistryItem* Registry::mspRootRegistryItem = nullptr;
 
     RegistryItem& Registry::GetItem(std::string const& ItemFullName){
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
         auto item_path = SplitFullName(ItemFullName);
         
         RegistryItem* p_current_item = &GetRootRegistryItem();
@@ -46,6 +47,7 @@ namespace {
     }
 
     void Registry::RemoveItem(std::string const& ItemFullName){
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
         auto item_path = SplitFullName(ItemFullName);
         
         RegistryItem* p_current_item = &GetRootRegistryItem();
@@ -70,6 +72,7 @@ namespace {
     }
 
     bool Registry::HasItem(std::string const& ItemFullName){
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
         auto item_path = SplitFullName(ItemFullName);
         
         RegistryItem* p_current_item = &GetRootRegistryItem();

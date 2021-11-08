@@ -25,6 +25,8 @@
 // Project includes
 #include "includes/registry_item.h"
 #include "includes/registry_value_item.h"
+#include "utilities/parallel_utilities.h"
+
 
 
 namespace Kratos
@@ -86,6 +88,7 @@ public:
     template< typename TItemType, class... TArgumentsList >
     static RegistryItem& AddItem(std::string const& ItemFullName, TArgumentsList&&... Arguments){
 
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
         auto item_path = SplitFullName(ItemFullName);
 
         RegistryItem* p_current_item = &GetRootRegistryItem();
