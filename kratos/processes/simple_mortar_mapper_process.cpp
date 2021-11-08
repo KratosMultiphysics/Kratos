@@ -813,11 +813,6 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     // We get the reference area
     const double ref_area = GetReferenceArea();
 
-    struct TLS {
-        MortarKinematicVariablesType this_kinematic_variables;    // Create and initialize condition variables:
-        MortarOperatorType this_mortar_operators;                 // Create the mortar operators
-        ExactMortarIntegrationUtilityType integration_utility;    // We call the exact integration utility
-    };
     TLS tls;
     tls.integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold, 0, zero_tolerance_factor, mOptions.Is(CONSIDER_TESELLATION));
 
@@ -990,11 +985,6 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     std::vector<double> norm_Dx0(variable_size, 0.0);
     VectorType Dx(system_size);
 
-    struct TLS {
-        MortarKinematicVariablesType this_kinematic_variables;    // Create and initialize condition variables:
-        MortarOperatorType this_mortar_operators;                 // Create the mortar operators
-        ExactMortarIntegrationUtilityType integration_utility;    // We call the exact integration utility
-    };
     TLS tls;
     tls.integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold, 0, zero_tolerance_factor, mOptions.Is(CONSIDER_TESELLATION));
 

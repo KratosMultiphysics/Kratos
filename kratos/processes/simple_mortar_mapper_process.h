@@ -275,6 +275,13 @@ public:
     typedef DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>          DualLagrangeMultiplierOperatorsType;
     typedef ExactMortarIntegrationUtility<TDim, TNumNodes, false, TNumNodesMaster> ExactMortarIntegrationUtilityType;
 
+    /// Auxiliar struct for mapping
+    struct TLS {
+        MortarKinematicVariablesType this_kinematic_variables;    // Create and initialize condition variables:
+        MortarOperatorType this_mortar_operators;                 // Create the mortar operators
+        ExactMortarIntegrationUtilityType integration_utility;    // We call the exact integration utility
+    };
+
     ///@}
     ///@name Life Cycle
     ///@{
