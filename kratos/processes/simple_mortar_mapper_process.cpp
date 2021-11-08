@@ -826,37 +826,25 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
 
     // We clear unused conditions before compute
     if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
-        // Iterate over conditions
-        auto& r_conditions_array = mDestinationModelPart.Conditions();
-        const int num_conditions = static_cast<int>(r_conditions_array.size());
-        const auto it_cond_begin = r_conditions_array.begin();
-
         // We map the values from one side to the other
-        IndexPartition<std::size_t>(num_conditions).for_each(tls, [&](std::size_t Index, TLS& rTLS){
-            auto it_cond = it_cond_begin + Index;
-            if (it_cond->Has( INDEX_SET )) {
-                IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
-                ClearIndexes<IndexSet>(p_indexes_pairs, (*it_cond.base()), rTLS.integration_utility);
+        block_for_each(mDestinationModelPart.Conditions(), tls, [&](Condition& rCond, TLS& rTLS) {
+            if (rCond.Has( INDEX_SET )) {
+                IndexSet::Pointer p_indexes_pairs = rCond.GetValue( INDEX_SET ); // These are the master conditions
+                ClearIndexes<IndexSet>(p_indexes_pairs, rCond, rTLS.integration_utility);
             } else {
-                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
-                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_cond.base()), rTLS.integration_utility);
+                IndexMap::Pointer p_indexes_pairs = rCond.GetValue( INDEX_MAP ); // These are the master conditions
+                ClearIndexes<IndexMap>(p_indexes_pairs, rCond, rTLS.integration_utility);
             }
         });
     } else {
-        // Iterate over elements
-        auto& r_elements_array = mDestinationModelPart.Elements();
-        const int num_elements = static_cast<int>(r_elements_array.size());
-        const auto it_elem_begin = r_elements_array.begin();
-
         // We map the values from one side to the other
-        IndexPartition<std::size_t>(num_elements).for_each(tls, [&](std::size_t Index, TLS& rTLS){
-            auto it_elem = it_elem_begin + Index;
-            if (it_elem->Has( INDEX_SET )) {
-                IndexSet::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_SET ); // These are the master elements
-                ClearIndexes<IndexSet>(p_indexes_pairs, (*it_elem.base()), rTLS.integration_utility);
+        block_for_each(mDestinationModelPart.Elements(), tls, [&](Element& rElem, TLS& rTLS) {
+            if (rElem.Has( INDEX_SET )) {
+                IndexSet::Pointer p_indexes_pairs = rElem.GetValue( INDEX_SET ); // These are the master elements
+                ClearIndexes<IndexSet>(p_indexes_pairs, rElem, rTLS.integration_utility);
             } else {
-                IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
-                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_elem.base()), rTLS.integration_utility);
+                IndexMap::Pointer p_indexes_pairs = rElem.GetValue( INDEX_MAP ); // These are the master elements
+                ClearIndexes<IndexMap>(p_indexes_pairs, rElem, rTLS.integration_utility);
             }
         });
     }
@@ -873,37 +861,25 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         MortarUtilities::ResetAuxiliarValue<TVarType>(mDestinationModelPart);
 
         if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
-            // Iterate over conditions
-            auto& r_conditions_array = mDestinationModelPart.Conditions();
-            const int num_conditions = static_cast<int>(r_conditions_array.size());
-            const auto it_cond_begin = r_conditions_array.begin();
-
             // We map the values from one side to the other
-            IndexPartition<std::size_t>(num_conditions).for_each(tls, [&](std::size_t Index, TLS& rTLS){
-                auto it_cond = it_cond_begin + Index;
-                if (it_cond->Has( INDEX_SET )) {
-                    IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
-                    PerformMortarOperations<IndexSet>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
+            block_for_each(mDestinationModelPart.Conditions(), tls, [&](Condition& rCond, TLS& rTLS) {
+                if (rCond.Has( INDEX_SET )) {
+                    IndexSet::Pointer p_indexes_pairs = rCond.GetValue( INDEX_SET ); // These are the master conditions
+                    PerformMortarOperations<IndexSet>(A, b, inverse_conectivity_database, p_indexes_pairs, rCond, rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
                 } else {
-                    IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
-                    PerformMortarOperations<IndexMap>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
+                    IndexMap::Pointer p_indexes_pairs = rCond.GetValue( INDEX_MAP ); // These are the master conditions
+                    PerformMortarOperations<IndexMap>(A, b, inverse_conectivity_database, p_indexes_pairs, rCond, rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
                 }
             });
         } else {
-            // Iterate over elements
-            auto& r_elements_array = mDestinationModelPart.Elements();
-            const int num_elements = static_cast<int>(r_elements_array.size());
-            const auto it_elem_begin = r_elements_array.begin();
-
             // We map the values from one side to the other
-            IndexPartition<std::size_t>(num_elements).for_each(tls, [&](std::size_t Index, TLS& rTLS){
-                auto it_elem = it_elem_begin + Index;
-                if (it_elem->Has( INDEX_SET )) {
-                    IndexSet::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_SET ); // These are the master elements
-                    PerformMortarOperations<IndexSet>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
+            block_for_each(mDestinationModelPart.Elements(), tls, [&](Element& rElem, TLS& rTLS) {
+                if (rElem.Has( INDEX_SET )) {
+                    IndexSet::Pointer p_indexes_pairs = rElem.GetValue( INDEX_SET ); // These are the master elements
+                    PerformMortarOperations<IndexSet>(A, b, inverse_conectivity_database, p_indexes_pairs, rElem, rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
                 } else {
-                    IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
-                    PerformMortarOperations<IndexMap>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
+                    IndexMap::Pointer p_indexes_pairs = rElem.GetValue( INDEX_MAP ); // These are the master elements
+                    PerformMortarOperations<IndexMap>(A, b, inverse_conectivity_database, p_indexes_pairs, rElem, rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
                 }
             });
         }
@@ -1027,37 +1003,25 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
 
     // We clear unused conditions before compute
     if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
-        // Iterate over conditions
-        auto& r_conditions_array = mDestinationModelPart.Conditions();
-        const int num_conditions = static_cast<int>(r_conditions_array.size());
-        const auto it_cond_begin = r_conditions_array.begin();
-
         // We map the values from one side to the other
-        IndexPartition<std::size_t>(num_conditions).for_each(tls, [&](std::size_t Index, TLS& rTLS){
-            auto it_cond = it_cond_begin + Index;
-            if (it_cond->Has( INDEX_SET )) {
-                IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
-                ClearIndexes<IndexSet>(p_indexes_pairs, (*it_cond.base()), rTLS.integration_utility);
+        block_for_each(mDestinationModelPart.Conditions(), tls, [&](Condition& rCond, TLS& rTLS) {
+            if (rCond.Has( INDEX_SET )) {
+                IndexSet::Pointer p_indexes_pairs = rCond.GetValue( INDEX_SET ); // These are the master conditions
+                ClearIndexes<IndexSet>(p_indexes_pairs, rCond, rTLS.integration_utility);
             } else {
-                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
-                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_cond.base()), rTLS.integration_utility);
+                IndexMap::Pointer p_indexes_pairs = rCond.GetValue( INDEX_MAP ); // These are the master conditions
+                ClearIndexes<IndexMap>(p_indexes_pairs, rCond, rTLS.integration_utility);
             }
         });
     } else {
-        // Iterate over elements
-        auto& r_elements_array = mDestinationModelPart.Elements();
-        const int num_elements = static_cast<int>(r_elements_array.size());
-        const auto it_elem_begin = r_elements_array.begin();
-
         // We map the values from one side to the other
-        IndexPartition<std::size_t>(num_elements).for_each(tls, [&](std::size_t Index, TLS& rTLS){
-            auto it_elem = it_elem_begin + Index;
-            if (it_elem->Has( INDEX_SET )) {
-                IndexSet::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_SET ); // These are the master elements
-                ClearIndexes<IndexSet>(p_indexes_pairs, (*it_elem.base()), rTLS.integration_utility);
+        block_for_each(mDestinationModelPart.Elements(), tls, [&](Element& rElem, TLS& rTLS) {
+            if (rElem.Has( INDEX_SET )) {
+                IndexSet::Pointer p_indexes_pairs = rElem.GetValue( INDEX_SET ); // These are the master elements
+                ClearIndexes<IndexSet>(p_indexes_pairs, rElem, rTLS.integration_utility);
             } else {
-                IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
-                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_elem.base()), rTLS.integration_utility);
+                IndexMap::Pointer p_indexes_pairs = rElem.GetValue( INDEX_MAP ); // These are the master elements
+                ClearIndexes<IndexMap>(p_indexes_pairs, rElem, rTLS.integration_utility);
             }
         });
     }
@@ -1076,37 +1040,25 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             }
 
         if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
-            // Iterate over conditions
-            auto& r_conditions_array = mDestinationModelPart.Conditions();
-            const int num_conditions = static_cast<int>(r_conditions_array.size());
-            const auto it_cond_begin = r_conditions_array.begin();
-
             // We map the values from one side to the other
-            IndexPartition<std::size_t>(num_conditions).for_each(tls, [&](std::size_t Index, TLS& rTLS){
-                auto it_cond = it_cond_begin + Index;
-                if (it_cond->Has( INDEX_SET )) {
-                    IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
-                    PerformMortarOperations<IndexSet, true>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
+            block_for_each(mDestinationModelPart.Conditions(), tls, [&](Condition& rCond, TLS& rTLS) {
+                if (rCond.Has( INDEX_SET )) {
+                    IndexSet::Pointer p_indexes_pairs = rCond.GetValue( INDEX_SET ); // These are the master conditions
+                    PerformMortarOperations<IndexSet, true>(A, b, inverse_conectivity_database, p_indexes_pairs, rCond, rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
                 } else {
-                    IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
-                    PerformMortarOperations<IndexMap, true>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
+                    IndexMap::Pointer p_indexes_pairs = rCond.GetValue( INDEX_MAP ); // These are the master conditions
+                    PerformMortarOperations<IndexMap, true>(A, b, inverse_conectivity_database, p_indexes_pairs, rCond, rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
                 }
             });
         } else {
-            // Iterate over elements
-            auto& r_elements_array = mDestinationModelPart.Elements();
-            const int num_elements = static_cast<int>(r_elements_array.size());
-            const auto it_elem_begin = r_elements_array.begin();
-
             // We map the values from one side to the other
-            IndexPartition<std::size_t>(num_elements).for_each(tls, [&](std::size_t Index, TLS& rTLS){
-                auto it_elem = it_elem_begin + Index;
-                if (it_elem->Has( INDEX_SET )) {
-                    IndexSet::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_SET ); // These are the master elements
-                    PerformMortarOperations<IndexSet, true>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
+            block_for_each(mDestinationModelPart.Elements(), tls, [&](Element& rElem, TLS& rTLS) {
+                if (rElem.Has( INDEX_SET )) {
+                    IndexSet::Pointer p_indexes_pairs = rElem.GetValue( INDEX_SET ); // These are the master elements
+                    PerformMortarOperations<IndexSet, true>(A, b, inverse_conectivity_database, p_indexes_pairs, rElem, rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
                 } else {
-                    IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
-                    PerformMortarOperations<IndexMap, true>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
+                    IndexMap::Pointer p_indexes_pairs = rElem.GetValue( INDEX_MAP ); // These are the master elements
+                    PerformMortarOperations<IndexMap, true>(A, b, inverse_conectivity_database, p_indexes_pairs, rElem, rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
                 }
             });
         }

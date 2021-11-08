@@ -660,7 +660,7 @@ private:
      * @param rb The RHS of the system
      * @param rInverseConectivityDatabase The inverse database that will be used to assemble the system
      * @param pIndexesPairs The pointer to indexed objects
-     * @param pGeometricalObject Pointer of a geometrical object
+     * @param rGeometricalObject Reference of a geometrical object
      * @param rIntegrationUtility An integration utility for mortar
      * @param rThisKineticVariables Kinematic variables (shape functions)
      * @param rThisMortarOperators The mortar operators
@@ -674,7 +674,7 @@ private:
         std::vector<VectorType>& rb,
         IntMap& rInverseConectivityDatabase,
         typename TClassType::Pointer pIndexesPairs,
-        GeometricalObject::Pointer pGeometricalObject,
+        GeometricalObject& rGeometricalObject,
         ExactMortarIntegrationUtilityType& rIntegrationUtility,
         MortarKinematicVariablesType& rThisKineticVariables,
         MortarOperatorType& rThisMortarOperators,
@@ -697,7 +697,7 @@ private:
         GeometryType::CoordinatesArrayType aux_coords;
 
         // Geometrical values
-        auto& r_slave_geometry = pGeometricalObject->GetGeometry();
+        auto& r_slave_geometry = rGeometricalObject.GetGeometry();
         r_slave_geometry.PointLocalCoordinates(aux_coords, r_slave_geometry.Center());
         const array_1d<double, 3> slave_normal = r_slave_geometry.UnitNormal(aux_coords);
 
@@ -778,7 +778,7 @@ private:
                                 for (auto it_master_pair = r_index_masp_master->begin(); it_master_pair != r_index_masp_master->end(); ++it_master_pair ) {
 
                                     const IndexType auxiliar_slave_id = r_index_masp_master->GetId(it_master_pair);
-                                    if (pGeometricalObject->Id() != auxiliar_slave_id) {
+                                    if (rGeometricalObject.Id() != auxiliar_slave_id) {
                                         GeometryType& r_auxiliar_slave_geometry =  const_cast<GeometryType&>(mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED) ? r_const_destination_model_part.GetCondition(auxiliar_slave_id).GetGeometry() : r_const_destination_model_part.GetElement(auxiliar_slave_id).GetGeometry());
 
                                         for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
@@ -828,14 +828,14 @@ private:
     /**
      * @brief This method can be used to clear the unused indexes
      * @param pIndexesPairs The pointer to indexed objects
-     * @param pGeometricalObject Pointer of a geometrical object
+     * @param rGeometricalObject Reference of a geometrical object
      * @param rIntegrationUtility An integration utility for mortar
      * @tparam TClassType The class of index pairs considered
      */
     template<class TClassType>
     void ClearIndexes(
         typename TClassType::Pointer pIndexesPairs,
-        GeometricalObject::Pointer pGeometricalObject,
+        GeometricalObject& rGeometricalObject,
         ExactMortarIntegrationUtilityType& rIntegrationUtility
         )
     {
@@ -849,7 +849,7 @@ private:
         GeometryType::CoordinatesArrayType aux_coords;
 
         // Geometrical values
-        auto& r_slave_geometry = pGeometricalObject->GetGeometry();
+        auto& r_slave_geometry = rGeometricalObject.GetGeometry();
         r_slave_geometry.PointLocalCoordinates(aux_coords, r_slave_geometry.Center());
         const array_1d<double, 3> slave_normal = r_slave_geometry.UnitNormal(aux_coords);
 
