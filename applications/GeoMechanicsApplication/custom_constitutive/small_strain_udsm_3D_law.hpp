@@ -150,7 +150,7 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       /**
        * @brief Voigt tensor size:
        */
-      virtual SizeType GetStrainSize() override
+      virtual SizeType GetStrainSize() const override
       {
          return VoigtSize;
       }
@@ -251,8 +251,8 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
 
 
       // @brief This function provides the place to perform checks on the completeness of the input.
-      // @details It is designed to be called only once (or anyway, not often) typically at the beginning 
-      //          of the calculations, so to verify that nothing is missing from the input or that 
+      // @details It is designed to be called only once (or anyway, not often) typically at the beginning
+      //          of the calculations, so to verify that nothing is missing from the input or that
       //          no common error is found.
       int Check(const Properties& rMaterialProperties,
                 const GeometryType& rElementGeometry,
@@ -429,7 +429,7 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
 
 
       ///@}
-   
+
    private:
       ///@name Static Member Variables
       ///@{
@@ -475,7 +475,6 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
 
       // Set number of MaterialParameters
       void CallUDSM(int *IDTask, ConstitutiveLaw::Parameters &rValues);
-      void CallUDSM(int *IDTask, const Properties& rMaterialProperties);
 
       // Set state variables to zero
       void ResetStateVariables(const Properties& rMaterialProperties);
@@ -545,6 +544,6 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SMALL_STRAIN_UDSM_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_STRAIN_UDSM_3D_LAW_H_INCLUDED  defined
 
 

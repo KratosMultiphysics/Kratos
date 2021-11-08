@@ -24,6 +24,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "poromechanics_application_variables.h"

@@ -124,6 +124,13 @@ namespace Kratos {
 
             KRATOS_CHECK_MATRIX_NEAR(quadrature_points[0]->ShapeFunctionsLocalGradients()[0], triangle->ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_3)[0], 1e-6);
             KRATOS_CHECK_MATRIX_NEAR(quadrature_points[1]->ShapeFunctionsLocalGradients()[0], triangle->ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_3)[1], 1e-6);
+
+            const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
+            const int geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
+            KRATOS_CHECK_EQUAL(quadrature_points[0]->GetGeometryFamily(), geometry_family);
+            KRATOS_CHECK_EQUAL(quadrature_points[0]->GetGeometryType(), geometry_type);
+            KRATOS_CHECK_EQUAL(quadrature_points[1]->GetGeometryFamily(), geometry_family);
+            KRATOS_CHECK_EQUAL(quadrature_points[1]->GetGeometryType(), geometry_type);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(QuadraturePointGeometry2d, KratosCoreFastSuite)
@@ -137,6 +144,11 @@ namespace Kratos {
 
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->ShapeFunctionsValues().size1(), 1);
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->ShapeFunctionsValues().size2(), 3);
+
+            const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
+            const int geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
+            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryFamily(), geometry_family);
+            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryType(), geometry_type);
         }
 
         /// Updates the location of the QuadraturePointGeometry
@@ -177,6 +189,11 @@ namespace Kratos {
                 p_this_quadrature_point->ShapeFunctionsValues(), N_i, 1e-6);
             KRATOS_CHECK_MATRIX_NEAR(
                 p_this_quadrature_point->ShapeFunctionDerivatives(1, 0), DN_De, 1e-6);
+
+            const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
+            const int geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
+            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryFamily(), geometry_family);
+            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryType(), geometry_type);
         }
 
         /// Updates the location of the QuadraturePointGeometry using the QuadraturePointUtility
@@ -228,6 +245,11 @@ namespace Kratos {
                 p_this_quadrature_point->ShapeFunctionsValues(SF1, coordinates),
                 triangle->ShapeFunctionsValues(SF2, coordinates),
                 1e-6);
+
+            const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
+            const int geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
+            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryFamily(), geometry_family);
+            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryType(), geometry_type);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(QuadraturePointGeometry2dCopyConstructor, KratosCoreFastSuite)
@@ -248,6 +270,11 @@ namespace Kratos {
                 geom.ShapeFunctionsValues(),
                 p_this_quadrature_point->ShapeFunctionsValues(),
                 1e-6);
+
+            const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
+            const int geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
+            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryFamily(), geometry_family);
+            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryType(), geometry_type);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(QuadraturePointGeometry2dAssignmentOperator, KratosCoreFastSuite)
@@ -268,6 +295,11 @@ namespace Kratos {
                 geom.ShapeFunctionsValues(),
                 p_this_quadrature_point->ShapeFunctionsValues(),
                 1e-6);
+
+            const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
+            const int geometry_type = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
+            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryFamily(), geometry_family);
+            KRATOS_CHECK_EQUAL(p_this_quadrature_point->GetGeometryType(), geometry_type);
         }
     } // namespace Testing
 }  // namespace Kratos.

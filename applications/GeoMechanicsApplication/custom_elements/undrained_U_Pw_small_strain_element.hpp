@@ -108,7 +108,7 @@ protected:
     /// Member Variables
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
 
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
 
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

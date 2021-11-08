@@ -9,6 +9,15 @@ namespace Kratos {
     RandomVariable::RandomVariable(const Parameters rParameters){
     }
 
+    void RandomVariable::SetSupport(const double Min, const double Max){
+        mSupport[0] = Min;
+        mSupport[1] = Max;
+    }
+
+    const array_1d<double, 2>& RandomVariable::GetSupport(){
+        return mSupport;
+    }
+
     std::string RandomVariable::Info() const
     {
         std::stringstream buffer;

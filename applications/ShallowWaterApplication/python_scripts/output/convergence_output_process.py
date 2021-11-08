@@ -176,3 +176,4 @@ class ConvergenceOutputProcess(KM.Process):
         case_idx = self.dset.len()
         self.dset.resize((case_idx+1,))
         self.dset[case_idx] = tuple(case_data)
+        self.f.flush()

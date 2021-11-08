@@ -50,7 +50,7 @@ namespace Testing {
         knot_u[3] = 15.707963267948966;
         knot_u[4] = 31.415926535897931;
         knot_u[5] = 31.415926535897931;
-        Vector knot_v = ZeroVector(2); 
+        Vector knot_v = ZeroVector(2);
         knot_v[0] = 0.0;
         knot_v[1] = 10.0;
 
@@ -175,7 +175,10 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(brep_surface.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(brep_surface.LocalSpaceDimension(), 2);
 
-
+        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Brep;
+        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Brep_Surface;
+        KRATOS_CHECK_EQUAL(brep_surface.GetGeometryFamily(), geometry_family);
+        KRATOS_CHECK_EQUAL(brep_surface.GetGeometryType(), geometry_type);
         //array_1d<double, 3> coords(3, 0.0);
         //coords[0] = 1.0;
         //Vector N;

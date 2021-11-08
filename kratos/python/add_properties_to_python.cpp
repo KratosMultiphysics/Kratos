@@ -138,6 +138,14 @@ typename Properties::TableType& GetTableHelperFunction1( TContainerType& rContai
     return rContainer.GetTable(XVar, YVar);
 }
 
+template< class TContainerType, class XVariableType, class YVariableType>
+bool HasTableHelperFunction1( TContainerType& rContainer,
+        const XVariableType& XVar,
+    const YVariableType& YVar )
+{
+    return rContainer.HasTable(XVar, YVar);
+}
+
 
 void  AddPropertiesToPython(pybind11::module& m)
 {
@@ -211,6 +219,7 @@ void  AddPropertiesToPython(pybind11::module& m)
 
     .def("GetTable", GetTableHelperFunction1< Properties, Variable< double > , Variable<double> >, py::return_value_policy::reference_internal)
     .def("SetTable", SetTableHelperFunction1< Properties, Variable< double > , Variable<double> >)
+    .def("HasTable", HasTableHelperFunction1< Properties, Variable< double > , Variable<double> >)
 
     .def("HasVariables", &Properties::HasVariables)
     .def("HasTables", &Properties::HasTables)

@@ -108,12 +108,14 @@ public:
         std::vector< array_1d<double, 3 > >& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-private:
+protected:
+
     CrBeamElementLinear2D2N() {};
 
     // stores the globalized master stiffness matrix for reaction forces
     Matrix mK_Master = ZeroMatrix(msElementSize,msElementSize);
 
+private:
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

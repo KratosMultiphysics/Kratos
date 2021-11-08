@@ -3,8 +3,8 @@
 #include <iostream>
 
 // Project includes
-#include "../custom_constitutive/DEM_D_DMT_cohesive_law.h"
-#include "../custom_elements/spheric_particle.h"
+#include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
+#include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
 
@@ -15,6 +15,10 @@ namespace Kratos {
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_DMT_Cohesive_Law::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_DMT_Cohesive_Law(*this));
         return p_clone;
+    }
+
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_DMT_Cohesive_Law::CloneUnique() {
+        return Kratos::make_unique<DEM_D_DMT_Cohesive_Law>();
     }
 
     void DEM_D_DMT_Cohesive_Law::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {

@@ -17,7 +17,7 @@
 namespace Kratos
 {
 
-int JointStressDriven3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
+int JointStressDriven3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     if(rMaterialProperties.Has(YOUNG_MODULUS)) {
         KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS has an invalid value " << std::endl;

@@ -139,3 +139,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosHDF5Core DESTINATION libs )
 install(TARGETS KratosHDF5Application DESTINATION libs)
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosHDF5Core" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosHDF5Application" PARENT_SCOPE)
