@@ -63,6 +63,44 @@ namespace Kratos
     {
     }
 
+    void MPMParticlePointLoadCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+        GeneralVariables Variables;
+
+        Variables.CurrentDisp = CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
+
+        array_1d<double,3> delta_xg = ZeroVector(3);
+        array_1d<double, 3 > MPC_velocity = ZeroVector(3);
+        
+        MPMShapeFunctionPointValues(Variables.N);
+
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
+            {
+                auto r_geometry = GetGeometry();
+                array_1d<double, 3 > nodal_velocity = ZeroVector(3);
+                if (r_geometry[i].SolutionStepsDataHas(VELOCITY))
+                    nodal_velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY);
+                for ( unsigned int j = 0; j < dimension; j++ )
+                {
+                    delta_xg[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
+                    MPC_velocity[j] += Variables.N[i] * nodal_velocity[j];
+                }
+            }
+        }
+
+        // Update the Material Point Condition Position
+        m_delta_xg = delta_xg;
+        m_velocity = MPC_velocity;
+    
+    KRATOS_CATCH( "" )
+}
     //*************************COMPUTE FORCE AT EACH NODE*******************************
     //************************************************************************************
     /*
@@ -82,12 +120,15 @@ namespace Kratos
         // Here MP contribution in terms of force are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            for (unsigned int j = 0; j < dimension; j++)
+            if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
             {
-                rNodalForce(j,i) = Variables.N[i] * m_point_load[j];
+                for (unsigned int j = 0; j < dimension; j++)
+                {
+                    rNodalForce(j,i) = Variables.N[i] * m_point_load[j];
+                }
             }
         }
-
+        
         return rNodalForce;
     }
 
@@ -127,7 +168,7 @@ namespace Kratos
 
             noalias( rRightHandSideVector ) = ZeroVector( matrix_size ); //resetting RHS
         }
-
+        
         Matrix nodal_force = ZeroMatrix(3,number_of_nodes);
 
         nodal_force = CalculateNodalForce(nodal_force, rCurrentProcessInfo);
@@ -161,22 +202,30 @@ namespace Kratos
         Variables.CurrentDisp = CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
 
         array_1d<double,3> delta_xg = ZeroVector(3);
+        array_1d<double, 3 > MPC_velocity = ZeroVector(3);
+        
 
         MPMShapeFunctionPointValues(Variables.N);
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            if (Variables.N[i] > 1e-16 )
+            if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
             {
+                auto r_geometry = GetGeometry();
+                array_1d<double, 3 > nodal_velocity = ZeroVector(3);
+                if (r_geometry[i].SolutionStepsDataHas(VELOCITY))
+                    nodal_velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY);
                 for ( unsigned int j = 0; j < dimension; j++ )
                 {
                     delta_xg[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
+                    MPC_velocity[j] += Variables.N[i] * nodal_velocity[j];
                 }
             }
         }
-
+        
         // Update the Material Point Condition Position
         m_xg += delta_xg ;
+        m_velocity = MPC_velocity;
     }
 
     void MPMParticlePointLoadCondition::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
@@ -188,6 +237,15 @@ namespace Kratos
 
         if (rVariable == POINT_LOAD) {
             rValues[0] = m_point_load;
+        }
+        else if (rVariable == MP_COORD || rVariable == MPC_COORD) {
+            rValues[0] = m_xg;
+        }
+        else if (rVariable == MPC_VELOCITY) {
+            rValues[0] = m_velocity;
+        }
+        else if (rVariable == MPC_DISPLACEMENT) {
+            rValues[0] = m_delta_xg;
         }
         else {
             MPMParticleBaseLoadCondition::CalculateOnIntegrationPoints(
@@ -205,6 +263,15 @@ namespace Kratos
 
         if (rVariable == POINT_LOAD) {
             m_point_load = rValues[0];
+        }
+        else if (rVariable == MP_COORD || rVariable == MPC_COORD) {
+            m_xg = rValues[0];
+        }
+        else if (rVariable == MPC_VELOCITY) {
+            m_velocity = rValues[0];
+        }
+        else if (rVariable == MPC_DISPLACEMENT) {
+            m_delta_xg = rValues[0];
         }
         else {
             MPMParticleBaseLoadCondition::SetValuesOnIntegrationPoints(
