@@ -536,7 +536,7 @@ private:
         MatrixType& rEnrInterfaceShapeFunctionNeg,
         GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
         Vector& rInterfaceWeights,
-        std::vector<Vector>& rInterfaceNormalsNeg,
+        std::vector<array_1d<double, 3>>& rInterfaceNormalsNeg,
         Matrix &rLeftHandSideMatrix,
         VectorType &rRightHandSideVector,
         const MatrixType &rHtot,

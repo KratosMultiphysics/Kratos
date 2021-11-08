@@ -89,12 +89,6 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
             Matrix shape_functions_enr_pos, shape_functions_enr_neg;
             GeometryType::ShapeFunctionsGradientsType shape_derivatives_pos, shape_derivatives_neg;
             GeometryType::ShapeFunctionsGradientsType shape_derivatives_enr_pos, shape_derivatives_enr_neg;
-            Matrix int_shape_function_neg;                                       // interface shape functions
-            Matrix int_shape_function_enr_neg, int_shape_function_enr_pos;       // interface enriched shape functions
-            GeometryType::ShapeFunctionsGradientsType int_shape_derivatives_neg; // interface shape functions derivatives
-            Vector int_gauss_pts_weights;                                // interface Gauss points weights
-            std::vector<Vector> int_normals_neg;                                 // interface normal vector based on the negative side
-            Vector gauss_pts_curvature;                                  // curvatures calculated on interface Gauss points
 
             ModifiedShapeFunctions::Pointer p_modified_sh_func = pGetModifiedShapeFunctionsUtility(p_geom, data.Distance);
 
@@ -167,7 +161,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 Matrix int_shape_function, int_shape_function_enr_neg, int_shape_function_enr_pos;
                 GeometryType::ShapeFunctionsGradientsType int_shape_derivatives;
                 Vector int_gauss_pts_weights;
-                std::vector<Vector> int_normals_neg;
+                std::vector< array_1d<double,3> > int_normals_neg;
 
                 ComputeSplitInterface(
                     data,
@@ -2257,7 +2251,7 @@ void TwoFluidNavierStokes<TElementData>::AddSurfaceTensionContribution(
     MatrixType& rEnrInterfaceShapeFunctionNeg,
     GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
     Vector& rInterfaceWeights,
-    std::vector<Vector>& rInterfaceNormalsNeg,
+    std::vector< array_1d<double, 3> >& rInterfaceNormalsNeg,
     Matrix &rLeftHandSideMatrix,
     VectorType &rRightHandSideVector,
     const MatrixType &rHtot,
@@ -2267,6 +2261,8 @@ void TwoFluidNavierStokes<TElementData>::AddSurfaceTensionContribution(
 {
     // Surface tension coefficient is set in material properties
     const double surface_tension_coefficient = this->GetProperties().GetValue(SURFACE_TENSION_COEFFICIENT);
+
+    Vector gauss_pts_curvature; // curvatures calculated on interface Gauss points
 
     CalculateCurvatureOnInterfaceGaussPoints(
         rInterfaceShapeFunction,
