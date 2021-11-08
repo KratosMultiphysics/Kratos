@@ -212,11 +212,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
     // Iterate in the conditions and elements
     if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
         auto& r_destination_conditions_array = mDestinationModelPart.Conditions();
-        const auto it_cond_begin = r_destination_conditions_array.begin();
-        for(IndexType i = 0; i < r_destination_conditions_array.size(); ++i) {
-            auto it_cond = it_cond_begin + i;
-
-            if (!(it_cond->Has( INDEX_SET ) || it_cond->Has( INDEX_MAP ))) {
+        for(auto& r_cond : r_destination_conditions_array) {
+            if (!(r_cond.Has( INDEX_SET ) || r_cond.Has( INDEX_MAP ))) {
                 search_exists = false;
                 break;
             }
@@ -232,11 +229,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
         }
     } else {
         auto& r_destination_elements_array = mDestinationModelPart.Elements();
-        const auto it_elem_begin = r_destination_elements_array.begin();
-        for(IndexType i = 0; i < r_destination_elements_array.size(); ++i) {
-            auto it_elem = it_elem_begin + i;
-
-            if (!(it_elem->Has( INDEX_SET ) || it_elem->Has( INDEX_MAP ))) {
+        for(auto& r_elem : r_destination_elements_array) {
+            if (!(r_elem.Has( INDEX_SET ) || r_elem.Has( INDEX_MAP ))) {
                 search_exists = false;
                 break;
             }
@@ -350,45 +344,30 @@ template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumN
 double SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::GetReferenceArea()
 {
     double ref_area = 0.0;
+    double current_area;
 
     // We look for the max area in the origin model part
     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
-        auto& r_conditions_array_origin = mOriginModelPart.Conditions();
-
-        double current_area;
-        for(int i = 0; i < static_cast<int>(r_conditions_array_origin.size()); ++i) {
-            auto it_cond = r_conditions_array_origin.begin() + i;
-            current_area = it_cond->GetGeometry().Area();
+        for(auto& r_cond : mOriginModelPart.Conditions()) {
+            current_area = r_cond.GetGeometry().Area();
             if (current_area > ref_area) ref_area = current_area;
         }
     } else {
-        auto& r_elements_array_origin = mOriginModelPart.Elements();
-
-        double current_area;
-        for(int i = 0; i < static_cast<int>(r_elements_array_origin.size()); ++i) {
-            auto it_elem = r_elements_array_origin.begin() + i;
-            current_area = it_elem->GetGeometry().Area();
+        for(auto& r_elem : mOriginModelPart.Elements()) {
+            current_area = r_elem.GetGeometry().Area();
             if (current_area > ref_area) ref_area = current_area;
         }
     }
 
     // We look for the max area in the destination model part
     if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
-        auto& r_conditions_array_destination = mDestinationModelPart.Conditions();
-
-        double current_area;
-        for(int i = 0; i < static_cast<int>(r_conditions_array_destination.size()); ++i) {
-            auto it_cond = r_conditions_array_destination.begin() + i;
-            current_area = it_cond->GetGeometry().Area();
+        for(auto& r_cond : mDestinationModelPart.Conditions()) {
+            current_area = r_cond.GetGeometry().Area();
             if (current_area > ref_area) ref_area = current_area;
         }
     } else {
-        auto& r_elements_array_destination = mDestinationModelPart.Elements();
-
-        double current_area;
-        for(int i = 0; i < static_cast<int>(r_elements_array_destination.size()); ++i) {
-            auto it_elem = r_elements_array_destination.begin() + i;
-            current_area = it_elem->GetGeometry().Area();
+        for(auto& r_elem : mDestinationModelPart.Elements()) {
+            current_area = r_elem.GetGeometry().Area();
             if (current_area > ref_area) ref_area = current_area;
         }
     }
@@ -411,10 +390,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
     const BoundedMatrixType Ae
     )
 {
+    // Auxiliar value
+    PointType global_point;
+
     for (IndexType i_geom = 0; i_geom < rGeometricalObjectsPointSlave.size(); ++i_geom) {
         std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
         for (IndexType i_node = 0; i_node < TDim; ++i_node) {
-            PointType global_point;
             rSlaveGeometry.GlobalCoordinates(global_point, rGeometricalObjectsPointSlave[i_geom][i_node]);
             points_array[i_node] = Kratos::make_shared<PointType>( global_point );
         }
@@ -602,15 +583,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
     // Initialize the value
     rSizeSystem = 0;
 
-    // Iterating over nodes
-    auto& r_nodes_array = mDestinationModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
-
     // We create the database
-    for(IndexType i = 0; i < r_nodes_array.size(); ++i) {
-        auto it_node = it_node_begin + i;
-        rConectivityDatabase[rSizeSystem] = it_node->Id();
-        rInverseConectivityDatabase[it_node->Id()] = rSizeSystem;
+    IndexType aux_index;
+    for(auto& r_node : mDestinationModelPart.Nodes()) {
+        aux_index = r_node.Id();
+        rConectivityDatabase[rSizeSystem] = aux_index;
+        rInverseConectivityDatabase[aux_index] = rSizeSystem;
         rSizeSystem += 1;
     }
 }
@@ -1102,72 +1080,60 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
     }
 
     if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
-        // Conditions array
-        auto& r_conditions_array = mDestinationModelPart.Conditions();
-        const int num_conditions = static_cast<int>(r_conditions_array.size());
-        const auto it_cond_begin = r_conditions_array.begin();
-
-        // Create an inverted database
-        for(int i = 0; i < num_conditions; ++i) {
-            auto it_cond = it_cond_begin + i;
-            if (it_cond->Has( INDEX_SET )) {
-                IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
+        // Conditions array: Create an inverted database
+        for(auto& r_cond : mDestinationModelPart.Conditions()) {
+            if (r_cond.Has( INDEX_SET )) {
+                IndexSet::Pointer p_indexes_pairs = r_cond.GetValue( INDEX_SET ); // These are the master conditions
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
                         auto& r_cond_master = mOriginModelPart.GetCondition(master_id); // MASTER
-                        (r_cond_master.GetValue(INDEX_SET))->AddId(it_cond->Id());
+                        (r_cond_master.GetValue(INDEX_SET))->AddId(r_cond.Id());
                     } else {
                         auto& r_elem_master = mOriginModelPart.GetElement(master_id); // MASTER
-                        (r_elem_master.GetValue(INDEX_SET))->AddId(it_cond->Id());
+                        (r_elem_master.GetValue(INDEX_SET))->AddId(r_cond.Id());
                     }
                 }
             } else {
-                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
+                IndexMap::Pointer p_indexes_pairs = r_cond.GetValue( INDEX_MAP ); // These are the master conditions
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
                         auto& r_cond_master = mOriginModelPart.GetCondition(master_id); // MASTER
-                        (r_cond_master.GetValue(INDEX_SET))->AddId(it_cond->Id());
+                        (r_cond_master.GetValue(INDEX_SET))->AddId(r_cond.Id());
                     } else {
                         auto& r_elem_master = mOriginModelPart.GetElement(master_id); // MASTER
-                        (r_elem_master.GetValue(INDEX_SET))->AddId(it_cond->Id());
+                        (r_elem_master.GetValue(INDEX_SET))->AddId(r_cond.Id());
                     }
                 }
             }
         }
     } else {
-        // Elements array
-        auto& r_elements_array = mDestinationModelPart.Elements();
-        const int num_elements = static_cast<int>(r_elements_array.size());
-        const auto it_elem_begin = r_elements_array.begin();
-
-        // Create an inverted database
-        for(int i = 0; i < num_elements; ++i) {
-            auto it_elem = it_elem_begin + i;
-            if (it_elem->Has( INDEX_SET )) {
-                IndexSet::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_SET ); // These are the master elements
+        // Elements array. Create an inverted database
+        for(auto& r_elem : mDestinationModelPart.Elements()) {
+            if (r_elem.Has( INDEX_SET )) {
+                IndexSet::Pointer p_indexes_pairs = r_elem.GetValue( INDEX_SET ); // These are the master elements
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
                         auto& r_cond_master = mOriginModelPart.GetCondition(master_id); // MASTER
-                        (r_cond_master.GetValue(INDEX_SET))->AddId(it_elem->Id());
+                        (r_cond_master.GetValue(INDEX_SET))->AddId(r_elem.Id());
                     } else {
                         auto& r_elem_master = mOriginModelPart.GetElement(master_id); // MASTER
-                        (r_elem_master.GetValue(INDEX_SET))->AddId(it_elem->Id());
+                        (r_elem_master.GetValue(INDEX_SET))->AddId(r_elem.Id());
                     }
 
                 }
             } else {
-                IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
+                IndexMap::Pointer p_indexes_pairs = r_elem.GetValue( INDEX_MAP ); // These are the master elements
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
                         auto& r_cond_master = mOriginModelPart.GetCondition(master_id); // MASTER
-                        (r_cond_master.GetValue(INDEX_SET))->AddId(it_elem->Id());
+                        (r_cond_master.GetValue(INDEX_SET))->AddId(r_elem.Id());
                     } else {
                         auto& r_elem_master = mOriginModelPart.GetElement(master_id); // MASTER
-                        (r_elem_master.GetValue(INDEX_SET))->AddId(it_elem->Id());
+                        (r_elem_master.GetValue(INDEX_SET))->AddId(r_elem.Id());
                     }
                 }
             }
