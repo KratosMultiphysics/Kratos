@@ -354,38 +354,38 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineCutGeometryData(Embe
         rData.PositiveSideN,
         rData.PositiveSideDNDX,
         rData.PositiveSideWeights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Negative side volume
     p_calculator->ComputeNegativeSideShapeFunctionsAndGradientsValues(
         rData.NegativeSideN,
         rData.NegativeSideDNDX,
         rData.NegativeSideWeights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Positive side interface
     p_calculator->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
         rData.PositiveInterfaceN,
         rData.PositiveInterfaceDNDX,
         rData.PositiveInterfaceWeights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Negative side interface
     p_calculator->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
         rData.NegativeInterfaceN,
         rData.NegativeInterfaceDNDX,
         rData.NegativeInterfaceWeights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Positive side interface normals
     p_calculator->ComputePositiveSideInterfaceAreaNormals(
         rData.PositiveInterfaceUnitNormals,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Negative side interface normals
     p_calculator->ComputeNegativeSideInterfaceAreaNormals(
         rData.NegativeInterfaceUnitNormals,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Normalize the normals
     // Note: we calculate h here (and we don't use the value in rData.ElementSize)
@@ -415,38 +415,38 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineIncisedGeometryData(
         rData.PositiveSideN,
         rData.PositiveSideDNDX,
         rData.PositiveSideWeights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Negative side volume
     p_calculator->ComputeNegativeSideShapeFunctionsAndGradientsValues(
         rData.NegativeSideN,
         rData.NegativeSideDNDX,
         rData.NegativeSideWeights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Positive side interface
     p_calculator->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
         rData.PositiveInterfaceN,
         rData.PositiveInterfaceDNDX,
         rData.PositiveInterfaceWeights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Negative side interface
     p_calculator->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
         rData.NegativeInterfaceN,
         rData.NegativeInterfaceDNDX,
         rData.NegativeInterfaceWeights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Positive side interface normals
     p_calculator->ComputePositiveSideInterfaceAreaNormals(
         rData.PositiveInterfaceUnitNormals,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Negative side interface normals
     p_calculator->ComputeNegativeSideInterfaceAreaNormals(
         rData.NegativeInterfaceUnitNormals,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Normalize the normals
     // Note: we calculate h here (and we don't use the value in rData.ElementSize)
@@ -1122,7 +1122,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForceCenter(
             pos_int_continuous_N,
             pos_int_continuous_DN_DX,
             pos_int_continuous_weights,
-            GeometryData::GI_GAUSS_2);
+            GeometryData::IntegrationMethod::GI_GAUSS_2);
 
         // Integrate positive interface side drag
         const std::size_t n_int_pos_gauss = rData.PositiveInterfaceWeights.size();

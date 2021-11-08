@@ -741,8 +741,8 @@ namespace Kratos
     void GetElementalValueForOutput(const Kratos::Variable<TValueType> &rVariable,
                                     std::vector<TValueType> &rOutput)
     {
-      unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-      /* unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_4); */
+      unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1);
+      /* unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_4); */
       rOutput.resize(NumValues, false);
       /*
 	    The cast is done to avoid modification of the element's data. Data modification

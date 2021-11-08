@@ -92,7 +92,7 @@ void FluidElement<TElementData>::Initialize(const ProcessInfo& rCurrentProcessIn
         mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
 
         const GeometryType& r_geometry = this->GetGeometry();
-        const auto& r_shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+        const auto& r_shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
         mpConstitutiveLaw->InitializeMaterial(r_properties,r_geometry,row(r_shape_functions,0));
     }
 
@@ -363,7 +363,7 @@ void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int
 template< class TElementData >
 GeometryData::IntegrationMethod FluidElement<TElementData>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

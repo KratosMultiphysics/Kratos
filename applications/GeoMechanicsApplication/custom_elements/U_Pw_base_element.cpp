@@ -18,7 +18,7 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwBaseElement<TDim,TNumNodes>::Create(IndexType NewId, 
+Element::Pointer UPwBaseElement<TDim,TNumNodes>::Create(IndexType NewId,
                                                     NodesArrayType const& ThisNodes,
                                                     PropertiesType::Pointer pProperties) const
 {
@@ -98,7 +98,7 @@ int UPwBaseElement<TDim,TNumNodes>::
         {
             KRATOS_ERROR << "YOUNG_MODULUS has Key zero or is not defined at element" << this->Id() << std::endl;
         }
-    } 
+    }
     else
     {
         if ( Prop[YOUNG_MODULUS] <= 0.0 )
@@ -110,7 +110,7 @@ int UPwBaseElement<TDim,TNumNodes>::
         if ( Prop.Has( UDSM_NAME ) == false )
         {
             KRATOS_ERROR << "POISSON_RATIO has Key zero or is not defined at element" << this->Id() << std::endl;
-        } 
+        }
     }
     else
     {
@@ -270,7 +270,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 GeometryData::IntegrationMethod UPwBaseElement<TDim,TNumNodes>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
     //return GetGeometry().GetDefaultIntegrationMethod();
 }
 

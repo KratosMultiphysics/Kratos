@@ -710,7 +710,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetConditions(
         //KRATOS_ERROR_IF( PMMG_Set_quadrilateral(mParMmgMesh, id_1, id_2, id_3, id_4, Color, Index) != 1 ) << "Unable to set quadrilateral" << std::endl;
     } else {
         const SizeType size_geometry = rGeometry.size();
-        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << rGeometry.GetGeometryType() << std::endl;
+        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << static_cast<int>(rGeometry.GetGeometryType()) << std::endl;
     }
 }
 
@@ -883,7 +883,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
                 }
                 num_tri += 1;
             } else {
-                KRATOS_ERROR << "ParMmg currently only supports triangles on conditions. Your geometry type was: " << (it_cond->GetGeometry()).GetGeometryType() <<  std::endl;
+                KRATOS_ERROR << "ParMmg currently only supports triangles on conditions. Your geometry type was: " << static_cast<int>((it_cond->GetGeometry()).GetGeometryType()) <<  std::endl;
             }
         }
 
@@ -904,7 +904,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
                 }
                 num_tetra += 1;
             } else {
-                KRATOS_ERROR << "ParMmg currently only supports tetrahedras on elements. Your geometry type was: " << (it_elem->GetGeometry()).GetGeometryType() <<  std::endl;
+                KRATOS_ERROR << "ParMmg currently only supports tetrahedras on elements. Your geometry type was: " << static_cast<int>((it_elem->GetGeometry()).GetGeometryType()) <<  std::endl;
             }
         }
 
