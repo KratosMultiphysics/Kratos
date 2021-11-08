@@ -584,8 +584,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::PMMGLibCallMetric(Parameters Configur
         KRATOS_ERROR << "Unable to fix the nodes" << std::endl;
 
     // Avoid/allow surface modifications
-    if (static_cast<int>(ConfigurationParameters["advanced_parameters"]["no_surf_mesh"].GetBool()) == 1) KRATOS_ERROR << "Trying to do surface" << std::endl;
-    if ( PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_nosurf, 0) != 1 )
+    if ( PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_nosurf, static_cast<int>(ConfigurationParameters["advanced_parameters"]["no_surf_mesh"].GetBool())) != 1 )
         KRATOS_ERROR << "Unable to set no surfacic modifications" << std::endl;
 
     // Don't insert nodes on mesh
@@ -710,7 +709,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetConditions(
         //KRATOS_ERROR_IF( PMMG_Set_quadrilateral(mParMmgMesh, id_1, id_2, id_3, id_4, Color, Index) != 1 ) << "Unable to set quadrilateral" << std::endl;
     } else {
         const SizeType size_geometry = rGeometry.size();
-        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << rGeometry.GetGeometryType() << std::endl;
+        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << static_cast<int>(rGeometry.GetGeometryType()) << std::endl;
     }
 }
 
@@ -883,7 +882,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
                 }
                 num_tri += 1;
             } else {
-                KRATOS_ERROR << "ParMmg currently only supports triangles on conditions. Your geometry type was: " << (it_cond->GetGeometry()).GetGeometryType() <<  std::endl;
+                KRATOS_ERROR << "ParMmg currently only supports triangles on conditions. Your geometry type was: " << static_cast<int>((it_cond->GetGeometry()).GetGeometryType()) <<  std::endl;
             }
         }
 
@@ -904,7 +903,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
                 }
                 num_tetra += 1;
             } else {
-                KRATOS_ERROR << "ParMmg currently only supports tetrahedras on elements. Your geometry type was: " << (it_elem->GetGeometry()).GetGeometryType() <<  std::endl;
+                KRATOS_ERROR << "ParMmg currently only supports tetrahedras on elements. Your geometry type was: " << static_cast<int>((it_elem->GetGeometry()).GetGeometryType()) <<  std::endl;
             }
         }
 

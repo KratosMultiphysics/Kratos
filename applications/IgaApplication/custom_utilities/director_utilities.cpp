@@ -42,12 +42,12 @@ namespace Kratos
             for (IndexType inodes = 0; inodes < number_of_control_points; ++inodes)
                 eqID[inodes] = r_geometry[inodes].GetId();
 
-            SparseMatrixType NTN(number_of_control_points, number_of_control_points, number_of_control_points*number_of_control_points); //inital guess how much non-zero are there
+            SparseMatrixType NTN = ZeroMatrix(number_of_control_points, number_of_control_points); //inital guess how much non-zero are there
             Matrix directorAtIntgrationPoints{ ZeroMatrix(number_of_control_points, 3) };
-            SparseSpaceType::SetToZero(NTN);
 
             PointerVector<Geometry<Node<3>>> quad_points;
-            r_geometry.CreateQuadraturePointGeometries(quad_points, 3);
+            IntegrationInfo integration_info = r_geometry.GetDefaultIntegrationInfo();
+            r_geometry.CreateQuadraturePointGeometries(quad_points, 3, integration_info);
             for (IndexType iP = 0; iP < quad_points.size(); ++iP)
             {
                 const Matrix& r_N = quad_points[iP].ShapeFunctionsValues();

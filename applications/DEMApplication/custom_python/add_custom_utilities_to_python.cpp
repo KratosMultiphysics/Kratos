@@ -192,6 +192,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
             )
         .def("GetTotalNumberOfParticlesInjectedSoFar", &DEM_Inlet::GetTotalNumberOfParticlesInjectedSoFar)
         .def("GetTotalMassInjectedSoFar", &DEM_Inlet::GetTotalMassInjectedSoFar)
+        .def("GetMaxRadius", &DEM_Inlet::GetMaxRadius)
         ;
 
     py::class_<DEM_Force_Based_Inlet, DEM_Force_Based_Inlet::Pointer, DEM_Inlet>(m, "DEM_Force_Based_Inlet")
@@ -379,6 +380,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<RandomVariable, RandomVariable::Pointer>(m, "RandomVariable")
         .def(py::init<const Parameters>())
+        .def("GetSupport", &RandomVariable::GetSupport)
         ;
 
     py::class_<PiecewiseLinearRandomVariable, PiecewiseLinearRandomVariable::Pointer, RandomVariable>(m, "PiecewiseLinearRandomVariable")

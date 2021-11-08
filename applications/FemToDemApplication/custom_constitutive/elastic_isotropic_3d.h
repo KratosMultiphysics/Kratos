@@ -40,7 +40,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 /**
  * @class LinearPlaneStrain
  * @ingroup StructuralMechanicsApplication
@@ -49,7 +49,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class ElasticIsotropic3DFEMDEM 
+class ElasticIsotropic3DFEMDEM
     : public ConstitutiveLaw
 {
 public:
@@ -59,19 +59,19 @@ public:
 
     /// The process info type definition
     typedef ProcessInfo      ProcessInfoType;
-    
+
     /// The base class ConstitutiveLaw type definition
     typedef ConstitutiveLaw         BaseType;
-    
+
     /// The size type definition
     typedef std::size_t             SizeType;
-    
+
     /// Static definition of the dimension
     static constexpr SizeType Dimension = 3;
-    
+
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 6;
-    
+
     /// Counted pointer of ElasticIsotropic3DFEMDEM
     KRATOS_CLASS_POINTER_DEFINITION( ElasticIsotropic3DFEMDEM );
 
@@ -124,7 +124,7 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return VoigtSize;
     };
@@ -146,7 +146,7 @@ public:
     {
         return StressMeasure_Cauchy;
     }
-    
+
     /**
      * @brief Computes the material response:
      * @details PK1 stresses and algorithmic ConstitutiveMatrix
@@ -243,11 +243,11 @@ public:
      * @return rValue output: the value of the specified variable
      */
     double& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues, 
-        const Variable<double>& rThisVariable, 
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<double>& rThisVariable,
         double& rValue
         ) override;
-        
+
     /**
      * @brief It calculates the value of a specified variable (Vector case)
      * @param rParameterValues the needed parameters for the CL calculation
@@ -256,11 +256,11 @@ public:
      * @return rValue output: the value of the specified variable
      */
     Vector& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues, 
-        const Variable<Vector>& rThisVariable, 
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Vector>& rThisVariable,
         Vector& rValue
         ) override;
-        
+
     /**
      * @brief It calculates the value of a specified variable (Matrix case)
      * @param rParameterValues the needed parameters for the CL calculation
@@ -269,8 +269,8 @@ public:
      * @return rValue output: the value of the specified variable
      */
     Matrix& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues, 
-        const Variable<Matrix>& rThisVariable, 
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Matrix>& rThisVariable,
         Matrix& rValue
         ) override;
 
@@ -286,7 +286,7 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        ) const override;
 
 protected:
 

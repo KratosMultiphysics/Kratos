@@ -28,7 +28,7 @@ namespace Kratos {
             message << "Test message with number " << 12 << 'e' << "00";
 
             KRATOS_CHECK_C_STRING_EQUAL(message.GetLabel().c_str(), "label");
-            if (DataCommunicator::GetDefault().Rank() == 0) KRATOS_CHECK_C_STRING_EQUAL(message.GetMessage().c_str(), "Test message with number 12e00");
+            if (Testing::GetDefaultDataCommunicator().Rank() == 0) KRATOS_CHECK_C_STRING_EQUAL(message.GetMessage().c_str(), "Test message with number 12e00");
             KRATOS_CHECK_EQUAL(message.GetSeverity(), LoggerMessage::Severity::INFO);
             KRATOS_CHECK_EQUAL(message.GetCategory(), LoggerMessage::Category::STATUS);
             KRATOS_CHECK_EQUAL(message.GetLocation().GetFileName(), "Unknown");
@@ -55,7 +55,7 @@ namespace Kratos {
             LoggerMessage message("label");
             message << "Test message with number " << 12 << 'e' << "00";
 
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "label: Test message with number 12e00" : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "label: Test message with number 12e00" : "";
 
             output.WriteMessage(message);
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
@@ -69,7 +69,7 @@ namespace Kratos {
 
             Logger("TestLabel") << "Test message with number " << 12 << 'e' << "00";
 
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestLabel: Test message with number 12e00" : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "TestLabel: Test message with number 12e00" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
 
             Logger("TestDetail") << Logger::Severity::DETAIL << "This log has detailed severity and will not be printed in output "
@@ -87,7 +87,7 @@ namespace Kratos {
             KRATOS_CHECK_POINT("TestCheckPoint") << "The value in check point is " << 3.14;
 
 #if defined(KRATOS_ENABLE_CHECK_POINT)
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestCheckPoint: The value in check point is 3.14" : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "TestCheckPoint: The value in check point is 3.14" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
 #else
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), ""); // should print noting
@@ -102,7 +102,7 @@ namespace Kratos {
 
             KRATOS_INFO("TestInfo") << "Test info message";
 
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestInfo: Test info message" : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "TestInfo: Test info message" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
@@ -115,7 +115,7 @@ namespace Kratos {
             KRATOS_INFO_IF("TestInfo", true) << "Test info message";
             KRATOS_INFO_IF("TestInfo", false) << "This should not appear";
 
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestInfo: Test info message" : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "TestInfo: Test info message" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
@@ -130,7 +130,7 @@ namespace Kratos {
             }
 
 #ifdef KRATOS_DEBUG
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestInfo: Test info message - 0" : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "TestInfo: Test info message - 0" : "";
 #else
             std::string expected_output = "";
 #endif
@@ -149,7 +149,7 @@ namespace Kratos {
             }
 
 #ifdef KRATOS_DEBUG
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestInfo: .TestInfo: .TestInfo: .TestInfo: ." : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "TestInfo: .TestInfo: .TestInfo: .TestInfo: ." : "";
 #else
             std::string expected_output = "";
 #endif
@@ -164,7 +164,7 @@ namespace Kratos {
 
             KRATOS_WARNING("TestWarning") << "Test warning message";
 
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "[WARNING] TestWarning: Test warning message" : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "[WARNING] TestWarning: Test warning message" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
@@ -177,7 +177,7 @@ namespace Kratos {
             KRATOS_WARNING_IF("TestWarning", true) << "Test warning message";
             KRATOS_WARNING_IF("TestWarning", false) << "This should not appear";
 
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "[WARNING] TestWarning: Test warning message" : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "[WARNING] TestWarning: Test warning message" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
@@ -192,7 +192,7 @@ namespace Kratos {
             }
 
 #ifdef KRATOS_DEBUG
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "[WARNING] TestWarning: Test warning message - 0" : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "[WARNING] TestWarning: Test warning message - 0" : "";
 #else
             std::string expected_output = "";
 #endif
@@ -211,7 +211,7 @@ namespace Kratos {
             }
 
 #ifdef KRATOS_DEBUG
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "[WARNING] TestWarning: .[WARNING] TestWarning: .[WARNING] TestWarning: .[WARNING] TestWarning: ." : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "[WARNING] TestWarning: .[WARNING] TestWarning: .[WARNING] TestWarning: .[WARNING] TestWarning: ." : "";
 #else
             std::string expected_output = "";
 #endif
@@ -228,7 +228,7 @@ namespace Kratos {
 
             KRATOS_DETAIL("TestDetail") << "Test detail message";
 
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestDetail: Test detail message" : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "TestDetail: Test detail message" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
@@ -242,7 +242,7 @@ namespace Kratos {
             KRATOS_DETAIL_IF("TestDetail", true) << "Test detail message";
             KRATOS_DETAIL_IF("TestDetail", false) << "This should not appear";
 
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestDetail: Test detail message" : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "TestDetail: Test detail message" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
@@ -258,7 +258,7 @@ namespace Kratos {
             }
 
 #ifdef KRATOS_DEBUG
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestDetail: Test detail message - 0" : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "TestDetail: Test detail message - 0" : "";
 #else
             std::string expected_output = "";
 #endif
@@ -277,7 +277,7 @@ namespace Kratos {
             }
 
 #ifdef KRATOS_DEBUG
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestDetail: .TestDetail: .TestDetail: .TestDetail: ." : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "TestDetail: .TestDetail: .TestDetail: .TestDetail: ." : "";
 #else
             std::string expected_output = "";
 #endif
@@ -286,7 +286,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerTableOutput, KratosCoreFastSuite)
         {
-            int rank = DataCommunicator::GetDefault().Rank();
+            int rank = Testing::GetDefaultDataCommunicator().Rank();
 
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerTableOutput(buffer, {"Time Step    ", "Iteration Number        ", "Convergence        ", "Is converged"}));
@@ -342,7 +342,7 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(LoggerTableDistributedOutput, KratosCoreFastSuite)
         {
             static std::stringstream buffer;
-            const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+            const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
             int rank = r_comm.Rank();
 
             // table can be is defined on all ranks
@@ -406,7 +406,7 @@ namespace Kratos {
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
 
-            const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+            const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
             int rank = r_comm.Rank();
 
             KRATOS_INFO_ALL_RANKS("TestInfo") << "Test info message";
@@ -422,7 +422,7 @@ namespace Kratos {
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
 
-            const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+            const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
             int rank = r_comm.Rank();
             std::stringstream out;
 
@@ -446,7 +446,7 @@ namespace Kratos {
 
             std::stringstream out;
 #ifdef KRATOS_DEBUG
-            out << "Rank " << DataCommunicator::GetDefault().Rank() << ": TestInfo: Test info message - 0";
+            out << "Rank " << Testing::GetDefaultDataCommunicator().Rank() << ": TestInfo: Test info message - 0";
 #else
             out << "";
 #endif
@@ -466,7 +466,7 @@ namespace Kratos {
 
             std::stringstream out;
 #ifdef KRATOS_DEBUG
-            int rank = DataCommunicator::GetDefault().Rank();
+            int rank = Testing::GetDefaultDataCommunicator().Rank();
             for(std::size_t i = 0; i < 4; i++) {
                 out << "Rank " << rank << ": TestInfo: .";
             }
@@ -493,7 +493,7 @@ namespace Kratos {
             KRATOS_INFO("TestInfo") << "Test message\n";
             KRATOS_DETAIL("TestDetail") << "Test message\n";
 
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestWarning: Test message\nTestInfo: Test message\nTestDetail: Test message\n" : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "TestWarning: Test message\nTestInfo: Test message\nTestDetail: Test message\n" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
@@ -514,7 +514,7 @@ namespace Kratos {
             KRATOS_INFO("TestInfo") << "Test message\n";
             KRATOS_DETAIL("TestDetail") << "Test message\n";
 
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "[WARNING] TestWarning: Test message\n[INFO] TestInfo: Test message\n[DETAIL] TestDetail: Test message\n" : "";
+            std::string expected_output = Testing::GetDefaultDataCommunicator().Rank() == 0 ? "[WARNING] TestWarning: Test message\n[INFO] TestInfo: Test message\n[DETAIL] TestDetail: Test message\n" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 

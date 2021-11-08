@@ -162,6 +162,7 @@ The MultilevelMonteCarloApplication is OPEN SOURCE. The main code and program st
 Many examples can be found in the [Kratos Multiphysics Examples repository](https://github.com/KratosMultiphysics/Examples/tree/master/multilevel_monte_carlo).
 
 ## Main References
+- Tosi, R., Amela, R., Badia, R. M. & Rossi, R. (2021). A Parallel Dynamic Asynchronous Framework for Uncertainty Quantification by Hierarchical Monte Carlo Algorithms. Journal of Scientific Computing. https://doi.org/10.1007/s10915-021-01598-6
 - Amela, R., Ayoul-Guilmard, Q., Badia, R. M., Ganesh, S., Nobile, F., Rossi, R., & Tosi, R. (2019). ExaQUte XMC. https://doi.org/10.5281/zenodo.3235833
 - Krumscheid, S., Nobile, F., & Pisaroni, M. (2020). Quantifying uncertain system outputs via the multilevel Monte Carlo method — Part I: Central moment estimation. Journal of Computational Physics. https://doi.org/10.1016/j.jcp.2020.109466
 

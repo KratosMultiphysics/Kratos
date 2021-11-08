@@ -150,6 +150,29 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    void InitializeElements( ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        int NElems = static_cast<int>(rModelPart.Elements().size());
+        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
+
+        // #pragma omp parallel for
+        for(int i = 0; i < NElems; i++)
+        {
+            ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
+            itElem -> Initialize(CurrentProcessInfo);
+        }
+
+        this->SetElementsAreInitialized();
+
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     void InitializeSolutionStep(
         ModelPart& r_model_part,
         TSystemMatrixType& A,

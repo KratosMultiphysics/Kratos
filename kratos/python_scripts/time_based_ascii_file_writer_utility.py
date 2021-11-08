@@ -140,4 +140,4 @@ class TimeBasedAsciiFileWriterUtility:
         self.file_name = self.output_path / self.file_name
 
         # make sure that the path to the desired output folder exists
-        self.output_path.mkdir(parents=True, exist_ok=True)
+        KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(str(self.output_path))

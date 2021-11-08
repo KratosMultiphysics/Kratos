@@ -22,6 +22,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
+#include "custom_python/add_custom_solvers_to_python.h"
 
 namespace Kratos {
 namespace Python {
@@ -36,6 +37,13 @@ PYBIND11_MODULE(KratosIgaApplication, m)
     ;
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CROSS_AREA)
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TRUSS_PRESTRESS_CAUCHY)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TRUSS_PRESTRESS_PK2)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TRUSS_STRESS_CAUCHY)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TRUSS_STRESS_PK2)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TRUSS_FORCE)
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRESTRESS_CAUCHY)
     KRATOS_REGISTER_IN_PYTHON_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(m, PRESTRESS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TANGENTS)
@@ -90,6 +98,7 @@ PYBIND11_MODULE(KratosIgaApplication, m)
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
     AddCustomStrategiesToPython(m);
+    AddCustomSolversToPython(m);
 }
 
 } // namespace Python

@@ -19,7 +19,7 @@
 #include "containers/model.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
-#include "utilities/delaunator_utilities.h"
+#include "utilities/tessellation_utilities/delaunator_utilities.h"
 // DEBUG
 #include "includes/gid_io.h"
 #include "input_output/vtk_output.h"
@@ -1102,6 +1102,24 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::T
 
 template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
 double ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::TestGetExactAreaIntegration(
+    Condition::Pointer pSlaveCond,
+    Condition::Pointer pMasterCond
+    )
+{
+    // Initalize values
+    double area = 0.0;
+    double local_area = 0.0;
+    const bool is_inside = GetExactAreaIntegration(pSlaveCond->GetGeometry(), pSlaveCond->GetValue(NORMAL), pMasterCond->GetGeometry(), pMasterCond->GetValue(NORMAL), local_area);
+    if (is_inside) area += local_area;
+
+    return area;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+double ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::TestGetExactAreaIntegration(
     ModelPart& rMainModelPart,
     Condition::Pointer pSlaveCond
     )
@@ -1308,22 +1326,22 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::G
     // Setting the auxiliar integration points
     switch (mIntegrationOrder) {
         case 1:
-            mAuxIntegrationMethod = GeometryData::GI_GAUSS_1;
+            mAuxIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
             break;
         case 2:
-            mAuxIntegrationMethod = GeometryData::GI_GAUSS_2;
+            mAuxIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
             break;
         case 3:
-            mAuxIntegrationMethod = GeometryData::GI_GAUSS_3;
+            mAuxIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
             break;
         case 4:
-            mAuxIntegrationMethod = GeometryData::GI_GAUSS_4;
+            mAuxIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
             break;
         case 5:
-            mAuxIntegrationMethod = GeometryData::GI_GAUSS_5;
+            mAuxIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
             break;
         default:
-            mAuxIntegrationMethod = GeometryData::GI_GAUSS_2;
+            mAuxIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
             break;
     }
 }

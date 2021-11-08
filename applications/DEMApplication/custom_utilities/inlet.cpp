@@ -112,15 +112,38 @@ namespace Kratos {
     }
 
     double DEM_Inlet::SetDistributionMeanRadius(ModelPart& mp) {
-        double mean_radius = mp[RADIUS];
+        double mean_radius = 0.0;
+
+        if (mp[PROBABILITY_DISTRIBUTION] == "piecewise_linear" || mp[PROBABILITY_DISTRIBUTION] == "discrete"){
+            mean_radius = mInletsRandomVariables[mp.Name()]->GetMean();
+        }
+
+        else {
+            mean_radius = mp[RADIUS];
+        }
+
         return mean_radius;
     }
 
     double DEM_Inlet::SetMaxDistributionRadius(ModelPart& mp) {
+        return 1.5 * GetMaxRadius(mp);
+    }
 
-        double max_radius = 1.5 * mp[RADIUS];
+    double DEM_Inlet::GetMaxRadius(ModelPart& mp){
+        double max_radius = 0.0;
+
+        if (mp[PROBABILITY_DISTRIBUTION] == "piecewise_linear" || mp[PROBABILITY_DISTRIBUTION] == "discrete"){
+            const array_1d<double, 2>& support = mInletsRandomVariables[mp.Name()]->GetSupport();
+            max_radius = support[1];
+        }
+
+        else {
+            max_radius = mp[RADIUS];
+        }
+
         return max_radius;
     }
+
 
     void DEM_Inlet::InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const bool using_strategy_for_continuum) {
 
@@ -153,15 +176,6 @@ namespace Kratos {
             ModelPart& mp = *mListOfSubModelParts[i];
 
             CheckSubModelPart(mp);
-
-            double max_radius = SetMaxDistributionRadius(mp);
-
-            if (!mp[MINIMUM_RADIUS]) {
-                mp[MINIMUM_RADIUS] = 0.5 * mp[RADIUS];
-            }
-            if (!mp[MAXIMUM_RADIUS]) {
-                mp[MAXIMUM_RADIUS] = max_radius;
-            }
 
             int mesh_size = mp.NumberOfNodes();
             if (!mesh_size) continue;
@@ -199,17 +213,31 @@ namespace Kratos {
                 const Parameters& inlet_settings = mInletsSettings[mp.Name()];
                 mInletsRandomSettings.emplace(mp.Name(), inlet_settings["random_variable_settings"]);
                 const Parameters& rv_settings = mInletsRandomSettings[mp.Name()];
+                int seed = rv_settings["seed"].GetInt();
+                if (!rv_settings["do_use_seed"].GetBool()){
+                    seed = std::random_device{}();
+                }
                 if (mp[PROBABILITY_DISTRIBUTION] == "piecewise_linear"){
-                    mInletsRandomVariables[mp.Name()] = std::unique_ptr<PiecewiseLinearRandomVariable>(new PiecewiseLinearRandomVariable(rv_settings));
+
+                    mInletsRandomVariables[mp.Name()] = std::unique_ptr<PiecewiseLinearRandomVariable>(new PiecewiseLinearRandomVariable(rv_settings, seed));
                 }
 
                 else if (mp[PROBABILITY_DISTRIBUTION] == "discrete"){
-                    mInletsRandomVariables[mp.Name()] = std::unique_ptr<DiscreteRandomVariable>(new DiscreteRandomVariable(rv_settings));
+                    mInletsRandomVariables[mp.Name()] = std::unique_ptr<DiscreteRandomVariable>(new DiscreteRandomVariable(rv_settings, seed));
                 }
 
                 else {
                     KRATOS_ERROR << "Unknown DEM inlet random variable: " << mp[PROBABILITY_DISTRIBUTION] << ".";
                 }
+            }
+
+            double max_radius = SetMaxDistributionRadius(mp);
+
+            if (!mp[MINIMUM_RADIUS]) {
+                mp[MINIMUM_RADIUS] = 0.5 * mp[RADIUS];
+            }
+            if (!mp[MAXIMUM_RADIUS]) {
+                mp[MAXIMUM_RADIUS] = max_radius;
             }
 
             Element::Pointer dummy_element_pointer;
@@ -520,6 +548,8 @@ namespace Kratos {
 
         int smp_number = 0;
         int inter_smp_number = 0;
+        int valid_elements_length = 0;
+
         for(int i=0; i<(int)mListOfSubModelParts.size(); i++) {
             ModelPart& mp = *mListOfSubModelParts[i];
 
@@ -587,7 +617,6 @@ namespace Kratos {
             if (number_of_particles_to_insert) {
 
                 ModelPart::ElementsContainerType::ContainerType valid_elements(mesh_size_elements); //This is a new vector we are going to work on
-                int valid_elements_length = 0;
 
                 for (int i = 0; i < mesh_size_elements; i++) {
                     if (all_elements[i]->IsNot(ACTIVE) && !OneNeighbourInjectorIsInjecting(all_elements[i])) {
@@ -603,8 +632,6 @@ namespace Kratos {
                     }
                 }
 
-
-
                 PropertiesProxy* p_fast_properties = NULL;
                 int general_properties_id = r_modelpart.GetProperties(mp[PROPERTIES_ID]).Id();
                 for (unsigned int i = 0; i < mFastProperties.size(); i++) {
@@ -614,7 +641,6 @@ namespace Kratos {
                         break;
                     }
                 }
-
 
                 const array_1d<double, 3> angular_velocity = mp[ANGULAR_VELOCITY];
                 const double mod_angular_velocity = MathUtils<double>::Norm3(angular_velocity);
@@ -639,6 +665,8 @@ namespace Kratos {
                 Properties::Pointer p_properties = r_modelpart.pGetProperties(mp[PROPERTIES_ID]);
 
                 const double mass_that_should_have_been_inserted_so_far = mass_flow * (current_time - inlet_start_time);
+
+                std::uniform_int_distribution<> distrib(0, valid_elements_length - 1);
 
                 int i=0;
                 for (i = 0; i < number_of_particles_to_insert; i++) {
