@@ -12,44 +12,17 @@ from KratosMultiphysics import IsDistributedRun, DataCommunicator
 from xmc.classDefs_solverWrapper.methodDefs_KratosSolverWrapper.solve import ExecuteInstanceDeterministicAdaptiveRefinementAux_Functionality,ExecuteInstanceReadingFromFileAux_Functionality,ExecuteInstanceStochasticAdaptiveRefinementAux_Functionality
 from exaqute import *
 
-try:
-    computing_units_mlmc_execute_0 = int(os.environ["computing_units_mlmc_execute_0"])
-except:
-    computing_units_mlmc_execute_0 = 1
-try:
-    computing_units_mlmc_execute_1 = int(os.environ["computing_units_mlmc_execute_1"])
-except:
-    computing_units_mlmc_execute_1 = 1
-try:
-    computing_units_mlmc_execute_2 = int(os.environ["computing_units_mlmc_execute_2"])
-except:
-    computing_units_mlmc_execute_2 = 1
+computing_units_mlmc_execute_0 = int(os.getenv("computing_units_mlmc_execute_0", 1))
+computing_units_mlmc_execute_1 = int(os.getenv("computing_units_mlmc_execute_1", 1))
+computing_units_mlmc_execute_2 = int(os.getenv("computing_units_mlmc_execute_2", 1))
 
-try:
-    computing_procs_mlmc_execute_0 = int(os.environ["computing_procs_mlmc_execute_0"])
-except:
-    computing_procs_mlmc_execute_0 = 1
-try:
-    computing_procs_mlmc_execute_1 = int(os.environ["computing_procs_mlmc_execute_1"])
-except:
-    computing_procs_mlmc_execute_1 = 1
-try:
-    computing_procs_mlmc_execute_2 = int(os.environ["computing_procs_mlmc_execute_2"])
-except:
-    computing_procs_mlmc_execute_2 = 1
+computing_procs_mlmc_execute_0 = int(os.getenv("computing_procs_mlmc_execute_0", 1))
+computing_procs_mlmc_execute_1 = int(os.getenv("computing_procs_mlmc_execute_1", 1))
+computing_procs_mlmc_execute_2 = int(os.getenv("computing_procs_mlmc_execute_2", 1))
 
-try:
-    ppn_mlmc_execute_0 = int(os.environ["ppn_mlmc_execute_0"])
-except:
-    ppn_mlmc_execute_0 = 1
-try:
-    ppn_mlmc_execute_1 = int(os.environ["ppn_mlmc_execute_1"])
-except:
-    ppn_mlmc_execute_1 = 1
-try:
-    ppn_mlmc_execute_2 = int(os.environ["ppn_mlmc_execute_2"])
-except:
-    ppn_mlmc_execute_2 = 1
+ppn_mlmc_execute_0 = int(os.getenv("ppn_mlmc_execute_0", 1))
+ppn_mlmc_execute_1 = int(os.getenv("ppn_mlmc_execute_1", 1))
+ppn_mlmc_execute_2 = int(os.getenv("ppn_mlmc_execute_2", 1))
 
 ####################################################################################################
 ############################################ WRAPPERS ##############################################
