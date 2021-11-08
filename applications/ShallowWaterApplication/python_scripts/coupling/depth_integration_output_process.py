@@ -20,6 +20,7 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         return KM.Parameters("""{
             "volume_model_part_name"    : "",
             "interface_model_part_name" : "",
+            "output_model_part_name"    : "",
             "store_historical_database" : false,
             "direction_of_integration"  : [0.0, 0.0, 1.0],
             "interval"                  : [0.0,"End"],
@@ -35,6 +36,7 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
 
         self.volume_model_part = model[settings["volume_model_part_name"].GetString()]
         self.interface_model_part = model[settings["interface_model_part_name"].GetString()]
+        self.output_model_part = model.CreateModelPart(settings["output_model_part_name"].GetString())
         self.store_historical = settings["store_historical_database"].GetBool()
         self.interval = KM.IntervalUtility(settings)
 
@@ -47,7 +49,7 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         self.integration_process = SW.DepthIntegrationProcess(model, integration_settings)
 
         hdf5_settings = KM.Parameters()
-        hdf5_settings.AddValue("model_part_name", settings["interface_model_part_name"])
+        hdf5_settings.AddValue("model_part_name", settings["output_model_part_name"])
         hdf5_settings.AddValue("file_settings", settings["file_settings"])
         hdf5_settings.AddValue("output_time_settings", settings["output_time_settings"])
         data_settings = KM.Parameters("""{"list_of_variables" : ["MOMENTUM","VELOCITY","HEIGHT"]}""")
@@ -57,34 +59,66 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
             hdf5_settings.AddValue("nodal_data_value_settings", data_settings)
         hdf5_process_settings = KM.Parameters()
         hdf5_process_settings.AddValue("Parameters", hdf5_settings)
-        
+
         self.hdf5_process = single_mesh_temporal_output_process.Factory(hdf5_process_settings, model)
+
 
     def Check(self):
         '''Check the processes.'''
         self.integration_process.Check()
         self.hdf5_process.Check()
 
+
     def ExecuteInitialize(self):
-        '''Initialize the variables.'''
+        '''Initialize the output model part.'''
+        self._InitializeOutputModelPart()
+        self._SetOutputProcessInfo()
         if not self.store_historical:
-            KM.VariableUtils().SetNonHistoricalVariableToZero(KM.VELOCITY, self.interface_model_part.Nodes)
-            KM.VariableUtils().SetNonHistoricalVariableToZero(KM.MOMENTUM, self.interface_model_part.Nodes)
-            KM.VariableUtils().SetNonHistoricalVariableToZero(SW.HEIGHT, self.interface_model_part.Nodes)
+            variables = [KM.VELOCITY, KM.MOMENTUM, SW.HEIGHT]
+            for var in variables:
+                KM.VariableUtils().SetNonHistoricalVariableToZero(var, self.interface_model_part.Nodes)
+                KM.VariableUtils().SetNonHistoricalVariableToZero(var, self.output_model_part.Nodes)
+
 
     def ExecuteBeforeSolutionLoop(self):
-        '''Write the interface_model_part in HDF5 format.'''
+        '''Write the interface model part in HDF5 format.'''
+        self._SetOutputProcessInfo()
         self.hdf5_process.ExecuteBeforeSolutionLoop()
 
+
+    def ExecuteInitializeSolutionStep(self):
+        '''Synchronize the ProcessInfo of the output and interface model part.'''
+        self._SetOutputProcessInfo()
+
+
     def ExecuteBeforeOutputStep(self):
-        '''Perform the depth integration over the interface_model_part.'''
+        '''Perform the depth integration over the interface model part.'''
         self.integration_process.Execute()
+
 
     def IsOutputStep(self):
         '''IsOutputStep.'''
         # return self.hdf5_process.IsOutputstep()
         return True
 
+
     def PrintOutput(self):
-        '''Print the integrated variables from interface_model_part.'''
+        '''Print the integrated variables from interface model part.'''
         self.hdf5_process.ExecuteFinalizeSolutionStep()
+
+
+    def _InitializeOutputModelPart(self):
+        KM.MergeVariableListsUtility().Merge(self.interface_model_part, self.output_model_part)
+        domain_size = self.volume_model_part.ProcessInfo[KM.DOMAIN_SIZE]
+        element_name = "Element{}D2N".format(domain_size)
+        condition_name = "LineCondition{}D2N".format(domain_size)
+        KM.ConnectivityPreserveModeler().GenerateModelPart(
+            self.interface_model_part, self.output_model_part, element_name, condition_name)
+        self.output_model_part.ProcessInfo.Clear()
+
+
+    def _SetOutputProcessInfo(self):
+        time = self.interface_model_part.ProcessInfo[KM.TIME]
+        step = self.interface_model_part.ProcessInfo[KM.STEP]
+        self.output_model_part.ProcessInfo[KM.TIME] = time
+        self.output_model_part.ProcessInfo[KM.STEP] = step
