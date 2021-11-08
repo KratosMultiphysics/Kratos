@@ -75,7 +75,7 @@ HenckyMCStrainSofteningPlastic3DLaw::~HenckyMCStrainSofteningPlastic3DLaw()
 //*********************************CHECK**********************************************
 //************************************************************************************
 
-int HenckyMCStrainSofteningPlastic3DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+int HenckyMCStrainSofteningPlastic3DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     HenckyElasticPlastic3DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
 

@@ -204,7 +204,7 @@ public:
         )
     {
         array_1d<double, VoigtSize> second_vector;
-        ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
         const double c2 = std::sqrt(3.0);
 
         noalias(rFFlux) = c2 * second_vector;

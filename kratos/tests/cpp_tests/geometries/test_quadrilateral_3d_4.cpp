@@ -285,7 +285,8 @@ namespace Testing
         Geometry<Point>::CoordinatesArrayType global_coords;
         Geometry<Point>::CoordinatesArrayType local_coords;
 
-        geom->ProjectionPoint(point.Coordinates(), global_coords, local_coords);
+        geom->ProjectionPointGlobalToLocalSpace(point.Coordinates(), local_coords);
+        geom->GlobalCoordinates(global_coords, local_coords);
 
         KRATOS_CHECK_RELATIVE_NEAR(global_coords[0], 0.25, 1.0e-4);
         KRATOS_CHECK_RELATIVE_NEAR(global_coords[1], 0.35, 1.0e-4);

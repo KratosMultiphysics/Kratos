@@ -6,6 +6,14 @@ on:
     - '.github/workflows/nightly_build.yml'
     - '.github/workflows/configure.sh'
     - '.github/workflows/configure.cmd'
+    - 'kratos/**'
+    - 'external_libraries/**'
+    - 'cmake_modules/**'
+    - 'CMakeLists.txt'
+    - 'applications/LinearSolversApplication/**'
+    - 'applications/MetisApplication/**'
+    - 'applications/TrilinosApplication/**'
+
 
   schedule:
     - cron:  '0 1 * * *'
@@ -22,6 +30,8 @@ jobs:
         compiler: [gcc, clang]
     env:
       KRATOS_BUILD_TYPE: Release
+      OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
+      OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
@@ -76,7 +86,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 3 -f--oversubscribe
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 3
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
@@ -84,7 +94,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 4 -f--oversubscribe
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 4
 
 
   windows-nightly:

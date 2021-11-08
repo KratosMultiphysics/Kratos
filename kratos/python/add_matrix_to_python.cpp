@@ -89,6 +89,26 @@ namespace Python
 
           return matrix;
         }));
+
+        matrix_binder.def(py::init([](const py::list& input){
+          std::size_t num_rows = input.size();
+          if( num_rows == 0 || ( (num_rows == 1) && (py::len(input[0]) == 0) ) )
+            return DenseMatrix<double>(0,0);
+          else{
+            std::size_t num_cols = py::len(input[0]);
+            DenseMatrix<double>matrix = DenseMatrix<double>(num_rows, num_cols);
+            for(std::size_t i = 0; i < num_rows; i++){
+              const auto row = py::cast<py::list>(input[i]);
+              KRATOS_ERROR_IF( py::len(row) != num_cols ) << "Wrong size of a row " << i << "! Expected " << num_cols << ", got " << py::len(row) << std::endl;;
+              for(std::size_t j = 0; j < num_cols; j++){
+                  matrix(i,j) = py::cast<double>(row[j]);
+              }
+            }
+            return matrix;
+          }
+        }));
+
+
       #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         // This constructor is not supported by AMatrix
         //matrix_binder.def(py::init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());

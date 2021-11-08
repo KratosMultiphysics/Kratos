@@ -10,6 +10,7 @@
 #include "includes/serializer.h"
 #include "includes/model_part.h"
 #include "containers/flags.h"
+#include "../DEMApplication/custom_elements/spheric_particle.h"
 
 namespace Kratos {
 
@@ -21,7 +22,7 @@ namespace Kratos {
 
         DragLaw(){}
 
-        DragLaw(Parameters& r_parameters){}
+        DragLaw(Parameters r_parameters){}
 
         ~DragLaw(){}
 
@@ -33,7 +34,7 @@ namespace Kratos {
 
         virtual std::string GetTypeOfLaw();
 
-        virtual void ComputeForce(Geometry<Node<3> >& r_geometry,
+        virtual void ComputeForce(SphericParticle* p_particle,
                                   const double reynolds_number,
                                   double particle_radius,
                                   double fluid_density,

@@ -589,9 +589,9 @@ void FluidElement<TElementData>::UpdateIntegrationPointData(
 }
 
 template <class TElementData>
-void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) const {
-
-    Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(rData.StrainRate,rData.Velocity,rData.DN_DX);
+void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) const
+{
+    this->CalculateStrainRate(rData);
 
     auto& Values = rData.ConstitutiveLawValues;
 
@@ -605,6 +605,15 @@ void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) 
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
 
     mpConstitutiveLaw->CalculateValue(Values,EFFECTIVE_VISCOSITY,rData.EffectiveViscosity);
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::CalculateStrainRate(TElementData& rData) const
+{
+    Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(
+        rData.StrainRate,
+        rData.Velocity,
+        rData.DN_DX);
 }
 
 template< class TElementData >

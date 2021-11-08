@@ -18,7 +18,7 @@
 #include "utilities/openmp_utils.h"
 #include "utilities/timer.h"
 #include "Particle_Contact_Element.h"
-#include "../custom_constitutive/DEM_continuum_constitutive_law.h"
+#include "custom_constitutive/DEM_continuum_constitutive_law.h"
 
 #define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 

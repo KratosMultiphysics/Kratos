@@ -142,53 +142,15 @@ class PythonSolver:
         KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part.")
         input_type = model_part_import_settings["input_type"].GetString()
 
-        if (input_type == "mdpa"):
-            problem_path = os.getcwd()
-
-            default_settings = KratosMultiphysics.Parameters("""{
-                "input_filename"                             : "",
-                "skip_timer"                                 : true,
-                "ignore_variables_not_in_solution_step_data" : false,
-                "reorder"                                    : false,
-                "reorder_consecutive"                        : false
-            }""")
-
-            # cannot validate as this might contain other settings too
-            model_part_import_settings.AddMissingParameters(default_settings)
-
-            input_filename = model_part_import_settings["input_filename"].GetString()
-
-            # Setting some mdpa-import-related flags
-            import_flags = KratosMultiphysics.ModelPartIO.READ
-
-            if model_part_import_settings["skip_timer"].GetBool():
-                import_flags = KratosMultiphysics.ModelPartIO.SKIP_TIMER|import_flags
-
-            if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool():
-                import_flags = KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR|import_flags
-
-            # Import model part from mdpa file.
-            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
-
-            if model_part_import_settings["reorder_consecutive"].GetBool():
-                KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
-            else:
-                KratosMultiphysics.ModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
-
-            if model_part_import_settings["reorder"].GetBool():
-                tmp = KratosMultiphysics.Parameters("{}")
-                KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part, tmp).Execute()
-
-            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading model part from mdpa file.")
-
-        elif (input_type == "rest"):
+        if input_type == "mdpa": # NOTE: Add more types in the future
+            KratosMultiphysics.SingleImportModelPart.Import(model_part, model_part_import_settings, input_type)
+        elif input_type == "rest":
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
             RestartUtility(model_part, self._GetRestartSettings(model_part_import_settings)).LoadRestart()
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
 
-        elif(input_type == "use_input_model_part"):
+        elif input_type == "use_input_model_part":
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Using already imported model part - no reading necessary.")
-
         else:
             raise Exception("Other model part input options are not yet implemented.")
 

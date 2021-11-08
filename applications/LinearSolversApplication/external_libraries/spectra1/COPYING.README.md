@@ -4,12 +4,12 @@
 
 
 
-> **NOTE**: If you are interested in the future development of Spectra, please join
-> [this thread](https://github.com/yixuan/spectra/issues/92) to share your comments and suggestions.
-
-> **NOTE**: Spectra is moving to the 1.0.0 release, with a lot of
+> **NOTE**: Spectra 1.0.0 is released, with a lot of
 > API-breaking changes. Please see the [migration guide](MIGRATION.md)
 > for a smooth transition to the new version.
+
+> **NOTE**: If you are interested in the future development of Spectra, please join
+> [this thread](https://github.com/yixuan/spectra/issues/92) to share your comments and suggestions.
 
 [**Spectra**](https://spectralib.org) stands for **Sp**arse **E**igenvalue **C**omputation **T**oolkit
 as a **R**edesigned **A**RPACK. It is a C++ library for large scale eigenvalue
@@ -251,7 +251,7 @@ cmake .. -DCMAKE_INSTALL_PREFIX='intended installation directory' -DCMAKE_PREFIX
 make all && make tests && make install
 ```
 
-By installing Spectra in this way, you also create a CMake target 'Spectra::Spectra' that can be used in subsequent build procedures for other programs.
+By installing **Spectra** in this way, you also create a CMake target `Spectra::Spectra` that can be used in subsequent build procedures for other programs.
 
 ## License
 

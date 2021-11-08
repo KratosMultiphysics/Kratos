@@ -28,12 +28,12 @@ class MonteCarloSampler:
         self.estimatorsForAssembler = keywordArgs.get("estimatorsForAssembler")
         self.indexConstructor = dynamicImport(keywordArgs.get("indexConstructor", None))
         self.indexConstructorDictionary = keywordArgs.get("indexConstructorDictionary", None)
-        self.qoiPredictor = keywordArgs.get("qoiPredictor", None)
-        self.costPredictor = keywordArgs.get("costPredictor", None)
+        self.qoiPredictor = keywordArgs.get("qoiPredictor", None) # predictor used to extrapolate the current levelwise estimates to new levels where we don't have data yet (because we have no samples yet). If number of levels is constant, it is not required.
+        self.costPredictor = keywordArgs.get("costPredictor", None) # predictor used to extrapolate the current levelwise estimates to new levels where we don't have data yet (because we have no samples yet). If number of levels is constant, it is not required.
         self.estimatorsForPredictor = keywordArgs.get("estimatorsForPredictor", None)
         # TODO Why do we need costEstimatorsForPredictor?
         self.costEstimatorForPredictor = keywordArgs.get("costEstimatorsForPredictor", None)
-        self.isCostUpdated = keywordArgs.get("isCostUpdated", False)
+        self.isCostUpdated = keywordArgs.get("isCostUpdated", False) # false if not using predictors
         self.errorEstimators = keywordArgs.get("errorEstimators", None)
         self.assemblersForError = keywordArgs.get("assemblersForError", None)
         # asynchronous framework settings
@@ -517,8 +517,6 @@ class MonteCarloSampler:
                 self.batchIndices[batch][level].costEstimator,
                 *self.batchIndices[batch][level].qoiEstimator,
             )
-            # Update model coefficients for cost, bias, variance with new observations
-            self.updatePredictors()
 
         for level in range(len(self.indices)):
             # synchronize estimator needed for checking convergence and updating hierarchy
@@ -528,6 +526,9 @@ class MonteCarloSampler:
             self.indices[level].costEstimator = get_value_from_remote(
                 self.indices[level].costEstimator
             )
+
+        # Update model coefficients for cost, bias, variance with new observations
+        self.updatePredictors()
 
     def asynchronousUpdate(self, newHierarchy):
         """

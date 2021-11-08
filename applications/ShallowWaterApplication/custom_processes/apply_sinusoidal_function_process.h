@@ -185,7 +185,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    TVarType& mrVariable;
+    const TVarType& mrVariable;
     double mAmplitude;
     double mPeriod;
     double mAngularFrequency;
@@ -202,7 +202,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ValidateParameters(Parameters& rParameters);
+    const Parameters GetDefaultParameters() const override;
 
     double Function(double& rTime);
 

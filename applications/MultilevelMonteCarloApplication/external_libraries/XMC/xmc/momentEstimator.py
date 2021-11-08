@@ -570,7 +570,7 @@ class MultiMomentEstimator(StatisticalEstimator):
         if singleSample is not None:
             # This list should contain sublists of length equal to the variable dimension
             if not isinstance(singleSample, list) or not isinstance(singleSample[0], list):
-                raise TypeError("Expected a list of lists; received a {type(singleSample)}.")
+                raise TypeError(f"Expected a list of lists; received a {type(singleSample)}.")
             return len(singleSample[0])
         if self._powerSums is not None:
             # Get any key (first, here)
