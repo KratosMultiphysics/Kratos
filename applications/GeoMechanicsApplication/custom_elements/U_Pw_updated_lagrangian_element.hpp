@@ -82,8 +82,6 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::CalculateDerivativesOnInitialConfiguration;
 
     typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
-    using UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector;
-    using UPwSmallStrainElement<TDim,TNumNodes>::UpdateStressVector;
     using UPwSmallStrainElement<TDim,TNumNodes>::CalculateBulkModulus;
 
     /// Counted pointer of UPwUpdatedLagrangianElement
@@ -333,7 +331,8 @@ protected:
                                                       IntegrationMethod ThisIntegrationMethod) const;
 
     void CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
-                                                  ElementVariables& rVariables );
+                                                  ElementVariables& rVariables,
+                                                  unsigned int GPoint );
 
     void CalculateStrain( ElementVariables& rVariables ) override;
 

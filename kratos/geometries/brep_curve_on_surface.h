@@ -329,30 +329,101 @@ public:
     }
 
     ///@}
+    ///@name IsInside
+    ///@{
+
+    /* @brief checks and returns if local coordinate rPointLocalCoordinates[0]
+     *        is inside the local/parameter space.
+     * @return on boundary -> 2 - meaning that it is equal to start or end point.
+     *         inside -> 1
+     *         outside -> 0
+     */
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter = mCurveNurbsInterval.MinParameter();
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            return 0;
+        } else if (std::abs(rPointLocalCoordinates[0] - min_parameter) < Tolerance) {
+            return 2;
+        }
+
+        const double max_parameter = mCurveNurbsInterval.MaxParameter();
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            return 0;
+        } else if (std::abs(rPointLocalCoordinates[0] - max_parameter) < Tolerance) {
+            return 2;
+        }
+
+        return 1;
+    }
+
+    ///@}
+    ///@name ClosestPoint
+    ///@{
+
+    /* @brief Makes a check if the provided paramater rPointLocalCoordinates[0]
+     *        is inside the curve, or on the boundary or if it lays outside.
+     *        If it is outside, it is set to the boundary which is closer to it.
+     * @return if rPointLocalCoordinates[0] was before the projection:
+     *         inside -> 1
+     *         outside -> 0
+     *         on boundary -> 2 - meaning that it is equal to start or end point.
+     */
+    virtual int ClosestPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter = mCurveNurbsInterval.MinParameter();
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            rClosestPointLocalCoordinates[0] = min_parameter;
+            return 0;
+        } else if (std::abs(rPointLocalCoordinates[0] - min_parameter) < Tolerance) {
+            rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+            return 2;
+        }
+
+        const double max_parameter = mCurveNurbsInterval.MaxParameter();
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            rClosestPointLocalCoordinates[0] = min_parameter;
+            return 0;
+        } else if (std::abs(rPointLocalCoordinates[0] - max_parameter) < Tolerance) {
+            rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+            return 2;
+        }
+
+        rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+        return 1;
+    }
+
+    ///@}
     ///@name Projection
     ///@{
 
-    /* Makes projection of rPointGlobalCoordinates to
-     * the closest point rProjectedPointGlobalCoordinates on the curve,
-     * with local coordinates rProjectedPointLocalCoordinates.
-     *
-     * Condiders limits of this BrepCurveOnSurface as borders.
-     *
-     * @param Tolerance is the breaking criteria.
-     * @return 1 -> projection succeeded
-     *         0 -> projection failed
-     */
-    int ProjectionPoint(
+     /* @brief Makes projection of rPointGlobalCoordinates to
+      *       the closest point on the curve, with
+      *       local coordinates rProjectedPointLocalCoordinates.
+      *
+      * @param Tolerance is the breaking criteria.
+      * @return 1 -> projection succeeded
+      *         0 -> projection failed
+      */
+    int ProjectionPointGlobalToLocalSpace(
         const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const override
     {
+        CoordinatesArrayType point_global_coordinates;
+
         return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
             rProjectedPointLocalCoordinates,
             rPointGlobalCoordinates,
-            rProjectedPointGlobalCoordinates,
+            point_global_coordinates,
             *this,
             20, Tolerance);
     }
@@ -381,7 +452,7 @@ public:
      {
         return mpCurveOnSurface->GlobalCoordinates(rResult, rLocalCoordinates);
     }
-    
+
     /**
     * @brief This method maps from local space to global/working space and computes the
     *        number of derivatives at the underlying nurbs curve on surface
@@ -464,7 +535,7 @@ public:
         SpansLocalSpace(spans);
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
-            rIntegrationPoints, spans, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
+            rIntegrationPoints, spans, rIntegrationInfo);
     }
 
     ///@}
@@ -514,19 +585,19 @@ public:
         return mpCurveOnSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
     }
 
+    ///@}
+    ///@name Geometry Classification
+    ///@{
+
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Brep;
+        return GeometryData::KratosGeometryFamily::Kratos_Brep;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Brep_Curve;
+        return GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface;
     }
-    ///@}
-    ///@name Input and output
-    ///@{
-
 
     ///@}
     ///@name Information
@@ -625,7 +696,7 @@ template<class TContainerPointType, class TContainerPointEmbeddedType = TContain
 template<class TContainerPointType, class TContainerPointEmbeddedType> const
 GeometryData BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
 
 template<class TContainerPointType, class TContainerPointEmbeddedType>

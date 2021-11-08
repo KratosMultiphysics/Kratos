@@ -28,7 +28,8 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwFaceLoadCondition : public UPwCondition<TDim,TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwFaceLoadCondition
+    : public UPwCondition<TDim,TNumNodes>
 {
 
 public:
@@ -80,9 +81,9 @@ protected:
     void CalculateRHS(VectorType& rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo) override;
 
-    void CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-                                         const Matrix& Jacobian,
-                                         const double& Weight);
+    virtual void CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
+                                                 const Matrix& Jacobian,
+                                                 const double& Weight);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

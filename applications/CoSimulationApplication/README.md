@@ -393,7 +393,7 @@ class RemoteControlSolverWrapper(CoSimulationSolverWrapper):
 
 ~~~
 
-A full example for this is currently under development.
+A full example for this can be found [here](tests/structural_mechanics_analysis_remote_controlled.py).
 
 If it is possible for an external solver to implement this approach, it is recommended to use it as it is the most robust and flexible.
 

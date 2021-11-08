@@ -676,7 +676,8 @@ namespace Kratos {
 
         #ifdef KRATOS_DEBUG
             DemDebugFunctions::CheckIfNan(BondedLocalElasticContactForce, "NAN in Bonded Tangential Force in CalculateViscoDamping");
-            DemDebugFunctions::CheckIfNan(UnbondedLocalElasticContactForce, "NAN in Unbonded Tangential Force in CalculateViscoDamping");
+            DemDebugFunctions::CheckIfNan(UnbondedLocalElasticContactForce[0], "NAN in Unbonded Tangential Force in CalculateViscoDamping");
+            DemDebugFunctions::CheckIfNan(UnbondedLocalElasticContactForce[1], "NAN in Unbonded Tangential Force in CalculateViscoDamping");
         #endif
 
         KRATOS_CATCH("")

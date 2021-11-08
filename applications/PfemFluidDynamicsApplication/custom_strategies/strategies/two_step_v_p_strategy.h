@@ -16,7 +16,7 @@
 #include "utilities/openmp_utils.h"
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_utilities/mesher_utilities.hpp"
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
 
@@ -86,7 +86,7 @@ namespace Kratos
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
+    typedef typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
     typedef TwoStepVPSolverSettings<TSparseSpace, TDenseSpace, TLinearSolver> SolverSettingsType;
 
@@ -123,7 +123,7 @@ namespace Kratos
 
       // Additional Typedefs
       typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
-      typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+      typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
       //initializing fractional velocity solution step
       typedef Scheme<TSparseSpace, TDenseSpace> SchemeType;
@@ -138,16 +138,12 @@ namespace Kratos
 
       this->mpMomentumStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pVelocityLinearSolver, vel_build, ReformDofAtEachIteration, CalculateNormDxFlag));
 
-      this->mpMomentumStrategy->SetEchoLevel(BaseType::GetEchoLevel());
-
       vel_build->SetCalculateReactionsFlag(false);
 
       /* BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pPressureLinearSolver, PRESSURE)); */
       BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pPressureLinearSolver));
 
       this->mpPressureStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pPressureLinearSolver, pressure_build, ReformDofAtEachIteration, CalculateNormDxFlag));
-
-      this->mpPressureStrategy->SetEchoLevel(BaseType::GetEchoLevel());
 
       pressure_build->SetCalculateReactionsFlag(false);
 
@@ -272,6 +268,9 @@ namespace Kratos
         }
         if (it == maxNonLinearIterations - 1 || ((continuityConverged && momentumConverged) && it > 2))
         {
+
+          //double tensilStressSign = 1.0;
+          // ComputeErrorL2Norm(tensilStressSign);
           this->UpdateStressStrain();
         }
 
@@ -548,15 +547,16 @@ namespace Kratos
 
       NormP = 0.00;
       errorNormDp = 0;
+      double tmp_NormP = 0.0;
 
-#pragma omp parallel for reduction(+ \
-                                   : NormP)
+#pragma omp parallel for reduction(+ : tmp_NormP)
       for (int i_node = 0; i_node < n_nodes; ++i_node)
       {
         const auto it_node = rModelPart.NodesBegin() + i_node;
         const double Pr = it_node->FastGetSolutionStepValue(PRESSURE);
-        NormP += Pr * Pr;
+        tmp_NormP += Pr * Pr;
       }
+      NormP = tmp_NormP;
       NormP = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
       NormP = sqrt(NormP);
 

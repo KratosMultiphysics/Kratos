@@ -813,23 +813,22 @@ protected:
         IndexType* KLMILMI_ptr = new IndexType[lm_inactive_size + 1];
         IndexType* KLMALMA_ptr = new IndexType[lm_active_size + 1];
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(master_size + 1); i++)
+        IndexPartition<std::size_t>(master_size +1).for_each([&](std::size_t i) {
             KMLMA_ptr[i] = 0;
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(slave_active_size + 1); i++) {
+        });
+        IndexPartition<std::size_t>(slave_active_size +1).for_each([&](std::size_t i) {
             mKSAN_ptr[i] = 0;
             mKSAM_ptr[i] = 0;
             mKSASI_ptr[i] = 0;
             mKSASA_ptr[i] = 0;
             KSALMA_ptr[i] = 0;
-        }
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(lm_inactive_size + 1); i++)
+        });
+        IndexPartition<std::size_t>(lm_inactive_size +1).for_each([&](std::size_t i) {
             KLMILMI_ptr[i] = 0;
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(lm_active_size + 1); i++)
+        });
+        IndexPartition<std::size_t>(lm_active_size +1).for_each([&](std::size_t i) {
             KLMALMA_ptr[i] = 0;
+        });
 
         #pragma omp parallel
         {
@@ -1143,9 +1142,9 @@ protected:
 
         // Now we create the second matrix block to sum
         IndexType* K_disp_modified_ptr_aux2 = new IndexType[nrows + 1];
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(nrows + 1); i++)
+        IndexPartition<std::size_t>(nrows + 1).for_each([&](std::size_t i) {
             K_disp_modified_ptr_aux2[i] = 0;
+        });
 
         #pragma omp parallel
         {
@@ -1635,46 +1634,46 @@ private:
         if (ResidualU.size() != total_size )
             ResidualU.resize (total_size, false);
 
-        #pragma omp parallel for
-        for (int i = 0; i<static_cast<int>(other_dof_size); i++)
+        IndexPartition<std::size_t>(other_dof_size).for_each([&](std::size_t i) {
             ResidualU[i] = rTotalResidual[mOtherIndices[i]];
+        });
 
         // The corresponding residual for the active slave DoF's
         VectorType aux_res_active_slave(slave_active_size);
-        #pragma omp parallel for
-        for (int i = 0; i<static_cast<int>(slave_active_size); i++)
+        IndexPartition<std::size_t>(slave_active_size).for_each([&](std::size_t i) {
             aux_res_active_slave[i] = rTotalResidual[mSlaveActiveIndices[i]];
+        });
 
         if (slave_active_size > 0) {
             // We compute the complementary residual for the master dofs
             VectorType aux_complement_master_residual(master_size);
             TSparseSpaceType::Mult(mPOperator, aux_res_active_slave, aux_complement_master_residual);
 
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(master_size); i++)
+            IndexPartition<std::size_t>(master_size).for_each([&](std::size_t i) {
                 ResidualU[other_dof_size + i] = rTotalResidual[mMasterIndices[i]] - aux_complement_master_residual[i];
+            });
         } else {
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(master_size); i++)
+            IndexPartition<std::size_t>(master_size).for_each([&](std::size_t i) {
                 ResidualU[other_dof_size + i] = rTotalResidual[mMasterIndices[i]];
+            });
         }
 
-        #pragma omp parallel for
-        for (int i = 0; i<static_cast<int>(slave_inactive_size); i++)
+        IndexPartition<std::size_t>(slave_inactive_size).for_each([&](std::size_t i) {
             ResidualU[other_dof_size + master_size + i] = rTotalResidual[mSlaveInactiveIndices[i]];
+        });
 
         if (slave_active_size > 0) {
             // We compute the complementary residual for the master dofs
             VectorType aux_complement_active_lm_residual(lm_active_size);
             TSparseSpaceType::Mult(mCOperator, aux_res_active_slave, aux_complement_active_lm_residual);
 
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(lm_active_size); i++)
+            IndexPartition<std::size_t>(lm_active_size).for_each([&](std::size_t i) {
                 ResidualU[other_dof_size + master_size + slave_inactive_size + i] = rTotalResidual[mLMActiveIndices[i]] - aux_complement_active_lm_residual[i];
+            });
         } else {
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(lm_active_size); i++)
+            IndexPartition<std::size_t>(lm_active_size).for_each([&](std::size_t i) {
                 ResidualU[other_dof_size + master_size + slave_inactive_size + i] = rTotalResidual[mLMActiveIndices[i]];
+            });
         }
     }
 
@@ -1701,9 +1700,9 @@ private:
             if (rResidualLMA.size() != slave_active_size )
                 rResidualLMA.resize (slave_active_size, false);
 
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(rResidualLMA.size()); i++)
+            IndexPartition<std::size_t>(rResidualLMA.size()).for_each([&](std::size_t i) {
                 rResidualLMA[i] = rTotalResidual[mSlaveActiveIndices[i]];
+            });
 
             // From the computed displacements we get the components of the displacements for each block
             VectorType disp_N(other_dof_size);
@@ -1711,21 +1710,21 @@ private:
             VectorType disp_SI(slave_inactive_size);
             VectorType disp_SA(slave_active_size);
 
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(other_dof_size); i++)
+            IndexPartition<std::size_t>(other_dof_size).for_each([&](std::size_t i) {
                 disp_N[i] = mDisp[i];
+            });
 
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(master_size); i++)
+            IndexPartition<std::size_t>(master_size).for_each([&](std::size_t i) {
                 disp_M[i] = mDisp[other_dof_size + i];
+            });
 
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(slave_inactive_size); i++)
+            IndexPartition<std::size_t>(slave_inactive_size).for_each([&](std::size_t i) {
                 disp_SI[i] = mDisp[other_dof_size + master_size + i];
+            });
 
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(slave_active_size); i++)
+            IndexPartition<std::size_t>(slave_active_size).for_each([&](std::size_t i) {
                 disp_SA[i] = mDisp[other_dof_size + master_size + slave_inactive_size + i];
+            });
 
             VectorType aux_mult(slave_active_size);
             TSparseSpaceType::Mult(mKSAN, disp_N, aux_mult);
@@ -1758,9 +1757,9 @@ private:
         if (rResidualLMI.size() != lm_inactive_size )
             rResidualLMI.resize (lm_inactive_size, false);
 
-        #pragma omp parallel for
-        for (int i = 0; i<static_cast<int>(lm_inactive_size); i++)
+        IndexPartition<std::size_t>(lm_inactive_size).for_each([&](std::size_t i) {
             rResidualLMI[i] = rTotalResidual[mLMInactiveIndices[i]];
+        });
     }
 
     /**
@@ -1773,21 +1772,23 @@ private:
         const VectorType& ResidualU
         )
     {
-        #pragma omp parallel for
-        for (int i = 0; i<static_cast<int>(mOtherIndices.size()); i++)
+        const SizeType other_indexes_size = mOtherIndices.size();
+        const SizeType master_indexes_size = mMasterIndices.size();
+        const SizeType slave_inactive_indexes_size = mSlaveInactiveIndices.size();
+        const SizeType slave_active_indexes_size = mSlaveActiveIndices.size();
+
+        IndexPartition<std::size_t>(other_indexes_size).for_each([&](std::size_t i) {
             rTotalResidual[mOtherIndices[i]] = ResidualU[i];
-
-        #pragma omp parallel for
-        for (int i = 0; i<static_cast<int>(mMasterIndices.size()); i++)
-            rTotalResidual[mMasterIndices[i]] = ResidualU[mOtherIndices.size() + i];
-
-        #pragma omp parallel for
-        for (int i = 0; i<static_cast<int>(mSlaveInactiveIndices.size()); i++)
-            rTotalResidual[mSlaveInactiveIndices[i]] = ResidualU[mOtherIndices.size() + mMasterIndices.size() + i];
-
-        #pragma omp parallel for
-        for (int i = 0; i<static_cast<int>(mSlaveActiveIndices.size()); i++)
-            rTotalResidual[mSlaveActiveIndices[i]] = ResidualU[mOtherIndices.size() + mMasterIndices.size() + mSlaveInactiveIndices.size() + i];
+        });
+        IndexPartition<std::size_t>(master_indexes_size).for_each([&](std::size_t i) {
+            rTotalResidual[mMasterIndices[i]] = ResidualU[other_indexes_size + i];
+        });
+        IndexPartition<std::size_t>(slave_inactive_indexes_size).for_each([&](std::size_t i) {
+            rTotalResidual[mSlaveInactiveIndices[i]] = ResidualU[other_indexes_size + master_indexes_size + i];
+        });
+        IndexPartition<std::size_t>(slave_active_indexes_size).for_each([&](std::size_t i) {
+            rTotalResidual[mSlaveActiveIndices[i]] = ResidualU[other_indexes_size + master_indexes_size + slave_inactive_indexes_size + i];
+        });
     }
 
     /**
@@ -1800,9 +1801,9 @@ private:
         const VectorType& ResidualLMA
         )
     {
-        #pragma omp parallel for
-        for (int i = 0; i< static_cast<int>(ResidualLMA.size()); i++)
+        IndexPartition<std::size_t>(ResidualLMA.size()).for_each([&](std::size_t i) {
             rTotalResidual[mLMActiveIndices[i]] = ResidualLMA[i];
+        });
     }
 
     /**
@@ -1815,9 +1816,9 @@ private:
         const VectorType& ResidualLMI
         )
     {
-        #pragma omp parallel for
-        for (int i = 0; i< static_cast<int>(ResidualLMI.size()); i++)
+        IndexPartition<std::size_t>(ResidualLMI.size()).for_each([&](std::size_t i) {
             rTotalResidual[mLMInactiveIndices[i]] = ResidualLMI[i];
+        });
     }
 
     /**
@@ -1917,8 +1918,7 @@ private:
 //             const std::size_t* index1 = rA.index1_data().begin();
 //             const double* values = rA.value_data().begin();
 //
-//             #pragma omp parallel for
-//             for (int i=0; i< static_cast<int>(size_A); i++) {
+//             IndexPartition<std::size_t>(size_A).for_each([&](std::size_t i) {
 //                 const std::size_t row_begin = index1[i];
 //                 const std::size_t row_end   = index1[i+1];
 //                 double temp = 0.0;
@@ -1926,12 +1926,11 @@ private:
 //                     temp += values[j]*values[j];
 //
 //                 diagA_vector[i] = std::sqrt(temp);
-//             }
+//             });
 //         } else { // Otherwise
-//             #pragma omp parallel for
-//             for (int i=0; i< static_cast<int>(size_A); i++) {
+//             IndexPartition<std::size_t>(size_A).for_each([&](std::size_t i) {
 //                 diagA_vector[i] = rA(i, i);
-//             }
+//             });
 //         }
 
         IndexType* ptr = new IndexType[size_A + 1];
@@ -1939,8 +1938,7 @@ private:
         IndexType* aux_index2 = new IndexType[size_A];
         double* aux_val = new double[size_A];
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(size_A); i++) {
+        IndexPartition<std::size_t>(size_A).for_each([&](std::size_t i) {
             ptr[i+1] = i+1;
             aux_index2[i] = i;
             const double value = rA(i, i);
@@ -1949,7 +1947,7 @@ private:
                 aux_val[i] = 1.0/value;
             else // Auxiliar value
                 aux_val[i] = 1.0;
-        }
+        });
 
         SparseMatrixMultiplicationUtility::CreateSolutionMatrix(rdiagA, size_A, size_A, ptr, aux_index2, aux_val);
 
