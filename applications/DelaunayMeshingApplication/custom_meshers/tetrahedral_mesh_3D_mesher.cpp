@@ -110,6 +110,157 @@ namespace Kratos
   }
 
 
+void TetrahedralMesh3DMesher::GenerateTwice(ModelPart& rModelPart,
+					  MeshingParametersType& rMeshingVariables)
+  {
+
+    KRATOS_TRY
+
+    this->StartEcho(rModelPart,"DELAUNAY Remesh");
+
+    //*********************************************************************
+
+    ////////////////////////////////////////////////////////////
+    this->ExecutePreMeshingProcesses();
+    ////////////////////////////////////////////////////////////
+
+    //*********************************************************************
+
+    //Creating the containers for the input and output
+    tetgenio in;
+    tetgenio out;
+
+    BuildInput(rModelPart,rMeshingVariables,in);
+
+    //*********************************************************************
+
+    // double begin_time = OpenMPUtils::GetCurrentTime();
+
+    //Generate Mesh
+    ////////////////////////////////////////////////////////////
+    int fail = GenerateTessellation(rMeshingVariables,in,out);
+    ////////////////////////////////////////////////////////////
+
+    // if(fail){
+    //   if( rMeshingVariables.ExecutionOptions.Is(MesherUtilities::CONSTRAINED) ){
+    // 	rMeshingVariables.ExecutionOptions.Reset(MesherUtilities::CONSTRAINED);
+    // 	////////////////////////////////////////////////////////////
+    // 	fail = GenerateTessellation(rMeshingVariables,in, out);
+    // 	////////////////////////////////////////////////////////////
+    // 	rMeshingVariables.ExecutionOptions.Set(MesherUtilities::CONSTRAINED);
+    //   }
+    // }
+
+    if(fail || in.numberofpoints!=out.numberofpoints){
+      std::cout<<" [ MESH GENERATION FAILED: point insertion (initial = "<<in.numberofpoints<<" final = "<<out.numberofpoints<<") ] "<<std::endl;
+    }
+
+    // //print out the mesh generation time
+    // if( this->GetEchoLevel() > 0 ){
+    //   double end_time = OpenMPUtils::GetCurrentTime();
+    //   std::cout<<" [ MESH GENERATION (TIME = "<<end_time-begin_time<<") ] "<<std::endl;
+    // }
+
+    //*********************************************************************
+
+    //GetOutput
+    SetToContainer(rMeshingVariables.OutMesh,out);
+
+    //*********************************************************************
+
+    ////////////////////////////////////////////////////////////
+    this->ExecutePostMeshingProcesses();
+    ////////////////////////////////////////////////////////////
+
+
+    //*********************************************************************
+
+    //Free input memory or keep it to transfer it for next mesh generation
+    if( rMeshingVariables.ExecutionOptions.Is(MesherUtilities::FINALIZE_MESHER_INPUT) ){
+      DeleteInContainer(rMeshingVariables.InMesh,in);
+      rMeshingVariables.InputInitializedFlag = false;
+    }
+
+    //*********************************************************************
+
+    //Free output memory
+    if(rMeshingVariables.Options.Is(MesherUtilities::REMESH))
+      DeleteOutContainer(rMeshingVariables.OutMesh,out);
+
+
+    ////////////////////////////////////////////////////////////
+    this->ExecutePreMeshingProcesses();
+    ////////////////////////////////////////////////////////////
+
+    //*********************************************************************
+
+    BuildInput(rModelPart,rMeshingVariables,in);
+
+    //*********************************************************************
+
+    // double begin_time = OpenMPUtils::GetCurrentTime();
+
+    //Generate Mesh
+    ////////////////////////////////////////////////////////////
+    fail = GenerateTessellation(rMeshingVariables,in,out);
+    ////////////////////////////////////////////////////////////
+
+    // if(fail){
+    //   if( rMeshingVariables.ExecutionOptions.Is(MesherUtilities::CONSTRAINED) ){
+    // 	rMeshingVariables.ExecutionOptions.Reset(MesherUtilities::CONSTRAINED);
+    // 	////////////////////////////////////////////////////////////
+    // 	fail = GenerateTessellation(rMeshingVariables,in, out);
+    // 	////////////////////////////////////////////////////////////
+    // 	rMeshingVariables.ExecutionOptions.Set(MesherUtilities::CONSTRAINED);
+    //   }
+    // }
+
+    if(fail || in.numberofpoints!=out.numberofpoints){
+      std::cout<<" [ MESH GENERATION FAILED: point insertion (initial = "<<in.numberofpoints<<" final = "<<out.numberofpoints<<") ] "<<std::endl;
+    }
+
+    // //print out the mesh generation time
+    // if( this->GetEchoLevel() > 0 ){
+    //   double end_time = OpenMPUtils::GetCurrentTime();
+    //   std::cout<<" [ MESH GENERATION (TIME = "<<end_time-begin_time<<") ] "<<std::endl;
+    // }
+
+    //*********************************************************************
+
+    //GetOutput
+    SetToContainer(rMeshingVariables.OutMesh,out);
+
+    //*********************************************************************
+
+    ////////////////////////////////////////////////////////////
+    this->ExecutePostMeshingProcesses();
+    ////////////////////////////////////////////////////////////
+
+
+
+
+
+    //*********************************************************************
+
+    //Free input memory or keep it to transfer it for next mesh generation
+    if( rMeshingVariables.ExecutionOptions.Is(MesherUtilities::FINALIZE_MESHER_INPUT) ){
+      DeleteInContainer(rMeshingVariables.InMesh,in);
+      rMeshingVariables.InputInitializedFlag = false;
+    }
+
+    //*********************************************************************
+
+    //Free output memory
+    if(rMeshingVariables.Options.Is(MesherUtilities::REMESH))
+      DeleteOutContainer(rMeshingVariables.OutMesh,out);
+
+
+    this->EndEcho(rModelPart,"DELAUNAY Remesh");
+
+    KRATOS_CATCH( "" )
+
+  }
+
   //*******************************************************************************************
   //*******************************************************************************************
 

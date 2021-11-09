@@ -22,12 +22,18 @@
 
 //MiddleMeshing processes
 // #include "custom_processes/refine_mesh_elements_on_size_process.hpp"
-#include "custom_processes/remove_mesh_nodes_for_fluids_process.hpp"
 
 //PostMeshing processes
 #include "custom_processes/recover_volume_losses_process.hpp"
+#include "custom_processes/remove_mesh_nodes_for_fluids_process.hpp"
 #include "custom_processes/select_mesh_elements_for_fluids_process.hpp"
 #include "custom_processes/generate_new_nodes_before_meshing_process.hpp"
+#include "custom_processes/remove_mesh_nodes_for_fluids_first_mesh_process.hpp"
+#include "custom_processes/select_mesh_elements_for_fluids_first_mesh_process.hpp"
+#include "custom_processes/generate_new_nodes_before_meshing_first_mesh_process.hpp"
+#include "custom_processes/remove_mesh_nodes_for_fluids_second_mesh_process.hpp"
+#include "custom_processes/select_mesh_elements_for_fluids_second_mesh_process.hpp"
+#include "custom_processes/generate_new_nodes_before_meshing_second_mesh_process.hpp"
 #include "custom_processes/inlet_management_process.hpp"
 #include "custom_processes/set_inlet_process.hpp"
 #include "custom_processes/model_start_end_meshing_for_fluids_process.hpp"
@@ -65,158 +71,173 @@
 namespace Kratos
 {
 
-namespace Python
-{
+    namespace Python
+    {
 
-typedef std::vector<Flags> FlagsContainer;
+        typedef std::vector<Flags> FlagsContainer;
 
-void AddCustomProcessesToPython(pybind11::module &m)
-{
+        void AddCustomProcessesToPython(pybind11::module &m)
+        {
 
-    namespace py = pybind11;
-    typedef Process ProcessBaseType;
-    typedef SettleModelStructureProcess ModelStartEndMeshingProcessType;
+            namespace py = pybind11;
+            typedef Process ProcessBaseType;
+            typedef SettleModelStructureProcess ModelStartEndMeshingProcessType;
 
-    py::class_<RecoverVolumeLossesProcess, RecoverVolumeLossesProcess::Pointer, MesherProcess>(m, "RecoverVolumeLosses")
-        .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
+            py::class_<RecoverVolumeLossesProcess, RecoverVolumeLossesProcess::Pointer, MesherProcess>(m, "RecoverVolumeLosses")
+                .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
-    py::class_<RemoveMeshNodesForFluidsProcess, RemoveMeshNodesForFluidsProcess::Pointer, MesherProcess>(m, "RemoveMeshNodesForFluids")
-        .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
+            py::class_<RemoveMeshNodesForFluidsProcess, RemoveMeshNodesForFluidsProcess::Pointer, MesherProcess>(m, "RemoveMeshNodesForFluids")
+                .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
-    py::class_<GenerateNewNodesBeforeMeshingProcess, GenerateNewNodesBeforeMeshingProcess::Pointer, MesherProcess>(m, "GenerateNewNodesBeforeMeshing")
-        .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
+            py::class_<GenerateNewNodesBeforeMeshingProcess, GenerateNewNodesBeforeMeshingProcess::Pointer, MesherProcess>(m, "GenerateNewNodesBeforeMeshing")
+                .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
-    py::class_<SelectMeshElementsForFluidsProcess, SelectMeshElementsForFluidsProcess::Pointer, MesherProcess>(m, "SelectMeshElementsForFluids")
-        .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
+            py::class_<SelectMeshElementsForFluidsProcess, SelectMeshElementsForFluidsProcess::Pointer, MesherProcess>(m, "SelectMeshElementsForFluids")
+                .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
-    py::class_<InletManagementProcess, InletManagementProcess::Pointer, MesherProcess>(m, "InletManagement")
-        .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
+            py::class_<RemoveMeshNodesForFluidsFirstMeshProcess, RemoveMeshNodesForFluidsFirstMeshProcess::Pointer, MesherProcess>(m, "RemoveMeshNodesForFluidsFirstMesh")
+                .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
-    py::class_<CalculateWaveHeightProcess, CalculateWaveHeightProcess::Pointer, ProcessBaseType>(m, "CalculateWaveHeightProcess")
-        .def(py::init<ModelPart&, const int, const int, const double, const double, const double, const std::string, const double>());
+            py::class_<GenerateNewNodesBeforeMeshingFirstMeshProcess, GenerateNewNodesBeforeMeshingFirstMeshProcess::Pointer, MesherProcess>(m, "GenerateNewNodesBeforeMeshingFirstMesh")
+                .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
-    py::class_<SetInletProcess, SetInletProcess::Pointer, ProcessBaseType>(m, "SetInlet")
-        .def(py::init<ModelPart &, int>());
+            py::class_<SelectMeshElementsForFluidsFirstMeshProcess, SelectMeshElementsForFluidsFirstMeshProcess::Pointer, MesherProcess>(m, "SelectMeshElementsForFluidsFirstMesh")
+                .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
-    py::class_<SplitElementsProcess, SplitElementsProcess::Pointer, ProcessBaseType>(m, "SplitElementsProcess")
-        .def(py::init<ModelPart &, int>());
+            py::class_<RemoveMeshNodesForFluidsSecondMeshProcess, RemoveMeshNodesForFluidsSecondMeshProcess::Pointer, MesherProcess>(m, "RemoveMeshNodesForFluidsSecondMesh")
+                .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
-    py::class_<SetActiveFlagProcess, SetActiveFlagProcess::Pointer, MesherProcess>(m, "SetActiveFlagProcess")
-        .def(py::init<ModelPart &, bool, bool, int>());
+            py::class_<GenerateNewNodesBeforeMeshingSecondMeshProcess, GenerateNewNodesBeforeMeshingSecondMeshProcess::Pointer, MesherProcess>(m, "GenerateNewNodesBeforeMeshingSecondMesh")
+                .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
-    py::class_<SetMaterialPropertiesToFluidNodesProcess, SetMaterialPropertiesToFluidNodesProcess::Pointer, MesherProcess>(m, "SetMaterialPropertiesToFluidNodes")
-        .def(py::init<ModelPart &>());
+            py::class_<SelectMeshElementsForFluidsSecondMeshProcess, SelectMeshElementsForFluidsSecondMeshProcess::Pointer, MesherProcess>(m, "SelectMeshElementsForFluidsSecondMesh")
+                .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
-    py::class_<SetMaterialPropertiesFromFluidToRigidNodesProcess, SetMaterialPropertiesFromFluidToRigidNodesProcess::Pointer, MesherProcess>(m, "SetMaterialPropertiesFromFluidToRigidNodes")
-        .def(py::init<ModelPart &, ModelPart &>());
+            py::class_<InletManagementProcess, InletManagementProcess::Pointer, MesherProcess>(m, "InletManagement")
+                .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
-    py::class_<SetMaterialPropertiesToSolidNodesProcess, SetMaterialPropertiesToSolidNodesProcess::Pointer, MesherProcess>(m, "SetMaterialPropertiesToSolidNodes")
-        .def(py::init<ModelPart &>());
+            py::class_<CalculateWaveHeightProcess, CalculateWaveHeightProcess::Pointer, ProcessBaseType>(m, "CalculateWaveHeightProcess")
+                .def(py::init<ModelPart &, const int, const int, const double, const double, const double, const std::string, const double>());
 
-    py::class_<SetActiveFlagMesherProcess, SetActiveFlagMesherProcess::Pointer, SetActiveFlagProcess>(m, "SetActiveFlagMesherProcess")
-        .def(py::init<ModelPart &, bool, bool, int>());
+            py::class_<SetInletProcess, SetInletProcess::Pointer, ProcessBaseType>(m, "SetInlet")
+                .def(py::init<ModelPart &, int>());
 
-    py::class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, ProcessBaseType>(m, "AdaptiveTimeIntervalProcess")
-        .def(py::init<ModelPart &, int>());
+            py::class_<SplitElementsProcess, SplitElementsProcess::Pointer, ProcessBaseType>(m, "SplitElementsProcess")
+                .def(py::init<ModelPart &, int>());
 
-    py::class_<ModelStartEndMeshingForFluidsProcess, ModelStartEndMeshingForFluidsProcess::Pointer, ModelStartEndMeshingProcessType>(m, "ModelMeshingForFluids")
-        .def(py::init<ModelPart &, Flags, int>());
+            py::class_<SetActiveFlagProcess, SetActiveFlagProcess::Pointer, MesherProcess>(m, "SetActiveFlagProcess")
+                .def(py::init<ModelPart &, bool, bool, int>());
 
-    py::class_<BuildMeshBoundaryForFluidsProcess, BuildMeshBoundaryForFluidsProcess::Pointer, MesherProcess>(m, "BuildMeshBoundaryForFluids")
-        .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
+            py::class_<SetMaterialPropertiesToFluidNodesProcess, SetMaterialPropertiesToFluidNodesProcess::Pointer, MesherProcess>(m, "SetMaterialPropertiesToFluidNodes")
+                .def(py::init<ModelPart &>());
 
-    py::class_<BuildModelPartBoundaryForFluidsProcess, BuildModelPartBoundaryForFluidsProcess::Pointer, MesherProcess>(m, "BuildModelPartBoundaryForFluids")
-        .def(py::init<ModelPart &, std::string, int>())
-        .def("SearchConditionMasters", &BuildModelPartBoundaryForFluidsProcess::SearchConditionMasters);
+            py::class_<SetMaterialPropertiesFromFluidToRigidNodesProcess, SetMaterialPropertiesFromFluidToRigidNodesProcess::Pointer, MesherProcess>(m, "SetMaterialPropertiesFromFluidToRigidNodes")
+                .def(py::init<ModelPart &, ModelPart &>());
 
-    py::class_<SetDummyPropertyForRigidElementsProcess, SetDummyPropertyForRigidElementsProcess::Pointer, ProcessBaseType>(m, "SetDummyPropertyForRigidElementsProcess")
-        .def(py::init<ModelPart &, unsigned int &>())
-        .def("Execute", &SetDummyPropertyForRigidElementsProcess::Execute);
+            py::class_<SetMaterialPropertiesToSolidNodesProcess, SetMaterialPropertiesToSolidNodesProcess::Pointer, MesherProcess>(m, "SetMaterialPropertiesToSolidNodes")
+                .def(py::init<ModelPart &>());
 
-    //**********TRANSFER ELEMENTS TO MODEL PART*********//
-    py::class_<TransferModelPartElementsProcess, TransferModelPartElementsProcess::Pointer, ProcessBaseType>(m, "TransferModelPartElementsProcess")
-        .def(py::init<ModelPart &, ModelPart &>())
-        .def("Execute", &TransferModelPartElementsProcess::Execute);
+            py::class_<SetActiveFlagMesherProcess, SetActiveFlagMesherProcess::Pointer, SetActiveFlagProcess>(m, "SetActiveFlagMesherProcess")
+                .def(py::init<ModelPart &, bool, bool, int>());
 
-    py::class_<GenerateNewConditionsMesherForFluidsProcess, GenerateNewConditionsMesherForFluidsProcess::Pointer, BuildModelPartBoundaryProcess>(m, "GenerateNewConditionsForFluids")
-        .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
+            py::class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, ProcessBaseType>(m, "AdaptiveTimeIntervalProcess")
+                .def(py::init<ModelPart &, int>());
 
-    py::class_<LagrangianRotationProcess, LagrangianRotationProcess::Pointer, ProcessBaseType>(m, "LagrangianRotationProcess")
-        .def(py::init<ModelPart &, Parameters>());
+            py::class_<ModelStartEndMeshingForFluidsProcess, ModelStartEndMeshingForFluidsProcess::Pointer, ModelStartEndMeshingProcessType>(m, "ModelMeshingForFluids")
+                .def(py::init<ModelPart &, Flags, int>());
 
-    py::class_<ComputeAveragePfemMeshParametersProcess, ComputeAveragePfemMeshParametersProcess::Pointer, MesherProcess>(m, "ComputeAveragePfemMeshParameters")
-        .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
+            py::class_<BuildMeshBoundaryForFluidsProcess, BuildMeshBoundaryForFluidsProcess::Pointer, MesherProcess>(m, "BuildMeshBoundaryForFluids")
+                .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
-    //**********FIX AND FREE DOFS PROCESSES*********//
+            py::class_<BuildModelPartBoundaryForFluidsProcess, BuildModelPartBoundaryForFluidsProcess::Pointer, MesherProcess>(m, "BuildModelPartBoundaryForFluids")
+                .def(py::init<ModelPart &, std::string, int>())
+                .def("SearchConditionMasters", &BuildModelPartBoundaryForFluidsProcess::SearchConditionMasters);
 
-    py::class_<FixScalarPfemDofProcess, FixScalarPfemDofProcess::Pointer, Process>(m, "FixScalarPfemDofProcess")
-        .def(py::init<ModelPart &, Parameters>())
-        .def(py::init<ModelPart &, Parameters &>())
-        .def(py::init<ModelPart &, const Variable<double> &>())
-        .def(py::init<ModelPart &, const Variable<int> &>())
-        .def(py::init<ModelPart &, const Variable<bool> &>())
-        .def("Execute", &FixScalarPfemDofProcess::Execute)
+            py::class_<SetDummyPropertyForRigidElementsProcess, SetDummyPropertyForRigidElementsProcess::Pointer, ProcessBaseType>(m, "SetDummyPropertyForRigidElementsProcess")
+                .def(py::init<ModelPart &, unsigned int &>())
+                .def("Execute", &SetDummyPropertyForRigidElementsProcess::Execute);
 
-        ;
+            //**********TRANSFER ELEMENTS TO MODEL PART*********//
+            py::class_<TransferModelPartElementsProcess, TransferModelPartElementsProcess::Pointer, ProcessBaseType>(m, "TransferModelPartElementsProcess")
+                .def(py::init<ModelPart &, ModelPart &>())
+                .def("Execute", &TransferModelPartElementsProcess::Execute);
 
-    py::class_<FreeScalarPfemDofProcess, FreeScalarPfemDofProcess::Pointer, Process>(m, "FreeScalarPfemDofProcess")
-        .def(py::init<ModelPart &, Parameters>())
-        .def(py::init<ModelPart &, Parameters &>())
-        .def(py::init<ModelPart &, const Variable<double> &>())
-        .def(py::init<ModelPart &, const Variable<int> &>())
-        .def(py::init<ModelPart &, const Variable<bool> &>())
-        .def("Execute", &FreeScalarPfemDofProcess::Execute)
+            py::class_<GenerateNewConditionsMesherForFluidsProcess, GenerateNewConditionsMesherForFluidsProcess::Pointer, BuildModelPartBoundaryProcess>(m, "GenerateNewConditionsForFluids")
+                .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
-        ;
+            py::class_<LagrangianRotationProcess, LagrangianRotationProcess::Pointer, ProcessBaseType>(m, "LagrangianRotationProcess")
+                .def(py::init<ModelPart &, Parameters>());
 
-    // //**********ASSIGN VALUES TO VARIABLES PROCESSES*********//
+            py::class_<ComputeAveragePfemMeshParametersProcess, ComputeAveragePfemMeshParametersProcess::Pointer, MesherProcess>(m, "ComputeAveragePfemMeshParameters")
+                .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
-    py::class_<AssignScalarVariableToPfemEntitiesProcess, AssignScalarVariableToPfemEntitiesProcess::Pointer, Process>(m, "AssignScalarToEntitiesProcess")
-        .def(py::init<ModelPart &, Parameters>())
-        .def(py::init<ModelPart &, Parameters &>())
-        .def("Execute", &AssignScalarVariableToPfemEntitiesProcess::Execute);
+            //**********FIX AND FREE DOFS PROCESSES*********//
 
-    py::class_<AssignScalarFieldToPfemEntitiesProcess, AssignScalarFieldToPfemEntitiesProcess::Pointer, AssignScalarVariableToPfemEntitiesProcess>(m, "AssignScalarFieldToEntitiesProcess")
-        .def(py::init<ModelPart &, pybind11::object &, const std::string, const bool, Parameters>())
-        .def(py::init<ModelPart &, pybind11::object &, const std::string, const bool, Parameters &>())
-        .def("Execute", &AssignScalarFieldToPfemEntitiesProcess::Execute);
+            py::class_<FixScalarPfemDofProcess, FixScalarPfemDofProcess::Pointer, Process>(m, "FixScalarPfemDofProcess")
+                .def(py::init<ModelPart &, Parameters>())
+                .def(py::init<ModelPart &, Parameters &>())
+                .def(py::init<ModelPart &, const Variable<double> &>())
+                .def(py::init<ModelPart &, const Variable<int> &>())
+                .def(py::init<ModelPart &, const Variable<bool> &>())
+                .def("Execute", &FixScalarPfemDofProcess::Execute)
 
-    py::class_<AssignVectorFieldToPfemEntitiesProcess, AssignVectorFieldToPfemEntitiesProcess::Pointer, AssignScalarFieldToPfemEntitiesProcess>(m, "AssignVectorFieldToEntitiesProcess")
-        .def(py::init<ModelPart &, pybind11::object &, const std::string, const bool, Parameters>())
-        .def(py::init<ModelPart &, pybind11::object &, const std::string, const bool, Parameters &>())
-        .def("Execute", &AssignVectorFieldToPfemEntitiesProcess::Execute);
+                ;
 
-    py::class_<AssignVectorVariableToPfemConditionsProcess, AssignVectorVariableToPfemConditionsProcess::Pointer, AssignScalarVariableToPfemEntitiesProcess>(m, "AssignVectorToConditionsProcess")
-        .def(py::init<ModelPart &, Parameters>())
-        .def(py::init<ModelPart &, Parameters &>())
-        .def(py::init<ModelPart &, const Variable<array_1d<double, 3>> &, array_1d<double, 3> &>())
-        .def("Execute", &AssignVectorVariableToPfemConditionsProcess::Execute);
+            py::class_<FreeScalarPfemDofProcess, FreeScalarPfemDofProcess::Pointer, Process>(m, "FreeScalarPfemDofProcess")
+                .def(py::init<ModelPart &, Parameters>())
+                .def(py::init<ModelPart &, Parameters &>())
+                .def(py::init<ModelPart &, const Variable<double> &>())
+                .def(py::init<ModelPart &, const Variable<int> &>())
+                .def(py::init<ModelPart &, const Variable<bool> &>())
+                .def("Execute", &FreeScalarPfemDofProcess::Execute)
 
-    //**********COUPLING WITH CONVECTION DIFFUSION APPLICATION PROCESSES*********//
-    py::class_<UpdateThermalModelPartProcess, UpdateThermalModelPartProcess::Pointer, ProcessBaseType>
-    (m, "UpdateThermalModelPartProcess")
-        .def(py::init< ModelPart&, ModelPart&, ModelPart&, unsigned int>())
-        .def("Execute", &UpdateThermalModelPartProcess::Execute);//.def(py::init< ModelPart&, ModelPart&, Parameters &>())
+                ;
 
-    py::class_<SetMeshVelocityForThermalCouplingProcess, SetMeshVelocityForThermalCouplingProcess::Pointer, ProcessBaseType>
-    (m, "SetMeshVelocityForThermalCouplingProcess")
-        .def(py::init< ModelPart &>())
-        .def("Execute", &SetMeshVelocityForThermalCouplingProcess::Execute);
-        ;
+            // //**********ASSIGN VALUES TO VARIABLES PROCESSES*********//
 
-    py::class_<SetMaterialPropertiesForThermalCouplingProcess, SetMaterialPropertiesForThermalCouplingProcess::Pointer, ProcessBaseType>
-    (m, "SetMaterialPropertiesForThermalCouplingProcess")
-        .def(py::init< ModelPart &, ModelPart&>())
-        .def("Execute", &SetMaterialPropertiesForThermalCouplingProcess::Execute);
-        ;
+            py::class_<AssignScalarVariableToPfemEntitiesProcess, AssignScalarVariableToPfemEntitiesProcess::Pointer, Process>(m, "AssignScalarToEntitiesProcess")
+                .def(py::init<ModelPart &, Parameters>())
+                .def(py::init<ModelPart &, Parameters &>())
+                .def("Execute", &AssignScalarVariableToPfemEntitiesProcess::Execute);
 
-	py::class_<UpdateConditionsOnFreeSurfaceProcess, UpdateConditionsOnFreeSurfaceProcess::Pointer, ProcessBaseType>(m, "UpdateConditionsOnFreeSurfaceProcess")
-	    .def(py::init<ModelPart &, Parameters>())
-	    .def("Execute", &UpdateConditionsOnFreeSurfaceProcess::Execute);
-	;
-    ;
-}
+            py::class_<AssignScalarFieldToPfemEntitiesProcess, AssignScalarFieldToPfemEntitiesProcess::Pointer, AssignScalarVariableToPfemEntitiesProcess>(m, "AssignScalarFieldToEntitiesProcess")
+                .def(py::init<ModelPart &, pybind11::object &, const std::string, const bool, Parameters>())
+                .def(py::init<ModelPart &, pybind11::object &, const std::string, const bool, Parameters &>())
+                .def("Execute", &AssignScalarFieldToPfemEntitiesProcess::Execute);
 
-} // namespace Python.
+            py::class_<AssignVectorFieldToPfemEntitiesProcess, AssignVectorFieldToPfemEntitiesProcess::Pointer, AssignScalarFieldToPfemEntitiesProcess>(m, "AssignVectorFieldToEntitiesProcess")
+                .def(py::init<ModelPart &, pybind11::object &, const std::string, const bool, Parameters>())
+                .def(py::init<ModelPart &, pybind11::object &, const std::string, const bool, Parameters &>())
+                .def("Execute", &AssignVectorFieldToPfemEntitiesProcess::Execute);
+
+            py::class_<AssignVectorVariableToPfemConditionsProcess, AssignVectorVariableToPfemConditionsProcess::Pointer, AssignScalarVariableToPfemEntitiesProcess>(m, "AssignVectorToConditionsProcess")
+                .def(py::init<ModelPart &, Parameters>())
+                .def(py::init<ModelPart &, Parameters &>())
+                .def(py::init<ModelPart &, const Variable<array_1d<double, 3>> &, array_1d<double, 3> &>())
+                .def("Execute", &AssignVectorVariableToPfemConditionsProcess::Execute);
+
+            //**********COUPLING WITH CONVECTION DIFFUSION APPLICATION PROCESSES*********//
+            py::class_<UpdateThermalModelPartProcess, UpdateThermalModelPartProcess::Pointer, ProcessBaseType>(m, "UpdateThermalModelPartProcess")
+                .def(py::init<ModelPart &, ModelPart &, ModelPart &, unsigned int>())
+                .def("Execute", &UpdateThermalModelPartProcess::Execute); //.def(py::init< ModelPart&, ModelPart&, Parameters &>())
+
+            py::class_<SetMeshVelocityForThermalCouplingProcess, SetMeshVelocityForThermalCouplingProcess::Pointer, ProcessBaseType>(m, "SetMeshVelocityForThermalCouplingProcess")
+                .def(py::init<ModelPart &>())
+                .def("Execute", &SetMeshVelocityForThermalCouplingProcess::Execute);
+            ;
+
+            py::class_<SetMaterialPropertiesForThermalCouplingProcess, SetMaterialPropertiesForThermalCouplingProcess::Pointer, ProcessBaseType>(m, "SetMaterialPropertiesForThermalCouplingProcess")
+                .def(py::init<ModelPart &, ModelPart &>())
+                .def("Execute", &SetMaterialPropertiesForThermalCouplingProcess::Execute);
+            ;
+
+            py::class_<UpdateConditionsOnFreeSurfaceProcess, UpdateConditionsOnFreeSurfaceProcess::Pointer, ProcessBaseType>(m, "UpdateConditionsOnFreeSurfaceProcess")
+                .def(py::init<ModelPart &, Parameters>())
+                .def("Execute", &UpdateConditionsOnFreeSurfaceProcess::Execute);
+            ;
+            ;
+        }
+
+    } // namespace Python.
 
 } // Namespace Kratos

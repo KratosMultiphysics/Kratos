@@ -172,6 +172,7 @@ protected:
 
     //generate :: meshing step call to delaunay tessellation
     void Generate(ModelPart& rModelPart, MeshingParametersType& rMeshingVariables) override;
+    void GenerateTwice(ModelPart &rModelPart, MeshingParametersType &rMeshingVariables);
 
     //generate the Delaunay Tesselation
     int  GenerateTessellation(MeshingParametersType& rMeshingVariables, struct triangulateio& in, struct triangulateio& out);

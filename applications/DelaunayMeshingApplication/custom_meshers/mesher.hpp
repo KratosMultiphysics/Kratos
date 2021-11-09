@@ -88,6 +88,10 @@ public:
       :mpMeshingVariables(rOther.mpMeshingVariables)
       ,mPreMeshingProcesses(rOther.mPreMeshingProcesses)
       ,mPostMeshingProcesses(rOther.mPostMeshingProcesses)
+      ,mPreMeshingProcessesFirstMesh(rOther.mPreMeshingProcessesFirstMesh)
+      ,mPostMeshingProcessesFirstMesh(rOther.mPostMeshingProcessesFirstMesh)
+      ,mPreMeshingProcessesSecondMesh(rOther.mPreMeshingProcessesSecondMesh)
+      ,mPostMeshingProcessesSecondMesh(rOther.mPostMeshingProcessesSecondMesh)
       ,mpMesherUtilities(rOther.mpMesherUtilities)
       ,mpDataTransferUtilities(rOther.mpDataTransferUtilities)
       ,mEchoLevel(rOther.mEchoLevel)
@@ -141,6 +145,14 @@ public:
 
     void SetPostMeshingProcess( MesherProcess::Pointer pPostMeshingProcess );
 
+    void SetPreMeshingProcessFirstMesh( MesherProcess::Pointer pPreMeshingProcessFirstMesh );
+
+    void SetPostMeshingProcessFirstMesh( MesherProcess::Pointer pPostMeshingProcessFirstMesh );
+
+    void SetPreMeshingProcessSecondMesh( MesherProcess::Pointer pPreMeshingProcessSecondMesh );
+
+    void SetPostMeshingProcessSecondMesh( MesherProcess::Pointer pPostMeshingProcessSecondMesh );
+
 
     void SetPreMeshingProcessVector( std::vector<MesherProcess::Pointer>& rPreMeshingProcessVector );
 
@@ -171,6 +183,7 @@ public:
      * Mesh Generation :: Remesh all ModelPart
      */
     virtual void ExecuteMeshing(ModelPart& rModelPart);
+    virtual void ExecuteMeshingTwice(ModelPart& rModelPart);
 
     /**
      * Mesher :: Finalize
@@ -230,6 +243,12 @@ protected:
     std::vector<MesherProcess::Pointer>   mPreMeshingProcesses;
     std::vector<MesherProcess::Pointer>  mPostMeshingProcesses;
 
+    std::vector<MesherProcess::Pointer>   mPreMeshingProcessesFirstMesh;
+    std::vector<MesherProcess::Pointer>  mPostMeshingProcessesFirstMesh;
+
+    std::vector<MesherProcess::Pointer>   mPreMeshingProcessesSecondMesh;
+    std::vector<MesherProcess::Pointer>  mPostMeshingProcessesSecondMesh;
+
     MesherUtilities::Pointer                 mpMesherUtilities;
 
     MeshDataTransferUtilities::Pointer mpDataTransferUtilities;
@@ -285,19 +304,23 @@ protected:
      * Mesher :: Process to be done at the begining of the Generation
      */
     virtual void ExecutePreMeshingProcesses();
-
+    virtual void ExecutePreMeshingProcessesFirstMesh();
+    virtual void ExecutePreMeshingProcessesSecondMesh();
 
     /**
      * Mesher :: Process to be done at the end of the Generation
      */
     virtual void ExecutePostMeshingProcesses();
-
-
+    virtual void ExecutePostMeshingProcessesFirstMesh();
+    virtual void ExecutePostMeshingProcessesSecondMesh();
 
     /**
      * Mesher :: Delaunay Tessellation
      */
     virtual void Generate (ModelPart& rModelPart,
+			   MeshingParametersType& rMeshingVariables){};
+    
+    virtual void GenerateTwice (ModelPart& rModelPart,
 			   MeshingParametersType& rMeshingVariables){};
 
 

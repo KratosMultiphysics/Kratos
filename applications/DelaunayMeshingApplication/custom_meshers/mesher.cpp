@@ -165,6 +165,146 @@ namespace Kratos
   }
 
 
+
+  void Mesher::SetPreMeshingProcessFirstMesh(MesherProcess::Pointer pPreMeshingProcessFirstMesh)
+  {
+    KRATOS_TRY
+
+    mPreMeshingProcessesFirstMesh.push_back(pPreMeshingProcessFirstMesh); //NOTE: order set = order of execution
+
+    KRATOS_CATCH(" ")
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void Mesher::SetPostMeshingProcessFirstMesh(MesherProcess::Pointer pPostMeshingProcessFirstMesh)
+  {
+    KRATOS_TRY
+
+    mPostMeshingProcessesFirstMesh.push_back(pPostMeshingProcessFirstMesh); //NOTE: order set = order of execution
+
+    KRATOS_CATCH(" ")
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void Mesher::SetPreMeshingProcessSecondMesh(MesherProcess::Pointer pPreMeshingProcessSecondMesh)
+  {
+    KRATOS_TRY
+
+    mPreMeshingProcessesSecondMesh.push_back(pPreMeshingProcessSecondMesh); //NOTE: order set = order of execution
+
+    KRATOS_CATCH(" ")
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void Mesher::SetPostMeshingProcessSecondMesh(MesherProcess::Pointer pPostMeshingProcessSecondMesh)
+  {
+    KRATOS_TRY
+
+    mPostMeshingProcessesSecondMesh.push_back(pPostMeshingProcessSecondMesh); //NOTE: order set = order of execution
+
+    KRATOS_CATCH(" ")
+  }
+
+  void Mesher::ExecutePreMeshingProcessesFirstMesh()
+  {
+    KRATOS_TRY
+
+  //Refine and Remove nodes processes
+  ////////////////////////////////////////////////////////////
+        if (mPreMeshingProcessesFirstMesh.size()) for (unsigned int i = 0; i < mPreMeshingProcessesFirstMesh.size(); ++i)
+            mPreMeshingProcessesFirstMesh[i]->Execute();
+    ////////////////////////////////////////////////////////////
+
+    KRATOS_CATCH("")
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void Mesher::ExecutePostMeshingProcessesFirstMesh()
+  {
+    KRATOS_TRY
+
+    //Rebuild Boundary processes
+    ////////////////////////////////////////////////////////////
+    if (mPostMeshingProcessesFirstMesh.size())
+      for (unsigned int i = 0; i < mPostMeshingProcessesFirstMesh.size(); ++i)
+        mPostMeshingProcessesFirstMesh[i]->Execute();
+    ////////////////////////////////////////////////////////////
+
+    KRATOS_CATCH("")
+  }
+
+  void Mesher::ExecutePreMeshingProcessesSecondMesh()
+  {
+    KRATOS_TRY
+
+    //Refine and Remove nodes processes
+    ////////////////////////////////////////////////////////////
+    if (mPreMeshingProcessesSecondMesh.size())
+      for (unsigned int i = 0; i < mPreMeshingProcessesSecondMesh.size(); ++i)
+        mPreMeshingProcessesSecondMesh[i]->Execute();
+    ////////////////////////////////////////////////////////////
+
+    KRATOS_CATCH("")
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void Mesher::ExecutePostMeshingProcessesSecondMesh()
+  {
+    KRATOS_TRY
+
+    //Rebuild Boundary processes
+    ////////////////////////////////////////////////////////////
+    if (mPostMeshingProcessesSecondMesh.size())
+      for (unsigned int i = 0; i < mPostMeshingProcessesSecondMesh.size(); ++i)
+        mPostMeshingProcessesSecondMesh[i]->Execute();
+    ////////////////////////////////////////////////////////////
+
+    KRATOS_CATCH("")
+  }
+
+
+  void Mesher::ExecuteMeshingTwice(ModelPart &rModelPart)
+  {
+    KRATOS_TRY
+
+    if (GetEchoLevel() > 0)
+    {
+      std::cout << " [ GetRemeshData: [ RefineFlag: " << mpMeshingVariables->Options.Is(MesherUtilities::REFINE) << "; RemeshFlag : " << mpMeshingVariables->Options.Is(MesherUtilities::REMESH) << " ] ]" << std::endl;
+    }
+
+    if (mpMeshingVariables->Options.Is(MesherUtilities::REFINE))
+    {
+      MesherUtilities MesherUtils;
+      MesherUtils.CheckCriticalRadius(rModelPart, mpMeshingVariables->Refine->CriticalRadius);
+    }
+
+    if (GetEchoLevel() > 0)
+    {
+      std::cout << " --------------                     -------------- " << std::endl;
+      std::cout << " --------------       DOMAIN        -------------- " << std::endl;
+    }
+
+    //generate mesh
+    this->GenerateTwice(rModelPart, *(mpMeshingVariables));
+
+    KRATOS_CATCH(" ")
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+
   //*******************************************************************************************
   //*******************************************************************************************
 

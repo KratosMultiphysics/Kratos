@@ -114,6 +114,91 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
+
+  void TriangularMesh2DMesher::GenerateTwice(ModelPart &rModelPart,
+                                             MeshingParametersType &rMeshingVariables)
+  {
+
+    KRATOS_TRY
+
+    this->StartEcho(rModelPart, "DELAUNAY Remesh");
+
+    this->ExecutePreMeshingProcessesFirstMesh();
+
+    //Creating the containers for the input and output
+    struct triangulateio in;
+    struct triangulateio out;
+    ClearTrianglesList(out);
+
+    BuildInput(rModelPart, rMeshingVariables, in);
+
+    //Generate Mesh
+    ////////////////////////////////////////////////////////////
+    int fail = GenerateTessellation(rMeshingVariables, in, out);
+    ////////////////////////////////////////////////////////////
+
+    if (fail || in.numberofpoints != out.numberofpoints)
+    {
+      std::cout << " [ MESH GENERATION FAILED: point insertion (initial = " << in.numberofpoints << " final = " << out.numberofpoints << ") ] " << std::endl;
+    }
+
+    //GetOutput
+    SetToContainer(rMeshingVariables.OutMesh, out);
+
+    ////////////////////////////////////////////////////////////
+    this->ExecutePostMeshingProcessesFirstMesh();
+    ////////////////////////////////////////////////////////////
+
+    //Free input memory or keep it to transfer it for next mesh generation
+    if (rMeshingVariables.ExecutionOptions.Is(MesherUtilities::FINALIZE_MESHER_INPUT))
+    {
+      DeleteInContainer(rMeshingVariables.InMesh, in);
+      rMeshingVariables.InputInitializedFlag = false;
+    }
+
+    //Free output memory
+    if (rMeshingVariables.Options.Is(MesherUtilities::REMESH))
+      DeleteOutContainer(rMeshingVariables.OutMesh, out);
+
+    this->StartEcho(rModelPart, "DELAUNAY Remesh");
+
+    ////////////////////////////////////////////////////////////
+    this->ExecutePreMeshingProcessesSecondMesh();
+    ////////////////////////////////////////////////////////////
+
+    BuildInput(rModelPart, rMeshingVariables, in);
+    ////////////////////////////////////////////////////////////
+    fail = GenerateTessellation(rMeshingVariables, in, out);
+    ////////////////////////////////////////////////////////////
+
+    if (fail || in.numberofpoints != out.numberofpoints)
+    {
+      std::cout << " [ MESH GENERATION FAILED: point insertion (initial = " << in.numberofpoints << " final = " << out.numberofpoints << ") ] " << std::endl;
+    }
+
+    //GetOutput
+    SetToContainer(rMeshingVariables.OutMesh, out);
+
+    this->ExecutePostMeshingProcessesSecondMesh();
+    ////////////////////////////////////////////////////////////
+
+    //Free input memory or keep it to transfer it for next mesh generation
+    if (rMeshingVariables.ExecutionOptions.Is(MesherUtilities::FINALIZE_MESHER_INPUT))
+    {
+      DeleteInContainer(rMeshingVariables.InMesh, in);
+      rMeshingVariables.InputInitializedFlag = false;
+    }
+
+    //Free output memory
+    if (rMeshingVariables.Options.Is(MesherUtilities::REMESH))
+      DeleteOutContainer(rMeshingVariables.OutMesh, out);
+
+    this->EndEcho(rModelPart, "DELAUNAY Remesh");
+
+    KRATOS_CATCH("")
+  }
+
+
   int TriangularMesh2DMesher::GenerateTessellation(MeshingParametersType& rMeshingVariables,
 						    struct triangulateio& in,
 						    struct triangulateio& out)
