@@ -178,8 +178,8 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 if (rCurrentProcessInfo[MOMENTUM_CORRECTION]){
                     MatrixType lhs_acc_correction = ZeroMatrix(NumNodes*NumNodes,NumNodes*NumNodes);
 
-                    double positive_density = 1.0;
-                    double negative_density = 1000.0;
+                    double positive_density;
+                    double negative_density;
 
                     GeometryType::Pointer p_geom = this->pGetGeometry();
 
