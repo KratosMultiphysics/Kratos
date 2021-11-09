@@ -97,23 +97,13 @@ public:
     template<bool THistorical>
     void ComputeEnergy(ModelPart& rModelPart);
 
-    double InverseHeight(const double Height, const double Epsilon);
-
-    double WetFraction(double Height, double Epsilon);
-
     void FlipScalarVariable(Variable<double>& rOriginVariable, Variable<double>& rDestinationVariable, ModelPart& rModelPart);
 
     void IdentifySolidBoundary(ModelPart& rModelPart, double SeaWaterLevel, Flags SolidBoundaryFlag);
 
-    void IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double RelativeDryHeight = 0.1);
+    void FlagWetElements(ModelPart& rModelPart, Flags WetFlag, double RelativeDryHeight = -1.0);
 
-    template<class TContainerType>
-    void CopyFlag(Flags OriginFlag, Flags DestinationFlag, TContainerType& rContainer)
-    {
-        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
-            rEntity.Set(DestinationFlag, rEntity.Is(OriginFlag));
-        });
-    }
+    void ExtrapolateElementalFlagToNodes(ModelPart& rModelPart, Flags Flag);
 
     void NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable);
 
@@ -269,28 +259,6 @@ private:
 
     template<bool THistorical>
     double& GetValue(NodeType& rNode, const Variable<double>& rVariable);
-
-    template<class TContainerType>
-    void IdentifyWetEntities(TContainerType& rContainer, Flags WetFlag, double RelativeDryHeight)
-    {
-        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
-            const auto& r_geom = rEntity.GetGeometry();
-            const bool is_wet = IsWet(r_geom, RelativeDryHeight);
-            rEntity.Set(WetFlag, is_wet);
-            for (auto& r_node : r_geom)
-            {
-                if (is_wet)
-                {
-                    if (r_node.IsNot(WetFlag))
-                    {
-                        r_node.SetLock();
-                        r_node.Set(WetFlag);
-                        r_node.UnSetLock();
-                    }
-                }
-            }
-        });
-    }
 
     bool IsWet(const GeometryType& rGeometry, const double RelativeDryHeight);
 
