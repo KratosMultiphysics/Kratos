@@ -37,6 +37,12 @@ int ShockCapturingEntropyViscosityProcess::Check()
 {
     auto err_code = Process::Check();
 
+    KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo().Has(DOMAIN_SIZE))
+        << "Missing variable DOMAIN_SIZE in model part process info." << std::endl;
+    const auto domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
+    KRATOS_ERROR_IF(domain_size !=2 || domain_size !=3) 
+        << "ShockCapturingEntropyViscosityProcess is only implemented for 2D and 3D domains." << std::endl;
+
     using OrReduction = SumReduction<bool>;
     using MultiOrReduction = CombinedReduction<OrReduction, OrReduction, OrReduction, OrReduction, OrReduction>;
 
@@ -66,9 +72,26 @@ int ShockCapturingEntropyViscosityProcess::Check()
     KRATOS_ERROR_IF(missing_temperature) << "Missing TEMPERATURE variable from one or more nodes" << std::endl;
     KRATOS_ERROR_IF(missing_velocity) << "Missing VELOCITY variable from one or more nodes" << std::endl;
 
-    const auto domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
-    KRATOS_ERROR_IF(domain_size !=2 || domain_size !=3) 
-        << "ShockCapturingEntropyViscosityProcess is only implemented for 2D and 3D domains" << std::endl;
+    if(mrModelPart.ElementsBegin() != mrModelPart.ElementsEnd())
+    {
+        KRATOS_ERROR_IF_NOT(mrModelPart.ElementsBegin()->GetProperties().Has(HEAT_CAPACITY_RATIO))
+            << "Variable HEAT_CAPACITY_RATIO missing from elemental properties." << std::endl; 
+
+#ifdef KRATOS_DEBUG
+        const double first_gamma = mrModelPart.ElementsBegin()->GetProperties().GetValue(HEAT_CAPACITY_RATIO);
+
+        const bool non_uniform_gamma =
+        block_for_each<OrReduction>(mrModelPart.Elements(), [&first_gamma](Element& r_element)
+        {
+            static constexpr double tolerance = 1e-8;
+            const double this_gamma = r_element.GetProperties().GetValue(HEAT_CAPACITY_RATIO);
+            return std::fabs(first_gamma - this_gamma) > tolerance;
+        });
+
+        KRATOS_ERROR_IF(non_uniform_gamma)
+            << "HEAT_CAPACITY_RATIO is not constant in the domain" << std::endl;
+#endif
+    }
 
     return err_code;
 }
@@ -143,7 +166,11 @@ void ShockCapturingEntropyViscosityProcess::UpdateNodalAreaProcess()
 
 void ShockCapturingEntropyViscosityProcess::ComputeNodalEntropies()
 {
-    const double heat_capacity_ratio = mrModelPart.GetProcessInfo().GetValue(HEAT_CAPACITY_RATIO);
+    double heat_capacity_ratio = 0.0;
+    if(mrModelPart.ElementsBegin() != mrModelPart.ElementsEnd())
+    {
+        heat_capacity_ratio = mrModelPart.ElementsBegin()->GetProperties().GetValue(HEAT_CAPACITY_RATIO);
+    }
     
     block_for_each(mrModelPart.Nodes(), [heat_capacity_ratio](NodeType& r_node)
     {
