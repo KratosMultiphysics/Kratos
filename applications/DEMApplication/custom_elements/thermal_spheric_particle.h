@@ -201,6 +201,17 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   void               SetParticleMomentInertia             (const double moment_inertia);
   void               SetParticleRealYoungRatio            (const double ratio);
 
+  // Heat flux components
+  double mConductionDirectHeatFlux;
+  double mConductionIndirectHeatFlux;
+  double mRadiationHeatFlux;
+  double mFrictionHeatFlux;
+  double mConvectionHeatFlux;
+  double mPrescribedHeatFluxSurface;
+  double mPrescribedHeatFluxVolume;
+  double mPrescribedHeatFlux;
+  double mTotalHeatFlux;
+
   // Turn back information as a string.
   virtual std::string Info() const override {
     std::stringstream buffer;
@@ -216,17 +227,6 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
 
   // General
   bool is_time_to_solve;
-
-  // Heat flux components
-  double mConductionDirectHeatFlux;
-  double mConductionIndirectHeatFlux;
-  double mRadiationHeatFlux;
-  double mFrictionHeatFlux;
-  double mConvectionHeatFlux;
-  double mPrescribedHeatFluxSurface;
-  double mPrescribedHeatFluxVolume;
-  double mPrescribedHeatFlux;
-  double mTotalHeatFlux;
 
   // Neighbor data
   ThermalSphericParticle<TBaseElement>* mNeighbor_p;

@@ -145,11 +145,12 @@ class ExplicitStrategy(BaseExplicitStrategy):
             raise Exception('DEM', '"global_fluid_properties" must contain positive values for material properties.')
         
         # Set booleans for graph writing
-        self.PostGraphParticleTempMin = DEM_parameters["PostGraphParticleTempMin"].GetBool()
-        self.PostGraphParticleTempMax = DEM_parameters["PostGraphParticleTempMax"].GetBool()
-        self.PostGraphParticleTempAvg = DEM_parameters["PostGraphParticleTempAvg"].GetBool()
-        self.PostGraphParticleTempDev = DEM_parameters["PostGraphParticleTempDev"].GetBool()
-        self.PostGraphModelTempAvg    = DEM_parameters["PostGraphModelTempAvg"].GetBool()
+        self.PostGraphParticleTempMin   = DEM_parameters["PostGraphParticleTempMin"].GetBool()
+        self.PostGraphParticleTempMax   = DEM_parameters["PostGraphParticleTempMax"].GetBool()
+        self.PostGraphParticleTempAvg   = DEM_parameters["PostGraphParticleTempAvg"].GetBool()
+        self.PostGraphParticleTempDev   = DEM_parameters["PostGraphParticleTempDev"].GetBool()
+        self.PostGraphModelTempAvg      = DEM_parameters["PostGraphModelTempAvg"].GetBool()
+        self.PostGraphFluxContributions = DEM_parameters["PostGraphHeatFluxContributions"].GetBool()
 
     def AddAdditionalVariables(self, model_part, DEM_parameters):
         # Add general additional variables (currently empty)
@@ -207,11 +208,12 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_VELOCITY,             self.fluid_velocity)
 
         # Booleans for writing graphs
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_TEMP_MIN, self.PostGraphParticleTempMin)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_TEMP_MAX, self.PostGraphParticleTempMax)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_TEMP_AVG, self.PostGraphParticleTempAvg)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_TEMP_DEV, self.PostGraphParticleTempDev)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_MODEL_TEMP_AVG,    self.PostGraphModelTempAvg)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_TEMP_MIN,                self.PostGraphParticleTempMin)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_TEMP_MAX,                self.PostGraphParticleTempMax)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_TEMP_AVG,                self.PostGraphParticleTempAvg)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_TEMP_DEV,                self.PostGraphParticleTempDev)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_MODEL_TEMP_AVG,                   self.PostGraphModelTempAvg)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_HEAT_FLUX_CONTRIBUTIONS, self.PostGraphFluxContributions)
 
     def Initialize(self):
         # Base class initializer

@@ -176,6 +176,7 @@ def GetDefaultInputParameters():
             "PostGraphParticleTempAvg"         : false,
             "PostGraphParticleTempDev"         : false,
             "PostGraphModelTempAvg"            : false,
+            "PostGraphHeatFluxContributions"   : false,
             "output_configuration" : {
                 "print_number_of_neighbours_histogram" : false
             },
