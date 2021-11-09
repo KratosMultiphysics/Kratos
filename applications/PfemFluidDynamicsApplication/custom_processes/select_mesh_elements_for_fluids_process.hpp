@@ -509,7 +509,8 @@ namespace Kratos
                         double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
                         double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
 
-                        if (fabs(cosAngle12) > 0.999 || fabs(cosAngle13) > 0.999 || fabs(cosAngle14) > 0.999 || fabs(cosAngle23) > 0.999 || fabs(cosAngle24) > 0.999 || fabs(cosAngle34) > 0.999) // if two faces are coplanar, I will erase the element (which is probably a sliver)
+                        double tolerance = 0.999;
+                        if (fabs(cosAngle12) > tolerance || fabs(cosAngle13) > tolerance || fabs(cosAngle14) > tolerance || fabs(cosAngle23) > tolerance || fabs(cosAngle24) > tolerance || fabs(cosAngle34) > tolerance) // if two faces are coplanar, I will erase the element (which is probably a sliver)
                         {
                             accepted = false;
                             number_of_slivers++;
