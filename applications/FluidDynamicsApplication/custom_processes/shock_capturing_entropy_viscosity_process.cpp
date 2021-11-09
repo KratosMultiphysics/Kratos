@@ -8,7 +8,6 @@
 #include "fluid_dynamics_application_variables.h"
 #include "shock_capturing_entropy_viscosity_process.h"
 
-#define ENTROPY YOUNG_MODULUS
 
 namespace Kratos {
 
@@ -55,7 +54,7 @@ int ShockCapturingEntropyViscosityProcess::Check()
     std::tie(missing_entropy, missing_density, missing_pressure, missing_temperature, missing_velocity) =
     block_for_each<MultiOrReduction>(mrModelPart.Nodes(), [](const NodeType& r_node)
     {
-        const bool missing_entropy = ! r_node.SolutionStepsDataHas(ENTROPY);
+        const bool missing_entropy = ! r_node.SolutionStepsDataHas(NUMERICAL_ENTROPY);
         const bool missing_density = ! r_node.SolutionStepsDataHas(DENSITY);
         const bool missing_pressure = ! r_node.SolutionStepsDataHas(PRESSURE);
         const bool missing_temperature = ! r_node.SolutionStepsDataHas(TEMPERATURE);
@@ -66,7 +65,7 @@ int ShockCapturingEntropyViscosityProcess::Check()
         );
     });
 
-    KRATOS_ERROR_IF(missing_entropy) << "Missing ENTROPY variable from one or more nodes" << std::endl;
+    KRATOS_ERROR_IF(missing_entropy) << "Missing NUMERICAL_ENTROPY variable from one or more nodes" << std::endl;
     KRATOS_ERROR_IF(missing_density) << "Missing DENSITY variable from one or more nodes" << std::endl;
     KRATOS_ERROR_IF(missing_pressure) << "Missing PRESSURE variable from one or more nodes" << std::endl;
     KRATOS_ERROR_IF(missing_temperature) << "Missing TEMPERATURE variable from one or more nodes" << std::endl;
@@ -178,7 +177,7 @@ void ShockCapturingEntropyViscosityProcess::ComputeNodalEntropies()
         const double pressure = r_node.FastGetSolutionStepValue(PRESSURE);
 
         const auto entropy = ComputeEntropy(density, pressure, heat_capacity_ratio);
-        r_node.FastGetSolutionStepValue(ENTROPY) = entropy;
+        r_node.FastGetSolutionStepValue(NUMERICAL_ENTROPY) = entropy;
 
         r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);
         r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
@@ -296,7 +295,7 @@ ShockCapturingEntropyViscosityProcess::BuildTotalDerivativeUtils(const Element& 
         
         total_velocities[i] = norm_2(velocity) + std::sqrt(HeatCapacityRatio * temperature);
 
-        entropy_total_derivative.LoadNodalValues(ENTROPY, r_node, i, velocity, DeltaTime);
+        entropy_total_derivative.LoadNodalValues(NUMERICAL_ENTROPY, r_node, i, velocity, DeltaTime);
         density_total_derivative.LoadNodalValues(DENSITY, r_node, i, velocity, DeltaTime);
         entropy_total_derivative.Value[i] /= density_total_derivative.Value[i];
     }
