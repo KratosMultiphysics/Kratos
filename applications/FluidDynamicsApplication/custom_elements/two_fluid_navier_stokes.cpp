@@ -185,11 +185,8 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 
                     for (unsigned int intgp = 0; intgp < int_gauss_pts_weights.size(); ++intgp){
                         double u_dot_n = 0.0;
-                        for (unsigned int i = 0; i < NumNodes; i++){
+                        for (unsigned int i = 0; i < NumNodes; ++i){
                             u_dot_n += int_shape_function(intgp,i)*(*p_geom)[i].GetValue(DISTANCE_DIFFERENCE);
-                            /* for (unsigned int dim = 0; dim < NumNodes-1; dim++){
-                                u_dot_n += int_shape_function(intgp,i)*data.Velocity(i,dim)*(int_normals_neg[intgp])[dim];
-                            } */
 
                             if (data.Distance[i] > 0.0){
                                 positive_density = data.NodalDensity[i];
@@ -200,9 +197,9 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 
                         u_dot_n /= data.DeltaTime;
 
-                        for (unsigned int i = 0; i < NumNodes; i++){
-                            for (unsigned int j = 0; j < NumNodes; j++){
-                                for (unsigned int dim = 0; dim < NumNodes-1; dim++){
+                        for (unsigned int i = 0; i < NumNodes; ++i){
+                            for (unsigned int j = 0; j < NumNodes; ++j){
+                                for (unsigned int dim = 0; dim < NumNodes-1; ++dim){
                                     lhs_acc_correction( i*(NumNodes) + dim, j*(NumNodes) + dim) +=
                                         int_shape_function(intgp,i)*int_shape_function(intgp,j)*u_dot_n*int_gauss_pts_weights(intgp);
                                 }
@@ -214,8 +211,8 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     noalias(rLeftHandSideMatrix) += lhs_acc_correction;
 
                     Kratos::array_1d<double, LocalSize> tempU; // Unknowns vector containing only velocity components
-                    for (unsigned int i = 0; i < NumNodes; i++){
-                        for (unsigned int dimi = 0; dimi < Dim; dimi++){
+                    for (unsigned int i = 0; i < NumNodes; ++i){
+                        for (unsigned int dimi = 0; dimi < Dim; ++dimi){
                             tempU[i*(Dim+1) + dimi] = data.Velocity(i,dimi);
                         }
                     }
