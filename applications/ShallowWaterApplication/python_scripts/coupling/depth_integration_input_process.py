@@ -67,10 +67,12 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
         self.hdf5_process = single_mesh_temporal_input_process.Factory(hdf5_process_settings.Clone(), model)
         self._GetInputTimes(self.settings['file_settings'])
 
+
     def Check(self):
         '''Check the processes.'''
         self.hdf5_read.Check()
         self.hdf5_process.Check()
+
 
     def ExecuteInitialize(self):
         '''Read the interface_model_part and set the variables.'''
@@ -78,6 +80,7 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
         self._CheckInputVariables()
         self._CreateMapper()
         self._MapToBoundaryCondition()
+
 
     def ExecuteInitializeSolutionStep(self):
         '''Set the variables in the interface_model_part at the current time.'''
@@ -93,6 +96,7 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
             self._CheckInputVariables()
             self._MapToBoundaryCondition()
             self._SmoothDefaultValue()
+
 
     def _GetInputTimes(self, file_settings):
         # Get all the file names
@@ -114,14 +118,17 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
             self.times.append(float(f))
         self.times.sort()
 
+
     def _SetCurrentTime(self):
         current_time = self.model_part.ProcessInfo.GetValue(KM.TIME)
         closest_time = next(filter(lambda x: x>current_time, self.times))
         self.interface_model_part.ProcessInfo.SetValue(KM.TIME, closest_time)
 
+
     def _SetDefaultTime(self):
         default_time = self.settings["default_time_after_interval"].GetDouble()
         self.interface_model_part.ProcessInfo.SetValue(KM.TIME, default_time)
+
 
     def _CheckInputVariables(self):
         if self.settings["swap_yz_axis"].GetBool():
@@ -139,6 +146,7 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
                 KM.VariableUtils().SetNonHistoricalVariableToZero(KM.MOMENTUM_Z, self.interface_model_part.Nodes)
                 KM.VariableUtils().SetNonHistoricalVariableToZero(KM.VELOCITY_Z, self.interface_model_part.Nodes)
 
+
     def _MapToBoundaryCondition(self):
         for variable in self.variables:
             if self.settings["read_historical_database"].GetBool():
@@ -148,6 +156,7 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
 
         for variable in self.variables_to_fix:
             KM.VariableUtils().ApplyFixity(variable, True, self.model_part.Nodes)
+
 
     def _CreateMapper(self):
         mapper_settings = KM.Parameters("""{
@@ -171,6 +180,7 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
             self.interface_model_part,
             self.model_part,
             mapper_settings)
+
 
     def _SmoothDefaultValue(self):
         elapsed_time = self.model_part.ProcessInfo.GetValue(KM.DELTA_TIME)
