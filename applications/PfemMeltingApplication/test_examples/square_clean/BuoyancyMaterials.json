@@ -1,0 +1,13 @@
+{
+    "properties" : [{
+        "model_part_name" : "FluidModelPart.FluidParts_Parts_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "Variables" : {
+                "CONDUCTIVITY"      : 1000.0,
+                "SPECIFIC_HEAT"     : 1920.0
+            },
+            "Tables"    : {}
+        }
+    }]
+}
