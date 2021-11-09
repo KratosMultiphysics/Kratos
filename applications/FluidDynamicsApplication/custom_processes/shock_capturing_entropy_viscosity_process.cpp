@@ -32,6 +32,7 @@ ShockCapturingEntropyViscosityProcess::ShockCapturingEntropyViscosityProcess(
     KRATOS_CATCH("")
 }
 
+
 int ShockCapturingEntropyViscosityProcess::Check()
 {
     auto err_code = Process::Check();
@@ -96,7 +97,6 @@ int ShockCapturingEntropyViscosityProcess::Check()
 }
 
 
-
 const Parameters ShockCapturingEntropyViscosityProcess::GetDefaultParameters() const
 {
     return Parameters(R"(
@@ -136,6 +136,7 @@ Divergence(const Matrix& rShapeFunGradients, const Matrix& rNodalValues)
 
     KRATOS_CATCH("")
 }
+
 
 void ShockCapturingEntropyViscosityProcess::ExecuteBeforeSolutionLoop()
 {
@@ -185,6 +186,7 @@ void ShockCapturingEntropyViscosityProcess::ComputeNodalEntropies()
     });
 }
 
+
 void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
 {
     KRATOS_TRY
@@ -209,6 +211,7 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
 
     KRATOS_CATCH("")
 }
+
 
 void ShockCapturingEntropyViscosityProcess::DistributeVariablesToNodes(
     Element& rElement,
@@ -270,6 +273,7 @@ ShockCapturingEntropyViscosityProcess::InfNormData ShockCapturingEntropyViscosit
     std::tie(entropy_td, density_td, total_velocities) = BuildTotalDerivativeUtils(rElement, DeltaTime, HeatCapacityRatio);
     return ComputeInfNorms(rElement.GetGeometry(), entropy_td, density_td, total_velocities);
 }
+
 
 std::tuple<ShockCapturingEntropyViscosityProcess::TotalDerivativeUtil, ShockCapturingEntropyViscosityProcess::TotalDerivativeUtil, Vector>
 ShockCapturingEntropyViscosityProcess::BuildTotalDerivativeUtils(const Element& rElement, const double DeltaTime, const double HeatCapacityRatio)
@@ -348,4 +352,4 @@ ShockCapturingEntropyViscosityProcess::InfNormData ShockCapturingEntropyViscosit
 }
 
 
-} // namespace Kratos 
+} // namespace Kratos
