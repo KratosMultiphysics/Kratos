@@ -298,17 +298,8 @@ private:
 }; // Class ParallelDistanceCalculator
 
 ///@}
-
-///@name Type Definitions
-///@{
-
-// template <unsigned int TDim>
-// const Kratos::Flags ParallelDistanceCalculator<TDim>::CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(0));
-
-///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 template<unsigned int TDim>
@@ -332,7 +323,6 @@ inline std::ostream& operator << (
     return rOStream;
 }
 ///@}
-
 
 }  // namespace Kratos.
 
