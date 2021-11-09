@@ -325,7 +325,10 @@ private:
 /// output stream function
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const ShockCapturingEntropyViscosityProcess& rThis);
+    const ShockCapturingEntropyViscosityProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+}
 
 ///@}
 
