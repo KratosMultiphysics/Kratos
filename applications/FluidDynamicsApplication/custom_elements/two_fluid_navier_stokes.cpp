@@ -176,7 +176,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 }
 
                 if (rCurrentProcessInfo[MOMENTUM_CORRECTION]){
-                    MatrixType lhs_acc_correction = ZeroMatrix(NumNodes*NumNodes,NumNodes*NumNodes);
+                    BoundedMatrix<double, LocalSize, LocalSize> lhs_acc_correction = ZeroMatrix(LocalSize,LocalSize);
 
                     double positive_density;
                     double negative_density;
@@ -213,7 +213,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     lhs_acc_correction = (negative_density - positive_density)*lhs_acc_correction;
                     noalias(rLeftHandSideMatrix) += lhs_acc_correction;
 
-                    Kratos::array_1d<double, NumNodes * (Dim + 1)> tempU; // Unknowns vector containing only velocity components
+                    Kratos::array_1d<double, LocalSize> tempU; // Unknowns vector containing only velocity components
                     for (unsigned int i = 0; i < NumNodes; i++){
                         for (unsigned int dimi = 0; dimi < Dim; dimi++){
                             tempU[i*(Dim+1) + dimi] = data.Velocity(i,dimi);
