@@ -302,8 +302,8 @@ private:
 ///@name Type Definitions
 ///@{
 
-template <unsigned int TDim>
-const Kratos::Flags KRATOS_API(KRATOS_CORE) ParallelDistanceCalculator<TDim>::CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(0));
+// template <unsigned int TDim>
+// const Kratos::Flags ParallelDistanceCalculator<TDim>::CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(0));
 
 ///@}
 ///@name Input and output
