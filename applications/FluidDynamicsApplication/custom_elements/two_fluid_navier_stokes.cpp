@@ -163,60 +163,64 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 Vector int_gauss_pts_weights;
                 std::vector< array_1d<double,3> > int_normals_neg;
 
-                ComputeSplitInterface(
-                    data,
-                    int_shape_function,
-                    int_shape_function_enr_pos,
-                    int_shape_function_enr_neg,
-                    int_shape_derivatives,
-                    int_gauss_pts_weights,
-                    int_normals_neg,
-                    p_modified_sh_func);
+                if (rCurrentProcessInfo[SURFACE_TENSION] || rCurrentProcessInfo[MOMENTUM_CORRECTION]){
+                    ComputeSplitInterface(
+                        data,
+                        int_shape_function,
+                        int_shape_function_enr_pos,
+                        int_shape_function_enr_neg,
+                        int_shape_derivatives,
+                        int_gauss_pts_weights,
+                        int_normals_neg,
+                        p_modified_sh_func);
+                }
 
-                MatrixType lhs_acc_correction = ZeroMatrix(NumNodes*NumNodes,NumNodes*NumNodes);
+                if (rCurrentProcessInfo[MOMENTUM_CORRECTION]){
+                    MatrixType lhs_acc_correction = ZeroMatrix(NumNodes*NumNodes,NumNodes*NumNodes);
 
-                double positive_density = 1.0;
-                double negative_density = 1000.0;
+                    double positive_density = 1.0;
+                    double negative_density = 1000.0;
 
-                GeometryType::Pointer p_geom = this->pGetGeometry();
+                    GeometryType::Pointer p_geom = this->pGetGeometry();
 
-                for (unsigned int intgp = 0; intgp < int_gauss_pts_weights.size(); ++intgp){
-                    double u_dot_n = 0.0;
-                    for (unsigned int i = 0; i < NumNodes; i++){
-                        u_dot_n += int_shape_function(intgp,i)*(*p_geom)[i].GetValue(DISTANCE_DIFFERENCE);
-                        /* for (unsigned int dim = 0; dim < NumNodes-1; dim++){
-                            u_dot_n += int_shape_function(intgp,i)*data.Velocity(i,dim)*(int_normals_neg[intgp])[dim];
-                        } */
+                    for (unsigned int intgp = 0; intgp < int_gauss_pts_weights.size(); ++intgp){
+                        double u_dot_n = 0.0;
+                        for (unsigned int i = 0; i < NumNodes; i++){
+                            u_dot_n += int_shape_function(intgp,i)*(*p_geom)[i].GetValue(DISTANCE_DIFFERENCE);
+                            /* for (unsigned int dim = 0; dim < NumNodes-1; dim++){
+                                u_dot_n += int_shape_function(intgp,i)*data.Velocity(i,dim)*(int_normals_neg[intgp])[dim];
+                            } */
 
-                        if (data.Distance[i] > 0.0){
-                            positive_density = data.NodalDensity[i];
-                        } else {
-                            negative_density = data.NodalDensity[i];
+                            if (data.Distance[i] > 0.0){
+                                positive_density = data.NodalDensity[i];
+                            } else {
+                                negative_density = data.NodalDensity[i];
+                            }
                         }
-                    }
 
-                    u_dot_n /= data.DeltaTime;
+                        u_dot_n /= data.DeltaTime;
 
-                    for (unsigned int i = 0; i < NumNodes; i++){
-                        for (unsigned int j = 0; j < NumNodes; j++){
-                            for (unsigned int dim = 0; dim < NumNodes-1; dim++){
-                                lhs_acc_correction( i*(NumNodes) + dim, j*(NumNodes) + dim) +=
-                                    int_shape_function(intgp,i)*int_shape_function(intgp,j)*u_dot_n*int_gauss_pts_weights(intgp);
+                        for (unsigned int i = 0; i < NumNodes; i++){
+                            for (unsigned int j = 0; j < NumNodes; j++){
+                                for (unsigned int dim = 0; dim < NumNodes-1; dim++){
+                                    lhs_acc_correction( i*(NumNodes) + dim, j*(NumNodes) + dim) +=
+                                        int_shape_function(intgp,i)*int_shape_function(intgp,j)*u_dot_n*int_gauss_pts_weights(intgp);
+                                }
                             }
                         }
                     }
-                }
 
-                lhs_acc_correction = (negative_density - positive_density)*lhs_acc_correction;
-                noalias(rLeftHandSideMatrix) += lhs_acc_correction;
+                    lhs_acc_correction = (negative_density - positive_density)*lhs_acc_correction;
+                    noalias(rLeftHandSideMatrix) += lhs_acc_correction;
 
-                Kratos::array_1d<double, NumNodes * (Dim + 1)> tempU; // Unknowns vector containing only velocity components
-                for (unsigned int i = 0; i < NumNodes; i++){
-                    for (unsigned int dimi = 0; dimi < Dim; dimi++){
-                        tempU[i*(Dim+1) + dimi] = data.Velocity(i,dimi);
+                    Kratos::array_1d<double, NumNodes * (Dim + 1)> tempU; // Unknowns vector containing only velocity components
+                    for (unsigned int i = 0; i < NumNodes; i++){
+                        for (unsigned int dimi = 0; dimi < Dim; dimi++){
+                            tempU[i*(Dim+1) + dimi] = data.Velocity(i,dimi);
+                        }
                     }
+                    noalias(rRightHandSideVector) -= prod(lhs_acc_correction,tempU);
                 }
-                noalias(rRightHandSideVector) -= prod(lhs_acc_correction,tempU);
 
                 if (rCurrentProcessInfo[SURFACE_TENSION]){
 
