@@ -285,16 +285,15 @@ ShockCapturingEntropyViscosityProcess::BuildTotalDerivativeUtils(const Element& 
 
     for(unsigned int i=0; i<r_geometry.size(); ++i)
     {
-        const auto velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY);
-        const auto temperature = r_geometry[i].FastGetSolutionStepValue(TEMPERATURE);
+        const auto& r_node = r_geometry[i];
+        
+        const auto velocity = r_node.FastGetSolutionStepValue(VELOCITY);
+        const auto temperature = r_node.FastGetSolutionStepValue(TEMPERATURE);
         
         total_velocities[i] = norm_2(velocity) + std::sqrt(HeatCapacityRatio * temperature);
 
-        const auto& r_node = r_geometry[i];
         entropy_total_derivative.LoadNodalValues(ENTROPY, r_node, i, velocity, DeltaTime);
         density_total_derivative.LoadNodalValues(DENSITY, r_node, i, velocity, DeltaTime);
-
-        
         entropy_total_derivative.Value[i] /= density_total_derivative.Value[i];
     }
 
