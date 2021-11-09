@@ -57,7 +57,7 @@ void CadTessellationModeler::SetupModelPart()
     for (auto it = r_geometries.begin(); it != r_geometries.end(); ++it) {
 
         IndexType trim_index = 0;
-        if (it->GetGeometryType() == GeometryData::Kratos_Brep_Surface) {
+        if (it->GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Brep_Surface) {
 
             const auto& r_aux_geometry = *it;
             const auto r_brep_surface_geom = dynamic_cast<const BrepSurfaceType&>(r_aux_geometry);
