@@ -29,7 +29,10 @@ namespace {
 
     RegistryItem& Registry::GetItem(std::string const& ItemFullName){
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-        auto item_path = SplitFullName(ItemFullName);
+
+        auto item_path = StringUtilities::SplitStringByDelimiter(ItemFullName, '.');
+        KRATOS_ERROR_IF(item_path.empty()) << "The item full name is empty" << std::endl;
+
         
         RegistryItem* p_current_item = &GetRootRegistryItem();
 
@@ -48,7 +51,9 @@ namespace {
 
     void Registry::RemoveItem(std::string const& ItemFullName){
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-        auto item_path = SplitFullName(ItemFullName);
+
+        auto item_path = StringUtilities::SplitStringByDelimiter(ItemFullName, '.');
+        KRATOS_ERROR_IF(item_path.empty()) << "The item full name is empty" << std::endl;
         
         RegistryItem* p_current_item = &GetRootRegistryItem();
 
@@ -73,7 +78,9 @@ namespace {
 
     bool Registry::HasItem(std::string const& ItemFullName){
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-        auto item_path = SplitFullName(ItemFullName);
+
+        auto item_path = StringUtilities::SplitStringByDelimiter(ItemFullName, '.');
+        KRATOS_ERROR_IF(item_path.empty()) << "The item full name is empty" << std::endl;
         
         RegistryItem* p_current_item = &GetRootRegistryItem();
 
@@ -114,21 +121,6 @@ namespace {
 
     return *mspRootRegistryItem;
 
-    }
-
-    std::vector<std::string> Registry::SplitFullName(std::string const& FullName){
-        std::istringstream iss(FullName);
-        std::vector<std::string> result;
-        std::string name;
-
-        while (std::getline(iss, name, '.')){
-            result.push_back(name);
-        }
-
-        KRATOS_ERROR_IF(result.empty()) << "The item full name is empty" << std::endl;
-
-
-        return result;
     }
 
 

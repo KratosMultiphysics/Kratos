@@ -26,8 +26,7 @@
 #include "includes/registry_item.h"
 #include "includes/registry_value_item.h"
 #include "utilities/parallel_utilities.h"
-
-
+#include "utilities/string_utilities.h"
 
 namespace Kratos
 {
@@ -89,7 +88,9 @@ public:
     static RegistryItem& AddItem(std::string const& ItemFullName, TArgumentsList&&... Arguments){
 
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-        auto item_path = SplitFullName(ItemFullName);
+
+        auto item_path = StringUtilities::SplitStringByDelimiter(ItemFullName, '.');
+        KRATOS_ERROR_IF(item_path.empty()) << "The item full name is empty" << std::endl;
 
         RegistryItem* p_current_item = &GetRootRegistryItem();
 
