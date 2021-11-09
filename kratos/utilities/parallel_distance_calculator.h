@@ -53,8 +53,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-template< unsigned int TDim>
-class ParallelDistanceCalculator
+template <unsigned int TDim>
+class KRATOS_API(KRATOS_CORE) ParallelDistanceCalculator
 {
 public:
     ///@name Type Definitions
