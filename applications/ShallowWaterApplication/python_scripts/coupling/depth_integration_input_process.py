@@ -7,7 +7,7 @@ from KratosMultiphysics.kratos_utilities import GenerateVariableListFromInput
 from KratosMultiphysics.HDF5Application import read_model_part_from_hdf5_process
 from KratosMultiphysics.HDF5Application import single_mesh_temporal_input_process
 from os import path, listdir
-from math import exp
+from numpy import expm1
 
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
@@ -185,7 +185,7 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
     def _SmoothDefaultValue(self):
         elapsed_time = self.model_part.ProcessInfo.GetValue(KM.DELTA_TIME)
         semi_period = self.settings["semi_period_after_interval"].GetDouble()
-        smooth = exp(elapsed_time / semi_period)
+        smooth = -expm1(-elapsed_time / semi_period)
         for node in self.model_part.Nodes:
             for variable in self.variables:
                 initial = node.GetSolutionStepValue(variable, 1)
