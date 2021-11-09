@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "utilities/parallel_utilities.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/contact_utilities.h"
@@ -48,7 +49,7 @@ double ContactUtilities::CalculateMaxNodalH(ModelPart& rModelPart)
 //     return max_value;
 
     // Creating a buffer for parallel vector fill
-    const int num_threads = OpenMPUtils::GetNumThreads();
+    const int num_threads = ParallelUtilities::GetNumThreads();
     std::vector<double> max_vector(num_threads, 0.0);
     double nodal_h;
     #pragma omp parallel for private(nodal_h)
@@ -110,7 +111,7 @@ double ContactUtilities::CalculateMinimalNodalH(ModelPart& rModelPart)
 //         return min_value;
 
     // Creating a buffer for parallel vector fill
-    const int num_threads = OpenMPUtils::GetNumThreads();
+    const int num_threads = ParallelUtilities::GetNumThreads();
     std::vector<double> min_vector(num_threads, 0.0);
     double nodal_h;
     #pragma omp parallel for private(nodal_h)
@@ -157,23 +158,18 @@ void ContactUtilities::ComputeStepJump(
     // Iterate over the nodes
     NodesArrayType& r_nodes_array = rModelPart.Nodes();
 
-    // Node iterator
-    const auto it_node_begin = r_nodes_array.begin();
-
     // We compute the half jump
-    array_1d<double, 3> new_delta_disp;
-    #pragma omp parallel for firstprivate(new_delta_disp)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i)  {
-        auto it_node = it_node_begin + i;
-        const array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-        const array_1d<double, 3>& r_previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
-        const array_1d<double, 3>& r_previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+    array_1d<double, 3> new_delta_disp = ZeroVector(3);
+    block_for_each(r_nodes_array, new_delta_disp, [&velocity_constant, &acceleration_constant, &DeltaTime](NodeType& rNode, array_1d<double, 3>& new_delta_disp) {
+        const array_1d<double, 3>& r_current_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+        const array_1d<double, 3>& r_previous_velocity = rNode.FastGetSolutionStepValue(VELOCITY, 1);
+        const array_1d<double, 3>& r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
         noalias(new_delta_disp) = velocity_constant * DeltaTime * (r_current_velocity + r_previous_velocity) + acceleration_constant * std::pow(DeltaTime, 2) * r_previous_acceleration;
-        if (it_node->IsFixed(DISPLACEMENT_X)) new_delta_disp[0] = 0.0;
-        if (it_node->IsFixed(DISPLACEMENT_Y)) new_delta_disp[1] = 0.0;
-        if (it_node->IsFixed(DISPLACEMENT_Z)) new_delta_disp[2] = 0.0;
-        it_node->SetValue(DELTA_COORDINATES, new_delta_disp);
-    }
+        if (rNode.IsFixed(DISPLACEMENT_X)) new_delta_disp[0] = 0.0;
+        if (rNode.IsFixed(DISPLACEMENT_Y)) new_delta_disp[1] = 0.0;
+        if (rNode.IsFixed(DISPLACEMENT_Z)) new_delta_disp[2] = 0.0;
+        rNode.SetValue(DELTA_COORDINATES, new_delta_disp);
+    });
 }
 
 /***********************************************************************************/
@@ -235,15 +231,12 @@ void ContactUtilities::CleanContactModelParts(ModelPart& rModelPart)
 {
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
     KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR CONTACT MODEL PART IS EMPTY" << std::endl;
-    const auto it_cond_begin = r_conditions_array.begin();
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-        auto it_cond = it_cond_begin + i;
-        const auto& r_geometry = it_cond->GetGeometry();
+    block_for_each(r_conditions_array, [&](Condition& rCond) {
+        const auto& r_geometry = rCond.GetGeometry();
         if (r_geometry.NumberOfGeometryParts() > 0) {
-            it_cond->Set(TO_ERASE);
+            rCond.Set(TO_ERASE);
         }
-    }
+    });
     rModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 }
 
@@ -254,13 +247,10 @@ void ContactUtilities::ComputeExplicitContributionConditions(ModelPart& rModelPa
 {
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
     KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
-    const auto it_cond_begin = r_conditions_array.begin();
     const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-        auto it_cond = it_cond_begin + i;
-        it_cond->AddExplicitContribution(r_process_info);
-    }
+    block_for_each(r_conditions_array, [&r_process_info](Condition& rCond) {
+        rCond.AddExplicitContribution(r_process_info);
+    });
 }
 
 /***********************************************************************************/
@@ -270,13 +260,10 @@ void ContactUtilities::ActivateConditionWithActiveNodes(ModelPart& rModelPart)
 {
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
     KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
-    const auto it_cond_begin = r_conditions_array.begin();
 
     bool is_active = false;
-    #pragma omp parallel for firstprivate(is_active)
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-        auto it_cond = it_cond_begin + i;
-        const GeometryType& r_geometry = it_cond->GetGeometry();
+    block_for_each(r_conditions_array, is_active, [&](Condition& rCond, bool& is_active) {
+        const GeometryType& r_geometry = rCond.GetGeometry();
         if (r_geometry.NumberOfGeometryParts() > 0) {
             const GeometryType& r_parent_geometry = r_geometry.GetGeometryPart(0);
             is_active = false;
@@ -286,9 +273,9 @@ void ContactUtilities::ActivateConditionWithActiveNodes(ModelPart& rModelPart)
                     break;
                 }
             }
-            it_cond->Set(ACTIVE, is_active);
+            rCond.Set(ACTIVE, is_active);
         }
-    }
+    });
 }
 
 /***********************************************************************************/

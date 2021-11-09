@@ -260,8 +260,11 @@ BoundedMatrix<double, 3, 3>* mSymmStressTensor;
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
 virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalContactForce[3]);
-DEMDiscontinuumConstitutiveLaw* pGetDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour);
-DEMDiscontinuumConstitutiveLaw* pGetDiscontinuumConstitutiveLawWithFEMNeighbour(Condition* neighbour);
+
+std::unique_ptr<DEMDiscontinuumConstitutiveLaw> pCloneDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour);
+
+std::unique_ptr<DEMDiscontinuumConstitutiveLaw> pCloneDiscontinuumConstitutiveLawWithFEMNeighbour(Condition* neighbour);
+
 
 protected:
 
@@ -422,7 +425,8 @@ virtual void AddWallContributionToStressTensor(const double GlobalElasticContact
 virtual void RotateOldContactForces(const double LocalCoordSystem[3][3], const double OldLocalCoordSystem[3][3], array_1d<double, 3>& mNeighbourElasticContactForces) final;
 virtual void ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment);
 
-DEMDiscontinuumConstitutiveLaw* mDiscontinuumConstitutiveLaw;
+std::unique_ptr<DEMDiscontinuumConstitutiveLaw> mDiscontinuumConstitutiveLaw;
+
 double mRadius;
 double mSearchRadius;
 double mRealMass;

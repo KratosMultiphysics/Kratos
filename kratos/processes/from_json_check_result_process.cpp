@@ -114,10 +114,10 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
         mTimeCounter = 0.0;
 
         // Check node values
-        if (this->Is(HISTORICAL_VALUE)) {
-            CheckNodeValues<true>(check_counter);
+        if(this->Is(HISTORICAL_VALUE)) { // Historical values
+            CheckNodeHistoricalValues(check_counter);
         } else { // Non-historical values
-            CheckNodeValues<false>(check_counter);
+            CheckNodeValues(check_counter);
         }
 
         // Check GP values
@@ -294,6 +294,158 @@ void FromJSONCheckResultProcess::FailMessage(
     {
         mErrorMessage += ss.str();
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void FromJSONCheckResultProcess::CheckNodeValues(IndexType& rCheckCounter)
+{
+    // Get time
+    const double time = mrModelPart.GetProcessInfo().GetValue(TIME);
+
+    // Node database
+    const auto& r_node_database = GetNodeDatabase();
+
+    // Iterate over nodes
+    const auto& r_nodes_array = GetNodes();
+    const auto it_node_begin = r_nodes_array.begin();
+
+    // Auxiliar check counter (MVSC does not accept references)
+    IndexType check_counter = rCheckCounter;
+
+    for (auto& p_var_double : mpNodalVariableDoubleList) {
+        const auto& r_var_database = r_node_database.GetVariableData(*p_var_double);
+
+        check_counter += IndexPartition<std::size_t>(r_nodes_array.size()).for_each<SumReduction<IndexType>>([&it_node_begin, &p_var_double, &r_var_database, &time, this] (std::size_t Index){
+            IndexType counter = 0;
+            auto it_node = it_node_begin + Index;
+            const double result = it_node->GetValue(*p_var_double);
+            const double reference = r_var_database.GetValue(Index, time);
+            if (!CheckValues(result, reference)) {
+                FailMessage(it_node->Id(), "Node", result, reference, p_var_double->Name());
+                counter += 1;
+            }
+            return counter;
+        });
+    }
+
+    for (auto& p_var_array : mpNodalVariableArrayList) {
+        const auto& r_var_database = r_node_database.GetVariableData(*p_var_array);
+
+        check_counter += IndexPartition<std::size_t>(r_nodes_array.size()).for_each<SumReduction<IndexType>>([&it_node_begin, &p_var_array, &r_var_database, &time, this] (std::size_t Index){
+            IndexType counter = 0;
+            auto it_node = it_node_begin + Index;
+            const auto& r_entity_database = r_var_database.GetEntityData(Index);
+            const array_1d<double, 3>& r_result = it_node->GetValue(*p_var_array);
+            for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
+                const double reference = r_entity_database.GetValue(time, i_comp);
+                if (!CheckValues(r_result[i_comp], reference)) {
+                    FailMessage(it_node->Id(), "Node", r_result[i_comp], reference, p_var_array->Name());
+                    counter += 1;
+                }
+            }
+            return counter;
+        });
+    }
+
+    for (auto& p_var_vector : mpNodalVariableVectorList) {
+        const auto& r_var_database = r_node_database.GetVariableData(*p_var_vector);
+
+        check_counter += IndexPartition<std::size_t>(r_nodes_array.size()).for_each<SumReduction<IndexType>>([&it_node_begin, &p_var_vector, &r_var_database, &time, this] (std::size_t Index){
+            IndexType counter = 0;
+            auto it_node = it_node_begin + Index;
+            const auto& r_entity_database = r_var_database.GetEntityData(Index);
+            const Vector& r_result = it_node->GetValue(*p_var_vector);
+            for (IndexType i_comp = 0; i_comp < r_result.size(); ++i_comp) {
+                const double reference = r_entity_database.GetValue(time, i_comp);
+                if (!CheckValues(r_result[i_comp], reference)) {
+                    FailMessage(it_node->Id(), "Node", r_result[i_comp], reference, p_var_vector->Name());
+                    counter += 1;
+                }
+            }
+            return counter;
+        });
+    }
+
+    // Save the reference
+    rCheckCounter = check_counter;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+    
+void FromJSONCheckResultProcess::CheckNodeHistoricalValues(IndexType& rCheckCounter)
+{
+    // Get time
+    const double time = mrModelPart.GetProcessInfo().GetValue(TIME);
+
+    // Node database
+    const auto& r_node_database = GetNodeDatabase();
+
+    // Iterate over nodes
+    const auto& r_nodes_array = GetNodes();
+    const auto it_node_begin = r_nodes_array.begin();
+
+    // Auxiliar check counter (MVSC does not accept references)
+    IndexType check_counter = rCheckCounter;
+
+    for (auto& p_var_double : mpNodalVariableDoubleList) {
+        const auto& r_var_database = r_node_database.GetVariableData(*p_var_double);
+
+        check_counter += IndexPartition<std::size_t>(r_nodes_array.size()).for_each<SumReduction<IndexType>>([&it_node_begin, &p_var_double, &r_var_database, &time, this] (std::size_t Index){
+            IndexType counter = 0;
+            auto it_node = it_node_begin + Index;
+            const double result = it_node->FastGetSolutionStepValue(*p_var_double);
+            const double reference = r_var_database.GetValue(Index, time);
+            if (!CheckValues(result, reference)) {
+                FailMessage(it_node->Id(), "Node", result, reference, p_var_double->Name());
+                counter += 1;
+            }
+            return counter;
+        });
+    }
+
+    for (auto& p_var_array : mpNodalVariableArrayList) {
+        const auto& r_var_database = r_node_database.GetVariableData(*p_var_array);
+
+        check_counter += IndexPartition<std::size_t>(r_nodes_array.size()).for_each<SumReduction<IndexType>>([&it_node_begin, &p_var_array, &r_var_database, &time, this] (std::size_t Index){
+            IndexType counter = 0;
+            auto it_node = it_node_begin + Index;
+            const auto& r_entity_database = r_var_database.GetEntityData(Index);
+            const array_1d<double, 3>& r_result = it_node->FastGetSolutionStepValue(*p_var_array);
+            for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
+                const double reference = r_entity_database.GetValue(time, i_comp);
+                if (!CheckValues(r_result[i_comp], reference)) {
+                    FailMessage(it_node->Id(), "Node", r_result[i_comp], reference, p_var_array->Name());
+                    counter += 1;
+                }
+            }
+            return counter;
+        });
+    }
+
+    for (auto& p_var_vector : mpNodalVariableVectorList) {
+        const auto& r_var_database = r_node_database.GetVariableData(*p_var_vector);
+
+        check_counter += IndexPartition<std::size_t>(r_nodes_array.size()).for_each<SumReduction<IndexType>>([&it_node_begin, &p_var_vector, &r_var_database, &time, this] (std::size_t Index){
+            IndexType counter = 0;
+            auto it_node = it_node_begin + Index;
+            const auto& r_entity_database = r_var_database.GetEntityData(Index);
+            const Vector& r_result = it_node->FastGetSolutionStepValue(*p_var_vector);
+            for (IndexType i_comp = 0; i_comp < r_result.size(); ++i_comp) {
+                const double reference = r_entity_database.GetValue(time, i_comp);
+                if (!CheckValues(r_result[i_comp], reference)) {
+                    FailMessage(it_node->Id(), "Node", r_result[i_comp], reference, p_var_vector->Name());
+                    counter += 1;
+                }
+            }
+            return counter;
+        });
+    }
+
+    // Save the reference
+    rCheckCounter = check_counter;
 }
 
 /***********************************************************************************/
@@ -827,78 +979,6 @@ const ResultDatabase& FromJSONCheckResultProcess::GetGPDatabase()
     }
 
     return mDatabaseGP;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <>
-double FromJSONCheckResultProcess::GetValue<true>(
-    NodesArrayType::const_iterator& itNode,
-    const Variable<double>* pVariable
-    )
-{
-    return itNode->FastGetSolutionStepValue(*pVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <>
-double FromJSONCheckResultProcess::GetValue<false>(
-    NodesArrayType::const_iterator& itNode,
-    const Variable<double>* pVariable
-    )
-{
-    return itNode->GetValue(*pVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <>
-const array_1d<double, 3>& FromJSONCheckResultProcess::GetValue<true>(
-    NodesArrayType::const_iterator& itNode,
-    const Variable<array_1d<double, 3>>* pVariable
-    )
-{
-    return itNode->FastGetSolutionStepValue(*pVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <>
-const array_1d<double, 3>& FromJSONCheckResultProcess::GetValue<false>(
-    NodesArrayType::const_iterator& itNode,
-    const Variable<array_1d<double, 3>>* pVariable
-    )
-{
-    return itNode->GetValue(*pVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <>
-const Vector& FromJSONCheckResultProcess::GetValue<true>(
-    NodesArrayType::const_iterator& itNode,
-    const Variable<Vector>* pVariable
-    )
-{
-    return itNode->FastGetSolutionStepValue(*pVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <>
-const Vector& FromJSONCheckResultProcess::GetValue<false>(
-    NodesArrayType::const_iterator& itNode,
-    const Variable<Vector>* pVariable
-    )
-{
-    return itNode->GetValue(*pVariable);
 }
 
 } // namespace Kratos

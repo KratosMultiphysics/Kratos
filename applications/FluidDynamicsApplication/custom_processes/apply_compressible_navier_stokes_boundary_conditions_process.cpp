@@ -187,7 +187,7 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ReadBoundaryConditi
     IntervalUtility interval_utility{Parameters};
     
     // Reading value and acting depending on if it's vector or double
-    if(Parameters["value"].IsDouble())
+    if(Parameters["value"].IsNumber())
     {
         rBCList.emplace_back(
             Parameters["variable_name"].GetString(),

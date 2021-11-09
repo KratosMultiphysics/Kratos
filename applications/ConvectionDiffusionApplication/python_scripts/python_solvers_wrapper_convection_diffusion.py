@@ -58,9 +58,28 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
-        err_msg =  "The requested parallel type MPI is not yet available!\n"
-        raise Exception(err_msg)
-
+        # Transient solvers
+        if (solver_type == "transient" or solver_type == "Transient"):
+            # If not provided, set implicit time integration as default
+            if not solver_settings.Has("time_integration_method"):
+                KratosMultiphysics.Logger.PrintWarning("Time integration method was not provided. Setting \'implicit\' as default.")
+                solver_settings.AddEmptyValue("time_integration_method").SetString("implicit")
+            time_integration_method = solver_settings["time_integration_method"].GetString()
+            # Check transient integration method
+            if time_integration_method == "implicit":
+                solver_module_name = "convection_diffusion_transient_solver"
+            else:
+                err_msg =  "The requested time integration method {} is not MPI available yet\n".format(time_integration_method)
+                err_msg += "Available option is \"implicit\""
+                raise Exception(err_msg)
+        # Steady solver
+        elif (solver_type == "stationary" or solver_type == "Stationary"):
+            solver_module_name = "convection_diffusion_stationary_solver"
+        # Wrong solver check
+        else:
+            err_msg =  "The requested solver type {} is not MPI available yet\n".format(solver_type)
+            err_msg += "Available options are: \"transient\" and \"stationary\""
+            raise Exception(err_msg)
     else:
         err_msg =  "The requested parallel type \"" + parallelism + "\" is not available!\n"
         err_msg += "Available options are: \"OpenMP\", \"MPI\""
