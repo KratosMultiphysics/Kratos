@@ -106,8 +106,8 @@ void ShockCapturingEntropyViscosityProcess::ComputeNodalEntropies()
     
     block_for_each(mrModelPart.Nodes(), [heat_capacity_ratio](NodeType& r_node)
     {
-        const double density = r_node.GetValue(DENSITY);
-        const double pressure = r_node.GetValue(PRESSURE);
+        const double density = r_node.FastGetSolutionStepValue(DENSITY);
+        const double pressure = r_node.FastGetSolutionStepValue(PRESSURE);
 
         const auto entropy = ComputeEntropy(density, pressure, heat_capacity_ratio);
         r_node.FastGetSolutionStepValue(ENTROPY) = entropy;
