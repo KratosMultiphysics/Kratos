@@ -132,10 +132,12 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     // calculation of the "missing" water volume
     const double water_volume_error = mTheoreticalNegativeVolume - neg_vol;
 
-    ModelPart::NodesContainerType rNodes = mrModelPart.Nodes();
-    for(int count = 0; count < static_cast<int>(rNodes.size()); count++){
-        ModelPart::NodesContainerType::iterator i_node = rNodes.begin() + count;
-        i_node->SetValue( DISTANCE_DIFFERENCE, 0.0);
+    if (mrModelPart.GetProcessInfo()[MOMENTUM_CORRECTION]){
+        ModelPart::NodesContainerType rNodes = mrModelPart.Nodes();
+        for(int count = 0; count < static_cast<int>(rNodes.size()); count++){
+            ModelPart::NodesContainerType::iterator i_node = rNodes.begin() + count;
+            i_node->SetValue( DISTANCE_DIFFERENCE, 0.0);
+        }
     }
 
     double shift_for_correction = 0.0;
@@ -612,7 +614,8 @@ void MassConservationCheckProcess::ShiftDistanceField( double deltaDist ){
     for(int count = 0; count < static_cast<int>(rNodes.size()); count++){
         ModelPart::NodesContainerType::iterator i_node = rNodes.begin() + count;
         i_node->FastGetSolutionStepValue( DISTANCE ) += deltaDist;
-        i_node->GetValue( DISTANCE_DIFFERENCE ) = -deltaDist;
+        if (mrModelPart.GetProcessInfo()[MOMENTUM_CORRECTION]){
+            i_node->GetValue( DISTANCE_DIFFERENCE ) = -deltaDist;}
     }
 }
 
