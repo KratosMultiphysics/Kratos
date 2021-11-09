@@ -26,6 +26,9 @@
 namespace Kratos
 {
 
+template <unsigned int TDim>
+const Kratos::Flags ParallelDistanceCalculator<TDim>::CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(0));
+
 template<unsigned int TDim>
 void ParallelDistanceCalculator<TDim>::CalculateDistances(
     ModelPart& rModelPart,
@@ -620,9 +623,6 @@ void ParallelDistanceCalculator<TDim>::AssignDistanceSign(
 
     KRATOS_CATCH("")
 }
-
-template <unsigned int TDim>
-const Kratos::Flags ParallelDistanceCalculator<TDim>::CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(0));
 
 template class ParallelDistanceCalculator<2>;
 template class ParallelDistanceCalculator<3>;
