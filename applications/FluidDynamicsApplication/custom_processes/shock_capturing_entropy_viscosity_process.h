@@ -328,6 +328,7 @@ inline std::ostream& operator << (
     const ShockCapturingEntropyViscosityProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
+    return rOStream;
 }
 
 ///@}
