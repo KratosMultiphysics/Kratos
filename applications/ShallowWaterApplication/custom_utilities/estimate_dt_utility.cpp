@@ -35,6 +35,7 @@ EstimateTimeStepUtility::EstimateTimeStepUtility(
 
     Parameters default_parameters(R"({
         "automatic_time_step"   : true,
+        "adaptive_time_step"    : true,
         "time_step"             : 1.0,
         "courant_number"        : 1.0,
         "minimum_delta_time"    : 1e-4,
@@ -44,17 +45,25 @@ EstimateTimeStepUtility::EstimateTimeStepUtility(
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     mEstimateDt = ThisParameters["automatic_time_step"].GetBool();
+    mAdaptiveDt = ThisParameters["adaptive_time_step"].GetBool();
     mConstantDt = ThisParameters["time_step"].GetDouble();
     mCourant = ThisParameters["courant_number"].GetDouble();
     mMinDt = ThisParameters["minimum_delta_time"].GetDouble();
     mMaxDt = ThisParameters["maximum_delta_time"].GetDouble();
 
+    if (mEstimateDt && !mAdaptiveDt) {
+        mConstantDt = EstimateTimeStep();
+    }
 }
 
 double EstimateTimeStepUtility::Execute() const
 {
     if (mEstimateDt) {
-        return EstimateTimeStep();
+        if (mAdaptiveDt) {
+            return EstimateTimeStep();
+        } else {
+            return mConstantDt;
+        }
     } else {
         return mConstantDt;
     }

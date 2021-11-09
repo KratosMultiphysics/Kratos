@@ -51,7 +51,7 @@ void TetrahedralMeshOrientationCheck::Execute()
         GeometryType& r_geometry = it_elem->GetGeometry();
         const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
 
-        if (geometry_type == GeometryData::Kratos_Tetrahedra3D4  || geometry_type == GeometryData::Kratos_Triangle2D3) {
+        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) {
             const bool switched = this->Orient(r_geometry);
             if (switched)
                 elem_switch_count++;
@@ -81,7 +81,7 @@ void TetrahedralMeshOrientationCheck::Execute()
 
         const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
 
-        if (geometry_type == GeometryData::Kratos_Triangle3D3  || geometry_type == GeometryData::Kratos_Line2D2) {
+        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3 || geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2) {
             DenseVector<int> ids(r_geometry.size());
 
             for(IndexType i=0; i<ids.size(); i++) {
@@ -110,7 +110,7 @@ void TetrahedralMeshOrientationCheck::Execute()
         GeometryType& r_geometry = it_elem->GetGeometry();
         const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
 
-        if (geometry_type == GeometryData::Kratos_Tetrahedra3D4  || geometry_type == GeometryData::Kratos_Triangle2D3) {
+        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4  || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) {
             // Allocate a work array long enough to contain the Ids of a face
             DenseVector<int> aux( r_geometry.size() - 1);
 
@@ -222,8 +222,9 @@ void TetrahedralMeshOrientationCheck::SwapAll()
         GeometryType& r_geometry = r_cond.GetGeometry();
         const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
 
-        if ( geometry_type == GeometryData::Kratos_Triangle3D3 )
+        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
             r_geometry(0).swap(r_geometry(1));
+        }
     }
 }
 
@@ -245,7 +246,7 @@ void TetrahedralMeshOrientationCheck::SwapNegativeElements()
 bool TetrahedralMeshOrientationCheck::Orient(GeometryType& rGeometry)
 {
     const IndexType point_index = 0;
-    const GeometryData::IntegrationMethod integration_method = GeometryData::GI_GAUSS_1;
+    const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
 
     // Re-orient the element if needed
     const double det_J = rGeometry.DeterminantOfJacobian(point_index,integration_method);

@@ -1,5 +1,8 @@
+import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
+
+data_comm = KM.Testing.GetDefaultDataCommunicator()
 
 import co_simulation_test_case
 import os
@@ -191,7 +194,15 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
 
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fsi_sdof", "cosim_sdof_fsi")
-            # self.__AddVtkOutputToCFD() # uncomment to get output
+            if data_comm.IsDistributed():
+                allowed_num_processes = [3,4,5] # problem is small and needs a very specific number of processes, otherwise the linear solver gives slightly different results and the test fails
+                if data_comm.Size() not in allowed_num_processes:
+                    self.skipTest("This test runs only with {} processes".format(allowed_num_processes))
+
+                self.cosim_parameters["problem_data"]["parallel_type"].SetString("MPI")
+                fluid_solver_settings = self.cosim_parameters["solver_settings"]["solvers"]["fluid"]["solver_wrapper_settings"]
+                fluid_solver_settings["input_file"].SetString("fsi_sdof/ProjectParametersCFD_mpi") # TODO refactor such that serial file can be reused. Requires to update and dump new CFD settings (similar to mok test)
+
             self._runTest()
 
     @classmethod
