@@ -1,6 +1,5 @@
 #include <cmath>
 #include <tuple>
-#include <numeric>
 
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
