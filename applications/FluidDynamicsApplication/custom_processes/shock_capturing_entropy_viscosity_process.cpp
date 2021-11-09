@@ -43,7 +43,7 @@ int ShockCapturingEntropyViscosityProcess::Check()
     KRATOS_ERROR_IF(domain_size !=2 || domain_size !=3) 
         << "ShockCapturingEntropyViscosityProcess is only implemented for 2D and 3D domains." << std::endl;
 
-    using OrReduction = SumReduction<bool>;
+    using OrReduction = MaxReduction<bool>;
     using MultiOrReduction = CombinedReduction<OrReduction, OrReduction, OrReduction, OrReduction, OrReduction>;
 
     bool missing_entropy;
