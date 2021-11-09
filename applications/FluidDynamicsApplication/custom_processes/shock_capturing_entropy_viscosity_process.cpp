@@ -3,6 +3,7 @@
 #include <numeric>
 
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "processes/calculate_nodal_area_process.h"
 
 #include "fluid_dynamics_application_variables.h"
@@ -30,6 +31,46 @@ ShockCapturingEntropyViscosityProcess::ShockCapturingEntropyViscosityProcess(
     mArtificialConductivityPrandtl = rParameters["artificial_conductivity_Prandtl"].GetDouble();
 
     KRATOS_CATCH("")
+}
+
+int ShockCapturingEntropyViscosityProcess::Check()
+{
+    auto err_code = Process::Check();
+
+    using OrReduction = SumReduction<bool>;
+    using MultiOrReduction = CombinedReduction<OrReduction, OrReduction, OrReduction, OrReduction, OrReduction>;
+
+    bool missing_entropy;
+    bool missing_density;
+    bool missing_pressure;
+    bool missing_temperature;
+    bool missing_velocity;
+    
+    std::tie(missing_entropy, missing_density, missing_pressure, missing_temperature, missing_velocity) =
+    block_for_each<MultiOrReduction>(mrModelPart.Nodes(), [](const NodeType& r_node)
+    {
+        const bool missing_entropy = ! r_node.SolutionStepsDataHas(ENTROPY);
+        const bool missing_density = ! r_node.SolutionStepsDataHas(DENSITY);
+        const bool missing_pressure = ! r_node.SolutionStepsDataHas(PRESSURE);
+        const bool missing_temperature = ! r_node.SolutionStepsDataHas(TEMPERATURE);
+        const bool missing_velocity = ! r_node.SolutionStepsDataHas(VELOCITY);
+        
+        return std::tie(
+            missing_entropy, missing_density, missing_pressure, missing_temperature, missing_velocity
+        );
+    });
+
+    KRATOS_ERROR_IF(missing_entropy) << "Missing ENTROPY variable from one or more nodes" << std::endl;
+    KRATOS_ERROR_IF(missing_density) << "Missing DENSITY variable from one or more nodes" << std::endl;
+    KRATOS_ERROR_IF(missing_pressure) << "Missing PRESSURE variable from one or more nodes" << std::endl;
+    KRATOS_ERROR_IF(missing_temperature) << "Missing TEMPERATURE variable from one or more nodes" << std::endl;
+    KRATOS_ERROR_IF(missing_velocity) << "Missing VELOCITY variable from one or more nodes" << std::endl;
+
+    const auto domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
+    KRATOS_ERROR_IF(domain_size !=2 || domain_size !=3) 
+        << "ShockCapturingEntropyViscosityProcess is only implemented for 2D and 3D domains" << std::endl;
+
+    return err_code;
 }
 
 
