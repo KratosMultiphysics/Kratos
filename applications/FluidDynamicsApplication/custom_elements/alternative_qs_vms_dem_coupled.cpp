@@ -284,7 +284,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     LHS.clear();
 
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
-    array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N);
+    array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N); // Force per unit of volume
 
     const array_1d<double, 3> convective_velocity =
         this->GetAtCoordinate(rData.Velocity, rData.N) -
@@ -315,7 +315,6 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     sigma *= viscosity;
-    body_force *= density; // Force per unit of volume
     AGradN *= density; // Convective term is always multiplied by density
 
 
