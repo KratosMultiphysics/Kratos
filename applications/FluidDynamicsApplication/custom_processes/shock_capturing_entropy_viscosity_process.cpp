@@ -49,22 +49,6 @@ const Parameters ShockCapturingEntropyViscosityProcess::GetDefaultParameters() c
 }
 
 
-template<>
-double ShockCapturingEntropyViscosityProcess::ElementVolumeComputer::ComputeGeometryVolume<3>(
-    const Geometry<NodeType>& rGeometry)
-{
-    return rGeometry.Area();
-}
-
-
-template<>
-double ShockCapturingEntropyViscosityProcess::ElementVolumeComputer::ComputeGeometryVolume<3>(
-    const Geometry<NodeType>& rGeometry)
-{
-    return rGeometry.Volume();
-}
-
-
 double ShockCapturingEntropyViscosityProcess::TotalDerivativeUtil::
 Divergence(const Matrix& rShapeFunGradients, const Matrix& rNodalValues)
 {
@@ -92,7 +76,7 @@ Divergence(const Matrix& rShapeFunGradients, const Matrix& rNodalValues)
 
 void ShockCapturingEntropyViscosityProcess::ExecuteBeforeSolutionLoop()
 {
-    UpdateMeshDependentData();
+    UpdateNodalAreaProcess();
 }
 
 
@@ -101,7 +85,7 @@ void ShockCapturingEntropyViscosityProcess::ExecuteFinalizeSolutionStep()
 
     if (mComputeAreasEveryStep)
     {
-        UpdateMeshDependentData();
+        UpdateNodalAreaProcess();
     }
 
     ComputeNodalEntropies();
@@ -109,11 +93,9 @@ void ShockCapturingEntropyViscosityProcess::ExecuteFinalizeSolutionStep()
 }
 
 
-void ShockCapturingEntropyViscosityProcess::UpdateMeshDependentData()
+void ShockCapturingEntropyViscosityProcess::UpdateNodalAreaProcess()
 {
-    const auto domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
-    mElementVolumeComputer.SetDimension(domain_size);
-    CalculateNodalAreaProcess<false> nodal_area_process(mrModelPart, domain_size);
+    CalculateNodalAreaProcess<false> nodal_area_process(mrModelPart);
     nodal_area_process.Execute();
 }
 
@@ -168,7 +150,7 @@ void ShockCapturingEntropyViscosityProcess::DistributeVariablesToNodes(
     const double ArtificialConductivity) const
 {
     auto& r_geometry = rElement.GetGeometry();
-    const double element_volume = mElementVolumeComputer(rElement);
+    const double element_volume = r_geometry.LocalSpaceDimension() == 3 ? r_geometry.Volume() : r_geometry.Area();
     
     for(unsigned int i=0; i<r_geometry.size(); ++i)
     {

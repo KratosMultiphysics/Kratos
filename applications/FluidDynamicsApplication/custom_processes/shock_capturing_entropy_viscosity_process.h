@@ -65,36 +65,6 @@ public:
     };
 
 
-    class ElementVolumeComputer
-    {
-    public:
-        void SetDimension(unsigned int Dimension)
-        {
-            KRATOS_TRY
-
-            switch(Dimension)
-            {
-                case 2: mComputeImpl = &ComputeGeometryVolume<2>;
-                case 3: mComputeImpl = &ComputeGeometryVolume<3>;
-                default: KRATOS_ERROR << "Only dimensions 1 and 2 supported" << std::endl;
-            }
-
-            KRATOS_CATCH("")
-        }
-
-        double operator()(const Element& rElement) const
-        {
-            KRATOS_DEBUG_ERROR_IF_NOT(mComputeImpl) << "Use SetDimension before attempting to use ElementVolumeComputer" << std::endl;
-            return mComputeImpl(rElement.GetGeometry());
-        }
-
-        template<unsigned int TDim>
-        static double ComputeGeometryVolume(const Geometry<NodeType>& rGeometry);
-
-    private:
-        decltype(ComputeGeometryVolume<2>) * mComputeImpl = nullptr;
-    };
-
     /**
      * @brief Small utility to compute the total derivative of a magnitude
      * 
@@ -248,8 +218,6 @@ private:
     double mArtificialBulkViscosityPrandtl = 0.0;
     double mArtificialConductivityPrandtl = 0.0;
 
-    ElementVolumeComputer mElementVolumeComputer;
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -261,7 +229,7 @@ private:
 
     void ValidateAndAssignParameters(Parameters &rParameters);
 
-    void ShockCapturingEntropyViscosityProcess::UpdateMeshDependentData();
+    void UpdateNodalAreaProcess();
 
     /**
      * @brief Computes nodal entropies and initializes artificial variables to 0
