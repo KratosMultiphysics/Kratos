@@ -114,7 +114,7 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         condition_name = "LineCondition{}D2N".format(domain_size)
         KM.ConnectivityPreserveModeler().GenerateModelPart(
             self.interface_model_part, self.output_model_part, element_name, condition_name)
-        self.output_model_part.ProcessInfo.Clear()
+        self.output_model_part.ProcessInfo = KM.ProcessInfo()
 
 
     def _SetOutputProcessInfo(self):
