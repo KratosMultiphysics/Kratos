@@ -215,6 +215,8 @@ namespace Kratos {
         virtual void CalculateMaxTimeStep();
         double CalculateMaxInletTimeStep();
         void InitializeThermalDataInSubModelParts();
+        void InitializeGraphOutput();
+        void WriteGraphOutput();
         virtual void InitializeClusters();
         virtual void GetClustersForce();
         virtual void GetRigidBodyElementsForce();

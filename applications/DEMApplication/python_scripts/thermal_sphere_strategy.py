@@ -143,6 +143,13 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.fluid_thermal_conductivity <= 0 or
             self.fluid_heat_capacity        <= 0):
             raise Exception('DEM', '"global_fluid_properties" must contain positive values for material properties.')
+        
+        # Set booleans for graph writing
+        self.PostGraphParticleTempMin = DEM_parameters["PostGraphParticleTempMin"].GetBool()
+        self.PostGraphParticleTempMax = DEM_parameters["PostGraphParticleTempMax"].GetBool()
+        self.PostGraphParticleTempAvg = DEM_parameters["PostGraphParticleTempAvg"].GetBool()
+        self.PostGraphParticleTempDev = DEM_parameters["PostGraphParticleTempDev"].GetBool()
+        self.PostGraphModelTempAvg    = DEM_parameters["PostGraphModelTempAvg"].GetBool()
 
     def AddAdditionalVariables(self, model_part, DEM_parameters):
         # Add general additional variables (currently empty)
@@ -199,12 +206,20 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_TEMPERATURE,          self.fluid_temperature)
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_VELOCITY,             self.fluid_velocity)
 
+        # Booleans for writing graphs
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_TEMP_MIN, self.PostGraphParticleTempMin)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_TEMP_MAX, self.PostGraphParticleTempMax)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_TEMP_AVG, self.PostGraphParticleTempAvg)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_TEMP_DEV, self.PostGraphParticleTempDev)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_MODEL_TEMP_AVG,    self.PostGraphModelTempAvg)
+
     def Initialize(self):
         # Base class initializer
         BaseExplicitStrategy.Initialize(self)
 
         # Set thermal properties of provided in SubModelParts data
         (self.cplusplus_strategy).InitializeThermalDataInSubModelParts()
+        (self.cplusplus_strategy).InitializeGraphOutput()
 
     def InitializeSolutionStep(self):
         if (self.compute_motion_option):
@@ -226,3 +241,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
             (self.cplusplus_strategy).SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
         
         return True
+
+    def FinalizeSolutionStep(self):
+        BaseExplicitStrategy.FinalizeSolutionStep(self)
+        (self.cplusplus_strategy).WriteGraphOutput()

@@ -168,9 +168,14 @@ def GetDefaultInputParameters():
             "PostFaceNormalImpactVelocity"     : false,
             "PostFaceTangentialImpactVelocity" : false,
             "PostControlModule"                : false,
-			"PostTemperature"                  : false,
-			"PostHeatFlux"                     : false,
             "PostDeltaDisplacement"            : false,
+            "PostTemperature"                  : false,
+			"PostHeatFlux"                     : false,
+            "PostGraphParticleTempMin"         : false,
+            "PostGraphParticleTempMax"         : false,
+            "PostGraphParticleTempAvg"         : false,
+            "PostGraphParticleTempDev"         : false,
+            "PostGraphModelTempAvg"            : false,
             "output_configuration" : {
                 "print_number_of_neighbours_histogram" : false
             },

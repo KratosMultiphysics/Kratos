@@ -503,12 +503,13 @@ class DEMAnalysisStage(AnalysisStage):
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
+
+        self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
+
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
                 self.FillAnalyticSubModelPartsWithNewParticles()
-        if self.DEM_parameters["ContactMeshOption"].GetBool():
-            self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
-
+                
         if self.DEM_parameters["Dimension"].GetInt() == 2:
             self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION] = self.DEM_parameters["ImposeZStrainIn2DOption"].GetBool()
             if not self.DEM_parameters["ImposeZStrainIn2DWithControlModule"].GetBool():

@@ -434,6 +434,118 @@ namespace Kratos {
       KRATOS_CATCH("")
     }
 
+    void ExplicitSolverStrategy::InitializeGraphOutput() {
+      KRATOS_TRY
+
+      ModelPart& r_model_part = GetModelPart();
+      const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+
+      if (r_process_info[GRAPH_PARTICLE_TEMP_MIN]) {
+        std::ofstream file;
+        file.open("particle_temp_min.txt", std::ios::out);
+        KRATOS_ERROR_IF_NOT(file) << "Could not open graph file for minimum particle temperature!" << std::endl;
+        file.close();
+      }
+      if (r_process_info[GRAPH_PARTICLE_TEMP_MAX]) {
+        std::ofstream file;
+        file.open("particle_temp_max.txt", std::ios::out);
+        KRATOS_ERROR_IF_NOT(file) << "Could not open graph file for maximum particle temperature!" << std::endl;
+        file.close();
+      }
+      if (r_process_info[GRAPH_PARTICLE_TEMP_AVG]) {
+        std::ofstream file;
+        file.open("particle_temp_avg.txt", std::ios::out);
+        KRATOS_ERROR_IF_NOT(file) << "Could not open graph file for average particle temperature!" << std::endl;
+        file.close();
+      }
+      if (r_process_info[GRAPH_PARTICLE_TEMP_DEV]) {
+        std::ofstream file;
+        file.open("particle_temp_dev.txt", std::ios::out);
+        KRATOS_ERROR_IF_NOT(file) << "Could not open graph file for deviation of particle temperature!" << std::endl;
+        file.close();
+      }
+      if (r_process_info[GRAPH_MODEL_TEMP_AVG]) {
+        std::ofstream file;
+        file.open("model_temp_avg.txt", std::ios::out);
+        KRATOS_ERROR_IF_NOT(file) << "Could not open graph file for average model temperature!" << std::endl;
+        file.close();
+      }
+
+      KRATOS_CATCH("")
+    }
+
+    void ExplicitSolverStrategy::WriteGraphOutput() {
+      KRATOS_TRY
+
+      ModelPart& r_model_part = GetModelPart();
+      const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+
+      if (r_process_info[IS_TIME_TO_PRINT]) {
+        const int number_of_particles = (int)mListOfSphericParticles.size();
+        int time_step = r_process_info[TIME_STEPS];
+        const double time = r_process_info[TIME];
+        double particle_temp_min = DBL_MAX;
+        double particle_temp_max = DBL_MIN;
+        double particle_temp_avg = 0.0;
+        double particle_temp_dev = 0.0;
+        double model_temp_avg    = 0.0;
+        double total_vol         = 0.0;
+
+        #pragma omp parallel for schedule(dynamic, 100)
+        for (int i = 0; i < number_of_particles; i++) {
+          double temp = mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
+          double vol  = mListOfSphericParticles[i]->CalculateVolume();
+          if (temp < particle_temp_min) particle_temp_min = temp;
+          if (temp > particle_temp_max) particle_temp_max = temp;
+          particle_temp_avg += temp;
+          particle_temp_dev += temp * temp;
+          model_temp_avg += temp * vol;
+          total_vol += vol;
+        }
+        particle_temp_avg /= number_of_particles;
+        particle_temp_dev = sqrt(particle_temp_dev / number_of_particles - particle_temp_avg * particle_temp_avg);
+        model_temp_avg /= total_vol;
+
+        if (r_process_info[GRAPH_PARTICLE_TEMP_MIN]) {
+          std::ofstream file;
+          file.open("particle_temp_min.txt", std::ios::app);
+          KRATOS_ERROR_IF_NOT(file) << "Could not open graph file for minimum particle temperature!" << std::endl;
+          file << time_step << " " << time << " " << particle_temp_min << std::endl;
+          file.close();
+        }
+        if (r_process_info[GRAPH_PARTICLE_TEMP_MAX]) {
+          std::ofstream file;
+          file.open("particle_temp_max.txt", std::ios::app);
+          KRATOS_ERROR_IF_NOT(file) << "Could not open graph file for maximum particle temperature!" << std::endl;
+          file << time_step << " " << time << " " << particle_temp_max << std::endl;
+          file.close();
+        }
+        if (r_process_info[GRAPH_PARTICLE_TEMP_AVG]) {
+          std::ofstream file;
+          file.open("particle_temp_avg.txt", std::ios::app);
+          KRATOS_ERROR_IF_NOT(file) << "Could not open graph file for average particle temperature!" << std::endl;
+          file << time_step << " " << time << " " << particle_temp_avg << std::endl;
+          file.close();
+        }
+        if (r_process_info[GRAPH_PARTICLE_TEMP_DEV]) {
+          std::ofstream file;
+          file.open("particle_temp_dev.txt", std::ios::app);
+          KRATOS_ERROR_IF_NOT(file) << "Could not open graph file for deviation of particle temperature!" << std::endl;
+          file << time_step << " " << time << " " << particle_temp_dev << std::endl;
+          file.close();
+        }
+        if (r_process_info[GRAPH_MODEL_TEMP_AVG]) {
+          std::ofstream file;
+          file.open("model_temp_avg.txt", std::ios::app);
+          KRATOS_ERROR_IF_NOT(file) << "Could not open graph file for average model temperature!" << std::endl;
+          file << time_step << " " << time << " " << model_temp_avg << std::endl;
+          file.close();
+        }
+      }
+
+      KRATOS_CATCH("")
+    }
+
     void ExplicitSolverStrategy::InitializeClusters() {
         KRATOS_TRY
         ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();
