@@ -6,7 +6,14 @@
             "Variables" : {
                 "ACTIVATION_ENERGY"           : 0.0,
                 "ARRHENIUS_COEFFICIENT" : 0.0,
-                "HEAT_OF_VAPORIZATION" : 0.0
+                "HEAT_OF_VAPORIZATION" : 0.0,
+                "CONDUCTIVITY"      : 1000.0,
+                "SPECIFIC_HEAT"     : 1920.0,
+                "DYNAMIC_VISCOSITY" : 10000000.0,
+                "DENSITY"           : 900.0,
+                "EMISSIVITY"        : 1.0,
+                "AMBIENT_TEMPERATURE" : 298.0,
+                "CONVECTION_COEFFICIENT" : 0.0             
             },
             "Tables": {
                 "Table1" : {

@@ -6,11 +6,6 @@ Begin Properties 0
 End Properties
 
 Begin Properties 1
-    DENSITY 900.0
-    DYNAMIC_VISCOSITY 1000000.0
-    EMISSIVITY 1.0
-    AMBIENT_TEMPERATURE 298.0
-    CONVECTION_COEFFICIENT 0.0 
 End Properties
 
 
