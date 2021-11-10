@@ -549,6 +549,8 @@ bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
         has = true;
     } else if (rThisVariable == THRESHOLD) {
         has = true;
+    }  else if (rThisVariable == DAMAGE) {
+        has = true;
     }
 
     return has;
@@ -651,6 +653,8 @@ double& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
         rValue = mDamageDissipation + mPlasticDissipation;
     } else if (rThisVariable == THRESHOLD) {
         rValue = mThreshold;
+    }  else if (rThisVariable == DAMAGE) {
+        rValue = mDamageDissipation;
     }
 
     return rValue;
