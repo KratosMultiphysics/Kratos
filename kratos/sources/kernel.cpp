@@ -71,6 +71,9 @@ std::unordered_set<std::string>& Kernel::GetLibrayList() {
     #if USE_TETGEN_NONFREE_TPL
             "tetgen",
     #endif
+    #if KRATOS_USE_AMATRIX
+            "a_matrix",
+    #endif
             "amgcl",
             "concurrentqueue",
             "ghc",
@@ -79,7 +82,6 @@ std::unordered_set<std::string>& Kernel::GetLibrayList() {
             "json",
             "pybind11",
             "span",
-            "intrusive_ptr",
             "tinyexpr",
             "vexcl",
             "zlib"
