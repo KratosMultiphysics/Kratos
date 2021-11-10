@@ -225,16 +225,20 @@ public:
     {
         KRATOS_TRY
 
-        const auto defaults = Parameters(R"(
+        auto defaults = Parameters(R"(
             {
                 "type" : "physics_based",
-                "Parameters" : { }
+                "Parameters" : {
+                    "model_part_name" : ""
+                }
             }
         )");
+        defaults["Parameters"]["model_part_name"].SetString(BaseType::GetModelPart().Name());
 
         ShockCapturingParameters.ValidateAndAssignDefaults(defaults);
+        ShockCapturingParameters.RecursivelyAddMissingParameters(defaults);
 
-        const static std::map<const std::string, ShockCapturingFactoryType> shock_capturing_factory_map 
+        const static std::map<const std::string, ShockCapturingFactoryType> shock_capturing_factory_map
         {
             {"none"         , [](ModelPart& m, Parameters p) -> Process::UniquePointer {return nullptr;}},
             {"physics_based", [](ModelPart& m, Parameters p) -> Process::UniquePointer {return Kratos::make_unique<ShockCapturingProcess>(m, p);}},
