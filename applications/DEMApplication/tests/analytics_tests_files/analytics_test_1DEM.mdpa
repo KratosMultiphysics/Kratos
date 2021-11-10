@@ -28,6 +28,9 @@ Begin SubModelPart 2
   Begin SubModelPartNodes
   2
   End SubModelPartNodes
+  Begin SubModelPartElements
+  2
+  End SubModelPartElements
 End SubModelPart
 
 Begin SubModelPart 3
@@ -36,5 +39,8 @@ Begin SubModelPart 3
   Begin SubModelPartNodes
   3
   End SubModelPartNodes
+  Begin SubModelPartElements
+  3
+  End SubModelPartElements
 End SubModelPart
 

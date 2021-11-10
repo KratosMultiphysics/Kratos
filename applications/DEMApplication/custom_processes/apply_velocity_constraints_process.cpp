@@ -83,8 +83,6 @@ namespace Kratos
             mpVelocityTable.push_back(mrModelPart.pGetTable(mVelocityTableId[i]));
             // because I can't construct an array_1d of these
         }
-        KRATOS_WATCH(mVelocityValues)
-
         mParameters = rParameters;
 
         KRATOS_CATCH("");
@@ -100,8 +98,6 @@ namespace Kratos
 
         const double time = mrModelPart.GetProcessInfo()[TIME];
         if(!mInterval.IsInInterval(time)) return;
-
-        KRATOS_WATCH(mrModelPart.Elements().size())
 
         block_for_each(mrModelPart.Elements(), [&](Element& rElement)
         {
@@ -131,16 +127,10 @@ namespace Kratos
                         } else {
                             velocity_value = mVelocityFunctions[i].CallFunction(rElement.GetGeometry()[0].X(), rElement.GetGeometry()[0].Y(), rElement.GetGeometry()[0].Z(), time);
                         }
-
                         vel[i] = velocity_value;
                     }
                 }
             }
-            KRATOS_WATCH(rElement.Id())
-            KRATOS_WATCH(rElement.GetGeometry()[0])
-            KRATOS_WATCH(mVelocityIsConstrained)
-            KRATOS_WATCH(mVelocityValues)
-
         });
 
         KRATOS_CATCH("");

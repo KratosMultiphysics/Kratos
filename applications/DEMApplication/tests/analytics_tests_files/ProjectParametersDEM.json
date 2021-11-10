@@ -37,7 +37,7 @@
         "Parameters"    : {
             "model_part_name" : "SpheresPart.2",
             "velocity_constraints_settings" : {
-                "constrained"          : [true,true,true],
+                "constrained"          : [true,false,false],
                 "value"                : [-3.0, 0.0, 0.0],
                 "table"                : [null, null, null]
             },
@@ -61,7 +61,7 @@
         "Parameters"    : {
             "model_part_name" : "SpheresPart.3",
             "velocity_constraints_settings" : {
-                "constrained"          : [true,true,true],
+                "constrained"          : [true,false,false],
                 "value"                : [-5.0, 0.0, 0.0],
                 "table"                : [null, null, null]
             },
@@ -156,7 +156,7 @@
 
 "GraphExportFreq"                  : 1,
 "VelTrapGraphExportFreq"           : 1,
-"OutputTimeStep"                   : 1e-4,
+"OutputTimeStep"                   : 0.1,
 "PostBoundingBox"                  : true,
 "PostDisplacement"                 : false,
 "PostVelocity"                     : true,
