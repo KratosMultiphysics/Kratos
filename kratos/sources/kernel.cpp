@@ -25,14 +25,19 @@
 
 namespace Kratos {
 
-Kernel::Kernel() : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
-                std::string("KratosMultiphysics"))) {
+Kernel::Kernel() 
+    : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(std::string("KratosMultiphysics"))) 
+{
     Initialize();
 }
 
-Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
-                std::string("KratosMultiphysics"))) {
+Kernel::Kernel(bool IsDistributedRun) 
+        : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(std::string("KratosMultiphysics")))
+{
+    // Distributed run definition
     mIsDistributedRun = IsDistributedRun;
+
+    // Initialize kernel
     Initialize();
 }
 
