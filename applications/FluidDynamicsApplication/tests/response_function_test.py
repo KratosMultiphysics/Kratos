@@ -2,7 +2,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
-from math import isclose
+from math import isclose, pow
 
 
 class TestResponseFunction(UnitTest.TestCase):
@@ -281,11 +281,16 @@ class TestDomainIntegratedSquareMeanResponseFunction(UnitTest.TestCase):
 
         cls.model_part.ProcessInfo[Kratos.DELTA_TIME] = 0.04
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
+        cls.value_to_power = 2
 
-        cls.response_function = KratosCFD.DomainIntegratedSquareMeanResponseFunction(Kratos.Parameters("""{
+        parameters = Kratos.Parameters("""{
             "model_part_name": "test",
-            "variable_name": "VELOCITY"
-        }"""),  cls.model_part)
+            "variable_name": "VELOCITY",
+            "value_to_power": -1
+        }""")
+        parameters["value_to_power"].SetInt(cls.value_to_power)
+
+        cls.response_function = KratosCFD.DomainIntegratedSquareMeanResponseFunction(parameters,  cls.model_part)
 
         cls.response_function.Initialize()
         cls.response_function.InitializeSolutionStep()
@@ -303,14 +308,14 @@ class TestDomainIntegratedSquareMeanResponseFunction(UnitTest.TestCase):
             velocity = Kratos.Array3(0.0)
             for node in condition.GetGeometry():
                 velocity += node.GetSolutionStepValue(Kratos.VELOCITY) / 3.0
-            value += area * (velocity[0] * velocity[0] + velocity[1] * velocity[1] + velocity[2] * velocity[2])
+            value += area * pow((velocity[0] * velocity[0] + velocity[1] * velocity[1] + velocity[2] * velocity[2]), self.value_to_power)
             total_area += area
 
         self.assertAlmostEqual(value / total_area, self.ref_value, 9)
 
     def testCalculateFirstDerivativesGradient(self):
         residual_local_size = self.block_size * self.number_of_nodes
-        delta = 1e-5
+        delta = 1e-8
 
         response_gradient = Kratos.Vector()
         residual_gradient = Kratos.Matrix(residual_local_size, residual_local_size)

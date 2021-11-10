@@ -78,13 +78,17 @@ public:
         Parameters default_settings(R"(
         {
             "model_part_name": "",
-            "variable_name"  : "PLEASE_SPECIFY_VARIABLE_NAME"
+            "variable_name"  : "PLEASE_SPECIFY_VARIABLE_NAME",
+            "value_to_power" : 1
         })");
 
         Settings.ValidateAndAssignDefaults(default_settings);
 
         mStructureModelPartName = Settings["model_part_name"].GetString();
         mpVariable = &KratosComponents<Variable<array_1d<double, 3>>>::Get(Settings["variable_name"].GetString());
+        mPower = Settings["value_to_power"].GetInt();
+
+        KRATOS_ERROR_IF(mPower <= 0) << "\"value_to_power\" should be greater than zero.";
 
         KRATOS_CATCH("");
     }
@@ -191,11 +195,12 @@ public:
             FluidCalculationUtilities::EvaluateInPoint(
                 r_geometry, N, std::tie(phi, *mpVariable));
 
+            const double inner_phi_power = std::pow(inner_prod(phi, phi), mPower - 1);
 
             IndexType local_index = 0;
             for (IndexType c = 0; c < number_of_nodes; ++c) {
                 for (IndexType k = 0; k < domain_size; ++k) {
-                    rResponseGradient[local_index++] = 2.0 * area * phi[k] * N[c] / mDomainArea;
+                    rResponseGradient[local_index++] = 2.0 * mPower * area * phi[k] * N[c] * inner_phi_power / mDomainArea;
                 }
                 local_index += skip_size;
             }
@@ -274,12 +279,12 @@ public:
             FluidCalculationUtilities::EvaluateInPoint(
                 r_geometry, N, std::tie(phi, *mpVariable));
 
-            const double inner_phi = inner_prod(phi, phi);
+            const double inner_phi_power = std::pow(inner_prod(phi, phi), mPower);
 
             IndexType local_index = 0;
             for (IndexType c = 0; c < number_of_nodes; ++c) {
                 for (IndexType k = 0; k < domain_size; ++k) {
-                    rSensitivityGradient[local_index++] = CalculateGeometrySpecificDomainAreaDerivative<2, 3>(rAdjointCondition, c, k) * (inner_phi - mSquareMean) / mDomainArea;
+                    rSensitivityGradient[local_index++] = CalculateGeometrySpecificDomainAreaDerivative<2, 3>(rAdjointCondition, c, k) * (inner_phi_power - mSquareMean) / mDomainArea;
                 }
             }
 
@@ -343,6 +348,7 @@ protected:
 
     double mDomainArea;
     double mSquareMean;
+    IndexType mPower;
 
     std::vector<Matrix> mShapeFunctions;
 
@@ -457,7 +463,7 @@ protected:
             FluidCalculationUtilities::EvaluateInPoint(
                 r_geometry, N, std::tie(phi, *mpVariable));
 
-            return area * inner_prod(phi, phi);
+            return area * std::pow(inner_prod(phi, phi), mPower);
         });
 
         KRATOS_CATCH("");
