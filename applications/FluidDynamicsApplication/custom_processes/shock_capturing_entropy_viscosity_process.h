@@ -238,8 +238,12 @@ private:
     void UpdateNodalAreaProcess();
 
     /**
-     * @brief Computes nodal entropies and initializes artificial variables to 0
+     * @brief Computes nodal entropies and initializes artificial variables to 0.
+     *
+     * @tparam WriteBufferIndex: The buffer index to write the result in. This is an
+     * ugly hack to deal with the first time-step.
      */
+    template<unsigned int WriteBufferIndex = 0>
     void ComputeNodalEntropies();
 
     void ComputeArtificialMagnitudes();

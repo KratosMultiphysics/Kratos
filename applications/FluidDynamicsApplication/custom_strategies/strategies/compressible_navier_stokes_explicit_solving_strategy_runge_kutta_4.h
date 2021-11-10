@@ -305,6 +305,19 @@ public:
         }
     }
 
+    void InitializeSolutionStep() override
+    {
+        BaseType::InitializeSolutionStep();
+
+        if (mCalculateNonConservativeMagnitudes) {
+            CalculateNonConservativeMagnitudes();
+        }
+
+        if (mShockCapturing) {
+            mpShockCapturingProcess->ExecuteInitializeSolutionStep();
+        }
+    }
+
     /**
      * @brief Finalize the Runge-Kutta step
      * In this method we calculate the final linearised time derivatives after the final update

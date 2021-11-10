@@ -142,7 +142,13 @@ void ShockCapturingEntropyViscosityProcess::ExecuteInitializeSolutionStep()
     if(mFirstTimeStep)
     {
         UpdateNodalAreaProcess();
-        ComputeNodalEntropies(); // Necessary to compute derivative in first step
+        ComputeNodalEntropies<1>();
+        /* ^ Necessary in order to compute derivative in first step.
+         *   Stored in buffer index 1 to prevent it from being overwritten at the
+         *      end of this same time-step.
+         *   Ideally would be computed at ExecuteInitialize but initial condition
+         *      processes don't run until ExecuteInitializeSolutionStep
+         */
         mFirstTimeStep = false;
     }
 }
@@ -168,6 +174,7 @@ void ShockCapturingEntropyViscosityProcess::UpdateNodalAreaProcess()
 }
 
 
+template<unsigned int WriteBufferIndex>
 void ShockCapturingEntropyViscosityProcess::ComputeNodalEntropies()
 {
     if(mrModelPart.ElementsBegin() == mrModelPart.ElementsEnd()) return; // empty mpdelpart
@@ -180,7 +187,8 @@ void ShockCapturingEntropyViscosityProcess::ComputeNodalEntropies()
         const double pressure = r_node.FastGetSolutionStepValue(PRESSURE);
 
         const auto entropy = ComputeEntropy(density, pressure, heat_capacity_ratio);
-        r_node.FastGetSolutionStepValue(NUMERICAL_ENTROPY) = entropy;
+
+        r_node.FastGetSolutionStepValue(NUMERICAL_ENTROPY, WriteBufferIndex) = entropy;
 
         r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);
         r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
