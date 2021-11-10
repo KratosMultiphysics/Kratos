@@ -98,11 +98,7 @@ bool Kernel::IsImported(const std::string& rApplicationName) const {
 }
 
 bool Kernel::IsLibraryAvailable(const std::string& rLibraryName) const {
-    if (GetLibrayList().find(rLibraryName) != GetLibrayList().end()) {
-        return true;
-    } else {
-        return false;
-    }
+    return GetLibrayList().find(rLibraryName) != GetLibrayList().end();
 }
 
 bool Kernel::IsDistributedRun() {
