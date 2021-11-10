@@ -65,15 +65,6 @@ namespace Kratos
   template <unsigned int TDim>
   class TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement : public TwoStepUpdatedLagrangianVPImplicitElement<TDim>
   {
-
-  protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
   public:
     ///@name Type Definitions
     ///@{
@@ -203,7 +194,7 @@ namespace Kratos
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
 
-    void Initialize() override{};
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override{};
 
     /// Initializes the element and all geometric information required for the problem.
     void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override{};

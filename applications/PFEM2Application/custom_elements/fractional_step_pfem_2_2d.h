@@ -31,7 +31,7 @@ namespace Kratos
    public:
 
      /// Counted pointer of PFEM22D
-    KRATOS_CLASS_POINTER_DEFINITION(FractionalStepPFEM22D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FractionalStepPFEM22D);
     ///base type: an IndexedObject that automatically has a unique number
     ///typedef IndexedObject BaseType;
     ///Element from which it is derived
@@ -67,35 +67,35 @@ namespace Kratos
 
      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-     void AddExplicitContribution(ProcessInfo& CurrentProcessInfo) override;
+     void AddExplicitContribution(const ProcessInfo& CurrentProcessInfo) override;
 
-     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+     void EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo) const override;
 
-     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
+     void GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo& CurrentProcessInfo) const override;
 
-     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+     void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector<array_1d<double, 3 > >& rValues,
             const ProcessInfo& rCurrentProcessInfo) override;
 
    protected:
 
-       	void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+       	void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
-       	void PressureEquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo);
+       	void PressureEquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const;
 
-        void GetPressureDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+        void GetPressureDofList(DofsVectorType& ElementalDofList,const ProcessInfo& CurrentProcessInfo) const;
 
-        void CalculateViscousRHS(ProcessInfo& CurrentProcessInfo);
+        void CalculateViscousRHS(const ProcessInfo& CurrentProcessInfo);
 
-       	void CalculatePressureProjection(ProcessInfo& CurrentProcessInfo);
+       	void CalculatePressureProjection(const ProcessInfo& CurrentProcessInfo);
 
         void AddViscousTerm(BoundedMatrix<double, (2-1)*6, (2-1)*6 >& rDampMatrix,
                          BoundedMatrix<double, (2+1), 2 >& rShapeDeriv,

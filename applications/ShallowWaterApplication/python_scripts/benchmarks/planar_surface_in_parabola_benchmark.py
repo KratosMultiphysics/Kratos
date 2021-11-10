@@ -24,14 +24,18 @@ class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
 
         The base class validates the settings and sets the model_part, the variables and the benchmark_settings
         """
+
         super().__init__(model, settings)
 
         self.h0 = self.benchmark_settings["depth"].GetDouble()
         self.a = self.benchmark_settings["amplitude"].GetDouble()
+    
+    def ExecuteInitialize(self):
         self.g = self.model_part.ProcessInfo[KM.GRAVITY_Z]
         self.B = self.__B()
         self.C = self.__C()
         self.L = self.__L()
+        super().ExecuteInitialize()
 
     @classmethod
     def _GetBenchmarkDefaultSettings(cls):

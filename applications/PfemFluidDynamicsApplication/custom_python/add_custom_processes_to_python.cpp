@@ -53,10 +53,12 @@
 #include "custom_processes/assign_vector_field_to_pfem_entities_process.hpp"
 #include "custom_processes/assign_scalar_field_to_pfem_entities_process.hpp"
 #include "custom_processes/update_conditions_on_free_surface_process.hpp"
+#include "custom_processes/calculate_wave_height_process.hpp"
 
 // Coupling with ConvectionDiffusionApplication processes
 #include "custom_processes/update_thermal_model_part_process.hpp"
 #include "custom_processes/set_mesh_velocity_for_thermal_coupling_process.hpp"
+#include "custom_processes/set_material_properties_for_thermal_coupling_process.hpp"
 
 //Processes
 
@@ -89,6 +91,9 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
     py::class_<InletManagementProcess, InletManagementProcess::Pointer, MesherProcess>(m, "InletManagement")
         .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
+
+    py::class_<CalculateWaveHeightProcess, CalculateWaveHeightProcess::Pointer, ProcessBaseType>(m, "CalculateWaveHeightProcess")
+        .def(py::init<ModelPart&, const int, const int, const double, const double, const double, const std::string, const double>());
 
     py::class_<SetInletProcess, SetInletProcess::Pointer, ProcessBaseType>(m, "SetInlet")
         .def(py::init<ModelPart &, int>());
@@ -197,6 +202,12 @@ void AddCustomProcessesToPython(pybind11::module &m)
     (m, "SetMeshVelocityForThermalCouplingProcess")
         .def(py::init< ModelPart &>())
         .def("Execute", &SetMeshVelocityForThermalCouplingProcess::Execute);
+        ;
+
+    py::class_<SetMaterialPropertiesForThermalCouplingProcess, SetMaterialPropertiesForThermalCouplingProcess::Pointer, ProcessBaseType>
+    (m, "SetMaterialPropertiesForThermalCouplingProcess")
+        .def(py::init< ModelPart &, ModelPart&>())
+        .def("Execute", &SetMaterialPropertiesForThermalCouplingProcess::Execute);
         ;
 
 	py::class_<UpdateConditionsOnFreeSurfaceProcess, UpdateConditionsOnFreeSurfaceProcess::Pointer, ProcessBaseType>(m, "UpdateConditionsOnFreeSurfaceProcess")

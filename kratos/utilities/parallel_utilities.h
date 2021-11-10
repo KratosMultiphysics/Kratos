@@ -33,6 +33,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/global_variables.h"
+#include "includes/lock_object.h"
 #include "utilities/reduction_utilities.h"
 
 
@@ -72,9 +73,19 @@ public:
 
     ///@}
 
+    /** @brief Returns the global lock
+     * Global lock that can be used for critical sections
+     * @return global lock
+     */
+    static LockObject& GetGlobalLock();
+
+    ///@}
+
 private:
     ///@name Static Member Variables
     ///@{
+
+    static LockObject* mspGlobalLock;
 
     static int* mspNumThreads;
 
@@ -110,7 +121,7 @@ private:
  */
 template<
         class TContainerType,
-        class TIteratorType=typename TContainerType::iterator,
+        class TIteratorType=decltype(std::declval<TContainerType>().begin()),
         int TMaxThreads=Globals::MaxAllowedThreads
         >
 class BlockPartition
@@ -145,8 +156,8 @@ public:
     /** @param rData - the continer to be iterated upon
      *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
      */
-    BlockPartition(TContainerType& rData,
-                   int Nchunks = ParallelUtilities::GetNumThreads())
+    template <class TData>
+    BlockPartition(TData &&rData, int Nchunks = ParallelUtilities::GetNumThreads())
         : BlockPartition(rData.begin(), rData.end(), Nchunks)
     {}
 
@@ -172,7 +183,7 @@ public:
      * @param f - must be a unary function accepting as input TContainerType::value_type&
      */
     template <class TReducer, class TUnaryFunction>
-    inline typename TReducer::value_type for_each(TUnaryFunction &&f)
+    inline typename TReducer::return_type for_each(TUnaryFunction &&f)
     {
         TReducer global_reducer;
         #pragma omp parallel for
@@ -216,7 +227,7 @@ public:
      * @param f - must be a function accepting as input TContainerType::value_type& and the thread local storage
      */
     template <class TReducer, class TThreadLocalStorage, class TFunction>
-    inline typename TReducer::value_type for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
+    inline typename TReducer::return_type for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
@@ -251,7 +262,7 @@ private:
 template <class TContainerType, class TFunctionType>
 void block_for_each(TContainerType &&v, TFunctionType &&func)
 {
-    BlockPartition<typename std::decay<TContainerType>::type>(std::forward<TContainerType>(v)).for_each(std::forward<TFunctionType>(func));
+    BlockPartition<TContainerType>(v.begin(), v.end()).for_each(std::forward<TFunctionType>(func));
 }
 
 /** @brief simplified version of the basic loop with reduction to enable template type deduction
@@ -259,10 +270,9 @@ void block_for_each(TContainerType &&v, TFunctionType &&func)
  * @param func - must be a unary function accepting as input TContainerType::value_type&
  */
 template <class TReducer, class TContainerType, class TFunctionType>
-typename TReducer::value_type block_for_each(TContainerType &&v, TFunctionType &&func)
+typename TReducer::return_type block_for_each(TContainerType &&v, TFunctionType &&func)
 {
-    return BlockPartition<typename std::decay<TContainerType>::type>
-        (std::forward<TContainerType>(v)).template for_each<TReducer>(std::forward<TFunctionType>(func));
+    return  BlockPartition<TContainerType>(v.begin(), v.end()).template for_each<TReducer>(std::forward<TFunctionType>(func));
 }
 
 /** @brief simplified version of the basic loop with thread local storage (TLS) to enable template type deduction
@@ -273,7 +283,7 @@ typename TReducer::value_type block_for_each(TContainerType &&v, TFunctionType &
 template <class TContainerType, class TThreadLocalStorage, class TFunctionType>
 void block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
 {
-    BlockPartition<typename std::decay<TContainerType>::type>(std::forward<TContainerType>(v)).for_each(tls, std::forward<TFunctionType>(func));
+     BlockPartition<TContainerType>(v.begin(), v.end()).for_each(tls, std::forward<TFunctionType>(func));
 }
 
 /** @brief simplified version of the basic loop with reduction and thread local storage (TLS) to enable template type deduction
@@ -282,10 +292,9 @@ void block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctio
  * @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
  */
 template <class TReducer, class TContainerType, class TThreadLocalStorage, class TFunctionType>
-typename TReducer::value_type block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
+typename TReducer::return_type block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
 {
-    return BlockPartition<typename std::decay<TContainerType>::type>
-        (std::forward<TContainerType>(v)).template for_each<TReducer>(tls, std::forward<TFunctionType>(func));
+    return BlockPartition<TContainerType>(v.begin(), v.end()).template for_each<TReducer>(tls, std::forward<TFunctionType>(func));
 }
 
 //***********************************************************************************
@@ -379,7 +388,7 @@ public:
      * @param f - must be a unary function accepting as input IndexType
      */
     template <class TReducer, class TUnaryFunction>
-    inline typename TReducer::value_type for_each(TUnaryFunction &&f)
+    inline typename TReducer::return_type for_each(TUnaryFunction &&f)
     {
         TReducer global_reducer;
         #pragma omp parallel for
@@ -424,7 +433,7 @@ public:
      * @param f - must be a function accepting as input IndexType and the thread local storage
      */
     template <class TReducer, class TThreadLocalStorage, class TFunction>
-    inline typename TReducer::value_type for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
+    inline typename TReducer::return_type for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 

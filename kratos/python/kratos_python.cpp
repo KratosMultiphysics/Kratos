@@ -66,6 +66,7 @@
 #include "add_parallel_environment_to_python.h"
 #include "add_global_pointers_to_python.h"
 #include "add_dofs_to_python.h"
+#include "add_mapper_to_python.h"
 
 namespace Kratos
 {
@@ -137,6 +138,7 @@ PYBIND11_MODULE(Kratos, m)
     AddCommunicatorToPython(m);
     AddDataCommunicatorToPython(m);
     AddParallelEnvironmentToPython(m);
+    AddMapperToPython(m);
 
     m.def("Hello", Hello);
 }

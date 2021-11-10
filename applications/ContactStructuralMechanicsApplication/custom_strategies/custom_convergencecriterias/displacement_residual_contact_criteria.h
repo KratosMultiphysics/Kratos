@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -70,28 +71,53 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( ROTATION_DOF_IS_CONSIDERED );
     KRATOS_DEFINE_LOCAL_FLAG( INITIAL_RESIDUAL_IS_SET );
 
-    /// The base class definition (and it subclasses)
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
-    typedef typename BaseType::TDataType                    TDataType;
-    typedef typename BaseType::DofsArrayType            DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType    TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType    TSystemVectorType;
+    /// The base class definition
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >                  BaseType;
+
+    /// The definition of the current class
+    typedef DisplacementResidualContactCriteria< TSparseSpace, TDenseSpace > ClassType;
+
+    /// The dofs array type
+    typedef typename BaseType::DofsArrayType                             DofsArrayType;
+
+    /// The sparse matrix type
+    typedef typename BaseType::TSystemMatrixType                     TSystemMatrixType;
+
+    /// The dense vector type
+    typedef typename BaseType::TSystemVectorType                     TSystemVectorType;
 
     /// The sparse space used
-    typedef TSparseSpace                              SparseSpaceType;
+    typedef TSparseSpace                                               SparseSpaceType;
 
-    /// The r_table stream definition TODO: Replace by logger
-    typedef TableStreamUtility::Pointer       TablePrinterPointerType;
+    /// The table stream definition TODO: Replace by logger
+    typedef TableStreamUtility::Pointer                        TablePrinterPointerType;
 
     /// The index type definition
-    typedef std::size_t                                     IndexType;
-
-    /// The key type definition
-    typedef std::size_t                                       KeyType;
+    typedef std::size_t                                                      IndexType;
 
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor.
+     */
+    explicit DisplacementResidualContactCriteria()
+        : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit DisplacementResidualContactCriteria(Kratos::Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
 
     /**
      * @brief Default constructor
@@ -103,10 +129,10 @@ public:
      * @param PrintingOutput If the output is going to be printed in a txt file
      */
     explicit DisplacementResidualContactCriteria(
-        const TDataType DispRatioTolerance,
-        const TDataType DispAbsTolerance,
-        const TDataType RotRatioTolerance,
-        const TDataType RotAbsTolerance,
+        const double DispRatioTolerance,
+        const double DispAbsTolerance,
+        const double RotRatioTolerance,
+        const double RotAbsTolerance,
         const bool PrintingOutput = false
         )
         : BaseType()
@@ -124,18 +150,6 @@ public:
         // The rotation residual
         mRotRatioTolerance = RotRatioTolerance;
         mRotAbsTolerance = RotAbsTolerance;
-    }
-
-    /**
-     * @brief Default constructor (parameters)
-     * @param ThisParameters The configuration parameters
-     */
-    explicit DisplacementResidualContactCriteria( Parameters ThisParameters = Parameters(R"({})"))
-        : BaseType()
-    {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
     }
 
     //* Copy constructor.
@@ -160,6 +174,19 @@ public:
     ///@name Operators
     ///@{
 
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
+
     /**
      * @brief Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
@@ -179,9 +206,9 @@ public:
     {
         if (SparseSpaceType::Size(rb) != 0) { //if we are solving for something
             // Initialize
-            TDataType disp_residual_solution_norm = 0.0;
+            double disp_residual_solution_norm = 0.0;
             IndexType disp_dof_num(0);
-            TDataType rot_residual_solution_norm = 0.0;
+            double rot_residual_solution_norm = 0.0;
             IndexType rot_dof_num(0);
 
             // First iterator
@@ -189,7 +216,7 @@ public:
 
             // Auxiliar values
             std::size_t dof_id = 0;
-            TDataType residual_dof_value = 0.0;
+            double residual_dof_value = 0.0;
 
             // Auxiliar displacement DoF check
             const std::function<bool(const VariableData&)> check_without_rot =
@@ -222,8 +249,8 @@ public:
             mDispCurrentResidualNorm = disp_residual_solution_norm;
             mRotCurrentResidualNorm = rot_residual_solution_norm;
 
-            TDataType residual_disp_ratio = 1.0;
-            TDataType residual_rot_ratio = 1.0;
+            double residual_disp_ratio = 1.0;
+            double residual_rot_ratio = 1.0;
 
             // We initialize the solution
             if (mOptions.IsNot(DisplacementResidualContactCriteria::INITIAL_RESIDUAL_IS_SET)) {
@@ -241,8 +268,8 @@ public:
             residual_rot_ratio = mRotCurrentResidualNorm/mRotInitialResidualNorm;
 
             // We calculate the absolute norms
-            const TDataType residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
-            const TDataType residual_rot_abs = mRotCurrentResidualNorm/rot_dof_num;
+            const double residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
+            const double residual_rot_abs = mRotCurrentResidualNorm/rot_dof_num;
 
             // The process info of the model part
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -406,16 +433,34 @@ public:
     }
 
     ///@}
-    ///@name Operations
-    ///@{
-
-    ///@}
     ///@name Acces
     ///@{
 
     ///@}
     ///@name Inquiry
     ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "DisplacementResidualContactCriteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -484,15 +529,15 @@ private:
 
     Flags mOptions; /// Local flags
 
-    TDataType mDispRatioTolerance;      /// The ratio threshold for the norm of the displacement residual
-    TDataType mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement residual
-    TDataType mDispInitialResidualNorm; /// The reference norm of the displacement residual
-    TDataType mDispCurrentResidualNorm; /// The current norm of the displacement residual
+    double mDispRatioTolerance;      /// The ratio threshold for the norm of the displacement residual
+    double mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement residual
+    double mDispInitialResidualNorm; /// The reference norm of the displacement residual
+    double mDispCurrentResidualNorm; /// The current norm of the displacement residual
 
-    TDataType mRotRatioTolerance;      /// The ratio threshold for the norm of the rotation residual
-    TDataType mRotAbsTolerance;        /// The absolute value threshold for the norm of the rotation residual
-    TDataType mRotInitialResidualNorm; /// The reference norm of the rotation residual
-    TDataType mRotCurrentResidualNorm; /// The current norm of the rotation residual
+    double mRotRatioTolerance;      /// The ratio threshold for the norm of the rotation residual
+    double mRotAbsTolerance;        /// The absolute value threshold for the norm of the rotation residual
+    double mRotInitialResidualNorm; /// The reference norm of the rotation residual
+    double mRotCurrentResidualNorm; /// The current norm of the rotation residual
 
     ///@}
     ///@name Private Operators

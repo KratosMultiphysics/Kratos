@@ -119,7 +119,7 @@ public:
 
     void SetValuesOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > > rValues,
+        const std::vector<array_1d<double, 3 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
@@ -138,8 +138,8 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /// Calculate Shape Function Values in a given point
-    Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint) override;
+    /// Calculate Shape Function Values as a vector
+    virtual void MPMShapeFunctionPointValues(Vector& rResult) const override;
 
     ///@}
 

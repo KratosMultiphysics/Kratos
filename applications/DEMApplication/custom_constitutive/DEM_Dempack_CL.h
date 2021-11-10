@@ -11,6 +11,9 @@
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_Dempack : public DEMContinuumConstitutiveLaw {
+
+        typedef DEMContinuumConstitutiveLaw BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack);
@@ -28,9 +31,12 @@ namespace Kratos {
         double mHistoryShearFlag;
 
 
-        virtual void Initialize(SphericContinuumParticle* owner_sphere) override;
+        virtual void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps) override;
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
+        void SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose = true) override; 
+        void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp) override; 
+        void Check(Properties::Pointer pProp) const override;
 
         ~DEM_Dempack() {
         }
@@ -54,7 +60,7 @@ namespace Kratos {
                                                double equiv_poisson,
                                                double calculation_area,
                                                SphericContinuumParticle* element1,
-                                               SphericContinuumParticle* element2) override;
+                                               SphericContinuumParticle* element2, double indentation) override;
 
         virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
                 double &equiv_visco_damp_coeff_tangential,
@@ -109,8 +115,10 @@ namespace Kratos {
         virtual void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
                 double LocalElasticExtraContactForce[3],
+                double ViscoDampingLocalContactForce[3],
                 double LocalCoordSystem[3][3],
                 double LocalDeltDisp[3],
+                double LocalRelVel[3],
                 const double kt_el,
                 const double equiv_shear,
                 double& contact_sigma,

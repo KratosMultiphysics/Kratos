@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_LOCK_OBJECT_H_INCLUDED )
-#define  KRATOS_LOCK_OBJECT_H_INCLUDED
+#if !defined(KRATOS_LOCK_OBJECT_H_INCLUDED)
+#define KRATOS_LOCK_OBJECT_H_INCLUDED
 
 // System includes
 #include <mutex>
@@ -23,6 +23,7 @@
 #endif
 
 // Project includes
+#include "includes/define.h"
 
 
 namespace Kratos
@@ -33,8 +34,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// This class defines stores a lock and gives interface to it.
-/** The class makes a tiny wrapper over the sahared memory locking mechanisms
+/// This class defines and stores a lock and gives an interface to it.
+/** The class makes a tiny wrapper over shared memory locking mechanisms
+ * it is compliant with C++ Lockable
+ * see https://en.cppreference.com/w/cpp/named_req/Lockable
  */
 class LockObject
 {
@@ -52,8 +55,22 @@ public:
     /// Copy constructor.
     LockObject(LockObject const& rOther) = delete;
 
+    /// Move constructor.
+    KRATOS_DEPRECATED_MESSAGE("The move constructor is deprecated and will be removed in the future!")
+    LockObject(LockObject&& rOther) noexcept
+#ifdef KRATOS_SMP_OPENMP
+        omp_destroy_lock(&mLock);
+#endif
+    {
+#ifdef KRATOS_SMP_OPENMP
+        static_assert(std::is_move_constructible<omp_lock_t>::value, "omp_lock_t is not move constructible!");
+			omp_init_lock(&mLock);
+#endif
+    }
+
     /// Destructor.
-    virtual ~LockObject() noexcept {
+    virtual ~LockObject() noexcept
+    {
 #ifdef KRATOS_SMP_OPENMP
         omp_destroy_lock(&mLock);
 #endif
@@ -67,29 +84,43 @@ public:
     LockObject& operator=(LockObject const& rOther) = delete;
 
     ///@}
-    ///@name Operations
-    ///@{
-
-    ///@}
     ///@name Access
     ///@{
 
-    inline void SetLock() const
+    inline void lock() const
     {
-#ifdef KRATOS_SMP_CXX11
-        mLock.lock();
-#elif KRATOS_SMP_OPENMP
+        //does nothing if openMP is not present
+#ifdef KRATOS_SMP_OPENMP
         omp_set_lock(&mLock);
 #endif
     }
 
-    inline void UnSetLock() const
+    KRATOS_DEPRECATED_MESSAGE("Please use lock instead")
+    inline void SetLock() const
     {
-#ifdef KRATOS_SMP_CXX11
-        mLock.unlock();
-#elif KRATOS_SMP_OPENMP
+        this->lock();
+    }
+
+    inline void unlock() const
+    {
+        //does nothing if openMP is not present
+#ifdef KRATOS_SMP_OPENMP
         omp_unset_lock(&mLock);
 #endif
+    }
+
+    KRATOS_DEPRECATED_MESSAGE("Please use unlock instead")
+    inline void UnSetLock() const
+    {
+        this->unlock();
+    }
+
+    inline bool try_lock() const
+    {
+#ifdef KRATOS_SMP_OPENMP
+        return omp_test_lock(&mLock);
+#endif
+        return true;
     }
 
     ///@}
@@ -98,10 +129,8 @@ private:
     ///@name Member Variables
     ///@{
 
-#ifdef KRATOS_SMP_CXX11
-    mutable std::mutex mLock;
-#elif KRATOS_SMP_OPENMP
-    mutable omp_lock_t mLock;
+#ifdef KRATOS_SMP_OPENMP
+	    mutable omp_lock_t mLock;
 #endif
 
     ///@}

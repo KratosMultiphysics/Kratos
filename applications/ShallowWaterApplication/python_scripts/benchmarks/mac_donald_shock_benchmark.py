@@ -37,6 +37,7 @@ class MacDonaldShockBenchmark(BaseBenchmarkProcess):
 
         The base class validates the settings and sets the model_part, the variables and the benchmark_settings
         """
+
         super().__init__(model, settings)
 
         self.n = self.benchmark_settings["manning"].GetDouble()
@@ -168,7 +169,7 @@ class MacDonaldShockBenchmark(BaseBenchmarkProcess):
     def _dZ(self, z, x):
         q = self.q
         g = self.g
-        return (q**2 / (g * self._H(x)**2) - 1) * self._dH(x) - self._Sf(self._H(x))
+        return (q**2 / (g * self._H(x)**3) - 1) * self._dH(x) - self._Sf(self._H(x))
 
     def _InitialH(self, x):
         return np.maximum(self.h100 - self._Z(x), self.h0)
@@ -179,22 +180,26 @@ class MacDonaldShockBenchmark(BaseBenchmarkProcess):
         return self.list_of_bc_processes
 
     def _CreateListOfBoundaryConditionsProcesses(self):
-        template_parameters = KM.Parameters("""{
-            "process_name" : "ApplyConstantScalarValueProcess",
-            "Parameters"   : {}
+        self.upstream_settings = KM.Parameters("""{
+            "process_name" : "ApplyConstantVectorValueProcess",
+            "Parameters"   : {
+                "variable_name"   : "MOMENTUM",
+                "is_fixed_x"      : true,
+                "is_fixed_y"      : true,
+                "direction"       : [1.0, 0.0, 0.0]}
         }""")
-
-        self.upstream_settings = template_parameters.Clone()
         self.upstream_settings["Parameters"].AddValue("model_part_name", self.benchmark_settings["upstream_model_part"])
-        self.upstream_settings["Parameters"].AddString("variable_name", "MOMENTUM_X")
-        self.upstream_settings["Parameters"].AddDouble("value", self.q)
-        self.upstream_settings["Parameters"].AddBool("is_fixed", True)
+        self.upstream_settings["Parameters"].AddDouble("modulus", self.q)
 
-        self.downstream_settings = template_parameters.Clone()
+        self.downstream_settings = KM.Parameters("""{
+            "process_name" : "ApplyConstantScalarValueProcess",
+            "Parameters"   : {
+                "variable_name"   : "HEIGHT",
+                "is_fixed"        : true
+            }
+        }""")
         self.downstream_settings["Parameters"].AddValue("model_part_name", self.benchmark_settings["downstream_model_part"])
-        self.downstream_settings["Parameters"].AddString("variable_name", "HEIGHT")
         self.downstream_settings["Parameters"].AddDouble("value", self.h100)
-        self.downstream_settings["Parameters"].AddBool("is_fixed", True)
 
         list_of_bc_processes = []
         list_of_bc_processes.append(ProcessFactory(self.upstream_settings, self.model))

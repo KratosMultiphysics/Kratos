@@ -1,5 +1,5 @@
 {
-   "Dimension"                      : 2,
+   "Dimension"                      : 3,
    "PeriodicDomainOption"           : false,
    "BoundingBoxOption"              : false,
    "AutomaticBoundingBoxOption"     : false,
@@ -24,6 +24,14 @@
    "CleanIndentationsOption"        : false,
    "RemoveBallsInEmbeddedOption"    : true,
 
+    "solver_settings"                : {
+        "RemoveBallsInitiallyTouchingWalls" : false,
+        "strategy"                          : "sphere_strategy",
+		"material_import_settings"   : {
+					"materials_filename" : "small_tests/small_strain/MaterialsDEM.json"
+		}
+    },
+    
    "DeltaOption"                    : "Absolute",
    "SearchTolerance"                : 0.0,
    "AmplifiedSearchRadiusExtension" : 0.0,

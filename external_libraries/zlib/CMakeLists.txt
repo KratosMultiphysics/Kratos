@@ -188,6 +188,8 @@ add_library(zlib SHARED ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC
 add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
 set_target_properties(zlib PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
 set_target_properties(zlib PROPERTIES SOVERSION 1)
+set_target_properties(zlib PROPERTIES UNITY_BUILD "OFF")
+set_target_properties(zlibstatic PROPERTIES UNITY_BUILD "OFF")
 
 if(NOT CYGWIN)
     # This property causes shared libraries on Linux to have the full version
@@ -234,18 +236,22 @@ endif()
 
 add_executable(example test/example.c)
 target_link_libraries(example zlib)
+set_target_properties(example PROPERTIES UNITY_BUILD "OFF")
 add_test(example example)
 
 add_executable(minigzip test/minigzip.c)
 target_link_libraries(minigzip zlib)
+set_target_properties(minigzip PROPERTIES UNITY_BUILD "OFF")
 
 if(HAVE_OFF64_T)
     add_executable(example64 test/example.c)
     target_link_libraries(example64 zlib)
     set_target_properties(example64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
+    set_target_properties(example64 PROPERTIES UNITY_BUILD "OFF")
     add_test(example64 example64)
 
     add_executable(minigzip64 test/minigzip.c)
     target_link_libraries(minigzip64 zlib)
     set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
+    set_target_properties(minigzip64 PROPERTIES UNITY_BUILD "OFF")
 endif()

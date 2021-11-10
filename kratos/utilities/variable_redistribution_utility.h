@@ -85,7 +85,7 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-    /** 
+    /**
      * @brief Tranform a variable distributed over the conditions of rModelPart to a set of concentrated nodal values.
      * The origin and destination values have the same L2 norm over the set of conditions.
      * A typical use case is to transform a distributed load into an equivalent set of point loads.
@@ -100,7 +100,7 @@ namespace Kratos
         const Variable< double >& rDistributedVariable,
         const Variable< double >& rPointVariable);
 
-    /** 
+    /**
      * @brief Tranform a variable distributed over the conditions of rModelPart to a set of concentrated nodal values.
      * The origin and destination values have the same L2 norm over the set of conditions.
      * A typical use case is to transform a distributed load into an equivalent set of point loads.
@@ -116,7 +116,7 @@ namespace Kratos
         const Variable< double >& rDistributedVariable,
         const Variable< double >& rPointVariable);
 
-    /** 
+    /**
      * @brief Tranform a variable distributed over the conditions of rModelPart to a set of concentrated nodal values.
      * The origin and destination values have the same L2 norm over the set of conditions.
      * A typical use case is to transform a distributed load into an equivalent set of point loads.
@@ -132,7 +132,7 @@ namespace Kratos
         const Variable< double >& rDistributedVariable,
         const Variable< double >& rPointVariable);
 
-    /** 
+    /**
      * @brief Tranform a variable distributed over the conditions of rModelPart to a set of concentrated nodal values.
      * The origin and destination values have the same L2 norm over the set of conditions.
      * A typical use case is to transform a distributed load into an equivalent set of point loads.
@@ -142,12 +142,12 @@ namespace Kratos
      * @param rDistributedVariable The variable containing the distributed (origin) values.
      * @param rPointVariable The variable that will contain the point (destination) values.
      */
-    static void ConvertDistributedValuesToPoint(  
+    static void ConvertDistributedValuesToPoint(
         ModelPart& rModelPart,
         const Variable< array_1d<double,3> >& rDistributedVariable,
         const Variable< array_1d<double,3> >& rPointVariable);
 
-    /** 
+    /**
      * @brief Tranform a variable distributed over the conditions of rModelPart to a set of concentrated nodal values.
      * The origin and destination values have the same L2 norm over the set of conditions.
      * A typical use case is to transform a distributed load into an equivalent set of point loads.
@@ -163,7 +163,7 @@ namespace Kratos
         const Variable< array_1d<double,3> >& rDistributedVariable,
         const Variable< array_1d<double,3> >& rPointVariable);
 
-    /** 
+    /**
      * @brief Tranform a variable distributed over the conditions of rModelPart to a set of concentrated nodal values.
      * The origin and destination values have the same L2 norm over the set of conditions.
      * A typical use case is to transform a distributed load into an equivalent set of point loads.
@@ -298,7 +298,7 @@ namespace Kratos
         double Tolerance,
         unsigned int MaximumIterations);
 
-    /** 
+    /**
      * @brief Tranform a variable distributed over the conditions of rModelPart to a set of concentrated nodal values.
      * The origin and destination values have the same L2 norm over the set of conditions.
      * A typical use case is to transform a distributed load into an equivalent set of point loads.
@@ -314,7 +314,7 @@ namespace Kratos
         const Variable< double >& rDistributedVariable,
         const Variable< double >& rPointVariable);
 
-    /** 
+    /**
      * @brief Tranform a variable distributed over the conditions of rModelPart to a set of concentrated nodal values.
      * The origin and destination values have the same L2 norm over the set of conditions.
      * A typical use case is to transform a distributed load into an equivalent set of point loads.
@@ -330,7 +330,7 @@ namespace Kratos
         const Variable< double >& rDistributedVariable,
         const Variable< double >& rPointVariable);
 
-    /** 
+    /**
      * @brief Tranform a variable distributed over the conditions of rModelPart to a set of concentrated nodal values.
      * The origin and destination values have the same L2 norm over the set of conditions.
      * A typical use case is to transform a distributed load into an equivalent set of point loads.
@@ -346,7 +346,7 @@ namespace Kratos
         const Variable< array_1d<double,3> >& rDistributedVariable,
         const Variable< array_1d<double,3> >& rPointVariable);
 
-    /** 
+    /**
      * @brief Tranform a variable distributed over the conditions of rModelPart to a set of concentrated nodal values.
      * The origin and destination values have the same L2 norm over the set of conditions.
      * A typical use case is to transform a distributed load into an equivalent set of point loads.
@@ -604,7 +604,7 @@ namespace Kratos
     /**
      * @brief This function computes the NODAL_MAUX values
      * For the given container, this function calculates the nodal lumped mass values
-     * @tparam TContainerType Template container argument 
+     * @tparam TContainerType Template container argument
      * @param rModelPart ModelPart in where the NODAL_MAUX is computed
      * @param rEntitiesContainer Reference to the container storing the entities to calculate the NODAL_MAUX
      */
@@ -677,7 +677,7 @@ namespace Kratos
      * This class does nothing, it is only used in case there is no conditions in the current
      * partition to perform the communication operations that are done in the "standard" case
      * Otherwise, the MPI synchronism is broken
-     * 
+     *
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param rModelPart model part in where the distribution is done
      * @param rDistributedVariable destination distributed variable
@@ -708,16 +708,6 @@ namespace Kratos
      */
       template< class TValueType >
       static double AddToNorm(TValueType NodalValue, double NodalSize);
-
-    /**
-     * @brief Auxiliar function to perform a threadsafe addition
-     *
-     * @tparam TValueType variables value type (double or array_1d<double,3>)
-     * @param rLHS left hand side of the summation (accumulated value)
-     * @param rRHS right hand side of the summation (value to be accumulated in the LHS)
-     */
-      template< class TValueType >
-      static void ThreadsafeAdd(TValueType& rLHS, const TValueType& rRHS);
 
     /**
      * @brief Returns the number of entities in the local mesh

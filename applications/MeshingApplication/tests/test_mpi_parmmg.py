@@ -82,7 +82,8 @@ class TestMPIParMmg(KratosUnittest.TestCase):
             "preserve_flags"                   : true,
             "echo_level"                       : 0,
             "advanced_parameters" : {
-                "number_of_iterations"         : 4
+                "number_of_iterations"        : 4,
+                "no_surf_mesh"                : true
             }
         }
         """)

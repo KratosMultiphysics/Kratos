@@ -1,4 +1,4 @@
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 import numpy as np
 import xmc.solverWrapper as sw
@@ -26,7 +26,7 @@ class MultiLevelRNGSolverWrapper(sw.SolverWrapper):
         self.standardDeviation = 1 + self.parameters[2] * np.exp(-(self.parameters[3]*self.solverWrapperIndex[0]))
         self.waitForTime = self.parameters[4] * np.exp(-(self.parameters[5]*self.solverWrapperIndex[0]))
 
-    @ExaquteTask(returns=2)
+    @task(keep=True, returns=2)
     def _drawSample_Task(self,randomInput):
         sample = None
         if all([component>=0 for component in self.solverWrapperIndex]):

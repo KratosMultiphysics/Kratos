@@ -1,12 +1,13 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Vicente Mataix
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -14,12 +15,10 @@
 // External includes
 
 // Project includes
+#include "utilities/variable_utils.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "custom_processes/mpc_contact_search_process.h"
 #include "custom_master_slave_constraints/contact_master_slave_constraint.h"
-
-/* Custom utilities */
-#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -35,16 +34,11 @@ MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::MPCContactSearchProce
 
     // We get the contact model part
     ModelPart& r_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + id_name);
+    ModelPart& r_sub_contact_model_part = this->IsNotMultipleSearchs() ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + id_name);
 
     // Iterate in the constraints
     auto& r_constraints_array = r_sub_contact_model_part.MasterSlaveConstraints();
-    const auto it_const_begin = r_constraints_array.begin();
-    const int num_constraints = static_cast<int>(r_constraints_array.size());
-
-    #pragma omp parallel for
-    for(int i = 0; i < num_constraints; ++i)
-        (it_const_begin + i)->Set(ACTIVE, false);
+    VariableUtils().SetFlag(ACTIVE, false, r_constraints_array);
 }
 
 /***********************************************************************************/
@@ -58,7 +52,7 @@ void MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckContactMode
 
     // Iterate in the constraints
     ModelPart& r_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+BaseType::mThisParameters["id_name"].GetString());
+    ModelPart& r_sub_contact_model_part = this->IsNotMultipleSearchs() ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+BaseType::mThisParameters["id_name"].GetString());
     auto& r_constraints_array = r_sub_contact_model_part.MasterSlaveConstraints();
 
     const SizeType total_number_constraints = BaseType::mrMainModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
@@ -194,35 +188,27 @@ void MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ResetContactOper
 
     // We iterate over the master nodes
     ModelPart& r_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+BaseType::mThisParameters["id_name"].GetString());
+    ModelPart& r_sub_contact_model_part = this->IsNotMultipleSearchs() ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+BaseType::mThisParameters["id_name"].GetString());
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
 
     if (BaseType::mrMainModelPart.Is(MODIFIED)) { // It has been remeshed. We remove everything
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = r_nodes_array.begin() + i;
-            if (it_node->Is(MASTER)) {
-                IndexMap::Pointer p_indexes_pairs = it_node->GetValue(INDEX_MAP);
+        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            if (rNode.Is(MASTER)) {
+                IndexMap::Pointer p_indexes_pairs = rNode.GetValue(INDEX_MAP);
 
                 if (p_indexes_pairs != nullptr) {
                     p_indexes_pairs->clear();
 //                     p_indexes_pairs->reserve(mAllocationSize);
                 }
             }
-        }
+        });
 
         // We remove all the computing constraints
         const std::string sub_computing_model_part_name = "ComputingContactSub" + BaseType::mThisParameters["id_name"].GetString();
         ModelPart& r_computing_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("ComputingContact");
-        ModelPart& r_sub_computing_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_computing_contact_model_part : r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
+        ModelPart& r_sub_computing_contact_model_part = this->IsNotMultipleSearchs() ? r_computing_contact_model_part : r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
         auto& r_computing_constraints_array = r_sub_computing_contact_model_part.MasterSlaveConstraints();
-        const int num_computing_constraints = static_cast<int>(r_computing_constraints_array.size());
-
-        #pragma omp parallel for
-        for(int i = 0; i < num_computing_constraints; ++i) {
-            auto it_const = r_computing_constraints_array.begin() + i;
-            it_const->Set(TO_ERASE, true);
-        }
+        VariableUtils().SetFlag(TO_ERASE, true, r_computing_constraints_array);
     } else {
         // We iterate, but not in OMP
         for(IndexType i = 0; i < r_nodes_array.size(); ++i) {

@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -68,27 +69,28 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
 
     /// The base convergence criteria class definition
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > ConvergenceCriteriaBaseType;
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >              ConvergenceCriteriaBaseType;
 
-    /// The base class definition (and it subclasses)
-    typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >          BaseType;
-    typedef typename BaseType::TDataType                                       TDataType;
-    typedef typename BaseType::DofsArrayType                               DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType                       TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType                       TSystemVectorType;
+    /// The base class definition
+    typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >                       BaseType;
 
-    /// The sparse space used
-    typedef TSparseSpace                                                 SparseSpaceType;
+    /// The definition of the current class
+    typedef ALMFrictionlessComponentsMortarConvergenceCriteria< TSparseSpace, TDenseSpace > ClassType;
 
-    /// The components containers
-    typedef ModelPart::NodesContainerType                                 NodesArrayType;
-    typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
+    /// The dofs array type
+    typedef typename BaseType::DofsArrayType                                            DofsArrayType;
 
-    /// The r_table stream definition TODO: Replace by logger
-    typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
+    /// The sparse matrix type
+    typedef typename BaseType::TSystemMatrixType                                    TSystemMatrixType;
+
+    /// The dense vector type
+    typedef typename BaseType::TSystemVectorType                                    TSystemVectorType;
+
+    /// The table stream definition TODO: Replace by logger
+    typedef TableStreamUtility::Pointer                                       TablePrinterPointerType;
 
     /// The index type definition
-    typedef std::size_t                                                        IndexType;
+    typedef std::size_t                                                                     IndexType;
 
     ///@}
     ///@name Life Cycle
@@ -106,6 +108,18 @@ public:
         BaseType::mOptions.Set(ALMFrictionlessComponentsMortarConvergenceCriteria::TABLE_IS_INITIALIZED, false);
     }
 
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ALMFrictionlessComponentsMortarConvergenceCriteria(Kratos::Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
+
     ///Copy constructor
     ALMFrictionlessComponentsMortarConvergenceCriteria( ALMFrictionlessComponentsMortarConvergenceCriteria const& rOther )
       :BaseType(rOther)
@@ -118,6 +132,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename ConvergenceCriteriaBaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Criterias that need to be called before getting the solution
@@ -227,9 +254,32 @@ public:
         }
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                        : "alm_frictionless_components_mortar_criteria",
+            "print_convergence_criterion" : false
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "alm_frictionless_components_mortar_criteria";
+    }
 
     ///@}
     ///@name Acces
@@ -238,6 +288,28 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ALMFrictionlessComponentsMortarConvergenceCriteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -259,6 +331,19 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // Set local flags
+        BaseType::mOptions.Set(ALMFrictionlessComponentsMortarConvergenceCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
+        BaseType::mOptions.Set(ALMFrictionlessComponentsMortarConvergenceCriteria::TABLE_IS_INITIALIZED, false);
+    }
 
     ///@}
     ///@name Protected  Access

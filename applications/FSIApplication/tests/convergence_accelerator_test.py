@@ -48,6 +48,9 @@ class ConvergenceAcceleratorTest(KratosUnittest.TestCase):
         y[1] = A[1,0]*x[0] + A[1,1]*x[1]
         return y
 
+    def norm(self, v):
+        return math.sqrt(sum([i**2 for i in v]))
+
     # Specific residual functions for the MVQN accelerator test
     # Recall that the MVQN accelerator requires a "large enough" problem to avoid becoming ill-conditioned
     def ComputeMVQNResidual(self, x_guess, multiplier = 1.0):
@@ -75,6 +78,29 @@ class ConvergenceAcceleratorTest(KratosUnittest.TestCase):
         RHS[5] = (0.74119728*x_guess[0] + 0.80883251*x_guess[1] + 0.06562307*x_guess[2] + 0.14071936*x_guess[3] + 0.28756793*x_guess[4] + 0.63488182*x_guess[5])
 
         return RHS
+
+    def ComputeMVQNRandomizedSVDResidual(self, x_guess, multiplier):
+        A = [
+            [3, 2, 0, 0, 2, 3, 2, 5, 0, 0],
+            [1,-1, 0, 4, 2,-1, 2, 4, 0, 0],
+            [0, 5, 1, 9, 9, 1, 2, 3, 0, 0],
+            [1, 3, 1, 3, 5, 7, 3, 2, 0, 0],
+            [5, 2,-1, 9, 9, 5, 3, 1, 0, 0],
+            [1,-3, 2, 4, 8, 2, 3, 0, 0, 0],
+            [5, 2,-1, 9, 9, 5, 4, 3, 0, 0],
+            [0, 0,-2,-4, 8, 2, 7, 8, 0, 2],
+            [1, 0,-1, 0, 1, 0,-1, 0, 1, 0],
+            [0, 0,-2,-4, 8, 2, 7, 8, 2, 3]
+        ]
+        b = [2, 4,-1, 5, 6,-2, 8,-2, 0, 1]
+
+        res = []
+        res = [multiplier*b[i] for i in range(len(b))]
+        for i in range(10):
+            for j in range(10):
+                res[i] -= A[i][j]*x_guess[j]
+
+        return res
 
     # Aitken accelerator test
     def test_aitken_accelerator(self):
@@ -202,6 +228,51 @@ class ConvergenceAcceleratorTest(KratosUnittest.TestCase):
         if convergence == True:
             for i in range(0,len(expected_RHS)):
                 self.assertAlmostEqual(expected_RHS[i],obtained_RHS[i])
+
+    # MVQN randomized SVD accelerator test
+    def testMVQNRandomizedSVD(self):
+
+        convergence_accelerator_settings = KratosMultiphysics.Parameters("""{
+            "solver_type" : "MVQN_randomized_SVD",
+            "jacobian_modes" : 3,
+            "min_rand_svd_extra_modes" : 2,
+            "automatic_jacobian_modes" : false
+        }""")
+
+        # Construct the accelerator strategy
+        self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(convergence_accelerator_settings)
+
+        x_guess = KratosMultiphysics.Vector(10)
+        for i in range(10):
+            x_guess[i] = 0.0
+
+        self.coupling_utility.Initialize()
+
+        tol = 5e-11
+        max_it = 20
+        total_steps = 3
+        for step in range(total_steps):
+            nl_it = 1
+            convergence = False
+            self.coupling_utility.InitializeSolutionStep()
+            while (nl_it <= max_it):
+                residual = self.ComputeMVQNRandomizedSVDResidual(x_guess, step+1)
+                res_norm = self.norm(residual)
+
+                if res_norm > tol:
+                    self.coupling_utility.InitializeNonLinearIteration()
+                    self.coupling_utility.UpdateSolution(residual, x_guess)
+                    self.coupling_utility.FinalizeNonLinearIteration()
+                    nl_it += 1
+                else:
+                    self.coupling_utility.FinalizeSolutionStep()
+                    convergence = True
+                    break
+
+        # Check the obtained solution
+        expected_solution = [-0.274582199767, 0.345871967131, -3.755454999722, 2.709011159847, -4.425545499972, 1.364499472545, 8.220809505302, -1.110404752651, 9.165482205319, -9.330964410638]
+        self.assertTrue(convergence)
+        self.assertVectorAlmostEqual(expected_solution, x_guess)
 
     # Recursive MVQN accelerator test
     def test_mvqn_recusive_accelerator(self):

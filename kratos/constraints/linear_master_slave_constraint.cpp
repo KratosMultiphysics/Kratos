@@ -16,6 +16,7 @@
 
 // Project includes
 #include "linear_master_slave_constraint.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -42,8 +43,7 @@ void LinearMasterSlaveConstraint::EquationIdVector(
 void LinearMasterSlaveConstraint::ResetSlaveDofs(const ProcessInfo& rCurrentProcessInfo)
 {
     for (IndexType i = 0; i < mSlaveDofsVector.size(); ++i) {
-        #pragma omp atomic
-        mSlaveDofsVector[i]->GetSolutionStepValue() *= 0.0;
+        AtomicMult(mSlaveDofsVector[i]->GetSolutionStepValue(), 0.0);
     }
 }
 
@@ -63,8 +63,7 @@ void LinearMasterSlaveConstraint::Apply(const ProcessInfo& rCurrentProcessInfo)
             aux += mRelationMatrix(i,j) * master_dofs_values[j];
         }
 
-        #pragma omp atomic
-        mSlaveDofsVector[i]->GetSolutionStepValue() += aux;
+        AtomicAdd(mSlaveDofsVector[i]->GetSolutionStepValue(), aux);
     }
 }
 

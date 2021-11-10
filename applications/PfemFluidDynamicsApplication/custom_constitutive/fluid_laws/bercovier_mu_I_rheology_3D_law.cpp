@@ -53,7 +53,7 @@ namespace Kratos
 
     ConstitutiveLaw::SizeType BercovierMuIRheology3DLaw::WorkingSpaceDimension() { return 3; }
 
-    ConstitutiveLaw::SizeType BercovierMuIRheology3DLaw::GetStrainSize() { return 6; }
+    ConstitutiveLaw::SizeType BercovierMuIRheology3DLaw::GetStrainSize() const { return 6; }
 
     void BercovierMuIRheology3DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {
@@ -77,9 +77,8 @@ namespace Kratos
 
         const double old_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 1);
         const double new_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 0);
-        const GeometryType &r_geometry = rValues.GetElementGeometry();
 
-        const double theta_momentum = r_geometry[0].GetValue(THETA_MOMENTUM);
+        const double theta_momentum = this->GetThetaMomentumForPressureIntegration();
         double mean_pressure = (1.0 - theta_momentum) * old_pressure + theta_momentum * new_pressure;
         if (mean_pressure > 0.0)
         {
@@ -130,7 +129,7 @@ namespace Kratos
     //*****************************************************************************
 
     int BercovierMuIRheology3DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                                         const ProcessInfo &rCurrentProcessInfo)
+                                         const ProcessInfo &rCurrentProcessInfo) const
     {
         if (rMaterialProperties[STATIC_FRICTION] < 0.0)
         {

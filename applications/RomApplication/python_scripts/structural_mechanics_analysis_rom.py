@@ -35,9 +35,9 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
     def _GetSimulationName(self):
         return "::[ROM Simulation]:: "
 
-    def ModifyInitialGeometry(self):
-        """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node"""
-        super().ModifyInitialGeometry()
+    def ModifyAfterSolverInitialize(self):
+        """Here is where the ROM_BASIS is imposed to each node"""
+        super().ModifyAfterSolverInitialize()
         computing_model_part = self._solver.GetComputingModelPart()
         with open('RomParameters.json') as f:
             data = json.load(f)
@@ -52,28 +52,22 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
                     for i in range(rom_dofs):
                         aux[j,i] = nodal_modes[Counter][j][i]
                 node.SetValue(romapp.ROM_BASIS, aux ) # ROM basis
-                node.SetValue(romapp.AUX_ID, counter) # Aux ID
                 counter+=1
-
-
-    def ModifyAfterSolverInitialize(self):
-        super().ModifyAfterSolverInitialize()
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
-                self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
+                self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], self._GetSolver().get_solution_scheme())
 
     def FinalizeSolutionStep(self):
-        super().FinalizeSolutionStep()
-
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
                 print('\n\n\n\nGenerating matrix of residuals')
                 ResMat = self.ResidualUtilityObject.GetResiduals()
                 NP_ResMat = np.array(ResMat, copy=False)
                 self.time_step_residual_matrix_container.append(NP_ResMat)
+        super().FinalizeSolutionStep()
 
     def Finalize(self):
-        super().FinalizeSolutionStep()
+        super().Finalize()
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
                 OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()

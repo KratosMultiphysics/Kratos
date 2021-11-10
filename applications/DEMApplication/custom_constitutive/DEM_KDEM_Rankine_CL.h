@@ -10,6 +10,9 @@
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEM_Rankine : public DEM_KDEM {
+
+        typedef DEM_KDEM BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_Rankine);
@@ -42,8 +45,10 @@ namespace Kratos {
         void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
                 double LocalElasticExtraContactForce[3],
+                double ViscoDampingLocalContactForce[3],
                 double LocalCoordSystem[3][3],
                 double LocalDeltDisp[3],
+                double LocalRelVel[3],
                 const double kt_el,
                 const double equiv_shear,
                 double& contact_sigma,

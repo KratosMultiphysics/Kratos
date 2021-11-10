@@ -31,7 +31,7 @@ namespace Kratos
    public:
 
      /// Counted pointer of MonolithicAutoSlipPFEM22D
-    KRATOS_CLASS_POINTER_DEFINITION(MonolithicAutoSlipPFEM22D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MonolithicAutoSlipPFEM22D);
     ///base type: an IndexedObject that automatically has a unique number
     ///typedef IndexedObject BaseType;
     ///Element from which it is derived
@@ -67,17 +67,17 @@ namespace Kratos
 
      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
      //void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-     void AddExplicitContribution(ProcessInfo& CurrentProcessInfo) override;
+     void AddExplicitContribution(const ProcessInfo& CurrentProcessInfo) override;
 
-     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
+     void GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo& CurrentProcessInfo) const override;
 
-     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+     void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
 
 
@@ -85,49 +85,49 @@ namespace Kratos
 
         void CalculateLocalFractionalVelocitySystem(MatrixType& rLeftHandSideMatrix,
                                                     VectorType& rRightHandSideVector,
-                                                    ProcessInfo& rCurrentProcessInfo);
+                                                    const ProcessInfo& rCurrentProcessInfo);
 
         void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo);
+                                          const ProcessInfo& rCurrentProcessInfo);
 
         void CalculateLocalFinalVelocitySystem(MatrixType& rLeftHandSideMatrix,
                                                 VectorType& rRightHandSideVector,
-                                                ProcessInfo& rCurrentProcessInfo);
+                                                const ProcessInfo& rCurrentProcessInfo);
 
         void CalculateLocalThermalSystem(MatrixType& rLeftHandSideMatrix,
                                                 VectorType& rRightHandSideVector,
-                                                ProcessInfo& rCurrentProcessInfo);
+                                                const ProcessInfo& rCurrentProcessInfo);
 
-        void CalculateViscousRHS(ProcessInfo& CurrentProcessInfo);
+        void CalculateViscousRHS(const ProcessInfo& CurrentProcessInfo);
 
-       	void CalculatePressureProjection(ProcessInfo& CurrentProcessInfo);
+       	void CalculatePressureProjection(const ProcessInfo& CurrentProcessInfo);
 
-       	void CalculateMassMatrix(ProcessInfo& CurrentProcessInfo);
+       	void CalculateMassMatrix(const ProcessInfo& CurrentProcessInfo);
 
         void VelocityEquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo);
+                                      const ProcessInfo& rCurrentProcessInfo);
 
         void FractionalVelocityEquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo);
+                                      const ProcessInfo& rCurrentProcessInfo);
 
         void PressureEquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo);
+                                      const ProcessInfo& rCurrentProcessInfo);
 
         void ThermalEquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo);
+                                      const ProcessInfo& rCurrentProcessInfo);
 
         void GetVelocityDofList(DofsVectorType& rElementalDofList,
-                                ProcessInfo& rCurrentProcessInfo);
+                                const ProcessInfo& rCurrentProcessInfo);
 
         void GetFractionalVelocityDofList(DofsVectorType& rElementalDofList,
-                                ProcessInfo& rCurrentProcessInfo);
+                                const ProcessInfo& rCurrentProcessInfo);
 
         void GetPressureDofList(DofsVectorType& rElementalDofList,
-                                ProcessInfo& rCurrentProcessInfo);
+                                const ProcessInfo& rCurrentProcessInfo);
 
         void GetThermalDofList(DofsVectorType& rElementalDofList,
-                                ProcessInfo& rCurrentProcessInfo);
+                                const ProcessInfo& rCurrentProcessInfo);
 
         void AddViscousTerm(MatrixType& rDampMatrix,
                                        const BoundedMatrix<double, 3, 2>& rShapeDeriv,

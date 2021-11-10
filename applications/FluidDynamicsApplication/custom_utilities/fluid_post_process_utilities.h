@@ -90,7 +90,7 @@ namespace Kratos
      *  @param[in] rModelPart The model part instance where statistics are recorded.
      *  @return flow through the modelpart.
      */
-    double CalculateFlow(const ModelPart& rModelPart);
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please use the one from the \'FluidAuxiliaryUtilities\'.") double CalculateFlow(const ModelPart& rModelPart);
 
     ///@}
 

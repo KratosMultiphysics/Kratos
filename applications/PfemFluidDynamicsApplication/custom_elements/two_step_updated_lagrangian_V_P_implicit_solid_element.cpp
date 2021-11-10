@@ -68,12 +68,12 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::Initialize()
+  void TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim>::Initialize(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
     const GeometryType &rGeom = this->GetGeometry();
-    SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
+    SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
     if (this->mCurrentTotalCauchyStress.size() != integration_points_number)
       this->mCurrentTotalCauchyStress.resize(integration_points_number);
@@ -119,8 +119,8 @@ namespace Kratos
     KRATOS_TRY;
 
     const GeometryType &rGeom = this->GetGeometry();
-    SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-    // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_4);
+    SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_4);
 
     for (unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++)
     {
@@ -501,12 +501,12 @@ namespace Kratos
     if (rLeftHandSideMatrix.size1() != NumNodes)
       rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
 
-    rLeftHandSideMatrix = ZeroMatrix(NumNodes, NumNodes);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes, NumNodes);
 
     if (rRightHandSideVector.size() != NumNodes)
-      rRightHandSideVector.resize(NumNodes);
+      rRightHandSideVector.resize(NumNodes, false);
 
-    rRightHandSideVector = ZeroVector(NumNodes);
+    noalias(rRightHandSideVector) = ZeroVector(NumNodes);
 
     // MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
 

@@ -85,6 +85,10 @@ Begin NodalData VISCOSITY
 974 0 0.010000
 End NodalData
 
+Begin NodalData VELOCITY
+1 0 [3](1.1,2.2,3.3)
+End NodalData
+
 
 Begin SubModelPart Inlets
 	Begin SubModelPartData

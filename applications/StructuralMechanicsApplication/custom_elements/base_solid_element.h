@@ -8,6 +8,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
+//                   Alejandro Cornejo Velazquez
 //
 
 #if !defined(KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED )
@@ -23,6 +24,7 @@
 #include "utilities/integration_utilities.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/geometrical_sensitivity_utility.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos
 {
@@ -108,9 +110,9 @@ protected:
      */
     struct ConstitutiveVariables
     {
-        Vector StrainVector;
-        Vector StressVector;
-        Matrix D;
+        ConstitutiveLaw::StrainVectorType StrainVector;
+        ConstitutiveLaw::StressVectorType StressVector;
+        ConstitutiveLaw::VoigtSizeMatrixType D;
 
         /**
          * The default constructor
@@ -118,9 +120,18 @@ protected:
          */
         ConstitutiveVariables(const SizeType StrainSize)
         {
-            StrainVector = ZeroVector(StrainSize);
-            StressVector = ZeroVector(StrainSize);
-            D = ZeroMatrix(StrainSize, StrainSize);
+            if (StrainVector.size() != StrainSize)
+                StrainVector.resize(StrainSize);
+
+            if (StressVector.size() != StrainSize)
+                StressVector.resize(StrainSize);
+
+            if (D.size1() != StrainSize || D.size2() != StrainSize)
+                D.resize(StrainSize, StrainSize);
+
+            noalias(StrainVector) = ZeroVector(StrainSize);
+            noalias(StressVector) = ZeroVector(StrainSize);
+            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
         }
     };
 public:
@@ -148,6 +159,8 @@ public:
 
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BaseSolidElement );
+
+    KRATOS_DEFINE_LOCAL_FLAG(ROTATED);
 
     ///@}
     ///@name Life Cycle
@@ -477,7 +490,7 @@ public:
       */
     void SetValuesOnIntegrationPoints(
         const Variable<bool>& rVariable,
-        std::vector<bool>& rValues,
+        const std::vector<bool>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -489,7 +502,7 @@ public:
       */
     void SetValuesOnIntegrationPoints(
         const Variable<int>& rVariable,
-        std::vector<int>& rValues,
+        const std::vector<int>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -501,7 +514,7 @@ public:
       */
     void SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
-        std::vector<double>& rValues,
+        const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -513,7 +526,7 @@ public:
       */
     void SetValuesOnIntegrationPoints(
         const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
+        const std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -525,7 +538,7 @@ public:
       */
     void SetValuesOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
+        const std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -537,7 +550,7 @@ public:
       */
      void SetValuesOnIntegrationPoints(
          const Variable<ConstitutiveLaw::Pointer>& rVariable,
-         std::vector<ConstitutiveLaw::Pointer>& rValues,
+         const std::vector<ConstitutiveLaw::Pointer>& rValues,
          const ProcessInfo& rCurrentProcessInfo
          ) override;
 
@@ -548,8 +561,8 @@ public:
       * @param rCurrentProcessInfo the current process info instance
       */
      void SetValuesOnIntegrationPoints(
-         const Variable<array_1d<double, 3 > >& rVariable,
-         std::vector<array_1d<double, 3 > > rValues,
+         const Variable<array_1d<double, 3>>& rVariable,
+         const std::vector<array_1d<double, 3>>& rValues,
          const ProcessInfo& rCurrentProcessInfo
          ) override;
 
@@ -560,8 +573,8 @@ public:
       * @param rCurrentProcessInfo the current process info instance
       */
      void SetValuesOnIntegrationPoints(
-         const Variable<array_1d<double, 6 > >& rVariable,
-         std::vector<array_1d<double, 6 > > rValues,
+         const Variable<array_1d<double, 6>>& rVariable,
+         const std::vector<array_1d<double, 6>>& rValues,
          const ProcessInfo& rCurrentProcessInfo
          ) override;
 
@@ -587,7 +600,14 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-
+    
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @details This can be used to enhance solvers and analysis
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
+    
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -928,6 +948,33 @@ private:
             mConstitutiveLawVector[point_number]->GetValue( rVariable,rOutput[point_number]);
         }
     }
+
+    /**
+     * @brief This method rotates the F or strain according to local axis from
+     * global to local coordinates
+     * @param rValues The constitutive laws parameters
+     */
+    void RotateToLocalAxes(ConstitutiveLaw::Parameters &rValues);
+
+    /**
+     * @brief This method rotates the F or strain according to local axis from
+     * local de global
+     * @param rValues The constitutive laws parameters
+     */
+    void RotateToGlobalAxes(ConstitutiveLaw::Parameters &rValues);
+
+    /**
+     * @brief This method builds the rotation matrices and local axes
+     */
+    void BuildRotationSystem(
+        BoundedMatrix<double, 3, 3> &rRotationMatrix,
+        const SizeType StrainSize);
+
+    /**
+     * @brief This method checks is an element has to be rotated
+     * according to a set of local axes
+     */
+    bool IsElementRotated() const;
 
     /**
      * @brief This method computes directly in the CL

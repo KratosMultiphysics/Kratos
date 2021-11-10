@@ -33,7 +33,7 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-    class TrussElement3D2N : public Element
+    class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrussElement3D2N : public Element
     {
     protected:
         //const values
@@ -112,6 +112,8 @@ namespace Kratos
 
         void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
+        void Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
         void CalculateOnIntegrationPoints(
             const Variable<double>& rVariable,
             std::vector<double>& rOutput,
@@ -131,7 +133,7 @@ namespace Kratos
          * @brief This function updates the internal normal force w.r.t. the current deformations
          * @param rinternalForces The current updated internal forces
          */
-        virtual void UpdateInternalForces(BoundedVector<double,msLocalSize>& rInternalForces);
+        virtual void UpdateInternalForces(BoundedVector<double,msLocalSize>& rInternalForces, const ProcessInfo& rCurrentProcessInfo);
 
         /**
          * @brief This function calculates the transformation matrix to globalize vectors and/or matrices
@@ -157,6 +159,10 @@ namespace Kratos
         void CalculateMassMatrix(
             MatrixType& rMassMatrix,
             const ProcessInfo& rCurrentProcessInfo) override;
+
+        void CalculateConsistentMassMatrix(
+            MatrixType& rMassMatrix,
+            const ProcessInfo& rCurrentProcessInfo) const;
 
         void CalculateDampingMatrix(
             MatrixType& rDampingMatrix,

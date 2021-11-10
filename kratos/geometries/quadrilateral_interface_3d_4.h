@@ -299,12 +299,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Quadrilateral;
+        return GeometryData::KratosGeometryFamily::Kratos_Quadrilateral;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Quadrilateral3D4;
+        return GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4;
     }
 
     ///@}
@@ -354,23 +354,6 @@ public:
     {
         return typename BaseType::Pointer( new QuadrilateralInterface3D4( ThisPoints ) );
     }
-
-    // Geometry< Point<3> >::Pointer Clone() const override
-    // {
-    //     Geometry< Point<3> >::PointsArrayType NewPoints;
-
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
-    //     }
-
-    //     //creating a geometry with the new points
-    //     Geometry< Point<3> >::Pointer p_clone( new QuadrilateralInterface3D4< Point<3> >( NewPoints ) );
-
-    //     return p_clone;
-    // }
-
 
     /**
      * returns the local coordinates of all nodes of the current geometry
@@ -975,7 +958,7 @@ public:
      * KLUDGE: method call only works with explicit JacobiansType rather than creating
      * JacobiansType within argument list
     */
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod ) const override
     {
@@ -1018,8 +1001,6 @@ public:
                 }
             }
         }//end of loop over integration points
-
-        return rResult;
     }
 
     ///@}
@@ -1354,9 +1335,9 @@ private:
         {
             {
                 QuadrilateralInterface3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 QuadrilateralInterface3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Matrix(),
                 Matrix()
             }
@@ -1373,8 +1354,8 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                QuadrilateralInterface3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
-                QuadrilateralInterface3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
+                QuadrilateralInterface3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_1 ),
+                QuadrilateralInterface3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 ShapeFunctionsGradientsType(),
                 ShapeFunctionsGradientsType(),
             }
@@ -1438,7 +1419,7 @@ template<class TPointType> inline std::ostream& operator << (
 template<class TPointType> const
 GeometryData QuadrilateralInterface3D4<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_2,
+    GeometryData::IntegrationMethod::GI_GAUSS_2,
     QuadrilateralInterface3D4<TPointType>::AllIntegrationPoints(),
     QuadrilateralInterface3D4<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()

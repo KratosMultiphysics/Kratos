@@ -4,11 +4,11 @@
 //README::::look to the key word "VERSION" if you want to find all the points where you have to change something so that you can pass from a kdtree to a bin data search structure;
 
 #include "create_and_destroy.h"
-#include "../custom_elements/spheric_continuum_particle.h"
-#include "../custom_elements/analytic_spheric_particle.h"
-#include "../custom_elements/cluster3D.h"
-#include "../custom_utilities/GeometryFunctions.h"
-#include "../custom_utilities/AuxiliaryFunctions.h"
+#include "custom_elements/spheric_continuum_particle.h"
+#include "custom_elements/analytic_spheric_particle.h"
+#include "custom_elements/cluster3D.h"
+#include "custom_utilities/GeometryFunctions.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
 
 namespace Kratos {
 
@@ -34,10 +34,7 @@ namespace Kratos {
         mpAnalyticWatcher = p_watcher;
     }
 
-    //Particle_Creator_Destructor() {};
-
     /// Destructor.
-
     ParticleCreatorDestructor::~ParticleCreatorDestructor() {
         mDoSearchNeighbourElements = true; // true by default. It should be set to false by the strategy (friend class) if appropriate
     }
@@ -47,7 +44,6 @@ namespace Kratos {
         int max_Id = 1; //GID accepts Id's >= 1
         std::vector<int> thread_maximums(ParallelUtilities::GetNumThreads(),1);
 
-        //#pragma omp parallel for
         for(int i=0; i<(int)r_modelpart.GetCommunicator().LocalMesh().Nodes().size(); i++){
             ModelPart::NodesContainerType::iterator node_it = r_modelpart.GetCommunicator().LocalMesh().NodesBegin() + i;
             if ((int) (node_it->Id()) > thread_maximums[OpenMPUtils::ThisThread()]) thread_maximums[OpenMPUtils::ThisThread()] = node_it->Id();
@@ -301,20 +297,11 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    SphericParticle* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
-                                                                        int r_Elem_Id,
-                                                                        Node < 3 > ::Pointer reference_node,
-                                                                        Element::Pointer injector_element,
-                                                                        Properties::Pointer r_params,
-                                                                        ModelPart& r_sub_model_part_with_parameters,
-                                                                        const Element& r_reference_element,
-                                                                        PropertiesProxy* p_fast_properties,
-                                                                        bool has_sphericity,
-                                                                        bool has_rotation,
-                                                                        bool initial,
-                                                                        ElementsContainerType& array_of_injector_elements) {
+    double ParticleCreatorDestructor::SelectRadius(bool initial,
+                                                ModelPart& r_sub_model_part_with_parameters,
+                                                std::map<std::string, std::unique_ptr<RandomVariable>>& r_random_variables_map){
+
         KRATOS_TRY
-        Node<3>::Pointer pnew_node;
 
         double radius = r_sub_model_part_with_parameters[RADIUS];
         const double& max_radius = r_sub_model_part_with_parameters[MAXIMUM_RADIUS];
@@ -328,8 +315,32 @@ namespace Kratos {
 
             if (distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
             else if (distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
+            else if (distribution_type == "piecewise_linear" || distribution_type == "discrete") radius = r_random_variables_map[r_sub_model_part_with_parameters.Name()]->Sample();
             else KRATOS_ERROR << "Unknown probability distribution in submodelpart " << r_sub_model_part_with_parameters.Name() << std::endl;
         }
+
+        return radius;
+        KRATOS_CATCH("")
+    }
+
+
+    SphericParticle* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
+                                                                        int r_Elem_Id,
+                                                                        Node < 3 > ::Pointer reference_node,
+                                                                        Element::Pointer injector_element,
+                                                                        Properties::Pointer r_params,
+                                                                        ModelPart& r_sub_model_part_with_parameters,
+                                                                        std::map<std::string, std::unique_ptr<RandomVariable>>& r_random_variables_map,
+                                                                        const Element& r_reference_element,
+                                                                        PropertiesProxy* p_fast_properties,
+                                                                        bool has_sphericity,
+                                                                        bool has_rotation,
+                                                                        bool initial,
+                                                                        ElementsContainerType& array_of_injector_elements) {
+        KRATOS_TRY
+        Node<3>::Pointer pnew_node;
+
+        double radius = SelectRadius(initial, r_sub_model_part_with_parameters, r_random_variables_map);
 
         NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, r_sub_model_part_with_parameters, has_sphericity, has_rotation, initial);
 
@@ -511,7 +522,6 @@ namespace Kratos {
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER, true);
         spheric_p_particle->SetClusterId(cluster_id);
-        spheric_p_particle->CreateDiscontinuumConstitutiveLaws(r_modelpart.GetProcessInfo());
 
         #pragma omp critical
         {
@@ -553,7 +563,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER, true);
         spheric_p_particle->SetClusterId(-1);
-        spheric_p_particle->CreateDiscontinuumConstitutiveLaws(r_modelpart.GetProcessInfo());
 
         #pragma omp critical
         {
@@ -1203,19 +1212,15 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        #pragma omp parallel for
-        for(int k=0; k<(int)rElements.size(); k++){
-            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
+        block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
 
-            const double& i_value = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(rVariable);
+            const double& i_value = rElement.GetGeometry()[0].FastGetSolutionStepValue(rVariable);
             bool include = true; // = (erase_flag < 0.5);
-
             include = include && ((i_value <= value - fabs(tol)) || (i_value >= value + fabs(tol)));
-
             if (include)
-                (*particle_pointer_it)->GetGeometry()[0].Set(TO_ERASE);
+                rElement.GetGeometry()[0].Set(TO_ERASE);
+        });
 
-        }
         KRATOS_CATCH("")
     }
 
@@ -1225,20 +1230,15 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        #pragma omp parallel for
-        for (int k = 0; k < (int)rElements.size(); k++) {
-            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
+        block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
 
-            array_1d<double, 3 > & i_var = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(rVariable);
+            array_1d<double, 3 > & i_var = rElement.GetGeometry()[0].FastGetSolutionStepValue(rVariable);
             double i_value = sqrt(i_var[0] * i_var[0] + i_var[1] * i_var[1] + i_var[2] * i_var[2]);
-            bool include = true; //  = (erase_flag < 0.5);
-
+            bool include = true;
             include = include && ((i_value <= value - fabs(tol)) || (i_value >= value + fabs(tol)));
-
             if (include)
-                (*particle_pointer_it)->GetGeometry()[0].Set(TO_ERASE);
-
-        }
+                rElement.GetGeometry()[0].Set(TO_ERASE);
+        });
 
         KRATOS_CATCH("")
 
@@ -1307,14 +1307,13 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         array_1d<double, 3 > unitary_axis_vector;
         noalias(unitary_axis_vector) = axis_vector / axis_modulus;
 
-        #pragma omp parallel for
-        for (int k = 0; k < (int)rElements.size(); k++){
-            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
+        // TODO: verify
+        block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
 
-            if ((*particle_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
-            if ((*particle_pointer_it)->Is(BLOCKED)) continue;
+            if (rElement.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) return;
+            if (rElement.Is(BLOCKED)) return;
 
-            const array_1d<double, 3 >& coor = (*particle_pointer_it)->GetGeometry()[0].Coordinates();
+            const array_1d<double, 3 >& coor = rElement.GetGeometry()[0].Coordinates();
             array_1d<double, 3 > center_to_particle;
             noalias(center_to_particle) = coor - center;
             const double center_to_particle_modulus = DEM_MODULUS_3(center_to_particle);
@@ -1322,33 +1321,67 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             double distance_squared = center_to_particle_modulus*center_to_particle_modulus - projection_on_axis*projection_on_axis;
 
             if (distance_squared < radius_squared) {
-                (*particle_pointer_it)->GetGeometry()[0].Set(TO_ERASE);
-                (*particle_pointer_it)->Set(TO_ERASE);
+                rElement.GetGeometry()[0].Set(TO_ERASE);
+                rElement.Set(TO_ERASE);
             }
-        }
+        });
+
+
+        // #pragma omp parallel for
+        // for (int k = 0; k < (int)rElements.size(); k++){
+        //     Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
+
+        //     if ((*particle_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
+        //     if ((*particle_pointer_it)->Is(BLOCKED)) continue;
+
+        //     const array_1d<double, 3 >& coor = (*particle_pointer_it)->GetGeometry()[0].Coordinates();
+        //     array_1d<double, 3 > center_to_particle;
+        //     noalias(center_to_particle) = coor - center;
+        //     const double center_to_particle_modulus = DEM_MODULUS_3(center_to_particle);
+        //     double projection_on_axis = center_to_particle[0] * unitary_axis_vector[0] + center_to_particle[1] * unitary_axis_vector[1] + center_to_particle[2] * unitary_axis_vector[2];
+        //     double distance_squared = center_to_particle_modulus*center_to_particle_modulus - projection_on_axis*projection_on_axis;
+
+        //     if (distance_squared < radius_squared) {
+        //         (*particle_pointer_it)->GetGeometry()[0].Set(TO_ERASE);
+        //         (*particle_pointer_it)->Set(TO_ERASE);
+        //     }
+        // }
         KRATOS_CATCH("")
     }
 
     void ParticleCreatorDestructor::MarkContactElementsForErasing(ModelPart& r_model_part, ModelPart& mcontacts_model_part) {
         KRATOS_TRY
 
-        Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        #pragma omp parallel for
-        for (int k = 0; k < (int)rElements.size(); k++) {
-            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
-
-            if ((*particle_pointer_it)->GetGeometry()[0].Is(TO_ERASE)) {
-                Element* p_element = particle_pointer_it->get();
-                SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*> (p_element);
-                std::vector<ParticleContactElement*>& array_of_bonds = p_continuum_spheric_particle->mBondElements;
+        // TODO: verify
+        block_for_each(r_model_part.GetCommunicator().LocalMesh().Elements(), [&](ModelPart::ElementType& rElement) {
+            if (rElement.GetGeometry()[0].Is(TO_ERASE)) {
+                SphericContinuumParticle& r_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle&> (rElement);
+                std::vector<ParticleContactElement*>& array_of_bonds = r_continuum_spheric_particle.mBondElements;
                 for (unsigned int i = 0; i < array_of_bonds.size(); i++) {
                     if (array_of_bonds[i] != NULL) { //NULL happens when the initial neighbor was a ghost and had a lower Id than the others
                         array_of_bonds[i]->Set(TO_ERASE);
                     }
                 }
             }
-        }
+        });
+
+        // Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+        // #pragma omp parallel for
+        // for (int k = 0; k < (int)rElements.size(); k++) {
+        //     Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
+
+        //     if ((*particle_pointer_it)->GetGeometry()[0].Is(TO_ERASE)) {
+        //         Element* p_element = particle_pointer_it->get();
+        //         SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*> (p_element);
+        //         std::vector<ParticleContactElement*>& array_of_bonds = p_continuum_spheric_particle->mBondElements;
+        //         for (unsigned int i = 0; i < array_of_bonds.size(); i++) {
+        //             if (array_of_bonds[i] != NULL) { //NULL happens when the initial neighbor was a ghost and had a lower Id than the others
+        //                 array_of_bonds[i]->Set(TO_ERASE);
+        //             }
+        //         }
+        //     }
+        // }
 
         KRATOS_CATCH("")
     }
@@ -1365,12 +1398,9 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
 
-        #pragma omp parallel for
-        for (int k = 0; k < (int)rNodes.size(); k++) {
-            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
-
-            array_1d<double, 3 >& coor = (*node_pointer_it)->Coordinates();
-            array_1d<double, 3 >& displ = (*node_pointer_it)->FastGetSolutionStepValue(DISPLACEMENT);
+        block_for_each(rNodes, [&](ModelPart::NodeType& rNode) {
+            array_1d<double, 3 >& coor = rNode.Coordinates();
+            array_1d<double, 3 >& displ = rNode.FastGetSolutionStepValue(DISPLACEMENT);
             const double period_0 = mHighPoint[0] - mLowPoint[0];
             const double period_1 = mHighPoint[1] - mLowPoint[1];
             const double period_2 = mHighPoint[2] - mLowPoint[2];
@@ -1399,7 +1429,8 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
                 displ[2] += period_2;
                 coor[2] += period_2;
             }
-        }
+        });
+
         KRATOS_CATCH("")
     }
 
@@ -1453,7 +1484,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         analytic_sample_element->SetDefaultRadiiHierarchy(nodelist[0].FastGetSolutionStepValue(RADIUS));
         analytic_sample_element->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
         analytic_sample_element->Set(DEMFlags::BELONGS_TO_A_CLUSTER, false);
-        analytic_sample_element->CreateDiscontinuumConstitutiveLaws(spheres_model_part.GetProcessInfo());
 
         for (int i_neigh = 0; i_neigh < int(regular_sample_element->mNeighbourElements.size()); ++i_neigh){
             analytic_sample_element->mNeighbourElements.push_back(regular_sample_element->mNeighbourElements[i_neigh]);
@@ -1472,5 +1502,63 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
     }
 
     void ParticleCreatorDestructor::ClearVariables(ParticleIterator particle_it, Variable<double>& rVariable) {}
+
+    void ParticleCreatorDestructor::DestroyMarkedParticles(ModelPart& r_model_part) {
+
+        KRATOS_TRY
+
+        ModelPart::MeshType& rMesh=r_model_part.GetCommunicator().LocalMesh();
+
+        ElementsArrayType& rElements = rMesh.Elements();
+        ModelPart::NodesContainerType& rNodes = rMesh.Nodes();
+
+        if (rElements.size() != rNodes.size()) {
+            KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of elements and the number of nodes are not the same in the ModelPart!", 0);
+        }
+
+        int good_elems_counter = 0;
+
+        for (int k = 0; k < (int)rElements.size(); k++) {
+            Configure::ElementsContainerType::ptr_iterator element_pointer_it = rElements.ptr_begin() + k;
+            ModelPart::NodeType& node = (*element_pointer_it)->GetGeometry()[0];
+
+            if (node.IsNot(MARKER) && (*element_pointer_it)->IsNot(MARKER)) {
+            if (k != good_elems_counter) {
+                    *(rElements.ptr_begin() + good_elems_counter) = std::move(*element_pointer_it);
+                }
+                good_elems_counter++;
+            }
+            else {
+                (*element_pointer_it).reset();
+                node.Set(MARKER, true);
+            }
+        }
+        int good_nodes_counter = 0;
+
+        for (int k = 0; k < (int)rNodes.size(); k++) {
+            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
+            if ((*node_pointer_it)->IsNot(MARKER)) {
+            if (k != good_nodes_counter) {
+                    *(rNodes.ptr_begin() + good_nodes_counter) = std::move(*node_pointer_it);
+                }
+                good_nodes_counter++;
+            }
+
+            else (*node_pointer_it).reset();
+        }
+
+        if (good_elems_counter != good_nodes_counter) {
+            KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of removed elements and the number of removed nodes were not the same!", 0);
+        }
+
+        if ((int)rElements.size() != good_elems_counter) {
+            rElements.erase(rElements.ptr_begin() + good_elems_counter, rElements.ptr_end());
+        }
+
+        if ((int)rNodes.size() != good_nodes_counter) {
+            rNodes.erase(rNodes.ptr_begin() + good_nodes_counter, rNodes.ptr_end());
+        }
+        KRATOS_CATCH("")
+    }
 
 } //Namespace Kratos

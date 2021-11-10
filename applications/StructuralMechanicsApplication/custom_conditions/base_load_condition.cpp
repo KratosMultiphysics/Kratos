@@ -18,6 +18,7 @@
 #include "custom_conditions/base_load_condition.h"
 #include "includes/variables.h"
 #include "includes/checks.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -360,13 +361,44 @@ void BaseLoadCondition::AddExplicitContribution(
 
             array_1d<double, 3 >& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
             for(SizeType j=0; j<dimension; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHS[index + j];
+                AtomicAdd(r_force_residual[j], rRHS[index + j]);
             }
         }
     }
 
     KRATOS_CATCH( "" )
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Parameters BaseLoadCondition::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit","explicit"],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : [],
+            "nodal_historical"       : [],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Line2D2", "Line2D3", "Triangle3D3", "Triangle3D6", "Quadrilateral3D4", "Quadrilateral3D8", "Quadrilateral3D9"],
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : [],
+            "dimension"   : [],
+            "strain_size" : []
+        },
+        "required_polynomial_degree_of_geometry" : -1,
+        "documentation"   : "This is a pure displacement condition"
+    })");
+    return specifications;
 }
 
 /***********************************************************************************/

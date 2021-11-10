@@ -231,34 +231,37 @@ namespace Kratos {
                 for (int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
                 {
                     auto i = mr_grid_model_part.NodesBegin() + iter;
+                    
+                    if(i->Is(ACTIVE))
+                    {
+                        // Variables to be cleaned
+                        double& nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
+                        array_1d<double, 3 >& nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
+                        array_1d<double, 3 >& nodal_inertia = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
+                        array_1d<double, 3 >& nodal_force = (i)->FastGetSolutionStepValue(FORCE_RESIDUAL);
+                        array_1d<double, 3 >& nodal_displacement = (i)->FastGetSolutionStepValue(DISPLACEMENT);
+                        array_1d<double, 3 >& nodal_velocity = (i)->FastGetSolutionStepValue(VELOCITY);
+                        array_1d<double, 3 >& nodal_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION);
 
-                    // Variables to be cleaned
-                    double& nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
-                    array_1d<double, 3 >& nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                    array_1d<double, 3 >& nodal_inertia = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
-                    array_1d<double, 3 >& nodal_force = (i)->FastGetSolutionStepValue(FORCE_RESIDUAL);
-                    array_1d<double, 3 >& nodal_displacement = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-                    array_1d<double, 3 >& nodal_velocity = (i)->FastGetSolutionStepValue(VELOCITY);
-                    array_1d<double, 3 >& nodal_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION);
+                        double& nodal_old_pressure = (i)->FastGetSolutionStepValue(PRESSURE, 1);
+                        double& nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE);
+                        if (i->SolutionStepsDataHas(NODAL_MPRESSURE)) {
+                            double& nodal_mpressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
+                            nodal_mpressure = 0.0;
+                        }
 
-                    double& nodal_old_pressure = (i)->FastGetSolutionStepValue(PRESSURE, 1);
-                    double& nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE);
-                    if (i->SolutionStepsDataHas(NODAL_MPRESSURE)) {
-                        double& nodal_mpressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
-                        nodal_mpressure = 0.0;
+                        // Clear
+                        nodal_mass = 0.0;
+                        nodal_momentum.clear();
+                        nodal_inertia.clear();
+                        nodal_force.clear();
+
+                        nodal_displacement.clear();
+                        nodal_velocity.clear();
+                        nodal_acceleration.clear();
+                        nodal_old_pressure = 0.0;
+                        nodal_pressure = 0.0;
                     }
-
-                    // Clear
-                    nodal_mass = 0.0;
-                    nodal_momentum.clear();
-                    nodal_inertia.clear();
-                    nodal_force.clear();
-
-                    nodal_displacement.clear();
-                    nodal_velocity.clear();
-                    nodal_acceleration.clear();
-                    nodal_old_pressure = 0.0;
-                    nodal_pressure = 0.0;
                 }
 
                 // Extrapolate from Material Point Elements and Conditions

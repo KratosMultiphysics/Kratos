@@ -44,7 +44,7 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
         self.particles_per_condition = settings["particles_per_condition"].GetInt()
         self.is_neumann_boundary = True
         self.option = settings["option"].GetString()
-
+        
         # check constraint
         self.constrained = settings["constrained"].GetString()
         if (self.constrained == "fixed"):
@@ -76,7 +76,7 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
                 self.vector_direction[i] = settings["direction"][i].GetDouble() 
             else:
                 self.function_string_direction = settings["direction"][i].GetString()
-                self.aux_function_direction[i] = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string_direction, settings["local_axes"])
+                self.aux_function_direction[i] = KratosMultiphysics.GenericFunctionUtility(self.function_string_direction, settings["local_axes"])
 
 
         self.value_is_numeric = False
@@ -89,15 +89,11 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
             self.value = self.vector_direction * self.modulus
         else:
             self.function_string = settings["modulus"].GetString()
-            self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string, settings["local_axes"])
+            self.aux_function = KratosMultiphysics.GenericFunctionUtility(self.function_string, settings["local_axes"])
 
-
-        # Compute the normal on the nodes of interest -
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        
         self.modified_normal = False
-        if self.option == "flip_normal":
-            self.modified_normal = True
-
+        
         # Set Flag BOUNDARY and variables PARTICLES_PER_CONDITION
         if self.particles_per_condition >= 0:
             KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, True, self.model_part.Nodes)

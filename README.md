@@ -1,6 +1,6 @@
 <p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>
 
-[![Release][release-image]][releases] [![License][license-image]][license] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI]
+[![Release][release-image]][releases] [![License][license-image]][license] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI] [![Twitter][twitter-image]][twitter]
 
 [release-image]: https://img.shields.io/badge/release-8.1-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
@@ -12,8 +12,10 @@
 [Nightly-link]: https://github.com/KratosMultiphysics/Kratos/actions?query=workflow%3A%22Nightly+Build%22
 
 [DOI-image]: https://zenodo.org/badge/DOI/10.5281/zenodo.3234644.svg
-
 [DOI]: https://doi.org/10.5281/zenodo.3234644
+
+[twitter-image]: https://img.shields.io/twitter/follow/kratosmultiphys.svg?label=Follow&style=social
+[twitter]: https://twitter.com/kratosmultiphys
 
 _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](https://github.com/KratosMultiphysics/Kratos/wiki/Overview)
 
@@ -39,6 +41,28 @@ Some main modules are:
 - [Trilinos](applications/TrilinosApplication/README.md)
 - [Metis](applications/MetisApplication/README.md)
 - [Meshing](applications/MeshingApplication/README.md)
+
+# Documentation
+Here you can find the basic documentation of the project:
+## Getting Started
+* Getting Kratos (Last compiled Release)
+    * [Kratos for Linux](https://github.com/KratosMultiphysics/Kratos/wiki/Getting-Kratos-Binaries-for-Linux)
+    * [Kratos for Windows](https://github.com/KratosMultiphysics/Kratos/wiki/Getting-Kratos-Binaries-for-Windows)
+    <!-- * [Kratos for Mac](https://github.com/KratosMultiphysics/Kratos/wiki/MacOS-install) -->
+    * [Kratos for GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Getting-Kratos-binaries-(via-GiD))
+* Compiling Kratos
+    * [See INSTALL.md](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md)
+
+## Tutorials
+* [Running an example from GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Running-an-example-from-GiD)
+* [Kratos input files and I/O](https://github.com/KratosMultiphysics/Kratos/wiki/Kratos-input-files-and-IO)
+* [Data management](https://github.com/KratosMultiphysics/Kratos/wiki/Data-management)
+* [Solving strategies](https://github.com/KratosMultiphysics/Kratos/wiki/Solving-strategies)
+* [Manipulating solution values](https://github.com/KratosMultiphysics/Kratos/wiki/Manipulating-solution-values)
+* [Multiphysics](https://github.com/KratosMultiphysics/Kratos/wiki/Multiphysics-example)
+
+## More documentation
+[Wiki](https://github.com/KratosMultiphysics/Kratos/wiki)
 
 # Examples of use
 Kratos has been used for simulation of many different problems in a wide variety of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)

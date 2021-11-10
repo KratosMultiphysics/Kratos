@@ -18,7 +18,7 @@
 #include "utilities/openmp_utils.h"
 #include "utilities/timer.h"
 #include "Particle_Contact_Element.h"
-#include "../custom_constitutive/DEM_continuum_constitutive_law.h"
+#include "custom_constitutive/DEM_continuum_constitutive_law.h"
 
 #define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
@@ -98,6 +98,7 @@ namespace Kratos
 
         void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& mTempNeighbourElements);
         virtual void UpdateContinuumNeighboursVector(const ProcessInfo& r_process_info);
+        virtual void ReorderFEMneighbours();
         virtual void ComputeForceWithNeighbourFinalOperations();
 
         virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) override;

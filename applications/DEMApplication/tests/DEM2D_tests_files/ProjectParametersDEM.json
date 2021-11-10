@@ -10,14 +10,16 @@
 "BoundingBoxMinX"                  : -1.00000e+01,
 "BoundingBoxMinY"                  : -1.00000e+01,
 "BoundingBoxMinZ"                  : -1.00000e+01,
-
 "dem_inlet_option"                 : false,
 "GravityX"                         : 0.0,
 "GravityY"                         : 0.0,
 "GravityZ"                         : 0.0,
 "solver_settings" :{
     "strategy"                 : "continuum_sphere_strategy",
-    "RemoveBallsInitiallyTouchingWalls": false
+    "RemoveBallsInitiallyTouchingWalls": false,
+    "material_import_settings"           : {
+        "materials_filename" : "MaterialsDEM.json"
+    }
 },
 "VelocityTrapOption"               : false,
 "RotationOption"                   : true,
@@ -39,24 +41,19 @@
 "RotationalIntegrationScheme"      : "Direct_Integration",
 "AutomaticTimestep"                : false,
 "DeltaTimeSafetyFactor"            : 1.0,
-"MaxTimeStep"                      : 5e-4,
+"MaxTimeStep"                      : 2e-4,
 "FinalTime"                        : 0.20,
 "ControlTime"                      : 100.0,
 "NeighbourSearchFrequency"         : 20,
-
 "material_test_settings" : {
 "TestType"                         : "None",
 "ConfinementPressure"              : 0.0,
 "LoadingVelocity"                  : 0.0,
-"MeshType"                         : "Current",
-"MeshPath"                         : "0",
 "SpecimenLength"                   : 1,
-"SpecimenDiameter"                 : 0.15,
-"MeasuringSurface"                 : 0.01767145867644375},
+"SpecimenDiameter"                 : 0.15
+},
 "MaxAmplificationRatioOfSearchRadius" : 1000,
-
 "ElementType"                      : "CylinderContPartDEMElement2D",
-
 "GraphExportFreq"                  : 1e-3,
 "VelTrapGraphExportFreq"           : 1e-3,
 "OutputTimeStep"                   : 1e-2,
@@ -80,12 +77,10 @@
 "PostGroupId"                      : false,
 "PostExportId"                     : false,
 "PostAngularVelocity"              : false,
-
 "PostNormalImpactVelocity"              : false,
 "PostTangentialImpactVelocity"          : false,
 "PostFaceNormalImpactVelocity"          : false,
 "PostFaceTangentialImpactVelocity"      : false,
-
 "PostParticleMoment"               : false,
 "PostEulerAngles"                  : false,
 "PostContactSigma"                 : false,
@@ -101,6 +96,5 @@
 "virtual_sea_surface_settings"     : {
 "print_sea_surface"                : false
 },
-
 "problem_name"                     : "impact2D"
 }

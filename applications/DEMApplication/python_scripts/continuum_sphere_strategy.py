@@ -96,11 +96,13 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(SKIN_FACTOR_RADIUS, self.skin_factor_radius)
 
         for properties in self.spheres_model_part.Properties:
-            ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
-            ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()
-            if ContinuumConstitutiveLaw.CheckRequirementsOfStressTensor():
-                self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, 1)
-                break
+            for subproperties in properties.GetSubProperties():
+                if subproperties.Has(DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME):
+                    continuum_constitutive_law_name = subproperties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
+                    continuum_constitutive_law_instance = globals().get(continuum_constitutive_law_name)()
+                    if continuum_constitutive_law_instance.CheckRequirementsOfStressTensor():
+                        self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, 1)
+                        break
 
         if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = ContinuumVelocityVerletSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
@@ -122,10 +124,5 @@ class ExplicitStrategy(BaseExplicitStrategy):
         spheres_model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
         spheres_model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
 
-    def ModifyProperties(self, properties, param = 0):
-        BaseExplicitStrategy.ModifyProperties(self, properties, param)
 
-        if not param:
-            ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
-            ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()
-            ContinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
+
