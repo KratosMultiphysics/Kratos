@@ -62,6 +62,7 @@ import test_integration_points
 import test_mls_shape_functions_utility
 import test_model_part_combination_utilities
 import test_force_and_torque_utils
+import test_kernel
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -143,6 +144,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mls_shape_functions_utility.TestMLSShapeFunctionsUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_combination_utilities.TestModelPartCombinationUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_force_and_torque_utils.TestForceAndTorqueUtils]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_kernel.TestKernel]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
