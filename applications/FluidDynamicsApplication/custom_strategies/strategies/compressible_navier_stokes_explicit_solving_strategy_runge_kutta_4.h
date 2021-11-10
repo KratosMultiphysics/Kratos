@@ -31,6 +31,7 @@
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "custom_processes/shock_capturing_process.h"
+#include "custom_processes/shock_capturing_entropy_viscosity_process.h"
 
 namespace Kratos
 {
@@ -73,6 +74,9 @@ public:
     /// The local vector definition
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
+    /// Shock capturing process factory definition
+    typedef Process::UniquePointer(*ShockCapturingFactoryType)(ModelPart & m, Parameters p);
+
     /// Pointer definition of CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4
     KRATOS_CLASS_POINTER_DEFINITION(CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4);
 
@@ -99,15 +103,7 @@ public:
 
         // Create the shock capturing process pointer
         if (mShockCapturing) {
-            Parameters sc_settings(R"(
-            {
-                "calculate_nodal_area_at_each_step" : false,
-                "shock_sensor" : true,
-                "shear_sensor" : true,
-                "thermal_sensor" : true,
-                "thermally_coupled_formulation" : true
-            })");
-            mpShockCapturingProcess = Kratos::make_unique<ShockCapturingProcess>(rModelPart, sc_settings);
+            mpShockCapturingProcess = mShockCapturingFactory(rModelPart, ThisParameters["shock_capturing_settings"]["Parameters"]);
         }
     }
 
@@ -178,19 +174,23 @@ public:
      */
     Parameters GetDefaultParameters() const override
     {
+        KRATOS_TRY
+
         Parameters default_parameters = Parameters(R"(
         {
             "name" : "compressible_navier_stokes_explicit_explicit_solving_strategy_runge_kutta_4",
             "rebuild_level" : 0,
             "move_mesh_flag": false,
-            "shock_capturing" : true,
-            "calculate_non_conservative_magnitudes" : true
+            "calculate_non_conservative_magnitudes" : true,
+            "shock_capturing_settings" : { }
         })");
 
         // Getting base class default parameters
         const Parameters base_default_parameters = BaseType::GetDefaultParameters();
         default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
         return default_parameters;
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -210,14 +210,61 @@ public:
     {
         // Base class assign settings call
         BaseType::AssignSettings(ThisParameters);
-
-        // Set the specific compressible NS settings
-        mShockCapturing = ThisParameters["shock_capturing"].GetBool();
         mCalculateNonConservativeMagnitudes = ThisParameters["calculate_non_conservative_magnitudes"].GetBool();
+
+        SetUpShockCapturing(ThisParameters["shock_capturing_settings"]);
+        
         if (mShockCapturing && !mCalculateNonConservativeMagnitudes) {
-            KRATOS_WARNING("CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4") << "\'shock_capturing\' requires \'calculate_non_conservative_magnitudes\' to be active. Activating it." << std::endl;
+            KRATOS_WARNING("CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4") 
+                << "\'shock_capturing\' requires \'calculate_non_conservative_magnitudes\' to be active. Activating it." << std::endl;
             mCalculateNonConservativeMagnitudes = true;
         }
+    }
+
+    void SetUpShockCapturing(Parameters ShockCapturingParameters)
+    {
+        KRATOS_TRY
+
+        const auto defaults = Parameters(R"(
+            {
+                "type" : "physics_based",
+                "Parameters" : { }
+            }
+        )");
+
+        ShockCapturingParameters.ValidateAndAssignDefaults(defaults);
+
+        const static std::map<const std::string, ShockCapturingFactoryType> shock_capturing_factory_map 
+        {
+            {"none"         , [](ModelPart& m, Parameters p) -> Process::UniquePointer {return nullptr;}},
+            {"physics_based", [](ModelPart& m, Parameters p) -> Process::UniquePointer {return Kratos::make_unique<ShockCapturingProcess>(m, p);}},
+            {"entropy_based", [](ModelPart& m, Parameters p) -> Process::UniquePointer {return Kratos::make_unique<ShockCapturingEntropyViscosityProcess>(m, p);}}
+        };
+
+        const auto sc_type = ShockCapturingParameters["type"].GetString();
+
+        try
+        {
+            mShockCapturingFactory = shock_capturing_factory_map.at(sc_type);
+        }
+        catch(std::out_of_range&)
+        {
+            std::stringstream msg;
+            msg << "Provided shock capturing type \""<< sc_type <<"\" does not match any of the available ones.\n";
+            msg << "Please chose one from the following list:\n";
+            for(const auto& keyvaluepair: shock_capturing_factory_map)
+            {
+                msg <<" - " << keyvaluepair.first << "\n";
+            }
+            msg << std::endl;
+
+            KRATOS_ERROR << msg.str();
+        }
+
+        mShockCapturing = sc_type != "none";
+
+        KRATOS_CATCH("")
+
     }
 
     /**
@@ -408,10 +455,11 @@ private:
     ///@{
 
     bool mShockCapturing = true;
+    ShockCapturingFactoryType mShockCapturingFactory;
     bool mApplySlipCondition = true;
     bool mCalculateNonConservativeMagnitudes = true;
 
-    ShockCapturingProcess::UniquePointer mpShockCapturingProcess = nullptr;
+    Process::UniquePointer mpShockCapturingProcess = nullptr;
 
     ///@}
     ///@name Private Operators

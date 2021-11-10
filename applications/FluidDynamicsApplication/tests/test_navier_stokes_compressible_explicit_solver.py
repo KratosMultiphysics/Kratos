@@ -21,7 +21,7 @@ class NavierStokesCompressibleExplicitSolverTest(KratosUnittest.TestCase):
         settings = self.GetSettings(4)
         with self.assertRaises(Exception) as context:
             solver = navier_stokes_compressible_explicit_solver.CreateSolver(model, settings)
-        
+
         self.assertIn("Wrong domain size", str(context.exception))
 
     @classmethod
@@ -42,7 +42,6 @@ class NavierStokesCompressibleExplicitSolverTest(KratosUnittest.TestCase):
                 "echo_level": 1,
                 "time_order": 2,
                 "move_mesh_flag": false,
-                "shock_capturing": true,
                 "compute_reactions": false,
                 "reform_dofs_at_each_step" : false,
                 "assign_neighbour_elements_to_conditions": true,
