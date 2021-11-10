@@ -90,6 +90,8 @@ namespace Kratos
 
       void Execute() override;
 
+      void ExecuteInitialize() override;
+
       void ExecuteInitializeSolutionStep() override;
 
       void ExecuteFinalizeSolutionStep() override;

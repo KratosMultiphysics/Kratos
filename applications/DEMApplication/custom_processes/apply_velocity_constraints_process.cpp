@@ -92,11 +92,35 @@ namespace Kratos
 
     void ApplyVelocityConstraintsProcess::Execute() {}
 
+    void ApplyVelocityConstraintsProcess::ExecuteInitialize()
+    {
+        KRATOS_TRY;
+
+        const double time = mrModelPart.GetProcessInfo()[TIME];
+        if(!mInterval.IsInInterval(time)) return;
+
+        block_for_each(mrModelPart.Elements(), [&](Element& rElement)
+        {
+            array_1d<double, 3>& vel = rElement.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+            for(int i=0; i<3; i++) {
+
+                double velocity_value = 0.0;
+                if(mVelocityValueIsNumeric[i]) {
+                    velocity_value = mVelocityValues[i];
+                }
+                vel[i] = velocity_value;
+            }
+        });
+
+        KRATOS_CATCH("");
+    }
+
     void ApplyVelocityConstraintsProcess::ExecuteInitializeSolutionStep()
     {
         KRATOS_TRY;
 
         const double time = mrModelPart.GetProcessInfo()[TIME];
+        KRATOS_WATCH(time)
         if(!mInterval.IsInInterval(time)) return;
 
         block_for_each(mrModelPart.Elements(), [&](Element& rElement)
