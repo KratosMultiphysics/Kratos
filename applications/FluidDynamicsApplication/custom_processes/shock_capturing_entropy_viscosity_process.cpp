@@ -170,11 +170,9 @@ void ShockCapturingEntropyViscosityProcess::UpdateNodalAreaProcess()
 
 void ShockCapturingEntropyViscosityProcess::ComputeNodalEntropies()
 {
-    double heat_capacity_ratio = 0.0;
-    if(mrModelPart.ElementsBegin() != mrModelPart.ElementsEnd())
-    {
-        heat_capacity_ratio = mrModelPart.ElementsBegin()->GetProperties().GetValue(HEAT_CAPACITY_RATIO);
-    }
+    if(mrModelPart.ElementsBegin() == mrModelPart.ElementsEnd()) return; // empty mpdelpart
+
+    const double heat_capacity_ratio = mrModelPart.ElementsBegin()->GetProperties().GetValue(HEAT_CAPACITY_RATIO);
 
     block_for_each(mrModelPart.Nodes(), [heat_capacity_ratio](NodeType& r_node)
     {
