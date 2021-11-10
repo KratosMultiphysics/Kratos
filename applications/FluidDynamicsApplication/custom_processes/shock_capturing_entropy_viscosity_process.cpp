@@ -191,7 +191,10 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
     KRATOS_TRY
 
     const double delta_time = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
-    const double heat_capacity_ratio = mrModelPart.GetProcessInfo().GetValue(HEAT_CAPACITY_RATIO);
+
+    if(mrModelPart.ElementsBegin() == mrModelPart.ElementsEnd()) return; // Empty modelpart
+
+    const double heat_capacity_ratio = mrModelPart.ElementsBegin()->GetProperties().GetValue(HEAT_CAPACITY_RATIO);
 
     block_for_each(mrModelPart.Elements(), [&](Element& r_element)
     {
