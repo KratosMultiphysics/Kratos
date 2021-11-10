@@ -50,17 +50,51 @@ void Kernel::Initialize() {
     }
 }
 
-std::unordered_set<std::string> &Kernel::GetApplicationsList() {
+std::unordered_set<std::string>& Kernel::GetApplicationsList() {
   static std::unordered_set<std::string> application_list;
   return application_list;
 }
 
-bool Kernel::IsImported(std::string ApplicationName) const {
-    if (GetApplicationsList().find(ApplicationName) !=
+std::unordered_set<std::string>& Kernel::GetLibrayList() {
+  static std::unordered_set<std::string> library_list = {
+  #if USE_TRIANGLE_NONFREE_TPL
+        "triangle",
+  #else
+        "delaunator-cpp",
+  #endif
+  #if USE_TETGEN_NONFREE_TPL
+        "tetgen",
+  #endif
+        "amgcl",
+        "concurrentqueue",
+        "ghc",
+        "gidpost",
+        "intrusive_ptr",
+        "json",
+        "pybind11",
+        "span",
+        "intrusive_ptr",
+        "tinyexpr",
+        "vexcl",
+        "zlib"
+  };
+  return library_list;
+}
+
+bool Kernel::IsImported(const std::string& rApplicationName) const {
+    if (GetApplicationsList().find(rApplicationName) !=
         GetApplicationsList().end())
         return true;
     else
         return false;
+}
+
+bool Kernel::IsLibraryAvailable(const std::string& rLibraryName) const {
+    if (GetLibrayList().find(rLibraryName) != GetLibrayList().end()) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 bool Kernel::IsDistributedRun() {

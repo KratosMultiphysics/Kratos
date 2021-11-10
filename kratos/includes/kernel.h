@@ -110,7 +110,9 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     */
     void InitializeApplication(KratosApplication& NewApplication) {}
 
-    bool IsImported(std::string ApplicationName) const;
+    bool IsImported(const std::string& rApplicationName) const;
+
+    bool IsLibraryAvailable(const std::string& rLibraryName) const;
 
     static bool IsDistributedRun();
 
@@ -127,8 +129,9 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const;
 
-    static std::unordered_set<std::string>&
-    GetApplicationsList();
+    static std::unordered_set<std::string>& GetApplicationsList();
+
+    static std::unordered_set<std::string>& GetLibrayList();
 
     static std::string Version();
 
@@ -137,7 +140,6 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     void PrintParallelismSupportInfo() const;
 
     ///@}
-   protected:
    private:
     ///@name Static Member Variables
     ///@{
