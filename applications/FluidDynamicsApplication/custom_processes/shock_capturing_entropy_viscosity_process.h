@@ -191,10 +191,10 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const override { rOStream << "ShockCapturingEntropyViscosityProcess"; }
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << "ShockCapturingEntropyViscosityProcess"; }
 
     /// Print object's data.
-    void PrintData(std::ostream &) const override {}
+    void PrintData(std::ostream&) const override {}
 
     ///@}
     ///@name Friends
