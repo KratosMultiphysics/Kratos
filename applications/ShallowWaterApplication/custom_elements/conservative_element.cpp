@@ -20,8 +20,8 @@
 #include "includes/checks.h"
 #include "conservative_element.h"
 #include "utilities/geometry_utilities.h"
+#include "custom_utilities/phase_function.h"
 #include "shallow_water_application_variables.h"
-#include "custom_utilities/shallow_water_utilities.h"
 
 namespace Kratos
 {
@@ -107,7 +107,7 @@ double ConservativeElement<TNumNodes>::StabilizationParameter(const ElementData&
     const double lambda = std::sqrt(rData.gravity * std::abs(rData.height)) + norm_2(rData.velocity);
     const double epsilon = 1e-6;
     const double threshold = rData.relative_dry_height * rData.length;
-    const double w = ShallowWaterUtilities().WetFraction(rData.height, threshold);
+    const double w = PhaseFunction::WetFraction(rData.height, threshold);
     return w * rData.length * rData.stab_factor / (lambda + epsilon);
 }
 
@@ -145,7 +145,7 @@ void ConservativeElement<TNumNodes>::CalculateArtificialDamping(
 {
     double factor = 1e3 / rData.length;
     double threshold = rData.relative_dry_height * rData.length;
-    factor *= 1.0 - ShallowWaterUtilities().WetFraction(rData.height, threshold);
+    factor *= 1.0 - PhaseFunction::WetFraction(rData.height, threshold);
     rDamping(0,0) = factor;
     rDamping(1,1) = factor;
 }

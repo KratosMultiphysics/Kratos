@@ -24,12 +24,12 @@
 #include "custom_utilities/co_sim_io_conversion_utilities.h"
 
 // CoSimIO
-#include "custom_external_libraries/co_sim_io/co_sim_io.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/co_sim_io.hpp"
 
-#include "custom_external_libraries/co_sim_io/python/connection_status_to_python.hpp"
-#include "custom_external_libraries/co_sim_io/python/info_to_python.hpp"
-#include "custom_external_libraries/co_sim_io/python/vector_to_python.hpp"
-#include "custom_external_libraries/co_sim_io/python/version_to_python.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/python/connection_status_to_python.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/python/info_to_python.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/python/vector_to_python.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/python/version_to_python.hpp"
 
 namespace Kratos {
 namespace Python {
@@ -67,7 +67,8 @@ void ExportMesh(
 
 void ImportMesh(
     CoSimIO::Info& rInfo,
-    ModelPart& rModelPart)
+    ModelPart& rModelPart,
+    const DataCommunicator& rDataComm)
 {
     KRATOS_TRY
 
@@ -77,7 +78,7 @@ void ImportMesh(
         rInfo,
         co_sim_io_model_part);
 
-    CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, rModelPart);
+    CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, rModelPart, rDataComm);
 
     KRATOS_CATCH("")
 }

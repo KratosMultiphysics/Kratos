@@ -270,11 +270,11 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Tetrahedra;
+        return GeometryData::KratosGeometryFamily::Kratos_Tetrahedra;
     }
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Tetrahedra3D4;
+        return GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4;
     }
 
     /**
@@ -1335,7 +1335,7 @@ public:
      *
      * :TODO: TESTING!!!
      */
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod) const override
     {
@@ -1380,13 +1380,10 @@ public:
 
         for(unsigned int i=0; i<integration_points_number; i++)
                 rResult[i] = DN_DX;
-
-
-        return rResult;
     }
 
 
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult
         , Vector& determinants_of_jacobian
         , IntegrationMethod ThisMethod) const override
@@ -1441,14 +1438,11 @@ public:
         }
         for(unsigned int i=0; i<integration_points_number; i++)
                 rResult[i] = DN_DX;
-
-
-        return rResult;
     }
 
 
     /// detect if two tetrahedra are intersected
-    bool HasIntersection( const BaseType& rThisGeometry) override
+    bool HasIntersection( const BaseType& rThisGeometry) const override
     {
 
         array_1d<Plane, 4>  plane;
@@ -1473,7 +1467,7 @@ public:
     }
 
 
-    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) override
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) const override
     {
         using Triangle3D3Type = Triangle3D3<TPointType>;
         // Check if faces have intersection
@@ -1497,7 +1491,7 @@ public:
 
     void SplitAndDecompose(
         const BaseType& tetra, Plane& plane,
-        std::vector<BaseType>& inside)
+        std::vector<BaseType>& inside) const
     {
 
         // Determine on which side of the plane the points of the tetrahedron lie.
@@ -1648,14 +1642,14 @@ public:
     }
 
 
-    void GetPlanes(array_1d<Plane, 4>& plane)
+    void GetPlanes(array_1d<Plane, 4>& plane) const
     {
         const BaseType& geom_1 = *this;
-        array_1d<double, 3> edge10 = geom_1[1].Coordinates() - geom_1[0].Coordinates();
-        array_1d<double, 3> edge20 = geom_1[2].Coordinates() - geom_1[0].Coordinates();
-        array_1d<double, 3> edge30 = geom_1[3].Coordinates() - geom_1[0].Coordinates();
-        array_1d<double, 3> edge21 = geom_1[2].Coordinates() - geom_1[1].Coordinates();
-        array_1d<double, 3> edge31 = geom_1[3].Coordinates() - geom_1[1].Coordinates();
+        const array_1d<double, 3> edge10 = geom_1[1].Coordinates() - geom_1[0].Coordinates();
+        const array_1d<double, 3> edge20 = geom_1[2].Coordinates() - geom_1[0].Coordinates();
+        const array_1d<double, 3> edge30 = geom_1[3].Coordinates() - geom_1[0].Coordinates();
+        const array_1d<double, 3> edge21 = geom_1[2].Coordinates() - geom_1[1].Coordinates();
+        const array_1d<double, 3> edge31 = geom_1[3].Coordinates() - geom_1[1].Coordinates();
 
         MathUtils<double>::UnitCrossProduct(plane[0].mNormal, edge10, edge20);  // <v0,v2,v1>
         MathUtils<double>::UnitCrossProduct(plane[1].mNormal, edge30, edge10);  // <v0,v1,v3>
@@ -1803,8 +1797,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -1840,8 +1833,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values(integration_points_number);
@@ -1893,15 +1885,15 @@ private:
         {
             {
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5)
+                    GeometryData::IntegrationMethod::GI_GAUSS_5)
             }
         };
         return shape_functions_values;
@@ -1914,15 +1906,15 @@ private:
         {
             {
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_1),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_2),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_3),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_4),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_5)
+                    GeometryData::IntegrationMethod::GI_GAUSS_5)
             }
         };
         return shape_functions_local_gradients;
@@ -2053,7 +2045,7 @@ template<class TPointType> inline std::ostream& operator << (
 template<class TPointType> const
 GeometryData Tetrahedra3D4<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     Tetrahedra3D4<TPointType>::AllIntegrationPoints(),
     Tetrahedra3D4<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
