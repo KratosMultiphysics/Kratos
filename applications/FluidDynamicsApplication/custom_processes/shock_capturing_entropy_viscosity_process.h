@@ -165,7 +165,7 @@ public:
     ///@name Operations
     ///@{
 
-    void ExecuteBeforeSolutionLoop() override;
+    void ExecuteInitializeSolutionStep() override;
 
     void ExecuteFinalizeSolutionStep() override;
 
@@ -217,6 +217,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
+    bool mFirstTimeStep = true;
     bool mComputeAreasEveryStep = false;
     double mTunableConstant = 0.0;
     double mTunableConstantMax = 0.0;

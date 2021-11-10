@@ -137,9 +137,14 @@ Divergence(const Matrix& rShapeFunGradients, const Matrix& rNodalValues)
 }
 
 
-void ShockCapturingEntropyViscosityProcess::ExecuteBeforeSolutionLoop()
+void ShockCapturingEntropyViscosityProcess::ExecuteInitializeSolutionStep()
 {
-    UpdateNodalAreaProcess();
+    if(mFirstTimeStep)
+    {
+        UpdateNodalAreaProcess();
+        ComputeNodalEntropies(); // Necessary to compute derivative in first step
+        mFirstTimeStep = false;
+    }
 }
 
 
