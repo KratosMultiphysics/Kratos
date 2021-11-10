@@ -22,7 +22,7 @@ namespace Kratos {
     }
 
     std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEMDiscontinuumConstitutiveLaw::CloneUnique() {
-        return Kratos::make_unique<DEMDiscontinuumConstitutiveLaw>();
+        KRATOS_ERROR << "This function (DEMDiscontinuumConstitutiveLaw::CloneUnique) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
     void DEMDiscontinuumConstitutiveLaw::Check(Properties::Pointer pProp) const {

@@ -97,7 +97,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
         for solver in self.solver_wrappers.values():
             solver.CreateIO(self.echo_level)
-            # using the Echo_level of the coupled solver, since IO is needed by the coupling
+            # using the echo_level of the coupled solver, since IO is needed by the coupling
 
     def _GetSolver(self, solver_name):
         solver_name, *sub_solver_names = solver_name.split(".")
