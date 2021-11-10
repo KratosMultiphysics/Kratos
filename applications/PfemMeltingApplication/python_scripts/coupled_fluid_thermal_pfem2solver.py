@@ -421,20 +421,20 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
             
 
         ##NEW FOR THERMAL SOLVER
-        self.skin_parts_listaux = []
-        if parametersf.Has("skin_parts"):
-            self.skin_parts_listaux = parametersf["skin_parts"]
+        #self.skin_parts_listaux = []
+        #if parametersf.Has("skin_parts"):
+        #    self.skin_parts_listaux = parametersf["skin_parts"]
         
-        Parts_Parts_Auto1=self.fluid_solver.main_model_part.GetSubModelPart("FluidParts_Parts_Auto1")
-        Parts_Parts_Auto1.Conditions.clear()	 
-        Parts_Parts_Auto1.Elements.clear()
-        Parts_Parts_Auto1.Nodes.clear()
+        #Parts_Parts_Auto1=self.fluid_solver.main_model_part.GetSubModelPart("FluidParts_Parts_Auto1")
+        #Parts_Parts_Auto1.Conditions.clear()	 
+        #Parts_Parts_Auto1.Elements.clear()
+        #Parts_Parts_Auto1.Nodes.clear()
 
 
-        Parts_Parts_Auto1=self.thermal_solver.main_model_part.GetSubModelPart("FluidParts_Parts_Auto1")
-        Parts_Parts_Auto1.Conditions.clear()	 
-        Parts_Parts_Auto1.Elements.clear()
-        Parts_Parts_Auto1.Nodes.clear()
+        #Parts_Parts_Auto1=self.thermal_solver.main_model_part.GetSubModelPart("FluidParts_Parts_Auto1")
+        #Parts_Parts_Auto1.Conditions.clear()	 
+        #Parts_Parts_Auto1.Elements.clear()
+        #Parts_Parts_Auto1.Nodes.clear()
 
 
        
@@ -462,9 +462,9 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         fluid_computational_model_part.Properties  = self.fluid_solver.main_model_part.Properties
 
 
-        self.thermal_solver.main_model_part.Conditions.clear()	
-        self.thermal_solver.main_model_part.Elements.clear()	
-        self.thermal_solver.main_model_part.Nodes.clear()
+        #self.thermal_solver.main_model_part.Conditions.clear()	
+        #self.thermal_solver.main_model_part.Elements.clear()	
+        #self.thermal_solver.main_model_part.Nodes.clear()
         
 
         if not self.thermal_solver.main_model_part.HasSubModelPart("thermal_computing_domain"):
