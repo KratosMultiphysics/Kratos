@@ -227,7 +227,7 @@ void ShockCapturingEntropyViscosityProcess::DistributeVariablesToNodes(
     for(unsigned int i=0; i<r_geometry.size(); ++i)
     {
         auto& r_node = r_geometry[i];
-        const double weight = element_volume / r_node.GetSolutionStepValue(NODAL_AREA);
+        const double weight = element_volume / r_node.GetValue(NODAL_AREA);
         r_node.SetLock();
         r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) += weight * ArtificialDynamicViscosity;
         r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY) += weight * ArtificialBulkViscosity;
