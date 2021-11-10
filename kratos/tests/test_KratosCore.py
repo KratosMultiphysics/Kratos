@@ -63,6 +63,7 @@ import test_mls_shape_functions_utility
 import test_model_part_combination_utilities
 import test_force_and_torque_utils
 import test_kernel
+import test_cad_tessellation_modeler
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -145,6 +146,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_combination_utilities.TestModelPartCombinationUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_force_and_torque_utils.TestForceAndTorqueUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_kernel.TestKernel]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_cad_tessellation_modeler.TestCadTessellationModeler]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
