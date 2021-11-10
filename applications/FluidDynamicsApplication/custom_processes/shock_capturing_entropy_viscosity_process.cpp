@@ -39,7 +39,7 @@ int ShockCapturingEntropyViscosityProcess::Check()
     KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo().Has(DOMAIN_SIZE))
         << "Missing variable DOMAIN_SIZE in model part process info." << std::endl;
     const auto domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
-    KRATOS_ERROR_IF(domain_size !=2 || domain_size !=3) 
+    KRATOS_ERROR_IF(domain_size !=2 && domain_size !=3)
         << "ShockCapturingEntropyViscosityProcess is only implemented for 2D and 3D domains." << std::endl;
 
     using OrReduction = MaxReduction<bool>;
