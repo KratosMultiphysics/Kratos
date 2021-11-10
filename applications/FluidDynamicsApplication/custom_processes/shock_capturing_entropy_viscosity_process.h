@@ -103,7 +103,12 @@ public:
             const auto old_value = rNode.FastGetSolutionStepValue(rVariable, 1);
             Value[NodeIndex] = rNode.FastGetSolutionStepValue(rVariable);
             TimeDerivative[NodeIndex] = (Value[NodeIndex] - old_value) / DeltaTime;
-            column(Flux, NodeIndex) = Value[NodeIndex] * Velocity;
+
+            Flux(NodeIndex, 0) = Value[NodeIndex] * Velocity[0];
+            Flux(NodeIndex, 1) = Value[NodeIndex] * Velocity[1];
+            if(Flux.size2()==3){ // (if 3D)
+                Flux(NodeIndex, 2) = Value[NodeIndex] * Velocity[2];
+            }
 
             KRATOS_CATCH("")
         }

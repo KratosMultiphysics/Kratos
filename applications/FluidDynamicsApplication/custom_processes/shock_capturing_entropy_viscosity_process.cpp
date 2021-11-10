@@ -282,8 +282,8 @@ ShockCapturingEntropyViscosityProcess::BuildTotalDerivativeUtils(const Element& 
     const auto& r_geometry = rElement.GetGeometry();
 
     // Loading nodal values
-    TotalDerivativeUtil entropy_total_derivative(r_geometry.size(), r_geometry.LocalSpaceDimension());
-    TotalDerivativeUtil density_total_derivative(r_geometry.size(), r_geometry.LocalSpaceDimension());
+    TotalDerivativeUtil entropy_total_derivative(r_geometry.LocalSpaceDimension(), r_geometry.size());
+    TotalDerivativeUtil density_total_derivative(r_geometry.LocalSpaceDimension(), r_geometry.size());
     Vector total_velocities(r_geometry.size(), 0.0);
 
     for(unsigned int i=0; i<r_geometry.size(); ++i)
