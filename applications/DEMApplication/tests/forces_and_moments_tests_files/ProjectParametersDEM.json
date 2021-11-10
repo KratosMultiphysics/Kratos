@@ -28,14 +28,21 @@
     "processes"        : {
         "constraints_process_list" : [],
         "loads_process_list"       : [{
-            "python_module" : "processes.apply_forces_and_moments_process",
+            "python_module" : "processes.apply_forces_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball1",
-		"force_settings" : {
+		        "force_settings" : {
                     "value"                : [100.0, "10.0*t", "1e5*t*t"],
                     "table"                : [null, null, null]
                 },
+                "interval"             : [0.0, 1]
+            }
+        },{
+            "python_module" : "processes.apply_moments_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.Ball1",
                 "moment_settings" : {
                     "value"                : [10.0, "10.0*t", "100.0*t*t"],
                     "table"                : [null, null, null]
@@ -43,14 +50,21 @@
                 "interval"             : [0.0, 1]
             }
         },{
-            "python_module" : "processes.apply_forces_and_moments_process",
+            "python_module" : "processes.apply_forces_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball2",
-		"force_settings" : {
+		        "force_settings" : {
                     "value"                : [null, null, null],
                     "table"                : [1, 2, 3]
                 },
+                "interval"             : [0.05, 1]
+            }
+        },{
+            "python_module" : "processes.apply_moments_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.Ball2",
                 "moment_settings" : {
                     "value"                : [null, null, null],
                     "table"                : [4, 5, 6]
@@ -58,14 +72,21 @@
                 "interval"             : [0.05, 1]
             }
         },{
-            "python_module" : "processes.apply_forces_and_moments_process",
+            "python_module" : "processes.apply_forces_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "RigidFacePart.Cube1",
-		"force_settings" : {
+		        "force_settings" : {
                     "value"                : [100.0, "10.0*t", "-1e6*t*t"],
                     "table"                : [null, null, null]
                 },
+                "interval"             : [0.0, 1]
+            }
+        },{
+            "python_module" : "processes.apply_moments_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.Cube1",
                 "moment_settings" : {
                     "value"                : [10.0, "1e4*t", "1e4*t*t"],
                     "table"                : [null, null, null]
@@ -73,14 +94,21 @@
                 "interval"             : [0.0, 1]
             }
         },{
-            "python_module" : "processes.apply_forces_and_moments_process",
+            "python_module" : "processes.apply_forces_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "RigidFacePart.Cube2",
-		"force_settings" : {
+		        "force_settings" : {
                     "value"                : [null, null, null],
                     "table"                : [7, 8, 9]
                 },
+                "interval"                 : [0.0, 0.05]
+            }
+        },{
+            "python_module" : "processes.apply_moments_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.Cube2",
                 "moment_settings" : {
                     "value"                : [null, null, null],
                     "table"                : [10, 11, 12]

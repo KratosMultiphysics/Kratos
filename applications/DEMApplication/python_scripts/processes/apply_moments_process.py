@@ -15,10 +15,6 @@ def Factory(settings, Model):
             "help"                 : "This process applies loads over the particles in a certain submodelpart, for a certain time interval",
             "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
-            "force_settings" : {
-                "value"            : [10.0, "3*t", "x+y"],
-                "table"            : [0, 0, 0]
-            },
             "moment_settings" : {
                 "value"            : [10.0, "3*t", "x+y"],
                 "table"            : [0, 0, 0]
@@ -35,4 +31,4 @@ def Factory(settings, Model):
 
     process_settings.RemoveValue("help")
 
-    return DEM.ApplyForcesAndMomentsProcess(computing_model_part, process_settings)
+    return DEM.ApplyMomentsProcess(computing_model_part, process_settings)
