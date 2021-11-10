@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
 #if !defined(KRATOS_LOCK_OBJECT_H_INCLUDED)
@@ -58,14 +58,8 @@ public:
     /// Move constructor.
     KRATOS_DEPRECATED_MESSAGE("The move constructor is deprecated and will be removed in the future!")
     LockObject(LockObject&& rOther) noexcept
-#ifdef KRATOS_SMP_OPENMP
-        omp_destroy_lock(&mLock);
-#endif
     {
-#ifdef KRATOS_SMP_OPENMP
-        static_assert(std::is_move_constructible<omp_lock_t>::value, "omp_lock_t is not move constructible!");
-			omp_init_lock(&mLock);
-#endif
+        KRATOS_ERROR << "The move constructor cannot be used!" << std::endl;
     }
 
     /// Destructor.
@@ -89,8 +83,9 @@ public:
 
     inline void lock() const
     {
-        //does nothing if openMP is not present
-#ifdef KRATOS_SMP_OPENMP
+#ifdef KRATOS_SMP_CXX11
+        mLock.lock();
+#elif KRATOS_SMP_OPENMP
         omp_set_lock(&mLock);
 #endif
     }
@@ -103,8 +98,9 @@ public:
 
     inline void unlock() const
     {
-        //does nothing if openMP is not present
-#ifdef KRATOS_SMP_OPENMP
+#ifdef KRATOS_SMP_CXX11
+        mLock.unlock();
+#elif KRATOS_SMP_OPENMP
         omp_unset_lock(&mLock);
 #endif
     }
@@ -117,7 +113,9 @@ public:
 
     inline bool try_lock() const
     {
-#ifdef KRATOS_SMP_OPENMP
+#ifdef KRATOS_SMP_CXX11
+        mLock.try_lock();
+#elif KRATOS_SMP_OPENMP
         return omp_test_lock(&mLock);
 #endif
         return true;
@@ -129,7 +127,9 @@ private:
     ///@name Member Variables
     ///@{
 
-#ifdef KRATOS_SMP_OPENMP
+#ifdef KRATOS_SMP_CXX11
+        mutable std::mutex mLock;
+#elif KRATOS_SMP_OPENMP
 	    mutable omp_lock_t mLock;
 #endif
 
