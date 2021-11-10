@@ -67,7 +67,7 @@ public:
 
     /**
      * @brief Small utility to compute the total derivative of a magnitude
-     * 
+     *
      * @param Value is the value of the magnitude at the current step
      * @param TimeDerivative is the value of the derivative of the magnitude in this step
      * @param Flux is the volumetric flowrate of the magnitude
@@ -81,13 +81,13 @@ public:
         TotalDerivativeUtil()
             : TotalDerivativeUtil(0, 0)
         {}
-        
+
         TotalDerivativeUtil(
             const std::size_t NumberOfDimensions,
             const std::size_t NumberOfNodes)
-            : Value{NumberOfNodes, 0.0},
-            TimeDerivative{NumberOfNodes, 0.0},
-            Flux{NumberOfNodes, NumberOfDimensions, 0.0}
+            : Value          {NumberOfNodes, 0.0},
+              TimeDerivative {NumberOfNodes, 0.0},
+              Flux           {NumberOfNodes, NumberOfDimensions, 0.0}
         {
         }
 
@@ -125,18 +125,18 @@ public:
 
             KRATOS_CATCH("") // Catching possible error in divergence computation
         }
-    
+
     private:
         /**
          * @brief Computes the divergence
-         * 
+         *
          * @param rShapeFunGradients The gradients of the shape functions [ndims x nnodes]
          * @param rNodalValues Values of the magnitude at the nodes. [ndims x nnodes]
          * @return Result
          */
         static double Divergence(const Matrix& rShapeFunGradients, const Matrix& rNodalValues);
     };
-    
+
 
     /// Pointer definition of ShockCapturingEntropyViscosityProcess
     KRATOS_CLASS_POINTER_DEFINITION(ShockCapturingEntropyViscosityProcess);
@@ -248,20 +248,20 @@ private:
         const double ArtificialDynamicViscosity,
         const double ArtificialBulkViscosity,
         const double ArtificialConductivity) const;
-    
+
     static double ComputeEntropy(const double Density, const double Pressure, const double Gamma);
-    
+
     /**
      * @brief Computes the square of the element's shortest edge
-     * 
-     * @param rElement 
-     * @return double 
+     *
+     * @param rElement
+     * @return double
      */
     static double ComputeHSquared(const Element& rElement);
 
     /**
      * @brief Computes the infinity norm of entropy and residual
-     * 
+     *
      * @param rElement: The element to compute them on
      * @param DeltaTime: The time step size
      * @return Tuple containing the inf norms of {entropy residual, density}
@@ -273,7 +273,7 @@ private:
 
     /**
      * @brief Buidls the TotalDerivativeUtil objects that will be used to compute inf norms
-     * 
+     *
      * @param rElement: The element to compute them on
      * @return Tuple containing {TotalDerivativeUtil for entroy, TotalDerivativeUtil for density, Vector with total velocities}
      */
@@ -281,10 +281,10 @@ private:
         const Element& rElement,
         const double DeltaTime,
         const double HeatCapacityRatio);
-    
+
     /**
      * @brief Computes entropy max value of residual, density and total velocity over all gauss points.
-     *  
+     *
      */
     static InfNormData ComputeInfNorms(
         const Geometry<NodeType>& rGeometry,

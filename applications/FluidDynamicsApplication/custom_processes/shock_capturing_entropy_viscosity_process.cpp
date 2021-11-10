@@ -50,7 +50,7 @@ int ShockCapturingEntropyViscosityProcess::Check()
     bool missing_pressure;
     bool missing_temperature;
     bool missing_velocity;
-    
+
     std::tie(missing_entropy, missing_density, missing_pressure, missing_temperature, missing_velocity) =
     block_for_each<MultiOrReduction>(mrModelPart.Nodes(), [](const NodeType& r_node)
     {
@@ -59,7 +59,7 @@ int ShockCapturingEntropyViscosityProcess::Check()
         const bool missing_pressure = ! r_node.SolutionStepsDataHas(PRESSURE);
         const bool missing_temperature = ! r_node.SolutionStepsDataHas(TEMPERATURE);
         const bool missing_velocity = ! r_node.SolutionStepsDataHas(VELOCITY);
-        
+
         return std::tie(
             missing_entropy, missing_density, missing_pressure, missing_temperature, missing_velocity
         );
@@ -74,7 +74,7 @@ int ShockCapturingEntropyViscosityProcess::Check()
     if(mrModelPart.ElementsBegin() != mrModelPart.ElementsEnd())
     {
         KRATOS_ERROR_IF_NOT(mrModelPart.ElementsBegin()->GetProperties().Has(HEAT_CAPACITY_RATIO))
-            << "Variable HEAT_CAPACITY_RATIO missing from elemental properties." << std::endl; 
+            << "Variable HEAT_CAPACITY_RATIO missing from elemental properties." << std::endl;
 
 #ifdef KRATOS_DEBUG
         const double first_gamma = mrModelPart.ElementsBegin()->GetProperties().GetValue(HEAT_CAPACITY_RATIO);
@@ -117,11 +117,11 @@ Divergence(const Matrix& rShapeFunGradients, const Matrix& rNodalValues)
     KRATOS_TRY
 
     KRATOS_DEBUG_ERROR_IF(rShapeFunGradients.size1() != rNodalValues.size1())
-        << "Matrices rShapeFunGradients and rNodalValues must be the same size (Size1: " 
+        << "Matrices rShapeFunGradients and rNodalValues must be the same size (Size1: "
         << rShapeFunGradients.size1() << " != " << rNodalValues.size1() <<")" << std::endl;
     KRATOS_DEBUG_ERROR_IF(rShapeFunGradients.size2() != rNodalValues.size2())
-        << "Matrices rShapeFunGradients and rNodalValues must be the same size (Size2: " 
-        << rShapeFunGradients.size2() << " != " << rNodalValues.size2() <<")" << std::endl; 
+        << "Matrices rShapeFunGradients and rNodalValues must be the same size (Size2: "
+        << rShapeFunGradients.size2() << " != " << rNodalValues.size2() <<")" << std::endl;
 
     double divergence = 0.0;
     for(std::size_t i=0; i<rShapeFunGradients.size1(); ++i)
@@ -170,7 +170,7 @@ void ShockCapturingEntropyViscosityProcess::ComputeNodalEntropies()
     {
         heat_capacity_ratio = mrModelPart.ElementsBegin()->GetProperties().GetValue(HEAT_CAPACITY_RATIO);
     }
-    
+
     block_for_each(mrModelPart.Nodes(), [heat_capacity_ratio](NodeType& r_node)
     {
         const double density = r_node.FastGetSolutionStepValue(DENSITY);
@@ -220,7 +220,7 @@ void ShockCapturingEntropyViscosityProcess::DistributeVariablesToNodes(
 {
     auto& r_geometry = rElement.GetGeometry();
     const double element_volume = r_geometry.LocalSpaceDimension() == 3 ? r_geometry.Volume() : r_geometry.Area();
-    
+
     for(unsigned int i=0; i<r_geometry.size(); ++i)
     {
         auto& r_node = r_geometry[i];
@@ -289,10 +289,10 @@ ShockCapturingEntropyViscosityProcess::BuildTotalDerivativeUtils(const Element& 
     for(unsigned int i=0; i<r_geometry.size(); ++i)
     {
         const auto& r_node = r_geometry[i];
-        
+
         const auto velocity = r_node.FastGetSolutionStepValue(VELOCITY);
         const auto temperature = r_node.FastGetSolutionStepValue(TEMPERATURE);
-        
+
         total_velocities[i] = norm_2(velocity) + std::sqrt(HeatCapacityRatio * temperature);
 
         entropy_total_derivative.LoadNodalValues(NUMERICAL_ENTROPY, r_node, i, velocity, DeltaTime);
@@ -317,7 +317,7 @@ ShockCapturingEntropyViscosityProcess::InfNormData ShockCapturingEntropyViscosit
 
     constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
     const auto n_gauss_points = rGeometry.IntegrationPointsNumber(integration_method);
-    
+
     const auto& r_shape_functions = rGeometry.ShapeFunctionsValues(integration_method);
     GeometryData::ShapeFunctionsGradientsType r_shape_functions_gradients;
     rGeometry.ShapeFunctionsIntegrationPointsGradients(r_shape_functions_gradients, integration_method);
@@ -339,7 +339,7 @@ ShockCapturingEntropyViscosityProcess::InfNormData ShockCapturingEntropyViscosit
         const double max_gp_residual = std::max(entropy_residual, specific_entropy_residual);
         const double density = inner_prod(rDensityTotalDerivative.Value, N);
         const double total_velocity = inner_prod(rTotalVelocities, N);
-        
+
         max_residual =  std::max(max_residual, max_gp_residual);
         max_density = std::max(max_density, density);
         max_total_velocity = std::max(max_total_velocity, total_velocity);

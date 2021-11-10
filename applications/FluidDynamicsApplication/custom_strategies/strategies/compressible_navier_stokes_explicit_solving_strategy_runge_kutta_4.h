@@ -213,9 +213,9 @@ public:
         mCalculateNonConservativeMagnitudes = ThisParameters["calculate_non_conservative_magnitudes"].GetBool();
 
         SetUpShockCapturing(ThisParameters["shock_capturing_settings"]);
-        
+
         if (mShockCapturing && !mCalculateNonConservativeMagnitudes) {
-            KRATOS_WARNING("CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4") 
+            KRATOS_WARNING("CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4")
                 << "\'shock_capturing\' requires \'calculate_non_conservative_magnitudes\' to be active. Activating it." << std::endl;
             mCalculateNonConservativeMagnitudes = true;
         }

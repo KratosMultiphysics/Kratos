@@ -183,4 +183,3 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         enable_shock_capturing = self.settings["shock_capturing_settings"]["type"].GetString() != "none"
 
         self.GetComputingModelPart().ProcessInfo[KratosFluid.SHOCK_CAPTURING_SWITCH] = int(enable_shock_capturing)
-        
