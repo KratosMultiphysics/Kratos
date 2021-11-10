@@ -90,11 +90,7 @@ std::unordered_set<std::string>& Kernel::GetLibrayList() {
 }
 
 bool Kernel::IsImported(const std::string& rApplicationName) const {
-    if (GetApplicationsList().find(rApplicationName) !=
-        GetApplicationsList().end())
-        return true;
-    else
-        return false;
+    return GetApplicationsList().find(rApplicationName) != GetApplicationsList().end();
 }
 
 bool Kernel::IsLibraryAvailable(const std::string& rLibraryName) const {
