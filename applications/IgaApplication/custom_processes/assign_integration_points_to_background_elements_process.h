@@ -76,8 +76,7 @@ public:
         {
             "main_model_part_name" : "ModelPart",
             "nurbs_volume_name" : "NurbsVolume",
-            "embedded_model_part_name" : "IgaModelPart",
-            "integration_point_results" : []
+            "embedded_model_part_name" : "IgaModelPart"
         })" );
 
         return default_parameters;
