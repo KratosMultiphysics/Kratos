@@ -57,7 +57,7 @@ public:
 
     /// Move constructor.
     KRATOS_DEPRECATED_MESSAGE("The move constructor is deprecated and will be removed in the future!")
-    LockObject(LockObject&& rOther) noexcept
+    LockObject(LockObject&& rOther)
     {
         KRATOS_ERROR << "The move constructor cannot be used!" << std::endl;
     }
