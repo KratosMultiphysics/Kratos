@@ -21,11 +21,6 @@ def Factory(settings, Model):
             "value"                : [10.0, "3*t", "x+y"],
             "table"                : [0, 0, 0]
         },
-        "angular_velocity_constraints_settings" : {
-            "constrained"          : [true,true,true],
-            "value"                : [10.0, "3*t", "x+y"],
-            "table"                : [0, 0, 0]
-        },
         "interval"             : [0.0, 1e30]
     }
     """)
@@ -39,4 +34,4 @@ def Factory(settings, Model):
 
     process_settings.RemoveValue("help")
 
-    return DEM.ApplyKinematicConstraintsProcess(computing_model_part, process_settings)
+    return DEM.ApplyVelocityConstraintsProcess(computing_model_part, process_settings)
