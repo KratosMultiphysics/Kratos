@@ -165,7 +165,7 @@ public:
     ///@name Operations
     ///@{
 
-    void ExecuteBeforeSolutionLoop() override;
+    void ExecuteInitialize() override;
 
     void ExecuteFinalizeSolutionStep() override;
 

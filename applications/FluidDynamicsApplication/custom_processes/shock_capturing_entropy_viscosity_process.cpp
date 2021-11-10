@@ -137,7 +137,7 @@ Divergence(const Matrix& rShapeFunGradients, const Matrix& rNodalValues)
 }
 
 
-void ShockCapturingEntropyViscosityProcess::ExecuteBeforeSolutionLoop()
+void ShockCapturingEntropyViscosityProcess::ExecuteInitialize()
 {
     UpdateNodalAreaProcess();
 }
