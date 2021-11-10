@@ -181,12 +181,12 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     double positive_density;
                     double negative_density;
 
-                    GeometryType::Pointer p_geom = this->pGetGeometry();
+                    const auto& r_geom = this->GetGeometry();
 
                     for (unsigned int intgp = 0; intgp < int_gauss_pts_weights.size(); ++intgp){
                         double u_dot_n = 0.0;
                         for (unsigned int i = 0; i < NumNodes; ++i){
-                            u_dot_n += int_shape_function(intgp,i)*(*p_geom)[i].GetValue(DISTANCE_DIFFERENCE);
+                            u_dot_n += int_shape_function(intgp,i)*r_geom[i].GetValue(DISTANCE_DIFFERENCE);
 
                             if (data.Distance[i] > 0.0){
                                 positive_density = data.NodalDensity[i];
