@@ -13,8 +13,6 @@
 
 #include "two_fluid_navier_stokes.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
-#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
-#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 
 namespace Kratos
 {
@@ -428,6 +426,13 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
+    // Mass correction term
+    double volume_error_ratio = 0.0;
+    if (rData.IsCut()) {
+        const double volume_error =-rData.VolumeError;
+        volume_error_ratio = volume_error / dt;
+    }
+
     auto &rhs = rData.rhs;
 
     //substitute_rhs_2D
@@ -470,6 +475,13 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+
+    // Mass correction term
+    double volume_error_ratio = 0.0;
+    if (rData.IsCut()) {
+        const double volume_error = -rData.VolumeError;
+        volume_error_ratio = volume_error / dt;
+    }
 
     auto &rhs = rData.rhs;
 
@@ -517,6 +529,13 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+
+    // Mass correction term
+    double volume_error_ratio = 0.0;
+    if (rData.IsCut()) {
+        const double volume_error = -rData.VolumeError;
+        volume_error_ratio = volume_error / dt;
+    }
 
     auto &V = rData.V;
     auto &H = rData.H;
@@ -579,6 +598,13 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
+    // Mass correction term
+    double volume_error_ratio = 0.0;
+    if (rData.IsCut()) {
+        const double volume_error =-rData.VolumeError;
+        volume_error_ratio = volume_error / dt;
+    }
+
     auto &V = rData.V;
     auto &H = rData.H;
     auto &Kee = rData.Kee;
@@ -636,14 +662,14 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
         rShapeFunctionsPos,
         rShapeDerivativesPos,
         rData.w_gauss_pos_side,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Call the negative side modified shape functions calculator
     pModifiedShapeFunctions->ComputeNegativeSideShapeFunctionsAndGradientsValues(
         rShapeFunctionsNeg,
         rShapeDerivativesNeg,
         rData.w_gauss_neg_side,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Compute the enrichment shape function values using the enrichment interpolation matrices
     rEnrichedShapeFunctionsPos = prod(rShapeFunctionsPos, enr_pos_interp);
@@ -691,12 +717,12 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
         rInterfaceShapeFunctionNeg,
         rInterfaceShapeDerivativesNeg,
         rInterfaceWeightsNeg,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Call the Interface negative side normal functions calculator
     pModifiedShapeFunctions->ComputeNegativeSideInterfaceAreaNormals(
         rInterfaceNormalsNeg,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     for (unsigned int gp = 0; gp < rInterfaceNormalsNeg.size(); ++gp){
         const double normal_norm = norm_2(rInterfaceNormalsNeg[gp]);
@@ -713,8 +739,7 @@ ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokes
     const GeometryType::Pointer pGeometry,
     const Vector& rDistances)
 {
-    auto p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
-    return p_modified_sh_func;
+    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
 }
 
 template <>
@@ -722,8 +747,7 @@ ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokes
         const GeometryType::Pointer pGeometry,
         const Vector& rDistances)
 {
-    auto p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
-    return p_modified_sh_func;
+    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
 }
 
 template <class TElementData>
@@ -1058,7 +1082,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateOnIntegrationPoints(
     if (rVariable == DIVERGENCE){
 
         const auto& rGeom = this->GetGeometry();
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
         const unsigned int num_gauss = IntegrationPoints.size();
 
         if (rValues.size() != num_gauss){
@@ -1067,7 +1091,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateOnIntegrationPoints(
 
         Vector gauss_pts_jacobian_determinant = ZeroVector(num_gauss);
         GeometryData::ShapeFunctionsGradientsType DN_DX;
-        rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, gauss_pts_jacobian_determinant, GeometryData::GI_GAUSS_2);
+        rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, gauss_pts_jacobian_determinant, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
         for (unsigned int i_gauss = 0; i_gauss < num_gauss; ++i_gauss){
 

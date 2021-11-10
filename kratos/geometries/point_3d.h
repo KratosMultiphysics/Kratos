@@ -219,11 +219,11 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Point;
+        return GeometryData::KratosGeometryFamily::Kratos_Point;
     }
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Point3D;
+        return GeometryData::KratosGeometryType::Kratos_Point3D;
     }
 
     ///@}
@@ -555,13 +555,6 @@ public:
 //       return 0;
 //          }
 //
-//
-//
-//          virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod) const
-//     	{
-//     		  KRATOS_ERROR << "Jacobian is not square" << std::endl;
-//     	}
-
     /*
 
 
@@ -797,7 +790,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 template<class TPointType>
 const GeometryData Point3D<TPointType>::msGeometryData(
         &msGeometryDimension,
-        GeometryData::GI_GAUSS_1,
+        GeometryData::IntegrationMethod::GI_GAUSS_1,
         Point3D<TPointType>::AllIntegrationPoints(),
         Point3D<TPointType>::AllShapeFunctionsValues(),
         AllShapeFunctionsLocalGradients());

@@ -119,7 +119,7 @@ void GeoCrBeamElementLinear2D2N::CalculateOnIntegrationPoints(
     KRATOS_TRY
     // element with two nodes can only represent results at one node
     const unsigned int& write_points_number =
-        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
     if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
     }

@@ -262,6 +262,7 @@ namespace Kratos {
         void SynchronizeHistoricalVariables(ModelPart& r_model_part);
         void SynchronizeRHS(ModelPart& r_model_part);
         void CleanEnergies();
+        void Check_MPI(bool& has_mpi);
 
         ModelPart& GetModelPart() { return (*mpDem_model_part);}
         ModelPart& GetFemModelPart() { return (*mpFem_model_part);}

@@ -225,7 +225,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    IntegrationMethod mIntegrationMethod = GeometryData::GI_GAUSS_2;
+    IntegrationMethod mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
     CoordinateTransformationPointerType mpCoordinateTransformation = nullptr;
 
