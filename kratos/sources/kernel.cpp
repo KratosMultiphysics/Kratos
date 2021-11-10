@@ -56,34 +56,35 @@ void Kernel::Initialize() {
 }
 
 std::unordered_set<std::string>& Kernel::GetApplicationsList() {
-  static std::unordered_set<std::string> application_list;
-  return application_list;
+    static std::unordered_set<std::string> application_list;
+    return application_list;
 }
 
 std::unordered_set<std::string>& Kernel::GetLibrayList() {
-  static std::unordered_set<std::string> library_list = {
-  #if USE_TRIANGLE_NONFREE_TPL
-        "triangle",
-  #else
-        "delaunator-cpp",
-  #endif
-  #if USE_TETGEN_NONFREE_TPL
-        "tetgen",
-  #endif
-        "amgcl",
-        "concurrentqueue",
-        "ghc",
-        "gidpost",
-        "intrusive_ptr",
-        "json",
-        "pybind11",
-        "span",
-        "intrusive_ptr",
-        "tinyexpr",
-        "vexcl",
-        "zlib"
-  };
-  return library_list;
+    // TODO: add more libraries if required
+    static std::unordered_set<std::string> library_list = {
+    #if USE_TRIANGLE_NONFREE_TPL
+            "triangle",
+    #else
+            "delaunator-cpp",
+    #endif
+    #if USE_TETGEN_NONFREE_TPL
+            "tetgen",
+    #endif
+            "amgcl",
+            "concurrentqueue",
+            "ghc",
+            "gidpost",
+            "intrusive_ptr",
+            "json",
+            "pybind11",
+            "span",
+            "intrusive_ptr",
+            "tinyexpr",
+            "vexcl",
+            "zlib"
+    };
+    return library_list;
 }
 
 bool Kernel::IsImported(const std::string& rApplicationName) const {
