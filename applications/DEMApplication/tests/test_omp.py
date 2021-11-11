@@ -24,8 +24,8 @@ class OMPTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAn
     def CheckValues(self, y_disp, y_vel):
         tol = 1.0e-13
         # DEM reference values
-        y_velr  = 8.1296828952707
-        y_dispr = 0.11937225925581423
+        y_velr  = -6.858213697662339
+        y_dispr = -0.049883192970528574
 
         self.assertAlmostEqual(y_disp, y_dispr, delta=tol)
         self.assertAlmostEqual(y_vel, y_velr, delta=tol)

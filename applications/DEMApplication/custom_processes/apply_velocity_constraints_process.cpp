@@ -120,7 +120,6 @@ namespace Kratos
         KRATOS_TRY;
 
         const double time = mrModelPart.GetProcessInfo()[TIME];
-        KRATOS_WATCH(time)
         if(!mInterval.IsInInterval(time)) return;
 
         block_for_each(mrModelPart.Elements(), [&](Element& rElement)

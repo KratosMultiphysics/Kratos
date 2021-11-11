@@ -17,7 +17,6 @@ Begin Nodes
     6   3.0000000000   0.0000000000   0.2500000000
 End Nodes
 
-
 Begin Elements ContactInfoSphericParticle3D// GUI group identifier: Parts Auto1
         1          1     1
         2          1     2
@@ -50,6 +49,7 @@ Begin SubModelPart Mat1 // Group Parts Auto1 // Subtree Parts
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
+
 Begin SubModelPart Mat2 // Group Parts Auto1 // Subtree Parts
     Begin SubModelPartNodes
             4
@@ -64,6 +64,7 @@ Begin SubModelPart Mat2 // Group Parts Auto1 // Subtree Parts
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
+
 Begin SubModelPart Ball1
     Begin SubModelPartNodes
             1
@@ -76,6 +77,7 @@ Begin SubModelPart Ball1
     Begin SubModelPartTables
     End SubModelPartTables
 End SubModelPart
+
 Begin SubModelPart Ball2
     Begin SubModelPartNodes
             2
@@ -88,6 +90,7 @@ Begin SubModelPart Ball2
     Begin SubModelPartTables
     End SubModelPartTables
 End SubModelPart
+
 Begin SubModelPart Ball3
     Begin SubModelPartNodes
             3
@@ -100,6 +103,7 @@ Begin SubModelPart Ball3
     Begin SubModelPartTables
     End SubModelPartTables
 End SubModelPart
+
 Begin SubModelPart Ball4
     Begin SubModelPartNodes
             4
@@ -112,6 +116,7 @@ Begin SubModelPart Ball4
     Begin SubModelPartTables
     End SubModelPartTables
 End SubModelPart
+
 Begin SubModelPart Ball5
     Begin SubModelPartNodes
             5
@@ -124,6 +129,7 @@ Begin SubModelPart Ball5
     Begin SubModelPartTables
     End SubModelPartTables
 End SubModelPart
+
 Begin SubModelPart Ball6
     Begin SubModelPartNodes
             6

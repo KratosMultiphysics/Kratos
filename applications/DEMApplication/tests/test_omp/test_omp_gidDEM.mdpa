@@ -45,7 +45,7 @@ Begin Elements SphericParticle3D// GUI group identifier: Define particle groups 
 End Elements
 
 Begin NodalData RADIUS // GUI group identifier: Define particle groups Auto1
-          5 0   0.16
+          5 0   0.13
           7 0   0.1
           8 0  0.0595011
           9 0  0.0531784

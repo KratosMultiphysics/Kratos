@@ -89,6 +89,7 @@ Begin SubModelPart Parts_Parts_Auto1 // Group Parts Auto1 // Subtree Parts
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
+
 Begin SubModelPart Ball1
     Begin SubModelPartNodes
             1
@@ -101,6 +102,7 @@ Begin SubModelPart Ball1
     Begin SubModelPartTables
     End SubModelPartTables
 End SubModelPart
+
 Begin SubModelPart Ball2
     Begin SubModelPartNodes
             2
@@ -113,6 +115,7 @@ Begin SubModelPart Ball2
     Begin SubModelPartTables
     End SubModelPartTables
 End SubModelPart
+
 Begin SubModelPart Ball3
     Begin SubModelPartNodes
             3
@@ -125,6 +128,7 @@ Begin SubModelPart Ball3
     Begin SubModelPartTables
     End SubModelPartTables
 End SubModelPart
+
 Begin SubModelPart Ball4
     Begin SubModelPartNodes
             4
@@ -137,6 +141,7 @@ Begin SubModelPart Ball4
     Begin SubModelPartTables
     End SubModelPartTables
 End SubModelPart
+
 Begin SubModelPart Ball5
     Begin SubModelPartNodes
             5
