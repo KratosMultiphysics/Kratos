@@ -39,6 +39,7 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         self.output_model_part = model.CreateModelPart(settings["output_model_part_name"].GetString())
         self.store_historical = settings["store_historical_database"].GetBool()
         self.interval = KM.IntervalUtility(settings)
+        self.variables = [KM.VELOCITY, KM.MOMENTUM, SW.HEIGHT]
 
         integration_settings = KM.Parameters()
         integration_settings.AddValue("volume_model_part_name", settings["volume_model_part_name"])
@@ -74,15 +75,13 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         self._InitializeOutputModelPart()
         self._SetOutputProcessInfo()
         if not self.store_historical:
-            variables = [KM.VELOCITY, KM.MOMENTUM, SW.HEIGHT]
-            for var in variables:
+            for var in self.variables:
                 KM.VariableUtils().SetNonHistoricalVariableToZero(var, self.interface_model_part.Nodes)
                 KM.VariableUtils().SetNonHistoricalVariableToZero(var, self.output_model_part.Nodes)
 
 
     def ExecuteBeforeSolutionLoop(self):
         '''Write the interface model part in HDF5 format.'''
-        self._SetOutputProcessInfo()
         self.hdf5_process.ExecuteBeforeSolutionLoop()
 
 
@@ -94,6 +93,7 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
     def ExecuteBeforeOutputStep(self):
         '''Perform the depth integration over the interface model part.'''
         self.integration_process.Execute()
+        self._MapToOutputModelPart()
 
 
     def IsOutputStep(self):
@@ -108,13 +108,35 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
 
 
     def _InitializeOutputModelPart(self):
-        KM.MergeVariableListsUtility().Merge(self.interface_model_part, self.output_model_part)
+        if self.store_historical:
+            self.output_model_part.AddNodalSolutionStepVariable(SW.HEIGHT)
+            self.output_model_part.AddNodalSolutionStepVariable(KM.MOMENTUM)
+            self.output_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
         domain_size = self.volume_model_part.ProcessInfo[KM.DOMAIN_SIZE]
         element_name = "Element{}D2N".format(domain_size)
         condition_name = "LineCondition{}D2N".format(domain_size)
-        KM.ConnectivityPreserveModeler().GenerateModelPart(
-            self.interface_model_part, self.output_model_part, element_name, condition_name)
-        self.output_model_part.ProcessInfo = KM.ProcessInfo()
+        KM.DuplicateMeshModeler(self.interface_model_part).GenerateMesh(
+            self.output_model_part, element_name, condition_name)
+
+
+    def _MapToOutputModelPart(self):
+        if self.store_historical:
+            for variable in self.variables:
+                KM.VariableUtils().CopyModelPartNodalVar(
+                    variable,
+                    self.interface_model_part,
+                    self.output_model_part,
+                    0)
+        else:
+            for variable in self.variables:
+                for node_src, node_dest in zip(self.interface_model_part.Nodes, self.output_model_part.Nodes):
+                    node_dest.SetValue(variable, node_src.GetValue(variable))
+                #TODO: implement this function in VariableUtils
+                # KM.VariableUtils().CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
+                #     variable,
+                #     self.interface_model_part,
+                #     self.output_model_part,
+                #     KM.Flags(), True)
 
 
     def _SetOutputProcessInfo(self):
