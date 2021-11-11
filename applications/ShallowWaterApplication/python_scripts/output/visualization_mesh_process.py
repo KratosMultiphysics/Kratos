@@ -70,6 +70,7 @@ class VisualizationMeshProcess(KM.Process):
         if self.deform_mesh:
             self._DeformMesh()
         else:
+            self._FlattenMeshCoordinates()
             self._InitializeDisplacement()
             self._UpdateDisplacement()
 
@@ -126,6 +127,14 @@ class VisualizationMeshProcess(KM.Process):
                 self.computing_model_part,
                 self.topographic_model_part,
                 KM.Flags())
+
+
+    def _FlattenMeshCoordinates(self):
+        SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(self.computing_model_part)
+        SW.ShallowWaterUtilities().SetMeshZ0CoordinateToZero(self.computing_model_part)
+        if self.topographic_model_part is not None:
+            SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(self.topographic_model_part)
+            SW.ShallowWaterUtilities().SetMeshZ0CoordinateToZero(self.topographic_model_part)
 
 
     def _DeformMesh(self):
