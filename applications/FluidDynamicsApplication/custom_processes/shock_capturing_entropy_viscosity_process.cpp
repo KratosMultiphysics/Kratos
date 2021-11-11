@@ -350,11 +350,14 @@ ShockCapturingEntropyViscosityProcess::InfNormData ShockCapturingEntropyViscosit
 
         const double specific_entropy_residual = inner_prod(rEntropyTotalDerivative.Value, N) * density_residual;
 
-        const double max_gp_residual = std::max(entropy_residual, specific_entropy_residual);
+        const double max_local_residual = std::max(
+            std::fabs(entropy_residual),
+            std::fabs(specific_entropy_residual));
+
         const double density = inner_prod(rDensityTotalDerivative.Value, N);
         const double total_velocity = inner_prod(rTotalVelocities, N);
 
-        max_residual =  std::max(max_residual, max_gp_residual);
+        max_residual =  std::max(max_residual, max_local_residual);
         max_density = std::max(max_density, density);
         max_total_velocity = std::max(max_total_velocity, total_velocity);
     }
