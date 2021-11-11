@@ -25,6 +25,7 @@
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "includes/ublas_complex_interface.h"
+#include "utilities/variable_utils.h"
 
 // Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -180,10 +181,7 @@ namespace Kratos
 
         void MoveMesh(Scheme< SparseSpaceType, LocalSpaceType >& dummy, ModelPart::NodesContainerType& rNodes)
         {
-            block_for_each(rNodes, [](Node<3>& rNode){
-                noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
-                noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
-            });
+            VariableUtils::UpdateCurrentPosition(rNodes, DISPLACEMENT);
         }
 
         template< typename TSpaceType >
