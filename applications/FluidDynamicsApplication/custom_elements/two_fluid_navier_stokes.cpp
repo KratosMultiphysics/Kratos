@@ -1841,14 +1841,14 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
         rShapeFunctionsPos,
         rShapeDerivativesPos,
         rData.w_gauss_pos_side,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Call the negative side modified shape functions calculator
     pModifiedShapeFunctions->ComputeNegativeSideShapeFunctionsAndGradientsValues(
         rShapeFunctionsNeg,
         rShapeDerivativesNeg,
         rData.w_gauss_neg_side,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Compute the enrichment shape function values using the enrichment interpolation matrices
     rEnrichedShapeFunctionsPos = prod(rShapeFunctionsPos, enr_pos_interp);
@@ -1896,12 +1896,12 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
         rInterfaceShapeFunctionNeg,
         rInterfaceShapeDerivativesNeg,
         rInterfaceWeightsNeg,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Call the Interface negative side normal functions calculator
     pModifiedShapeFunctions->ComputeNegativeSideInterfaceAreaNormals(
         rInterfaceNormalsNeg,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     for (unsigned int gp = 0; gp < rInterfaceNormalsNeg.size(); ++gp){
         const double normal_norm = norm_2(rInterfaceNormalsNeg[gp]);
@@ -2261,7 +2261,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateOnIntegrationPoints(
     if (rVariable == DIVERGENCE){
 
         const auto& rGeom = this->GetGeometry();
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
         const unsigned int num_gauss = IntegrationPoints.size();
 
         if (rValues.size() != num_gauss){
@@ -2270,7 +2270,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateOnIntegrationPoints(
 
         Vector gauss_pts_jacobian_determinant = ZeroVector(num_gauss);
         GeometryData::ShapeFunctionsGradientsType DN_DX;
-        rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, gauss_pts_jacobian_determinant, GeometryData::GI_GAUSS_2);
+        rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, gauss_pts_jacobian_determinant, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
         for (unsigned int i_gauss = 0; i_gauss < num_gauss; ++i_gauss){
 

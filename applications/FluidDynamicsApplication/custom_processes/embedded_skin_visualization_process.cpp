@@ -1030,7 +1030,7 @@ Geometry< Node<3> >::Pointer EmbeddedSkinVisualizationProcess::SetNewConditionGe
         case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
             return Kratos::make_shared<Triangle3D3< Node<3> > >(rNewNodesArray);
         default:
-            KRATOS_ERROR << "Implement the visualization for the intersection geometry type " << rOriginGeometryType;
+            KRATOS_ERROR << "Implement the visualization for the intersection geometry type " << static_cast<int>(rOriginGeometryType);
     }
 }
 
