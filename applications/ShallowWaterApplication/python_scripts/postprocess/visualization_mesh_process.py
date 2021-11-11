@@ -11,18 +11,17 @@ def Factory(settings, model):
     return VisualizationMeshProcess(model, settings["Parameters"])
 
 class VisualizationMeshProcess(KM.Process):
-    def __init__(self, model, settings):
-        """ VisualizationMeshProcess.
+    """ VisualizationMeshProcess.
 
-        This process provides several tools for post-processing.
-        - Generation of an auxiliary model part for the topography visualization as a separate file.
-        - Setting the TOPOGRAPHY and FREE_SURFACE_ELEVATION into DISPLACEMENT_Z or Z-coordinate in order to view the mesh deformation.
-        - Saving the HEIGHT and FREE_SURFACE_ELEVATION as non-historical only on wet nodes. Dry nodes are set with the no-data value of GiD.
-        """
+    This process provides several tools for post-processing.
+    - Generation of an auxiliary model part for the topography visualization as a separate file.
+    - Setting the TOPOGRAPHY and FREE_SURFACE_ELEVATION into DISPLACEMENT_Z or Z-coordinate in order to view the mesh deformation.
+    - Saving the HEIGHT and FREE_SURFACE_ELEVATION as non-historical only on wet nodes. Dry nodes are set with the no-data value of GiD.
+    """
 
-        KM.Process.__init__(self)
-
-        default_settings = KM.Parameters("""
+    @staticmethod
+    def GetDefaultParameters():
+        return KM.Parameters("""
             {
                 "model_part_name"                : "model_part_name",
                 "topographic_model_part_name"    : "topographic_model_part",
@@ -31,13 +30,22 @@ class VisualizationMeshProcess(KM.Process):
                 "nodal_variables_to_transfer"    : ["TOPOGRAPHY"],
                 "nonhistorical_variables_to_transfer" : []
             }
-            """
-            )
-        settings.ValidateAndAssignDefaults(default_settings)
+            """)
+
+    _mesh_deformation_modes = {
+        "use_z_coordinate"       : True,
+        "use_nodal_displacement" : False
+    }
+
+    def __init__(self, model, settings):
+        """Constructor with Model and Parameters."""
+
+        KM.Process.__init__(self)
+        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.computing_model_part = model[settings["model_part_name"].GetString()]
 
-        # Getting the deformation mode options
+        # Get the deformation mode options
         self.deform_mesh = self._GetDeformMeshFlag(settings["mesh_deformation_mode"].GetString())
 
         # Creating the topographic model part if specified
@@ -70,6 +78,7 @@ class VisualizationMeshProcess(KM.Process):
         if self.deform_mesh:
             self._DeformMesh()
         else:
+            self._FlattenMeshCoordinates()
             self._InitializeDisplacement()
             self._UpdateDisplacement()
 
@@ -128,6 +137,14 @@ class VisualizationMeshProcess(KM.Process):
                 KM.Flags())
 
 
+    def _FlattenMeshCoordinates(self):
+        SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(self.computing_model_part)
+        SW.ShallowWaterUtilities().SetMeshZ0CoordinateToZero(self.computing_model_part)
+        if self.topographic_model_part is not None:
+            SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(self.topographic_model_part)
+            SW.ShallowWaterUtilities().SetMeshZ0CoordinateToZero(self.topographic_model_part)
+
+
     def _DeformMesh(self):
         SW.ShallowWaterUtilities().SetMeshZCoordinate(
             self.computing_model_part,
@@ -173,14 +190,11 @@ class VisualizationMeshProcess(KM.Process):
 
 
     def _GetDeformMeshFlag(self, mesh_deformation_mode):
-        if mesh_deformation_mode == "use_z_coordinate":
-            return True
-        elif mesh_deformation_mode == "use_nodal_displacement":
-            return False
-        else:
-            msg = """VisualizationMeshProcess.
-            Unknown 'mesh_deformation_mode' = '{}'. The possible options are:
-             - use_z_coordinate
-             - use_nodal_displacement
-            """
-            raise Exception(msg.format(mesh_deformation_mode))
+        try:
+            value = self._mesh_deformation_modes[mesh_deformation_mode]
+        except KeyError:
+            msg = "VisualizationMeshProcess. Unknown 'mesh_deformation_mode' = '{}'. The possible options are: \n".format(mesh_deformation_mode)
+            for key in self._mesh_deformation_modes.keys():
+                msg += " - {}\n".format(key)
+            raise Exception(msg)
+        return value
