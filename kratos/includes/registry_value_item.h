@@ -80,9 +80,11 @@ public:
 
     /// Constructor with the name and value
 
-    RegistryValueItem(std::string Name, TValueType const& Value) : RegistryItem(Name, *(new TValueType(Value))){}
+    template<class... TArgumentsList >
+    RegistryValueItem(std::string const& Name, TArgumentsList&&... Arguments) : RegistryItem(Name, *(new TValueType(std::forward<TArgumentsList>(Arguments)...))){
+    }
 
-    /// Destructor.
+   /// Destructor.
     virtual ~RegistryValueItem(){
         delete static_cast<TValueType*>(const_cast<void*>(mpValue));
     }
