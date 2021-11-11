@@ -10,6 +10,9 @@
 //  Main author:     Jordi Cotela
 //
 
+// System includes
+#include <mutex>
+
 // Project includes
 #include "includes/parallel_environment.h"
 #include "includes/kratos_components.h"
