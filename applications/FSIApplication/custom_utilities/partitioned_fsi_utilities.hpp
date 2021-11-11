@@ -756,10 +756,10 @@ protected:
             }
 
             // Compute the consistent residual
-            const auto &r_int_pts = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-            const auto N_container = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            const auto &r_int_pts = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+            const auto N_container = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
             Vector jac_gauss;
-            rGeom.DeterminantOfJacobian(jac_gauss, GeometryData::GI_GAUSS_2);
+            rGeom.DeterminantOfJacobian(jac_gauss, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             for (unsigned int i_gauss = 0; i_gauss < r_int_pts.size(); ++i_gauss) {
                 // Compute condition Gauss pt. data

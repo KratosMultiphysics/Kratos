@@ -49,7 +49,7 @@ class TestCreatePointBasedEntitiesProcess(KratosUnittest.TestCase):
             break
 
         if KM.IsDistributedRun():
-            KratosMPI.ParallelFillCommunicator(self.root_model_part, KM.Testing.GetDefaultDataCommunicator()).Execute()
+            KratosMPI.ParallelFillCommunicator(self.root_model_part, data_comm).Execute()
 
 
     def test_create_entities_from_one_model_part(self):

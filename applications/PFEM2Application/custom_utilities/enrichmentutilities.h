@@ -1270,7 +1270,10 @@ namespace Kratos
 					Element::GeometryType::JacobiansType J0;
 					J0 = pGeom->Jacobian(J0, mThisIntegrationMethod);
 
-					const Matrix &Ncontainer = pGeom->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+	      Geometry< Node<3> >::Pointer pGeom = trianglegeom.Create(NewPoints);
+	      //const unsigned int number_of_points = pGeom->size();
+	      //KRATOS_WATCH(number_of_points);
+	      mThisIntegrationMethod= GeometryData::IntegrationMethod::GI_GAUSS_2;
 
 					double xp = 0.0;
 					double yp = 0.0;
@@ -1286,8 +1289,7 @@ namespace Kratos
 						MathUtils<double>::InvertMatrix(J0[PointNumber], mInvJ0[PointNumber], mDetJ0[PointNumber]);
 						double Weight = integration_points[PointNumber].Weight() * mDetJ0[PointNumber];
 
-						xp = 0.0;
-						yp = 0.0;
+	      const Matrix& Ncontainer = pGeom->ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
 						for (unsigned int tt = 0; tt < 3; tt++)
 						{
@@ -1670,14 +1672,39 @@ namespace Kratos
 				}
 			}
 
-			//assign correct sign to exact distance
-			for (int i = 0; i < n_nodes; i++)
-			{
-				if (rDistances[i] < 0.0)
-					exact_distance[i] = -abs_distance[i];
-				else
-					exact_distance[i] = abs_distance[i];
-			}
+	      array_1d<double, 4 > msN;
+              BoundedMatrix<double, 4, 3 > msDN_DX;
+	      //double Area=0.0;
+
+	      Geometry< Node<3> >::PointsArrayType NewPoints;
+	      Node<3>::Pointer p_new_node;
+	      int id_local=0;
+	      for (unsigned int j=0; j!=4; j++)
+		{
+		  id_local=partition_nodes[j];
+		  p_new_node = Node<3>::Pointer(new Node<3>(id_local, coord_subdomainaux(j,0), coord_subdomainaux(j,1), coord_subdomainaux(j,2)));
+		  NewPoints.push_back(p_new_node);
+		  id_local++;
+		}
+              Geometry< Node<3> >::Pointer pGeom = rGeom.Create(NewPoints);
+      	      //const unsigned int number_of_points = pGeom->size();
+	      //number of gauss points
+	      mThisIntegrationMethod= GeometryData::IntegrationMethod::GI_GAUSS_2;
+
+	      typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
+
+	      const IntegrationPointsArrayType& integration_points = pGeom->IntegrationPoints(mThisIntegrationMethod);
+
+	      mInvJ0.resize(integration_points.size());
+	      mDetJ0.resize(integration_points.size(),false);
+
+	      Element::GeometryType::JacobiansType J0;
+	      J0 = pGeom->Jacobian(J0, mThisIntegrationMethod);
+
+	      const Matrix& Ncontainer = pGeom->ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+	      double xp=0.0;
+	      double yp=0.0;
+	      double zp=0.0;
 
 			//compute exact distance gradients
 			array_1d<double, 3> exact_distance_gradient;

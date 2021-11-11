@@ -161,15 +161,12 @@ public:
 
         // We initailize the contact force
         auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
 
         // We save the current WEIGHTED_GAP in the buffer and reset the CONTACT_FORCE
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
-            it_node->SetValue(CONTACT_FORCE, zero_array);
-            it_node->FastGetSolutionStepValue(WEIGHTED_GAP, 1) = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-        }
+        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            rNode.SetValue(CONTACT_FORCE, zero_array);
+            rNode.FastGetSolutionStepValue(WEIGHTED_GAP, 1) = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
+        });
 
         // Compute weighted gap
         ComputeWeightedGap(rModelPart);
@@ -336,13 +333,8 @@ public:
 
             // We set the constraints active and inactive in function of the active set
             auto& r_conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
-            auto it_cond_begin = r_conditions_array.begin();
-
-            #pragma omp parallel for
-            for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-                auto it_cond = it_cond_begin + i;
-
-                const auto& r_slave_geometry = it_cond->GetGeometry().GetGeometryPart(CouplingGeometryType::Master);
+            block_for_each(r_conditions_array, [&](Condition& rCond) {
+                const auto& r_slave_geometry = rCond.GetGeometry().GetGeometryPart(CouplingGeometryType::Master);
                 std::size_t counter = 0;
                 for (auto& r_node : r_slave_geometry) {
                     if (r_node.IsNot(ACTIVE)) {
@@ -352,10 +344,10 @@ public:
 
                 // In case of traction we deactivate
                 if (counter == r_slave_geometry.size()) {
-                    it_cond->Set(ACTIVE, false);
+                    rCond.Set(ACTIVE, false);
                     // We deactivate the constraints on inactive conditions
-                    if (it_cond->Has(CONSTRAINT_POINTER)) {
-                        auto p_const = it_cond->GetValue(CONSTRAINT_POINTER);
+                    if (rCond.Has(CONSTRAINT_POINTER)) {
+                        auto p_const = rCond.GetValue(CONSTRAINT_POINTER);
 
                         // In case of traction we deactivate
                         p_const->Set(ACTIVE, false);
@@ -363,7 +355,7 @@ public:
                         KRATOS_ERROR << "Contact conditions must have defined CONSTRAINT_POINTER" << std::endl;
                     }
                 }
-            }
+            });
 
             // We save to the process info if the active set has converged
             const bool active_set_converged = (is_active_set_converged == 0 ? true : false);
