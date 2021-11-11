@@ -336,9 +336,7 @@ public:
         }
 
         // Unfix the distances
-        block_for_each(r_distance_model_part.Nodes(), [](Node<3>& rNode){
-            rNode.Free(DISTANCE);
-        });
+        VariableUtils().ApplyFixity(DISTANCE, false, r_distance_model_part.Nodes());
 
         KRATOS_CATCH("")
     }

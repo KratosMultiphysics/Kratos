@@ -181,7 +181,7 @@ namespace Kratos
 
         void MoveMesh(Scheme< SparseSpaceType, LocalSpaceType >& dummy, ModelPart::NodesContainerType& rNodes)
         {
-            VariableUtils::UpdateCurrentPosition(rNodes, DISPLACEMENT);
+            VariableUtils().UpdateCurrentPosition(rNodes, DISPLACEMENT);
         }
 
         template< typename TSpaceType >
