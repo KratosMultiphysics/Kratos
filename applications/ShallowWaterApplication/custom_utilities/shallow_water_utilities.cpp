@@ -17,6 +17,8 @@
 
 
 // Project includes
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "shallow_water_utilities.h"
 #include "phase_function.h"
 
