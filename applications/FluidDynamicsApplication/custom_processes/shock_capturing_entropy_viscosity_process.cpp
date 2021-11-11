@@ -25,8 +25,13 @@ ShockCapturingEntropyViscosityProcess::ShockCapturingEntropyViscosityProcess(
     mComputeAreasEveryStep = rParameters["calculate_nodal_area_at_each_step"].GetBool();
     mTunableConstant = rParameters["tunable_constant"].GetDouble();
     mTunableConstantMax = rParameters["tunable_constant_max"].GetDouble();
-    mArtificialBulkViscosityPrandtl = rParameters["artificial_bulk_viscosity_Prandtl"].GetDouble();
+    mArtificialMassViscosityPrandtl = rParameters["artificial_mass_viscosity_Prandtl"].GetDouble();
     mArtificialConductivityPrandtl = rParameters["artificial_conductivity_Prandtl"].GetDouble();
+
+    KRATOS_WARNING_IF("ShockCapturingEntropyViscosityProcess", mArtificialMassViscosityPrandtl != 0.0)
+        <<  "artificial_mass_viscosity_Prandtl is not implemented. Overrriding to zero" << std::endl;
+    mArtificialMassViscosityPrandtl = 0.0;
+
 
     KRATOS_CATCH("")
 }
@@ -104,7 +109,7 @@ const Parameters ShockCapturingEntropyViscosityProcess::GetDefaultParameters() c
         "calculate_nodal_area_at_each_step" : false,
         "tunable_constant"       : 0.0,
         "tunable_constant_max"   : 0.0,
-        "artificial_bulk_viscosity_Prandtl"   : 0.1,
+        "artificial_mass_viscosity_Prandtl"   : 0.1,
         "artificial_conductivity_Prandtl"     : 0.1
     }
     )");
@@ -216,10 +221,10 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
         const double mu_max = mTunableConstantMax * std::sqrt(h2) * inf_norm.Density * inf_norm.TotalVelocity;
 
         const double mu_h = std::min(mu_e, mu_max);
-        const double mu_bulk = mArtificialBulkViscosityPrandtl * mu_h / inf_norm.Density;
-        const double kappa = mArtificialConductivityPrandtl * mu_h / (heat_capacity_ratio - 1.0);
+        const double mu_rho = mArtificialMassViscosityPrandtl * mu_h / inf_norm.Density;
+        const double kappa   = mArtificialConductivityPrandtl * mu_h / (heat_capacity_ratio - 1.0);
 
-        DistributeVariablesToNodes(r_element, mu_h, mu_bulk, kappa);
+        DistributeVariablesToNodes(r_element, mu_h, mu_rho, kappa);
     });
 
     KRATOS_CATCH("")
@@ -228,8 +233,8 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
 
 void ShockCapturingEntropyViscosityProcess::DistributeVariablesToNodes(
     Element& rElement,
-    const double ArtificialDynamicViscosity,
     const double ArtificialBulkViscosity,
+    const double ArtificialMassViscosity,
     const double ArtificialConductivity) const
 {
     auto& r_geometry = rElement.GetGeometry();
@@ -240,7 +245,6 @@ void ShockCapturingEntropyViscosityProcess::DistributeVariablesToNodes(
         auto& r_node = r_geometry[i];
         const double weight = element_volume / r_node.GetValue(NODAL_AREA);
         r_node.SetLock();
-        r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) += weight * ArtificialDynamicViscosity;
         r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY) += weight * ArtificialBulkViscosity;
         r_node.GetValue(ARTIFICIAL_CONDUCTIVITY) += weight * ArtificialConductivity;
         r_node.UnSetLock();
