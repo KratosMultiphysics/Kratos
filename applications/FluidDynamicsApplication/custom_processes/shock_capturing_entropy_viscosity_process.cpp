@@ -23,8 +23,8 @@ ShockCapturingEntropyViscosityProcess::ShockCapturingEntropyViscosityProcess(
     rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mComputeAreasEveryStep = rParameters["calculate_nodal_area_at_each_step"].GetBool();
-    mTunableConstant = rParameters["tunable_constant"].GetDouble();
-    mTunableConstantMax = rParameters["tunable_constant_max"].GetDouble();
+    mTunableConstant = rParameters["entropy_constant"].GetDouble();     // In the article: c_e
+    mTunableConstantMax = rParameters["energy_constant"].GetDouble();   // In the article: c_max
     mArtificialMassViscosityPrandtl = rParameters["artificial_mass_viscosity_Prandtl"].GetDouble();
     mArtificialConductivityPrandtl = rParameters["artificial_conductivity_Prandtl"].GetDouble();
 
@@ -107,8 +107,8 @@ const Parameters ShockCapturingEntropyViscosityProcess::GetDefaultParameters() c
     {
         "model_part_name" : "",
         "calculate_nodal_area_at_each_step" : false,
-        "tunable_constant"       : 0.0,
-        "tunable_constant_max"   : 0.0,
+        "entropy_constant"  : 0.0,
+        "energy_constant"   : 0.0,
         "artificial_mass_viscosity_Prandtl"   : 0.1,
         "artificial_conductivity_Prandtl"     : 0.1
     }
