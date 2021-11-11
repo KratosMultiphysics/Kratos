@@ -221,7 +221,7 @@ private:
     bool mComputeAreasEveryStep = false;
     double mTunableConstant = 0.0;
     double mTunableConstantMax = 0.0;
-    double mArtificialMassViscosityPrandtl = 0.0;
+    double mArtificialMassDiffusivityPrandtl = 0.0;
     double mArtificialConductivityPrandtl = 0.0;
 
     ///@}
