@@ -412,7 +412,7 @@ public:
         Vector scaling_factors (system_size);
 
         const auto it_dof_iterator_begin = BaseType::mDofSet.begin();
-        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
+        const std::size_t ndofs = BaseType::mDofSet.size();
 
         // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
         IndexPartition<std::size_t>(ndofs).for_each([&](std::size_t Index){
@@ -425,7 +425,7 @@ public:
         });
 
         // Filling with ones the LM dofs
-        int loop_size = static_cast<int>(system_size) - ndofs;
+        const std::size_t loop_size = system_size - ndofs;
 
         IndexPartition<std::size_t>(loop_size).for_each([&](std::size_t Index){
             scaling_factors[ndofs + Index] = 1.0;
@@ -528,8 +528,8 @@ public:
                 b_modified[Index] = rb[Index];
             });
 
-            auto loop_size = static_cast<int>(total_size_of_system) - static_cast<int>(BaseType::mEquationSystemSize);
-            auto start_index = static_cast<int>(BaseType::mEquationSystemSize);
+            const SizeType loop_size = total_size_of_system - BaseType::mEquationSystemSize;
+            const SizeType start_index = BaseType::mEquationSystemSize;
 
             // Fill with zeros
             IndexPartition<std::size_t>(loop_size).for_each([&](std::size_t Index){
