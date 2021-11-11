@@ -26,6 +26,7 @@
 #include "geometries/line_2d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
+#include "utilities/intersection_utilities.h"
 
 namespace Kratos
 {
@@ -497,9 +498,24 @@ public:
     /// detect if two triangle are intersected
     bool HasIntersection( const BaseType& rThisGeometry ) const override
     {
-        const BaseType& geom_1 = *this;
-        const BaseType& geom_2 = rThisGeometry;
-        return  NoDivTriTriIsect(geom_1[0], geom_1[1], geom_1[2], geom_2[0], geom_2[1], geom_2[2]);
+        const auto geometry_type = rThisGeometry.GetGeometryType();
+
+        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2) {
+            Point result;
+            for (auto& edge : this->GenerateEdges()) {
+                if (IntersectionUtilities::ComputeLineLineIntersection(rThisGeometry, edge[0], edge[1], result))
+                    return true;
+            }
+            return this->IsInside(rThisGeometry[0], result);
+        }
+        else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) {
+            const BaseType& geom_1 = *this;
+            const BaseType& geom_2 = rThisGeometry;
+            return  NoDivTriTriIsect(geom_1[0], geom_1[1], geom_1[2], geom_2[0], geom_2[1], geom_2[2]);
+        }
+        else {
+            KRATOS_ERROR << "Triangle2D3::HasIntersection : Geometry cannot be identified, please, check the intersecting geometry type." << std::endl;
+        }
     }
 
     /**
