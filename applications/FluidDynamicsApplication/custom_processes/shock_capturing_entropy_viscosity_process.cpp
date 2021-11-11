@@ -259,7 +259,7 @@ double ShockCapturingEntropyViscosityProcess::ComputeEntropy(
 
 double ShockCapturingEntropyViscosityProcess::ComputeHSquared(const Element& rElement)
 {
-    double h_squared = 0.0;
+    double h_squared = std::numeric_limits<double>::max();
     const auto& r_geometry = rElement.GetGeometry();
 
     // H is the shortest edge of the element
