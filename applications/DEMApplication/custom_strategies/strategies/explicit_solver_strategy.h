@@ -212,7 +212,6 @@ namespace Kratos {
         virtual void Initialize();
         virtual void AttachSpheresToStickyWalls();
         virtual void DisplayThreadInfo();
-        virtual void CalculateMaxTimeStep();
         double CalculateMaxInletTimeStep();
         void InitializeThermalDataInSubModelParts();
         void InitializeGraphOutput();
@@ -225,7 +224,6 @@ namespace Kratos {
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi = true);
         void SearchFEMOperations(ModelPart& r_model_part, bool has_mpi = true) ;
         virtual void ForceOperations(ModelPart& r_model_part);
-        void InitialTimeStepCalculation(); //TODO: remove this one
         void GetForce();
         void FastGetForce();
         virtual void PerformTimeIntegrationOfMotion(int StepFlag = 0);
