@@ -217,6 +217,8 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
         const auto inf_norm = ComputeElementalInfNormData(r_element, delta_time, heat_capacity_ratio);
         const double h2 = ComputeHSquared(r_element);
 
+        r_element.SetValue(SHOCK_SENSOR, inf_norm.EntropyResidual);
+
         const double mu_e = mTunableConstant * h2 * inf_norm.Density * inf_norm.EntropyResidual;
         const double mu_max = mTunableConstantMax * std::sqrt(h2) * inf_norm.Density * inf_norm.TotalVelocity;
 
