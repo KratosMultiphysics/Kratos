@@ -14,7 +14,7 @@
 #include "includes/parallel_environment.h"
 #include "includes/kratos_components.h"
 #include "input_output/logger.h"
-#include "includes/lock_object.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 
@@ -243,13 +243,11 @@ ParallelEnvironment& ParallelEnvironment::GetInstance()
 {
     // Using double-checked locking to ensure thread safety in the first creation of the singleton.
     if (!mpInstance) {
-        LockObject lock;
-        lock.lock();
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
         if (!mpInstance) {
             KRATOS_ERROR_IF(mDestroyed) << "Accessing ParallelEnvironment after its destruction" << std::endl;
             Create();
         }
-        lock.unlock();
     }
 
     return *mpInstance;
