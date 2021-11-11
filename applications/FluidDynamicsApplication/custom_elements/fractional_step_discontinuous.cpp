@@ -573,13 +573,13 @@ void FractionalStepDiscontinuous<TDim>::CalculateGeometryData(ShapeFunctionDeriv
         {
             const GeometryType& rGeom = this->GetGeometry();
             Vector DetJ;
-            rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, GeometryData::GI_GAUSS_2);
-            rNContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+            rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, GeometryData::IntegrationMethod::GI_GAUSS_2);
+            rNContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-            rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2), false);
+            rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2), false);
 
-            for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
+            for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2); g++)
                 rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
         }
     }
@@ -587,31 +587,31 @@ void FractionalStepDiscontinuous<TDim>::CalculateGeometryData(ShapeFunctionDeriv
     {
         const GeometryType& rGeom = this->GetGeometry();
         Vector DetJ;
-        rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, GeometryData::GI_GAUSS_2);
-        rNContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, GeometryData::IntegrationMethod::GI_GAUSS_2);
+        rNContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-        rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2), false);
+        rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2), false);
 
-        for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
+        for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2); g++)
             rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
     }
     /*
     const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
-    const unsigned int NumGauss = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
+    const unsigned int NumGauss = rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Initialize arrays to proper size
     rDN_DX.resize(NumGauss);
     rDetJ.resize(NumGauss);
 
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients( GeometryData::GI_GAUSS_2 );
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 );
 
     // Temporary container for inverse of J
     Matrix InvJ;
 
     GeometryType::JacobiansType J;
-    rGeom.Jacobian( J, GeometryData::GI_GAUSS_2 );
+    rGeom.Jacobian( J, GeometryData::IntegrationMethod::GI_GAUSS_2 );
 
     for (unsigned int g = 0; g < NumGauss; g++)
     {

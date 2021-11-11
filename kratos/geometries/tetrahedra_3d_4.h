@@ -270,11 +270,11 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Tetrahedra;
+        return GeometryData::KratosGeometryFamily::Kratos_Tetrahedra;
     }
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Tetrahedra3D4;
+        return GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4;
     }
 
     /**
@@ -1815,8 +1815,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -1852,8 +1851,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values(integration_points_number);
@@ -1905,15 +1903,15 @@ private:
         {
             {
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5)
+                    GeometryData::IntegrationMethod::GI_GAUSS_5)
             }
         };
         return shape_functions_values;
@@ -1926,15 +1924,15 @@ private:
         {
             {
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_1),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_2),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_3),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_4),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_5)
+                    GeometryData::IntegrationMethod::GI_GAUSS_5)
             }
         };
         return shape_functions_local_gradients;
@@ -2065,7 +2063,7 @@ template<class TPointType> inline std::ostream& operator << (
 template<class TPointType> const
 GeometryData Tetrahedra3D4<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     Tetrahedra3D4<TPointType>::AllIntegrationPoints(),
     Tetrahedra3D4<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
