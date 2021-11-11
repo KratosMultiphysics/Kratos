@@ -23,8 +23,8 @@ ShockCapturingEntropyViscosityProcess::ShockCapturingEntropyViscosityProcess(
     rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mComputeAreasEveryStep = rParameters["calculate_nodal_area_at_each_step"].GetBool();
-    mTunableConstant = rParameters["entropy_constant"].GetDouble();     // In the article: c_e
-    mTunableConstantMax = rParameters["energy_constant"].GetDouble();   // In the article: c_max
+    mEntropyConstant = rParameters["entropy_constant"].GetDouble();     // In the article: c_e
+    mEnergyConstant = rParameters["energy_constant"].GetDouble();   // In the article: c_max
 
     mArtificialMassDiffusivityPrandtl = rParameters["artificial_mass_viscosity_Prandtl"].GetDouble();
     mArtificialConductivityPrandtl = rParameters["artificial_conductivity_Prandtl"].GetDouble();
@@ -219,12 +219,12 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
 
         r_element.SetValue(SHOCK_SENSOR, inf_norm.EntropyResidual);
 
-        const double mu_e = mTunableConstant * h2 * inf_norm.Density * inf_norm.EntropyResidual;
-        const double mu_max = mTunableConstantMax * std::sqrt(h2) * inf_norm.Density * inf_norm.TotalVelocity;
-
+        const double mu_e = mEntropyConstant * h2 * inf_norm.Density * inf_norm.EntropyResidual;
+        const double mu_max = mEnergyConstant * std::sqrt(h2) * inf_norm.Density * inf_norm.TotalVelocity;
         const double mu_h = std::min(mu_e, mu_max);
+
         const double mu_rho = mArtificialMassDiffusivityPrandtl * mu_h / inf_norm.Density;
-        const double kappa   = mArtificialConductivityPrandtl * mu_h / (heat_capacity_ratio - 1.0);
+        const double kappa  = mArtificialConductivityPrandtl * mu_h / (heat_capacity_ratio - 1.0);
 
         DistributeVariablesToNodes(r_element, mu_h, mu_rho, kappa);
     });

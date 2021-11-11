@@ -219,8 +219,8 @@ private:
     ModelPart& mrModelPart;
     bool mFirstTimeStep = true;
     bool mComputeAreasEveryStep = false;
-    double mTunableConstant = 0.0;
-    double mTunableConstantMax = 0.0;
+    double mEntropyConstant = 0.0;
+    double mEnergyConstant = 0.0;
     double mArtificialMassDiffusivityPrandtl = 0.0;
     double mArtificialConductivityPrandtl = 0.0;
 
