@@ -157,7 +157,7 @@ ParMmg is the MPI parallel version of the remeshing library Mmg. Instructions fo
 
 <figure>
   <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Readme_files/MultilevelMonteCarloApplication/scalability.png" alt="">
-  <figcaption style="text-align: justify"> Sources: [1] and [4].</figcaption>
+  <figcaption style="text-align: justify"> AMC and AMLMC denote the asynchronous Monte Carlo and the asynchronous Multilevel Monte Carlo methods, respectively. Sources: [1] and [4].</figcaption>
 </figure>
 
 ## Examples
