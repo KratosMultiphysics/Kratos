@@ -122,7 +122,7 @@ LargeDisplacementUPElement::~LargeDisplacementUPElement()
 
 
 
-void LargeDisplacementUPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementUPElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
     rElementalDofList.resize( 0 );
 
@@ -144,7 +144,7 @@ void LargeDisplacementUPElement::GetDofList( DofsVectorType& rElementalDofList, 
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementUPElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -1020,7 +1020,7 @@ void LargeDisplacementUPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSi
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1115,7 +1115,7 @@ void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, P
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementUPElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1191,7 +1191,7 @@ void LargeDisplacementUPElement::CalculateDampingMatrix( MatrixType& rDampingMat
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+void LargeDisplacementUPElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
 {
   KRATOS_TRY
 
@@ -1206,7 +1206,7 @@ void LargeDisplacementUPElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHand
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+void LargeDisplacementUPElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
 {
   KRATOS_TRY
 
@@ -1239,7 +1239,7 @@ void LargeDisplacementUPElement::CalculateAndAddDynamicRHS(VectorType& rRightHan
 //************************************************************************************
 //************************************************************************************
 
-int LargeDisplacementUPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int LargeDisplacementUPElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -1251,7 +1251,7 @@ int LargeDisplacementUPElement::Check( const ProcessInfo& rCurrentProcessInfo )
     for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
-	Node<3> &rNode = this->GetGeometry()[i];
+	const Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
 	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
 

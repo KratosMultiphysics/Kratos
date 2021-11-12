@@ -2,36 +2,10 @@ Begin ModelPartData
 //  VARIABLE_NAME value
 End ModelPartData
 
-Begin Properties 2 // Inlet group: Inlet_of_particles
-    PARTICLE_DENSITY 2500.0
-    YOUNG_MODULUS 100000.0
-    POISSON_RATIO 0.20
-    STATIC_FRICTION 0.577350269189494
-    DYNAMIC_FRICTION 0.577350269189494
-    FRICTION_DECAY 500.0
-    COEFFICIENT_OF_RESTITUTION 0.2
-    PARTICLE_MATERIAL 1
-    ROLLING_FRICTION 0.01
-    ROLLING_FRICTION_WITH_WALLS 0.01
-    PARTICLE_SPHERICITY 1.0
-    DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb
-    DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
+Begin Properties 2
 End Properties
 
-Begin Properties 3 // Inlet group: Inlet_of_clusters
-    PARTICLE_DENSITY 2500.0
-    YOUNG_MODULUS 100000.0
-    POISSON_RATIO 0.20
-    STATIC_FRICTION 0.577350269189494
-    DYNAMIC_FRICTION 0.577350269189494
-    FRICTION_DECAY 500.0
-    COEFFICIENT_OF_RESTITUTION 0.2
-    PARTICLE_MATERIAL 1
-    ROLLING_FRICTION 0.01
-    ROLLING_FRICTION_WITH_WALLS 0.01
-    PARTICLE_SPHERICITY 1.0
-    DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb
-    DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
+Begin Properties 3
 End Properties
 
 Begin Nodes
@@ -42,7 +16,6 @@ End Nodes
 
 Begin SubModelPart Inlet_Inlet_of_particles // Group Inlet_of_particles // Subtree Inlet
     Begin SubModelPartData
-        PROPERTIES_ID 2
         RIGID_BODY_MOTION 0
         //TABLE_VELOCITY_COMPONENT 0
         IDENTIFIER Inlet_Inlet_of_particles
@@ -71,7 +44,6 @@ Begin SubModelPart Inlet_Inlet_of_particles // Group Inlet_of_particles // Subtr
 
 Begin SubModelPart Inlet_Inlet_of_clusters // Group Inlet_of_clusters // Subtree Inlet
     Begin SubModelPartData
-        PROPERTIES_ID 3
         RIGID_BODY_MOTION 0
         //TABLE_VELOCITY_COMPONENT 0
         CLUSTER_FILE_NAME ringcluster3D.clu

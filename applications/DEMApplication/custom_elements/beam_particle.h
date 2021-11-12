@@ -9,8 +9,8 @@
 #include <string>
 #include <iostream>
 #include "spheric_continuum_particle.h"
-#include "../custom_constitutive/DEM_continuum_constitutive_law.h"
-#include "../custom_constitutive/DEM_beam_constitutive_law.h"
+#include "custom_constitutive/DEM_continuum_constitutive_law.h"
+#include "custom_constitutive/DEM_beam_constitutive_law.h"
 
 namespace Kratos {
 

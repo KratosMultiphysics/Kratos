@@ -198,6 +198,69 @@ void SymbolicStokes<TElementData>::AddBoundaryTraction(
     noalias(rRHS) += prod(rData.lhs,values);
 }
 
+template <class TElementData>
+void SymbolicStokes<TElementData>::Calculate(
+    const Variable<double> &rVariable,
+    double &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    rOutput = 0.0;
+
+    if (rVariable == HEAT_FLUX) {
+        TElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+        rOutput = 0.0;
+        // Shape functions
+        const auto &r_geometry = this->GetGeometry();
+
+        const unsigned int num_nodes = r_geometry.PointsNumber();
+        Vector data_N(num_nodes);
+        for (unsigned int i = 0; i < num_nodes; i++) {
+            data_N[i] = 1.0 / static_cast<double>(num_nodes);
+        }
+        data.N = data_N;
+        // Shape functions gradients
+        const GeometryData::IntegrationMethod integration_method = GeometryData::GI_GAUSS_2;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+        Vector DetJ;
+        r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, DetJ, integration_method);
+        data.DN_DX = shape_derivatives[0]; // Note: Valid only for linear elements
+        // Compute strain and stress
+        this->CalculateMaterialResponse(data);
+        // Compute dissipation
+        rOutput = inner_prod(data.ShearStress, data.StrainRate);
+    }
+    else if (rVariable == EQ_STRAIN_RATE || rVariable == EFFECTIVE_VISCOSITY) {
+        TElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+        rOutput = 0.0;
+        // Shape functions
+        const auto &r_geometry = this->GetGeometry();
+        const unsigned int num_nodes = r_geometry.PointsNumber();
+        Vector data_N(num_nodes);
+        for (unsigned int i = 0; i < num_nodes; i++) {
+            data_N[i] = 1.0 / static_cast<double>(num_nodes);
+        }
+        data.N = data_N;
+        // Shape function gradients
+        const GeometryData::IntegrationMethod integration_method = GeometryData::GI_GAUSS_2;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+        Vector DetJ;
+        r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, DetJ, integration_method);
+        data.DN_DX = shape_derivatives[0]; // Note: Valid only for linear elements
+        // Compute strain and stress
+        this->CalculateMaterialResponse(data);
+        const auto &p_constitutive_law = this->GetConstitutiveLaw();
+        rOutput = p_constitutive_law->GetValue(rVariable, rOutput);
+    }
+    else {
+        this->Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH("")
+}
+
 template <>
 void SymbolicStokes< SymbolicStokesData<2,3> >::ComputeGaussPointLHSContribution(
     SymbolicStokesData<2,3>& rData,

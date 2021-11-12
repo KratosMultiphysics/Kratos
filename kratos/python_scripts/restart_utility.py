@@ -96,7 +96,7 @@ class RestartUtility:
         self.save_restart_files_in_folder   = settings["save_restart_files_in_folder"].GetBool()
         self.max_files_to_keep              = settings["max_files_to_keep"].GetInt()
         if (self.max_files_to_keep < -1) or (self.max_files_to_keep == 0):
-            err_msg += 'Specifier for \'max_files_to_keep\' with value ' + str(self.max_files_to_keep) +' invalid\n'
+            err_msg  = 'Specifier for \'max_files_to_keep\' with value ' + str(self.max_files_to_keep) +' invalid\n'
             err_msg += 'Use -1 or any non-negative values'
             raise Exception(err_msg)
 

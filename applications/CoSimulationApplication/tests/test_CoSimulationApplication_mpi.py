@@ -11,6 +11,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from test_convergence_criteria import TestConvergenceCriteriaWrapper
 from test_convergence_accelerators import TestConvergenceAcceleratorWrapper
 from test_processes import TestCreatePointBasedEntitiesProcess
+from co_simulation_test_factory import TestCoSimulationCases
 
 
 def AssembleTestSuites():
@@ -39,6 +40,7 @@ def AssembleTestSuites():
     ################################################################################
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['mpi_validation']
+    validationSuite.addTest(TestCoSimulationCases('test_sdof_fsi'))
 
     ################################################################################
     # Create a test suit that contains all the tests:

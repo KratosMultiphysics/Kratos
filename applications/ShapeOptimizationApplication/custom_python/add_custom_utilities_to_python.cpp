@@ -29,8 +29,6 @@
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_mesh_independent.h"
-#include "custom_utilities/mapping/mapper_vertex_morphing_normal.h"
-#include "custom_utilities/mapping/mapper_vertex_morphing_mesh_independent_normal.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_symmetric.h"
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/mesh_controller_utilities.h"
@@ -91,92 +89,8 @@ inline void InverseMapMixed(TMapper& mapper,
     mapper.InverseMap(destination_variable, origin_variable);
 }
 
-inline void ComputeSearchDirectionSteepestDescentScalar(OptimizationUtilities& utils, const Variable<double>& rSearchDirection, const Variable<double>& rObjectiveGradient)
-{
-    return utils.ComputeSearchDirectionSteepestDescent(rSearchDirection, rObjectiveGradient);
-}
-
-inline void ComputeSearchDirectionSteepestDescentVector(OptimizationUtilities& utils, const Variable<array_1d<double, 3>>& rSearchDirection, const Variable<array_1d<double, 3>>& rObjectiveGradient)
-{
-    return utils.ComputeSearchDirectionSteepestDescent(rSearchDirection, rObjectiveGradient);
-}
-
-inline void ComputeProjectedSearchDirectionScalar(OptimizationUtilities& utils, const Variable<double>& rSearchDirection, const Variable<double>& rObjectiveGradient, const Variable<double>& rConstraintGradient)
-{
-    return utils.ComputeProjectedSearchDirection(rSearchDirection, rObjectiveGradient, rConstraintGradient);
-}
-
-inline void ComputeProjectedSearchDirectionVector(OptimizationUtilities& utils, const Variable<array_1d<double, 3>>& rSearchDirection, const Variable<array_1d<double, 3>>& rObjectiveGradient, const Variable<array_1d<double, 3>>& rConstraintGradient)
-{
-    return utils.ComputeProjectedSearchDirection(rSearchDirection, rObjectiveGradient, rConstraintGradient);
-}
-
-inline void CorrectProjectedSearchDirectionScalar(OptimizationUtilities& utils, double ConstraintValue, const Variable<double>& rSearchDirection, const Variable<double>& rConstraintGradient)
-{
-    return utils.CorrectProjectedSearchDirection(ConstraintValue, rSearchDirection, rConstraintGradient);
-}
-
-inline void CorrectProjectedSearchDirectionVector(OptimizationUtilities& utils, double ConstraintValue, const Variable<array_1d<double, 3>>& rSearchDirection, const Variable<array_1d<double, 3>>& rConstraintGradient)
-{
-    return utils.CorrectProjectedSearchDirection(ConstraintValue, rSearchDirection, rConstraintGradient);
-}
-
-inline void ComputeControlPointUpdateScalar(OptimizationUtilities& utils, const double StepSize, const Variable<double>& rSearchDirection, const Variable<double>& rControlUpdate)
-{
-    return utils.ComputeControlPointUpdate(StepSize, rSearchDirection, rControlUpdate);
-}
-
-inline void ComputeControlPointUpdateVector(OptimizationUtilities& utils, const double StepSize, const Variable<array_1d<double, 3>>& rSearchDirection, const Variable<array_1d<double, 3>>& rControlUpdate)
-{
-    return utils.ComputeControlPointUpdate(StepSize, rSearchDirection, rControlUpdate);
-}
-
-inline void AddFirstVariableToSecondVariableScalar(OptimizationUtilities& utils, const Variable<double>& rVariable1, const Variable<double>& rVariable2)
-{
-    return utils.AddFirstVariableToSecondVariable(rVariable1, rVariable2);
-}
-
-inline void AddFirstVariableToSecondVariableVector(OptimizationUtilities& utils, const Variable<array_1d<double, 3>>& rVariable1, const Variable<array_1d<double, 3>>& rVariable2)
-{
-    return utils.AddFirstVariableToSecondVariable(rVariable1, rVariable2);
-}
-
-inline double ComputeL2NormScalar(OptimizationUtilities& utils, const Variable< double >& variable)
-{
-    return utils.ComputeL2NormOfNodalVariable(variable);
-}
-
-inline double ComputeL2NormVector(OptimizationUtilities& utils, const Variable< array_1d<double, 3> >& variable)
-{
-    return utils.ComputeL2NormOfNodalVariable(variable);
-}
-
-inline double ComputeMaxNormScalar(OptimizationUtilities& utils, const Variable< double >& variable)
-{
-    return utils.ComputeMaxNormOfNodalVariable(variable);
-}
-
-inline double ComputeMaxNormVector(OptimizationUtilities& utils, const Variable< array_1d<double, 3> >& variable)
-{
-    return utils.ComputeMaxNormOfNodalVariable(variable);
-}
-
-inline void AssembleMatrixForScalarVariableList(
-    OptimizationUtilities& utils,
-    Matrix& rMatrix,
-    pybind11::list& rVariables)
-{
-    std::size_t list_length = pybind11::len(rVariables);
-    std::vector<Variable<double>*> variables_vector(list_length);
-    for (std::size_t i = 0; i < list_length; i++)
-    {
-        variables_vector[i] = (rVariables[i]).cast<Variable<double>*>();
-    }
-    return utils.AssembleMatrix(rMatrix, variables_vector);
-}
-
-inline void AssembleMatrixForVectorVariableList(
-    OptimizationUtilities& utils,
+inline void AssembleMatrixForVariableList(
+    ModelPart& rModelPart,
     Matrix& rMatrix,
     pybind11::list& rVariables)
 {
@@ -186,7 +100,7 @@ inline void AssembleMatrixForVectorVariableList(
     {
         variables_vector[i] = (rVariables[i]).cast<Variable<OptimizationUtilities::array_3d>*>();
     }
-    return utils.AssembleMatrix(rMatrix, variables_vector);
+    return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
 }
 
 inline void IntegrateScalarVariable(LumpedIntegrationUtility& util, const Variable< double >& variable)
@@ -197,24 +111,6 @@ inline void IntegrateScalarVariable(LumpedIntegrationUtility& util, const Variab
 inline void IntegrateVectorVariable(LumpedIntegrationUtility& util, const Variable< array_1d<double, 3> >& variable)
 {
     util.Integrate(variable);
-}
-
-inline void AssembleScalarToVector(OptimizationUtilities& util, Vector& rVector, const Variable<double> &rVariable)
-{
-    util.AssembleVector(rVector, rVariable);
-}
-inline void AssembleVectorToVector(OptimizationUtilities& util, Vector& rVector, const Variable<array_1d<double, 3>> &rVariable)
-{
-    util.AssembleVector(rVector, rVariable);
-}
-
-inline void AssignVectorToScalarVariable(OptimizationUtilities& util, const Vector& rVector, const Variable<double> &rVariable)
-{
-    util.AssignVectorToVariable(rVector, rVariable);
-}
-inline void AssignVectorToVectorVariable(OptimizationUtilities& util, const Vector& rVector, const Variable<array_1d<double, 3>> &rVariable)
-{
-    util.AssignVectorToVariable(rVector, rVariable);
 }
 
 // ==============================================================================
@@ -252,29 +148,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("InverseMap", InverseMapScalar<MapperVertexMorphingImprovedIntegration>)
         .def("InverseMap", InverseMapVector<MapperVertexMorphingImprovedIntegration>)
         ;
-    py::class_<MapperVertexMorphingMeshIndependent >(m, "MapperVertexMorphingMeshIndependent")
-        .def(py::init<ModelPart&, ModelPart&, Parameters>())
-        .def("Initialize", &MapperVertexMorphingMeshIndependent::Initialize)
-        .def("Update", &MapperVertexMorphingMeshIndependent::Update)
-        .def("Map", MapScalar<MapperVertexMorphingMeshIndependent>)
-        .def("Map", MapVector<MapperVertexMorphingMeshIndependent>)
-        .def("InverseMap", InverseMapScalar<MapperVertexMorphingMeshIndependent>)
-        .def("InverseMap", InverseMapVector<MapperVertexMorphingMeshIndependent>)
-        ;
-    py::class_<MapperVertexMorphingNormal >(m, "MapperVertexMorphingNormal")
-        .def(py::init<ModelPart&, ModelPart&, Parameters>())
-        .def("Initialize", &MapperVertexMorphingNormal::Initialize)
-        .def("Update", &MapperVertexMorphingNormal::Update)
-        .def("Map", MapMixed<MapperVertexMorphingNormal>)
-        .def("InverseMap", InverseMapMixed<MapperVertexMorphingNormal>)
-        ;
-    py::class_<MapperVertexMorphingMeshIndependentNormal >(m, "MapperVertexMorphingMeshIndependentNormal")
-        .def(py::init<ModelPart&, ModelPart&, Parameters>())
-        .def("Initialize", &MapperVertexMorphingMeshIndependentNormal::Initialize)
-        .def("Update", &MapperVertexMorphingMeshIndependentNormal::Update)
-        .def("Map", MapMixed<MapperVertexMorphingMeshIndependentNormal>)
-        .def("InverseMap", InverseMapMixed<MapperVertexMorphingMeshIndependentNormal>)
-        ;
     py::class_<MapperVertexMorphingSymmetric >(m, "MapperVertexMorphingSymmetric")
         .def(py::init<ModelPart&, ModelPart&, Parameters>())
         .def("Initialize", &MapperVertexMorphingSymmetric::Initialize)
@@ -297,38 +170,44 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // For performing individual steps of an optimization algorithm
     // ========================================================================
     py::class_<OptimizationUtilities >(m, "OptimizationUtilities")
-        .def(py::init<ModelPart&, Parameters>())
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
-        .def("ComputeSearchDirectionSteepestDescent", &ComputeSearchDirectionSteepestDescentScalar)
-        .def("ComputeSearchDirectionSteepestDescent", &ComputeSearchDirectionSteepestDescentVector)
+        .def_static("ComputeSearchDirectionSteepestDescent", &OptimizationUtilities::ComputeSearchDirectionSteepestDescent)
         // ----------------------------------------------------------------
         // For running penalized projection method
         // ----------------------------------------------------------------
-        .def("ComputeProjectedSearchDirection", &ComputeProjectedSearchDirectionScalar)
-        .def("ComputeProjectedSearchDirection", &ComputeProjectedSearchDirectionVector)
-        .def("CorrectProjectedSearchDirection", &CorrectProjectedSearchDirectionScalar)
-        .def("CorrectProjectedSearchDirection", &CorrectProjectedSearchDirectionVector)
-        .def("GetCorrectionScaling", &OptimizationUtilities::GetCorrectionScaling)
+        .def_static("ComputeProjectedSearchDirection", &OptimizationUtilities::ComputeProjectedSearchDirection)
+        .def_static("CorrectProjectedSearchDirection", &OptimizationUtilities::CorrectProjectedSearchDirection)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------
-        .def("ComputeControlPointUpdate", &ComputeControlPointUpdateScalar)
-        .def("ComputeControlPointUpdate", &ComputeControlPointUpdateVector)
-        .def("AddFirstVariableToSecondVariable", &AddFirstVariableToSecondVariableScalar)
-        .def("AddFirstVariableToSecondVariable", &AddFirstVariableToSecondVariableVector)
-        .def("ComputeL2NormOfNodalVariable", ComputeL2NormScalar)
-        .def("ComputeL2NormOfNodalVariable", ComputeL2NormVector)
-        .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormScalar)
-        .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormVector)
-        .def("AssembleVector", &AssembleVectorToVector)
-        .def("AssignVectorToVariable", &AssignVectorToVectorVariable)
-        .def("AssembleMatrixForVector", &AssembleMatrixForVectorVariableList)
-        .def("AssembleVector", &AssembleScalarToVector)
-        .def("AssignVectorToVariable", &AssignVectorToScalarVariable)
-        .def("AssembleMatrixForScalar", &AssembleMatrixForScalarVariableList)
-        .def("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
+        .def_static("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)
+        .def_static("AddFirstVariableToSecondVariable", &OptimizationUtilities::AddFirstVariableToSecondVariable)
+        .def_static("ComputeL2NormOfNodalVariable", [](ModelPart& rModelPart, const Variable< double >& rVariable){
+                                                        return OptimizationUtilities::ComputeL2NormOfNodalVariable(rModelPart, rVariable);
+                                                    })
+        .def_static("ComputeL2NormOfNodalVariable", [](ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable){
+                                                        return OptimizationUtilities::ComputeL2NormOfNodalVariable(rModelPart, rVariable);
+                                                    })
+        .def_static("ComputeMaxNormOfNodalVariable", [](ModelPart& rModelPart, const Variable< double >& rVariable){
+                                                        return OptimizationUtilities::ComputeMaxNormOfNodalVariable(rModelPart, rVariable);
+                                                        })
+        .def_static("ComputeMaxNormOfNodalVariable", [](ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable){
+                                                        return OptimizationUtilities::ComputeMaxNormOfNodalVariable(rModelPart, rVariable);
+                                                        })
+        .def_static("AssembleVector", &OptimizationUtilities::AssembleVector)
+        .def_static("AssignVectorToVariable", &OptimizationUtilities::AssignVectorToVariable)
+        .def_static("AssembleMatrix", [](ModelPart& rModelPart, Matrix& rMatrix, pybind11::list& rVariables){
+                                            std::size_t list_length = pybind11::len(rVariables);
+                                            std::vector<Variable<OptimizationUtilities::array_3d>*> variables_vector(list_length);
+                                            for (std::size_t i = 0; i < list_length; i++)
+                                            {
+                                                variables_vector[i] = (rVariables[i]).cast<Variable<OptimizationUtilities::array_3d>*>();
+                                            }
+                                            return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
+                                        })
+        .def_static("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
         ;
 
     // ========================================================================
@@ -342,6 +221,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ProjectNodalVariableOnTangentPlane", &GeometryUtilities::ProjectNodalVariableOnTangentPlane)
         .def("ExtractBoundaryNodes", &GeometryUtilities::ExtractBoundaryNodes)
         .def("ComputeDistancesToBoundingModelPart", &GeometryUtilities::ComputeDistancesToBoundingModelPart)
+        .def("CalculateLength",&GeometryUtilities::CalculateLength<ModelPart::ElementsContainerType>)
+        .def("CalculateLength",&GeometryUtilities::CalculateLength<ModelPart::ConditionsContainerType>)
         ;
 
     // ========================================================================

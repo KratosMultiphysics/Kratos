@@ -76,10 +76,11 @@ namespace Kratos {
                                              const double normal_contact_force) {
 
         //Get new Equivalent Radius
-        double equiv_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(Globals::Pi * element1->GetParticleConicalDamageMaxStress(),1.5));
+        Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
+        double equiv_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(Globals::Pi * properties_of_this_contact[CONICAL_DAMAGE_MAX_STRESS],1.5));
 
         if (equiv_radius_new > equiv_level_of_fouling * equiv_radius) {
-            const double AlphaFunction = element1->GetProperties()[CONICAL_DAMAGE_ALPHA_FUNCTION];
+            const double AlphaFunction = properties_of_this_contact[CONICAL_DAMAGE_ALPHA_FUNCTION];
             double offset = (equiv_radius_new - equiv_radius) * AlphaFunction;
             equiv_radius = equiv_radius_new;
 
@@ -117,12 +118,9 @@ namespace Kratos {
         ContactInfoSphericParticle* p_element1 = dynamic_cast<ContactInfoSphericParticle*>(element1);
         ContactInfoSphericParticle* p_element2 = dynamic_cast<ContactInfoSphericParticle*>(element2);
 
-        //Get equivalent Radius
-        const double my_radius      = p_element1->GetParticleConicalDamageContactRadius();
-        const double other_radius   = p_element2->GetParticleConicalDamageContactRadius();
-        const double radius_sum     = my_radius + other_radius;
-        const double radius_sum_inv = 1.0 / radius_sum;
-        double equiv_radius         = my_radius * other_radius * radius_sum_inv;
+        Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
+
+        double equiv_radius          = properties_of_this_contact[CONICAL_DAMAGE_CONTACT_RADIUS];
         double original_equiv_radius = equiv_radius;
 
         double elastic_indentation = indentation;
@@ -152,7 +150,7 @@ namespace Kratos {
             const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
             //Level of fouling in case it is considered
-            const double equiv_level_of_fouling = 0.5 * ((1.0 + p_element1->GetLevelOfFouling()) + (1.0 + p_element2->GetLevelOfFouling()));
+            const double equiv_level_of_fouling = 1.0 + properties_of_this_contact[LEVEL_OF_FOULING];
 
             InitializeDependentContact(equiv_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation);
 
@@ -160,7 +158,7 @@ namespace Kratos {
 
             double contact_stress = (3 * LocalElasticContactForce[2]) / (2 * Globals::Pi * equiv_level_of_fouling * equiv_radius * elastic_indentation);
 
-            if (contact_stress > p_element1->GetParticleConicalDamageMaxStress()) {
+            if (contact_stress > properties_of_this_contact[CONICAL_DAMAGE_MAX_STRESS]) {
                 DamageContact(p_element1, p_element2, equiv_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation, LocalElasticContactForce[2]);
                 if (elastic_indentation > 0.0) LocalElasticContactForce[2] = DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(elastic_indentation);
                 else LocalElasticContactForce[2] = 0.0;
@@ -220,10 +218,11 @@ namespace Kratos {
                                                     double& indentation,
                                                     const double normal_contact_force) {
         //Get new Equivalent Radius
-        double effective_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(Globals::Pi * element->GetParticleConicalDamageMaxStress(),1.5));
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        double effective_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(Globals::Pi * properties_of_this_contact[CONICAL_DAMAGE_MAX_STRESS],1.5));
 
         if (effective_radius_new > equiv_level_of_fouling * effective_radius) {
-            const double AlphaFunction = element->GetProperties()[CONICAL_DAMAGE_ALPHA_FUNCTION];
+            const double AlphaFunction = properties_of_this_contact[CONICAL_DAMAGE_ALPHA_FUNCTION];
             double offset = (effective_radius_new - effective_radius) * AlphaFunction;
             effective_radius = effective_radius_new;
 
@@ -259,7 +258,8 @@ namespace Kratos {
         ContactInfoSphericParticle* p_element = dynamic_cast<ContactInfoSphericParticle*>(element);
 
         //Get effective Radius
-        double effective_radius = p_element->GetParticleConicalDamageContactRadius();
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        double effective_radius = properties_of_this_contact[CONICAL_DAMAGE_CONTACT_RADIUS];
         double original_effective_radius = effective_radius;
 
         double elastic_indentation = indentation;
@@ -290,7 +290,7 @@ namespace Kratos {
 
 
             //Level of fouling in case it is considered
-            const double equiv_level_of_fouling = 1.0 + p_element->GetLevelOfFouling();
+            const double equiv_level_of_fouling = 1.0 + properties_of_this_contact[LEVEL_OF_FOULING];
 
             InitializeDependentContactWithFEM(effective_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation);
 
@@ -298,7 +298,7 @@ namespace Kratos {
 
             double contact_stress = (3 * LocalElasticContactForce[2]) / (2 * Globals::Pi * equiv_level_of_fouling * effective_radius * elastic_indentation);
 
-            if (contact_stress > p_element->GetParticleConicalDamageMaxStress()) {
+            if (contact_stress > properties_of_this_contact[CONICAL_DAMAGE_MAX_STRESS]) {
                 DamageContactWithFEM(p_element, wall, effective_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation, LocalElasticContactForce[2]);
                 if (elastic_indentation > 0.0) LocalElasticContactForce[2] = DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(elastic_indentation);
                 else LocalElasticContactForce[2] = 0.0;
@@ -344,12 +344,11 @@ namespace Kratos {
 
         const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
 
-        const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
-        const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
-        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
+        Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
+        const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
 
-        const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
-        const double equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mKt);
+        const double equiv_visco_damp_coeff_normal     = 2.0 * damping_gamma * sqrt(equiv_mass * mKn);
+        const double equiv_visco_damp_coeff_tangential = 2.0 * damping_gamma * sqrt(equiv_mass * mKt);
 
         ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
@@ -383,27 +382,17 @@ namespace Kratos {
 
         AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-        const double my_tg_of_static_friction_angle        = element1->GetTgOfStaticFrictionAngle();
-        const double neighbour_tg_of_static_friction_angle = element2->GetTgOfStaticFrictionAngle();
-        double equiv_tg_of_static_fri_ang            = 0.5 * (my_tg_of_static_friction_angle + neighbour_tg_of_static_friction_angle);
+        Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
 
-        const double my_tg_of_dynamic_friction_angle        = element1->GetTgOfDynamicFrictionAngle();
-        const double neighbour_tg_of_dynamic_friction_angle = element2->GetTgOfDynamicFrictionAngle();
-        double equiv_tg_of_dynamic_fri_ang            = 0.5 * (my_tg_of_dynamic_friction_angle + neighbour_tg_of_dynamic_friction_angle);
-
-        const double my_friction_decay_coefficient          = element1->GetFrictionDecayCoefficient();
-        const double neighbour_friction_decay_coefficient   = element2->GetFrictionDecayCoefficient();
-        double equiv_friction_decay_coefficient             = 0.5 * (my_friction_decay_coefficient + neighbour_friction_decay_coefficient);
-
-        if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
-            KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
-        }
+        double equiv_tg_of_static_fri_ang = properties_of_this_contact[STATIC_FRICTION];
+        double equiv_tg_of_dynamic_fri_ang = properties_of_this_contact[DYNAMIC_FRICTION];
+        double equiv_friction_decay_coefficient = properties_of_this_contact[FRICTION_DECAY];
 
         if (fabs(equiv_tg_of_static_fri_ang) > 1.0e-12 || fabs(equiv_tg_of_dynamic_fri_ang) > 1.0e-12) {
-            double critical_force = 0.166666667 * pow(Globals::Pi * element1->GetParticleConicalDamageMaxStress(), 3) * pow(original_equiv_radius / equiv_young, 2);
+            double critical_force = 0.166666667 * pow(Globals::Pi * properties_of_this_contact[CONICAL_DAMAGE_MAX_STRESS], 3) * pow(original_equiv_radius / equiv_young, 2);
             if (LocalElasticContactForce[2] > critical_force) {
                 double critical_force_inv = 1.0  / critical_force;
-                double wear_value = pow((LocalElasticContactForce[2] * critical_force_inv), element1->GetParticleConicalDamageGamma());
+                double wear_value = pow((LocalElasticContactForce[2] * critical_force_inv), properties_of_this_contact[CONICAL_DAMAGE_GAMMA]);
                 equiv_tg_of_static_fri_ang *= wear_value;
                 equiv_tg_of_dynamic_fri_ang *= wear_value;
             }
@@ -477,9 +466,12 @@ namespace Kratos {
                                                                  Condition* const wall) {
 
         const double my_mass    = element->GetMass();
-        const double gamma = element->GetProperties()[DAMPING_GAMMA];
-        const double normal_damping_coefficient     = 2.0 * gamma * sqrt(my_mass * mKn);
-        const double tangential_damping_coefficient = 2.0 * gamma * sqrt(my_mass * mKt);
+
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
+
+        const double normal_damping_coefficient     = 2.0 * damping_gamma * sqrt(my_mass * mKn);
+        const double tangential_damping_coefficient = 2.0 * damping_gamma * sqrt(my_mass * mKt);
 
         ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];
@@ -514,27 +506,17 @@ namespace Kratos {
 
         AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-        const double my_tg_of_static_friction_angle        = element->GetTgOfStaticFrictionAngle();
-        const double neighbour_tg_of_static_friction_angle = wall->GetProperties()[STATIC_FRICTION];
-        double equiv_tg_of_static_fri_ang            = 0.5 * (my_tg_of_static_friction_angle + neighbour_tg_of_static_friction_angle);
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
 
-        const double my_tg_of_dynamic_friction_angle        = element->GetTgOfDynamicFrictionAngle();
-        const double neighbour_tg_of_dynamic_friction_angle = wall->GetProperties()[DYNAMIC_FRICTION];
-        double equiv_tg_of_dynamic_fri_ang            = 0.5 * (my_tg_of_dynamic_friction_angle + neighbour_tg_of_dynamic_friction_angle);
-
-        const double my_friction_decay_coefficient          = element->GetFrictionDecayCoefficient();
-        const double neighbour_friction_decay_coefficient   = wall->GetProperties()[FRICTION_DECAY];
-        double equiv_friction_decay_coefficient             = 0.5 * (my_friction_decay_coefficient + neighbour_friction_decay_coefficient);
-
-        if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
-            KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element->Id()<<std::endl;
-        }
+        double equiv_tg_of_static_fri_ang = properties_of_this_contact[STATIC_FRICTION];
+        double equiv_tg_of_dynamic_fri_ang = properties_of_this_contact[DYNAMIC_FRICTION];
+        double equiv_friction_decay_coefficient = properties_of_this_contact[FRICTION_DECAY];
 
         if (fabs(equiv_tg_of_static_fri_ang) > 1.0e-12 || fabs(equiv_tg_of_dynamic_fri_ang) > 1.0e-12) {
-            double critical_force = 0.166666667 * pow(Globals::Pi * element->GetParticleConicalDamageMaxStress(), 3) * pow(original_effective_radius / equiv_young, 2);
+            double critical_force = 0.166666667 * pow(Globals::Pi * properties_of_this_contact[CONICAL_DAMAGE_MAX_STRESS], 3) * pow(original_effective_radius / equiv_young, 2);
             if (LocalElasticContactForce[2] > critical_force) {
                 double critical_force_inv = 1.0  / critical_force;
-                double wear_value = pow((LocalElasticContactForce[2] * critical_force_inv), element->GetParticleConicalDamageGamma());
+                double wear_value = pow((LocalElasticContactForce[2] * critical_force_inv), properties_of_this_contact[CONICAL_DAMAGE_GAMMA]);
                 equiv_tg_of_static_fri_ang *= wear_value;
                 equiv_tg_of_dynamic_fri_ang *= wear_value;
             }

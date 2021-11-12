@@ -28,36 +28,63 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Create a SubModelPart covering a part of the outside skin of the computation domain where a condition is met.
-/** For example, create the outer skin for the part of the domain belonging to a given SubModelPart.
-*/
+/**
+ * @class SubModelPartSkinDetectionProcess
+ * @brief Create a SubModelPart covering a part of the outside skin of the computation domain where a condition is met.
+ * @details For example, create the outer skin for the part of the domain belonging to a given SubModelPart.
+ */
 template<SizeType TDim>
 class KRATOS_API(KRATOS_CORE) SubModelPartSkinDetectionProcess: public SkinDetectionProcess<TDim>
 {
 
 KRATOS_DEFINE_LOCAL_FLAG( NODE_SELECTED );
 
-// Internal class used to select which faces to create.
+/**
+ * @class FaceSelector
+ * @brief Internal class used to select which faces to create.
+ */
 class FaceSelector
 {
 public:
-KRATOS_CLASS_POINTER_DEFINITION(FaceSelector);
-virtual ~FaceSelector() = default;
-virtual void Prepare(ModelPart& rMainModelPart) const = 0;
-virtual bool IsSelected(const Geometry<Node<3>>::PointsArrayType&) const = 0;
+    KRATOS_CLASS_POINTER_DEFINITION(FaceSelector);
+    virtual ~FaceSelector() = default;
+    virtual void Prepare(ModelPart& rMainModelPart) const = 0;
+    virtual bool IsSelected(const Geometry<Node<3>>::PointsArrayType&) const = 0;
 };
 
-// Select faces where all nodes belong to given SubModelPart.
+/**
+ * @class SelectIfOneNodeNotOnSubModelPart
+ * @brief Select faces where all nodes belong to given SubModelPart.
+ * @see FaceSelector
+ */
 class SelectIfAllNodesOnSubModelPart: public FaceSelector
 {
-std::string mName;
+    std::string mName;
+
 public:
-SelectIfAllNodesOnSubModelPart(const std::string& rName): mName(rName) {}
+    SelectIfAllNodesOnSubModelPart(const std::string& rName): mName(rName) {}
 
-void Prepare(ModelPart& rMainModelPart) const override;
+    void Prepare(ModelPart& rMainModelPart) const override;
 
-bool IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const override;
+    bool IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const override;
+};
 
+/**
+ * @class SelectIfOneNodeNotOnSubModelPart
+ * @brief Select faces where almost one node does not belong to the given SubModelParts.
+ * @see FaceSelector
+ * @author Miguel Maso
+ */
+class SelectIfOneNodeNotOnSubModelPart: public FaceSelector
+{
+    std::vector<std::string> mNames;
+
+public:
+    SelectIfOneNodeNotOnSubModelPart(const std::vector<std::string>& rNames): mNames(rNames) {}
+
+    void Prepare(ModelPart& rMainModelPart) const override;
+
+    bool IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const override;
 };
 
 public:

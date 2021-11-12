@@ -254,9 +254,10 @@ namespace Kratos
 		return rValues.CheckAllParameters();
 	}
 
-	int LinearElasticOrthotropic2DLaw::Check(const Properties& rMaterialProperties,
+	int LinearElasticOrthotropic2DLaw::Check(
+		const Properties& rMaterialProperties,
 		const GeometryType& rElementGeometry,
-		const ProcessInfo& rCurrentProcessInfo)
+		const ProcessInfo& rCurrentProcessInfo) const
 	{
         if(!rMaterialProperties.Has(SHELL_ORTHOTROPIC_LAYERS)) {
             KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS_X));

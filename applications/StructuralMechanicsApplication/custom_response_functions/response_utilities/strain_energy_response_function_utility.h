@@ -124,18 +124,22 @@ public:
 		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
 		for (auto& elem_i : mrModelPart.Elements())
 		{
-			Matrix LHS;
-			Vector RHS;
-			Vector u;
+			const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
+			if(element_is_active)
+			{
+				Matrix LHS;
+				Vector RHS;
+				Vector u;
 
-			// Get state solution relevant for energy calculation
-			const auto& rConstElemRef = elem_i;
-			rConstElemRef.GetValuesVector(u,0);
+				// Get state solution relevant for energy calculation
+				const auto& rConstElemRef = elem_i;
+				rConstElemRef.GetValuesVector(u,0);
 
-			elem_i.CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
+				elem_i.CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
 
-			// Compute strain energy
-			strain_energy += 0.5 * inner_prod(u,prod(LHS,u));
+				// Compute strain energy
+				strain_energy += 0.5 * inner_prod(u,prod(LHS,u));
+			}
 		}
 
 		return strain_energy;
@@ -250,44 +254,47 @@ protected:
 		// Computation of: \frac{1}{2} u^T \cdot ( - \frac{\partial K}{\partial x} )
 		for (auto& elem_i : mrModelPart.Elements())
 		{
-			Vector u;
-			Vector lambda;
-			Vector RHS;
-
-			// Get state solution
-			const auto& rConstElemRef = elem_i;
-			rConstElemRef.GetValuesVector(u,0);
-
-			// Get adjoint variables (Corresponds to 1/2*u)
-			lambda = 0.5*u;
-
-
-			double delta = mDelta;
-			if (mAdaptiveDelta){
-				delta *= elem_i.GetGeometry().DomainSize();
-			}
-
-			// Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
-			elem_i.CalculateRightHandSide(RHS, CurrentProcessInfo);
-			for (auto& node_i : elem_i.GetGeometry())
+			const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
+			if(element_is_active)
 			{
-				array_3d gradient_contribution(3, 0.0);
-				Vector derived_RHS = Vector(0);
+				Vector u;
+				Vector lambda;
+				Vector RHS;
 
-				// x-direction
-				FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_X, node_i, delta, derived_RHS, CurrentProcessInfo);
-				gradient_contribution[0] = inner_prod(lambda, derived_RHS);
+				// Get state solution
+				const auto& rConstElemRef = elem_i;
+				rConstElemRef.GetValuesVector(u,0);
 
-                // y-direction
-				FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Y, node_i, delta, derived_RHS, CurrentProcessInfo);
-				gradient_contribution[1] = inner_prod(lambda, derived_RHS);
+				// Get adjoint variables (Corresponds to 1/2*u)
+				lambda = 0.5*u;
 
-                // z-direction
-				FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Z, node_i, delta, derived_RHS, CurrentProcessInfo);
-				gradient_contribution[2] = inner_prod(lambda, derived_RHS);
+				double delta = mDelta;
+				if (mAdaptiveDelta){
+					delta *= elem_i.GetGeometry().DomainSize();
+				}
 
-				// Assemble sensitivity to node
-				noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
+				// Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
+				elem_i.CalculateRightHandSide(RHS, CurrentProcessInfo);
+				for (auto& node_i : elem_i.GetGeometry())
+				{
+					array_3d gradient_contribution(3, 0.0);
+					Vector derived_RHS = Vector(0);
+
+					// x-direction
+					FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_X, node_i, delta, derived_RHS, CurrentProcessInfo);
+					gradient_contribution[0] = inner_prod(lambda, derived_RHS);
+
+					// y-direction
+					FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Y, node_i, delta, derived_RHS, CurrentProcessInfo);
+					gradient_contribution[1] = inner_prod(lambda, derived_RHS);
+
+					// z-direction
+					FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Z, node_i, delta, derived_RHS, CurrentProcessInfo);
+					gradient_contribution[2] = inner_prod(lambda, derived_RHS);
+
+					// Assemble sensitivity to node
+					noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
+				}
 			}
 		}
 
@@ -296,10 +303,7 @@ protected:
 		{
 			//detect if the condition is active or not. If the user did not make any choice the element
 			//is active by default
-			bool condition_is_active = true;
-			if (cond_i.IsDefined(ACTIVE))
-				condition_is_active = cond_i.Is(ACTIVE);
-
+			const bool condition_is_active = cond_i.IsDefined(ACTIVE) ? cond_i.Is(ACTIVE) : true;
 			if (condition_is_active)
 			{
 				Vector u;
@@ -364,10 +368,7 @@ protected:
 		{
 			//detect if the condition is active or not. If the user did not make any choice the element
 			//is active by default
-			bool condition_is_active = true;
-			if (cond_i.IsDefined(ACTIVE))
-				condition_is_active = cond_i.Is(ACTIVE);
-
+			const bool condition_is_active = cond_i.IsDefined(ACTIVE) ? cond_i.Is(ACTIVE) : true;
 			if (condition_is_active)
 			{
 				Vector u;

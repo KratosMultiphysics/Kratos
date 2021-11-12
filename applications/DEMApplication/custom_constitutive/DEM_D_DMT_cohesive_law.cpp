@@ -3,8 +3,8 @@
 #include <iostream>
 
 // Project includes
-#include "../custom_constitutive/DEM_D_DMT_cohesive_law.h"
-#include "../custom_elements/spheric_particle.h"
+#include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
+#include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
 
@@ -24,7 +24,8 @@ namespace Kratos {
 
     double DEM_D_DMT_Cohesive_Law::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
 
-        const double equiv_cohesion = 0.5 * (element1->GetParticleCohesion() + element2->GetParticleCohesion());
+        Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
+        const double equiv_cohesion = properties_of_this_contact[PARTICLE_COHESION];
         const double my_radius      = element1->GetRadius();
         const double other_radius   = element2->GetRadius();
         const double radius_sum     = my_radius + other_radius;
@@ -37,10 +38,10 @@ namespace Kratos {
 
     double DEM_D_DMT_Cohesive_Law::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation) {
 
-        const double cohesion       = element->GetParticleCohesion(); // For the time being, this represents the Surface Energy
-        const double equiv_cohesion = 0.5 * (cohesion + wall->GetProperties()[WALL_COHESION]);
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        const double cohesion       = properties_of_this_contact[PARTICLE_COHESION]; // For the time being, this represents the Surface Energy
         const double equiv_radius   = element->GetRadius(); // Equivalent Radius for RIGID WALLS
-        const double cohesive_force = 2.0 * Globals::Pi * equiv_cohesion * equiv_radius;
+        const double cohesive_force = 2.0 * Globals::Pi * cohesion * equiv_radius;
 
         return cohesive_force;
     }

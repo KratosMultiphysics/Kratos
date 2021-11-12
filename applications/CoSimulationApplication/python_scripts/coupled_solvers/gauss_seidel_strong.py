@@ -1,5 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
+import KratosMultiphysics.CoSimulationApplication as KratosCoSim
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupled_solver import CoSimulationCoupledSolver
@@ -55,6 +56,8 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
         for conv_crit in self.convergence_criteria_list:
             conv_crit.InitializeSolutionStep()
 
+        self.process_info[KratosCoSim.COUPLING_ITERATION_NUMBER] = 0
+
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
 
@@ -67,6 +70,8 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
 
     def SolveSolutionStep(self):
         for k in range(self.num_coupling_iterations):
+            self.process_info[KratosCoSim.COUPLING_ITERATION_NUMBER] += 1
+
             if self.echo_level > 0:
                 cs_tools.cs_print_info(self._ClassName(), colors.cyan("Coupling iteration:"), colors.bold(str(k+1)+" / " + str(self.num_coupling_iterations)))
 

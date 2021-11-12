@@ -27,7 +27,6 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         "consistent_mapping"         : false,
         "improved_integration"       : false,
         "mesh_independent"           : false,
-        "normal"                     : false,
         "integration_method"         : "gauss_integration",
         "number_of_gauss_points"     : 5,
         "in_plane_morphing"          : false,
@@ -55,8 +54,6 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
              raise ValueError ("Matrix free mapper does not yet allow for an improved integration!")
         if mapper_settings["mesh_independent"].GetBool():
              raise ValueError ("Matrix free mapper does not yet allow for an mesh_independent mapping!")
-        if mapper_settings["normal"].GetBool():
-             raise ValueError ("Matrix free mapper does not yet allow for a normal mapping!")
         else:
             return KSO.MapperVertexMorphingMatrixFree(origin_model_part, destination_model_part, mapper_settings)
     else:
@@ -65,12 +62,8 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
 
         if mapper_settings["improved_integration"].GetBool():
             return KSO.MapperVertexMorphingImprovedIntegration(origin_model_part, destination_model_part, mapper_settings)
-        if mapper_settings["mesh_independent"].GetBool() and not mapper_settings["normal"].GetBool():
+        if mapper_settings["mesh_independent"].GetBool():
             return KSO.MapperVertexMorphingMeshIndependent(origin_model_part, destination_model_part, mapper_settings)
-        if mapper_settings["mesh_independent"].GetBool() and mapper_settings["normal"].GetBool():
-            return KSO.MapperVertexMorphingMeshIndependentNormal(origin_model_part, destination_model_part, mapper_settings)
-        if mapper_settings["normal"].GetBool():
-            return KSO.MapperVertexMorphingNormal(origin_model_part, destination_model_part, mapper_settings)
         elif mapper_settings["plane_symmetry"].GetBool():
             return KSO.MapperVertexMorphingSymmetric(origin_model_part, destination_model_part, mapper_settings)
         elif mapper_settings["revolution"].GetBool():

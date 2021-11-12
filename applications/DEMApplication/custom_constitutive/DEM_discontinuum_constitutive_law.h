@@ -4,13 +4,13 @@
 
 /* Project includes */
 #include "includes/define.h"
-#include "../custom_utilities/AuxiliaryFunctions.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
 #include "includes/serializer.h"
 #include "containers/flags.h"
 
-#include "../custom_utilities/GeometryFunctions.h"
-#include "../custom_elements/discrete_element.h"
-#include "../custom_elements/Particle_Contact_Element.h"
+#include "custom_utilities/GeometryFunctions.h"
+#include "custom_elements/discrete_element.h"
+#include "custom_elements/Particle_Contact_Element.h"
 #include "containers/array_1d.h"
 
 
@@ -30,8 +30,6 @@ namespace Kratos {
         DEMDiscontinuumConstitutiveLaw();
 
         DEMDiscontinuumConstitutiveLaw(const DEMDiscontinuumConstitutiveLaw &rReferenceDiscontinuumConstitutiveLaw);
-
-        virtual void Initialize(const ProcessInfo& r_process_info);
 
         virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true);
 

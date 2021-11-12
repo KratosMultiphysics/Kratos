@@ -112,38 +112,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    TrilinosLevelSetConvectionProcess(
-        Epetra_MpiComm& rEpetraCommunicator,
-        Variable<double>& rLevelSetVar,
-        ModelPart& rBaseModelPart,
-        LinearSolverPointerType pLinearSolver,
-        const double MaxCFL = 1.0,
-        const double CrossWindStabilizationFactor = 0.7,
-        const unsigned int MaxSubSteps = 0)
-        : BaseType(
-            rLevelSetVar,
-            VELOCITY,
-            rBaseModelPart,
-            MaxCFL,
-            MaxSubSteps)
-        , mrEpetraCommunicator(rEpetraCommunicator)
-    {
-        KRATOS_TRY
-
-        KRATOS_WARNING("TrilinosLevelSetConvectionProcess") << "This constructor is deprecated. Use the Parameters-based one." << std::endl;
-
-        this->SetConvectionProblemSettings(CrossWindStabilizationFactor);
-
-        const int row_size_guess = (TDim == 2 ? 15 : 40);
-        auto p_builder_and_solver = Kratos::make_shared< TrilinosBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>>(
-            mrEpetraCommunicator,
-            row_size_guess,
-            pLinearSolver);
-        InitializeConvectionStrategy(p_builder_and_solver);
-
-        KRATOS_CATCH("")
-    }
-
     /// Copy constructor.
     TrilinosLevelSetConvectionProcess(TrilinosLevelSetConvectionProcess const& rOther) = delete;
 
@@ -256,26 +224,20 @@ protected:
 
         // Generating the elements
         (BaseType::mpDistanceModelPart->Elements()).reserve(rBaseModelPart.NumberOfElements());
+        KRATOS_ERROR_IF(BaseType::mpConvectionFactoryElement == nullptr) << "Convection factory element has not been set yet." << std::endl;
         for (auto it_elem = rBaseModelPart.ElementsBegin(); it_elem != rBaseModelPart.ElementsEnd(); ++it_elem){
-            Element::Pointer p_element;
-            if (this->mIsAlgebraicStabilization){
-                p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplexAlgebraicStabilization < TDim, TDim+1 > >(
-                    it_elem->Id(),
-                    it_elem->pGetGeometry(),
-                    it_elem->pGetProperties());
-            } else {
-                p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
-                    it_elem->Id(),
-                    it_elem->pGetGeometry(),
-                    it_elem->pGetProperties());
-            }
-
-            // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
-            p_element->pGetGeometry() = it_elem->pGetGeometry();
+            // Create the new element from the factory registered one
+            auto p_element = BaseType::mpConvectionFactoryElement->Create(
+                it_elem->Id(),
+                it_elem->pGetGeometry(),
+                it_elem->pGetProperties());
 
             (BaseType::mpDistanceModelPart->Elements()).push_back(p_element);
             (BaseType::mpDistanceModelPart->GetCommunicator()).LocalMesh().Elements().push_back(p_element);
         }
+
+        // Initialize the nodal and elemental databases
+        BaseType::InitializeDistanceModelPartDatabases();
 
         // Resize the arrays
         const auto n_nodes = BaseType::mpDistanceModelPart->NumberOfNodes();

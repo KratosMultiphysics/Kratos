@@ -269,6 +269,17 @@ public:
         KRATOS_CATCH("");
     }
 
+
+    template <class TContainerType>
+    double CalculateLength(TContainerType& rContainer)
+    {
+        double length = block_for_each<SumReduction<double>>(rContainer, [&](typename TContainerType::value_type& rEntity){
+            return rEntity.GetGeometry().Length();
+        });
+
+        return length;
+    }
+
     // --------------------------------------------------------------------------
 
     ///@}

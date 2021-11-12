@@ -21,6 +21,8 @@ namespace Kratos {
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
+        void SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose) override;
+
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
         void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double bonded_equiv_young,
@@ -29,18 +31,7 @@ namespace Kratos {
 
         void ComputeNormalUnbondedForce(double indentation) override;
 
-        void CalculateViscoDamping(double LocalRelVel[3],
-                                         double ViscoDampingLocalContactForce[3],
-                                         double indentation,
-                                         double equiv_visco_damp_coeff_normal,
-                                         double equiv_visco_damp_coeff_tangential,
-                                         bool& sliding,
-                                         int failure_id) override;
-        
         double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
-
-        double mUnbondedEquivViscoDampCoeffTangential;
-        double mUnbondedEquivViscoDampCoeffNormal;
 
     private:
 

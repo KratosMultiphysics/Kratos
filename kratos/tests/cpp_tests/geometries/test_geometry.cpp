@@ -127,10 +127,28 @@ namespace Testing {
           return "Kratos_Point3D";
         case GeometryData::Kratos_Sphere3D1 :
           return "Kratos_Sphere3D1";
-        case GeometryData::Kratos_Brep_Surface:
-          return "Kratos_Brep_Surface";
+        case GeometryData::Kratos_Nurbs_Curve:
+          return "Kratos_Nurbs_Curve";
+        case GeometryData::Kratos_Nurbs_Surface:
+          return "Kratos_Nurbs_Surface";
+        case GeometryData::Kratos_Nurbs_Volume:
+          return "Kratos_Nurbs_Volume";
+        case GeometryData::Kratos_Nurbs_Curve_On_Surface:
+          return "Kratos_Nurbs_Curve_On_Surface";
+        case GeometryData::Kratos_Surface_In_Nurbs_Volume:
+          return "Kratos_Surface_In_Nurbs_Volume";
         case GeometryData::Kratos_Brep_Curve:
           return "Kratos_Brep_Curve";
+        case GeometryData::Kratos_Brep_Surface:
+          return "Kratos_Brep_Surface";
+        case GeometryData::Kratos_Brep_Curve_On_Surface:
+          return "Kratos_Brep_Curve_On_Surface";
+        case GeometryData::Kratos_Quadrature_Point_Geometry:
+          return "Kratos_Quadrature_Point_Geometry";
+        case GeometryData::Kratos_Quadrature_Point_Curve_On_Surface_Geometry:
+          return "Kratos_Quadrature_Point_Curve_On_Surface_Geometry";
+        case GeometryData::Kratos_Quadrature_Point_Surface_In_Volume_Geometry:
+          return "Kratos_Quadrature_Point_Surface_In_Volume_Geometry";
       };
 
       return "UnknownGeometry";

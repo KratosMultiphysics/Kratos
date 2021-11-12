@@ -3,7 +3,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/triangle )
 include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr )
 
-SET(ListFolders sources conditions constraints containers elements factories geometries includes integration linear_solvers modeler modified_shape_functions processes response_functions solving_strategies spaces spatial_containers utilities)
+SET(ListFolders sources conditions constraints containers elements factories geometries includes integration linear_solvers mappers modeler modified_shape_functions processes response_functions solving_strategies spaces spatial_containers utilities)
 
 ## Kratos main source code
 SET(LIST_OF_SOURCE_EXCEPTIONS
@@ -134,6 +134,10 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS Kratos DESTINATION libs )
 install(TARGETS KratosCore DESTINATION libs)
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};Kratos" PARENT_SCOPE)
 
 # Mpi
 if(${USE_MPI} MATCHES ON )

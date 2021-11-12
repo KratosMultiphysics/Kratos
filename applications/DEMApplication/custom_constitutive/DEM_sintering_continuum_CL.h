@@ -13,6 +13,9 @@
 namespace Kratos {
 
 	class KRATOS_API(DEM_APPLICATION) DEM_sintering_continuum : public DEM_KDEM {
+
+		typedef DEM_KDEM BaseClassType;
+
 	public:
 
 		KRATOS_CLASS_POINTER_DEFINITION(DEM_sintering_continuum);

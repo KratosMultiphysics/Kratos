@@ -125,7 +125,8 @@ class AdaptiveRefinement(object):
             model_coarse.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
             model_coarse.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
             model_coarse.GetModelPart(model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED, False)
-            if (problem_type in ["monolithic", "FractionalStep"]):
+
+            if (problem_type in ["monolithic", "FractionalStep", "potential_flow"]):
                 model_coarse.GetModelPart(model_part_name).RemoveSubModelPart("fluid_computational_model_part")
 
             # the refinement process empties the coarse model part object and fill it with the refined model part

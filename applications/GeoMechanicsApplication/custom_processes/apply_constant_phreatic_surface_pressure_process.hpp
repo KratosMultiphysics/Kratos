@@ -207,8 +207,8 @@ private:
         }
         double norm = std::sqrt(sum);
         if (!(norm > 0.0))
-            KRATOS_THROW_ERROR(std::invalid_argument, 
-                               "Normal vector to phreatic surface has zero size!","")
+            KRATOS_ERROR << "Normal vector to phreatic surface has zero size!"
+                         << std::endl;
 
         mEqRHS = 0.0;
         for (unsigned int i=0; i < mFirstReferenceCoordinate.size(); ++i)

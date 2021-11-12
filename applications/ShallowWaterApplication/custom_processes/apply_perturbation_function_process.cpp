@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/checks.h"
+#include "utilities/parallel_utilities.h"
 #include "apply_perturbation_function_process.h"
 
 
@@ -73,21 +74,18 @@ void ApplyPerturbationFunctionProcess<TVarType>::Execute()
 template<class TVarType>
 void ApplyPerturbationFunctionProcess<TVarType>::ExecuteBeforeSolutionLoop()
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++)
-    {
-        auto i_node = mrModelPart.NodesBegin() + i;
-        double distance = ComputeDistance(*i_node.base());
-        double& r_value = i_node->FastGetSolutionStepValue(mrVariable);
+    block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+        double distance = ComputeDistance(rNode);
+        double& r_value = rNode.FastGetSolutionStepValue(mrVariable);
         r_value = ComputeInitialValue(distance);
-    }
+    });
 }
 
 
 template<class TVarType>
-double ApplyPerturbationFunctionProcess<TVarType>::ComputeDistance(NodePointerType pNode)
+double ApplyPerturbationFunctionProcess<TVarType>::ComputeDistance(NodeType& rNode)
 {
-    array_1d<double, 3>& coord = pNode->Coordinates();
+    array_1d<double, 3>& coord = rNode.Coordinates();
     double sqr_distance = std::pow(mInfluenceDistance, 2) + 1.0;
     for (IndexType i = 0; i < mSourcePoints.size(); i++)
     {

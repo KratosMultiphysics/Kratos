@@ -73,23 +73,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    OptimizationUtilities( ModelPart& designSurface, Parameters optimizationSettings )
-        : mrDesignSurface( designSurface ),
-          mOptimizationSettings( optimizationSettings )
-    {
-        // Initialize member variables for penalized projection
-        std::string algorithm_name = optimizationSettings["optimization_algorithm"]["name"].GetString();
-        if(algorithm_name == "penalized_projection")
-          mCorrectionScaling = optimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble();
-    }
-
-    /// Destructor.
-    virtual ~OptimizationUtilities()
-    {
-    }
-
-
     ///@}
     ///@name Operators
     ///@{
@@ -102,44 +85,43 @@ public:
     // ==============================================================================
     // General optimization operations
     // ==============================================================================
-    template<typename TVariable>
-    void ComputeControlPointUpdate(const double StepSize, const TVariable& rSearchDirection, const TVariable& rControlUpdate) //TODO
+    static void ComputeControlPointUpdate(ModelPart& rModelPart, const double StepSize, const bool Normalize)
     {
         KRATOS_TRY;
 
         // Normalize if specified
-        if(mOptimizationSettings["optimization_algorithm"]["line_search"]["normalize_search_direction"].GetBool())
+        if(Normalize)
         {
-            const double max_norm_search_dir = ComputeMaxNormOfNodalVariable(rSearchDirection);
+            const double max_norm_search_dir = ComputeMaxNormOfNodalVariable(rModelPart, SEARCH_DIRECTION);
             if(max_norm_search_dir>1e-10)
-                for (auto & node_i : mrDesignSurface.Nodes())
+                for (auto & node_i : rModelPart.Nodes())
                 {
-                    node_i.FastGetSolutionStepValue(rSearchDirection) /= max_norm_search_dir;
+                    array_3d& search_dir = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
+                    search_dir/=max_norm_search_dir;
                 }
             else
-                KRATOS_WARNING("ShapeOpt::ComputeControlPointUpdate") << "Normalization of search direction by max norm activated but max norm is < 1e-10. Hence normalization is ommited!" << std::endl;
+                KRATOS_WARNING("ShapeOpt::ComputeControlPointUpdate") << "Normalization of search direction by max norm activated but max norm is < 1e-10. Hence normalization is omitted!" << std::endl;
         }
 
         // Compute update
-        for (auto & node_i : mrDesignSurface.Nodes())
-            node_i.FastGetSolutionStepValue(rControlUpdate) = StepSize * node_i.FastGetSolutionStepValue(rSearchDirection); //TODO noalias with double?
+        for (auto & node_i : rModelPart.Nodes())
+            noalias(node_i.FastGetSolutionStepValue(CONTROL_POINT_UPDATE)) = StepSize * node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
 
         KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
-    template<typename TVariable>
-    void AddFirstVariableToSecondVariable( const TVariable &rFirstVariable, const TVariable &rSecondVariable )
+    static void AddFirstVariableToSecondVariable( ModelPart& rModelPart, const Variable<array_3d> &rFirstVariable, const Variable<array_3d> &rSecondVariable )
     {
-        for (auto & node_i : mrDesignSurface.Nodes())
-            node_i.FastGetSolutionStepValue(rSecondVariable) += node_i.FastGetSolutionStepValue(rFirstVariable); //TODO noalias with double?
+        for (auto & node_i : rModelPart.Nodes())
+            noalias(node_i.FastGetSolutionStepValue(rSecondVariable)) += node_i.FastGetSolutionStepValue(rFirstVariable);
     }
 
     // --------------------------------------------------------------------------
-    double ComputeL2NormOfNodalVariable( const Variable<array_3d> &rVariable)
+    static double ComputeL2NormOfNodalVariable( ModelPart& rModelPart, const Variable<array_3d> &rVariable)
     {
         double l2_norm = 0.0;
-        for (auto & node_i : mrDesignSurface.Nodes())
+        for (auto & node_i : rModelPart.Nodes())
         {
             array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
             l2_norm += inner_prod(variable_vector,variable_vector);
@@ -148,10 +130,10 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    double ComputeL2NormOfNodalVariable( const Variable<double> &rVariable)
+    static double ComputeL2NormOfNodalVariable(ModelPart& rModelPart, const Variable<double> &rVariable)
     {
         double l2_norm = 0.0;
-        for (auto & node_i : mrDesignSurface.Nodes())
+        for (auto & node_i : rModelPart.Nodes())
         {
             double &value = node_i.FastGetSolutionStepValue(rVariable);
             l2_norm += value*value;
@@ -160,10 +142,10 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    double ComputeMaxNormOfNodalVariable( const Variable<array_3d> &rVariable)
+    static double ComputeMaxNormOfNodalVariable(ModelPart& rModelPart, const Variable<array_3d> &rVariable)
     {
         double max_norm = 0.0;
-        for (auto & node_i : mrDesignSurface.Nodes())
+        for (auto & node_i : rModelPart.Nodes())
         {
             array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
             double squared_value = inner_prod(variable_vector,variable_vector);
@@ -174,10 +156,10 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    double ComputeMaxNormOfNodalVariable( const Variable<double> &rVariable)
+    static double ComputeMaxNormOfNodalVariable(ModelPart& rModelPart, const Variable<double> &rVariable)
     {
         double max_norm = 0.0;
-        for (auto & node_i : mrDesignSurface.Nodes())
+        for (auto & node_i : rModelPart.Nodes())
         {
             double &value = node_i.FastGetSolutionStepValue(rVariable);
             double squared_value = value*value;
@@ -190,8 +172,7 @@ public:
     // ==============================================================================
     // For running unconstrained descent methods
     // ==============================================================================
-    template <typename TVariable>
-    void ComputeSearchDirectionSteepestDescent(const TVariable& rSearchDirection, const TVariable& rGradient)
+    static void ComputeSearchDirectionSteepestDescent(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
@@ -200,9 +181,9 @@ public:
         KRATOS_INFO("ShapeOpt") << "No constraints given or active. The negative objective gradient is chosen as search direction..." << std::endl;
 
         // search direction is negative of filtered gradient
-        for (auto & node_i : mrDesignSurface.Nodes())
+        for (auto & node_i : rModelPart.Nodes())
         {
-            node_i.FastGetSolutionStepValue(rSearchDirection) = -1.0 * node_i.FastGetSolutionStepValue(rGradient);
+            node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) = -1.0 * node_i.FastGetSolutionStepValue(DF1DX_MAPPED);
         }
 
         KRATOS_CATCH("");
@@ -211,18 +192,7 @@ public:
     // ==============================================================================
     // For running penalized projection method
     // ==============================================================================
-    double _InnerProd(const array_3d& rVec1, const array_3d& rVec2) const
-    {
-        return inner_prod(rVec1, rVec2);
-    }
-
-    double _InnerProd(double Val1, double Val2) const
-    {
-        return Val1 * Val2;
-    }
-
-    template <typename TVariable>
-    void ComputeProjectedSearchDirection(const TVariable& rSearchDirection, const TVariable& rObjectiveGradient, const TVariable& rConstraintGradient)
+    static void ComputeProjectedSearchDirection(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
@@ -232,10 +202,10 @@ public:
 
         // Compute norm of constraint gradient
         double norm_2_dCds_i = 0.0;
-        for (auto & node_i : mrDesignSurface.Nodes())
+        for (auto & node_i : rModelPart.Nodes())
         {
-        	auto& dCds_i = node_i.FastGetSolutionStepValue(rConstraintGradient);
-            norm_2_dCds_i += _InnerProd(dCds_i,dCds_i);
+        	auto& dCds_i = node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
+            norm_2_dCds_i += inner_prod(dCds_i,dCds_i);
         }
         norm_2_dCds_i = std::sqrt(norm_2_dCds_i);
 
@@ -245,109 +215,98 @@ public:
 
         // Compute dot product of objective gradient and normalized constraint gradient
         double dot_dFds_dCds = 0.0;
-        for (auto & node_i : mrDesignSurface.Nodes())
+        for (auto & node_i : rModelPart.Nodes())
         {
-        	auto& dFds_i = node_i.FastGetSolutionStepValue(rObjectiveGradient);
-        	auto& dCds_i = node_i.FastGetSolutionStepValue(rConstraintGradient);
-            dot_dFds_dCds += _InnerProd(dFds_i,(dCds_i / norm_2_dCds_i));
+        	auto& dFds_i = node_i.FastGetSolutionStepValue(DF1DX_MAPPED);
+        	auto& dCds_i = node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
+            dot_dFds_dCds += inner_prod(dFds_i,(dCds_i / norm_2_dCds_i));
         }
 
         // Compute and assign projected search direction
-        for (auto & node_i : mrDesignSurface.Nodes())
+        for (auto & node_i : rModelPart.Nodes())
         {
-        	auto& dFds_i = node_i.FastGetSolutionStepValue(rObjectiveGradient);
-        	auto& dCds_i = node_i.FastGetSolutionStepValue(rConstraintGradient);
+        	auto& dFds_i = node_i.FastGetSolutionStepValue(DF1DX_MAPPED);
+        	auto& dCds_i = node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
 
         	auto projection_term = dot_dFds_dCds * (dCds_i / norm_2_dCds_i);
 
-            node_i.FastGetSolutionStepValue(rSearchDirection) = -1 * (dFds_i - projection_term);
+            node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) = -1 * (dFds_i - projection_term);
         }
 
         KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
-    template <typename TVariable>
-    void CorrectProjectedSearchDirection(double constraint_value, const TVariable& rSearchDirection, const TVariable& rConstraintGradient)
+    static double CorrectProjectedSearchDirection(ModelPart& rModelPart, const double PrevConstraintValue, const double ConstraintValue, const double CorrectionScaling, const bool IsAdaptive )
     {
-        mConstraintValue = constraint_value;
-
         // Check correction necessary
-        if(mConstraintValue==0)
-         return;
+        if(ConstraintValue==0)
+         return CorrectionScaling;
 
         // Perform correction
-        double correction_factor = ComputeCorrectionFactor(rSearchDirection, rConstraintGradient);
-    	for (auto & node_i : mrDesignSurface.Nodes())
+        double correction_scaling = CorrectionScaling;
+        double correction_factor = ComputeCorrectionFactor(rModelPart, PrevConstraintValue, ConstraintValue, correction_scaling, IsAdaptive);
+    	for (auto & node_i : rModelPart.Nodes())
     	{
-    		auto correction_term = node_i.FastGetSolutionStepValue(rConstraintGradient);
-            correction_term *= correction_factor * mConstraintValue;
-    		node_i.FastGetSolutionStepValue(rSearchDirection) -= correction_term;
+    		array_3d correction_term = correction_factor * ConstraintValue * node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
+    		node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) -= correction_term;
     	}
 
-        // Store constraint value for next correction step
-        mPreviousConstraintValue = mConstraintValue;
+        return correction_scaling;
     }
 
     // --------------------------------------------------------------------------
-    template <typename TVariable>
-    double ComputeCorrectionFactor(const TVariable& rSearchDirection, const TVariable& rConstraintGradient)
+    static double ComputeCorrectionFactor(ModelPart& rModelPart, const double PrevConstraintValue, const double ConstraintValue, double& CorrectionScaling, const bool IsAdaptive)
     {
     	double norm_correction_term = 0.0;
     	double norm_search_direction = 0.0;
-    	for (auto & node_i : mrDesignSurface.Nodes())
+    	for (auto & node_i : rModelPart.Nodes())
     	{
-    		auto correction_term = mConstraintValue * node_i.FastGetSolutionStepValue(rConstraintGradient);
-    		norm_correction_term += _InnerProd(correction_term,correction_term);
+    		array_3d correction_term = ConstraintValue * node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
+    		norm_correction_term += inner_prod(correction_term,correction_term);
 
-    		const auto& ds = node_i.FastGetSolutionStepValue(rSearchDirection);
-    		norm_search_direction += _InnerProd(ds,ds);
+    		const auto& ds = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
+    		norm_search_direction += inner_prod(ds,ds);
     	}
     	norm_correction_term = std::sqrt(norm_correction_term);
     	norm_search_direction = std::sqrt(norm_search_direction);
 
-        if(mOptimizationSettings["optimization_algorithm"]["use_adaptive_correction"].GetBool())
+        if(IsAdaptive)
         {
             // Adapt constraint scaling
 
             // Three cases need to be covered
             // 1) In case we have two subsequently decreasing constraint values --> correction is fine --> leave current correction scaling
             // 2) In case the correction jumps over the constraint (change of sign) --> correction was too big --> reduce
-            if(mConstraintValue*mPreviousConstraintValue<0.0)
+            if(ConstraintValue*PrevConstraintValue<0.0)
             {
-                mCorrectionScaling *= 0.5;
+                CorrectionScaling *= 0.5;
                 KRATOS_INFO("ShapeOpt") << "Correction scaling needs to decrease...." << std::endl;
             }
             // 3) In case we have subsequently increasing constraint value --> correction was too low --> increase
-            if(std::abs(mConstraintValue)>std::abs(mPreviousConstraintValue) && mConstraintValue*mPreviousConstraintValue>0)
+            if(std::abs(ConstraintValue)>std::abs(PrevConstraintValue) && ConstraintValue*PrevConstraintValue>0)
             {
                 KRATOS_INFO("ShapeOpt") << "Correction scaling needs to increase...." << std::endl;
-                mCorrectionScaling = std::min(mCorrectionScaling*2,1.0);
+                CorrectionScaling = std::min(CorrectionScaling*2,1.0);
             }
         }
 
-    	return mCorrectionScaling * norm_search_direction / norm_correction_term;
-    }
-
-    // --------------------------------------------------------------------------
-    double GetCorrectionScaling() const
-    {
-        return mCorrectionScaling;
+    	return CorrectionScaling * norm_search_direction / norm_correction_term;
     }
 
     /**
      * Assemble the values of the nodal vector variable into a vector
      */
-    void AssembleVector(
+    static void AssembleVector( ModelPart& rModelPart,
         Vector& rVector,
         const Variable<array_3d> &rVariable)
     {
-        if (rVector.size() != mrDesignSurface.NumberOfNodes()*3){
-            rVector.resize(mrDesignSurface.NumberOfNodes()*3);
+        if (rVector.size() != rModelPart.NumberOfNodes()*3){
+            rVector.resize(rModelPart.NumberOfNodes()*3);
         }
 
         int i=0;
-        for (auto & node_i : mrDesignSurface.Nodes())
+        for (auto & node_i : rModelPart.Nodes())
         {
             array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
             rVector[i*3+0] = variable_vector[0];
@@ -360,15 +319,15 @@ public:
     /**
      * Assigns the values of a vector to the nodal vector variables
      */
-    void AssignVectorToVariable(
+    static void AssignVectorToVariable(ModelPart& rModelPart,
         const Vector& rVector,
         const Variable<array_3d> &rVariable)
     {
-        KRATOS_ERROR_IF(rVector.size() != mrDesignSurface.NumberOfNodes()*3)
+        KRATOS_ERROR_IF(rVector.size() != rModelPart.NumberOfNodes()*3)
             << "AssignVectorToVariable: Vector size does not mach number of Nodes!" << std::endl;
 
         int i=0;
-        for (auto & node_i : mrDesignSurface.Nodes())
+        for (auto & node_i : rModelPart.Nodes())
         {
             array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
             variable_vector[0] = rVector[i*3+0];
@@ -382,17 +341,17 @@ public:
      * Assemble the values of the nodal vector variables into a dense matrix.
      * One column per variable is created.
      */
-    void AssembleMatrix(
+    static void AssembleMatrix(ModelPart& rModelPart,
         Matrix& rMatrix,
         const std::vector<Variable<array_3d>*>& rVariables
-    ) const
+    )
     {
-        if ((rMatrix.size1() != mrDesignSurface.NumberOfNodes()*3 || rMatrix.size2() !=  rVariables.size())){
-            rMatrix.resize(mrDesignSurface.NumberOfNodes()*3, rVariables.size());
+        if ((rMatrix.size1() != rModelPart.NumberOfNodes()*3 || rMatrix.size2() !=  rVariables.size())){
+            rMatrix.resize(rModelPart.NumberOfNodes()*3, rVariables.size());
         }
 
         int i=0;
-        for (auto & node_i : mrDesignSurface.Nodes())
+        for (auto & node_i : rModelPart.Nodes())
         {
             int j=0;
             for (Variable<array_3d>* p_variable_j : rVariables)
@@ -408,79 +367,13 @@ public:
         }
     }
 
-
-    /**
-     * Assemble the values of the nodal scalar variable into a vector
-     */
-    void AssembleVector(
-        Vector& rVector,
-        const Variable<double> &rVariable)
-    {
-        if (rVector.size() != mrDesignSurface.NumberOfNodes()){
-            rVector.resize(mrDesignSurface.NumberOfNodes());
-        }
-
-        int i=0;
-        for (auto & node_i : mrDesignSurface.Nodes())
-        {
-            rVector[i] = node_i.FastGetSolutionStepValue(rVariable);
-            ++i;
-        }
-    }
-
-    /**
-     * Assigns the values of a vector to the nodal scalar variables
-     */
-    void AssignVectorToVariable(
-        const Vector& rVector,
-        const Variable<double> &rVariable)
-    {
-        KRATOS_ERROR_IF(rVector.size() != mrDesignSurface.NumberOfNodes())
-            << "AssignVectorToVariable: Vector size does not mach number of Nodes!" << std::endl;
-
-        int i=0;
-        for (auto & node_i : mrDesignSurface.Nodes())
-        {
-            node_i.FastGetSolutionStepValue(rVariable) = rVector[i];
-            ++i;
-        }
-    }
-
-    /**
-     * Assemble the values of the nodal scalar variables into a dense matrix.
-     * One column per variable is created.
-     */
-    void AssembleMatrix(
-        Matrix& rMatrix,
-        const std::vector<Variable<double>*>& rVariables
-    ) const
-    {
-        if ((rMatrix.size1() != mrDesignSurface.NumberOfNodes() || rMatrix.size2() !=  rVariables.size())){
-            rMatrix.resize(mrDesignSurface.NumberOfNodes(), rVariables.size());
-        }
-
-        int i=0;
-        for (auto & node_i : mrDesignSurface.Nodes())
-        {
-            int j=0;
-            for (Variable<double>* p_variable_j : rVariables)
-            {
-                const Variable<double>& r_variable_j = *p_variable_j;
-                rMatrix(i, j) = node_i.FastGetSolutionStepValue(r_variable_j);
-                ++j;
-            }
-            ++i;
-        }
-    }
-
-
     /**
      * Calculate the projection of the objective gradient into the subspace tangent to
      * the active constraint gradients.
      * In a second step, calculate the restoration move accounting for the current violation of the constraints.
      * Variable naming and implementation based on https://msulaiman.org/onewebmedia/GradProj_2.pdf
      */
-    void CalculateProjectedSearchDirectionAndCorrection(
+    static void CalculateProjectedSearchDirectionAndCorrection(
         Vector& rObjectiveGradient,
         Matrix& rConstraintGradients,
         Vector& rConstraintValues,
@@ -521,23 +414,6 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "OptimizationUtilities";
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "OptimizationUtilities";
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-    }
 
 
     ///@}
@@ -596,11 +472,6 @@ private:
     // ==============================================================================
     // Initialized by class constructor
     // ==============================================================================
-    ModelPart& mrDesignSurface;
-    Parameters mOptimizationSettings;
-    double mConstraintValue = 0.0;
-    double mPreviousConstraintValue = 0.0;
-    double mCorrectionScaling = 1.0;
 
     ///@}
     ///@name Private Operators

@@ -175,7 +175,7 @@ void AxisymmetricUpdatedLagrangianUPElement::SetValuesOnIntegrationPoints( const
 //************************************************************************************
 
 
-void AxisymmetricUpdatedLagrangianUPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void AxisymmetricUpdatedLagrangianUPElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -195,7 +195,7 @@ void AxisymmetricUpdatedLagrangianUPElement::GetValueOnIntegrationPoints( const 
   }
   else{
 
-    LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 
@@ -205,11 +205,11 @@ void AxisymmetricUpdatedLagrangianUPElement::GetValueOnIntegrationPoints( const 
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianUPElement::Initialize()
+void AxisymmetricUpdatedLagrangianUPElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    LargeDisplacementElement::Initialize();
+    LargeDisplacementElement::Initialize(rCurrentProcessInfo);
 
     SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
@@ -1145,7 +1145,7 @@ double& AxisymmetricUpdatedLagrangianUPElement::CalculateTotalMass( double& rTot
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void AxisymmetricUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1263,7 +1263,7 @@ double& AxisymmetricUpdatedLagrangianUPElement::CalculateVolumeChange( double& r
 //************************************************************************************
 //************************************************************************************
 
-int AxisymmetricUpdatedLagrangianUPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int AxisymmetricUpdatedLagrangianUPElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

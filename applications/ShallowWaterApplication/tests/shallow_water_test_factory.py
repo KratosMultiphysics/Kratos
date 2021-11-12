@@ -21,9 +21,9 @@ class ShallowWaterTestFactory(KratosUnittest.TestCase):
             test = ShallowWaterAnalysis(model, ProjectParameters)
             test.Run()
 
-class TestLagrangianShallowWaterElement(ShallowWaterTestFactory):
+class TestSemiLagrangianShallowWaterElement(ShallowWaterTestFactory):
     execution_directory = "elements_tests"
-    execution_file = "lagrangian_swe"
+    execution_file = "semi_lagrangian_swe"
 
 class TestShallowWaterElement(ShallowWaterTestFactory):
     execution_directory = "elements_tests"
@@ -52,6 +52,11 @@ class TestVisualizationMeshProcess(ShallowWaterTestFactory):
 class TestMacDonaldShockBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "mac_donald_shock_benchmark"
+    need_scipy = True
+
+class TestMacDonaldTransitionBenchmark(ShallowWaterTestFactory):
+    execution_directory = "processes_tests"
+    execution_file = "mac_donald_transition_benchmark"
     need_scipy = True
 
 class TestDamBreakBenchmark(ShallowWaterTestFactory):

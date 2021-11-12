@@ -63,7 +63,10 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(BasicGenericFunctionUti
 
 BasicGenericFunctionUtility::~BasicGenericFunctionUtility()
 {
-    te_free(mpTinyExpr);
+    for (std::size_t i = 0; i < mpTinyExpr.size(); ++i) {
+        te_free(mpTinyExpr[i]);
+        mpTinyExpr[i] =  nullptr;
+    }
 }
 
 /***********************************************************************************/
@@ -116,7 +119,16 @@ double BasicGenericFunctionUtility::CallFunction(
     mValues[5] = Y;
     mValues[6] = Z;
 
-    return te_eval(mpTinyExpr);
+    // Default function
+    if (mpTinyExpr.size() == 1) {
+      return te_eval(mpTinyExpr[0]);
+    } else { // Ternary expression
+      if (te_eval(mpTinyExpr[0]) > 0.0) {
+          return te_eval(mpTinyExpr[1]);
+      } else {
+          return te_eval(mpTinyExpr[2]);
+      }
+    }
 }
 
 /***********************************************************************************/
@@ -125,7 +137,7 @@ double BasicGenericFunctionUtility::CallFunction(
 void BasicGenericFunctionUtility::InitializeParser()
 {
     // Initialize
-    if (mpTinyExpr == nullptr) {
+    if (mpTinyExpr[0] == nullptr) {
         int err;
 
         /* Defining table */
@@ -141,7 +153,67 @@ void BasicGenericFunctionUtility::InitializeParser()
         const te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"X", &X}, {"Y", &Y}, {"Z", &Z}};
 
         /* Compile the expression with variables. */
-        mpTinyExpr = te_compile(mFunctionBody.c_str(), vars, 7, &err);
+        const bool python_like_ternary = StringUtilities::ContainsPartialString(mFunctionBody, "if") ? true : false;
+        if (!python_like_ternary) {
+            mpTinyExpr[0] = te_compile(mFunctionBody.c_str(), vars, 7, &err);
+            KRATOS_ERROR_IF_NOT(mpTinyExpr[0]) << "Parsing error in function: " << mFunctionBody << std::endl;
+        } else { // Ternary operator
+            mpTinyExpr.resize(3, nullptr);
+            std::string condition, first_function, second_function;
+
+            // C like ternary operator
+            std::vector<std::string> splitted_string;
+            KRATOS_ERROR_IF_NOT(StringUtilities::ContainsPartialString(mFunctionBody, "else")) << "Parsing error in function: " << mFunctionBody << " if defined, but not else" << std::endl;
+            std::string aux_string = StringUtilities::ReplaceAllSubstrings(mFunctionBody, "if", "$");
+            KRATOS_ERROR_IF(splitted_string.size() > 2) << "Nested ternary functions not supported" << std::endl;
+            splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '$');
+            first_function = splitted_string[0];
+            aux_string = StringUtilities::ReplaceAllSubstrings(splitted_string[1], "else", "$");
+            splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '$');
+            condition = splitted_string[0];
+            second_function = splitted_string[1];
+
+            // Parsing the functions
+            mpTinyExpr[1] = te_compile(first_function.c_str(), vars, 7, &err);
+            KRATOS_ERROR_IF_NOT(mpTinyExpr[1]) << "Parsing error in function: " << first_function << std::endl;
+
+            mpTinyExpr[2] = te_compile(second_function.c_str(), vars, 7, &err);
+            KRATOS_ERROR_IF_NOT(mpTinyExpr[2]) << "Parsing error in function: " << second_function << std::endl;
+
+            // Parsing the condition
+            if (StringUtilities::ContainsPartialString(condition, "==")) {
+                // Auxiliar string function
+                const std::string aux_string = StringUtilities::ReplaceAllSubstrings(condition, "==", "=");
+                splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '=');
+                const std::string aux_function = "zIsEqual(" + splitted_string[0] + ", " + splitted_string[1] + ")";
+                mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
+            } else if (StringUtilities::ContainsPartialString(condition, "<=")) {
+                // Auxiliar string function
+                const std::string aux_string = StringUtilities::ReplaceAllSubstrings(condition, "<=", "<");
+                splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '<');
+                const std::string aux_function = "zIsLessEqual(" + splitted_string[0] + ", " + splitted_string[1] + ")";
+                mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
+            } else if (StringUtilities::ContainsPartialString(condition, ">=")) {
+                // Auxiliar string function
+                const std::string aux_string = StringUtilities::ReplaceAllSubstrings(condition, ">=", ">");
+                splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '>');
+                const std::string aux_function = "zIsGreaterEqual(" + splitted_string[0] + ", " + splitted_string[1] + ")";
+                mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
+            } else if (StringUtilities::ContainsPartialString(condition, "<")) {
+                // Auxiliar string function
+                splitted_string = StringUtilities::SplitStringByDelimiter(condition, '<');
+                const std::string aux_function = "zIsLess(" + splitted_string[0] + ", " + splitted_string[1] + ")";
+                mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
+            } else if (StringUtilities::ContainsPartialString(condition, ">")) {
+                // Auxiliar string function
+                splitted_string = StringUtilities::SplitStringByDelimiter(condition, '>');
+                const std::string aux_function = "zIsGreater(" + splitted_string[0] + ", " + splitted_string[1] + ")";
+                mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
+            } else {
+                KRATOS_ERROR << "Cannot identify condition: " << condition << std::endl;
+            }
+            KRATOS_ERROR_IF_NOT(mpTinyExpr[0]) << "Parsing error in function: " << condition << std::endl;
+        }
     }
 }
 

@@ -1192,10 +1192,28 @@ private:
             return std::string("Kratos_Point3D");
         case GeometryData::Kratos_Sphere3D1 :
             return std::string("Kratos_Sphere3D1");
-        case GeometryData::Kratos_Brep_Surface:
-            return std::string("Kratos_Brep_Surface");
+        case GeometryData::Kratos_Nurbs_Curve:
+            return std::string("Kratos_Nurbs_Curve");
+        case GeometryData::Kratos_Nurbs_Surface:
+            return std::string("Kratos_Nurbs_Surface");
+        case GeometryData::Kratos_Nurbs_Volume:
+            return std::string("Kratos_Nurbs_Volume");
+        case GeometryData::Kratos_Nurbs_Curve_On_Surface:
+            return std::string("Kratos_Nurbs_Curve_On_Surface");
+        case GeometryData::Kratos_Surface_In_Nurbs_Volume:
+            return std::string("Kratos_Surface_In_Nurbs_Volume");
         case GeometryData::Kratos_Brep_Curve:
             return std::string("Kratos_Brep_Curve");
+        case GeometryData::Kratos_Brep_Surface:
+            return std::string("Kratos_Brep_Surface");
+        case GeometryData::Kratos_Brep_Curve_On_Surface:
+            return std::string("Kratos_Brep_Curve_On_Surface");
+        case GeometryData::Kratos_Quadrature_Point_Geometry:
+            return std::string("Kratos_Quadrature_Point_Geometry");
+        case GeometryData::Kratos_Quadrature_Point_Curve_On_Surface_Geometry:
+            return std::string("Kratos_Quadrature_Point_Curve_On_Surface_Geometry");
+        case GeometryData::Kratos_Quadrature_Point_Surface_In_Volume_Geometry:
+            return std::string("Kratos_Quadrature_Point_Surface_In_Volume_Geometry");
         };
 
         return std::string("UnknownGeometry");

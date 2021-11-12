@@ -226,7 +226,8 @@ namespace Testing
         Geometry<Point>::CoordinatesArrayType global_coords;
         Geometry<Point>::CoordinatesArrayType local_coords;
 
-        geom->ProjectionPoint(point.Coordinates(), global_coords, local_coords);
+        geom->ProjectionPointGlobalToLocalSpace(point.Coordinates(), local_coords);
+        geom->GlobalCoordinates(global_coords, local_coords);
 
         // Manually project
         const auto center = geom->Center();

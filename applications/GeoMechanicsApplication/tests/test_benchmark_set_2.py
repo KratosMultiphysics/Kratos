@@ -23,8 +23,7 @@ class KratosGeoMechanicsBenchmarkSet2(KratosUnittest.TestCase):
 
     def test_benchmark2_1(self):
         """
-        In this benchmark a two stage model is tested, where a simple clay dike is put on top of a sand layer.
-        The test is calculated using gravity loading. And UDSM-Mohr-Coulomb
+        In this benchmark a two stage model is tested, where a simple clay dike is put on top of a sand layer. The test is calculated using gravity loading. And UDSM-Mohr-Coulomb.
 
         This test compares minimum, maximum stress in the last stage.
 
@@ -61,8 +60,7 @@ class KratosGeoMechanicsBenchmarkSet2(KratosUnittest.TestCase):
 
     def test_benchmark2_2(self):
         """
-        In this benchmark a two stage model is tested, where a simple clay dike is put on top of a sand layer.
-        The test is calculated using gravity loading. And UMAT-Mohr-Coulomb
+        In this benchmark a two stage model is tested, where a simple clay dike is put on top of a sand layer. The test is calculated using gravity loading. And UMAT-Mohr-Coulomb
 
         This test compares minimum, maximum stress in the last stage.
 

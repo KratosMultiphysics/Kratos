@@ -48,6 +48,8 @@ KRATOS_TEST_CASE_IN_SUITE(GenericFunctionUtility1, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(function4.UseLocalSystem());
     KRATOS_CHECK_STRING_EQUAL(function4.FunctionBody(), "(cos(x*pi)+sin(y*pi))*t");
     KRATOS_CHECK_DOUBLE_EQUAL(function4.CallFunction(0.25,0.15,0.0,1.5), 1.5*(std::cos(0.25*Globals::Pi) + std::sin(0.15*Globals::Pi)));
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(GenericFunctionUtility("A quien le importa lo que yo haga A quien le importa lo que yo diga  Yo soy asi, y asi seguire, nunca cambiare"), "Error: Parsing error in function: A quien le importa lo que yo haga A quien le importa lo que yo diga  Yo soy asi, y asi seguire, nunca cambiare");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GenericFunctionUtility2, KratosCoreFastSuite)
@@ -86,7 +88,6 @@ KRATOS_TEST_CASE_IN_SUITE(FunctionParser, KratosCoreFastSuite)
     auto function4 = parser_function4.GetFunction();
     KRATOS_CHECK_DOUBLE_EQUAL(function4(0.25,0.15,0.0,1.5), 1.5*(std::cos(0.25*Globals::Pi) + std::sin(0.15*Globals::Pi)));
 }
-    
+
 }   // namespace Testing
 }  // namespace Kratos.
-

@@ -21,15 +21,15 @@
 #include "custom_mappers/nearest_element_mapper.h"
 #include "custom_utilities/mapper_mpi_define.h"
 #include "custom_utilities/mapper_mpi_backend.h"
-#include "custom_utilities/mapper_factory.h"
-#include "custom_python/add_mapper_to_python.h"
+#include "factories/mapper_factory.h"
+#include "python/add_mapper_to_python.h"
 
 namespace Kratos {
 namespace Python {
 
 PYBIND11_MODULE(KratosMappingMPIExtension,m)
 {
-    AddMapperToPython<MPIMapperDefinitions::SparseSpaceType, MPIMapperDefinitions::DenseSpaceType>(m);
+    AddMappingToPython<MPIMapperDefinitions::SparseSpaceType, MPIMapperDefinitions::DenseSpaceType>(m);
 
     // Macros for registering mappers
     // wil be removed once using the core factories

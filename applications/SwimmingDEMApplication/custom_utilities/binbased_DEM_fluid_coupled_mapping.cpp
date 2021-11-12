@@ -223,7 +223,8 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::VariingR
     ModelPart& r_fluid_model_part,
     const double& search_radius,
     const double& shape_factor, // it is the density function's maximum divided by its support's radius
-    bool must_search)
+    bool must_search,
+    bool use_drew_model)
 {
     KRATOS_TRY
 
@@ -269,7 +270,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::VariingR
             //NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
             ParticleType& particle = dynamic_cast<ParticleType&> (*mSwimmingSphereElementPointers[i]);
 
-            ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], fluid_variables[j]);
+            ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], fluid_variables[j], use_drew_model);
         }
     }
 
@@ -283,7 +284,8 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
     ModelPart& r_fluid_model_part,
     const double& search_radius,
     const double& shape_factor, // it is the density function's maximum divided by its support's radius
-    bool must_search)
+    bool must_search,
+    bool use_drew_model)
 {
     KRATOS_TRY
 
@@ -320,19 +322,27 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
 
     for (unsigned int j = 0; j != fluid_variables.size(); ++j){
         const auto& variable = *fluid_variables[j];
-        if (mVariables.Is(variable, "FluidTimeFiltered")){ // hold the current value in an auxiliary variable
+        if (mVariables.Is(variable, "FluidTimeFiltered") && variable != FLUID_FRACTION){ // hold the current value in an auxiliary variable
             CopyValues(r_fluid_model_part, variable);
-            SetToZero(r_fluid_model_part, variable);
+            if (variable == PARTICLE_VEL_FILTERED) SetToZero(r_fluid_model_part, variable);
         }
 
         for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
             ParticleType& particle = dynamic_cast<ParticleType&> (*mSwimmingSphereElementPointers[i]);
-            ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], fluid_variables[j]);
+            ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], fluid_variables[j], use_drew_model);
         }
 
-        if (mVariables.Is(variable, "FluidTimeFiltered")){ // average current avalue and previous (averaged) value
-            ApplyExponentialTimeFiltering(r_fluid_model_part, variable);
+        // if (mVariables.Is(variable, "FluidTimeFiltered")){ // average current avalue and previous (averaged) value
+        //     ApplyExponentialTimeFiltering(r_fluid_model_part, variable);
+        // }
+
+        if (mVariables.Is(PARTICLE_VEL_FILTERED, "FluidTimeFiltered") && variable == PARTICLE_VEL_FILTERED){ // average current avalue and previous (averaged) value
+            ApplyExponentialTimeFiltering(r_fluid_model_part, PARTICLE_VEL_FILTERED, TIME_AVERAGED_ARRAY_3);
         }
+        if (mVariables.Is(GetBodyForcePerUnitMassVariable(), "FluidTimeFiltered") && variable == GetBodyForcePerUnitMassVariable()){ // average current avalue and previous (averaged) value
+            ApplyExponentialTimeFiltering(r_fluid_model_part, GetBodyForcePerUnitMassVariable(), TIME_AVERAGED_BODY_FORCE);
+        }
+
     }
 
     KRATOS_CATCH("")
@@ -385,7 +395,11 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CopyValu
         CopyValues(r_model_part, static_cast<const Variable<double>& >(r_origin_variable), TIME_AVERAGED_DOUBLE);
     }
 
-    else if (mVariables.Is(r_origin_variable, "Vector")){
+    else if (r_origin_variable == GetBodyForcePerUnitMassVariable()){
+        CopyValues(r_model_part, static_cast<const Variable<array_1d<double, 3> >& >(r_origin_variable), TIME_AVERAGED_BODY_FORCE);
+    }
+
+    else if (r_origin_variable == PARTICLE_VEL_FILTERED){
         CopyValues(r_model_part, static_cast<const Variable<array_1d<double, 3> >& >(r_origin_variable), TIME_AVERAGED_ARRAY_3);
     }
 
@@ -995,16 +1009,17 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ComputeH
     const ParticleType& particle,
     const ResultNodesContainerType& neighbours,
     const DistanceType& weights,
-    const VariableData *r_destination_variable)
+    const VariableData *r_destination_variable,
+    bool use_drew_model)
 {
     if (*r_destination_variable == GetBodyForcePerUnitMassVariable()){
         //TransferByAveraging(p_node, neighbours, weights, GetBodyForcePerUnitMassVariable(), HYDRODYNAMIC_FORCE);
-        TransferByAveraging(particle, neighbours, weights, GetBodyForcePerUnitMassVariable(), HYDRODYNAMIC_FORCE);
+        TransferByAveraging(particle, neighbours, weights, GetBodyForcePerUnitMassVariable(), HYDRODYNAMIC_FORCE, use_drew_model);
     }
 
     if (*r_destination_variable == PARTICLE_VEL_FILTERED){
         //TransferByAveraging(p_node, neighbours, weights, TIME_AVERAGED_ARRAY_3, VELOCITY);
-        TransferByAveraging(particle, neighbours, weights, PARTICLE_VEL_FILTERED, VELOCITY);
+        TransferByAveraging(particle, neighbours, weights, PARTICLE_VEL_FILTERED, VELOCITY, use_drew_model);
     }
 }
 
@@ -1302,7 +1317,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
             }
 
             if (mTimeAveragingType == 0){
-                noalias(body_force)                         = hydrodynamic_reaction + mGravity;
+                noalias(body_force)                         += hydrodynamic_reaction;
             }
 
             else {
@@ -1311,7 +1326,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
                 noalias(mean_hydrodynamic_reaction)            += hydrodynamic_reaction;
                 mean_hydrodynamic_reaction                      = 1.0 / (mNumberOfDEMSamplesSoFarInTheCurrentFluidStep + 1) * mean_hydrodynamic_reaction;
 
-                noalias(body_force)                             = mean_hydrodynamic_reaction + mGravity;
+                noalias(body_force)                             += mean_hydrodynamic_reaction;
             }
         }
     }
@@ -1420,7 +1435,8 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
     const ResultNodesContainerType& neighbours,
     const DistanceType& weights,
     const Variable<array_1d<double, 3> >& r_destination_variable,
-    const Variable<array_1d<double, 3> >& r_origin_variable)
+    const Variable<array_1d<double, 3> >& r_origin_variable,
+    bool use_drew_model)
 {
     const Node<3>& node = particle.GetGeometry()[0];
     if (node.IsNot(INSIDE)){
@@ -1434,9 +1450,17 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
         for (unsigned int i = 0; i != neighbours.size(); ++i){
             const double area = neighbours[i]->FastGetSolutionStepValue(NODAL_AREA);
             const double fluid_density = neighbours[i]->FastGetSolutionStepValue(DENSITY);
-            const double fluid_fraction =  neighbours[i]->FastGetSolutionStepValue(FLUID_FRACTION);
+            const double fluid_fraction = neighbours[i]->FastGetSolutionStepValue(FLUID_FRACTION);
+            double denominator;
             array_1d<double, 3> contribution;
-            const double denominator = area * fluid_density * fluid_fraction;
+
+            if (use_drew_model == true) {
+                denominator = area * fluid_density;
+            }
+            else{
+                denominator = area * fluid_density * fluid_fraction;
+            }
+
             if (denominator < 1.0e-15){
                 noalias(contribution) = - weights[i] * origin_data;
             }
@@ -1449,7 +1473,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
             hydrodynamic_reaction += contribution;
 
             if (mTimeAveragingType == 0){
-                noalias(body_force) = hydrodynamic_reaction + mGravity;
+                noalias(body_force) += hydrodynamic_reaction;
             }
 
             else {
@@ -1457,7 +1481,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
                 mean_hydrodynamic_reaction = std::max(1, mNumberOfDEMSamplesSoFarInTheCurrentFluidStep)* mean_hydrodynamic_reaction;
                 mean_hydrodynamic_reaction += hydrodynamic_reaction;
                 mean_hydrodynamic_reaction = 1.0 / (mNumberOfDEMSamplesSoFarInTheCurrentFluidStep + 1) * mean_hydrodynamic_reaction;
-                noalias(body_force) = mean_hydrodynamic_reaction + mGravity;
+                noalias(body_force) += mean_hydrodynamic_reaction;
             }
         }
     }

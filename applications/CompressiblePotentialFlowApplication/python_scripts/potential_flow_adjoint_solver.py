@@ -55,6 +55,16 @@ class PotentialFlowAdjointFormulation(PotentialFlowFormulation):
         self.element_name = "AdjointEmbeddedCompressiblePotentialFlowElement"
         self.condition_name = "AdjointPotentialWallCondition"
 
+    def _SetUpIncompressiblePerturbationElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "",
+            "gradient_mode": ""
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "AdjointIncompressiblePerturbationPotentialFlowElement"
+        self.condition_name = "AdjointPotentialWallCondition"
+
 def CreateSolver(model, custom_settings):
     return PotentialFlowAdjointSolver(model, custom_settings)
 
@@ -130,6 +140,10 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         computing_model_part = self.GetComputingModelPart()
         if self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
             response_function = KCPFApp.AdjointLiftJumpCoordinatesResponseFunction(
+                computing_model_part,
+                self.response_function_settings)
+        elif self.response_function_settings["response_type"].GetString() == "adjoint_lift_far_field":
+            response_function = KCPFApp.AdjointLiftFarFieldResponseFunction(
                 computing_model_part,
                 self.response_function_settings)
         else:

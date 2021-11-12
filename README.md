@@ -1,6 +1,6 @@
 <p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>
 
-[![Release][release-image]][releases] [![License][license-image]][license] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI]
+[![Release][release-image]][releases] [![License][license-image]][license] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI] [![Twitter][twitter-image]][twitter]
 
 [release-image]: https://img.shields.io/badge/release-8.1-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
@@ -12,8 +12,10 @@
 [Nightly-link]: https://github.com/KratosMultiphysics/Kratos/actions?query=workflow%3A%22Nightly+Build%22
 
 [DOI-image]: https://zenodo.org/badge/DOI/10.5281/zenodo.3234644.svg
-
 [DOI]: https://doi.org/10.5281/zenodo.3234644
+
+[twitter-image]: https://img.shields.io/twitter/follow/kratosmultiphys.svg?label=Follow&style=social
+[twitter]: https://twitter.com/kratosmultiphys
 
 _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](https://github.com/KratosMultiphysics/Kratos/wiki/Overview)
 
