@@ -1130,64 +1130,47 @@ protected:
             K_disp_modified_ptr_aux2[i] = 0;
         });
 
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for (int i=0; i<static_cast<int>(master_size); i++) {
-
-                IndexType K_disp_modified_cols_aux2 = 0;
-
-                // Get access to master_auxKSAN data
-                if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(master_auxKSAN, i, K_disp_modified_cols_aux2);
-                }
-
-                // Get access to master_auxKSAM data
-                if (master_auxKSAM.nnz() > 0) {
-                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(master_auxKSAM, i, K_disp_modified_cols_aux2);
-                }
-
-                // Get access to master_auxKSASI data
-                if (master_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(master_auxKSASI, i, K_disp_modified_cols_aux2);
-                }
-
-                // Get access to master_auxKSASA data
-                if (master_auxKSASA.nnz() > 0 && slave_active_size > 0) {
-                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(master_auxKSASA, i, K_disp_modified_cols_aux2);
-                }
-
-                K_disp_modified_ptr_aux2[master_dof_initial_index + i + 1] = K_disp_modified_cols_aux2;
+        IndexPartition<std::size_t>(master_size).for_each([&](std::size_t i) {
+            IndexType K_disp_modified_cols_aux2 = 0;
+            // Get access to master_auxKSAN data
+            if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(master_auxKSAN, i, K_disp_modified_cols_aux2);
             }
-
-            #pragma omp for
-            for (int i=0; i<static_cast<int>(slave_active_size); i++) {
-
-                IndexType K_disp_modified_cols_aux2 = 0;
-
-                // Get access to aslave_auxKSAN data
-                if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(aslave_auxKSAN, i, K_disp_modified_cols_aux2);
-                }
-
-                // Get access to aslave_auxKSAM data
-                if (aslave_auxKSAM.nnz() > 0 && master_size > 0) {
-                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(aslave_auxKSAM, i, K_disp_modified_cols_aux2);
-                }
-
-                // Get access to aslave_auxKSASI data
-                if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(aslave_auxKSASI, i, K_disp_modified_cols_aux2);
-                }
-
-                // Get access to aslave_auxKSASA data
-                if (aslave_auxKSASA.nnz() > 0) {
-                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(aslave_auxKSASA, i, K_disp_modified_cols_aux2);
-                }
-
-                K_disp_modified_ptr_aux2[assembling_slave_dof_initial_index + i + 1] = K_disp_modified_cols_aux2;
+            // Get access to master_auxKSAM data
+            if (master_auxKSAM.nnz() > 0) {
+                SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(master_auxKSAM, i, K_disp_modified_cols_aux2);
             }
-        }
+            // Get access to master_auxKSASI data
+            if (master_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(master_auxKSASI, i, K_disp_modified_cols_aux2);
+            }
+            // Get access to master_auxKSASA data
+            if (master_auxKSASA.nnz() > 0 && slave_active_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(master_auxKSASA, i, K_disp_modified_cols_aux2);
+            }
+            K_disp_modified_ptr_aux2[master_dof_initial_index + i + 1] = K_disp_modified_cols_aux2;
+        });
+
+        IndexPartition<std::size_t>(slave_active_size).for_each([&](std::size_t i) {
+            IndexType K_disp_modified_cols_aux2 = 0;
+            // Get access to aslave_auxKSAN data
+            if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(aslave_auxKSAN, i, K_disp_modified_cols_aux2);
+            }
+            // Get access to aslave_auxKSAM data
+            if (aslave_auxKSAM.nnz() > 0 && master_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(aslave_auxKSAM, i, K_disp_modified_cols_aux2);
+            }
+            // Get access to aslave_auxKSASI data
+            if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(aslave_auxKSASI, i, K_disp_modified_cols_aux2);
+            }
+            // Get access to aslave_auxKSASA data
+            if (aslave_auxKSASA.nnz() > 0) {
+                SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(aslave_auxKSASA, i, K_disp_modified_cols_aux2);
+            }
+            K_disp_modified_ptr_aux2[assembling_slave_dof_initial_index + i + 1] = K_disp_modified_cols_aux2;
+        });
 
         // We initialize the final sparse matrix
         std::partial_sum(K_disp_modified_ptr_aux2, K_disp_modified_ptr_aux2 + nrows + 1, K_disp_modified_ptr_aux2);
@@ -1195,60 +1178,47 @@ protected:
         IndexType* aux_index2_K_disp_modified_aux2 = new IndexType[nonzero_values_aux2];
         double* aux_val_K_disp_modified_aux2 = new double[nonzero_values_aux2];
 
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for (int i=0; i<static_cast<int>(master_size); i++) {
-                const IndexType row_beg = K_disp_modified_ptr_aux2[master_dof_initial_index + i];
-                IndexType row_end = row_beg;
-
-                // Get access to master_auxKSAN data
-                if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(master_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
-                }
-
-                // Get access to master_auxKSAM data
-                if (master_auxKSAM.nnz() > 0) {
-                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(master_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
-                }
-
-                // Get access to master_auxKSASI data
-                if (master_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(master_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
-                }
-
-                // Get access to master_auxKSASA data
-                if (master_auxKSASA.nnz() > 0 && slave_active_size > 0) {
-                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(master_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
-                }
+        IndexPartition<std::size_t>(master_size).for_each([&](std::size_t i) {
+            const IndexType row_beg = K_disp_modified_ptr_aux2[master_dof_initial_index + i];
+            IndexType row_end = row_beg;
+            // Get access to master_auxKSAN data
+            if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(master_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
             }
-
-            #pragma omp for
-            for (int i=0; i<static_cast<int>(slave_active_size); i++) {
-                const IndexType row_beg = K_disp_modified_ptr_aux2[assembling_slave_dof_initial_index + i];
-                IndexType row_end = row_beg;
-
-                // Get access to aslave_auxKSAN data
-                if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(aslave_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
-                }
-
-                // Get access to aslave_auxKSAM data
-                if (aslave_auxKSAM.nnz() > 0 && master_size > 0) {
-                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(aslave_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
-                }
-
-                // Get access to aslave_auxKSASI data
-                if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(aslave_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
-                }
-
-                // Get access to aslave_auxKSASA data
-                if (aslave_auxKSASA.nnz() > 0) {
-                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(aslave_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
-                }
+            // Get access to master_auxKSAM data
+            if (master_auxKSAM.nnz() > 0) {
+                SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(master_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
             }
-        }
+            // Get access to master_auxKSASI data
+            if (master_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(master_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
+            }
+            // Get access to master_auxKSASA data
+            if (master_auxKSASA.nnz() > 0 && slave_active_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(master_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
+            }
+        });
+
+        IndexPartition<std::size_t>(slave_active_size).for_each([&](std::size_t i) {
+            const IndexType row_beg = K_disp_modified_ptr_aux2[assembling_slave_dof_initial_index + i];
+            IndexType row_end = row_beg;
+            // Get access to aslave_auxKSAN data
+            if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(aslave_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
+            }
+            // Get access to aslave_auxKSAM data
+            if (aslave_auxKSAM.nnz() > 0 && master_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(aslave_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
+            }
+            // Get access to aslave_auxKSASI data
+            if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(aslave_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
+            }
+            // Get access to aslave_auxKSASA data
+            if (aslave_auxKSASA.nnz() > 0) {
+                SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(aslave_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
+            }
+        });
 
         // Create the second auxiliar matrix
         SparseMatrixType K_disp_modified_aux2(nrows, ncols);
