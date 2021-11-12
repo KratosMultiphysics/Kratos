@@ -62,6 +62,10 @@ def Factory(settings, Model):
         [
             "VTKOutputProcess",
             KratosRANS.RansVTKOutputProcess
+        ],
+        [
+            "OmegaViscousLogWallProcess",
+            KratosRANS.RansOmegaViscousLogWallProcess
         ]
     ]
 
