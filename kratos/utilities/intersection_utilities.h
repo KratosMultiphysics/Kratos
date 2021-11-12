@@ -19,7 +19,6 @@
 
 /* Project includes */
 #include "includes/define.h"
-#include "includes/node.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos

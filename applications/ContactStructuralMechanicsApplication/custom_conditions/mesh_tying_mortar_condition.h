@@ -1,7 +1,7 @@
 // KRATOS    ______            __             __  _____ __                  __                   __
 //          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
-//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
-//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
@@ -612,12 +612,12 @@ protected:
         // Setting the auxiliar integration points
         const IndexType integration_order = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
         switch (integration_order) {
-            case 1: return GeometryData::GI_GAUSS_1;
-            case 2: return GeometryData::GI_GAUSS_2;
-            case 3: return GeometryData::GI_GAUSS_3;
-            case 4: return GeometryData::GI_GAUSS_4;
-            case 5: return GeometryData::GI_GAUSS_5;
-            default: return GeometryData::GI_GAUSS_2;
+            case 1: return GeometryData::IntegrationMethod::GI_GAUSS_1;
+            case 2: return GeometryData::IntegrationMethod::GI_GAUSS_2;
+            case 3: return GeometryData::IntegrationMethod::GI_GAUSS_3;
+            case 4: return GeometryData::IntegrationMethod::GI_GAUSS_4;
+            case 5: return GeometryData::IntegrationMethod::GI_GAUSS_5;
+            default: return GeometryData::IntegrationMethod::GI_GAUSS_2;
         }
     }
 
