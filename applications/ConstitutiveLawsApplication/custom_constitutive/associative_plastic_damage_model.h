@@ -730,7 +730,7 @@ public:
         std::function<double(const double, const double, const Properties &, const PlasticDamageParameters &rPDParameters)> &rF,
         std::function<double(const double, const double, const Properties&, const PlasticDamageParameters &rPDParameters)>& rdF_dk,
         const Properties &rMatProps,
-        const PlasticDamageParameters &rPDParameters);
+        PlasticDamageParameters &rPDParameters);
 
 protected:
 
