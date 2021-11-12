@@ -82,6 +82,10 @@ public:
         mpDofUpdater = Kratos::make_unique<DofUpdaterType>(mRelaxationFactor);        
     }  
 
+    void InitilaizeDofUpdater(){
+        mpDofUpdater->InitializeAitken();
+    }
+
     ~SteadyScalarScheme() override = default;
 
     ///@}

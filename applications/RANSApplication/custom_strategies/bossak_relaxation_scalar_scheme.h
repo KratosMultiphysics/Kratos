@@ -89,6 +89,23 @@ public:
         mSecondDerivativeValuesVectorOld.resize(num_threads);
     }
 
+    BossakRelaxationScalarScheme(
+        const double AlphaBossak,
+        const double RelaxationFactor,
+        const Variable<double>& rScalarVariable,
+        VtkOutput::Pointer pVtkOutput)
+    : BaseType(RelaxationFactor, pVtkOutput),
+        mAlphaBossak(AlphaBossak),
+        mrScalarVariable(rScalarVariable)
+    {
+        // Allocate auxiliary memory.
+        const int num_threads = OpenMPUtils::GetNumThreads();
+
+        mMassMatrix.resize(num_threads);
+        mSecondDerivativeValuesVector.resize(num_threads);
+        mSecondDerivativeValuesVectorOld.resize(num_threads);
+    }
+
     /// Destructor.
     ~BossakRelaxationScalarScheme() override = default;
 

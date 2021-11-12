@@ -43,7 +43,8 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     using SteadyScalarSchemeType = SteadyScalarScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<SteadyScalarSchemeType, typename SteadyScalarSchemeType::Pointer, BaseSchemeType>(m, "SteadyScalarScheme")
         .def(py::init<const double>())
-        .def(py::init<const double, VtkOutput::Pointer>());
+        .def(py::init<const double, VtkOutput::Pointer>())
+        .def("InitilaizeDofUpdater", &SteadyScalarSchemeType::InitilaizeDofUpdater);
 
     using AlgebraicFluxCorrectedSteadyScalarSchemeType = AlgebraicFluxCorrectedSteadyScalarScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<AlgebraicFluxCorrectedSteadyScalarSchemeType, typename AlgebraicFluxCorrectedSteadyScalarSchemeType::Pointer, BaseSchemeType>(m, "AlgebraicFluxCorrectedSteadyScalarScheme")
@@ -52,7 +53,8 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 
     using BossakRelaxationScalarSchemeType = BossakRelaxationScalarScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<BossakRelaxationScalarSchemeType, typename BossakRelaxationScalarSchemeType::Pointer, BaseSchemeType>(m, "BossakRelaxationScalarScheme")
-        .def(py::init<const double, const double, const Variable<double>&>());
+        .def(py::init<const double, const double, const Variable<double>&>())
+        .def(py::init<const double, const double, const Variable<double>&, VtkOutput::Pointer>());
 
 }
 
