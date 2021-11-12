@@ -84,7 +84,7 @@ void AdjointDiffusionElement<PrimalElement>::CalculateRightHandSide(
 }
 
 template<class PrimalElement>
-void AdjointDiffusionElement<PrimalElement>::GetValuesVector(Vector& rValues, int Step) const 
+void AdjointDiffusionElement<PrimalElement>::GetValuesVector(Vector& rValues, int Step) const
 {
     const GeometryType& r_geom = this->GetGeometry();
     const unsigned int num_nodes = r_geom.PointsNumber();
@@ -296,6 +296,176 @@ void AdjointDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
     }
 
     KRATOS_CATCH("")
+}
+
+template<class PrimalElement>
+void AdjointDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
+    const Variable<double>& rDesignVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    GeometryType& r_geom = PrimalElement::GetGeometry();
+    const unsigned int num_nodes = r_geom.PointsNumber();
+
+    if (rDesignVariable == CONDUCTIVITY_SENSITIVITY) {
+        ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+        auto& r_settings = *p_settings;
+        const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable();
+        KRATOS_ERROR_IF_NOT(r_diffusivity_var == CONDUCTIVITY) << "Wrong diffusion variable. Not able to compute CONDUCTIVITY_SENSITIVITY." << std::endl;
+
+        const unsigned int sensitivity_size = num_nodes;
+
+        if (rOutput.size1() != sensitivity_size || rOutput.size2() != num_nodes) {
+            rOutput.resize(sensitivity_size,num_nodes,false);
+        }
+        noalias(rOutput) = ZeroMatrix(sensitivity_size,num_nodes);
+
+        Vector RHS;
+        Vector RHS_perturbed;
+        Matrix dummy;
+        PrimalElement::CalculateLocalSystem(dummy, RHS, rCurrentProcessInfo);
+        double nodal_conductivity;
+        double alpha = 1e-5; //MFusseder TODO
+        double disturbance;
+        for (IndexType i = 0; i < num_nodes; ++i) {
+            auto& r_node = r_geom[i];
+            nodal_conductivity = r_node.FastGetSolutionStepValue(r_diffusivity_var);
+
+            // disturb design variable
+            disturbance = nodal_conductivity * alpha;
+            r_node.FastGetSolutionStepValue(r_diffusivity_var) = nodal_conductivity + disturbance;
+
+            PrimalElement::CalculateLocalSystem(dummy, RHS_perturbed, rCurrentProcessInfo);
+            // Compute derivative of RHS w.r.t. design variable with finite differences
+            for(IndexType j = 0; j < RHS_perturbed.size(); ++j) {
+                rOutput(i, j) = -(RHS_perturbed[j] - RHS[j]) / disturbance; //TODO MFusseder check for sign
+            }
+            // undisturb design variable
+            r_node.FastGetSolutionStepValue(r_diffusivity_var) = nodal_conductivity;
+        }
+    }
+    else {
+        noalias(rOutput) = ZeroMatrix(0, num_nodes);
+    }
+
+    KRATOS_CATCH("")
+}
+
+template<class PrimalElement>
+void AdjointDiffusionElement<PrimalElement>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
+                          std::vector< array_1d<double,3>>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType& r_geom = this->GetGeometry();
+    const unsigned int dimension = r_geom.WorkingSpaceDimension();
+    const unsigned int num_nodes = r_geom.PointsNumber();
+
+    const auto integration_method = this->GetIntegrationMethod();
+    const auto integration_points = r_geom.IntegrationPoints(integration_method);
+    const unsigned int num_integration_points = integration_points.size();
+
+    if (rOutput.size() != integration_points.size()) {
+            rOutput.resize(integration_points.size());
+    }
+
+    if (rVariable == ADJOINT_HEAT_FLOW)
+    {
+        Vector adjoint_values;
+        this->GetValuesVector(adjoint_values, 0);
+
+        Matrix shape_function_local_gradients(num_nodes,dimension);
+        Matrix shape_function_global_gradients(num_nodes,dimension);
+        Matrix jacobian(dimension,dimension);
+        Matrix jacobian_inv(dimension,dimension);
+        Vector adjoint_heat_flow_gausspoint(dimension);
+        array_1d<double,3> result_gausspoint;
+
+        for (unsigned int g = 0; g < num_integration_points; g++) {
+            noalias(shape_function_local_gradients) = r_geom.ShapeFunctionLocalGradient(g, integration_method);
+            r_geom.Jacobian(jacobian, g, integration_method);
+            GeometricalSensitivityUtility geometrical_sensitivity_utility(jacobian,shape_function_local_gradients);
+
+            double det_j;
+            MathUtils<double>::GeneralizedInvertMatrix(jacobian, jacobian_inv, det_j);
+            noalias(shape_function_global_gradients) = prod(shape_function_local_gradients, jacobian_inv);
+
+            noalias(adjoint_heat_flow_gausspoint) = prod(trans(adjoint_values), shape_function_global_gradients);
+
+            for(unsigned int i = 0; i < dimension; i++) {
+                result_gausspoint[i] = adjoint_heat_flow_gausspoint[i];
+            }
+            rOutput[g] = result_gausspoint;
+        }
+    }
+    else if (rVariable == PSEUDO_HEAT_FLOW) {
+        ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+        auto& r_settings = *p_settings;
+        // get primal solution
+        Vector primal_values  = ZeroVector(num_nodes);;
+        const Variable<double>& r_primal_values_variable = r_settings.GetUnknownVariable();
+        for (unsigned int i = 0; i < num_nodes; i++) {
+            primal_values[i] = r_geom[i].FastGetSolutionStepValue(r_primal_values_variable);
+        }
+
+        Matrix shape_function_local_gradients(num_nodes,dimension);
+        Matrix shape_function_global_gradients(num_nodes,dimension);
+        Matrix jacobian(dimension,dimension);
+        Matrix jacobian_inv(dimension,dimension);
+        Vector pseudo_heat_flow_gausspoint(dimension);
+        array_1d<double,3> result_gausspoint;
+
+        for (unsigned int g = 0; g < num_integration_points; g++) {
+            noalias(shape_function_local_gradients) = r_geom.ShapeFunctionLocalGradient(g, integration_method);
+            r_geom.Jacobian(jacobian, g, integration_method);
+            GeometricalSensitivityUtility geometrical_sensitivity_utility(jacobian,shape_function_local_gradients);
+
+            double det_j;
+            MathUtils<double>::GeneralizedInvertMatrix(jacobian, jacobian_inv, det_j);
+            noalias(shape_function_global_gradients) = prod(shape_function_local_gradients, jacobian_inv);
+
+            noalias(pseudo_heat_flow_gausspoint) = prod(trans(primal_values), shape_function_global_gradients);
+
+            for(unsigned int i = 0; i < dimension; i++) {
+                result_gausspoint[i] = pseudo_heat_flow_gausspoint[i];
+            }
+            rOutput[g] = result_gausspoint;
+        }
+    }
+}
+
+template<class PrimalElement>
+void AdjointDiffusionElement<PrimalElement>::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                          std::vector<double>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType& r_geom = this->GetGeometry();
+    const unsigned int dimension = r_geom.WorkingSpaceDimension();
+
+    const auto integration_method = this->GetIntegrationMethod();
+    const auto integration_points = r_geom.IntegrationPoints(integration_method);
+    const unsigned int num_integration_points = integration_points.size();
+
+    if (rOutput.size() != num_integration_points) {
+            rOutput.resize(num_integration_points);
+    }
+
+    if (rVariable == CONDUCTIVITY_SENSITIVITY){
+        std::vector< array_1d<double,3>> adjoint_heat_flow;
+        std::vector< array_1d<double,3>> pseudo_heat_flow;
+
+        this->CalculateOnIntegrationPoints(ADJOINT_HEAT_FLOW, adjoint_heat_flow, rCurrentProcessInfo);
+        this->CalculateOnIntegrationPoints(PSEUDO_HEAT_FLOW, pseudo_heat_flow, rCurrentProcessInfo);
+
+        for(IndexType i_gp = 0; i_gp < adjoint_heat_flow.size(); ++i_gp) {
+            double sensitivity_gp = 0.0;
+            for(unsigned int i = 0; i < dimension; ++i) {
+                sensitivity_gp += adjoint_heat_flow[i_gp][i] * pseudo_heat_flow[i_gp][i];
+            }
+            rOutput[i_gp] = sensitivity_gp;
+        }
+    }
 }
 
 template class AdjointDiffusionElement<LaplacianElement>;

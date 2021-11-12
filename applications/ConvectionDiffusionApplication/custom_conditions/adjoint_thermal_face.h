@@ -98,6 +98,15 @@ public:
                                     Matrix& rOutput,
                                     const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
+                                    Matrix& rOutput,
+                                    const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -194,6 +203,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    void CalculatePseudoQuantityOnIntegrationPoints(std::vector<double>& rValues, Vector& rNodeMultipliers, const ProcessInfo& rCurrentProcessInfo);
 
     // Note: the Jacobian should come from the geometry, but non-square ones are often wrongly implemented at the moment :(
     MatrixType GetJacobian(GeometryData::IntegrationMethod QuadratureOrder, unsigned int IntegrationPointIndex) const;

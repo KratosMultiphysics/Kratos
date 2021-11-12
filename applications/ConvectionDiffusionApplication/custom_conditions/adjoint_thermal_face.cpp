@@ -110,7 +110,7 @@ void AdjointThermalFace::EquationIdVector(
 }
 
 void AdjointThermalFace::GetDofList(
-    DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const 
+    DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     const GeometryType& r_geom = this->GetGeometry();
     const unsigned int num_nodes = r_geom.PointsNumber();
@@ -126,7 +126,7 @@ void AdjointThermalFace::GetDofList(
     }
 }
 
-int AdjointThermalFace::Check(const ProcessInfo& rProcessInfo) const 
+int AdjointThermalFace::Check(const ProcessInfo& rProcessInfo) const
 {
     KRATOS_TRY
     KRATOS_ERROR_IF_NOT(rProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS)) << "No CONVECTION_DIFFUSION_SETTINGS defined in ProcessInfo." << std::endl;
@@ -251,6 +251,163 @@ void AdjointThermalFace::CalculateSensitivityMatrix(
 
     KRATOS_CATCH("")
 }
+
+void AdjointThermalFace::CalculateSensitivityMatrix(
+    const Variable<double>& rDesignVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const GeometryType& r_geom = this->GetGeometry();
+    const unsigned int num_nodes = r_geom.PointsNumber();
+
+    if (rDesignVariable == CONDUCTIVITY_SENSITIVITY) {
+
+        const unsigned int sensitivity_size =  num_nodes;
+
+        if (rOutput.size1() != sensitivity_size || rOutput.size2() != num_nodes) {
+            rOutput.resize(sensitivity_size,num_nodes,false);
+        }
+        noalias(rOutput) = ZeroMatrix(sensitivity_size,num_nodes);
+    }
+    else if ( ThermalFace::GetProperties().Has(rDesignVariable) ) {
+        // define working variables
+        Vector RHS;
+        Vector RHS_perturbed;
+
+        ThermalFace::CalculateRightHandSide(RHS, rCurrentProcessInfo);
+        if ( (rOutput.size1() != 1) || (rOutput.size2() != RHS.size() ) ) {
+            rOutput.resize(1, RHS.size(), false);
+        }
+
+        // Save property pointer
+        Properties::Pointer p_global_properties = ThermalFace::pGetProperties();
+
+        // Create new property and assign it to the condition
+        Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
+        ThermalFace::SetProperties(p_local_property);
+
+        // perturb the design variable
+        const double current_property_value = ThermalFace::GetProperties()[rDesignVariable];
+        double alpha = 1e-5; //MFusseder TODO
+        double perturbation_size = alpha;
+        if (current_property_value > 0 ){ //MFusseder TODO rework
+            perturbation_size = current_property_value * alpha;
+        }
+        p_local_property->SetValue(rDesignVariable, (current_property_value + perturbation_size));
+
+        // Compute RHS after perturbation
+        ThermalFace::CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+
+        // Compute derivative of RHS w.r.t. design variable with finite differences
+        double element_area = r_geom.Area();
+        for(IndexType i = 0; i < RHS_perturbed.size(); ++i) {
+            rOutput(0, i) = -1 * (RHS_perturbed[i] - RHS[i]) / perturbation_size; //TODO MFusseder check for sign
+            rOutput(0, i) /= element_area;
+        }
+
+        // Give thermal face condition original properties back
+        ThermalFace::SetProperties(p_global_properties);
+    }
+    else {
+        rOutput = ZeroMatrix(1, num_nodes);
+    }
+
+    KRATOS_CATCH("")
+}
+
+void AdjointThermalFace::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType& r_geometry = this->GetGeometry();
+    const unsigned int num_nodes = r_geometry.PointsNumber();
+    const auto &r_gauss_pts = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const unsigned int n_gauss = r_gauss_pts.size();
+    const MatrixType N_container = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+
+    rValues.resize(n_gauss);
+
+    if( rVariable == PSEUDO_THERMAL_FACE_CONVECTION_COEFFICIENT || rVariable == PSEUDO_THERMAL_FACE_EMISSIVITY || rVariable == PSEUDO_THERMAL_FACE_AMBIENT_TEMPERATURE) {
+
+        Vector node_multipliers = ZeroVector(num_nodes);
+
+        ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+        auto& r_settings = *p_settings;
+        const Variable<double>& r_unknown_variable = r_settings.GetUnknownVariable();
+        Vector nodal_unknown = ZeroVector(num_nodes);
+        for (unsigned int i = 0; i < num_nodes; i++) {
+            nodal_unknown[i] = r_geometry[i].FastGetSolutionStepValue(r_unknown_variable);
+        }
+
+        const Properties& r_properties = this->GetProperties();
+        const double ambient_temperature = r_properties.GetValue(AMBIENT_TEMPERATURE);
+        const double convection_coefficient = r_properties.GetValue(CONVECTION_COEFFICIENT);
+        const double emissivity = r_properties.GetValue(EMISSIVITY);
+
+        if (rVariable == PSEUDO_THERMAL_FACE_CONVECTION_COEFFICIENT && r_properties.Has(CONVECTION_COEFFICIENT)) {
+            for (unsigned int i = 0; i < num_nodes; i++) {
+                node_multipliers[i] = -1 * (nodal_unknown[i] - ambient_temperature); //TODO MFusseder check for sign
+            }
+        }
+        else if (rVariable == PSEUDO_THERMAL_FACE_EMISSIVITY && r_properties.Has(EMISSIVITY)) {
+            for (unsigned int i = 0; i < num_nodes; i++) {
+                 node_multipliers[i] = -1 * (StefanBoltzmann * (std::pow(nodal_unknown[i], 4) - pow(ambient_temperature, 4))); //TODO MFusseder check for sign
+            }
+        }
+        else {
+            for (unsigned int i = 0; i < num_nodes; i++) {
+                if (r_properties.Has(AMBIENT_TEMPERATURE)) {
+                    node_multipliers[i] = -1 * (- convection_coefficient - emissivity * StefanBoltzmann * 4 * pow(ambient_temperature, 3)); //TODO MFusseder check for sign
+                }
+            }
+        }
+
+        // Gauss pts. loop
+        for (unsigned int g = 0; g < n_gauss; g++) {
+            Vector N = row(N_container, g);
+            rValues[g] = -1 * inner_prod(N, node_multipliers); //TODO MFusseder check for sign
+        }
+    }
+    else if(rVariable == CONVECTION_COEFFICIENT_GP_SENSITIVITY || rVariable == EMISSIVITY_GP_SENSITIVITY || rVariable == AMBIENT_TEMPERATURE_GP_SENSITIVITY) {
+        Vector gauss_pts_J_det = ZeroVector(n_gauss);
+        r_geometry.DeterminantOfJacobian(gauss_pts_J_det, this->GetIntegrationMethod());
+
+        std::vector<double> pseudo_quantity;
+        if( rVariable == CONVECTION_COEFFICIENT_GP_SENSITIVITY) {
+            this->CalculateOnIntegrationPoints(PSEUDO_THERMAL_FACE_CONVECTION_COEFFICIENT, pseudo_quantity, rCurrentProcessInfo);
+        }
+        else if( rVariable == EMISSIVITY_GP_SENSITIVITY) {
+            this->CalculateOnIntegrationPoints(PSEUDO_THERMAL_FACE_EMISSIVITY, pseudo_quantity, rCurrentProcessInfo);
+        }
+        else {
+            this->CalculateOnIntegrationPoints(PSEUDO_THERMAL_FACE_AMBIENT_TEMPERATURE, pseudo_quantity, rCurrentProcessInfo);
+        }
+
+        Vector adjoint_variables = ZeroVector(num_nodes);
+        this->GetValuesVector(adjoint_variables, 0);
+
+        // Gauss pts. loop
+        for (unsigned int g = 0; g < n_gauss; g++) {
+            Vector N = row(N_container, g);
+            double adj_variable_gp = inner_prod(N, adjoint_variables);
+            rValues[g] = adj_variable_gp * pseudo_quantity[g];
+        }
+    }
+    else if (this->Has(rVariable)) {
+        rValues[0] = this->GetValue(rVariable);
+        for (unsigned int g = 1; g < n_gauss; ++g) {
+            rValues[g] = rValues[0];
+        }
+    }
+    else {
+        //KRATOS_ERROR << "Unsupported output variable." << std::endl;
+    }
+
+}
+
 
 typename AdjointThermalFace::MatrixType AdjointThermalFace::GetJacobian(
     GeometryData::IntegrationMethod QuadratureOrder,
