@@ -157,6 +157,28 @@ public:
         noalias(rSensitivityGradient) = ZeroVector(rSensitivityMatrix.size1());
     }
 
+    void CalculatePartialSensitivity(Element& rAdjointElement,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo) override
+    {
+        if (rSensitivityGradient.size() != rSensitivityMatrix.size1())
+            rSensitivityGradient.resize(rSensitivityMatrix.size1(), false);
+        noalias(rSensitivityGradient) = ZeroVector(rSensitivityMatrix.size1());
+    }
+
+    void CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo) override
+    {
+        if (rSensitivityGradient.size() != rSensitivityMatrix.size1())
+            rSensitivityGradient.resize(rSensitivityMatrix.size1(), false);
+        noalias(rSensitivityGradient) = ZeroVector(rSensitivityMatrix.size1());
+    }
+
     double CalculateValue(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
