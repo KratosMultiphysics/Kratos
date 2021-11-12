@@ -115,7 +115,7 @@ public:
         const double SemiPeriod)
     {
         const double smooth = -std::expm1(-ElapsedTime / SemiPeriod);
-        block_for_each(rNodes(), [&](NodeType& rNode){
+        block_for_each(rNodes, [&](NodeType& rNode){
             TDataType& initial = rNode.FastGetSolutionStepValue(rVariable, 1);
             TDataType& current = rNode.FastGetSolutionStepValue(rVariable);
             TDataType increment = current - initial;
