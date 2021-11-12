@@ -86,6 +86,7 @@ class AdjointDiffusionSolver(PythonSolver):
         self.model_part.AddNodalSolutionStepVariable(convection_diffusion_settings.GetSurfaceSourceVariable())
         self.model_part.AddNodalSolutionStepVariable(convdiff.ADJOINT_HEAT_TRANSFER)
         self.model_part.AddNodalSolutionStepVariable(kratos.SHAPE_SENSITIVITY)
+        self.model_part.AddNodalSolutionStepVariable(convdiff.CONDUCTIVITY_SENSITIVITY)
 
     def AddDofs(self):
         variable_utils = kratos.VariableUtils()
