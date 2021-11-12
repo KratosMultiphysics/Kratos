@@ -48,17 +48,11 @@ double ContactUtilities::CalculateMeanNodalH(ModelPart& rModelPart)
 {
     // We iterate over the nodes
     NodesArrayType& r_nodes_array = rModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
-
-    // Creating the sum auxiliar value
     double sum_nodal_h = 0.0;
-
-    #pragma omp parallel for reduction(+:sum_nodal_h)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
-        sum_nodal_h += it_node->FastGetSolutionStepValue(NODAL_H);;
-    }
+    sum_nodal_h = block_for_each<SumReduction<double>>(r_nodes_array, [&](NodeType& rNode) {
+        KRATOS_DEBUG_ERROR_IF_NOT(rNode.SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
+        return rNode.FastGetSolutionStepValue(NODAL_H);;
+    });
 
     return sum_nodal_h/static_cast<double>(r_nodes_array.size());
 }
