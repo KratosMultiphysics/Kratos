@@ -10,6 +10,7 @@ from KratosMultiphysics.RANSApplication.formulations.turbulence_models.two_equat
 
 # import utilities
 from KratosMultiphysics.RANSApplication import RansWallDistanceCalculationProcess
+from KratosMultiphysics.RANSApplication import RansChimeraWallDistanceCalculationProcess
 
 class KOmegaSSTKRansFormulation(ScalarTurbulenceModelRansFormulation):
     def GetSolvingVariable(self):
@@ -109,8 +110,15 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         wall_distance_calculation_settings.AddEmptyValue("wall_model_part_name")
         wall_distance_calculation_settings["wall_model_part_name"].SetString(wall_model_part_name)
 
-        wall_distance_process = RansWallDistanceCalculationProcess(model, wall_distance_calculation_settings)
-        self.AddProcess(wall_distance_process)
+        if self.IsChimera():
+            chimera_process = self.GetChimeraProcess()
+            self.wall_distance_process = RansChimeraWallDistanceCalculationProcess(model, 
+                                                                                   wall_distance_calculation_settings,
+                                                                                   chimera_process)
+        else:
+            self.wall_distance_process = RansWallDistanceCalculationProcess(model, wall_distance_calculation_settings)
+        
+        self.AddProcess(self.wall_distance_process)
 
         super().Initialize()
 
