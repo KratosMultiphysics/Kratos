@@ -28,7 +28,7 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
     }
 
     # initializing the static members necessary for MPI
-    # initializing does not work and leads to memory problems
+    # initializing on the fly does not work and leads to memory problems
     # as the members are not proberly saved and randomly destucted!
     __dummy_model = None
     __rank_zero_model_part = None
