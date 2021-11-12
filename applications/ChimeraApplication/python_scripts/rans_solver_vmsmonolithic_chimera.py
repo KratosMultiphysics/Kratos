@@ -20,13 +20,13 @@ class RansSolverMonolithicChimera(CoupledRANSSolver):
         [self.chimera_settings, self.chimera_internal_parts,
             fluid_settings] = chimera_setup_utils.SeparateAndValidateChimeraSettings(custom_settings)
 
-        reformulate_every_step = False
-        if fluid_settings.Has("reform_dofs_at_each_step"):
-            reformulate_every_step = fluid_settings["reform_dofs_at_each_step"].GetBool()
+        # reformulate_every_step = False
+        # if fluid_settings.Has("reform_dofs_at_each_step"):
+        #     reformulate_every_step = fluid_settings["reform_dofs_at_each_step"].GetBool()
             
-        if fluid_settings["formulation_settings"]["monolithic_flow_solver_settings"].Has("reform_dofs_at_each_step"):
-            fluid_settings["formulation_settings"]["monolithic_flow_solver_settings"]["reform_dofs_at_each_step"].SetBool(reformulate_every_step) 
-        fluid_settings.RemoveValue("reform_dofs_at_each_step")
+        # if fluid_settings["formulation_settings"]["monolithic_flow_solver_settings"].Has("reform_dofs_at_each_step"):
+        #     fluid_settings["formulation_settings"]["monolithic_flow_solver_settings"]["reform_dofs_at_each_step"].SetBool(reformulate_every_step) 
+        # fluid_settings.RemoveValue("reform_dofs_at_each_step")
 
         super().__init__(model, fluid_settings)
         KratosMultiphysics.Logger.PrintInfo(
@@ -55,6 +55,7 @@ class RansSolverMonolithicChimera(CoupledRANSSolver):
             import KratosMultiphysics.ChimeraApplication.chimera_modelpart_import as chim_mp_imp
             chim_mp_imp.ImportChimeraModelparts(self.main_model_part, chimera_mp_import_settings, material_file=material_file_name, parallel_type="OpenMP")
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, " Import of all chimera modelparts completed.")
+            KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
         else:  # we can use the default implementation in the base class
             super().ImportModelPart()
 
@@ -77,7 +78,6 @@ class RansSolverMonolithicChimera(CoupledRANSSolver):
         super().Initialize()
 
     def GetComputingModelPart(self):
-        # chimera implementation
         return self.main_model_part
 
     def InitializeSolutionStep(self):
