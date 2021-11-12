@@ -381,7 +381,7 @@ bool ShallowWaterUtilities::IsWet(const GeometryType& rGeometry, const double He
 bool ShallowWaterUtilities::IsWet(const double Height, const double DryHeight)
 {
     const double wet_fraction = PhaseFunction::WetFraction(Height, DryHeight);
-    const double threshold = 1.0 - 1e-16;
+    const double threshold = 1.0 - 1e-6;
     return (wet_fraction >= threshold);
 }
 
