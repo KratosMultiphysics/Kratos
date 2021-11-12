@@ -291,7 +291,7 @@ public:
 
             // Loop over Dofs
             using TenReduction = CombinedReduction<SumReduction<double>, SumReduction<double>, SumReduction<double>, SumReduction<double>, SumReduction<double>, SumReduction<IndexType>, SumReduction<IndexType>, SumReduction<IndexType>, SumReduction<IndexType>, SumReduction<IndexType>>;
-            std::tie(disp_residual_solution_norm, rot_residual_solution_norm, normal_lm_residual_solution_norm, tangent_lm_stick_residual_solution_norm, tangent_lm_slip_residual_solution_norm, disp_dof_num, rot_dof_num, lm_dof_num, lm_stick_dof_num, lm_slip_dof_num) = block_for_each<TenReduction>(rDofSet, AuxValues(), [this,&number_active_dofs,p_check_disp,&pure_slip,&r_nodes_array,&rb](Dof<double>& rDof, AuxValues& aux_values) {
+            std::tie(disp_residual_solution_norm, rot_residual_solution_norm, normal_lm_residual_solution_norm, tangent_lm_slip_residual_solution_norm, tangent_lm_stick_residual_solution_norm, disp_dof_num, rot_dof_num, lm_dof_num, lm_slip_dof_num, lm_stick_dof_num) = block_for_each<TenReduction>(rDofSet, AuxValues(), [this,&number_active_dofs,p_check_disp,&pure_slip,&r_nodes_array,&rb](Dof<double>& rDof, AuxValues& aux_values) {
                 aux_values.dof_id = rDof.EquationId();
 
                 // Check dof id is solved
@@ -312,9 +312,9 @@ public:
                                 const double normal = it_node->FastGetSolutionStepValue(NORMAL)[r_curr_var.GetComponentIndex()];
                                 const double normal_comp_residual = aux_values.residual_dof_value * normal;
                                 if (it_node->Is(SLIP) || pure_slip) {
-                                    return std::make_tuple(0.0,0.0,std::pow(normal_comp_residual, 2),0.0,std::pow(aux_values.residual_dof_value - normal_comp_residual, 2),0,0,1,0,1);
-                                } else {
                                     return std::make_tuple(0.0,0.0,std::pow(normal_comp_residual, 2),std::pow(aux_values.residual_dof_value - normal_comp_residual, 2),0.0,0,0,1,1,0);
+                                } else {
+                                    return std::make_tuple(0.0,0.0,std::pow(normal_comp_residual, 2),0.0,std::pow(aux_values.residual_dof_value - normal_comp_residual, 2),0,0,1,0,1);
                                 }
                             }
                             return std::make_tuple(0.0,0.0,0.0,0.0,0.0,0,0,0,0,0);
