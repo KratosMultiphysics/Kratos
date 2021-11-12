@@ -49,7 +49,7 @@ double ContactUtilities::CalculateMeanNodalH(ModelPart& rModelPart)
     // We iterate over the nodes
     NodesArrayType& r_nodes_array = rModelPart.Nodes();
     double sum_nodal_h = 0.0;
-    sum_nodal_h = block_for_each<SumReduction<double>>(r_nodes_array, [&](NodeType& rNode) {
+    sum_nodal_h += block_for_each<SumReduction<double>>(r_nodes_array, [&](NodeType& rNode) {
         KRATOS_DEBUG_ERROR_IF_NOT(rNode.SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
         return rNode.FastGetSolutionStepValue(NODAL_H);;
     });
@@ -124,7 +124,7 @@ bool ContactUtilities::CheckActivity(
 {
     // We compute the half jump
     IndexType aux_check = 0;
-    aux_check = block_for_each<SumReduction<IndexType>>(rModelPart.Nodes(), [&](NodeType& rNode) {
+    aux_check += block_for_each<SumReduction<IndexType>>(rModelPart.Nodes(), [&](NodeType& rNode) {
         if (rNode.Is(SLAVE)) {
             if (rNode.Is(ACTIVE)) {
                 return 1;
