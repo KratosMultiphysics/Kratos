@@ -105,6 +105,19 @@ public:
 
     void NormalizeVector(ModelPart& rModelPart, const Variable<array_1d<double,3>>& rVariable);
 
+    template<class TDataType, class TVarType = Variable<TDataType>>
+    void SmoothTemporalVariable(ModelPart& rModelPart, const TVarType& rVariable, const double SemiPeriod)
+    {
+        const double elapsed_time = rModelPart.GetProcessInfo().GetValue(DELTA_TIME);
+        const double smooth = -std::expm1(-elapsed_time / SemiPeriod);
+        block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+            TDataType& initial = rNode.FastGetSolutionStepValue(rVariable, 1);
+            TDataType& current = rNode.FastGetSolutionStepValue(rVariable);
+            TDataType increment = current - initial;
+            current = initial + smooth * increment;
+        });
+    }
+
     template<class TVarType>
     void CopyVariableToPreviousTimeStep(ModelPart& rModelPart, const TVarType& rVariable)
     {
