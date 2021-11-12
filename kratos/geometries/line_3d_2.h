@@ -404,6 +404,26 @@ public:
 
 
     ///@}
+    ///@name Intersections
+    ///@{
+
+    /**
+     * @brief Test if this geometry intersects with other geometry
+     * @param  ThisGeometry Geometry to intersect with
+     * @return              True if the geometries intersect, False in any other case.
+     */
+    bool HasIntersection(const BaseType& rThisGeometry) const override {
+        const BaseType& geom = *this;
+        if (rThisGeometry.WorkingSpaceDimension() > geom.WorkingSpaceDimension()) {
+            return rThisGeometry.HasIntersection(geom);
+        }
+        // Both objects are lines
+        Point intersection_point;
+        return IntersectionUtilities::ComputeLineLineIntersection(geom, rThisGeometry[0], rThisGeometry[1], intersection_point);
+    }
+
+
+    ///@}
     ///@name Jacobian
     ///@{
 
