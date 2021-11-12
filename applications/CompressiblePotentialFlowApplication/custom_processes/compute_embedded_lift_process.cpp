@@ -58,7 +58,7 @@ void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
 
             // Computing Normal
             std::vector<array_1d<double,3>> cut_normal;
-            pModifiedShFunc -> ComputePositiveSideInterfaceAreaNormals(cut_normal,GeometryData::GI_GAUSS_1);
+            pModifiedShFunc -> ComputePositiveSideInterfaceAreaNormals(cut_normal,GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             std::vector<double> pressure_coefficient;
             it_elem->CalculateOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient,mrModelPart.GetProcessInfo());

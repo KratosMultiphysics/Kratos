@@ -66,7 +66,6 @@ template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-
 class LineSearchContactStrategy :
     public LineSearchStrategy< TSparseSpace, TDenseSpace, TLinearSolver >
 {
@@ -385,7 +384,6 @@ protected:
      * @param DxDisp The increment of displacements
      * @param DxLM The increment of LM
      */
-
     void ComputeSplitDx(
         TSystemVectorType& Dx,
         TSystemVectorType& DxDisp,
@@ -393,31 +391,21 @@ protected:
         )
     {
         // Now we iterate over all the nodes
-        NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size());
-
-        #pragma omp parallel for
-        for(int i = 0; i < num_nodes; ++i)
-        {
-            auto it_node = nodes_array.begin() + i;
-
-            for(auto itDoF = it_node->GetDofs().begin() ; itDoF != it_node->GetDofs().end() ; itDoF++)
-            {
+        NodesArrayType& r_nodes_array = StrategyBaseType::GetModelPart().Nodes();
+        block_for_each(r_nodes_array, [&](Node<3>& rNode) {
+            for(auto itDoF = rNode.GetDofs().begin() ; itDoF != rNode.GetDofs().end() ; itDoF++) {
                 const int j = (**itDoF).EquationId();
                 const std::size_t CurrVar = (**itDoF).GetVariable().Key();
 
-                if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z))
-                {
+                if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z)) {
                     DxDisp[j] = Dx[j];
                     DxLM[j] = 0.0;
-                }
-                else // Corresponding with contact
-                {
+                } else { // Corresponding with contact
                     DxDisp[j] = 0.0;
                     DxLM[j] = Dx[j];
                 }
             }
-        }
+        });
     }
 
     /**
@@ -426,7 +414,6 @@ protected:
      * @param normDisp normDisp: The norm of the displacement
      * @param normLM The norm of the LM
      */
-
     void ComputeMixedResidual(
         TSystemVectorType& b,
         double& normDisp,
@@ -434,14 +421,9 @@ protected:
         )
     {
         // Now we iterate over all the nodes
-        NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size());
-
-        #pragma omp parallel for
-        for(int i = 0; i < num_nodes; ++i)  {
-            auto it_node = nodes_array.begin() + i;
-
-            for(auto itDoF = it_node->GetDofs().begin() ; itDoF != it_node->GetDofs().end() ; itDoF++) {
+        NodesArrayType& r_nodes_array = StrategyBaseType::GetModelPart().Nodes();
+        block_for_each(r_nodes_array, [&](Node<3>& rNode) {
+            for(auto itDoF = rNode.GetDofs().begin() ; itDoF != rNode.GetDofs().end() ; itDoF++) {
                 const int j = (**itDoF).EquationId();
                 const std::size_t CurrVar = (**itDoF).GetVariable().Key();
 
@@ -451,7 +433,7 @@ protected:
                     AtomicAdd(normLM, b[j] * b[j]);
                 }
             }
-        }
+        });
 
         normDisp = std::sqrt(normDisp);
         normLM = std::sqrt(normLM);
@@ -465,7 +447,6 @@ protected:
      * @param ro The residual norm without step
      * @param rh The residual norm of the half step
      */
-
     void ComputeParabola(
         double& Xmax,
         double& Xmin,

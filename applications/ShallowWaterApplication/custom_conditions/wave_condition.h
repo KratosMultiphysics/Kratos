@@ -255,6 +255,7 @@ protected:
 
     struct ConditionData
     {
+        bool integrate_by_parts;
         double gravity;
         double height;
         double length;

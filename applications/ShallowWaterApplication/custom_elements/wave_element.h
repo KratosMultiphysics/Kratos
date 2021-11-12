@@ -277,6 +277,7 @@ protected:
 
     struct ElementData
     {
+        bool integrate_by_parts;
         double stab_factor;
         double shock_stab_factor;
         double relative_dry_height;
@@ -313,10 +314,15 @@ protected:
 
     virtual void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
 
-    virtual void CalculateArtificialViscosityData(
-        ElementData& rData,
-        const array_1d<double,TNumNodes>& rN,
+    virtual void CalculateArtificialViscosity(
+        BoundedMatrix<double,3,3>& rViscosity,
+        BoundedMatrix<double,2,2>& rDiffusion,
+        const ElementData& rData,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
+
+    virtual void CalculateArtificialDamping(
+        BoundedMatrix<double,3,3>& rFriction,
+        const ElementData& rData);
 
     void CalculateGeometryData(
         Vector &rGaussWeights,

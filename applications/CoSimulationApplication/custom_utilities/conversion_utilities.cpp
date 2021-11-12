@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //                   Ashish Darekar
 //
 

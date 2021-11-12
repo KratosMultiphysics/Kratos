@@ -9,6 +9,7 @@
 
 // System includes
 #include <string>
+#include <numeric>
 #include <iostream>
 
 // Project includes

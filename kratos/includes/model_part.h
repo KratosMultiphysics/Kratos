@@ -320,6 +320,11 @@ public:
         return mrModel;
     }
 
+    const Model& GetModel() const
+    {
+        return mrModel;
+    }
+
     ///ATTENTION: this function does not touch the coordinates of the nodes.
     ///It just resets the database values to the values at the beginning of the time step
     void ReduceTimeStep(ModelPart& rModelPart, double NewTime);
@@ -1518,7 +1523,7 @@ public:
                 }
             }
         }
-        
+
         // Add to root model part
         for(auto& p_geom : aux_root) {
             p_root_model_part->AddGeometry(p_geom);

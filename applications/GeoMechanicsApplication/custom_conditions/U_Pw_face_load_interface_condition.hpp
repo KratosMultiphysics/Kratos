@@ -35,7 +35,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwFaceLoadInterfaceCondition : publ
 public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwFaceLoadInterfaceCondition );
-    
+
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
     typedef Node <3> NodeType;
@@ -44,20 +44,20 @@ public:
     typedef Vector VectorType;
     typedef Matrix MatrixType;
     using UPwCondition<TDim,TNumNodes>::mThisIntegrationMethod;
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
     UPwFaceLoadInterfaceCondition() : UPwCondition<TDim,TNumNodes>() {}
-    
+
     // Constructor 1
     UPwFaceLoadInterfaceCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry) {}
-    
+
     // Constructor 2
     UPwFaceLoadInterfaceCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
     {
         // Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
     }
 
     // Destructor
@@ -66,21 +66,21 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
- 
+
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
- 
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-protected:   
-    
+protected:
+
     // Member Variables
-    
+
     Vector mInitialGap;
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateInitialGap(const GeometryType& Geom);
-    
+
     void CalculateRHS(VectorType& rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo) override;
 
@@ -93,19 +93,19 @@ protected:
                                 array_1d<double,TDim>& rLocalRelDispVector, const double& MinimumJointWidth, const unsigned int& GPoint );
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight, const double& JointWidth);
-        
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     // Member Variables
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Serialization
-    
+
     friend class Serializer;
-    
+
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
@@ -115,9 +115,9 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }
-    
+
 }; // class UPwFaceLoadInterfaceCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_GEO_U_PW_FACE_LOAD_INTERFACE_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_GEO_U_PW_FACE_LOAD_INTERFACE_CONDITION_H_INCLUDED defined
