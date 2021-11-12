@@ -422,7 +422,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateM
     const auto& r_geom = GetGeometry();
     const unsigned int n_nodes = r_geom.PointsNumber();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
@@ -453,7 +453,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateM
     const auto& r_geom = GetGeometry();
     const unsigned int n_nodes = r_geom.PointsNumber();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
@@ -517,7 +517,7 @@ double CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointVeloc
     const auto& r_geom = GetGeometry();
     const unsigned int n_nodes = r_geom.PointsNumber();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
@@ -553,7 +553,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<2,3>::CalculateMidPointVeloc
     const auto& r_geom = GetGeometry();
     const unsigned int n_nodes = r_geom.PointsNumber();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
@@ -596,7 +596,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<3,4>::CalculateMidPointVeloc
     const auto& r_geom = GetGeometry();
     const unsigned int n_nodes = r_geom.PointsNumber();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
@@ -656,7 +656,7 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<2, 3>::CalculateMid
     const auto& r_geom = GetGeometry();
     const unsigned int n_nodes = r_geom.PointsNumber();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
@@ -708,7 +708,7 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<3, 4>::CalculateMid
     const auto& r_geom = GetGeometry();
     const unsigned int n_nodes = r_geom.PointsNumber();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes

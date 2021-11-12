@@ -16,8 +16,6 @@ namespace Kratos {
 
         DEM_D_Linear_Custom_Constants() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
         ~DEM_D_Linear_Custom_Constants() {}
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;

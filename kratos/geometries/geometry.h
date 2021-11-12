@@ -164,12 +164,12 @@ public:
     integration points related to different integration method
     implemented in geometry.
     */
-    typedef std::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods> IntegrationPointsContainerType;
+    typedef std::array<IntegrationPointsArrayType, static_cast<int>(GeometryData::IntegrationMethod::NumberOfIntegrationMethods)> IntegrationPointsContainerType;
 
     /** A third order tensor used as shape functions' values
     continer.
     */
-    typedef std::array<Matrix, GeometryData::NumberOfIntegrationMethods> ShapeFunctionsValuesContainerType;
+    typedef std::array<Matrix, static_cast<int>(GeometryData::IntegrationMethod::NumberOfIntegrationMethods)> ShapeFunctionsValuesContainerType;
 
     /** A fourth order tensor used as shape functions' local
     gradients container in geometry.
@@ -375,12 +375,12 @@ public:
 
     virtual GeometryData::KratosGeometryFamily GetGeometryFamily() const
     {
-        return GeometryData::Kratos_generic_family;
+        return GeometryData::KratosGeometryFamily::Kratos_generic_family;
     }
 
     virtual GeometryData::KratosGeometryType GetGeometryType() const
     {
-        return GeometryData::Kratos_generic_type;
+        return GeometryData::KratosGeometryType::Kratos_generic_type;
     }
 
     ///@}
@@ -1195,7 +1195,7 @@ public:
             array_1d<double, 3>& r_local_coordinates = local_point.Coordinates();
 
             // Iterate over integration points
-            const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints( GeometryData::GI_GAUSS_1 ); // First order
+            const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints( GeometryData::IntegrationMethod::GI_GAUSS_1 ); // First order
             const double weight = r_integrations_points[0].Weight()/static_cast<double>(number_of_nodes);
             for ( IndexType point_number = 0; point_number < number_of_nodes; ++point_number ) {
                 for ( IndexType dim = 0; dim < local_space_dimension; ++dim ) {
@@ -4168,7 +4168,7 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {};
         static GeometryData s_geometry_data(
                             &msGeometryDimension,
-                            GeometryData::GI_GAUSS_1,
+                            GeometryData::IntegrationMethod::GI_GAUSS_1,
                             integration_points,
                             shape_functions_values,
                             shape_functions_local_gradients);
