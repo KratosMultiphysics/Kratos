@@ -26,7 +26,7 @@
 #include "includes/model_part.h"
 #include "linear_solvers/reorderer.h"
 #include "linear_solvers/iterative_solver.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "custom_utilities/logging_settings.hpp"
