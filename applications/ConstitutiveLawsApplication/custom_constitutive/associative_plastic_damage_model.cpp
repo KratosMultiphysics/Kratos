@@ -315,7 +315,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
                     // TODO
                     return 0.0;
                 };
-                // rPDParameters.Threshold = CalculateThresholdImplicitExpression(f, df_dk, rPDParameters.Threshold, rValues.GetMaterialProperties(), rPDParameters);
+                rPDParameters.Threshold = CalculateThresholdImplicitExpression(f, df_dk, rValues.GetMaterialProperties(), rPDParameters);
                 // rPDParameters.Slope     = CalculateSlopeFiniteDifferences(f, rPDParameters.TotalDissipation, rValues.GetMaterialProperties(), rPDParameters);
                 break;
             }
@@ -337,19 +337,20 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
     double new_threshold = 0.0;
     double derivative = 0.0;
     int max_iter = 200;
-    int iter = 0;
+    int iteration = 0;
     const double nr_tol = 1.0e-9;
 
-    while (difference > nr_tol && iter < max_iter) {
-        derivative = rdF_dk(rPDParameters.TotalDissipation, rPDParameters.Threshold, rMatProps, rPDParameters);
+    while (difference > nr_tol && iteration < max_iter) {
+        derivative = rdF_dk(rPDParameters.TotalDissipation, old_threshold, rMatProps, rPDParameters);
         if (std::abs(derivative) > 0.0)
-            new_threshold = old_threshold - (1.0 / derivative) * rF(rPDParameters.TotalDissipation, rPDParameters.Threshold, rMatProps, rPDParameters);
+            new_threshold = old_threshold - (1.0 / derivative) * rF(rPDParameters.TotalDissipation, old_threshold, rMatProps, rPDParameters);
         else
             break;
         difference = std::abs(new_threshold - old_threshold);
+        old_threshold = new_threshold;
         iteration++;
     }
-    KRATOS_WARNING_IF("AssociativePlasticDamageModel", iteration == max_iteration) << "Inner Newton-Raphson to find an updated threshold did not converge..." << std::endl;
+    KRATOS_WARNING_IF("AssociativePlasticDamageModel", iteration == max_iter) << "Inner Newton-Raphson to find an updated threshold did not converge..." << std::endl;
     return new_threshold;
 }
 
