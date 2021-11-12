@@ -157,11 +157,13 @@ private:
     bool                                    mNegElemDeactivation;
     bool                               mAvoidAlmostEmptyElements;
     bool                                mRecoverOriginalDistance;
-    std::vector<unsigned int>              mModifiedDistancesIDs;
+    std::vector<size_t>                    mModifiedDistancesIDs;
     std::vector<double>                 mModifiedDistancesValues;
     std::vector<Vector>        mModifiedElementalDistancesValues;
+    std::vector<size_t>                 mModifiedExtrapolatedIDs;
+    std::vector<Vector>              mModifiedExtrapolatedValues;
     std::vector<const Variable<double>*>    mDoubleVariablesList;
-    std::vector<const ComponentType*>    mComponentVariablesList;
+    std::vector<const ComponentType*>    mComponentVariablesList;                
 
     ///@}
     ///@name Protected Operators
@@ -198,8 +200,8 @@ private:
         Element &rElem,
         const TDistancesVectorType& rDistancesVector)
     {
-        unsigned int n_pos = 0;
-        unsigned int n_neg = 0;
+        size_t n_pos = 0;
+        size_t n_neg = 0;
         for (double i_dist : rDistancesVector) {
             if (i_dist < 0.0) {
                 n_neg++;
@@ -225,6 +227,18 @@ private:
      * @param rVariableStringArray Array containing the variables to be fixed in the full negative elements
     */
     void CheckAndStoreVariablesList(const std::vector<std::string>& rVariableStringArray);
+
+    /**
+     * @brief Returns the node IDs corresponding to the given edge ID. 
+     * This mapping is a consequence of the node and edge order used in the CalculateDiscontinuousDistanceToSkinProcess
+     * for ELEMENTAL_DISTANCES and ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, 
+     * which is based on triangle_2d_3.h and tetrahedra_3d_4.h (geometry)
+     * @param numEdges Number of edges of one element to distinguish between Triangle2D3N and Tetrahedra2D4N 
+     * @param edgeID ID of the element's edge
+    */
+    const std::array<size_t,2> GetNodeIDs(
+        const size_t numEdges, 
+        const size_t edgeID);
 
     ///@}
     ///@name Private  Access
