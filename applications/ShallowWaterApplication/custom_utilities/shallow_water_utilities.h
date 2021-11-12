@@ -65,6 +65,8 @@ public:
 
     typedef Geometry<NodeType> GeometryType;
 
+    typedef ModelPart::NodesContainerType NodesContainerType;
+
     ///@}
     ///@name Pointer definition
     ///@{
@@ -103,7 +105,20 @@ public:
 
     void ExtrapolateElementalFlagToNodes(ModelPart& rModelPart, Flags Flag);
 
-    void NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable);
+    void NormalizeVector(ModelPart& rModelPart, const Variable<array_1d<double,3>>& rVariable);
+
+    template<class TDataType, class TVarType = Variable<TDataType>>
+    void SmoothTemporalVariable(ModelPart& rModelPart, const TVarType& rVariable, const double SemiPeriod)
+    {
+        const double elapsed_time = rModelPart.GetProcessInfo().GetValue(DELTA_TIME);
+        const double smooth = -std::expm1(-elapsed_time / SemiPeriod);
+        block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+            TDataType& initial = rNode.FastGetSolutionStepValue(rVariable, 1);
+            TDataType& current = rNode.FastGetSolutionStepValue(rVariable);
+            TDataType increment = current - initial;
+            current = initial + smooth * increment;
+        });
+    }
 
     template<class TVarType>
     void CopyVariableToPreviousTimeStep(ModelPart& rModelPart, const TVarType& rVariable)
@@ -144,6 +159,29 @@ public:
      * @brief Store a double variable as NonHistorical and set the value to no-data if the node is dry
      */
     void StoreNonHistoricalGiDNoDataIfDry(ModelPart& rModelPart, const Variable<double>& rVariable);
+
+    /**
+     * @brief Swap the Y and Z components of a vector variable
+     */
+    void SwapYZComponents(const Variable<array_1d<double,3>>& rVariable, NodesContainerType& rNodes)
+    {
+        block_for_each(rNodes, [&](NodeType& rNode){
+            array_1d<double,3>& r_value = rNode.FastGetSolutionStepValue(rVariable);
+            std::swap(r_value[1], r_value[2]);
+        });
+    }
+
+    /**
+     * @brief Swap the Y and Z components of a vector variable
+     */
+    template<class TContainerType>
+    void SwapYZComponentsNonHistorical(const Variable<array_1d<double,3>>& rVariable, TContainerType& rContainer)
+    {
+        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+            array_1d<double,3>& r_value = rEntity.GetValue(rVariable);
+            std::swap(r_value[1], r_value[2]);
+        });
+    }
 
     /**
      * @brief Offset the ids of the given container for visualization purpose in GiD
