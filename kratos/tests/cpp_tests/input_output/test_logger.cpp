@@ -356,7 +356,6 @@ namespace Kratos {
             static std::stringstream buffer;
             const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
             int rank = r_comm.Rank();
-            static std::stringstream buffer;
             Parameters logger_settings(R"({
                 "file_header" : "My Test",
                 "label"       : "TEST",
