@@ -188,17 +188,16 @@ bool ContactUtilities::CheckActivity(
 
     // We compute the half jump
     IndexType aux_check = 0;
-    #pragma omp parallel for reduction(+:aux_check)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i)  {
-        auto it_node = it_node_begin + i;
-        if (it_node->Is(SLAVE)) {
-            if (it_node->Is(ACTIVE)) {
-                aux_check += 1;
+    aux_check = block_for_each<SumReduction<IndexType>>(r_nodes_array, [&](NodeType& rNode) {
+        if (rNode.Is(SLAVE)) {
+            if (rNode.Is(ACTIVE)) {
+                return 1;
             }
         }
-    }
+        return 0;
+    });
 
-    const bool is_active = aux_check == 0 ?  false : true;
+    const bool is_active = aux_check == 0 ? false : true;
 
     KRATOS_ERROR_IF(ThrowError && !is_active) << "CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
