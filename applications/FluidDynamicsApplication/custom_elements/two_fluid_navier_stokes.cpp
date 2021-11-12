@@ -89,12 +89,6 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
             Matrix shape_functions_enr_pos, shape_functions_enr_neg;
             GeometryType::ShapeFunctionsGradientsType shape_derivatives_pos, shape_derivatives_neg;
             GeometryType::ShapeFunctionsGradientsType shape_derivatives_enr_pos, shape_derivatives_enr_neg;
-            Matrix int_shape_function_neg;                                       // interface shape functions
-            Matrix int_shape_function_enr_neg, int_shape_function_enr_pos;       // interface enriched shape functions
-            GeometryType::ShapeFunctionsGradientsType int_shape_derivatives_neg; // interface shape functions derivatives
-            Vector int_gauss_pts_weights;                                // interface Gauss points weights
-            std::vector<Vector> int_normals_neg;                                 // interface normal vector based on the negative side
-            Vector gauss_pts_curvature;                                  // curvatures calculated on interface Gauss points
 
             ModifiedShapeFunctions::Pointer p_modified_sh_func = pGetModifiedShapeFunctionsUtility(p_geom, data.Distance);
 
@@ -164,11 +158,77 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
                 }
 
+                Matrix int_shape_function, int_shape_function_enr_neg, int_shape_function_enr_pos;
+                GeometryType::ShapeFunctionsGradientsType int_shape_derivatives;
+                Vector int_gauss_pts_weights;
+                std::vector< array_1d<double,3> > int_normals_neg;
+
+                if (rCurrentProcessInfo[SURFACE_TENSION] || rCurrentProcessInfo[MOMENTUM_CORRECTION]){
+                    ComputeSplitInterface(
+                        data,
+                        int_shape_function,
+                        int_shape_function_enr_pos,
+                        int_shape_function_enr_neg,
+                        int_shape_derivatives,
+                        int_gauss_pts_weights,
+                        int_normals_neg,
+                        p_modified_sh_func);
+                }
+
+                if (rCurrentProcessInfo[MOMENTUM_CORRECTION]){
+                    BoundedMatrix<double, LocalSize, LocalSize> lhs_acc_correction = ZeroMatrix(LocalSize,LocalSize);
+
+                    double positive_density;
+                    double negative_density;
+
+                    const auto& r_geom = this->GetGeometry();
+
+                    for (unsigned int intgp = 0; intgp < int_gauss_pts_weights.size(); ++intgp){
+                        double u_dot_n = 0.0;
+                        for (unsigned int i = 0; i < NumNodes; ++i){
+                            u_dot_n += int_shape_function(intgp,i)*r_geom[i].GetValue(DISTANCE_CORRECTION);
+
+                            if (data.Distance[i] > 0.0){
+                                positive_density = data.NodalDensity[i];
+                            } else {
+                                negative_density = data.NodalDensity[i];
+                            }
+                        }
+
+                        u_dot_n /= data.DeltaTime;
+
+                        for (unsigned int i = 0; i < NumNodes; ++i){
+                            for (unsigned int j = 0; j < NumNodes; ++j){
+                                for (unsigned int dim = 0; dim < NumNodes-1; ++dim){
+                                    lhs_acc_correction( i*(NumNodes) + dim, j*(NumNodes) + dim) +=
+                                        int_shape_function(intgp,i)*int_shape_function(intgp,j)*u_dot_n*int_gauss_pts_weights(intgp);
+                                }
+                            }
+                        }
+                    }
+
+                    lhs_acc_correction = (negative_density - positive_density)*lhs_acc_correction;
+                    noalias(rLeftHandSideMatrix) += lhs_acc_correction;
+
+                    Kratos::array_1d<double, LocalSize> tempU; // Unknowns vector containing only velocity components
+                    for (unsigned int i = 0; i < NumNodes; ++i){
+                        for (unsigned int dimi = 0; dimi < Dim; ++dimi){
+                            tempU[i*(Dim+1) + dimi] = data.Velocity(i,dimi);
+                        }
+                    }
+                    noalias(rRightHandSideVector) -= prod(lhs_acc_correction,tempU);
+                }
+
                 if (rCurrentProcessInfo[SURFACE_TENSION]){
 
                     AddSurfaceTensionContribution(
                         data,
-                        p_modified_sh_func,
+                        int_shape_function,
+                        int_shape_function_enr_pos,
+                        int_shape_function_enr_neg,
+                        int_shape_derivatives,
+                        int_gauss_pts_weights,
+                        int_normals_neg,
                         rLeftHandSideMatrix,
                         rRightHandSideVector,
                         Htot,
@@ -2187,7 +2247,12 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::AddSurfaceTensionContribution(
     const TElementData& rData,
-    ModifiedShapeFunctions::Pointer pModifiedShapeFunctions,
+    MatrixType& rInterfaceShapeFunction,
+    MatrixType& rEnrInterfaceShapeFunctionPos,
+    MatrixType& rEnrInterfaceShapeFunctionNeg,
+    GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
+    Vector& rInterfaceWeights,
+    std::vector< array_1d<double, 3> >& rInterfaceNormalsNeg,
     Matrix &rLeftHandSideMatrix,
     VectorType &rRightHandSideVector,
     const MatrixType &rHtot,
@@ -2197,40 +2262,27 @@ void TwoFluidNavierStokes<TElementData>::AddSurfaceTensionContribution(
 {
     // Surface tension coefficient is set in material properties
     const double surface_tension_coefficient = this->GetProperties().GetValue(SURFACE_TENSION_COEFFICIENT);
-    Matrix int_shape_function, int_shape_function_enr_neg, int_shape_function_enr_pos;
-    GeometryType::ShapeFunctionsGradientsType int_shape_derivatives;
-    Vector int_gauss_pts_weights;
-    std::vector<array_1d<double,3>> int_normals_neg;
-    Vector gauss_pts_curvature;
 
-    ComputeSplitInterface(
-        rData,
-        int_shape_function,
-        int_shape_function_enr_pos,
-        int_shape_function_enr_neg,
-        int_shape_derivatives,
-        int_gauss_pts_weights,
-        int_normals_neg,
-        pModifiedShapeFunctions);
+    Vector gauss_pts_curvature; // curvatures calculated on interface Gauss points
 
     CalculateCurvatureOnInterfaceGaussPoints(
-        int_shape_function,
+        rInterfaceShapeFunction,
         gauss_pts_curvature);
 
     SurfaceTension(
         surface_tension_coefficient,
         gauss_pts_curvature,
-        int_gauss_pts_weights,
-        int_shape_function,
-        int_normals_neg,
+        rInterfaceWeights,
+        rInterfaceShapeFunction,
+        rInterfaceNormalsNeg,
         rRightHandSideVector);
 
     PressureGradientStabilization(
         rData,
-        int_gauss_pts_weights,
-        int_shape_function_enr_pos,
-        int_shape_function_enr_neg,
-        int_shape_derivatives,
+        rInterfaceWeights,
+        rEnrInterfaceShapeFunctionPos,
+        rEnrInterfaceShapeFunctionNeg,
+        rInterfaceShapeDerivatives,
         rKeeTot,
         rRHSeeTot);
 
