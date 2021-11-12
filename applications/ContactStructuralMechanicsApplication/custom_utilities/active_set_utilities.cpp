@@ -35,7 +35,7 @@ std::size_t ComputePenaltyFrictionlessActiveSet(ModelPart& rModelPart)
     // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
     if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
         const double common_epsilon = r_process_info[INITIAL_PENALTY];
-        is_converged += block_for_each<SumReduction<IndexType>>(rModelPart.GetSubModelPart("Contact").Nodes(), [&](NodeType& rNode) {
+        is_converged = block_for_each<SumReduction<IndexType>>(rModelPart.GetSubModelPart("Contact").Nodes(), [&](NodeType& rNode) {
             if (rNode.Is(SLAVE)) {
                 const double epsilon = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : common_epsilon;
                 const double augmented_normal_pressure = epsilon * rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
@@ -183,7 +183,7 @@ std::size_t ComputeALMFrictionlessActiveSet(ModelPart& rModelPart)
     if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
         const double common_epsilon = r_process_info[INITIAL_PENALTY];
         const double scale_factor = r_process_info[SCALE_FACTOR];
-        is_converged += block_for_each<SumReduction<IndexType>>(rModelPart.GetSubModelPart("Contact").Nodes(), [&](NodeType& rNode) {
+        is_converged = block_for_each<SumReduction<IndexType>>(rModelPart.GetSubModelPart("Contact").Nodes(), [&](NodeType& rNode) {
             if (rNode.Is(SLAVE)) {
                 const double epsilon = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : common_epsilon;
                 const double augmented_normal_pressure = scale_factor * rNode.FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) + epsilon * rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
@@ -226,7 +226,7 @@ std::size_t ComputeALMFrictionlessComponentsActiveSet(ModelPart& rModelPart)
         const double common_epsilon = r_process_info[INITIAL_PENALTY];
         const double scale_factor = r_process_info[SCALE_FACTOR];
 
-        is_converged += block_for_each<SumReduction<IndexType>>(rModelPart.GetSubModelPart("Contact").Nodes(), [&](NodeType& rNode) {
+        is_converged = block_for_each<SumReduction<IndexType>>(rModelPart.GetSubModelPart("Contact").Nodes(), [&](NodeType& rNode) {
             if (rNode.Is(SLAVE)) {
                 const double epsilon = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : common_epsilon;
 
