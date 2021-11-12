@@ -5,7 +5,6 @@ from KratosMultiphysics.kratos_utilities import GenerateVariableListFromInput
 from KratosMultiphysics.HDF5Application import import_model_part_from_hdf5_process
 from KratosMultiphysics.HDF5Application import single_mesh_temporal_input_process
 from os import path, listdir
-from numpy import expm1 #TODO: implement the related function in shallow water utilities
 
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
@@ -18,21 +17,24 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
     Read the depth integrated values from an HDF5 file and set them as boundary conditions.
     """
 
-    @staticmethod
-    def GetDefaultParameters():
-        return KM.Parameters("""{
+    def GetDefaultParameters(self):
+        default_parameters = KM.Parameters("""{
             "interface_model_part_name"   : "",
             "input_model_part_name"       : "input_model_part",
             "read_historical_database"    : false,
             "interval"                    : [0.0,"End"],
             "list_of_variables"           : ["MOMENTUM"],
             "list_of_variables_to_fix"    : ["MOMENTUM_X","MOMENTUM_Y"],
-            "default_time_after_interval" : 0.0,
+            "default_time_after_interval" : null,
             "semi_period_after_interval"  : 1.0,
             "swap_yz_axis"                : false,
             "ignore_vertical_component"   : true,
             "file_settings"               : {}
         }""")
+        if self.settings.Has("default_time_after_interval"):
+            if self.settings["default_time_after_interval"].IsDouble():
+                default_parameters["default_time_after_interval"].SetDouble(0.0)
+        return default_parameters
 
     def __init__(self, model, settings):
         """The constructor of the DepthIntegrationInputProcess."""
@@ -75,11 +77,12 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
             self._CheckInputVariables()
             self._MapToBoundaryCondition()
         else:
-            self._SetDefaultTime()
-            self.hdf5_process.ExecuteInitializeSolutionStep()
-            self._CheckInputVariables()
-            self._MapToBoundaryCondition()
-            self._SmoothDefaultValue()
+            if self.settings["default_time_after_interval"] is not None:
+                self._SetDefaultTime()
+                self.hdf5_process.ExecuteInitializeSolutionStep()
+                self._CheckInputVariables()
+                self._MapToBoundaryCondition()
+                self._SmoothDefaultValue()
 
 
     def _GetInputTimes(self, file_settings):
@@ -184,9 +187,8 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
     def _SmoothDefaultValue(self):
         elapsed_time = self.interface_model_part.ProcessInfo.GetValue(KM.DELTA_TIME)
         semi_period = self.settings["semi_period_after_interval"].GetDouble()
-        smooth = -expm1(-elapsed_time / semi_period)
-        for node in self.interface_model_part.Nodes:
-            for variable in self.variables:
-                initial = node.GetSolutionStepValue(variable, 1)
-                increment = node.GetSolutionStepValue(variable) - initial
-                node.SetSolutionStepValue(variable, initial + increment * smooth)
+        for variable in self.variables:
+            SW.ShallowWaterUtilities().SmoothTemporalVariable(
+                self.interface_model_part,
+                variable,
+                semi_period)
