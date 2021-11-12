@@ -271,7 +271,7 @@ namespace Testing
         Matrix MLS_DN_DX_container;
         for (auto& r_element : r_model_part.Elements()) {
             const auto& r_geom = r_element.GetGeometry();
-            const auto N_container = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            const auto N_container = r_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
             const std::size_t n_nodes = N_container.size1();
             const std::size_t n_gauss = N_container.size2();
             for (std::size_t i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
