@@ -158,13 +158,13 @@ class ConstitutiveLawsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
         pdf.close()
         plt.close('all')
 
-class TestConstitutiveLaws(KratosUnittest.TestCase):
+class DEM3DConstitutiveLaws(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
 
     @classmethod
-    def test_ConstitutiveLaws1(self):
+    def test_DEM3D_ConstitutiveLaws1(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "constitutive_laws_tests_files")
         os.chdir(path)
         parameters_file_name = os.path.join(path, "ProjectParametersDEM1.json")
@@ -172,7 +172,7 @@ class TestConstitutiveLaws(KratosUnittest.TestCase):
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ConstitutiveLawsTestSolution, model, parameters_file_name, 1)
     
     @classmethod
-    def test_ConstitutiveLaws2(self):
+    def test_DEM3D_ConstitutiveLaws2(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "constitutive_laws_tests_files")
         os.chdir(path)
         parameters_file_name = os.path.join(path, "ProjectParametersDEM2.json")
@@ -180,7 +180,7 @@ class TestConstitutiveLaws(KratosUnittest.TestCase):
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ConstitutiveLawsTestSolution, model, parameters_file_name, 1)
     
     @classmethod
-    def test_ConstitutiveLaws3(self):
+    def test_DEM3D_ConstitutiveLaws3(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "constitutive_laws_tests_files")
         os.chdir(path)
         parameters_file_name = os.path.join(path, "ProjectParametersDEM3.json")

@@ -632,6 +632,7 @@ class DEMAnalysisStage(AnalysisStage):
         del self.spheres_model_part
         del self.dem_inlet_model_part
         del self.mapping_model_part
+        del self.contact_model_part
 
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             del self.DEM_inlet

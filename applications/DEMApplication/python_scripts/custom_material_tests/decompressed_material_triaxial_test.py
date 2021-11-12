@@ -1,10 +1,13 @@
 import KratosMultiphysics
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
+import KratosMultiphysics.DEMApplication as DEM
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 from KratosMultiphysics.DEMApplication import DEM_procedures as DEM_procedures
+import weakref
 import math
 import datetime
+import sys
 
 class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
 
@@ -22,30 +25,38 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
 
     def Initialize(self):
         super().Initialize()
+        self.GetMainProblemParameters()
         self.InitializeMaterialTest()
         self.PrepareDataForGraph()
-        self.ApplyPreCompression()
-        self.ApplyDeCompression()
+        self._GetSolver().cplusplus_strategy.BreakAllBonds()
+        self.ApplyPrecompression()
+        self._GetSolver().cplusplus_strategy.HealAllBonds()
+        ParallelBondUtilities().SetCurrentIndentationAsAReferenceInParallelBonds(self.spheres_model_part)
+        PreUtilities().ResetSkinParticles(self.spheres_model_part)
+        self._GetSolver().cplusplus_strategy.ComputeSkin(self.spheres_model_part, 1.5)
+        self.ApplyDecompression()
         self.RestoreLoadingVelocity()
 
-    def ApplyPreCompression(self):
+    def GetMainProblemParameters(self):
+        list_of_material_relations = self.DEM_material_parameters["material_relations"]        
+        for material_relation in list_of_material_relations:
+            contact_properties = material_relation["Variables"]
+        self.loose_young = contact_properties["LOOSE_MATERIAL_YOUNG_MODULUS"].GetDouble()
+        self.bonded_young = contact_properties["BONDED_MATERIAL_YOUNG_MODULUS"].GetDouble()
+        self.friction = contact_properties["STATIC_FRICTION"].GetDouble()
+        self.contact_tau = contact_properties["CONTACT_TAU_ZERO"].GetDouble()
 
-        self._GetSolver().cplusplus_strategy.BreakAllBonds()
+    def ApplyPrecompression(self):
 
-        print("\n************************************ Applying PreCompression...\n", flush=True)
+        print("\n************************************ Applying Precompression...\n", flush=True)
         while not self.compression_stage_completed:
             self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
             self._GetSolver().SolveSolutionStep()
-            self.FinalizeSolutionStepPreCompression()
+            self.FinalizeSolutionStepPrecompression()
             self.OutputSolutionStep()
-        print("\n*************************** Finished Applying PreCompression!!!\n", flush=True)        
-
-        self._GetSolver().cplusplus_strategy.HealAllBonds()
-        ParallelBondUtilities().SetCurrentIndentationAsAReferenceInParallelBonds(self.spheres_model_part)
-        PreUtilities().ResetSkinParticles(self.spheres_model_part)
-        self._GetSolver().cplusplus_strategy.ComputeSkin(self.spheres_model_part, 1.5)
+        print("\n*************************** Finished Applying Precompression!!!\n", flush=True)
 
     def ResetLoadingVelocity(self):
         for smp in self.rigid_face_model_part.SubModelParts:
@@ -61,18 +72,18 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
             if smp[IDENTIFIER] == 'BOTTOM':
                 smp[LINEAR_VELOCITY_Y] = -0.5 * self.LoadingVelocity
 
-    def ApplyDeCompression(self):
+    def ApplyDecompression(self):
 
-        print("\n************************************ Applying DeCompression...\n", flush=True)
+        print("\n************************************ Applying Decompression...\n", flush=True)
         while not self.decompression_stage_completed:
             self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
             self.ResetLoadingVelocity()
             self._GetSolver().SolveSolutionStep()
-            self.FinalizeSolutionStepDeCompression()
+            self.FinalizeSolutionStepDecompression()
             self.OutputSolutionStep()
-        print("\n*************************** Finished Applying DeCompression!!!\n", flush=True)
+        print("\n*************************** Finished Applying Decompression!!!\n", flush=True)
 
     def RunSolutionLoop(self):
 
@@ -90,13 +101,13 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
         super().OutputSolutionStep()
         self.PrintGraph(self.time)
 
-    def FinalizeSolutionStepPreCompression(self):
+    def FinalizeSolutionStepPrecompression(self):
         super().FinalizeSolutionStep()
-        self.MeasureForcesAndPressurePreCompression()
+        self.MeasureForcesAndPressurePrecompression()
 
-    def FinalizeSolutionStepDeCompression(self):
+    def FinalizeSolutionStepDecompression(self):
         super().FinalizeSolutionStep()
-        self.MeasureForcesAndPressureDeCompression()
+        self.MeasureForcesAndPressureDecompression()
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -107,6 +118,78 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
 
         # TODO: After self.CleanUpOperations() in base class!!
         self.FinalizeGraphs()
+        self.PrintMachineLearningData()
+    
+    def PrintMachineLearningData(self):
+        import numpy as np
+        from scipy import interpolate
+        import matplotlib.pyplot as plt
+
+        filename1 = self.absolute_path_to_file1
+        filename2 = os.path.join(os.getcwd(), 'triaxial_experiment_' + str(simulation_number) + '.grf')
+        X, Y = [], []
+        f = open(filename1, 'r')
+        for line in f:
+            values = [float(s) for s in line.split()]
+            X.append(values[0])
+            q = 145.0 * values[1]
+            Y.append(q)
+        minimum = min(Y)
+        min_index = Y.index(minimum)
+        X1 = X[:min_index]
+        X2 = X[min_index:]
+        Y1 = Y[:min_index]
+        Y2 = Y[min_index:]
+        Y2 = [x - 0.000145 * self.ConfinementPressure * 1e6 for x in Y2]
+        index_zero = min(range(len(Y2)), key=lambda i: abs(Y2[i] - 0.0))
+        close_zero = X2[index_zero]
+        X2 = [x - close_zero for x in X2]
+        X2 = X2[index_zero:]
+        Y2 = Y2[index_zero:]
+        X3, Y3 = [], []
+        f2 = open(filename2, 'r')
+        for line in f2:
+            values = [float(s) for s in line.split()]
+            X3.append(values[0])
+            q = values[1]
+            Y3.append(q)
+        X_0 = max(min(X2), min(X3))
+        X_N = min(max(X2), max(X3))
+        X4 = np.linspace(X_0, X_N, num_of_discretization_points)
+        F2 = interpolate.interp1d(X2, Y2, kind = 'linear')
+        F3 = interpolate.interp1d(X3, Y3, kind = 'linear')
+        minimumX = 1.2 * min(min(X2), min(X3))
+        maximumX = 1.2 * max(max(X2), max(X3))
+        minimumY = 1.2 * min(min(Y2), min(Y3))
+        maximumY = 1.2 * max(max(Y2), max(Y3))
+        plt.axis([minimumX, maximumX, minimumY, maximumY])
+        plt.xlabel("vertical strain (%)")
+        plt.ylabel("q' (psi)")
+        plt.plot(X2, Y2, color='blue', linewidth=1, linestyle='solid', marker='None', label="DEM")
+        plt.plot(X4, F2(X4), color='blue', markersize=2, linewidth=1, linestyle='dashed', marker='o', label="DEM interpolation")
+        plt.plot(X3, Y3, color='red',  linewidth=1, linestyle='solid', marker='None', label="experiment")
+        plt.plot(X4, F3(X4), color='red',  markersize=2, linewidth=1, linestyle='dashed', marker='o', label="experiment interpolation")
+        plt.title('Triaxial deviatoric effective stress. Precompressed results vs experiments', fontdict = {'fontsize':8})
+        plt.legend(loc='lower right')
+        plt.grid()
+        printfilename = 'dem_triaxial_vs_experiments_' + str(simulation_number) + '.png'
+        plt.savefig(printfilename, dpi=300)
+        plt.close()
+
+        error = []
+        length = len(F2(X4))
+        for i in range(length):
+            error.append(100 * (F2(X4[i]) - F3(X4[i]))/F3(X4[i]))
+        if simulation_number == simulation_number_list[0]:
+            machine_learning_data.write(str("%.8g"%self.loose_young).rjust(13) + '\n')
+            machine_learning_data.write(str("%.8g"%self.bonded_young).rjust(13) + '\n')
+            machine_learning_data.write(str("%.8g"%self.friction).rjust(13) + '\n')
+            machine_learning_data.write(str("%.8g"%self.contact_tau).rjust(13) + '\n')
+        for i in error:
+            machine_learning_data.write(str("%.8g"%i).rjust(13) + '\n')
+        machine_learning_data.flush()
+        if simulation_number == simulation_number_list[-1]:
+            machine_learning_data.close()
 
     def InitializeMaterialTest(self):
 
@@ -159,6 +242,8 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
             self.ConfinementPressure = self.parameters["ConfinementPressure"].GetDouble()
             self.y_coordinate_of_cylinder_bottom_base = self.parameters["YCoordinateOfCylinderBottomBase"].GetDouble()
             self.z_coordinate_of_cylinder_bottom_base = self.parameters["ZCoordinateOfCylinderBottomBase"].GetDouble()
+        
+        self.ConfinementPressure = ConfinementPressure
 
         self.ComputeLoadingVelocity()
         self.ComputeMeasuringSurface()
@@ -173,7 +258,7 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
         domain_volume = math.pi * 0.5 * 0.5 * self.diameter * self.diameter * self.height
         DEM_procedures.GranulometryUtils(domain_volume, self.spheres_model_part)
 
-    def MeasureForcesAndPressurePreCompression(self):
+    def MeasureForcesAndPressurePrecompression(self):
 
         dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
         self.strain += -100 * self.length_correction_factor * self.LoadingVelocity * dt / self.height
@@ -199,7 +284,7 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
         if self.total_stress_mean > self.SigmaVertical:
             self.compression_stage_completed = True
 
-    def MeasureForcesAndPressureDeCompression(self):
+    def MeasureForcesAndPressureDecompression(self):
 
         dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
         self.strain += -100 * self.length_correction_factor * self.PlatesDecompressionVelocity * dt / self.height
@@ -272,7 +357,7 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
         absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
         absolute_path_to_file2 = os.path.join(self.graphs_path, self.problem_name + "_graph_top.grf")
         absolute_path_to_file3 = os.path.join(self.graphs_path, self.problem_name + "_graph_bot.grf")
-        absolute_path_to_file4 = os.path.join(self.graphs_path, self.problem_name + "_graph_strain_vs_q.grf")
+        absolute_path_to_file4 = os.path.join(self.graphs_path, self.problem_name + "_graph_strain_vs_q_in_psi.grf")
         self.graph_export_1 = open(absolute_path_to_file1, 'w')
         self.graph_export_2 = open(absolute_path_to_file2, 'w')
         self.graph_export_3 = open(absolute_path_to_file3, 'w')
@@ -498,19 +583,19 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
             self.graph_export_1.flush()
             self.graph_export_2.flush()
             self.graph_export_3.flush()
-            self.graph_export_4.write(str("%.8g"%self.strain).rjust(15) + "  " + str("%.6g"%(self.total_stress_mean * 1e-6 - self.ConfinementPressure)).rjust(13) + '\n')
+            self.graph_export_4.write(str("%.8g"%self.strain).rjust(15) + "  " + str("%.6g"%(self.total_stress_mean * 145 * 1e-6 - 145 * self.ConfinementPressure)).rjust(13) +  "  " + str("%.8g"%time).rjust(12) + '\n')
             self.graph_export_4.flush()
         self.graph_counter += 1
 
     def FinalizeGraphs(self):
         # Create a copy and renaming
-        absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
+        self.absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
         absolute_path_to_file2 = os.path.join(self.graphs_path, self.problem_name + "_bts.grf")
         absolute_path_to_file3 = os.path.join(self.graphs_path, self.problem_name + "_graph_VOL.grf")
         for filename in os.listdir("."):
-            if filename.startswith(absolute_path_to_file1):
+            if filename.startswith(self.absolute_path_to_file1):
                 shutil.copy(filename, filename + "COPY")
-                os.rename(filename+"COPY", absolute_path_to_file1 + str(self.initial_time).replace(":", "") + ".grf")
+                os.rename(filename+"COPY", self.absolute_path_to_file1 + str(self.initial_time).replace(":", "") + ".grf")
             if filename.startswith(absolute_path_to_file2):
                 shutil.copy(filename, filename + "COPY")
                 os.rename(filename+"COPY", absolute_path_to_file2 + str(self.initial_time).replace(":", "") + ".grf")
@@ -527,5 +612,15 @@ if __name__ == "__main__":
     with open("ProjectParametersDEM.json", 'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-    model = KratosMultiphysics.Model()
-    DecompressedMaterialTriaxialTest(model, parameters).Run()
+    machine_learning_file = "machine_learning_data.grf"
+    machine_learning_data = open(machine_learning_file, 'w')
+
+    confinement_pressure_list = [0.05, 0.1] # For the triaxials, in MPa
+    num_of_discretization_points = 10 # To compute relative errors
+    
+    number_of_triaxials = len(confinement_pressure_list)
+    simulation_number_list = [i for i in range(1, number_of_triaxials + 1)]
+
+    for simulation_number, ConfinementPressure in zip(simulation_number_list, confinement_pressure_list):
+        model = KratosMultiphysics.Model()
+        DecompressedMaterialTriaxialTest(model, parameters).Run()
