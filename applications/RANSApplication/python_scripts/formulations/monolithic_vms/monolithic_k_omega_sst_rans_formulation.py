@@ -63,3 +63,6 @@ class MonolithicKOmegaSSTRansFormulation(RansFormulation):
 
             # calling the execute initialize method here since, it is added after the routine super().Initialize()
             nut_nodal_update_process.ExecuteInitialize()
+
+    def ChecknuTConvergence(self):
+        return self.k_omega_sst_formulation.nu_t_convergence_utility.CheckConvergence()

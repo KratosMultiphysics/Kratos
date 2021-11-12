@@ -361,3 +361,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
     def GetConditionNamePrefix(self):
         return "RansVMSMonolithic"
 
+    def ChecknuTConvergence(self):
+        "dummy function"
+        return True
+

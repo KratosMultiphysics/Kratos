@@ -74,16 +74,19 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
     def SolveCouplingStep(self):
         max_iterations = self.GetMaxCouplingIterations()
 
+        is_converged = True # initailization
+
         for iteration in range(max_iterations):
             self.nu_t_convergence_utility.InitializeCalculation()
 
             self.ExecuteBeforeCouplingSolveStep()
             for formulation in self.GetRansFormulationsList():
                 formulation.SolveCouplingStep()
+                is_converged = formulation.GetStrategy().IsConverged() and is_converged
             self.ExecuteAfterCouplingSolveStep()
 
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling itr. {:d}/{:d}.".format(iteration + 1, max_iterations))
-            is_converged = self.nu_t_convergence_utility.CheckConvergence()
+            is_converged = is_converged and self.nu_t_convergence_utility.CheckConvergence()
             if (is_converged):
                 return True
 
