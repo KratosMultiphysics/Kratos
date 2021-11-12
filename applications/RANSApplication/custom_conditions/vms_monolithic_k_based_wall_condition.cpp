@@ -51,7 +51,7 @@ int VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Check(
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
     }
-
+// TODO: Change VELOCITY to EFFECTIVE_VELOCITY for moving bodies.
     return check;
 
     KRATOS_CATCH("");
@@ -340,7 +340,7 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
         const double inv_kappa = 1.0 / kappa;
 
         double tke;
-        array_1d<double, 3> wall_velocity;
+        array_1d<double, 3> wall_velocity, fluid_velocity, mesh_velocity;
 
         auto& gauss_y_plus = this->GetValue(GAUSS_RANS_Y_PLUS);
 
@@ -351,7 +351,10 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
             FluidCalculationUtilities::EvaluateInPoint(
                 r_geometry, gauss_shape_functions,
                 std::tie(tke, TURBULENT_KINETIC_ENERGY),
-                std::tie(wall_velocity, VELOCITY));
+                std::tie(fluid_velocity, VELOCITY),
+                std::tie(mesh_velocity, MESH_VELOCITY));
+            
+            noalias(wall_velocity) = fluid_velocity - mesh_velocity;
 
             const double wall_velocity_magnitude = norm_2(wall_velocity);
 
