@@ -193,7 +193,7 @@ void ShallowWaterUtilities::ExtrapolateElementalFlagToNodes(ModelPart& rModelPar
     });
 }
 
-void ShallowWaterUtilities::NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable)
+void ShallowWaterUtilities::NormalizeVector(ModelPart& rModelPart, const Variable<array_1d<double,3>>& rVariable)
 {
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
         auto& vector = rNode.FastGetSolutionStepValue(rVariable);

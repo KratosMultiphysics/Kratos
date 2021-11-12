@@ -103,7 +103,7 @@ public:
 
     void ExtrapolateElementalFlagToNodes(ModelPart& rModelPart, Flags Flag);
 
-    void NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable);
+    void NormalizeVector(ModelPart& rModelPart, const Variable<array_1d<double,3>>& rVariable);
 
     template<class TVarType>
     void CopyVariableToPreviousTimeStep(ModelPart& rModelPart, const TVarType& rVariable)
