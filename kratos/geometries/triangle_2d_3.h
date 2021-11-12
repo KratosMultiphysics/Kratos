@@ -495,27 +495,16 @@ public:
         return 0.5*detJ;
     }
 
-    /// detect if two triangle are intersected
+    /// Detect if this triangle is intersected with another geometry
     bool HasIntersection( const BaseType& rThisGeometry ) const override
     {
-        const auto geometry_type = rThisGeometry.GetGeometryType();
-
-        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2) {
-            Point result;
-            for (auto& edge : this->GenerateEdges()) {
-                if (IntersectionUtilities::ComputeLineLineIntersection(rThisGeometry, edge[0], edge[1], result))
-                    return true;
-            }
-            return this->IsInside(rThisGeometry[0], result);
-        }
-        else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) {
-            const BaseType& geom_1 = *this;
-            const BaseType& geom_2 = rThisGeometry;
-            return  NoDivTriTriIsect(geom_1[0], geom_1[1], geom_1[2], geom_2[0], geom_2[1], geom_2[2]);
-        }
-        else {
-            KRATOS_ERROR << "Triangle2D3::HasIntersection : Geometry cannot be identified, please, check the intersecting geometry type." << std::endl;
-        }
+        if (rThisGeometry.LocalSpaceDimension() < this->LocalSpaceDimension()) {
+            return IntersectionUtilities::TriangleLineIntersection2D(
+                *this, rThisGeometry[0], rThisGeometry[1]);
+        }  // Both geometries are 2D 
+        const BaseType& geom_1 = *this;
+        const BaseType& geom_2 = rThisGeometry;
+        return  NoDivTriTriIsect(geom_1[0], geom_1[1], geom_1[2], geom_2[0], geom_2[1], geom_2[2]);
     }
 
     /**
