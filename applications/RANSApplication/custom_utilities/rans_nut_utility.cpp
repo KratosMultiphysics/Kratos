@@ -141,6 +141,11 @@ bool RansNutUtility::CheckConvergence() const
             return std::make_tuple<double, double>(std::pow(value - mElementData[iElement], 2), std::pow(value, 2));
         });
 
+    // std::exit(-1);
+    // KRATOS_WATCH(element_dx);
+    // KRATOS_WATCH(element_solution);
+    // KRATOS_WATCH(static_cast<double>(number_of_elements));
+
     const std::vector<double> norm_values = {element_dx, element_solution, static_cast<double>(number_of_elements)};
     const auto& total_norm_values = r_communicator.GetDataCommunicator().SumAll(norm_values);
 
@@ -151,6 +156,10 @@ bool RansNutUtility::CheckConvergence() const
     const double relative_error = dx / solution;
     const double absolute_error = dx / total_norm_values[2];
 
+    // KRATOS_WATCH(dx);
+    // KRATOS_WATCH(solution);
+    // KRATOS_WATCH(total_norm_values[2]);
+
     if (mEchoLevel > 0 ) {
         std::stringstream msg;
         msg << std::scientific << std::setprecision(6) << "[ "
@@ -160,6 +169,11 @@ bool RansNutUtility::CheckConvergence() const
             << "Expected norm: " << mAbsoluteTolerance << " ] - TURBULENT_VISCOSITY\n";
         KRATOS_INFO(this->Info()) << msg.str();
     }
+
+    // for (auto& elements: mrModelPart.Elements()){
+    //     KRATOS_WATCH(elements.GetValue(TURBULENT_VISCOSITY));
+    // }
+    // std::exit(-1);
 
     if (relative_error < mRelativeTolerance || absolute_error < mAbsoluteTolerance) {
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << " CONVERGENCE: *** CONVERGENCE ACHIEVED *** [ TURBULENT VISCOSITY ] \n";
@@ -209,32 +223,37 @@ double RansNutUtility::CalculateTurbulentViscosity(
 {
     KRATOS_TRY
 
-    auto& Ws = std::get<0>(rTLS);
-    auto& Ns = std::get<1>(rTLS);
-    auto& dNdXs = std::get<2>(rTLS);
-
-
-    // computing everything based on a fixed gauss integration rather than based
-    // on the element one. This is because, in RANS there can be different elements
-    // with different gauss integration methods. So in order to be consistent
-    // GI_GAUSS_1 is chosen
-    const auto& r_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
-
-    RansCalculationUtilities::CalculateGeometryData(
-        rElement.GetGeometry(), r_integration_method, Ws, Ns, dNdXs);
-
-    ConstitutiveLaw::Parameters parameters(rElement.GetGeometry(), rElement.GetProperties(), rProcessInfo);
-    const Vector& N = row(Ns, 0);
-    const Matrix& dNdX = dNdXs[0];
-    parameters.SetShapeFunctionsValues(N);
-    parameters.SetShapeFunctionsDerivatives(dNdX);
-
     double nu_t;
-    rElement.GetValue(CONSTITUTIVE_LAW)->CalculateValue(parameters, TURBULENT_VISCOSITY, nu_t);
 
-    return nu_t;
+    if (rElement.IsNot(ACTIVE)){
+        nu_t = 0.0;
+        rElement.SetValue(TURBULENT_VISCOSITY, nu_t);
+    }
+    else {
+        auto& Ws = std::get<0>(rTLS);
+        auto& Ns = std::get<1>(rTLS);
+        auto& dNdXs = std::get<2>(rTLS);
+
+        // computing everything based on a fixed gauss integration rather than based
+        // on the element one. This is because, in RANS there can be different elements
+        // with different gauss integration methods. So in order to be consistent
+        // GI_GAUSS_1 is chosen
+        const auto& r_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
+
+        RansCalculationUtilities::CalculateGeometryData(
+            rElement.GetGeometry(), r_integration_method, Ws, Ns, dNdXs);
+
+        ConstitutiveLaw::Parameters parameters(rElement.GetGeometry(), rElement.GetProperties(), rProcessInfo);
+        const Vector& N = row(Ns, 0);
+        const Matrix& dNdX = dNdXs[0];
+        parameters.SetShapeFunctionsValues(N);
+        parameters.SetShapeFunctionsDerivatives(dNdX);
+
+        rElement.GetValue(CONSTITUTIVE_LAW)->CalculateValue(parameters, TURBULENT_VISCOSITY, nu_t);
+    }
+    
+    return nu_t;        
 
     KRATOS_CATCH("");
 }
-
 } // namespace Kratos.
