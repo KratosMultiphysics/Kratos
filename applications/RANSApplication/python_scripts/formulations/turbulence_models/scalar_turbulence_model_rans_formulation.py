@@ -53,7 +53,8 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
                 "wall_friction_velocity_calculation_method": "velocity_based"
             },
             "reform_dofs_at_each_step": true,
-            "vtk_output_settings": {}
+            "vtk_output_settings": {},
+            "auxiliar_process_list":[]
         }""")
 
     def BackwardCompatibilityHelper(self, settings, deprecated_settings_dict):
@@ -127,26 +128,37 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
              settings["relative_tolerance"].GetDouble(),
              settings["absolute_tolerance"].GetDouble())])
 
-        if (self.is_steady_simulation):
-            vtk_settings = settings["vtk_output_settings"]
-            if vtk_settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
-                scheme = self.scheme_type(settings["relaxation_factor"].GetDouble())
-            else:
-                if not vtk_settings.Has("model_part_name"):
-                    vtk_settings.AddEmptyValue("model_part_name")
+        vtk_settings = settings["vtk_output_settings"]
+        if vtk_settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
+            vtk_settings = None
+        else:
+            if not vtk_settings.Has("model_part_name"):
+                vtk_settings.AddEmptyValue("model_part_name")
                 vtk_settings["model_part_name"].SetString(self.GetModelPart().FullName())
-                scheme = self.scheme_type(settings["relaxation_factor"].GetDouble(), Kratos.VtkOutput(self.GetModelPart(), vtk_settings))
+
+        if (self.is_steady_simulation):
+            if vtk_settings is None:
+                self.scheme = self.scheme_type(settings["relaxation_factor"].GetDouble())
+            else:
+                self.scheme = self.scheme_type(settings["relaxation_factor"].GetDouble(), Kratos.VtkOutput(self.GetModelPart(), vtk_settings))
         else:
             scheme_type = GetKratosObjectPrototype("BossakRelaxationScalarScheme")
-            scheme = scheme_type(
-                self.GetModelPart().ProcessInfo[Kratos.BOSSAK_ALPHA],
-                settings["relaxation_factor"].GetDouble(),
-                self.GetSolvingVariable())
+            if vtk_settings is None:
+                self.scheme = scheme_type(
+                    self.GetModelPart().ProcessInfo[Kratos.BOSSAK_ALPHA],
+                    settings["relaxation_factor"].GetDouble(),
+                    self.GetSolvingVariable())
+            else:
+                self.scheme = scheme_type(
+                    self.GetModelPart().ProcessInfo[Kratos.BOSSAK_ALPHA],
+                    settings["relaxation_factor"].GetDouble(),
+                    self.GetSolvingVariable(),
+                    Kratos.VtkOutput(self.GetModelPart(), vtk_settings))
 
         solver_type = GetKratosObjectPrototype("ResidualBasedNewtonRaphsonStrategy")
         self.solver = solver_type(
             self.GetModelPart(),
-            scheme,
+            self.scheme,
             convergence_criteria,
             builder_and_solver,
             settings["max_iterations"].GetInt(),
@@ -166,6 +178,8 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
     def SolveCouplingStep(self):
         if (self.IsBufferInitialized()):
             self.ExecuteBeforeCouplingSolveStep()
+            if self.is_steady_simulation:
+                self.scheme.InitilaizeDofUpdater()
             self.solver.SolveSolutionStep()
             self.ExecuteAfterCouplingSolveStep()
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved  formulation.")
