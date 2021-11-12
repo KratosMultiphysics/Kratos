@@ -404,6 +404,21 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(sub, reference_sub );
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ParUtilsExceptions, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    std::vector<double> data_vector(nsize, 5.0);
+
+    //check ability to handle exceptions in pure c++ - DELIBERATELY THROWING AN EXCEPTION!
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            block_for_each(data_vector, [](double& item){
+                KRATOS_ERROR << "Inside parallel region" << std::endl;
+            });
+        ,
+        "caught exception: Error: Inside parallel region"
+        );
+}
+
 KRATOS_TEST_CASE_IN_SUITE(OmpVsPureC11, KratosCoreFastSuite)
 {
     int nsize = 1e7;
