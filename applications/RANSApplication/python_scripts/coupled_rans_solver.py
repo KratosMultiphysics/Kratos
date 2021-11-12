@@ -219,6 +219,9 @@ class CoupledRANSSolver(PythonSolver):
 
         self.main_model_part.ProcessInfo[Kratos.STEP] = 0
 
+        # set the ACTIVE flag of all elements to True
+        Kratos.VariableUtils().SetFlag(Kratos.ACTIVE, True, self.main_model_part.Elements)
+
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
             self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
@@ -248,7 +251,11 @@ class CoupledRANSSolver(PythonSolver):
 
     def SolveSolutionStep(self):
         self.formulation.SolveCouplingStep()
-        self.is_converged = self.formulation.IsConverged()
+        self.is_converged = (self.formulation.IsConverged() and 
+                             self.formulation.ChecknuTConvergence())
+
+        if self.formulation.ChecknuTConvergence() is False:
+            Kratos.Logger.PrintWarning("TURBULENT VISCOSITY NOT CONVERGED")
 
         if not self.is_converged and not self.IsSteadySimulation() and self.echo_level > -1:
             msg = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[Kratos.STEP]) + "\n"
