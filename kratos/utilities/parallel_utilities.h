@@ -24,6 +24,7 @@
 #include <limits>
 #include <future>
 #include <thread>
+#include <mutex>
 
 // External includes
 #ifdef KRATOS_SMP_OPENMP
@@ -36,6 +37,21 @@
 #include "includes/lock_object.h"
 #include "utilities/reduction_utilities.h"
 
+#define KRATOS_CATCH_THREAD_ERROR(ThreadId, ErrorStream) \
+} catch(Exception& e) { \
+    const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
+    ErrorStream << "Thread #" << ThreadId << " caught exception: " << e.what() << "\n"; \
+} catch(std::exception& e) { \
+    const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
+    ErrorStream << "Thread #" << ThreadId << " caught exception: " << e.what() << "\n"; \
+} catch(...) { \
+    const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
+    ErrorStream << "Thread #" << ThreadId << " caught unknown exception:\n"; \
+}
+
+#define KRATOS_CHECK_AND_THROW_THREAD_ERROR(ErrorStream) \
+const std::string& err_msg = err_stream.str(); \
+KRATOS_ERROR_IF_NOT(err_msg.empty()) << "The following errors occured in a parallel region!\n" << err_msg << std::endl;
 
 namespace Kratos
 {
@@ -169,12 +185,18 @@ public:
     template <class TUnaryFunction>
     inline void for_each(TUnaryFunction&& f)
     {
+        std::stringstream err_stream;
+
         #pragma omp parallel for
         for (int i=0; i<mNchunks; ++i) {
+            KRATOS_TRY
             for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
                 f(*it); //note that we pass the value to the function, not the iterator
             }
+            KRATOS_CATCH_THREAD_ERROR(i, err_stream)
         }
+
+        KRATOS_CHECK_AND_THROW_THREAD_ERROR(err_stream)
     }
 
     /** @brief loop allowing reductions. f called on every entry in rData
