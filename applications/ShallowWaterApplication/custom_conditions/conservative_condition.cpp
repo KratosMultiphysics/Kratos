@@ -20,7 +20,6 @@
 #include "conservative_condition.h"
 #include "includes/checks.h"
 #include "shallow_water_application_variables.h"
-#include "custom_utilities/shallow_water_utilities.h"
 
 namespace Kratos
 {

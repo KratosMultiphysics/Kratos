@@ -1126,7 +1126,7 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 template<class TPointType>
 const GeometryData NurbsVolumeGeometry<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
 
 template<class TPointType>

@@ -127,7 +127,7 @@ namespace{
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10DeterminantOfJacobianArray1, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     Vector JacobianDeterminants;
-    geom->DeterminantOfJacobian(JacobianDeterminants, GeometryData::GI_GAUSS_2);
+    geom->DeterminantOfJacobian(JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_2);
     for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
         KRATOS_CHECK_NEAR(JacobianDeterminants[i], 1.0, TOLERANCE);
   }

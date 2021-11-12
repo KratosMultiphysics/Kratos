@@ -169,7 +169,7 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
     // only if some points did not find a neighbor or dont have a valid
     // projection, more search iterations are necessary
     mMeshesAreConforming = 1;
-    ConductSearchIteration(rpInterfaceInfo, rComm);
+    ConductSearchIteration(rpInterfaceInfo);
 
     while (++num_iteration <= max_search_iterations && !AllNeighborsFound(rComm)) {
         mSearchRadius *= increase_factor;
@@ -186,7 +186,7 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
 
         BuiltinTimer timer;
 
-        ConductSearchIteration(rpInterfaceInfo, rComm);
+        ConductSearchIteration(rpInterfaceInfo);
 
         if (mEchoLevel > 1) {
             PrintInfoAboutCurrentSearchSuccess(rComm, timer);
@@ -378,7 +378,7 @@ void InterfaceCommunicator::InitializeBinsSearchStructure()
     KRATOS_CATCH("");
 }
 
-void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
+void InterfaceCommunicator::ConductLocalSearch()
 {
     KRATOS_TRY;
 
@@ -446,7 +446,7 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
     }
 
     if (mEchoLevel > 0) {
-        const auto& r_data_comm = rComm.GetDataCommunicator();
+        const auto& r_data_comm = mrModelPartOrigin.GetCommunicator().GetDataCommunicator();
         if (r_data_comm.IsDefinedOnThisRank()) {
             sum_num_results = r_data_comm.Sum(sum_num_results, 0);
             sum_num_searched_objects = r_data_comm.Sum(sum_num_searched_objects, 0);
@@ -461,14 +461,13 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
     KRATOS_CATCH("");
 }
 
-void InterfaceCommunicator::ConductSearchIteration(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
-                                                   const Communicator& rComm)
+void InterfaceCommunicator::ConductSearchIteration(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo)
 {
     KRATOS_TRY;
 
     InitializeSearchIteration(rpInterfaceInfo);
 
-    ConductLocalSearch(rComm);
+    ConductLocalSearch();
 
     FinalizeSearchIteration(rpInterfaceInfo);
 
