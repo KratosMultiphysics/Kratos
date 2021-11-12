@@ -40,13 +40,13 @@
 #define KRATOS_CATCH_THREAD_ERROR(ThreadId, ErrorStream) \
 } catch(Exception& e) { \
     const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
-    ErrorStream << "Thread #" << ThreadId << " caught exception: " << e.what() << "\n"; \
+    ErrorStream << "Thread #" << ThreadId << " caught exception: " << e.what(); \
 } catch(std::exception& e) { \
     const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
-    ErrorStream << "Thread #" << ThreadId << " caught exception: " << e.what() << "\n"; \
+    ErrorStream << "Thread #" << ThreadId << " caught exception: " << e.what(); \
 } catch(...) { \
     const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock()); \
-    ErrorStream << "Thread #" << ThreadId << " caught unknown exception:\n"; \
+    ErrorStream << "Thread #" << ThreadId << " caught unknown exception:"; \
 }
 
 #define KRATOS_CHECK_AND_THROW_THREAD_ERROR(ErrorStream) \
