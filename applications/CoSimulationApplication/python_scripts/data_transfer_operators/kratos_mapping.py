@@ -3,7 +3,6 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_
 
 # Importing the Kratos Library
 import KratosMultiphysics as KM
-import KratosMultiphysics.MappingApplication as KratosMapping
 from KratosMultiphysics.MappingApplication import python_mapper_factory
 
 # CoSimulation imports
@@ -11,6 +10,7 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # other imports
+from KratosMultiphysics.CoSimulationApplication.utilities import data_communicator_utilities
 from time import time
 
 def Create(settings):
@@ -27,6 +27,12 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         "use_transpose" : KM.Mapper.USE_TRANSPOSE
     }
 
+    # initializing the static members necessary for MPI
+    # initializing on the fly does not work and leads to memory problems
+    # as the members are not proberly saved and randomly destucted!
+    __dummy_model = None
+    __rank_zero_model_part = None
+
     def __init__(self, settings):
         if not settings.Has("mapper_settings"):
             raise Exception('No "mapper_settings" provided!')
@@ -34,12 +40,10 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         self.__mappers = {}
 
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
-        model_part_origin      = from_solver_data.GetModelPart()
         model_part_origin_name = from_solver_data.model_part_name
         variable_origin        = from_solver_data.variable
         identifier_origin      = from_solver_data.solver_name + "." + model_part_origin_name
 
-        model_part_destination      = to_solver_data.GetModelPart()
         model_part_destination_name = to_solver_data.model_part_name
         variable_destination        = to_solver_data.variable
         identifier_destination      = to_solver_data.solver_name + "." + model_part_destination_name
@@ -54,6 +58,9 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         elif inverse_identifier_tuple in self.__mappers:
             self.__mappers[inverse_identifier_tuple].InverseMap(variable_destination, variable_origin, mapper_flags)
         else:
+            model_part_origin      = self.__GetModelPartFromInterfaceData(from_solver_data)
+            model_part_destination = self.__GetModelPartFromInterfaceData(to_solver_data)
+
             if model_part_origin.IsDistributed() or model_part_destination.IsDistributed():
                 mapper_create_fct = python_mapper_factory.CreateMPIMapper
             else:
@@ -105,3 +112,31 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             mapper_flags |= KM.Mapper.TO_NON_HISTORICAL
 
         return mapper_flags
+
+    @staticmethod
+    def __GetModelPartFromInterfaceData(interface_data):
+        """If the solver does not exist on this rank, then pass a
+        dummy ModelPart to the Mapper that has a DataCommunicator
+        that is not defined on this rank
+        """
+        if interface_data.IsDefinedOnThisRank():
+            return interface_data.GetModelPart()
+        else:
+            return KratosMappingDataTransferOperator.__GetRankZeroModelPart()
+
+    @staticmethod
+    def __GetRankZeroModelPart():
+        if not KM.IsDistributedRun():
+            raise Exception("This function can only be called when Kratos is running in MPI!")
+
+        if KratosMappingDataTransferOperator.__rank_zero_model_part is None:
+            model = KM.Model()
+            rank_zero_model_part = model.CreateModelPart("rank_zero")
+
+            from KratosMultiphysics.mpi import ModelPartCommunicatorUtilities
+            ModelPartCommunicatorUtilities.SetMPICommunicator(rank_zero_model_part, data_communicator_utilities.GetRankZeroDataCommunicator())
+
+            KratosMappingDataTransferOperator.__dummy_model = model
+            KratosMappingDataTransferOperator.__rank_zero_model_part = rank_zero_model_part
+
+        return KratosMappingDataTransferOperator.__rank_zero_model_part

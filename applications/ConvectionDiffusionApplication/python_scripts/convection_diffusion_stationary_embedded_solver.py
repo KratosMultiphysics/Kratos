@@ -2,6 +2,7 @@
 import KratosMultiphysics
 
 # Import applications
+import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
 # Import base class file
 from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_stationary_solver

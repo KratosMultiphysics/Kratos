@@ -122,6 +122,7 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     mRealMass = rOther.mRealMass;
     mClusterId = rOther.mClusterId;
     mGlobalDamping = rOther.mGlobalDamping;
+    mDiscontinuumConstitutiveLaw = rOther.mDiscontinuumConstitutiveLaw->CloneUnique();
 
     if(rOther.mStressTensor != NULL) {
         mStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
@@ -940,7 +941,7 @@ void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericPa
     data_buffer.mLocalRelVel[2] = 0.0;
     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, data_buffer.mLocalRelVel);
 
-    mDiscontinuumConstitutiveLaw = pGetDiscontinuumConstitutiveLawWithNeighbour(p_neighbour_element);
+    mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithNeighbour(p_neighbour_element);
     mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce,
             LocalElasticContactForce, LocalDeltDisp, data_buffer.mLocalRelVel, indentation, previous_indentation,
             ViscoDampingLocalContactForce, cohesive_force, this, p_neighbour_element, sliding, LocalCoordSystem);
@@ -1049,7 +1050,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             if (indentation > 0.0) {
 
                 GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, DeltVel, data_buffer.mLocalRelVel);
-                mDiscontinuumConstitutiveLaw = pGetDiscontinuumConstitutiveLawWithFEMNeighbour(wall);
+                mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithFEMNeighbour(wall);
                 mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(r_process_info,
                                                                     OldLocalElasticContactForce,
                                                                     LocalElasticContactForce,
@@ -1189,7 +1190,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
         if (indentation > 0.0)
         {
             GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, DeltVel, data_buffer.mLocalRelVel);
-            mDiscontinuumConstitutiveLaw = pGetDiscontinuumConstitutiveLawWithFEMNeighbour(wall);
+            mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithFEMNeighbour(wall);
             mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(
                 r_process_info,
                 OldLocalElasticContactForce,
@@ -1763,9 +1764,6 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
     if (r_process_info[ROLLING_FRICTION_OPTION]) this->Set(DEMFlags::HAS_ROLLING_FRICTION, true);
     else                                         this->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
 
-    if (r_process_info[CRITICAL_TIME_OPTION])    this->Set(DEMFlags::HAS_CRITICAL_TIME, true);   //obsolete
-    else                                         this->Set(DEMFlags::HAS_CRITICAL_TIME, false);
-
     if (r_process_info[COMPUTE_STRESS_TENSOR_OPTION]) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
     else                                              this->Set(DEMFlags::HAS_STRESS_TENSOR, false);
 
@@ -1789,29 +1787,14 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
     mGlobalDamping = r_process_info[GLOBAL_DAMPING];
 }
 
-double SphericParticle::CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) {
-    KRATOS_TRY
-
-    double max_sqr_period = 0.0;
-    for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
-        mDiscontinuumConstitutiveLaw = pGetDiscontinuumConstitutiveLawWithNeighbour(mNeighbourElements[i]);
-        double sqr_period_discontinuum = mDiscontinuumConstitutiveLaw->LocalPeriod(i, this, mNeighbourElements[i]);
-        if (sqr_period_discontinuum > max_sqr_period) { (max_sqr_period = sqr_period_discontinuum); }
-    }
-
-    return max_sqr_period;
-
-    KRATOS_CATCH("")
+std::unique_ptr<DEMDiscontinuumConstitutiveLaw> SphericParticle::pCloneDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour) {
+    Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour->GetProperties().Id());
+    return properties_of_this_contact[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->CloneUnique();
 }
 
-DEMDiscontinuumConstitutiveLaw* SphericParticle::pGetDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour) {
+std::unique_ptr<DEMDiscontinuumConstitutiveLaw> SphericParticle::pCloneDiscontinuumConstitutiveLawWithFEMNeighbour(Condition* neighbour) {
     Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour->GetProperties().Id());
-    return &*properties_of_this_contact[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER];
-}
-
-DEMDiscontinuumConstitutiveLaw* SphericParticle::pGetDiscontinuumConstitutiveLawWithFEMNeighbour(Condition* neighbour) {
-    Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour->GetProperties().Id());
-    return &*properties_of_this_contact[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER];
+    return properties_of_this_contact[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->CloneUnique();
 }
 
 void SphericParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {}
@@ -1823,45 +1806,6 @@ double SphericParticle::GetInitialDeltaWithFEM(int index) {//only available in c
 
 void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {
     KRATOS_TRY
-
-    //CRITICAL DELTA CALCULATION
-
-    if (rVariable == DELTA_TIME) {
-        double mass = GetMass();
-        double coeff = r_process_info[NODAL_MASS_COEFF];
-
-        if(coeff > 1.0) {
-            KRATOS_ERROR << "The coefficient assigned for virtual mass is larger than one. Virtual_mass_coeff is "<< coeff << std::endl;
-        }
-        else if ((coeff == 1.0) && (r_process_info[VIRTUAL_MASS_OPTION])) {
-            Output = 9.0E09;
-        }
-        else {
-            if (r_process_info[VIRTUAL_MASS_OPTION]) {
-                mass = mass / (1 - coeff);
-            }
-
-            double eq_mass = 0.5 * mass; //"mass" of the contact
-
-            double kn = 0.0;
-            double kt = 0.0;
-
-            double ini_delta = 0.05 * GetInteractionRadius(); // Hertz needs an initial Delta, linear ignores it
-
-            mDiscontinuumConstitutiveLaw = pGetDiscontinuumConstitutiveLawWithNeighbour(this);
-            mDiscontinuumConstitutiveLaw->GetContactStiffness(this, this, ini_delta, kn, kt);
-
-            //double K = Globals::Pi * GetYoung() * GetRadius(); //M. Error, should be the same that the local definition.
-
-            Output = 0.34 * sqrt(eq_mass / kn);
-
-            if (this->Is(DEMFlags::HAS_ROTATION)) {
-                //Output *= 0.5; //factor for critical time step when rotation is allowed.
-            }
-        }
-
-        return;
-    }
 
     if (rVariable == PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY) {
 

@@ -9,6 +9,7 @@ from KratosMultiphysics import Logger
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as UnitTest
 import BackwardCouplingTestFactory as BackwardCouplingTF
+import PorosityTestFactory as PorosityTF
 
 # Importing test factories if possible
 try:
@@ -95,6 +96,10 @@ class analytic_multiple_ghosts_test(AnalyticTF.TestFactory):
      file_name = "analytic_tests/multiple_phantoms/multiple_phantom_test"
      file_parameters = "analytic_tests/multiple_phantoms/ProjectParameters.json"
 
+class porosity_field_conservation_test(PorosityTF.PorosityConservationTestFactory):
+     file_name = "porosity_tests/porosity_conservation/Test_porosityFluid"
+     file_parameters = "porosity_tests/porosity_conservation/ProjectParameters.json"
+
 class chien_drag_test(DragTF.TestFactory):
      from  drag_tests.chien_law.chien_drag_test_analysis import ChienDragAnalysis
      analysis_stage_to_be_launched = ChienDragAnalysis
@@ -108,6 +113,7 @@ if candelier_imports_available:
      available_tests += [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in FDEMTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in AnalyticTF.TestFactory.__subclasses__()]
+available_tests += [test_class for test_class in PorosityTF.PorosityConservationTestFactory.__subclasses__()]
 available_tests += [test_class for test_class in DragTF.TestFactory.__subclasses__()]
 
 

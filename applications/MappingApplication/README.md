@@ -210,6 +210,19 @@ KM.MapperFactory.HasMapper("mapper_name")
 MappingMPIExtension.MPIMapperFactory.HasMapper("mapper_name")
 ```
 
+#### Search settings
+The search of neighbors / partners on the other side of the interface is a crucial task when creating the mapper. Especially in distributed computations (MPI) this can be very expensive and time consuming. Hence the search of the mapper is very optimized to provide robust and fast results. For this the search works in several iterations where the search radius is increased in each iteration.
+The default settings of the search are working fine in most cases, but in some special cases it might still be necessary to tweak and optimize the settings. The following settings are available (as sub-parameter `search_settings` of the settings that are given to the mapper):
+
+| name | type | default| description |
+|---|---|---|---|
+| `search_radius`| `double` | computed | The search radius to start with in the first iteration. In each next iteration it will be increased by multiplying with `search_radius_increase_factor` (`search_radius *= search_radius_increase_factor`) |
+| `max_search_radius` | `double` | computed | The max search radius to use. |
+| `search_radius_increase_factor`| `double` | `2.0` | factor by which the search radius is increasing in each search iteration (see above). |
+| `max_num_search_iterations` | `int` | computed (min 3) | max number of search iterations that is conducted. If the search is successful before then it will terminate earlier. The more heterogeneous the mesh the larger this will be.
+
+It is recommended to set the `echo_level` to 2 or higher for getting useful information from the search. This will help to debug the search in case of problems.
+
 ### Available Mappers
 
 This section explains the theory behind the mappers.
@@ -312,3 +325,6 @@ mpi_mapper = MappingMPIExtension.MPIMapperFactory.CreateMapper(
 
 - **Projections find the wrong result**\
   For complex geometries the projections can fail to find the correct result if many lines or surfaces are close. In those situations it helps to partition the mapping interface and construct multiple mappers with the smaller interfaces.
+
+- **Creation of the mapper takes very long**\
+  Often this is because of of unfit search settings. If the settings are not suitable for the problem then the mapper creation time can increase several magnitudes! Check [here](#search-settings) for an explanation of how to set the search settings in case the defaults are not working well.
