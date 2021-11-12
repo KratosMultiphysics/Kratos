@@ -629,8 +629,6 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
         self.Streamline.RungeKutta4ElementbasedSI(self.fluid_solver.main_model_part,100)
 
-        #self.cleaning_submodelparts()
-
         #inverted=self.Streamline.CheckInvertElement(self.fluid_solver.main_model_part,self.domain_size )
 
         #if(inverted==True): 
@@ -638,13 +636,8 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
          
         self.filling_submodelparts() 
         
-        #self.fluid_solver.Clear()
-        #self.thermal_solver.Clear()
-
-        #self.fluid_solver.Initialize()
-        #self.thermal_solver.Initialize() 
-
         self.fluid_solver.InitializeSolutionStep()
+
         self.thermal_solver.InitializeSolutionStep()
         
 
@@ -655,28 +648,16 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         
     def SolveSolutionStep(self):
 
-
         fluid_is_converged = self.fluid_solver.SolveSolutionStep()
         self.Streamline.RungeKutta4ElementbasedSI(self.fluid_solver.main_model_part,100)
-        
-         
+
+
         for node in self.fluid_solver.main_model_part.Nodes:
             velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
             node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, velocity)
 
-        x=self.values[1].GetDouble()
-        y=self.values[2].GetDouble()
-        z=self.values[3].GetDouble()
-        radius=self.values[4].GetDouble()
-        q=self.values[0].GetDouble()
-        
-        for node in self.fluid_solver.main_model_part.Nodes:
-             node.SetSolutionStepValue(KratosMultiphysics.FACE_HEAT_FLUX,0,0.0);
-
-        self.faceheatflux.FaceHeatFluxDistribution(self.fluid_solver.main_model_part, x, y, z, radius, q)
-        
+       
         self.HeatSource.Heat_Source(self.fluid_solver.main_model_part) #heat source for the thermal problem
-
 
         thermal_is_converged = self.thermal_solver.SolveSolutionStep()
         
