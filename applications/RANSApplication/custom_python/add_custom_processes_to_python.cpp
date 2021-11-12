@@ -29,7 +29,7 @@
 #include "custom_processes/rans_epsilon_turbulent_mixing_length_inlet_process.h"
 #include "custom_processes/rans_omega_turbulent_mixing_length_inlet_process.h"
 #include "custom_processes/rans_wall_distance_calculation_process.h"
-// #include "custom_processes/ranschimera_wall_distance_calculation_process.h"
+#include "custom_processes/ranschimera_wall_distance_calculation_process.h"
 #include "custom_processes/rans_apply_exact_nodal_periodic_condition_process.h"
 #include "custom_processes/rans_apply_flag_to_skin_process.h"
 #include "custom_processes/rans_clip_scalar_variable_process.h"
@@ -38,6 +38,7 @@
 #include "custom_processes/rans_compute_reactions_process.h"
 #include "custom_processes/apply_rans_chimera_process_monolithic.h"
 #include "custom_processes/rans_vtk_output_process.h"
+#include "custom_processes/rans_omega_viscous_log_wall_process.h"
 
 // Include base h
 #include "custom_python/add_custom_processes_to_python.h"
@@ -91,8 +92,8 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<RansWallDistanceCalculationProcess, RansWallDistanceCalculationProcess::Pointer, RansFormulationProcess>(m, "RansWallDistanceCalculationProcess")
         .def(py::init<Model&, Parameters&>());
 
-    // py::class_<RansChimeraWallDistanceCalculationProcess, RansChimeraWallDistanceCalculationProcess::Pointer, RansFormulationProcess>(m, "RansChimeraWallDistanceCalculationProcess")
-    //     .def(py::init<Model&, Parameters&, ApplyRANSChimeraProcessMonolithic<2>&>());
+    py::class_<RansChimeraWallDistanceCalculationProcess, RansChimeraWallDistanceCalculationProcess::Pointer, RansFormulationProcess>(m, "RansChimeraWallDistanceCalculationProcess")
+        .def(py::init<Model&, Parameters&, ApplyRANSChimeraProcessMonolithic<2>&>());
 
     py::class_<RansComputeReactionsProcess, RansComputeReactionsProcess::Pointer, RansFormulationProcess>(m, "RansComputeReactionsProcess")
         .def(py::init<Model&, Parameters&>())
@@ -100,6 +101,9 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<RansVTKOutputProcess, RansVTKOutputProcess::Pointer, RansFormulationProcess>(m, "RansVTKOutputProcess")
         .def(py::init<Model&, Parameters&>());
+
+    py::class_<RansOmegaViscousLogWallProcess, RansOmegaViscousLogWallProcess::Pointer, RansFormulationProcess>(m, "RansOmegaViscousLogWallProcess")
+        .def(py::init<Model&, Parameters&>());        
 }
 } // namespace Python
 } // namespace Kratos
