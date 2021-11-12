@@ -165,15 +165,22 @@
         },
         "processes"        : {
             "constraints_process_list" : [{
-                "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
+                "python_module" : "processes.apply_velocity_constraints_process",
                 "kratos_module" : "KratosMultiphysics.DEMApplication",
                 "Parameters"    : {
                     "model_part_name" : "RigidFacePart.1",
-            "velocity_constraints_settings" : {
+                    "velocity_constraints_settings" : {
                         "constrained"          : [true, true, true],
                         "value"                : [0.0, 0.0, 0.0],
                         "table"                : [null, null, null]
                     },
+                    "interval"             : [0.0, 1.0e30]
+                }
+            },{
+                "python_module" : "processes.apply_angular_velocity_constraints_process",
+                "kratos_module" : "KratosMultiphysics.DEMApplication",
+                "Parameters"    : {
+                    "model_part_name" : "RigidFacePart.1",
                     "angular_velocity_constraints_settings" : {
                         "constrained"          : [true, true, true],
                         "value"                : [0.0, 0.0, 0.0],
@@ -182,15 +189,22 @@
                     "interval"             : [0.0, 1.0e30]
                 }
             },{
-                "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
+                "python_module" : "processes.apply_velocity_constraints_process",
                 "kratos_module" : "KratosMultiphysics.DEMApplication",
                 "Parameters"    : {
                     "model_part_name" : "RigidFacePart.2",
-            "velocity_constraints_settings" : {
+                    "velocity_constraints_settings" : {
                         "constrained"          : [true, true, true],
                         "value"                : [0.0, 0.0, 0.0],
                         "table"                : [null, null, null]
                     },
+                    "interval"             : [0.0, 1.0e30]
+                }
+            },{
+                "python_module" : "processes.apply_angular_velocity_constraints_process",
+                "kratos_module" : "KratosMultiphysics.DEMApplication",
+                "Parameters"    : {
+                    "model_part_name" : "RigidFacePart.2",
                     "angular_velocity_constraints_settings" : {
                         "constrained"          : [true, true, true],
                         "value"                : [0.0, 0.0, 0.0],
@@ -199,21 +213,28 @@
                     "interval"             : [0.0, 1.0e30]
                 }
             },{
-                "python_module" : "processes.apply_kinematic_constraints_process",
+                "python_module" : "processes.apply_velocity_constraints_process",
                 "kratos_module" : "KratosMultiphysics.DEMApplication",
                 "Parameters"    : {
                     "model_part_name" : "SpheresPart.DEMParts",
-            "velocity_constraints_settings" : {
-                        "constrained"          : [true,false,false],
+                    "velocity_constraints_settings" : {
+                        "constrained"          : [false,false,false],
                         "value"                : [1.0, 0.0, 0.0],
                         "table"                : [null, null, null]
                     },
+                    "interval"             : [0.0, 0.0]
+                }
+            },{
+                "python_module" : "processes.apply_angular_velocity_constraints_process",
+                "kratos_module" : "KratosMultiphysics.DEMApplication",
+                "Parameters"    : {
+                    "model_part_name" : "SpheresPart.DEMParts",
                     "angular_velocity_constraints_settings" : {
                         "constrained"          : [false,false,false],
                         "value"                : [0.0, 0.0, 0.0],
                         "table"                : [null, null, null]
                     },
-                    "interval"             : [0.0, 2e-5]
+                    "interval"             : [0.0, 0.0]
                 }
             }],
             "loads_process_list"       : [],
@@ -234,7 +255,7 @@
         "SearchTolerance"                : 0.00055,
         "GraphExportFreq"                : 0.001,
         "VelTrapGraphExportFreq"         : 0.001,
-        "OutputTimeStep"                 : 1e-4,
+        "OutputTimeStep"                 : 1,
         "PostBoundingBox"                : false,
         "PostLocalContactForce"          : false,
         "PostDisplacement"               : true,
