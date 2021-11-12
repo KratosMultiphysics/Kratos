@@ -193,7 +193,7 @@ void DistanceModificationProcess::ModifyDistance()
     // Case in where the original distance does not need to be preserved (e.g. CFD)
     if (mRecoverOriginalDistance == false) {
         #pragma omp parallel for
-        for (int k = 0; k < static_cast<size_t>(r_nodes.size()); ++k) {
+        for (int k = 0; k < static_cast<int>(r_nodes.size()); ++k) {
             auto it_node = r_nodes.begin() + k;
             const double h = it_node->GetValue(NODAL_H);
             const double tol_d = mDistanceThreshold*h;
@@ -218,7 +218,7 @@ void DistanceModificationProcess::ModifyDistance()
     // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
     else {
 
-        const size_t num_chunks = 2 * ParallelUtilities::GetNumThreads();
+        const int num_chunks = 2 * ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector partition_vec;
         OpenMPUtils::DivideInPartitions(r_nodes.size(),num_chunks,partition_vec);
 
@@ -289,7 +289,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
         // modify them according to elemental distances in order to stay consistent with element splitting
         if (n_edges_extrapolated > 0) {
             #pragma omp parallel for
-            for (int i_elem = 0; i_elem < static_cast<size_t>(n_elems); ++i_elem) {
+            for (int i_elem = 0; i_elem < static_cast<int>(n_elems); ++i_elem) {
                 auto it_elem = elems_begin + i_elem;
 
                 // Compute the distance tolerance
@@ -325,7 +325,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
             }
         } else {
             #pragma omp parallel for
-            for (int i_elem = 0; i_elem < static_cast<size_t>(n_elems); ++i_elem) {
+            for (int i_elem = 0; i_elem < static_cast<int>(n_elems); ++i_elem) {
                 auto it_elem = elems_begin + i_elem;
 
                 // Compute the distance tolerance
@@ -343,7 +343,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
     } else {
         // Case in which the original distance needs to be kept to track the interface (e.g. FSI)
 
-        const size_t num_chunks = 2 * ParallelUtilities::GetNumThreads();
+        const int num_chunks = 2 * ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector partition_vec;
         OpenMPUtils::DivideInPartitions(n_elems,num_chunks,partition_vec);
 
@@ -456,14 +456,14 @@ void DistanceModificationProcess::RecoverDeactivationPreviousState()
 {
     // Activate again all the elements
     #pragma omp parallel for
-    for (int i_elem = 0; i_elem < static_cast<size_t>(mrModelPart.NumberOfElements()); ++i_elem){
+    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
         auto it_elem = mrModelPart.ElementsBegin() + i_elem;
         it_elem->Set(ACTIVE,true);
     }
     if ((mDoubleVariablesList.size() > 0.0) || (mComponentVariablesList.size() > 0.0)){
         // Free the negative DOFs that were fixed
         #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<size_t>(mrModelPart.NumberOfNodes()); ++i_node){
+        for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
             auto it_node = mrModelPart.NodesBegin() + i_node;
             if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
                 for (std::size_t i_var = 0; i_var < mDoubleVariablesList.size(); i_var++){
@@ -484,7 +484,7 @@ void DistanceModificationProcess::RecoverDeactivationPreviousState()
 void DistanceModificationProcess::RecoverOriginalDistance()
 {
     #pragma omp parallel for
-    for (int i = 0; i < static_cast<size_t>(mModifiedDistancesIDs.size()); ++i) {
+    for (int i = 0; i < static_cast<int>(mModifiedDistancesIDs.size()); ++i) {
         const auto node_id = mModifiedDistancesIDs[i];
         mrModelPart.GetNode(node_id).FastGetSolutionStepValue(DISTANCE) = mModifiedDistancesValues[i];
     }
@@ -506,7 +506,7 @@ void DistanceModificationProcess::RecoverOriginalDiscontinuousDistance()
 {    
     // Recover original elemental distances
     #pragma omp parallel for
-    for (int i_elem = 0; i_elem < static_cast<size_t>(mModifiedDistancesIDs.size()); ++i_elem) {
+    for (int i_elem = 0; i_elem < static_cast<int>(mModifiedDistancesIDs.size()); ++i_elem) {
         const size_t elem_id = mModifiedDistancesIDs[i_elem];
         const auto r_elem_dist = mModifiedElementalDistancesValues[i_elem];
         mrModelPart.GetElement(elem_id).SetValue(ELEMENTAL_DISTANCES,r_elem_dist);
@@ -514,7 +514,7 @@ void DistanceModificationProcess::RecoverOriginalDiscontinuousDistance()
 
     // Recover original extrapolated elemental edge distances
     #pragma omp parallel for
-    for (int i_elem = 0; i_elem < static_cast<size_t>(mModifiedExtrapolatedIDs.size()); ++i_elem) {
+    for (int i_elem = 0; i_elem < static_cast<int>(mModifiedExtrapolatedIDs.size()); ++i_elem) {
         const size_t elem_id = mModifiedExtrapolatedIDs[i_elem];
         const auto elem_edge_dist_extra = mModifiedExtrapolatedValues[i_elem];
         mrModelPart.GetElement(elem_id).SetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED,elem_edge_dist_extra);
@@ -543,14 +543,14 @@ void DistanceModificationProcess::DeactivateFullNegativeElements()
 
     // Initialize the EMBEDDED_IS_ACTIVE variable flag to 0
     #pragma omp parallel for
-    for (int i_node = 0; i_node < static_cast<size_t>(rNodes.size()); ++i_node){
+    for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
         ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
         it_node->SetValue(EMBEDDED_IS_ACTIVE, 0);
     }
 
     // Deactivate those elements whose negative distance nodes summation is equal to their number of nodes
     #pragma omp parallel for
-    for (int k = 0; k < static_cast<size_t>(rElements.size()); ++k){
+    for (int k = 0; k < static_cast<int>(rElements.size()); ++k){
         size_t n_neg = 0;
         ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
         auto& rGeometry = itElement->GetGeometry();
@@ -580,7 +580,7 @@ void DistanceModificationProcess::DeactivateFullNegativeElements()
     // Set to zero and fix the DOFs in the remaining inactive nodes
     if ((mDoubleVariablesList.size() > 0.0) || (mComponentVariablesList.size() > 0.0)){
         #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<size_t>(rNodes.size()); ++i_node){
+        for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
             auto it_node = rNodes.begin() + i_node;
             if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
                 for (std::size_t i_var = 0; i_var < mDoubleVariablesList.size(); i_var++){
@@ -605,7 +605,7 @@ void DistanceModificationProcess::DeactivateFullNegativeElements()
 void DistanceModificationProcess::SetContinuousDistanceToSplitFlag()
 {
     #pragma omp parallel for
-    for (int i_elem = 0; i_elem < static_cast<size_t>(mrModelPart.NumberOfElements()); ++i_elem) {
+    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem) {
         auto it_elem = mrModelPart.ElementsBegin() + i_elem;
         auto &r_geom = it_elem->GetGeometry();
         std::vector<double> elem_dist;
@@ -619,7 +619,7 @@ void DistanceModificationProcess::SetContinuousDistanceToSplitFlag()
 void DistanceModificationProcess::SetDiscontinuousDistanceToSplitFlag()
 {
     #pragma omp parallel for
-    for (int i_elem = 0; i_elem < static_cast<size_t>(mrModelPart.NumberOfElements()); ++i_elem) {
+    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem) {
         auto it_elem = mrModelPart.ElementsBegin() + i_elem;
         const auto &r_elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
         this->SetElementToSplitFlag(*it_elem, r_elem_dist);
