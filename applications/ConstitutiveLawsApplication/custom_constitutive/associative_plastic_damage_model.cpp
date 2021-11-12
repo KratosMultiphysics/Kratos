@@ -277,19 +277,80 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
     PlasticDamageParameters &rPDParameters
     )
 {
+    const auto& r_mat_properties = rValues.GetMaterialProperties();
     double uniaxial_plastic_strain = 0.0;
     GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::
         CalculateEquivalentPlasticStrain(rPDParameters.StressVector,
         rPDParameters.UniaxialStress, rPDParameters.PlasticStrain, 0.0, rValues, uniaxial_plastic_strain);
 
-    double tension_parameter, compression_parameter;
-    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(
-        rPDParameters.StressVector, tension_parameter,compression_parameter);
 
-    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::
-        CalculateEquivalentStressThreshold(rPDParameters.TotalDissipation,
-        tension_parameter, compression_parameter, rPDParameters.Threshold, rPDParameters.Slope, rValues,
-        uniaxial_plastic_strain, rPDParameters.CharacteristicLength);
+    if (rPDParameters.PlasticDamageProportion == 0.0) { // full plastic behaviour
+        double tension_parameter, compression_parameter;
+        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(
+            rPDParameters.StressVector, tension_parameter,compression_parameter);
+
+        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::
+            CalculateEquivalentStressThreshold(rPDParameters.TotalDissipation,
+            tension_parameter, compression_parameter, rPDParameters.Threshold, rPDParameters.Slope, rValues,
+            uniaxial_plastic_strain, rPDParameters.CharacteristicLength);
+    } else { // plastic-damage combinations
+        const int curve_type = rValues.GetMaterialProperties()[HARDENING_CURVE];
+        switch (static_cast<GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType>(curve_type)) {
+            case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::LinearSoftening: {
+                    const double chi = rPDParameters.PlasticDamageProportion;
+                    double K0;
+                    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
+                    rPDParameters.Threshold = K0 * (std::sqrt((2.0 - chi) * (2.0 - chi) - 4.0 * rPDParameters.TotalDissipation * (1.0 - chi)) - chi) / (2.0 * (1.0 - chi));
+                    rPDParameters.Slope = -K0 / (std::sqrt((2.0 - chi) * (2.0 - chi) - 4.0 * rPDParameters.TotalDissipation * (1.0 - chi)));
+                    break;
+                }
+            case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::ExponentialSoftening: {
+                // We define an implicit expression relating the total dissipation and the Threshold (dissipation, threshold)
+                std::function<double(const double, const double, const Properties&, const PlasticDamageParameters&)> f = [](const double Dissipation, const double Threshold, const Properties& rMatProps, const PlasticDamageParameters &rPDParameters) {
+                    // TODO
+                    return 0.0;
+                };
+                // We define the derivative of f with respect to the threshold, (dissipation, threshold)
+                std::function<double(const double, const double, const Properties&, const PlasticDamageParameters&)> df_dk = [](const double Dissipation, const double Threshold, const Properties& rMatProps, const PlasticDamageParameters &rPDParameters) {
+                    // TODO
+                    return 0.0;
+                };
+                // rPDParameters.Threshold = CalculateThresholdImplicitExpression(f, df_dk, rPDParameters.Threshold, rValues.GetMaterialProperties(), rPDParameters);
+                // rPDParameters.Slope     = CalculateSlopeFiniteDifferences(f, rPDParameters.TotalDissipation, rValues.GetMaterialProperties(), rPDParameters);
+                break;
+            }
+        }
+    }
+}
+/***********************************************************************************/
+/***********************************************************************************/
+template<class TYieldSurfaceType>
+double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImplicitExpression(
+    std::function<double(const double, const double, const Properties&, const PlasticDamageParameters &rPDParameters)>& rF,
+    std::function<double(const double, const double, const Properties&, const PlasticDamageParameters &rPDParameters)>& rdF_dk,
+    const Properties& rMatProps,
+    const PlasticDamageParameters &rPDParameters
+)
+{
+    double difference = 1.0;
+    double old_threshold = rPDParameters.Threshold;
+    double new_threshold = 0.0;
+    double derivative = 0.0;
+    int max_iter = 200;
+    int iter = 0;
+    const double nr_tol = 1.0e-9;
+
+    while (difference > nr_tol && iter < max_iter) {
+        derivative = rdF_dk(rPDParameters.TotalDissipation, rPDParameters.Threshold, rMatProps, rPDParameters);
+        if (std::abs(derivative) > 0.0)
+            new_threshold = old_threshold - (1.0 / derivative) * rF(rPDParameters.TotalDissipation, rPDParameters.Threshold, rMatProps, rPDParameters);
+        else
+            break;
+        difference = std::abs(new_threshold - old_threshold);
+        iteration++;
+    }
+    KRATOS_WARNING_IF("AssociativePlasticDamageModel", iteration == max_iteration) << "Inner Newton-Raphson to find an updated threshold did not converge..." << std::endl;
+    return new_threshold;
 }
 
 /***********************************************************************************/
