@@ -2119,7 +2119,7 @@ namespace Kratos {
             pElemProp->SetValue(DENSITY, 1000.0);
             pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
             auto p_cons_law = Kratos::make_shared<NewtonianTwoFluid3DLaw>();
-            pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+            pElemProp->SetValue(CONSTITUTIVE_LAW, p_cons_law);
 
             // Geometry creation
             modelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
