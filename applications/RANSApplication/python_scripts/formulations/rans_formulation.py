@@ -442,14 +442,17 @@ class RansFormulation(ABC):
            chimera formulation are available in the BaseModelPart and have to be added to the ModelPart 
            of the the leaf node formulations.
         """
+        # # set the ACTIVE flag of all elements to True in the beginning
+        # Kratos.VariableUtils().SetFlag(Kratos.ACTIVE, True, self.GetModelPart().Elements)
+
         if not self.__chimera_initialized:
             # ACTIVE Flag
             # set the ACTIVE flag in the destination element if defined in the original modelpart
             for source_element in self.GetBaseModelPart().Elements:
+                # NOTE below line of code is a very expensive process: should be moved to KratosCore.VariableUtils()
+                # self.GetModelPart().GetElement(source_element.Id).Set(Kratos.ACTIVE, source_element.Is(Kratos.ACTIVE))
+                element = self.GetModelPart().GetElement(source_element.Id)
                 if source_element.IsDefined(Kratos.ACTIVE):
-                    # NOTE below line of code is a very expensive process: should be moved to KratosCore.VariableUtils()
-                    # self.GetModelPart().GetElement(source_element.Id).Set(Kratos.ACTIVE, source_element.Is(Kratos.ACTIVE))
-                    element = self.GetModelPart().GetElement(source_element.Id)
                     element.Set(Kratos.ACTIVE, source_element.Is(Kratos.ACTIVE))
 
                     # set the nodal solutions of inactive elements to ZERO.
@@ -457,8 +460,15 @@ class RansFormulation(ABC):
                         for node in element.GetNodes():
                             for solving_variable in self.GetSolvingVariables():
                                 node.SetSolutionStepValue(solving_variable, 0, 0.0)
-                                node.SetSolutionStepValue(solving_variable, 1, 0.0)
+                                # node.SetSolutionStepValue(solving_variable, 1, 0.0)
                         source_element.SetValue(Kratos.TURBULENT_VISCOSITY, 0)
+                # else:
+                #     element.Set(Kratos.ACTIVE, False)    
+                #     for node in element.GetNodes():
+                #         for solving_variable in self.GetSolvingVariables():
+                #             node.SetSolutionStepValue(solving_variable, 0, 0.0)
+                #             # node.SetSolutionStepValue(solving_variable, 1, 0.0)
+                #     source_element.SetValue(Kratos.TURBULENT_VISCOSITY, 0)           
 
 
             # CONSTRAINTS

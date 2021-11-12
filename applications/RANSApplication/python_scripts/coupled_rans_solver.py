@@ -219,9 +219,6 @@ class CoupledRANSSolver(PythonSolver):
 
         self.main_model_part.ProcessInfo[Kratos.STEP] = 0
 
-        # set the ACTIVE flag of all elements to True
-        Kratos.VariableUtils().SetFlag(Kratos.ACTIVE, True, self.main_model_part.Elements)
-
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
             self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
