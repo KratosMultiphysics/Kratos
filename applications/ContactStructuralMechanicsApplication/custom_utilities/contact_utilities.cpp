@@ -180,15 +180,9 @@ bool ContactUtilities::CheckActivity(
     const bool ThrowError
     )
 {
-    // Iterate over the nodes
-    NodesArrayType& r_nodes_array = rModelPart.Nodes();
-
-    // Node iterator
-    const auto it_node_begin = r_nodes_array.begin();
-
     // We compute the half jump
     IndexType aux_check = 0;
-    aux_check = block_for_each<SumReduction<IndexType>>(r_nodes_array, [&](NodeType& rNode) {
+    aux_check = block_for_each<SumReduction<IndexType>>(rModelPart.Nodes(), [&](NodeType& rNode) {
         if (rNode.Is(SLAVE)) {
             if (rNode.Is(ACTIVE)) {
                 return 1;
