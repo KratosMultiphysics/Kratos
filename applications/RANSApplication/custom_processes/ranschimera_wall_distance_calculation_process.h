@@ -8,10 +8,11 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya
+//                   Rahul Kikkeri Nagaraja
 //
 
-#if !defined(KRATOS_RANS_WALL_DISTANCE_CALCULATION_PROCESS_H_INCLUDED)
-#define KRATOS_RANS_WALL_DISTANCE_CALCULATION_PROCESS_H_INCLUDED
+#if !defined(KRATOS_RANS_CHIMERA_WALL_DISTANCE_CALCULATION_PROCESS_H_INCLUDED)
+#define KRATOS_RANS_CHIMERA_WALL_DISTANCE_CALCULATION_PROCESS_H_INCLUDED
 
 // System includes
 #include <string>
@@ -21,9 +22,12 @@
 // Project includes
 #include "containers/model.h"
 #include "includes/define.h"
+#include "utilities/binbased_fast_point_locator.h"
 
 // Application includes
 #include "rans_formulation_process.h"
+#include "custom_processes/apply_chimera_process.h"     // base class: chimera process 
+#include "custom_processes/apply_rans_chimera_process_monolithic.h"     // derived class: rans chimera process
 
 namespace Kratos
 {
@@ -33,33 +37,41 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(RANS_APPLICATION) RansWallDistanceCalculationProcess
+class KRATOS_API(RANS_APPLICATION) RansChimeraWallDistanceCalculationProcess
 : public RansFormulationProcess
 {
 public:
     ///@name Type Definitions
     ///@{
+    // change typedef to using later. 
+    KRATOS_CLASS_POINTER_DEFINITION(RansChimeraWallDistanceCalculationProcess);
+    using PointLocatorType = BinBasedFastPointLocator<2>;   // Change it to <TDim> and use templates 
+    using PointLocatorPointerType = typename PointLocatorType::Pointer;
+    using PointLocatorsMapType = std::map<std::string, PointLocatorPointerType>;
+    using ChimeraProcessType = ApplyRANSChimeraProcessMonolithic<2>;
+    using NodeType = ModelPart::NodeType;
 
-    /// Pointer definition of RansWallDistanceCalculationProcess
-    KRATOS_CLASS_POINTER_DEFINITION(RansWallDistanceCalculationProcess);
+    ///@}
+    /// Pointer definition of RansChimeraWallDistanceCalculationProcess
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor
-    RansWallDistanceCalculationProcess(
+    RansChimeraWallDistanceCalculationProcess(
         Model& rModel,
-        Parameters rParameters);
+        Parameters rParameters,
+        ChimeraProcessType& rChimeraProcess);
 
     /// Destructor.
-    ~RansWallDistanceCalculationProcess() override = default;
+    ~RansChimeraWallDistanceCalculationProcess() override = default;
 
     /// Assignment operator.
-    RansWallDistanceCalculationProcess& operator=(RansWallDistanceCalculationProcess const& rOther) = delete;
+    RansChimeraWallDistanceCalculationProcess& operator=(RansChimeraWallDistanceCalculationProcess const& rOther) = delete;
 
     /// Copy constructor.
-    RansWallDistanceCalculationProcess(RansWallDistanceCalculationProcess const& rOther) = delete;
+    RansChimeraWallDistanceCalculationProcess(RansChimeraWallDistanceCalculationProcess const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -109,6 +121,7 @@ private:
     bool mRecalculateAtEachTimeStep;
     bool mIsFormulated;
     double mMaxDistance;
+    ChimeraProcessType& mrChimeraProcess;
 
     ///@}
     ///@name Private Operations
@@ -135,9 +148,24 @@ private:
 
     void CalculateAnalyticalWallDistances();
 
+
+    /**
+     * @brief Searches for a given node using given locator.
+     * @param rBinLocator The bin based locator formulated on the background.
+     * This is used to locate nodes on rBoundaryModelPart.
+     * @param pNodeToFind The patch node which is to be found.
+     * @param[out] prHostElement The element where the node is found.
+     * @param[out] rWeights the values of the shape functions at the node inside
+     * the elements.
+     */
+    bool SearchNode(PointLocatorType& rBinLocator,
+                    NodeType& rNodeToFind,
+                    Element::Pointer& prHostElement,
+                    Vector& rWeights);
+
     ///@}
 
-}; // Class RansWallDistanceCalculationProcess
+}; // Class RansChimeraWallDistanceCalculationProcess
 
 ///@}
 ///@name Input and output
@@ -146,7 +174,7 @@ private:
 /// output stream function
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const RansWallDistanceCalculationProcess& rThis);
+    const RansChimeraWallDistanceCalculationProcess& rThis);
 
 ///@}
 

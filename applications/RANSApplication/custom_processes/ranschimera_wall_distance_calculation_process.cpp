@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya
+//                   Rahul Kikkeri Nagaraja
 //
 
 // System includes
@@ -23,16 +24,15 @@
 #include "utilities/reduction_utilities.h"
 #include "utilities/parallel_levelset_distance_calculator.h"
 #include "utilities/variable_utils.h"
-#include "utilities/builtin_timer.h"
 
 // Application includes
 
 // Include base h
-#include "rans_wall_distance_calculation_process.h"
+#include "ranschimera_wall_distance_calculation_process.h"
 
 namespace Kratos
 {
-namespace WallDistanceCalculationUtilities
+namespace RansChimeraWallDistanceCalculationUtilities
 {
 /**
  * @brief Calculates wall distance and updates nodal value
@@ -61,12 +61,13 @@ void CalculateAndUpdateNodalMinimumWallDistance(
     rNode.Set(VISITED, true);
     rNode.UnSetLock();
 }
-} // namespace WallDistanceCalculationUtilities
+} // namespace RansChimeraWallDistanceCalculationUtilities
 
-RansWallDistanceCalculationProcess::RansWallDistanceCalculationProcess(
+RansChimeraWallDistanceCalculationProcess::RansChimeraWallDistanceCalculationProcess(
     Model& rModel,
-    Parameters rParameters)
-    : mrModel(rModel)
+    Parameters rParameters,
+    ChimeraProcessType& rChimeraProcess)
+    : mrModel(rModel), mrChimeraProcess(rChimeraProcess)
 {
     KRATOS_TRY
 
@@ -85,7 +86,7 @@ RansWallDistanceCalculationProcess::RansWallDistanceCalculationProcess(
     KRATOS_CATCH("");
 }
 
-int RansWallDistanceCalculationProcess::Check()
+int RansChimeraWallDistanceCalculationProcess::Check()
 {
     KRATOS_TRY
 
@@ -109,12 +110,12 @@ int RansWallDistanceCalculationProcess::Check()
     KRATOS_CATCH("");
 }
 
-// void RansWallDistanceCalculationProcess::ExecuteInitialize()
+// void RansChimeraWallDistanceCalculationProcess::ExecuteInitialize()
 // {
 //     CalculateWallDistances();
 // }
 
-void RansWallDistanceCalculationProcess::ExecuteInitializeSolutionStep()
+void RansChimeraWallDistanceCalculationProcess::ExecuteInitializeSolutionStep()
 {
     if (!mIsFormulated) {
         // CalculateWallDistances();
@@ -123,23 +124,23 @@ void RansWallDistanceCalculationProcess::ExecuteInitializeSolutionStep()
     }
 }
 
-void RansWallDistanceCalculationProcess::ExecuteFinalizeSolutionStep()
+void RansChimeraWallDistanceCalculationProcess::ExecuteFinalizeSolutionStep()
 {
-    if (mRecalculateAtEachTimeStep) {
+    if (mRecalculateAtEachTimeStep){
         mIsFormulated = false;
     }
 }
 
-std::string RansWallDistanceCalculationProcess::Info() const
+std::string RansChimeraWallDistanceCalculationProcess::Info() const
 {
-    return std::string("RansWallDistanceCalculationProcess");
+    return std::string("RansChimeraWallDistanceCalculationProcess");
 }
 
-void RansWallDistanceCalculationProcess::CalculateWallDistances()
+void RansChimeraWallDistanceCalculationProcess::CalculateWallDistances()
 {
     KRATOS_TRY
 
-    using namespace WallDistanceCalculationUtilities;
+    using namespace RansChimeraWallDistanceCalculationUtilities;
 
     auto& r_main_model_part = mrModel.GetModelPart(mMainModelPartName);
     auto& r_wall_model_part = mrModel.GetModelPart(mWallModelPartName);
@@ -195,7 +196,7 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
     r_communicator.SynchronizeCurrentDataToMin(r_distance_variable);
     r_communicator.SynchronizeOrNodalFlags(VISITED);
 
-    // calculate distances based on elements (on wall adjacent nodes which are not covered by conditions)
+    // calculate distances based on elements (on wall adjacent nodes which are not covered in NEIGHBOURING_ELEMENTS of conditions)
     block_for_each(r_main_model_part.Elements(), [&](ModelPart::ElementType& rElement) {
         auto& r_geometry = rElement.GetGeometry();
 
@@ -204,7 +205,7 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
         double normals_count = 0.0;
         std::vector<int> nodal_indices_to_update;
 
-        // identify nodes' distances which are not calculated by conditions, and are adjacent to wall nodes.
+        // identify nodes' distances which are not calculated by conditions, but are adjacent to wall nodes.
         // compute average normal and average wall location from nodal normals and nodal coordinates which
         // lies on the wall.
         for (std::size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
@@ -236,13 +237,69 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
         }
     });
 
-    // communication for all ranks
-    r_communicator.SynchronizeCurrentDataToMin(r_distance_variable);
-    r_communicator.SynchronizeOrNodalFlags(VISITED);
-
     // update rest of the domain
     VariableUtils().SetVariable(r_distance_variable, 0.0, r_main_model_part.Nodes(),
                                 VISITED, false);
+
+
+    // get the pointLocatorsMap from the chimera process
+    PointLocatorsMapType const& mPointLocatorsMap = mrChimeraProcess.GetPointLocatorsMap();
+    std::cout << "Point Locators size before start of Wall distance calculation: " << mPointLocatorsMap.size() << std::endl;
+
+    // check if the modelparts in the mPointLocatorsMap are the submodelparts of r_main_model_part.
+    for (auto const& rPointLocatorMap : mPointLocatorsMap){
+        std::string modelpart_name = rPointLocatorMap.first;
+        KRATOS_ERROR_IF(!(r_main_model_part.HasSubModelPart(modelpart_name)))
+            << "Error: The patch modelpart " << modelpart_name << " in the mPointLocatorsMap was not found as the SubModelPart of "
+            << mMainModelPartName << "." << std::endl;
+    }
+
+    for (auto& rBackgroundPointLocatorMap: mPointLocatorsMap){
+        std::string background_mp_name = rBackgroundPointLocatorMap.first;
+        auto const& p_point_locator_on_background = rBackgroundPointLocatorMap.second;
+
+        int found = 0;
+        for (auto& rPatchPointLocatorMap: mPointLocatorsMap){
+            std::string patch_mp_name = rPatchPointLocatorMap.first;
+            auto& r_patch_mp = r_main_model_part.GetSubModelPart(patch_mp_name);
+
+            // if same modelpart pairs are encountered, move to the next pair of patch-background
+            if (patch_mp_name == background_mp_name){
+                continue;
+            }
+
+            // Transfer the negative distances of the patch nodes to their corresponding host elements in the background subdomain 
+            for (auto& r_node_on_patch: r_patch_mp.Nodes()){
+                if (r_node_on_patch.IsNot(BLOCKED)){
+                    if (r_node_on_patch.Is(VISITED) && (r_node_on_patch.FastGetSolutionStepValue(r_distance_variable) < 0.0)){
+                        Element::Pointer p_host_element;
+                        Vector weights;
+                        bool is_found = SearchNode(*p_point_locator_on_background, r_node_on_patch, p_host_element, weights);
+
+                        if (is_found){
+                            found += 1;
+                            // data from the p_host_element
+                            auto& rGeometry_of_host_element = p_host_element->GetGeometry();
+                            for (auto& rNode_of_host_element: rGeometry_of_host_element){
+                                CalculateAndUpdateNodalMinimumWallDistance(rNode_of_host_element,
+                                                                            r_node_on_patch.Coordinates(),
+                                                                            r_node_on_patch.GetValue(NORMAL), 
+                                                                            r_distance_variable);
+                                rNode_of_host_element.Set(BLOCKED, true); // so these nodes if they have negative dist are not considered as wall nodes henceforth
+                            }
+                        }
+                    }                    
+                }
+            }
+            std::cout << "bkg: " << background_mp_name << " and patch: " << patch_mp_name << std::endl;
+            std::cout << "patch nodes: " << r_patch_mp.Nodes().size() << std::endl;
+            std::cout << "overlapping nodes found: " << found << std::endl;
+        }
+    }
+
+    // communication for all ranks
+    r_communicator.SynchronizeCurrentDataToMin(r_distance_variable);
+    r_communicator.SynchronizeOrNodalFlags(VISITED);
 
     const int domain_size = r_main_model_part.GetProcessInfo()[DOMAIN_SIZE];
     if (domain_size == 2) {
@@ -258,6 +315,13 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
 
     // revert boundary negative distances to zero
     VariableUtils().SetVariable(r_distance_variable, 0.0, r_wall_model_part.Nodes());
+    // Expensive process: change the method.
+    block_for_each(r_main_model_part.Nodes(), [&](ModelPart::NodeType& rNode){
+        if (rNode.FastGetSolutionStepValue(r_distance_variable) < 0.0){
+            rNode.FastGetSolutionStepValue(r_distance_variable) = 0.0;
+        }
+    });
+
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
         << "Wall distances calculation in " << mMainModelPartName << " took " 
@@ -266,7 +330,25 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
     KRATOS_CATCH("");
 }
 
-const Parameters RansWallDistanceCalculationProcess::GetDefaultParameters() const
+// template <int TDim>  
+// bool RansChimeraWallDistanceCalculationProcess<TDim>::SearchNode(PointLocatorType& rBinLocator,
+bool RansChimeraWallDistanceCalculationProcess::SearchNode(PointLocatorType& rBinLocator,
+                                                           NodeType& rNodeToFind,
+                                                           Element::Pointer& rpHostElement,
+                                                           Vector& rWeights)
+{
+    const int max_results = 10000;
+    typename PointLocatorType::ResultContainerType results(max_results);
+    typename PointLocatorType::ResultIteratorType result_begin = results.begin();
+
+    bool is_found = false;
+    is_found = rBinLocator.FindPointOnMesh(rNodeToFind.Coordinates(), rWeights,
+                                           rpHostElement, result_begin, max_results);
+
+    return is_found;
+}
+
+const Parameters RansChimeraWallDistanceCalculationProcess::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
         {
@@ -283,13 +365,17 @@ const Parameters RansWallDistanceCalculationProcess::GetDefaultParameters() cons
     return default_parameters;
 }
 
-void RansWallDistanceCalculationProcess::CalculateAnalyticalWallDistances(){
+void RansChimeraWallDistanceCalculationProcess::CalculateAnalyticalWallDistances(){
 
     KRATOS_TRY;
 
     auto& r_main_model_part = mrModel.GetModelPart(mMainModelPartName);
     auto& r_wall_model_part = mrModel.GetModelPart(mWallModelPartName);
     auto& r_communicator = r_main_model_part.GetCommunicator();
+
+    // get the pointLocatorsMap from the chimera process
+    PointLocatorsMapType const& mPointLocatorsMap = mrChimeraProcess.GetPointLocatorsMap();
+    std::cout << "Point Locators size before start of Wall distance calculation: " << mPointLocatorsMap.size() << std::endl;
 
     const auto& r_distance_variable = KratosComponents<Variable<double>>::Get(mDistanceVariableName);
     // set radius and center
@@ -350,17 +436,22 @@ void RansWallDistanceCalculationProcess::CalculateAnalyticalWallDistances(){
 
     //     std::exit(-1);
     // }
+    for (auto rPointLocatorMap : mPointLocatorsMap){
+        std::string modelpart_name = rPointLocatorMap.first;
+        auto& submodelpart = r_main_model_part.GetSubModelPart(modelpart_name);
 
-    block_for_each(r_main_model_part.Nodes(), [&](ModelPart::NodeType& rNode){
-        double distance_from_center = fabs(sqrt(
-            std::pow((rNode.Coordinates()[0] - center[0]), 2) + 
-            std::pow((rNode.Coordinates()[1] - center[1]), 2) +
-            std::pow((rNode.Coordinates()[2] - center[2]), 2)            
-        ));
-        // std::cout << rNode.Id() << ": " << fabs(distance_from_center - radius) << std::endl;
-        rNode.FastGetSolutionStepValue(r_distance_variable) = fabs(distance_from_center - radius);
-        rNode.Set(VISITED, true);
-    });
+        block_for_each(submodelpart.Nodes(), [&](ModelPart::NodeType& rNode){
+            double distance_from_center = fabs(sqrt(
+                std::pow((rNode.Coordinates()[0] - center[0]), 2) + 
+                std::pow((rNode.Coordinates()[1] - center[1]), 2) +
+                std::pow((rNode.Coordinates()[2] - center[2]), 2)            
+            ));
+            // std::cout << rNode.Id() << ": " << fabs(distance_from_center - radius) << std::endl;
+            rNode.FastGetSolutionStepValue(r_distance_variable) = fabs(distance_from_center - radius);
+            rNode.Set(VISITED, true);
+        });
+    }
+
 
     block_for_each(r_wall_model_part.Nodes(), [&](ModelPart::NodeType& rNode){
         rNode.FastGetSolutionStepValue(r_distance_variable) = 0.0;
