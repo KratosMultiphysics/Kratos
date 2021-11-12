@@ -22,6 +22,8 @@
 #include "includes/convection_diffusion_settings.h"
 #include "utilities/math_utils.h"
 
+#include "convection_diffusion_application_variables.h"
+
 namespace Kratos
 {
 
@@ -57,8 +59,8 @@ LaplacianElement::~LaplacianElement()
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
-                                            VectorType& rRightHandSideVector, 
+void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                                            VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -156,7 +158,7 @@ void LaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, 
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const 
+void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
@@ -194,7 +196,7 @@ void LaplacianElement::GetDofList(DofsVectorType& ElementalDofList,const Process
 
 //************************************************************************************
 //************************************************************************************
-int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo) const 
+int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS)) << "No CONVECTION_DIFFUSION_SETTINGS defined in ProcessInfo." << std::endl;
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
@@ -221,6 +223,70 @@ int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     }
 
     return Element::Check(rCurrentProcessInfo);
+}
+
+void LaplacianElement::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
+                          std::vector< array_1d<double,3>>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == HEAT_FLOW) {
+
+        const ProcessInfo& r_process_info = rCurrentProcessInfo;
+        ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
+        auto& r_settings = *p_settings;
+
+        const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
+        const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable();
+
+        const auto& r_geometry = GetGeometry();
+        const unsigned int number_of_points = r_geometry.size();
+        const unsigned int dim = r_geometry.WorkingSpaceDimension();
+
+        //reading integration points and local gradients
+        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+        const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+
+        if (rOutput.size() != integration_points.size()) {
+            rOutput.resize(integration_points.size());
+        }
+
+        Element::GeometryType::JacobiansType J0;
+        Matrix DN_DX(number_of_points,dim);
+        Matrix InvJ0(dim,dim);
+        Vector temp(number_of_points);
+        Vector heat_flow_gausspoint(dim);
+        array_1d<double,3> result_gausspoint;
+        r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+        double DetJ0;
+
+        Vector nodal_conductivity(number_of_points);
+        for(unsigned int node_element = 0; node_element<number_of_points; node_element++) {
+            nodal_conductivity[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_diffusivity_var);
+        }
+
+        for (unsigned int i = 0; i < number_of_points; i++) {
+            temp[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
+        }
+
+        for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point) {
+            //calculating inverse jacobian and jacobian determinant
+            MathUtils<double>::InvertMatrix(J0[i_point],InvJ0,DetJ0);
+
+            //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+            noalias(DN_DX) = prod(DN_De[i_point],InvJ0);
+
+            auto N = row(N_gausspoint,i_point); //these are the N which correspond to the gauss point "i_point"
+            const double conductivity_gauss = inner_prod(N, nodal_conductivity);
+            noalias(heat_flow_gausspoint) = conductivity_gauss * prod(trans(temp), DN_DX);
+
+            for(unsigned int i = 0; i < dim; i++) {
+                result_gausspoint[i] = heat_flow_gausspoint[i];
+            }
+            rOutput[i_point] = result_gausspoint;
+        }
+    }
+
 }
 
 //************************************************************************************
