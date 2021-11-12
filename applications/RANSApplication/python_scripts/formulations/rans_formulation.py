@@ -458,16 +458,19 @@ class RansFormulation(ABC):
                             for solving_variable in self.GetSolvingVariables():
                                 node.SetSolutionStepValue(solving_variable, 0, 0.0)
                                 node.SetSolutionStepValue(solving_variable, 1, 0.0)
+                        source_element.SetValue(Kratos.TURBULENT_VISCOSITY, 0)
 
 
             # CONSTRAINTS
             # remove any existing Chimera master-slave constraints (Assuming only chimera constraints exist.)
             self.GetModelPart().RemoveMasterSlaveConstraintsFromAllLevels(Kratos.TO_ERASE)
+            print(len(self.GetModelPart().MasterSlaveConstraints))
             # add constraints to the model part
             for constraint in self.GetBaseModelPart().MasterSlaveConstraints:
                 if (constraint.GetSlaveDofsVector()[0].GetVariable() in self.GetSolvingVariables()):
                     self.GetModelPart().AddMasterSlaveConstraint(constraint)
-            
+            print(len(self.GetModelPart().MasterSlaveConstraints))
+            print("\n")
             self.__chimera_initialized = True
             if self.IsApplyChimeraConstraintsEveryStep():
                 self.__chimera_initialized = False # for next time step
