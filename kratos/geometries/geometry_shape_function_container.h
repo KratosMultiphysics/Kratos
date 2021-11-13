@@ -76,21 +76,21 @@ public:
     /// Integration points
     typedef IntegrationPoint<3> IntegrationPointType;
     typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
-    typedef std::array<IntegrationPointsArrayType, IntegrationMethod::NumberOfIntegrationMethods> IntegrationPointsContainerType;
+    typedef std::array<IntegrationPointsArrayType, static_cast<int>(IntegrationMethod::NumberOfIntegrationMethods)> IntegrationPointsContainerType;
 
     /// Shape functions
-    typedef std::array<Matrix, IntegrationMethod::NumberOfIntegrationMethods> ShapeFunctionsValuesContainerType;
+    typedef std::array<Matrix, static_cast<int>(IntegrationMethod::NumberOfIntegrationMethods)> ShapeFunctionsValuesContainerType;
 
     /// First derivatives/ gradients
     typedef DenseVector<Matrix> ShapeFunctionsGradientsType;
-    typedef std::array<DenseVector<Matrix>, IntegrationMethod::NumberOfIntegrationMethods> ShapeFunctionsLocalGradientsContainerType;
+    typedef std::array<DenseVector<Matrix>, static_cast<int>(IntegrationMethod::NumberOfIntegrationMethods)> ShapeFunctionsLocalGradientsContainerType;
 
     /// Higher order derivatives
     typedef DenseVector<Matrix>
         ShapeFunctionsDerivativesType;
     typedef DenseVector<ShapeFunctionsDerivativesType >
         ShapeFunctionsDerivativesIntegrationPointArrayType;
-    typedef std::array<ShapeFunctionsDerivativesIntegrationPointArrayType, IntegrationMethod::NumberOfIntegrationMethods>
+    typedef std::array<ShapeFunctionsDerivativesIntegrationPointArrayType, static_cast<int>(IntegrationMethod::NumberOfIntegrationMethods)>
         ShapeFunctionsDerivativesContainerType;
 
     ///@}
@@ -120,13 +120,13 @@ public:
     {
         IntegrationPointsArrayType ips(1);
         ips[0] = ThisIntegrationPoint;
-        mIntegrationPoints[ThisDefaultMethod] = ips;
+        mIntegrationPoints[static_cast<int>(ThisDefaultMethod)] = ips;
 
-        mShapeFunctionsValues[ThisDefaultMethod] = ThisShapeFunctionsValues;
+        mShapeFunctionsValues[static_cast<int>(ThisDefaultMethod)] = ThisShapeFunctionsValues;
 
         ShapeFunctionsGradientsType DN_De_array(1);
         DN_De_array[0] = ThisShapeFunctionsGradients;
-        mShapeFunctionsLocalGradients[ThisDefaultMethod] = DN_De_array;
+        mShapeFunctionsLocalGradients[static_cast<int>(ThisDefaultMethod)] = DN_De_array;
     }
 
     /// Constructor ONLY for single integration point with multiple derivatives
@@ -139,15 +139,15 @@ public:
     {
         IntegrationPointsArrayType ips(1);
         ips[0] = ThisIntegrationPoint;
-        mIntegrationPoints[ThisDefaultMethod] = ips;
+        mIntegrationPoints[static_cast<int>(ThisDefaultMethod)] = ips;
 
-        mShapeFunctionsValues[ThisDefaultMethod] = ThisShapeFunctionsValues;
+        mShapeFunctionsValues[static_cast<int>(ThisDefaultMethod)] = ThisShapeFunctionsValues;
 
         if (ThisShapeFunctionsDerivatives.size() > 0)
         {
             ShapeFunctionsGradientsType DN_De_array(1);
             DN_De_array[0] = ThisShapeFunctionsDerivatives[0];
-            mShapeFunctionsLocalGradients[ThisDefaultMethod] = DN_De_array;
+            mShapeFunctionsLocalGradients[static_cast<int>(ThisDefaultMethod)] = DN_De_array;
         }
         if (ThisShapeFunctionsDerivatives.size() > 1)
         {
@@ -158,7 +158,7 @@ public:
                 DN_De_i_array[0] = ThisShapeFunctionsDerivatives[i];
                 derivatives_array[i - 1] = DN_De_i_array;
             }
-            mShapeFunctionsDerivatives[ThisDefaultMethod] = derivatives_array;
+            mShapeFunctionsDerivatives[static_cast<int>(ThisDefaultMethod)] = derivatives_array;
         }
     }
 
@@ -214,7 +214,7 @@ public:
 
     bool HasIntegrationMethod(IntegrationMethod ThisMethod) const
     {
-        return (!mIntegrationPoints[ThisMethod].empty());
+        return (!mIntegrationPoints[static_cast<int>(ThisMethod)].empty());
     }
 
     ///@}
@@ -223,22 +223,22 @@ public:
 
     SizeType IntegrationPointsNumber() const
     {
-        return mIntegrationPoints[mDefaultMethod].size();
+        return mIntegrationPoints[static_cast<int>(mDefaultMethod)].size();
     }
 
     SizeType IntegrationPointsNumber(IntegrationMethod ThisMethod) const
     {
-        return mIntegrationPoints[ThisMethod].size();
+        return mIntegrationPoints[static_cast<int>(ThisMethod)].size();
     }
 
     const IntegrationPointsArrayType& IntegrationPoints() const
     {
-        return mIntegrationPoints[mDefaultMethod];
+        return mIntegrationPoints[static_cast<int>(mDefaultMethod)];
     }
 
     const IntegrationPointsArrayType& IntegrationPoints(IntegrationMethod ThisMethod) const
     {
-        return mIntegrationPoints[ThisMethod];
+        return mIntegrationPoints[static_cast<int>(ThisMethod)];
     }
 
     ///@}
@@ -247,13 +247,13 @@ public:
 
     const Matrix& ShapeFunctionsValues() const
     {
-        return mShapeFunctionsValues[mDefaultMethod];
+        return mShapeFunctionsValues[static_cast<int>(mDefaultMethod)];
     }
 
     const Matrix& ShapeFunctionsValues(
         IntegrationMethod ThisMethod ) const
     {
-        return mShapeFunctionsValues[ThisMethod];
+        return mShapeFunctionsValues[static_cast<int>(ThisMethod)];
     }
 
     double ShapeFunctionValue(
@@ -261,29 +261,29 @@ public:
         IndexType ShapeFunctionIndex,
         IntegrationMethod ThisMethod ) const
     {
-        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsValues[ThisMethod].size1() <= IntegrationPointIndex )
+        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsValues[static_cast<int>(ThisMethod)].size1() <= IntegrationPointIndex )
             << "No existing integration point" << std::endl;
 
-        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsValues[ThisMethod].size2() <= ShapeFunctionIndex )
+        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsValues[static_cast<int>(ThisMethod)].size2() <= ShapeFunctionIndex )
             << "No existing shape function value" << std::endl;
 
-        return mShapeFunctionsValues[ThisMethod]( IntegrationPointIndex, ShapeFunctionIndex );
+        return mShapeFunctionsValues[static_cast<int>(ThisMethod)]( IntegrationPointIndex, ShapeFunctionIndex );
     }
 
     double ShapeFunctionValue(IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex) const
     {
-        return mShapeFunctionsValues[mDefaultMethod](IntegrationPointIndex, ShapeFunctionIndex);
+        return mShapeFunctionsValues[static_cast<int>(mDefaultMethod)](IntegrationPointIndex, ShapeFunctionIndex);
     }
 
     const ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients() const
     {
-        return mShapeFunctionsLocalGradients[mDefaultMethod];
+        return mShapeFunctionsLocalGradients[static_cast<int>(mDefaultMethod)];
     }
 
     const ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients(
         IntegrationMethod ThisMethod ) const
     {
-        return mShapeFunctionsLocalGradients[ThisMethod];
+        return mShapeFunctionsLocalGradients[static_cast<int>(ThisMethod)];
     }
 
     const Matrix& ShapeFunctionLocalGradient(
@@ -296,10 +296,10 @@ public:
         IndexType IntegrationPointIndex,
         IntegrationMethod ThisMethod ) const
     {
-        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsLocalGradients[ThisMethod].size() <= IntegrationPointIndex )
+        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsLocalGradients[static_cast<int>(ThisMethod)].size() <= IntegrationPointIndex )
             << "No existing integration point" << std::endl;
 
-        return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
+        return mShapeFunctionsLocalGradients[static_cast<int>(ThisMethod)][IntegrationPointIndex];
     }
 
     const Matrix& ShapeFunctionLocalGradient(
@@ -307,10 +307,10 @@ public:
         IndexType ShapeFunctionIndex,
         IntegrationMethod ThisMethod ) const
     {
-        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsLocalGradients[ThisMethod].size() <= IntegrationPointIndex )
+        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsLocalGradients[static_cast<int>(ThisMethod)].size() <= IntegrationPointIndex )
             << "No existing integration point" << std::endl;
 
-        return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
+        return mShapeFunctionsLocalGradients[static_cast<int>(ThisMethod)][IntegrationPointIndex];
     }
 
     /*
@@ -343,15 +343,15 @@ public:
 
         if (DerivativeOrderIndex == 1)
         {
-            return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
+            return mShapeFunctionsLocalGradients[static_cast<int>(ThisMethod)][IntegrationPointIndex];
         }
 
-        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsDerivatives[ThisMethod][DerivativeOrderIndex - 2].size() < IntegrationPointIndex)
+        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsDerivatives[static_cast<int>(ThisMethod)][DerivativeOrderIndex - 2].size() < IntegrationPointIndex)
             << "Not enough integration points within geometry_shape_function_container. Geometry_shape_function_container has "
-            << mShapeFunctionsDerivatives[ThisMethod][DerivativeOrderIndex - 2].size()
+            << mShapeFunctionsDerivatives[static_cast<int>(ThisMethod)][DerivativeOrderIndex - 2].size()
             << " integration points. Called integration point index: " << IntegrationPointIndex << std::endl;
 
-        return mShapeFunctionsDerivatives[ThisMethod][DerivativeOrderIndex - 2][IntegrationPointIndex];
+        return mShapeFunctionsDerivatives[static_cast<int>(ThisMethod)][DerivativeOrderIndex - 2][IntegrationPointIndex];
     }
 
     /*
@@ -380,11 +380,11 @@ public:
         IntegrationMethod ThisMethod)
     {
         if (DerivativeOrderIndex == 0)
-            return mShapeFunctionsValues[ThisMethod](IntegrationPointIndex, ShapeFunctionIndex);
+            return mShapeFunctionsValues[static_cast<int>(ThisMethod)](IntegrationPointIndex, ShapeFunctionIndex);
         if (DerivativeOrderIndex == 1)
-            return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex](ShapeFunctionIndex, DerivativeOrderRowIndex);
+            return mShapeFunctionsLocalGradients[static_cast<int>(ThisMethod)][IntegrationPointIndex](ShapeFunctionIndex, DerivativeOrderRowIndex);
 
-        return mShapeFunctionsDerivatives[ThisMethod][DerivativeOrderIndex - 2][IntegrationPointIndex](ShapeFunctionIndex, DerivativeOrderRowIndex);
+        return mShapeFunctionsDerivatives[static_cast<int>(ThisMethod)][DerivativeOrderIndex - 2][IntegrationPointIndex](ShapeFunctionIndex, DerivativeOrderRowIndex);
     }
 
     ///@}

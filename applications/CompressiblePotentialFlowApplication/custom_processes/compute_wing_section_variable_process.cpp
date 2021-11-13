@@ -126,7 +126,7 @@ void ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings
             modified_shape_functions.ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(interface_sh_func,
                                                                                     interface_sh_func_grad,
                                                                                     interface_weights,
-                                                                                    GeometryData::GI_GAUSS_1);
+                                                                                    GeometryData::IntegrationMethod::GI_GAUSS_1);
             BoundedVector<double, 3> interface_gauss_point = ZeroVector(3);
             for (IndexType i_node=0; i_node<interface_sh_func.size2(); i_node++) {
                 interface_gauss_point[0] += interface_sh_func(0, i_node)*r_geometry[i_node].X();

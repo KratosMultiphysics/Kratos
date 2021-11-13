@@ -69,7 +69,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "formulation": {
                 "dynamic_tau": 1.0,
                 "surface_tension": false,
-                "mass_source":false
+                "mass_source":false,
+                "momentum_correction":false
             },
             "levelset_convection_settings": {
                 "max_CFL" : 1.0,
@@ -137,6 +138,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if (self.settings["formulation"].Has("surface_tension")):
             surface_tension = self.settings["formulation"]["surface_tension"].GetBool()
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.SURFACE_TENSION, surface_tension)
+
+        self.momentum_correction = False
+        if self.settings["formulation"].Has("momentum_correction"):
+            self.momentum_correction = self.settings["formulation"]["momentum_correction"].GetBool()
+        self.main_model_part.ProcessInfo.SetValue(KratosCFD.MOMENTUM_CORRECTION, self.momentum_correction)
 
         self._reinitialization_type = self.settings["distance_reinitialization"].GetString()
 
@@ -232,6 +238,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
+
+        if self.momentum_correction:
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCFD.DISTANCE_CORRECTION, 0.0, self.main_model_part.Nodes)
 
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:

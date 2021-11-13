@@ -3045,7 +3045,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetConditions(
         if (blocked_1 && blocked_2) BlockCondition(Index);
     } else {
         const IndexType size_geometry = rGeometry.size();
-        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << rGeometry.GetGeometryType() << std::endl;
+        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << static_cast<int>(rGeometry.GetGeometryType()) << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -3109,7 +3109,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetConditions(
         KRATOS_ERROR_IF( MMG3D_Set_quadrilateral(mMmgMesh, id_1, id_2, id_3, id_4, Color, Index) != 1 ) << "Unable to set quadrilateral" << std::endl;
     } else {
         const SizeType size_geometry = rGeometry.size();
-        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << rGeometry.GetGeometryType() << std::endl;
+        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << static_cast<int>(rGeometry.GetGeometryType()) << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -3146,7 +3146,7 @@ void MmgUtilities<MMGLibrary::MMGS>::SetConditions(
         if (blocked_1 && blocked_2) BlockCondition(Index);
     } else {
         const IndexType size_geometry = rGeometry.size();
-        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << rGeometry.GetGeometryType() << std::endl;
+        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << static_cast<int>(rGeometry.GetGeometryType()) << std::endl;
     }
 
     KRATOS_CATCH("");
