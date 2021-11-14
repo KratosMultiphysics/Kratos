@@ -161,6 +161,29 @@
                 "value"           : 350.0,
                 "interval"        : [0.0,0.0]
             }
+        },{
+            "python_module" : "apply_laser_process",
+            "kratos_module" : "KratosMultiphysics.PfemMeltingApplication",
+            "process_name"  : "ApplyLaserProcess",
+            "Parameters"    : {
+                "model_part_name" : "ThermalModelPart.TEMPERATURE_Parts_Auto1",
+	        "laser_profile"   : {
+                     "shape": [],
+            	     "radius": 0.5,
+            	     "power": 500000000.0},
+		     "direction" : [1.0,0.0,0.0],
+			"path" : {
+                     "table"     : [0.0, 1.0, 2.0, 0.0]
+		}	 
+            }
         }]
     }
 }
+
+
+
+
+
+
+
+
