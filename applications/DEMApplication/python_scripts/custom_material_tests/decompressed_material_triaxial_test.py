@@ -123,17 +123,18 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
     def PrintMachineLearningData(self):
         import numpy as np
         from scipy import interpolate
-        import matplotlib.pyplot as plt
 
         filename1 = self.absolute_path_to_file1
         filename2 = os.path.join(os.getcwd(), 'triaxial_experiment_' + str(simulation_number) + '.grf')
+        filename3 = os.path.join(os.getcwd(), 'triaxial_DEM_' + str(simulation_number) + '.grf')
         X, Y = [], []
-        f = open(filename1, 'r')
-        for line in f:
+        f1 = open(filename1, 'r')
+        for line in f1:
             values = [float(s) for s in line.split()]
             X.append(values[0])
             q = 145.0 * values[1]
             Y.append(q)
+        f1.close()
         minimum = min(Y)
         min_index = Y.index(minimum)
         X1 = X[:min_index]
@@ -146,6 +147,10 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
         X2 = [x - close_zero for x in X2]
         X2 = X2[index_zero:]
         Y2 = Y2[index_zero:]
+        f3 = open(filename3, 'w')
+        for i in range(len(X2)):
+            f3.write(str(X2[i]) + "  " + str(Y2[i]) + "\n")
+        f3.close()
         X3, Y3 = [], []
         f2 = open(filename2, 'r')
         for line in f2:
@@ -153,6 +158,7 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
             X3.append(values[0])
             q = values[1]
             Y3.append(q)
+        f2.close()
         X_0 = max(min(X2), min(X3))
         X_N = min(max(X2), max(X3))
         X4 = np.linspace(X_0, X_N, num_of_discretization_points)
@@ -162,19 +168,22 @@ class DecompressedMaterialTriaxialTest(DEMAnalysisStage):
         maximumX = 1.2 * max(max(X2), max(X3))
         minimumY = 1.2 * min(min(Y2), min(Y3))
         maximumY = 1.2 * max(max(Y2), max(Y3))
-        plt.axis([minimumX, maximumX, minimumY, maximumY])
-        plt.xlabel("vertical strain (%)")
-        plt.ylabel("q' (psi)")
-        plt.plot(X2, Y2, color='blue', linewidth=1, linestyle='solid', marker='None', label="DEM")
-        plt.plot(X4, F2(X4), color='blue', markersize=2, linewidth=1, linestyle='dashed', marker='o', label="DEM interpolation")
-        plt.plot(X3, Y3, color='red',  linewidth=1, linestyle='solid', marker='None', label="experiment")
-        plt.plot(X4, F3(X4), color='red',  markersize=2, linewidth=1, linestyle='dashed', marker='o', label="experiment interpolation")
-        plt.title('Triaxial deviatoric effective stress. Precompressed results vs experiments', fontdict = {'fontsize':8})
-        plt.legend(loc='lower right')
-        plt.grid()
-        printfilename = 'dem_triaxial_vs_experiments_' + str(simulation_number) + '.png'
-        plt.savefig(printfilename, dpi=300)
-        plt.close()
+        
+        if print_images:
+            import matplotlib.pyplot as plt
+            plt.axis([minimumX, maximumX, minimumY, maximumY])
+            plt.xlabel("vertical strain (%)")
+            plt.ylabel("q' (psi)")
+            plt.plot(X2, Y2, color='blue', linewidth=1, linestyle='solid', marker='None', label="DEM")
+            plt.plot(X4, F2(X4), color='blue', markersize=2, linewidth=1, linestyle='dashed', marker='o', label="DEM interpolation")
+            plt.plot(X3, Y3, color='red',  linewidth=1, linestyle='solid', marker='None', label="experiment")
+            plt.plot(X4, F3(X4), color='red',  markersize=2, linewidth=1, linestyle='dashed', marker='o', label="experiment interpolation")
+            plt.title('Triaxial deviatoric effective stress. Precompressed results vs experiments', fontdict = {'fontsize':8})
+            plt.legend(loc='lower right')
+            plt.grid()
+            printfilename = 'dem_triaxial_vs_experiments_' + str(simulation_number) + '.png'
+            plt.savefig(printfilename, dpi=300)
+            plt.close()
 
         error = []
         length = len(F2(X4))
@@ -617,6 +626,7 @@ if __name__ == "__main__":
 
     confinement_pressure_list = [0.05, 0.1] # For the triaxials, in MPa
     num_of_discretization_points = 10 # To compute relative errors
+    print_images = False
     
     number_of_triaxials = len(confinement_pressure_list)
     simulation_number_list = [i for i in range(1, number_of_triaxials + 1)]
