@@ -95,10 +95,10 @@ optimize_wheel(){
     do
         if [ -f "${CORE_LIB_DIR}/${LIBRARY}" ] || grep -Fxq $(echo $LIBRARY | cut -f1 -d"-") "${WHEEL_ROOT}/excluded.txt" ; then
             echo "-- Removing ${LIBRARY} - already present in dependent wheel."
-            rm tmp/KratosMultiphysics/.libs/${LIBRARY}
+            rm tmp/Kratos${APPNAME}.libs/${LIBRARY}
             sed -i "/${LIBRARY}/d" tmp/*.dist-info/RECORD
         else
-            echo "-- Keeping ${Library}"
+            echo "-- Keeping ${LIBRARY}"
         fi
     done
     
