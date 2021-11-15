@@ -2510,13 +2510,13 @@ void SmallStrainUPwDiffOrderElement::
                                                   InvJ,
                                                   GPoint);
 
-    KRATOS_ERROR_IF(detJ < 0.0)
-        << "ERROR:: ELEMENT ID: "
-        << this->Id()
-        << " INVERTED. DETJ: "
-        << detJ
-        << " nodes:" << this->GetGeometry()
-        << std::endl;
+    if(detJ < 0.0) {
+        throw Kratos::Exception("Error: " + "ERROR:: ELEMENT ID: "
+        + this->Id()
+        + " INVERTED. DETJ: "
+        + detJ
+        + " nodes:" + this->GetGeometry(), KRATOS_CODE_LOCATION)
+    }
 
     // Deformation gradient
     noalias(rVariables.F) = prod( J, InvJ0 );
