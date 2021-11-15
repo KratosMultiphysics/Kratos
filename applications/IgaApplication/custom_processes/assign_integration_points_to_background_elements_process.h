@@ -68,7 +68,7 @@ public:
     ///@name Operations
     ///@{
 
-    void AssignIntegrationPoints();
+    void ExecuteBeforeOutputStep() override;
 
     const Parameters GetDefaultParameters() const override
     {

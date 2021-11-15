@@ -37,7 +37,7 @@ namespace Kratos
             << "AssignIntegrationPointsToBackgroundElementsProcess: Geometry: '" <<  mThisParameters["nurbs_volume_name"].GetInt() << "' is no 'Kratos_Nurbs_Volume-Geometry'." << std::endl;
    }
 
-    void AssignIntegrationPointsToBackgroundElementsProcess::AssignIntegrationPoints(){
+    void AssignIntegrationPointsToBackgroundElementsProcess::ExecuteBeforeOutputStep(){
 
         if( !mIsAssignedFlag ){
             mIsAssignedFlag = true;
