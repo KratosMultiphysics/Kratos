@@ -395,8 +395,6 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
 
                             // Check if the edge is split by extrapolated geometry
                             if (r_elem_edge_dist_extra(i_edge) > 0) {
-                                aux_modified_edge_dist_extra_ids.push_back(it_elem->Id());
-                                aux_modified_edge_dist_extra.push_back(r_elem_edge_dist_extra);
                                 // Compute edge ratio of intersection point using modified elemental distances
                                 r_elem_edge_dist_extra(i_edge) = std::abs( node_i_distance / (node_j_distance - node_i_distance) );
                             }
@@ -409,8 +407,6 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
                 {
                     mModifiedDistancesIDs.insert(mModifiedDistancesIDs.end(),aux_modified_distances_ids.begin(),aux_modified_distances_ids.end());
                     mModifiedElementalDistancesValues.insert(mModifiedElementalDistancesValues.end(),aux_modified_elemental_distances.begin(),aux_modified_elemental_distances.end());
-                    mModifiedExtrapolatedIDs.insert(mModifiedExtrapolatedIDs.end(),aux_modified_edge_dist_extra_ids.begin(),aux_modified_edge_dist_extra_ids.end());
-                    mModifiedExtrapolatedValues.insert(mModifiedExtrapolatedValues.end(),aux_modified_edge_dist_extra.begin(),aux_modified_edge_dist_extra.end());
                 }
             }
         } else {
@@ -516,25 +512,11 @@ void DistanceModificationProcess::RecoverOriginalDiscontinuousDistance()
         mrModelPart.GetElement(elem_id).GetValue(ELEMENTAL_DISTANCES) = r_elem_dist;
     }
 
-    // Recover original extrapolated elemental edge distances
-    #pragma omp parallel for
-    for (int i_elem = 0; i_elem < static_cast<int>(mModifiedExtrapolatedIDs.size()); ++i_elem) {
-        const std::size_t elem_id = mModifiedExtrapolatedIDs[i_elem];
-        const auto& r_elem_edge_dist_extra = mModifiedExtrapolatedValues[i_elem];
-        mrModelPart.GetElement(elem_id).GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED) = r_elem_edge_dist_extra;
-    }
-
     // Empty the modified distance vectors
     mModifiedDistancesIDs.resize(0);
     mModifiedElementalDistancesValues.resize(0);
     mModifiedDistancesIDs.shrink_to_fit();
     mModifiedElementalDistancesValues.shrink_to_fit();
-
-    // Empty the modified vectors for ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED
-    mModifiedExtrapolatedIDs.resize(0);
-    mModifiedExtrapolatedValues.resize(0);
-    mModifiedExtrapolatedIDs.shrink_to_fit();
-    mModifiedExtrapolatedValues.shrink_to_fit();
 
     // Restore the TO_SPLIT flag original status
     this->SetDiscontinuousDistanceToSplitFlag();

@@ -164,8 +164,6 @@ private:
     std::vector<std::size_t>               mModifiedDistancesIDs;
     std::vector<double>                 mModifiedDistancesValues;
     std::vector<Vector>        mModifiedElementalDistancesValues;
-    std::vector<std::size_t>            mModifiedExtrapolatedIDs;
-    std::vector<Vector>              mModifiedExtrapolatedValues;
     std::vector<const Variable<double>*>    mDoubleVariablesList;
     std::vector<const ComponentType*>    mComponentVariablesList;
 

@@ -134,9 +134,8 @@ KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceModificationTriangle, FluidDynami
     r_elem_dist = (model_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
     r_elem_edge_dist_extra = (model_part.ElementsBegin())->GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
     const std::vector<double> expected_orig_values = {-1.0e-5, 1.0, 1.0};
-    const std::vector<double> expected_orig_extra_values = {-1.0, 0.8, -1.0};
     KRATOS_CHECK_VECTOR_NEAR(r_elem_edge_dist_extra, expected_orig_values, tolerance);
-    KRATOS_CHECK_VECTOR_NEAR(r_elem_edge_dist_extra, expected_orig_extra_values, tolerance);
+    KRATOS_CHECK_VECTOR_NEAR(r_elem_edge_dist_extra, expected_extra_values, tolerance);
 }
 
 }
