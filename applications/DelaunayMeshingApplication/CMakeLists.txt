@@ -15,7 +15,7 @@ if(NOT DEFINED ${INCLUDE_TRIANGLE})
     set(INCLUDE_TRIANGLE ON)
     set(TRIANGLE_DIR "${KRATOS_SOURCE_DIR}/external_libraries/triangle")
   else(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
-    message(STATUS "INCLUDE_TRIANGLE not defined, neither USE_TRIANGLE_NONFREE_TPL=ON is defined. The application DelaunayMeshingApplication will not compile")
+    message(FATAL_ERROR "INCLUDE_TRIANGLE not defined, neither USE_TRIANGLE_NONFREE_TPL=ON is defined. The application DelaunayMeshingApplication will not compile")
   endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
