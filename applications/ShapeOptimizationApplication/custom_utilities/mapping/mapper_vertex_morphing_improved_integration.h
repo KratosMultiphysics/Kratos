@@ -214,19 +214,19 @@ private:
         {
             mAreaWeightedNodeSum = false;
             if (number_of_gauss_points == 1)
-                mIntegrationMethod = GeometryData::GI_GAUSS_1;
+                mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
             else if (number_of_gauss_points == 2)
-                mIntegrationMethod = GeometryData::GI_GAUSS_2;
+                mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
             else if (number_of_gauss_points == 3)
-                mIntegrationMethod = GeometryData::GI_GAUSS_3;
+                mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
             else if (number_of_gauss_points == 4)
-                mIntegrationMethod = GeometryData::GI_GAUSS_4;
+                mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
             else if (number_of_gauss_points == 5)
-                mIntegrationMethod = GeometryData::GI_GAUSS_5;
+                mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
             else
             {
                 KRATOS_WARNING("ShapeOpt::MapperVertexMorphingImprovedIntegration") << "\n> Number_of_gauss_points: " << number_of_gauss_points << " not valid! Using default: 2 " << std::endl;
-                mIntegrationMethod = GeometryData::GI_GAUSS_2;
+                mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
             }
         }
         else{

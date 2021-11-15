@@ -11,30 +11,12 @@ import KratosMultiphysics
 from KratosMultiphysics.MultilevelMonteCarloApplication.adaptive_refinement_utilities import AdaptiveRefinement
 from exaqute import *
 
-try:
-    computing_units_mlmc_execute_0 = int(os.environ["computing_units_mlmc_execute_0"])
-except:
-    computing_units_mlmc_execute_0 = 1
-try:
-    computing_units_mlmc_execute_1 = int(os.environ["computing_units_mlmc_execute_1"])
-except:
-    computing_units_mlmc_execute_1 = 1
-try:
-    computing_units_mlmc_execute_2 = int(os.environ["computing_units_mlmc_execute_2"])
-except:
-    computing_units_mlmc_execute_2 = 1
-try:
-    computing_units_mlmc_execute_3 = int(os.environ["computing_units_mlmc_execute_3"])
-except:
-    computing_units_mlmc_execute_3 = 1
-try:
-    computing_units_mlmc_execute_4 = int(os.environ["computing_units_mlmc_execute_4"])
-except:
-    computing_units_mlmc_execute_4 = 1
-try:
-    computing_units_mlmc_execute_5 = int(os.environ["computing_units_mlmc_execute_5"])
-except:
-    computing_units_mlmc_execute_5 = 1
+computing_units_mlmc_execute_0 = int(os.getenv("computing_units_mlmc_execute_0", 1))
+computing_units_mlmc_execute_1 = int(os.getenv("computing_units_mlmc_execute_1", 1))
+computing_units_mlmc_execute_2 = int(os.getenv("computing_units_mlmc_execute_2", 1))
+computing_units_mlmc_execute_3 = int(os.getenv("computing_units_mlmc_execute_3", 1))
+computing_units_mlmc_execute_4 = int(os.getenv("computing_units_mlmc_execute_4", 1))
+computing_units_mlmc_execute_5 = int(os.getenv("computing_units_mlmc_execute_5", 1))
 
 ####################################################################################################
 ############################################ WRAPPERS ##############################################
@@ -114,6 +96,46 @@ def executeInstanceReadingFromFile_Wrapper(current_index,pickled_model,pickled_p
 ############################################## TASKS ###############################################
 ####################################################################################################
 
+
+########################################## Serialization ##########################################
+
+@constraint(computing_units=computing_units_mlmc_execute_0)
+@task(keep=True,returns=2)
+def SerializeSerialModel_Task(pickled_parameters, main_model_part_name, fake_sample_to_serialize, analysis):
+    """
+    Function serializing and pickling the Kratos Model of the problem. It builds pickled_model and serialized_model. It is called if we are not runnnig in MPI.
+
+    Inputs:
+
+
+    pickled_parameters: KratosMultiphysics.ProjectParameters object.
+        It contains the settings of the simulation.
+    main_model_part_name: string.
+        String defining the main model part name of the Kratos model.
+    fake_sample_to_serialize: list.
+        List of random variables required by the Kratos analysis stage.
+    analysis: Kratos analysis stage.
+        It defines the Kratos analysis stage of the problem.
+    """
+    # deserialize pickled parameters
+    serialized_parameters = pickle.loads(pickled_parameters)
+    del pickled_parameters
+    parameters = KratosMultiphysics.Parameters()
+    serialized_parameters.Load("ParametersSerialization", parameters)
+    # set to read the model part
+    parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("mdpa")
+    # prepare the model to serialize
+    model = KratosMultiphysics.Model()
+    simulation = analysis(model,parameters,fake_sample_to_serialize)
+    simulation.Initialize()
+    # reset general flags
+    simulation.model.GetModelPart(main_model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED,True)
+    # serialize model
+    serialized_model = KratosMultiphysics.MpiSerializer()
+    serialized_model.Save("ModelSerialization",simulation.model)
+    # pickle dataserialized_data
+    pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+    return serialized_model, pickled_model
 
 ############################### StochasticAdaptiveRefinementAllAtOnce ##############################
 

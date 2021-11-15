@@ -37,7 +37,7 @@ class BladeMappingTests(mapper_test_case.MapperTestCase):
         if default_data_comm.IsDistributed():
             map_creator = MappingMPIExtension.MPIMapperFactory.CreateMapper
         else:
-            map_creator = KratosMapping.MapperFactory.CreateMapper
+            map_creator = KM.MapperFactory.CreateMapper
 
         cls.mapper_pressure_side = map_creator(
             cls.GetStructureModelPart("pressure_side_quad"),
@@ -74,8 +74,8 @@ class BladeMappingTests(mapper_test_case.MapperTestCase):
             mapper_test_case.VtkOutputNodesHistorical(self.model_part_fluid, KM.REACTION, "Blade_" + self.mapper_type + "_Fluid_prescr_force")
 
         # this would be POINT_LOAD in regular StructuralMechanics (using FORCE to avoid the StructuralMechanics import)
-        self.mapper_pressure_side.InverseMap(KM.FORCE, KM.REACTION, KratosMapping.Mapper.SWAP_SIGN)
-        self.mapper_suction_side.InverseMap(KM.FORCE, KM.REACTION, KratosMapping.Mapper.SWAP_SIGN)
+        self.mapper_pressure_side.InverseMap(KM.FORCE, KM.REACTION, KM.Mapper.SWAP_SIGN)
+        self.mapper_suction_side.InverseMap(KM.FORCE, KM.REACTION, KM.Mapper.SWAP_SIGN)
 
         if self.print_output:
             mapper_test_case.VtkOutputNodesHistorical(self.model_part_structure, KM.FORCE, "Blade_" + self.mapper_type + "_Structure_mapped_force")
@@ -88,13 +88,13 @@ class BladeMappingTests(mapper_test_case.MapperTestCase):
             mapper_test_case.VtkOutputNodesHistorical(self.model_part_fluid, KM.REACTION, "Blade_" + self.mapper_type + "_Fluid_prescr_force")
 
          # this would be POINT_LOAD in regular StructuralMechanics (using FORCE to avoid the StructuralMechanics import)
-        self.mapper_pressure_side.InverseMap(KM.FORCE, KM.REACTION, KratosMapping.Mapper.SWAP_SIGN | KratosMapping.Mapper.USE_TRANSPOSE)
+        self.mapper_pressure_side.InverseMap(KM.FORCE, KM.REACTION, KM.Mapper.SWAP_SIGN | KM.Mapper.USE_TRANSPOSE)
         self.__CheckValuesSum(self.model_part_fluid.GetSubModelPart("pressure_side_tri"), self.GetStructureModelPart("pressure_side_quad"), KM.REACTION, KM.FORCE)
 
         # Note: Setting the solution again because in this case some nodes are shared and hence
         # would slightly influence the computation
         SetReactions(self.model_part_fluid)
-        self.mapper_suction_side.InverseMap(KM.FORCE, KM.REACTION, KratosMapping.Mapper.SWAP_SIGN | KratosMapping.Mapper.USE_TRANSPOSE)
+        self.mapper_suction_side.InverseMap(KM.FORCE, KM.REACTION, KM.Mapper.SWAP_SIGN | KM.Mapper.USE_TRANSPOSE)
 
         if self.print_output:
             mapper_test_case.VtkOutputNodesHistorical(self.model_part_structure, KM.FORCE, "Blade_" + self.mapper_type + "_Structure_mapped_force_conserv")

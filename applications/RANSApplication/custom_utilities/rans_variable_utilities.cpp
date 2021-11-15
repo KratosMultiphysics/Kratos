@@ -330,7 +330,7 @@ void SetElementConstitutiveLaws(ModelPart::ElementsContainerType& rElements)
 
             const auto& r_geometry = rElement.GetGeometry();
             const auto& r_shape_functions =
-                r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+                r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
             p_constitutive_law->InitializeMaterial(r_properties, r_geometry,
                                                 row(r_shape_functions, 0));
 

@@ -13,7 +13,7 @@ class ShallowWaterTestFactory(KratosUnittest.TestCase):
     need_scipy = False
     def test_execution(self):
         if self.need_scipy and not scipy_available:
-            self.skipTest("Scipy not available")
+            self.skipTest("scipy not available")
         with KratosUnittest.WorkFolderScope(self.execution_directory, __file__):
             with open(self.execution_file + "_parameters.json",'r') as parameter_file:
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
@@ -71,3 +71,7 @@ class TestDryDamBreakBenchmark(ShallowWaterTestFactory):
 class TestPlanarSurfaceInParabolaBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "planar_surface_in_parabola_benchmark"
+
+class TestMeshMovingStrategy(ShallowWaterTestFactory):
+    execution_directory = "nightly_tests"
+    execution_file = "mesh_moving_strategy"

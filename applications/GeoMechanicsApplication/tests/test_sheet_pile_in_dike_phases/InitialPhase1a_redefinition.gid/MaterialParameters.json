@@ -17,7 +17,7 @@
               "PERMEABILITY_YY"          :  4.5e-13,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  9.81,
-              "UDSM_NAME"                :  "D:/kratos-en-ppl/KratosModels/case/DeltaresModels64.dll",
+              "UDSM_NAME"                :  "DeltaresModels64.dll",
               "UDSM_NUMBER"              :  2,
               "IS_FORTRAN_UDSM"          :  true,
               "UMAT_PARAMETERS"          :  [
@@ -71,7 +71,7 @@
               "PERMEABILITY_YY"          :  4.5e-13,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  9.81,
-              "UDSM_NAME"                :  "D:/kratos-en-ppl/KratosModels/case/DeltaresModels64.dll",
+              "UDSM_NAME"                :  "DeltaresModels64.dll",
               "UDSM_NUMBER"              :  3,
               "IS_FORTRAN_UDSM"          :  true,
               "UMAT_PARAMETERS"          :  [
@@ -118,7 +118,7 @@
               "PERMEABILITY_YY"          :  4.5e-13,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  9.81,
-              "UDSM_NAME"                :  "D:/kratos-en-ppl/KratosModels/case/DeltaresModels64.dll",
+              "UDSM_NAME"                :  "DeltaresModels64.dll",
               "UDSM_NUMBER"              :  3,
               "IS_FORTRAN_UDSM"          :  true,
               "UMAT_PARAMETERS"          :  [
@@ -165,7 +165,7 @@
               "PERMEABILITY_YY"          :  4.5e-13,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  8.90e-7,
-              "UDSM_NAME"                :  "D:/kratos-en-ppl/KratosModels/case/DeltaresModels64.dll",
+              "UDSM_NAME"                :  "DeltaresModels64.dll",
               "UDSM_NUMBER"              :  2,
               "IS_FORTRAN_UDSM"          :  true,
               "UMAT_PARAMETERS"          :  [
@@ -219,7 +219,7 @@
               "PERMEABILITY_YY"          :  4.5e-13,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  8.90e-7,
-              "UDSM_NAME"                :  "D:/kratos-en-ppl/KratosModels/case/DeltaresModels64.dll",
+              "UDSM_NAME"                :  "DeltaresModels64.dll",
               "UDSM_NUMBER"              :  3,
               "IS_FORTRAN_UDSM"          :  true,
               "UMAT_PARAMETERS"          :  [
@@ -266,7 +266,7 @@
               "PERMEABILITY_YY"          :  4.5e-13,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  9.81,
-              "UDSM_NAME"                :  "D:/kratos-en-ppl/KratosModels/case/DeltaresModels64.dll",
+              "UDSM_NAME"                :  "DeltaresModels64.dll",
               "UDSM_NUMBER"              :  3,
               "IS_FORTRAN_UDSM"          :  true,
               "UMAT_PARAMETERS"          :  [
@@ -313,7 +313,7 @@
               "PERMEABILITY_YY"          :  4.5e-13,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  9.81,
-              "UDSM_NAME"                :  "D:/kratos-en-ppl/KratosModels/case/DeltaresModels64.dll",
+              "UDSM_NAME"                :  "DeltaresModels64.dll",
               "UDSM_NUMBER"              :  3,
               "IS_FORTRAN_UDSM"          :  true,
               "UMAT_PARAMETERS"          :  [
@@ -360,7 +360,7 @@
               "PERMEABILITY_YY"          :  4.5e-13,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  9.81,
-              "UDSM_NAME"                :  "D:/kratos-en-ppl/KratosModels/case/DeltaresModels64.dll",
+              "UDSM_NAME"                :  "DeltaresModels64.dll",
               "UDSM_NUMBER"              :  3,
               "IS_FORTRAN_UDSM"          :  true,
               "UMAT_PARAMETERS"          :  [
@@ -407,7 +407,7 @@
               "PERMEABILITY_YY"          :  4.5e-13,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  9.81,
-              "UDSM_NAME"                :  "D:/kratos-en-ppl/KratosModels/case/DeltaresModels64.dll",
+              "UDSM_NAME"                :  "DeltaresModels64.dll",
               "UDSM_NUMBER"              :  3,
               "IS_FORTRAN_UDSM"          :  true,
               "UMAT_PARAMETERS"          :  [

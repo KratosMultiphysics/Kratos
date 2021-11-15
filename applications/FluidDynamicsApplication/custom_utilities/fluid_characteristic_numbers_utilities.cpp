@@ -80,10 +80,10 @@ namespace Kratos
         // Calculate the midpoint velocity
         const auto& r_geometry = rElement.GetGeometry();
         const unsigned int n_nodes = r_geometry.PointsNumber();
-        
+
         double sound_velocity = r_geometry[0].GetValue(SOUND_VELOCITY);
         array_1d<double,3> element_vel = r_geometry[0].FastGetSolutionStepValue(VELOCITY);
-        
+
         for (unsigned int i = 1; i < n_nodes; ++i) {
             sound_velocity += r_geometry[i].GetValue(SOUND_VELOCITY);
             noalias(element_vel) += r_geometry[i].FastGetSolutionStepValue(VELOCITY);
@@ -290,16 +290,16 @@ namespace Kratos
         ElementSizeFunctionType average_h_func;
         const auto geometry_type = rGeometry.GetGeometryType();
         switch (geometry_type) {
-            case GeometryData::Kratos_Triangle2D3:
+            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
                 average_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,3>::AverageElementSize(rGeometry);};
                 break;
-            case GeometryData::Kratos_Quadrilateral2D4:
+            case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4:
                 average_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,4>::AverageElementSize(rGeometry);};
                 break;
-            case GeometryData::Kratos_Tetrahedra3D4:
+            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
                 average_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,4>::AverageElementSize(rGeometry);};
                 break;
-            case GeometryData::Kratos_Quadrilateral3D8:
+            case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8:
                 average_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,8>::AverageElementSize(rGeometry);};
                 break;
             default:
@@ -314,16 +314,16 @@ namespace Kratos
         ElementSizeFunctionType min_h_func;
         const auto geometry_type = rGeometry.GetGeometryType();
         switch (geometry_type) {
-            case GeometryData::Kratos_Triangle2D3:
+            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
                 min_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,3>::MinimumElementSize(rGeometry);};
                 break;
-            case GeometryData::Kratos_Quadrilateral2D4:
+            case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4:
                 min_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,4>::MinimumElementSize(rGeometry);};
                 break;
-            case GeometryData::Kratos_Tetrahedra3D4:
+            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
                 min_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,4>::MinimumElementSize(rGeometry);};
                 break;
-            case GeometryData::Kratos_Quadrilateral3D8:
+            case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8:
                 min_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,8>::MinimumElementSize(rGeometry);};
                 break;
             default:
