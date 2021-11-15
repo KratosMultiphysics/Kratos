@@ -61,25 +61,21 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ShallowWaterUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(ShallowWaterUtilities);
-
     typedef Node<3> NodeType;
 
     typedef Geometry<NodeType> GeometryType;
 
+    typedef ModelPart::NodesContainerType NodesContainerType;
+
+    ///@}
+    ///@name Pointer definition
+    ///@{
+
+    KRATOS_CLASS_POINTER_DEFINITION(ShallowWaterUtilities);
+
     ///@}
     ///@name Life Cycle
     ///@{
-
-    /// Default constructor.
-
-    /// Destructor.
-
-    ///@}
-    ///@name Operators
-    ///@{
-
 
     ///@}
     ///@name Operations
@@ -95,27 +91,37 @@ public:
 
     void ComputeMomentum(ModelPart& rModelPart);
 
+    template<bool THistorical>
+    void ComputeFroude(ModelPart& rModelPart, const double Epsilon);
+
+    template<bool THistorical>
     void ComputeEnergy(ModelPart& rModelPart);
-
-    double InverseHeight(const double Height, const double Epsilon);
-
-    double WetFraction(double Height, double Epsilon);
 
     void FlipScalarVariable(Variable<double>& rOriginVariable, Variable<double>& rDestinationVariable, ModelPart& rModelPart);
 
     void IdentifySolidBoundary(ModelPart& rModelPart, double SeaWaterLevel, Flags SolidBoundaryFlag);
 
-    void IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double RelativeDryHeight = 0.1);
+    void FlagWetElements(ModelPart& rModelPart, Flags WetFlag, double RelativeDryHeight = -1.0);
 
-    template<class TContainerType>
-    void CopyFlag(Flags OriginFlag, Flags DestinationFlag, TContainerType& rContainer)
+    void ExtrapolateElementalFlagToNodes(ModelPart& rModelPart, Flags Flag);
+
+    void NormalizeVector(ModelPart& rModelPart, const Variable<array_1d<double,3>>& rVariable);
+
+    template<class TDataType, class TVarType = Variable<TDataType>>
+    void SmoothHistoricalVariable(
+        const TVarType& rVariable,
+        NodesContainerType& rNodes,
+        const double ElapsedTime,
+        const double SemiPeriod)
     {
-        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
-            rEntity.Set(DestinationFlag, rEntity.Is(OriginFlag));
+        const double smooth = -std::expm1(-ElapsedTime / SemiPeriod);
+        block_for_each(rNodes, [&](NodeType& rNode){
+            TDataType& initial = rNode.FastGetSolutionStepValue(rVariable, 1);
+            TDataType& current = rNode.FastGetSolutionStepValue(rVariable);
+            TDataType increment = current - initial;
+            current = initial + smooth * increment;
         });
     }
-
-    void NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable);
 
     template<class TVarType>
     void CopyVariableToPreviousTimeStep(ModelPart& rModelPart, const TVarType& rVariable)
@@ -127,68 +133,104 @@ public:
 
     void SetMinimumValue(ModelPart& rModelPart, const Variable<double>& rVariable, double MinValue);
 
-    /*
+    /**
      * @brief Set the z-coordinate of the mesh to zero
      */
     void SetMeshZCoordinateToZero(ModelPart& rModelPart);
 
-    /*
+    /**
      * @brief Set the z0-coordinate of the mesh to zero
      */
     void SetMeshZ0CoordinateToZero(ModelPart& rModelPart);
 
-    /*
+    /**
      * @brief Move the z-coordinate of the mesh according to a variable
      */
     void SetMeshZCoordinate(ModelPart& rModelPart, const Variable<double>& rVariable);
 
-    /*
-     *@brief Compute the L-2 norm for the given double variable
+    /**
+     * @brief Swap the Y and Z coordinates of the nodes
      */
-    template<bool THistorical>
-    double ComputeL2Norm(ModelPart& rModelPart, const Variable<double>& rVariable)
+    void SwapYZCoordinates(ModelPart& rModelPart);
+
+    /**
+     * @brief Swap the Y and Z coordinates of the nodes
+     */
+    void SwapY0Z0Coordinates(ModelPart& rModelPart);
+
+    /**
+     * @brief Store a double variable as NonHistorical and set the value to no-data if the node is dry
+     */
+    void StoreNonHistoricalGiDNoDataIfDry(ModelPart& rModelPart, const Variable<double>& rVariable);
+
+    /**
+     * @brief Swap the Y and Z components of a vector variable
+     */
+    void SwapYZComponents(const Variable<array_1d<double,3>>& rVariable, NodesContainerType& rNodes)
     {
-        double l2_norm = block_for_each<SumReduction<double>>(rModelPart.Elements(), [&](Element& rElem){
-            double partial_l2_norm = 0.0;
-            for (auto& r_node : rElem.GetGeometry()) {
-                partial_l2_norm += std::pow(GetValue<THistorical>(r_node, rVariable), 2);
-            }
-            partial_l2_norm *= rElem.GetGeometry().Area();
-            partial_l2_norm /= rElem.GetGeometry().size();
-            return partial_l2_norm;
+        block_for_each(rNodes, [&](NodeType& rNode){
+            array_1d<double,3>& r_value = rNode.FastGetSolutionStepValue(rVariable);
+            std::swap(r_value[1], r_value[2]);
         });
-        return std::sqrt(l2_norm);
     }
 
-    /*
-     *@brief Compute the L-2 norm for the given double variable inside an axis-aligned bounding box
+    /**
+     * @brief Swap the Y and Z components of a vector variable
+     */
+    template<class TContainerType>
+    void SwapYZComponentsNonHistorical(const Variable<array_1d<double,3>>& rVariable, TContainerType& rContainer)
+    {
+        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+            array_1d<double,3>& r_value = rEntity.GetValue(rVariable);
+            std::swap(r_value[1], r_value[2]);
+        });
+    }
+
+    /**
+     * @brief Offset the ids of the given container for visualization purpose in GiD
+     */
+    template<class TContainerType>
+    void OffsetIds(TContainerType& rContainer, const double Offset)
+    {
+        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+            rEntity.SetId(rEntity.Id() + Offset);
+        });
+    }
+
+    /**
+     * @brief Offset the ids of the given container for visualization purpose in GiD
+     */
+    template<class TContainerType>
+    void OffsetIds(TContainerType& rContainer)
+    {
+        const std::size_t offset = rContainer.size();
+        OffsetIds(rContainer, offset);
+    }
+
+    /**
+     * @brief Compute the L-2 norm for the given double variable
+     */
+    template<bool THistorical>
+    double ComputeL2Norm(ModelPart& rModelPart, const Variable<double>& rVariable);
+
+    /**
+     * @brief Compute the L-2 norm for the given double variable inside an axis-aligned bounding box
      */
     template<bool THistorical>
     double ComputeL2NormAABB(
         ModelPart& rModelPart,
         const Variable<double>& rVariable,
         Point& rLow,
-        Point& rHigh)
-    {
-        double l2_norm = block_for_each<SumReduction<double>>(rModelPart.Elements(), [&](Element& rElem){
-            double partial_l2_norm = 0.0;
-            if (rElem.GetGeometry().HasIntersection(rLow, rHigh)) {
-                for (auto& r_node : rElem.GetGeometry()) {
-                    partial_l2_norm += std::pow(GetValue<THistorical>(r_node, rVariable), 2);
-                }
-                partial_l2_norm *= rElem.GetGeometry().Area();
-                partial_l2_norm /= rElem.GetGeometry().size();
-            }
-            return partial_l2_norm;
-        });
-        return std::sqrt(l2_norm);
-    }
+        Point& rHigh);
 
-    /*
+    /**
      * @brief Compute the horizontal hydrostatic pressures
      */
     template<class TContainerType>
-    array_1d<double,3> ComputeHydrostaticForces(TContainerType& rContainer, const ProcessInfo& rProcessInfo)
+    array_1d<double,3> ComputeHydrostaticForces(
+        TContainerType& rContainer,
+        const ProcessInfo& rProcessInfo,
+        const double RelativeDryHeight = -1.0)
     {
         KRATOS_ERROR_IF_NOT(rProcessInfo.Has(GRAVITY)) << "ShallowWaterUtilities::ComputeHydrostaticForces : GRAVITY is not defined in the ProcessInfo" << std::endl;
         KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DENSITY)) << "ShallowWaterUtilities::ComputeHydrostaticForces : DENSITY is not defined in the ProcessInfo" << std::endl;
@@ -196,7 +238,7 @@ public:
         const double density = rProcessInfo.GetValue(DENSITY);
 
         array_1d<double,3> forces = ZeroVector(3);
-        forces  = block_for_each<SumReduction<array_1d<double,3>>>(
+        forces = block_for_each<SumReduction<array_1d<double,3>>>(
             rContainer, [&](typename TContainerType::value_type& rEntity){
                 const auto& r_geom = rEntity.GetGeometry();
                 const double area = r_geom.Area();
@@ -206,7 +248,16 @@ public:
                     height += r_node.FastGetSolutionStepValue(HEIGHT);
                 }
                 height /= r_geom.size();
-                array_1d<double,3> local_force = EvaluateHydrostaticForce<TContainerType>(density, gravity, height, area, normal);
+                array_1d<double,3> local_force;
+                if (RelativeDryHeight >= 0.0) {
+                    if (IsWet(r_geom, height, RelativeDryHeight)) {
+                        local_force = EvaluateHydrostaticForce<TContainerType>(density, gravity, height, area, normal);
+                    } else {
+                        local_force = ZeroVector(3);
+                    }
+                } else {
+                    local_force = EvaluateHydrostaticForce<TContainerType>(density, gravity, height, area, normal);
+                }
                 return local_force;
             }
         );
@@ -214,65 +265,22 @@ public:
     }
 
     ///@}
-    ///@name Access
-    ///@{
 
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
 private:
+
     ///@name Operations
     ///@{
 
     void CalculateMassMatrix(Matrix& rMassMatrix, const GeometryType& rGeometry);
 
     template<bool THistorical>
-    double GetValue(NodeType& rNode, const Variable<double>& rVariable);
+    double& GetValue(NodeType& rNode, const Variable<double>& rVariable);
 
-    template<class TContainerType>
-    void IdentifyWetEntities(TContainerType& rContainer, Flags WetFlag, double RelativeDryHeight)
-    {
-        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
-            const auto& r_geom = rEntity.GetGeometry();
-            double height = 0.0;
-            for (auto& r_node : r_geom)
-            {
-                height += r_node.FastGetSolutionStepValue(HEIGHT);
-            }
-            height /= r_geom.size();
-            const double epsilon = RelativeDryHeight * r_geom.Length();
-            const double wet_fraction = WetFraction(height, epsilon);
-            const double one = 1.0 - 1e-16;
-            const bool is_wet = (wet_fraction >= one);
-            rEntity.Set(WetFlag, is_wet);
-            for (auto& r_node : r_geom)
-            {
-                if (is_wet)
-                {
-                    if (r_node.IsNot(WetFlag))
-                    {
-                        r_node.SetLock();
-                        r_node.Set(WetFlag);
-                        r_node.UnSetLock();
-                    }
-                }
-            }
-        });
-    }
+    bool IsWet(const GeometryType& rGeometry, const double RelativeDryHeight);
+
+    bool IsWet(const GeometryType& rGeometry, const double Height, const double RelativeDryHeight);
+
+    bool IsWet(const double Height, const double DryHeight);
 
     template<class TContainerType>
     array_1d<double,3> EvaluateHydrostaticForce(

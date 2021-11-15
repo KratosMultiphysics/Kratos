@@ -74,7 +74,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/element.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/schemes/scheme.h"
 //#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "includes/variables.h"
@@ -92,14 +92,14 @@ namespace Kratos
  class TSparseSpace,
  class TDenseSpace,
  class TLinearSolver>
- class PFEM2_Explicit_Strategy : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+ class PFEM2_Explicit_Strategy : public ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
      {
 
 	  public:
 
 	  KRATOS_CLASS_POINTER_DEFINITION(PFEM2_Explicit_Strategy);
 
-	  typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+	  typedef ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
 	  typedef typename BaseType::TDataType TDataType;
 
@@ -164,7 +164,7 @@ namespace Kratos
 			//typename         TBuilderAndSolverType::Pointer pNewBuilderAndSolver
 			)
 
-	  : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
+	  : ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
 	      {
 
 	      }
@@ -840,14 +840,14 @@ void UpdateLoopForMassAndArea(ProcessInfo& CurrentProcessInfo)
  class TSparseSpace,
  class TDenseSpace,
  class TLinearSolver>
- class Fluid_Phase_PFEM2_Explicit_Strategy : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+ class Fluid_Phase_PFEM2_Explicit_Strategy : public ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
      {
 
 	  public:
 
 	  KRATOS_CLASS_POINTER_DEFINITION(Fluid_Phase_PFEM2_Explicit_Strategy);
 
-	  typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+	  typedef ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
 	  typedef typename BaseType::TDataType TDataType;
 
@@ -912,7 +912,7 @@ void UpdateLoopForMassAndArea(ProcessInfo& CurrentProcessInfo)
 			//typename         TBuilderAndSolverType::Pointer pNewBuilderAndSolver
 			)
 
-	  : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
+	  : ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
 	      {
 
 	      }

@@ -56,6 +56,9 @@ class ScordelisRoofShell3pTest(IgaTestFactory):
 class LinearBeamShell3pTest(IgaTestFactory):
     file_name = "linear_beam_shell_3p_test/linear_beam_shell_3p"
 
+class LinearBeamShell3pAdditiveSchwarzTest(IgaTestFactory):
+    file_name = "linear_beam_shell_3p_test/linear_beam_shell_3p_additive_schwarz"
+
 # Hierarchic 5p Shell
 class Shell5pHierarchicLinearThickBeamTest(IgaTestFactory):
     file_name = "linear_beam_thick_p4_nCP5/shell_5p"
@@ -79,6 +82,32 @@ class SinglePatchRefinedSupportLagrangeTest(IgaTestFactory):
 
 class SinglePatchRefinedSupportNitscheTest(IgaTestFactory):
     file_name = "weak_support_tests/single_patch_refined_test/single_patch_refined_test_nitsche"
+
+# Coupling C_0
+class TwoPatchCouplingPenaltyShell3pTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_test/two_patch_test_penalty_shell_3p"
+
+class TwoPatchCouplingLagrangeShell3pTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_test/two_patch_test_lagrange_shell_3p"
+
+class TwoPatchCouplingNitscheShell3pTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_test/two_patch_test_nitsche_shell_3p"
+
+class TwoPatchRefinedCouplingPenaltyMembraneTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_penalty_membrane"
+
+class TwoPatchRefinedCouplingLagrangeMembraneTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_lagrange_membrane"
+
+class TwoPatchRefinedCouplingNitscheMembraneTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_nitsche_membrane"
+
+# Rotation/G_1 Coupling
+class TwoPatchCantileverCouplingPenaltyTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_cantilever_test/two_patch_cantilever_test_penalty"
+
+class TwoPatchCantileverRefinedCouplingPenaltyTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_cantilever_refined_test/two_patch_cantilever_refined_test_penalty"
 
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -79,11 +79,7 @@ namespace Kratos
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
         // Loop over all nodes
-        const auto& i_node_begin = rFluidModelPart.NodesBegin();
-
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rFluidModelPart.Nodes().size()); i++) {
-          auto i_node = i_node_begin + i;
+        for (ModelPart::NodesContainerType::iterator i_node = rFluidModelPart.NodesBegin(); i_node != rFluidModelPart.NodesEnd(); i_node++) {
 
           // Nodal temperature
           double temp = i_node->FastGetSolutionStepValue(TEMPERATURE);

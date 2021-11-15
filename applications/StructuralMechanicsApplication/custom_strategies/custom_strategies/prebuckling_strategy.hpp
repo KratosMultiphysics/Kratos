@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "utilities/builtin_timer.h"
 
 // Application includes
@@ -55,7 +55,7 @@ template <class TSparseSpace,
           class TDenseSpace,
           class TLinearSolver>
 class PrebucklingStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -63,7 +63,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(PrebucklingStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TSchemeType::Pointer SchemePointerType;
 
@@ -111,7 +111,7 @@ public:
         typename ConvergenceCriteriaType::Pointer pConvergenceCriteria,
         int MaxIteration,
         Parameters BucklingSettings )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
+        : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
     {
         KRATOS_TRY
 

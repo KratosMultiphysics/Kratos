@@ -100,16 +100,16 @@ public:
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type                                  DecompositionType;
 
     /// The derivative data type
-    typedef typename std::conditional<TFrictional, DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> >::type DerivativeDataType;
+    typedef typename std::conditional<TFrictional, DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNumNodesMaster> >::type DerivativeDataType;
 
     /// The kinematic variables
     typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TNumNodesMaster>                             GeneralVariables;
 
     /// The dual LM operators
-    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster> AeData;
+    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional, TNumNodesMaster>                   AeData;
 
     /// The mortar operators
-    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster> MortarConditionMatrices;
+    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, TFrictional, TNumNodesMaster>                   MortarConditionMatrices;
 
     /// Definition of epsilon
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();

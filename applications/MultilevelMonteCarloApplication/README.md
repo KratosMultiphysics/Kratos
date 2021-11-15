@@ -153,17 +153,29 @@ Additionally, running with `runcompss` requires to add to the `PYTHONPATH` the p
 Instructions for installing Mmg can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/%5BUtilities%5D-MMG-Process).
 ParMmg is the MPI parallel version of the remeshing library Mmg. Instructions for installing ParMmg can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/%5BUtilities%5D-ParMmg-Process).
 
-## License
+## Scalability
 
-The MultilevelMonteCarloApplication is OPEN SOURCE. The main code and program structure are available and aimed to grow with the need of any user willing to expand it. The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
+<figure>
+  <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Readme_files/MultilevelMonteCarloApplication/scalability.png" alt="">
+  <figcaption style="text-align: justify"> AMC and AMLMC denote the asynchronous Monte Carlo and the asynchronous Multilevel Monte Carlo methods, respectively. Sources: [1] and [4].</figcaption>
+</figure>
 
 ## Examples
 
 Many examples can be found in the [Kratos Multiphysics Examples repository](https://github.com/KratosMultiphysics/Examples/tree/master/multilevel_monte_carlo).
 
+## License
+
+The MultilevelMonteCarloApplication is OPEN SOURCE. The main code and program structure are available and aimed to grow with the need of any user willing to expand it. The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
+
 ## Main References
-- Amela, R., Ayoul-Guilmard, Q., Badia, R. M., Ganesh, S., Nobile, F., Rossi, R., & Tosi, R. (2019). ExaQUte XMC. https://doi.org/10.5281/zenodo.3235833
-- Krumscheid, S., Nobile, F., & Pisaroni, M. (2020). Quantifying uncertain system outputs via the multilevel Monte Carlo method — Part I: Central moment estimation. Journal of Computational Physics. https://doi.org/10.1016/j.jcp.2020.109466
+[1] Tosi, R., Amela, R., Badia, R. M. & Rossi, R. (2021). A Parallel Dynamic Asynchronous Framework for Uncertainty Quantification by Hierarchical Monte Carlo Algorithms. Journal of Scientific Computing. https://doi.org/10.1007/s10915-021-01598-6
+
+[2] Amela, R., Ayoul-Guilmard, Q., Badia, R. M., Ganesh, S., Nobile, F., Rossi, R., & Tosi, R. (2019). ExaQUte XMC. https://doi.org/10.5281/zenodo.3235833
+
+[3] Krumscheid, S., Nobile, F., & Pisaroni, M. (2020). Quantifying uncertain system outputs via the multilevel Monte Carlo method — Part I: Central moment estimation. Journal of Computational Physics. https://doi.org/10.1016/j.jcp.2020.109466
+
+[4] Ejarque, J., Böhm, S., Tosi, R., Núñez, M., & Badia, R. M. (2021). D4.5 Framework development and release. ExaQUte consortium.
 
 ## Contact
 

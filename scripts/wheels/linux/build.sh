@@ -1,5 +1,6 @@
 #!/bin/bash
-PYTHONS=("cp36" "cp37" "cp38" "cp39" "cp310")
+# PYTHONS=("cp36" "cp37" "cp38" "cp39" "cp310")
+PYTHONS=("cp310")
 export KRATOS_VERSION="9.0.0"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
@@ -8,27 +9,34 @@ WHEEL_ROOT="/workspace/wheel"
 WHEEL_OUT="/data_swap_guest"
 CORE_LIB_DIR="/workspace/coreLibs"
 
+# Created the wheel building directory.
 setup_wheel_dir () {
     cd $KRATOS_ROOT
     mkdir $WHEEL_ROOT
     cp scripts/wheels/setup.py ${WHEEL_ROOT}/setup.py
     mkdir ${WHEEL_ROOT}/KratosMultiphysics
-    mkdir ${WHEEL_ROOT}/KratosMultiphysics/.libs
+    mkdir ${WHEEL_ROOT}/KratosMultiphysics/.libs        # This dir is necessary mainly to store the shared libs in windows
 }
 
+# Creates the wheel for KratosCore.
 build_core_wheel () {
     setup_wheel_dir
     cd $KRATOS_ROOT
 
     PREFIX_LOCATION=$1
     
-    cp ${PREFIX_LOCATION}/KratosMultiphysics/* ${WHEEL_ROOT}/KratosMultiphysics
-    cp scripts/wheels/linux/KratosMultiphysics.json ${WHEEL_ROOT}/wheel.json
-    cp scripts/wheels/__init__.py ${WHEEL_ROOT}/KratosMultiphysics/__init__.py
+    mkdir ${WHEEL_ROOT}/KratosMultiphysics
+
+    cp ${PREFIX_LOCATION}/KratosMultiphysics/*          ${WHEEL_ROOT}/KratosMultiphysics
+    cp ${KRATOS_ROOT}/kratos/KratosMultiphysics.json    ${WHEEL_ROOT}/wheel.json
+    cp ${KRATOS_ROOT}/scripts/wheels/__init__.py        ${WHEEL_ROOT}/KratosMultiphysics/__init__.py
     
     cd $WHEEL_ROOT
+
     $PYTHON_LOCATION setup.py bdist_wheel
+
     cd ${WHEEL_ROOT}/dist
+    
     auditwheel repair *.whl
     
     mkdir $CORE_LIB_DIR
@@ -39,24 +47,29 @@ build_core_wheel () {
     rm -r $WHEEL_ROOT
 }
 
+# Creates the wheel for each KratosApplication.
 build_application_wheel () {
     setup_wheel_dir
-    cp ${KRATOS_ROOT}/scripts/wheels/linux/applications/${1} ${WHEEL_ROOT}/wheel.json
+
+    cp ${KRATOS_ROOT}/applications/${1}/${1}.json ${WHEEL_ROOT}/wheel.json
     cd $WHEEL_ROOT
+    
     $PYTHON_LOCATION setup.py bdist_wheel
-    cd dist
-    auditwheel repair *.whl
+
+    auditwheel repair dist/*.whl
     
     optimize_wheel
-    cp ${WHEEL_ROOT}/dist/wheelhouse/* ${WHEEL_OUT}/
+
+    cp ${WHEEL_ROOT}/wheelhouse/* ${WHEEL_OUT}/
     
     cd
     rm -r $WHEEL_ROOT
 }
 
+# Kreates the wheel bundle.
 build_kratos_all_wheel () {
     setup_wheel_dir
-    cp ${KRATOS_ROOT}/scripts/wheels/linux/KratosMultiphysics-all.json ${WHEEL_ROOT}/wheel.json
+    cp ${KRATOS_ROOT}/kratos/KratosMultiphysics-all.json ${WHEEL_ROOT}/wheel.json
     cp ${KRATOS_ROOT}/scripts/wheels/linux/setup_kratos_all.py ${WHEEL_ROOT}/setup.py
     cd ${WHEEL_ROOT}
     $PYTHON_LOCATION setup.py bdist_wheel
@@ -66,8 +79,10 @@ build_kratos_all_wheel () {
     rm -r $WHEEL_ROOT
 }
 
+# Removes duplicated libraries from existing wheels.
 optimize_wheel(){
-    cd ${WHEEL_ROOT}/dist/wheelhouse
+
+    cd ${WHEEL_ROOT}/wheelhouse
     ARCHIVE_NAME=$(ls .)
     mkdir tmp
     unzip ${ARCHIVE_NAME} -d tmp
@@ -81,15 +96,16 @@ optimize_wheel(){
             sed -i "/${LIBRARY}/d" tmp/*.dist-info/RECORD
         fi
     done
+    
     cd tmp
     zip -r ../${ARCHIVE_NAME} ./*
     cd ..
     rm -r tmp
 }
 
+# Buils the KratosXCore components for the kernel and applications
 build_core () {
 	cd $KRATOS_ROOT
-	# git clean -ffxd
 
 	PYTHON_LOCATION=$1
     PREFIX_LOCATION=$2
@@ -101,9 +117,9 @@ build_core () {
     cmake --build "${KRATOS_ROOT}/build/Release" --target KratosKernel -- -j$(nproc)
 }
 
+# Buils the KratosXInterface components for the kernel and applications given an specific version of python
 build_interface () {
     cd $KRATOS_ROOT
-	# git clean -ffxd
 
 	PYTHON_LOCATION=$1
     PREFIX_LOCATION=$2
@@ -118,15 +134,15 @@ build_interface () {
 
 # Core can be build independently of the python version.
 # Install path should be useless here.
-echo starting core build
+echo "Starting core build"
 build_core python3.6 ${KRATOS_ROOT}/bin/core
-echo finished core build
+echo "Finished core build"
 
 for PYTHON_VERSION in  "${PYTHONS[@]}"
 do
     PYTHON_TMP=$(ls /opt/python | grep $PYTHON_VERSION | cut -d "-" -f 2)
     export PYTHON=${PYTHON_TMP#cp}
-    echo starting build for python${PYTHON_VERSION}
+    echo "Starting build for python${PYTHON_VERSION}"
 
 	PYTHON_LOCATION=/opt/python/$(ls /opt/python | grep $PYTHON_VERSION)/bin/python
     PREFIX_LOCATION=$KRATOS_ROOT/bin/Release/python_$PYTHON
@@ -138,13 +154,18 @@ do
 	export LD_LIBRARY_PATH=${PREFIX_LOCATION}/libs:$BASE_LD_LIBRARY_PATH
 	echo $LD_LIBRARY_PATH
 
+    echo "Building Core Wheel"
     build_core_wheel $PREFIX_LOCATION
 
-    for APPLICATION in $(ls ${KRATOS_ROOT}/scripts/wheels/linux/applications)
+    echo "Building App Wheels"
+    for APPLICATION in $(ls -d ${PREFIX_LOCATION}/applications/*)
     do
-        build_application_wheel $APPLICATION
-    done
+        APPNAME=$(basename "$APPLICATION")
+        echo "Building ${APPNAME} Wheel"
+        build_application_wheel $APPNAME
+    done         
 
+    echo "Building Bundle Wheel"
     build_kratos_all_wheel $PREFIX_LOCATION
 
 	echo finished build for python${PYTHON_VERSION}

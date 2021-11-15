@@ -18,7 +18,7 @@ namespace Kratos {
         // TODO: make mDoApplyFaxenCorrections an option
         SaffmanLiftLaw(){}
 
-        SaffmanLiftLaw(Parameters& r_parameters);
+        SaffmanLiftLaw(Parameters r_parameters);
 
         ~SaffmanLiftLaw(){}
 

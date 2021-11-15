@@ -29,8 +29,6 @@ namespace Kratos {
 
         void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps) override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
         ~DEM_ExponentialHC() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
