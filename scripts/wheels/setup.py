@@ -32,6 +32,10 @@ if "excluded_binaries" in conf:
     f.writelines(list(map(lambda x: replaceKeyword(x) + "\n", conf["excluded_binaries"])))
     f.close()
 
+    f = open("/excluded/"+str(conf["wheel_name"])+".txt", "w")
+    f.writelines(list(map(lambda x: replaceKeyword(x) + "\n", conf["excluded_binaries"])))
+    f.close()
+
 class BinaryDistribution(setuptools.Distribution):
     def has_ext_modules(foo):
         return True
