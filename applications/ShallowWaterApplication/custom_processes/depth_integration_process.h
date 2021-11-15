@@ -171,7 +171,11 @@ private:
 
     void GetBoundingVolumeLimits(double& rMin, double& rMax);
 
-    void InitializeIntegrationModelPart();
+    void InitializeIntegrationModelPart(const double Low, const double High);
+
+    void CreateIntegrationLines();
+
+    void Integrate(std::vector<PointerVector<GeometricalObject>>& rResults);
 
     void InitializeIntegrationLine();
 
