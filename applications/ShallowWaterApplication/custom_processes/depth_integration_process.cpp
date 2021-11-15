@@ -24,7 +24,8 @@
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "shallow_water_application_variables.h"
-#include "custom_utilities/find_intersected_objects_utility.h"
+#include "processes/find_intersected_geometrical_objects_process.h"
+// #include "custom_utilities/find_intersected_objects_utility.h"
 
 namespace Kratos
 {
@@ -65,23 +66,24 @@ void DepthIntegrationProcess::Execute()
 {
     double bottom, top;
     GetBoundingVolumeLimits(bottom, top);
-    // InitializeIntegrationModelPart();
-    // FindIntersectedGeometricalObjectsProcess find_intersected_objects_process(*mpIntegrationModelPart, mrVolumeModelPart);
-    // find_intersected_objects_process.ExecuteInitialize();
-    // for (auto& node : mrInterfaceModelPart.Nodes()) {
-    //     InitializeIntegrationLine();
-    //     SetIntegrationLine(node, bottom, top);
-    //     find_intersected_objects_process.FindIntersections();
-    //     auto intersected_objects = find_intersected_objects_process.GetIntersections();
-    //     Integrate(intersected_objects[0], node);
-    // }
-    FindIntersectedObjectsUtility intersections(mrVolumeModelPart);
+    InitializeIntegrationModelPart();
+    FindIntersectedGeometricalObjectsProcess find_intersected_objects_process(*mpIntegrationModelPart, mrVolumeModelPart);
+    find_intersected_objects_process.ExecuteInitialize();
+    InitializeIntegrationLine();
     for (auto& node : mrInterfaceModelPart.Nodes()) {
-        GeometryType::Pointer integration_line = CreateIntegrationLine(node, bottom, top);
-        PointerVector<GeometricalObject> intersected_objects;
-        intersections.FindIntersectedObjects(integration_line, intersected_objects);
-        Integrate(intersected_objects, node);
+        SetIntegrationLine(node, bottom, top);
+        find_intersected_objects_process.FindIntersections();
+        auto intersected_objects = find_intersected_objects_process.GetIntersections();
+        Integrate(intersected_objects[0], node);
     }
+
+    // FindIntersectedObjectsUtility intersections(mrVolumeModelPart);
+    // for (auto& node : mrInterfaceModelPart.Nodes()) {
+    //     GeometryType::Pointer integration_line = CreateIntegrationLine(node, bottom, top);
+    //     PointerVector<GeometricalObject> intersected_objects;
+    //     intersections.FindIntersectedObjects(integration_line, intersected_objects);
+    //     Integrate(intersected_objects, node);
+    // }
 }
 
 void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjects, NodeType& rNode)
