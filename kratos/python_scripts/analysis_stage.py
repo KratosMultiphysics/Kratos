@@ -28,6 +28,12 @@ class AnalysisStage(object):
         self.model = model
         self.project_parameters = project_parameters
 
+        # We validate reinitilize settings
+        reinitialize_settings = self._GetReInitializeRequired()
+        if not self.project_parameters.Has("reinitialize_settings"):
+            self.project_parameters.AddEmptyValue("reinitialize_settings")
+        self.project_parameters["reinitialize_settings"].ValidateAndAssignDefaults(reinitialize_settings)
+
         ## Get echo level and parallel type
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
         self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
