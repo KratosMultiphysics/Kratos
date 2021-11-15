@@ -234,6 +234,11 @@ protected:
         MatrixType& rLHS,
         VectorType& rRHS) override;
 
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     void ComputeGaussPointLHSContribution(
         TElementData& rData,
         MatrixType& rLHS);

@@ -29,7 +29,8 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainFICElement : public UPwSmallStrainElement<TDim,TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainFICElement :
+    public UPwSmallStrainElement<TDim,TNumNodes>
 {
 
 public:
@@ -47,6 +48,7 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
     using UPwSmallStrainElement<TDim,TNumNodes>::CalculateBulkModulus;
+    using UPwSmallStrainElement<TDim,TNumNodes>::VoigtSize;
 
     typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
 

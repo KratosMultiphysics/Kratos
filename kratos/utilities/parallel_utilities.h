@@ -33,6 +33,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/global_variables.h"
+#include "includes/lock_object.h"
 #include "utilities/reduction_utilities.h"
 
 
@@ -72,9 +73,19 @@ public:
 
     ///@}
 
+    /** @brief Returns the global lock
+     * Global lock that can be used for critical sections
+     * @return global lock
+     */
+    static LockObject& GetGlobalLock();
+
+    ///@}
+
 private:
     ///@name Static Member Variables
     ///@{
+
+    static LockObject* mspGlobalLock;
 
     static int* mspNumThreads;
 

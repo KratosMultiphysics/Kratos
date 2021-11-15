@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
 // Project includes
@@ -19,7 +19,7 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeGlobalBoundingBox_distributed, KratosMappingApplicationMPITestSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MapperUtilities_ComputeGlobalBoundingBox_distributed, KratosMappingApplicationMPITestSuite)
 {
     Model current_model;
     ModelPart& model_part = current_model.CreateModelPart("Generated");
@@ -51,7 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeGlobalBoundingBox_distributed, 
 
     KRATOS_CHECK_EQUAL(bbox.size(), 6);
     for (std::size_t i=0; i<6; ++i){
-        KRATOS_CHECK_DOUBLE_EQUAL(bbox[i], exp_bbox[i]);
+        KRATOS_CHECK_NEAR(bbox[i], exp_bbox[i], 1e-12);
     }
 }
 

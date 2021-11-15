@@ -15,13 +15,7 @@ class TestParticleCreatorDestructor(KratosUnittest.TestCase):
 
         properties = Kratos.Properties(0)
         properties[Kratos.YOUNG_MODULUS] = 3.331
-        properties[DEM.DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_D_Hertz_viscous_Coulomb"
-        properties[DEM.STATIC_FRICTION] = 0.0
-        properties[DEM.DYNAMIC_FRICTION] = 0.0
-        properties[DEM.FRICTION_DECAY] = 500.0
         properties[Kratos.POISSON_RATIO] = 0.0
-        properties[DEM.DAMPING_GAMMA] = 0.0
-        properties[DEM.COEFFICIENT_OF_RESTITUTION] = 0.0
 
         self.ModifyProperties(properties)
 
@@ -32,10 +26,6 @@ class TestParticleCreatorDestructor(KratosUnittest.TestCase):
         self.creator_destructor = DEM.ParticleCreatorDestructor()
 
     def ModifyProperties(self, properties, param = 0):
-
-        if not param:
-            DiscontinuumConstitutiveLaw = getattr(DEM, properties[DEM.DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
-            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, False)
 
         scheme = DEM.SymplecticEulerScheme()
         scheme.SetTranslationalIntegrationSchemeInProperties(properties, False)
@@ -77,11 +67,6 @@ class TestParticleCreatorDestructor(KratosUnittest.TestCase):
             self.assertEqual(element.Properties[Kratos.YOUNG_MODULUS], 3.331)
 
         self.assertEqual(counter, 1)
-
-
-    def test_CreateSphericParticle2(self):
-        pass
-
 
 if __name__ == '__main__':
     KratosUnittest.main()

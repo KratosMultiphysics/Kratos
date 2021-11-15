@@ -24,6 +24,14 @@ namespace Spectra {
 /// matrix. It is mainly used in the SymGEigsSolver generalized eigen solver
 /// in the Cholesky decomposition mode.
 ///
+/// \tparam Scalar_      The element type of the matrix, for example,
+///                      `float`, `double`, and `long double`.
+/// \tparam Uplo         Either `Eigen::Lower` or `Eigen::Upper`, indicating which
+///                      triangular part of the matrix is used.
+/// \tparam Flags        Either `Eigen::ColMajor` or `Eigen::RowMajor`, indicating
+///                      the storage format of the input matrix.
+/// \tparam StorageIndex The type of the indices for the sparse matrix.
+///
 template <typename Scalar_, int Uplo = Eigen::Lower, int Flags = Eigen::ColMajor, typename StorageIndex = int>
 class SparseCholesky
 {
@@ -39,7 +47,6 @@ private:
     using MapConstVec = Eigen::Map<const Vector>;
     using MapVec = Eigen::Map<Vector>;
     using SparseMatrix = Eigen::SparseMatrix<Scalar, Flags, StorageIndex>;
-    using ConstGenericSparseMatrix = const Eigen::Ref<const SparseMatrix>;
 
     const Index m_n;
     Eigen::SimplicialLLT<SparseMatrix, Uplo> m_decomp;
@@ -53,9 +60,14 @@ public:
     /// `Eigen::SparseMatrix<Scalar, ...>` or its mapped version
     /// `Eigen::Map<Eigen::SparseMatrix<Scalar, ...> >`.
     ///
-    SparseCholesky(ConstGenericSparseMatrix& mat) :
+    template <typename Derived>
+    SparseCholesky(const Eigen::SparseMatrixBase<Derived>& mat) :
         m_n(mat.rows())
     {
+        static_assert(
+            static_cast<int>(Derived::PlainObject::IsRowMajor) == static_cast<int>(SparseMatrix::IsRowMajor),
+            "SparseCholesky: the \"Flags\" template parameter does not match the input matrix (Eigen::ColMajor/Eigen::RowMajor)");
+
         if (mat.rows() != mat.cols())
             throw std::invalid_argument("SparseCholesky: matrix must be square");
 

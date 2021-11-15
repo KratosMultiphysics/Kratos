@@ -73,3 +73,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 install(TARGETS KratosRomApplicationCore DESTINATION libs )
 install(TARGETS KratosRomApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosRomApplicationCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosRomApplication" PARENT_SCOPE)

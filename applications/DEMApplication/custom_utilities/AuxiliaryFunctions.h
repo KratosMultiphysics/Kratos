@@ -10,9 +10,9 @@
 
 #include <cmath>
 #include "containers/array_1d.h"
-#include "../../../kratos/includes/serializer.h"
+#include "includes/serializer.h"
 #include "includes/model_part.h"
-#include "../DEM_application_variables.h"
+#include "DEM_application_variables.h"
 
 namespace Kratos {
 

@@ -224,6 +224,9 @@ Vector& ElasticIsotropic3D::CalculateValue(
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
 
         ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
+        if (rValue.size() != GetStrainSize()) {
+            rValue.resize(GetStrainSize());
+        }
         noalias(rValue) = rParameterValues.GetStrainVector();
 
         // Previous flags restored
@@ -246,6 +249,9 @@ Vector& ElasticIsotropic3D::CalculateValue(
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
         ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
+        if (rValue.size() != GetStrainSize()) {
+            rValue.resize(GetStrainSize());
+        }
         noalias(rValue) = rParameterValues.GetStressVector();
 
         // Previous flags restored
@@ -312,7 +318,7 @@ int ElasticIsotropic3D::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] < 0.0) << "YOUNG_MODULUS is negative." << std::endl;
 

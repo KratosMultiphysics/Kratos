@@ -62,11 +62,11 @@ class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DE
     def RunAnalytics(self, time, is_time_to_print=True):
         self.MakeAnalyticsMeasurements()
         if is_time_to_print:
-            self.FaceAnalyzerClass.CreateNewFile()
-            self.FaceAnalyzerClass.UpdateDataBases(time)
+            self.SurfacesAnalyzerClass.CreateNewFile()
+            self.SurfacesAnalyzerClass.UpdateDataBases(time)
             self.CheckTotalNumberOfCrossingParticles()
 
-        self.FaceAnalyzerClass.RemoveOldFile()
+        self.SurfacesAnalyzerClass.RemoveOldFile()
 
     def CheckTotalNumberOfCrossingParticles(self):
         import h5py
@@ -92,13 +92,13 @@ class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
     def RunAnalytics(self, time, is_time_to_print=True):
         self.MakeAnalyticsMeasurements()
         if is_time_to_print:  # or IsCountStep()
-            self.FaceAnalyzerClass.CreateNewFile()
-            self.FaceAnalyzerClass.UpdateDataBases(time)
+            self.SurfacesAnalyzerClass.CreateNewFile()
+            self.SurfacesAnalyzerClass.UpdateDataBases(time)
 
             if sp[Kratos.IDENTIFIER] == 'DEM-wall2':
                 self.CheckTotalNumberOfCrossingParticles()
 
-            self.FaceAnalyzerClass.RemoveOldFile()
+            self.SurfacesAnalyzerClass.RemoveOldFile()
 
     def CheckTotalNumberOfCrossingParticles(self):
         import h5py
@@ -140,6 +140,7 @@ class TestAnalytics(KratosUnittest.TestCase):
     # def test_Analytics_3(self):
     #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
     #     parameters_file_name = os.path.join(path, "ProjectParametersDEM_multi_layer_ghost.json")
+    #      = os.path.join(path, "MaterialsDEM.json")
     #     model = Kratos.Model()
     #     CreateAndRunStageInSelectedNumberOfOpenMPThreads(MultiGhostsTestSolution, model, parameters_file_name, 1)
 

@@ -134,7 +134,7 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
 
     double shift_for_correction = 0.0;
     // check if it is time for a correction (if wished for)
-    if ( mPerformCorrections && mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 && inter_area > 10e-7){
+    if ( mPerformCorrections && mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 && inter_area > 1e-7){
         // if water is missing, a shift into negative direction increases the water volume
         shift_for_correction = - water_volume_error / inter_area;
         ShiftDistanceField( shift_for_correction );
@@ -224,7 +224,7 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
                     shape_functions,                    // N
                     shape_derivatives,                  // DN
                     w_gauss_pos_side,                   // includes the weights of the GAUSS points (!!!)
-                    GeometryData::GI_GAUSS_1);          // first order Gauss integration (1 point per triangle)
+                    GeometryData::IntegrationMethod::GI_GAUSS_1);          // first order Gauss integration (1 point per triangle)
 
             for ( unsigned int i = 0; i < w_gauss_pos_side.size(); i++){
                 pos_vol += w_gauss_pos_side[i];
@@ -236,7 +236,7 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
                     shape_functions,                    // N
                     shape_derivatives,                  // DN
                     w_gauss_neg_side,                   // includes the weights of the GAUSS points (!!!)
-                    GeometryData::GI_GAUSS_1);          // first order Gauss integration
+                    GeometryData::IntegrationMethod::GI_GAUSS_1);          // first order Gauss integration
 
             for ( unsigned int i = 0; i < w_gauss_neg_side.size(); i++){
                 neg_vol += w_gauss_neg_side[i];
@@ -247,7 +247,7 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
                     shape_functions,                    // N
                     shape_derivatives,                  // DN
                     w_gauss_interface,                  // includes the weights of the GAUSS points (!!!)
-                    GeometryData::GI_GAUSS_1);          // first order Gauss integration
+                    GeometryData::IntegrationMethod::GI_GAUSS_1);          // first order Gauss integration
 
             for ( unsigned int i = 0; i < w_gauss_interface.size(); i++){
                 int_area += std::abs( w_gauss_interface[i] );
@@ -309,7 +309,7 @@ double MassConservationCheckProcess::ComputeInterfaceArea(){
                     shape_functions,                    // N
                     shape_derivatives,                  // DN
                     w_gauss_interface,                  // includes the weights of the GAUSS points (!!!)
-                    GeometryData::GI_GAUSS_1);          // first order Gauss integration
+                    GeometryData::IntegrationMethod::GI_GAUSS_1);          // first order Gauss integration
 
             for ( unsigned int i = 0; i < w_gauss_interface.size(); i++){
                 int_area += std::abs( w_gauss_interface[i] );
@@ -374,7 +374,7 @@ double MassConservationCheckProcess::ComputeNegativeVolume(){
                     shape_functions,                    // N
                     shape_derivatives,                  // DN
                     w_gauss_neg_side,                   // includes the weights of the GAUSS points (!!!)
-                    GeometryData::GI_GAUSS_1);          // first order Gauss integration
+                    GeometryData::IntegrationMethod::GI_GAUSS_1);          // first order Gauss integration
 
             for ( unsigned int i = 0; i < w_gauss_neg_side.size(); i++){
                 neg_vol += w_gauss_neg_side[i];
@@ -438,7 +438,7 @@ double MassConservationCheckProcess::ComputePositiveVolume(){
                     shape_functions,                    // N
                     shape_derivatives,                  // DN
                     w_gauss_pos_side,                   // includes the weights of the GAUSS points (!!!)
-                    GeometryData::GI_GAUSS_1);          // first order Gauss integration (1 point per triangle)
+                    GeometryData::IntegrationMethod::GI_GAUSS_1);          // first order Gauss integration (1 point per triangle)
 
             for ( unsigned int i = 0; i < w_gauss_pos_side.size(); i++){
                 pos_vol += w_gauss_pos_side[i];
@@ -491,11 +491,11 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
 
                 // --- the condition is completely on the negative side (2D)
                 if ( neg_count == rGeom.PointsNumber() ){
-                    const auto& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+                    const auto& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
                     const unsigned int num_gauss = IntegrationPoints.size();
                     Vector gauss_pts_det_jabobian = ZeroVector(num_gauss);
-                    rGeom.DeterminantOfJacobian(gauss_pts_det_jabobian, GeometryData::GI_GAUSS_2);
-                    const Matrix n_container = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
+                    rGeom.DeterminantOfJacobian(gauss_pts_det_jabobian, GeometryData::IntegrationMethod::GI_GAUSS_2);
+                    const Matrix n_container = rGeom.ShapeFunctionsValues( GeometryData::IntegrationMethod::GI_GAUSS_2 );
 
                     for (unsigned int i_gauss = 0; i_gauss < num_gauss; i_gauss++){
                         const auto& N = row(n_container, i_gauss);
@@ -517,11 +517,11 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                     GenerateAuxLine( rGeom, distance, p_aux_line, aux_velocity1, aux_velocity2 );
 
                     // Gauss point information for auxiliary line geometry
-                    const auto& IntegrationPoints = p_aux_line->IntegrationPoints( GeometryData::GI_GAUSS_2 );
+                    const auto& IntegrationPoints = p_aux_line->IntegrationPoints( GeometryData::IntegrationMethod::GI_GAUSS_2 );
                     const unsigned int num_gauss = IntegrationPoints.size();
                     Vector gauss_pts_det_jabobian = ZeroVector(num_gauss);
-                    p_aux_line->DeterminantOfJacobian(gauss_pts_det_jabobian, GeometryData::GI_GAUSS_2);
-                    const Matrix n_container = p_aux_line->ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
+                    p_aux_line->DeterminantOfJacobian(gauss_pts_det_jabobian, GeometryData::IntegrationMethod::GI_GAUSS_2);
+                    const Matrix n_container = p_aux_line->ShapeFunctionsValues( GeometryData::IntegrationMethod::GI_GAUSS_2 );
 
                     for (unsigned int i_gauss = 0; i_gauss < num_gauss; i_gauss++){
                         const auto& N = row(n_container, i_gauss);
@@ -543,11 +543,11 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                 // --- the condition is completely on the negative side (3D)
                 if ( neg_count == rGeom.PointsNumber() ){
 
-                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
                     const unsigned int num_gauss = IntegrationPoints.size();
                     Vector gauss_pts_det_jabobian = ZeroVector(num_gauss);
-                    rGeom.DeterminantOfJacobian(gauss_pts_det_jabobian, GeometryData::GI_GAUSS_2);
-                    const Matrix n_container = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
+                    rGeom.DeterminantOfJacobian(gauss_pts_det_jabobian, GeometryData::IntegrationMethod::GI_GAUSS_2);
+                    const Matrix n_container = rGeom.ShapeFunctionsValues( GeometryData::IntegrationMethod::GI_GAUSS_2 );
 
                     for (unsigned int i_gauss = 0; i_gauss < num_gauss; i_gauss++){
                         const auto& N = row(n_container, i_gauss);
@@ -575,7 +575,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         r_shape_functions,                  // N
                         r_shape_derivatives,                // DN
                         w_gauss_neg_side,                   // includes the weights of the GAUSS points (!!!)
-                        GeometryData::GI_GAUSS_2);          // second order Gauss integration
+                        GeometryData::IntegrationMethod::GI_GAUSS_2);          // second order Gauss integration
 
                     // interating velocity over the negative area of the condition
                     for ( unsigned int i_gauss = 0; i_gauss < w_gauss_neg_side.size(); i_gauss++){
@@ -606,6 +606,8 @@ void MassConservationCheckProcess::ShiftDistanceField( double deltaDist ){
     for(int count = 0; count < static_cast<int>(rNodes.size()); count++){
         ModelPart::NodesContainerType::iterator i_node = rNodes.begin() + count;
         i_node->FastGetSolutionStepValue( DISTANCE ) += deltaDist;
+        if (mrModelPart.GetProcessInfo()[MOMENTUM_CORRECTION]){
+            i_node->GetValue( DISTANCE_CORRECTION ) = -deltaDist;}
     }
 }
 

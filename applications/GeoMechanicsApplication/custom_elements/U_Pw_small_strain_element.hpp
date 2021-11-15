@@ -27,7 +27,8 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainElement : public UPwBaseElement<TDim,TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainElement :
+    public UPwBaseElement<TDim,TNumNodes>
 {
 
 public:
@@ -48,7 +49,7 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
     using UPwBaseElement<TDim,TNumNodes>::mIsInitialised;
-
+    using UPwBaseElement<TDim,TNumNodes>::CalculateDerivativesOnInitialConfiguration;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -125,6 +126,9 @@ public:
 
 protected:
 
+    static constexpr SizeType VoigtSize  = ( TDim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    static constexpr SizeType StressTensorSize = (TDim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
+
     struct ElementVariables
     {
         ///Properties variables
@@ -132,7 +136,10 @@ protected:
         bool ConsiderGeometricStiffness;
         double DynamicViscosityInverse;
         double FluidDensity;
+        double SolidDensity;
         double Density;
+        double Porosity;
+
         double BiotCoefficient;
         double BiotModulusInverse;
         BoundedMatrix<double,TDim, TDim> PermeabilityMatrix;
@@ -155,11 +162,11 @@ protected:
         Matrix B;
         BoundedMatrix<double, TDim, TNumNodes*TDim> Nu;
         array_1d<double, TDim> BodyAcceleration;
+        array_1d<double, TDim> SoilGamma;
         double IntegrationCoefficient;
 
         ///Constitutive Law parameters
         Vector StrainVector;
-        Vector StressVector;
         Matrix ConstitutiveMatrix;
         Vector Np;
         Matrix GradNpT;
@@ -199,13 +206,13 @@ protected:
                        const Vector &StressVector,
                        const unsigned int &GPoint );
 
-    void ExtrapolateGPValues( const Matrix &StressContainer,
-                              const unsigned int &VoigtSize );
-
+    void ExtrapolateGPValues( const Matrix &StressContainer);
 
     void CalculateMaterialStiffnessMatrix( MatrixType& rStiffnessMatrix,
                                            const ProcessInfo& CurrentProcessInfo ) override;
 
+    void CalculateMassMatrix( MatrixType& rMassMatrix,
+                              const ProcessInfo& rCurrentProcessInfo ) override;
 
     void CalculateAll( MatrixType &rLeftHandSideMatrix,
                        VectorType &rRightHandSideVector,
@@ -213,8 +220,8 @@ protected:
                        const bool CalculateStiffnessMatrixFlag,
                        const bool CalculateResidualVectorFlag ) override;
 
-    void InitializeElementVariables( ElementVariables &rVariables,
-                                     const ProcessInfo &CurrentProcessInfo );
+    virtual void InitializeElementVariables( ElementVariables &rVariables,
+                                             const ProcessInfo &CurrentProcessInfo );
 
     void SetConstitutiveParameters(ElementVariables &rVariables,
                                    ConstitutiveLaw::Parameters &rConstitutiveParameters);
@@ -225,10 +232,11 @@ protected:
     virtual void CalculateKinematics( ElementVariables &rVariables, const unsigned int &PointNumber );
 
     void InitializeBiotCoefficients( ElementVariables &rVariables,
-                                     const double &BulkModulus );
+                                     const bool &hasBiotCoefficient=false );
 
-    void CalculateBMatrix( Matrix &rB,
-                           const Matrix &GradNpT );
+    virtual void CalculateBMatrix( Matrix &rB,
+                                   const Matrix &GradNpT,
+                                   const Vector &Np );
 
 
     virtual void CalculateAndAddLHS(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
@@ -237,37 +245,66 @@ protected:
 
     void CalculateAndAddCouplingMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables& rVariables);
+    virtual void CalculateAndAddCompressibilityMatrix(MatrixType &rLeftHandSideMatrix,
+                                                      ElementVariables& rVariables);
 
-    void CalculateAndAddPermeabilityMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
+    virtual void CalculateCompressibilityMatrix(BoundedMatrix<double,TNumNodes,TNumNodes> &PMatrix,
+                                                const ElementVariables &rVariables) const;
 
-    virtual void CalculateAndAddRHS(VectorType &rRightHandSideVector, ElementVariables &rVariables);
+    virtual void CalculateAndAddPermeabilityMatrix(MatrixType &rLeftHandSideMatrix,
+                                                   ElementVariables &rVariables);
 
-    void CalculateAndAddStiffnessForce(VectorType &rRightHandSideVector, ElementVariables& rVariables);
+    virtual void CalculatePermeabilityMatrix(BoundedMatrix<double,TNumNodes,TDim> &PDimMatrix,
+                                             BoundedMatrix<double,TNumNodes,TNumNodes> &PMatrix,
+                                             const ElementVariables &rVariables) const;
+
+    virtual void CalculateAndAddRHS(VectorType &rRightHandSideVector,
+                                    ElementVariables &rVariables,
+                                    unsigned int GPoint);
+
+    void CalculateAndAddStiffnessForce(VectorType &rRightHandSideVector,
+                                       ElementVariables& rVariables,
+                                       unsigned int GPoint);
 
     void CalculateAndAddMixBodyForce(VectorType &rRightHandSideVector, ElementVariables &rVariables);
 
     void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables &rVariables);
 
-    void CalculateAndAddCompressibilityFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables);
+    virtual void CalculateAndAddCompressibilityFlow(VectorType &rRightHandSideVector,
+                                                    ElementVariables &rVariables);
 
-    void CalculateAndAddPermeabilityFlow(VectorType &rRightHandSideVector, ElementVariables& rVariables);
+    virtual void CalculateCompressibilityFlow(BoundedMatrix<double,TNumNodes,TNumNodes> &PMatrix,
+                                              array_1d<double,TNumNodes> &PVector,
+                                              const ElementVariables &rVariables) const;
 
-    void CalculateAndAddFluidBodyFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables);
+    virtual void CalculateAndAddPermeabilityFlow(VectorType &rRightHandSideVector,
+                                                 ElementVariables &rVariables);
 
-    void UpdateElementalVariableStressVector(ElementVariables &rVariables, const unsigned int &PointNumber);
-    void UpdateElementalVariableStressVector(Vector &StressVector, const unsigned int &PointNumber);
-    void UpdateStressVector(const ElementVariables &rVariables, const unsigned int &PointNumber);
-    void UpdateStressVector(const Vector &StressVector, const unsigned int &PointNumber);
+    virtual void CalculatePermeabilityFlow(BoundedMatrix<double,TNumNodes,TDim> &PDimMatrix,
+                                           BoundedMatrix<double,TNumNodes,TNumNodes> &PMatrix,
+                                           array_1d<double,TNumNodes> &PVector,
+                                           const ElementVariables &rVariables) const;
 
-    double CalculateBulkModulus(const Matrix &ConstitutiveMatrix);
+
+    virtual void CalculateAndAddFluidBodyFlow(VectorType &rRightHandSideVector,
+                                              ElementVariables &rVariables);
+    virtual void CalculateFluidBodyFlow(BoundedMatrix<double,TNumNodes,TDim> &PDimMatrix,
+                                        array_1d<double,TNumNodes> &PVector,
+                                        const ElementVariables &rVariables) const;
+
+    double CalculateBulkModulus(const Matrix &ConstitutiveMatrix) const;
+    double CalculateBiotCoefficient( const ElementVariables &rVariables,
+                                     const bool &hasBiotCoefficient) const;
 
     virtual void CalculateCauchyAlmansiStrain( ElementVariables &rVariables );
     virtual void CalculateCauchyGreenStrain( ElementVariables &rVariables );
     virtual void CalculateCauchyStrain( ElementVariables &rVariables );
     virtual void CalculateStrain( ElementVariables &rVariables );
 
-    void InitializeNodalVariables( ElementVariables &rVariables );
+    void InitializeNodalDisplacementVariables( ElementVariables &rVariables );
+    void InitializeNodalPorePressureVariables( ElementVariables &rVariables );
+    void InitializeNodalVolumeAccelerationVariables( ElementVariables &rVariables );
+
     void InitializeProperties( ElementVariables &rVariables );
     double CalculateFluidPressure( const ElementVariables &rVariables, const unsigned int &PointNumber );
 
@@ -276,6 +313,11 @@ protected:
                                      const unsigned int &GPoint );
 
     void CalculateExtrapolationMatrix(BoundedMatrix<double,TNumNodes,TNumNodes> &rExtrapolationMatrix);
+
+    void ResetHydraulicDischarge();
+    void CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo);
+    void CalculateSoilGamma(ElementVariables &rVariables);
+    void CalculateSoilDensity(ElementVariables &rVariables);
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -304,6 +346,17 @@ private:
 
     // Copy constructor.
     UPwSmallStrainElement(UPwSmallStrainElement const& rOther);
+
+    // Private Operations
+
+    template < class TValueType >
+    inline void ThreadSafeNodeWrite(NodeType& rNode, const Variable<TValueType> &Var, const TValueType Value)
+    {
+        rNode.SetLock();
+        rNode.FastGetSolutionStepValue(Var) = Value;
+        rNode.UnSetLock();
+    }
+
 
 }; // Class UPwSmallStrainElement
 

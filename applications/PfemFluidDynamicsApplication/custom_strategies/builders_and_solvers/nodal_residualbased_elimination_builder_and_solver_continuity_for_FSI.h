@@ -285,8 +285,8 @@ namespace Kratos
           if (RHS_Contribution.size() != 1)
             RHS_Contribution.resize(1, false); //false says not to preserve existing storage!!
 
-          LHS_Contribution = ZeroMatrix(1, 1);
-          RHS_Contribution = ZeroVector(1);
+          noalias(LHS_Contribution) = ZeroMatrix(1, 1);
+          noalias(RHS_Contribution) = ZeroVector(1);
 
           if (EquationId.size() != 1)
             EquationId.resize(1, false);
@@ -400,7 +400,7 @@ namespace Kratos
       //	}
 
       ElementsArrayType &pElements = rModelPart.Elements();
-      int number_of_threads = OpenMPUtils::GetNumThreads();
+      int number_of_threads = ParallelUtilities::GetNumThreads();
 
 #ifdef _OPENMP
       int A_size = A.size1();
@@ -580,13 +580,13 @@ namespace Kratos
                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
       /* const double start_solve = OpenMPUtils::GetCurrentTime(); */
-      Timer::Start("Solve");
+      // Timer::Start("Solve");
 
       /* boost::timer c_solve_time; */
       SystemSolveWithPhysics(A, Dx, b, rModelPart);
       /* std::cout << "CONTINUITY EQ: solve_time : " << c_solve_time.elapsed() << std::endl; */
 
-      Timer::Stop("Solve");
+      // Timer::Stop("Solve");
       /* const double stop_solve = OpenMPUtils::GetCurrentTime(); */
 
       KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "After the solution of the system"
@@ -615,7 +615,7 @@ namespace Kratos
       TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
       //create a partition of the element array
-      int number_of_threads = OpenMPUtils::GetNumThreads();
+      int number_of_threads = ParallelUtilities::GetNumThreads();
 
 #ifdef _OPENMP
       int A_size = A.size1();
@@ -635,7 +635,7 @@ namespace Kratos
         KRATOS_WATCH(element_partition);
       }
 
-      double start_prod = OpenMPUtils::GetCurrentTime();
+      // double start_prod = OpenMPUtils::GetCurrentTime();
 
 #pragma omp parallel for firstprivate(number_of_threads) schedule(static, 1)
       for (int k = 0; k < number_of_threads; k++)
@@ -676,11 +676,11 @@ namespace Kratos
         }
       }
 
-      if (this->GetEchoLevel() > 0)
-      {
-        double stop_prod = OpenMPUtils::GetCurrentTime();
-        std::cout << "parallel building time: " << stop_prod - start_prod << std::endl;
-      }
+      // if (this->GetEchoLevel() > 0)
+      // {
+      //   double stop_prod = OpenMPUtils::GetCurrentTime();
+      //   std::cout << "parallel building time: " << stop_prod - start_prod << std::endl;
+      // }
 
 #ifdef _OPENMP
       for (int i = 0; i < A_size; i++)
@@ -714,7 +714,7 @@ namespace Kratos
 
     ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-    unsigned int nthreads = OpenMPUtils::GetNumThreads();
+    unsigned int nthreads = ParallelUtilities::GetNumThreads();
 
     //         typedef boost::fast_pool_allocator< NodeType::DofType::Pointer > allocator_type;
       //         typedef std::unordered_set < NodeType::DofType::Pointer,

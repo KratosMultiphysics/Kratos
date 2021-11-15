@@ -949,15 +949,7 @@ void Parameters::Append(const std::string& rValue)
 void Parameters::Append(const Vector& rValue)
 {
     KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
-    const SizeType size = rValue.size();
-
-    nlohmann::json j_array(0.0, size);
-
-    for (IndexType i = 0; i < size; ++i) {
-        j_array = rValue[i];
-    }
-
-    mpValue->push_back(j_array);
+    mpValue->push_back(nlohmann::json(rValue));
 }
 
 /***********************************************************************************/
