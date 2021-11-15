@@ -88,7 +88,7 @@ optimize_wheel(){
     unzip ${ARCHIVE_NAME} -d tmp
     rm $ARCHIVE_NAME
     
-    EXCLUDE_LIBRARIES=$(ls ${CORE_LIB_DIR} | grep -f excluded.txt)
+    EXCLUDE_LIBRARIES=$(ls ${CORE_LIB_DIR} | grep -f ${WHEEL_ROOT}/excluded.txt)
     for LIBRARY in ${EXCLUDE_LIBRARIES}
     do
  #       if [ -f "${CORE_LIB_DIR}/${LIBRARY}" ] || grep -Fxq $(echo $LIBRARY | cut -f1 -d"-") "${WHEEL_ROOT}/excluded.txt" ; then
