@@ -92,7 +92,7 @@ void AddMissingVariablesFromEntitiesList(
 
     // Iterate over elements
     if (rEntitiesList.Has("element_list")) {
-        std::vector<std::string> element_list = rEntitiesList["element_list"].GetStringArray();
+        const auto& element_list = rEntitiesList["element_list"].GetStringArray();
         for (auto& r_element_name : element_list) {
             const Element& r_element = KratosComponents<Element>::Get(r_element_name);
             specifications = r_element.GetSpecifications();
@@ -102,7 +102,7 @@ void AddMissingVariablesFromEntitiesList(
 
     // Iterate over conditions
     if (rEntitiesList.Has("condition_list")) {
-        std::vector<std::string> condition_list = rEntitiesList["condition_list"].GetStringArray();
+        const auto& condition_list = rEntitiesList["condition_list"].GetStringArray();
         for (auto& r_condition_name : condition_list) {
             const Condition& r_condition = KratosComponents<Condition>::Get(r_condition_name);
             specifications = r_condition.GetSpecifications();
@@ -275,7 +275,7 @@ void AddMissingDofsFromEntitiesList(
 
     // Iterate over elements
     if (rEntitiesList.Has("element_list")) {
-        std::vector<std::string> element_list = rEntitiesList["element_list"].GetStringArray();
+        const auto& element_list = rEntitiesList["element_list"].GetStringArray();
         for (auto& r_element_name : element_list) {
             const Element& r_element = KratosComponents<Element>::Get(r_element_name);
             specifications = r_element.GetSpecifications();
@@ -285,7 +285,7 @@ void AddMissingDofsFromEntitiesList(
 
     // Iterate over conditions
     if (rEntitiesList.Has("condition_list")) {
-        std::vector<std::string> condition_list = rEntitiesList["condition_list"].GetStringArray();
+        const auto& condition_list = rEntitiesList["condition_list"].GetStringArray();
         for (auto& r_condition_name : condition_list) {
             const Condition& r_condition = KratosComponents<Condition>::Get(r_condition_name);
             specifications = r_condition.GetSpecifications();
