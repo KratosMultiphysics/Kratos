@@ -307,12 +307,12 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
             }
             case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::ExponentialSoftening: {
                 // We define an implicit expression relating the total dissipation and the Threshold (dissipation, threshold)
-                std::function<double(const double, const double, const Properties&, const PlasticDamageParameters&)> f = [](const double Dissipation, const double Threshold, const Properties& rMatProps, const PlasticDamageParameters &rPDParameters) {
+                ResidualFunctionType f = [](const double Dissipation, const double Threshold, const Properties& rMatProps, const PlasticDamageParameters &rPDParameters) {
                     // TODO
                     return 0.0;
                 };
                 // We define the derivative of f with respect to the threshold, (dissipation, threshold)
-                std::function<double(const double, const double, const Properties&, const PlasticDamageParameters&)> df_dk = [](const double Dissipation, const double Threshold, const Properties& rMatProps, const PlasticDamageParameters &rPDParameters) {
+                ResidualFunctionType df_dk = [](const double Dissipation, const double Threshold, const Properties& rMatProps, const PlasticDamageParameters &rPDParameters) {
                     // TODO
                     return 0.0;
                 };
@@ -327,8 +327,8 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
 /***********************************************************************************/
 template<class TYieldSurfaceType>
 double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImplicitExpression(
-    std::function<double(const double, const double, const Properties&, const PlasticDamageParameters &rPDParameters)>& rF,
-    std::function<double(const double, const double, const Properties&, const PlasticDamageParameters &rPDParameters)>& rdF_dk,
+    ResidualFunctionType& rF,
+    ResidualFunctionType& rdF_dk,
     const Properties& rMatProps,
     const PlasticDamageParameters &rPDParameters
 )
@@ -358,8 +358,8 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
 /***********************************************************************************/
 template<class TYieldSurfaceType>
 double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateSlopeFiniteDifferences(
-    std::function<double(const double, const double, const Properties&, const PlasticDamageParameters &rPDParameters)>& rF,
-    std::function<double(const double, const double, const Properties&, const PlasticDamageParameters &rPDParameters)>& rdF_dk,
+    ResidualFunctionType& rF,
+    ResidualFunctionType& rdF_dk,
     const Properties& rMatProps,
     PlasticDamageParameters &rPDParameters
 )

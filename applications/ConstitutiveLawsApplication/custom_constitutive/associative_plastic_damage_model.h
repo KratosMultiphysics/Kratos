@@ -123,6 +123,9 @@ public:
         double PlasticDamageProportion     = 0.5; // 0-> Plastic    1->Damage
     };
 
+    /// The definition of the lambdas to compute implicitly the threshold
+    typedef std::function<double(const double, const double, const Properties &, const PlasticDamageParameters &)> ResidualFunctionType;
+
     ///@name Lyfe Cycle
     ///@{
 
