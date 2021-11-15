@@ -101,8 +101,7 @@ class MechanicalSolver(PythonSolver):
             "buffer_size": 2,
             "analysis_type": "non_linear",
             "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
+                "input_type": "mdpa"
             },
             "material_import_settings" :{
                 "materials_filename": ""
@@ -217,15 +216,7 @@ class MechanicalSolver(PythonSolver):
             self.Clear()
         mechanical_solution_strategy = self.get_mechanical_solution_strategy()
         mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-        if not self.is_restarted():
-            mechanical_solution_strategy.Initialize()
-        else:
-            # SetInitializePerformedFlag is not a member of SolvingStrategy but
-            # is used by ResidualBasedNewtonRaphsonStrategy.
-            try:
-                mechanical_solution_strategy.SetInitializePerformedFlag(True)
-            except AttributeError:
-                pass
+        mechanical_solution_strategy.Initialize()
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished initialization.")
 
     def InitializeSolutionStep(self):

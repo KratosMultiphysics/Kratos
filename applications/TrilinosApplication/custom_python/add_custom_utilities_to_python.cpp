@@ -100,10 +100,26 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, array_1d<double,3>, 2> BasePartitionedFSIUtilitiesArray2DType;
     typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, array_1d<double,3>, 3> BasePartitionedFSIUtilitiesArray3DType;
 
-    py::class_<BasePartitionedFSIUtilitiesDouble2DType, BasePartitionedFSIUtilitiesDouble2DType::Pointer>(m, "PartitionedFSIUtilitiesDouble2D");
-    py::class_<BasePartitionedFSIUtilitiesDouble3DType, BasePartitionedFSIUtilitiesDouble3DType::Pointer>(m, "PartitionedFSIUtilitiesDouble3D");
-    py::class_<BasePartitionedFSIUtilitiesArray2DType, BasePartitionedFSIUtilitiesArray2DType::Pointer>(m, "PartitionedFSIUtilitiesArray2D");
-    py::class_<BasePartitionedFSIUtilitiesArray3DType, BasePartitionedFSIUtilitiesArray3DType::Pointer>(m, "PartitionedFSIUtilitiesArray3D");
+    py::class_<BasePartitionedFSIUtilitiesDouble2DType, BasePartitionedFSIUtilitiesDouble2DType::Pointer>(m, "PartitionedFSIUtilitiesDouble2D")
+        .def("CreateCouplingSkin", &BasePartitionedFSIUtilitiesDouble2DType::CreateCouplingSkin)
+        .def("InitializeInterfaceVector", [](BasePartitionedFSIUtilitiesDouble2DType& rSelf, const ModelPart& rInterfaceModelPart, const Variable<double> &rOriginVariable, AuxiliaryVectorWrapper &rInterfaceVector){
+            rSelf.InitializeInterfaceVector(rInterfaceModelPart, rOriginVariable, rInterfaceVector.GetReference());})
+        ;
+    py::class_<BasePartitionedFSIUtilitiesDouble3DType, BasePartitionedFSIUtilitiesDouble3DType::Pointer>(m, "PartitionedFSIUtilitiesDouble3D")
+        .def("CreateCouplingSkin", &BasePartitionedFSIUtilitiesDouble3DType::CreateCouplingSkin)
+        .def("InitializeInterfaceVector", [](BasePartitionedFSIUtilitiesDouble3DType& rSelf, const ModelPart& rInterfaceModelPart, const Variable<double> &rOriginVariable, AuxiliaryVectorWrapper &rInterfaceVector){
+            rSelf.InitializeInterfaceVector(rInterfaceModelPart, rOriginVariable, rInterfaceVector.GetReference());})
+        ;
+    py::class_<BasePartitionedFSIUtilitiesArray2DType, BasePartitionedFSIUtilitiesArray2DType::Pointer>(m, "PartitionedFSIUtilitiesArray2D")
+        .def("CreateCouplingSkin", &BasePartitionedFSIUtilitiesArray2DType::CreateCouplingSkin)
+        .def("InitializeInterfaceVector", [](BasePartitionedFSIUtilitiesArray2DType& rSelf, const ModelPart& rInterfaceModelPart, const Variable<array_1d<double,3>> &rOriginVariable, AuxiliaryVectorWrapper &rInterfaceVector){
+            rSelf.InitializeInterfaceVector(rInterfaceModelPart, rOriginVariable, rInterfaceVector.GetReference());})
+        ;
+    py::class_<BasePartitionedFSIUtilitiesArray3DType, BasePartitionedFSIUtilitiesArray3DType::Pointer>(m, "PartitionedFSIUtilitiesArray3D")
+        .def("CreateCouplingSkin", &BasePartitionedFSIUtilitiesArray3DType::CreateCouplingSkin)
+        .def("InitializeInterfaceVector", [](BasePartitionedFSIUtilitiesArray3DType& rSelf, const ModelPart& rInterfaceModelPart, const Variable<array_1d<double,3>> &rOriginVariable, AuxiliaryVectorWrapper &rInterfaceVector){
+            rSelf.InitializeInterfaceVector(rInterfaceModelPart, rOriginVariable, rInterfaceVector.GetReference());})
+        ;
 
     typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, double, 2> TrilinosPartitionedFSIUtilitiesDouble2DType;
     typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, double, 3> TrilinosPartitionedFSIUtilitiesDouble3DType;

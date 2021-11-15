@@ -16,6 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <unordered_set>
 
 // External includes
 
@@ -74,6 +75,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( IGNORE_VARIABLES_ERROR );
     KRATOS_DEFINE_LOCAL_FLAG( SKIP_TIMER );
     KRATOS_DEFINE_LOCAL_FLAG( MESH_ONLY );
+    KRATOS_DEFINE_LOCAL_FLAG( SCIENTIFIC_PRECISION );
 
     typedef Node<3> NodeType;
 
@@ -417,6 +419,22 @@ public:
                                          PartitionIndicesContainerType const& rConditionsAllPartitions)
     {
         KRATOS_ERROR << "Calling base class method (DivideInputToPartitions). Please check the definition of derived class" << std::endl;
+    }
+
+    virtual void ReadSubModelPartElementsAndConditionsIds(
+        std::string const& rModelPartName,
+        std::unordered_set<SizeType> &rElementsIds,
+        std::unordered_set<SizeType> &rConditionsIds)
+    {
+        KRATOS_ERROR << "Calling base class method (ReadSubModelPartElementsAndConditionsIds). Please check the definition of derived class" << std::endl;
+    }
+
+    virtual std::size_t ReadNodalGraphFromEntitiesList(
+        ConnectivitiesContainerType& rAuxConnectivities,
+        std::unordered_set<SizeType> &rElementsIds,
+        std::unordered_set<SizeType> &rConditionsIds)
+    {
+        KRATOS_ERROR << "Calling base class method (ReadNodalGraphFromEntitiesList). Please check the definition of derived class" << std::endl;
     }
 
     ///@}

@@ -187,7 +187,7 @@ protected:
     /**
      * Calculate Tau stabilization or Penalty factor
      */
-    void CalculateContactFactor(ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateContactFactor(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -209,19 +209,19 @@ protected:
      * Calculation of the Contact Multipliers or Penalty Factors
      */
     void CalculateExplicitFactors(ConditionVariables& rVariables,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+                                  const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculation of the Contact Multipliers or Penalty Factors EdgeType element
      */
     virtual void CalculateExplicitFactorsEdgeType(ConditionVariables& rVariables,
-						  ProcessInfo& rCurrentProcessInfo);
+						  const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculation of the Contact Multipliers or Penalty Factors EdgeType element
      */
     virtual void CalculateExplicitFactorsFaceType(ConditionVariables& rVariables,
-						  ProcessInfo& rCurrentProcessInfo);
+						  const ProcessInfo& rCurrentProcessInfo);
 
 
     /**

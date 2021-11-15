@@ -21,6 +21,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "factories/factory.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
 
 namespace Kratos
@@ -54,6 +55,9 @@ class ExplicitSolvingStrategyRungeKutta4 : public ExplicitSolvingStrategy<TSpars
 public:
     ///@name Type Definitions
     ///@{
+
+    // The base solving strategy class definition
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
 
     // The base class definition
     typedef ExplicitSolvingStrategy<TSparseSpace, TDenseSpace> BaseType;
@@ -133,7 +137,7 @@ public:
      * @param rModelPart The model part to be computed
      * @param ThisParameters The configuration parameters
      */
-    typename BaseType::Pointer Create(
+    typename SolvingStrategyType::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters
         ) const override

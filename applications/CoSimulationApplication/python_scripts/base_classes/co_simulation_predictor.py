@@ -5,7 +5,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
-class CoSimulationPredictor(object):
+class CoSimulationPredictor:
     """Baseclass for the predictors used for CoSimulation
     It predicts the solution of the next step at the beginning of a step
     """
@@ -42,7 +42,7 @@ class CoSimulationPredictor(object):
         cs_tools.cs_print_info("Predictor", colors.bold(self._ClassName()))
 
     def Check(self):
-        print("The predictors do not yet implement Check!")
+        cs_tools.cs_print_warning("Predictor", "The predictors do not yet implement Check!")
 
     def _UpdateData(self, updated_data):
         self.interface_data.SetData(updated_data)

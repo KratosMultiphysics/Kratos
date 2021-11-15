@@ -72,10 +72,7 @@ class VtkOutput():
             self.walls_X[i] = node.X
             self.walls_Y[i] = node.Y
             self.walls_Z[i] = node.Z
-            #if node.Id==3105 or node.Id==3086 or node.Id==3060:
-            #    print(node.Id, node.X, node.Y,node.Z)
             position_of_each_id[node.Id] = i
-            #print(str(i)+" "+str(node.Id))
             i += 1
 
         number_of_conditions = self.rigid_face_model_part.NumberOfConditions(0)
@@ -88,9 +85,7 @@ class VtkOutput():
             list_of_vertices = cond.GetNodes()
             number_of_vertices = len(list_of_vertices)
             for k in range(number_of_vertices):
-                #print(list_of_vertices[k].Id, list_of_vertices[k].X, list_of_vertices[k].Y, list_of_vertices[k].Z)
                 index_in_array = position_of_each_id[list_of_vertices[k].Id]
-                #print(index_in_array)
                 self.walls_connectivity[i] = index_in_array
                 self.walls_offsets[j] = i+1
                 i += 1

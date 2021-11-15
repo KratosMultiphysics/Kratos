@@ -1,14 +1,5 @@
 import KratosMultiphysics as Kratos
-from KratosMultiphysics import IsDistributedRun
-from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 import KratosMultiphysics.RANSApplication as KratosRANS
-
-if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
-    from KratosMultiphysics.RANSApplication.TrilinosExtension import TrilinosRansWallDistanceCalculationProcess as wall_distance_calculation_process
-elif (not IsDistributedRun()):
-    from KratosMultiphysics.RANSApplication import RansWallDistanceCalculationProcess as wall_distance_calculation_process
-else:
-    raise Exception("Distributed run requires TrilinosApplication")
 
 
 def Factory(settings, Model):
@@ -50,7 +41,11 @@ def Factory(settings, Model):
         ],
         [
             "WallDistanceCalculationProcess",
-            wall_distance_calculation_process
+            KratosRANS.RansWallDistanceCalculationProcess
+        ],
+        [
+            "NutNodalUpdateProcess",
+            KratosRANS.RansNutNodalUpdateProcess
         ],
         [
             "NutKEpsilonUpdateProcess",
@@ -134,8 +129,11 @@ class RansCheckScalarBoundsProcess(KratosRANS.RansFormulationProcess):
         min_value = KratosRANS.RansVariableUtilities.GetMinimumScalarValue(self.model_part, self.variable)
         max_value = KratosRANS.RansVariableUtilities.GetMaximumScalarValue(self.model_part, self.variable)
 
-        Kratos.Logger.PrintInfo(self.__class__.__name__, "{:s} is bounded between [ {:f}, {:f} ] in {:s}.".format(
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "{:s} is bounded between [ {:.4e}, {:.4e} ] in {:s}.".format(
             self.variable.Name(), min_value, max_value, self.model_part.Name))
 
     def ExecuteAfterCouplingSolveStep(self):
         self.Execute()
+
+    def __str__(self):
+        return "RansCheckScalarBoundsProcess [ " + self.variable.Name() + " ]"

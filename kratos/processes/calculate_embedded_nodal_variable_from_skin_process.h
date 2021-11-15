@@ -166,7 +166,7 @@ public:
     typedef typename TLinearSolver::Pointer LinearSolverPointerType;
     typedef typename Scheme<TSparseSpace,TDenseSpace>::Pointer SchemePointerType;
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverPointerType;
-    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::UniquePointer SolvingStrategyPointerType;
+    typedef typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::UniquePointer SolvingStrategyPointerType;
     typedef typename FindIntersectedGeometricalObjectsProcess::UniquePointer FindIntersectedGeometricalObjectsProcessPointerType;
 
     typedef std::unordered_set<std::pair<std::size_t, std::size_t>, PairHasher<std::size_t, std::size_t>, PairComparor<std::size_t, std::size_t>> EdgesSetType;
@@ -245,10 +245,10 @@ public:
         const auto &r_aux_geom = (mrBaseModelPart.ElementsBegin())->GetGeometry();
         const unsigned int dim = r_aux_geom.Dimension();
         if(dim == 2){
-            KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
+            KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle) <<
                 "In 2D the element type is expected to be a triangle." << std::endl;
         } else if(dim == 3) {
-            KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
+            KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) <<
                 "In 3D the element type is expected to be a tetrahedron" << std::endl;
         } else {
             KRATOS_ERROR << "Wrong geometry Dimension(). Expected 2 or 3 and obtained: " << dim;
@@ -471,12 +471,11 @@ protected:
     {
         const auto &rUnknownVariable = EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable();
         const auto &r_int_elems_model_part = (mrBaseModelPart.GetModel()).GetModelPart(mAuxModelPartName);
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(r_int_elems_model_part.NumberOfNodes()); ++i_node) {
-            const auto it_node = r_int_elems_model_part.NodesBegin() + i_node;
-            auto &r_emb_nod_val = (mrBaseModelPart.GetNode(it_node->Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable, mBufferPosition);
-            r_emb_nod_val = it_node->FastGetSolutionStepValue(rUnknownVariable);
-        }
+
+        block_for_each(r_int_elems_model_part.Nodes(), [&](Node<3>& rNode){
+            auto &r_emb_nod_val = (mrBaseModelPart.GetNode(rNode.Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable, mBufferPosition);
+            r_emb_nod_val = rNode.FastGetSolutionStepValue(rUnknownVariable);
+        });
     }
 
     inline void AddIntersectedElementsVariables(ModelPart &rModelPart) const
@@ -680,7 +679,7 @@ private:
     void CalculateIntersections()
     {
         mpFindIntersectedGeometricalObjectsProcess = Kratos::make_unique<FindIntersectedGeometricalObjectsProcess>(mrBaseModelPart, mrSkinModelPart);
-        mpFindIntersectedGeometricalObjectsProcess->Initialize();
+        mpFindIntersectedGeometricalObjectsProcess->ExecuteInitialize();
         mpFindIntersectedGeometricalObjectsProcess->FindIntersections();
     }
 

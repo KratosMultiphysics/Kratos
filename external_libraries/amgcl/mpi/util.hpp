@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2014, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -130,6 +130,29 @@ template <typename T>
 MPI_Datatype datatype() {
     return datatype_impl<T>::get();
 }
+
+/// Convenience wrapper around MPI_Init/MPI_Finalize.
+struct init {
+    init(int* argc, char ***argv) {
+        MPI_Init(argc, argv);
+    }
+
+    ~init() {
+        MPI_Finalize();
+    }
+};
+
+/// Convenience wrapper around MPI_Init_threads/MPI_Finalize.
+struct init_thread {
+    init_thread(int* argc, char ***argv) {
+        int _;
+        MPI_Init_thread(argc, argv, MPI_THREAD_MULTIPLE, &_);
+    }
+
+    ~init_thread() {
+        MPI_Finalize();
+    }
+};
 
 /// Convenience wrapper around MPI_Comm.
 struct communicator {

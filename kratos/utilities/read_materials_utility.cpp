@@ -18,6 +18,7 @@
 // Project includes
 #include "includes/kratos_filesystem.h"
 #include "utilities/read_materials_utility.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 namespace {
@@ -450,17 +451,17 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     auto& r_elements_array = r_model_part.Elements();
     auto& r_conditions_array = r_model_part.Conditions();
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-        auto it_elem = r_elements_array.begin() + i;
-        it_elem->SetProperties(p_prop);
-    }
+    block_for_each(
+        r_elements_array,
+        [&p_prop](Element& rElement)
+        { rElement.SetProperties(p_prop); }
+    );
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-        auto it_cond = r_conditions_array.begin() + i;
-        it_cond->SetProperties(p_prop);
-    }
+    block_for_each(
+        r_conditions_array,
+        [&p_prop](Condition& rCondition)
+        { rCondition.SetProperties(p_prop); }
+    );
 
     // Assigning the materials
     AssignMaterialToProperty(material_data, *p_prop);

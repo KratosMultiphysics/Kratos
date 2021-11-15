@@ -36,11 +36,14 @@ ModelPart& RansIncompressiblePotentialFlowVelocity2D3NSetUp(
         rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
     };
 
+    const auto set_properties = [](Properties& rProperties) {
+    };
+
     using namespace RansApplicationTestUtilities;
 
     auto& r_model_part = CreateScalarVariableTestModelPart(
         rModel, "RansIncompressiblePotentialFlowVelocity2D3N",
-        "LineCondition2D2N", add_variables_function, VELOCITY_POTENTIAL, 1);
+        "LineCondition2D2N", add_variables_function, set_properties, VELOCITY_POTENTIAL, 1);
 
     // set nodal historical variables
     RandomFillNodalHistoricalVariable(r_model_part, VELOCITY_POTENTIAL, -10.0, 10.0);
@@ -86,9 +89,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateL
         LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_RHS[0] = 1.0022880998012695e-01;
-    ref_RHS[1] = -5.2221505981325205e+00;
-    ref_RHS[2] = 5.1219217881523935e+00;
+    ref_RHS[0] = -5.1041666666666670e+00;
+    ref_RHS[1] = 1.2165570175438596e+01;
+    ref_RHS[2] = -7.0614035087719298e+00;
     ref_LHS(0, 0) = 5.0000000000000000e-01;
     ref_LHS(0, 1) = -5.0000000000000000e-01;
     ref_LHS(1, 0) = -5.0000000000000000e-01;
@@ -140,9 +143,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateR
         RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_RHS[0] = 1.0022880998012695e-01;
-    ref_RHS[1] = -5.2221505981325205e+00;
-    ref_RHS[2] = 5.1219217881523935e+00;
+    ref_RHS[0] = -5.1041666666666670e+00;
+    ref_RHS[1] = 1.2165570175438596e+01;
+    ref_RHS[2] = -7.0614035087719298e+00;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 }

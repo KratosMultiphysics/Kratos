@@ -1,49 +1,30 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.testing.utilities import ReadDistributedModelPart
 
 import os
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def ReadDistributedModelPart(model_part, mdpa_file_name):
-    from KratosMultiphysics.mpi import distributed_import_model_part_utility
-    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-
-    importer_settings = KratosMultiphysics.Parameters("""{
-        "model_import_settings": {
-            "input_type": "mdpa",
-            "input_filename": \"""" + mdpa_file_name + """\",
-            "partition_in_memory" : true
-        },
-        "echo_level" : 0
-    }""")
-
-    model_part_import_util = distributed_import_model_part_utility.DistributedImportModelPartUtility(model_part, importer_settings)
-    model_part_import_util.ImportModelPart()
-    model_part_import_util.CreateCommunicators()
 
 class TestMPIModelPart(KratosUnittest.TestCase):
-
-    def setUp(self):
-        self.communicator = KratosMultiphysics.DataCommunicator.GetDefault()
-
 
     def test_remove_nodes_parallel_interfaces(self):
         current_model = KratosMultiphysics.Model()
         main_model_part = current_model.CreateModelPart("MainModelPart")
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
 
-        ReadDistributedModelPart(main_model_part, GetFilePath("test_mpi_communicator"))
+        ReadDistributedModelPart(GetFilePath("test_mpi_communicator"), main_model_part)
 
         for node in main_model_part.Nodes:
             if node.Id % 2:
                 node.Set(KratosMultiphysics.TO_ERASE)
-            node.SetSolutionStepValue(KratosMultiphysics.DENSITY, self.communicator.Rank())
+            node.SetSolutionStepValue(KratosMultiphysics.DENSITY, main_model_part.GetCommunicator().MyPID())
 
         main_model_part.RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
 

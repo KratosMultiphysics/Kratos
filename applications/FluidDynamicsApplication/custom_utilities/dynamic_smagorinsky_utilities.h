@@ -581,8 +581,9 @@ private:
                            Matrix& rMassMatrix, ///@todo This matrix and the next vector should be transformed to static members once we find a threadsafe way to do so
                            Vector& rAuxVector,
                            Vector& rResidual,
-                           ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo)
     {
+        const auto& r_const_elem_ref = rElement;
         rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Dynamic stabilization terms
@@ -590,7 +591,7 @@ private:
 
         // Dynamic Terms
         rElement.CalculateMassMatrix(rMassMatrix,rCurrentProcessInfo);
-        rElement.GetSecondDerivativesVector(rAuxVector,0);
+        r_const_elem_ref.GetSecondDerivativesVector(rAuxVector,0);
 
         noalias(rResidual) -= prod(rMassMatrix,rAuxVector);
 

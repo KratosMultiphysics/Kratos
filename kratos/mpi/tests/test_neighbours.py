@@ -1,51 +1,12 @@
-﻿from __future__ import print_function, absolute_import, division
-
-import os
-import sys
+﻿import os
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
-import KratosMultiphysics.kratos_utilities as kratos_utilities
-from KratosMultiphysics.mpi import distributed_import_model_part_utility
+from KratosMultiphysics.testing.utilities import ReadModelPart
 
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
 
 class TestNeighbours(KratosUnittest.TestCase):
-
-    def tearDown(self):
-        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
-        rank = kratos_comm.Rank()
-        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator.time")
-        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".mdpa")
-        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".time")
-        kratos_comm.Barrier()
-
-    def _ReadSerialModelPart(self,model_part, mdpa_file_name):
-        import_flags = KratosMultiphysics.ModelPartIO.READ | KratosMultiphysics.ModelPartIO.SKIP_TIMER
-        KratosMultiphysics.ModelPartIO(mdpa_file_name, import_flags).ReadModelPart(model_part)
-
-    def _ReadDistributedModelPart(self,model_part, mdpa_file_name):
-
-        importer_settings = KratosMultiphysics.Parameters("""{
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": \"""" + mdpa_file_name + """\",
-                "partition_in_memory" : false
-            },
-            "echo_level" : 0
-        }""")
-
-        model_part_import_util = distributed_import_model_part_utility.DistributedImportModelPartUtility(model_part, importer_settings)
-        model_part_import_util.ImportModelPart()
-        model_part_import_util.CreateCommunicators()
-
-    def _ReadModelPart(self, input_filename, mp):
-        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
-
-        if kratos_comm.IsDistributed():
-            self._ReadDistributedModelPart(mp, input_filename)
-        else:
-            self._ReadSerialModelPart(mp, input_filename)
 
     def test_global_neighbour_pointers(self):
 
@@ -53,6 +14,7 @@ class TestNeighbours(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         main_model_part = current_model.CreateModelPart("main_model_part")
+        main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]=2
 
         ## Add variables to the model part
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
@@ -62,7 +24,7 @@ class TestNeighbours(KratosUnittest.TestCase):
 
         ## Serial partition of the original .mdpa file
         input_filename = GetFilePath("test_mpi_communicator")
-        self._ReadModelPart(input_filename, main_model_part)
+        ReadModelPart(input_filename, main_model_part)
 
         #compute nodal neighbours
         neighbour_finder = KratosMultiphysics.FindGlobalNodalNeighboursProcess(kratos_comm, main_model_part)

@@ -216,6 +216,24 @@ public:
             KRATOS_ERROR << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
     }
 
+    /// Constructor with Geometry Id
+    explicit Tetrahedra3D4(
+        const IndexType GeometryId,
+        const PointsArrayType& rThisPoints
+    ) : BaseType(GeometryId, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF( this->PointsNumber() != 4 ) << "Invalid points number. Expected 2, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Name
+    explicit Tetrahedra3D4(
+        const std::string& rGeometryName,
+        const PointsArrayType& rThisPoints
+    ) : BaseType( rGeometryName, rThisPoints, &msGeometryData )
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 4) << "Invalid points number. Expected 2, given " << this->PointsNumber() << std::endl;
+    }
+
     /**
      * Copy constructor.
      * Construct this geometry as a copy of given geometry.
@@ -252,11 +270,11 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Tetrahedra;
+        return GeometryData::KratosGeometryFamily::Kratos_Tetrahedra;
     }
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Tetrahedra3D4;
+        return GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4;
     }
 
     /**
@@ -299,31 +317,65 @@ public:
         return *this;
     }
 
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
-     * Operations
+     * @brief Creates a new geometry pointer
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
      */
-
-    typename BaseType::Pointer Create(PointsArrayType const& ThisPoints) const override
+    typename BaseType::Pointer Create(
+        PointsArrayType const& rThisPoints
+    ) const override
     {
-        return typename BaseType::Pointer(new Tetrahedra3D4(ThisPoints));
+        return typename BaseType::Pointer(new Tetrahedra3D4(rThisPoints));
     }
 
-    // Geometry< Point<3> >::Pointer Clone() const override
-    // {
-    //     Geometry< Point<3> >::PointsArrayType NewPoints;
+    /**
+     * @brief It creates a new geometry pointer
+     * @param NewId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return a Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+    ) const override
+    {
+        return typename BaseType::Pointer( new Tetrahedra3D4( NewGeometryId, rThisPoints ) );
+    }
 
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
-    //     }
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const BaseType& rGeometry
+    ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Tetrahedra3D4( rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
 
-    //     //creating a geometry with the new points
-    //     Geometry< Point<3> >::Pointer p_clone( new Tetrahedra3D4< Point<3> >( NewPoints ) );
-
-    //     return p_clone;
-    // }
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        const BaseType& rGeometry
+    ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Tetrahedra3D4( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
 
     /**
      * @brief Lumping factors for the calculation of the lumped mass matrix
@@ -1283,7 +1335,7 @@ public:
      *
      * :TODO: TESTING!!!
      */
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod) const override
     {
@@ -1328,13 +1380,10 @@ public:
 
         for(unsigned int i=0; i<integration_points_number; i++)
                 rResult[i] = DN_DX;
-
-
-        return rResult;
     }
 
 
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult
         , Vector& determinants_of_jacobian
         , IntegrationMethod ThisMethod) const override
@@ -1389,14 +1438,11 @@ public:
         }
         for(unsigned int i=0; i<integration_points_number; i++)
                 rResult[i] = DN_DX;
-
-
-        return rResult;
     }
 
 
     /// detect if two tetrahedra are intersected
-    bool HasIntersection( const BaseType& rThisGeometry) override
+    bool HasIntersection( const BaseType& rThisGeometry) const override
     {
 
         array_1d<Plane, 4>  plane;
@@ -1421,7 +1467,7 @@ public:
     }
 
 
-    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) override
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) const override
     {
         using Triangle3D3Type = Triangle3D3<TPointType>;
         // Check if faces have intersection
@@ -1445,7 +1491,7 @@ public:
 
     void SplitAndDecompose(
         const BaseType& tetra, Plane& plane,
-        std::vector<BaseType>& inside)
+        std::vector<BaseType>& inside) const
     {
 
         // Determine on which side of the plane the points of the tetrahedron lie.
@@ -1596,14 +1642,14 @@ public:
     }
 
 
-    void GetPlanes(array_1d<Plane, 4>& plane)
+    void GetPlanes(array_1d<Plane, 4>& plane) const
     {
         const BaseType& geom_1 = *this;
-        array_1d<double, 3> edge10 = geom_1[1].Coordinates() - geom_1[0].Coordinates();
-        array_1d<double, 3> edge20 = geom_1[2].Coordinates() - geom_1[0].Coordinates();
-        array_1d<double, 3> edge30 = geom_1[3].Coordinates() - geom_1[0].Coordinates();
-        array_1d<double, 3> edge21 = geom_1[2].Coordinates() - geom_1[1].Coordinates();
-        array_1d<double, 3> edge31 = geom_1[3].Coordinates() - geom_1[1].Coordinates();
+        const array_1d<double, 3> edge10 = geom_1[1].Coordinates() - geom_1[0].Coordinates();
+        const array_1d<double, 3> edge20 = geom_1[2].Coordinates() - geom_1[0].Coordinates();
+        const array_1d<double, 3> edge30 = geom_1[3].Coordinates() - geom_1[0].Coordinates();
+        const array_1d<double, 3> edge21 = geom_1[2].Coordinates() - geom_1[1].Coordinates();
+        const array_1d<double, 3> edge31 = geom_1[3].Coordinates() - geom_1[1].Coordinates();
 
         MathUtils<double>::UnitCrossProduct(plane[0].mNormal, edge10, edge20);  // <v0,v2,v1>
         MathUtils<double>::UnitCrossProduct(plane[1].mNormal, edge30, edge10);  // <v0,v1,v3>
@@ -1751,8 +1797,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -1788,8 +1833,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values(integration_points_number);
@@ -1841,15 +1885,15 @@ private:
         {
             {
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5)
+                    GeometryData::IntegrationMethod::GI_GAUSS_5)
             }
         };
         return shape_functions_values;
@@ -1862,15 +1906,15 @@ private:
         {
             {
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_1),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_2),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_3),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_4),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4),
                 Tetrahedra3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_5)
+                    GeometryData::IntegrationMethod::GI_GAUSS_5)
             }
         };
         return shape_functions_local_gradients;
@@ -2001,7 +2045,7 @@ template<class TPointType> inline std::ostream& operator << (
 template<class TPointType> const
 GeometryData Tetrahedra3D4<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     Tetrahedra3D4<TPointType>::AllIntegrationPoints(),
     Tetrahedra3D4<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()

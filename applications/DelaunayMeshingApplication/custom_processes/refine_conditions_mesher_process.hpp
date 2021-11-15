@@ -235,7 +235,7 @@ public:
 
 	std::vector<double> Value;
 
-	MasterElement.GetValueOnIntegrationPoints(mrRemesh.Refine->GetThresholdVariable(),Value,rCurrentProcessInfo);
+	MasterElement.CalculateOnIntegrationPoints(mrRemesh.Refine->GetThresholdVariable(),Value,rCurrentProcessInfo);
 
 	//calculate threshold value (plastic power)
 	double threshold_value = 0;
