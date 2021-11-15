@@ -46,7 +46,6 @@ void AddCustomProcessesToPython(
 
     py::class_<AssignIntegrationPointsToBackgroundElementsProcess, AssignIntegrationPointsToBackgroundElementsProcess::Pointer, Process>(m, "AssignIntegrationPointsToBackgroundElementsProcess")
         .def(py::init<Model&, Parameters >())
-        .def("AssignIntegrationPoints", &AssignIntegrationPointsToBackgroundElementsProcess::AssignIntegrationPoints )
         ;
 
 
