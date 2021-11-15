@@ -40,7 +40,7 @@ build_core_wheel () {
     auditwheel repair *.whl
     
     mkdir $CORE_LIB_DIR
-    unzip -j wheelhouse/KratosMultiphysics* 'KratosMultiphysics/.libs/*' -d $CORE_LIB_DIR
+    unzip -j wheelhouse/KratosMultiphysics* 'KratosMultiphysics.libs/*' -d $CORE_LIB_DIR
     
     cp wheelhouse/* ${WHEEL_OUT}/
     cd
@@ -88,14 +88,18 @@ optimize_wheel(){
     unzip ${ARCHIVE_NAME} -d tmp
     rm $ARCHIVE_NAME
     
-    EXCLUDE_LIBRARIES=$(ls ${CORE_LIB_DIR} | grep -f ${WHEEL_ROOT}/excluded.txt)
-    for LIBRARY in ${EXCLUDE_LIBRARIES}
+    echo "Begin exclude list for ${APPNAME}"
+    echo "List of core libs to be excluded:"
+    echo "$(ls ${CORE_LIB_DIR})"
+    for LIBRARY in $(ls tmp/Kratos${APPNAME}.libs)
     do
- #       if [ -f "${CORE_LIB_DIR}/${LIBRARY}" ] || grep -Fxq $(echo $LIBRARY | cut -f1 -d"-") "${WHEEL_ROOT}/excluded.txt" ; then
-        echo "removing ${LIBRARY} - already present in dependent wheel."
-        rm tmp/KratosMultiphysics/.libs/${LIBRARY}
-        sed -i "/${LIBRARY}/d" tmp/*.dist-info/RECORD
-#        fi
+        if [ -f "${CORE_LIB_DIR}/${LIBRARY}" ] || grep -Fxq $(echo $LIBRARY | cut -f1 -d"-") "${WHEEL_ROOT}/excluded.txt" ; then
+            echo "-- Removing ${LIBRARY} - already present in dependent wheel."
+            rm tmp/KratosMultiphysics/.libs/${LIBRARY}
+            sed -i "/${LIBRARY}/d" tmp/*.dist-info/RECORD
+        else
+            echo "-- Keeping ${Library}"
+        fi
     done
     
     cd tmp
