@@ -405,7 +405,7 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      */
-    JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const override
+    JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, const Matrix & DeltaPosition ) const override
     {
         KRATOS_ERROR << "'Jacobian' not available for arbitrarty noded line" << std::endl;
         return rResult;
