@@ -587,6 +587,7 @@ message("\t Geometry old closest point methods deprecation: https://github.com/K
 
 # Compiling the clipper library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/clipper)
+# Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
     add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
