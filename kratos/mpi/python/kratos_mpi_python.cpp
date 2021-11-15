@@ -33,6 +33,7 @@ void InitializeMPIParallelRun()
 {
     // Define the World DataCommunicator as a wrapper for MPI_COMM_WORLD and make it the default.
     ParallelEnvironment::RegisterDataCommunicator("World", MPIDataCommunicator::Create(MPI_COMM_WORLD), ParallelEnvironment::MakeDefault);
+
     // Register the MPICommunicator to be used as factory for the communicator.
     ParallelEnvironment::RegisterCommunicatorFactory<const std::string>([](ModelPart& rModelPart, const std::string& rDataCommunicatorName)->Communicator::UniquePointer{
         KRATOS_ERROR_IF_NOT(ParallelEnvironment::HasDataCommunicator(rDataCommunicatorName)) << "Asking for an unregistered \'" << rDataCommunicatorName <<  "\' data communicator." << std::endl;
@@ -41,12 +42,23 @@ void InitializeMPIParallelRun()
         return Kratos::make_unique<MPICommunicator>(&(rModelPart.GetNodalSolutionStepVariablesList()), r_data_communicator);
     });
     // Register the MPICommunicator to be used as factory for the communicator.
-    ParallelEnvironment::RegisterCommunicatorFactory<DataCommunicator>([](ModelPart& rModelPart, DataCommunicator& rDataCommunicator)->Communicator::UniquePointer{
+    ParallelEnvironment::RegisterCommunicatorFactory<const DataCommunicator>([](ModelPart& rModelPart, const DataCommunicator& rDataCommunicator)->Communicator::UniquePointer{
         KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Trying to create an MPI communicator with a non-distributed data communicator." << std::endl;
         return Kratos::make_unique<MPICommunicator>(&(rModelPart.GetNodalSolutionStepVariablesList()), rDataCommunicator);
     });
+
     // Register the ParallelFillCommunicator to be used as factory for the parallel communicators fill.
-    ParallelEnvironment::RegisterFillCommunicatorFactory([](ModelPart& rModelPart)->FillCommunicator::Pointer{return FillCommunicator::Pointer(new ParallelFillCommunicator(rModelPart));});
+    ParallelEnvironment::RegisterFillCommunicatorFactory<const std::string>([](ModelPart& rModelPart, const std::string& rDataCommunicatorName)->FillCommunicator::Pointer{
+        KRATOS_ERROR_IF_NOT(ParallelEnvironment::HasDataCommunicator(rDataCommunicatorName)) << "Asking for an unregistered \'" << rDataCommunicatorName <<  "\' data communicator." << std::endl;
+        const auto& r_data_communicator = ParallelEnvironment::GetDataCommunicator(rDataCommunicatorName);
+        KRATOS_ERROR_IF_NOT(r_data_communicator.IsDistributed()) << "Trying to create an MPI communicator with the non-distributed \'" << rDataCommunicatorName << "\'. data communicator" << std::endl;
+        return Kratos::make_shared<ParallelFillCommunicator>(rModelPart, r_data_communicator);
+    });
+    // Register the ParallelFillCommunicator to be used as factory for the parallel communicators fill.
+    ParallelEnvironment::RegisterFillCommunicatorFactory<const DataCommunicator>([](ModelPart& rModelPart, const DataCommunicator& rDataCommunicator)->FillCommunicator::Pointer{
+        KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Trying to create an MPI communicator with a non-distributed data communicator." << std::endl;
+        return Kratos::make_shared<ParallelFillCommunicator>(rModelPart, rDataCommunicator);
+    });
 }
 
 PYBIND11_MODULE(KratosMPI, m)

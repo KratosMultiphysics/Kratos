@@ -4,7 +4,7 @@ from KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerato
 # Other imports
 import numpy as np
 
-class ConvergenceAcceleratorWrapper(object):
+class ConvergenceAcceleratorWrapper:
     """This class wraps the convergence accelerators such that they can be used "automized"
     => this class stores the residual and updates the solutions, such that the
     convergence accelerator can be configured through json
@@ -18,6 +18,14 @@ class ConvergenceAcceleratorWrapper(object):
 
         self.conv_acc = CreateConvergenceAccelerator(settings)
 
+        if self.interface_data.IsDefinedOnThisRank():
+            conv_acc_supports_dist_data = self.conv_acc.SupportsDistributedData()
+            self.executing_rank = conv_acc_supports_dist_data or (self.interface_data.GetModelPart().GetCommunicator().MyPID() == 0)
+            self.gather_scatter_required = self.interface_data.IsDistributed() and not conv_acc_supports_dist_data
+            if self.gather_scatter_required:
+                self.data_comm = self.interface_data.GetModelPart().GetCommunicator().GetDataCommunicator()
+                self.sizes_from_ranks = np.cumsum(self.data_comm.GatherInts([self.interface_data.Size()], 0))
+
     def Initialize(self):
         self.conv_acc.Initialize()
 
@@ -27,22 +35,14 @@ class ConvergenceAcceleratorWrapper(object):
     def InitializeSolutionStep(self):
         self.conv_acc.InitializeSolutionStep()
 
-        # MPI related - TODO might be better to do one in Initialize, but the InterfaceData is not yet initialized there yet (might be possible in the future)
-        # However if this is done in initialize, then we would have to Clear or sth in order to make it work with Remeshing (or if the sizes change for other reasons) ...
-        conv_acc_supports_dist_data = self.conv_acc.SupportsDistributedData()
-        self.executing_rank = conv_acc_supports_dist_data or (self.interface_data.GetModelPart().GetCommunicator().MyPID() == 0)
-        self.gather_scatter_required = self.interface_data.IsDistributed() and not conv_acc_supports_dist_data
-        if self.gather_scatter_required:
-            self.data_comm = self.interface_data.GetModelPart().GetCommunicator().GetDataCommunicator()
-            self.sizes_from_ranks = np.cumsum(self.data_comm.GatherInts([self.interface_data.Size()], 0))
-
     def FinalizeSolutionStep(self):
         self.conv_acc.FinalizeSolutionStep()
 
     def InitializeNonLinearIteration(self):
-        # Saving the previous data for the computation of the residual
-        # and the computation of the solution update
-        self.input_data = self.interface_data.GetData()
+        if self.interface_data.IsDefinedOnThisRank():
+            # Saving the previous data for the computation of the residual
+            # and the computation of the solution update
+            self.input_data = self.interface_data.GetData()
 
         self.conv_acc.InitializeNonLinearIteration()
 
@@ -50,6 +50,8 @@ class ConvergenceAcceleratorWrapper(object):
         self.conv_acc.FinalizeNonLinearIteration()
 
     def ComputeAndApplyUpdate(self):
+        if not self.interface_data.IsDefinedOnThisRank(): return
+
         current_data = self.interface_data.GetData()
         residual = current_data - self.input_data
         input_data_for_acc = self.input_data

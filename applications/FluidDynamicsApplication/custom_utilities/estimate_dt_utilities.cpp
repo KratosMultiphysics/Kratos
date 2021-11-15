@@ -76,6 +76,19 @@ namespace Kratos
         }
     }
 
+    const EstimateDtUtility::CFLCalculatorType EstimateDtUtility::GetCFLCalculatorUtility() const
+    {
+        if(mConsiderCompressibilityInCFL){
+            return [](const Element & e, const ElementSizeFunctionType & f, const double dt) -> double {
+                return FluidCharacteristicNumbersUtilities::CalculateElementCFLWithSoundVelocity(e,f,dt);
+            };
+        }
+        return [](const Element & e, const ElementSizeFunctionType & f, const double dt) -> double {
+            return FluidCharacteristicNumbersUtilities::CalculateElementCFL(e,f,dt);
+        };
+    }
+
+
     template<>
     double EstimateDtUtility::InternalEstimateDt<true,false,false>() const
     {
@@ -86,10 +99,15 @@ namespace Kratos
         const auto& r_geom = mrModelPart.ElementsBegin()->GetGeometry();
         ElementSizeFunctionType minimum_h_func = FluidCharacteristicNumbersUtilities::GetMinimumElementSizeFunction(r_geom);
 
+        
+        // Deciding what CFL calculator to use
+        auto cfl_calculator = GetCFLCalculatorUtility();
+        
         // Obtain the maximum CFL
         const double current_dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
+
         const double current_cfl = block_for_each<MaxReduction<double>>(mrModelPart.Elements(), [&](Element& rElement) -> double {
-            return FluidCharacteristicNumbersUtilities::CalculateElementCFL(rElement, minimum_h_func, current_dt);
+            return cfl_calculator(rElement, minimum_h_func, current_dt);
         });
 
         // Calculate the new time increment from the maximum local CFL in the mesh
@@ -131,9 +149,10 @@ namespace Kratos
         // Obtain the maximum CFL and Peclet numbers
         double max_CFL, max_Fo_k;
         const double current_dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
+        auto cfl_calculator = GetCFLCalculatorUtility();
         typedef CombinedReduction<MaxReduction<double>, MaxReduction<double>> CombinedMaxReduction;
         std::tie(max_CFL, max_Fo_k) = block_for_each<CombinedMaxReduction>(mrModelPart.Elements(), [&](Element& rElement){
-            const double CFL = FluidCharacteristicNumbersUtilities::CalculateElementCFL(rElement, minimum_h_func, current_dt);
+            const double CFL = cfl_calculator(rElement, minimum_h_func, current_dt);
             const double thermal_Fo_number = thermal_fourier_number_function(rElement, minimum_h_func, current_dt);
             return std::make_tuple(CFL, thermal_Fo_number);
         });
@@ -178,9 +197,10 @@ namespace Kratos
         // Obtain the maximum CFL and Peclet numbers
         double max_CFL, max_Fo_mu, max_Fo_k;
         const double current_dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
+        auto cfl_calculator = GetCFLCalculatorUtility();
         typedef CombinedReduction<MaxReduction<double>, MaxReduction<double>, MaxReduction<double>> CombinedMaxReduction;
         std::tie(max_CFL, max_Fo_mu, max_Fo_k) = block_for_each<CombinedMaxReduction>(mrModelPart.Elements(), [&](Element& rElement){
-            const double CFL = FluidCharacteristicNumbersUtilities::CalculateElementCFL(rElement, minimum_h_func, current_dt);
+            const double CFL = cfl_calculator(rElement, minimum_h_func, current_dt);
             const auto Fo_numbers = fourier_numbers_function(rElement, minimum_h_func, current_dt);
             return std::make_tuple(CFL, std::get<0>(Fo_numbers), std::get<1>(Fo_numbers));
         });

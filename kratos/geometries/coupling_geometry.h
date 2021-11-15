@@ -338,7 +338,7 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        const double model_tolerance = 1e-3;
+        const double model_tolerance = 1e-2;
 
         if (this->Dimension() == 1) {
             std::vector<double> master_span_intersections_in_master_local_space;
@@ -370,9 +370,14 @@ public:
                     curve_tessellation_master.GetClosestPoint(
                         global_coords_span_intersection_on_slave, global_coords_master, local_coords_master);
                     // Projection on master curve.
-                    int success = mpGeometries[0]->ProjectionPoint(
-                        global_coords_span_intersection_on_slave, global_coords_master, local_coords_master);
-                    KRATOS_DEBUG_ERROR_IF(success == 1 && (norm_2(global_coords_span_intersection_on_slave - global_coords_master) > model_tolerance))
+                    int success = mpGeometries[0]->ProjectionPointGlobalToLocalSpace(
+                        global_coords_span_intersection_on_slave, local_coords_master);
+
+                    #ifdef KRATOS_DEBUG
+                        mpGeometries[0]->GlobalCoordinates(global_coords_master, local_coords_master);
+                    #endif
+                    KRATOS_DEBUG_ERROR_IF((success > 1 && (norm_2(global_coords_span_intersection_on_slave - local_coords_master) > model_tolerance))
+                        || (success == 0 && (norm_2(global_coords_span_intersection_on_slave - local_coords_master) < model_tolerance)))
                         << "Projection of intersection spans failed. Global Coordinates on slave: "
                         << global_coords_span_intersection_on_slave << ", and global coordinates on master: "
                         << global_coords_master << ". Difference: " << norm_2(global_coords_span_intersection_on_slave - global_coords_master)
@@ -410,7 +415,7 @@ public:
         const IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) override
     {
-        const double model_tolerance = 1e-3;
+        const double model_tolerance = 1e-2;
 
         const SizeType num_integration_points = rIntegrationPoints.size();
 
@@ -448,9 +453,8 @@ public:
                         global_slave_coords,
                         local_slave_coords);
 
-                    mpGeometries[1]->ProjectionPoint(
+                    mpGeometries[1]->ProjectionPointGlobalToLocalSpace(
                         integration_points_global_coords_vector[j],
-                        global_slave_coords,
                         local_slave_coords);
 
                     integration_points_slave[j][0] = local_slave_coords[0];
@@ -465,9 +469,8 @@ public:
         }
         else {
             for (SizeType j = 0; j < num_integration_points; ++j) {
-                mpGeometries[1]->ProjectionPoint(
+                mpGeometries[1]->ProjectionPointGlobalToLocalSpace(
                     integration_points_global_coords_vector[j],
-                    global_slave_coords,
                     local_slave_coords);
 
                 integration_points_slave[j][0] = local_slave_coords[0];

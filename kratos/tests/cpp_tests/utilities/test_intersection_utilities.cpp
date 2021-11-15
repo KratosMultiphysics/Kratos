@@ -328,6 +328,52 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(int_id, 2);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesTriangleLineCoplanarIntersection, KratosCoreFastSuite)
+    {
+        // Set the triangle to be intersected
+        auto triang_geom = GenerateStraightTriangle3D3();
+
+        // Set the points that define the intersection line
+        const Point line_pt_1(0.0,0.0,0.0);
+        const Point line_pt_2(0.0,1.0,1.0);
+
+        // Initialize the intersection point
+        Point int_pt(0.0,0.0,0.0);
+
+        // Call the intersection utility
+        const int int_id = IntersectionUtilities::ComputeTriangleLineIntersection<Triangle3D3<Point>>(
+            triang_geom,
+            line_pt_1.Coordinates(),
+            line_pt_2.Coordinates(),
+            int_pt.Coordinates());
+
+        // Check that are co-planar
+        KRATOS_CHECK_EQUAL(int_id, 2);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesTriangleLineCoplanarNoIntersection, KratosCoreFastSuite)
+    {
+        // Set the triangle to be intersected
+        auto triang_geom = GenerateStraightTriangle3D3();
+
+        // Set the points that define the intersection line
+        const Point line_pt_1(0.0,2.0,0.0);
+        const Point line_pt_2(0.0,2.0,1.0);
+
+        // Initialize the intersection point
+        Point int_pt(0.0,0.0,0.0);
+
+        // Call the intersection utility
+        const int int_id = IntersectionUtilities::ComputeTriangleLineIntersection<Triangle3D3<Point>>(
+            triang_geom,
+            line_pt_1.Coordinates(),
+            line_pt_2.Coordinates(),
+            int_pt.Coordinates());
+
+        // Check that are co-planar
+        KRATOS_CHECK_EQUAL(int_id, 2);
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesTriangleLineBoundaryIntersection, KratosCoreFastSuite)
     {
         // Set the triangle to be intersected
