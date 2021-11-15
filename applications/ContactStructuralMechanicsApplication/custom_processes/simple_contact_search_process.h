@@ -174,12 +174,12 @@ protected:
 
     /**
      * @brief This method sets as active a node and it sets to an explicit approximation its LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param CommonEpsilon The penalty value
      * @param ScaleFactor The scale factor
      */
     void SetActiveNode(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double CommonEpsilon,
         const double ScaleFactor = 1.0
         ) override;

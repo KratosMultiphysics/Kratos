@@ -42,8 +42,8 @@ The [MappingApplication](../MappingApplication) is required when mapping is used
 
 ## Examples
 
-This section is currently under construction.
-Please refer to the [tests](tests) for examples of how the coupling can be configured.
+The examples can be found in the [examples repository](https://github.com/KratosMultiphysics/Examples/tree/master/co_simulation).
+Please also refer to the [tests](tests) for examples of how the coupling can be configured.
 Especially the [Mok-FSI](tests/fsi_mok) and the [Wall-FSI](tests/fsi_wall) tests are very suitable for getting a basic understanding.
 
 
@@ -246,7 +246,7 @@ The _CoSimulationApplication_ consists of the following main components (taken f
 The following UML diagram shows the relation between these components:
 
 <p align="center">
-  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/CoSimulation_uml.png" style="width: 300px;"/>
+  <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Readme_files/CoSimulationApplication/CoSimulation_uml.png" style="width: 300px;"/>
 </p>
 
 Besides the functionalities [listed above](#list-of-features), the modular design of the application makes it straight forward to add a new or customized version of e.g. a _ConvergenceAccelerator_. It is not necessary to have those custom python scripts inside the _CoSimulationApplication_, it is sufficient that they are in a directory that is included in the _PYTHONPATH_ (e.g. the working directory).
@@ -268,7 +268,7 @@ In principle three different options are possible for exchanging data with CoSim
 The following picture shows the interaction of these components with the _CoSimulationApplication_ and the external solver:
 
 <p align="center">
-  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/detached_interface.png" style="width: 300px;"/>
+  <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Readme_files/CoSimulationApplication/detached_interface.png" style="width: 300px;"/>
 </p>
 
 #### Interface of SolverWrapper
