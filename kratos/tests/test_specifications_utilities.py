@@ -132,7 +132,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         KratosMultiphysics.SpecificationsUtilities.AddMissingVariablesFromEntitiesList(model_part, list_entities)
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 0)
 
-        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_X), False)
+        self.assertFalse(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_X))
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), False)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), False)
         KratosMultiphysics.SpecificationsUtilities.AddMissingDofsFromEntitiesList(model_part, list_entities)
