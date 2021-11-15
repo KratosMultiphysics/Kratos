@@ -2511,6 +2511,7 @@ void SmallStrainUPwDiffOrderElement::
                                                   GPoint);
 
     if(detJ < 0.0) {
+        std::cerr << "Error: Element " + std::to_string(this->Id()) + "inverted. DetJ: " + std::to_string(detJ);
         throw Kratos::Exception("Error: Element " + std::to_string(this->Id()) + "inverted. DetJ: " + std::to_string(detJ), KRATOS_CODE_LOCATION);
     }
 
