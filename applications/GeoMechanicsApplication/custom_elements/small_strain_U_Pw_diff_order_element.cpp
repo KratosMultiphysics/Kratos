@@ -2511,8 +2511,8 @@ void SmallStrainUPwDiffOrderElement::
                                                   GPoint);
 
     if(detJ < 0.0) {
-        std::cerr << "Error: Element " + std::to_string(this->Id()) + " is inverted. DetJ: " + detJ + std::endl 
-        + "This usually indicates the deformations are too large for the mesh size.";
+        std::cerr << "Error: Element " << this->Id() << " is inverted. DetJ: " << detJ << std::endl 
+        << "This usually indicates the deformations are too large for the mesh size." << std::endl;
 
         KRATOS_ERROR_IF(detJ < 0.0)
             << "ERROR:: ELEMENT ID: "
