@@ -88,13 +88,14 @@ optimize_wheel(){
     unzip ${ARCHIVE_NAME} -d tmp
     rm $ARCHIVE_NAME
     
-    for LIBRARY in $(ls tmp/KratosMultiphysics/.libs)
+    EXCLUDE_LIBRARIES=$(ls ${CORE_LIB_DIR} | grep -f excluded.txt)
+    for LIBRARY in ${EXCLUDE_LIBRARIES}
     do
-        if [ -f "${CORE_LIB_DIR}/${LIBRARY}" ] || grep -Fxq $(echo $LIBRARY | cut -f1 -d"-") "${WHEEL_ROOT}/excluded.txt" ; then
-            echo "removing ${LIBRARY} - already present in dependent wheel."
-            rm tmp/KratosMultiphysics/.libs/${LIBRARY}
-            sed -i "/${LIBRARY}/d" tmp/*.dist-info/RECORD
-        fi
+ #       if [ -f "${CORE_LIB_DIR}/${LIBRARY}" ] || grep -Fxq $(echo $LIBRARY | cut -f1 -d"-") "${WHEEL_ROOT}/excluded.txt" ; then
+        echo "removing ${LIBRARY} - already present in dependent wheel."
+        rm tmp/KratosMultiphysics/.libs/${LIBRARY}
+        sed -i "/${LIBRARY}/d" tmp/*.dist-info/RECORD
+#        fi
     done
     
     cd tmp

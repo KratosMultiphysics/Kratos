@@ -30,10 +30,8 @@ for binary in conf["included_binaries"]:
 if "excluded_binaries" in conf:
     f = open("excluded.txt", "w")
     f.writelines(list(map(lambda x: replaceKeyword(x) + "\n", conf["excluded_binaries"])))
-    f.close()
-
-    f = open("/excluded/"+str(conf["wheel_name"])+".txt", "w")
-    f.writelines(list(map(lambda x: replaceKeyword(x) + "\n", conf["excluded_binaries"])))
+    if conf["wheel_name"] != "KratosMultiphysics":
+        f.writelines("libKratosCore.*")
     f.close()
 
 class BinaryDistribution(setuptools.Distribution):
