@@ -453,11 +453,11 @@ const std::string GetAuxiliarVariable<Variable<array_1d<double, 3>>>()
 
 template< >
 double GetAuxiliarValue<Variable<double>>(
-    NodeType::Pointer pThisNode,
+    NodeType& rThisNode,
     const std::size_t iSize
     )
 {
-    return pThisNode->GetValue(NODAL_MAUX);
+    return rThisNode.GetValue(NODAL_MAUX);
 }
 
 /***********************************************************************************/
@@ -465,17 +465,17 @@ double GetAuxiliarValue<Variable<double>>(
 
 template< >
 double GetAuxiliarValue<Variable<array_1d<double, 3>>>(
-    NodeType::Pointer pThisNode,
+    NodeType& rThisNode,
     const std::size_t iSize
     )
 {
     switch ( iSize ) {
         case 0:
-            return pThisNode->GetValue(NODAL_VAUX_X);
+            return rThisNode.GetValue(NODAL_VAUX_X);
         case 1:
-            return pThisNode->GetValue(NODAL_VAUX_Y);
+            return rThisNode.GetValue(NODAL_VAUX_Y);
         case 2:
-            return pThisNode->GetValue(NODAL_VAUX_Z);
+            return rThisNode.GetValue(NODAL_VAUX_Z);
         default:
             return 0.0;
     }
@@ -636,16 +636,16 @@ void AddValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNonH
 
 template<>
 void AddAreaWeightedNodalValue<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
-    NodeType::Pointer pThisNode,
+    NodeType& rThisNode,
     const Variable<double>& rThisVariable,
     const double RefArea,
     const double Tolerance
     )
 {
-    double area_coeff = pThisNode->GetValue(NODAL_AREA);
+    double area_coeff = rThisNode.GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
-    pThisNode->FastGetSolutionStepValue(rThisVariable) += area_coeff * pThisNode->GetValue(NODAL_MAUX);
+    rThisNode.FastGetSolutionStepValue(rThisVariable) += area_coeff * rThisNode.GetValue(NODAL_MAUX);
 }
 
 /***********************************************************************************/
@@ -653,16 +653,16 @@ void AddAreaWeightedNodalValue<Variable<double>, MortarUtilitiesSettings::SaveAs
 
 template<>
 void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
-    NodeType::Pointer pThisNode,
+    NodeType& rThisNode,
     const Variable<array_1d<double, 3>>& rThisVariable,
     const double RefArea,
     const double Tolerance
     )
 {
-    double area_coeff = pThisNode->GetValue(NODAL_AREA);
+    double area_coeff = rThisNode.GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
-    pThisNode->FastGetSolutionStepValue(rThisVariable) += area_coeff * pThisNode->GetValue(NODAL_VAUX);
+    rThisNode.FastGetSolutionStepValue(rThisVariable) += area_coeff * rThisNode.GetValue(NODAL_VAUX);
 }
 
 /***********************************************************************************/
@@ -670,16 +670,16 @@ void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, MortarUtilitiesSet
 
 template<>
 void AddAreaWeightedNodalValue<Variable<double>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
-    NodeType::Pointer pThisNode,
+    NodeType& rThisNode,
     const Variable<double>& rThisVariable,
     const double RefArea,
     const double Tolerance
     )
 {
-    double area_coeff = pThisNode->GetValue(NODAL_AREA);
+    double area_coeff = rThisNode.GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
-    pThisNode->GetValue(rThisVariable) += area_coeff * pThisNode->GetValue(NODAL_MAUX);
+    rThisNode.GetValue(rThisVariable) += area_coeff * rThisNode.GetValue(NODAL_MAUX);
 }
 
 /***********************************************************************************/
@@ -687,16 +687,16 @@ void AddAreaWeightedNodalValue<Variable<double>, MortarUtilitiesSettings::SaveAs
 
 template<>
 void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
-    NodeType::Pointer pThisNode,
+    NodeType& rThisNode,
     const Variable<array_1d<double, 3>>& rThisVariable,
     const double RefArea,
     const double Tolerance
     )
 {
-    double area_coeff = pThisNode->GetValue(NODAL_AREA);
+    double area_coeff = rThisNode.GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
-    pThisNode->GetValue(rThisVariable) += area_coeff * pThisNode->GetValue(NODAL_VAUX);
+    rThisNode.GetValue(rThisVariable) += area_coeff * rThisNode.GetValue(NODAL_VAUX);
 }
 
 /***********************************************************************************/

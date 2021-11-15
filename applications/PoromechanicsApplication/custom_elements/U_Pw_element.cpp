@@ -192,7 +192,7 @@ void UPwElement<TDim,TNumNodes>::GetDofList( DofsVectorType& rElementalDofList, 
 template< unsigned int TDim, unsigned int TNumNodes >
 GeometryData::IntegrationMethod UPwElement<TDim,TNumNodes>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

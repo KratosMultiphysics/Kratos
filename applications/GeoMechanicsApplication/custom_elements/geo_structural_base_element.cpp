@@ -209,7 +209,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 GeometryData::IntegrationMethod GeoStructuralBaseElement<TDim,TNumNodes>::
     GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -460,7 +460,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
             rValues[index++] = Geom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
             rValues[index++] = Geom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
             rValues[index++] = Geom[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
-            
+
             rValues[index++] = Geom[i].FastGetSolutionStepValue( ANGULAR_ACCELERATION_X, Step );
             rValues[index++] = Geom[i].FastGetSolutionStepValue( ANGULAR_ACCELERATION_Y, Step );
             rValues[index++] = Geom[i].FastGetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );

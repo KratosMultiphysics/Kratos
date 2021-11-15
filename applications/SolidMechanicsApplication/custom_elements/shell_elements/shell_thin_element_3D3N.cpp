@@ -27,10 +27,10 @@
 //#define OPT_1_POINT_INTEGRATION
 
 #ifdef OPT_1_POINT_INTEGRATION
-#define OPT_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_1
+#define OPT_INTEGRATION_METHOD Kratos::GeometryData::IntegrationMethod::GI_GAUSS_1
 #define OPT_NUM_GP 1
 #else
-#define OPT_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_2
+#define OPT_INTEGRATION_METHOD Kratos::GeometryData::IntegrationMethod::GI_GAUSS_2
 #define OPT_NUM_GP 3
 #endif // OPT_1_POINT_INTEGRATION
 

@@ -60,9 +60,9 @@ void Check_ShapeFunctionsValues3(Geometry<Node<3>> const& rGeom)
 {
     KRATOS_TRY;
     const Matrix& r_shape_functions_values =
-        rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
-    const auto& r_integration_points = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_1);
-    for (std::size_t g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); ++g)
+        rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    const auto& r_integration_points = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    for (std::size_t g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1); ++g)
         for (std::size_t i = 0; i < rGeom.PointsNumber(); ++i)
             Check(r_shape_functions_values(g, i), rGeom, i, r_integration_points[g]);
     KRATOS_CATCH("");
@@ -81,10 +81,10 @@ void Check_ShapeFunctionsValues4(Geometry<Node<3>> const& rGeom)
 void Check_ShapeFunctionsValues5(Geometry<Node<3>> const& rGeom)
 {
     KRATOS_TRY;
-    const auto& r_integration_points = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_1);
-    for (std::size_t g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); ++g)
+    const auto& r_integration_points = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    for (std::size_t g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1); ++g)
         for (std::size_t i = 0; i < rGeom.PointsNumber(); ++i)
-            Check(rGeom.ShapeFunctionValue(g, i, GeometryData::GI_GAUSS_1), rGeom, i, r_integration_points[g]);
+            Check(rGeom.ShapeFunctionValue(g, i, GeometryData::IntegrationMethod::GI_GAUSS_1), rGeom, i, r_integration_points[g]);
     KRATOS_CATCH("");
 }
 
