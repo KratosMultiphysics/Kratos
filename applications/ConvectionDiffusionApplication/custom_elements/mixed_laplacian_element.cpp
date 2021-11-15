@@ -337,7 +337,7 @@ int MixedLaplacianElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 template<std::size_t TDim, std::size_t TNumNodes>
 Element::IntegrationMethod MixedLaplacianElement<TDim, TNumNodes>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 template class MixedLaplacianElement<2,3>;
