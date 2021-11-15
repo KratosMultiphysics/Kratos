@@ -59,7 +59,11 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) DistanceModificationProcess : publi
 public:
     ///@name Type Definitions
     ///@{
+
     typedef Variable<double> ComponentType;
+    
+    static constexpr std::array<std::array<std::size_t,2>, 3> NodeIDs2D {{ {{1,2}}, {{2,0}}, {{0,1}} }};
+    static constexpr std::array<std::array<std::size_t,2>, 6> NodeIDs3D {{ {{0,1}}, {{1,2}}, {{2,0}}, {{0,3}}, {{1,3}}, {{2,3}} }};    
 
     /// Pointer definition of DistanceModificationProcess
     KRATOS_CLASS_POINTER_DEFINITION(DistanceModificationProcess);
@@ -157,13 +161,13 @@ private:
     bool                                    mNegElemDeactivation;
     bool                               mAvoidAlmostEmptyElements;
     bool                                mRecoverOriginalDistance;
-    std::vector<size_t>                    mModifiedDistancesIDs;
+    std::vector<std::size_t>               mModifiedDistancesIDs;
     std::vector<double>                 mModifiedDistancesValues;
     std::vector<Vector>        mModifiedElementalDistancesValues;
-    std::vector<size_t>                 mModifiedExtrapolatedIDs;
+    std::vector<std::size_t>            mModifiedExtrapolatedIDs;
     std::vector<Vector>              mModifiedExtrapolatedValues;
     std::vector<const Variable<double>*>    mDoubleVariablesList;
-    std::vector<const ComponentType*>    mComponentVariablesList;                
+    std::vector<const ComponentType*>    mComponentVariablesList;
 
     ///@}
     ///@name Protected Operators
@@ -200,8 +204,8 @@ private:
         Element &rElem,
         const TDistancesVectorType& rDistancesVector)
     {
-        size_t n_pos = 0;
-        size_t n_neg = 0;
+        std::size_t n_pos = 0;
+        std::size_t n_neg = 0;
         for (double i_dist : rDistancesVector) {
             if (i_dist < 0.0) {
                 n_neg++;
@@ -233,12 +237,12 @@ private:
      * This mapping is a consequence of the node and edge order used in the CalculateDiscontinuousDistanceToSkinProcess
      * for ELEMENTAL_DISTANCES and ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, 
      * which is based on triangle_2d_3.h and tetrahedra_3d_4.h (geometry)
-     * @param numEdges Number of edges of one element to distinguish between Triangle2D3N and Tetrahedra2D4N 
-     * @param edgeID ID of the element's edge
+     * @param NumEdges Number of edges of one element to distinguish between Triangle2D3N and Tetrahedra2D4N 
+     * @param EdgeID ID of the element's edge
     */
-    const std::array<size_t,2> GetNodeIDs(
-        const size_t numEdges, 
-        const size_t edgeID);
+    const std::array<std::size_t,2> GetNodeIDs(
+        const std::size_t NumEdges, 
+        const std::size_t EdgeID);
 
     ///@}
     ///@name Private  Access

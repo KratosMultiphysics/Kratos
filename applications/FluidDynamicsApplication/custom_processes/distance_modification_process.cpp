@@ -28,6 +28,10 @@
 
 namespace Kratos
 {
+/* Type definitions *******************************************************/
+
+constexpr std::array<std::array<std::size_t,2>, 3> DistanceModificationProcess::NodeIDs2D;
+constexpr std::array<std::array<std::size_t,2>, 6> DistanceModificationProcess::NodeIDs3D; 
 
 /* Public functions *******************************************************/
 DistanceModificationProcess::DistanceModificationProcess(
@@ -78,7 +82,7 @@ DistanceModificationProcess::DistanceModificationProcess(
 
 void DistanceModificationProcess::InitializeEmbeddedIsActive()
 {
-    for (size_t i_node = 0; i_node < static_cast<size_t>(mrModelPart.NumberOfNodes()); ++i_node) {
+    for (std::size_t i_node = 0; i_node < static_cast<std::size_t>(mrModelPart.NumberOfNodes()); ++i_node) {
         auto it_node = mrModelPart.NodesBegin() + i_node;
         it_node->SetValue(EMBEDDED_IS_ACTIVE, 0);
     }
@@ -229,7 +233,7 @@ void DistanceModificationProcess::ModifyDistance()
             auto nodes_end = r_nodes.begin() + partition_vec[i_chunk + 1];
 
             // Auxiliar chunk arrays
-            std::vector<size_t> aux_modified_distances_ids;
+            std::vector<std::size_t> aux_modified_distances_ids;
             std::vector<double> aux_modified_distance_values;
 
             for (auto it_node = nodes_begin; it_node < nodes_end; ++it_node) {
@@ -279,7 +283,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
     auto r_elems = mrModelPart.Elements();
     auto elems_begin = mrModelPart.ElementsBegin();
     const auto n_elems = mrModelPart.NumberOfElements();
-    const size_t n_edges_extrapolated = elems_begin->GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED).size();
+    const std::size_t n_edges_extrapolated = elems_begin->GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED).size();
 
     // Distance modification
     if (mRecoverOriginalDistance == false) {
@@ -298,7 +302,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
                 // Check if the elemental distance values are close to zero
                 bool is_modified = false;
                 Vector &r_elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
-                for (size_t i_node = 0; i_node < r_elem_dist.size(); ++i_node){
+                for (std::size_t i_node = 0; i_node < r_elem_dist.size(); ++i_node){
                     if (std::abs(r_elem_dist(i_node)) < tol_d){
                         is_modified = true;
                         r_elem_dist(i_node) = r_elem_dist(i_node) > 0.0 ? tol_d : -tol_d;
@@ -308,10 +312,10 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
                 // Modify ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED consistently
                 if (is_modified) {
                     Vector &r_elem_edge_dist_extra = it_elem->GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
-                    for (size_t i_edge = 0; i_edge < n_edges_extrapolated; ++i_edge) {
+                    for (std::size_t i_edge = 0; i_edge < n_edges_extrapolated; ++i_edge) {
 
                         // Get corresponding node IDs and elemental distances
-                        const std::array<size_t, 2> node_ids = GetNodeIDs(n_edges_extrapolated, i_edge);
+                        const std::array<std::size_t, 2> node_ids = GetNodeIDs(n_edges_extrapolated, i_edge);
                         const double node_i_distance = r_elem_dist(node_ids[0]);
                         const double node_j_distance = r_elem_dist(node_ids[1]);
 
@@ -333,7 +337,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
 
                 // Check if the elemental distance values are close to zero
                 Vector &r_elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
-                for (size_t i_node = 0; i_node < r_elem_dist.size(); ++i_node){
+                for (std::size_t i_node = 0; i_node < r_elem_dist.size(); ++i_node){
                     if (std::abs(r_elem_dist(i_node)) < tol_d){
                         r_elem_dist(i_node) = r_elem_dist(i_node) > 0.0 ? tol_d : -tol_d;
                     }
@@ -357,9 +361,9 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
                 auto elems_end = r_elems.begin() + partition_vec[i_chunk + 1];
 
                 // Auxiliar chunk arrays
-                std::vector<size_t> aux_modified_distances_ids;
+                std::vector<std::size_t> aux_modified_distances_ids;
                 std::vector<Vector> aux_modified_elemental_distances;
-                std::vector<size_t> aux_modified_edge_dist_extra_ids;
+                std::vector<std::size_t> aux_modified_edge_dist_extra_ids;
                 std::vector<Vector> aux_modified_edge_dist_extra;
 
                 for (auto it_elem = elems_begin; it_elem < elems_end; ++it_elem) {
@@ -368,7 +372,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
 
                     bool is_saved = false;
                     Vector &r_elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
-                    for (size_t i_node = 0; i_node < r_elem_dist.size(); ++i_node){
+                    for (std::size_t i_node = 0; i_node < r_elem_dist.size(); ++i_node){
                         if (std::abs(r_elem_dist(i_node)) < tol_d){
                             if (!is_saved){
                                 aux_modified_distances_ids.push_back(it_elem->Id());
@@ -382,10 +386,10 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
                     // Modify ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED consistently
                     if (is_saved) {
                         Vector &r_elem_edge_dist_extra = it_elem->GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
-                        for (size_t i_edge = 0; i_edge < n_edges_extrapolated; ++i_edge) {
+                        for (std::size_t i_edge = 0; i_edge < n_edges_extrapolated; ++i_edge) {
 
                             // Get corresponding node IDs and elemental distances
-                            const std::array<size_t, 2> node_ids = GetNodeIDs(n_edges_extrapolated,i_edge);
+                            const std::array<std::size_t, 2> node_ids = GetNodeIDs(n_edges_extrapolated,i_edge);
                             const double node_i_distance = r_elem_dist(node_ids[0]);
                             const double node_j_distance = r_elem_dist(node_ids[1]);
 
@@ -417,7 +421,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
                 auto elems_end = r_elems.begin() + partition_vec[i_chunk + 1];
 
                 // Auxiliar chunk arrays
-                std::vector<size_t> aux_modified_distances_ids;
+                std::vector<std::size_t> aux_modified_distances_ids;
                 std::vector<Vector> aux_modified_elemental_distances;
 
                 for (auto it_elem = elems_begin; it_elem < elems_end; ++it_elem) {
@@ -426,7 +430,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
 
                     bool is_saved = false;
                     Vector &r_elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
-                    for (size_t i_node = 0; i_node < r_elem_dist.size(); ++i_node){
+                    for (std::size_t i_node = 0; i_node < r_elem_dist.size(); ++i_node){
                         if (std::abs(r_elem_dist(i_node)) < tol_d){
                             if (!is_saved){
                                 aux_modified_distances_ids.push_back(it_elem->Id());
@@ -507,17 +511,17 @@ void DistanceModificationProcess::RecoverOriginalDiscontinuousDistance()
     // Recover original elemental distances
     #pragma omp parallel for
     for (int i_elem = 0; i_elem < static_cast<int>(mModifiedDistancesIDs.size()); ++i_elem) {
-        const size_t elem_id = mModifiedDistancesIDs[i_elem];
-        const auto r_elem_dist = mModifiedElementalDistancesValues[i_elem];
-        mrModelPart.GetElement(elem_id).SetValue(ELEMENTAL_DISTANCES,r_elem_dist);
+        const std::size_t elem_id = mModifiedDistancesIDs[i_elem];
+        const auto& r_elem_dist = mModifiedElementalDistancesValues[i_elem];
+        mrModelPart.GetElement(elem_id).GetValue(ELEMENTAL_DISTANCES) = r_elem_dist;
     }
 
     // Recover original extrapolated elemental edge distances
     #pragma omp parallel for
     for (int i_elem = 0; i_elem < static_cast<int>(mModifiedExtrapolatedIDs.size()); ++i_elem) {
-        const size_t elem_id = mModifiedExtrapolatedIDs[i_elem];
-        const auto elem_edge_dist_extra = mModifiedExtrapolatedValues[i_elem];
-        mrModelPart.GetElement(elem_id).SetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED,elem_edge_dist_extra);
+        const std::size_t elem_id = mModifiedExtrapolatedIDs[i_elem];
+        const auto& r_elem_edge_dist_extra = mModifiedExtrapolatedValues[i_elem];
+        mrModelPart.GetElement(elem_id).GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED) = r_elem_edge_dist_extra;
     }
 
     // Empty the modified distance vectors
@@ -551,12 +555,12 @@ void DistanceModificationProcess::DeactivateFullNegativeElements()
     // Deactivate those elements whose negative distance nodes summation is equal to their number of nodes
     #pragma omp parallel for
     for (int k = 0; k < static_cast<int>(rElements.size()); ++k){
-        size_t n_neg = 0;
+        std::size_t n_neg = 0;
         ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
         auto& rGeometry = itElement->GetGeometry();
 
         // Check the distance function sign at the element nodes
-        for (size_t i_node=0; i_node<rGeometry.size(); i_node++){
+        for (std::size_t i_node=0; i_node<rGeometry.size(); i_node++){
             if (rGeometry[i_node].FastGetSolutionStepValue(DISTANCE) < 0.0){
                 n_neg++;
             }
@@ -566,7 +570,7 @@ void DistanceModificationProcess::DeactivateFullNegativeElements()
 
         // If the element is ACTIVE, all its nodes are active as well
         if (itElement->Is(ACTIVE)){
-            for (size_t i_node = 0; i_node < rGeometry.size(); ++i_node){
+            for (std::size_t i_node = 0; i_node < rGeometry.size(); ++i_node){
                 int& activation_index = rGeometry[i_node].GetValue(EMBEDDED_IS_ACTIVE);
                 #pragma omp atomic
                 activation_index += 1;
@@ -609,7 +613,7 @@ void DistanceModificationProcess::SetContinuousDistanceToSplitFlag()
         auto it_elem = mrModelPart.ElementsBegin() + i_elem;
         auto &r_geom = it_elem->GetGeometry();
         std::vector<double> elem_dist;
-        for (size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+        for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
             elem_dist.push_back(r_geom[i_node].FastGetSolutionStepValue(DISTANCE));
         }
         this->SetElementToSplitFlag(*it_elem, elem_dist);
@@ -672,20 +676,18 @@ void DistanceModificationProcess::CheckAndStoreVariablesList(const std::vector<s
     }
 }
 
-const std::array<size_t,2> DistanceModificationProcess::GetNodeIDs(
-    const size_t numEdges, 
-    const size_t edgeID) 
+const std::array<std::size_t,2> DistanceModificationProcess::GetNodeIDs(
+    const std::size_t NumEdges, 
+    const std::size_t EdgeID) 
 {
-    std::array<std::array<size_t,2>, 3> node_ids_2d {{ {{1,2}}, {{2,0}}, {{0,1}} }};
-    std::array<std::array<size_t,2>, 6> node_ids_3d {{ {{0,1}}, {{1,2}}, {{2,0}}, {{0,3}}, {{1,3}}, {{2,3}} }};
-    switch (numEdges)
+    switch (NumEdges)
     {
     case 3:
-        return node_ids_2d[edgeID];
+        return NodeIDs2D[EdgeID];
     case 6:
-        return node_ids_3d[edgeID];
+        return NodeIDs3D[EdgeID];
     default:
-        KRATOS_ERROR << "The number of edges does not correspond to any support element type (Triangle2D3 and Tetrahedra3D4). The number of edges is: " << numEdges << std::endl;
+        KRATOS_ERROR << "The number of edges does not correspond to any supported element type (Triangle2D3 and Tetrahedra3D4). The number of edges is: " << NumEdges << std::endl;
     }
 }
 
