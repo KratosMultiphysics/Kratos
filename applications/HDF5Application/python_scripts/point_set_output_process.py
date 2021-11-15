@@ -105,7 +105,7 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
             "variables_prefix"      : "/<model_part_name>_point_set_output/step_<step>",
             "file_parameters"       : {
                 "file_name"         : "",
-                "file_access_mode"  : "read_write",
+                "file_access_mode"  : "truncate",
                 "file_driver"       : "sec2",
                 "echo_level"        : 0
             }

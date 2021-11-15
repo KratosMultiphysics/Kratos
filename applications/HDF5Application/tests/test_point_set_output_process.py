@@ -34,13 +34,13 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
             edge_length = edge_length)
 
         parameters = KratosMultiphysics.Parameters("""{
-            "model_part_name"    : "main",
-            "positions"          : [],
-            "output_variables"   : ["DISPLACEMENT", "REACTION"],
-            "coordinates_prefix" : "/test_point_set_output_<model_part_name>",
-            "variables_prefix"   : "/test_point_set_output_<model_part_name>/test_step_<step>",
-            "file_parameters"    : {
-                "file_name"      : ""
+            "model_part_name"      : "main",
+            "positions"            : [],
+            "output_variables"     : ["DISPLACEMENT", "REACTION"],
+            "coordinates_prefix"   : "/test_point_set_output_<model_part_name>",
+            "variables_prefix"     : "/test_point_set_output_<model_part_name>/test_step_<step>",
+            "file_parameters"      : {
+                "file_name"        : "",
             }
         }""")
         parameters["file_parameters"]["file_name"].SetString(self.file_name)
