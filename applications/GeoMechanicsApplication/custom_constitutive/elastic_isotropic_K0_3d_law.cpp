@@ -80,6 +80,7 @@ void  ElasticIsotropicK03DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Par
         Vector& r_stress_vector = rValues.GetStressVector();
         CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
     }
+
     KRATOS_CATCH("");
 }
 
@@ -247,7 +248,7 @@ void ElasticIsotropicK03DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::
 
 int ElasticIsotropicK03DLaw::Check(const Properties& rMaterialProperties,
                                    const GeometryType& rElementGeometry,
-                                   const ProcessInfo& rCurrentProcessInfo)
+                                   const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_ERROR_IF(!rMaterialProperties.Has(YOUNG_MODULUS))
                     << "YOUNG_MODULUS is not availabe in material parameters" << std::endl;
