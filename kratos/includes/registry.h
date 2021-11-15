@@ -55,7 +55,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class Registry
+class KRATOS_API(KRATOS_CORE) Registry
 {
 public:
     ///@name Type Definitions
