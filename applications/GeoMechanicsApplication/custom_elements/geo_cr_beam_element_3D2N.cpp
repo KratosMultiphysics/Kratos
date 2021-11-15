@@ -61,6 +61,18 @@ void GeoCrBeamElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH("")
 }
 
+//----------------------------------------------------------------------------------------
+void GeoCrBeamElement3D2N::
+    ResetConstitutiveLaw()
+{
+    KRATOS_TRY
+
+    mLocalForcesFinalized = ZeroVector(msElementSize);
+    mLocalForcesFinalizedPrevious = ZeroVector(msElementSize);
+
+    KRATOS_CATCH( "" )
+}
+
 //-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::
     ConstCalculateRightHandSide( VectorType& rRightHandSideVector,
@@ -94,7 +106,7 @@ void GeoCrBeamElement3D2N::
     KRATOS_TRY
     // element with two nodes can only represent results at one node
     const unsigned int& write_points_number =
-        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
     if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
     }

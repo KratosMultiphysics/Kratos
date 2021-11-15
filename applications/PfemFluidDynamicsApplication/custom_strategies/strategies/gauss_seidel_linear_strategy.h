@@ -22,7 +22,7 @@
 
 /* Project includes */
 #include "includes/define.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -73,13 +73,13 @@ namespace Kratos
                                   \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
 
 
- */
+    */
     template <class TSparseSpace,
-              class TDenseSpace,  //= DenseSpace<double>,
-              class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
-              >
+            class TDenseSpace,  //= DenseSpace<double>,
+            class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+            >
     class GaussSeidelLinearStrategy
-        : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+        : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
     {
     public:
         /**@name Type Definitions */
@@ -88,7 +88,7 @@ namespace Kratos
         /** Counted pointer of ClassName */
         KRATOS_CLASS_POINTER_DEFINITION(GaussSeidelLinearStrategy);
 
-        typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+        typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
         typedef typename BaseType::TDataType TDataType;
 
@@ -127,7 +127,7 @@ namespace Kratos
             typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
             bool ReformDofSetAtEachStep = true,
             bool CalculateNormDxFlag = false)
-            : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
+            : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
         {
             KRATOS_TRY
 
@@ -293,7 +293,7 @@ namespace Kratos
                 TSparseSpace::SetToZero(mb);
                 pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
             }
-            
+
             if (BaseType::GetEchoLevel() == 3) //if it is needed to print the debug info
             {
                 std::cout << "SystemMatrix = " << mA << std::endl;

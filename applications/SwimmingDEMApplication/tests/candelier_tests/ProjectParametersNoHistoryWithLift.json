@@ -172,7 +172,7 @@
 
 "custom_dem" : {
     "do_solve_dem" : true,
-    "do_search_neighbours" : false,
+    "do_search_dem_neighbours" : false,
     "type_of_dem_inlet" : "VelocityImposed",
     "type_of_dem_inlet_comment" : "VelocityImposed or ForceImposed",
     "translational_integration_scheme" : "Hybrid_Bashforth"

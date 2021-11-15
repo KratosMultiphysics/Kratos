@@ -75,6 +75,16 @@ namespace Testing
             r_node.FastGetSolutionStepValue(REACTION_FLUX) = 37.5 - 3.5 * aux;
         }
 
+        void EquationIdVector(
+            EquationIdVectorType& rEquationIdVector,
+            const ProcessInfo& rCurrentProcessInfo) const override
+        {
+            if (rEquationIdVector.size() != 1) {
+                rEquationIdVector.resize(1);
+            }
+            rEquationIdVector[0] = GetGeometry()[0].GetDof(TEMPERATURE).EquationId();
+        }
+
     };
 
 

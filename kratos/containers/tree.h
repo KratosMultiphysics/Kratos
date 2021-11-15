@@ -136,7 +136,7 @@ template<std::size_t TDimension,
          class TLeafType,
          class TIteratorType,
          class TDistanceIteratorType>
-class Tree
+class Tree final
 {
 public:
     ///@name Type Definitions
@@ -195,7 +195,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~Tree()
+    ~Tree()
     {
         if(mRoot != &msEmptyLeaf)
             delete mRoot;
@@ -294,13 +294,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         return "Tree";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "Tree";
     }

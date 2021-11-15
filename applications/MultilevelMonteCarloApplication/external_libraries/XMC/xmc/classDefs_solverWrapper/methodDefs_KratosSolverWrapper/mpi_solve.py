@@ -12,32 +12,17 @@ from KratosMultiphysics import IsDistributedRun, DataCommunicator
 from xmc.classDefs_solverWrapper.methodDefs_KratosSolverWrapper.solve import ExecuteInstanceDeterministicAdaptiveRefinementAux_Functionality,ExecuteInstanceReadingFromFileAux_Functionality,ExecuteInstanceStochasticAdaptiveRefinementAux_Functionality
 from exaqute import *
 
-try:
-    computing_units_mlmc_execute_0 = int(os.environ["computing_units_mlmc_execute_0"])
-except:
-    computing_units_mlmc_execute_0 = 1
-try:
-    computing_units_mlmc_execute_1 = int(os.environ["computing_units_mlmc_execute_1"])
-except:
-    computing_units_mlmc_execute_1 = 1
-try:
-    computing_units_mlmc_execute_2 = int(os.environ["computing_units_mlmc_execute_2"])
-except:
-    computing_units_mlmc_execute_2 = 1
+computing_units_mlmc_execute_0 = int(os.getenv("computing_units_mlmc_execute_0", 1))
+computing_units_mlmc_execute_1 = int(os.getenv("computing_units_mlmc_execute_1", 1))
+computing_units_mlmc_execute_2 = int(os.getenv("computing_units_mlmc_execute_2", 1))
 
-try:
-    computing_procs_mlmc_execute_0 = int(os.environ["computing_procs_mlmc_execute_0"])
-except:
-    computing_procs_mlmc_execute_0 = 1
-try:
-    computing_procs_mlmc_execute_1 = int(os.environ["computing_procs_mlmc_execute_1"])
-except:
-    computing_procs_mlmc_execute_1 = 1
-try:
-    computing_procs_mlmc_execute_2 = int(os.environ["computing_procs_mlmc_execute_2"])
-except:
-    computing_procs_mlmc_execute_2 = 1
+computing_procs_mlmc_execute_0 = int(os.getenv("computing_procs_mlmc_execute_0", 1))
+computing_procs_mlmc_execute_1 = int(os.getenv("computing_procs_mlmc_execute_1", 1))
+computing_procs_mlmc_execute_2 = int(os.getenv("computing_procs_mlmc_execute_2", 1))
 
+ppn_mlmc_execute_0 = int(os.getenv("ppn_mlmc_execute_0", 1))
+ppn_mlmc_execute_1 = int(os.getenv("ppn_mlmc_execute_1", 1))
+ppn_mlmc_execute_2 = int(os.getenv("ppn_mlmc_execute_2", 1))
 
 ####################################################################################################
 ############################################ WRAPPERS ##############################################
@@ -172,7 +157,7 @@ def UnfoldFutureQMT(qoi_pickled_current_model_time_for_qoi_list):
 ########################################## Serialization ##########################################
 
 @constraint(computing_units=computing_units_mlmc_execute_0)
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0)
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0, processes_per_node=ppn_mlmc_execute_0)
 @task(keep=True, returns=computing_procs_mlmc_execute_0)
 def SerializeMPIModelAuxLev0_Task(pickled_parameters, main_model_part_name, fake_sample_to_serialize, analysis):
     import KratosMultiphysics
@@ -201,7 +186,7 @@ def SerializeMPIModelAuxLev0_Task(pickled_parameters, main_model_part_name, fake
     return pickled_model
 
 @constraint(computing_units=computing_units_mlmc_execute_1)
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_1)
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_1, processes_per_node=ppn_mlmc_execute_1)
 @task(keep=True, returns=computing_procs_mlmc_execute_1)
 def SerializeMPIModelAuxLev1_Task(pickled_parameters, main_model_part_name, fake_sample_to_serialize, analysis):
     import KratosMultiphysics
@@ -230,7 +215,7 @@ def SerializeMPIModelAuxLev1_Task(pickled_parameters, main_model_part_name, fake
     return pickled_model
 
 @constraint(computing_units=computing_units_mlmc_execute_2)
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_2)
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_2, processes_per_node=ppn_mlmc_execute_2)
 @task(keep=True, returns=computing_procs_mlmc_execute_2)
 def SerializeMPIModelAuxLev2_Task(pickled_parameters, main_model_part_name, fake_sample_to_serialize, analysis):
     import KratosMultiphysics
@@ -261,7 +246,7 @@ def SerializeMPIModelAuxLev2_Task(pickled_parameters, main_model_part_name, fake
 ########################################## Serialization DAR ##########################################
 
 @constraint(computing_units=computing_units_mlmc_execute_0)
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0, pickled_coarse_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1})
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0, processes_per_node=ppn_mlmc_execute_0, pickled_coarse_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1})
 @task(keep=True, pickled_coarse_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_0)
 def SerializeDeterministicAdaptiveRefinementMPIModelAuxLev0_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_analysis,time_for_qoi,adaptive_refinement_jump_to_finest_level):
     # Import Kratos
@@ -289,7 +274,7 @@ def SerializeDeterministicAdaptiveRefinementMPIModelAuxLev0_Task(current_index,p
     return pickled_coarse_model
 
 @constraint(computing_units=computing_units_mlmc_execute_1)
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_1, pickled_coarse_model_layout={block_count: computing_procs_mlmc_execute_1, block_length: 1, stride: 1})
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_1, processes_per_node=ppn_mlmc_execute_1, pickled_coarse_model_layout={block_count: computing_procs_mlmc_execute_1, block_length: 1, stride: 1})
 @task(keep=True, pickled_coarse_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_1)
 def SerializeDeterministicAdaptiveRefinementMPIModelAuxLev1_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_analysis,time_for_qoi,adaptive_refinement_jump_to_finest_level):
     # Import Kratos
@@ -317,7 +302,7 @@ def SerializeDeterministicAdaptiveRefinementMPIModelAuxLev1_Task(current_index,p
     return pickled_coarse_model
 
 @constraint(computing_units=computing_units_mlmc_execute_2)
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_2, pickled_coarse_model_layout={block_count: computing_procs_mlmc_execute_2, block_length: 1, stride: 1})
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_2, processes_per_node=ppn_mlmc_execute_2, pickled_coarse_model_layout={block_count: computing_procs_mlmc_execute_2, block_length: 1, stride: 1})
 @task(keep=True, pickled_coarse_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_2)
 def SerializeDeterministicAdaptiveRefinementMPIModelAuxLev2_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_analysis,time_for_qoi,adaptive_refinement_jump_to_finest_level):
     # Import Kratos
@@ -348,7 +333,7 @@ def SerializeDeterministicAdaptiveRefinementMPIModelAuxLev2_Task(current_index,p
 
 # @task(keep=True, filename=FILE_OUT, pickled_coarse_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_0)
 @constraint(computing_units=computing_units_mlmc_execute_0)
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0, pickled_coarse_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1})
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0, processes_per_node=ppn_mlmc_execute_0, pickled_coarse_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1})
 @task(keep=True, pickled_coarse_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_0)
 def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev0_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_analysis,time_for_qoi,mapping_flag,adaptive_refinement_jump_to_finest_level,print_to_file,filename):
     # Import Kratos
@@ -374,7 +359,7 @@ def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev0_Task(current_ind
 
 # @task(keep=True, filename=FILE_OUT, pickled_coarse_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_1)
 @constraint(computing_units=computing_units_mlmc_execute_1)
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_1, pickled_coarse_model_layout={block_count: computing_procs_mlmc_execute_1, block_length: 1, stride: 1})
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_1, processes_per_node=ppn_mlmc_execute_1, pickled_coarse_model_layout={block_count: computing_procs_mlmc_execute_1, block_length: 1, stride: 1})
 @task(keep=True, pickled_coarse_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_1)
 def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev1_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_analysis,time_for_qoi,mapping_flag,adaptive_refinement_jump_to_finest_level,print_to_file,filename):
     # Import Kratos
@@ -400,7 +385,7 @@ def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev1_Task(current_ind
 
 # @task(keep=True, filename=FILE_OUT, pickled_coarse_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_2)
 @constraint(computing_units=computing_units_mlmc_execute_2)
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_2, pickled_coarse_model_layout={block_count: computing_procs_mlmc_execute_2, block_length: 1, stride: 1})
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_2, processes_per_node=ppn_mlmc_execute_2, pickled_coarse_model_layout={block_count: computing_procs_mlmc_execute_2, block_length: 1, stride: 1})
 @task(keep=True, pickled_coarse_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_2)
 def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev2_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_analysis,time_for_qoi,mapping_flag,adaptive_refinement_jump_to_finest_level,print_to_file,filename):
     # Import Kratos
@@ -428,7 +413,7 @@ def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev2_Task(current_ind
 
 # @task(keep=True, filename=FILE_OUT,pickled_coarse_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_0)
 @constraint(computing_units=computing_units_mlmc_execute_0)
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0, pickled_coarse_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1})
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0, processes_per_node=ppn_mlmc_execute_0, pickled_coarse_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1})
 @task(keep=True, pickled_coarse_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_0)
 def ExecuteInstanceStochasticAdaptiveRefinementMultipleTasksAuxLev0_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_local_index,current_analysis,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     # Import Kratos
@@ -450,7 +435,7 @@ def ExecuteInstanceStochasticAdaptiveRefinementMultipleTasksAuxLev0_Task(current
 
 # @task(keep=True, filename=FILE_OUT,pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_0)
 @constraint(computing_units=computing_units_mlmc_execute_0)
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0, pickled_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1}, pickled_mapping_reference_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1})
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0, processes_per_node=ppn_mlmc_execute_0, pickled_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1}, pickled_mapping_reference_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1})
 @task(keep=True, pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_0)
 def executeInstanceDeterministicAdaptiveRefinementAuxLev0_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     # Import Kratos
@@ -470,7 +455,7 @@ def executeInstanceDeterministicAdaptiveRefinementAuxLev0_Task(pickled_model,pic
 
 # @task(keep=True, filename=FILE_OUT,pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_1)
 @constraint(computing_units=computing_units_mlmc_execute_1)
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_1, pickled_model_layout={block_count: computing_procs_mlmc_execute_1, block_length: 1, stride: 1}, pickled_mapping_reference_model_layout={block_count: computing_procs_mlmc_execute_1, block_length: 1, stride: 1})
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_1, processes_per_node=ppn_mlmc_execute_1, pickled_model_layout={block_count: computing_procs_mlmc_execute_1, block_length: 1, stride: 1}, pickled_mapping_reference_model_layout={block_count: computing_procs_mlmc_execute_1, block_length: 1, stride: 1})
 @task(keep=True, pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_1)
 def executeInstanceDeterministicAdaptiveRefinementAuxLev1_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     # Import Kratos
@@ -490,7 +475,7 @@ def executeInstanceDeterministicAdaptiveRefinementAuxLev1_Task(pickled_model,pic
 
 # @task(keep=True, filename=FILE_OUT,pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_2)
 @constraint(computing_units=computing_units_mlmc_execute_2)
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_2, pickled_model_layout={block_count: computing_procs_mlmc_execute_2, block_length: 1, stride: 1}, pickled_mapping_reference_model_layout={block_count: computing_procs_mlmc_execute_2, block_length: 1, stride: 1})
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_2, processes_per_node=ppn_mlmc_execute_2, pickled_model_layout={block_count: computing_procs_mlmc_execute_2, block_length: 1, stride: 1}, pickled_mapping_reference_model_layout={block_count: computing_procs_mlmc_execute_2, block_length: 1, stride: 1})
 @task(keep=True, pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_2)
 def executeInstanceDeterministicAdaptiveRefinementAuxLev2_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     # Import Kratos
@@ -512,7 +497,7 @@ def executeInstanceDeterministicAdaptiveRefinementAuxLev2_Task(pickled_model,pic
 
 # @task(keep=True, filename=FILE_OUT, pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_0)
 @constraint(computing_units=computing_units_mlmc_execute_0)
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0, pickled_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1}, pickled_mapping_reference_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1})
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_0, processes_per_node=ppn_mlmc_execute_0, pickled_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1}, pickled_mapping_reference_model_layout={block_count: computing_procs_mlmc_execute_0, block_length: 1, stride: 1})
 @task(keep=True, pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_0)
 def executeInstanceReadingFromFileAuxLev0_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     # Import Kratos
@@ -532,7 +517,7 @@ def executeInstanceReadingFromFileAuxLev0_Task(pickled_model,pickled_project_par
 
 # @task(keep=True, filename=FILE_OUT, pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_1)
 @constraint(computing_units=computing_units_mlmc_execute_1)
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_1, pickled_model_layout={block_count: computing_procs_mlmc_execute_1, block_length: 1, stride: 1}, pickled_mapping_reference_model_layout={block_count: computing_procs_mlmc_execute_1, block_length: 1, stride: 1})
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_1, processes_per_node=ppn_mlmc_execute_1, pickled_model_layout={block_count: computing_procs_mlmc_execute_1, block_length: 1, stride: 1}, pickled_mapping_reference_model_layout={block_count: computing_procs_mlmc_execute_1, block_length: 1, stride: 1})
 @task(keep=True, pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_1)
 def executeInstanceReadingFromFileAuxLev1_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     # Import Kratos
@@ -552,7 +537,7 @@ def executeInstanceReadingFromFileAuxLev1_Task(pickled_model,pickled_project_par
 
 # @task(keep=True, filename=FILE_OUT, pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_2)
 @constraint(computing_units=computing_units_mlmc_execute_2)
-@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_2, pickled_model_layout={block_count: computing_procs_mlmc_execute_2, block_length: 1, stride: 1}, pickled_mapping_reference_model_layout={block_count: computing_procs_mlmc_execute_2, block_length: 1, stride: 1})
+@mpi(runner="mpirun", processes=computing_procs_mlmc_execute_2, processes_per_node=ppn_mlmc_execute_2, pickled_model_layout={block_count: computing_procs_mlmc_execute_2, block_length: 1, stride: 1}, pickled_mapping_reference_model_layout={block_count: computing_procs_mlmc_execute_2, block_length: 1, stride: 1})
 @task(keep=True, pickled_model=COLLECTION_IN, pickled_mapping_reference_model=COLLECTION_IN, returns=computing_procs_mlmc_execute_2)
 def executeInstanceReadingFromFileAuxLev2_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     # Import Kratos

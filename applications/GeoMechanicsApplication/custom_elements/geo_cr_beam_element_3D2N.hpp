@@ -97,6 +97,8 @@ public:
         std::vector< array_1d<double, 3 > >& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void ResetConstitutiveLaw() override;
+
 protected:
     Vector mLocalForcesFinalized = ZeroVector(msElementSize);
     Vector mLocalForcesFinalizedPrevious = ZeroVector(msElementSize);
