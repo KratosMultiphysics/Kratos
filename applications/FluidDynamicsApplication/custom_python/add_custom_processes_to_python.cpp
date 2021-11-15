@@ -168,6 +168,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<ApplyCompressibleNavierStokesBoundaryConditionsProcess, ApplyCompressibleNavierStokesBoundaryConditionsProcess::Pointer, Process>(m, "ApplyCompressibleNavierStokesBoundaryConditionsProcess")
     .def(py::init<Model&, Parameters>())
     ;
+        py::class_<EnergyCheckProcess, EnergyCheckProcess::Pointer, Process>(m, "EnergyCheckProcess")
+    .def(py::init<ModelPart &, unsigned int>())
+    .def("WritingFile",&EnergyCheckProcess::WritingFile)
+    ;
+
 }
 
 } // namespace Python.
