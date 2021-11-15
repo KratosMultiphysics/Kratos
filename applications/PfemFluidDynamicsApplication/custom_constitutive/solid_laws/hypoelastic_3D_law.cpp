@@ -46,7 +46,7 @@ Hypoelastic3DLaw::~Hypoelastic3DLaw() {}
 
 ConstitutiveLaw::SizeType Hypoelastic3DLaw::WorkingSpaceDimension() { return 3; }
 
-ConstitutiveLaw::SizeType Hypoelastic3DLaw::GetStrainSize() { return 6; }
+ConstitutiveLaw::SizeType Hypoelastic3DLaw::GetStrainSize() const { return 6; }
 
 void Hypoelastic3DLaw::CalculateMaterialResponseCauchy(Parameters& rParameters) {
 
@@ -70,11 +70,7 @@ void Hypoelastic3DLaw::CalculateMaterialResponseCauchy(Parameters& rParameters) 
 }
 
 int Hypoelastic3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-                            const ProcessInfo& rCurrentProcessInfo) {
-
-    KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
-    KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+                            const ProcessInfo& rCurrentProcessInfo) const {
 
     KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0)
         << "Incorrect or missing YOUNG_MODULUS provided in process info for Hypoelastic3DLaw: "

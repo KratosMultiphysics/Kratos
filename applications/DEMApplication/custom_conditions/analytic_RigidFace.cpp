@@ -2,7 +2,7 @@
 
 // Project includes
 #include "custom_conditions/analytic_RigidFace.h"
-#include "../custom_elements/spheric_particle.h"
+#include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
 
@@ -37,9 +37,15 @@ AnalyticRigidFace3D::~AnalyticRigidFace3D(){}
 
 int AnalyticRigidFace3D::CheckSide(SphericParticle* p_particle)
 {
-    const int side_sign = BaseType::CheckSide(p_particle);
+    array_1d<double, 3> normal;
+    CalculateNormal(normal);
 
-    const int signed_id = int(p_particle->Id()) * side_sign;
+    const array_1d<double, 3> P0 = this->GetGeometry()[0];
+    const array_1d<double, 3>& particle_center_coors = p_particle->GetGeometry()[0];
+    const array_1d<double, 3> a = particle_center_coors - P0;
+
+    const double side_sign = DEM_INNER_PRODUCT_3(a, normal);
+    int signed_id = side_sign > 0 ? int(p_particle->Id()) : - int(p_particle->Id());
 
     // the particle just changed side if it can be found in the old list with the opposite sign:
     const bool just_changed_side = AnalyticRigidFace3D::IsInside(- signed_id, mOldContactingNeighbourSignedIds);
@@ -49,12 +55,10 @@ int AnalyticRigidFace3D::CheckSide(SphericParticle* p_particle)
         if (just_changed_side){
             const bool is_a_crosser = CheckProjectionFallsInside(p_particle);
 
-            if (is_a_crosser || true){
+            if (is_a_crosser){
                 mNumberThroughput += side_sign;
                 mCrossers.push_back(signed_id);
                 mMasses.push_back(p_particle->GetMass());
-                array_1d<double, 3> normal;
-                CalculateNormal(normal);
                 array_1d<double, 3> particle_vel = p_particle->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
                 const double normal_vel_component = DEM_INNER_PRODUCT_3(particle_vel, normal);
                 mCollidingNormalVelocities.push_back(normal_vel_component);
@@ -98,7 +102,7 @@ std::vector<double> AnalyticRigidFace3D::GetMasses()
     return mMasses;
 }
 
-void AnalyticRigidFace3D::InitializeSolutionStep(ProcessInfo& r_process_info)
+void AnalyticRigidFace3D::InitializeSolutionStep(const ProcessInfo& r_process_info)
 {
     RigidFace3D::InitializeSolutionStep(r_process_info);
     mOldContactingNeighbourSignedIds.swap(mContactingNeighbourSignedIds);

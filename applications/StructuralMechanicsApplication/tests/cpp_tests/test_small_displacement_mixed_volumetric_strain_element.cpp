@@ -446,7 +446,6 @@ namespace Testing
         auto p_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>>(
             r_model_part,
             p_scheme,
-            p_linear_solver,
             p_builder_and_solver,
             calculate_reactions,
             reform_dof_at_each_iteration,

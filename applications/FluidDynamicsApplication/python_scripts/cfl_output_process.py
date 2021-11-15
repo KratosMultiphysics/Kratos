@@ -81,8 +81,20 @@ class CFLOutputProcess(KratosMultiphysics.Process):
 
         if (self.model_part.GetCommunicator().MyPID() == 0):
             if (self.write_output_file):
+
+                output_file_name = params["model_part_name"].GetString() + "_cfl.dat"
+
                 file_handler_params = KratosMultiphysics.Parameters(
                     params["output_file_settings"])
+
+                if file_handler_params.Has("file_name"):
+                    warn_msg  = 'Unexpected user-specified entry found in "output_file_settings": {"file_name": '
+                    warn_msg += '"' + file_handler_params["file_name"].GetString() + '"}\n'
+                    warn_msg += 'Using this specififed file name instead of the default "' + output_file_name + '"'
+                    KratosMultiphysics.Logger.PrintWarning("CFLOutputProcess", warn_msg)
+                else:
+                    file_handler_params.AddEmptyValue("file_name")
+                    file_handler_params["file_name"].SetString(output_file_name)
 
                 file_header = self._GetFileHeader()
                 self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part,
@@ -171,7 +183,4 @@ class CFLOutputProcess(KratosMultiphysics.Process):
         return [y_mean, y_std, x_max, how_many, how_many1]
 
     def _EvaluateCFL(self):
-        if (self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            KratosCFD.EstimateDtUtility2D.CalculateLocalCFL(self.model_part)
-        else:
-            KratosCFD.EstimateDtUtility3D.CalculateLocalCFL(self.model_part)
+        KratosCFD.FluidCharacteristicNumbersUtilities.CalculateLocalCFL(self.model_part)

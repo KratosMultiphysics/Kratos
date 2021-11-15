@@ -312,9 +312,7 @@ template <class TPrimalElement>
 int AdjointSolidElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
-    for (const auto& r_node : GetGeometry())
-    {
+    for (const auto& r_node : GetGeometry()) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);

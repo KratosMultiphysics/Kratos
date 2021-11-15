@@ -125,8 +125,8 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
         # set model part
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
-        if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
+        
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
         # set processes
         params = KratosMultiphysics.Parameters("{}")

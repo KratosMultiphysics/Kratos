@@ -28,7 +28,7 @@
 #include "spaces/ublas_space.h"
 #include "shape_optimization_application.h"
 #include "mapper_base.h"
-#include "filter_function.h"
+#include "custom_utilities/filter_function.h"
 
 // ==============================================================================
 
@@ -115,14 +115,11 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("ShapeOpt") << "Starting initialization of matrix-free mapper..." << std::endl;
 
-        CreateListOfNodesInOriginModelPart();
         CreateFilterFunction();
-        InitializeMappingVariables();
-        AssignMappingIds();
-
-        CreateSearchTreeWithAllNodesInOriginModelPart();
 
         mIsMappingInitialized = true;
+
+        Update();
 
         KRATOS_INFO("ShapeOpt") << "Finished initialization of matrix-free mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
@@ -401,6 +398,9 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("ShapeOpt") << "Starting to update mapper..." << std::endl;
 
+        CreateListOfNodesInOriginModelPart();
+        InitializeMappingVariables();
+        AssignMappingIds();
         CreateSearchTreeWithAllNodesInOriginModelPart();
 
         KRATOS_INFO("ShapeOpt") << "Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
@@ -499,7 +499,7 @@ private:
     Parameters mMapperSettings;
     double mFilterRadius;
     unsigned int mMaxNumberOfNeighbors;
-    FilterFunction::Pointer mpFilterFunction;
+    FilterFunction::UniquePointer mpFilterFunction;
 
     // Variables for spatial search
     unsigned int mBucketSize = 100;
@@ -538,17 +538,23 @@ private:
         std::string filter_type = mMapperSettings["filter_function_type"].GetString();
         double filter_radius = mMapperSettings["filter_radius"].GetDouble();
 
-        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type, filter_radius));
+        mpFilterFunction = Kratos::make_unique<FilterFunction>(filter_type, filter_radius);
     }
 
     // --------------------------------------------------------------------------
     void InitializeMappingVariables()
     {
         const unsigned int origin_node_number = mrOriginModelPart.Nodes().size();
-        mValuesOrigin.resize(3,ZeroVector(origin_node_number));
+        mValuesOrigin.resize(3);
+        mValuesOrigin[0] = ZeroVector(origin_node_number);
+        mValuesOrigin[1] = ZeroVector(origin_node_number);
+        mValuesOrigin[2] = ZeroVector(origin_node_number);
 
         const unsigned int destination_node_number = mrDestinationModelPart.Nodes().size();
-        mValuesDestination.resize(3,ZeroVector(destination_node_number));
+        mValuesDestination.resize(3);
+        mValuesDestination[0] = ZeroVector(destination_node_number);
+        mValuesDestination[1] = ZeroVector(destination_node_number);
+        mValuesDestination[2] = ZeroVector(destination_node_number);
     }
 
     // --------------------------------------------------------------------------
@@ -589,7 +595,7 @@ private:
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            double weight = mpFilterFunction->compute_weight( design_node.Coordinates(), neighbor_node.Coordinates() );
+            double weight = mpFilterFunction->ComputeWeight( design_node.Coordinates(), neighbor_node.Coordinates() );
 
             list_of_weights[neighbor_itr] = weight;
             sum_of_weights += weight;

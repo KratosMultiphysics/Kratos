@@ -18,8 +18,7 @@ def SetTestSuite(suites):
 
      night_suite.addTests(
           KratosUnittest.TestLoader().loadTestsFromTestCases([
-               newtonian_sloshing_2D,
-               newtonian_sloshing_3D
+               newtonian_sloshing_2D
           ])
      )
 

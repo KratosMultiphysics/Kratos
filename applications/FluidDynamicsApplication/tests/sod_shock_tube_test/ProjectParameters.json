@@ -1,0 +1,80 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "sod_shock_tube",
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 0.2
+    },
+    "output_processes" : {
+        "gid_output" : []
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    },
+    "solver_settings": {
+        "solver_type": "CompressibleExplicit",
+        "model_part_name" : "FluidModelPart",
+        "domain_size"     : 2,
+        "model_import_settings"       : {
+            "input_type"     : "mdpa",
+            "input_filename" : "sod_shock_tube_geom_coarse"
+        },
+        "material_import_settings": {
+            "materials_filename": "FluidMaterials.json"
+        },
+        "volume_model_part_name"       : "FluidParts_Fluid",
+        "skin_parts"                   : ["NoSlip2D_Right","NoSlip2D_Left","Slip2D"],
+        "no_skin_parts"                : [],
+        "time_stepping"                : {
+            "time_step" : 0.005,
+            "automatic_time_step" : false
+        },
+        "use_oss" : false,
+        "shock_capturing" : true
+    },
+    "processes" : {
+        "initial_conditions_process_list"  : [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignScalarVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.FluidParts_Fluid",
+                "variable_name"   : "DENSITY",
+                "value"           : "1.0 if x < 0.5 else 0.125",
+                "constrained"     : false,
+                "interval"        : [0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignScalarVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.FluidParts_Fluid",
+                "variable_name"   : "TOTAL_ENERGY",
+                "value"           : "2.5 if x < 0.5 else 0.25",
+                "constrained"     : false,
+                "interval"        : [0.0,0.0]
+            }
+        }],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : [],
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.FluidParts_Fluid",
+                "variable_name"   : "MOMENTUM",
+                "value"           : [null,0.0,null],
+                "constrained"     : [false,true,false],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "gravity"                          : [],
+        "auxiliar_process_list"            : [],
+        "json_check_process_list"          : []
+    }
+}

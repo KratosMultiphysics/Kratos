@@ -45,9 +45,7 @@ ConstitutiveLaw::Pointer NewtonianTemperatureDependent2DLaw::Clone() const { ret
 NewtonianTemperatureDependent2DLaw::~NewtonianTemperatureDependent2DLaw() {}
 
 int NewtonianTemperatureDependent2DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-                          const ProcessInfo& rCurrentProcessInfo) {
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
-    KRATOS_CHECK_VARIABLE_KEY(BULK_MODULUS);
+                          const ProcessInfo& rCurrentProcessInfo) const {
 
     KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.0)
         << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for NewtonianTemperatureDependent2DLaw: "

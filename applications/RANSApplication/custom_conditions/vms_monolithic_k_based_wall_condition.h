@@ -178,9 +178,9 @@ public:
         return p_new_condition;
     }
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
@@ -219,7 +219,7 @@ protected:
     void ApplyWallLaw(
         MatrixType& rLocalMatrix,
         VectorType& rLocalVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
 

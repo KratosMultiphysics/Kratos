@@ -28,12 +28,6 @@ class AnalysisStage(object):
         self.model = model
         self.project_parameters = project_parameters
 
-        # We validate reinitilize settings
-        reinitialize_settings = self._GetReInitializeRequired()
-        if not self.project_parameters.Has("reinitialize_settings"):
-            self.project_parameters.AddEmptyValue("reinitialize_settings")
-        self.project_parameters["reinitialize_settings"].ValidateAndAssignDefaults(reinitialize_settings)
-
         ## Get echo level and parallel type
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
         self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
@@ -150,7 +144,7 @@ class AnalysisStage(object):
             self.ClearDatabase()
             self.ReInitializeSolver()
             self.InitializeSolutionStep()
-
+        
     def PrintAnalysisStageProgressInformation(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
@@ -217,14 +211,6 @@ class AnalysisStage(object):
         """this function is where the user could change material parameters as a part of the solution step """
         pass
 
-    def ClearDatabase(self):
-        """ This method clears the database in case it is necessary. For example it is used in the remeshing process when some specific modifications must be done in the database (i.e To reset a flag that affects the whole model part)
-
-            Keyword arguments:
-            self It signifies an instance of a class.
-        """
-        pass
-
     def ReInitializeSolver(self):
         """ This reinitializes the solver and the processes (used for example on remesh or on adaptive NR)
 
@@ -286,7 +272,7 @@ class AnalysisStage(object):
 
         # We reset the flags
         self._ResetModelIsModified()
-
+      
     def _GetReInitializeRequired(self):
         """ This returns the initilization requirement. By default only elements and conditions are initialized
 
@@ -308,7 +294,7 @@ class AnalysisStage(object):
         }""")
 
         return reinitialize_settings
-
+      
     def _GetSolver(self):
         if not hasattr(self, '_solver'):
             self._solver = self._CreateSolver()
@@ -455,6 +441,7 @@ class AnalysisStage(object):
     def __CheckIfSolveSolutionStepReturnsAValue(self, is_converged):
         """In case the solver does not return the state of convergence
         (same as the SolvingStrategy does) then issue ONCE a deprecation-warning
+
         """
         if is_converged is None:
             if not hasattr(self, '_map_ret_val_depr_warnings'):
@@ -466,7 +453,7 @@ class AnalysisStage(object):
                 warn_msg  = 'Solver "{}" does not return '.format(solver_class_name)
                 warn_msg += 'the state of convergence from "SolveSolutionStep"'
                 IssueDeprecationWarning("AnalysisStage", warn_msg)
-
+                
     def _CheckIfModelIsModified(self):
         """ This checks the flag MODIFIED in all the modelparts belonging to the analysis model. Returns true if at least one of the model parts is modified
             Keyword arguments:

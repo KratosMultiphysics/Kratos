@@ -52,7 +52,10 @@
                 "CONTROL_POINT_CHANGE"
             ],
             "output_format" : {
-                "name": "vtk"
+                "name": "vtk",
+                "vtk_parameters" : {
+                    "file_format" : "ascii"
+                }
             }
         }
     }

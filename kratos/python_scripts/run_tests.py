@@ -1,11 +1,9 @@
-from __future__ import print_function, absolute_import, division
-
 import os
 import re
 import sys
 import getopt
-import threading
 import subprocess
+
 from importlib import import_module
 
 import KratosMultiphysics as KtsMp
@@ -31,30 +29,12 @@ def Usage():
         KtsMp.Logger.PrintInfo(l) # using the logger to only print once in MPI
 
 
-def handler(signum, frame):
-    raise Exception("End of time")
-
-
 class Commander(object):
     def __init__(self):
         self.process = None
         self.exitCode = 0
 
-    def RunTestSuitInTime(self, application, applicationPath, path, level, verbose, command, timeout):
-        t = threading.Thread(
-            target=self.RunTestSuit,
-            args=(application, applicationPath, path, level, verbose, command)
-        )
-
-        t.start()
-        t.join(timeout)
-
-        if t.is_alive():
-            self.process.terminate()
-            t.join()
-            print('\n[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
-
-    def RunTestSuit(self, application, applicationPath, path, level, verbose, command):
+    def RunTestSuit(self, application, applicationPath, path, level, verbose, command, timer):
         ''' Calls the script that will run the tests.
 
         Input
@@ -131,11 +111,18 @@ class Commander(object):
                 else:
                     # Used instead of wait to "soft-block" the process and prevent deadlocks
                     # and capture the first exit code different from OK
-                    process_stdout, process_stderr = self.process.communicate()
-                    if process_stdout:
-                        print(process_stdout.decode('ascii'), file=sys.stdout)
-                    if process_stderr:
-                        print(process_stderr.decode('ascii'), file=sys.stderr)
+                    try:
+                        process_stdout, process_stderr = self.process.communicate(timeout=timer)
+                    except subprocess.TimeoutExpired:
+                        # Timeout reached
+                        self.process.kill()
+                        print('[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
+                        self.exitCode = 1
+                    else:
+                        if process_stdout:
+                            print(process_stdout.decode('ascii'), file=sys.stdout)
+                        if process_stderr:
+                            print(process_stderr.decode('ascii'), file=sys.stderr)
 
                     # Running out of time in the tests will send the error code -15. We may want to skip
                     # that one in a future. Right now will throw everything different from 0.
@@ -189,7 +176,6 @@ def print_summary(exit_codes):
     sys.stderr.flush()
 
 def main():
-
     # Define the command
     cmd = os.path.join(os.path.dirname(KtsUtls.GetKratosMultiphysicsPath()), 'runkratos')
 
@@ -291,7 +277,7 @@ def main():
     print_test_header("KratosCore")
 
     with KtsUt.SupressConsoleOutput():
-        commander.RunTestSuitInTime(
+        commander.RunTestSuit(
             'KratosCore',
             'kratos',
             os.path.dirname(KtsUtls.GetKratosMultiphysicsPath()),
@@ -309,7 +295,7 @@ def main():
         print_test_header(application)
 
         with KtsUt.SupressConsoleOutput():
-            commander.RunTestSuitInTime(
+            commander.RunTestSuit(
                 application,
                 application,
                 KtsMp.KratosPaths.kratos_applications+'/',

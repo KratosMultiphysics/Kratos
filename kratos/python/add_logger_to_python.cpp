@@ -15,7 +15,7 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "includes/data_communicator.h"
+#include "includes/parallel_environment.h"
 #include "input_output/logger.h"
 #include "input_output/file_logger_output.h"
 
@@ -31,7 +31,7 @@ const DataCommunicator& getDataCommunicator(pybind11::kwargs kwargs) {
         return r_data_communicator;
     }
     else {
-        return DataCommunicator::GetDefault();
+        return ParallelEnvironment::GetDefaultDataCommunicator();
     }
 }
 
@@ -183,6 +183,7 @@ void  AddLoggerToPython(pybind11::module& m) {
     logger_scope.def_static("Flush", Logger::Flush);
     logger_scope.def_static("GetDefaultOutput", &Logger::GetDefaultOutputInstance, py::return_value_policy::reference); //_internal )
     logger_scope.def_static("AddOutput", &Logger::AddOutput);
+    logger_scope.def_static("RemoveOutput", &Logger::RemoveOutput);
     ;
 
     // Enums for Severity

@@ -129,7 +129,7 @@ class TwoFluidInletTest(UnitTest.TestCase):
     def _check_results_serial( self ):
 
         model = self.simulation._GetSolver().GetComputingModelPart().GetModel()
-        inlet = model.GetModelPart("AutomaticInlet3D_Inlet")
+        inlet = model.GetModelPart("FluidModelPart.AutomaticInlet3D_Inlet")
 
         for node in inlet.Nodes:
 

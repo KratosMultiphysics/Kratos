@@ -43,7 +43,7 @@ namespace Kratos
         static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
 
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(EmpiricalSpringElement3D2N);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmpiricalSpringElement3D2N);
 
 
         typedef Element BaseType;
@@ -138,7 +138,9 @@ namespace Kratos
             MatrixType& rMassMatrix,
             const ProcessInfo& rCurrentProcessInfo) override;
 
-        void CalculateLumpedMassVector(VectorType& rMassVector);
+        void CalculateLumpedMassVector(
+            VectorType &rLumpedMassVector,
+            const ProcessInfo &rCurrentProcessInfo) const override;
 
         void CalculateDampingMatrix(MatrixType& rDampingMatrix,
             const ProcessInfo& rCurrentProcessInfo) override;
