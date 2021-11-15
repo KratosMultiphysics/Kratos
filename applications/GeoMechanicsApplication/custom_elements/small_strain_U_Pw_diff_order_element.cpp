@@ -36,7 +36,7 @@ SmallStrainUPwDiffOrderElement::
 //Constructor 2
 SmallStrainUPwDiffOrderElement::
     SmallStrainUPwDiffOrderElement( IndexType NewId,
-                                    GeometryType::Pointer pGeometry, 
+                                    GeometryType::Pointer pGeometry,
                                     PropertiesType::Pointer pProperties ) : Element( NewId, pGeometry, pProperties ) {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -44,8 +44,8 @@ SmallStrainUPwDiffOrderElement::
 SmallStrainUPwDiffOrderElement::~SmallStrainUPwDiffOrderElement() {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Element::Pointer SmallStrainUPwDiffOrderElement::Create( IndexType NewId, 
-                                                         NodesArrayType const& ThisNodes, 
+Element::Pointer SmallStrainUPwDiffOrderElement::Create( IndexType NewId,
+                                                         NodesArrayType const& ThisNodes,
                                                          PropertiesType::Pointer pProperties ) const
 {
     return Element::Pointer( new SmallStrainUPwDiffOrderElement( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
@@ -168,7 +168,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
     // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::Initialize()") << this->Id() << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& 
+    const GeometryType::IntegrationPointsArrayType&
         IntegrationPoints = rGeom.IntegrationPoints( this->GetIntegrationMethod() );
 
     if ( mConstitutiveLawVector.size() != IntegrationPoints.size() )
@@ -177,7 +177,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL ) {
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i ) {
             mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-            mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), 
+            mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(),
                                                            rGeom,
                                                            row(rGeom.ShapeFunctionsValues(this->GetIntegrationMethod()),i) );
         }
@@ -1199,12 +1199,12 @@ void SmallStrainUPwDiffOrderElement::
 
             Vector GradPressureTerm(Dim);
             noalias(GradPressureTerm)  =  prod(trans(Variables.DNp_DX), Variables.PressureVector);
-            noalias(GradPressureTerm) +=  PORE_PRESSURE_SIGN_FACTOR 
+            noalias(GradPressureTerm) +=  PORE_PRESSURE_SIGN_FACTOR
                                         * GetProperties()[DENSITY_WATER]
                                         * BodyAcceleration;
 
             Vector AuxFluidFlux = ZeroVector(Dim);
-            AuxFluidFlux =   PORE_PRESSURE_SIGN_FACTOR 
+            AuxFluidFlux =   PORE_PRESSURE_SIGN_FACTOR
                            * Variables.DynamicViscosityInverse
                            * RelativePermeability
                            * prod(Variables.IntrinsicPermeability, GradPressureTerm );
@@ -2056,7 +2056,7 @@ void SmallStrainUPwDiffOrderElement::
 
     for (unsigned int i=0; i < Dim; ++i) VoigtVector[i] = 1.0;
 
-    Matrix CouplingMatrix =   PORE_PRESSURE_SIGN_FACTOR 
+    Matrix CouplingMatrix =   PORE_PRESSURE_SIGN_FACTOR
                             * rVariables.BiotCoefficient
                             * rVariables.BishopCoefficient
                             * prod( trans(rVariables.B), Matrix(outer_prod(VoigtVector,rVariables.Np)) )
@@ -2099,7 +2099,7 @@ void SmallStrainUPwDiffOrderElement::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
-    CalculateAndAddCompressibilityMatrix( MatrixType& rLeftHandSideMatrix, 
+    CalculateAndAddCompressibilityMatrix( MatrixType& rLeftHandSideMatrix,
                                           ElementVariables& rVariables )
 {
     KRATOS_TRY
@@ -2136,7 +2136,7 @@ void SmallStrainUPwDiffOrderElement::
     KRATOS_TRY
     // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityMatrix") << std::endl;
 
-    Matrix PermeabilityMatrix = - PORE_PRESSURE_SIGN_FACTOR 
+    Matrix PermeabilityMatrix = - PORE_PRESSURE_SIGN_FACTOR
                                 * rVariables.DynamicViscosityInverse
                                 * rVariables.RelativePermeability
                                 * prod( rVariables.DNp_DX, Matrix( prod(rVariables.IntrinsicPermeability, trans(rVariables.DNp_DX)) ) )
@@ -2161,7 +2161,7 @@ void SmallStrainUPwDiffOrderElement::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
-    CalculateAndAddRHS( VectorType& rRightHandSideVector, 
+    CalculateAndAddRHS( VectorType& rRightHandSideVector,
                         ElementVariables& rVariables,
                         unsigned int GPoint )
 {
@@ -2189,7 +2189,7 @@ void SmallStrainUPwDiffOrderElement::
 
 //----------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
-    CalculateAndAddStiffnessForce( VectorType& rRightHandSideVector, 
+    CalculateAndAddStiffnessForce( VectorType& rRightHandSideVector,
                                    ElementVariables& rVariables,
                                    unsigned int GPoint )
 {
@@ -2287,7 +2287,7 @@ void SmallStrainUPwDiffOrderElement::
     Vector VoigtVector = ZeroVector(VoigtSize);
     for (SizeType idim=0; idim < Dim; ++idim)  VoigtVector[idim] = 1.0;
 
-    Matrix CouplingMatrix = - PORE_PRESSURE_SIGN_FACTOR 
+    Matrix CouplingMatrix = - PORE_PRESSURE_SIGN_FACTOR
                             * rVariables.BiotCoefficient
                             * rVariables.BishopCoefficient
                             * prod( trans(rVariables.B), Matrix( outer_prod(VoigtVector, rVariables.Np) ) )
@@ -2331,7 +2331,7 @@ void SmallStrainUPwDiffOrderElement::
     KRATOS_TRY
     // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow") << std::endl;
 
-    Matrix CompressibilityMatrix = - PORE_PRESSURE_SIGN_FACTOR 
+    Matrix CompressibilityMatrix = - PORE_PRESSURE_SIGN_FACTOR
                                    * rVariables.BiotModulusInverse
                                    * outer_prod(rVariables.Np, rVariables.Np)
                                    * rVariables.IntegrationCoefficient;
@@ -2361,7 +2361,7 @@ void SmallStrainUPwDiffOrderElement::
     KRATOS_TRY
     // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow") << std::endl;
 
-    Matrix PermeabilityMatrix = - PORE_PRESSURE_SIGN_FACTOR 
+    Matrix PermeabilityMatrix = - PORE_PRESSURE_SIGN_FACTOR
                                 * rVariables.DynamicViscosityInverse
                                 * rVariables.RelativePermeability
                                 * prod( rVariables.DNp_DX, Matrix( prod(rVariables.IntrinsicPermeability, trans(rVariables.DNp_DX)) ) )
@@ -2425,7 +2425,7 @@ void SmallStrainUPwDiffOrderElement::
 GeometryData::IntegrationMethod
     SmallStrainUPwDiffOrderElement::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 //----------------------------------------------------------------------------------------

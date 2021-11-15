@@ -340,7 +340,7 @@ private:
         if (mThermalSensor || mShearSensor) {
             // Calculate Jacobian matrix (non-required for the shock sensor)
             Matrix mid_pt_jacobian; //FIXME: We should use a bounded matrix in here
-            r_geom.Jacobian(mid_pt_jacobian, 0, GeometryData::GI_GAUSS_1);
+            r_geom.Jacobian(mid_pt_jacobian, 0, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             // Thermal sensor values
             if (mThermalSensor) {

@@ -13,11 +13,6 @@ namespace Kratos {
         return Kratos::make_unique<DEM_D_Linear_HighStiffness>();
     }
 
-    void DEM_D_Linear_HighStiffness::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Linear_HighStiffness to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }
-
     void DEM_D_Linear_HighStiffness::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
         DEM_D_Linear_viscous_Coulomb::InitializeContact(element1, element2, indentation);
         const double kn_augmenter = 5.0;

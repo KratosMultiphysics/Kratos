@@ -18,7 +18,7 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwBaseElement<TDim,TNumNodes>::Create(IndexType NewId, 
+Element::Pointer UPwBaseElement<TDim,TNumNodes>::Create(IndexType NewId,
                                                     NodesArrayType const& ThisNodes,
                                                     PropertiesType::Pointer pProperties) const
 {
@@ -259,7 +259,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 GeometryData::IntegrationMethod UPwBaseElement<TDim,TNumNodes>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 //----------------------------------------------------------------------------------------

@@ -156,7 +156,7 @@ void SmallDisplacementMixedVolumetricStrainElement::Initialize(const ProcessInfo
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         // Integration method initialization
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
         const auto& r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
         // Constitutive Law Vector initialisation
