@@ -133,13 +133,10 @@ void DepthIntegrationProcess::InitializeIntegrationModelPart()
     mpIntegrationModelPart->RemoveElementsFromAllLevels();
     mpIntegrationModelPart->RemoveConditionsFromAllLevels();
 
-    // Add a dummy node in order to allow the generation of the octree
-    if (mrVolumeModelPart.NumberOfNodes() > 0) {
-        auto i_node = mrVolumeModelPart.NodesBegin();
-        mpIntegrationModelPart->AddNode(&*i_node);
-    } else {
-        KRATOS_ERROR << "DepthIntegrationProcess: The volume model part is empty." << std::endl;
-    }
+    // Check the volume model part is non empty and there is almost one node in the integration model part.
+    // The generation of the octree needs non empty model parts.
+    mpIntegrationModelPart->CreateNewNode(1, 0.0, 0.0, 0.0);
+    KRATOS_ERROR_IF(mrVolumeModelPart.NumberOfNodes() == 0) << "DepthIntegrationProcess: The volume model part is empty." << std::endl;
 }
 
 void DepthIntegrationProcess::InitializeIntegrationLine()
