@@ -43,7 +43,7 @@ namespace Kratos
  * - static const MatrixType() GenerateRKMatrix
  * - static const VectorType() GenerateWeights
  * - static const VectorType() GenerateNodes
- * - std::string Name() const
+ * - static std::string Name()
  */
 template<unsigned int TOrder, typename ChildClass>
 class ButcherTableau
@@ -70,7 +70,10 @@ public:
         return mC(SubStepIndex);
     }
 
-    virtual std::string Name() const = 0;
+    static std::string Name()
+    {
+        return ChildClass::Name();
+    }
 
 protected:
     const MatrixType mA = ChildClass::GenerateRKMatrix();   // Runge-Kutta matrix
@@ -102,7 +105,7 @@ public:
         return C;
     }
 
-    std::string Name() const override
+    static std::string Name()
     {
         return "ButcherTableauForwardEuler";
     }
@@ -135,7 +138,7 @@ public:
         return C;
     }
 
-    std::string Name() const override
+    static std::string Name()
     {
         return "ButcherTableauMidPointMethod";
     }
@@ -177,7 +180,7 @@ public:
         return C;
     }
 
-    std::string Name() const override
+    static std::string Name()
     {
         return "ButcherTableauRK3TVD";
     }
@@ -216,7 +219,7 @@ public:
         return C;
     }
 
-    std::string Name() const override
+    static std::string Name()
     {
         return "ButcherTableauRK4";
     }
@@ -375,7 +378,10 @@ public:
      */
     static std::string Name()
     {
-        return "explicit_solving_strategy_runge_kutta";
+        std::stringstream s;
+        s << "explicit_solving_strategy_runge_kutta"
+          << "[TButcherTableau=" << TButcherTableau::Name() << "]";
+        return s.str();
     }
 
     ///@}
