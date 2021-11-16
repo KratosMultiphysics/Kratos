@@ -23,7 +23,7 @@
 #include "includes/define.h"
 #include "includes/global_variables.h"
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/parallel_utilities.h"
