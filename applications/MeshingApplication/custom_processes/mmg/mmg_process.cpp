@@ -1285,7 +1285,7 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
         {
             "isosurface_variable"              : "DISTANCE",
             "nonhistorical_variable"           : false,
-            "use_metric_field"                 : true,
+            "use_metric_field"                 : false,
             "remove_internal_regions"          : false
         },
         "framework"                            : "Eulerian",
