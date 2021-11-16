@@ -124,7 +124,7 @@ public:
     };
 
     /// The definition of the lambdas to compute implicitly the threshold
-    typedef std::function<double(const double, const double, const Properties &, const PlasticDamageParameters &)> ResidualFunctionType;
+    typedef std::function<double(const double, const double, ConstitutiveLaw::Parameters& , PlasticDamageParameters &)> ResidualFunctionType;
 
     ///@name Lyfe Cycle
     ///@{
@@ -714,7 +714,7 @@ public:
             0.99999 : rPDParameters.TotalDissipation;
     }
 
-    double CalculateVolumetricFractureEnergy( // g_F
+    static double CalculateVolumetricFractureEnergy( // g_F
         const Properties& rMaterialProperties,
         PlasticDamageParameters &rPDParameters
         );
@@ -724,15 +724,15 @@ public:
         PlasticDamageParameters &rParam);
 
     double CalculateThresholdImplicitExpression(
-        std::function<double(const double, const double, const Properties &, const PlasticDamageParameters &rPDParameters)> &rF,
-        std::function<double(const double, const double, const Properties &, const PlasticDamageParameters &rPDParameters)> &rdF_dk,
-        const Properties &rMatProps,
-        const PlasticDamageParameters &rPDParameters);
+        ResidualFunctionType &rF,
+        ResidualFunctionType &rdF_dk,
+        ConstitutiveLaw::Parameters &rValues,
+        PlasticDamageParameters &rPDParameters);
 
     double CalculateSlopeFiniteDifferences(
-        std::function<double(const double, const double, const Properties &, const PlasticDamageParameters &rPDParameters)> &rF,
-        std::function<double(const double, const double, const Properties&, const PlasticDamageParameters &rPDParameters)>& rdF_dk,
-        const Properties &rMatProps,
+        ResidualFunctionType &rF,
+        ResidualFunctionType &rdF_dk,
+        ConstitutiveLaw::Parameters &rValues,
         PlasticDamageParameters &rPDParameters);
 
 protected:
