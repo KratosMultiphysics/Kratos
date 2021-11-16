@@ -120,10 +120,10 @@ namespace Testing
         ModelPart& r_model_part = current_model.CreateModelPart("TestModelPart");
 
         // Set the test model part
-        constexpr double delta_time = 0.01; // Set time step. Must be small to preserve stabillity for low order methods
+        constexpr double delta_time = 0.01; // Set time step. Must be small to preserve stability for low order methods
         GenerateTestExplicitStrategiesModelPart(r_model_part); // Create the geometry
 
-        // Create the RK4 explicit strategy
+        // Create the explicit strategy
         const bool move_mesh_flag = false;
         const unsigned int rebuild_level = 0;
         auto p_explicit_bs = Kratos::make_shared<ExplicitBuilderType>();
@@ -143,7 +143,7 @@ namespace Testing
         p_explicit_strategy->InitializeSolutionStep();
         p_explicit_strategy->SolveSolutionStep();
         p_explicit_strategy->FinalizeSolutionStep();
-        
+
         constexpr double analytical_1 = (37.5 / 3.5) + (50 - 37.5/3.5) * std::exp(- 3.5 * delta_time);
         KRATOS_CHECK_NEAR(p_test_node->FastGetSolutionStepValue(TEMPERATURE), analytical_1, tolerance);
         // 2nd step
@@ -151,7 +151,7 @@ namespace Testing
         p_explicit_strategy->InitializeSolutionStep();
         p_explicit_strategy->SolveSolutionStep();
         p_explicit_strategy->FinalizeSolutionStep();
-        
+
         constexpr double analytical_2 = (37.5 / 3.5) + (50 - 37.5/3.5) * std::exp(- 3.5 * 2.0 * delta_time);
         KRATOS_CHECK_NEAR(p_test_node->FastGetSolutionStepValue(TEMPERATURE), analytical_2, tolerance);
     }
