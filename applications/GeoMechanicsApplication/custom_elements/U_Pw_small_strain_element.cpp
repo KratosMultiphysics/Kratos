@@ -1849,26 +1849,13 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                                   InvJ,
                                                   GPoint);
 
-
-#ifdef KRATOS_COMPILED_IN_WINDOWS
-    if (detJ < 0.0) {
-        KRATOS_INFO("negative detJ")
+    KRATOS_ERROR_IF(detJ < 0.0)
         << "ERROR:: ELEMENT ID: "
         << this->Id()
         << " INVERTED. DETJ: "
         << detJ
         << " nodes:" << this->GetGeometry()
         << std::endl;
-    }
-#endif
-
-    KRATOS_ERROR_IF(detJ < 0.0)
-     << "ERROR:: ELEMENT ID: "
-     << this->Id()
-     << " INVERTED. DETJ: "
-     << detJ
-     << std::endl;
-
 
     // Deformation gradient
     noalias(rVariables.F) = prod( J, InvJ0 );
