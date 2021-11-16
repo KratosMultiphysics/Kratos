@@ -39,21 +39,25 @@ namespace Kratos
  * Contains all info necessary of a particular RK method.
  * It specifies the coefficients of the particular Runge-Kutta method.
  *
+ * @tparam: ChildClass: Achild class that must contain the methods specified below.
+ * @tparam: TOrder: The order of integration.
+ * @tparam: TOrder: The number of sub-steps.
+ *
  * Child class must provide methods:
  * - static const MatrixType() GenerateRKMatrix
  * - static const VectorType() GenerateWeights
  * - static const VectorType() GenerateNodes
  * - static std::string Name()
  */
-template<unsigned int TOrder, typename ChildClass>
+template<typename ChildClass, unsigned int TOrder, unsigned int TSize>
 class ButcherTableau
 {
 public:
-    typedef BoundedMatrix<double, TOrder-1, TOrder-1> MatrixType;
-    typedef array_1d<double, TOrder> VectorType;
+    static constexpr unsigned int Order() {return TOrder;}
+    static constexpr unsigned int Size() {return TSize; }
 
-    constexpr unsigned int Order() const {return TOrder;}
-    constexpr unsigned int Size() const {return TOrder-1;}
+    typedef BoundedMatrix<double, Size(), Size()> MatrixType;
+    typedef array_1d<double, Size()+1> VectorType;
 
     constexpr MatrixRow<const MatrixType> GetRKMatrixRow(const unsigned int SubStepIndex) const
     {
@@ -82,12 +86,13 @@ protected:
 };
 
 
-class ButcherTableauForwardEuler : public ButcherTableau<1, ButcherTableauForwardEuler>
+class ButcherTableauForwardEuler : public ButcherTableau<ButcherTableauForwardEuler, 1, 1>
 {
 public:
+
     static const MatrixType GenerateRKMatrix()
     {
-        return MatrixType(0, 0);
+        return MatrixType(Size()-1, Size()-1);
     }
 
     static const VectorType GenerateWeights()
@@ -111,12 +116,13 @@ public:
 };
 
 
-class ButcherTableauMidPointMethod : public ButcherTableau<2, ButcherTableauMidPointMethod>
+class ButcherTableauMidPointMethod : public ButcherTableau<ButcherTableauMidPointMethod, 2, 2>
 {
 public:
+
     static const MatrixType GenerateRKMatrix()
     {
-        MatrixType A(1,1);
+        MatrixType A(Size()-1, Size()-1);
         A(0,0) = 0.5;
         return A;
     }
@@ -149,9 +155,10 @@ public:
  * Gottlieb, Sigal, and Chi-Wang Shu. "Total variation diminishing Runge-Kutta schemes."
  * Mathematics of computation 67.221 (1998): 73-85.
  */
-class ButcherTableauRK3TVD : public ButcherTableau<3, ButcherTableauRK3TVD>
+class ButcherTableauRK3TVD : public ButcherTableau<ButcherTableauRK3TVD, 3, 3>
 {
 public:
+
     static const MatrixType GenerateRKMatrix()
     {
         MatrixType A;
@@ -187,12 +194,12 @@ public:
 };
 
 
-class ButcherTableauRK4 : public ButcherTableau<4, ButcherTableauRK4>
+class ButcherTableauRK4 : public ButcherTableau<ButcherTableauRK4, 4, 4>
 {
 public:
     static const MatrixType GenerateRKMatrix()
     {
-        MatrixType A = ZeroMatrix(3, 3);
+        MatrixType A = ZeroMatrix(Size(), Size());
         A(0,0) = 0.5;
         A(1,1) = 0.5;
         A(2,2) = 1.0;
@@ -393,6 +400,10 @@ public:
     ///@name Operations
     ///@{
 
+    static constexpr unsigned int Order()
+    {
+        return TButcherTableau::Order();
+    }
 
     ///@}
     ///@name Input and output
@@ -471,7 +482,7 @@ protected:
         );
 
         // Calculate the RK3 intermediate sub steps
-        for(unsigned int i=1; i<mButcherTableau.Order(); ++i)
+        for(unsigned int i=1; i<mButcherTableau.Size(); ++i)
         {
             PerformRungeKuttaIntermediateSubStep(i, u_n, rk_K);
         }
