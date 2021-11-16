@@ -41,7 +41,7 @@ namespace Kratos
  *
  * @tparam: Derived: A derived class that must contain the methods specified below.
  * @tparam: TOrder:  The order of integration.
- * @tparam: TOrder:  The number of sub-steps.
+ * @tparam: TSize:   The number of sub-steps.
  *
  * Child class must provide methods:
  * - static const MatrixType GenerateRKMatrix() -> Provides coefficients a_ij
@@ -56,8 +56,8 @@ public:
     static constexpr unsigned int Order() {return TOrder;}
     static constexpr unsigned int Size() {return TSize; }
 
-    typedef BoundedMatrix<double, Size(), Size()> MatrixType;
-    typedef array_1d<double, Size()+1> VectorType;
+    typedef BoundedMatrix<double, Size()-1, Size()-1> MatrixType;
+    typedef array_1d<double, Size()> VectorType;
 
     constexpr MatrixRow<const MatrixType> GetRKMatrixRow(const unsigned int SubStepIndex) const
     {
