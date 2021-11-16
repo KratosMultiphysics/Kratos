@@ -30,12 +30,7 @@ def _GetPostFilesList(directory):
 
 
 def _IsGiDFile(file_name):
-    if file_name.endswith(_binary_extension):
-        return True
-    elif file_name.endswith(_ascii_extension):
-        return True
-    else:
-        return False
+    return file_name.endswith(_binary_extension) or file_name.endswith(_ascii_extension)
 
 
 def _CheckFileName(file_name):
