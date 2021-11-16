@@ -54,13 +54,30 @@ class RigidBodySolverWrapper(CoSimulationSolverWrapper):
         # making sure only a set of vaiables can be used
         admissible_variables = [
             "ROOT_POINT_DISPLACEMENT",
+            "ROOT_POINT_DISPLACEMENT_X",
+            "ROOT_POINT_DISPLACEMENT_Y",
+            "ROOT_POINT_DISPLACEMENT_Z",
             "ROOT_POINT_ROTATION",
             "FORCE",
+            "FORCE_X",
+            "FORCE_Y",
+            "FORCE_Z",
             "MOMENT",
             "DISPLACEMENT",
+            "DISPLACEMENT_X",
+            "DISPLACEMENT_Y",
+            "DISPLACEMENT_Z",
             "ROTATION",
             "REACTION",
-            "REACTION_MOMENT"
+            "REACTION_X",
+            "REACTION_Y",
+            "REACTION_Z",
+            "REACTION_MOMENT",
+            
+            
+
+
+
         ]
         for data in self.data_dict.values():
             if data.variable.Name() not in admissible_variables:
