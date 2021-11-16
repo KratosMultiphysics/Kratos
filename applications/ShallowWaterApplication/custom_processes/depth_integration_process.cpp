@@ -187,7 +187,7 @@ void DepthIntegrationProcess::CreateIntegrationLines(const double Low, const dou
 void DepthIntegrationProcess::Integrate(std::vector<PointerVector<GeometricalObject>>& rResults)
 {
     KRATOS_ERROR_IF(rResults.size() != mrInterfaceModelPart.NumberOfNodes()) << "DepthIntegrationProcess: the number of nodes in the interface and the number of integration lines mismatch.";
-    IndexPartition<int>(static_cast<int>(rResults.size())).for_each([&](int i){
+    IndexPartition<int>(static_cast<int>(rResults.size())).for_each([&](int i) {
         auto& objects_in_line = rResults[i];
         auto i_node = mrInterfaceModelPart.NodesBegin() + i;
         Integrate(objects_in_line, *i_node);
