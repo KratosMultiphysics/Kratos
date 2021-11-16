@@ -4,7 +4,7 @@ _list_extension = ".post.lst"
 _ascii_extension = ".post.res"
 _binary_extension = ".post.bin"
 
-def GenerateGiDListFile(first_dir = None, other_dirs = [], file_name = None):
+def GenerateGiDListFile(first_dir = "", other_dirs = [], file_name = ""):
     first_dir = _CheckDirectory(first_dir)
     files = _GetPostFilesList(first_dir)
     for dir in other_dirs:
