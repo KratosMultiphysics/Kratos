@@ -204,10 +204,11 @@ void MmgProcess<TMMGLibrary>::ExecuteInitializeSolutionStep()
     // We retrieve the data form the Kratos model part to fill sol
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         InitializeSolDataDistance();
-    } else {
-        if (!optimization_mode) {
-            InitializeSolDataMetric();
-        }
+    }
+
+    // We load the metric field, unless optimization mode is enabled.
+    if (!optimization_mode) {
+        InitializeSolDataMetric();
     }
 
     // We set the displacement vector
@@ -370,8 +371,14 @@ void MmgProcess<TMMGLibrary>::InitializeSolDataMetric()
 {
     KRATOS_TRY;
 
-    // We initialize the solution data with the given modelpart
-    mMmgUtilities.GenerateSolDataFromModelPart(mrThisModelPart);
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        // This will only run for version >= 5.5
+        mMmgUtilities.GenerateIsosurfaceMetricDataFromModelPart(mrThisModelPart);
+    } else {
+        // We initialize the solution data with the given modelpart
+        mMmgUtilities.GenerateSolDataFromModelPart(mrThisModelPart);
+    }
+
 
     KRATOS_CATCH("");
 }
