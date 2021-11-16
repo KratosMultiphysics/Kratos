@@ -51,7 +51,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MapperUtilities_ComputeGlobalBoundingBox_d
 
     KRATOS_CHECK_EQUAL(bbox.size(), 6);
     for (std::size_t i=0; i<6; ++i){
-        KRATOS_CHECK_DOUBLE_EQUAL(bbox[i], exp_bbox[i]);
+        KRATOS_CHECK_NEAR(bbox[i], exp_bbox[i], 1e-12);
     }
 }
 

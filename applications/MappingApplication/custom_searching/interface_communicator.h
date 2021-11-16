@@ -153,7 +153,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ConductLocalSearch(const Communicator& rComm);
+    void ConductLocalSearch();
 
     void CreateInterfaceObjectsOrigin(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
@@ -162,8 +162,7 @@ private:
     void InitializeBinsSearchStructure();
 
     // this function performs the search and the exchange of the data on the interface
-    void ConductSearchIteration(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                                const Communicator& rComm);
+    void ConductSearchIteration(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
     bool AllNeighborsFound(const Communicator& rComm) const;
 

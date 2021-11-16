@@ -157,7 +157,7 @@ void StokesWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLoc
 {
     const unsigned int LocalSize = TDim+1;
     const GeometryType& rGeom = this->GetGeometry();
-    const GeometryData::IntegrationMethod integration_method = static_cast<GeometryData::IntegrationMethod> (GeometryData::GI_GAUSS_2);
+    const GeometryData::IntegrationMethod integration_method = static_cast<GeometryData::IntegrationMethod> (GeometryData::IntegrationMethod::GI_GAUSS_2);
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(integration_method);
     const unsigned int NumGauss = IntegrationPoints.size();
     Vector gauss_pts_J_det = ZeroVector(NumGauss);

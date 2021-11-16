@@ -20,13 +20,8 @@ namespace Kratos {
 
 		KRATOS_CLASS_POINTER_DEFINITION(DEM_sintering_continuum);
 
-		DEM_sintering_continuum() {
-		}
-
-		void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
-		~DEM_sintering_continuum() {
-		}
+		DEM_sintering_continuum() {}
+		~DEM_sintering_continuum() {}
 
 		DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 

@@ -19,7 +19,7 @@
 /* External includes */
 
 /* Project includes */
-#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta.h"
 #include "includes/convection_diffusion_settings.h"
 
 namespace Kratos

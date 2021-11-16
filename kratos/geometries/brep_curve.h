@@ -369,6 +369,10 @@ public:
         return rResult;
     }
 
+    ///@}
+    ///@name Geometry Classification
+    ///@{
+
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Brep;
@@ -478,7 +482,7 @@ template<class TContainerPointType, class TContainerPointEmbeddedType = TContain
 template<class TContainerPointType, class TContainerPointEmbeddedType> const
 GeometryData BrepCurve<TContainerPointType, TContainerPointEmbeddedType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
 
 template<class TContainerPointType, class TContainerPointEmbeddedType>

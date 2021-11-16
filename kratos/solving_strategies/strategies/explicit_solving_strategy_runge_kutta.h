@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Eduard Gómez
+//  Main authors:    Ruben Zorrilla
 //
 //
 
@@ -35,57 +35,64 @@ namespace Kratos
 ///@{
 
 /** @brief Butcher tableau for Runge-Kutta method.
- * 
+ *
  * Contains all info necessary of a particular RK method.
  * It specifies the coefficients of the particular Runge-Kutta method.
  *
+ * @tparam: Derived: A derived class that must contain the methods specified below.
+ * @tparam: TOrder:  The order of integration.
+ * @tparam: TSize:   The number of sub-steps.
+ *
  * Child class must provide methods:
- * - static const MatrixType() GenerateRKMatrix
- * - static const VectorType() GenerateWeights
- * - static const VectorType() GenerateNodes
- * - std::string Name() const
+ * - static const MatrixType GenerateRKMatrix() -> Provides coefficients a_ij
+ * - static const VectorType GenerateWeights()  -> Provides coefficients b_i
+ * - static const VectorType GenerateNodes()    -> Provides coefficients c_i
+ * - static std::string Name()
  */
-template<unsigned int TOrder, typename ChildClass>
+template<typename Derived, unsigned int TOrder, unsigned int TSize>
 class ButcherTableau
 {
 public:
-    typedef BoundedMatrix<double, TOrder-1, TOrder-1> MatrixType;
-    typedef array_1d<double, TOrder> VectorType;
+    static constexpr unsigned int Order() {return TOrder;}
+    static constexpr unsigned int Size() {return TSize; }
 
-    constexpr unsigned int Order() {return TOrder;}
-    constexpr unsigned int Size() {return TOrder-1;}
-    
-    constexpr MatrixRow<const MatrixType> GetRKMatrixRow(const unsigned int SubStepIndex)
+    typedef BoundedMatrix<double, Size()-1, Size()-1> MatrixType;
+    typedef array_1d<double, Size()> VectorType;
+
+    constexpr MatrixRow<const MatrixType> GetRKMatrixRow(const unsigned int SubStepIndex) const
     {
         return row(mA, SubStepIndex-1);
     }
 
-    constexpr const VectorType& GetWeights()
+    constexpr const VectorType& GetWeights() const
     {
         return mB;
     }
 
-    constexpr double GetNode(const unsigned int SubStepIndex)
+    constexpr double GetNode(const unsigned int SubStepIndex) const
     {
         return mC(SubStepIndex);
     }
 
-    virtual std::string Name() const = 0;
+    static std::string Name()
+    {
+        return Derived::Name();
+    }
 
 protected:
-    const MatrixType mA = ChildClass::GenerateRKMatrix();   // Runge-Kutta matrix
-    const VectorType mB = ChildClass::GenerateWeights();    // Weights vector
-    const VectorType mC = ChildClass::GenerateNodes();      // Nodes vector
+    const MatrixType mA = Derived::GenerateRKMatrix();   // Runge-Kutta matrix
+    const VectorType mB = Derived::GenerateWeights();    // Weights vector
+    const VectorType mC = Derived::GenerateNodes();      // Nodes vector
 };
 
 
-class ButcherTableauForwardEuler : public ButcherTableau<1, ButcherTableauForwardEuler>
+class ButcherTableauForwardEuler : public ButcherTableau<ButcherTableauForwardEuler, 1, 1>
 {
 public:
+
     static const MatrixType GenerateRKMatrix()
     {
-        MatrixType A = ZeroMatrix(0, 0);
-        return A;
+        return MatrixType(Size()-1, Size()-1);
     }
 
     static const VectorType GenerateWeights()
@@ -102,19 +109,20 @@ public:
         return C;
     }
 
-    std::string Name() const override
+    static std::string Name()
     {
         return "ButcherTableauForwardEuler";
     }
 };
 
 
-class ButcherTableauMidPointMethod : public ButcherTableau<2, ButcherTableauMidPointMethod>
+class ButcherTableauMidPointMethod : public ButcherTableau<ButcherTableauMidPointMethod, 2, 2>
 {
 public:
+
     static const MatrixType GenerateRKMatrix()
     {
-        MatrixType A = ZeroMatrix(1, 1);
+        MatrixType A(Size()-1, Size()-1);
         A(0,0) = 0.5;
         return A;
     }
@@ -135,7 +143,7 @@ public:
         return C;
     }
 
-    std::string Name() const override
+    static std::string Name()
     {
         return "ButcherTableauMidPointMethod";
     }
@@ -147,14 +155,16 @@ public:
  * Gottlieb, Sigal, and Chi-Wang Shu. "Total variation diminishing Runge-Kutta schemes."
  * Mathematics of computation 67.221 (1998): 73-85.
  */
-class ButcherTableauRK3TVD : public ButcherTableau<3, ButcherTableauRK3TVD>
+class ButcherTableauRK3TVD : public ButcherTableau<ButcherTableauRK3TVD, 3, 3>
 {
 public:
+
     static const MatrixType GenerateRKMatrix()
     {
-        MatrixType A = ZeroMatrix(2, 2);
+        MatrixType A;
         A(0,0) = 1;
         A(1,0) = 0.25;
+        A(0,1) = 0.0;
         A(1,1) = 0.25;
         return A;
     }
@@ -177,19 +187,19 @@ public:
         return C;
     }
 
-    std::string Name() const override
+    static std::string Name()
     {
         return "ButcherTableauRK3TVD";
     }
 };
 
 
-class ButcherTableauRK4 : public ButcherTableau<4, ButcherTableauRK4>
+class ButcherTableauRK4 : public ButcherTableau<ButcherTableauRK4, 4, 4>
 {
 public:
     static const MatrixType GenerateRKMatrix()
     {
-        MatrixType A = ZeroMatrix(3, 3);
+        MatrixType A = ZeroMatrix(Size()-1, Size()-1);
         A(0,0) = 0.5;
         A(1,1) = 0.5;
         A(2,2) = 1.0;
@@ -216,7 +226,7 @@ public:
         return C;
     }
 
-    std::string Name() const override
+    static std::string Name()
     {
         return "ButcherTableauRK4";
     }
@@ -234,18 +244,18 @@ public:
 ///@name Kratos Classes
 ///@{
 
-/** 
- * 
+/**
+ *
  * Formulation: for i = 0...N substeps
  *
  * - The diferential equation is u_t = f(t, u)
- * 
+ *
  * The Runge-Kutta method is:
  * - k^(i) = f(t + c_i*dt, u^(i-1))             -> Where u^(0) := u^n
  * - u^(i) = u^n + \sum_{j=1}^i A_{ij} k^(j)    -> Intermediate steps. u^(N) is not needed, therefore neither is A[N, :]
  * - u^{n+1} = u^n + \sum_{i} B_{i} k(u^(i))    -> Solution
  *
- * 
+ *
  */
 template <class TSparseSpace, class TDenseSpace, class TButcherTableau>
 class ExplicitSolvingStrategyRungeKutta : public ExplicitSolvingStrategy<TSparseSpace, TDenseSpace>
@@ -375,7 +385,10 @@ public:
      */
     static std::string Name()
     {
-        return "explicit_solving_strategy_runge_kutta";
+        std::stringstream s;
+        s << "explicit_solving_strategy_runge_kutta"
+          << "[TButcherTableau=" << TButcherTableau::Name() << "]";
+        return s.str();
     }
 
     ///@}
@@ -387,6 +400,10 @@ public:
     ///@name Operations
     ///@{
 
+    static constexpr unsigned int Order()
+    {
+        return TButcherTableau::Order();
+    }
 
     ///@}
     ///@name Input and output
@@ -443,7 +460,7 @@ protected:
 
         // Set the auxiliary RK vectors
         LocalSystemVectorType u_n(dof_size); // TODO: THIS IS INEFICCIENT. CREATE A UNORDERED_SET WITH THE IDOF AND VALUE AS ENTRIES. THIS HAS TO BE OPTIONAL
-        LocalSystemMatrixType rk_K(dof_size, mButcherTableau.Order());
+        LocalSystemMatrixType rk_K(dof_size, mButcherTableau.Size());
 
         // Perform the RK 3 update
         const double dt = BaseType::GetDeltaTime();
@@ -465,7 +482,7 @@ protected:
         );
 
         // Calculate the RK3 intermediate sub steps
-        for(unsigned int i=1; i<mButcherTableau.Order(); ++i)
+        for(unsigned int i=1; i<mButcherTableau.Size(); ++i)
         {
             PerformRungeKuttaIntermediateSubStep(i, u_n, rk_K);
         }
@@ -596,7 +613,7 @@ protected:
                 const auto it_dof = r_dof_set.begin() + i_dof;
                 // Save current value in the corresponding vector
                 const double& r_res = it_dof->GetSolutionStepReactionValue();
-                rLastStepResidualVector(i_dof, mButcherTableau.Order() - 1) = r_res;
+                rLastStepResidualVector(i_dof, mButcherTableau.Size() - 1) = r_res;
             }
         );
 
