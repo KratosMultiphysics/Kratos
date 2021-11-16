@@ -99,27 +99,33 @@ void DepthIntegrationProcess::Execute()
 void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjects, NodeType& rNode)
 {
     array_1d<double,3> velocity = ZeroVector(3);
-    double min_elevation = 1e6;
-    double max_elevation = -1e6;
-    int num_nodes = 0;
-    for (auto& object : rObjects) {
-        array_1d<double,3> obj_velocity = ZeroVector(3);
-        double obj_min_elevation = 1e6;
-        double obj_max_elevation = -1e6;
-        int obj_num_nodes = object.GetGeometry().size();
-        for (auto& node : object.GetGeometry()) {
-            velocity += node.FastGetSolutionStepValue(VELOCITY);
-            obj_min_elevation = std::min(obj_min_elevation, inner_prod(mDirection, node));
-            obj_max_elevation = std::max(obj_max_elevation, inner_prod(mDirection, node));
+    array_1d<double,3> momentum = ZeroVector(3);
+    double height = 0.0;
+    
+    if (rObjects.size() > 0)
+    {
+        double min_elevation = 1e6;
+        double max_elevation = -1e6;
+        int num_nodes = 0;
+        for (auto& object : rObjects) {
+            array_1d<double,3> obj_velocity = ZeroVector(3);
+            double obj_min_elevation = 1e6;
+            double obj_max_elevation = -1e6;
+            int obj_num_nodes = object.GetGeometry().size();
+            for (auto& node : object.GetGeometry()) {
+                velocity += node.FastGetSolutionStepValue(VELOCITY);
+                obj_min_elevation = std::min(obj_min_elevation, inner_prod(mDirection, node));
+                obj_max_elevation = std::max(obj_max_elevation, inner_prod(mDirection, node));
+            }
+            velocity += obj_velocity;
+            min_elevation = std::min(min_elevation, obj_min_elevation);
+            max_elevation = std::max(max_elevation, obj_max_elevation);
+            num_nodes += obj_num_nodes;
         }
-        velocity += obj_velocity;
-        min_elevation = std::min(min_elevation, obj_min_elevation);
-        max_elevation = std::max(max_elevation, obj_max_elevation);
-        num_nodes += obj_num_nodes;
+        velocity /= num_nodes;
+        height = max_elevation - min_elevation;
+        momentum = height*velocity;
     }
-    velocity /= num_nodes;
-    double height = max_elevation - min_elevation;
-    const array_1d<double,3> momentum = height*velocity;
     SetValue(rNode, MOMENTUM, momentum);
     SetValue(rNode, VELOCITY, velocity);
     SetValue(rNode, HEIGHT, height);
@@ -180,7 +186,7 @@ void DepthIntegrationProcess::CreateIntegrationLines(const double Low, const dou
 
 void DepthIntegrationProcess::Integrate(std::vector<PointerVector<GeometricalObject>>& rResults)
 {
-    KRATOS_ERROR_IF(rResults.size() != mrInterfaceModelPart.NumberOfElements()) << "DepthIntegrationProcess: the number of nodes in the interface and the number of integration lines mismatch.";
+    KRATOS_ERROR_IF(rResults.size() != mrInterfaceModelPart.NumberOfNodes()) << "DepthIntegrationProcess: the number of nodes in the interface and the number of integration lines mismatch.";
     IndexPartition<int>(static_cast<int>(rResults.size())).for_each([&](int i){
         auto& objects_in_line = rResults[i];
         auto i_node = mrInterfaceModelPart.NodesBegin() + i;
