@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/stream_serializer.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "mapper_utilities.h"
 #include "mapping_application_variables.h"
 
