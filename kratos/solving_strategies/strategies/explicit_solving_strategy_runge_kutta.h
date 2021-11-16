@@ -199,7 +199,7 @@ class ButcherTableauRK4 : public ButcherTableau<ButcherTableauRK4, 4, 4>
 public:
     static const MatrixType GenerateRKMatrix()
     {
-        MatrixType A = ZeroMatrix(Size(), Size());
+        MatrixType A = ZeroMatrix(Size()-1, Size()-1);
         A(0,0) = 0.5;
         A(1,1) = 0.5;
         A(2,2) = 1.0;
@@ -460,7 +460,7 @@ protected:
 
         // Set the auxiliary RK vectors
         LocalSystemVectorType u_n(dof_size); // TODO: THIS IS INEFICCIENT. CREATE A UNORDERED_SET WITH THE IDOF AND VALUE AS ENTRIES. THIS HAS TO BE OPTIONAL
-        LocalSystemMatrixType rk_K(dof_size, mButcherTableau.Order());
+        LocalSystemMatrixType rk_K(dof_size, mButcherTableau.Size());
 
         // Perform the RK 3 update
         const double dt = BaseType::GetDeltaTime();
@@ -613,7 +613,7 @@ protected:
                 const auto it_dof = r_dof_set.begin() + i_dof;
                 // Save current value in the corresponding vector
                 const double& r_res = it_dof->GetSolutionStepReactionValue();
-                rLastStepResidualVector(i_dof, mButcherTableau.Order() - 1) = r_res;
+                rLastStepResidualVector(i_dof, mButcherTableau.Size() - 1) = r_res;
             }
         );
 
