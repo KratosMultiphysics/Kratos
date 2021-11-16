@@ -53,13 +53,7 @@ DepthIntegrationProcess::DepthIntegrationProcess(
     mStoreHistorical = ThisParameters["store_historical_database"].GetBool();
     mDirection = ThisParameters["direction_of_integration"].GetVector();
     mDirection /= norm_2(mDirection);
-
-    if (rModel.HasModelPart("integration_auxiliary_model_part")) { // TODO: remove the if and create without check
-        mpIntegrationModelPart = &rModel.GetModelPart("integration_auxiliary_model_part");
-    } else {
-        mpIntegrationModelPart = &rModel.CreateModelPart("integration_auxiliary_model_part");
-    }
-    mDimension = mrVolumeModelPart.GetProcessInfo()[DOMAIN_SIZE]; //TODO: remove and use local var
+    mpIntegrationModelPart = &rModel.CreateModelPart("integration_auxiliary_model_part");
 }
 
 void DepthIntegrationProcess::Execute()
@@ -73,72 +67,6 @@ void DepthIntegrationProcess::Execute()
     find_intersected_objects_process.FindIntersections();
     auto intersected_objects = find_intersected_objects_process.GetIntersections();
     Integrate(intersected_objects);
-
-    // double bottom, top;
-    // GetBoundingVolumeLimits(bottom, top);
-    // InitializeIntegrationModelPart();
-    // FindIntersectedGeometricalObjectsProcess find_intersected_objects_process(*mpIntegrationModelPart, mrVolumeModelPart);
-    // find_intersected_objects_process.ExecuteInitialize();
-    // InitializeIntegrationLine();
-    // for (auto& node : mrInterfaceModelPart.Nodes()) {
-    //     SetIntegrationLine(node, bottom, top);
-    //     find_intersected_objects_process.FindIntersections();
-    //     auto intersected_objects = find_intersected_objects_process.GetIntersections();
-    //     Integrate(intersected_objects[0], node);
-    // }
-
-    // FindIntersectedObjectsUtility intersections(mrVolumeModelPart);
-    // for (auto& node : mrInterfaceModelPart.Nodes()) {
-    //     GeometryType::Pointer integration_line = CreateIntegrationLine(node, bottom, top);
-    //     PointerVector<GeometricalObject> intersected_objects;
-    //     intersections.FindIntersectedObjects(integration_line, intersected_objects);
-    //     Integrate(intersected_objects, node);
-    // }
-}
-
-void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjects, NodeType& rNode)
-{
-    array_1d<double,3> velocity = ZeroVector(3);
-    array_1d<double,3> momentum = ZeroVector(3);
-    double height = 0.0;
-    
-    if (rObjects.size() > 0)
-    {
-        double min_elevation = 1e6;
-        double max_elevation = -1e6;
-        int num_nodes = 0;
-        for (auto& object : rObjects) {
-            array_1d<double,3> obj_velocity = ZeroVector(3);
-            double obj_min_elevation = 1e6;
-            double obj_max_elevation = -1e6;
-            int obj_num_nodes = object.GetGeometry().size();
-            for (auto& node : object.GetGeometry()) {
-                velocity += node.FastGetSolutionStepValue(VELOCITY);
-                obj_min_elevation = std::min(obj_min_elevation, inner_prod(mDirection, node));
-                obj_max_elevation = std::max(obj_max_elevation, inner_prod(mDirection, node));
-            }
-            velocity += obj_velocity;
-            min_elevation = std::min(min_elevation, obj_min_elevation);
-            max_elevation = std::max(max_elevation, obj_max_elevation);
-            num_nodes += obj_num_nodes;
-        }
-        velocity /= num_nodes;
-        height = max_elevation - min_elevation;
-        momentum = height*velocity;
-    }
-    SetValue(rNode, MOMENTUM, momentum);
-    SetValue(rNode, VELOCITY, velocity);
-    SetValue(rNode, HEIGHT, height);
-}
-
-void DepthIntegrationProcess::GetBoundingVolumeLimits(double& rMin, double& rMax)
-{
-    using MultipleReduction = CombinedReduction<MinReduction<double>,MaxReduction<double>>; 
-
-    std::tie(rMin, rMax) = block_for_each<MultipleReduction>(mrVolumeModelPart.Nodes(), [&](NodeType& node){
-        const double distance = inner_prod(mDirection, node);
-        return std::make_tuple(distance, distance);
-    });
 }
 
 void DepthIntegrationProcess::InitializeIntegrationModelPart()
@@ -150,9 +78,16 @@ void DepthIntegrationProcess::InitializeIntegrationModelPart()
     mpIntegrationModelPart->RemoveNodesFromAllLevels();
     mpIntegrationModelPart->RemoveElementsFromAllLevels();
     mpIntegrationModelPart->RemoveConditionsFromAllLevels();
+}
 
-    // // The construction of the octree needs almost one node.
-    // mpIntegrationModelPart->CreateNewNode(1, 0.0, 0.0, 0.0); // TODO: remove
+void DepthIntegrationProcess::GetBoundingVolumeLimits(double& rMin, double& rMax)
+{
+    using MultipleReduction = CombinedReduction<MinReduction<double>,MaxReduction<double>>; 
+
+    std::tie(rMin, rMax) = block_for_each<MultipleReduction>(mrVolumeModelPart.Nodes(), [&](NodeType& node){
+        const double distance = inner_prod(mDirection, node);
+        return std::make_tuple(distance, distance);
+    });
 }
 
 void DepthIntegrationProcess::CreateIntegrationLines(const double Low, const double High)
@@ -194,56 +129,39 @@ void DepthIntegrationProcess::Integrate(std::vector<PointerVector<GeometricalObj
     });
 }
 
-void DepthIntegrationProcess::InitializeIntegrationLine()
+void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjects, NodeType& rNode)
 {
-    // Remove the dummy node
-    VariableUtils().SetFlag(TO_ERASE, true, mpIntegrationModelPart->Nodes());
-    mpIntegrationModelPart->RemoveNodesFromAllLevels();
-
-    // Set the element name
-    std::string element_name = (mDimension == 2) ? "Element2D2N" : "Element3D2N";
-
-    // Create the integration lines
-    ModelPart::PropertiesType::Pointer p_prop;
-    if (mpIntegrationModelPart->HasProperties(1)) {
-        p_prop = mpIntegrationModelPart->pGetProperties(1);
-    } else {
-        p_prop = mpIntegrationModelPart->CreateNewProperties(1);
+    array_1d<double,3> velocity = ZeroVector(3);
+    array_1d<double,3> momentum = ZeroVector(3);
+    double height = 0.0;
+    
+    if (rObjects.size() > 0)
+    {
+        double min_elevation = 1e6;
+        double max_elevation = -1e6;
+        int num_nodes = 0;
+        for (auto& object : rObjects) {
+            array_1d<double,3> obj_velocity = ZeroVector(3);
+            double obj_min_elevation = 1e6;
+            double obj_max_elevation = -1e6;
+            int obj_num_nodes = object.GetGeometry().size();
+            for (auto& node : object.GetGeometry()) {
+                velocity += node.FastGetSolutionStepValue(VELOCITY);
+                obj_min_elevation = std::min(obj_min_elevation, inner_prod(mDirection, node));
+                obj_max_elevation = std::max(obj_max_elevation, inner_prod(mDirection, node));
+            }
+            velocity += obj_velocity;
+            min_elevation = std::min(min_elevation, obj_min_elevation);
+            max_elevation = std::max(max_elevation, obj_max_elevation);
+            num_nodes += obj_num_nodes;
+        }
+        velocity /= num_nodes;
+        height = max_elevation - min_elevation;
+        momentum = height*velocity;
     }
-    mpIntegrationModelPart->CreateNewNode(1, 0.0, 0.0, 0.0);
-    mpIntegrationModelPart->CreateNewNode(2, 0.0, 0.0, 1.0);
-    mpIntegrationModelPart->CreateNewElement(element_name, 1, {{1, 2}}, p_prop);
-}
-
-void DepthIntegrationProcess::SetIntegrationLine(
-    const NodeType& rNode,
-    const double Bottom,
-    const double Top)
-{
-    // Set the integration limits to the lines
-    array_1d<double,3> base_point = rNode - mDirection * inner_prod(rNode, mDirection);
-    array_1d<double,3> start = base_point + Top * mDirection;
-    array_1d<double,3> end = base_point + Bottom * mDirection;
-    auto& integration_line = mpIntegrationModelPart->GetElement(1);
-    integration_line.GetGeometry()[0].Coordinates() = start;
-    integration_line.GetGeometry()[1].Coordinates() = end;
-}
-
-Geometry<Node<3>>::Pointer DepthIntegrationProcess::CreateIntegrationLine(
-    const NodeType& rNode,
-    const double Bottom,
-    const double Top)
-{
-    array_1d<double,3> origin = rNode - mDirection * inner_prod(rNode, mDirection);
-    array_1d<double,3> start = origin + Top * mDirection;
-    array_1d<double,3> end = origin + Bottom * mDirection;
-    PointerVector<Node<3>> nodes;
-    nodes.push_back(NodeType::Pointer(new NodeType(0, start)));
-    nodes.push_back(NodeType::Pointer(new NodeType(0, end)));
-    if (mDimension == 2)
-        return Kratos::make_shared<Line2D2<NodeType>>(nodes);
-    else
-        return Kratos::make_shared<Line3D2<NodeType>>(nodes);
+    SetValue(rNode, MOMENTUM, momentum);
+    SetValue(rNode, VELOCITY, velocity);
+    SetValue(rNode, HEIGHT, height);
 }
 
 int DepthIntegrationProcess::Check()

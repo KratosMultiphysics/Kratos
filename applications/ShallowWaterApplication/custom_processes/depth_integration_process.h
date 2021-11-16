@@ -78,17 +78,19 @@ public:
     ///@{
 
     /**
-     * @brief Default constructor.
+     * @brief Default constructor
      * @details Removed
      */
     DepthIntegrationProcess() = delete;
 
     /**
-     * Constructor with Model and Parameters
+     * @brief Constructor with Model and Parameters
      */
     DepthIntegrationProcess(Model& rModel, Parameters ThisParameters = Parameters());
 
-    /// Destructor.
+    /**
+     * @brief Destructor
+     */
     ~DepthIntegrationProcess() override = default;
 
     ///@}
@@ -151,7 +153,6 @@ private:
     ModelPart* mpIntegrationModelPart;
     array_1d<double,3> mDirection;
     bool mStoreHistorical;
-    int mDimension;
 
     ///@}
     ///@name Member Variables
@@ -167,21 +168,15 @@ private:
     ///@name Private Operations
     ///@{
 
-    void Integrate(PointerVector<GeometricalObject>& rObjects, NodeType& rNode);
+    void InitializeIntegrationModelPart();
 
     void GetBoundingVolumeLimits(double& rMin, double& rMax);
-
-    void InitializeIntegrationModelPart();
 
     void CreateIntegrationLines(const double Low, const double High);
 
     void Integrate(std::vector<PointerVector<GeometricalObject>>& rResults);
 
-    void InitializeIntegrationLine();
-
-    void SetIntegrationLine(const NodeType& rNode, const double Bottom, const double Top);
-
-    GeometryType::Pointer CreateIntegrationLine(const NodeType& rNode, const double Bottom, const double Top);
+    void Integrate(PointerVector<GeometricalObject>& rObjects, NodeType& rNode);
 
     template<class TDataType, class TVarType = Variable<TDataType>>
     void SetValue(NodeType& rNode, const TVarType& rVariable, TDataType& rValue)
