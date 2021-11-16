@@ -87,8 +87,7 @@ class ButcherTableauForwardEuler : public ButcherTableau<1, ButcherTableauForwar
 public:
     static const MatrixType GenerateRKMatrix()
     {
-        MatrixType A = ZeroMatrix(0, 0);
-        return A;
+        return MatrixType(0, 0);
     }
 
     static const VectorType GenerateWeights()
@@ -117,7 +116,7 @@ class ButcherTableauMidPointMethod : public ButcherTableau<2, ButcherTableauMidP
 public:
     static const MatrixType GenerateRKMatrix()
     {
-        MatrixType A = ZeroMatrix(1, 1);
+        MatrixType A(1,1);
         A(0,0) = 0.5;
         return A;
     }
@@ -155,9 +154,10 @@ class ButcherTableauRK3TVD : public ButcherTableau<3, ButcherTableauRK3TVD>
 public:
     static const MatrixType GenerateRKMatrix()
     {
-        MatrixType A = ZeroMatrix(2, 2);
+        MatrixType A;
         A(0,0) = 1;
         A(1,0) = 0.25;
+        A(0,1) = 0.0;
         A(1,1) = 0.25;
         return A;
     }
