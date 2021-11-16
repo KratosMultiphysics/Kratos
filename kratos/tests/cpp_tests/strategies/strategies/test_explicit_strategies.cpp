@@ -144,7 +144,7 @@ namespace Testing
         p_explicit_strategy->SolveSolutionStep();
         p_explicit_strategy->FinalizeSolutionStep();
 
-        constexpr double analytical_1 = (37.5 / 3.5) + (50 - 37.5/3.5) * std::exp(- 3.5 * delta_time);
+        double analytical_1 = (37.5 / 3.5) + (50 - 37.5/3.5) * std::exp(- 3.5 * delta_time);
         KRATOS_CHECK_NEAR(p_test_node->FastGetSolutionStepValue(TEMPERATURE), analytical_1, tolerance);
         // 2nd step
         r_model_part.CloneTimeStep(2.0 * delta_time);
@@ -152,7 +152,7 @@ namespace Testing
         p_explicit_strategy->SolveSolutionStep();
         p_explicit_strategy->FinalizeSolutionStep();
 
-        constexpr double analytical_2 = (37.5 / 3.5) + (50 - 37.5/3.5) * std::exp(- 3.5 * 2.0 * delta_time);
+        double analytical_2 = (37.5 / 3.5) + (50 - 37.5/3.5) * std::exp(- 3.5 * 2.0 * delta_time);
         KRATOS_CHECK_NEAR(p_test_node->FastGetSolutionStepValue(TEMPERATURE), analytical_2, tolerance);
     }
 
