@@ -19,5 +19,21 @@ if UseMockupPyCOMPSs():
 
     sys.path.append(os.path.join(os.path.dirname(__file__),'PyCOMPSs'))
 
-if UseInternalXMC():
+XMC_backend = os.environ.get("XMC_BACKEND")
+if XMC_backend:
+    print("XMC_BACKEND={}".format(XMC_backend))
+else:
+    XMC_backend = "local"
+    print("Default XMC backend: {}".format(XMC_backend))
+
+if XMC_backend == "external":
+    pass
+elif XMC_backend == "local":
     sys.path.append(os.path.join(os.path.dirname(__file__),'XMC'))
+else:
+    raise ModuleNotFoundError(
+        (
+            "Unknown XMC backend: {}\n"
+            "Supported values are 'local' and 'external'"
+        ).format(XMC_backend)
+    )
