@@ -678,6 +678,10 @@ public:
         PlasticDamageParameters &rPDParameters
     );
 
+    /**
+     * @brief This method initializes all the values
+     * in the PlasticDamageParameters
+     */
     void InitializePlasticDamageParameters(
         const BoundedVectorType& rStrainVector,
         const Properties& rMaterialProperties,
@@ -696,11 +700,19 @@ public:
         rPlasticDamageParameters.PlasticDamageProportion = rMaterialProperties[PLASTIC_DAMAGE_PROPORTION];
     }
 
+    /**
+     * @brief This method computes the continuum
+     * analytical tangent tensor
+     */
     void CalculateAnalyticalTangentTensor(
         ConstitutiveLaw::Parameters& rValues,
         PlasticDamageParameters &rParam
         );
 
+    /**
+     * @brief This method increases the damage and plastic
+     * dissipation with the increment
+     */
     void AddNonLinearDissipation(
         PlasticDamageParameters &rPDParameters
         )
@@ -714,21 +726,41 @@ public:
             0.99999 : rPDParameters.TotalDissipation;
     }
 
+    /**
+     * @brief This method computes an averaged
+     * volumetric fracture energy depending
+     * if it is in tension or compression
+     */
     static double CalculateVolumetricFractureEnergy( // g_F
         const Properties& rMaterialProperties,
         PlasticDamageParameters &rPDParameters
         );
 
+    /**
+     * @brief This method computes the denominator
+     * of the expression for computing the
+     * plastic multiplier
+     */
     double CalculatePlasticDenominator(
         ConstitutiveLaw::Parameters& rValues,
         PlasticDamageParameters &rParam);
 
+    /**
+     * @brief This method solves a non-linear
+     * equation that related the dissipation
+     * with the threshold
+     */
     double CalculateThresholdImplicitExpression(
         ResidualFunctionType &rF,
         ResidualFunctionType &rdF_dk,
         ConstitutiveLaw::Parameters &rValues,
         PlasticDamageParameters &rPDParameters);
 
+    /**
+     * @brief This method computes the slope or
+     * d(threshold)/d(dissipation) by finite
+     * differences
+     */
     double CalculateSlopeFiniteDifferences(
         ResidualFunctionType &rF,
         ResidualFunctionType &rdF_dk,
