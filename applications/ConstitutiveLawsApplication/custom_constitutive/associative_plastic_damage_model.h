@@ -767,6 +767,10 @@ public:
         ConstitutiveLaw::Parameters &rValues,
         PlasticDamageParameters &rPDParameters);
 
+    ResidualFunctionType ExponentialSofteningImplicitFunction();
+
+    ResidualFunctionType ExponentialSofteningImplicitFunctionDerivative();
+
 protected:
 
     ///@name Protected static Member Variables

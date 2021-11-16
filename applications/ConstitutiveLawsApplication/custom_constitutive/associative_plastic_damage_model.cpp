@@ -270,6 +270,47 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateDamageDissipatio
 
 /***********************************************************************************/
 /***********************************************************************************/
+template<class TYieldSurfaceType>
+typename AssociativePlasticDamageModel<TYieldSurfaceType>::ResidualFunctionType AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialSofteningImplicitFunction(
+    )
+{
+    ResidualFunctionType implicit_function = [](const double Dissipation, const double Threshold, ConstitutiveLaw::Parameters &rValues, PlasticDamageParameters &rPDParameters)
+    {
+        const auto &r_mat_properties = rValues.GetMaterialProperties();
+        const double chi = rPDParameters.PlasticDamageProportion;
+        const double E = r_mat_properties[YOUNG_MODULUS];
+        const double g = AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
+        double K0;
+        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
+        const double alpha = std::pow(K0, 2) / (2.0 * E * g);
+        const double K_K0 = Threshold / K0;
+        return K0 * (1.0 - Dissipation) - Threshold * (1.0 + alpha * ((1.0 - chi) * (K_K0 - 0.5 * std::log(K_K0) - 1.0)) - 0.5 * chi * std::log(K_K0));
+    };
+    return implicit_function;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<class TYieldSurfaceType>
+typename AssociativePlasticDamageModel<TYieldSurfaceType>::ResidualFunctionType AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialSofteningImplicitFunctionDerivative(
+    )
+{
+    ResidualFunctionType function_derivative = [](const double Dissipation, const double Threshold, ConstitutiveLaw::Parameters& rValues, PlasticDamageParameters &rPDParameters) {
+        const auto &r_mat_properties = rValues.GetMaterialProperties();
+        const double chi = rPDParameters.PlasticDamageProportion;
+        const double E = r_mat_properties[YOUNG_MODULUS];
+        const double g = AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
+        double K0;
+        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
+        const double alpha = std::pow(K0, 2) / (2.0 * E * g);
+        const double K_K0 = Threshold / K0;
+        return -(1.0 + alpha * ((1.0 - chi) * (K_K0 - 0.5 * std::log(K_K0) - 1.0)) - 0.5 * chi * std::log(K_K0)) - Threshold * (alpha * ((1.0 - chi) * (1.0 / K0 - 1 / (2.0 * Threshold))) - 0.5 * chi / Threshold);
+    };
+    return function_derivative;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template<class TYieldSurfaceType>
 void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlope(
@@ -306,30 +347,8 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
             }
             case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::ExponentialSoftening: {
                 // We define an implicit expression relating the total dissipation and the Threshold (dissipation, threshold)
-                ResidualFunctionType implicit_function = [](const double Dissipation, const double Threshold, ConstitutiveLaw::Parameters &rValues, PlasticDamageParameters &rPDParameters)
-                {
-                    const auto &r_mat_properties = rValues.GetMaterialProperties();
-                    const double chi = rPDParameters.PlasticDamageProportion;
-                    const double E = r_mat_properties[YOUNG_MODULUS];
-                    const double g = AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
-                    double K0;
-                    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
-                    const double alpha = std::pow(K0, 2) / (2.0 * E * g);
-                    const double K_K0 = Threshold / K0;
-                    return K0 * (1.0 - Dissipation) - Threshold * (1.0 + alpha * ((1.0 - chi) * (K_K0 - 0.5 * std::log(K_K0) - 1.0)) - 0.5 * chi * std::log(K_K0));
-                };
-                // We define the derivative of f with respect to the threshold, (dissipation, threshold)
-                ResidualFunctionType function_derivative = [](const double Dissipation, const double Threshold, ConstitutiveLaw::Parameters& rValues, PlasticDamageParameters &rPDParameters) {
-                    const auto &r_mat_properties = rValues.GetMaterialProperties();
-                    const double chi = rPDParameters.PlasticDamageProportion;
-                    const double E = r_mat_properties[YOUNG_MODULUS];
-                    const double g = AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
-                    double K0;
-                    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
-                    const double alpha = std::pow(K0, 2) / (2.0 * E * g);
-                    const double K_K0 = Threshold / K0;
-                    return -(1.0 + alpha * ((1.0 - chi) * (K_K0 - 0.5 * std::log(K_K0) - 1.0)) - 0.5 * chi * std::log(K_K0)) - Threshold * (alpha * ((1.0 - chi) * (1.0 / K0 - 1 / (2.0 * Threshold))) - 0.5 * chi / Threshold);
-                };
+                ResidualFunctionType implicit_function   = ExponentialSofteningImplicitFunction();
+                ResidualFunctionType function_derivative = ExponentialSofteningImplicitFunctionDerivative();
                 rPDParameters.Threshold = CalculateThresholdImplicitExpression(implicit_function, function_derivative, rValues, rPDParameters);
                 rPDParameters.Slope     = CalculateSlopeFiniteDifferences(implicit_function, function_derivative, rValues, rPDParameters);
                 break;
@@ -387,9 +406,9 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateSlopeFiniteDif
 
     return (perturbed_threshold - current_threshold) / perturbation;
 }
-/***********************************************************************************/
-/***********************************************************************************/
 
+/***********************************************************************************/
+/***********************************************************************************/
 template<class TYieldSurfaceType>
 void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateFlowVector(
     ConstitutiveLaw::Parameters& rValues,
