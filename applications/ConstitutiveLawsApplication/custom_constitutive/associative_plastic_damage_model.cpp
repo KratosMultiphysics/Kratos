@@ -284,7 +284,7 @@ typename AssociativePlasticDamageModel<TYieldSurfaceType>::ResidualFunctionType 
         GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
         const double alpha = std::pow(K0, 2) / (2.0 * E * g);
         const double K_K0 = Threshold / K0;
-        return K0 * (1.0 - Dissipation) - Threshold * (1.0 + alpha * ((1.0 - chi) * (K_K0 - 0.5 * std::log(K_K0) - 1.0)) - 0.5 * chi * std::log(K_K0));
+        return K0 * (1.0 - Dissipation) - Threshold * (1.0 + alpha * ((1.0 - chi) * (K_K0 - 0.5 * std::log(K_K0) - 1.0) + 0.5 * std::log(K_K0)) - 0.5 * chi * std::log(K_K0));
     };
     return implicit_function;
 }
@@ -304,7 +304,7 @@ typename AssociativePlasticDamageModel<TYieldSurfaceType>::ResidualFunctionType 
         GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
         const double alpha = std::pow(K0, 2) / (2.0 * E * g);
         const double K_K0 = Threshold / K0;
-        return -(1.0 + alpha * ((1.0 - chi) * (K_K0 - 0.5 * std::log(K_K0) - 1.0)) - 0.5 * chi * std::log(K_K0)) - Threshold * (alpha * ((1.0 - chi) * (1.0 / K0 - 1 / (2.0 * Threshold))) - 0.5 * chi / Threshold);
+        return -(1.0 + alpha * ((1.0 - chi) * (K_K0 - 0.5 * std::log(K_K0) - 1.0) + 0.5 * std::log(K_K0)) - 0.5 * chi * std::log(K_K0)) - Threshold * (alpha * ((1.0 - chi) * (1.0 / K0 - 1.0 / (2.0 * Threshold)) + 1 / (2.0 * Threshold)) - 0.5 * chi / Threshold);
     };
     return function_derivative;
 }
@@ -370,9 +370,9 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
     double old_threshold = rPDParameters.Threshold;
     double new_threshold = 0.0;
     double derivative = 0.0;
-    int max_iter = 200;
+    int max_iter = 2000;
     int iteration = 0;
-    const double nr_tol = 1.0e-9;
+    const double nr_tol = 1.0e-4;
 
     while (difference > nr_tol && iteration < max_iter) {
         derivative = rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
@@ -380,11 +380,11 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
             new_threshold = old_threshold - (1.0 / derivative) * rF(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
         else
             break;
-        difference = std::abs(new_threshold - old_threshold);
+        difference = std::abs(new_threshold - old_threshold) / (new_threshold);
         old_threshold = new_threshold;
         iteration++;
     }
-    KRATOS_WARNING_IF("AssociativePlasticDamageModel", iteration == max_iter) << "Inner Newton-Raphson to find an updated threshold did not converge..." << std::endl;
+    KRATOS_WARNING_IF("AssociativePlasticDamageModel", iteration == max_iter) << "Inner Newton-Raphson to find an updated threshold did not converge..." << " Tolerance achieved: " << difference << std::endl;
     return new_threshold;
 }
 /***********************************************************************************/
@@ -398,7 +398,7 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateSlopeFiniteDif
 )
 {
     const double current_threshold = rPDParameters.Threshold;
-    const double perturbation = std::max(1.0e-5 * rPDParameters.TotalDissipation, 1.0e-9);
+    const double perturbation = std::max(1.0e-6 * rPDParameters.TotalDissipation, 1.0e-9);
 
     rPDParameters.TotalDissipation += perturbation;
     const double perturbed_threshold = CalculateThresholdImplicitExpression(rF, rdF_dk, rValues, rPDParameters);
