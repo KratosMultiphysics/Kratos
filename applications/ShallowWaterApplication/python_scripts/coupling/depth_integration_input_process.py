@@ -188,7 +188,8 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
         elapsed_time = self.interface_model_part.ProcessInfo.GetValue(KM.DELTA_TIME)
         semi_period = self.settings["semi_period_after_interval"].GetDouble()
         for variable in self.variables:
-            SW.ShallowWaterUtilities().SmoothTemporalVariable(
-                self.interface_model_part,
+            SW.ShallowWaterUtilities().SmoothHistoricalVariable(
                 variable,
+                self.interface_model_part.Nodes,
+                elapsed_time,
                 semi_period)
