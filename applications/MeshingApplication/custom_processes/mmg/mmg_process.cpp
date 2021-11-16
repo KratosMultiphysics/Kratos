@@ -204,10 +204,11 @@ void MmgProcess<TMMGLibrary>::ExecuteInitializeSolutionStep()
     // We retrieve the data form the Kratos model part to fill sol
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         InitializeSolDataDistance();
-    } else {
-        if (!optimization_mode) {
-            InitializeSolDataMetric();
-        }
+    }
+
+    // We load the metric field, unless optimization mode is enabled.
+    if (!optimization_mode) {
+        InitializeSolDataMetric();
     }
 
     // We set the displacement vector
@@ -370,8 +371,15 @@ void MmgProcess<TMMGLibrary>::InitializeSolDataMetric()
 {
     KRATOS_TRY;
 
-    // We initialize the solution data with the given modelpart
-    mMmgUtilities.GenerateSolDataFromModelPart(mrThisModelPart);
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        // This will only run for version >= 5.5
+        if (mThisParameters["isosurface_parameters"]["use_metric_field"].GetBool())
+            mMmgUtilities.GenerateIsosurfaceMetricDataFromModelPart(mrThisModelPart);
+    } else {
+        // We initialize the solution data with the given modelpart
+        mMmgUtilities.GenerateSolDataFromModelPart(mrThisModelPart);
+    }
+
 
     KRATOS_CATCH("");
 }
@@ -1277,6 +1285,7 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
         {
             "isosurface_variable"              : "DISTANCE",
             "nonhistorical_variable"           : false,
+            "use_metric_field"                 : false,
             "remove_internal_regions"          : false
         },
         "framework"                            : "Eulerian",
