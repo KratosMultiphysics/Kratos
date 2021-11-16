@@ -373,7 +373,8 @@ void MmgProcess<TMMGLibrary>::InitializeSolDataMetric()
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // This will only run for version >= 5.5
-        mMmgUtilities.GenerateIsosurfaceMetricDataFromModelPart(mrThisModelPart);
+        if (mThisParameters["isosurface_parameters"]["use_metric_field"].GetBool())
+            mMmgUtilities.GenerateIsosurfaceMetricDataFromModelPart(mrThisModelPart);
     } else {
         // We initialize the solution data with the given modelpart
         mMmgUtilities.GenerateSolDataFromModelPart(mrThisModelPart);
@@ -1284,6 +1285,7 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
         {
             "isosurface_variable"              : "DISTANCE",
             "nonhistorical_variable"           : false,
+            "use_metric_field"                 : true,
             "remove_internal_regions"          : false
         },
         "framework"                            : "Eulerian",
