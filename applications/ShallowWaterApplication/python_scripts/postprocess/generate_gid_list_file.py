@@ -56,7 +56,7 @@ def _WriteListFile(file_list, file_name):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Generate a GiD .post.lst file to merge the results of two simulations.")
+    parser = argparse.ArgumentParser(description="Generate a GiD .post.lst file to merge the results of several simulations.")
     parser.add_argument("first_location",  nargs="?", type=str, help="Where the post files are located. By default it is the current directory")
     parser.add_argument("other_locations", nargs="*", type=str, help="Add more post files. By default it is empty")
     parser.add_argument("-n", "--name", type=str, help="Name of the output file. By default it is the current folder name")
