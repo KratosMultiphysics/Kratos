@@ -95,7 +95,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
 
         plastic_damage_parameters.NonLinearIndicator = plastic_damage_parameters.UniaxialStress - mThreshold;
 
-        if (plastic_damage_parameters.NonLinearIndicator <= std::abs(1.0e-8 * mThreshold)) {
+        if (plastic_damage_parameters.NonLinearIndicator <= std::abs(tolerance * mThreshold)) {
             noalias(r_integrated_stress_vector) = plastic_damage_parameters.StressVector;
         } else {
             IntegrateStressPlasticDamageMechanics(rValues, plastic_damage_parameters);
@@ -144,7 +144,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
 
     plastic_damage_parameters.NonLinearIndicator = plastic_damage_parameters.UniaxialStress - mThreshold;
 
-    if (plastic_damage_parameters.NonLinearIndicator > std::abs(1.0e-8 * mThreshold)) {
+    if (plastic_damage_parameters.NonLinearIndicator > std::abs(tolerance * mThreshold)) {
         IntegrateStressPlasticDamageMechanics(rValues, plastic_damage_parameters);
         UpdateInternalVariables(plastic_damage_parameters);
     }
@@ -366,25 +366,25 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
     PlasticDamageParameters &rPDParameters
 )
 {
-    double difference = 1.0;
+    double residual = rF(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
     double old_threshold = rPDParameters.Threshold;
     double new_threshold = 0.0;
     double derivative = 0.0;
     int max_iter = 2000;
     int iteration = 0;
-    const double nr_tol = 1.0e-4;
+    const double nr_tol = 1.0e-8;
 
-    while (difference > nr_tol && iteration < max_iter) {
+    while (residual > nr_tol && iteration < max_iter) {
         derivative = rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
         if (std::abs(derivative) > 0.0)
             new_threshold = old_threshold - (1.0 / derivative) * rF(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
         else
             break;
-        difference = std::abs(new_threshold - old_threshold) / (new_threshold);
+        residual = rF(rPDParameters.TotalDissipation, new_threshold, rValues, rPDParameters);
         old_threshold = new_threshold;
         iteration++;
     }
-    KRATOS_WARNING_IF("AssociativePlasticDamageModel", iteration == max_iter) << "Inner Newton-Raphson to find an updated threshold did not converge..." << " Tolerance achieved: " << difference << std::endl;
+    KRATOS_WARNING_IF("AssociativePlasticDamageModel", iteration == max_iter) << "Inner Newton-Raphson to find an updated threshold did not converge..." << " Tolerance achieved: " << residual << std::endl;
     return new_threshold;
 }
 /***********************************************************************************/
@@ -398,7 +398,7 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateSlopeFiniteDif
 )
 {
     const double current_threshold = rPDParameters.Threshold;
-    const double perturbation = std::max(1.0e-6 * rPDParameters.TotalDissipation, 1.0e-9);
+    const double perturbation = std::max(1.0e-4 * rPDParameters.PlasticDissipation, 1.0e-6);
 
     rPDParameters.TotalDissipation += perturbation;
     const double perturbed_threshold = CalculateThresholdImplicitExpression(rF, rdF_dk, rValues, rPDParameters);
@@ -526,7 +526,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
         CalculateThresholdAndSlope(rValues, rPDParameters);
         rPDParameters.NonLinearIndicator = rPDParameters.UniaxialStress - rPDParameters.Threshold;
 
-        if (rPDParameters.NonLinearIndicator <= 1.0e-8*rPDParameters.Threshold) {
+        if (rPDParameters.NonLinearIndicator <= tolerance*rPDParameters.Threshold) {
             is_converged = true;
         } else {
             iteration++;
@@ -534,6 +534,14 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     }
     // KRATOS_ERROR_IF(iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
         KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity-damage loop reached..." << std::endl;
+        if (iteration > max_iter) {
+            std::cout << "Information about the Backward Euler: \n" << std::endl;
+            KRATOS_WATCH(rPDParameters.NonLinearIndicator)
+            KRATOS_WATCH(tolerance)
+            KRATOS_WATCH(rPDParameters.Threshold)
+            KRATOS_WATCH(rPDParameters.PlasticDissipation)
+            KRATOS_WATCH(rPDParameters.Slope)
+        }
 
     KRATOS_CATCH("");
 }
