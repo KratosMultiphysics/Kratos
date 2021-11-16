@@ -91,17 +91,24 @@ optimize_wheel(){
     echo "Begin exclude list for ${APPNAME}"
     echo "List of core libs to be excluded:"
     echo "$(ls ${CORE_LIB_DIR})"
+
+    # Clean excluded libraries
     for LIBRARY in $(ls tmp/Kratos${APPNAME}.libs)
     do
-        if [ -f "${CORE_LIB_DIR}/${LIBRARY}" ] || grep -Fxq $(echo $LIBRARY | cut -f1 -d"-") "${WHEEL_ROOT}/excluded.txt" ; then
+        if [ -f "${CORE_LIB_DIR}/${LIBRARY}" ] || grep $(echo $LIBRARY | cut -f1 -d"-") "${WHEEL_ROOT}/excluded.txt" ; then
             echo "-- Removing ${LIBRARY} - already present in dependent wheel."
-            rm tmp/Kratos${APPNAME}.libs/${LIBRARY}
+
+            rm tmp/Kratos${APPNAME}.libs/${LIBRARY}     # Try to remove from app dir
+
             sed -i "/${LIBRARY}/d" tmp/*.dist-info/RECORD
         else
             echo "-- Keeping ${LIBRARY}"
         fi
     done
     
+    # Alson clean the copy done in the setup.py
+    rm tmp/KratosMultiphysics/.libs/libKratos${APPNAME}* 
+
     cd tmp
     zip -r ../${ARCHIVE_NAME} ./*
     cd ..
