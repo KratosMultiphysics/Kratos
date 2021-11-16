@@ -32,39 +32,13 @@ double ContactUtilities::CalculateRelativeSizeMesh(ModelPart& rModelPart)
 
 double ContactUtilities::CalculateMaxNodalH(ModelPart& rModelPart)
 {
-    // We iterate over the nodes
-    NodesArrayType& r_nodes_array = rModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
+    double max_value = 0.0;
+    max_value = block_for_each<MaxReduction<double>>(rModelPart.Nodes(), [&](NodeType& rNode) {
+        KRATOS_DEBUG_ERROR_IF_NOT(rNode.SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
+        return rNode.FastGetSolutionStepValue(NODAL_H);
+    });
 
-//     // Creating the max auxiliar value
-//     double max_value = 0.0;
-//
-//     #pragma omp parallel for reduction(max:max_value)
-//     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-//         auto it_node = it_node_begin + i;
-//         KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
-//         max_value = std::max(max_value, it_node->FastGetSolutionStepValue(NODAL_H));
-//     }
-//
-//     return max_value;
-
-    // Creating a buffer for parallel vector fill
-    const int num_threads = ParallelUtilities::GetNumThreads();
-    std::vector<double> max_vector(num_threads, 0.0);
-    double nodal_h;
-    #pragma omp parallel for private(nodal_h)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
-        nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
-
-        const int id = OpenMPUtils::ThisThread();
-
-        if (nodal_h > max_vector[id])
-            max_vector[id] = nodal_h;
-    }
-
-    return *std::max_element(max_vector.begin(), max_vector.end());
+    return max_value;
 }
 
 /***********************************************************************************/
@@ -74,17 +48,11 @@ double ContactUtilities::CalculateMeanNodalH(ModelPart& rModelPart)
 {
     // We iterate over the nodes
     NodesArrayType& r_nodes_array = rModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
-
-    // Creating the sum auxiliar value
     double sum_nodal_h = 0.0;
-
-    #pragma omp parallel for reduction(+:sum_nodal_h)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
-        sum_nodal_h += it_node->FastGetSolutionStepValue(NODAL_H);;
-    }
+    sum_nodal_h = block_for_each<SumReduction<double>>(r_nodes_array, [&](NodeType& rNode) {
+        KRATOS_DEBUG_ERROR_IF_NOT(rNode.SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
+        return rNode.FastGetSolutionStepValue(NODAL_H);;
+    });
 
     return sum_nodal_h/static_cast<double>(r_nodes_array.size());
 }
@@ -94,39 +62,13 @@ double ContactUtilities::CalculateMeanNodalH(ModelPart& rModelPart)
 
 double ContactUtilities::CalculateMinimalNodalH(ModelPart& rModelPart)
 {
-    // We iterate over the nodes
-    NodesArrayType& r_nodes_array = rModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
+    double min_value = 0.0;
+    min_value = block_for_each<MinReduction<double>>(rModelPart.Nodes(), [&](NodeType& rNode) {
+        KRATOS_DEBUG_ERROR_IF_NOT(rNode.SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
+        return rNode.FastGetSolutionStepValue(NODAL_H);
+    });
 
-//         // Creating the min auxiliar value
-//         double min_value = 0.0;
-//
-//         #pragma omp parallel for reduction(min:min_value)
-//         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-//             auto it_node = it_node_begin + i;
-//             KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
-//             min_value = std::min(min_value, it_node->FastGetSolutionStepValue(NODAL_H));
-//         }
-//
-//         return min_value;
-
-    // Creating a buffer for parallel vector fill
-    const int num_threads = ParallelUtilities::GetNumThreads();
-    std::vector<double> min_vector(num_threads, 0.0);
-    double nodal_h;
-    #pragma omp parallel for private(nodal_h)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
-        nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
-
-        const int id = OpenMPUtils::ThisThread();
-
-        if (nodal_h > min_vector[id])
-            min_vector[id] = nodal_h;
-    }
-
-    return *std::min_element(min_vector.begin(), min_vector.end());
+    return min_value;
 }
 
 /***********************************************************************************/
@@ -180,25 +122,18 @@ bool ContactUtilities::CheckActivity(
     const bool ThrowError
     )
 {
-    // Iterate over the nodes
-    NodesArrayType& r_nodes_array = rModelPart.Nodes();
-
-    // Node iterator
-    const auto it_node_begin = r_nodes_array.begin();
-
     // We compute the half jump
     IndexType aux_check = 0;
-    #pragma omp parallel for reduction(+:aux_check)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i)  {
-        auto it_node = it_node_begin + i;
-        if (it_node->Is(SLAVE)) {
-            if (it_node->Is(ACTIVE)) {
-                aux_check += 1;
+    aux_check = block_for_each<SumReduction<IndexType>>(rModelPart.Nodes(), [&](NodeType& rNode) {
+        if (rNode.Is(SLAVE)) {
+            if (rNode.Is(ACTIVE)) {
+                return 1;
             }
         }
-    }
+        return 0;
+    });
 
-    const bool is_active = aux_check == 0 ?  false : true;
+    const bool is_active = aux_check == 0 ? false : true;
 
     KRATOS_ERROR_IF(ThrowError && !is_active) << "CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 

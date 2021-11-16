@@ -219,23 +219,22 @@ public:
 
         // Unfix the distances
         const int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
-        #pragma omp parallel for
-        for(int i_node = 0; i_node < nnodes; ++i_node){
-            auto it_node = r_distance_model_part.NodesBegin() + i_node;
-            double& d = it_node->FastGetSolutionStepValue(DISTANCE);
-            double& fix_flag = it_node->FastGetSolutionStepValue(FLAG_VARIABLE);
+
+        block_for_each(r_distance_model_part.Nodes(), [](Node<3>& rNode){
+            double& d = rNode.FastGetSolutionStepValue(DISTANCE);
+            double& fix_flag = rNode.FastGetSolutionStepValue(FLAG_VARIABLE);
 
             // Free the DISTANCE values
             fix_flag = 1.0;
-            it_node->Free(DISTANCE);
+            rNode.Free(DISTANCE);
 
             // Save the distances
-            it_node->SetValue(DISTANCE, d);
+            rNode.SetValue(DISTANCE, d);
 
             if(d == 0){
                 d = 1.0e-15;
                 fix_flag = -1.0;
-                it_node->Fix(DISTANCE);
+                rNode.Fix(DISTANCE);
             } else {
                 if(d > 0.0){
                     d = 1.0e15; // Set to a large number, to make sure that that the minimal distance is computed according to CaculateTetrahedraDistances
@@ -243,15 +242,11 @@ public:
                     d = -1.0e15;
                 }
             }
-        }
+        });
 
-        const int nelem = static_cast<int>(r_distance_model_part.NumberOfElements());
-
-        #pragma omp parallel for
-        for(int i_elem = 0; i_elem < nelem; ++i_elem){
-            auto it_elem = r_distance_model_part.ElementsBegin() + i_elem;
+        block_for_each(r_distance_model_part.Elements(), [this](Element& rElem){
             array_1d<double,TDim+1> distances;
-            auto& geom = it_elem->GetGeometry();
+            auto& geom = rElem.GetGeometry();
 
             for(unsigned int i=0; i<TDim+1; i++){
                 distances[i] = geom[i].GetValue(DISTANCE);
@@ -293,7 +288,7 @@ public:
                     geom[i].UnSetLock();
                 }
             }
-        }
+        });
 
         // SHALL WE SYNCHRONIZE SOMETHING IN HERE?¿?¿??¿ WE'VE CHANGED THE NODAL DISTANCE VALUES FROM THE ELEMENTS...
         this->SynchronizeFixity();
@@ -322,19 +317,16 @@ public:
 
         // Assign the max dist to all of the non-fixed positive nodes
         // and the minimum one to the non-fixed negatives
-        #pragma omp parallel for
-        for(int i_node = 0; i_node < nnodes; ++i_node){
-            auto it_node = r_distance_model_part.NodesBegin() + i_node;
-            if(!it_node->IsFixed(DISTANCE)){
-                double& d = it_node->FastGetSolutionStepValue(DISTANCE);
+        block_for_each(r_distance_model_part.Nodes(), [&min_dist, &max_dist](Node<3>& rNode){
+            if(!rNode.IsFixed(DISTANCE)){
+                double& d = rNode.FastGetSolutionStepValue(DISTANCE);
                 if(d>0){
                     d = max_dist;
                 } else {
                     d = min_dist;
                 }
             }
-        }
-
+        });
         mpSolvingStrategy->Solve();
 
         // Step2 - minimize the target residual
@@ -344,11 +336,7 @@ public:
         }
 
         // Unfix the distances
-        #pragma omp parallel for
-        for(int i_node = 0; i_node < nnodes; ++i_node){
-            auto it_node = (r_distance_model_part.NodesBegin()) + i_node;
-            it_node->Free(DISTANCE);
-        }
+        VariableUtils().ApplyFixity(DISTANCE, false, r_distance_model_part.Nodes());
 
         KRATOS_CATCH("")
     }

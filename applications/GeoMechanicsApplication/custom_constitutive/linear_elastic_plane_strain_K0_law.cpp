@@ -143,18 +143,15 @@ void LinearPlaneStrainK0Law::CalculatePK2Stress(const Vector& rStrainVector,
     const double& K0ValueYY    = r_material_properties[K0_VALUE_YY];
     const int& K0MainDirection = r_material_properties[K0_MAIN_DIRECTION];
 
-    if (K0MainDirection == VOIGT_INDEX_XX)
-    {
+    if (K0MainDirection == VOIGT_INDEX_XX) {
         rStressVector[INDEX_2D_PLANE_STRAIN_YY] = K0ValueYY * rStressVector[INDEX_2D_PLANE_STRAIN_XX];
         rStressVector[INDEX_2D_PLANE_STRAIN_ZZ] = rStressVector[INDEX_2D_PLANE_STRAIN_YY];
-    }
-    else if (K0MainDirection == VOIGT_INDEX_YY)
-    {
+
+    } else if (K0MainDirection == VOIGT_INDEX_YY) {
         rStressVector[INDEX_2D_PLANE_STRAIN_XX] = K0ValueXX * rStressVector[INDEX_2D_PLANE_STRAIN_YY];
         rStressVector[INDEX_2D_PLANE_STRAIN_ZZ] = rStressVector[INDEX_2D_PLANE_STRAIN_XX];
-    }
-    else
-    {
+
+    } else {
          KRATOS_ERROR << "undefined K0_MAIN_DIRECTION in LinearElasticPlaneStrainK02DLaw: " << K0MainDirection << std::endl;
     }
     KRATOS_CATCH("");
