@@ -346,12 +346,19 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
                     break;
             }
             case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::ExponentialSoftening: {
-                // We define an implicit expression relating the total dissipation and the Threshold (dissipation, threshold)
-                ResidualFunctionType implicit_function   = ExponentialSofteningImplicitFunction();
-                ResidualFunctionType function_derivative = ExponentialSofteningImplicitFunctionDerivative();
-                rPDParameters.Threshold = CalculateThresholdImplicitExpression(implicit_function, function_derivative, rValues, rPDParameters);
-                rPDParameters.Slope     = CalculateSlopeFiniteDifferences(implicit_function, function_derivative, rValues, rPDParameters);
-                break;
+                if (rPDParameters.TotalDissipation > machine_tolerance) {
+                    ResidualFunctionType implicit_function   = ExponentialSofteningImplicitFunction();
+                    ResidualFunctionType function_derivative = ExponentialSofteningImplicitFunctionDerivative();
+                    rPDParameters.Threshold = CalculateThresholdImplicitExpression(implicit_function, function_derivative, rValues, rPDParameters);
+                    rPDParameters.Slope     = CalculateSlopeFiniteDifferences(implicit_function, function_derivative, rValues, rPDParameters);
+                    break;
+                } else {
+                    double K0;
+                    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
+                    rPDParameters.Threshold = K0;
+                    rPDParameters.Slope = 0.0;
+                }
+
             }
         }
     }
@@ -366,24 +373,35 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
     PlasticDamageParameters &rPDParameters
 )
 {
-    double residual = rF(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
     double old_threshold = rPDParameters.Threshold;
+    double residual = 1.0;
+    // KRATOS_WATCH(residual)
+    // KRATOS_WATCH(old_threshold)
+    // KRATOS_WATCH(rPDParameters.TotalDissipation)
+    // KRATOS_ERROR << "" << std::endl;
     double new_threshold = 0.0;
     double derivative = 0.0;
     int max_iter = 2000;
     int iteration = 0;
-    const double nr_tol = 1.0e-8;
+    const double nr_tol = 1.0e-4;
 
     while (residual > nr_tol && iteration < max_iter) {
         derivative = rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
+        // KRATOS_WATCH(derivative)
         if (std::abs(derivative) > 0.0)
             new_threshold = old_threshold - (1.0 / derivative) * rF(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
         else
             break;
-        residual = rF(rPDParameters.TotalDissipation, new_threshold, rValues, rPDParameters);
+        residual = std::abs(rF(rPDParameters.TotalDissipation, new_threshold, rValues, rPDParameters));
         old_threshold = new_threshold;
         iteration++;
     }
+
+    // KRATOS_WATCH(derivative)
+    // KRATOS_WATCH(derivative)
+    // KRATOS_WATCH(new_threshold)
+    // KRATOS_WATCH(residual)
+    // KRATOS_ERROR << "" << std::endl;
     KRATOS_WARNING_IF("AssociativePlasticDamageModel", iteration == max_iter) << "Inner Newton-Raphson to find an updated threshold did not converge..." << " Tolerance achieved: " << residual << std::endl;
     return new_threshold;
 }
