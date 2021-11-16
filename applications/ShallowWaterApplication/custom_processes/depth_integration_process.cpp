@@ -65,9 +65,9 @@ DepthIntegrationProcess::DepthIntegrationProcess(
 void DepthIntegrationProcess::Execute()
 {
     double bottom, top;
-    GetBoundingVolumeLimits(bottom, top);
     InitializeIntegrationModelPart();
-    CreateIntegrationLines();
+    GetBoundingVolumeLimits(bottom, top);
+    CreateIntegrationLines(bottom, top);
     FindIntersectedGeometricalObjectsProcess find_intersected_objects_process(*mpIntegrationModelPart, mrVolumeModelPart);
     find_intersected_objects_process.ExecuteInitialize();
     find_intersected_objects_process.FindIntersections();
@@ -152,7 +152,7 @@ void DepthIntegrationProcess::InitializeIntegrationModelPart()
 void DepthIntegrationProcess::CreateIntegrationLines(const double Low, const double High)
 {
     // Set the element name
-    dimension = mrVolumeModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    const auto dimension = mrVolumeModelPart.GetProcessInfo()[DOMAIN_SIZE];
     std::string element_name = (dimension == 2) ? "Element2D2N" : "Element3D2N";
 
     // Get some properties
@@ -170,21 +170,21 @@ void DepthIntegrationProcess::CreateIntegrationLines(const double Low, const dou
     // Create the integration lines
     for (auto& node : mrInterfaceModelPart.Nodes()) {
         const double distance = inner_prod(node, mDirection);
-        array_1d<double,3> start = node + (Low + distance) * mDirection;
-        array_1d<double,3> end = node + (High - distance) * mDirection;
-        mpIntegrationModelPart->CreateNewNode(++node_id, start);
-        mpIntegrationModelPart->CreateNewNode(++node_id, end);
-        mpIntegrationModelPart->CreateNewElement(element_name, ++elem_id, {node_id-1, node_id}, p_prop);
+        array_1d<double,3> start = node + mDirection * (Low + distance);
+        array_1d<double,3> end = node + mDirection * (High - distance);
+        mpIntegrationModelPart->CreateNewNode(++node_id, start[0], start[1], start[2]);
+        mpIntegrationModelPart->CreateNewNode(++node_id, end[0], end[1], end[2]);
+        mpIntegrationModelPart->CreateNewElement(element_name, ++elem_id, {{node_id-1, node_id}}, p_prop);
     }
 }
 
 void DepthIntegrationProcess::Integrate(std::vector<PointerVector<GeometricalObject>>& rResults)
 {
-    KRATOS_ERROR_IF(rResults.size() != mrInterfaceModelPart.NumberOfElements()) << "DepthIntegrationProcess: the number of nodes in the interface and the number of integration lines mismatch."
+    KRATOS_ERROR_IF(rResults.size() != mrInterfaceModelPart.NumberOfElements()) << "DepthIntegrationProcess: the number of nodes in the interface and the number of integration lines mismatch.";
     IndexPartition<int>(static_cast<int>(rResults.size())).for_each([&](int i){
         auto& objects_in_line = rResults[i];
         auto i_node = mrInterfaceModelPart.NodesBegin() + i;
-        Integrate(objects_in_line, node);
+        Integrate(objects_in_line, *i_node);
     });
 }
 
@@ -242,9 +242,9 @@ Geometry<Node<3>>::Pointer DepthIntegrationProcess::CreateIntegrationLine(
 
 int DepthIntegrationProcess::Check()
 {
-    dimension = mrVolumeModelPart.GetProcessInfo()[DOMAIN_SIZE];
-    KRATOS_ERROR_IF(dimension != 2 && dimension != 3) << Info() << ": Wrong DOMAIN_SIZE equal to " << dimesion << "in model part " << mrVolumeModelPart.Name() << std::endl;
-    KRATOS_ERROR_IF(mDirection.size() != 3) << Info() << ": The direction of integration must have three coordinates." << std::endl;
+    const auto dimension = mrVolumeModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    KRATOS_ERROR_IF(dimension != 2 && dimension != 3) << Info() << ": Wrong DOMAIN_SIZE equal to " << dimension << "in model part " << mrVolumeModelPart.Name() << std::endl;
+    KRATOS_ERROR_IF(mDirection.size() != 3) << Info() << ": The direction of integration must be given with three coordinates." << std::endl;
     KRATOS_ERROR_IF(mrVolumeModelPart.NumberOfNodes() == 0) << Info() << ": The volume model part is empty. Not possible to construct the octree." << std::endl;
     return 0;
 }
