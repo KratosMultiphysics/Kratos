@@ -35,7 +35,7 @@ namespace Kratos
 ///@{
 
 /** @brief Butcher tableau for Runge-Kutta method.
- * 
+ *
  * Contains all info necessary of a particular RK method.
  * It specifies the coefficients of the particular Runge-Kutta method.
  *
@@ -52,20 +52,20 @@ public:
     typedef BoundedMatrix<double, TOrder-1, TOrder-1> MatrixType;
     typedef array_1d<double, TOrder> VectorType;
 
-    constexpr unsigned int Order() {return TOrder;}
-    constexpr unsigned int Size() {return TOrder-1;}
-    
-    constexpr MatrixRow<const MatrixType> GetRKMatrixRow(const unsigned int SubStepIndex)
+    constexpr unsigned int Order() const {return TOrder;}
+    constexpr unsigned int Size() const {return TOrder-1;}
+
+    constexpr MatrixRow<const MatrixType> GetRKMatrixRow(const unsigned int SubStepIndex) const
     {
         return row(mA, SubStepIndex-1);
     }
 
-    constexpr const VectorType& GetWeights()
+    constexpr const VectorType& GetWeights() const
     {
         return mB;
     }
 
-    constexpr double GetNode(const unsigned int SubStepIndex)
+    constexpr double GetNode(const unsigned int SubStepIndex) const
     {
         return mC(SubStepIndex);
     }
@@ -234,18 +234,18 @@ public:
 ///@name Kratos Classes
 ///@{
 
-/** 
- * 
+/**
+ *
  * Formulation: for i = 0...N substeps
  *
  * - The diferential equation is u_t = f(t, u)
- * 
+ *
  * The Runge-Kutta method is:
  * - k^(i) = f(t + c_i*dt, u^(i-1))             -> Where u^(0) := u^n
  * - u^(i) = u^n + \sum_{j=1}^i A_{ij} k^(j)    -> Intermediate steps. u^(N) is not needed, therefore neither is A[N, :]
  * - u^{n+1} = u^n + \sum_{i} B_{i} k(u^(i))    -> Solution
  *
- * 
+ *
  */
 template <class TSparseSpace, class TDenseSpace, class TButcherTableau>
 class ExplicitSolvingStrategyRungeKutta : public ExplicitSolvingStrategy<TSparseSpace, TDenseSpace>
