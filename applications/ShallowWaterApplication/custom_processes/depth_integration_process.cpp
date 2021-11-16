@@ -25,7 +25,6 @@
 #include "utilities/parallel_utilities.h"
 #include "shallow_water_application_variables.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
-// #include "custom_utilities/find_intersected_objects_utility.h"
 
 namespace Kratos
 {
