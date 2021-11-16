@@ -39,17 +39,17 @@ namespace Kratos
  * Contains all info necessary of a particular RK method.
  * It specifies the coefficients of the particular Runge-Kutta method.
  *
- * @tparam: ChildClass: Achild class that must contain the methods specified below.
- * @tparam: TOrder: The order of integration.
- * @tparam: TOrder: The number of sub-steps.
+ * @tparam: Derived: A derived class that must contain the methods specified below.
+ * @tparam: TOrder:  The order of integration.
+ * @tparam: TOrder:  The number of sub-steps.
  *
  * Child class must provide methods:
- * - static const MatrixType() GenerateRKMatrix
- * - static const VectorType() GenerateWeights
- * - static const VectorType() GenerateNodes
+ * - static const MatrixType GenerateRKMatrix() -> Provides coefficients a_ij
+ * - static const VectorType GenerateWeights()  -> Provides coefficients b_i
+ * - static const VectorType GenerateNodes()    -> Provides coefficients c_i
  * - static std::string Name()
  */
-template<typename ChildClass, unsigned int TOrder, unsigned int TSize>
+template<typename Derived, unsigned int TOrder, unsigned int TSize>
 class ButcherTableau
 {
 public:
@@ -76,13 +76,13 @@ public:
 
     static std::string Name()
     {
-        return ChildClass::Name();
+        return Derived::Name();
     }
 
 protected:
-    const MatrixType mA = ChildClass::GenerateRKMatrix();   // Runge-Kutta matrix
-    const VectorType mB = ChildClass::GenerateWeights();    // Weights vector
-    const VectorType mC = ChildClass::GenerateNodes();      // Nodes vector
+    const MatrixType mA = Derived::GenerateRKMatrix();   // Runge-Kutta matrix
+    const VectorType mB = Derived::GenerateWeights();    // Weights vector
+    const VectorType mC = Derived::GenerateNodes();      // Nodes vector
 };
 
 
