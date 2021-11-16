@@ -53,8 +53,7 @@ double VanGenuchtenLaw::
     const double &p = rParameters.GetFluidPressure();
     const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
 
-    if (p > 0.0)
-    {
+    if (p > 0.0) {
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
         const double &pb     = rMaterialProperties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE];
@@ -63,9 +62,7 @@ double VanGenuchtenLaw::
 
         double sat = satMin + (satMax - satMin) * pow(1.0 + pow(p/pb, gn), gc);
         return sat;
-    }
-    else
-    {
+    } else {
         return rMaterialProperties[SATURATED_SATURATION];
     }
 
@@ -98,8 +95,7 @@ double VanGenuchtenLaw::
     KRATOS_TRY;
     const double &p = rParameters.GetFluidPressure();
 
-    if (p > 0.0)
-    {
+    if (p > 0.0) {
         const auto &rMaterialProperties = rParameters.GetMaterialProperties();
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
@@ -110,9 +106,7 @@ double VanGenuchtenLaw::
         double dSdp = (satMax - satMin) * gc * pow((1.0 + pow(p/pb, gn)), gc-1.0)
                                         * gn * pow(pb,-gn) * pow(p, gn-1.0);
         return dSdp;
-    }
-    else
-    {
+    } else {
         return 0.0;
     }
 

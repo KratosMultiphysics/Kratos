@@ -145,7 +145,7 @@ proc PressureTable {FileVar TableId TableDict CondName VarName} {
                     dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 $MyTableId
                     lappend AuxList $MyTableId
                     puts $MyFileVar "Begin Table $MyTableId TIME $VarName"
-                    set Table [lindex [lindex $Groups $i] 23]
+                    set Table [lindex [lindex $Groups $i] 24]
                     for {set j 2} {$j <= [lindex $Table 1]} {incr j 2} {
                         puts $MyFileVar "  [lindex $Table $j] [lindex $Table [expr { $j+1 }]]"
                     }

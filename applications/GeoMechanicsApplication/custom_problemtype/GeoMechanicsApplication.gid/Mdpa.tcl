@@ -725,16 +725,26 @@ proc WriteMdpa { basename dir problemtypedir } {
             # Elements Property
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
 
-            # TrussLinearElement3D2N
-            WriteElements FileVar [lindex $Groups $i] line GeoTrussLinearElement3D2N $BodyElemsProp Line2D2Connectivities
+            if {$Dim eq 2} {
+                # GeoLinearTrussElement2D2N
+                WriteElements FileVar [lindex $Groups $i] line GeoLinearTrussElement2D2N $BodyElemsProp Line2D2Connectivities
+            } else {
+                # GeoLinearTrussElement3D2N
+                WriteElements FileVar [lindex $Groups $i] line GeoLinearTrussElement3D2N $BodyElemsProp Line2D2Connectivities
+            }
         }
     } elseif {$IsQuadratic eq 1} {
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             # Elements Property
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
 
-            # TrussLinearElement3D2N twice
-            WriteElementsTwoParts FileVar [lindex $Groups $i] line GeoTrussLinearElement3D2N $BodyElemsProp Line2D2ConnectivitiesPart1 Line2D2ConnectivitiesPart2
+            if {$Dim eq 2} {
+                # GeoLinearTrussElement2D2N twice
+                WriteElementsTwoParts FileVar [lindex $Groups $i] line GeoLinearTrussElement2D2N $BodyElemsProp Line2D2ConnectivitiesPart1 Line2D2ConnectivitiesPart2
+            } else {
+                # GeoLinearTrussElement3D2N twice
+                WriteElementsTwoParts FileVar [lindex $Groups $i] line GeoLinearTrussElement3D2N $BodyElemsProp Line2D2ConnectivitiesPart1 Line2D2ConnectivitiesPart2
+            }
         }
     }
 
@@ -747,9 +757,15 @@ proc WriteMdpa { basename dir problemtypedir } {
             # Elements Property
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
             
-            # CableElement3D2N
-            #dict set AnchorElementDict $AnchorId [WriteAnchorElements FileVar [lindex $Groups $i] line GeoCableElement3D2N $BodyElemsProp Line2D2Connectivities] 
-            WriteElements FileVar [lindex $Groups $i] line GeoCableElement3D2N $BodyElemsProp Line2D2Connectivities
+            if {$Dim eq 2} {
+                # GeoCableElement2D2N
+                #dict set AnchorElementDict $AnchorId [WriteAnchorElements FileVar [lindex $Groups $i] line GeoCableElement3D2N $BodyElemsProp Line2D2Connectivities] 
+                WriteElements FileVar [lindex $Groups $i] line GeoCableElement2D2N $BodyElemsProp Line2D2Connectivities
+            } else {
+                # GeoCableElement3D2N
+                #dict set AnchorElementDict $AnchorId [WriteAnchorElements FileVar [lindex $Groups $i] line GeoCableElement3D2N $BodyElemsProp Line2D2Connectivities] 
+                WriteElements FileVar [lindex $Groups $i] line GeoCableElement3D2N $BodyElemsProp Line2D2Connectivities
+            }
             #incr AnchorId
         }
     } elseif {$IsQuadratic eq 1} {
@@ -757,9 +773,15 @@ proc WriteMdpa { basename dir problemtypedir } {
             # Elements Property
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
 
-            # CableElement3D3N
-            #dict set AnchorElementDict $AnchorId [WriteAnchorElements FileVar [lindex $Groups $i] line GeoCableElement3D2N $BodyElemsProp Line2D3Connectivities]
-            WriteElementsTwoParts FileVar [lindex $Groups $i] line GeoCableElement3D2N $BodyElemsProp Line2D2ConnectivitiesPart1 Line2D2ConnectivitiesPart2
+            if {$Dim eq 2} {
+                # GeoCableElement2D2N
+                #dict set AnchorElementDict $AnchorId [WriteAnchorElements FileVar [lindex $Groups $i] line GeoCableElement3D2N $BodyElemsProp Line2D3Connectivities]
+                WriteElementsTwoParts FileVar [lindex $Groups $i] line GeoCableElement2D2N $BodyElemsProp Line2D2ConnectivitiesPart1 Line2D2ConnectivitiesPart2
+            } else {
+                # GeoCableElement3D2N
+                #dict set AnchorElementDict $AnchorId [WriteAnchorElements FileVar [lindex $Groups $i] line GeoCableElement3D2N $BodyElemsProp Line2D3Connectivities]
+                WriteElementsTwoParts FileVar [lindex $Groups $i] line GeoCableElement3D2N $BodyElemsProp Line2D2ConnectivitiesPart1 Line2D2ConnectivitiesPart2
+            }
             #incr AnchorId
         }
     }
