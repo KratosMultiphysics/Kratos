@@ -254,8 +254,6 @@ void ConvergenceTest()
         const double analytical = (37.5 / 3.5) + (50 - 37.5/3.5) * std::exp(- 3.5 * n_steps[i] * delta_time[i]);
 
         error[i] = std::fabs(result - analytical);
-
-        std::cout << delta_time[i] << ", " << error[i] << std::endl;
     }
 
     const double convergence_rate = LogFittingSlope<n_testpoints>(delta_time, error);
