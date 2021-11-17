@@ -6,11 +6,7 @@ if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
 elif (IsDistributedRun()):
     raise Exception("Distributed run requires TrilinosApplication")
 
-if (CheckIfApplicationsAvailable("FluidDynamicsApplication")):
-    from KratosMultiphysics.FluidDynamicsApplication import *
-else:
-    raise Exception("RANSApplication requires FluidDynamicsApplication.")
-
+from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosRANSApplication import *
 
 from KratosMultiphysics import _ImportApplication
