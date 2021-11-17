@@ -204,8 +204,9 @@ void Solve(
 }
 
 template<unsigned int TDataSize>
-double LogFittingSlope(const std::array<double, TDataSize>& X,
-                const std::array<double, TDataSize>& Y)
+double LogFittingSlope(
+    const std::array<double, TDataSize>& rX,
+    const std::array<double, TDataSize>& rY)
 {
     BoundedMatrix<double, TDataSize, 2> A;
     array_1d<double, TDataSize> y;
