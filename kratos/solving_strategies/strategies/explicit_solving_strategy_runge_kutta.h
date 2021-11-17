@@ -91,7 +91,7 @@ public:
 
     constexpr double GetNode(const unsigned int SubStepIndex) const
     {
-        return mC(SubStepIndex);
+        return mC(SubStepIndex - 1);
     }
 
     static std::string Name()
