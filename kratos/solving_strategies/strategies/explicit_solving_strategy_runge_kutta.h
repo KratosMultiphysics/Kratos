@@ -46,9 +46,9 @@ namespace Kratos
  * @tparam: TSubstepCount: The number of sub-steps.
  *
  * Child class must provide methods:
- * - static const MatrixType GenerateRKMatrix() -> Provides coefficients a_ij
- * - static const VectorType GenerateWeights()  -> Provides coefficients b_i
- * - static const VectorType GenerateNodes()    -> Provides coefficients c_i
+ * - static const MatrixType GenerateRKMatrix()     -> Provides coefficients a_ij
+ * - static const VectorType GenerateWeights()      -> Provides coefficients b_i
+ * - static const VectorType GenerateThetasVector() -> Provides coefficients c_i
  * - static std::string Name()
  */
 template<typename Derived, unsigned int TOrder, unsigned int TSubstepCount>
@@ -59,7 +59,8 @@ public:
     static constexpr unsigned int SubstepCount() {return TSubstepCount; }
 
     typedef array_1d<double, SubstepCount()> VectorType;
-    typedef std::array<array_1d<double, SubstepCount()-1>, SubstepCount()-1> MatrixType;
+    typedef array_1d<double, SubstepCount()-1> RowType;
+    typedef std::array<RowType, SubstepCount()-1> MatrixType;
 
     /**
      * The runge kutta must perform for all substeps 1...N-1:
@@ -71,18 +72,18 @@ public:
      * @param SubstepIndex: The i in the formula (the row of the matrix)
      * @param rK: The k in the formula (the reaction)
      */
-    double MatrixReactionProduct(
-        const unsigned int SubStepIndex,
-        const MatrixRow<Matrix>& rK
-        ) const
+    struct ArraySlice
     {
-#ifdef KRATOS_DEBUG
-        KRATOS_ERROR_IF(SubStepIndex < 1) << "Substep index must be at least 1" << std::endl;
-        KRATOS_ERROR_IF(SubStepIndex > SubstepCount()) << "Substep index must be at most" << SubstepCount() << std::endl;
-#endif
-        const auto A_begin = mA[SubStepIndex - 1].begin();
-        const auto A_end = mA[SubStepIndex - 1].begin() + SubStepIndex; // Exploits the property A_ij=0 for j>i
-        return std::inner_product(A_begin, A_end, rK.begin(), 0.0);
+        typename RowType::const_iterator begin;
+        typename RowType::const_iterator end;
+    };
+
+    ArraySlice GetMatrixRow(const unsigned int SubStepIndex) const
+    {
+        return ArraySlice{
+            mA[SubStepIndex - 1].begin(),
+            mA[SubStepIndex - 1].begin() + SubStepIndex // Exploits the property A_ij=0 for j>i
+        };
     }
 
     constexpr const VectorType& GetWeights() const
@@ -90,7 +91,7 @@ public:
         return mB;
     }
 
-    constexpr double GetNode(const unsigned int SubStepIndex) const
+    constexpr double GetIntegrationTheta(const unsigned int SubStepIndex) const
     {
         return mC(SubStepIndex - 1);
     }
@@ -101,9 +102,9 @@ public:
     }
 
 protected:
-    const MatrixType mA = Derived::GenerateRKMatrix();   // Runge-Kutta matrix
-    const VectorType mB = Derived::GenerateWeights();    // Weights vector
-    const VectorType mC = Derived::GenerateNodes();      // Nodes vector
+    const MatrixType mA = Derived::GenerateRKMatrix();     // Runge-Kutta matrix
+    const VectorType mB = Derived::GenerateWeights();      // Weights vector
+    const VectorType mC = Derived::GenerateThetasVector(); // Nodes vector
 };
 
 
@@ -123,7 +124,7 @@ public:
         return B;
     }
 
-    static const VectorType GenerateNodes()
+    static const VectorType GenerateThetasVector()
     {
         VectorType C;
         C(0) = 0.0;
@@ -156,7 +157,7 @@ public:
         return B;
     }
 
-    static const VectorType GenerateNodes()
+    static const VectorType GenerateThetasVector()
     {
         VectorType C;
         C(0) = 0.0;
@@ -199,7 +200,7 @@ public:
         return B;
     }
 
-    static const VectorType GenerateNodes()
+    static const VectorType GenerateThetasVector()
     {
         VectorType C;
         C(0) = 0.0;
@@ -238,7 +239,7 @@ public:
         return B;
     }
 
-    static const VectorType GenerateNodes()
+    static const VectorType GenerateThetasVector()
     {
         VectorType C;
         C(0) = 0.0;
@@ -585,7 +586,7 @@ protected:
 
         // Set the RUNGE_KUTTA_STEP value. This has to be done prior to the InitializeRungeKuttaStep()
         r_process_info.GetValue(RUNGE_KUTTA_STEP) = SubStepIndex;
-        r_process_info.GetValue(TIME_INTEGRATION_THETA) = mButcherTableau.GetNode(SubStepIndex);
+        r_process_info.GetValue(TIME_INTEGRATION_THETA) = mButcherTableau.GetIntegrationTheta(SubStepIndex);
 
         // Perform the intermidate sub step update
         InitializeRungeKuttaIntermediateSubStep();
@@ -603,10 +604,11 @@ protected:
                 if (!it_dof->IsFixed()) {
                     const double mass = r_lumped_mass_vector(i_dof);
                     const auto k = row(rIntermediateStepResidualVectors, i_dof);
-                    r_u = r_u_old + (dt / mass) * mButcherTableau.MatrixReactionProduct(SubStepIndex, k);
+                    auto alphas = mButcherTableau.GetMatrixRow(SubStepIndex);
+                    r_u = r_u_old + (dt / mass) * std::inner_product(alphas.begin, alphas.end, k.begin(), 0.0);
                 } else {
                     const double delta_u = rFixedDofsValues(i_dof) - r_u_old;
-                    const auto coeff = mButcherTableau.GetNode(SubStepIndex);
+                    const auto coeff = mButcherTableau.GetIntegrationTheta(SubStepIndex);
                     r_u = r_u_old + coeff * delta_u;
                 }
             }
@@ -637,7 +639,7 @@ protected:
 
         // Set the RUNGE_KUTTA_STEP value. This has to be done prior to the InitializeRungeKuttaStep()
         r_process_info.GetValue(RUNGE_KUTTA_STEP) = TButcherTableau::SubstepCount();
-        r_process_info.GetValue(TIME_INTEGRATION_THETA) = mButcherTableau.GetNode(substep_index);
+        r_process_info.GetValue(TIME_INTEGRATION_THETA) = mButcherTableau.GetIntegrationTheta(substep_index);
 
         // Perform the last sub step residual calculation
         InitializeRungeKuttaLastSubStep();

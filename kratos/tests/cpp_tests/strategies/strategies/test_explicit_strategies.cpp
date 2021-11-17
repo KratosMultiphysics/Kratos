@@ -11,8 +11,6 @@
 //
 
 // System includes
-#include <algorithm>
-#include <limits>
 
 /* External includes */
 
@@ -211,11 +209,10 @@ double LogFittingSlope(
     BoundedMatrix<double, TDataSize, 2> A;
     array_1d<double, TDataSize> y;
 
-    for(unsigned int i=0; i<TDataSize; ++i)
-    {
+    for(unsigned int i=0; i<TDataSize; ++i){
         A(i, 0) = 1.0;
-        A(i, 1) = std::log(X[i]);
-        y(i)    = std::log(Y[i]);
+        A(i, 1) = std::log(rX[i]);
+        y(i)    = std::log(rY[i]);
     }
 
     const BoundedMatrix<double, 2, 2> AtA = prod(trans(A), A);
