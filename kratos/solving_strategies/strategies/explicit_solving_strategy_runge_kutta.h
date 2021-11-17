@@ -423,6 +423,7 @@ public:
 
     void Initialize() override
     {
+        BaseType::Initialize();
         BaseType::GetModelPart().GetProcessInfo().SetValue(TIME_INTEGRATION_THETA, 0.0);
     }
 
