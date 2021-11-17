@@ -52,7 +52,11 @@ DepthIntegrationProcess::DepthIntegrationProcess(
     mStoreHistorical = ThisParameters["store_historical_database"].GetBool();
     mDirection = ThisParameters["direction_of_integration"].GetVector();
     mDirection /= norm_2(mDirection);
-    mpIntegrationModelPart = &rModel.CreateModelPart("integration_auxiliary_model_part");
+    if (rModel.HasModelPart("integration_auxiliary_model_part")) { // This is to allow multiple instances of this process
+        mpIntegrationModelPart = &rModel.GetModelPart("integration_auxiliary_model_part");
+    } else {
+        mpIntegrationModelPart = &rModel.CreateModelPart("integration_auxiliary_model_part");
+    }
 }
 
 void DepthIntegrationProcess::Execute()
@@ -70,7 +74,6 @@ void DepthIntegrationProcess::Execute()
 
 void DepthIntegrationProcess::InitializeIntegrationModelPart()
 {
-    // Empty the model part
     VariableUtils().SetFlag(TO_ERASE, true, mpIntegrationModelPart->Nodes());
     VariableUtils().SetFlag(TO_ERASE, true, mpIntegrationModelPart->Elements());
     VariableUtils().SetFlag(TO_ERASE, true, mpIntegrationModelPart->Conditions());
