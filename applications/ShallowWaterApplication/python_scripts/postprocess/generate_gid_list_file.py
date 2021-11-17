@@ -35,11 +35,10 @@ def _CheckFileName(file_name):
 
 
 def _WriteListFile(file_list, file_name):
-    file = open(file_name, "w")
-    file.write("Merge\n")
-    for output_file in file_list:
-        file.write("{}\n".format(output_file))
-    file.close()
+    with open(file_name, "w") as file:
+        file.write("Merge\n")
+        for output_file in file_list:
+            file.write("{}\n".format(output_file))
 
 
 if __name__ == "__main__":
