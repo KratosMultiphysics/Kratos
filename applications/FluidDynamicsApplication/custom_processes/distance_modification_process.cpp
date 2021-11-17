@@ -29,7 +29,6 @@
 namespace Kratos
 {
 /* Type definitions *******************************************************/
-
 constexpr std::array<std::array<std::size_t,2>, 3> DistanceModificationProcess::NodeIDs2D;
 constexpr std::array<std::array<std::size_t,2>, 6> DistanceModificationProcess::NodeIDs3D; 
 
@@ -292,16 +291,17 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
         // If user has provided flag to calculate elemental edge distances of extrapolated geometry,
         // modify them according to elemental distances in order to stay consistent with element splitting
         if (n_edges_extrapolated > 0) {
-            #pragma omp parallel for
-            for (int i_elem = 0; i_elem < static_cast<int>(n_elems); ++i_elem) {
-                auto it_elem = elems_begin + i_elem;
+            /*IndexPartition<std::size_t>(n_elems).for_each([&](std::size_t i_elem){
 
+                
+            });*/
+            block_for_each(r_elems, [&](Element& rElement){
                 // Compute the distance tolerance
-                const double tol_d = mDistanceThreshold*(it_elem->GetGeometry()).Length();
+                const double tol_d = mDistanceThreshold*(rElement.GetGeometry()).Length();
 
                 // Check if the elemental distance values are close to zero
                 bool is_modified = false;
-                Vector &r_elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
+                Vector &r_elem_dist = rElement.GetValue(ELEMENTAL_DISTANCES);
                 for (std::size_t i_node = 0; i_node < r_elem_dist.size(); ++i_node){
                     if (std::abs(r_elem_dist(i_node)) < tol_d){
                         is_modified = true;
@@ -311,7 +311,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
 
                 // Modify ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED consistently
                 if (is_modified) {
-                    Vector &r_elem_edge_dist_extra = it_elem->GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
+                    Vector &r_elem_edge_dist_extra = rElement.GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
                     for (std::size_t i_edge = 0; i_edge < n_edges_extrapolated; ++i_edge) {
 
                         // Get corresponding node IDs and elemental distances
@@ -326,23 +326,20 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
                         }
                     }
                 }
-            }
+            });
         } else {
-            #pragma omp parallel for
-            for (int i_elem = 0; i_elem < static_cast<int>(n_elems); ++i_elem) {
-                auto it_elem = elems_begin + i_elem;
-
+            block_for_each(r_elems, [&](Element& rElement){
                 // Compute the distance tolerance
-                const double tol_d = mDistanceThreshold*(it_elem->GetGeometry()).Length();
+                const double tol_d = mDistanceThreshold*(rElement.GetGeometry()).Length();
 
                 // Check if the elemental distance values are close to zero
-                Vector &r_elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
+                Vector &r_elem_dist = rElement.GetValue(ELEMENTAL_DISTANCES);
                 for (std::size_t i_node = 0; i_node < r_elem_dist.size(); ++i_node){
                     if (std::abs(r_elem_dist(i_node)) < tol_d){
                         r_elem_dist(i_node) = r_elem_dist(i_node) > 0.0 ? tol_d : -tol_d;
                     }
                 }
-            }
+            });
         }
     } else {
         // Case in which the original distance needs to be kept to track the interface (e.g. FSI)

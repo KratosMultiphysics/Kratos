@@ -56,7 +56,6 @@ void TriangleModelPartForDistanceModification(
         Vector elem_edge_dist(3,-1.0);
         elem_edge_dist(1) = 0.8;
         rModelPart.ElementsBegin()->SetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, elem_edge_dist);
-   
     }
 }
 
