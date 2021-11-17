@@ -15,6 +15,7 @@
 #define KRATOS_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA
 
 /* System includes */
+#include <string>
 #include <numeric>
 
 /* External includes */
@@ -479,6 +480,8 @@ protected:
 
     void SolveWithLumpedMassMatrix() override
     {
+        KRATOS_TRY
+
         // Get the required data from the explicit builder and solver
         const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
         auto& r_dof_set = p_explicit_bs->GetDofSet();
@@ -531,6 +534,8 @@ protected:
                 }
             }
         );
+
+        KRATOS_CATCH("");
     }
 
     /**
@@ -570,6 +575,8 @@ protected:
         const LocalSystemVectorType& rFixedDofsValues,
         LocalSystemMatrixType& rIntermediateStepResidualVectors)
     {
+        KRATOS_TRY
+
         // Get the required data from the explicit builder and solver
         const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
         auto& r_dof_set = p_explicit_bs->GetDofSet();
@@ -611,6 +618,8 @@ protected:
         );
 
         FinalizeRungeKuttaIntermediateSubStep();
+
+        KRATOS_CATCH("SubstepIndex = " + std::to_string(SubStepIndex));
     }
 
     /**
@@ -620,6 +629,8 @@ protected:
      */
     virtual void PerformRungeKuttaLastSubStep(LocalSystemMatrixType& rLastStepResidualVector)
     {
+        KRATOS_TRY
+
         // Get the required data from the explicit builder and solver
         const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
         auto& r_dof_set = p_explicit_bs->GetDofSet();
@@ -647,6 +658,8 @@ protected:
         );
 
         FinalizeRungeKuttaLastSubStep();
+
+        KRATOS_CATCH("");
     }
 
     ///@}
