@@ -1016,7 +1016,7 @@ void UpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, const Pr
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType matrix_size = dimension * number_of_nodes;
+    const SizeType matrix_size = (dimension + 1) * number_of_nodes;
 
     if (rMassMatrix.size1() != matrix_size || rMassMatrix.size2() != matrix_size)
         rMassMatrix.resize(matrix_size, matrix_size, false);
@@ -1027,8 +1027,8 @@ void UpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, const Pr
             for (IndexType j = 0; j < number_of_nodes; ++j) {
                 for (IndexType k = 0; k < dimension; ++k)
                 {
-                    const IndexType index_i = i * dimension + k;
-                    const IndexType index_j = j * dimension + k;
+                    const IndexType index_i = i * (dimension + 1) + k;
+                    const IndexType index_j = j * (dimension + 1) + k;
                     rMassMatrix(index_i, index_j) = N[i] * N[j] * mMP.mass;
                 }
             }
@@ -1037,7 +1037,7 @@ void UpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, const Pr
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             for (IndexType k = 0; k < dimension; ++k)
             {
-                const IndexType index = i * dimension + k;
+                const IndexType index = i * (dimension + 1) + k;
                 rMassMatrix(index, index) = N[i] * mMP.mass;
             }
         }
