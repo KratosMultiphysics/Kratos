@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "includes/constitutive_law.h"
 #include "includes/variables.h"
+#include "includes/cfd_variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/mat_variables.h"
 
