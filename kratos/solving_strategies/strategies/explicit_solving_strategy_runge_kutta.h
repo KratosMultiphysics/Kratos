@@ -79,9 +79,9 @@ public:
         KRATOS_ERROR_IF(SubStepIndex < 1) << "Substep index must be at least 1" << std::endl;
         KRATOS_ERROR_IF(SubStepIndex > SubstepCount()) << "Substep index must be at most" << SubstepCount() << std::endl;
 #endif
-        const auto weights_begin = mA[SubStepIndex - 1].begin();
-        const auto weights_end = mA[SubStepIndex - 1].begin() + SubStepIndex; // Exploits the property A_ij=0 for j>i
-        return std::inner_product(weights_begin, weights_end, rK.begin(), 0.0);
+        const auto A_begin = mA[SubStepIndex - 1].begin();
+        const auto A_end = mA[SubStepIndex - 1].begin() + SubStepIndex; // Exploits the property A_ij=0 for j>i
+        return std::inner_product(A_begin, A_end, rK.begin(), 0.0);
     }
 
     constexpr const VectorType& GetWeights() const
