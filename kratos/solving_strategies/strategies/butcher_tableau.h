@@ -11,6 +11,7 @@
 //
 //
 
+#include "includes/ublas_interface.h"
 #if !defined(KRATOS_RUNGE_KUTTA_BUTCHER_TABLEAU_H)
 #define KRATOS_RUNGE_KUTTA_BUTCHER_TABLEAU_H
 
@@ -74,13 +75,12 @@ public:
     static constexpr unsigned int SubstepCount() {return TSubstepCount; }
 
     typedef array_1d<double, SubstepCount()> VectorType;
-    typedef array_1d<double, SubstepCount()-1> RowType;
-    typedef std::array<RowType, SubstepCount()-1> MatrixType;
+    typedef BoundedMatrix<double, SubstepCount()-1, SubstepCount()-1> MatrixType;
 
     struct ArraySlice
     {
-        typename RowType::const_iterator begin;
-        typename RowType::const_iterator end;
+        typename MatrixRow<const MatrixType>::const_iterator begin;
+        typename MatrixRow<const MatrixType>::const_iterator end;
     };
 
     ///@}
@@ -111,8 +111,8 @@ public:
     ArraySlice GetMatrixRow(const unsigned int SubStepIndex) const
     {
         return ArraySlice{
-            mA[SubStepIndex - 1].begin(),
-            mA[SubStepIndex - 1].begin() + SubStepIndex // Exploits the property A_ij=0 for j>i
+            row(mA, SubStepIndex-1).begin(),
+            row(mA, SubStepIndex-1).begin() + SubStepIndex // Exploits the property A_ij=0 for j>i
         };
     }
 
@@ -252,7 +252,7 @@ public:
     static const MatrixType GenerateRKMatrix()
     {
         MatrixType A;
-        A[0][0] = 0.5;
+        A(0, 0) = 0.5;
         return A;
     }
 
@@ -291,10 +291,10 @@ public:
     static const MatrixType GenerateRKMatrix()
     {
         MatrixType A;
-        A[0][0] = 1;
-        A[1][0] = 0.25;
-        A[0][1] = 0.0;
-        A[1][1] = 0.25;
+        A(0, 0) = 1;
+        A(1, 0) = 0.25;
+        A(0, 1) = 0.0;
+        A(1, 1) = 0.25;
         return A;
     }
 
@@ -328,11 +328,10 @@ class ButcherTableauRK4 : public ButcherTableau<ButcherTableauRK4, 4, 4>
 public:
     static const MatrixType GenerateRKMatrix()
     {
-        MatrixType A;
-        std::fill(begin(A), end(A), ZeroVector(SubstepCount()-1));
-        A[0][0] = 0.5;
-        A[1][1] = 0.5;
-        A[2][2] = 1.0;
+        MatrixType A = ZeroMatrix(SubstepCount()-1, SubstepCount()-1);
+        A(0, 0) = 0.5;
+        A(1, 1) = 0.5;
+        A(2, 2) = 1.0;
         return A;
     }
 
