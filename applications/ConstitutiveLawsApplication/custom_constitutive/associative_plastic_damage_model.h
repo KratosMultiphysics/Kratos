@@ -720,7 +720,12 @@ public:
         )
     {
         rPDParameters.DamageDissipation  += rPDParameters.DamageDissipationIncrement;
+        rPDParameters.DamageDissipation = (rPDParameters.DamageDissipation > 0.99999) ?
+            0.99999 : rPDParameters.DamageDissipation;
+
         rPDParameters.PlasticDissipation += rPDParameters.PlasticDissipationIncrement;
+        rPDParameters.PlasticDissipation = (rPDParameters.PlasticDissipation > 0.99999) ?
+            0.99999 : rPDParameters.PlasticDissipation;
 
         rPDParameters.TotalDissipation = (rPDParameters.PlasticDissipation +
             rPDParameters.DamageDissipation);

@@ -319,13 +319,12 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
     )
 {
     const auto& r_mat_properties = rValues.GetMaterialProperties();
-    double uniaxial_plastic_strain = 0.0;
-    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::
-        CalculateEquivalentPlasticStrain(rPDParameters.StressVector,
-        rPDParameters.UniaxialStress, rPDParameters.PlasticStrain, 0.0, rValues, uniaxial_plastic_strain);
-
 
     if (rPDParameters.PlasticDamageProportion == 0.0) { // full plastic behaviour
+        double uniaxial_plastic_strain = 0.0;
+        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::
+            CalculateEquivalentPlasticStrain(rPDParameters.StressVector,
+            rPDParameters.UniaxialStress, rPDParameters.PlasticStrain, 0.0, rValues, uniaxial_plastic_strain);
         double tension_parameter, compression_parameter;
         GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(
             rPDParameters.StressVector, tension_parameter,compression_parameter);
@@ -375,34 +374,28 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
 {
     double old_threshold = rPDParameters.Threshold;
     double residual = 1.0;
-    // KRATOS_WATCH(residual)
-    // KRATOS_WATCH(old_threshold)
-    // KRATOS_WATCH(rPDParameters.TotalDissipation)
-    // KRATOS_ERROR << "" << std::endl;
     double new_threshold = 0.0;
     double derivative = 0.0;
     int max_iter = 2000;
     int iteration = 0;
-    const double nr_tol = 1.0e-4;
+    const double nr_tol = 1.0e-7;
 
-    while (residual > nr_tol && iteration < max_iter) {
-        derivative = rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
-        // KRATOS_WATCH(derivative)
-        if (std::abs(derivative) > 0.0)
-            new_threshold = old_threshold - (1.0 / derivative) * rF(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
-        else
-            break;
-        residual = std::abs(rF(rPDParameters.TotalDissipation, new_threshold, rValues, rPDParameters));
-        old_threshold = new_threshold;
-        iteration++;
+    if (rPDParameters.TotalDissipation < 0.999) {
+        while (residual > nr_tol && iteration < max_iter) {
+            derivative = rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
+            if (std::abs(derivative) > 0.0)
+                new_threshold = (old_threshold - (1.0 / derivative) * rF(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters));
+            else
+                break;
+            residual = std::abs(new_threshold - old_threshold);
+            old_threshold = new_threshold;
+            iteration++;
+        }
+        KRATOS_WARNING_IF("AssociativePlasticDamageModel", iteration == max_iter) << "Inner Newton-Raphson to find an updated threshold did not converge..." << " Tolerance achieved: " << residual << std::endl;
+    } else {
+        new_threshold = old_threshold;
     }
 
-    // KRATOS_WATCH(derivative)
-    // KRATOS_WATCH(derivative)
-    // KRATOS_WATCH(new_threshold)
-    // KRATOS_WATCH(residual)
-    // KRATOS_ERROR << "" << std::endl;
-    KRATOS_WARNING_IF("AssociativePlasticDamageModel", iteration == max_iter) << "Inner Newton-Raphson to find an updated threshold did not converge..." << " Tolerance achieved: " << residual << std::endl;
     return new_threshold;
 }
 /***********************************************************************************/
@@ -416,7 +409,8 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateSlopeFiniteDif
 )
 {
     const double current_threshold = rPDParameters.Threshold;
-    const double perturbation = std::max(1.0e-4 * rPDParameters.PlasticDissipation, 1.0e-6);
+    // const double perturbation = std::max(1.0e-8 * rPDParameters.PlasticDissipation, 1.0e-8);
+    const double perturbation = 1.0e-7;
 
     rPDParameters.TotalDissipation += perturbation;
     const double perturbed_threshold = CalculateThresholdImplicitExpression(rF, rdF_dk, rValues, rPDParameters);
@@ -511,6 +505,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
 
     bool is_converged = false;
     IndexType iteration = 0, max_iter = 1000;
+
     while (is_converged == false && iteration <= max_iter) {
         CalculateThresholdAndSlope(rValues, rPDParameters);
         CalculateFlowVector(rValues, rPDParameters);
@@ -528,8 +523,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
         CalculateComplianceMatrixIncrement(rValues, rPDParameters);
         noalias(rPDParameters.ComplianceMatrix) += rPDParameters.ComplianceMatrixIncrement;
 
-        noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement *
-            prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
+        noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement * prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
 
         CalculateConstitutiveMatrix(rValues, rPDParameters);
 
@@ -550,17 +544,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
             iteration++;
         }
     }
-    // KRATOS_ERROR_IF(iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
-        KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity-damage loop reached..." << std::endl;
-        if (iteration > max_iter) {
-            std::cout << "Information about the Backward Euler: \n" << std::endl;
-            KRATOS_WATCH(rPDParameters.NonLinearIndicator)
-            KRATOS_WATCH(tolerance)
-            KRATOS_WATCH(rPDParameters.Threshold)
-            KRATOS_WATCH(rPDParameters.PlasticDissipation)
-            KRATOS_WATCH(rPDParameters.Slope)
-        }
-
+    KRATOS_ERROR_IF(iteration >= max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     KRATOS_CATCH("");
 }
 
