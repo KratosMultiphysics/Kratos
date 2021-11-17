@@ -4,7 +4,7 @@
       "properties_id":           1,
       "Material": {
           "constitutive_law": {
-              "name"             :  "LinearElasticPlaneStrain2DLaw" 
+              "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
           },
           "Variables": {
               "YOUNG_MODULUS"    :  20000,
@@ -20,7 +20,7 @@
       "properties_id":           2,
       "Material": {
           "constitutive_law": {
-              "name"             :  "LinearElasticPlaneStrain2DLaw" 
+              "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
           },
           "Variables": {
               "YOUNG_MODULUS"    :  20000,
@@ -39,6 +39,7 @@
               "name"             :  "BilinearCohesive2DLaw" 
           },
           "Variables": {
+              "IGNORE_UNDRAINED"         :  false,
               "YOUNG_MODULUS"            :  20000,
               "POISSON_RATIO"            :  0.2,
               "DENSITY_SOLID"            :  2.0e3,

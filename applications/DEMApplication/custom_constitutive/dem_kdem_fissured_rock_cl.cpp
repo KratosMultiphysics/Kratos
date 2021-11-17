@@ -14,11 +14,6 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEM_Fissured_Rock_CL::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        KRATOS_INFO("DEM") << "Assigning DEM_KDEM_Fissured_Rock_CL to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }
-
     double DEM_KDEM_Fissured_Rock_CL::LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
 
         const double& mohr_coulomb_c = (*mpProperties)[INTERNAL_COHESION];

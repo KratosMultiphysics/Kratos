@@ -15,6 +15,7 @@ import KratosMultiphysics.ConvectionDiffusionApplication
 from  KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
 import KratosMultiphysics.MappingApplication
 import KratosMultiphysics.ExaquteSandboxApplication
+from KratosMultiphysics import IsDistributedRun
 
 from KratosMultiphysics.ExaquteSandboxApplication.GenerateCN import GenerateCN
 from KratosMultiphysics.ExaquteSandboxApplication.projection_utilities import _DotProduct, RegularGrid1D, DomainPanel2D, DomainPanel3D
@@ -200,11 +201,16 @@ class ImposePerturbedInitialConditionProcess(KratosMultiphysics.Process):
         penalty_coeff = self.poisson_parameters["problem_data"]["penalty_coefficient"].GetDouble()
         with open(self.poisson_parameters["problem_data"]["load_velocity_field"].GetString()) as dat_file:
             lines=dat_file.readlines()
+            # store velocity field in a dictionary
+            avg_velocity_dict = {}
+            for id, line in enumerate (lines):
+                # +1 since enumerate starts from 0 and Kratos starts from 1
+                avg_velocity_dict[id+1] = {"velocity_x": float(line.split(' ')[0]), "velocity_y": float(line.split(' ')[1]), "velocity_z": float(line.split(' ')[2])}
             for line, node in zip(lines,main_model_part.Nodes):
                 velocity = KratosMultiphysics.Vector(3,0.0)
-                velocity[0] = float(line.split(' ')[0])
-                velocity[1] = float(line.split(' ')[1])
-                velocity[2] = float(line.split(' ')[2])
+                velocity[0] = avg_velocity_dict[int(node.Id)]["velocity_x"]
+                velocity[1] = avg_velocity_dict[int(node.Id)]["velocity_y"]
+                velocity[2] = avg_velocity_dict[int(node.Id)]["velocity_z"]
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, penalty_coeff*node.GetSolutionStepValue(KratosMultiphysics.VELOCITY) + velocity) # c*P(u_{cn}) + u_T stored in VELOCITY
 
     def SolveAssociatedPoissonProblem(self):
@@ -221,7 +227,10 @@ class ImposePerturbedInitialConditionProcess(KratosMultiphysics.Process):
 
         # map P(u_{cn}) into VELOCITY_NOISE variable of Poisson simulation
         # map c*P(u_{cn}) + u_T into VELOCITY variable of Poisson simulation
-        mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMapper(self.model.GetModelPart(self.poisson_parameters["problem_data"]["model_part_name"].GetString()),simulation._GetSolver().main_model_part,self.mapper_parameters)
+        if IsDistributedRun():
+            mapper = KratosMultiphysics.MappingApplication.MPIExtension.MPIMapperFactory.CreateMapper(self.model.GetModelPart(self.poisson_parameters["problem_data"]["model_part_name"].GetString()),simulation._GetSolver().main_model_part,self.mapper_parameters)
+        else:
+            mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMapper(self.model.GetModelPart(self.poisson_parameters["problem_data"]["model_part_name"].GetString()),simulation._GetSolver().main_model_part,self.mapper_parameters)
         mapper.Map(KratosMultiphysics.VELOCITY,KratosMultiphysics.ExaquteSandboxApplication.VELOCITY_NOISE) # map P(u_{cn}) into Poisson problem variable VELOCITY_NOISE
         self.LoadVelocityField() # c*P(u_{cn}) + u_T stored in VELOCITY
         mapper.Map(KratosMultiphysics.VELOCITY,KratosMultiphysics.VELOCITY) # map c*P(u_{cn}) + u_T into Poisson problem variable VELOCITY

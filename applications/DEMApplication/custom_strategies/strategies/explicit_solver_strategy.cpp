@@ -144,8 +144,13 @@ namespace Kratos {
 
         PropertiesProxiesManager().CreatePropertiesProxies(*mpDem_model_part, *mpInlet_model_part, *mpCluster_model_part);
 
-        RepairPointersToNormalProperties(mListOfSphericParticles); // The particles sent to this partition have their own copy of the Kratos properties they were using in the previous partition!!
-        RepairPointersToNormalProperties(mListOfGhostSphericParticles);
+        bool has_mpi = false;
+        Check_MPI(has_mpi);
+
+        if (has_mpi) {
+            RepairPointersToNormalProperties(mListOfSphericParticles); // The particles sent to this partition have their own copy of the Kratos properties they were using in the previous partition!!
+            RepairPointersToNormalProperties(mListOfGhostSphericParticles);
+        }
 
         RebuildPropertiesProxyPointers(mListOfSphericParticles);
         RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
@@ -197,11 +202,6 @@ namespace Kratos {
         // Finding overlapping of initial configurations
         if (r_process_info[CLEAN_INDENT_OPTION]) {
             for (int i = 0; i < 10; i++) CalculateInitialMaxIndentations(r_process_info);
-        }
-
-        if (r_process_info[CRITICAL_TIME_OPTION]) {
-            //InitialTimeStepCalculation();   //obsolete call
-            CalculateMaxTimeStep();
         }
 
         r_process_info[PARTICLE_INELASTIC_FRICTIONAL_ENERGY] = 0.0;
@@ -299,43 +299,11 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ExplicitSolverStrategy::CalculateMaxTimeStep() {
-        KRATOS_TRY
-        ModelPart& r_model_part = GetModelPart();
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-
-        bool has_mpi = false; //check MPI not available in this strategy. refer to continuum strategy
-        //          Check_MPI(has_mpi);
-
-        std::vector<double> thread_maxima(ParallelUtilities::GetNumThreads(), 0.0);
-
-        IndexPartition<unsigned int>(mListOfSphericParticles.size()).for_each([&](unsigned int i){
-            double max_sqr_period = mListOfSphericParticles[i]->CalculateLocalMaxPeriod(has_mpi, r_process_info);
-            if (max_sqr_period > thread_maxima[OpenMPUtils::ThisThread()]) thread_maxima[OpenMPUtils::ThisThread()] = max_sqr_period;
-        });
-
-        double max_across_threads = 0.0;
-        for (int i = 0; i < ParallelUtilities::GetNumThreads(); i++) {
-            if (thread_maxima[i] > max_across_threads) max_across_threads = thread_maxima[i];
-        }
-
-        double critical_period = sqrt(max_across_threads);
-        double beta = 0.03;
-        double critical_timestep = beta * Globals::Pi / critical_period;
-
-        double t = CalculateMaxInletTimeStep();
-        if (t<critical_timestep && t>0.0){critical_timestep = t;}
-
-        r_process_info[DELTA_TIME] = critical_timestep;
-        KRATOS_INFO("DEM") << " (Critical) Timestep set to " << critical_timestep << ". " << "\n" << std::endl;
-
-
-       //PropertiesContainerType pprop1 = *mpInlet_model_part->pProperties();
-       //double young = (*mpInlet_model_part)[YOUNG_MODULUS];  // no funciona pq no forma part de modelpart sino de properties
-       //PropertiesContainerType pprop2 = mpInlet_model_part->PropertiesArray(0);
-       //long unsigned int pprop4 = mpInlet_model_part->NumberOfSubModelParts();
-        KRATOS_CATCH("")
+    void ExplicitSolverStrategy::Check_MPI(bool& has_mpi) {
+        VariablesList r_modelpart_nodal_variables_list = GetModelPart().GetNodalSolutionStepVariablesList();
+        if (r_modelpart_nodal_variables_list.Has(PARTITION_INDEX)) has_mpi = true;
     }
+
 
     double ExplicitSolverStrategy::CalculateMaxInletTimeStep() {
         for (PropertiesIterator props_it = mpInlet_model_part->GetMesh(0).PropertiesBegin(); props_it != mpInlet_model_part->GetMesh(0).PropertiesEnd(); props_it++) {
@@ -474,8 +442,15 @@ namespace Kratos {
 
             RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
             RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
-            RepairPointersToNormalProperties(mListOfSphericParticles);
-            RepairPointersToNormalProperties(mListOfGhostSphericParticles);
+
+            bool has_mpi = false;
+            Check_MPI(has_mpi);
+
+            if (has_mpi) {
+                RepairPointersToNormalProperties(mListOfSphericParticles);
+                RepairPointersToNormalProperties(mListOfGhostSphericParticles);
+            }
+
             RebuildPropertiesProxyPointers(mListOfSphericParticles);
             RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
 
@@ -542,40 +517,6 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }//ForceOperations;
-
-    void ExplicitSolverStrategy::InitialTimeStepCalculation() // obsoleta delete
-    {
-        KRATOS_TRY
-        ModelPart& r_model_part = GetModelPart();
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
-
-        ElementsIterator it_begin = pElements.ptr_begin();
-        ElementsIterator it_end = pElements.ptr_end();
-
-        double& process_info_delta_time = r_process_info[DELTA_TIME];
-        process_info_delta_time = mMaxTimeStep;
-        double temp_time_step = std::numeric_limits<double>::infinity();
-        double elem_critical_time_step = temp_time_step;
-
-        for (ElementsIterator it = it_begin; it != it_end; it++) {
-            it->Calculate(DELTA_TIME, elem_critical_time_step, r_process_info);
-
-            if (elem_critical_time_step < temp_time_step) {
-                temp_time_step = elem_critical_time_step;
-            }
-
-        }
-
-        temp_time_step /= mSafetyFactor;
-
-        if (temp_time_step < mMaxTimeStep) process_info_delta_time = temp_time_step;
-
-        KRATOS_INFO("DEM") << std::scientific;
-        KRATOS_INFO("DEM") << std::setprecision(3) << "************* Using " << process_info_delta_time << " time step. (Critical: "
-                  << temp_time_step << " with a diving factor: " << mSafetyFactor << " ) *************" << "\n" << std::endl;
-        KRATOS_CATCH("")
-    }
 
     void ExplicitSolverStrategy::GetForce() {
 
@@ -1349,9 +1290,9 @@ namespace Kratos {
     }
 
     void ExplicitSolverStrategy::SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification) {
-        
+
         KRATOS_TRY
-        
+
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i) {
             mListOfSphericParticles[i]->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
@@ -1621,6 +1562,10 @@ namespace Kratos {
 
     void ExplicitSolverStrategy::SearchRigidFaceNeighbours() {
         KRATOS_TRY
+
+        if (!mDoSearchNeighbourFEMElements) {
+            return;
+        }
 
         ElementsArrayType& pElements = mpDem_model_part->GetCommunicator().LocalMesh().Elements();
         ConditionsArrayType& pTConditions = mpFem_model_part->GetCommunicator().LocalMesh().Conditions();

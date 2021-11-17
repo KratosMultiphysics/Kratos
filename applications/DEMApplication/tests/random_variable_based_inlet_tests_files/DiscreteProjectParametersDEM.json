@@ -33,7 +33,7 @@
     "solver_settings"                : {
         "RemoveBallsInitiallyTouchingWalls" : false,
         "strategy"                          : "sphere_strategy",
-	"do_search_neighbours"		    : false
+	"do_search_dem_neighbours"		    : false
     },
     "VirtualMassCoefficient"         : 1.0,
     "RollingFrictionOption"          : false,

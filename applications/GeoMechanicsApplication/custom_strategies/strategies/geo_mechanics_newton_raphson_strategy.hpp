@@ -35,7 +35,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(GeoMechanicsNewtonRaphsonStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>                      BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>              BaseType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> MotherType;
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>                 TConvergenceCriteriaType;
     typedef typename BaseType::TBuilderAndSolverType                          TBuilderAndSolverType;
@@ -116,7 +116,8 @@ public:
                 mVariableNames.resize(rParameters["loads_variable_list"].size());
 
                 if ( mSubModelPartList.size() != mVariableNames.size() )
-                    KRATOS_THROW_ERROR( std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "" )
+                    KRATOS_ERROR << "For each SubModelPart there must be a corresponding nodal Variable"
+                                 << std::endl;
 
                 for (unsigned int i = 0; i < mVariableNames.size(); i++)
                 {
