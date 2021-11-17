@@ -1,5 +1,7 @@
 # Application dependent names and paths
 from KratosMultiphysics import _ImportApplication
+import KratosMultiphysics.KratosStructuralMechanicsApplication
+import KratosMultiphysics.KratosDEMApplication
 from KratosDemStructuresCouplingApplication import *
 application = KratosDemStructuresCouplingApplication()
 application_name = "KratosDemStructuresCouplingApplication"
