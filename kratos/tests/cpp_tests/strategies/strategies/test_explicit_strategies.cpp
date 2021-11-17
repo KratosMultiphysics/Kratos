@@ -168,10 +168,11 @@ void RunTest(const double tolerance)
 }
 
 template<typename TStrategyType>
-void Solve(ModelPart& rModelPart,
-           Node<3>& rTestNode,
-           const double time,
-           const unsigned int n_steps)
+void Solve(
+    ModelPart& rModelPart,
+    Node<3>& rTestNode,
+    const double time,
+    const unsigned int n_steps)
 {
     KRATOS_TRY
 
