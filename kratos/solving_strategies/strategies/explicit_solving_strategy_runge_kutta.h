@@ -288,6 +288,7 @@ protected:
         PerformRungeKuttaLastSubStep(rk_K);
 
         // Do the final solution update
+        const auto& weights = mButcherTableau.GetWeights();
         IndexPartition<int>(r_dof_set.size()).for_each(
             [&](int i_dof){
                 auto it_dof = r_dof_set.begin() + i_dof;
@@ -297,7 +298,7 @@ protected:
                 if (!it_dof->IsFixed()) {
                     const double mass = r_lumped_mass_vector(i_dof);
                     const MatrixRow<LocalSystemMatrixType> substeps_k = row(rk_K, i_dof);
-                    r_u = r_u_old + (dt / mass) * inner_prod(mButcherTableau.GetWeights(), substeps_k);
+                    r_u = r_u_old + (dt / mass) * inner_prod(weights, substeps_k);
                 } else {
                     r_u = u_n(i_dof);
                 }
