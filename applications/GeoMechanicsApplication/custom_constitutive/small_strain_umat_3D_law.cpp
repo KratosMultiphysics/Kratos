@@ -152,7 +152,7 @@ void SmallStrainUMAT3DLaw::GetLawFeatures(Features &rFeatures)
 
 int SmallStrainUMAT3DLaw::Check(const Properties &rMaterialProperties,
                                 const GeometryType &rElementGeometry,
-                                const ProcessInfo &rCurrentProcessInfo)
+                                const ProcessInfo &rCurrentProcessInfo) const
 {
    // Verify Properties variables
    if (rMaterialProperties.Has(UDSM_NAME) == false || rMaterialProperties[UDSM_NAME] == "")
@@ -160,20 +160,10 @@ int SmallStrainUMAT3DLaw::Check(const Properties &rMaterialProperties,
                    << rMaterialProperties.Id()
                    << std::endl;
 
-
-
    if (rMaterialProperties.Has(IS_FORTRAN_UDSM) == false)
       KRATOS_ERROR << "IS_FORTRAN_UDSM is not defined for property"
                    << rMaterialProperties.Id()
                    << std::endl;
-
-   // load UMAT model
-   if (!mIsUMATLoaded) mIsUMATLoaded = loadUMAT(rMaterialProperties);
-
-   if (!mIsUMATLoaded)
-   {
-      KRATOS_ERROR << "cannot load the specified UMAT" << rMaterialProperties[UDSM_NAME] << std::endl;
-   }
 
    return 0;
 }
@@ -186,6 +176,10 @@ void SmallStrainUMAT3DLaw::InitializeMaterial(const Properties &rMaterialPropert
    KRATOS_TRY;
    // we need to check if the model is loaded or not
    mIsUMATLoaded = loadUMAT(rMaterialProperties);
+
+   if (!mIsUMATLoaded) {
+      KRATOS_ERROR << "cannot load the specified UMAT" << rMaterialProperties[UDSM_NAME] << std::endl;
+   }
 
    ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
