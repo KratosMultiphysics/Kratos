@@ -508,8 +508,7 @@ protected:
         );
 
         // Calculate the RK intermediate sub steps
-        for(unsigned int i=1; i<TButcherTableau::SubstepCount(); ++i)
-        {
+        for(unsigned int i=1; i<TButcherTableau::SubstepCount(); ++i) {
             PerformRungeKuttaIntermediateSubStep(i, u_n, rk_K);
         }
         PerformRungeKuttaLastSubStep(rk_K);
