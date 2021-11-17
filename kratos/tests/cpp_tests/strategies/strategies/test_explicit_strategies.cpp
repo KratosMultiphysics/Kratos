@@ -229,7 +229,7 @@ double LogFittingSlope(
 
 
 template<typename TStrategyType>
-void ConvergenceTest()
+void ConvergenceTest(const unsigned int ExpectedOrder)
 {
     KRATOS_TRY
 
@@ -260,7 +260,7 @@ void ConvergenceTest()
 
     const double convergence_rate = LogFittingSlope<n_testpoints>(delta_time, error);
 
-    KRATOS_CHECK_NEAR(convergence_rate, TStrategyType::Order(), 0.1);
+    KRATOS_CHECK_NEAR(convergence_rate, ExpectedOrder, 0.1);
 
     KRATOS_CATCH("");
 }
@@ -293,22 +293,22 @@ void ConvergenceTest()
 
     KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta1_convergence, KratosCoreFastSuite)
     {
-        ConvergenceTest<ExplicitSolvingStrategyRungeKutta1Type>();
+        ConvergenceTest<ExplicitSolvingStrategyRungeKutta1Type>(1);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta2_convergence, KratosCoreFastSuite)
     {
-        ConvergenceTest<ExplicitSolvingStrategyRungeKutta2Type>();
+        ConvergenceTest<ExplicitSolvingStrategyRungeKutta2Type>(2);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta3_convergence, KratosCoreFastSuite)
     {
-        ConvergenceTest<ExplicitSolvingStrategyRungeKutta3Type>();
+        ConvergenceTest<ExplicitSolvingStrategyRungeKutta3Type>(3);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta4_convergence, KratosCoreFastSuite)
     {
-        ConvergenceTest<ExplicitSolvingStrategyRungeKutta4Type>();
+        ConvergenceTest<ExplicitSolvingStrategyRungeKutta4Type>(4);
     }
 
 

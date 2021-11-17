@@ -428,11 +428,6 @@ public:
         BaseType::GetModelPart().GetProcessInfo().SetValue(TIME_INTEGRATION_THETA, 0.0);
     }
 
-    static constexpr unsigned int Order()
-    {
-        return TButcherTableau::Order();
-    }
-
     ///@}
     ///@name Input and output
     ///@{
