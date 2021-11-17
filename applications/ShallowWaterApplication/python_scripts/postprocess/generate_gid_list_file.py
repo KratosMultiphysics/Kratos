@@ -1,8 +1,5 @@
-from os import path, listdir, getcwd
+from pathlib import Path
 
-_list_extension = ".post.lst"
-_ascii_extension = ".post.res"
-_binary_extension = ".post.bin"
 
 def GenerateGiDListFile(first_dir = "", other_dirs = [], file_name = ""):
     first_dir = _CheckDirectory(first_dir)
@@ -24,20 +21,17 @@ def _CheckDirectory(directory):
 
 
 def _GetPostFilesList(directory):
-    file_names = [f for f in listdir(directory) if path.isfile(path.join(directory, f))]
-    post_files = [directory + f for f in file_names if _IsGiDFile(f)]
-    return post_files
-
-
-def _IsGiDFile(file_name):
-    return file_name.endswith(_binary_extension) or file_name.endswith(_ascii_extension)
+    files = list(Path(directory).glob("*.post.bin"))
+    files.extend(list(Path(directory).glob("*.post.res")))
+    return files
 
 
 def _CheckFileName(file_name):
+    list_extension = ".post.lst"
     if not file_name:
-        file_name = path.basename(getcwd())
-    if not file_name.endswith(_list_extension):
-        file_name += _list_extension
+        file_name = Path.cwd().name
+    if not file_name.endswith(list_extension):
+        file_name += list_extension
     return file_name
 
 
