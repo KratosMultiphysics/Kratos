@@ -15,6 +15,7 @@
 #define KRATOS_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA
 
 /* System includes */
+#include <string>
 #include <numeric>
 
 /* External includes */
@@ -91,7 +92,7 @@ public:
 
     constexpr double GetNode(const unsigned int SubStepIndex) const
     {
-        return mC(SubStepIndex);
+        return mC(SubStepIndex - 1);
     }
 
     static std::string Name()
@@ -479,6 +480,8 @@ protected:
 
     void SolveWithLumpedMassMatrix() override
     {
+        KRATOS_TRY
+
         // Get the required data from the explicit builder and solver
         const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
         auto& r_dof_set = p_explicit_bs->GetDofSet();
@@ -487,7 +490,7 @@ protected:
 
         // Set the auxiliary RK vectors
         LocalSystemVectorType u_n(dof_size); // TODO: THIS IS INEFICCIENT. CREATE A UNORDERED_SET WITH THE IDOF AND VALUE AS ENTRIES. THIS HAS TO BE OPTIONAL
-        LocalSystemMatrixType rk_K(dof_size, mButcherTableau.SubstepCount());
+        LocalSystemMatrixType rk_K(dof_size, TButcherTableau::SubstepCount());
 
         // Perform the RK update
         const double dt = BaseType::GetDeltaTime();
@@ -509,7 +512,7 @@ protected:
         );
 
         // Calculate the RK intermediate sub steps
-        for(unsigned int i=1; i<mButcherTableau.SubstepCount(); ++i)
+        for(unsigned int i=1; i<TButcherTableau::SubstepCount(); ++i)
         {
             PerformRungeKuttaIntermediateSubStep(i, u_n, rk_K);
         }
@@ -531,6 +534,8 @@ protected:
                 }
             }
         );
+
+        KRATOS_CATCH("");
     }
 
     /**
@@ -570,6 +575,8 @@ protected:
         const LocalSystemVectorType& rFixedDofsValues,
         LocalSystemMatrixType& rIntermediateStepResidualVectors)
     {
+        KRATOS_TRY
+
         // Get the required data from the explicit builder and solver
         const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
         auto& r_dof_set = p_explicit_bs->GetDofSet();
@@ -611,6 +618,8 @@ protected:
         );
 
         FinalizeRungeKuttaIntermediateSubStep();
+
+        KRATOS_CATCH("SubstepIndex = " + std::to_string(SubStepIndex));
     }
 
     /**
@@ -620,6 +629,8 @@ protected:
      */
     virtual void PerformRungeKuttaLastSubStep(LocalSystemMatrixType& rLastStepResidualVector)
     {
+        KRATOS_TRY
+
         // Get the required data from the explicit builder and solver
         const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
         auto& r_dof_set = p_explicit_bs->GetDofSet();
@@ -630,7 +641,7 @@ protected:
         constexpr unsigned int substep_index = TButcherTableau::SubstepCount();
 
         // Set the RUNGE_KUTTA_STEP value. This has to be done prior to the InitializeRungeKuttaStep()
-        r_process_info.GetValue(RUNGE_KUTTA_STEP) = mButcherTableau.SubstepCount();
+        r_process_info.GetValue(RUNGE_KUTTA_STEP) = TButcherTableau::SubstepCount();
         r_process_info.GetValue(TIME_INTEGRATION_THETA) = mButcherTableau.GetNode(substep_index);
 
         // Perform the last sub step residual calculation
@@ -647,6 +658,8 @@ protected:
         );
 
         FinalizeRungeKuttaLastSubStep();
+
+        KRATOS_CATCH("");
     }
 
     ///@}
