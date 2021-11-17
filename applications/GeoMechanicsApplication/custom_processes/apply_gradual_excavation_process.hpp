@@ -128,7 +128,6 @@ class ApplyGradualExcavationProcess : public ApplyExcavationProcess
         if (nelements != 0 && mDeactivateSoilPart == true)
         {
             ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
-            mNumNode = el_begin->GetGeometry().PointsNumber();
 
             #pragma omp parallel for
             for (int k = 0; k < nelements; ++k)
@@ -154,7 +153,6 @@ class ApplyGradualExcavationProcess : public ApplyExcavationProcess
             if (nelements != 0)
             {
                 ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
-                mNumNode = el_begin->GetGeometry().PointsNumber();
 
                 #pragma omp parallel for
                 for (int k = 0; k < nelements; ++k)

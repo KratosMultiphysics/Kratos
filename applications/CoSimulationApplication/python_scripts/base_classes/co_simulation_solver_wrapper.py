@@ -44,6 +44,8 @@ class CoSimulationSolverWrapper:
 
         self.echo_level = self.settings["echo_level"].GetInt()
 
+        self.data_communicator = self._GetDataCommunicator()
+
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
         self.__io = None
 
@@ -90,7 +92,7 @@ class CoSimulationSolverWrapper:
         if not io_settings.Has("echo_level"):
             io_settings.AddEmptyValue("echo_level").SetInt(io_echo_level)
 
-        self.__io = io_factory.CreateIO(self.settings["io_settings"], self.model, self.name, self._GetIOType())
+        self.__io = io_factory.CreateIO(self.settings["io_settings"], self.model, self.name, self.data_communicator, self._GetIOType())
 
     def ImportCouplingInterface(self, interface_config):
         if self.echo_level > 2:
@@ -112,6 +114,8 @@ class CoSimulationSolverWrapper:
             cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Exporting data of solver: "{}" with type: "{}"'.format(colors.blue(self.name), data_config["type"]))
         self.__GetIO().ExportData(data_config)
 
+    def IsDefinedOnThisRank(self):
+        return self.data_communicator.IsDefinedOnThisRank()
 
     def GetInterfaceData(self, data_name):
         try:
@@ -125,13 +129,7 @@ class CoSimulationSolverWrapper:
         pass
 
     def Check(self):
-        print("!!!WARNING!!! your solver does not implement Check!!!")
-
-    def IsDistributed(self):
-        '''Returns whether this solver is executed distributed Aka MPI-parallel
-        '''
-        # TODO check if this method is necessary!
-        return False
+        cs_tools.cs_print_warning("CoSimulationSolverWrapper", "your solver does not implement Check!!!")
 
     @classmethod
     def _ClassName(cls):
@@ -148,6 +146,10 @@ class CoSimulationSolverWrapper:
 
     def __HasIO(self):
         return self.__io is not None
+
+    def _GetDataCommunicator(self):
+        # by default, the solver uses all available processes
+        return KM.ParallelEnvironment.GetDefaultDataCommunicator()
 
     @classmethod
     def _GetDefaultParameters(cls):

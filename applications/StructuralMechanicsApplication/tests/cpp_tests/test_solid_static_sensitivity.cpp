@@ -47,7 +47,7 @@ using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 using SchemeType = Scheme<SparseSpaceType, LocalSpaceType>;
 using ConvergenceCriteriaType = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
 using SolvingStrategyType =
-    SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
 class PrimalTestSolver
 {

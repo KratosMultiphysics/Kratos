@@ -102,11 +102,6 @@ namespace Kratos {
             SetInitialDemContacts();
         }
 
-        if (r_process_info[CRITICAL_TIME_OPTION]) {
-            //InitialTimeStepCalculation();   //obsolete call
-            CalculateMaxTimeStep();
-        }
-
         ComputeNewNeighboursHistoricalData();
 
         if (fem_model_part.Nodes().size() > 0) {
@@ -683,11 +678,6 @@ namespace Kratos {
         p_creator_destructor->DestroyParticles(r_model_part);
 
         KRATOS_CATCH("")
-    }
-
-    void ContinuumExplicitSolverStrategy::Check_MPI(bool& has_mpi) {
-        VariablesList r_modelpart_nodal_variables_list = GetModelPart().GetNodalSolutionStepVariablesList();
-        if (r_modelpart_nodal_variables_list.Has(PARTITION_INDEX)) has_mpi = true;
     }
 
     void ContinuumExplicitSolverStrategy::CalculateMaxSearchDistance() {

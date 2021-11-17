@@ -17,7 +17,7 @@ namespace Kratos {
         return type_of_law;
     }
 
-    void GanserDragLaw::ComputeForce(Geometry<Node<3> >& r_geometry,
+    void GanserDragLaw::ComputeForce(SphericParticle* p_particle,
                                        const double reynolds_number,
                                        double particle_radius,
                                        double fluid_density,
@@ -29,8 +29,8 @@ namespace Kratos {
         const int isometric_shape                = 1; // TEMPORARY!! yes (1) or no (0); shold be given as data
         const double surface_area                = 4 * Globals::Pi * SWIMMING_POW_2(particle_radius); // TEMPORARY!! corresponding to a sphere; should be generalized b taking it as a parameter
         const double surface_area_circular_diam  = std::sqrt(4.0 * surface_area / Globals::Pi);
+        Geometry<Node<3> >& r_geometry = p_particle->GetGeometry();
         const double sphericity = r_geometry[0].FastGetSolutionStepValue(PARTICLE_SPHERICITY);
-
         double k_1;
         double k_2;
 

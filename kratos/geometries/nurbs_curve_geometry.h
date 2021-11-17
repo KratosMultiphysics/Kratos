@@ -298,28 +298,100 @@ public:
     }
 
     ///@}
+    ///@name IsInside
+    ///@{
+
+    /* @brief checks and returns if local coordinate rPointLocalCoordinates[0]
+     *        is inside the local/parameter space.
+     * @return inside -> 1
+     *         outside -> 0
+     */
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter =
+            std::min(mKnots[mPolynomialDegree - 1],
+                mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            return 0;
+        }
+
+        const double max_parameter =
+            std::max(mKnots[mPolynomialDegree - 1],
+                mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            return 0;
+        }
+
+        return 1;
+    }
+
+    ///@}
+    ///@name ClosestPoint
+    ///@{
+
+    /* @brief Makes a check if the provided paramater rPointLocalCoordinates[0]
+     *        is inside the curve, or on the boundary or if it lays outside.
+     *        If it is outside, it is set to the boundary which is closer to it.
+     * @return if rPointLocalCoordinates[0] was before the projection:
+     *         outside -> 0
+     *         inside -> 1
+     *         on boundary -> 2 - meaning that it is equal to start or end point.
+     */
+    virtual int ClosestPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter = std::min(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            rClosestPointLocalCoordinates[0] = min_parameter;
+            return 0;
+        } else if (rPointLocalCoordinates[0] == min_parameter) {
+            rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+            return 2;
+        }
+
+        const double max_parameter = std::max(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            rClosestPointLocalCoordinates[0] = max_parameter;
+            return 0;
+        } else if (rPointLocalCoordinates[0] == max_parameter) {
+            rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+            return 2;
+        }
+
+        rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+        return 1;
+    }
+
+    ///@}
     ///@name Projection Point
     ///@{
 
-    /* Makes projection of rPointGlobalCoordinates to
-     * the closest point rProjectedPointGlobalCoordinates on the curve,
-     * with local coordinates rProjectedPointLocalCoordinates.
+    /* @brief Makes projection of rPointGlobalCoordinates to
+     *       the closest point on the curve, with
+     *       local coordinates rProjectedPointLocalCoordinates.
      *
      * @param Tolerance is the breaking criteria.
      * @return 1 -> projection succeeded
      *         0 -> projection failed
      */
-    int ProjectionPoint(
+    int ProjectionPointGlobalToLocalSpace(
         const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const override
     {
+        CoordinatesArrayType point_global_coordinates;
+
         return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
             rProjectedPointLocalCoordinates,
             rPointGlobalCoordinates,
-            rProjectedPointGlobalCoordinates,
+            point_global_coordinates,
             *this,
             20, Tolerance);
     }
@@ -402,13 +474,11 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        const SizeType points_per_span = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0);
-
         std::vector<double> spans;
         SpansLocalSpace(spans);
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
-            rIntegrationPoints, spans, points_per_span);
+            rIntegrationPoints, spans, rIntegrationInfo);
     }
 
     ///@}
@@ -485,7 +555,7 @@ public:
                 N, shape_function_derivatives);
 
             rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
-                this->WorkingSpaceDimension(), 2, data_container, nonzero_control_points, this);
+                this->WorkingSpaceDimension(), 1, data_container, nonzero_control_points);
         }
     }
 
@@ -630,6 +700,20 @@ public:
     }
 
     ///@}
+    ///@name Geometry Family
+    ///@{
+
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
+    }
+
+    ///@}
     ///@name Information
     ///@{
 
@@ -730,7 +814,7 @@ private:
 template<int TWorkingSpaceDimension, class TContainerPointType>
 const GeometryData NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
 
 template<int TWorkingSpaceDimension, class TContainerPointType>

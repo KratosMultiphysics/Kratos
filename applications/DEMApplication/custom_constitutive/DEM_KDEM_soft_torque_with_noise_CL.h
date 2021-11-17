@@ -16,15 +16,12 @@ namespace Kratos {
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_soft_torque_with_noise);
 
-        DEM_KDEM_soft_torque_with_noise() {
-        }
+        DEM_KDEM_soft_torque_with_noise() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
         void Check(Properties::Pointer pProp) const override;
         void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps) override;
 
-        ~DEM_KDEM_soft_torque_with_noise() {
-        }
+        ~DEM_KDEM_soft_torque_with_noise() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 

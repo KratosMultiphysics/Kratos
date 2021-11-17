@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        KratosPoromechanicsApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:           February 2016 $
@@ -33,10 +33,10 @@ public:
 
     /// Default Constructor
     LocalDamagePlaneStrain2DLaw();
-    
+
     /// Second Constructor
-    LocalDamagePlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
-    
+    LocalDamagePlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
+
     /// Copy Constructor
     LocalDamagePlaneStrain2DLaw (const LocalDamagePlaneStrain2DLaw& rOther);
 
@@ -44,29 +44,29 @@ public:
     ~LocalDamagePlaneStrain2DLaw() override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
     void GetLawFeatures(Features& rFeatures) override;
-    
+
     ConstitutiveLaw::Pointer Clone() const override;
-        
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
     SizeType WorkingSpaceDimension() override
     {
         return 2;
     }
-    
-    SizeType GetStrainSize() override
+
+    SizeType GetStrainSize() const override
     {
         return 3;
     }
-    
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
 
     /// Member Variables
-        
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,const double& YoungModulus,const double& PoissonCoefficient ) override;
@@ -74,9 +74,9 @@ protected:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     /// Serialization
-    
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
@@ -91,4 +91,4 @@ private:
 
 }; // Class LocalDamagePlaneStrain2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_LOCAL_DAMAGE_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_LOCAL_DAMAGE_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined

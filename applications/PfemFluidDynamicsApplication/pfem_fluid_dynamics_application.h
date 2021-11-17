@@ -47,6 +47,9 @@
 #include "custom_elements/updated_lagrangian_element.h"
 #include "custom_elements/two_step_updated_lagrangian_element.h"
 #include "custom_elements/three_step_updated_lagrangian_element.h"
+#include "custom_elements/three_step_first_order_updated_lagrangian_element.h"
+#include "custom_elements/three_step_second_order_updated_lagrangian_element.h"
+#include "custom_elements/three_step_second_order_pspg_updated_lagrangian_element.h"
 
 //constitutive laws
 #include "containers/flags.h"
@@ -323,6 +326,30 @@ private:
   /// 3D three step v-p  element
   const ThreeStepUpdatedLagrangianElement<3> mThreeStepUpdatedLagrangianElement3D;
   const ThreeStepUpdatedLagrangianElement<3> mThreeStepUpdatedLagrangianElement3Dquadratic;
+
+  /// 2D three step v-p  element
+  const ThreeStepFirstOrderUpdatedLagrangianElement<2> mThreeStepFirstOrderUpdatedLagrangianElement2D;
+  const ThreeStepFirstOrderUpdatedLagrangianElement<2> mThreeStepFirstOrderUpdatedLagrangianElement2Dquadratic;
+
+  /// 3D three step v-p  element
+  const ThreeStepFirstOrderUpdatedLagrangianElement<3> mThreeStepFirstOrderUpdatedLagrangianElement3D;
+  const ThreeStepFirstOrderUpdatedLagrangianElement<3> mThreeStepFirstOrderUpdatedLagrangianElement3Dquadratic;
+
+  /// 2D three step v-p  element
+  const ThreeStepSecondOrderUpdatedLagrangianElement<2> mThreeStepSecondOrderUpdatedLagrangianElement2D;
+  const ThreeStepSecondOrderUpdatedLagrangianElement<2> mThreeStepSecondOrderUpdatedLagrangianElement2Dquadratic;
+
+  /// 3D three step v-p  element
+  const ThreeStepSecondOrderUpdatedLagrangianElement<3> mThreeStepSecondOrderUpdatedLagrangianElement3D;
+  const ThreeStepSecondOrderUpdatedLagrangianElement<3> mThreeStepSecondOrderUpdatedLagrangianElement3Dquadratic;
+
+  /// 2D three step v-p  element
+  const ThreeStepSecondOrderPspgUpdatedLagrangianElement<2> mThreeStepSecondOrderPspgUpdatedLagrangianElement2D;
+  const ThreeStepSecondOrderPspgUpdatedLagrangianElement<2> mThreeStepSecondOrderPspgUpdatedLagrangianElement2Dquadratic;
+
+  /// 3D three step v-p  element
+  const ThreeStepSecondOrderPspgUpdatedLagrangianElement<3> mThreeStepSecondOrderPspgUpdatedLagrangianElement3D;
+  const ThreeStepSecondOrderPspgUpdatedLagrangianElement<3> mThreeStepSecondOrderPspgUpdatedLagrangianElement3Dquadratic;
 
   // Fluid constitutive laws
   const Bingham2DLaw mBingham2DLaw;

@@ -82,6 +82,21 @@ public:
         Vector& rWeightsRefined);
 
     ///@}
+    ///@name Utilities
+    ///@{
+
+    /*
+     * @brief Sorts the knot vector, which is required for the refinement.
+     *        Filters the knots to insert which are within the former knot span
+     *        and accordingly coordinates of the former geometry.
+     *
+     * @param rKnotsToInsert the knot vector to be sorted and filtered.
+     * @param rKnotsOld the old knot vector, defining the limits.
+     */
+    static void SortAndFilter(
+        std::vector<double>&rKnotsToInsert,
+        const Vector& rKnotsOld);
+
 };
 
 } // End namespace kratos

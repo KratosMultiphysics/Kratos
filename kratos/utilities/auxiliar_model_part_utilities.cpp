@@ -24,6 +24,19 @@
 
 namespace Kratos
 {
+void AuxiliarModelPartUtilities::CopySubModelPartStructure(const ModelPart& rModelPartToCopyFromIt, ModelPart& rModelPartToCopyIntoIt)
+{
+    for (auto& r_sub_model_part : rModelPartToCopyFromIt.SubModelParts()) {
+        auto& r_new_sub_model_part = rModelPartToCopyIntoIt.CreateSubModelPart(r_sub_model_part.Name());
+        if (r_sub_model_part.NumberOfSubModelParts() > 0) {
+            CopySubModelPartStructure(r_sub_model_part, r_new_sub_model_part);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void AuxiliarModelPartUtilities::RecursiveEnsureModelPartOwnsProperties(const bool RemovePreviousProperties)
 {
     // First we do in this model part

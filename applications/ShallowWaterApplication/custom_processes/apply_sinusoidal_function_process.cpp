@@ -33,7 +33,17 @@ ApplySinusoidalFunctionProcess<TVarType>::ApplySinusoidalFunctionProcess(
      : mrModelPart(rThisModelPart)
      , mrVariable(rThisVariable)
 {
-    ValidateParameters(rThisParameters);
+    rThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+
+    const double pi = std::acos(-1);
+
+    // Initialization of member variables
+    mAmplitude = rThisParameters["amplitude"].GetDouble();
+    mPeriod = rThisParameters["period"].GetDouble();
+    mAngularFrequency = 2 * pi / mPeriod;
+    mPhase = rThisParameters["phase_shift"].GetDouble() * mAngularFrequency;
+    mVerticalShift = rThisParameters["vertical_shift"].GetDouble();
+    mSmoothTime = std::max(rThisParameters["smooth_time"].GetDouble(), std::numeric_limits<double>::epsilon());
 }
 
 
@@ -65,8 +75,9 @@ int ApplySinusoidalFunctionProcess< Variable< array_1d<double, 3> > >::Check()
 template< class TVarType >
 void ApplySinusoidalFunctionProcess<TVarType>::ExecuteInitializeSolutionStep()
 {
+    const double pi = std::acos(-1);
     double time = mrModelPart.GetProcessInfo().GetValue(TIME);
-    double smooth = 2 * std::atan(time / mSmoothTime) / M_PI;
+    double smooth = 2 * std::atan(time / mSmoothTime) / pi;
     double value = smooth * Function(time);
     block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
         rNode.FastGetSolutionStepValue(mrVariable) = value;
@@ -77,8 +88,9 @@ void ApplySinusoidalFunctionProcess<TVarType>::ExecuteInitializeSolutionStep()
 template<>
 void ApplySinusoidalFunctionProcess<Variable<array_1d<double, 3>>>::ExecuteInitializeSolutionStep()
 {
+    const double pi = std::acos(-1);
     double time = mrModelPart.GetProcessInfo().GetValue(TIME);
-    double smooth = 2 * std::atan(time / mSmoothTime) / M_PI;
+    double smooth = 2 * std::atan(time / mSmoothTime) / pi;
     double modulus = smooth * Function(time);
     block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
         array_1d<double, 3> direction = rNode.FastGetSolutionStepValue(NORMAL);
@@ -94,10 +106,9 @@ double ApplySinusoidalFunctionProcess<TVarType>::Function(double& rTime)
 }
 
 
-template< class TVarType >
-void ApplySinusoidalFunctionProcess<TVarType>::ValidateParameters(Parameters& rParameters)
+template<class TVarType>
+const Parameters ApplySinusoidalFunctionProcess<TVarType>::GetDefaultParameters() const
 {
-    // default parameters
     Parameters default_parameters = Parameters(R"(
     {
         "amplitude"       : 1.0,
@@ -106,17 +117,7 @@ void ApplySinusoidalFunctionProcess<TVarType>::ValidateParameters(Parameters& rP
         "vertical_shift"  : 0.0,
         "smooth_time"     : 0.0
     })");
-    rParameters.ValidateAndAssignDefaults(default_parameters);
-
-    double pi = std::acos(-1);
-
-    // Initialization of member variables
-    mAmplitude = rParameters["amplitude"].GetDouble();
-    mPeriod = rParameters["period"].GetDouble();
-    mAngularFrequency = 2 * pi / mPeriod;
-    mPhase = rParameters["phase_shift"].GetDouble() * mAngularFrequency;
-    mVerticalShift = rParameters["vertical_shift"].GetDouble();
-    mSmoothTime = std::max(rParameters["smooth_time"].GetDouble(), std::numeric_limits<double>::epsilon());
+    return default_parameters;
 }
 
 

@@ -24,6 +24,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "containers/model.h"
 
 #include "mappers/mapper.h"
 
@@ -65,8 +66,8 @@ public:
         ModelPart& rModelPartDestination,
         Parameters MapperSettings)
     {
-        ModelPart& r_interface_model_part_origin = ReadInterfaceModelPart(rModelPartOrigin, MapperSettings, "origin");
-        ModelPart& r_interface_model_part_destination = ReadInterfaceModelPart(rModelPartDestination, MapperSettings, "destination");
+        ModelPart& r_interface_model_part_origin = GetInterfaceModelPart(rModelPartOrigin, MapperSettings, "origin");
+        ModelPart& r_interface_model_part_destination = GetInterfaceModelPart(rModelPartDestination, MapperSettings, "destination");
 
         KRATOS_ERROR_IF(!TSparseSpace::IsDistributed() && (r_interface_model_part_origin.IsDistributed() || r_interface_model_part_destination.IsDistributed())) << "Trying to construct a non-MPI Mapper with a distributed ModelPart. Please use \"CreateMPIMapper\" instead!" << std::endl;
 
@@ -155,39 +156,21 @@ private:
     /// Default constructor.
     MapperFactory() {}
 
-    static ModelPart& ReadInterfaceModelPart(ModelPart& rModelPart,
-                                             Parameters InterfaceParameters,
-                                             const std::string& InterfaceSide)
+    static ModelPart& GetInterfaceModelPart(ModelPart& rModelPart,
+                                            const Parameters InterfaceParameters,
+                                            const std::string& InterfaceSide)
     {
-        int echo_level = 0;
-        // read the echo_level temporarily, bcs the mJsonParameters have not yet been validated and defaults assigned
-        if (InterfaceParameters.Has("echo_level"))
-        {
-            echo_level = std::max(echo_level, InterfaceParameters["echo_level"].GetInt());
-        }
+        const int echo_level = InterfaceParameters.Has("echo_level") ? InterfaceParameters["echo_level"].GetInt() : 0;
 
-        int comm_rank = rModelPart.GetCommunicator().MyPID();
+        const std::string key_sub_model_part = "interface_submodel_part_" + InterfaceSide;
 
-        std::string key_sub_model_part = "interface_submodel_part_";
-        key_sub_model_part.append(InterfaceSide);
+        if (InterfaceParameters.Has(key_sub_model_part)) {
+            const std::string name_interface_submodel_part = rModelPart.FullName() + "." + InterfaceParameters[key_sub_model_part].GetString();
+            KRATOS_INFO_IF("MapperFactory", echo_level >= 3) << "Mapper: SubModelPart used for " << InterfaceSide << "-ModelPart" << std::endl;
 
-        if (InterfaceParameters.Has(key_sub_model_part))
-        {
-            const std::string name_interface_submodel_part = InterfaceParameters[key_sub_model_part].GetString();
-
-            if (echo_level >= 3 && comm_rank == 0)
-            {
-                std::cout << "Mapper: SubModelPart used for " << InterfaceSide << "-ModelPart" << std::endl;
-            }
-
-            return rModelPart.GetSubModelPart(name_interface_submodel_part);
-        }
-        else
-        {
-            if (echo_level >= 3 && comm_rank == 0)
-            {
-                std::cout << "Mapper: Main ModelPart used for " << InterfaceSide << "-ModelPart" << std::endl;
-            }
+            return rModelPart.GetModel().GetModelPart(name_interface_submodel_part);
+        } else {
+            KRATOS_INFO_IF("MapperFactory", echo_level >= 3) << "Mapper: Main ModelPart used for " << InterfaceSide << "-ModelPart" << std::endl;
 
             return rModelPart;
         }

@@ -37,7 +37,12 @@ void AddParallelEnvironmentToPython(pybind11::module &m)
     .def_static("GetDefaultSize",&ParallelEnvironment::GetDefaultSize)
     .def_static("HasDataCommunicator",&ParallelEnvironment::HasDataCommunicator)
     .def_static("GetDefaultDataCommunicatorName",&ParallelEnvironment::GetDefaultDataCommunicatorName)
-    .def_static("CreateFillCommunicator", &ParallelEnvironment::CreateFillCommunicator)
+    .def_static("CreateFillCommunicator", [](ModelPart& rModelPart)->FillCommunicator::Pointer{
+        KRATOS_WARNING("CreateFillCommunicator") << "This function is deprecated, use \"CreateFillCommunicatorFromGlobalParallelism\" instead" << std::endl;
+        return ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(rModelPart, ParallelEnvironment::GetDefaultDataCommunicator());
+    })
+    .def_static("CreateFillCommunicatorFromGlobalParallelism", [](ModelPart& rModelPart, const std::string& rDataCommunicatorName)->FillCommunicator::Pointer{return ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(rModelPart, rDataCommunicatorName);})
+    .def_static("CreateFillCommunicatorFromGlobalParallelism", [](ModelPart& rModelPart, const DataCommunicator& rDataCommunicator)->FillCommunicator::Pointer{return ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(rModelPart, rDataCommunicator);})
     .def_static("CreateCommunicatorFromGlobalParallelism", [](ModelPart& rModelPart, const std::string& rDataCommunicatorName)->Communicator::UniquePointer{return ParallelEnvironment::CreateCommunicatorFromGlobalParallelism(rModelPart, rDataCommunicatorName);})
     .def_static("CreateCommunicatorFromGlobalParallelism", [](ModelPart& rModelPart, DataCommunicator& rDataCommunicator)->Communicator::UniquePointer{return ParallelEnvironment::CreateCommunicatorFromGlobalParallelism(rModelPart, rDataCommunicator);})
     .def_static("Info", []() {
