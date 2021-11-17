@@ -15,6 +15,7 @@
 #define KRATOS_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA
 
 /* System includes */
+#include <numeric>
 
 /* External includes */
 
@@ -39,9 +40,9 @@ namespace Kratos
  * Contains all info necessary of a particular RK method.
  * It specifies the coefficients of the particular Runge-Kutta method.
  *
- * @tparam: Derived: A derived class that must contain the methods specified below.
- * @tparam: TOrder:  The order of integration.
- * @tparam: TSize:   The number of sub-steps.
+ * @tparam: Derived:       A derived class that must contain the methods specified below.
+ * @tparam: TOrder:        The order of integration.
+ * @tparam: TSubstepCount: The number of sub-steps.
  *
  * Child class must provide methods:
  * - static const MatrixType GenerateRKMatrix() -> Provides coefficients a_ij
@@ -49,19 +50,38 @@ namespace Kratos
  * - static const VectorType GenerateNodes()    -> Provides coefficients c_i
  * - static std::string Name()
  */
-template<typename Derived, unsigned int TOrder, unsigned int TSize>
+template<typename Derived, unsigned int TOrder, unsigned int TSubstepCount>
 class ButcherTableau
 {
 public:
     static constexpr unsigned int Order() {return TOrder;}
-    static constexpr unsigned int Size() {return TSize; }
+    static constexpr unsigned int SubstepCount() {return TSubstepCount; }
 
-    typedef BoundedMatrix<double, Size()-1, Size()-1> MatrixType;
-    typedef array_1d<double, Size()> VectorType;
+    typedef array_1d<double, SubstepCount()> VectorType;
+    typedef std::array<array_1d<double, SubstepCount()-1>, SubstepCount()-1> MatrixType;
 
-    constexpr MatrixRow<const MatrixType> GetRKMatrixRow(const unsigned int SubStepIndex) const
+    /**
+     * The runge kutta must perform for all substeps 1...N-1:
+     *
+     *  u^(i) = u^(i-1) + dt * A_ij*k_j
+     *
+     * This method computes the A_ij*k_j product
+     *
+     * @param SubstepIndex: The i in the formula (the row of the matrix)
+     * @param rK: The k in the formula (the reaction)
+     */
+    double MatrixReactionProduct(
+        const unsigned int SubStepIndex,
+        const MatrixRow<Matrix>& rK
+        ) const
     {
-        return row(mA, SubStepIndex-1);
+#ifdef KRATOS_DEBUG
+        KRATOS_ERROR_IF(SubStepIndex < 1) << "Substep index must be at least 1" << std::endl;
+        KRATOS_ERROR_IF(SubStepIndex > SubstepCount()) << "Substep index must be at most" << SubstepCount() << std::endl;
+#endif
+        const auto weights_begin = mA[SubStepIndex - 1].begin();
+        const auto weights_end = mA[SubStepIndex - 1].begin() + SubStepIndex; // Exploits the property A_ij=0 for j>i
+        return std::inner_product(weights_begin, weights_end, rK.begin(), 0.0);
     }
 
     constexpr const VectorType& GetWeights() const
@@ -92,7 +112,7 @@ public:
 
     static const MatrixType GenerateRKMatrix()
     {
-        return MatrixType(Size()-1, Size()-1);
+        return {};
     }
 
     static const VectorType GenerateWeights()
@@ -122,8 +142,8 @@ public:
 
     static const MatrixType GenerateRKMatrix()
     {
-        MatrixType A(Size()-1, Size()-1);
-        A(0,0) = 0.5;
+        MatrixType A;
+        A[0][0] = 0.5;
         return A;
     }
 
@@ -162,10 +182,10 @@ public:
     static const MatrixType GenerateRKMatrix()
     {
         MatrixType A;
-        A(0,0) = 1;
-        A(1,0) = 0.25;
-        A(0,1) = 0.0;
-        A(1,1) = 0.25;
+        A[0][0] = 1;
+        A[1][0] = 0.25;
+        A[0][1] = 0.0;
+        A[1][1] = 0.25;
         return A;
     }
 
@@ -199,10 +219,11 @@ class ButcherTableauRK4 : public ButcherTableau<ButcherTableauRK4, 4, 4>
 public:
     static const MatrixType GenerateRKMatrix()
     {
-        MatrixType A = ZeroMatrix(Size()-1, Size()-1);
-        A(0,0) = 0.5;
-        A(1,1) = 0.5;
-        A(2,2) = 1.0;
+        MatrixType A;
+        std::fill(begin(A), end(A), ZeroVector(SubstepCount()-1));
+        A[0][0] = 0.5;
+        A[1][1] = 0.5;
+        A[2][2] = 1.0;
         return A;
     }
 
@@ -460,7 +481,7 @@ protected:
 
         // Set the auxiliary RK vectors
         LocalSystemVectorType u_n(dof_size); // TODO: THIS IS INEFICCIENT. CREATE A UNORDERED_SET WITH THE IDOF AND VALUE AS ENTRIES. THIS HAS TO BE OPTIONAL
-        LocalSystemMatrixType rk_K(dof_size, mButcherTableau.Size());
+        LocalSystemMatrixType rk_K(dof_size, mButcherTableau.SubstepCount());
 
         // Perform the RK 3 update
         const double dt = BaseType::GetDeltaTime();
@@ -482,7 +503,7 @@ protected:
         );
 
         // Calculate the RK3 intermediate sub steps
-        for(unsigned int i=1; i<mButcherTableau.Size(); ++i)
+        for(unsigned int i=1; i<mButcherTableau.SubstepCount(); ++i)
         {
             PerformRungeKuttaIntermediateSubStep(i, u_n, rk_K);
         }
@@ -572,9 +593,8 @@ protected:
                 const double& r_u_old = it_dof->GetSolutionStepValue(1);
                 if (!it_dof->IsFixed()) {
                     const double mass = r_lumped_mass_vector(i_dof);
-                    const auto coeff = mButcherTableau.GetRKMatrixRow(SubStepIndex);
-                    const auto previous_k = row(rIntermediateStepResidualVectors, i_dof);
-                    r_u = r_u_old + (dt / mass) * inner_prod(coeff, previous_k);
+                    const auto k = row(rIntermediateStepResidualVectors, i_dof);
+                    r_u = r_u_old + (dt / mass) * mButcherTableau.MatrixReactionProduct(SubStepIndex, k);
                 } else {
                     const double delta_u = rFixedDofsValues(i_dof) - r_u_old;
                     const auto coeff = mButcherTableau.GetNode(SubStepIndex);
@@ -602,7 +622,7 @@ protected:
         auto& r_process_info = r_model_part.GetProcessInfo();
 
         // Set the RUNGE_KUTTA_STEP value. This has to be done prior to the InitializeRungeKuttaStep()
-        r_process_info.GetValue(RUNGE_KUTTA_STEP) = mButcherTableau.Size();
+        r_process_info.GetValue(RUNGE_KUTTA_STEP) = mButcherTableau.SubstepCount();
 
         // Perform the last sub step residual calculation
         InitializeRungeKuttaLastSubStep();
@@ -613,7 +633,7 @@ protected:
                 const auto it_dof = r_dof_set.begin() + i_dof;
                 // Save current value in the corresponding vector
                 const double& r_res = it_dof->GetSolutionStepReactionValue();
-                rLastStepResidualVector(i_dof, mButcherTableau.Size() - 1) = r_res;
+                rLastStepResidualVector(i_dof, mButcherTableau.SubstepCount() - 1) = r_res;
             }
         );
 
