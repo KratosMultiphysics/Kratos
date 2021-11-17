@@ -65,7 +65,7 @@ class RANSAnalysis(FluidDynamicsAnalysis):
             from KratosMultiphysics.RANSApplication.coupled_rans_ale_solver import CoupledRANSALESolver
             return CoupledRANSALESolver(self.model, self.project_parameters["solver_settings"], parallelism)
         else:
-            raise Exception("Unknown solver type requested.")
+            raise Exception("Unknown solver type requested. [ solver_type = " + solver_type + " ].")
 
     def _GetSimulationName(self):
         return "RANS Analysis"
