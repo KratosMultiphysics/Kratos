@@ -11,7 +11,6 @@
 //
 //
 
-#include "includes/ublas_interface.h"
 #if !defined(KRATOS_RUNGE_KUTTA_BUTCHER_TABLEAU_H)
 #define KRATOS_RUNGE_KUTTA_BUTCHER_TABLEAU_H
 
@@ -75,12 +74,18 @@ public:
     static constexpr unsigned int SubstepCount() {return TSubstepCount; }
 
     typedef array_1d<double, SubstepCount()> VectorType;
-    typedef BoundedMatrix<double, SubstepCount()-1, SubstepCount()-1> MatrixType;
+
+    /* Using the follwing constructs allows us to multiply parts of vectors with parts of matrices
+     * while avoiding BOOST's size checks. This is useful to skip multiplications by zero, since
+     * for all explicit runge-kutta methods a_ij = 0 for i>j
+     */
+    typedef array_1d<double, SubstepCount()-1> RowType;
+    typedef std::array<RowType, SubstepCount()-1> MatrixType;
 
     struct ArraySlice
     {
-        typename MatrixRow<const MatrixType>::const_iterator begin;
-        typename MatrixRow<const MatrixType>::const_iterator end;
+        typename RowType::const_iterator begin;
+        typename RowType::const_iterator end;
     };
 
     ///@}
@@ -104,6 +109,9 @@ public:
      *
      * This method computes the A_ij*k_j product
      *
+     * Note that only A_i[1...SubstepIndex] is returned. This is
+     * because a_ij = 0 for i>j
+     *
      * @param SubstepIndex: The i in the formula (the row of the matrix)
      * @param rK: The k in the formula (the reaction)
      */
@@ -111,8 +119,8 @@ public:
     ArraySlice GetMatrixRow(const unsigned int SubStepIndex) const
     {
         return ArraySlice{
-            row(mA, SubStepIndex-1).begin(),
-            row(mA, SubStepIndex-1).begin() + SubStepIndex // Exploits the property A_ij=0 for j>i
+            mA[SubStepIndex - 1].begin(),
+            mA[SubStepIndex - 1].begin() + SubStepIndex // Exploits the property A_ij=0 for j>i
         };
     }
 
@@ -252,7 +260,7 @@ public:
     static const MatrixType GenerateRKMatrix()
     {
         MatrixType A;
-        A(0, 0) = 0.5;
+        A[0][0] = 0.5;
         return A;
     }
 
@@ -291,10 +299,10 @@ public:
     static const MatrixType GenerateRKMatrix()
     {
         MatrixType A;
-        A(0, 0) = 1;
-        A(1, 0) = 0.25;
-        A(0, 1) = 0.0;
-        A(1, 1) = 0.25;
+        A[0][0] = 1;
+        A[1][0] = 0.25;
+        A[0][1] = 0.0;
+        A[1][1] = 0.25;
         return A;
     }
 
@@ -328,10 +336,11 @@ class ButcherTableauRK4 : public ButcherTableau<ButcherTableauRK4, 4, 4>
 public:
     static const MatrixType GenerateRKMatrix()
     {
-        MatrixType A = ZeroMatrix(SubstepCount()-1, SubstepCount()-1);
-        A(0, 0) = 0.5;
-        A(1, 1) = 0.5;
-        A(2, 2) = 1.0;
+        MatrixType A;
+        std::fill(begin(A), end(A), ZeroVector(SubstepCount()-1));
+        A[0][0] = 0.5;
+        A[1][1] = 0.5;
+        A[2][2] = 1.0;
         return A;
     }
 

@@ -383,6 +383,12 @@ protected:
                     const double mass = r_lumped_mass_vector(i_dof);
                     const auto k = row(rIntermediateStepResidualVectors, i_dof);
                     r_u = r_u_old + (dt / mass) * std::inner_product(alphas.begin, alphas.end, k.begin(), 0.0);
+                    /* Using std::inner_product instead of boost's inner_prod because it allows us to
+                     * chose a begin and, more importantly, and end.
+                     *
+                     * This is useful because alpha_ij = 0 for j > i, hence the tail end of this scalar product
+                     * can be ignored by setting the past-the-end iterator at j+1
+                     */
                 } else {
                     const double delta_u = rFixedDofsValues(i_dof) - r_u_old;
                     r_u = r_u_old + integration_theta * delta_u;
