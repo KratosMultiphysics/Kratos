@@ -106,8 +106,8 @@ optimize_wheel(){
         fi
     done
     
-    # Alson clean the copy done in the setup.py
-    rm tmp/KratosMultiphysics/.libs/libKratos${APPNAME}* 
+    # Alson clean the possible copies done in the setup.py
+    rm tmp/KratosMultiphysics/.libs/libKratos* 
 
     cd tmp
     zip -r ../${ARCHIVE_NAME} ./*
