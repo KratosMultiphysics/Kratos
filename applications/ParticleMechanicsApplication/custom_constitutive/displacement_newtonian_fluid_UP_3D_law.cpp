@@ -99,7 +99,6 @@ void DispNewtonianFluidUP3DLaw::CalculateMaterialResponseCauchy (Parameters& rVa
 
     ViscousVariables.SetElementGeometry(domain_geometry);
     ViscousVariables.SetShapeFunctionsValues(shape_functions);
-    ViscousVariables.SetShapeFunctionsDerivatives(shape_functions_derivatives);
 
     // Initialize Splited Parts: Isochoric and Volumetric stresses and constitutive tensors
     double voigtsize = StressVector.size();

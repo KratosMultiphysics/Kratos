@@ -184,7 +184,6 @@ void DispNewtonianFluid3DLaw::CalculateMaterialResponseCauchy(Parameters& rValue
 
     ViscousVariables.SetElementGeometry(domain_geometry);
     ViscousVariables.SetShapeFunctionsValues(shape_functions);
-    ViscousVariables.SetShapeFunctionsDerivatives(shape_functions_derivatives);
 
     //1.- Material constants
     ViscousVariables.Mu = MaterialProperties[DYNAMIC_VISCOSITY];
@@ -664,7 +663,7 @@ bool DispNewtonianFluid3DLaw::CheckParameters(Parameters& rValues)
      return rValues.CheckAllParameters();
 }
 
-int DispNewtonianFluid3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
+int DispNewtonianFluid3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
 
     KRATOS_ERROR_IF(DENSITY.Key()==0 || rMaterialProperties[DENSITY]<=0.00)<<"DENSITY has Key zero or invalid calue"<< std::endl;
