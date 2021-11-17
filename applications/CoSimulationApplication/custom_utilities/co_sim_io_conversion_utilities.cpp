@@ -101,40 +101,30 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
         max_node_id = r_node.Id();
     }
 
-    for (const auto& r_node : rCoSimIOModelPart.LocalNodes()) {
+    KRATOS_ERROR_IF(!is_distributed && rCoSimIOModelPart.GetPartitionModelParts().size()>0) << "Ghost entities exist in CoSimIO ModelPart in serial simulation!" << std::endl;
+
+    for (const auto& r_node : rCoSimIOModelPart.Nodes()) {
         auto p_node = rKratosModelPart.CreateNewNode(
             r_node.Id(),
             r_node.X(),
             r_node.Y(),
             r_node.Z()
         );
-
-        if (is_distributed) {
-            // alternatively use VariableUtils
-            p_node->FastGetSolutionStepValue(PARTITION_INDEX) = my_rank;
-        }
     };
 
-    KRATOS_ERROR_IF(!is_distributed && rCoSimIOModelPart.GetPartitionModelParts().size()>0) << "Ghost entities exist in CoSimIO ModelPart in serial simulation!" << std::endl;
+    if (is_distributed) {
+        for (const auto& r_node : rCoSimIOModelPart.LocalNodes()) {
+            rKratosModelPart.Nodes().find(r_node.Id).FastGetSolutionStepValue(PARTITION_INDEX) = my_rank;
+        }
 
-    for (const auto& r_partition_pair : rCoSimIOModelPart.GetPartitionModelParts()) {
-        const int partition_index = r_partition_pair.first;
-        const std::unique_ptr<CoSimIO::ModelPart>& rp_partition_model_part = r_partition_pair.second;
+        for (const auto& r_partition_pair : rCoSimIOModelPart.GetPartitionModelParts()) {
+            const int partition_index = r_partition_pair.first;
+            const auto& rp_partition_model_part = r_partition_pair.second;
 
-        max_node_id = 0;
-        for (const auto& r_node : rp_partition_model_part->Nodes()) {
-            KRATOS_ERROR_IF(max_node_id >= static_cast<std::size_t>(r_node.Id())) << "The nodes must be consecutively ordered!" << std::endl;
-            max_node_id = r_node.Id();
-
-            auto p_node = rKratosModelPart.CreateNewNode(
-                r_node.Id(),
-                r_node.X(),
-                r_node.Y(),
-                r_node.Z()
-            );
-
-            p_node->FastGetSolutionStepValue(PARTITION_INDEX) = partition_index;
-        };
+            for (const auto& r_node : rp_partition_model_part->Nodes()) {
+                rKratosModelPart.Nodes().find(r_node.Id).FastGetSolutionStepValue(PARTITION_INDEX) = partition_index;
+            };
+        }
     }
 
     Properties::Pointer p_props;
