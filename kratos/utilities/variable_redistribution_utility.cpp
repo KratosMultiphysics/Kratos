@@ -14,6 +14,7 @@
 #include "includes/fsi_variables.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "variable_redistribution_utility.h"
 
 namespace Kratos
