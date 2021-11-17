@@ -421,6 +421,11 @@ public:
     ///@name Operations
     ///@{
 
+    void Initialize() override
+    {
+        BaseType::GetModelPart().GetProcessInfo().SetValue(TIME_INTEGRATION_THETA, 0.0);
+    }
+
     static constexpr unsigned int Order()
     {
         return TButcherTableau::Order();
@@ -577,6 +582,7 @@ protected:
 
         // Set the RUNGE_KUTTA_STEP value. This has to be done prior to the InitializeRungeKuttaStep()
         r_process_info.GetValue(RUNGE_KUTTA_STEP) = SubStepIndex;
+        r_process_info.GetValue(TIME_INTEGRATION_THETA) = mButcherTableau.GetNode(SubStepIndex);
 
         // Perform the intermidate sub step update
         InitializeRungeKuttaIntermediateSubStep();
@@ -620,9 +626,11 @@ protected:
         // Get model part
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
+        constexpr unsigned int substep_index = TButcherTableau::SubstepCount();
 
         // Set the RUNGE_KUTTA_STEP value. This has to be done prior to the InitializeRungeKuttaStep()
         r_process_info.GetValue(RUNGE_KUTTA_STEP) = mButcherTableau.SubstepCount();
+        r_process_info.GetValue(TIME_INTEGRATION_THETA) = mButcherTableau.GetNode(substep_index);
 
         // Perform the last sub step residual calculation
         InitializeRungeKuttaLastSubStep();
@@ -633,7 +641,7 @@ protected:
                 const auto it_dof = r_dof_set.begin() + i_dof;
                 // Save current value in the corresponding vector
                 const double& r_res = it_dof->GetSolutionStepReactionValue();
-                rLastStepResidualVector(i_dof, mButcherTableau.SubstepCount() - 1) = r_res;
+                rLastStepResidualVector(i_dof, substep_index - 1) = r_res;
             }
         );
 

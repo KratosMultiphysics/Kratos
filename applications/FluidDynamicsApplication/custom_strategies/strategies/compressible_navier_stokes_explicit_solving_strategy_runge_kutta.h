@@ -332,7 +332,6 @@ protected:
         // These will be used in the next RK substep residual calculation to compute the subscales
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
-        r_process_info[TIME_INTEGRATION_THETA] = r_process_info[RUNGE_KUTTA_STEP] == 1 ? 0.0 : 0.5;
 
         // Calculate the Orthogonal SubsScales projections
         if (r_process_info[OSS_SWITCH]) {
@@ -348,7 +347,6 @@ protected:
         // Calculate the Orthogonal SubsScales projections
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
-        r_process_info[TIME_INTEGRATION_THETA] = 1.0;
 
         // Calculate the Orthogonal SubsScales projections
         if (r_process_info[OSS_SWITCH]) {
