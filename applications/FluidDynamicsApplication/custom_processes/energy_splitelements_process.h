@@ -181,8 +181,8 @@ public:
 
                     Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_neg_side;
                     Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_neg_side_interface;
-                    p_ausas_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(N_neg_side, DN_DX_neg_side, w_gauss_neg_side, GeometryData::GI_GAUSS_2);
-                    p_ausas_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(N_neg_side_interface, DN_DX_neg_side_interface, w_gauss_interface, GeometryData::GI_GAUSS_2);
+                    p_ausas_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(N_neg_side, DN_DX_neg_side, w_gauss_neg_side, GeometryData::IntegrationMethod::GI_GAUSS_2);
+                    p_ausas_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(N_neg_side_interface, DN_DX_neg_side_interface, w_gauss_interface, GeometryData::IntegrationMethod::GI_GAUSS_2);
                     // Save the coordinates of all the subdivision Gauss pts.
                     const unsigned int n_neg_gauss_pt = w_gauss_neg_side.size();
                     const unsigned int n_interface_side_gauss_pt=w_gauss_interface.size();
@@ -212,7 +212,7 @@ public:
                     Matrix N_pos_side;
                     Vector w_gauss_pos_side;
                     Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_pos_side;
-                    p_ausas_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(N_pos_side, DN_DX_pos_side, w_gauss_pos_side, GeometryData::GI_GAUSS_2);
+                    p_ausas_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(N_pos_side, DN_DX_pos_side, w_gauss_pos_side, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
                     // Save the coordinates of all the subdivision Gauss pts.
                     const unsigned int n_pos_gauss_pt = w_gauss_pos_side.size();
@@ -241,9 +241,9 @@ public:
                 {
                     // Get geometry data
                     Vector jac_vect;
-                    r_geom.DeterminantOfJacobian(jac_vect, GeometryData::GI_GAUSS_2);
-                    auto N = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-                    const auto& r_integrations_points = r_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+                    r_geom.DeterminantOfJacobian(jac_vect, GeometryData::IntegrationMethod::GI_GAUSS_2);
+                    auto N = r_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+                    const auto& r_integrations_points = r_geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
                     const unsigned int n_gauss = r_integrations_points.size();
                     // Check if the element is in the positive (fluid) region
                     if (this->IsPositive(elem_dist))
