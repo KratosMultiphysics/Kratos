@@ -71,5 +71,5 @@ ${CMAKE} -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DBOOST_ROOT="/workspace/boost/boost_1_71_0"                           \
 -DLAPACK_LIBRARIES="/usr/lib64/liblapack.so.3"                         \
 -DBLAS_LIBRARIES="/usr/lib64/libblas.so.3"                             \
--DDMMG_ROOT="/external_libraries/mmg/mmg_5_4_1"                        \
+-DMMG_ROOT="/external_libraries/mmg/mmg_5_4_1"                        \
 -DINSTALL_RUNKRATOS=OFF
