@@ -11,17 +11,31 @@ application_name = "KratosMultilevelMonteCarloApplication"
 
 _ImportApplication(application, application_name)
 
-if UseMockupPyCOMPSs():
+# PyCOMPSs/Quake
+exaqute_backend = os.environ.get("EXAQUTE_BACKEND")
+if exaqute_backend:
+    print("EXAQUTE_BACKEND={}".format(exaqute_backend))
+    exaqute_backend = exaqute_backend.lower()
+else:
+    exaqute_backend = "local"
+    print("Default ExaQUte backend: {}".format(exaqute_backend))
+    
+if exaqute_backend == "local":
     print("*********************************************************")
     print("** Warning: Running a mockup version of PyCOMPSs       **")
     print("** Warning: The code will NOT RUN USING PARALLEL TASKS **")
     print("*********************************************************")
-
     sys.path.append(os.path.join(os.path.dirname(__file__),'PyCOMPSs'))
+elif exaqute_backend in ("quake", "pycompss"):
+    pass
+else:
+    raise ValueError("Unknown ExaQUte backend: {}".format(exaqute_backend))
 
+# XMC
 XMC_backend = os.environ.get("XMC_BACKEND")
 if XMC_backend:
     print("XMC_BACKEND={}".format(XMC_backend))
+    XMC_backend = XMC_backend.lower()
 else:
     XMC_backend = "local"
     print("Default XMC backend: {}".format(XMC_backend))
