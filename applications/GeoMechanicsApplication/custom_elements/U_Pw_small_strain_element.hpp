@@ -50,6 +50,7 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
     using UPwBaseElement<TDim,TNumNodes>::mIsInitialised;
     using UPwBaseElement<TDim,TNumNodes>::CalculateDerivativesOnInitialConfiguration;
+    using UPwBaseElement<TDim,TNumNodes>::mThisIntegrationMethod;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -133,6 +134,7 @@ protected:
     {
         ///Properties variables
         bool IgnoreUndrained;
+        bool UseHenckyStrain;
         bool ConsiderGeometricStiffness;
         double DynamicViscosityInverse;
         double FluidDensity;
@@ -163,13 +165,15 @@ protected:
         BoundedMatrix<double, TDim, TNumNodes*TDim> Nu;
         array_1d<double, TDim> BodyAcceleration;
         array_1d<double, TDim> SoilGamma;
-        double IntegrationCoefficient;
 
         ///Constitutive Law parameters
         Vector StrainVector;
+        Vector StressVector;
         Matrix ConstitutiveMatrix;
         Vector Np;
         Matrix GradNpT;
+        Matrix GradNpTInitialConfiguration;
+
         Matrix F;
         double detF;
         Vector detJContainer;
@@ -184,7 +188,10 @@ protected:
         double BishopCoefficient;
 
         // needed for updated Lagrangian:
-        double detJ0;
+        double detJ;
+        double detJInitialConfiguration;
+        double IntegrationCoefficient;
+        double IntegrationCoefficientInitialConfiguration;
 
         //Auxiliary Variables
         BoundedMatrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
@@ -237,7 +244,6 @@ protected:
     virtual void CalculateBMatrix( Matrix &rB,
                                    const Matrix &GradNpT,
                                    const Vector &Np );
-
 
     virtual void CalculateAndAddLHS(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
 
@@ -299,7 +305,10 @@ protected:
     virtual void CalculateCauchyAlmansiStrain( ElementVariables &rVariables );
     virtual void CalculateCauchyGreenStrain( ElementVariables &rVariables );
     virtual void CalculateCauchyStrain( ElementVariables &rVariables );
-    virtual void CalculateStrain( ElementVariables &rVariables );
+    virtual void CalculateHenckyStrain( ElementVariables& rVariables );
+    virtual void CalculateStrain( ElementVariables &rVariables, const IndexType& GPoint );
+    virtual void CalculateDeformationGradient( ElementVariables& rVariables,
+                                               const IndexType& GPoint );
 
     void InitializeNodalDisplacementVariables( ElementVariables &rVariables );
     void InitializeNodalPorePressureVariables( ElementVariables &rVariables );
@@ -317,7 +326,11 @@ protected:
     void ResetHydraulicDischarge();
     void CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo);
     void CalculateSoilGamma(ElementVariables &rVariables);
-    void CalculateSoilDensity(ElementVariables &rVariables);
+    virtual void CalculateSoilDensity(ElementVariables &rVariables);
+
+    virtual void CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
+                                                          ElementVariables& rVariables,
+                                                          unsigned int GPoint );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
