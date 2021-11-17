@@ -483,7 +483,7 @@ protected:
         LocalSystemVectorType u_n(dof_size); // TODO: THIS IS INEFICCIENT. CREATE A UNORDERED_SET WITH THE IDOF AND VALUE AS ENTRIES. THIS HAS TO BE OPTIONAL
         LocalSystemMatrixType rk_K(dof_size, mButcherTableau.SubstepCount());
 
-        // Perform the RK 3 update
+        // Perform the RK update
         const double dt = BaseType::GetDeltaTime();
         KRATOS_ERROR_IF(dt < 1.0e-12) << "ProcessInfo DELTA_TIME is close to zero." << std::endl;
 
@@ -502,7 +502,7 @@ protected:
             }
         );
 
-        // Calculate the RK3 intermediate sub steps
+        // Calculate the RK intermediate sub steps
         for(unsigned int i=1; i<mButcherTableau.SubstepCount(); ++i)
         {
             PerformRungeKuttaIntermediateSubStep(i, u_n, rk_K);
