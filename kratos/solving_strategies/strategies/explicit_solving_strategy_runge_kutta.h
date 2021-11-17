@@ -357,9 +357,13 @@ protected:
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
 
+        // Fetch this substeps's values from tableau
+        const double integration_theta = mButcherTableau.GetIntegrationTheta(SubStepIndex);
+        const auto alphas = mButcherTableau.GetMatrixRow(SubStepIndex); // Runge kutta matrix row
+
         // Set the RUNGE_KUTTA_STEP value. This has to be done prior to the InitializeRungeKuttaStep()
         r_process_info.GetValue(RUNGE_KUTTA_STEP) = SubStepIndex;
-        r_process_info.GetValue(TIME_INTEGRATION_THETA) = mButcherTableau.GetIntegrationTheta(SubStepIndex);
+        r_process_info.GetValue(TIME_INTEGRATION_THETA) = integration_theta;
 
         // Perform the intermidate sub step update
         InitializeRungeKuttaIntermediateSubStep();
@@ -377,12 +381,10 @@ protected:
                 if (!it_dof->IsFixed()) {
                     const double mass = r_lumped_mass_vector(i_dof);
                     const auto k = row(rIntermediateStepResidualVectors, i_dof);
-                    auto alphas = mButcherTableau.GetMatrixRow(SubStepIndex);
                     r_u = r_u_old + (dt / mass) * std::inner_product(alphas.begin, alphas.end, k.begin(), 0.0);
                 } else {
                     const double delta_u = rFixedDofsValues(i_dof) - r_u_old;
-                    const auto coeff = mButcherTableau.GetIntegrationTheta(SubStepIndex);
-                    r_u = r_u_old + coeff * delta_u;
+                    r_u = r_u_old + integration_theta * delta_u;
                 }
             }
         );
