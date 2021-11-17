@@ -114,7 +114,7 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
 
     if (is_distributed) {
         for (const auto& r_node : rCoSimIOModelPart.LocalNodes()) {
-            rKratosModelPart.Nodes().find(r_node.Id).FastGetSolutionStepValue(PARTITION_INDEX) = my_rank;
+            rKratosModelPart.Nodes().find(r_node.Id())->FastGetSolutionStepValue(PARTITION_INDEX) = my_rank;
         }
 
         for (const auto& r_partition_pair : rCoSimIOModelPart.GetPartitionModelParts()) {
@@ -122,7 +122,7 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
             const auto& rp_partition_model_part = r_partition_pair.second;
 
             for (const auto& r_node : rp_partition_model_part->Nodes()) {
-                rKratosModelPart.Nodes().find(r_node.Id).FastGetSolutionStepValue(PARTITION_INDEX) = partition_index;
+                rKratosModelPart.Nodes().find(r_node.Id())->FastGetSolutionStepValue(PARTITION_INDEX) = partition_index;
             };
         }
     }
