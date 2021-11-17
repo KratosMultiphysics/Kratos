@@ -85,38 +85,38 @@ class EliminateConstantDimensionProcess(PreprocessingProcess):
                 raise Exception("Masking objective not supported. Supported objectives are input, output, predict_input and predict_output.")
 
     def Invert(self, data_structure_in, data_structure_out):
-        
-        data_in = data_structure_in.ExportDataOnly()       
-        data_out = data_structure_out.ExportDataOnly()
+        if self.invert:
+            data_in = data_structure_in.ExportDataOnly()       
+            data_out = data_structure_out.ExportDataOnly()
 
-        # This only works if the constant dimensions are 0!!
+            # This only works if the constant dimensions are 0!!
 
-        if self.objective == "input" or self.objective == "predict_input":
-            input_log = ImportDictionaryFromText(self.input_log_name)
-            non_constant_dim = list(map(bool,input_log.get(self.log_denominator)))
-            new_data_in = np.zeros((data_in.shape[0],data_in.shape[1],len(non_constant_dim)))
-            new_data_in[:,:,non_constant_dim]=data_in
-            new_data_out = data_out
+            if self.objective == "input" or self.objective == "predict_input":
+                input_log = ImportDictionaryFromText(self.input_log_name)
+                non_constant_dim = list(map(bool,input_log.get(self.log_denominator)))
+                new_data_in = np.zeros((data_in.shape[0],data_in.shape[1],len(non_constant_dim)))
+                new_data_in[:,:,non_constant_dim]=data_in
+                new_data_out = data_out
 
-        if self.objective == "output" or self.objective == "predict_output":
-            output_log = ImportDictionaryFromText(self.output_log_name)
-            non_constant_dim = list(map(bool,output_log.get(self.log_denominator)))
-            new_data_out = np.zeros((data_out.shape[0],data_out.shape[1],len(non_constant_dim)))
-            new_data_out[:,:,non_constant_dim]=data_out
-            new_data_in = data_in
+            if self.objective == "output" or self.objective == "predict_output":
+                output_log = ImportDictionaryFromText(self.output_log_name)
+                non_constant_dim = list(map(bool,output_log.get(self.log_denominator)))
+                new_data_out = np.zeros((data_out.shape[0],data_out.shape[1],len(non_constant_dim)))
+                new_data_out[:,:,non_constant_dim]=data_out
+                new_data_in = data_in
 
-        if self.objective == "all" or self.objective == "predict_all":
-            input_log = ImportDictionaryFromText(self.input_log_name)
-            non_constant_dim_in = list(map(bool,input_log.get(self.log_denominator)))
-            new_data_in = np.zeros((data_in.shape[0],data_in.shape[1],len(non_constant_dim_in)))
-            new_data_in[:,:,non_constant_dim_in]=data_in
-            output_log = ImportDictionaryFromText(self.output_log_name)
-            non_constant_dim_out = list(map(bool,output_log.get(self.log_denominator)))
-            new_data_out = np.zeros((data_out.shape[0],data_out.shape[1],len(non_constant_dim_out)))
-            new_data_out[:,:,non_constant_dim_out]=data_out
+            if self.objective == "all" or self.objective == "predict_all":
+                input_log = ImportDictionaryFromText(self.input_log_name)
+                non_constant_dim_in = list(map(bool,input_log.get(self.log_denominator)))
+                new_data_in = np.zeros((data_in.shape[0],data_in.shape[1],len(non_constant_dim_in)))
+                new_data_in[:,:,non_constant_dim_in]=data_in
+                output_log = ImportDictionaryFromText(self.output_log_name)
+                non_constant_dim_out = list(map(bool,output_log.get(self.log_denominator)))
+                new_data_out = np.zeros((data_out.shape[0],data_out.shape[1],len(non_constant_dim_out)))
+                new_data_out[:,:,non_constant_dim_out]=data_out
 
-        data_structure_in.UpdateData(new_data_in)
-        data_structure_out.UpdateData(new_data_out)
+            data_structure_in.UpdateData(new_data_in)
+            data_structure_out.UpdateData(new_data_out)
 
         return [data_structure_in, data_structure_out]
 

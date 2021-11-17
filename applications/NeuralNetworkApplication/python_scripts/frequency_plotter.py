@@ -24,10 +24,14 @@ class FrequencyPlotterProcess(NeuralNetworkProcess):
             "target_file"         : "",
             "plot_zero_frequency" : true,
             "mirror_negative_frequencies": true,
+            "flatten_target" : false,
             "node_id"             : 0,
             "variables"           : [],
             "training_timesteps"  : 100,
             "sampling_rate"       : 0.01,
+            "figure_size_inches_1": 8,
+            "figure_size_inches_2": 6,
+            "dpi"                 : 100,
             "axis"                : "plot",
             "output_name"         : "",
             "output_format"       : "png"          
@@ -45,10 +49,16 @@ class FrequencyPlotterProcess(NeuralNetworkProcess):
         self.axis = parameters["axis"].GetString()
         self.training_timesteps = parameters["training_timesteps"].GetInt()
         self.sampling_rate = parameters["sampling_rate"].GetDouble()
+        self.flatten_target = parameters["flatten_target"].GetBool()
+        self.figure_size_inches_1 = parameters["figure_size_inches_1"].GetInt()
+        self.figure_size_inches_2 = parameters["figure_size_inches_2"].GetInt()
+        self.dpi = parameters["dpi"].GetInt()
 
     def Plot(self):
 
         target = ImportDataFromFile(self.target_file, "OutputData").ExportAsArray()
+        if self.flatten_target:
+            target = np.squeeze(target)
         if self.predictions_file.endswith('.npy'):
             predictions = np.load(self.predictions_file)
             predictions = np.squeeze(predictions)
@@ -59,11 +69,17 @@ class FrequencyPlotterProcess(NeuralNetworkProcess):
             figure, ax = plt.subplots()
             if isinstance(target[0],(list, tuple, np.ndarray)):
                 try:
-                    data = target[self.training_timesteps:,self.node_id,self.variables.index(variable)]
+                    data = target[:self.training_timesteps,self.node_id,self.variables.index(variable)]
                 except IndexError:
-                    data = target[:self.training_timesteps-1,len(self.variables)*self.node_id+self.variables.index(variable)]
+                    try:
+                        data = target[:self.training_timesteps,len(self.variables)*self.node_id+self.variables.index(variable)]
+                    except IndexError:
+                        data = target[:self.training_timesteps]
             else:
-                data = target[:self.training_timesteps-1,len(self.variables)*self.node_id+self.variables.index(variable)]
+                try:
+                    data = target[:self.training_timesteps,len(self.variables)*self.node_id+self.variables.index(variable)]
+                except IndexError:
+                    data = target[:self.training_timesteps]
             if not self.plot_zero_frequency:
                 data = data - np.mean(data)
             abs_fourier_transform = abs(np.fft.rfft(data))
@@ -84,7 +100,7 @@ class FrequencyPlotterProcess(NeuralNetworkProcess):
                 try:
                     data = predictions[self.training_timesteps:,len(self.variables)*self.node_id+self.variables.index(variable)]
                 except IndexError:
-                    data = predictions_times,predictions[self.training_timesteps:]
+                    data = predictions[self.training_timesteps:]
             if not self.plot_zero_frequency:
                 data = data - np.mean(data)
             abs_fourier_transform = abs(np.fft.rfft(data))
@@ -98,11 +114,10 @@ class FrequencyPlotterProcess(NeuralNetworkProcess):
             ax.set_xlabel('Frequency')
             ax.set_ylabel('FFT')
             ax.legend()
-            # THIS NO LONGER WORKS WITH NEWER VERSIONS OF MATPLOTLIB, LOOKING FOR AN ALTERNATIVE
-            # manager = plt.get_current_fig_manager()
-            # manager.resize(*manager.window.maxsize())
+            figure = plt.gcf()
+            figure.set_size_inches(self.figure_size_inches_1, self.figure_size_inches_2)
             figure.show()
-            figure.savefig(self.output_name + "_" + variable + "." + self.output_format, bbox_inches='tight')
+            figure.savefig(self.output_name + "_" + variable + "." + self.output_format, bbox_inches='tight', dpi = self.dpi)
 
             
 

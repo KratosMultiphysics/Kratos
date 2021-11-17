@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 def Factory(settings):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a parameters object, encapsulating a json string")
-    return PredictionPlotterProcess(settings["parameters"])
+    return PredictionErrorPlotterProcess(settings["parameters"])
 
-class PredictionPlotterProcess(NeuralNetworkProcess):
+class PredictionErrorPlotterProcess(NeuralNetworkProcess):
 
     def __init__(self,parameters):
 
@@ -26,10 +26,10 @@ class PredictionPlotterProcess(NeuralNetworkProcess):
             "node_id"             : 0,
             "input_variable"      : "",
             "input_variable_id"   : 0,
+            "timesteps"           : 0,
             "variables"           : [],
             "axis"                : "plot",
-            "predict_marker"      : "+",
-            "target_marker"       : ".",
+            "marker"              : "+",
             "figure_size_inches_1": 8,
             "figure_size_inches_2": 6,
             "dpi"                 : 100,
@@ -44,9 +44,9 @@ class PredictionPlotterProcess(NeuralNetworkProcess):
         self.node_id = parameters["node_id"].GetInt()
         self.input_variable = parameters["input_variable"].GetString()
         self.input_variable_id = parameters["input_variable_id"].GetInt()
+        self.timesteps = parameters["timesteps"].GetInt()
         self.variables = parameters["variables"].GetStringArray()
-        self.predict_marker = parameters["predict_marker"].GetString()
-        self.target_marker = parameters["target_marker"].GetString()
+        self.marker = parameters["marker"].GetString()
         self.figure_size_inches_1 = parameters["figure_size_inches_1"].GetInt()
         self.figure_size_inches_2 = parameters["figure_size_inches_2"].GetInt()
         self.dpi = parameters["dpi"].GetInt()
@@ -63,33 +63,28 @@ class PredictionPlotterProcess(NeuralNetworkProcess):
             predictions = np.load(self.predictions_file)
         else:
             predictions = np.genfromtxt(self.predictions_file)
+        if self.timesteps > 0:
+            error = predictions[:self.timesteps] - target[:self.timesteps]
+            input = input[:self.timesteps]
+        else:
+            error = predictions - target
 
         for variable in self.variables:
             figure, ax = plt.subplots()
-            if isinstance(target[0],(list, tuple, np.ndarray)):
+            if isinstance(error[0],(list, tuple, np.ndarray)):
                 try:
-                    getattr(ax,self.axis)(input[:,self.node_id + self.input_variable_id],target[:,self.node_id + self.variables.index(variable)],self.target_marker,label='Ground Truth')
+                    getattr(ax,self.axis)(input[:,self.node_id + self.input_variable_id],error[:,self.node_id + self.variables.index(variable)],self.marker)
                 except IndexError:
-                    getattr(ax,self.axis)(input,target[:,self.node_id + self.variables.index(variable)],self.target_marker,label='Ground Truth')
+                    getattr(ax,self.axis)(input,error[:,self.node_id + self.variables.index(variable)],self.marker)
             else:
                 try:
-                    getattr(ax,self.axis)(input[:,self.node_id + self.input_variable_id],target[:],self.target_marker,label='Ground Truth')
+                    getattr(ax,self.axis)(input[:,self.node_id + self.input_variable_id],error[:],self.marker)
                 except IndexError:
-                    getattr(ax,self.axis)(input,target[:],self.target_marker,label='Ground Truth')
-            if isinstance(predictions[0],(list, tuple, np.ndarray)):
-                try:
-                    getattr(ax,self.axis)(input[:,self.node_id + self.input_variable_id],predictions[:,self.node_id + self.variables.index(variable)],self.predict_marker,label='Prediction')
-                except IndexError:
-                    getattr(ax,self.axis)(input,predictions[:,self.node_id + self.variables.index(variable)],self.predict_marker,label='Prediction')
-            else:
-                try:
-                    getattr(ax,self.axis)(input[:,self.node_id + self.input_variable_id],predictions[:],'+',label='Prediction')
-                except IndexError:
-                    getattr(ax,self.axis)(input,predictions[:],self.predict_marker,label='Prediction')
+                    getattr(ax,self.axis)(input,error[:],self.marker)
+
             ax.set_xlabel(self.input_variable)
             ax.set_ylabel(variable)
-            ax.legend()
-            figure = plt.gcf()
+            figure = plt.gcf() 
             figure.set_size_inches(self.figure_size_inches_1, self.figure_size_inches_2)
             figure.show()
             figure.savefig(self.output_name + "_" + variable + "." + self.output_format, bbox_inches='tight', dpi = self.dpi)

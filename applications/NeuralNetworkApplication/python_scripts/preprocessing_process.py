@@ -24,6 +24,10 @@ class PreprocessingProcess(NeuralNetworkProcess):
             self.load_from_log = settings["load_from_log"].GetBool()
         else:
             self.load_from_log = False
+        if settings.Has("invert"): 
+            self.invert = settings["invert"].GetBool()
+        else:
+            self.invert = True
         if settings.Has("input_log_name"):
             self.input_log_name = settings["input_log_name"].GetString()
         else:

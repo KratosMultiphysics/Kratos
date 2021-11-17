@@ -80,8 +80,8 @@ class NormalizationProcess(PreprocessingProcess):
         return [data_in, data_out]
     
     def Invert(self, data_in, data_out):
-        
-        [data_in , data_out] = self.normalization_process.Invert(data_in, data_out)
+        if self.invert:
+            [data_in , data_out] = self.normalization_process.Invert(data_in, data_out)
 
         return [data_in, data_out]
 

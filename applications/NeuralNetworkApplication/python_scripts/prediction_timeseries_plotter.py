@@ -27,8 +27,15 @@ class PredictionTimeseriesPlotterProcess(NeuralNetworkProcess):
             "variables"           : [],
             "training_timesteps"  : 100,
             "axis"                : "plot",
+            "figure_size_inches_1": 8,
+            "figure_size_inches_2": 6,
+            "dpi"                 : 100,
+            "predict_marker"      : "g-",
+            "target_marker"       : "b-",
+            "training_marker"     : "r-",
             "output_name"         : "",
-            "output_format"       : "png"          
+            "output_format"       : "png",
+            "only_test"           : false          
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
@@ -37,10 +44,17 @@ class PredictionTimeseriesPlotterProcess(NeuralNetworkProcess):
         self.input_variable = parameters["input_variable"].GetString()
         self.variables = parameters["variables"].GetStringArray()
         self.node_id = parameters["node_id"].GetInt()
+        self.figure_size_inches_1 = parameters["figure_size_inches_1"].GetInt()
+        self.figure_size_inches_2 = parameters["figure_size_inches_2"].GetInt()
+        self.dpi = parameters["dpi"].GetInt()
+        self.predict_marker = parameters["predict_marker"].GetString()
+        self.target_marker = parameters["target_marker"].GetString()
+        self.training_marker = parameters["training_marker"].GetString()
         self.output_format = parameters["output_format"].GetString()
         self.output_name = parameters["output_name"].GetString()
         self.axis = parameters["axis"].GetString()
         self.training_timesteps = parameters["training_timesteps"].GetInt()
+        self.only_test = parameters["only_test"].GetBool()
 
     def Plot(self):
 
@@ -53,41 +67,41 @@ class PredictionTimeseriesPlotterProcess(NeuralNetworkProcess):
         predictions_times = range(self.training_timesteps,len(predictions[:]))
         for variable in self.variables:
             figure, ax = plt.subplots()
-            if isinstance(target[0],(list, tuple, np.ndarray)):
-                try:
-                    getattr(ax,self.axis)(target[:self.training_timesteps-1,self.node_id,self.variables.index(variable)],'b-',label='Ground Truth')
-                except IndexError:
-                    getattr(ax,self.axis)(target[:self.training_timesteps-1,len(self.variables)*self.node_id+self.variables.index(variable)],'b-',label='Ground Truth')
-            else:
-                getattr(ax,self.axis)(target[:self.training_timesteps-1,len(self.variables)*self.node_id+self.variables.index(variable)],'b-',label='Ground Truth')
+            if not self.only_test:
+                if isinstance(target[0],(list, tuple, np.ndarray)):
+                    try:
+                        getattr(ax,self.axis)(target[:,self.node_id,self.variables.index(variable)],self.target_marker,label='Ground Truth')
+                    except IndexError:
+                        getattr(ax,self.axis)(target[:,len(self.variables)*self.node_id+self.variables.index(variable)],self.target_marker,label='Ground Truth')
+                else:
+                    getattr(ax,self.axis)(target[:,len(self.variables)*self.node_id+self.variables.index(variable)],self.target_marker,label='Ground Truth')
+                if isinstance(predictions[0],(list, tuple, np.ndarray)):
+                    try: 
+                        getattr(ax,self.axis)(range(self.training_timesteps-1),predictions[:self.training_timesteps-1,self.node_id,self.variables.index(variable)],self.training_marker,label='Training')
+                    except IndexError:
+                        getattr(ax,self.axis)(range(self.training_timesteps-1),predictions[:self.training_timesteps-1,len(self.variables)*self.node_id+self.variables.index(variable)],self.training_marker,label='Training')
+                else:
+                    try:
+                        getattr(ax,self.axis)(range(self.training_timesteps-1),predictions[:self.training_timesteps-1,len(self.variables)*self.node_id+self.variables.index(variable)],self.training_marker,label='Training')
+                    except IndexError:
+                        getattr(ax,self.axis)(range(self.training_timesteps-1),predictions[:self.training_timesteps-1],self.training_marker,label='Training')
             if isinstance(predictions[0],(list, tuple, np.ndarray)):
                 try: 
-                    getattr(ax,self.axis)(range(self.training_timesteps-1),predictions[:self.training_timesteps-1,self.node_id,self.variables.index(variable)],'r-',label='Training')
+                    getattr(ax,self.axis)(predictions_times,predictions[self.training_timesteps:,self.node_id,self.variables.index(variable)],self.predict_marker,label='Prediction')
                 except IndexError:
-                    getattr(ax,self.axis)(range(self.training_timesteps-1),predictions[:self.training_timesteps-1,len(self.variables)*self.node_id+self.variables.index(variable)],'r-',label='Training')
+                    getattr(ax,self.axis)(predictions_times,predictions[self.training_timesteps:,len(self.variables)*self.node_id+self.variables.index(variable)],self.predict_marker,label='Prediction')
             else:
                 try:
-                    getattr(ax,self.axis)(range(self.training_timesteps-1),predictions[:self.training_timesteps-1,len(self.variables)*self.node_id+self.variables.index(variable)],'r-',label='Training')
+                    getattr(ax,self.axis)(predictions_times,predictions[self.training_timesteps:,len(self.variables)*self.node_id+self.variables.index(variable)],self.predict_marker,label='Prediction')
                 except IndexError:
-                    getattr(ax,self.axis)(range(self.training_timesteps-1),predictions[:self.training_timesteps-1],'r-',label='Training')
-            if isinstance(predictions[0],(list, tuple, np.ndarray)):
-                try: 
-                    getattr(ax,self.axis)(predictions_times,predictions[self.training_timesteps:,self.node_id,self.variables.index(variable)],'g-',label='Training')
-                except IndexError:
-                    getattr(ax,self.axis)(predictions_times,predictions[self.training_timesteps:,len(self.variables)*self.node_id+self.variables.index(variable)],'g-',label='Training')
-            else:
-                try:
-                    getattr(ax,self.axis)(predictions_times,predictions[self.training_timesteps:,len(self.variables)*self.node_id+self.variables.index(variable)],'g-',label='Training')
-                except IndexError:
-                    getattr(ax,self.axis)(predictions_times,predictions[self.training_timesteps:],'g-',label='Training')
+                    getattr(ax,self.axis)(predictions_times,predictions[self.training_timesteps:],self.predict_marker,label='Prediction')
             ax.set_xlabel(self.input_variable)
             ax.set_ylabel(variable)
-            ax.legend()
-            # THIS NO LONGER WORKS WITH NEWER VERSIONS OF MATPLOTLIB, LOOKING FOR AN ALTERNATIVE
-            # manager = plt.get_current_fig_manager()
-            # manager.resize(*manager.window.maxsize())
+            ax.legend(loc = 'upper left')
+            figure = plt.gcf()
+            figure.set_size_inches(self.figure_size_inches_1, self.figure_size_inches_2)
             figure.show()
-            figure.savefig(self.output_name + "_" + variable + "." + self.output_format, bbox_inches='tight')
+            figure.savefig(self.output_name + "_" + variable + "." + self.output_format, bbox_inches='tight', dpi = self.dpi)
 
             
 

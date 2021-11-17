@@ -32,7 +32,7 @@ class DivideDatasetProcess(PreprocessingProcess):
     def Preprocess(self, data_structure_in, data_structure_out):
         """ This method divides the dataset in two parts """
 
-        data_structure_in.UpdateData(data_structure_in[:np.int64(len(data_structure_in)*self.proportion)])
-        data_structure_out.UpdateData(data_structure_out[:np.int64(len(data_structure_out)*self.proportion)])
+        data_structure_in.data_array = data_structure_in[:np.int64(len(data_structure_in)*self.proportion)]
+        data_structure_out.data_array = data_structure_out[:np.int64(len(data_structure_out)*self.proportion)]
 
         return [data_structure_in, data_structure_out]

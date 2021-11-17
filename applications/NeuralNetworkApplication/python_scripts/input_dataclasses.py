@@ -52,7 +52,7 @@ class DataWithLookback(NeuralNetworkData):
                         new_array = np.concatenate((np.reshape(np.squeeze(self.data), (1,)), np.squeeze(self.lookback_data)))
                     else:
                         try:
-                            new_array = np.hstack((np.squeeze(self.data), np.squeeze(self.lookback_data)))
+                            new_array = np.hstack((self.data, self.lookback_data))
                         except ValueError:
                             raise Exception("Dimension mismatch between the lookback and the data. Check if the dimensions are compatible.")
                 try:
@@ -173,7 +173,7 @@ class ListNeuralNetworkData:
     def AddToList(self, new_array):
         if isinstance(new_array, NeuralNetworkData):
             self.data_array.append(new_array)
-        elif isinstance(new_array, np.ndarray) or isinstance(new_array, (list,float)):
+        elif isinstance(new_array, np.ndarray) or isinstance(new_array, (list, float, np.floating)):
             self.data_array.append(NeuralNetworkData(new_array))
         else:
             self.data_array.append(NeuralNetworkData(np.ndarray(new_array)))

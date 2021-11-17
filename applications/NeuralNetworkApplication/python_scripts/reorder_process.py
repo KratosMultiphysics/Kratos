@@ -33,3 +33,11 @@ class ReorderProcess(PreprocessingProcess):
         data_structure_in.SetReorder(self.number_of_partitions)
 
         return [data_structure_in, data_structure_out]
+
+    def Invert(self, data_structure_in, data_structure_out):
+
+        data_structure_in.SetReorder(1)
+        
+        return [data_structure_in, data_structure_out]
+
+        

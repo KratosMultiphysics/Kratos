@@ -27,6 +27,9 @@ class CorrelationMatrixPlotterProcess(NeuralNetworkProcess):
             "variables"           : [],
             "vmin"                : [],
             "vmax"                : [],
+            "figure_size_inches_1": 8,
+            "figure_size_inches_2": 6,
+            "dpi"                 : 100,
             "output_name"         : "",
             "output_format"       : "png"          
         }""")
@@ -41,6 +44,9 @@ class CorrelationMatrixPlotterProcess(NeuralNetworkProcess):
         self.variables = parameters["variables"].GetStringArray()
         self.output_format = parameters["output_format"].GetString()
         self.output_name = parameters["output_name"].GetString()
+        self.figure_size_inches_1 = parameters["figure_size_inches_1"].GetInt()
+        self.figure_size_inches_2 = parameters["figure_size_inches_2"].GetInt()
+        self.dpi = parameters["dpi"].GetInt()
 
     def Plot(self):
         
@@ -70,9 +76,13 @@ class CorrelationMatrixPlotterProcess(NeuralNetworkProcess):
                     cov_matrix = np.cov(np.transpose(data[:,:,self.variables.index(variable)]), bias = self.bias)
                 except IndexError:
                     cov_matrix = np.cov(np.transpose(data[:,self.variables.index(variable):][:,::len(self.variables)]), bias = self.bias)
-                sn_plot = sn.heatmap(cov_matrix, annot = self.annotations, fmt='g', vmin = value_vmin, vmax = value_vmax)
-                figure = sn_plot.get_figure()
-                figure.savefig(self.output_name + "_" + variable + "." + self.output_format)
+                sn.heatmap(cov_matrix, annot = self.annotations, fmt='g', vmin = value_vmin, vmax = value_vmax)
+                plt.xlabel('Nodes')
+                plt.ylabel('Nodes')
+                figure = plt.gcf()
+                figure.set_size_inches(self.figure_size_inches_1, self.figure_size_inches_2)
+                figure.show()
+                figure.savefig(self.output_name + "_" + variable + "." + self.output_format, dpi = self.dpi)
 
             
 

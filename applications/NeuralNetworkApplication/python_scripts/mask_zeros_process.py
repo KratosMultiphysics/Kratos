@@ -99,34 +99,34 @@ class MaskZerosProcess(PreprocessingProcess):
         return [data_structure_in, data_structure_out]
 
     def Invert(self, data_structure_in, data_structure_out):
+        if self.invert:
+            data_in = data_structure_in.ExportDataOnly()
+            data_out = data_structure_out.ExportDataOnly()
 
-        data_in = data_structure_in.ExportDataOnly()
-        data_out = data_structure_out.ExportDataOnly()
+            if self.objective == "input" or self.objective == "predict_input":
+                input_log = ImportDictionaryFromText(self.input_log_name)
+                input_zero_mask = input_log.get(self.log_denominator)
+                for index in input_zero_mask:
+                    data_in = np.insert(data_in, index, 0.0, axis = 1)
+                
+            if self.objective == "output" or self.objective == "predict_output":
+                output_log = ImportDictionaryFromText(self.output_log_name)
+                output_zero_mask = output_log.get(self.log_denominator)
+                for index in output_zero_mask:
+                    data_out = np.insert(data_out, index, 0.0, axis = 1)
 
-        if self.objective == "input" or self.objective == "predict_input":
-            input_log = ImportDictionaryFromText(self.input_log_name)
-            input_zero_mask = input_log.get(self.log_denominator)
-            for index in input_zero_mask:
-                data_in = np.insert(data_in, index, 0.0, axis = 1)
-            
-        if self.objective == "output" or self.objective == "predict_output":
-            output_log = ImportDictionaryFromText(self.output_log_name)
-            output_zero_mask = output_log.get(self.log_denominator)
-            for index in output_zero_mask:
-                data_out = np.insert(data_out, index, 0.0, axis = 1)
+            if self.objective == "all" or self.objective == "predict_all":
+                input_log = ImportDictionaryFromText(self.input_log_name)
+                input_zero_mask = input_log.get(self.log_denominator)
+                for index in input_zero_mask:
+                    data_in = np.insert(data_in, index, 0.0, axis = 1)
+                output_log = ImportDictionaryFromText(self.output_log_name)
+                output_zero_mask = output_log.get(self.log_denominator)
+                for index in output_zero_mask:
+                    data_out = np.insert(data_out, index, 0.0, axis = 1)
 
-        if self.objective == "all" or self.objective == "predict_all":
-            input_log = ImportDictionaryFromText(self.input_log_name)
-            input_zero_mask = input_log.get(self.log_denominator)
-            for index in input_zero_mask:
-                data_in = np.insert(data_in, index, 0.0, axis = 1)
-            output_log = ImportDictionaryFromText(self.output_log_name)
-            output_zero_mask = output_log.get(self.log_denominator)
-            for index in output_zero_mask:
-                data_out = np.insert(data_out, index, 0.0, axis = 1)
-
-        data_structure_in.UpdateData(data_in)
-        data_structure_out.UpdateData(data_out)
+            data_structure_in.UpdateData(data_in)
+            data_structure_out.UpdateData(data_out)
 
         return [data_structure_in, data_structure_out]
 
