@@ -1754,6 +1754,13 @@ int CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
                 << "Given LOCAL_AXIS_2 has length 0 for element " << Id() << std::endl;
 
         // a tollerance of 1e-3 allows for a rough deviation of 0.06 degrees from 90.0 degrees
+        if(std::abs(MathUtils<double>::Dot(direction_vector_x,direction_vector_y))>1e-3){
+            KRATOS_WATCH(Id())
+            const double dot = std::abs(MathUtils<double>::Dot(direction_vector_x,direction_vector_y));
+            KRATOS_WATCH(dot)
+            KRATOS_WATCH(direction_vector_x)
+            KRATOS_WATCH(direction_vector_y)
+        }
         KRATOS_ERROR_IF(std::abs(MathUtils<double>::Dot(direction_vector_x,direction_vector_y))>1e-3)
                 << "LOCAL_AXIS_1 is not perpendicular to LOCAL_AXIS_2 for element " << Id() << std::endl;
     }
