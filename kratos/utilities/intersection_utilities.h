@@ -184,9 +184,7 @@ public:
 
         // Check the intersection of each edge against the intersecting object
         array_1d<double,3> int_point;
-        int int_id;
-        int_id = ComputeLineLineIntersection(rVert0, rVert1, rPoint0, rPoint1, int_point);
-        if (int_id) return true;
+        if (ComputeLineLineIntersection(rVert0, rVert1, rPoint0, rPoint1, int_point)) return true;
 
         int_id = ComputeLineLineIntersection(rVert1, rVert2, rPoint0, rPoint1, int_point);
         if (int_id) return true;
