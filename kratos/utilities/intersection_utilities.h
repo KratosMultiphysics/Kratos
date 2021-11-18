@@ -184,13 +184,9 @@ public:
 
         // Check the intersection of each edge against the intersecting object
         array_1d<double,3> int_point;
-        if (ComputeLineLineIntersection(rVert0, rVert1, rPoint0, rPoint1, int_point)) return true;
-
-        int_id = ComputeLineLineIntersection(rVert1, rVert2, rPoint0, rPoint1, int_point);
-        if (int_id) return true;
-
-        int_id = ComputeLineLineIntersection(rVert2, rVert0, rPoint0, rPoint1, int_point);
-        if (int_id) return true;
+        return (ComputeLineLineIntersection(rVert0, rVert1, rPoint0, rPoint1, int_point));
+        return (ComputeLineLineIntersection(rVert1, rVert2, rPoint0, rPoint1, int_point));
+        return (ComputeLineLineIntersection(rVert2, rVert0, rPoint0, rPoint1, int_point));
 
         // Let check second geometry is inside the first one.
         if (PointInTriangle(rVert0, rVert1, rVert2, rPoint0)) return true;
