@@ -228,8 +228,7 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculatePlasticDenomin
     const double B = (1.0 - chi) * (1.0 / g) * slope * inner_prod(r_plastic_flow, r_stress);
 
     // Damage terms
-    const BoundedMatrixType aux_compliance_incr = outer_prod(r_plastic_flow,r_plastic_flow) /
-        inner_prod(r_plastic_flow, r_stress);
+    const BoundedMatrixType aux_compliance_incr = outer_prod(r_plastic_flow,r_plastic_flow) / inner_prod(r_plastic_flow, r_stress);
     const BoundedMatrixType aux_mat = prod(r_C, aux_compliance_incr);
     const double C = chi*inner_prod(r_plastic_flow, prod(aux_mat, r_stress));
     const double D = (0.5 * slope * chi / g)*inner_prod(r_stress, prod(aux_compliance_incr, r_stress));
@@ -454,9 +453,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateComplianceMatrix
     const double denominator = inner_prod(plastic_flow, rPDParameters.StressVector);
 
     if (std::abs(denominator) > machine_tolerance)
-        noalias(rPDParameters.ComplianceMatrixIncrement) = (rPDParameters.PlasticDamageProportion) *
-            rPDParameters.PlasticConsistencyIncrement * outer_prod(plastic_flow,plastic_flow) /
-            denominator;
+        noalias(rPDParameters.ComplianceMatrixIncrement) = (rPDParameters.PlasticDamageProportion) * rPDParameters.PlasticConsistencyIncrement * outer_prod(plastic_flow, plastic_flow) / denominator;
     else
         noalias(rPDParameters.ComplianceMatrixIncrement) = ZeroMatrix(VoigtSize, VoigtSize);
 }
