@@ -580,6 +580,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             self.body_model_part.GetRootModelPart().RemoveSubModelPart("Wake3D_Wake_Auto1")
 
 
+    # Option 2 - Fix wake and wing, remesh the rest of the elements (typically to reduce number of nodes)
     def _BlockWake(self):
 
         find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.body_model_part.GetRootModelPart())
@@ -600,6 +601,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         self.body_model_part.GetRootModelPart().RemoveSubModelPart("trailing_edge_elements_model_part")
         self.body_model_part.GetRootModelPart().RemoveSubModelPart("wake_elements_model_part")
 
+    # Option 3 - Remesh everything, setting a metric for the wake and domain
     def _CalculateMetricWake(self):
 
         find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.body_model_part.GetRootModelPart())
