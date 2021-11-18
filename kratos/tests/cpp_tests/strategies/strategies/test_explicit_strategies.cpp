@@ -11,8 +11,6 @@
 //
 
 // System includes
-#include <algorithm>
-#include <limits>
 
 /* External includes */
 
@@ -168,10 +166,11 @@ void RunTest(const double tolerance)
 }
 
 template<typename TStrategyType>
-void Solve(ModelPart& rModelPart,
-           Node<3>& rTestNode,
-           const double time,
-           const unsigned int n_steps)
+void Solve(
+    ModelPart& rModelPart,
+    Node<3>& rTestNode,
+    const double time,
+    const unsigned int n_steps)
 {
     KRATOS_TRY
 
@@ -203,17 +202,17 @@ void Solve(ModelPart& rModelPart,
 }
 
 template<unsigned int TDataSize>
-double LogFittingSlope(const std::array<double, TDataSize>& X,
-                const std::array<double, TDataSize>& Y)
+double LogFittingSlope(
+    const std::array<double, TDataSize>& rX,
+    const std::array<double, TDataSize>& rY)
 {
     BoundedMatrix<double, TDataSize, 2> A;
     array_1d<double, TDataSize> y;
 
-    for(unsigned int i=0; i<TDataSize; ++i)
-    {
+    for(unsigned int i=0; i<TDataSize; ++i){
         A(i, 0) = 1.0;
-        A(i, 1) = std::log(X[i]);
-        y(i)    = std::log(Y[i]);
+        A(i, 1) = std::log(rX[i]);
+        y(i)    = std::log(rY[i]);
     }
 
     const BoundedMatrix<double, 2, 2> AtA = prod(trans(A), A);
@@ -227,7 +226,7 @@ double LogFittingSlope(const std::array<double, TDataSize>& X,
 
 
 template<typename TStrategyType>
-void ConvergenceTest()
+void ConvergenceTest(const unsigned int ExpectedOrder)
 {
     KRATOS_TRY
 
@@ -253,12 +252,12 @@ void ConvergenceTest()
         const double result = r_test_node.FastGetSolutionStepValue(TEMPERATURE);
         const double analytical = (37.5 / 3.5) + (50 - 37.5/3.5) * std::exp(- 3.5 * n_steps[i] * delta_time[i]);
 
-        error[i] = std::fabs(result - analytical);
+        error[i] = std::abs(result - analytical);
     }
 
     const double convergence_rate = LogFittingSlope<n_testpoints>(delta_time, error);
 
-    KRATOS_CHECK_NEAR(convergence_rate, TStrategyType::Order(), 0.1);
+    KRATOS_CHECK_NEAR(convergence_rate, ExpectedOrder, 0.1);
 
     KRATOS_CATCH("");
 }
@@ -291,22 +290,22 @@ void ConvergenceTest()
 
     KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta1_convergence, KratosCoreFastSuite)
     {
-        ConvergenceTest<ExplicitSolvingStrategyRungeKutta1Type>();
+        ConvergenceTest<ExplicitSolvingStrategyRungeKutta1Type>(1);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta2_convergence, KratosCoreFastSuite)
     {
-        ConvergenceTest<ExplicitSolvingStrategyRungeKutta2Type>();
+        ConvergenceTest<ExplicitSolvingStrategyRungeKutta2Type>(2);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta3_convergence, KratosCoreFastSuite)
     {
-        ConvergenceTest<ExplicitSolvingStrategyRungeKutta3Type>();
+        ConvergenceTest<ExplicitSolvingStrategyRungeKutta3Type>(3);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta4_convergence, KratosCoreFastSuite)
     {
-        ConvergenceTest<ExplicitSolvingStrategyRungeKutta4Type>();
+        ConvergenceTest<ExplicitSolvingStrategyRungeKutta4Type>(4);
     }
 
 

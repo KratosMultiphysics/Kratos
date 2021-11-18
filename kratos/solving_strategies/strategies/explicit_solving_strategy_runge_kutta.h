@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
+//  Main authors:    Ruben Zorrilla, Edurd Gómez
 //
 //
 
@@ -15,7 +15,6 @@
 #define KRATOS_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA
 
 /* System includes */
-#include <string>
 #include <numeric>
 
 /* External includes */
@@ -25,234 +24,10 @@
 #include "includes/model_part.h"
 #include "factories/factory.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
+#include "butcher_tableau.h"
 
 namespace Kratos
 {
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-/** @brief Butcher tableau for Runge-Kutta method.
- *
- * Contains all info necessary of a particular RK method.
- * It specifies the coefficients of the particular Runge-Kutta method.
- *
- * @tparam: Derived:       A derived class that must contain the methods specified below.
- * @tparam: TOrder:        The order of integration.
- * @tparam: TSubstepCount: The number of sub-steps.
- *
- * Child class must provide methods:
- * - static const MatrixType GenerateRKMatrix() -> Provides coefficients a_ij
- * - static const VectorType GenerateWeights()  -> Provides coefficients b_i
- * - static const VectorType GenerateNodes()    -> Provides coefficients c_i
- * - static std::string Name()
- */
-template<typename Derived, unsigned int TOrder, unsigned int TSubstepCount>
-class ButcherTableau
-{
-public:
-    static constexpr unsigned int Order() {return TOrder;}
-    static constexpr unsigned int SubstepCount() {return TSubstepCount; }
-
-    typedef array_1d<double, SubstepCount()> VectorType;
-    typedef std::array<array_1d<double, SubstepCount()-1>, SubstepCount()-1> MatrixType;
-
-    /**
-     * The runge kutta must perform for all substeps 1...N-1:
-     *
-     *  u^(i) = u^(i-1) + dt * A_ij*k_j
-     *
-     * This method computes the A_ij*k_j product
-     *
-     * @param SubstepIndex: The i in the formula (the row of the matrix)
-     * @param rK: The k in the formula (the reaction)
-     */
-    double MatrixReactionProduct(
-        const unsigned int SubStepIndex,
-        const MatrixRow<Matrix>& rK
-        ) const
-    {
-#ifdef KRATOS_DEBUG
-        KRATOS_ERROR_IF(SubStepIndex < 1) << "Substep index must be at least 1" << std::endl;
-        KRATOS_ERROR_IF(SubStepIndex > SubstepCount()) << "Substep index must be at most" << SubstepCount() << std::endl;
-#endif
-        const auto A_begin = mA[SubStepIndex - 1].begin();
-        const auto A_end = mA[SubStepIndex - 1].begin() + SubStepIndex; // Exploits the property A_ij=0 for j>i
-        return std::inner_product(A_begin, A_end, rK.begin(), 0.0);
-    }
-
-    constexpr const VectorType& GetWeights() const
-    {
-        return mB;
-    }
-
-    constexpr double GetNode(const unsigned int SubStepIndex) const
-    {
-        return mC(SubStepIndex - 1);
-    }
-
-    static std::string Name()
-    {
-        return Derived::Name();
-    }
-
-protected:
-    const MatrixType mA = Derived::GenerateRKMatrix();   // Runge-Kutta matrix
-    const VectorType mB = Derived::GenerateWeights();    // Weights vector
-    const VectorType mC = Derived::GenerateNodes();      // Nodes vector
-};
-
-
-class ButcherTableauForwardEuler : public ButcherTableau<ButcherTableauForwardEuler, 1, 1>
-{
-public:
-
-    static const MatrixType GenerateRKMatrix()
-    {
-        return {};
-    }
-
-    static const VectorType GenerateWeights()
-    {
-        VectorType B;
-        B(0) = 1.0;
-        return B;
-    }
-
-    static const VectorType GenerateNodes()
-    {
-        VectorType C;
-        C(0) = 0.0;
-        return C;
-    }
-
-    static std::string Name()
-    {
-        return "ButcherTableauForwardEuler";
-    }
-};
-
-
-class ButcherTableauMidPointMethod : public ButcherTableau<ButcherTableauMidPointMethod, 2, 2>
-{
-public:
-
-    static const MatrixType GenerateRKMatrix()
-    {
-        MatrixType A;
-        A[0][0] = 0.5;
-        return A;
-    }
-
-    static const VectorType GenerateWeights()
-    {
-        VectorType B;
-        B(0) = 0.0;
-        B(1) = 1.0;
-        return B;
-    }
-
-    static const VectorType GenerateNodes()
-    {
-        VectorType C;
-        C(0) = 0.0;
-        C(1) = 0.5;
-        return C;
-    }
-
-    static std::string Name()
-    {
-        return "ButcherTableauMidPointMethod";
-    }
-};
-
-/** @brief Explicit total variation diminishing 3rd order Runge-Kutta
- *
- * @details Implementation of Proposition 3.2 of:
- * Gottlieb, Sigal, and Chi-Wang Shu. "Total variation diminishing Runge-Kutta schemes."
- * Mathematics of computation 67.221 (1998): 73-85.
- */
-class ButcherTableauRK3TVD : public ButcherTableau<ButcherTableauRK3TVD, 3, 3>
-{
-public:
-
-    static const MatrixType GenerateRKMatrix()
-    {
-        MatrixType A;
-        A[0][0] = 1;
-        A[1][0] = 0.25;
-        A[0][1] = 0.0;
-        A[1][1] = 0.25;
-        return A;
-    }
-
-    static const VectorType GenerateWeights()
-    {
-        VectorType B;
-        B(0) = 1.0 / 6.0;
-        B(1) = 1.0 / 6.0;
-        B(2) = 2.0 / 3.0;
-        return B;
-    }
-
-    static const VectorType GenerateNodes()
-    {
-        VectorType C;
-        C(0) = 0.0;
-        C(1) = 1.0;
-        C(2) = 0.5;
-        return C;
-    }
-
-    static std::string Name()
-    {
-        return "ButcherTableauRK3TVD";
-    }
-};
-
-
-class ButcherTableauRK4 : public ButcherTableau<ButcherTableauRK4, 4, 4>
-{
-public:
-    static const MatrixType GenerateRKMatrix()
-    {
-        MatrixType A;
-        std::fill(begin(A), end(A), ZeroVector(SubstepCount()-1));
-        A[0][0] = 0.5;
-        A[1][1] = 0.5;
-        A[2][2] = 1.0;
-        return A;
-    }
-
-    static const VectorType GenerateWeights()
-    {
-        VectorType B;
-        B(0) = 1.0 / 6.0;
-        B(1) = 1.0 / 3.0;
-        B(2) = 1.0 / 3.0;
-        B(3) = 1.0 / 6.0;
-        return B;
-    }
-
-    static const VectorType GenerateNodes()
-    {
-        VectorType C;
-        C(0) = 0.0;
-        C(1) = 0.5;
-        C(2) = 0.5;
-        C(3) = 1.0;
-        return C;
-    }
-
-    static std::string Name()
-    {
-        return "ButcherTableauRK4";
-    }
-};
 
 ///@}
 ///@name  Enum's
@@ -266,18 +41,25 @@ public:
 ///@name Kratos Classes
 ///@{
 
-/**
+/** @brief Family of explicit Runge-Kutta schemes
  *
- * Formulation: for i = 0...N substeps
+ * @details:
+ * Formulation:
  *
  * - The diferential equation is u_t = f(t, u)
  *
- * The Runge-Kutta method is:
- * - k^(i) = f(t + c_i*dt, u^(i-1))             -> Where u^(0) := u^n
- * - u^(i) = u^n + \sum_{j=1}^i A_{ij} k^(j)    -> Intermediate steps. u^(N) is not needed, therefore neither is A[N, :]
- * - u^{n+1} = u^n + \sum_{i} B_{i} k(u^(i))    -> Solution
+ * The Runge-Kutta method is, for i = 0...N substeps:
+ * - k^(i) = f(t + c_i*dt, u^(i-1))              -> Where u^(0) := u^n
+ * - u^(i) = u^n + \sum_{j=1}^{i-1} A_{ij} k^(j) -> Intermediate steps. u^(N) is not needed, therefore neither is A[N, :]
+ * - u^{n+1} = u^n + \sum_{i} b_{i} k(u^(i))     -> Solution
  *
+ * @tparam TSparseSpace
+ * @tparam TDenseSpace
+ * @tparam TButcherTableau specifies
+ *  - The sets of coefficients A, b and c
+ *  - The number of Runge-Kutta substeps
  *
+ * @see: ButcherTableau
  */
 template <class TSparseSpace, class TDenseSpace, class TButcherTableau>
 class ExplicitSolvingStrategyRungeKutta : public ExplicitSolvingStrategy<TSparseSpace, TDenseSpace>
@@ -428,11 +210,6 @@ public:
         BaseType::GetModelPart().GetProcessInfo().SetValue(TIME_INTEGRATION_THETA, 0.0);
     }
 
-    static constexpr unsigned int Order()
-    {
-        return TButcherTableau::Order();
-    }
-
     ///@}
     ///@name Input and output
     ///@{
@@ -512,13 +289,13 @@ protected:
         );
 
         // Calculate the RK intermediate sub steps
-        for(unsigned int i=1; i<TButcherTableau::SubstepCount(); ++i)
-        {
+        for(unsigned int i=1; i<TButcherTableau::SubstepCount(); ++i) {
             PerformRungeKuttaIntermediateSubStep(i, u_n, rk_K);
         }
         PerformRungeKuttaLastSubStep(rk_K);
 
         // Do the final solution update
+        const auto& weights = mButcherTableau.GetWeights();
         IndexPartition<int>(r_dof_set.size()).for_each(
             [&](int i_dof){
                 auto it_dof = r_dof_set.begin() + i_dof;
@@ -528,7 +305,7 @@ protected:
                 if (!it_dof->IsFixed()) {
                     const double mass = r_lumped_mass_vector(i_dof);
                     const MatrixRow<LocalSystemMatrixType> substeps_k = row(rk_K, i_dof);
-                    r_u = r_u_old + (dt / mass) * inner_prod(mButcherTableau.GetWeights(), substeps_k);
+                    r_u = r_u_old + (dt / mass) * inner_prod(weights, substeps_k);
                 } else {
                     r_u = u_n(i_dof);
                 }
@@ -588,9 +365,13 @@ protected:
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
 
+        // Fetch this substeps's values from tableau
+        const double integration_theta = mButcherTableau.GetIntegrationTheta(SubStepIndex);
+        const auto alphas = mButcherTableau.GetMatrixRow(SubStepIndex); // Runge kutta matrix row
+
         // Set the RUNGE_KUTTA_STEP value. This has to be done prior to the InitializeRungeKuttaStep()
         r_process_info.GetValue(RUNGE_KUTTA_STEP) = SubStepIndex;
-        r_process_info.GetValue(TIME_INTEGRATION_THETA) = mButcherTableau.GetNode(SubStepIndex);
+        r_process_info.GetValue(TIME_INTEGRATION_THETA) = integration_theta;
 
         // Perform the intermidate sub step update
         InitializeRungeKuttaIntermediateSubStep();
@@ -608,11 +389,17 @@ protected:
                 if (!it_dof->IsFixed()) {
                     const double mass = r_lumped_mass_vector(i_dof);
                     const auto k = row(rIntermediateStepResidualVectors, i_dof);
-                    r_u = r_u_old + (dt / mass) * mButcherTableau.MatrixReactionProduct(SubStepIndex, k);
+                    r_u = r_u_old + (dt / mass) * std::inner_product(alphas.begin, alphas.end, k.begin(), 0.0);
+                    /*                            ^~~~~~~~~~~~~~~~~~
+                     * Using std::inner_product instead of boost's inner_prod because it allows us to
+                     * chose a begin and, more importantly, an end.
+                     *
+                     * This is useful because alpha_ij = 0 for j >= i, hence the tail end of this scalar product
+                     * can be ignored by setting the past-the-end iterator at j=i
+                     */
                 } else {
                     const double delta_u = rFixedDofsValues(i_dof) - r_u_old;
-                    const auto coeff = mButcherTableau.GetNode(SubStepIndex);
-                    r_u = r_u_old + coeff * delta_u;
+                    r_u = r_u_old + integration_theta * delta_u;
                 }
             }
         );
@@ -642,7 +429,7 @@ protected:
 
         // Set the RUNGE_KUTTA_STEP value. This has to be done prior to the InitializeRungeKuttaStep()
         r_process_info.GetValue(RUNGE_KUTTA_STEP) = TButcherTableau::SubstepCount();
-        r_process_info.GetValue(TIME_INTEGRATION_THETA) = mButcherTableau.GetNode(substep_index);
+        r_process_info.GetValue(TIME_INTEGRATION_THETA) = mButcherTableau.GetIntegrationTheta(substep_index);
 
         // Perform the last sub step residual calculation
         InitializeRungeKuttaLastSubStep();
