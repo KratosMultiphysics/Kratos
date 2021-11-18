@@ -345,19 +345,11 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
                     break;
             }
             case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::ExponentialSoftening: {
-                if (rPDParameters.TotalDissipation > machine_tolerance) {
-                    ResidualFunctionType implicit_function   = ExponentialSofteningImplicitFunction();
-                    ResidualFunctionType function_derivative = ExponentialSofteningImplicitFunctionDerivative();
-                    rPDParameters.Threshold = CalculateThresholdImplicitExpression(implicit_function, function_derivative, rValues, rPDParameters);
-                    rPDParameters.Slope     = CalculateSlopeFiniteDifferences(implicit_function, function_derivative, rValues, rPDParameters);
-                    break;
-                } else {
-                    double K0;
-                    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
-                    rPDParameters.Threshold = K0;
-                    rPDParameters.Slope = 0.0;
-                }
-
+                ResidualFunctionType implicit_function   = ExponentialSofteningImplicitFunction();
+                ResidualFunctionType function_derivative = ExponentialSofteningImplicitFunctionDerivative();
+                rPDParameters.Threshold = CalculateThresholdImplicitExpression(implicit_function, function_derivative, rValues, rPDParameters);
+                rPDParameters.Slope     = CalculateSlopeFiniteDifferences(implicit_function, function_derivative, rValues, rPDParameters);
+                break;
             }
         }
     }
