@@ -20,62 +20,36 @@
 // Project includes
 #include "move_mesh_utility.h"
 #include "pfem_fluid_dynamics_application_variables.h"
+#include "utilities/parallel_utilities.h"
 
 
 namespace  Kratos
 {
-    void MoveMeshUtility::MovePfemMesh(NodesContainerType& rNodes) const
-    {
-        KRATOS_TRY;
-
-        KRATOS_ERROR_IF_NOT(rNodes.begin()->SolutionStepsDataHas(DISPLACEMENT_X))
-          << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part"
-          << std::endl;
-
-        const int num_nodes = static_cast<int>(rNodes.size());
-
-        #pragma omp parallel for
-        for(int i = 0; i < num_nodes; ++i)
-        {
-            auto it_node = rNodes.begin() + i;
-
-            noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
-            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
-        }
-
-        KRATOS_INFO("MoveMeshUtility") << " PFEM MESH MOVED " << std::endl;
-        KRATOS_CATCH("")
-    }
     void MoveMeshUtility::ResetPfemKinematicValues(ModelPart& rFluidModelPart)
     {
-        const auto it_node_begin = rFluidModelPart.NodesBegin();
+        block_for_each(rFluidModelPart.Nodes(), [&](NodeType& rNode){
+            if (rNode.IsNot(RIGID) && rNode.IsNot(SOLID)) { // We update only the fluid part
+                auto &r_current_displ = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
+                auto &r_current_vel   = rNode.FastGetSolutionStepValue(VELOCITY, 0);
+                auto &r_current_acc   = rNode.FastGetSolutionStepValue(ACCELERATION, 0);
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rFluidModelPart.Nodes().size()); ++i) {
-            auto it_node = it_node_begin + i;
-
-            if (it_node->IsNot(RIGID) && it_node->IsNot(SOLID)) { // We update only the fluid part
-                auto &r_current_displ = it_node->FastGetSolutionStepValue(DISPLACEMENT, 0);
-                auto &r_current_vel   = it_node->FastGetSolutionStepValue(VELOCITY, 0);
-                auto &r_current_acc   = it_node->FastGetSolutionStepValue(ACCELERATION, 0);
-
-                auto &r_old_displ     = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
-                auto &r_old_vel       = it_node->FastGetSolutionStepValue(VELOCITY, 1);
-                auto &r_old_acc       = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+                auto &r_old_displ     = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+                auto &r_old_vel       = rNode.FastGetSolutionStepValue(VELOCITY, 1);
+                auto &r_old_acc       = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
 
                 auto copy_old_displ   = r_old_displ;
                 auto copy_old_vel     = r_old_vel;
                 auto copy_old_acc     = r_old_acc;
 
-                auto& r_coordinates = it_node->Coordinates();
-                const auto& r_initial_coordinates = it_node->GetInitialPosition();
+                auto& r_coordinates = rNode.Coordinates();
+                const auto& r_initial_coordinates = rNode.GetInitialPosition();
                 noalias(r_coordinates) = r_initial_coordinates + copy_old_displ;
 
                 noalias(r_current_displ) = copy_old_displ;
                 noalias(r_current_vel)   = copy_old_vel;
                 noalias(r_current_acc)   = copy_old_acc;
             }
-        }
+        });
 
         KRATOS_INFO("MoveMeshUtility::ResetPfemKinematicValues") << " PFEM KINEMATICS RESET " << std::endl;
     }

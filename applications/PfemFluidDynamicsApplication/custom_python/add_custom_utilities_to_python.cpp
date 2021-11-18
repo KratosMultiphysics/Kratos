@@ -46,8 +46,7 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
     
     py::class_<MoveMeshUtility, MoveMeshUtility::Pointer>(m, "MoveMeshUtility")
         .def(py::init<>())
-        .def("MovePfemMesh", &MoveMeshUtility::MovePfemMesh)
-        .def("ResetPfemKinematicValues", &MoveMeshUtility::ResetPfemKinematicValues);
+        .def_static("ResetPfemKinematicValues", &MoveMeshUtility::ResetPfemKinematicValues);
 }
 
 } // namespace Python.

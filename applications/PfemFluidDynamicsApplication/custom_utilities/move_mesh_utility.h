@@ -34,37 +34,27 @@ namespace  Kratos
     /**
      * @class MoveMeshUtility
      *
-     * @brief This utilitiy moves the nodes of a pfem fluid
-     *        used especially in the pfem-fem coupling
+     * @brief This utility resets the nodes of a PFEM fluid
+     *        ModelPart, used especially in the PFEM-FEM coupling
      *
      * @author Klaus B Sautter
      */
     class  KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) MoveMeshUtility
     {
         public:
-            typedef ModelPart::NodesContainerType NodesContainerType;
+            typedef Node<3> NodeType;
 
             KRATOS_CLASS_POINTER_DEFINITION(MoveMeshUtility);
 
-            MoveMeshUtility() {};
-            ~MoveMeshUtility() {};
-
-            /**
-             * @brief This function is the main operation of this utility.
-             *        It moves the nodes of a given model part w.r.t. the current DISPLACEMENT
-             * @param rNodes The nodes array of a model part
-             */
-            void MovePfemMesh(NodesContainerType& rNodes) const;
+            MoveMeshUtility() = default;
+            ~MoveMeshUtility() = default;
 
             /**
              * @brief This function resets the previous kinematic
-             *        information of the PFEM nodes.
-             * @param rFluidModelPart The fluid model part
+             *        information of the specified PFEM ModelPart nodes.
+             * @param rFluidModelPart The fluid ModelPart
              */
-            void ResetPfemKinematicValues(ModelPart& rFluidModelPart);
-        
-        /*private:
-            ModelPart& mrModelPart;*/
+            static void ResetPfemKinematicValues(ModelPart& rFluidModelPart);
     }; // MoveMeshUtility
 } //  Kratos
 
