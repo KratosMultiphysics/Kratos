@@ -533,8 +533,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
         AddNonLinearDissipation(rPDParameters);
 
         // updated uniaxial and threshold stress check
-        TYieldSurfaceType::CalculateEquivalentStress(rPDParameters.StressVector,
-            rPDParameters.StrainVector, rPDParameters.UniaxialStress, rValues);
+        TYieldSurfaceType::CalculateEquivalentStress(rPDParameters.StressVector, rPDParameters.StrainVector, rPDParameters.UniaxialStress, rValues);
         CalculateThresholdAndSlope(rValues, rPDParameters);
         rPDParameters.NonLinearIndicator = rPDParameters.UniaxialStress - rPDParameters.Threshold;
 
