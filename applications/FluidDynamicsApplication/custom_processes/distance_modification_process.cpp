@@ -291,10 +291,6 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance()
         // If user has provided flag to calculate elemental edge distances of extrapolated geometry,
         // modify them according to elemental distances in order to stay consistent with element splitting
         if (n_edges_extrapolated > 0) {
-            /*IndexPartition<std::size_t>(n_elems).for_each([&](std::size_t i_elem){
-
-                
-            });*/
             block_for_each(r_elems, [&](Element& rElement){
                 // Compute the distance tolerance
                 const double tol_d = mDistanceThreshold*(rElement.GetGeometry()).Length();
