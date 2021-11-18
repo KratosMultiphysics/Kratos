@@ -103,7 +103,7 @@ public:
         array_1d<double,3>& rIntersectionPoint,
         const double epsilon = 1e-12) {
 
-        // This is the adaption of the implemnetation provided in:
+        // This is the adaption of the implementation provided in:
         // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
         // Based on Tomas Möller & Ben Trumbore (1997) Fast, Minimum Storage Ray-Triangle Intersection, Journal of Graphics Tools, 2:1, 21-28, DOI: 10.1080/10867651.1997.10487468 
 
@@ -333,7 +333,7 @@ public:
     /**
      * @brief Find the 3D intersection of a plane (infinite) with a segment (bounded)
      * @param rPlaneBasePoint Base point of the plane to intersect with
-     * @param rPlaneNormal Normal vector of the plane to intersect qith
+     * @param rPlaneNormal Normal vector of the plane to intersect with
      * @param rLinePoint1 Coordinates of the first point of the segment
      * @param rLinePoint2 Coordinates of the second point of the segment
      * @param rIntersectionPoint The intersection point coordinates

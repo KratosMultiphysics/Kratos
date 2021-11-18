@@ -495,7 +495,12 @@ public:
         return 0.5*detJ;
     }
 
-    /// Detect if this triangle is intersected with another geometry
+    /**
+     * @brief Detect if this triangle is intersected with another geometry
+     * @param  ThisGeometry Geometry to intersect with
+     * @return True if the geometries intersect, False in any other case
+     * @details We always check the intersection from the higher LocalSpaceDimension to the lower one
+     */
     bool HasIntersection( const BaseType& rThisGeometry ) const override
     {
         if (rThisGeometry.LocalSpaceDimension() < this->LocalSpaceDimension()) {
