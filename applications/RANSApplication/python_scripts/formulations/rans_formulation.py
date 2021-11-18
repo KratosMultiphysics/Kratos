@@ -442,15 +442,15 @@ class RansFormulation(ABC):
            chimera formulation are available in the BaseModelPart and have to be added to the ModelPart 
            of the the leaf node formulations.
         """
-        # # set the ACTIVE flag of all elements to True in the beginning
-        # Kratos.VariableUtils().SetFlag(Kratos.ACTIVE, True, self.GetModelPart().Elements)
 
         if not self.__chimera_initialized:
+            # set the ACTIVE flag of all elements to True in the beginning
+            Kratos.VariableUtils().SetFlag(Kratos.ACTIVE, True, self.GetModelPart().Elements)
+            
             # ACTIVE Flag
             # set the ACTIVE flag in the destination element if defined in the original modelpart
             for source_element in self.GetBaseModelPart().Elements:
                 # NOTE below line of code is a very expensive process: should be moved to KratosCore.VariableUtils()
-                # self.GetModelPart().GetElement(source_element.Id).Set(Kratos.ACTIVE, source_element.Is(Kratos.ACTIVE))
                 element = self.GetModelPart().GetElement(source_element.Id)
                 if source_element.IsDefined(Kratos.ACTIVE):
                     element.Set(Kratos.ACTIVE, source_element.Is(Kratos.ACTIVE))
@@ -461,15 +461,8 @@ class RansFormulation(ABC):
                             for solving_variable in self.GetSolvingVariables():
                                 node.SetSolutionStepValue(solving_variable, 0, 0.0)
                                 # node.SetSolutionStepValue(solving_variable, 1, 0.0)
-                        source_element.SetValue(Kratos.TURBULENT_VISCOSITY, 0)
-                # else:
-                #     element.Set(Kratos.ACTIVE, False)    
-                #     for node in element.GetNodes():
-                #         for solving_variable in self.GetSolvingVariables():
-                #             node.SetSolutionStepValue(solving_variable, 0, 0.0)
-                #             # node.SetSolutionStepValue(solving_variable, 1, 0.0)
-                #     source_element.SetValue(Kratos.TURBULENT_VISCOSITY, 0)           
-
+                                # # ^ This is what was causing the issues in overlapping region when appy_chimera_constraints_every_step was true for transient case
+                        source_element.SetValue(Kratos.TURBULENT_VISCOSITY, 0)   
 
             # CONSTRAINTS
             # remove any existing Chimera master-slave constraints (Assuming only chimera constraints exist.)
@@ -479,8 +472,8 @@ class RansFormulation(ABC):
             for constraint in self.GetBaseModelPart().MasterSlaveConstraints:
                 if (constraint.GetSlaveDofsVector()[0].GetVariable() in self.GetSolvingVariables()):
                     self.GetModelPart().AddMasterSlaveConstraint(constraint)
-            print(len(self.GetModelPart().MasterSlaveConstraints))
-            print("\n")
+            # print(len(self.GetModelPart().MasterSlaveConstraints))
+            # print("\n")
             self.__chimera_initialized = True
             if self.IsApplyChimeraConstraintsEveryStep():
                 self.__chimera_initialized = False # for next time step

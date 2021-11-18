@@ -87,6 +87,8 @@ def GetApplyChimeraProcess(model, chimera_parameters, fluid_parameters, solving_
     else:
         if(solver_type == "Monolithic" or solver_type == "monolithic"):
             chimera_process = KratosChimera.ApplyChimeraProcessMonolithic3d(main_model_part,chimera_levels)
+        elif(solver_type == "monolithic_rans_chimera" or solver_type == "MonolithicRANSChimera"):
+            chimera_process = KratosChimera.ApplyRANSChimeraProcessMonolithic3d(main_model_part,chimera_levels, solving_variable_names)  
         elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
             chimera_process = KratosChimera.ApplyChimeraProcessFractionalStep3d(main_model_part,chimera_levels)
 

@@ -118,8 +118,8 @@ int RansChimeraWallDistanceCalculationProcess::Check()
 void RansChimeraWallDistanceCalculationProcess::ExecuteInitializeSolutionStep()
 {
     if (!mIsFormulated) {
-        // CalculateWallDistances();
-        CalculateAnalyticalWallDistances();
+        CalculateWallDistances();
+        // CalculateAnalyticalWallDistances();
         mIsFormulated = true;
     }
 }
@@ -139,6 +139,9 @@ std::string RansChimeraWallDistanceCalculationProcess::Info() const
 void RansChimeraWallDistanceCalculationProcess::CalculateWallDistances()
 {
     KRATOS_TRY
+
+    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+        << "Chimera wall distances calculation started for " << mMainModelPartName << std::endl;
 
     using namespace RansChimeraWallDistanceCalculationUtilities;
 
@@ -237,10 +240,9 @@ void RansChimeraWallDistanceCalculationProcess::CalculateWallDistances()
         }
     });
 
-    // update rest of the domain
+    // Transfer the negative distance values of patch wall nodes to the background subdomain
     VariableUtils().SetVariable(r_distance_variable, 0.0, r_main_model_part.Nodes(),
                                 VISITED, false);
-
 
     // get the pointLocatorsMap from the chimera process
     PointLocatorsMapType const& mPointLocatorsMap = mrChimeraProcess.GetPointLocatorsMap();
@@ -256,6 +258,7 @@ void RansChimeraWallDistanceCalculationProcess::CalculateWallDistances()
 
     for (auto& rBackgroundPointLocatorMap: mPointLocatorsMap){
         std::string background_mp_name = rBackgroundPointLocatorMap.first;
+        auto& r_background_mp = r_main_model_part.GetSubModelPart(background_mp_name);
         auto const& p_point_locator_on_background = rBackgroundPointLocatorMap.second;
 
         int found = 0;
@@ -281,12 +284,13 @@ void RansChimeraWallDistanceCalculationProcess::CalculateWallDistances()
                             // data from the p_host_element
                             auto& rGeometry_of_host_element = p_host_element->GetGeometry();
                             for (auto& rNode_of_host_element: rGeometry_of_host_element){
-                                CalculateAndUpdateNodalMinimumWallDistance(rNode_of_host_element,
+                                CalculateAndUpdateNodalMinimumWallDistance( rNode_of_host_element,
                                                                             r_node_on_patch.Coordinates(),
                                                                             r_node_on_patch.GetValue(NORMAL), 
                                                                             r_distance_variable);
                                 rNode_of_host_element.Set(BLOCKED, true); // so these nodes if they have negative dist are not considered as wall nodes henceforth
-                            }
+                                // not considering the minimum values of distances
+                            }                
                         }
                     }                    
                 }
@@ -301,10 +305,15 @@ void RansChimeraWallDistanceCalculationProcess::CalculateWallDistances()
     r_communicator.SynchronizeCurrentDataToMin(r_distance_variable);
     r_communicator.SynchronizeOrNodalFlags(VISITED);
 
+    // update rest of the domain
     const int domain_size = r_main_model_part.GetProcessInfo()[DOMAIN_SIZE];
     if (domain_size == 2) {
+        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+        << "Parallel level set method started for " << r_main_model_part.Name() << std::endl;
         ParallelDistanceCalculator<2>().CalculateDistances(
             r_main_model_part, r_distance_variable, r_nodal_area_variable, mMaxLevels, mMaxDistance);
+        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+        << "Parallel level set method completed for " << r_main_model_part.Name() << std::endl;
     } else if (domain_size == 3) {
         ParallelDistanceCalculator<3>().CalculateDistances(
             r_main_model_part, r_distance_variable, r_nodal_area_variable, mMaxLevels, mMaxDistance);
@@ -324,7 +333,7 @@ void RansChimeraWallDistanceCalculationProcess::CalculateWallDistances()
 
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-        << "Wall distances calculation in " << mMainModelPartName << " took " 
+        << "Chimera wall distances calculation in " << mMainModelPartName << " took " 
         << wall_distance_calculation_time.ElapsedSeconds() << " seconds" << std::endl;
 
     KRATOS_CATCH("");

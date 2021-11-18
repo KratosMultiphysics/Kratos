@@ -26,7 +26,7 @@
 
 // Application includes
 #include "rans_formulation_process.h"
-#include "custom_processes/apply_chimera_process.h"     // base class: chimera process 
+// #include "custom_processes/apply_chimera_process.h"     // base class: chimera process 
 #include "custom_processes/apply_rans_chimera_process_monolithic.h"     // derived class: rans chimera process
 
 namespace Kratos

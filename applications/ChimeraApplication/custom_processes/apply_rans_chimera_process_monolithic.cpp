@@ -240,7 +240,7 @@ void ApplyRANSChimeraProcessMonolithic<TDim>::AddConstraintsToModelpart(ModelPar
 
 // Template declarations
 template class ApplyRANSChimeraProcessMonolithic<2>;
-// template class ApplyRANSChimeraProcessMonolithic<3>;
+template class ApplyRANSChimeraProcessMonolithic<3>;
 
 } // namespace Kratos.
 

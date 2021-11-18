@@ -49,7 +49,7 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
     typedef std::vector<std::string> SolvingVariablesVectorType;
     typedef ApplyRANSChimeraProcessMonolithic<2> ApplyRANSChimeraMonolithic2DType;
-    // typedef ApplyRANSChimeraProcessMonolithic<3> ApplyRANSChimeraMonolithic3DType;
+    typedef ApplyRANSChimeraProcessMonolithic<3> ApplyRANSChimeraMonolithic3DType;
 
     typedef ApplyChimeraProcessFractionalStep<2> ApplyChimeraFractionalStep2DType;
     typedef ApplyChimeraProcessFractionalStep<3> ApplyChimeraFractionalStep3DType;
@@ -71,8 +71,8 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
     py::class_<ApplyRANSChimeraMonolithic2DType, ApplyRANSChimeraMonolithic2DType::Pointer, BaseApplyChimera2D>(m, "ApplyRANSChimeraProcessMonolithic2d")
         .def(py::init<ModelPart &, Parameters, SolvingVariablesVectorType>());
-    // py::class_<ApplyRANSChimeraMonolithic3DType, ApplyRANSChimeraMonolithic3DType::Pointer, BaseApplyChimera3D>(m, "ApplyRANSChimeraProcessMonolithic3d")
-    //     .def(py::init<ModelPart &, Parameters, SolvingVariablesVectorType>());
+    py::class_<ApplyRANSChimeraMonolithic3DType, ApplyRANSChimeraMonolithic3DType::Pointer, BaseApplyChimera3D>(m, "ApplyRANSChimeraProcessMonolithic3d")
+        .def(py::init<ModelPart &, Parameters, SolvingVariablesVectorType>());
         
     py::class_<ApplyChimeraFractionalStep2DType, ApplyChimeraFractionalStep2DType::Pointer, BaseApplyChimera2D>(m, "ApplyChimeraProcessFractionalStep2d")
         .def(py::init<ModelPart &, Parameters>());
