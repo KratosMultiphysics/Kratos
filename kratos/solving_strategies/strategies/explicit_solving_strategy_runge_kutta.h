@@ -41,18 +41,25 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**
+/** @brief Family of explicit Runge-Kutta schemes
  *
- * Formulation: for i = 0...N substeps
+ * @details:
+ * Formulation:
  *
  * - The diferential equation is u_t = f(t, u)
  *
- * The Runge-Kutta method is:
- * - k^(i) = f(t + c_i*dt, u^(i-1))             -> Where u^(0) := u^n
- * - u^(i) = u^n + \sum_{j=1}^i A_{ij} k^(j)    -> Intermediate steps. u^(N) is not needed, therefore neither is A[N, :]
- * - u^{n+1} = u^n + \sum_{i} B_{i} k(u^(i))    -> Solution
+ * The Runge-Kutta method is, for i = 0...N substeps:
+ * - k^(i) = f(t + c_i*dt, u^(i-1))              -> Where u^(0) := u^n
+ * - u^(i) = u^n + \sum_{j=1}^{i-1} A_{ij} k^(j) -> Intermediate steps. u^(N) is not needed, therefore neither is A[N, :]
+ * - u^{n+1} = u^n + \sum_{i} b_{i} k(u^(i))     -> Solution
  *
+ * @tparam TSparseSpace
+ * @tparam TDenseSpace
+ * @tparam TButcherTableau specifies
+ *  - The sets of coefficients A, b and c
+ *  - The number of Runge-Kutta substeps
  *
+ * @see: ButcherTableau
  */
 template <class TSparseSpace, class TDenseSpace, class TButcherTableau>
 class ExplicitSolvingStrategyRungeKutta : public ExplicitSolvingStrategy<TSparseSpace, TDenseSpace>
@@ -383,11 +390,12 @@ protected:
                     const double mass = r_lumped_mass_vector(i_dof);
                     const auto k = row(rIntermediateStepResidualVectors, i_dof);
                     r_u = r_u_old + (dt / mass) * std::inner_product(alphas.begin, alphas.end, k.begin(), 0.0);
-                    /* Using std::inner_product instead of boost's inner_prod because it allows us to
-                     * chose a begin and, more importantly, and end.
+                    /*                            ^~~~~~~~~~~~~~~~~~
+                     * Using std::inner_product instead of boost's inner_prod because it allows us to
+                     * chose a begin and, more importantly, an end.
                      *
-                     * This is useful because alpha_ij = 0 for j > i, hence the tail end of this scalar product
-                     * can be ignored by setting the past-the-end iterator at j+1
+                     * This is useful because alpha_ij = 0 for j >= i, hence the tail end of this scalar product
+                     * can be ignored by setting the past-the-end iterator at j=i
                      */
                 } else {
                     const double delta_u = rFixedDofsValues(i_dof) - r_u_old;

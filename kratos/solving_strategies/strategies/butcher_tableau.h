@@ -75,7 +75,7 @@ public:
 
     typedef array_1d<double, SubstepCount()> VectorType;
 
-    /* Using the follwing constructs allows us to multiply parts of vectors with parts of matrices
+    /* Using the following constructs allows us to multiply parts of vectors with parts of matrices
      * while avoiding BOOST's size checks. This is useful to skip multiplications by zero, since
      * for all explicit runge-kutta methods a_ij = 0 for i>j
      */
@@ -105,22 +105,24 @@ public:
     /**
      * The runge kutta must perform for all substeps 1...N-1:
      *
-     *  u^(i) = u^(i-1) + dt * A_ij*k_j
+     *  du^(i) = dt * A_ij*k_j
      *
-     * This method computes the A_ij*k_j product
+     * This method return the coefficients A_i[1...i]. The rest of coefficents
+     * A_i[i+1...n] are skipped. This is they are always zero for explicit
+     * Runge-Kutta.
      *
-     * Note that only A_i[1...SubstepIndex] is returned. This is
-     * because a_ij = 0 for i>j
-     *
-     * @param SubstepIndex: The i in the formula (the row of the matrix)
+     * @param SubstepIndex: The i in the formula (the row of the matrix). Note that it counts from 1 to n.
      * @param rK: The k in the formula (the reaction)
+     *
+     * @return: A struct with iterators pointing to A_i1 (.begin) and A_ii (.end)
+     *          intended to be used with std::inner_product.
      */
 
     ArraySlice GetMatrixRow(const unsigned int SubStepIndex) const
     {
         return ArraySlice{
             mA[SubStepIndex - 1].begin(),
-            mA[SubStepIndex - 1].begin() + SubStepIndex // Exploits the property A_ij=0 for j>i
+            mA[SubStepIndex - 1].begin() + SubStepIndex
         };
     }
 
