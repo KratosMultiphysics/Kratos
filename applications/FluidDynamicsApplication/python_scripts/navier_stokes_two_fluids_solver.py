@@ -298,6 +298,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, volume_error)
 
+            # We set this value at every time step as other processes/solvers also use them
+            dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 
 
     def FinalizeSolutionStep(self):
