@@ -255,7 +255,7 @@ public:
         {
             std::stringstream msg;
             msg << "Provided shock capturing type \""<< sc_type <<"\" does not match any of the available ones.\n";
-            msg << "Please chose one from the following list:\n";
+            msg << "Please choose one from the following list:\n";
             for(const auto& keyvaluepair: shock_capturing_factory_map)
             {
                 msg <<" - " << keyvaluepair.first << "\n";
