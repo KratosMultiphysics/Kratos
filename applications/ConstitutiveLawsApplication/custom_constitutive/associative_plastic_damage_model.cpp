@@ -371,21 +371,17 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
     int iteration = 0;
     const double nr_tol = 1.0e-7;
 
-    if (rPDParameters.TotalDissipation < 0.999) {
-        while (residual > nr_tol && iteration < max_iter) {
-            derivative = rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
-            if (std::abs(derivative) > 0.0)
-                new_threshold = (old_threshold - (1.0 / derivative) * rF(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters));
-            else
-                break;
-            residual = std::abs(new_threshold - old_threshold);
-            old_threshold = new_threshold;
-            iteration++;
-        }
-        KRATOS_WARNING_IF("AssociativePlasticDamageModel", iteration == max_iter) << "Inner Newton-Raphson to find an updated threshold did not converge..." << " Tolerance achieved: " << residual << std::endl;
-    } else {
-        new_threshold = old_threshold;
+    while (residual > nr_tol && iteration < max_iter) {
+        derivative = rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
+        if (std::abs(derivative) > 0.0)
+            new_threshold = (old_threshold - (1.0 / derivative) * rF(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters));
+        else
+            break;
+        residual = std::abs(new_threshold - old_threshold);
+        old_threshold = new_threshold;
+        iteration++;
     }
+    KRATOS_WARNING_IF("AssociativePlasticDamageModel", iteration == max_iter) << "Inner Newton-Raphson to find an updated threshold did not converge..." << " Tolerance achieved: " << residual << std::endl;
 
     return new_threshold;
 }
@@ -546,8 +542,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateConstitutiveMatr
     )
 {
     double det = 0.0;
-    MathUtils<double>::InvertMatrix(rPDParameters.ComplianceMatrix,
-        rPDParameters.ConstitutiveMatrix, det);
+    MathUtils<double>::InvertMatrix(rPDParameters.ComplianceMatrix, rPDParameters.ConstitutiveMatrix, det);
 }
 
 /***********************************************************************************/
@@ -578,20 +573,17 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CheckMinimumFractureEnerg
     const bool is_yield_symmetric = r_material_properties.Has(YIELD_STRESS_TENSION) ? false : true;
 
     const double young_modulus = r_material_properties[YOUNG_MODULUS];
-    const double yield = (is_yield_symmetric == false) ? r_material_properties[YIELD_STRESS_TENSION] :
-        r_material_properties[YIELD_STRESS];
+    const double yield = (is_yield_symmetric == false) ? r_material_properties[YIELD_STRESS_TENSION] : r_material_properties[YIELD_STRESS];
     const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
 
     const double hlim = 2.0 * young_modulus * fracture_energy / (std::pow(yield, 2));
-    KRATOS_ERROR_IF(rPDParameters.CharacteristicLength > hlim) << "The Fracture Energy is to low: " <<
-        rPDParameters.CharacteristicLength << std::endl;
+    KRATOS_ERROR_IF(rPDParameters.CharacteristicLength > hlim) << "The Fracture Energy is to low: " << rPDParameters.CharacteristicLength << std::endl;
 
-    if (is_yield_symmetric == false) { // Check frac energy in compression
+    if (!is_yield_symmetric) { // Check frac energy in compression
         const double yield_compression =  r_material_properties[YIELD_STRESS_COMPRESSION];
         const double fracture_energy_compr = r_material_properties[FRACTURE_ENERGY_COMPRESSION];
         const double hlim_compr = 2.0 * young_modulus * fracture_energy_compr / (std::pow(yield_compression, 2));
-        KRATOS_ERROR_IF(rPDParameters.CharacteristicLength > hlim_compr) << "The Fracture Energy in compression is to low: " <<
-            rPDParameters.CharacteristicLength << std::endl;
+        KRATOS_ERROR_IF(rPDParameters.CharacteristicLength > hlim_compr) << "The Fracture Energy in compression is to low: " << rPDParameters.CharacteristicLength << std::endl;
     }
 }
 
@@ -632,7 +624,6 @@ bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
     )
 {
     bool has = false;
-
     if (rThisVariable == PLASTIC_DISSIPATION) {
         has = true;
     } else if (rThisVariable == THRESHOLD) {
@@ -642,7 +633,6 @@ bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
     } else if (rThisVariable == DISSIPATION) {
         has = true;
     }
-
     return has;
 }
 
@@ -654,7 +644,6 @@ bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
     const Variable<Vector>& rThisVariable
     )
 {
-    // At least one layer should have the value
     bool has = false;
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         has = true;
@@ -681,7 +670,6 @@ double& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
     } else if (rThisVariable == DISSIPATION) {
         rValue = mPlasticDissipation + mDamageDissipation;
     }
-
     return rValue;
 }
 
@@ -694,7 +682,6 @@ Vector& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
     Vector& rValue
     )
 {
-    // We combine the values of the layers
     rValue.clear();
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         noalias(rValue) = mPlasticStrain;
