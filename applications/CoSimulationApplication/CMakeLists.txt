@@ -84,7 +84,6 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosCoSimulationCore DESTINATION libs )
 install(TARGETS KratosCoSimulationApplication DESTINATION libs )
-install(TARGETS co_sim_io DESTINATION libs )
 
 ## If MPI is used, then enable the MPIExtension
 if(${USE_MPI})
