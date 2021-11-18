@@ -39,6 +39,7 @@
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
 #include "custom_utilities/fluid_test_utilities.h"
+#include "custom_utilities/fluid_adjoint_utilities.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -184,6 +185,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("RandomFillConditionVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
         .def_static("RandomFillElementVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ElementsContainerType, double>)
         .def_static("RandomFillElementVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>)
+        ;
+
+    py::class_<FluidAdjointUtilities<2>>(m, "FluidAdjointUtilities2D")
+        .def_static("CalculateTriangleAreaDerivative", &FluidAdjointUtilities<2>::CalculateTriangleAreaDerivative)
+        ;
+
+    py::class_<FluidAdjointUtilities<3>>(m, "FluidAdjointUtilities3D")
+        .def_static("CalculateTriangleAreaDerivative", &FluidAdjointUtilities<3>::CalculateTriangleAreaDerivative)
         ;
 
 }

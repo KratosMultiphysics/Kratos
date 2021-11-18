@@ -11,7 +11,7 @@
 #include "custom_python/add_custom_response_functions_to_python.h"
 #include "custom_response_functions/residual_response_function.h"
 #include "custom_response_functions/domain_integrated_response_function.h"
-#include "custom_response_functions/domain_integrated_square_mean_response_function.h"
+#include "custom_response_functions/domain_integrated_3d_vector_magnitude_square_p_mean_response_function.h"
 
 namespace Kratos
 {
@@ -77,9 +77,15 @@ void AddCustomResponseFunctionsToPython(pybind11::module& m)
         .def(py::init<Parameters, ModelPart&>());
 
     py::class_<
-        DomainIntegratedSquareMeanResponseFunction,
-        DomainIntegratedSquareMeanResponseFunction::Pointer,
-        AdjointResponseFunction>(m,"DomainIntegratedSquareMeanResponseFunction")
+        DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction<2>,
+        DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction<2>::Pointer,
+        AdjointResponseFunction>(m,"DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction2D")
+        .def(py::init<Parameters, ModelPart&>());
+
+    py::class_<
+        DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction<3>,
+        DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction<3>::Pointer,
+        AdjointResponseFunction>(m,"DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction3D")
         .def(py::init<Parameters, ModelPart&>());
 
     py::class_<

@@ -250,7 +250,7 @@ class TestDomainIntegratedResponseFunction(UnitTest.TestCase):
                 raise AssertionError(msg)
 
 
-class TestDomainIntegratedSquareMeanResponseFunction(UnitTest.TestCase):
+class TestDomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction3D(UnitTest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.model = Kratos.Model()
@@ -259,9 +259,9 @@ class TestDomainIntegratedSquareMeanResponseFunction(UnitTest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
 
         cls.sub_model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
-        cls.sub_model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
-        cls.sub_model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
-        cls.sub_model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
+        cls.sub_model_part.CreateNewNode(2, 1.0, 0.0, 1.5)
+        cls.sub_model_part.CreateNewNode(3, 1.4, 1.0, 0.3)
+        cls.sub_model_part.CreateNewNode(4, 0.7, 0.4, 1.8)
 
         prop = cls.model_part.GetProperties()[0]
         prop[Kratos.DENSITY] = 1.5
@@ -284,13 +284,12 @@ class TestDomainIntegratedSquareMeanResponseFunction(UnitTest.TestCase):
         cls.value_to_power = 2
 
         parameters = Kratos.Parameters("""{
-            "model_part_name": "test",
-            "variable_name": "VELOCITY",
-            "value_to_power": -1
+            "model_part_name"          : "test",
+            "variable_name"            : "VELOCITY",
+            "magnitude_square_to_power": 2
         }""")
-        parameters["value_to_power"].SetInt(cls.value_to_power)
 
-        cls.response_function = KratosCFD.DomainIntegratedSquareMeanResponseFunction(parameters,  cls.model_part)
+        cls.response_function = KratosCFD.DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction3D(parameters,  cls.model_part)
 
         cls.response_function.Initialize()
         cls.response_function.InitializeSolutionStep()
@@ -388,7 +387,7 @@ class TestDomainIntegratedSquareMeanResponseFunction(UnitTest.TestCase):
 
                 node_coordinates_setter(node, k, -delta)
 
-        self._IsVectorRelativelyClose(fd_response_gradient, assembled_adjoint_gradient, 1e-5, 1e-5)
+        self._IsVectorRelativelyClose(fd_response_gradient, assembled_adjoint_gradient, 1e-3, 1e-5)
 
     def _CalculateSensitivity(self, delta):
         value = self.response_function.CalculateValue(self.model_part)
