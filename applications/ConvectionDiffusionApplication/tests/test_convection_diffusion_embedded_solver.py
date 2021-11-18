@@ -54,6 +54,42 @@ class TestEmbeddedSolver(KratosUnittest.TestCase):
         else:
             self._addReferenceValuesCheck()
 
+    def _readAndCustomizeTestSettingsDistanceModification(self):
+        # Read the simulation settings
+        with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
+            with open(self.file_name,'r') as parameter_file:
+                self.parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        self.parameters["solver_settings"]["use_distance_modification"].SetBool(True)
+
+        # If required, add the output process to the test settings
+        if self.print_output:
+            self._addOutput()
+            self.parameters["output_processes"]["gid_output"][0]["Parameters"]["output_name"].SetString("square_distance_modification")
+
+        # If required, add the reference values output process to the test settings
+        if self.print_reference_values:
+            self._addReferenceValuesOutput()
+        else:
+            self._addReferenceValuesCheck()
+
+    def _readAndCustomizeTestSettingsMLSConstraints(self):
+        # Read the simulation settings
+        with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
+            with open(self.file_name,'r') as parameter_file:
+                self.parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        self.parameters["solver_settings"]["use_mls_constraints"].SetBool(True)
+
+        # If required, add the output process to the test settings
+        if self.print_output:
+            self._addOutput()
+            self.parameters["output_processes"]["gid_output"][0]["Parameters"]["output_name"].SetString("square_mls_constraints")
+
+        # If required, add the reference values output process to the test settings
+        if self.print_reference_values:
+            self._addReferenceValuesOutput()
+        else:
+            self._addReferenceValuesCheck()
+
     def _addOutput(self):
         gid_output_settings = KratosMultiphysics.Parameters("""{
             "python_module" : "gid_output_process",
@@ -121,13 +157,40 @@ class TestEmbeddedSolver(KratosUnittest.TestCase):
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             KratosUtilities.DeleteFileIfExisting("square.post.bin")
+            KratosUtilities.DeleteFileIfExisting("square_distance_modification.post.bin")
+            KratosUtilities.DeleteFileIfExisting("square_mls_constraints.post.bin")
             KratosUtilities.DeleteFileIfExisting("test_convection_diffusion_embedded_solver.post.lst")
+            KratosUtilities.DeleteFileIfExisting("test_convection_diffusion_embedded_solver_distance_modification.post.lst")
+            KratosUtilities.DeleteFileIfExisting("test_convection_diffusion_embedded_solver_mls_constraints.post.lst")
 
     def testEmbeddedSolverDirichletCircle(self):
         self.file_name = "ProjectParameters.json"
 
         self._readAndCustomizeTestSettings()
         
+        # test solver without distance modification and without MLS constraints
+        with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
+            self.model = KratosMultiphysics.Model()
+            embedded_simulation = EmbeddedSolverDirichletCircleAnalysis(self.model, self.parameters)
+            embedded_simulation.Run()
+
+    def testEmbeddedSolverDirichletCircleDistanceModification(self):
+        self.file_name = "ProjectParameters.json"
+
+        self._readAndCustomizeTestSettingsDistanceModification()
+        
+        # test solver without distance modification and without MLS constraints
+        with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
+            self.model = KratosMultiphysics.Model()
+            embedded_simulation = EmbeddedSolverDirichletCircleAnalysis(self.model, self.parameters)
+            embedded_simulation.Run()
+
+    def testEmbeddedSolverDirichletCircleMLSConstraints(self):
+        self.file_name = "ProjectParameters.json"
+
+        self._readAndCustomizeTestSettingsMLSConstraints()
+        
+        # test solver without distance modification and without MLS constraints
         with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
             self.model = KratosMultiphysics.Model()
             embedded_simulation = EmbeddedSolverDirichletCircleAnalysis(self.model, self.parameters)

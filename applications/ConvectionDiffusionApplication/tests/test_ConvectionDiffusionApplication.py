@@ -67,6 +67,8 @@ def AssembleTestSuites():
     smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyDASGS'))
     smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyQASGS'))
     smallSuite.addTest(TestEmbeddedSolver('testEmbeddedSolverDirichletCircle'))
+    smallSuite.addTest(TestEmbeddedSolver('testEmbeddedSolverDirichletCircleDistanceModification'))
+    smallSuite.addTest(TestEmbeddedSolver('testEmbeddedSolverDirichletCircleMLSConstraints'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite.addTests(smallSuite)
