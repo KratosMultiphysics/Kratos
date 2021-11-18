@@ -50,7 +50,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
             },
             "echo_level": 1,
             "time_order": 2,
-            "runge_kutta_order" : 4,
+            "runge_kutta_scheme" : "RK4",
             "move_mesh_flag": false,
             "shock_capturing": true,
             "compute_reactions": false,
@@ -125,17 +125,20 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         strategy_settings.AddEmptyValue("move_mesh_flag").SetBool(self.settings["move_mesh_flag"].GetBool())
         strategy_settings.AddEmptyValue("shock_capturing").SetBool(self.settings["shock_capturing"].GetBool())
 
-        rk_order = self.settings["runge_kutta_order"].GetInt()
+        rk_parameter = self.settings["runge_kutta_scheme"].GetString()
 
         rk_startegies = {
-            3: KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD,
-            4: KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4
+            "RK3-TVD": KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD,
+            "RK4"    : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4
         }
 
-        if rk_order in rk_startegies:
-            return rk_startegies[rk_order](self.computing_model_part, strategy_settings)
-        raise RuntimeError("Runge-Kutta method of order {order} not available. Try any of {available}."
-            .format(rk_order, list(rk_startegies.keys())))
+        if rk_parameter in rk_startegies:
+            return rk_startegies[rk_parameter](self.computing_model_part, strategy_settings)
+
+        err_msg = "Runge-Kutta method of type '{}' not available. Try any of\n".format(rk_parameter)
+        for key in rk_startegies:
+            err_msg = err_msg + " - {}\n".format(key)
+        raise RuntimeError(err_msg)
 
     def _CreateEstimateDtUtility(self):
         """This method overloads FluidSolver in order to enforce:
