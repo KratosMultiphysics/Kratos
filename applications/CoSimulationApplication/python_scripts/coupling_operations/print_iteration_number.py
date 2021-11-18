@@ -12,7 +12,7 @@ def Create(*args):
     return PrintIterationNumberOperation(*args)
 
 class PrintIterationNumberOperation(CoSimulationCouplingOperation):
-    """This operation is used to print the number of iterations on the Gauss-Seidel strong coupling scheme
+    """This operation is used to print the number of iterations on the strong coupling schemes
     TODO:
     - add tests
     - more cleanup
