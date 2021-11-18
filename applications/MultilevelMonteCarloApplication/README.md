@@ -134,14 +134,14 @@ Information about these libraries can be found in their respective pages, which 
 
 ### XMC
 
-[XMC](https://gitlab.com/RiccardoRossi/exaqute-xmc) is a Python library, with BSD 4 license, designed for hierarchical Monte Carlo methods. The library develops the above-mentioned algorithms, statistical tools and convergence criteria. The library presents a natural integration with Kratos, which is XMC default solver. By default, an internal version of the library is used. If one wants to use an external version of the library, the flag `-DUSING_INTERNAL_XMC=OFF \ ` should be added when compiling Kratos.
+[XMC](https://gitlab.com/RiccardoRossi/exaqute-xmc) is a Python library, with BSD 4 license, designed for hierarchical Monte Carlo methods. The library develops the above-mentioned algorithms, statistical tools and convergence criteria. The library presents a natural integration with Kratos, which is XMC default solver. By default, an internal version of the library is used. If one wants to use an external version of the library, the environment variable `XMC_BACKEND=external` should be set.
 
 ### PyCOMPSs
 
 PyCOMPSs is the Python library required in order to use task-based programming software [COMPSs](https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar) in a Python environment.
 By default PyCOMPSs is not required in order to run the application.
-In case one wants to run using this library, Kratos needs to be compiled adding the flag `-DUSING_PYCOMPSS=ON \ `.
-The current version is able to run several thousands of samples at once exploiting PyCOMPSs in distributed systems, maximizing parallelism and computational efficiency. Optimal strong scalability up to 128 working nodes (6144 CPUs) has been demonstrated.
+In case one wants to run using this library, the environment variable `EXAQUTE_BACKEND=pycompss` must be set.
+The current version is able to run several thousands of samples at once exploiting PyCOMPSs in distributed systems, maximizing parallelism and computational efficiency. Optimal scalability up to 128 working nodes (6144 CPUs) has been demonstrated with both OpenMP and MPI parallelisms.
 
 Instructions for the installation can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-run-multiple-cases-using-PyCOMPSs).
 To run with `runcompss`, the environment variable `EXAQUTE_BACKEND=pycompss` must be set to use the distributed computing capabilities.
