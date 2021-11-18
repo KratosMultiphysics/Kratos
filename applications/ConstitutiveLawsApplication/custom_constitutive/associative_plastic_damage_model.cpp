@@ -639,30 +639,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateElasticComplianc
 
 template<class TYieldSurfaceType>
 bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
-    const Variable<bool>& rThisVariable
-    )
-{
-    bool has = false;
-    return has;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
-    const Variable<int>& rThisVariable
-    )
-{
-    bool has = false;
-    return has;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
     const Variable<double>& rThisVariable
     )
 {
@@ -672,7 +648,9 @@ bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
         has = true;
     } else if (rThisVariable == THRESHOLD) {
         has = true;
-    }  else if (rThisVariable == DAMAGE) {
+    } else if (rThisVariable == DAMAGE) {
+        has = true;
+    } else if (rThisVariable == DISSIPATION) {
         has = true;
     }
 
@@ -699,73 +677,6 @@ bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
-bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
-    const Variable<Matrix>& rThisVariable
-    )
-{
-    // At least one layer should have the value
-    bool has = false;
-    return has;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
-    const Variable<array_1d<double, 3 > >& rThisVariable
-    )
-{
-    // At least one layer should have the value
-    bool has = false;
-    return has;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
-    const Variable<array_1d<double, 6 > >& rThisVariable
-    )
-{
-    // At least one layer should have the value
-    bool has = false;
-    return has;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-bool& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
-    const Variable<bool>& rThisVariable,
-    bool& rValue
-    )
-{
-    // At least one layer should have the value
-    rValue = false;
-    return rValue;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-int& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
-    const Variable<int>& rThisVariable,
-    int& rValue
-    )
-{
-    // At least one layer should have the value
-    rValue = 0;
-    return rValue;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
 double& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
@@ -773,11 +684,13 @@ double& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
 {
     rValue = 0.0;
     if (rThisVariable == PLASTIC_DISSIPATION) {
-        rValue = mDamageDissipation + mPlasticDissipation;
+        rValue = mPlasticDissipation;
     } else if (rThisVariable == THRESHOLD) {
         rValue = mThreshold;
     }  else if (rThisVariable == DAMAGE) {
         rValue = mDamageDissipation;
+    } else if (rThisVariable == DISSIPATION) {
+        rValue = mPlasticDissipation + mDamageDissipation;
     }
 
     return rValue;
@@ -795,76 +708,11 @@ Vector& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
     // We combine the values of the layers
     rValue.clear();
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
-        rValue = mPlasticStrain;
+        noalias(rValue) = mPlasticStrain;
     }
     return rValue;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-Matrix& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
-    const Variable<Matrix>& rThisVariable,
-    Matrix& rValue
-    )
-{
-    // We combine the values of the layers
-    rValue.clear();
-    return rValue;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-array_1d<double, 3 >& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
-    const Variable<array_1d<double, 3 >>& rThisVariable,
-    array_1d<double, 3 >& rValue
-    )
-{
-    // We combine the values of the layers
-    rValue = ZeroVector(3);
-    return rValue;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-array_1d<double, 6 >& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
-    const Variable<array_1d<double, 6 >>& rThisVariable,
-    array_1d<double, 6 >& rValue
-    )
-{
-    // We combine the values of the layers
-    rValue = ZeroVector(6);
-    return rValue;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void AssociativePlasticDamageModel<TYieldSurfaceType>::SetValue(
-    const Variable<bool>& rThisVariable,
-    const bool& rValue,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void AssociativePlasticDamageModel<TYieldSurfaceType>::SetValue(
-    const Variable<int>& rThisVariable,
-    const int& rValue,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -876,6 +724,13 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    if (rThisVariable == PLASTIC_DISSIPATION) {
+        mPlasticDissipation = rValue;
+    } else if (rThisVariable == THRESHOLD) {
+        mThreshold = rValue;
+    }  else if (rThisVariable == DAMAGE) {
+        mDamageDissipation = rValue;
+    }
 }
 
 /***********************************************************************************/
@@ -888,44 +743,10 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
+        noalias(mPlasticStrain) = rValue;
+    }
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void AssociativePlasticDamageModel<TYieldSurfaceType>::SetValue(
-    const Variable<Matrix>& rThisVariable,
-    const Matrix& rValue,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void AssociativePlasticDamageModel<TYieldSurfaceType>::SetValue(
-    const Variable<array_1d<double, 3 >>& rThisVariable,
-    const array_1d<double, 3 >& rValue,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-void AssociativePlasticDamageModel<TYieldSurfaceType>::SetValue(
-    const Variable<array_1d<double, 6 >>& rThisVariable,
-    const array_1d<double, 6 >& rValue,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-}
-
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -962,59 +783,6 @@ double& AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateValue(
     } else {
         BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     }
-    return rValue;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-Vector& AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<Vector>& rThisVariable,
-    Vector& rValue
-    )
-{
-    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-Matrix& AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<Matrix>& rThisVariable,
-    Matrix& rValue
-    )
-{
-    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
-}
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-array_1d<double, 3 >& AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<array_1d<double, 3 >>& rThisVariable,
-    array_1d<double, 3 >& rValue
-    )
-{
-    // return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
-    return rValue;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TYieldSurfaceType>
-array_1d<double, 6 >& AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<array_1d<double, 6 >>& rThisVariable,
-    array_1d<double, 6 >& rValue
-    )
-{
-    // BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     return rValue;
 }
 
