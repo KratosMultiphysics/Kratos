@@ -31,7 +31,7 @@ class PfemFluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
     def SolveSolutionStep(self):
         # Fix the velocity on the pfem interface nodes only
         for fix_model_part in self.list_of_fix_free_model_parts:
-            fix_nodes_model_part = KM.PfemFluidDynamicsApplication.FixFreeVelocityOnNodesProcess(self._analysis_stage._GetSolver().model[fix_model_part], 0)
+            fix_nodes_model_part = KM.PfemFluidDynamicsApplication.FixFreeVelocityOnNodesProcess(self._analysis_stage._GetSolver().model[fix_model_part], True)
             fix_nodes_model_part.Execute()
 
         # solve PFEM
@@ -39,5 +39,5 @@ class PfemFluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
         # Free the velocity on the pfem interface nodes only
         for free_model_part in self.list_of_fix_free_model_parts:
-            free_nodes_model_part = KM.PfemFluidDynamicsApplication.FixFreeVelocityOnNodesProcess(self._analysis_stage._GetSolver().model[free_model_part], 1)
+            free_nodes_model_part = KM.PfemFluidDynamicsApplication.FixFreeVelocityOnNodesProcess(self._analysis_stage._GetSolver().model[free_model_part], False)
             free_nodes_model_part.Execute()

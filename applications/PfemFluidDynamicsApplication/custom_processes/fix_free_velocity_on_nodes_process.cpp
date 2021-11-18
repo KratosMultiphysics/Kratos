@@ -14,12 +14,13 @@
 #include "custom_processes/fix_free_velocity_on_nodes_process.h"
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos {
 
 FixFreeVelocityOnNodesProcess::FixFreeVelocityOnNodesProcess(
     ModelPart& rModelPart,
-    const int rFreeOrFix)
+    const bool rFreeOrFix)
     : mrModelPart(rModelPart),
       mFreeOrFix(rFreeOrFix)
 {
@@ -30,23 +31,11 @@ FixFreeVelocityOnNodesProcess::FixFreeVelocityOnNodesProcess(
 
 void FixFreeVelocityOnNodesProcess::Execute() 
 {
-    const auto& it_node_begin = mrModelPart.NodesBegin();
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
-        auto it_node = it_node_begin + i;
-        if (mFreeOrFix == 0) {
-            it_node->Fix(VELOCITY_X);
-            it_node->Fix(VELOCITY_Y);
-            it_node->Fix(VELOCITY_Z);
+    VariableUtils().ApplyFixity(VELOCITY_X, mFreeOrFix, mrModelPart.Nodes());
+    VariableUtils().ApplyFixity(VELOCITY_Y, mFreeOrFix, mrModelPart.Nodes());
+    VariableUtils().ApplyFixity(VELOCITY_Z, mFreeOrFix, mrModelPart.Nodes());
 
-        } else {
-            it_node->Free(VELOCITY_X);
-            it_node->Free(VELOCITY_Y);
-            it_node->Free(VELOCITY_Z);
-
-        }
-    }
-    if (mFreeOrFix == 0) 
+    if (mFreeOrFix) 
     {
         KRATOS_INFO("FixFreeVelocityOnNodesProcess") << " FIXED VELOCITY VALUES FOR THE NODES " << std::endl;
     }

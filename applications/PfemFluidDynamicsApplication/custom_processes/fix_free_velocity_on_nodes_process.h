@@ -28,13 +28,13 @@ class FixFreeVelocityOnNodesProcess : public Process
 {
  public:
 
-  /// Pointer definition of ApplyMultipointConstraintsProcess
+  /// Pointer definition of FixFreeVelocityOnNodesProcess
   KRATOS_CLASS_POINTER_DEFINITION(FixFreeVelocityOnNodesProcess);
 
   typedef std::size_t IndexType;
 
   // Constructor
-  FixFreeVelocityOnNodesProcess(ModelPart& rModelPart, const int rFreeOrFix);
+  FixFreeVelocityOnNodesProcess(ModelPart& rModelPart, const bool rFreeOrFix);
 
   // Destructor
   ~FixFreeVelocityOnNodesProcess() override = default;
