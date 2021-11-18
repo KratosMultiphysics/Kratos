@@ -23,14 +23,7 @@ class PrintIterationNumberOperation(CoSimulationCouplingOperation):
         self.model_part_name = self.settings["model_part_name"].GetString()
         self.model_part = self.model[self.model_part_name]
 
-        # Detect 'End' as a tag and replace it by a large number
-        if(self.settings.Has('interval')):
-            if(self.settings['interval'][1].IsString()):
-                if(self.settings['interval'][1].GetString() == 'End' or self.settings['interval'][1].GetString() == 'end'):
-                    self.settings['interval'][1].SetDouble(1e30)
-                else:
-                    raise Exception('The second value of interval can be \'End\' or a number, interval currently:' + self.settings['interval'].PrettyPrintJsonString())
-        self.interval = self.settings["interval"].GetVector()
+        self.interval = KM.IntervalUtility(settings)
 
         if(self.model_part.GetCommunicator().MyPID() == 0):
             output_file_name = self.model_part_name + "_number_iterations.dat"
@@ -51,7 +44,7 @@ class PrintIterationNumberOperation(CoSimulationCouplingOperation):
 
     def FinalizeCouplingIteration(self):
         current_time = self.model_part.ProcessInfo[KM.TIME]
-        if((current_time >= self.interval[0]) and (current_time < self.interval[1])):
+        if(self.interval.IsInInterval(current_time)):
             if(self.model_part.GetCommunicator().MyPID() == 0):
                 self.output_file.write(str(current_time) + "\t" + str(self.iteration_number) + "\n")
         

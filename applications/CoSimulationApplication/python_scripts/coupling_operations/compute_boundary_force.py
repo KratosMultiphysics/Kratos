@@ -35,14 +35,7 @@ class ComputeBoundaryForce(CoSimulationCouplingOperation):
         if domain_size == 3:
             self.width = 1
         
-        # Detect 'End' as a tag and replace it by a large number
-        if(self.settings.Has('interval')):
-            if(self.settings['interval'][1].IsString()):
-                if(self.settings['interval'][1].GetString() == 'End' or self.settings['interval'][1].GetString() == 'end'):
-                    self.settings['interval'][1].SetDouble(1e30)
-                else:
-                    raise Exception('The second value of interval can be \'End\' or a number, interval currently:' + self.settings['interval'].PrettyPrintJsonString())
-        self.interval = self.settings["interval"].GetVector()
+        self.interval = KM.IntervalUtility(settings)
 
         if(self.model_part.GetCommunicator().MyPID() == 0):
             if(self.write_output_file):
@@ -62,7 +55,7 @@ class ComputeBoundaryForce(CoSimulationCouplingOperation):
     def Execute(self):        
         current_time = self.model_part.ProcessInfo[KM.TIME]
 
-        if((current_time >= self.interval[0]) and (current_time < self.interval[1])):
+        if(self.interval.IsInInterval(current_time)):
             results = self._EvaluateGlobalForces()
 
             if(self.model_part.GetCommunicator().MyPID() == 0):
