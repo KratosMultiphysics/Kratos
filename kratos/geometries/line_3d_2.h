@@ -412,14 +412,15 @@ public:
      * @param  ThisGeometry Geometry to intersect with
      * @return              True if the geometries intersect, False in any other case.
      */
-    bool HasIntersection(const BaseType& rThisGeometry) const override {
-        const BaseType& geom = *this;
-        if (rThisGeometry.WorkingSpaceDimension() > geom.WorkingSpaceDimension()) {
-            return rThisGeometry.HasIntersection(geom);
+    bool HasIntersection(const BaseType& rThisGeometry) const override
+    {
+        const BaseType& r_geom = *this;
+        if (rThisGeometry.WorkingSpaceDimension() > r_geom.WorkingSpaceDimension()) {
+            return rThisGeometry.HasIntersection(r_geom);
         }
         // Both objects are lines
         Point intersection_point;
-        return IntersectionUtilities::ComputeLineLineIntersection(geom, rThisGeometry[0], rThisGeometry[1], intersection_point);
+        return IntersectionUtilities::ComputeLineLineIntersection(r_geom, rThisGeometry[0], rThisGeometry[1], intersection_point);
     }
 
 
