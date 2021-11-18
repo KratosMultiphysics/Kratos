@@ -161,26 +161,19 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateVolumetricFrac
     )
 {
     double tension_parameter, compression_parameter;
-    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(
-        rPDParameters.StressVector, tension_parameter,compression_parameter);
+    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(rPDParameters.StressVector, tension_parameter,compression_parameter);
 
     const bool has_symmetric_yield_stress = rMaterialProperties.Has(YIELD_STRESS);
-    const double yield_compression = has_symmetric_yield_stress ? rMaterialProperties[YIELD_STRESS]
-        : rMaterialProperties[YIELD_STRESS_COMPRESSION];
-    const double yield_tension = has_symmetric_yield_stress ? rMaterialProperties[YIELD_STRESS]
-        : rMaterialProperties[YIELD_STRESS_TENSION];
+    const double yield_compression = has_symmetric_yield_stress ? rMaterialProperties[YIELD_STRESS] : rMaterialProperties[YIELD_STRESS_COMPRESSION];
+    const double yield_tension = has_symmetric_yield_stress ? rMaterialProperties[YIELD_STRESS] : rMaterialProperties[YIELD_STRESS_TENSION];
     const double n = yield_compression / yield_tension;
     const double fracture_energy_tension = rMaterialProperties[FRACTURE_ENERGY]; // Frac energy in tension
-    const double fracture_energy_compression = rMaterialProperties.Has(FRACTURE_ENERGY_COMPRESSION) ?
-        rMaterialProperties[FRACTURE_ENERGY_COMPRESSION] : rMaterialProperties[FRACTURE_ENERGY] * std::pow(n, 2);
+    const double fracture_energy_compression = rMaterialProperties.Has(FRACTURE_ENERGY_COMPRESSION) ? rMaterialProperties[FRACTURE_ENERGY_COMPRESSION] : rMaterialProperties[FRACTURE_ENERGY] * std::pow(n, 2);
 
-    const double characteristic_fracture_energy_tension = fracture_energy_tension /
-        rPDParameters.CharacteristicLength;
-    const double characteristic_fracture_energy_compression = fracture_energy_compression /
-        rPDParameters.CharacteristicLength;
+    const double characteristic_fracture_energy_tension = fracture_energy_tension / rPDParameters.CharacteristicLength;
+    const double characteristic_fracture_energy_compression = fracture_energy_compression / rPDParameters.CharacteristicLength;
 
-    return 1.0 / (tension_parameter / characteristic_fracture_energy_tension +
-        compression_parameter / characteristic_fracture_energy_compression);
+    return 1.0 / (tension_parameter / characteristic_fracture_energy_tension + compression_parameter / characteristic_fracture_energy_compression);
 }
 
 /***********************************************************************************/
@@ -197,14 +190,9 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateAnalyticalTangen
     const BoundedVectorType& r_plastic_flow = rPDParameters.PlasticFlow;
     const BoundedVectorType& r_stress = rPDParameters.StressVector;
     const double denominator = CalculatePlasticDenominator(rValues, rPDParameters);
-
-    const BoundedMatrixType aux_compliance_incr = outer_prod(r_plastic_flow,r_plastic_flow) /
-        inner_prod(r_plastic_flow, r_stress);
-
-    const BoundedVectorType left_vector = (1.0 - chi) * prod(r_C, r_plastic_flow) + chi *
-        prod(Matrix(prod(r_C, aux_compliance_incr)), r_stress);
+    const BoundedMatrixType aux_compliance_incr = outer_prod(r_plastic_flow,r_plastic_flow) / inner_prod(r_plastic_flow, r_stress);
+    const BoundedVectorType left_vector = (1.0 - chi) * prod(r_C, r_plastic_flow) + chi * prod(Matrix(prod(r_C, aux_compliance_incr)), r_stress);
     const BoundedVectorType right_vector = prod(r_C, r_plastic_flow);
-
     noalias(rPDParameters.TangentTensor) = r_C -outer_prod(right_vector, left_vector) / denominator;
 }
 
