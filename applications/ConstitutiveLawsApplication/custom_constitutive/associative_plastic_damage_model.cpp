@@ -130,8 +130,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
     }
 
     PlasticDamageParameters plastic_damage_parameters = PlasticDamageParameters();
-    InitializePlasticDamageParameters(r_strain_vector, rValues.GetMaterialProperties(),
-        characteristic_length, plastic_damage_parameters);
+    InitializePlasticDamageParameters(r_strain_vector, rValues.GetMaterialProperties(), characteristic_length, plastic_damage_parameters);
 
     CheckMinimumFractureEnergy(rValues, plastic_damage_parameters);
 
@@ -322,7 +321,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
             uniaxial_plastic_strain, rPDParameters.CharacteristicLength);
     } else { // plastic-damage combinations
         const int curve_type = r_mat_properties[HARDENING_CURVE];
-        switch (static_cast<GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType>(curve_type)) {
+        switch (static_cast<typename GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType>(curve_type)) {
             case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::LinearSoftening: {
                     const double chi = rPDParameters.PlasticDamageProportion;
                     double K0;
