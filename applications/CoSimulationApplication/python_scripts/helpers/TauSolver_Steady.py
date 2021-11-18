@@ -3,7 +3,7 @@ import shutil, sys, os, time, json
 import numpy as np
 import CoSimIO
 
-from mpi4py import MPI
+# from mpi4py import MPI
 
 def print_on_rank_zero(*args):
     if tau_mpi_rank() == 0:
@@ -21,7 +21,7 @@ output_file_pattern = tau_settings["output_file_pattern"]
 is_strong_coupling = tau_settings["strong_coupling"]
 sys.path.append(tau_settings["kratos_path"])
 sys.path.append(tau_path + "py_turb1eq/")
-comm = MPI.COMM_WORLD
+# comm = MPI.COMM_WORLD
 step_mesh = 0
 
 
@@ -268,11 +268,13 @@ if rank == 0:
 n_steps = 1
 coupling_interface_imported = False
 
+n_iterations = 3
 factor = 1.0
 for i in range(n_steps):
     if is_strong_coupling:
         is_converged = False
-        while not is_converged:
+        # while not is_converged:
+        for j in range(n_iterations):
             AdvanceInTime(0.0)
             print("step = ", step)
             print("i = ", i)
@@ -307,7 +309,7 @@ for i in range(n_steps):
                 is_converged = CoSimIO.IsConverged(connection_name)
                 print("RECEIVING worked", is_converged)
 
-            is_converged = comm.bcast(is_converged, 0)
+            # is_converged = comm.bcast(is_converged, 0)
 
     if factor < 0.99:
         factor *= 2.0

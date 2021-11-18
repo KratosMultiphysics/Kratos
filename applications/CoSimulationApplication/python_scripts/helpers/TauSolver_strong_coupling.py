@@ -330,6 +330,7 @@ coupling_interface_imported = False
 
 first_iteration = False
 
+n_iterations = 3
 factor = 1.0
 for i in range(n_steps):
 
@@ -340,7 +341,8 @@ for i in range(n_steps):
 
     if is_strong_coupling:
         is_converged = False
-        while not is_converged:
+        #while not is_converged:
+        for j in range(n_iterations):
             advanceTime = False
             if tau_mpi_rank() == 0:
                 print("#################################")
@@ -361,7 +363,7 @@ for i in range(n_steps):
                 print("RECEIVING worked", is_converged)
             if first_iteration:
                 is_converged = True
-            is_converged = comm.bcast(is_converged, 0)
+            #is_converged = comm.bcast(is_converged, 0)
 
             if factor < 0.99:
                 factor += 0.0
