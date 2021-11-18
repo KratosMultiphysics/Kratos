@@ -23,7 +23,7 @@
 #include "includes/define.h"
 #include "includes/global_variables.h"
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/parallel_utilities.h"
@@ -331,7 +331,6 @@ protected:
         // These will be used in the next RK substep residual calculation to compute the subscales
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
-        r_process_info[TIME_INTEGRATION_THETA] = r_process_info[RUNGE_KUTTA_STEP] == 1 ? 0.0 : 0.5;
 
         // Calculate the Orthogonal SubsScales projections
         if (r_process_info[OSS_SWITCH]) {
@@ -347,7 +346,6 @@ protected:
         // Calculate the Orthogonal SubsScales projections
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
-        r_process_info[TIME_INTEGRATION_THETA] = 1.0;
 
         // Calculate the Orthogonal SubsScales projections
         if (r_process_info[OSS_SWITCH]) {
