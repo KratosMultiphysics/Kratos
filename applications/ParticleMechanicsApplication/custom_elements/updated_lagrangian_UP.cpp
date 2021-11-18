@@ -536,16 +536,6 @@ void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSi
     unsigned int index_p = dimension;
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
-    // FIXME: This is only for Solid Mechanics Problem with young_modulus Modulus and Poisson Ratio
-    // TODO: Think about a more general way to find Bulk Modulus
-    const double& young_modulus = GetProperties()[YOUNG_MODULUS];
-    const double& poisson_ratio    = GetProperties()[POISSON_RATIO];
-    double bulk_modulus  = young_modulus/(3.0*(1.0-2.0*poisson_ratio));
-
-    // Check if Bulk Modulus is not NaN
-    if (bulk_modulus != bulk_modulus)
-        bulk_modulus = 1.e16;
-
     double delta_coefficient = 0;
     delta_coefficient = this->CalculatePUDeltaCoefficient( delta_coefficient, rVariables );
 
@@ -554,13 +544,6 @@ void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSi
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        for ( unsigned int j = 0; j < number_of_nodes; j++ )
-        {
-            const double& pressure = r_geometry[j].FastGetSolutionStepValue(PRESSURE);
-
-            // TODO: Check what is the meaning of this equation
-            rRightHandSideVector[index_p] += (1.0/(delta_coefficient * bulk_modulus)) * r_N(0, i) * r_N(0, j) * pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D-3D
-        }
 
         rRightHandSideVector[index_p] -=  coefficient/delta_coefficient * r_N(0, i) * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
 
@@ -585,7 +568,6 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
 
     double delta_coefficient = 0;
     delta_coefficient = this->CalculatePUDeltaCoefficient( delta_coefficient, rVariables );
-    VectorType Fh=rRightHandSideVector;
 
     // Stabilization alpha parameters
     double alpha_stabilization  = 1.0;
@@ -595,11 +577,21 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
     }
     alpha_stabilization *= stabilization_factor;
 
-    // FIXME: This is only for Solid Mechanics Problem with young_modulus Modulus and Poisson Ratio
-    // TODO: Think about a more general stabilization term if it is for Fluid Mechanics Problem
-    const double& young_modulus          = GetProperties()[YOUNG_MODULUS];
-    const double& poisson_ratio    = GetProperties()[POISSON_RATIO];
-    const double lame_mu =  young_modulus/(2.0*(1.0+poisson_ratio));
+    double shear_modulus = 0;
+    if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
+    {
+        const double& young_modulus = GetProperties()[YOUNG_MODULUS];
+        const double& poisson_ratio = GetProperties()[POISSON_RATIO];
+        shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
+    }
+    else if (GetProperties().Has(DYNAMIC_VISCOSITY))
+    {
+        shear_modulus = GetProperties()[DYNAMIC_VISCOSITY];
+    }
+    else
+    {
+        KRATOS_ERROR << "No pressure stabilization existing if YOUNG_MODULUS and POISSON_RATIO or DYNAMIC_VISCOSITY is specified" << std::endl;
+    }
 
     double consistent = 1;
     double factor_value = 8.0; //JMR deffault value
@@ -615,18 +607,18 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
 
             if( dimension == 2 )
             {
-                consistent=(-1)*alpha_stabilization*factor_value/(36.0*lame_mu);
+                consistent=(-1)*alpha_stabilization*factor_value/(36.0*shear_modulus);
                 if(i==j)
-                    consistent=2*alpha_stabilization*factor_value/(36.0*lame_mu);
+                    consistent=2*alpha_stabilization*factor_value/(36.0*shear_modulus);
 
 
                 rRightHandSideVector[index_p] += consistent * pressure * rIntegrationWeight / (delta_coefficient * (rVariables.detF0/rVariables.detF)); //2D
             }
             else
             {
-                consistent=(-1)*alpha_stabilization*factor_value/(80.0*lame_mu);
+                consistent=(-1)*alpha_stabilization*factor_value/(80.0*shear_modulus);
                 if(i==j)
-                    consistent=3*alpha_stabilization*factor_value/(80.0*lame_mu);
+                    consistent=3*alpha_stabilization*factor_value/(80.0*shear_modulus);
 
                 rRightHandSideVector[index_p] += consistent * pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //3D
             }
@@ -665,7 +657,7 @@ void UpdatedLagrangianUP::CalculateAndAddLHS(
     CalculateAndAddKpu( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add Kpp to the rLefsHandSideMatrix
-    CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    //CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add Kpp_Stab to the rLefsHandSideMatrix
     CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
@@ -892,9 +884,21 @@ void UpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatri
     }
     alpha_stabilization *= stabilization_factor;
 
-    const double& young_modulus = GetProperties()[YOUNG_MODULUS];
-    const double& poisson_ratio = GetProperties()[POISSON_RATIO];
-    const double lame_mu        =  young_modulus/(2.0*(1.0+poisson_ratio));
+    double shear_modulus = 0;
+    if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
+    {
+        const double& young_modulus = GetProperties()[YOUNG_MODULUS];
+        const double& poisson_ratio = GetProperties()[POISSON_RATIO];
+        shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
+    }
+    else if (GetProperties().Has(DYNAMIC_VISCOSITY))
+    {
+        shear_modulus = GetProperties()[DYNAMIC_VISCOSITY];
+    }
+    else
+    {
+        KRATOS_ERROR << "No pressure stabilization existing if YOUNG_MODULUS and POISSON_RATIO or DYNAMIC_VISCOSITY is specified" << std::endl;
+    }
 
     double consistent = 1.0;
 
@@ -909,17 +913,17 @@ void UpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatri
         {
             if( dimension == 2 )  //consistent 2D
             {
-                consistent=(-1)*alpha_stabilization*factor_value/(36.0*lame_mu);
+                consistent=(-1)*alpha_stabilization*factor_value/(36.0*shear_modulus);
                 if(indexpi==indexpj)
-                    consistent=2*alpha_stabilization*factor_value/(36.0*lame_mu);
+                    consistent=2*alpha_stabilization*factor_value/(36.0*shear_modulus);
 
                 rLeftHandSideMatrix(indexpi,indexpj) -= consistent *rIntegrationWeight / (delta_coefficient * (rVariables.detF0/rVariables.detF)); //2D
             }
             else
             {
-                consistent=(-1)*alpha_stabilization*factor_value/(80.0*lame_mu);
+                consistent=(-1)*alpha_stabilization*factor_value/(80.0*shear_modulus);
                 if(indexpi==indexpj)
-                    consistent=3*alpha_stabilization*factor_value/(80.0*lame_mu);
+                    consistent=3*alpha_stabilization*factor_value/(80.0*shear_modulus);
 
                 rLeftHandSideMatrix(indexpi,indexpj) -= consistent * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //3D
             }
