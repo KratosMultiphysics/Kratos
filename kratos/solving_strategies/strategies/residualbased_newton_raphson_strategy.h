@@ -946,7 +946,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
         double old_residual = 0.0;
         double new_residual = 1.0e9;
-        const bool damped = true;
+        const bool damped = false;
 
         TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
