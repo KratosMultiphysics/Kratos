@@ -2,11 +2,11 @@
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 from KratosMultiphysics import IsDistributedRun
 if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
-    from KratosMultiphysics.TrilinosApplication import *
+    import KratosMultiphysics.TrilinosApplication
 elif (IsDistributedRun()):
     raise Exception("Distributed run requires TrilinosApplication")
 
-from KratosMultiphysics.FluidDynamicsApplication import *
+import KratosMultiphysics.FluidDynamicsApplication
 from KratosRANSApplication import *
 
 from KratosMultiphysics import _ImportApplication
