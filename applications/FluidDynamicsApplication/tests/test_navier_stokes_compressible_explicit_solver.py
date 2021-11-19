@@ -29,7 +29,7 @@ class NavierStokesCompressibleExplicitSolverTest(KratosUnittest.TestCase):
         model.CreateModelPart("FluidModelPart").CreateSubModelPart("fluid_computational_model_part")
 
         settings = self.GetSettings(3)
-        settings["runge_kutta_scheme"].SetString("WrongValue")
+        settings["time_scheme"].SetString("WrongValue")
 
         # Ensuring helpful error
         solver = navier_stokes_compressible_explicit_solver.CreateSolver(model, settings)
@@ -56,7 +56,7 @@ class NavierStokesCompressibleExplicitSolverTest(KratosUnittest.TestCase):
                 "echo_level": 1,
                 "time_order": 2,
                 "move_mesh_flag": false,
-                "runge_kutta_scheme" : "RK4",
+                "time_scheme" : "RK4",
                 "shock_capturing": true,
                 "compute_reactions": false,
                 "reform_dofs_at_each_step" : false,
