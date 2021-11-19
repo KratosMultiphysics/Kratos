@@ -200,7 +200,6 @@ void   SetDensityFromProperties(double* density);
 virtual int    GetParticleMaterial();
 void   SetParticleMaterialFromProperties(int* particle_material);
 
-
 array_1d<double, 3>& GetForce();
 
 virtual double& GetElasticEnergy();
@@ -255,6 +254,8 @@ array_1d<double, 3> mContactMoment; //SLS
 
 BoundedMatrix<double, 3, 3>* mStressTensor;
 BoundedMatrix<double, 3, 3>* mSymmStressTensor;
+BoundedMatrix<double, 3, 3>* mStrainTensor;
+BoundedMatrix<double, 3, 3>* mDifferentialStrainTensor;
 
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
@@ -366,7 +367,6 @@ virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::P
                                                             double OldLocalCoordSystem[3][3],
                                                             array_1d<double, 3>& neighbour_elastic_contact_force);
 
-
 virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                                 double LocalCoordSystem[3][3],
                                 double LocalContactForce[3],
@@ -399,6 +399,10 @@ virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
 virtual void AddUpMomentsAndProject(double LocalCoordSystem[3][3],
                                     double ElasticLocalRotationalMoment[3],
                                     double ViscoLocalRotationalMoment[3]) final;
+
+virtual void ComputeDifferentialStrainTensor();
+
+virtual void ComputeStrainTensor();
 
 virtual void ComputeWear(double LocalRelVel[3],
                         double mTimeStep,
@@ -469,6 +473,8 @@ virtual void save(Serializer& rSerializer) const override
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
         rSerializer.save("mStressTensor", mStressTensor);
         rSerializer.save("mSymmStressTensor", mSymmStressTensor);
+        rSerializer.save("mStrainTensor", mStrainTensor);
+        rSerializer.save("mDifferentialStrainTensor", mDifferentialStrainTensor);        
     }
 
     // protected members
@@ -506,7 +512,7 @@ virtual void load(Serializer& rSerializer) override
 
     int aux_int=0;
     rSerializer.load("HasStressTensor", aux_int);
-    if(aux_int) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
+    if (aux_int) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
         mStressTensor = new BoundedMatrix<double, 3, 3>(3,3);
         *mStressTensor = ZeroMatrix(3,3);
@@ -514,6 +520,12 @@ virtual void load(Serializer& rSerializer) override
         *mSymmStressTensor = ZeroMatrix(3,3);
         rSerializer.load("mStressTensor", mStressTensor);
         rSerializer.load("mSymmStressTensor", mSymmStressTensor);
+        mStrainTensor = new BoundedMatrix<double, 3, 3>(3,3);
+        *mStrainTensor = ZeroMatrix(3,3);
+        rSerializer.load("mStrainTensor", mStrainTensor);
+        mDifferentialStrainTensor = new BoundedMatrix<double, 3, 3>(3,3);
+        *mDifferentialStrainTensor = ZeroMatrix(3,3);
+        rSerializer.load("mDifferentialStrainTensor", mDifferentialStrainTensor);
     }
 
     // protected members

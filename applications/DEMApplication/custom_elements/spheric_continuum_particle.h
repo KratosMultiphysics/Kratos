@@ -93,6 +93,8 @@ namespace Kratos
         void GetStressTensorFromNeighbourStep1();
         void GetStressTensorFromNeighbourStep2();
         void GetStressTensorFromNeighbourStep3();
+        void ComputeStrainTensor();
+        void ComputeDifferentialStrainTensor();
 
         void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
 
