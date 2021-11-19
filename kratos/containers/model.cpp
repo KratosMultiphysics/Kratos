@@ -63,7 +63,7 @@ ModelPart& Model::CreateModelPart( const std::string ModelPartName, ModelPart::I
 
     KRATOS_ERROR_IF( ModelPartName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
 
-    std::vector< std::string > subparts_list = SplitSubModelPartHierarchy(ModelPartName);
+    const std::vector< std::string >& subparts_list = SplitSubModelPartHierarchy(ModelPartName);
     if (subparts_list.size() == 1) { // it is a root model part
         auto search = mRootModelPartMap.find(ModelPartName);
         if (search == mRootModelPartMap.end()) {
