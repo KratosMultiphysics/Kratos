@@ -105,13 +105,18 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
 
     KRATOS_ERROR_IF(!is_distributed && rCoSimIOModelPart.GetPartitionModelParts().size()>0) << "Ghost entities exist in CoSimIO ModelPart in serial simulation!" << std::endl;
 
+    ModelPart::NodesContainerType ordered_nodes;
+    ModelPart::ElementsContainerType ordered_elements;
+    ordered_nodes.reserve(rCoSimIOModelPart.NumberOfNodes());
+    ordered_elements.reserve(rCoSimIOModelPart.NumberOfElements());
+
     for (const auto& r_node : rCoSimIOModelPart.Nodes()) {
-        auto p_node = rKratosModelPart.CreateNewNode(
+        ordered_nodes.push_back(rKratosModelPart.CreateNewNode(
             r_node.Id(),
             r_node.X(),
             r_node.Y(),
             r_node.Z()
-        );
+        ));
     };
 
     if (is_distributed) {
@@ -162,18 +167,25 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
             KRATOS_ERROR << err.str();
         }
 
-        rKratosModelPart.CreateNewElement(
+        ordered_elements.push_back(rKratosModelPart.CreateNewElement(
             elem_name_it->second,
             r_elem.Id(),
             conn,
             p_props
-        );
+        ));
     };
 
     if (rDataComm.IsDistributed()) {
         // this calls the ParallelFillCommunicator
         ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(rKratosModelPart, rDataComm)->Execute();
     }
+
+    // unfortunately Kratos does several reorderings, e.g. in CreateNewElement or the ParallelFillComm
+    // hence we create a new SubModelPart with the original ordering that can be used to communicate through CoSimIO
+    auto& r_smp_orig_order = rKratosModelPart.CreateSubModelPart("original_order");
+    r_smp_orig_order.SetCommunicator(rKratosModelPart.GetCommunicator().Create(rDataComm));
+    r_smp_orig_order.Nodes() = ordered_nodes;
+    r_smp_orig_order.Elements() = ordered_elements;
 
     KRATOS_CATCH("")
 }
