@@ -59,15 +59,7 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
 /// Destructor.
 ModelPart::~ModelPart()
 {
-    // Question: Can we call the ModelPart::Clear() here as well?
-    mpCommunicator->Clear();
-
-    for(auto i_mesh = mMeshes.begin() ; i_mesh != mMeshes.end() ; i_mesh++)
-      i_mesh->Clear();
-
-
-//     if (!IsSubModelPart())
-//       delete mpVariablesList;
+    Clear();
 }
 
 void ModelPart::Clear()
@@ -98,6 +90,22 @@ void ModelPart::Clear()
     mpCommunicator->Clear();
 
     this->AssignFlags(Flags());
+
+    KRATOS_CATCH("");
+}
+
+void ModelPart::Reset()
+{
+    KRATOS_TRY
+
+    // Clears the model part
+    Clear();
+
+    // construct a new variable list and process info. Old data ptrs is not destroyed
+    // since, same data may be shared with some other model parts as well.
+    mpVariablesList = Kratos::make_intrusive<VariablesList>();
+    mpProcessInfo = Kratos::make_shared<ProcessInfo>();
+    mBufferSize = 0;
 
     KRATOS_CATCH("");
 }
