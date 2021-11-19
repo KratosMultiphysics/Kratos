@@ -153,6 +153,8 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
 {
     KRATOS_TRY
 
+    this->mInitializationTime = r_process_info[TIME];
+
     SetValue(NEIGHBOUR_IDS, DenseVector<int>());
 
     MemberDeclarationFirstStep(r_process_info);
@@ -2040,6 +2042,9 @@ void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<doubl
 
 int    SphericParticle::GetClusterId()                                                    { return mClusterId;      }
 void   SphericParticle::SetClusterId(int givenId)                                         { mClusterId = givenId;   }
+double SphericParticle::GetInitializationTime() const                                     { return mInitializationTime;}
+double SphericParticle::GetProgrammedDestructionTime() const {return mProgrammedDestructionTime;}
+void SphericParticle::SetProgrammedDestructionTime(const double destruction_time){mProgrammedDestructionTime = destruction_time;}
 double SphericParticle::GetRadius()                                                       { return mRadius;         }
 double SphericParticle::CalculateVolume()                                                 { return 4.0 * Globals::Pi / 3.0 * mRadius * mRadius * mRadius;     }
 void   SphericParticle::SetRadius(double radius)                                          { mRadius = radius;       }
