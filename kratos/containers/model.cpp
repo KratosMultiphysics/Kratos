@@ -73,7 +73,7 @@ ModelPart& Model::CreateModelPart( const std::string ModelPartName, ModelPart::I
             KRATOS_ERROR << "trying to create a root modelpart with name " << ModelPartName << " however a ModelPart with the same name already exists";
         }
     } else {
-        const std::string root_mp_name = subparts_list[0];
+        const std::string& root_mp_name = subparts_list[0];
         ModelPart* p_model_part;
         auto search = mRootModelPartMap.find(root_mp_name);
         if (search != mRootModelPartMap.end()) {
