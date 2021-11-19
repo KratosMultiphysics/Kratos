@@ -19,6 +19,7 @@
 #include "containers/model.h"
 #include "includes/checks.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utils.h"
 #include "processes/find_nodal_h_process.h"
 
 // Application includes
@@ -215,8 +216,7 @@ void DistanceModificationProcess::ModifyDistance() {
     }
     // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
     else {
-
-        const int num_chunks = 2 * OpenMPUtils::GetNumThreads();
+        const int num_chunks = 2 * ParallelUtils::GetNumThreads();
         OpenMPUtils::PartitionVector partition_vec;
         OpenMPUtils::DivideInPartitions(r_nodes.size(),num_chunks,partition_vec);
 
@@ -299,7 +299,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
     } else {
         // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
 
-        const int num_chunks = 2 * OpenMPUtils::GetNumThreads();
+        const int num_chunks = 2 * ParallelUtils::GetNumThreads();
         OpenMPUtils::PartitionVector partition_vec;
         OpenMPUtils::DivideInPartitions(n_elems,num_chunks,partition_vec);
 
