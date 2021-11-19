@@ -36,21 +36,22 @@ namespace Kratos
 
 namespace TemporalMethods
 {
-template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor, template <typename T> typename TDataStorageFunctor>
+template <class TContainerType, class TContainerItemType, template <class T> class TDataRetrievalFunctor, template <class T> class TDataStorageFunctor>
 class TemporalRootMeanSquareMethod
 {
 public:
-    template <typename TDataType>
+    template <class TDataType>
     class ValueMethod : public TemporalMethod
     {
     public:
         KRATOS_CLASS_POINTER_DEFINITION(ValueMethod);
 
-        ValueMethod(ModelPart& rModelPart,
-                    const std::string& rNormType,
-                    const Variable<TDataType>& rInputVariable,
-                    const int EchoLevel,
-                    const Variable<TDataType>& rOutputVariable)
+        ValueMethod(
+            ModelPart& rModelPart,
+            const std::string& rNormType,
+            const Variable<TDataType>& rInputVariable,
+            const int EchoLevel,
+            const Variable<TDataType>& rOutputVariable)
             : TemporalMethod(rModelPart, EchoLevel),
               mrInputVariable(rInputVariable),
               mrOutputVariable(rOutputVariable)
@@ -94,8 +95,7 @@ public:
                 MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             auto& initializer_method =
-                TemporalMethodUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor,
-                                                             TDataStorageFunctor, TDataType>;
+                TemporalMethodUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor, TDataType>;
             initializer_method(r_container, mrOutputVariable, mrInputVariable);
 
             KRATOS_INFO_IF("TemporalValueRootMeanSquareMethod", this->GetEchoLevel() > 0)
@@ -110,17 +110,18 @@ public:
         const Variable<TDataType>& mrOutputVariable;
     };
 
-    template <typename TDataType>
+    template <class TDataType>
     class NormMethod : public TemporalMethod
     {
     public:
         KRATOS_CLASS_POINTER_DEFINITION(NormMethod);
 
-        NormMethod(ModelPart& rModelPart,
-                   const std::string& rNormType,
-                   const Variable<TDataType>& rInputVariable,
-                   const int EchoLevel,
-                   const Variable<double>& rOutputVariable)
+        NormMethod(
+            ModelPart& rModelPart,
+            const std::string& rNormType,
+            const Variable<TDataType>& rInputVariable,
+            const int EchoLevel,
+            const Variable<double>& rOutputVariable)
             : TemporalMethod(rModelPart, EchoLevel),
               mNormType(rNormType),
               mrInputVariable(rInputVariable),
@@ -239,12 +240,13 @@ public:
     }
 
 private:
-    template <typename TDataType>
-    void static CalculateRootMeanSquare(TDataType& rRootMeanSquare,
-                                        const TDataType& rNewDataPoint,
-                                        const double DeltaTime,
-                                        const double OldTotalTime,
-                                        const double CurrentTotalTime)
+    template <class TDataType>
+    void static CalculateRootMeanSquare(
+        TDataType& rRootMeanSquare,
+        const TDataType& rNewDataPoint,
+        const double DeltaTime,
+        const double OldTotalTime,
+        const double CurrentTotalTime)
     {
         rRootMeanSquare = MethodUtilities::RaiseToPower<TDataType>(
             (MethodUtilities::RaiseToPower<TDataType>(rRootMeanSquare, 2) * OldTotalTime +

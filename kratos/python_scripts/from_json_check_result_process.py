@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics.json_utilities import read_external_json
@@ -52,7 +51,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         self -- It signifies an instance of a class.
         """
         self.process.ExecuteFinalizeSolutionStep()
-        self.assertTrue(self.process.IsCorrectResult(), "Results do not coincide with the JSON reference")
+        self.assertTrue(self.process.IsCorrectResult(), "Results do not coincide with the JSON reference\n" + self.process.GetErrorMessage())
 
 class LegacyFromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
     """This class is used in order to check results using a json file

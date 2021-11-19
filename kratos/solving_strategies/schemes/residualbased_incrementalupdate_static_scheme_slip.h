@@ -75,7 +75,11 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedIncrementalUpdateStaticSchemeSlip);
 
+    typedef Scheme<TSparseSpace,TDenseSpace> BaseSchemeType;
+
     typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
+
+    typedef ResidualBasedIncrementalUpdateStaticSchemeSlip<TSparseSpace, TDenseSpace> ClassType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -93,6 +97,13 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedIncrementalUpdateStaticSchemeSlip() : BaseType()
+    {
+    }
 
     /**
      * @brief Constructor. The pseudo static scheme (parameters)
@@ -145,6 +156,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseSchemeType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /// Update the degrees of freedom after a solution iteration.
     void Update(ModelPart& r_model_part,
@@ -247,6 +267,15 @@ public:
         mpRotationTool->ApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
 
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "static_slip_scheme";
     }
 
     ///@}

@@ -75,7 +75,7 @@ HenckyMCPlasticPlaneStrain2DLaw::~HenckyMCPlasticPlaneStrain2DLaw()
 //*********************************CHECK**********************************************
 //************************************************************************************
 
-int HenckyMCPlasticPlaneStrain2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+int HenckyMCPlasticPlaneStrain2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     HenckyElasticPlasticPlaneStrain2DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
 

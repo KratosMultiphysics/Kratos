@@ -1,9 +1,6 @@
 import math
-import cmath
-import mpmath
+import scipy.special
 import numpy as np
-
-import candelier_parameters as pp
 
 class AnalyticSimulator:
     def __init__(self, pp):
@@ -127,7 +124,7 @@ class AnalyticSimulator:
         suma = sum([A[i] * X[i] for i in range(4)])
 
         for i in range(4):
-            NDxy += A[i] / X[i] * cmath.exp(X[i] ** 2 * t) * mpmath.erfc(- X[i] * math.sqrt(t))
+            NDxy += A[i] / X[i] * scipy.exp(X[i] ** 2 * t) * scipy.special.erfc(- X[i] * math.sqrt(t))
 
         NDcoors[0] = float(NDxy.real)
         NDcoors[1] = float(NDxy.imag)
@@ -137,7 +134,7 @@ class AnalyticSimulator:
             NDvel = [0.] * 3
             NDxy = 0.0
             for i in range(4):
-                NDxy += A[i] * X[i] * cmath.exp(X[i] ** 2 * t) * mpmath.erfc(- X[i] * math.sqrt(t))
+                NDxy += A[i] * X[i] * scipy.exp(X[i] ** 2 * t) * scipy.special.erfc(- X[i] * math.sqrt(t))
             NDvel[0] = float(NDxy.real)
             NDvel[1] = float(NDxy.imag)
             NDvel[2] = float(NDw0)
@@ -170,38 +167,8 @@ class AnalyticSimulator:
         basset_dimensional_coeff = self.basset_dimensional_coeff
         pp = self.pp
         sqrt_t = math.sqrt(t)
-        FhZ = sum([(1j * A[i] / X[i] - A[i] * X[i]) * X[i] * cmath.exp(X[i] ** 2 * t) * mpmath.erfc(- X[i] * sqrt_t) for i in range(len(X))])
+        FhZ = sum([(1j * A[i] / X[i] - A[i] * X[i]) * X[i] * scipy.exp(X[i] ** 2 * t) * scipy.special.erfc(- X[i] * sqrt_t) for i in range(len(X))])
         FhZ *= basset_dimensional_coeff * C1 * math.sqrt(math.pi)
         FB[0] = float(FhZ.real)
         FB[1] = float(FhZ.imag)
         FB[2] = 0.0
-
-if __name__ == "__main__":
-    sim = AnalyticSimulator(pp)
-    sim.CalculateTrajectory()
-    #for i in range(sim.n):
-        #line = [sim.times[i], sim.x[i], sim.y[i]]
-        #print(line)
-    from mpl_toolkits.mplot3d import Axes3D
-    import matplotlib.pyplot as plt
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot(sim.x, sim.y, sim.z, label='all forces')
-
-    pp.include_history_force = 0
-    sim = AnalyticSimulator(pp)
-    sim.CalculateTrajectory()
-    ax.plot(sim.x, sim.y, sim.z, label='no history force')
-    # Create cubic bounding box to simulate equal aspect ratio
-
-    max_range = np.array([max(sim.x)-min(sim.x), max(sim.y)-min(sim.y), max(sim.z)-min(sim.z)]).max()
-    Xb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][0].flatten() + 0.5*(max(sim.x)+min(sim.x))
-    Yb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][1].flatten() + 0.5*(max(sim.y)+min(sim.y))
-    Zb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][2].flatten() + 0.5*(max(sim.z)+min(sim.z))
-    ax.set_xlabel('$x$ ($m$)', fontsize=20, rotation = 0)
-    ax.set_ylabel('$y$ ($m$)', fontsize=20, rotation = 0)
-    ax.set_zlabel('$z$ ($m$)', fontsize=20, rotation = 0)
-    plt.legend(loc='upper left')
-    fig.tight_layout()
-    plt.savefig('spirals.eps', format='eps', dpi=1000)
-    plt.show()

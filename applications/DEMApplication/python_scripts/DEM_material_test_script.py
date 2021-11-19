@@ -1,220 +1,213 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import math
 import datetime
 import shutil
 import weakref
+import os
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
+from KratosMultiphysics.DEMApplication import DEM_procedures as DEM_procedures
 
-class MaterialTest(object):
+class MaterialTest():
 
-  def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
-      self.parameters = DEM_parameters
-      self.graphs_path = graphs_path
-      self.post_path = post_path
-      self.spheres_model_part = spheres_model_part
-      self.rigid_face_model_part = rigid_face_model_part
-      self.Procedures = weakref.proxy(procedures)
-      self.solver = weakref.proxy(solver)
+    def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
 
-      self.top_mesh_nodes = []; self.bot_mesh_nodes = []; self.top_mesh_fem_nodes = []; self.bot_mesh_fem_nodes = [];
+        self.parameters = DEM_parameters
+        self.graphs_path = graphs_path
+        self.post_path = post_path
+        self.spheres_model_part = spheres_model_part
+        self.rigid_face_model_part = rigid_face_model_part
+        self.Procedures = weakref.proxy(procedures)
+        self.solver = weakref.proxy(solver)
 
-      self.xtop_area = 0.0
-      self.xbot_area = 0.0
-      self.xlat_area = 0.0
-      self.xtopcorner_area = 0.0
-      self.xbotcorner_area = 0.0
+        self.top_mesh_nodes = []; self.bot_mesh_nodes = []; self.top_mesh_fem_nodes = []; self.bot_mesh_fem_nodes = []
 
-      self.SKIN = list()
-      self.LAT = list()
-      self.BOT = list()
-      self.TOP = list()
-      self.XLAT = list()  # only lat, not the corner ones
-      self.XTOP = list()  # only top, not corner ones...
-      self.XBOT = list()
-      self.XTOPCORNER = list()
-      self.XBOTCORNER = list()
+        self.xtop_area = 0.0
+        self.xbot_area = 0.0
+        self.xlat_area = 0.0
+        self.xtopcorner_area = 0.0
+        self.xbotcorner_area = 0.0
 
-      self.bond_00_05 = list(); self.bond_05_10 = list(); self.bond_10_15 = list(); self.bond_15_20 = list(); self.bond_20_25 = list(); self.bond_25_30 = list(); self.bond_30_35 = list()
-      self.bond_35_40 = list(); self.bond_40_45 = list(); self.bond_45_50 = list(); self.bond_50_55 = list(); self.bond_55_60 = list(); self.bond_60_65 = list(); self.bond_65_70 = list()
-      self.bond_70_75 = list(); self.bond_75_80 = list(); self.bond_80_85 = list(); self.bond_85_90 = list()
+        self.SKIN = list()
+        self.LAT = list()
+        self.BOT = list()
+        self.TOP = list()
+        self.XLAT = list()  # only lat, not the corner ones
+        self.XTOP = list()  # only top, not corner ones...
+        self.XBOT = list()
+        self.XTOPCORNER = list()
+        self.XBOTCORNER = list()
 
-      self.sizes = []
+        self.bond_00_05 = list(); self.bond_05_10 = list(); self.bond_10_15 = list(); self.bond_15_20 = list(); self.bond_20_25 = list(); self.bond_25_30 = list(); self.bond_30_35 = list()
+        self.bond_35_40 = list(); self.bond_40_45 = list(); self.bond_45_50 = list(); self.bond_50_55 = list(); self.bond_55_60 = list(); self.bond_60_65 = list(); self.bond_65_70 = list()
+        self.bond_70_75 = list(); self.bond_75_80 = list(); self.bond_80_85 = list(); self.bond_85_90 = list()
 
-      self.sigma_mean_table = []; self.tau_mean_table = []; self.sigma_rel_std_dev_table = []; self.tau_rel_std_dev_table = []; self.sigma_ratio_table = [];
+        self.sizes = []
 
-      for i in range(0,18):
-          self.sizes.append(0.0)
-          self.sigma_mean_table.append(0.0)
-          self.tau_mean_table.append(0.0)
-          self.sigma_rel_std_dev_table.append(0.0)
-          self.tau_rel_std_dev_table.append(0.0)
-          self.sigma_ratio_table.append(0.0)
+        self.sigma_mean_table = []; self.tau_mean_table = []; self.sigma_rel_std_dev_table = []; self.tau_rel_std_dev_table = []; self.sigma_ratio_table = [];
 
-      self.graph_counter = 0; self.renew_pressure = 0; self.Pressure = 0.0; self.pressure_to_apply = 0.0;
+        for i in range(0,18):
+            self.sizes.append(0.0)
+            self.sigma_mean_table.append(0.0)
+            self.tau_mean_table.append(0.0)
+            self.sigma_rel_std_dev_table.append(0.0)
+            self.tau_rel_std_dev_table.append(0.0)
+            self.sigma_ratio_table.append(0.0)
 
-      self.length_correction_factor = 1.0
+        self.graph_counter = 0; self.renew_pressure = 0; self.Pressure = 0.0; self.pressure_to_apply = 0.0; self.CN_graph_counter = 0
 
-      self.graph_frequency        = int(self.parameters["GraphExportFreq"].GetDouble()/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
-      self.strain = 0.0; self.strain_bts = 0.0; self.volumetric_strain = 0.0; self.radial_strain = 0.0; self.first_time_entry = 1; self.first_time_entry_2 = 1
-      self.total_stress_top = 0.0; self.total_stress_bot = 0.0; self.total_stress_mean = 0.0;
+        self.length_correction_factor = 1.0
 
-      self.new_strain = 0.0
+        self.graph_frequency        = int(self.parameters["GraphExportFreq"].GetDouble()/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
+        self.strain = 0.0; self.strain_bts = 0.0; self.volumetric_strain = 0.0; self.radial_strain = 0.0; self.first_time_entry = 1; self.first_time_entry_2 = 1
+        self.total_stress_top = 0.0; self.total_stress_bot = 0.0; self.total_stress_mean = 0.0
 
-      # for the graph plotting
-      if "material_test_settings" in DEM_parameters.keys():
-        self.height = self.parameters["material_test_settings"]["SpecimenLength"].GetDouble()
-        self.diameter = self.parameters["material_test_settings"]["SpecimenDiameter"].GetDouble()
-        self.ConfinementPressure = self.parameters["material_test_settings"]["ConfinementPressure"].GetDouble()
-        self.test_type = self.parameters["material_test_settings"]["TestType"].GetString()
-        self.LoadingVelocity = self.parameters["material_test_settings"]["LoadingVelocity"].GetDouble()
-        self.MeasuringSurface = self.parameters["material_test_settings"]["MeasuringSurface"].GetDouble()
-        self.MeshType = self.parameters["material_test_settings"]["MeshType"].GetString()
-        #self.MeshPath = self.parameters["material_test_settings"]["MeshPath"].GetString()
+        self.new_strain = 0.0
+        self.LoadingVelocity = 0.0
+        self.MeasuringSurface = 1.0
 
-      else:
-        self.height = self.parameters["SpecimenLength"].GetDouble()
-        self.diameter = self.parameters["SpecimenDiameter"].GetDouble()
-        self.ConfinementPressure = self.parameters["ConfinementPressure"].GetDouble()
-        self.test_type = self.parameters["TestType"].GetString()
-        self.LoadingVelocity = self.parameters["LoadingVelocity"].GetDouble()
-        self.MeasuringSurface = self.parameters["MeasuringSurface"].GetDouble()
-        self.MeshType = self.parameters["MeshType"].GetString()
-        self.MeshPath = self.parameters["MeshPath"].GetString()
+        # for the graph plotting
+        if "material_test_settings" in DEM_parameters.keys():
+            self.height = self.parameters["material_test_settings"]["SpecimenLength"].GetDouble()
+            self.diameter = self.parameters["material_test_settings"]["SpecimenDiameter"].GetDouble()
+            self.ConfinementPressure = self.parameters["material_test_settings"]["ConfinementPressure"].GetDouble()
+            self.test_type = self.parameters["material_test_settings"]["TestType"].GetString()
+            self.y_coordinate_of_cylinder_bottom_base = self.parameters["material_test_settings"]["YCoordinateOfCylinderBottomBase"].GetDouble()
+            self.z_coordinate_of_cylinder_bottom_base = self.parameters["material_test_settings"]["ZCoordinateOfCylinderBottomBase"].GetDouble()
+        else:
+            self.height = self.parameters["SpecimenLength"].GetDouble()
+            self.diameter = self.parameters["SpecimenDiameter"].GetDouble()
+            self.ConfinementPressure = self.parameters["ConfinementPressure"].GetDouble()
+            self.test_type = self.parameters["TestType"].GetString()
+            self.y_coordinate_of_cylinder_bottom_base = self.parameters["YCoordinateOfCylinderBottomBase"].GetDouble()
+            self.z_coordinate_of_cylinder_bottom_base = self.parameters["ZCoordinateOfCylinderBottomBase"].GetDouble()
 
+        self.ComputeLoadingVelocity()
+        self.ComputeMeasuringSurface()
+        self.problem_name = self.parameters["problem_name"].GetString()
+        self.initial_time = datetime.datetime.now()
 
-      self.problem_name = self.parameters["problem_name"].GetString()
-      self.initial_time = datetime.datetime.now()
+        # self.energy_plot = open(energy_plot, 'w')
+        absolute_path_to_file = os.path.join(graphs_path, self.problem_name + "_Parameter_chart.grf")
+        self.chart = open(absolute_path_to_file, 'w')
+        self.aux = AuxiliaryUtilities()
+        self.PreUtilities = PreUtilities()
 
-      # self.energy_plot = open(energy_plot, 'w')
-      absolute_path_to_file = os.path.join(graphs_path, self.problem_name + "_Parameter_chart.grf")
-      self.chart = open(absolute_path_to_file, 'w')
-      self.aux = AuxiliaryUtilities()
-      self.PreUtilities = PreUtilities()
+    def Initialize(self):
+        self.PrepareTests()
+        self.PrepareTestTriaxialHydro()
+        self.PrepareTestOedometric()
 
-  def Initialize(self):
-      self.PrepareTests()
-      self.PrepareTestTriaxialHydro()
-      self.PrepareTestOedometric()
+        domain_volume = math.pi * 0.5 * 0.5 * self.diameter * self.diameter * self.height
+        DEM_procedures.GranulometryUtils(domain_volume, self.spheres_model_part)
 
-  def BreakBondUtility(self, spheres_model_part):
-      self.PreUtilities.BreakBondUtility(self.spheres_model_part)
+    def BreakBondUtility(self, spheres_model_part):
+        self.PreUtilities.BreakBondUtility(self.spheres_model_part)
 
-  def Flush(self,a):
-      a.flush()
+    def Flush(self,a):
+        a.flush()
 
+    def PrepareTestOedometric(self):
 
-  def PrepareTestOedometric(self):
-      if(self.test_type == "Oedometric"):
+        if self.test_type == "Oedometric":
 
-        for node in self.LAT:
+            for node in self.LAT:
 
-          node.SetSolutionStepValue(VELOCITY_X, 0.0)
-          node.SetSolutionStepValue(VELOCITY_Z, 0.0)
-          node.Fix(VELOCITY_X)
-          node.Fix(VELOCITY_Z)
+                node.SetSolutionStepValue(VELOCITY_X, 0.0)
+                node.SetSolutionStepValue(VELOCITY_Z, 0.0)
+                node.Fix(VELOCITY_X)
+                node.Fix(VELOCITY_Z)
 
-  def PrepareTestTriaxialHydro(self):
-    if ( ( self.test_type == "Triaxial") or ( self.test_type == "Hydrostatic") ):
+    def PrepareTestTriaxialHydro(self):
 
-        ####### Correction Coefs  TODO 0.25* for cylinder section EXXON
-        self.alpha_top = 3.141592*self.diameter*self.diameter*0.25/(self.xtop_area + 0.70710678*self.xtopcorner_area)
-        self.alpha_bot = 3.141592*self.diameter*self.diameter*0.25/(self.xbot_area + 0.70710678*self.xbotcorner_area)
-        self.alpha_lat = 3.141592*self.diameter*self.height/(self.xlat_area + 0.70710678*self.xtopcorner_area + 0.70710678*self.xbotcorner_area)
+        if self.test_type == "Triaxial" or self.test_type == "Hydrostatic":
+            ####### Correction Coefs  TODO 0.25* for cylinder section EXXON
+            self.alpha_top = math.pi*self.diameter*self.diameter*0.25/(self.xtop_area + 0.70710678*self.xtopcorner_area)
+            self.alpha_bot = math.pi*self.diameter*self.diameter*0.25/(self.xbot_area + 0.70710678*self.xbotcorner_area)
+            self.alpha_lat = math.pi*self.diameter*self.height/(self.xlat_area + 0.70710678*self.xtopcorner_area + 0.70710678*self.xbotcorner_area)
 
-  def PrepareTests(self):
+    def PrepareTests(self):
 
-    ##Fixing horizontally top and bot
-    if self.test_type != "BTS":
-        for node in self.TOP:
-            node.SetSolutionStepValue(VELOCITY_X, 0.0)
-            node.SetSolutionStepValue(VELOCITY_Z, 0.0)
-            node.Fix(VELOCITY_X)
-            node.Fix(VELOCITY_Z)
+        ##Fixing horizontally top and bot
+        if self.test_type != "BTS":
+            for node in self.TOP:
+                node.SetSolutionStepValue(VELOCITY_X, 0.0)
+                node.SetSolutionStepValue(VELOCITY_Z, 0.0)
+                node.Fix(VELOCITY_X)
+                node.Fix(VELOCITY_Z)
 
-        for node in self.BOT:
-            node.SetSolutionStepValue(VELOCITY_X, 0.0)
-            node.SetSolutionStepValue(VELOCITY_Z, 0.0)
-            node.Fix(VELOCITY_X)
-            node.Fix(VELOCITY_Z)
+            for node in self.BOT:
+                node.SetSolutionStepValue(VELOCITY_X, 0.0)
+                node.SetSolutionStepValue(VELOCITY_Z, 0.0)
+                node.Fix(VELOCITY_X)
+                node.Fix(VELOCITY_Z)
 
-    if self.test_type == "BTS":
-        absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + ".grf")
-        self.bts_export = open(absolute_path_to_file, 'w')
-        ##self.BtsSkinDetermination()
+        if self.test_type == "BTS":
+            absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + ".grf")
+            self.bts_export = open(absolute_path_to_file, 'w')
+            self.BtsSkinDetermination()
 
-    elif self.test_type == "Shear":
-        self.BreakBondUtility(self.spheres_model_part)
-        absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
-        absolute_path_to_file2 = os.path.join(self.graphs_path, self.problem_name + "_graph_top.grf")
-        absolute_path_to_file3 = os.path.join(self.graphs_path, self.problem_name + "_graph_bot.grf")
-        self.graph_export   = open(absolute_path_to_file1, 'w')
-        self.graph_export_1 = open(absolute_path_to_file2, 'w')
-        self.graph_export_2 = open(absolute_path_to_file3, 'w')
+        elif self.test_type == "Shear":
+            self.BreakBondUtility(self.spheres_model_part)
+            absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
+            absolute_path_to_file2 = os.path.join(self.graphs_path, self.problem_name + "_graph_top.grf")
+            absolute_path_to_file3 = os.path.join(self.graphs_path, self.problem_name + "_graph_bot.grf")
+            self.graph_export_1 = open(absolute_path_to_file1, 'w')
+            self.graph_export_2 = open(absolute_path_to_file2, 'w')
+            self.graph_export_3 = open(absolute_path_to_file3, 'w')
 
-    else:
-        absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
-        absolute_path_to_file2 = os.path.join(self.graphs_path, self.problem_name + "_graph_top.grf")
-        absolute_path_to_file3 = os.path.join(self.graphs_path, self.problem_name + "_graph_bot.grf")
-        self.graph_export   = open(absolute_path_to_file1, 'w')
-        self.graph_export_1 = open(absolute_path_to_file2, 'w')
-        self.graph_export_2 = open(absolute_path_to_file3, 'w')
+        else:
+            absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
+            absolute_path_to_file2 = os.path.join(self.graphs_path, self.problem_name + "_graph_top.grf")
+            absolute_path_to_file3 = os.path.join(self.graphs_path, self.problem_name + "_graph_bot.grf")
+            absolute_path_to_file4 = os.path.join(self.graphs_path, self.problem_name + "_graph_strain_vs_q_in_psi.grf")
+            self.graph_export_1 = open(absolute_path_to_file1, 'w')
+            self.graph_export_2 = open(absolute_path_to_file2, 'w')
+            self.graph_export_3 = open(absolute_path_to_file3, 'w')
+            self.graph_export_4 = open(absolute_path_to_file4, 'w')
 
-        if self.test_type == "Hydrostatic":
-            absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_graph_VOL.grf")
-            self.graph_export_volumetric   = open(absolute_path_to_file, 'w')
-            #self.graph_export_volumetric = open(self.problem_name+"_graph_VOL.grf",'w')
+            if self.test_type == "Hydrostatic":
+                absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_graph_VOL.grf")
+                self.graph_export_volumetric   = open(absolute_path_to_file, 'w')
 
-        self.Procedures.KratosPrintInfo('Initial Height of the Model: ' + str(self.height)+'\n')
+            self.Procedures.KratosPrintInfo('Initial Height of the Model: ' + str(self.height)+'\n')
 
-        (self.xtop_area,self.xbot_area,self.xlat_area,self.xtopcorner_area,self.xbotcorner_area,y_top_total,weight_top, y_bot_total, weight_bot) = self.CylinderSkinDetermination()
+            (self.xtop_area,self.xbot_area,self.xlat_area,self.xtopcorner_area,self.xbotcorner_area,y_top_total,weight_top, y_bot_total, weight_bot) = self.CylinderSkinDetermination()
 
-        #xtop_area_gath        = mpi.allgather_double(mpi.world, xtop_area)
-        #xbot_area_gath        = mpi.allgather_double(mpi.world, xbot_area)
-        #xlat_area_gath        = mpi.allgather_double(mpi.world, xlat_area)
-        #xtopcorner_area_gath  = mpi.allgather_double(mpi.world, xtopcorner_area)
-        #xbotcorner_area_gath  = mpi.allgather_double(mpi.world, xbotcorner_area)
+            initial_height_top = y_top_total/weight_top
+            initial_height_bot = y_bot_total/weight_bot
 
-        #xtop_area = reduce(lambda x, y: x + y, xtop_area_gath)
-        #xbot_area = reduce(lambda x, y: x + y, xbot_area_gath)
-        #xlat_area = reduce(lambda x, y: x + y, xlat_area_gath)
-        #xtopcorner_area = reduce(lambda x, y: x + y, xtopcorner_area_gath)
-        #xbotcorner_area = reduce(lambda x, y: x + y, xbotcorner_area_gath)
+            inner_initial_height = initial_height_top - initial_height_bot
+            extended_length = self.height + (self.height - inner_initial_height)
 
-        #weight_top_gath = mpi.allgather_double(mpi.world, weight_top)
-        #weight_bot_gath = mpi.allgather_double(mpi.world, weight_bot)
-        #y_top_total_gath = mpi.allgather_double(mpi.world, y_top_total)
-        #y_bot_total_gath = mpi.allgather_double(mpi.world, y_bot_total)
+            self.length_correction_factor = self.height/extended_length
 
-        #weight_top = reduce(lambda x, y: x + y, weight_top_gath)
-        #weight_bot = reduce(lambda x, y: x + y, weight_bot_gath)
-        #y_top_total = reduce(lambda x, y: x + y, y_top_total_gath)
-        #y_bot_total = reduce(lambda x, y: x + y, y_bot_total_gath)
+        absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_CN.grf")
+        self.CN_export = open(absolute_path_to_file, 'w')
 
-        initial_height_top = y_top_total/weight_top
-        initial_height_bot = y_bot_total/weight_bot
+    def ComputeLoadingVelocity(self):
+        top_vel = bot_vel = 0.0
+        for smp in self.rigid_face_model_part.SubModelParts:
+            if smp[TOP]:
+                top_vel = smp[LINEAR_VELOCITY_Y]
+            if smp[BOTTOM]:
+                bot_vel = smp[LINEAR_VELOCITY_Y]
+        self.LoadingVelocity = top_vel - bot_vel
 
-        inner_initial_height = initial_height_top - initial_height_bot
-        extended_length = self.height + (self.height - inner_initial_height)
+    def ComputeMeasuringSurface(self):
+        self.MeasuringSurface = 0.25 * math.pi * self.diameter * self.diameter
 
-        self.length_correction_factor = self.height/extended_length
-
-
-  def CylinderSkinDetermination(self): #model_part, solver, DEM_parameters):
+    def CylinderSkinDetermination(self): #model_part, solver, DEM_parameters):
 
         # SKIN DETERMINATION
         total_cross_section = 0.0
 
         # Cylinder dimensions
-
         h = self.height
         d = self.diameter
+        y_min = self.y_coordinate_of_cylinder_bottom_base
 
-        eps = 2.0
-
-        surface = 2 * (3.141592 * d * d * 0.25) + (3.141592 * d * h)
+        eps = 3.0 #2.0
 
         xlat_area = 0.0
         xbot_area = 0.0
@@ -238,42 +231,41 @@ class MaterialTest(object):
             y = node.Y
             z = node.Z
 
-            cross_section = 3.141592 * r * r
+            cross_section = math.pi * r * r
 
-            if ((x * x + z * z) >= ((d / 2 - eps * r) * (d / 2 - eps * r))):
+            if (x * x + z * z) >= ((0.5 * d - eps * r) * (0.5 * d - eps * r)):
 
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
                 self.LAT.append(node)
 
-                if ((y > eps * r) and (y < (h - eps * r))):
+                if (y > y_min + eps * r) and (y < y_min + (h - eps * r)):
 
                     self.SKIN.append(element)
                     self.XLAT.append(node)
 
                     xlat_area = xlat_area + cross_section
 
-            if ((y <= eps * r) or (y >= (h - eps * r))):
+            if (y <= y_min + eps * r) or (y >= y_min + (h - eps * r)):
 
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
                 self.SKIN.append(element)
 
-                if (y <= eps * r):
+                if y <= y_min + eps * r:
 
                     self.BOT.append(node)
                     y_bot_total += y*r
                     weight_bot += r
 
-                elif (y >= (h - eps * r)):
+                elif y >= y_min + (h - eps * r):
 
                     self.TOP.append(node)
 
                     y_top_total += y*r
                     weight_top += r
 
+                if (x * x + z * z) >= ((0.5 * d - eps * r) * (0.5 * d - eps * r)):
 
-                if ((x * x + z * z) >= ((d / 2 - eps * r) * (d / 2 - eps * r))):
-
-                    if (y > h / 2):
+                    if y > y_min + h / 2:
 
                         self.XTOPCORNER.append(node)
                         xtopcorner_area = xtopcorner_area + cross_section
@@ -284,551 +276,540 @@ class MaterialTest(object):
                         xbotcorner_area = xbotcorner_area + cross_section
                 else:
 
-                    if (y <= eps * r):
+                    if y <= y_min + eps * r:
 
                         self.XBOT.append(node)
                         xbot_area = xbot_area + cross_section
 
-                    elif (y >= (h - eps * r)):
+                    elif y >= y_min + (h - eps * r):
 
                         self.XTOP.append(node)
                         xtop_area = xtop_area + cross_section
         #checks:
-
-        if(len(self.XLAT)==0):
-
+        if len(self.XLAT)==0:
             self.Procedures.KratosPrintWarning("ERROR! in Cylinder Skin Determination - NO LATERAL PARTICLES" + "\n")
-
         else:
-
-            self.Procedures.KratosPrintInfo("End "+ str(h) + "x" + str(d) + "Cylinder Skin Determination" + "\n")
+            self.Procedures.KratosPrintInfo(str(h) + " * " + str(d) + " cylinder skin determination" + "\n")
 
         return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area, y_top_total, weight_top, y_bot_total, weight_bot)
 
-  def BtsSkinDetermination(self):
+    def BtsSkinDetermination(self):
 
-      # SKIN DETERMINATION
+        # BTS SKIN DETERMINATION
+        # Cylinder dimensions
+        h = self.height
+        d = self.diameter
+        eps = 3.0 #2.0
+        z_min = self.z_coordinate_of_cylinder_bottom_base
 
-      # Cylinder dimensions
+        for element in self.spheres_model_part.Elements:
 
-      h = self.height
-      d = self.diameter
-      eps = 2.0
+            element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
+            node = element.GetNode(0)
+            r = node.GetSolutionStepValue(RADIUS)
+            x = node.X
+            y = node.Y
+            z = node.Z
 
-      for element in self.spheres_model_part.Elements:
+            if (x * x + y * y) >= ((0.5 * d - eps * r) * (0.5 * d - eps * r)):
+                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
 
-          element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
+            if (z <= z_min + eps * r) or (z >= z_min + (h - eps * r)):
+                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
 
-          node = element.GetNode(0)
-          r = node.GetSolutionStepValue(RADIUS)
-          x = node.X
-          y = node.Y
-          z = node.Z
+        self.Procedures.KratosPrintInfo("Finished computing the skin of the BTS specimen..." + "\n")
 
-          if ((x * x + y * y) >= ((d / 2 - eps * r) * (d / 2 - eps * r))):
+    def PrepareDataForGraph(self):
 
-              element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
+        prepare_check = [0,0,0,0]
+        self.total_check = 0
 
-          if ((z <= eps * r) or (z >= (h - eps * r))):
+        for smp in self.rigid_face_model_part.SubModelParts:
+            if smp[TOP]:
+                self.top_mesh_nodes = smp.Nodes
+                prepare_check[0] = 1
+            if smp[BOTTOM]:
+                self.bot_mesh_nodes = smp.Nodes
+                prepare_check[1] = 1
 
-              element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
+        for smp in self.spheres_model_part.SubModelParts:
+            if smp[TOP]:
+                self.top_mesh_nodes = smp.Nodes
+                prepare_check[2] = -1
 
-      self.Procedures.KratosPrintInfo("End 30x15 Bts Skin Determination" + "\n")
+            if smp[BOTTOM]:
+                self.bot_mesh_nodes = smp.Nodes
+                prepare_check[3] = -1
 
-  def PrepareDataForGraph(self):
+        for it in range(len(prepare_check)):
 
-    prepare_check = [0,0,0,0]
-    self.total_check = 0
+            self.total_check += prepare_check[it]
 
-    for smp in self.rigid_face_model_part.SubModelParts:
-        if smp[TOP]:
-            self.top_mesh_nodes = smp.Nodes
-            prepare_check[0] = 1
-        if smp[BOTTOM]:
-            self.bot_mesh_nodes = smp.Nodes
-            prepare_check[1] = 1
+        if math.fabs(self.total_check) != 2:
 
-    for smp in self.spheres_model_part.SubModelParts:
-        if smp[TOP]:
-            self.top_mesh_nodes = smp.Nodes
-            prepare_check[2] = -1
+            self.Procedures.KratosPrintWarning(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
 
-        if smp[BOTTOM]:
-            self.bot_mesh_nodes = smp.Nodes
-            prepare_check[3] = -1
+    def MeasureForcesAndPressure(self):
 
-    for it in range(len(prepare_check)):
+        dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
-      self.total_check += prepare_check[it]
+        self.strain += -100 * self.length_correction_factor * self.LoadingVelocity * dt / self.height
 
-    if(math.fabs(self.total_check)!=2):
+        if self.test_type =="BTS":
 
-      self.Procedures.KratosPrintWarning(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
+            total_force_bts = 0.0
 
-  def MeasureForcesAndPressure(self):
+            for node in self.top_mesh_nodes:
 
-    dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
+                force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+                total_force_bts += force_node_y
 
-    self.strain += -100*self.length_correction_factor*1.0*self.LoadingVelocity*dt/self.height
+            self.total_stress_bts = 2.0 * total_force_bts / (math.pi * self.height * self.diameter)
+            self.strain_bts += -100 * self.LoadingVelocity * dt / self.diameter
 
-    if (self.test_type =="BTS"):
+        else:
 
-      total_force_bts = 0.0
+            if self.test_type =="Hydrostatic":
+                radial_strain = -100*self.MeasureRadialStrain()
+                self.volumetric_strain = self.strain + 2.0*radial_strain
 
-      for node in self.top_mesh_nodes:
+            total_force_top = 0.0
+            total_force_bot = 0.0
 
-        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-        total_force_bts += force_node_y
+            for node in self.top_mesh_nodes:
+                force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+                total_force_top += force_node_y
 
-      self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.height*self.diameter)
-      self.strain_bts += -100*2*self.LoadingVelocity*dt/self.diameter
-    else:
+            self.total_stress_top = total_force_top / self.MeasuringSurface
 
-      if (self.test_type =="Hydrostatic"):
+            for node in self.bot_mesh_nodes:
+                force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+                total_force_bot += force_node_y
 
-        radial_strain = -100*self.MeasureRadialStrain()
-        self.volumetric_strain = self.strain + 2.0*radial_strain
+            self.total_stress_bot = total_force_bot / self.MeasuringSurface
 
-      total_force_top = 0.0
-      total_force_bot = 0.0
+            self.total_stress_mean = 0.5 * (self.total_stress_bot + self.total_stress_top)
 
-      for node in self.top_mesh_nodes:
+            if self.test_type =="Shear":
+                self.strain += dt
+                self.total_stress_top = total_force_top/1.0 # applied force divided by efective shear cylinder area 2*pi*0.0225*0.08
+                self.total_stress_mean = self.total_stress_top
+
+            if (self.test_type == "Triaxial" or self.test_type == "Hydrostatic") and self.ConfinementPressure:
+
+                self.Pressure = min(self.total_stress_mean, self.ConfinementPressure * 1e6)
+
+                if self.test_type == "Hydrostatic":
+                    self.Pressure = self.total_stress_mean
+
+                self.ApplyLateralPressure(self.Pressure, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
+
+    def PrintGraph(self, time):
+
+        if self.graph_counter == self.graph_frequency:
+            self.graph_counter = 0
+
+            if self.test_type == "BTS":
+                self.bts_export.write(str("%.8g"%time).rjust(12) + "  " + str("%.6g"%(self.total_stress_bts * 1e-6)).rjust(13) + '\n')
+                self.Flush(self.bts_export)
+            else:
+                self.graph_export_1.write(str("%.6g"%self.strain).rjust(13) + "  " + str("%.6g"%(self.total_stress_mean * 1e-6)).rjust(13) + "  " + str("%.8g"%time).rjust(12) + '\n')
+                self.graph_export_2.write(str("%.8g"%self.strain).rjust(15) + "  " + str("%.6g"%(self.total_stress_top * 1e-6)).rjust(13)+'\n')
+                self.graph_export_3.write(str("%.8g"%self.strain).rjust(15) + "  " + str("%.6g"%(self.total_stress_bot * 1e-6)).rjust(13)+'\n')
+                self.Flush(self.graph_export_1)
+                self.Flush(self.graph_export_2)
+                self.Flush(self.graph_export_3)
+
+                if self.test_type != "Shear":
+                    self.graph_export_4.write(str("%.8g"%self.strain).rjust(15) + "  " + str("%.6g"%(self.total_stress_mean * 1e-6 - self.ConfinementPressure)).rjust(13) + '\n')
+                    self.Flush(self.graph_export_4)
+
+                if self.test_type == "Hydrostatic":
+                    self.graph_export_volumetric.write(str("%.8g"%self.volumetric_strain).rjust(12) + "    " + str("%.6g"%(self.total_stress_mean * 1e-6)).rjust(13) + '\n')
+                    self.Flush(self.graph_export_volumetric)
+
+        self.graph_counter += 1
+
+    def PrintCoordinationNumberGraph(self, time, solver):
+
+        if self.CN_graph_counter == self.graph_frequency:
+            self.CN_graph_counter = 0
+            dummy = 0
+            CN = self.solver.cplusplus_strategy.ComputeCoordinationNumber(dummy)
+            self.CN_export.write(str("%.8g"%time).rjust(12) + "  " + str(CN) + '\n')
+            self.Flush(self.CN_export)
+
+        self.CN_graph_counter += 1
+
+    def PrintChart(self):
+
+        loading_velocity = self.LoadingVelocity
+
+        print ('************DEM VIRTUAL LAB******************'+'\n')
+        print ('Loading velocity: ' + str(loading_velocity) + '\n')
+        print ('Expected maximum deformation: ' + str(-loading_velocity*self.parameters["FinalTime"].GetDouble() /self.height*100) +'%'+'\n'+'\n'  )
+
+        self.chart.write(("***********PARAMETERS*****************")+'\n')
+        self.chart.write( "                                    " +'\n')
+        self.chart.write( "    DENSI  = " + (str(self.spheres_model_part.GetProperties()[1][PARTICLE_DENSITY]).rjust(3))+" Kg/m3     "+'\n')
+        self.chart.write( "    STAFRC = " + (str(self.spheres_model_part.GetProperties()[1][STATIC_FRICTION]).rjust(3))+"           "+'\n')
+        self.chart.write( "    DYNFRC = " + (str(self.spheres_model_part.GetProperties()[1][DYNAMIC_FRICTION]).rjust(3))+"          " +'\n')
+        self.chart.write( "    FRCDEC = " + (str(self.spheres_model_part.GetProperties()[1][FRICTION_DECAY]).rjust(3))+"          " +'\n')
+        self.chart.write( "    YOUNG  = " + (str(self.spheres_model_part.GetProperties()[1][YOUNG_MODULUS]/1e9).rjust(3))+" GPa"+"     " +'\n')
+        self.chart.write( "    POISS  = " + (str(self.spheres_model_part.GetProperties()[1][POISSON_RATIO]).rjust(3))+"           " +'\n')
+        self.chart.write( "    FTS    = " + (str(self.spheres_model_part.GetProperties()[1][CONTACT_SIGMA_MIN]).rjust(3))+" Pa        " +'\n')
+        self.chart.write( "    LCS1   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_LIMIT_COEFF_C1]).rjust(3))+" Pa       " +'\n')
+        self.chart.write( "    LCS2   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_LIMIT_COEFF_C2]).rjust(3))+" Pa       " +'\n')
+        self.chart.write( "    LCS3   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_LIMIT_COEFF_C3]).rjust(3))+" Pa       " +'\n')
+        self.chart.write( "    YRC1   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_FRACTION_N1]).rjust(3))+"           " +'\n')
+        self.chart.write( "    YRC2   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_FRACTION_N2]).rjust(3))+"           " +'\n')
+        self.chart.write( "    YRC3   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_FRACTION_N3]).rjust(3))+"           " +'\n')
+        self.chart.write( "    FSS    = " + (str(self.spheres_model_part.GetProperties()[1][CONTACT_TAU_ZERO]).rjust(3))+" Pa       " +'\n')
+        self.chart.write( "    YEP    = " + (str(self.spheres_model_part.GetProperties()[1][YOUNG_MODULUS_PLASTIC]/1e9).rjust(3))+" GPa"+"     " +'\n')
+        self.chart.write( "    YIELD  = " + (str(self.spheres_model_part.GetProperties()[1][PLASTIC_YIELD_STRESS]).rjust(3))+" Pa       " +'\n')
+        self.chart.write( "    EDR    = " + (str(self.spheres_model_part.GetProperties()[1][DAMAGE_FACTOR]).rjust(3))+"           " +'\n')
+        self.chart.write( "    SEC    = " + (str(self.spheres_model_part.GetProperties()[1][SHEAR_ENERGY_COEF]).rjust(3))+"           " +'\n')
+        self.chart.write( "                                    " +'\n')
+        self.chart.write( "**************************************" +'\n')
+        self.chart.close()
 
-        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+        absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_Parameter_chart.grf")
+        data_extract_for_print = open(absolute_path_to_file,"r")
 
-        total_force_top += force_node_y
+        for line in data_extract_for_print.readlines():
+            self.Procedures.KratosPrintInfo(line)
+        data_extract_for_print.close()
 
-      self.total_stress_top = total_force_top/(self.MeasuringSurface)
+    def FinalizeGraphs(self):
 
-      for node in self.bot_mesh_nodes:
+        #Create a copy and renaming
+        absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
+        absolute_path_to_file2 = os.path.join(self.graphs_path, self.problem_name + "_bts.grf")
+        absolute_path_to_file3 = os.path.join(self.graphs_path, self.problem_name + "_graph_VOL.grf")
+        for filename in os.listdir("."):
+            if filename.startswith(absolute_path_to_file1):
+                shutil.copy(filename, filename+"COPY")
+                os.rename(filename+"COPY", absolute_path_to_file1 + str(self.initial_time).replace(":", "") + ".grf")
+            if filename.startswith(absolute_path_to_file2):
+                shutil.copy(filename, filename+"COPY")
+                os.rename(filename+"COPY", absolute_path_to_file2 + str(self.initial_time).replace(":", "") + ".grf")
+            if filename.startswith(absolute_path_to_file3):
+                shutil.copy(filename, filename+"COPY")
+                os.rename(filename+"COPY", absolute_path_to_file3 + str(self.initial_time).replace(":", "") + ".grf")
 
-        force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+        if self.test_type == "BTS":
+            self.bts_export.close()
+        else:
+            self.graph_export_1.close()
+            self.graph_export_2.close()
+            self.graph_export_3.close()
 
-        total_force_bot += force_node_y
+            if self.test_type != "Shear":
+                self.graph_export_4.close()
 
-      self.total_stress_bot = total_force_bot/(self.MeasuringSurface)
+            if self.test_type == "Hydrostatic":
+                self.graph_export_volumetric.close()
 
-      self.total_stress_mean = 0.5*(self.total_stress_bot + self.total_stress_top)
+    def OrientationStudy(self,contact_model_part,step):
 
-      if (self.test_type =="Shear"):
-          self.strain += dt
-          self.total_stress_top = total_force_top/1.0 # applied force divided by efective shear cylinder area 2*pi*0.0225*0.08
-          self.total_stress_mean = self.total_stress_top
+        absolute_path_to_file = os.path.join(self.graphs_path, "OrientationChart_"+str(step))
+        OrientationChart = open(absolute_path_to_file, 'w')
+        counter = 1
 
+        for element in contact_model_part.Elements:
+            u1 = element.GetNode(1).X - element.GetNode(0).X
+            u2 = element.GetNode(1).Y - element.GetNode(0).Y
+            u3 = element.GetNode(1).Z - element.GetNode(0).Z
 
-      if ( ( (self.test_type == "Triaxial") or (self.test_type == "Hydrostatic") ) and (self.ConfinementPressure != 0.0) ):
+            alpha = abs(math.asin(abs(u2)/math.sqrt((u1*u1)+(u2*u2)+(u3*u3))))
 
-          self.Pressure = min(self.total_stress_mean, self.ConfinementPressure * 1e6)
+            alpha_deg = alpha/math.pi*180
 
-          if( self.test_type == "Hydrostatic"):
+            element.SetValue(CONTACT_ORIENTATION,alpha_deg)
 
-              self.Pressure = self.total_stress_mean
+            sigma = element.GetValue(CONTACT_SIGMA)
 
-          self.ApplyLateralPressure(self.Pressure, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
+            OrientationChart.write(str(counter)+"    "+str(sigma/(self.total_stress_mean))+'\n')
+            counter += 1
 
-  def PrintGraph(self, time):
+            if alpha_deg >= 0.0 and alpha_deg < 5.0:
+                self.bond_00_05.append(element)
 
-    for smp in self.rigid_face_model_part.SubModelParts:
-        if smp[TOP]:
-            self.mesh_nodes = smp.Nodes
+            if alpha_deg >= 5.0 and alpha_deg < 10.0:
+                self.bond_05_10.append(element)
 
-    if(self.graph_counter == self.graph_frequency):
+            if alpha_deg >= 10.0 and alpha_deg < 15.0:
+                self.bond_10_15.append(element)
 
-      self.graph_counter = 0
+            if alpha_deg >= 15.0 and alpha_deg < 20.0:
+                self.bond_15_20.append(element)
 
-      if(self.test_type == "BTS"):
+            if alpha_deg >= 20.0 and alpha_deg < 25.0:
+                self.bond_20_25.append(element)
 
-        self.bts_export.write(str("%.8g"%time).rjust(12) +"  "+ str("%.6g"%self.total_stress_bts*1e-6).rjust(13)+'\n')
-        self.Flush(self.bts_export)
+            if alpha_deg >= 25.0 and alpha_deg < 30.0:
+                self.bond_25_30.append(element)
 
-      else:
+            if alpha_deg >= 30.0 and alpha_deg < 35.0:
+                self.bond_30_35.append(element)
 
-        self.graph_export.write(str("%.6g"%self.strain).rjust(13)+"  "+str("%.6g"%(self.total_stress_mean*1e-6)).rjust(13) +"  "+str("%.8g"%time).rjust(12)+'\n')
-        self.graph_export_1.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%(self.total_stress_top*1e-6)).rjust(13)+'\n')
-        self.graph_export_2.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%(self.total_stress_bot*1e-6)).rjust(13)+'\n')
-        self.Flush(self.graph_export)
-        self.Flush(self.graph_export_1)
-        self.Flush(self.graph_export_2)
+            if alpha_deg >= 35.0 and alpha_deg < 40.0:
+                self.bond_35_40.append(element)
 
-        if( self.test_type =="Hydrostatic"):
-          self.graph_export_volumetric.write(str("%.8g"%self.volumetric_strain).rjust(12)+"    "+str("%.6g"%self.total_stress_mean*1e-6).rjust(13)+'\n')
-          self.Flush(self.graph_export_volumetric)
+            if alpha_deg >= 40.0 and alpha_deg < 45.0:
+                self.bond_40_45.append(element)
 
-    self.graph_counter += 1
+            if alpha_deg >= 45.0 and alpha_deg < 50.0:
+                self.bond_45_50.append(element)
 
-   #-------------------------------------------------------------------------------------#
+            if alpha_deg >= 50.0 and alpha_deg < 55.0:
+                self.bond_50_55.append(element)
 
-  def PrintChart(self):
+            if alpha_deg >= 55.0 and alpha_deg < 60.0:
+                self.bond_55_60.append(element)
 
-    loading_velocity = self.LoadingVelocity
+            if alpha_deg >= 60.0 and alpha_deg < 65.0:
+                self.bond_60_65.append(element)
 
-    print ('************DEM VIRTUAL LAB******************'+'\n')
-    print ('Loading velocity: ' + str(loading_velocity) + '\n')
-    print ('Expected maximum deformation: ' + str(-loading_velocity*self.parameters["FinalTime"].GetDouble() /self.height*100) +'%'+'\n'+'\n'  )
+            if alpha_deg >= 65.0 and alpha_deg < 70.0:
+                self.bond_65_70.append(element)
 
+            if alpha_deg >= 70.0 and alpha_deg < 75.0:
+                self.bond_70_75.append(element)
 
-    self.chart.write(("***********PARAMETERS*****************")+'\n')
-    self.chart.write( "                                    " +'\n')
-    self.chart.write( "    DENSI  = " + (str(self.spheres_model_part.GetProperties()[1][PARTICLE_DENSITY]).rjust(3))+" Kg/m3     "+'\n')
-    self.chart.write( "    STAFRC = " + (str(self.spheres_model_part.GetProperties()[1][STATIC_FRICTION]).rjust(3))+"           "+'\n')
-    self.chart.write( "    DYNFRC = " + (str(self.spheres_model_part.GetProperties()[1][DYNAMIC_FRICTION]).rjust(3))+"          " +'\n')
-    self.chart.write( "    YOUNG  = " + (str(self.spheres_model_part.GetProperties()[1][YOUNG_MODULUS]/1e9).rjust(3))+" GPa"+"     " +'\n')
-    self.chart.write( "    POISS  = " + (str(self.spheres_model_part.GetProperties()[1][POISSON_RATIO]).rjust(3))+"           " +'\n')
-    self.chart.write( "    FTS    = " + (str(self.spheres_model_part.GetProperties()[1][CONTACT_SIGMA_MIN]).rjust(3))+" Pa        " +'\n')
-    self.chart.write( "    LCS1   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_LIMIT_COEFF_C1]).rjust(3))+" Pa       " +'\n')
-    self.chart.write( "    LCS2   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_LIMIT_COEFF_C2]).rjust(3))+" Pa       " +'\n')
-    self.chart.write( "    LCS3   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_LIMIT_COEFF_C3]).rjust(3))+" Pa       " +'\n')
-    self.chart.write( "    YRC1   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_FRACTION_N1]).rjust(3))+"           " +'\n')
-    self.chart.write( "    YRC2   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_FRACTION_N2]).rjust(3))+"           " +'\n')
-    self.chart.write( "    YRC3   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_FRACTION_N3]).rjust(3))+"           " +'\n')
-    self.chart.write( "    FSS    = " + (str(self.spheres_model_part.GetProperties()[1][CONTACT_TAU_ZERO]).rjust(3))+" Pa       " +'\n')
-    self.chart.write( "    YEP    = " + (str(self.spheres_model_part.GetProperties()[1][YOUNG_MODULUS_PLASTIC]/1e9).rjust(3))+" GPa"+"     " +'\n')
-    self.chart.write( "    YIELD  = " + (str(self.spheres_model_part.GetProperties()[1][PLASTIC_YIELD_STRESS]).rjust(3))+" Pa       " +'\n')
-    self.chart.write( "    EDR    = " + (str(self.spheres_model_part.GetProperties()[1][DAMAGE_FACTOR]).rjust(3))+"           " +'\n')
-    self.chart.write( "    SEC    = " + (str(self.spheres_model_part.GetProperties()[1][SHEAR_ENERGY_COEF]).rjust(3))+"           " +'\n')
-    self.chart.write( "                                    " +'\n')
-    self.chart.write( "**************************************" +'\n')
+            if alpha_deg >= 75.0 and alpha_deg < 80.0:
+                self.bond_75_80.append(element)
 
-    self.chart.close()
+            if alpha_deg >= 80.0 and alpha_deg < 85.0:
+                self.bond_80_85.append(element)
 
+            if alpha_deg >= 85.0 and alpha_deg < 90.0:
+                self.bond_85_90.append(element)
 
-    absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_Parameter_chart.grf")
-    data_extract_for_print = open(absolute_path_to_file,"r")
-    for line in data_extract_for_print.readlines():
-        self.Procedures.KratosPrintInfo(line)
-    data_extract_for_print.close()
+        ii=0
+        for item in [self.bond_00_05, self.bond_05_10, self.bond_10_15, self.bond_15_20, self.bond_20_25, self.bond_25_30, self.bond_30_35, self.bond_35_40, self.bond_40_45,  self.bond_45_50, self.bond_50_55, self.bond_55_60, self.bond_60_65, self.bond_65_70, self.bond_70_75, self.bond_75_80, self.bond_80_85, self.bond_85_90]:
 
-  def FinalizeGraphs(self):
+            self.sizes[ii] = len(item)
 
-    #Create a copy and renaming
-    absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
-    absolute_path_to_file2 = os.path.join(self.graphs_path, self.problem_name + "_bts.grf")
-    absolute_path_to_file3 = os.path.join(self.graphs_path, self.problem_name + "_graph_VOL.grf")
-    for filename in os.listdir("."):
-      if filename.startswith(absolute_path_to_file1):
-          shutil.copy(filename, filename+"COPY")
-          os.rename(filename+"COPY", absolute_path_to_file1 + str(self.initial_time).replace(":", "") + ".grf")
-      if filename.startswith(absolute_path_to_file2):
-          shutil.copy(filename, filename+"COPY")
-          os.rename(filename+"COPY", absolute_path_to_file2 + str(self.initial_time).replace(":", "") + ".grf")
-      if filename.startswith(absolute_path_to_file3):
-          shutil.copy(filename, filename+"COPY")
-          os.rename(filename+"COPY", absolute_path_to_file3 + str(self.initial_time).replace(":", "") + ".grf")
+            i = 0.0
+            sigma_sum =0.0
+            tau_sum = 0.0
 
-    if(self.test_type == "BTS"):
-        self.bts_export.close()
-        #self.bts_stress_export.close()
-    else:
-        self.graph_export.close()
+            sigma_total_sum_squared = 0
+            tau_total_sum_squared = 0.0
 
-        if( self.test_type =="Hydrostatic"):
-            self.graph_export_volumetric.close()
+            volume = 0.0
+            area = 0.0
 
-  def OrientationStudy(self,contact_model_part,step):
+            for element in item:
+                sigma_normal = element.GetValue(CONTACT_SIGMA)
+                sigma_tau = element.GetValue(CONTACT_TAU)
 
-    absolute_path_to_file = os.path.join(self.graphs_path, "OrientationChart_"+str(step))
-    OrientationChart = open(absolute_path_to_file, 'w')
-    counter = 1
-    for element in contact_model_part.Elements:
+                sigma_sum += sigma_normal
+                tau_sum += sigma_tau
 
-        u1 = element.GetNode(1).X - element.GetNode(0).X
-        u2 = element.GetNode(1).Y - element.GetNode(0).Y
-        u3 = element.GetNode(1).Z - element.GetNode(0).Z
+                sigma_partial_sum_squared = sigma_normal ** 2.0
+                sigma_total_sum_squared += sigma_partial_sum_squared
 
-        alpha = abs(math.asin(abs(u2)/math.sqrt((u1*u1)+(u2*u2)+(u3*u3))))
+                tau_partial_sum_squared = sigma_tau ** 2.0
+                tau_total_sum_squared += tau_partial_sum_squared
 
-        alpha_deg = alpha/math.pi*180
+                i += 1.0
 
-        element.SetValue(CONTACT_ORIENTATION,alpha_deg)
+            sigma_mean = sigma_sum / len(item)
+            sigma_var = sigma_total_sum_squared / len(item) - sigma_mean ** 2.0
 
-        sigma = element.GetValue(CONTACT_SIGMA)
+            sigma_std_dev = 0.0
 
-        OrientationChart.write(str(counter)+"    "+str(sigma/(self.total_stress_mean))+'\n')
-        counter += 1
+            if abs(sigma_var) > 1e-9:
+                std_dev = sigma_var ** 0.5
 
-        if(alpha_deg >= 0.0 and alpha_deg < 5.0):
-            self.bond_00_05.append(element)
+            sigma_rel_std_dev = sigma_std_dev / sigma_mean
 
-        if(alpha_deg >= 5.0 and alpha_deg < 10.0):
-            self.bond_05_10.append(element)
+            tau_mean = tau_sum/ len(item)
+            tau_var = tau_total_sum_squared / len(item) - tau_mean ** 2.0
 
-        if(alpha_deg >= 10.0 and alpha_deg < 15.0):
-            self.bond_10_15.append(element)
+            tau_std_dev = 0.0
 
-        if(alpha_deg >= 15.0 and alpha_deg < 20.0):
-            self.bond_15_20.append(element)
+            if abs(tau_var) > 1e-9:
+                tau_std_dev = tau_var ** 0.5
 
-        if(alpha_deg >= 20.0 and alpha_deg < 25.0):
-            self.bond_20_25.append(element)
+            tau_rel_std_dev = tau_std_dev / tau_mean
 
-        if(alpha_deg >= 25.0 and alpha_deg < 30.0):
-            self.bond_25_30.append(element)
+            self.sigma_mean_table[ii] = sigma_mean
+            self.sigma_rel_std_dev_table[ii] = sigma_rel_std_dev
+            self.tau_mean_table[ii] = tau_mean
+            self.tau_rel_std_dev_table[ii] = tau_rel_std_dev
+            self.sigma_ratio_table[ii]=sigma_mean/(self.total_stress_mean)
+            ii+=1
 
-        if(alpha_deg >= 30.0 and alpha_deg < 35.0):
-            self.bond_30_35.append(element)
+        self.Procedures.KratosPrintInfo(self.sigma_ratio_table)
+        OrientationChart.close()
 
-        if(alpha_deg >= 35.0 and alpha_deg < 40.0):
-            self.bond_35_40.append(element)
+    def ApplyLateralPressure(self, Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat):
 
-        if(alpha_deg >= 40.0 and alpha_deg < 45.0):
-            self.bond_40_45.append(element)
+        for node in XLAT:
+            r = node.GetSolutionStepValue(RADIUS)
+            x = node.X
+            y = node.Y
+            z = node.Z
 
-        if(alpha_deg >= 45.0 and alpha_deg < 50.0):
-            self.bond_45_50.append(element)
+            values = Array3()
+            vect = Array3()
 
-        if(alpha_deg >= 50.0 and alpha_deg < 55.0):
-            self.bond_50_55.append(element)
+            cross_section = math.pi * r * r
 
-        if(alpha_deg >= 55.0 and alpha_deg < 60.0):
-            self.bond_55_60.append(element)
+            # normal vector to the center:
+            vect_moduli = math.sqrt(x * x + z * z)
 
-        if(alpha_deg >= 60.0 and alpha_deg < 65.0):
-            self.bond_60_65.append(element)
+            if vect_moduli > 0.0:
+                vect[0] = -x / vect_moduli
+                vect[1] = 0
+                vect[2] = -z / vect_moduli
 
-        if(alpha_deg >= 65.0 and alpha_deg < 70.0):
-            self.bond_65_70.append(element)
+            values[0] = cross_section * alpha_lat * Pressure * vect[0]
+            values[1] = 0.0
+            values[2] = cross_section * alpha_lat * Pressure * vect[2]
 
-        if(alpha_deg >= 70.0 and alpha_deg < 75.0):
-            self.bond_70_75.append(element)
+            node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
-        if(alpha_deg >= 75.0 and alpha_deg < 80.0):
-            self.bond_75_80.append(element)
+        for node in XTOPCORNER:
 
-        if(alpha_deg >= 80.0 and alpha_deg < 85.0):
-            self.bond_80_85.append(element)
+            r = node.GetSolutionStepValue(RADIUS)
+            x = node.X
+            y = node.Y
+            z = node.Z
 
-        if(alpha_deg >= 85.0 and alpha_deg < 90.0):
-            self.bond_85_90.append(element)
-    ii=0
+            values = Array3()
+            vect = Array3()
 
-    for item in [self.bond_00_05, self.bond_05_10, self.bond_10_15, self.bond_15_20, self.bond_20_25, self.bond_25_30, self.bond_30_35, self.bond_35_40, self.bond_40_45,  self.bond_45_50, self.bond_50_55, self.bond_55_60, self.bond_60_65, self.bond_65_70, self.bond_70_75, self.bond_75_80, self.bond_80_85, self.bond_85_90]:
+            cross_section = math.pi * r * r
 
-        self.sizes[ii] = len(item)
+            # normal vector to the center:
+            vect_moduli = math.sqrt(x * x + z * z)
 
-        i = 0.0
-        sigma_sum =0.0
-        tau_sum = 0.0
+            if vect_moduli > 0.0:
+                vect[0] = -x / vect_moduli
+                vect[1] = 0
+                vect[2] = -z / vect_moduli
 
-        sigma_total_sum_squared = 0
-        tau_total_sum_squared = 0.0
+            values[0] = cross_section * alpha_lat * Pressure * vect[0] * 0.70710678
+            values[1] = 0.0
+            values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
 
-        volume = 0.0
-        area = 0.0
+            node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
-        for element in item:
+        for node in XBOTCORNER:
 
-            sigma_normal = element.GetValue(CONTACT_SIGMA)
-            sigma_tau = element.GetValue(CONTACT_TAU)
+            r = node.GetSolutionStepValue(RADIUS)
+            x = node.X
+            y = node.Y
+            z = node.Z
 
-            sigma_sum += sigma_normal
-            tau_sum += sigma_tau
+            values = Array3()
+            vect = Array3()
 
-            sigma_partial_sum_squared = sigma_normal ** 2.0
-            sigma_total_sum_squared += sigma_partial_sum_squared
+            cross_section = math.pi * r * r
 
-            tau_partial_sum_squared = sigma_tau ** 2.0
-            tau_total_sum_squared += tau_partial_sum_squared
+            # vector normal al centre:
+            vect_moduli = math.sqrt(x * x + z * z)
 
-            i += 1.0
+            if vect_moduli > 0.0:
+                vect[0] = -x / vect_moduli
+                vect[1] = 0
+                vect[2] = -z / vect_moduli
 
-        sigma_mean = sigma_sum / len(item)
-        sigma_var = sigma_total_sum_squared / len(item) - sigma_mean ** 2.0
+            values[0] = cross_section * alpha_lat * Pressure * vect[0] * 0.70710678
+            values[1] = 0.0
+            values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
 
-        sigma_std_dev = 0.0
+            node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
-        if(abs(sigma_var) > 1e-9):
-            std_dev = sigma_var ** 0.5
+    def MeasureRadialStrain(self):
 
-        sigma_rel_std_dev = sigma_std_dev / sigma_mean
+        mean_radial_strain = 0.0
+        radial_strain = 0.0
+        weight = 0.0
 
-        tau_mean = tau_sum/ len(item)
-        tau_var = tau_total_sum_squared / len(item) - tau_mean ** 2.0
+        for node in self.XLAT:
 
-        tau_std_dev = 0.0
+            r = node.GetSolutionStepValue(RADIUS)
+            x = node.X
+            z = node.Z
 
-        if(abs(tau_var) > 1e-9):
-            tau_std_dev = tau_var ** 0.5
+            x0 = node.X0
+            z0 = node.Z0
 
-        tau_rel_std_dev = tau_std_dev / tau_mean
+            dist_initial = math.sqrt(x0 * x0 + z0 * z0)
+            dist_now = math.sqrt(x * x + z * z)
+            node_radial_strain = (dist_now - dist_initial) / dist_initial
+            mean_radial_strain += node_radial_strain
 
-        self.sigma_mean_table[ii] = sigma_mean
-        self.sigma_rel_std_dev_table[ii] = sigma_rel_std_dev
-        self.tau_mean_table[ii] = tau_mean
-        self.tau_rel_std_dev_table[ii] = tau_rel_std_dev
-        self.sigma_ratio_table[ii]=sigma_mean/(self.total_stress_mean)
-        ii+=1
+            weight += 1.0
 
-    self.Procedures.KratosPrintInfo(self.sigma_ratio_table)
-    OrientationChart.close()
+        radial_strain = mean_radial_strain/weight
 
-  def ApplyLateralPressure(self, Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat):
+        return radial_strain
 
-      for node in XLAT:
+    def PoissonMeasure(self):
 
-          r = node.GetSolutionStepValue(RADIUS)
-          x = node.X
-          y = node.Y
-          z = node.Z
+        self.Procedures.KratosPrintWarning("Not Working now")
 
-          values = Array3()
-          vect = Array3()
+        #left_nodes = list()
+        #right_nodes = list()
 
-          cross_section = 3.141592 * r * r
+        #xleft_weight  = 0.0
+        #xright_weight  = 0.0
 
-          # vector normal al centre:
-          vect_moduli = math.sqrt(x * x + z * z)
+        #left_counter = 0.0
+        #right_counter = 0.0
 
-          if(vect_moduli > 0.0):
-              vect[0] = -x / vect_moduli
-              vect[1] = 0
-              vect[2] = -z / vect_moduli
+        #if(self.parameters.PoissonMeasure == "ON"):
 
-          values[0] = cross_section * alpha_lat * Pressure * vect[0]
-          values[1] = 0.0
-          values[2] = cross_section * alpha_lat * Pressure * vect[2]
+            #for node in spheres_model_part.Nodes:
 
-          node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
+                #if (node.GetSolutionStepValue(GROUP_ID)==4):
 
-      for node in XTOPCORNER:
+                #left_nodes.append(node)
+                #xleft_weight = +(node.X0 - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+                #left_counter = +node.GetSolutionStepValue(RADIUS)
 
-          r = node.GetSolutionStepValue(RADIUS)
-          x = node.X
-          y = node.Y
-          z = node.Z
+                #elif(node.GetSolutionStepValue(GROUP_ID)==8):
 
-          values = Array3()
-          vect = Array3()
+                #right_nodes.append(node)
+                #xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+                #right_counter = +node.GetSolutionStepValue(RADIUS)
 
-          cross_section = 3.141592 * r * r
+            #width_ini = xright_weight/right_counter - xleft_weight/left_counter
 
-          # vector normal al centre:
-          vect_moduli = math.sqrt(x * x + z * z)
+    ##################################POISSON##################################
 
-          if(vect_moduli > 0.0):
-              vect[0] = -x / vect_moduli
-              vect[1] = 0
-              vect[2] = -z / vect_moduli
+        #if(self.parameters.PoissonMeasure == "ON"):
 
-          values[0] = cross_section * alpha_lat * Pressure * vect[0] * 0.70710678
-          values[1] = 0.0
-          values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
+        #xleft_weight  = 0.0
+        #xright_weight  = 0.0
 
-          node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
+        #left_counter = 0.0
+        #right_counter = 0.0
 
-      for node in XBOTCORNER:
+        #for node in left_nodes:
 
-          r = node.GetSolutionStepValue(RADIUS)
-          x = node.X
-          y = node.Y
-          z = node.Z
+            #xleft_weight = +(node.X - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+            #left_counter = +node.GetSolutionStepValue(RADIUS)
 
-          values = Array3()
-          vect = Array3()
+        #for node in right_nodes:
 
-          cross_section = 3.141592 * r * r
+            #xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+            #right_counter = +node.GetSolutionStepValue(RADIUS)
 
-          # vector normal al centre:
-          vect_moduli = math.sqrt(x * x + z * z)
+        #width_now = xright_weight/right_counter - xleft_weight/left_counter
+        #measured_poisson =  ((width_now-width_ini)/width_ini)/strain
 
-          if(vect_moduli > 0.0):
-              vect[0] = -x / vect_moduli
-              vect[1] = 0
-              vect[2] = -z / vect_moduli
+        #graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
 
-          values[0] = cross_section * alpha_lat * Pressure * vect[0] * 0.70710678
-          values[1] = 0.0
-          values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
+    #-------------------------------------------------------------------------------------#
 
-          node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
-
-  def MeasureRadialStrain(self):
-
-      mean_radial_strain = 0.0
-      radial_strain = 0.0
-      weight = 0.0
-
-      for node in self.XLAT:
-
-          r = node.GetSolutionStepValue(RADIUS)
-          x = node.X
-          z = node.Z
-
-          x0 = node.X0
-          z0 = node.Z0
-
-          dist_initial = math.sqrt(x0 * x0 + z0 * z0)
-          dist_now = math.sqrt(x * x + z * z)
-          node_radial_strain = (dist_now - dist_initial) / dist_initial
-          mean_radial_strain += node_radial_strain
-
-          weight += 1.0
-
-      radial_strain = mean_radial_strain/weight
-
-      return radial_strain
-
-
-  def PoissonMeasure(self):
-      self.Procedures.KratosPrintWarning("Not Working now")
-
-    #left_nodes = list()
-    #right_nodes = list()
-
-    #xleft_weight  = 0.0
-    #xright_weight  = 0.0
-
-    #left_counter = 0.0
-    #right_counter = 0.0
-
-    #if(self.parameters.PoissonMeasure == "ON"):
-
-          #for node in spheres_model_part.Nodes:
-
-            #if (node.GetSolutionStepValue(GROUP_ID)==4):
-
-              #left_nodes.append(node)
-              #xleft_weight = +(node.X0 - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-              #left_counter = +node.GetSolutionStepValue(RADIUS)
-
-            #elif(node.GetSolutionStepValue(GROUP_ID)==8):
-
-              #right_nodes.append(node)
-              #xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-              #right_counter = +node.GetSolutionStepValue(RADIUS)
-
-          #width_ini = xright_weight/right_counter - xleft_weight/left_counter
-
-
-   ##################################POISSON##################################
-
-    #if(self.parameters.PoissonMeasure == "ON"):
-
-      #xleft_weight  = 0.0
-      #xright_weight  = 0.0
-
-      #left_counter = 0.0
-      #right_counter = 0.0
-
-      #for node in left_nodes:
-
-        #xleft_weight = +(node.X - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-        #left_counter = +node.GetSolutionStepValue(RADIUS)
-
-      #for node in right_nodes:
-
-        #xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-        #right_counter = +node.GetSolutionStepValue(RADIUS)
-
-      #width_now = xright_weight/right_counter - xleft_weight/left_counter
-      #measured_poisson =  ((width_now-width_ini)/width_ini)/strain
-
-      #graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
-
-
-  #-------------------------------------------------------------------------------------#
-
-
-  def GenerateGraphics(self):
+    def GenerateGraphics(self):
 
         ## PROBLEM DATA
         area = 0.000001 ### 1mm2
@@ -850,7 +831,6 @@ class MaterialTest(object):
         strain2 = array(data2[:,0])
         stress2 = array(data2[:,1])
 
-
         # setting to be changed#############################3
         set_mode = 'extralarge'  # large; publishable; medium
         legend_position = 'lower left'
@@ -860,7 +840,6 @@ class MaterialTest(object):
         y_name = 'Stress (MPa) - Load-axis'
         ####################################################################
         ####################################################################
-
 
         clf()
         plot_settings.set_mode(set_mode)
@@ -884,7 +863,6 @@ class MaterialTest(object):
         ####################################################################
         ####################################################################
 
-
         clf()
         plot_settings.set_mode(set_mode)
         #plt.semilogx()
@@ -904,7 +882,7 @@ class MaterialTest(object):
         ##savefig(savedname + '.eps')
         savefig(savedname + '.png')
 
-class PreUtils(object):
+class PreUtils():
 
     def __init__(self, spheres_model_part):
 
@@ -913,6 +891,3 @@ class PreUtils(object):
 
     def BreakBondUtility(self, spheres_model_part):
         self.PreUtilities.BreakBondUtility(self.spheres_model_part)
-
-
-

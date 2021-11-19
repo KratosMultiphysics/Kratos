@@ -938,7 +938,7 @@ class RemoveNodesMesherProcess
     if( !rModelPart.IsSubModelPart() )
       initial_cond_size = rModelPart.NumberOfConditions()+1; //total model part conditions size
     else
-      initial_cond_size = rModelPart.GetParentModelPart()->NumberOfConditions()+1;
+      initial_cond_size = rModelPart.GetParentModelPart().NumberOfConditions()+1;
 
     unsigned int id = 1;
     unsigned int new_id = 0;
@@ -1138,7 +1138,7 @@ class RemoveNodesMesherProcess
     if( !rModelPart.IsSubModelPart() )
       initial_cond_size = rModelPart.NumberOfConditions()+1; //total model part conditions size
     else
-      initial_cond_size = rModelPart.GetParentModelPart()->NumberOfConditions()+1;
+      initial_cond_size = rModelPart.GetParentModelPart().NumberOfConditions()+1;
 
 
     unsigned int id = 1;

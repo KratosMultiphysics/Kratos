@@ -29,6 +29,7 @@
 #include "includes/kratos_application.h"
 
 #include "custom_searching/interface_object.h"
+#include "custom_modelers/mapping_geometries_modeler.h"
 
 
 namespace Kratos
@@ -190,6 +191,8 @@ private:
     const InterfaceObject           mInterfaceObject;
     const InterfaceNode             mInterfaceNode;
     const InterfaceGeometryObject   mInterfaceGeometryObject;
+
+    const MappingGeometriesModeler  mMappingGeometriesModeler;
 
     ///@}
     ///@name Private Operators

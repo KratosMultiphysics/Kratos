@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -51,21 +51,21 @@ struct parmetis {
     typedef distributed_matrix<Backend>  matrix;
 
     struct params {
-        bool      enable;
+        bool      shrink;
         ptrdiff_t min_per_proc;
         int       shrink_ratio;
 
         params() :
-            enable(false), min_per_proc(10000), shrink_ratio(8)
+            shrink(false), min_per_proc(10000), shrink_ratio(8)
         {}
 
 #ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
-            : AMGCL_PARAMS_IMPORT_VALUE(p, enable),
+            : AMGCL_PARAMS_IMPORT_VALUE(p, shrink),
               AMGCL_PARAMS_IMPORT_VALUE(p, min_per_proc),
               AMGCL_PARAMS_IMPORT_VALUE(p, shrink_ratio)
         {
-            check_params(p, {"enable", "min_per_proc", "shrink_ratio"});
+            check_params(p, {"shrink", "min_per_proc", "shrink_ratio"});
         }
 
         void get(
@@ -73,7 +73,7 @@ struct parmetis {
                 const std::string &path = ""
                 ) const
         {
-            AMGCL_PARAMS_EXPORT_VALUE(p, path, enable);
+            AMGCL_PARAMS_EXPORT_VALUE(p, path, shrink);
             AMGCL_PARAMS_EXPORT_VALUE(p, path, min_per_proc);
             AMGCL_PARAMS_EXPORT_VALUE(p, path, shrink_ratio);
         }
@@ -83,7 +83,7 @@ struct parmetis {
     parmetis(const params &prm = params()) : prm(prm) {}
 
     bool is_needed(const matrix &A) const {
-        if (!prm.enable) return false;
+        if (!prm.shrink) return false;
 
         communicator comm = A.comm();
         ptrdiff_t n = A.loc_rows();
@@ -110,8 +110,9 @@ struct parmetis {
         // Partition the graph.
         int active = (n > 0);
         int active_ranks = comm.reduce(MPI_SUM, active);
+        int shrink = prm.shrink ? prm.shrink_ratio : 1;
 
-        idx_t npart = std::max(1, active_ranks / prm.shrink_ratio);
+        idx_t npart = std::max(1, active_ranks / shrink);
 
         if (comm.rank == 0)
             std::cout << "Partitioning[ParMETIS] " << active_ranks << " -> " << npart << std::endl;

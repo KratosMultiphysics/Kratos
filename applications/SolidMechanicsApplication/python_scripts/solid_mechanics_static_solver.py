@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 # Import the mechanical solver base class
-import solid_mechanics_implicit_dynamic_solver as BaseSolver
+import KratosMultiphysics.SolidMechanicsApplication.solid_mechanics_implicit_dynamic_solver as BaseSolver
 
 def CreateSolver(custom_settings, Model):
     return StaticMonolithicSolver(Model, custom_settings)
@@ -28,7 +28,7 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
         """)
 
         # Validate and transfer settings
-        from json_settings_utility import JsonSettingsUtility
+        from KratosMultiphysics.SolidMechanicsApplication.json_settings_utility import JsonSettingsUtility
         JsonSettingsUtility.TransferMatchingSettingsToDestination(custom_settings, static_settings)
         time_integration_settings = custom_settings["time_integration_settings"]
 

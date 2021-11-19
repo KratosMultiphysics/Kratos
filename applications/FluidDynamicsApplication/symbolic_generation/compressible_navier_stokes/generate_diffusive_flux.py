@@ -1,157 +1,166 @@
+from sympy import *
 from KratosMultiphysics import *
 from KratosMultiphysics.sympy_fe_utilities import *
 
-from sympy import *
-import pprint
+## Computation of the flux
+def ComputeDiffusiveFlux(dofs, dUdx, params):
+    """Calculate the diffusive flux matrix without shock capturing contribution."""
 
-## Computation of the Diffusive Matrix
-def computeG(dofs,params,Hg,Gg):
-    print("\nCompute Diffusive Matrix\n")
-    dim = params["dim"]				                    # spatial dimensions
+    print("\nCompute diffusive flux (without shock capturing)\n")
 
-    ## Unknown fields definition
-    H = Hg.copy()                               		# Gradient of U
-    G = Gg.copy()                               		# Diffusive Flux matrix
-    tau_stress = DefineMatrix('tau_stress',dim,dim)		# Shear stress tensor for Newtonian fluid
-    q = DefineVector('q',dim)			                # Heat flux vector
+    ## Auxiliary variables
+    dim = params["dim"]
+    gamma = params["gamma"]
+    rho = dofs[0]
+    mom = []
+    vel = []
+    for i in range(dim):
+        mom.append(dofs[i + 1])
+        vel.append(dofs[i + 1] / rho)
+    e_tot = dofs[dim + 1]
 
-    ## Other simbols definition
-    c_v = params["c_v"]				                    # Specific Heat at Constant volume
-    gamma = params["gamma"]				                # Gamma (Cp/Cv)
-    mu  = params["mu"]         			                # Dynamic viscosity
-    l = params["lambda"]			                    # Thermal Conductivity of the fluid
+    ## Calculate the viscous stress tensor
+    mu = params["mu"] # Dynamic viscosity
+    beta = 0.0 # Null bulk viscosity (Stoke's assumption)
+    tau_stress = CalculateViscousStressTensor(mu, beta, rho, mom, dim, dUdx)
 
-    ## Data interpolation to the Gauss points
-    Ug = dofs
+    ## Calculate the heat flux vector
+    c_v = params["c_v"]	# Specific heat at constant volume
+    lamb = params["lambda"] # Thermal conductivity
+    heat_flux = CalculateHeatFluxVector(c_v, lamb, rho, mom, e_tot, dim, dUdx)
 
-    ## Pgauss - Pressure definition
-    pg = Ug[dim+1]
-    for i in range(0,dim):
-        pg += (-Ug[i+1]*Ug[i+1]/(2*Ug[0]))
-    pg *= (gamma-1)
-
-    ## Tau - Shear stress tensor definition
-    for i in range(0,dim):
-        for j in range(i,dim):
-            if i!=j:
-               tau_stress[i,j] = (mu/Ug[0])*(H[i+1,j]+H[j+1,i])-(mu/Ug[0]**2)*(Ug[i+1]*H[0,j]+Ug[j+1]*H[0,i])
-            if i==j:
-               tau_stress[i,j]= (2*mu/Ug[0])*H[i+1,i]-(2*mu/Ug[0]**2)*Ug[i+1]*H[0,i]
-               for k in range(0,dim):
-                   tau_stress[i,j]+= -(2*mu/(3*Ug[0]))*H[k+1,k]+(2*mu/(3*Ug[0]**2))*Ug[k+1]*H[0,k]
-
-    for i in range(1,dim):
-        for j in range(0,dim-1):
-            if j!=i:
-               tau_stress[i,j] = tau_stress[j,i]
-
-    ## q - Heat flux vector definition
-    for i in range(0,dim):
-        q[i] = l*Ug[dim+1]/(Ug[0]**2*c_v)*H[0,i]-(l*H[dim+1,i])/(Ug[0]*c_v)
-        for j in range(0,dim):
-            q[i] += -l*Ug[j+1]**2/(c_v*Ug[0]**3)*H[0,i]+l/(Ug[0]**2*c_v)*Ug[j+1]*H[j+1,i]
-    #NB!!!There is an error in the definition of q[i] in the research proposal.
-    #The second term of the equation has an opposite sign!!!NB#
-    '''
-    G [(dim+2)*(dim)]
-
-    0                                   0
-    -tau00                              -tau01
-    -tau01                              -tau11
-    -mu/rho*tau00-mv/rho*tau01+q0       -mu/rho*tau01-mv/rho*tau11+q1
-    '''
-    ## G - Diffusive Matrix definition
-    for j in range(0,dim):
-        G[0,j]= 0 			                            #Mass equation related
-
-    for i in range(1,dim+1):
-        for j in range(0,dim):
-            G[i,j]=-tau_stress[i-1,j]		            #Moment equation related
-
-    for j in range(0,dim):                              #Energy equation related
-        G[dim+1,j] = q[j]
-        for k in range(0,dim):
-            G[dim+1,j] += -Ug[k+1]*tau_stress[k,j]/Ug[0]
+    ## Define and fill the diffusive flux matrix
+    G = DefineMatrix('G', dim + 2, dim)
+    for j in range(dim):
+        G[0,j] = 0.0
+        G[dim + 1, j] = heat_flux[j]
+        for i in range(dim):
+            G[i + 1, j] = -tau_stress[j,i]
+            G[dim + 1, j] -= vel[i] * tau_stress[i,j]
 
     return G
 
+def ComputeDiffusiveFluxWithPhysicsBasedShockCapturing(dofs, dUdx, params, beta_sc, lamb_sc, mu_sc):
+    """Calculate the diffusive flux matrix with a physics-based shock capturing contribution.
+    See A physics-based shock capturing methods for large-eddy simulation, Fernandez, Nguyen and Peraire (2018)."""
 
-## Computation of the Diffusive Matrix with Shock Capturing
-def computeGsc(dofs,params,Hg,Gg,v_sc,k_sc):
-    print("\nCompute Diffusive Matrix with Shock Capturing\n")
-    dim = params["dim"]				                    # spatial dimensions
+    print("\nCompute diffusive flux (with physics-based shock capturing)\n")
 
-    ## Unknown fields definition
-    H = Hg.copy()                               		# Gradient of U
-    Gsc = Gg.copy()                               		# Diffusive Flux matrix
-    tau_stress = DefineMatrix('tau_stress',dim,dim)		# Shear stress tensor for Newtonian fluid
-    q = DefineVector('q',dim)			                # Heat flux vector
+    ## Auxiliary variables
+    dim = params["dim"]
+    rho = dofs[0]
+    mom = []
+    vel = []
+    for i in range(dim):
+        mom.append(dofs[i + 1])
+        vel.append(dofs[i + 1] / rho)
+    e_tot = dofs[dim + 1]
 
-    ## Other simbols definition
-    c_v = params["c_v"]				                    # Specific Heat at Constant volume
-    gamma = params["gamma"]				                # Gamma (Cp/Cv)
-    mu  = params["mu"]         			                # Dynamic viscosity
-    l = params["lambda"]			                    # Thermal Conductivity
+    ## Calculate the viscous stress tensor
+    mu = params["mu"] # Dynamic viscosity
+    mu += mu_sc # Artificial dynamic viscosity
+    beta = 0.0 # Null physical bulk viscosity (Stoke's assumption)
+    beta += beta_sc # Artificial bulk viscosity
+    tau_stress = CalculateViscousStressTensor(mu, beta, rho, mom, dim, dUdx)
 
-    ## Data interpolation to the Gauss points
-    Ug = dofs
+    ## Calculate the heat flux vector
+    c_v = params["c_v"]	# Specific heat at constant volume
+    lamb = params["lambda"] # Thermal conductivity
+    lamb += lamb_sc # Artificial thermal conductivity for shock capturing
+    gamma = params["gamma"] # Heat capacity ratio
+    heat_flux = CalculateHeatFluxVector(c_v, lamb, rho, mom, e_tot, dim, dUdx)
 
-    ## Pgauss - Pressure definition
-    pg = Ug[dim+1]
-    for i in range(0,dim):
-        pg += (-Ug[i+1]*Ug[i+1]/(2*Ug[0]))
-    pg *= (gamma-1)
+    ## Define and fill the isotropic shock capturing diffusive flux matrix
+    G = DefineMatrix('G', dim + 2, dim)
+    for j in range(dim):
+        G[0,j] = 0.0
+        G[dim + 1, j] = heat_flux[j]
+        for i in range(dim):
+            G[i + 1, j] = -tau_stress[j,i]
+            G[dim + 1, j] -= vel[i] * tau_stress[i,j]
 
-    ## tau - Shear stress tensor definition
-    for i in range(0,dim):
-        for j in range(i,dim):
-            if i!=j:
-               tau_stress[i,j] = (mu/Ug[0])*(H[i+1,j]+H[j+1,i])-(mu/Ug[0]**2)*(Ug[i+1]*H[0,j]+Ug[j+1]*H[0,i])
-            if i==j:
-               tau_stress[i,j]= (2*mu/Ug[0])*H[i+1,i]-(2*mu/Ug[0]**2)*Ug[i+1]*H[0,i]
-               for k in range(0,dim):
-                   tau_stress[i,j]+= -(2*mu/(3*Ug[0]))*H[k+1,k]+(2*mu/(3*Ug[0]**2))*Ug[k+1]*H[0,k]
+    return G
 
-    for i in range(1,dim):
-        for j in range(0,dim-1):
-            if j!=i:
-               tau_stress[i,j] = tau_stress[j,i]
+def CalculateViscousStressTensor(mu, beta, rho, mom, dim, dUdx):
+    """Auxiliary function to calculate the viscous stress tensor for the given dynamic and bulk viscosity values"""
 
-    ## q - Heat flux vector definition
-    for i in range(0,dim):
-        q[i] = l*Ug[dim+1]/(Ug[0]**2*c_v)*H[0,i]-(l*H[dim+1,i])/(Ug[0]*c_v)
-        for j in range(0,dim):
-            q[i] += -l*Ug[j+1]**2/(c_v*Ug[0]**3)*H[0,i]+l/(Ug[0]**2*c_v)*Ug[j+1]*H[j+1,i]
-    #NB!!!There is an error in the definition of q[i] in the research proposal.
-    #The second term of the equation has an opposite sign!!!NB#
-    '''
-    G [(dim+2)*(dim)]
+    ## Calculate velocity divergence
+    ## Note that this is computed as div(mom/rho) = (dx(mom)*rho - mom*dx(rho))/rho**2
+    div_vel = 0.0
+    for d in range(dim):
+        div_vel += (dUdx[d + 1, d] * rho - mom[d] * dUdx[0, d])
+    div_vel /= rho**2
 
-    0                                   0
-    -tau00                              -tau01
-    -tau01                              -tau11
-    -mu/rho*tau00-mv/rho*tau01+q0       -mu/rho*tau01-mv/rho*tau11+q1
-    '''
-    tau_sc = (1+(Ug[0]*v_sc)/mu)*tau_stress     # Stress tensor with shock capturing viscosity
-    q_sc = (1+(Ug[0]*c_v*k_sc)/l)*q             # Heat flux with shock capturing conductivity
+    ## Calculate the viscous stress tensor
+    ## Note that the derivatives in here involve grad(mom/rho) = (dx(mom)*rho - mom*dx(rho))/rho**2
+    tau_stress = DefineMatrix('tau_stress', dim, dim)
+    for d1 in range(dim):
+        for d2 in range(dim):
+            dv1_dx2 = (dUdx[d1 + 1, d2] * rho - mom[d1] * dUdx[0,d2]) / rho**2
+            dv2_dx1 = (dUdx[d2 + 1, d1] * rho - mom[d2] * dUdx[0,d1]) / rho**2
+            tau_stress[d1, d2] = mu * (dv1_dx2 + dv2_dx1)
+            if d1 == d2:
+                # Note that in here the second viscosity coefficient is computed as the bulk viscosity minus 2/3 of the dynamic one
+                tau_stress[d1, d2] += (beta - 2.0 * mu / 3.0) * div_vel
 
-    ## Gsc - Diffusive Matrix definition
-    for j in range(0,dim):
-        Gsc[0,j]= 0 			                #Mass equation related
+    return tau_stress
 
-    for i in range(1,dim+1):
-        for j in range(0,dim):
-            Gsc[i,j]=-tau_sc[i-1,j]		        #Moment equation related
+def CalculateHeatFluxVector(c_v, lamb, rho, mom, e_tot, dim, dUdx):
+    """Auxiliary function to calculate the heat flux vector with the Fourier's law"""
 
-    for j in range(0,dim):                      #Energy equation related
-        Gsc[dim+1,j] = q_sc[j]
-        for k in range(0,dim):
-            Gsc[dim+1,j] += -Ug[k+1]*tau_sc[k,j]/Ug[0]
+    ## Calculate the heat flux vector (Fourier's law q = -lambda * grad(theta))
+    ## Note that the temperature is expressed in terms of the total energy
+    heat_flux = []
+    for d in range(dim):
+        aux_1 = (dUdx[dim + 1, d]*rho - e_tot * dUdx[0,d]) / rho**2
+        aux_2 = 0.0
+        for i in range(dim):
+            aux_2 += mom[i] * dUdx[i + 1, d] / rho**2
+            aux_2 -= mom[i]**2 * dUdx[0, d] / rho**3
+        heat_flux.append(- (lamb / c_v) * (aux_1 - aux_2))
 
-    return Gsc
+    return heat_flux
 
-## Printing the Diffusive Matrix G
-def printK(G,params):
+def WriteInVoigtNotation(dim, tensor):
+    """Auxiliary function to represent a 2nd order tensor in Voigt notation"""
+
+    voigt_size = 3 * dim - 3
+    voigt_tensor = zeros(voigt_size, 1)
+    voigt_tensor[0] = tensor[0,0]
+    voigt_tensor[1] = tensor[1,1]
+    if dim == 2:
+        voigt_tensor[2] = tensor[0,1]
+    else:
+        voigt_tensor[2] = tensor[2,2]
+        voigt_tensor[3] = tensor[1,2]
+        voigt_tensor[4] = tensor[0,2]
+        voigt_tensor[5] = tensor[0,1]
+
+    return voigt_tensor
+
+def RevertVoigtNotation(dim, voigt_tensor):
+    """Auxiliary function to set a 2nd order tensor from its Voigt representation"""
+
+    # Revert the Voigt notation
+    tensor = zeros(dim, dim)
+    for d in range(dim):
+        tensor[d,d] = voigt_tensor[d]
+    if dim == 2:
+        tensor[0,1] = voigt_tensor[2]
+        tensor[1,0] = voigt_tensor[2]
+    else:
+        tensor[1,2] = voigt_tensor[3]
+        tensor[2,1] = voigt_tensor[3]
+        tensor[0,2] = voigt_tensor[4]
+        tensor[2,0] = voigt_tensor[4]
+        tensor[0,1] = voigt_tensor[5]
+        tensor[1,0] = voigt_tensor[5]
+    
+    return tensor
+
+def PrintDiffusiveFluxMatrix(G,params):
+    """Auxiliary function to print the diffusive flux matrix (G)"""
+
     dim = params["dim"]
     print("The diffusive matrix is:\n")
     for ll in range(dim+2):

@@ -44,8 +44,8 @@ PYBIND11_MODULE(KratosRomApplication,m)
     AddCustomUtilitiesToPython(m);
 
     //registering variables in python
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUX_ID )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ROM_BASIS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HROM_WEIGHT )
 
 }
 

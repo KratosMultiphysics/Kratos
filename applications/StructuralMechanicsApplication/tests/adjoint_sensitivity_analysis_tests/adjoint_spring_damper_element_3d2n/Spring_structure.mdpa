@@ -71,3 +71,13 @@ Begin SubModelPart PointLoad3D_load // Group load // Subtree PointLoad3D
     End SubModelPartConditions
 End SubModelPart
 
+Begin SubModelPart response_mp
+    Begin SubModelPartNodes
+        2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+

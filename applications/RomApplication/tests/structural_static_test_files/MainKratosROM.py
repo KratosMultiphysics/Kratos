@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as romapp
 from KratosMultiphysics.RomApplication.structural_mechanics_analysis_rom import StructuralMechanicsAnalysisROM
@@ -9,7 +7,7 @@ import numpy as np
 class TestStructuralMechanicsStaticROM(StructuralMechanicsAnalysisROM):
 
     def __init__(self,model,project_parameters):
-        super(TestStructuralMechanicsStaticROM,self).__init__(model,project_parameters)
+        super().__init__(model,project_parameters)
 
     def EvaluateQuantityOfInterest(self):
        ##############################################################################################
@@ -36,7 +34,7 @@ class TestStructuralMechanicsStaticROM(StructuralMechanicsAnalysisROM):
 
 
 if __name__ == "__main__":
-    with open("ProjectParameters.json",'r') as parameter_file:
+    with open("ProjectParametersROM.json",'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     model = KratosMultiphysics.Model()
     Simulation = TestStructuralMechanicsStaticROM(model,parameters)

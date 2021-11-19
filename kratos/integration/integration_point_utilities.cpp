@@ -15,6 +15,90 @@
 
 namespace Kratos
 {
+    void IntegrationPointUtilities::CreateIntegrationPoints1D(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpansLocalSpace,
+        const IntegrationInfo& rIntegrationInfo)
+    {
+        if (rIntegrationInfo.GetQuadratureMethod(0) == IntegrationInfo::QuadratureMethod::GAUSS) {
+            IntegrationPointUtilities::CreateIntegrationPoints1DGauss(
+                rIntegrationPoints, rSpansLocalSpace, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
+        } else if (rIntegrationInfo.GetQuadratureMethod(0) == IntegrationInfo::QuadratureMethod::GRID) {
+            IntegrationPointUtilities::CreateIntegrationPoints1DGrid(
+                rIntegrationPoints, rSpansLocalSpace, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
+        }
+        else {
+            KRATOS_ERROR << "Integration with given quadrature method not implemented for 1d structures. "
+                << "Additional provided information: - rSpansLocalSpace: " << rSpansLocalSpace << std::endl;
+        }
+    }
+
+    /* @brief Creates integration points within provided spans according
+     *        to the provided points per span.
+     * @param rIntegrationPoints result integration points.
+     * @param rSpansLocalSpace spans in which integration points are generated.
+     * @param IntegrationPointsPerSpan number of integration points per span.
+     */
+    void IntegrationPointUtilities::CreateIntegrationPoints1DGauss(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpansLocalSpace,
+        const SizeType IntegrationPointsPerSpan)
+    {
+        const SizeType num_spans = rSpansLocalSpace.size() - 1;
+        const SizeType number_of_integration_points = num_spans * IntegrationPointsPerSpan;
+
+        if (rIntegrationPoints.size() != number_of_integration_points)
+            rIntegrationPoints.resize(number_of_integration_points);
+
+        auto integration_point_iterator = rIntegrationPoints.begin();
+        for (IndexType i = 0; i < num_spans; ++i)
+        {
+            IntegrationPointUtilities::IntegrationPoints1D(
+                integration_point_iterator,
+                IntegrationPointsPerSpan,
+                rSpansLocalSpace[i], rSpansLocalSpace[i + 1]);
+        }
+    }
+
+    /* @brief Creates integration points within provided spans according
+     *        to the provided points per span.
+     * @param rIntegrationPoints result integration points.
+     * @param rSpansLocalSpace spans in which integration points are generated.
+     * @param IntegrationPointsPerSpan number of integration points per span.
+     */
+    void IntegrationPointUtilities::CreateIntegrationPoints1DGrid(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpansLocalSpace,
+        const SizeType IntegrationPointsPerSpan)
+    {
+        const SizeType num_spans = rSpansLocalSpace.size() - 1;
+        const SizeType number_of_integration_points = num_spans * IntegrationPointsPerSpan + num_spans + 1;
+
+        if (rIntegrationPoints.size() != number_of_integration_points)
+            rIntegrationPoints.resize(number_of_integration_points);
+
+        IndexType counter = 0;
+        double last_weight = 0.0;
+        for (IndexType i = 0; i < num_spans; ++i)
+        {
+            const double increment = (rSpansLocalSpace[i + 1] - rSpansLocalSpace[i]) / (IntegrationPointsPerSpan + 1);
+            const double weight = std::abs(increment);
+            rIntegrationPoints[counter].X() = rSpansLocalSpace[i];
+            rIntegrationPoints[counter].Weight() = (weight / 2) + (last_weight / 2);
+            counter++;
+
+            for (IndexType j = 1; j < IntegrationPointsPerSpan + 1; ++j)
+            {
+                rIntegrationPoints[counter].X() = rSpansLocalSpace[i] + j * increment;
+                rIntegrationPoints[counter].Weight() = weight;
+                counter++;
+            }
+            last_weight = weight;
+        }
+        rIntegrationPoints[counter].X() = rSpansLocalSpace[rSpansLocalSpace.size() - 1];
+        rIntegrationPoints[counter].Weight() = (last_weight / 2);
+    }
+
     void IntegrationPointUtilities::IntegrationPoints1D(
         typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
         SizeType PointsInU,
@@ -66,6 +150,43 @@ namespace Kratos
                     integration_point_list_v[v][1] * length_v;
 
                 rIntegrationPointsBegin++;
+            }
+        }
+    }
+
+    void IntegrationPointUtilities::IntegrationPoints3D(
+        typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
+        SizeType PointsInU, SizeType PointsInV, SizeType PointsInW,
+        double U0, double U1, double V0, double V1, double W0, double W1)
+    {
+        KRATOS_DEBUG_ERROR_IF(PointsInU < 1 || PointsInV < 1 || PointsInW < 1)
+            << "PointsInU, -V and -W need to be bigger than 0 - PointsInU:"
+            << PointsInU << ", PointsInV:" << PointsInV << " and PointsInW:" << PointsInW << std::endl;
+
+        const double distance_u = U1 - U0;
+        const double length_u = std::abs(U1 - U0);
+        const double distance_v = V1 - V0;
+        const double length_v = std::abs(V1 - V0);
+        const double distance_w = W1 - W0;
+        const double length_w = std::abs(W1 - W0);
+
+        const std::vector<std::array<double, 2>>& integration_point_list_u = IntegrationPointUtilities::s_gauss_legendre[PointsInU - 1];
+        const std::vector<std::array<double, 2>>& integration_point_list_v = IntegrationPointUtilities::s_gauss_legendre[PointsInV - 1];
+        const std::vector<std::array<double, 2>>& integration_point_list_w = IntegrationPointUtilities::s_gauss_legendre[PointsInW - 1];
+
+        for (SizeType u = 0; u < PointsInU; ++u) {
+            for (SizeType v = 0; v < PointsInV; ++v) {
+                for( SizeType w = 0; w < PointsInW; ++w) {
+                    (*rIntegrationPointsBegin)[0] = U0 + distance_u * integration_point_list_u[u][0];
+                    (*rIntegrationPointsBegin)[1] = V0 + distance_v * integration_point_list_v[v][0];
+                    (*rIntegrationPointsBegin)[2] = W0 + distance_w * integration_point_list_w[w][0];
+                    (*rIntegrationPointsBegin).Weight() =
+                        integration_point_list_u[u][1] * length_u *
+                        integration_point_list_v[v][1] * length_v *
+                        integration_point_list_w[w][1] * length_w;
+
+                    rIntegrationPointsBegin++;
+                }
             }
         }
     }

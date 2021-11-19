@@ -16,7 +16,7 @@
             },
             "file_label"          : "step",
             "output_control_type" : "step",
-            "output_frequency"    : 1.0,
+            "output_interval"     : 1.0,
             "body_output"         : true,
             "node_output"         : false,
             "skin_output"         : false,
@@ -55,7 +55,7 @@
         "relative_pressure_tolerance"  : 1e-5,
         "absolute_pressure_tolerance"  : 1e-7,
         "linear_solver_settings"       : {
-            "solver_type"         : "ExternalSolversApplication.super_lu"
+            "solver_type"         : "LinearSolversApplication.sparse_lu"
         },
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet","Outlet2D","Top2D","Bottom2D"],

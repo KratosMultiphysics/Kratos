@@ -52,7 +52,8 @@ namespace Kratos
         for(auto& elem : primal_agglomeration_part.Elements())
         {
             Vector element_stress;
-            StressCalculation::CalculateStressOnGP(elem, mTracedStressType, element_stress, rPrimalModelPart.GetProcessInfo());
+            const ProcessInfo &r_process_info = rPrimalModelPart.GetProcessInfo();
+            StressCalculation::CalculateStressOnGP(elem, mTracedStressType, element_stress, r_process_info);
 
             const SizeType stress_vec_size = element_stress.size();
             double mean_stress = 0.0;

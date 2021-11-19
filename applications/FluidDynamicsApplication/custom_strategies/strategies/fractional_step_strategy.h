@@ -22,11 +22,13 @@
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 #include "processes/process.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "utilities/variable_utils.h"
+#include "utilities/entities_utilities.h"
 
 // Application includes
 #include "custom_utilities/solver_settings.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos {
 
@@ -59,7 +61,7 @@ namespace Kratos {
 /**
  * @brief Fractional-step strategy for incompressible Navier-Stokes formulation
  * This strategy implements a splitting scheme for the incompressible Navier-Stokes equations.
- * It is intended to be used in combination with the FractionalStep element in the FluidDynamicsApplicatoin.
+ * It is intended to be used in combination with the FractionalStep element in the FluidDynamicsApplication.
  * The fractional step index, which is stored in the ProcessInfo, takes the values
  * 1 : Momentum step (calculate fractional step velocity)
  * 2-3 : Unused (reserved for componentwise calculation of frac step velocity)
@@ -71,7 +73,7 @@ namespace Kratos {
  * @tparam TLinearSolver Linear solver template type
  */
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class FractionalStepStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+class FractionalStepStrategy : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -80,13 +82,13 @@ public:
     /// Counted pointer of FractionalStepStrategy
     KRATOS_CLASS_POINTER_DEFINITION(FractionalStepStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
+    typedef typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
     typedef SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver> SolverSettingsType;
 
@@ -173,6 +175,9 @@ public:
                 }
             }
         }
+
+        // Initialize all the elemnets and conditions
+        EntitiesUtilities::InitializeAllEntities(BaseType::GetModelPart());
     }
 
     int Check() override
@@ -234,7 +239,7 @@ public:
                     break;
                 }
             }
-            KRATOS_WARNING_IF("FractionalStepStrategy", !converged && echo_level > 0) << "Predictor-correctior iterations did not converge." << std::endl;
+            KRATOS_WARNING_IF("FractionalStepStrategy", !converged && echo_level > 0) << "Predictor-corrector iterations did not converge." << std::endl;
         } else {
             // Solve for fractional step velocity, then update pressure once
             const auto convergence_output = this->SolveStep();
@@ -409,6 +414,8 @@ protected:
 
     double mPressureTolerance;
 
+    double mPressureGradientRelaxationFactor;
+
     unsigned int mMaxVelocityIter;
 
     unsigned int mMaxPressureIter;
@@ -535,7 +542,7 @@ protected:
         for (int i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = rModelPart.NodesBegin() + i_node;
             const double old_press = it_node->FastGetSolutionStepValue(PRESSURE);
-            it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -old_press;
+            it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -mPressureGradientRelaxationFactor * old_press;
         }
 
         KRATOS_INFO_IF("FractionalStepStrategy", BaseType::GetEchoLevel() > 0) << "Calculating Pressure." << std::endl;
@@ -955,6 +962,17 @@ private:
         mUseSlipConditions = rSolverConfig.UseSlipConditions();
 
         mReformDofSet = rSolverConfig.GetReformDofSet();
+
+        auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
+        if (r_process_info.Has(FS_PRESSURE_GRADIENT_RELAXATION_FACTOR)) {
+            mPressureGradientRelaxationFactor = r_process_info[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR];
+            KRATOS_INFO("FractionalStepStrategy") << "Using fractional step strategy with "
+                                         "pressure gradient relaxation = "
+                                      << mPressureGradientRelaxationFactor << ".\n";
+        } else {
+            mPressureGradientRelaxationFactor = 1.0;
+            r_process_info.SetValue(FS_PRESSURE_GRADIENT_RELAXATION_FACTOR, mPressureGradientRelaxationFactor);
+        }
 
         BaseType::SetEchoLevel(rSolverConfig.GetEchoLevel());
 

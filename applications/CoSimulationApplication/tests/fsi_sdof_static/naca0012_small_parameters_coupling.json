@@ -26,7 +26,7 @@
             "maximum_iterations"     : 5,
             "echo_level"             : 0,
             "linear_solver_settings"  : {
-                    "solver_type"             : "EigenSolversApplication.sparse_qr"
+                    "solver_type"             : "LinearSolversApplication.sparse_qr"
             },
             "volume_model_part_name" : "Parts_Parts_Auto1",
             "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
@@ -100,7 +100,7 @@
                     "model_part_name"  : "FluidModelPart",
                     "output_file_settings": {
                         "file_name"  : "results.dat",
-                        "folder_name": "fsi_sdof_static"
+                        "output_path": "fsi_sdof_static"
                     },
                     "output_variables" : ["MESH_DISPLACEMENT_Y"]
                 }

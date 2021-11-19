@@ -15,6 +15,8 @@
 
 // Project includes
 #include "custom_conditions/displacement_control_condition.h"
+#include "structural_mechanics_application_variables.h"
+#include "includes/variables.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -240,7 +242,7 @@ void DisplacementControlCondition::GetValuesVector(
 
 void DisplacementControlCondition::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Calculation flags
@@ -256,7 +258,7 @@ void DisplacementControlCondition::CalculateRightHandSide(
 void DisplacementControlCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     //calculation flags
@@ -271,7 +273,7 @@ void DisplacementControlCondition::CalculateLocalSystem(
 
 void DisplacementControlCondition::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if(rMassMatrix.size1() != 0) {
@@ -284,7 +286,7 @@ void DisplacementControlCondition::CalculateMassMatrix(
 
 void DisplacementControlCondition::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if(rDampingMatrix.size1() != 0) {
@@ -341,10 +343,7 @@ int DisplacementControlCondition::Check( const ProcessInfo& rCurrentProcessInfo 
 {
     // Base check
     Condition::Check(rCurrentProcessInfo);
-
-    // Verify variable exists
-    KRATOS_CHECK_VARIABLE_KEY(LOAD_FACTOR)
-
+    
     // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
     for (const auto& r_node : GetGeometry().Points()) {
         KRATOS_CHECK_DOF_IN_NODE(LOAD_FACTOR, r_node)

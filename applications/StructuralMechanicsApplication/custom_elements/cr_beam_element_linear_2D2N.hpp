@@ -35,7 +35,7 @@ namespace Kratos
  * @author Klaus B Sautter
  */
 
-class CrBeamElementLinear2D2N : public CrBeamElement2D2N
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CrBeamElementLinear2D2N : public CrBeamElement2D2N
 {
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CrBeamElementLinear2D2N);
@@ -77,15 +77,15 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /////////////////////////////////////////////////
@@ -108,12 +108,14 @@ public:
         std::vector< array_1d<double, 3 > >& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-private:
+protected:
+
     CrBeamElementLinear2D2N() {};
 
     // stores the globalized master stiffness matrix for reaction forces
     Matrix mK_Master = ZeroMatrix(msElementSize,msElementSize);
 
+private:
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

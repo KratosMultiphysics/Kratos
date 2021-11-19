@@ -202,10 +202,10 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             return "multiplication"
     #
     def CheckVariableType(self,name):
-
-        self.var = KratosMultiphysics.KratosGlobals.GetVariable(name)
-        if( (not isinstance(self.var,KratosMultiphysics.Array1DComponentVariable)) and (not isinstance(self.var,KratosMultiphysics.DoubleVariable)) and (not isinstance(self.var,KratosMultiphysics.VectorVariable)) ):
-            raise Exception("Variable type is incorrect. Must be a scalar or a component")
+        pass
+        # self.var = KratosMultiphysics.KratosGlobals.GetVariable(name)
+        # if( (not isinstance(self.var,KratosMultiphysics.Array1DComponentVariable)) and (not isinstance(self.var,KratosMultiphysics.DoubleVariable)) and (not isinstance(self.var,KratosMultiphysics.VectorVariable)) ):
+        #     raise Exception("Variable type is incorrect. Must be a scalar or a component")
 
     #
     def SetFixAndFreeProcesses(self,params):
@@ -226,7 +226,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         self.fix_time_integration  = False
 
         self.TimeIntegrationMethod = None
-        time_integration_container = KratosSolid.ComponentTimeIntegrationMethods()
+        time_integration_container = KratosSolid.ScalarTimeIntegrationMethods()
         if( time_integration_container.HasProcessInfo(KratosSolid.COMPONENT_TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo) ):
             time_integration_methods = time_integration_container.GetFromProcessInfo(KratosSolid.COMPONENT_TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo)
 

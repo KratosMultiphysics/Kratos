@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -26,9 +24,11 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
             "help"              : "This process writes several points to a file. Internally it holds objects of type PointOutputProcess",
             "model_part_name"   : "",
             "entity_type"       : "element",
+            "interval"          : [0.0, 1e30],
             "positions"         : [[]],
             "output_variables"  : [],
             "historical_value"  : true,
+            "search_configuration" : "initial",
             "search_tolerance"  : 1e-6,
             "print_format"      : "",
             "output_file_settings": {}

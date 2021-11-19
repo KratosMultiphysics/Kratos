@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing Kratos
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
@@ -153,22 +151,17 @@ class AnalysisStage(object):
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
         """
-        # first we check if one of the output processes will print output in this step
-        # this is done to save computation in case none of them will print
-        is_output_step = False
+        execute_was_called = False
         for output_process in self._GetListOfOutputProcesses():
             if output_process.IsOutputStep():
-                is_output_step = True
-                break
+                if not execute_was_called:
+                    for process in self._GetListOfProcesses():
+                        process.ExecuteBeforeOutputStep()
+                    execute_was_called = True
 
-        if is_output_step: # at least one of the output processes will print output
-            for process in self._GetListOfProcesses():
-                process.ExecuteBeforeOutputStep()
+                output_process.PrintOutput()
 
-            for output_process in self._GetListOfOutputProcesses():
-                if output_process.IsOutputStep():
-                    output_process.PrintOutput()
-
+        if execute_was_called:
             for process in self._GetListOfProcesses():
                 process.ExecuteAfterOutputStep()
 
@@ -354,6 +347,7 @@ class AnalysisStage(object):
     def __CheckIfSolveSolutionStepReturnsAValue(self, is_converged):
         """In case the solver does not return the state of convergence
         (same as the SolvingStrategy does) then issue ONCE a deprecation-warning
+
         """
         if is_converged is None:
             if not hasattr(self, '_map_ret_val_depr_warnings'):

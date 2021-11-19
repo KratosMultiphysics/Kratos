@@ -35,11 +35,6 @@ __stdcall Element_GetVariable3d(ElementType *instance, Kratos::Variable<Kratos::
     return result;
 }
 
-EXPORT double __stdcall Element_GetVariableComponent(ElementType *instance,
-                                                     Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > *variable) {
-    return instance->GetValue(*variable);
-}
-
 EXPORT bool __stdcall Element_HasVariable1d(ElementType *instance, Kratos::Variable<double> *variable) {
     return instance->Has(*variable);
 }
@@ -49,9 +44,5 @@ __stdcall Element_HasVariable3d(ElementType *instance, Kratos::Variable<Kratos::
     return instance->Has(*variable);
 }
 
-EXPORT bool __stdcall Element_HasVariableComponent(ElementType *instance,
-                                                   Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > *variable) {
-    return instance->Has(*variable);
-}
 #endif
 }

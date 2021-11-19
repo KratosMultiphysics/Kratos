@@ -128,7 +128,7 @@ UpdatedLagrangianUP::~UpdatedLagrangianUP()
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::Initialize()
+void UpdatedLagrangianUP::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -410,8 +410,8 @@ void UpdatedLagrangianUP::InitializeSolutionStep(const ProcessInfo& rCurrentProc
 
 void UpdatedLagrangianUP::CalculateAndAddRHS(
     VectorType& rRightHandSideVector,
-    GeneralVariables& rVariables, 
-    Vector& rVolumeForce, 
+    GeneralVariables& rVariables,
+    Vector& rVolumeForce,
     const double& rIntegrationWeight,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -655,7 +655,7 @@ void UpdatedLagrangianUP::CalculateAndAddLHS(
     // Operation performed: add Kg to the rLefsHandSideMatrix
     if (!rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
     {
-        CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+        CalculateAndAddKuugUP(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
     }
 
     // Operation performed: add Kup to the rLefsHandSideMatrix
@@ -716,7 +716,7 @@ void UpdatedLagrangianUP::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+void UpdatedLagrangianUP::CalculateAndAddKuugUP(MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
         const double& rIntegrationWeight)
 
@@ -1049,9 +1049,9 @@ void UpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, const Pr
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::GetValuesVector( Vector& values, int Step )
+void UpdatedLagrangianUP::GetValuesVector( Vector& values, int Step ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
     unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
@@ -1081,9 +1081,9 @@ void UpdatedLagrangianUP::GetValuesVector( Vector& values, int Step )
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::GetFirstDerivativesVector( Vector& values, int Step )
+void UpdatedLagrangianUP::GetFirstDerivativesVector( Vector& values, int Step ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
     unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
@@ -1110,9 +1110,9 @@ void UpdatedLagrangianUP::GetFirstDerivativesVector( Vector& values, int Step )
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::GetSecondDerivativesVector( Vector& values, int Step )
+void UpdatedLagrangianUP::GetSecondDerivativesVector( Vector& values, int Step ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
     unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
@@ -1201,7 +1201,7 @@ void UpdatedLagrangianUP::CalculateOnIntegrationPoints(const Variable<double>& r
 
 void UpdatedLagrangianUP::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
-    std::vector<double>& rValues,
+    const std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(rValues.size() > 1)
@@ -1226,7 +1226,7 @@ void UpdatedLagrangianUP::SetValuesOnIntegrationPoints(
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int UpdatedLagrangianUP::Check( const ProcessInfo& rCurrentProcessInfo )
+int UpdatedLagrangianUP::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -1245,9 +1245,6 @@ int UpdatedLagrangianUP::Check( const ProcessInfo& rCurrentProcessInfo )
 
     KRATOS_ERROR_IF(LawFeatures.mOptions.IsNot(ConstitutiveLaw::U_P_LAW)) << "Constitutive law is not compatible with the U-P element type: Large Displacements U_P" << std::endl;
 
-    // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(PRESSURE)
-
     return correct;
 
     KRATOS_CATCH( "" );
@@ -1255,20 +1252,14 @@ int UpdatedLagrangianUP::Check( const ProcessInfo& rCurrentProcessInfo )
 
 void UpdatedLagrangianUP::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
-    rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
-    rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
-    rSerializer.save("DeterminantF0",mDeterminantF0);
-
-
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangian )
+    rSerializer.save("Pressure",m_mp_pressure);
 }
 
 void UpdatedLagrangianUP::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
-    rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
-    rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
-    rSerializer.load("DeterminantF0",mDeterminantF0);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UpdatedLagrangian )
+    rSerializer.load("Pressure",m_mp_pressure);
 }
 
 } // Namespace Kratos

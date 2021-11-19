@@ -1,10 +1,8 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
 # Import applications
-import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+from KratosMultiphysics.MeshMovingApplication import TrilinosExtension as TrilinosMeshMoving
 
 # Import baseclass
 from KratosMultiphysics.MeshMovingApplication.trilinos_mesh_solver_base import TrilinosMeshSolverBase
@@ -16,17 +14,17 @@ def CreateSolver(model, custom_settings):
 
 class TrilinosMeshSolverLaplacian(TrilinosMeshSolverBase):
     def __init__(self, model, custom_settings):
-        super(TrilinosMeshSolverLaplacian, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         if custom_settings["buffer_size"].GetInt() < 2:
             raise Exception("A buffer_size of at least 2 is required!")
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverLaplacian]:: Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "buffer_size"           : 2
         }""")
-        this_defaults.AddMissingParameters(super(TrilinosMeshSolverLaplacian, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     #### Private functions ####
@@ -36,7 +34,7 @@ class TrilinosMeshSolverLaplacian(TrilinosMeshSolverBase):
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
         compute_reactions = self.settings["compute_reactions"].GetBool()
         communicator = self.get_communicator()
-        solving_strategy = TrilinosApplication.TrilinosLaplacianMeshMovingStrategy(
+        solving_strategy = TrilinosMeshMoving.TrilinosLaplacianMeshMovingStrategy(
             communicator,
             self.mesh_model_part,
             linear_solver,

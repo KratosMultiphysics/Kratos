@@ -47,6 +47,8 @@ public:
     {
     }
 
+    virtual ~TemporalMethod() = default;
+
     virtual void InitializeStatisticsVariables()
     {
         KRATOS_TRY

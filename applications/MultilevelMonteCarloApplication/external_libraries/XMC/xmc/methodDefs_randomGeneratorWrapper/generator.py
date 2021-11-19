@@ -11,7 +11,7 @@ def normal(mean : float, deviation : float, shape : tuple = None):
     - deviation: float, standard deviation of the normal distribution.
     - shape (optional): tuple, shape of the desired output. If omitted, the output is a float.
 
-    Output: float if shape is omitted. Otherwise, nested list of required shape, whose every element is a float. 
+    Output: float if shape is omitted. Otherwise, nested list of required shape, whose every element is a float.
     These floats are drawn independantly from the normal distribution specified by the input arguments.
 
     Note: differences with returnStandardNormal.
@@ -27,7 +27,7 @@ def normal(mean : float, deviation : float, shape : tuple = None):
     if isinstance(sample,np.ndarray):
         sample = sample.astype(float).tolist()
     return sample
-        
+
 
 def returnStandardNormal(*args):
     """
@@ -71,9 +71,30 @@ def returnRayleighAndUniform(*args):
     uniform_rv = np.random.uniform(args[1], args[2], 1)
     return [rayleigh_rv, uniform_rv]
 
+def returnUniformAndNormal(*args):
+    """
+    Return one integer uniformly distributed random variable and
+    one normal random variable
+    """
+    return [int(np.random.uniform(args[0],args[1])),np.random.normal(args[2], args[3], 1)]
+
 def returnUniformAndTwoNormal(*args):
     """
     Return one integer uniformly distributed random variable and
     two normal random variables
     """
     return [int(np.random.uniform(args[0],args[1])),np.random.normal(args[2], args[3], 1),np.random.normal(args[4], args[5], 1)]
+
+def returnIntegerUniform(*args):
+    """
+    Return one integer uniformly distributed random variable
+    """
+    return [int(np.random.uniform(args[0],args[1]))]
+
+def returnIntegerUniformAndNormalAndUniform(*args):
+    """
+    Return one integer uniformly distributed random variable,
+    one normal random variable and
+    one uniformly distributed random variable.
+    """
+    return [int(np.random.uniform(args[0],args[1])),np.random.normal(args[2], args[3], 1),np.random.uniform(args[4], args[5], 1)]

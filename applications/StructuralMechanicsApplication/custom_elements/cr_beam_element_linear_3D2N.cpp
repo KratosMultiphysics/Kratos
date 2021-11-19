@@ -54,7 +54,7 @@ CrBeamElementLinear3D2N::~CrBeamElementLinear3D2N() {}
 
 void CrBeamElementLinear3D2N::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -71,7 +71,7 @@ void CrBeamElementLinear3D2N::CalculateLocalSystem(
 }
 
 void CrBeamElementLinear3D2N::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     rRightHandSideVector = ZeroVector(msElementSize);
@@ -90,7 +90,7 @@ void CrBeamElementLinear3D2N::CalculateRightHandSide(
 }
 
 void CrBeamElementLinear3D2N::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY;
@@ -121,7 +121,7 @@ void CrBeamElementLinear3D2N::CalculateLeftHandSide(
 }
 
 void CrBeamElementLinear3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     if (rMassMatrix.size1() != msElementSize) {
@@ -129,13 +129,9 @@ void CrBeamElementLinear3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
     }
     rMassMatrix = ZeroMatrix(msElementSize, msElementSize);
 
-    bool use_consistent_mass_matrix = false;
+    const bool compute_lumped_mass_matrix = StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo);
 
-    if (GetProperties().Has(USE_CONSISTENT_MASS_MATRIX)) {
-        use_consistent_mass_matrix = GetProperties()[USE_CONSISTENT_MASS_MATRIX];
-    }
-
-    if (!use_consistent_mass_matrix) {
+    if (compute_lumped_mass_matrix) {
         CalculateLumpedMassMatrix(rMassMatrix, rCurrentProcessInfo);
     } else {
         CalculateConsistentMassMatrix(rMassMatrix, rCurrentProcessInfo);
@@ -191,7 +187,8 @@ CrBeamElementLinear3D2N::CalculateDeformationStiffness() const
     KRATOS_CATCH("")
 }
 
-void CrBeamElementLinear3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void CrBeamElementLinear3D2N::Calculate(const Variable<Matrix>& rVariable,
+     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
         if(rOutput.size1() != msElementSize || rOutput.size2() != msElementSize) {
@@ -213,7 +210,7 @@ void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
     KRATOS_TRY
     // element with two nodes can only represent results at one node
     const unsigned int& write_points_number =
-        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
     if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
     }
@@ -255,9 +252,9 @@ void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
         rOutput[1][1] = -1.0 * stress[4] * 0.50 + stress[10] * 0.50;
         rOutput[2][1] = -1.0 * stress[4] * 0.25 + stress[10] * 0.75;
 
-        rOutput[0][2] = 1.0 * stress[5] * 0.75 - stress[11] * 0.25;
-        rOutput[1][2] = 1.0 * stress[5] * 0.50 - stress[11] * 0.50;
-        rOutput[2][2] = 1.0 * stress[5] * 0.25 - stress[11] * 0.75;
+        rOutput[0][2] = -1.0 * stress[5] * 0.75 + stress[11] * 0.25;
+        rOutput[1][2] = -1.0 * stress[5] * 0.50 + stress[11] * 0.50;
+        rOutput[2][2] = -1.0 * stress[5] * 0.25 + stress[11] * 0.75;
     }
     if (rVariable == FORCE) {
         rOutput[0][0] = -1.0 * stress[0] * 0.75 + stress[6] * 0.25;

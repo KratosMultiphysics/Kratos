@@ -405,6 +405,7 @@ public:
      * @brief This function is designed for being called at the beginning of the computations right after reading the model and the groups
      * @todo This should be moved to ExecuteInitialize (base class of Process)
      */
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - Use ExecuteInitialize instead\"")
     virtual void Initialize();
 
     /**
@@ -446,7 +447,7 @@ public:
      * @brief This clears the database
      * @warning This conflicts with flags Clear
      */
-    virtual void Clear();
+    void Clear() override;
 
     /**
      * @brief Execute method is used to execute the Process algorithms.

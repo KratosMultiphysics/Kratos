@@ -48,7 +48,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class IsotropicShellElement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) IsotropicShellElement
     : public Element
 {
 public:
@@ -105,15 +105,15 @@ public:
         PropertiesType::Pointer pProperties
         ) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
     void GetValuesVector(Vector& values, int Step) const override;
     void GetFirstDerivativesVector(Vector& values, int Step = 0) const override;
@@ -127,9 +127,9 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     int  Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -317,7 +317,7 @@ private:
     void CalculateAllMatrices(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     );
 
     Vector& CalculateVolumeForce(

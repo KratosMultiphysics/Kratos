@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FemToDemApplication as FEMDEM
@@ -160,13 +159,19 @@ class FemDemCoupledGiDOutput(gid_output.GiDOutput):
     def Writeresults(self, time):
 
         # We reorder the Id of the model parts
+        femdem_util = FEMDEM.FEMDEMCouplingUtilities()
         reorder_util_elem = FEMDEM.RenumberingNodesUtility(self.solid_model_part, self.fluid_model_part)
         reorder_util_elem.RenumberElements()
+
 
         Logger.PrintInfo("","")
         Logger.PrintInfo("","*****************  PRINTING RESULTS FOR GID  *************************")
         Logger.PrintInfo("","")
         Logger.Flush()
+
+        number_pfem_nodes = femdem_util.GetNumberOfNodes(self.fluid_model_part)
+        for node in self.balls_model_part.Nodes:
+            node.Id = node.Id + number_pfem_nodes
 
         if self.GiDMultiFileFlag == "Multiples":
             self.mixed_solid_fluid_model_part.Elements.clear()

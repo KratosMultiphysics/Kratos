@@ -1,7 +1,5 @@
-# Import PyCOMPSs
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
+from exaqute import *
+
 import numpy as np
 import time as time
 
@@ -12,7 +10,7 @@ class SingleLevelRNGSolverWrapper(sw.SolverWrapper):
     solveWrapper type whose solve method accepts a random number
     and returns it in a list of size self.ouptutDimension
 
-    Constructor arguments - 
+    Constructor arguments -
     solverWrapperIndex - Index-space position of the solverWrapper instance
     """
 
@@ -23,7 +21,7 @@ class SingleLevelRNGSolverWrapper(sw.SolverWrapper):
 
     # TODO - this is a temporary solution for changing futures list
     # to list of futures
-    @ExaquteTask(returns=2)
+    @task(keep=True, returns=2)
     def _drawSample_Task(self,randomInput):
         start_time = time.time()
         if all([component>=0 for component in self.solverWrapperIndex]):

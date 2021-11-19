@@ -108,31 +108,31 @@ public:
      * Sets on rConditionDofList the degrees of freedom of the considered element geometry
      */
     void GetDofList(DofsVectorType& rConditionDofList,
-		    ProcessInfo& rCurrentProcessInfo) override;
+		    const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-			  ProcessInfo& rCurrentProcessInfo) override;
+			  const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Sets on rValues the nodal displacements
      */
     void GetValuesVector(Vector& rValues,
-			 int Step = 0) override;
+			 int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
     void GetFirstDerivativesVector(Vector& rValues,
-				   int Step = 0) override;
+				   int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
     void GetSecondDerivativesVector(Vector& rValues,
-				    int Step = 0) override;
+				    int Step = 0) const override;
 
     /**
      * this function is designed to make the element to assemble an rRHS vector
@@ -145,7 +145,7 @@ public:
      */
     void AddExplicitContribution(const VectorType& rRHS,
 					 const Variable<VectorType>& rRHSVariable,
-					 Variable<array_1d<double,3> >& rDestinationVariable,
+					 const Variable<array_1d<double,3> >& rDestinationVariable,
 					 const ProcessInfo& rCurrentProcessInfo) override;
 
     //************************************************************************************
@@ -157,7 +157,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     ///@}
     ///@name Access
@@ -196,7 +196,7 @@ protected:
      * Initialize System Matrices
      */
 
-    unsigned int GetDofsSize() override;
+    unsigned int GetDofsSize() const override;
 
 
     /**

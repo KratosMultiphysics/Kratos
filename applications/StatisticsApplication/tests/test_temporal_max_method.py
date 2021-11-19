@@ -34,7 +34,7 @@ class TemporalMaxMethodHelperClass(
 
     def RunTemporalStatisticsTest(self, norm_type, container_name):
 
-        settings = TemporalMaxMethodHelperClass.__GetDefaultSettings(
+        settings = TemporalMaxMethodHelperClass.__GetDefaultParameters(
             norm_type, container_name)
         input_method = TemporalMaxMethodHelperClass.GetInputMethod(
             container_name)
@@ -122,7 +122,7 @@ class TemporalMaxMethodHelperClass(
         return result_min, result_min_time
 
     @staticmethod
-    def __GetDefaultSettings(norm_type, container_name):
+    def __GetDefaultParameters(norm_type, container_name):
         settings_str = r'''
         [
             {

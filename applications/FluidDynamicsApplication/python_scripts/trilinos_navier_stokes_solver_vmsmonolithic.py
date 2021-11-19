@@ -11,95 +11,15 @@ from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factor
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_solver_vmsmonolithic
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
-from KratosMultiphysics.FluidDynamicsApplication.turbulence_model_solver import CreateTurbulenceModel
 
 def CreateSolver(model, custom_settings):
     return TrilinosNavierStokesSolverMonolithic(model, custom_settings)
 
 class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
 
-    @classmethod
-    def GetDefaultSettings(cls):
-        ## Default settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "solver_type": "trilinos_navier_stokes_solver_vmsmonolithic",
-            "model_part_name": "",
-            "domain_size": -1,
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
-            },
-            "material_import_settings": {
-                "materials_filename": ""
-            },
-            "formulation": {
-                "element_type": "vms"
-            },
-            "maximum_iterations": 10,
-            "echo_level": 0,
-            "consider_periodic_conditions": false,
-            "compute_reactions": false,
-            "reform_dofs_at_each_step": false,
-            "relative_velocity_tolerance": 1e-5,
-            "absolute_velocity_tolerance": 1e-7,
-            "relative_pressure_tolerance": 1e-5,
-            "absolute_pressure_tolerance": 1e-7,
-            "linear_solver_settings": {
-                "solver_type": "amgcl"
-            },
-            "volume_model_part_name" : "volume_model_part",
-            "skin_parts": [""],
-            "no_skin_parts":[""],
-            "time_stepping": {
-                "automatic_time_step" : false,
-                "CFL_number"          : 1,
-                "minimum_delta_time"  : 1e-4,
-                "maximum_delta_time"  : 0.01
-            },
-            "time_scheme": "bossak",
-            "alpha":-0.3,
-            "move_mesh_strategy": 0,
-            "periodic": "periodic",
-            "regularization_coef": 1000,
-            "move_mesh_flag": false,
-            "turbulence_model_solver_settings": {}
-        }""")
-
-        default_settings.AddMissingParameters(super(TrilinosNavierStokesSolverMonolithic, cls).GetDefaultSettings())
-        return default_settings
-
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
-        # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
-        custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
-        super(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic, self).__init__(model,custom_settings)
-
-        self.formulation = navier_stokes_solver_vmsmonolithic.StabilizedFormulation(self.settings["formulation"])
-        self.element_name = self.formulation.element_name
-        self.condition_name = self.formulation.condition_name
-        self.element_integrates_in_time = self.formulation.element_integrates_in_time
-        self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
-
-        scheme_type = self.settings["time_scheme"].GetString()
-        if scheme_type == "bossak":
-            self.min_buffer_size = 2
-        elif scheme_type == "bdf2":
-            self.min_buffer_size = 3
-        elif scheme_type == "steady":
-            self.min_buffer_size = 1
-            self._SetUpSteadySimulation()
-        else:
-            msg  = "Unknown time_scheme option found in project parameters:\n"
-            msg += "\"" + scheme_type + "\"\n"
-            msg += "Accepted values are \"bossak\", \"bdf2\" or \"steady\".\n"
-            raise Exception(msg)
-
-        ## Construct the turbulence model solver
-        if not self.settings["turbulence_model_solver_settings"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
-            self._turbulence_model_solver = CreateTurbulenceModel(self.main_model_part, self.settings["turbulence_model_solver_settings"])
-            self.condition_name = self._turbulence_model_solver.GetFluidVelocityPressureConditionName()
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Using " + self.condition_name + " as wall condition")
+        # Call the serial base class constructor
+        super().__init__(model,custom_settings)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of TrilinosNavierStokesSolverMonolithic finished.")
 
@@ -128,25 +48,12 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         # Create the MPI communicators
         self.distributed_model_part_importer.CreateCommunicators()
 
-    def Initialize(self):
-        # If there is turbulence modelling, set the Epetra communicator in the turbulence solver
-        if hasattr(self, "_turbulence_model_solver"):
-            self._turbulence_model_solver.SetCommunicator(self._GetEpetraCommunicator())
-
-        # Call the base Initialize() method to create and initialize the strategy
-        super(TrilinosNavierStokesSolverMonolithic, self).Initialize()
-
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
-
     def Finalize(self):
         self._GetSolutionStrategy().Clear()
 
-        if hasattr(self, "_turbulence_model_solver"):
-            self._turbulence_model_solver.Finalize()
-
     def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
-            self._epetra_communicator = KratosTrilinos.CreateCommunicator()
+            self._epetra_communicator = KratosTrilinos.CreateEpetraCommunicator(self.main_model_part.GetCommunicator().GetDataCommunicator())
         return self._epetra_communicator
 
     def _CreateScheme(self):
@@ -168,45 +75,29 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 raise Exception(err_msg)
         # Cases in which a time scheme manages the time integration
         else:
-            if not hasattr(self, "_turbulence_model_solver"):
-                # Bossak time integration scheme
-                if self.settings["time_scheme"].GetString() == "bossak":
-                    # TODO: Can we remove this periodic check, Is the PATCH_INDEX used in this scheme?
-                    if self.settings["consider_periodic_conditions"].GetBool() == True:
-                        scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
-                            self.settings["alpha"].GetDouble(),
-                            domain_size,
-                            KratosCFD.PATCH_INDEX)
-                    else:
-                        scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
-                            self.settings["alpha"].GetDouble(),
-                            self.settings["move_mesh_strategy"].GetInt(),
-                            domain_size)
-                # BDF2 time integration scheme
-                elif self.settings["time_scheme"].GetString() == "bdf2":
-                    scheme = TrilinosFluid.TrilinosBDF2TurbulentScheme()
-                # Time scheme for steady state fluid solver
-                elif self.settings["time_scheme"].GetString() == "steady":
-                    scheme = TrilinosFluid.TrilinosResidualBasedSimpleSteadyScheme(
-                            self.settings["velocity_relaxation"].GetDouble(),
-                            self.settings["pressure_relaxation"].GetDouble(),
-                            domain_size)
-            else:
-                self._turbulence_model_solver.Initialize()
-                if self.settings["time_scheme"].GetString() == "bossak":
+            # Bossak time integration scheme
+            if self.settings["time_scheme"].GetString() == "bossak":
+                # TODO: Can we remove this periodic check, Is the PATCH_INDEX used in this scheme?
+                if self.settings["consider_periodic_conditions"].GetBool() == True:
                     scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
-                            self.settings["alpha"].GetDouble(),
-                            self.settings["move_mesh_strategy"].GetInt(),
-                            domain_size,
-                            self.settings["turbulence_model_solver_settings"]["velocity_pressure_relaxation_factor"].GetDouble(),
-                            self._turbulence_model_solver.GetTurbulenceSolvingProcess())
-                # Time scheme for steady state fluid solver
-                elif self.settings["time_scheme"].GetString() == "steady":
-                    scheme = TrilinosFluid.TrilinosResidualBasedSimpleSteadyScheme(
-                            self.settings["velocity_relaxation"].GetDouble(),
-                            self.settings["pressure_relaxation"].GetDouble(),
-                            domain_size,
-                            self._turbulence_model_solver.GetTurbulenceSolvingProcess())
+                        self.settings["alpha"].GetDouble(),
+                        domain_size,
+                        KratosCFD.PATCH_INDEX)
+                else:
+                    scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        self.settings["alpha"].GetDouble(),
+                        self.settings["move_mesh_strategy"].GetInt(),
+                        domain_size)
+            # BDF2 time integration scheme
+            elif self.settings["time_scheme"].GetString() == "bdf2":
+                scheme = TrilinosFluid.TrilinosBDF2TurbulentScheme()
+            # Time scheme for steady state fluid solver
+            elif self.settings["time_scheme"].GetString() == "steady":
+                scheme = TrilinosFluid.TrilinosResidualBasedSimpleSteadyScheme(
+                        self.settings["velocity_relaxation"].GetDouble(),
+                        self.settings["pressure_relaxation"].GetDouble(),
+                        domain_size)
+
         return scheme
 
     def _CreateLinearSolver(self):
@@ -219,11 +110,9 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 self.settings["relative_velocity_tolerance"].GetDouble(),
                 self.settings["absolute_velocity_tolerance"].GetDouble())
         else:
-            convergence_criterion = KratosTrilinos.TrilinosUPCriteria(
-                self.settings["relative_velocity_tolerance"].GetDouble(),
-                self.settings["absolute_velocity_tolerance"].GetDouble(),
-                self.settings["relative_pressure_tolerance"].GetDouble(),
-                self.settings["absolute_pressure_tolerance"].GetDouble())
+            convergence_criterion = KratosTrilinos.TrilinosMixedGenericCriteria(
+                [(KratosMultiphysics.VELOCITY, self.settings["relative_velocity_tolerance"].GetDouble(), self.settings["absolute_velocity_tolerance"].GetDouble()),
+                (KratosMultiphysics.PRESSURE, self.settings["relative_pressure_tolerance"].GetDouble(), self.settings["absolute_pressure_tolerance"].GetDouble())])
         convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
         return convergence_criterion
 
@@ -253,13 +142,11 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
     def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         time_scheme = self._GetScheme()
-        linear_solver = self._GetLinearSolver()
         convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self._GetBuilderAndSolver()
         return KratosTrilinos.TrilinosNewtonRaphsonStrategy(
             computing_model_part,
             time_scheme,
-            linear_solver,
             convergence_criterion,
             builder_and_solver,
             self.settings["maximum_iterations"].GetInt(),

@@ -58,14 +58,14 @@ IsotropicShellElement::~IsotropicShellElement()
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void IsotropicShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateAllMatrices(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void IsotropicShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     Matrix lhs(18,18);
     CalculateAllMatrices(lhs,rRightHandSideVector,rCurrentProcessInfo);
@@ -591,7 +591,7 @@ void IsotropicShellElement::CalculateBendingElasticityTensor( BoundedMatrix<doub
 void IsotropicShellElement::CalculateAllMatrices(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     BoundedMatrix<double,18,18> mKloc_system;
     BoundedMatrix<double,3,3> mEm;
@@ -1934,22 +1934,26 @@ void IsotropicShellElement::SetupOrientationAngles()
 void IsotropicShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    //calculate local coordinates and rotation matrix
-    array_1d<double,3> v1;
-    array_1d<double,3> v2;
-    array_1d<double,3> v3;
-    double x12, x23, x31, y12, y23, y31;
-    double A;
 
-    CalculateLocalGlobalTransformation( x12, x23, x31, y12, y23, y31,v1,v2,v3,A);
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        //calculate local coordinates and rotation matrix
+        array_1d<double,3> v1;
+        array_1d<double,3> v2;
+        array_1d<double,3> v3;
+        double x12, x23, x31, y12, y23, y31;
+        double A;
 
-    SaveOriginalReference(v1,v2,v3);
+        CalculateLocalGlobalTransformation( x12, x23, x31, y12, y23, y31,v1,v2,v3,A);
 
-    noalias(rot_oldit[0]) = GetGeometry()[0].FastGetSolutionStepValue(ROTATION);
-    noalias(rot_oldit[1]) = GetGeometry()[1].FastGetSolutionStepValue(ROTATION);
-    noalias(rot_oldit[2]) = GetGeometry()[2].FastGetSolutionStepValue(ROTATION);
+        SaveOriginalReference(v1,v2,v3);
 
-    this->SetupOrientationAngles();
+        noalias(rot_oldit[0]) = GetGeometry()[0].FastGetSolutionStepValue(ROTATION);
+        noalias(rot_oldit[1]) = GetGeometry()[1].FastGetSolutionStepValue(ROTATION);
+        noalias(rot_oldit[2]) = GetGeometry()[2].FastGetSolutionStepValue(ROTATION);
+
+        this->SetupOrientationAngles();
+    }
 
     KRATOS_CATCH( "" )
 }
@@ -1958,7 +1962,7 @@ void IsotropicShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 ////************************************************************************************
 ////************************************************************************************
 
-void IsotropicShellElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void IsotropicShellElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1968,7 +1972,7 @@ void IsotropicShellElement::InitializeSolutionStep( ProcessInfo& rCurrentProcess
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void IsotropicShellElement::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1992,7 +1996,7 @@ void IsotropicShellElement::FinalizeNonLinearIteration(ProcessInfo& CurrentProce
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

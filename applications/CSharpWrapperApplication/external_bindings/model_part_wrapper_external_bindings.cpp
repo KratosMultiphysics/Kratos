@@ -171,11 +171,6 @@ __stdcall ModelPartWrapper_GetNodalVariables1d(ModelPartWrapper *instance, Krato
     return instance->getNodalVariable1d(*variable);
 }
 
-EXPORT double *__stdcall ModelPartWrapper_GetNodalVariableComponents(ModelPartWrapper *instance,
-                                                                     Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > *variable) {
-    return instance->getNodalVariableComponent(*variable);
-}
-
 EXPORT double *__stdcall ModelPartWrapper_GetNodalVariables3d(ModelPartWrapper *instance,
                                                               Kratos::Variable<Kratos::array_1d<double, 3>> *variable) {
     return instance->getNodalVariable3d(*variable);

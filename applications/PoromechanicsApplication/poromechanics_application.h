@@ -50,8 +50,6 @@
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
 #include "custom_constitutive/exponential_cohesive_3D_law.hpp"
 #include "custom_constitutive/exponential_cohesive_2D_law.hpp"
-#include "custom_constitutive/simplified_bilinear_3D_law.hpp"
-#include "custom_constitutive/simplified_bilinear_2D_law.hpp"
 
 #include "custom_constitutive/custom_flow_rules/local_damage_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/nonlocal_damage_flow_rule.hpp"
@@ -197,8 +195,6 @@ const BilinearCohesive3DLaw mBilinearCohesive3DLaw;
 const BilinearCohesive2DLaw mBilinearCohesive2DLaw;
 const ExponentialCohesive3DLaw mExponentialCohesive3DLaw;
 const ExponentialCohesive2DLaw mExponentialCohesive2DLaw;
-const SimplifiedBilinear3DLaw mSimplifiedBilinear3DLaw;
-const SimplifiedBilinear2DLaw mSimplifiedBilinear2DLaw;
 
 const LocalDamageFlowRule mLocalDamageFlowRule;
 const NonlocalDamageFlowRule mNonlocalDamageFlowRule;

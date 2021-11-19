@@ -14,7 +14,7 @@
                 "TORSIONAL_INERTIA" : 0.0337623035,
                 "I22"               : 0.0168811518,
                 "I33"               : 0.02,
-                "USE_CONSISTENT_MASS_MATRIX" : true
+                "COMPUTE_LUMPED_MASS_MATRIX" : false
             },
             "Tables"           : {}
         }
@@ -31,7 +31,8 @@
                 "YOUNG_MODULUS"       : 210000000000.0,
                 "POISSON_RATIO"       : 0.3,
                 "CROSS_AREA"          : 0.005,
-                "TRUSS_PRESTRESS_PK2" : 250000000.0
+                "TRUSS_PRESTRESS_PK2" : 250000000.0,
+                "COMPUTE_LUMPED_MASS_MATRIX" : true
             },
             "Tables"           : {}
         }

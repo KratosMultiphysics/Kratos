@@ -23,7 +23,7 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/mpm_search_element_utility.h"
-#include "custom_utilities/mpm_particle_generator_utility.h"
+#include "custom_utilities/mpm_particle_generator_utility.cpp"
 
 
 namespace Kratos{
@@ -53,11 +53,23 @@ namespace Python{
             rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsMixedFormulation);
     }
 
+    void GenerateMaterialPointConditionAccordingToDimension(
+        ModelPart& rBackgroundGridModelPart,
+        ModelPart& rInitialModelPart,
+        ModelPart& rMPMModelPart)
+    {
+        const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        if (dimension == 2) MPMParticleGeneratorUtility::GenerateMaterialPointCondition<2>(
+            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart);
+        else if (dimension == 3) MPMParticleGeneratorUtility::GenerateMaterialPointCondition<3>(
+            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart);
+    }
+
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
         m.def("SearchElement", SearchElementAccordingToDimension);
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
-        m.def("GenerateMaterialPointCondition", &MPMParticleGeneratorUtility::GenerateMaterialPointCondition);
+        m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
     }
 
 }  // namespace Python.
