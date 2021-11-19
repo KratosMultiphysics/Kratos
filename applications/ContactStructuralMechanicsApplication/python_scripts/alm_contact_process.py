@@ -203,7 +203,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                     self.pure_slip = False
 
         # Auxiliar initialize
-        KM.VariableUtils().SetNonHistoricalVariable(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0, self.main_model_part.Nodes)
+        KM.VariableUtils().SetNonHistoricalVariableToZero(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, self.main_model_part.Nodes)
         if "Frictional" in contact_type:
             KM.VariableUtils().SetNonHistoricalVariableToZero(CSMA.AUGMENTED_TANGENT_CONTACT_PRESSURE, self.main_model_part.Nodes)
             
