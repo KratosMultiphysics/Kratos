@@ -297,6 +297,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     unsigned int nneg=0, npos=0;
 
     double mean_distance = 0.0;
+    double mean_curvature = 0.0;
 
     for (unsigned int i_node=0; i_node < num_nodes; ++i_node){
         //curvatures(i_node) = (*p_geometry)[i_node].FastGetSolutionStepValue(CURVATURE);
@@ -305,6 +306,8 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         const double dist0 = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE);
         distances0(i_node) = dist0;
         mean_distance += dist0;
+
+        mean_curvature += (*p_geometry)[i_node].FastGetSolutionStepValue(CURVATURE);
 
         if (dist0 > 0.0) npos += 1;
         else nneg += 1;
@@ -326,18 +329,21 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     }
 
     mean_distance /= static_cast<double>(num_nodes);
+    mean_curvature /= static_cast<double>(num_nodes);
 
     const double element_size = ElementSizeCalculator<3,4>::MinimumElementSize(this->GetGeometry());
     //KRATOS_WATCH(element_size)
 
     //const double tau = 0.5;
     //const double penalty_curvature = 0.0;//1.0e-3; // Not possible for curvature itself since normalized DISTANCE_GRADIENT is needed.
-    const double penalty_phi0 = 1.0e4/element_size; // <-- For Nitsche's method //1.0e9;//0.0;//
+    const double penalty_phi0 = 1.0e6/element_size; // <-- For Nitsche's method //1.0e9;//0.0;//
 
-    double source_coeff = 2.1/(0.1*element_size); //3.0/(8.0*element_size);//1.0e0; 
-    const double radius = /* 1.339358195e-4/1.25 *//* 1.339358195e-3/1.3 */5.0*element_size + mean_distance; //20.0*element_size //Usually we have ~10 elements across a Radius, so, this is the expected minimum radius.
-    if ( radius > (0.1*element_size) ) source_coeff = 2.1/radius;
-    //const double dissipative_coefficient = 1.0e-8;
+    // double source_coeff = 2.0/(0.1*element_size); //3.0/(8.0*element_size);//1.0e0;
+    // const double radius = /* 1.339358195e-4/1.25 *//* 1.339358195e-3/1.3 */5.0*element_size + mean_distance; //20.0*element_size //Usually we have ~10 elements across a Radius, so, this is the expected minimum radius.
+    // if ( radius > (0.1*element_size) ) source_coeff = 2.0/radius;
+    // //const double dissipative_coefficient = 1.0e-8;
+
+    double source_coeff = 1.0*mean_curvature;
 
     // num_dof = 4*num_nodes
     if(rLeftHandSideMatrix.size1() != num_dof)
@@ -470,7 +476,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         GeometryType::ShapeFunctionsGradientsType int_DN_DX;
         Vector int_weights;
 
-        if (step == 1){
+        if (step <= 1){
             //KRATOS_WATCH(nneg)
             Matrix neg_N, pos_N;
             GeometryType::ShapeFunctionsGradientsType neg_DN_DX, pos_DN_DX;
@@ -489,7 +495,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                     //rhs(i_node*(num_dim + 1) + 0) += pos_weights(pos_gp) * pos_N(pos_gp, i_node);
                     // rhs(i_node) += source_coeff * pos_weights(pos_gp) * pos_N(pos_gp, i_node);
                     // There is no need for the positive source term
-                    rhs(i_node) -= 0.5e0 * source_coeff * pos_weights(pos_gp) * pos_N(pos_gp, i_node);
+                    rhs(i_node) -= 1.0e0 * source_coeff * pos_weights(pos_gp) * pos_N(pos_gp, i_node);
                 }
             }
 
@@ -504,7 +510,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
             for (unsigned int neg_gp = 0; neg_gp < number_of_neg_gauss_points; neg_gp++){
                 for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
                     //rhs(i_node*(num_dim + 1) + 0) -= neg_weights(neg_gp) * neg_N(neg_gp, i_node);
-                    rhs(i_node) -= 1.0e0 * source_coeff * neg_weights(neg_gp) * neg_N(neg_gp, i_node);
+                    rhs(i_node) -= 2.0e0 * source_coeff * neg_weights(neg_gp) * neg_N(neg_gp, i_node);
                 }
             }
         } //else{
@@ -601,13 +607,13 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
             }
         //}
 
-    } else if (step == 1){
+    } else if (step <= 1){
         //KRATOS_WATCH(nneg)
         double source;
         if (npos != 0)
-            source = -0.5e0;//0.0;//1.0; // There is no need to add positive source term
+            source = -1.0e0;//0.0;//1.0; // There is no need to add positive source term
         else
-            source = -1.0e0;
+            source = -2.0e0;
 
         for (unsigned int gp = 0; gp < number_of_gauss_points; gp++){
             for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
@@ -617,7 +623,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         }
     }
 
-    if (step == 1){
+    if (step <= 1){
         GeometryType::GeometriesArrayType faces = GetGeometry().GenerateFaces();
 
         unsigned int i_face = 0;
@@ -685,16 +691,22 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
             //             face_jacobian_inv); */ // This code is not working, it is only as a hint for further development
 
                     for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
-                        VectorType grad_phi_old_avg = GetGeometry()[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT);
-                        grad_phi_old_avg /= norm_2(grad_phi_old_avg);
+                        VectorType grad_phi_old_avg_i = GetGeometry()[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT);
+                        grad_phi_old_avg_i /= norm_2(grad_phi_old_avg_i);
+
                         if (contact_angle_weight > 0.0){
                             minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
                         } else{
-                            const double norm_grad_phi_old = norm_2(grad_phi_old); // For linear elements, grad_phi_old is constant, however, this is not the correct way to calculate it
-                            minus_cos_contact_angle = Kratos::inner_prod(solid_normal,grad_phi_old_avg);//1.0/norm_grad_phi_old*grad_phi_old);//
+                            // const double norm_grad_phi_old = norm_2(grad_phi_old); // For linear elements, grad_phi_old is constant, however, this is not the correct way to calculate it
+                            minus_cos_contact_angle = Kratos::inner_prod(solid_normal,grad_phi_old_avg_i);//1.0/norm_grad_phi_old*grad_phi_old);//
                         }
 
-                        rhs(i_node) += minus_cos_contact_angle * face_weight * face_shape_func(i_node);
+                        if (step == 0){
+                            rhs(i_node) += 1.0 * minus_cos_contact_angle * face_weight * face_shape_func(i_node);
+                        } else{ // if (step == 1)
+                            const double norm_grad_phi_avg_i = norm_2( GetGeometry()[i_node].GetValue(DISTANCE_GRADIENT) );
+                            rhs(i_node) += norm_grad_phi_avg_i * minus_cos_contact_angle * face_weight * face_shape_func(i_node);
+                        }
                         //In case we use this process for the sake of redistancing, this RHS contribution should be turned off.
                     }
                 }

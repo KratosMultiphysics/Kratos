@@ -233,15 +233,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #self.hyperbolic_distance_reinitialization = self._set_hyperbolic_distance_reinitialization()
         #(self.hyperbolic_distance_reinitialization).Execute()
 
-        self.parallel_distance_process = self._set_parallel_distance_process()
-        layers = 500#int(4000/100000*self.main_model_part.NumberOfElements())
-        (self.parallel_distance_process).CalculateDistances(
-                  self.main_model_part,
-                  KratosMultiphysics.DISTANCE,
-                  KratosCFD.AREA_VARIABLE_AUX,
-                  layers,
-                  1.0e0,
-                  (self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT added on feb 20, 2020
+        # self.parallel_distance_process = self._set_parallel_distance_process()
+        # layers = 500#int(4000/100000*self.main_model_part.NumberOfElements())
+        # (self.parallel_distance_process).CalculateDistances(
+        #           self.main_model_part,
+        #           KratosMultiphysics.DISTANCE,
+        #           KratosCFD.AREA_VARIABLE_AUX,
+        #           layers,
+        #           1.0e0,
+        #           (self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT added on feb 20, 2020
 
         #self.variational_distance_process = self._set_variational_distance_process()
         #(self.variational_distance_process).Execute()
@@ -249,7 +249,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #self.lumped_eikonal_distance_calculation = self._set_lumped_eikonal_distance_calculation()
         #(self.lumped_eikonal_distance_calculation).Execute()
 
-        #self.variational_non_eikonal_distance = self._set_variational_non_eikonal_distance()
+        self.variational_non_eikonal_distance = self._set_variational_non_eikonal_distance()
         #(self.distance_gradient_process).Execute()
         #(self.curvature_calculation_process).Execute()
         #(self.variational_non_eikonal_distance).Execute()
@@ -352,8 +352,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 tilting_angle = (TimeStep*DT - 0.01)/0.09*(90.0/180.0)*math.pi
                 if tilting_angle < 0.0:
                     tilting_angle = 0.0
-                elif tilting_angle > (30.0/180.0)*math.pi:
-                    tilting_angle = (30.0/180.0)*math.pi
+                elif tilting_angle > (50.0/180.0)*math.pi:
+                    tilting_angle = (50.0/180.0)*math.pi
 
             sinAlpha = math.sin(tilting_angle)
             cosAlpha = math.cos(tilting_angle)
@@ -376,35 +376,35 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #        inlet_node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, vel_inlet)
             #        KratosMultiphysics.Logger.PrintInfo("Inlet", vel_inlet)
 
-            # # Evaluating the average nodal contact angle: First location
-            # print("Contact Angle Evaluator: Start")
-            # (self.contact_angle_evaluator).Execute()
+            # Evaluating the average nodal contact angle: First location: works fine with dewetting
+            print("Contact Angle Evaluator: Start")
+            (self.contact_angle_evaluator).Execute()
 
-            # # Store current level-set to check for wetting/dewetting used in contact_angle_evaluator
-            # for node in self.main_model_part.Nodes:
-            #     old_distance = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-            #     node.SetValue(KratosCFD.DISTANCE_AUX, old_distance)
-            # print("Contact Angle Evaluator: End")
+            # Store current level-set to check for wetting/dewetting used in contact_angle_evaluator
+            for node in self.main_model_part.Nodes:
+                old_distance = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                node.SetValue(KratosCFD.DISTANCE_AUX, old_distance)
+            print("Contact Angle Evaluator: End")
 
             # Recompute the distance field according to the new level-set position
-            if (TimeStep % 50 == 0):
-                print("Redistancing")
-                print(time.time())
+            # if (TimeStep % 50 == 0):
+            #     print("Redistancing")
+            #     print(time.time())
 
-                #(self.variational_distance_process).Execute()
+            #     #(self.variational_distance_process).Execute()
 
-                #(self.hyperbolic_distance_reinitialization).Execute()
+            #     #(self.hyperbolic_distance_reinitialization).Execute()
 
-                layers = 300#int(4000/100000*self.main_model_part.NumberOfElements())
-                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances( #
-                    self.main_model_part,
-                    KratosMultiphysics.DISTANCE,
-                    KratosCFD.AREA_VARIABLE_AUX,
-                    layers,
-                    1.0e0)#,
-                    #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
+            #     layers = 300#int(4000/100000*self.main_model_part.NumberOfElements())
+            #     (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances( #
+            #         self.main_model_part,
+            #         KratosMultiphysics.DISTANCE,
+            #         KratosCFD.AREA_VARIABLE_AUX,
+            #         layers,
+            #         1.0e0)#,
+            #         #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
-                print(time.time())
+            #     print(time.time())
 
             #########################################
             ##
@@ -448,15 +448,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             print(time.time())
 
-            # Evaluating the average nodal contact angle: First location
-            print("Contact Angle Evaluator: Start")
-            (self.contact_angle_evaluator).Execute()
+            # # Evaluating the average nodal contact angle: Second location
+            # print("Contact Angle Evaluator: Start")
+            # (self.contact_angle_evaluator).Execute()
 
-            # Store current level-set to check for wetting/dewetting used in contact_angle_evaluator
-            for node in self.main_model_part.Nodes:
-                old_distance = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                node.SetValue(KratosCFD.DISTANCE_AUX, old_distance)
-            print("Contact Angle Evaluator: End")
+            # # Store current level-set to check for wetting/dewetting used in contact_angle_evaluator
+            # for node in self.main_model_part.Nodes:
+            #     old_distance = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            #     node.SetValue(KratosCFD.DISTANCE_AUX, old_distance)
+            # print("Contact Angle Evaluator: End")
 
             ####################################
             ##
@@ -468,17 +468,17 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             print(time.time())
             #(self.variational_distance_process).Execute()
 
-            # if (TimeStep % 1 == 0):
-            #     (self.distance_gradient_process).Execute() # Always check if calculated above
-            #     (self.variational_non_eikonal_distance).Execute()
-            #     for node in self.main_model_part.Nodes:
-            #         smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
-            #         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+            if (TimeStep % 1 == 0):
+                (self.distance_gradient_process).Execute() # Always check if calculated above
+                (self.curvature_calculation_process).Execute()
+                (self.variational_non_eikonal_distance).Execute()
+                for node in self.main_model_part.Nodes:
+                    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
+                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
             if (TimeStep % 1 == 0):
                 (self.distance_gradient_process).Execute() # Always check if calculated above
                 (self.surface_smoothing_process).Execute()
-                TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
                 for node in self.main_model_part.Nodes:
                     smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
                     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
@@ -554,6 +554,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     velocity )
 
             (self.level_set_convection_process).Execute()
+
+            TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+            if (TimeStep % 1 == 0):
+                (self.distance_gradient_process).Execute() # Always check if calculated above
+                (self.curvature_calculation_process).Execute()
+                (self.variational_non_eikonal_distance).Execute()
+                for node in self.main_model_part.Nodes:
+                    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
+                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
         # # Smoothing the surface to filter oscillatory surface
         # (self.distance_gradient_process).Execute() # Always check if calculated above

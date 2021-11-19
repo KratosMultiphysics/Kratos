@@ -137,6 +137,9 @@ void SurfaceSmoothingProcess::Execute()
     Model& current_model = mrModelPart.GetModel();
     auto& r_smoothing_model_part = current_model.GetModelPart( mAuxModelPartName );
 
+    const double scale = 1.0e3;
+    r_smoothing_model_part.GetProcessInfo().SetValue(NODAL_AREA,scale);
+
     #pragma omp parallel for
     for (unsigned int k = 0; k < NumNodes; ++k) {
         auto it_node = mrModelPart.NodesBegin() + k;
@@ -144,7 +147,7 @@ void SurfaceSmoothingProcess::Execute()
 
         //it_node->Free(DISTANCE_AUX);
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
-        it_node->FastGetSolutionStepValue(DISTANCE_AUX) = distance;
+        it_node->FastGetSolutionStepValue(DISTANCE_AUX) = scale*distance;
 
         auto it_node_smoothing = r_smoothing_model_part.NodesBegin() + k;
         if (it_node->IsFixed(DISTANCE)){
@@ -198,7 +201,7 @@ void SurfaceSmoothingProcess::Execute()
     #pragma omp parallel for
     for (unsigned int k = 0; k < NumNodes; ++k) {
         auto it_node = mrModelPart.NodesBegin() + k;
-        DistDiff[it_node->Id()-1] = it_node->FastGetSolutionStepValue(DISTANCE_AUX) - it_node->FastGetSolutionStepValue(DISTANCE);
+        DistDiff[it_node->Id()-1] = it_node->FastGetSolutionStepValue(DISTANCE_AUX) - scale*it_node->FastGetSolutionStepValue(DISTANCE);
     }
 
     const int num_dim  = 3;
@@ -248,9 +251,9 @@ void SurfaceSmoothingProcess::Execute()
                     jPosition[1] = n_nodes[j].Y();
                     jPosition[2] = n_nodes[j].Z();
                 }
-                const double dist = norm_2(iPosition - jPosition);
-                NumNeighbors[iId] += 1.0/dist;
-                DistDiffAvg[iId] += DistDiff[jId]/dist;
+                const double scaled_dist = scale*norm_2(iPosition - jPosition);
+                NumNeighbors[iId] += 1.0/scaled_dist;
+                DistDiffAvg[iId] += DistDiff[jId]/scaled_dist;
             }
         }
     }
@@ -260,9 +263,11 @@ void SurfaceSmoothingProcess::Execute()
         auto it_node = mrModelPart.NodesBegin() + k;
         //KRATOS_INFO("SurfaceSmoothingProcess, Nodes Id") << it_node->Id() << std::endl;
         if (NumNeighbors[it_node->Id()-1] != 0.0 && !it_node->IsFixed(DISTANCE) ){// && it_node->GetValue(IS_STRUCTURE) == 0.0){
-             it_node->FastGetSolutionStepValue(DISTANCE_AUX) =
-                it_node->FastGetSolutionStepValue(DISTANCE_AUX) - 1.0/NumNeighbors[it_node->Id()-1]*DistDiffAvg[it_node->Id()-1];
+            const double scaled_smoothed_distance = it_node->FastGetSolutionStepValue(DISTANCE_AUX) - 1.0/NumNeighbors[it_node->Id()-1]*DistDiffAvg[it_node->Id()-1];
+            it_node->FastGetSolutionStepValue(DISTANCE_AUX) = scaled_smoothed_distance;
         }
+
+        it_node->FastGetSolutionStepValue(DISTANCE_AUX) /= scale;
 
     //     it_node->Free(DISTANCE_AUX);
     }

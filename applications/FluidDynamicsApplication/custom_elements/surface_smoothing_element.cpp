@@ -231,6 +231,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     const unsigned int num_faces = num_nodes; //Simplex element
 
     const double dt = rCurrentProcessInfo.GetValue(DELTA_TIME);
+    const double scale = rCurrentProcessInfo.GetValue(NODAL_AREA);
 
     //GeometryType::Pointer p_geom = this->pGetGeometry();
     //const double he = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
@@ -247,12 +248,12 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     BoundedMatrix<double,num_nodes,num_nodes> tempM;
     tempM = ZeroMatrix(num_nodes,num_nodes);
-    BoundedMatrix<double,num_nodes,num_nodes> tempMlumped;
-    tempMlumped = ZeroMatrix(num_nodes,num_nodes);
+    //BoundedMatrix<double,num_nodes,num_nodes> tempMlumped;
+    //tempMlumped = ZeroMatrix(num_nodes,num_nodes);
     BoundedMatrix<double,num_nodes,num_nodes> tempA;
     tempA = ZeroMatrix(num_nodes,num_nodes);
 
-    array_1d<double,num_nodes> tempLaplacianRHS = ZeroVector(num_nodes); 
+    //array_1d<double,num_nodes> tempLaplacianRHS = ZeroVector(num_nodes); 
     array_1d<double,num_nodes> tempBCRHS = ZeroVector(num_nodes); 
 
     // num_dof = num_nodes
@@ -266,7 +267,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info
     const double he = ElementSizeCalculator<3,4>::GradientsElementSize(DN_DX);
-    const double epsilon = 1.0e-10;//1.7e-9;//6.0e5*dt*he*he;//5.0e5*dt*he*he;//1.0e2*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
+    const double epsilon = 1.0e-12;//1.7e-9;//6.0e5*dt*he*he;//5.0e5*dt*he*he;//1.0e2*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
 
     // HINT: 5e-10 is fine for median mesh and exact gradient (1.3e-9 for finer mesh)
     // For the Avg. Gradient value, a larger epsilon is needed.
@@ -321,13 +322,13 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     }
 
     for(unsigned int i = 0; i<num_nodes; i++){
-        PHIold[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+        PHIold[i] = scale*GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
         PHIdof[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_AUX);
         //GradPHIold[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);//grad_phi_old;//
     }
 
     for(unsigned int i = 0; i<num_nodes; i++){
-        tempMlumped(i,i) = area*N[i];
+        //tempMlumped(i,i) = area*N[i];
 
         for(unsigned int j = 0; j<num_nodes; j++){
             tempM(i,j) = area*N[i]*N[j];
@@ -335,7 +336,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
             for (unsigned int k = 0; k<num_dim; k++){
                 tempA(i,j) += area*epsilon*DN_DX(i,k)*DN_DX(j,k);
 
-                tempLaplacianRHS[i] += area*epsilon*DN_DX(i,k)*N[j]*grad_phi_old[k]; //(GradPHIold[j])[k];
+                //tempLaplacianRHS[i] += area*epsilon*DN_DX(i,k)*N[j]*grad_phi_old[k]; //(GradPHIold[j])[k];
             }
 
             //tempA(i,j) -= 0.5*area*epsilon*n_dot_grad(i)*n_dot_grad(j);
@@ -554,10 +555,11 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                     if (contact_angle_weight > 0.0){
                         minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
                     } else{
-                        minus_cos_contact_angle = Kratos::inner_prod(solid_normal,
+                        minus_cos_contact_angle = Kratos::inner_prod(solid_normal, //grad_phi_old);
                             GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT));
                     }
-                    tempBCRHS[i] += epsilon * minus_cos_contact_angle * face_weight * face_shape_func(i);
+                    //KRATOS_WATCH(rCurrentProcessInfo[NODAL_AREA])
+                    tempBCRHS[i] += epsilon * (scale*minus_cos_contact_angle) * face_weight * face_shape_func(i);
                 }
             }
         }
