@@ -95,14 +95,6 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
         rKratosModelPart.AddNodalSolutionStepVariable(PARTITION_INDEX); // to be on the safe side
     }
 
-    // check if nodes are ordered consecutively
-    // this is unfortunately necessary for several resons, e.g. AddElements and the ParallelFillCommunicator
-    std::size_t max_node_id = 0;
-    for (const auto& r_node : rCoSimIOModelPart.Nodes()) {
-        KRATOS_ERROR_IF(max_node_id >= static_cast<std::size_t>(r_node.Id())) << "The nodes must be consecutively ordered!" << std::endl;
-        max_node_id = r_node.Id();
-    }
-
     KRATOS_ERROR_IF(!is_distributed && rCoSimIOModelPart.GetPartitionModelParts().size()>0) << "Ghost entities exist in CoSimIO ModelPart in serial simulation!" << std::endl;
 
     ModelPart::NodesContainerType ordered_nodes;
@@ -141,12 +133,8 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
     }
 
     std::vector<IndexType> conn;
-    std::size_t max_elem_id = 0;
     for (auto elem_it=rCoSimIOModelPart.ElementsBegin(); elem_it!=rCoSimIOModelPart.ElementsEnd(); ++elem_it) {
         const auto& r_elem = **elem_it;
-
-        KRATOS_ERROR_IF(max_elem_id >= static_cast<std::size_t>(r_elem.Id())) << "The elements must be consecutively ordered!" << std::endl;
-        max_elem_id = r_elem.Id();
 
         if (conn.size() != r_elem.NumberOfNodes()) {
             conn.resize(r_elem.NumberOfNodes());
