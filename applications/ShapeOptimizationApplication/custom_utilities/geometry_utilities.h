@@ -30,6 +30,7 @@
 #include "shape_optimization_application.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 #include "spatial_containers/spatial_containers.h"
 

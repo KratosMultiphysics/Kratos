@@ -15,6 +15,8 @@
 // Project includes
 #include "custom_utilities/response_functions/face_angle_response_function_utility.h"
 #include "utilities/variable_utils.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // ==============================================================================
 
