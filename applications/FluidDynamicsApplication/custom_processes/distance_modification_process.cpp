@@ -19,7 +19,7 @@
 #include "containers/model.h"
 #include "includes/checks.h"
 #include "utilities/openmp_utils.h"
-#include "utilities/parallel_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "processes/find_nodal_h_process.h"
 
 // Application includes
