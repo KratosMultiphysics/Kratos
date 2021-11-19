@@ -292,7 +292,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartGetSubModelPart, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL("sub_inlet", model_part.GetSubModelPart("Inlet1.sub_inlet").Name());
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Inlet1.random_sub_inlet"),
-        "Error: There is no sub model part with name \"random_sub_inlet\" in model part \"Inlet1\"\nThe total input string was \"Inlet1.random_sub_inlet\"\nThe the following sub model parts are available:");
+        "Error: There is no sub model part with name \"random_sub_inlet\" in model part \"Main.Inlet1\"\nThe the following sub model parts are available:\n\tsub_inlet");
 
     // Checking SubSubSubModelPart
     ssmp.CreateSubModelPart("tiny_inlet");
@@ -302,7 +302,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartGetSubModelPart, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL("tiny_inlet", model_part.GetSubModelPart("Inlet1.sub_inlet.tiny_inlet").Name());
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Inlet1.sub_inlet.big_inlet"),
-        "Error: There is no sub model part with name \"big_inlet\" in model part \"sub_inlet\"\nThe total input string was \"Inlet1.sub_inlet.big_inlet\"\nThe the following sub model parts are available:");
+        "Error: There is no sub model part with name \"big_inlet\" in model part \"Main.Inlet1.sub_inlet\"\nThe the following sub model parts are available:\n\ttiny_inlet");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ModelPartHasSubModelPart, KratosCoreFastSuite)
@@ -376,6 +376,35 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartCreateSubModelPart, KratosCoreFastSuite)
     KRATOS_CHECK(model_part.GetSubModelPart("Fancy").HasSubModelPart("xxx_sub_inlet"));
     KRATOS_CHECK(model_part.GetSubModelPart("Fancy").HasSubModelPart("xxx_sub_inlet.uztr"));
     KRATOS_CHECK_EQUAL(sssmp_2.Name(), "uztr");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveSubModelPart, KratosCoreFastSuite)
+{
+    Model model;
+
+    auto& model_part = model.CreateModelPart("Main");
+
+    // Checking SubModelPart
+    auto& smp = model_part.CreateSubModelPart("Inlet1");
+    model_part.CreateSubModelPart("Inlet1.sub_inlet.sub_sub_inlet");
+    auto& ssmp_2 = model_part.CreateSubModelPart("test1.InletCustom.ccc_sub_inlet");
+
+    ssmp_2.RemoveSubModelPart("ccc_sub_inlet");
+    KRATOS_CHECK_IS_FALSE(ssmp_2.HasSubModelPart("ccc_sub_inlet"));
+
+    model_part.RemoveSubModelPart("Inlet1.sub_inlet.sub_sub_inlet");
+    KRATOS_CHECK_IS_FALSE(smp.HasSubModelPart("sub_inlet.sub_sub_inlet"));
+    KRATOS_CHECK(smp.HasSubModelPart("sub_inlet"));
+    KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.sub_inlet"));
+
+    model_part.RemoveSubModelPart("test1");
+    KRATOS_CHECK_IS_FALSE(model_part.HasSubModelPart("test1"));
+    KRATOS_CHECK_IS_FALSE(model_part.HasSubModelPart("test1.InletCustom"));
+    KRATOS_CHECK_IS_FALSE(model_part.HasSubModelPart("test1.InletCustom"));
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        model_part.RemoveSubModelPart("Inlet1.sub_inlet.sub_sub_inlet.test"),
+        "Error: There is no sub model part with name \"sub_sub_inlet\" in model part \"Main.Inlet1.sub_inlet\"");
 }
 
 }  // namespace Testing.
