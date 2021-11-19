@@ -4,6 +4,7 @@ from KratosMultiphysics import * # TODO remove
 # Other imports
 from  KratosMultiphysics.deprecation_management import DeprecationManager
 import os
+from pathlib import Path
 
 def Factory(settings, Model):
     if not isinstance(settings, KM.Parameters):
@@ -105,7 +106,7 @@ class GiDOutputProcess(KM.Process):
             param.ValidateAndAssignDefaults(self.defaults)
 
         self.param = param
-        self.base_file_name = file_name
+        self.base_file_name = self._ValidateFileName(file_name)
 
         self.model_part = model_part
         self.body_io = None
@@ -727,7 +728,7 @@ class GiDOutputProcess(KM.Process):
         else:
             self.next_output = self.model_part.ProcessInfo[KM.STEP]
 
-            # Remove post results
+        # Remove post results
         if self.output_label_is_time:
             label = self.model_part.ProcessInfo[KM.TIME]
         else:
@@ -737,3 +738,15 @@ class GiDOutputProcess(KM.Process):
 
         # Restart .post.lst files
         self.__restart_list_files(additional_list_files) # FIXME
+
+    @staticmethod
+    def _ValidateFileName(file_name):
+        # A file name must be specified
+        if not file_name:
+            raise Exception('No "file_name" was specified!')
+
+        # Make sure that the path to the desired output folder exists
+        output_path = Path(file_name).parent
+        KM.FilesystemExtensions.MPISafeCreateDirectories(str(output_path))
+
+        return file_name
