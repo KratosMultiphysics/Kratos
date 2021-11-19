@@ -59,7 +59,7 @@ namespace Kratos
  * @details This is the base class from which we will derive all the explicit strategies (FE, RK4, ...)
  */
 template <class TSparseSpace, class TDenseSpace, class TButcherTableau>
-class CompressibleNavierStokesExplicitSolvingStrategyRungeKutta 
+class CompressibleNavierStokesExplicitSolvingStrategyRungeKutta
 : public ExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, TButcherTableau>
 {
 public:
@@ -75,7 +75,8 @@ public:
     /// The local vector definition
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
-
+    /// Shock capturing process factory
+    typedef Process::Pointer (*ShockCapturingFactoryType)(ModelPart&, Parameters);
 
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG(SHOCK_CAPTURING);
@@ -604,10 +605,10 @@ private:
 
 ///@}
 
-template<class TSparseSpace, class TDenseSpace> 
+template<class TSparseSpace, class TDenseSpace>
 using CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4 = CompressibleNavierStokesExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, ButcherTableauRK4>;
 
-template<class TSparseSpace, class TDenseSpace> 
+template<class TSparseSpace, class TDenseSpace>
 using CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD = CompressibleNavierStokesExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, ButcherTableauRK3TVD>;
 
 } /* namespace Kratos.*/
