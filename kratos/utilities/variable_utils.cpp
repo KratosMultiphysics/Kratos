@@ -175,8 +175,7 @@ void VariableUtils::UpdateCurrentPosition(
     KRATOS_TRY;
 
     block_for_each(rNodes, [&](Node<3>& rNode){
-        const auto& r_update_coords = rNode.FastGetSolutionStepValue(rUpdateVariable, BufferPosition);
-        noalias(rNode.Coordinates()) = (rNode.GetInitialPosition()).Coordinates() + r_update_coords;
+        noalias(rNode.Coordinates()) = (rNode.GetInitialPosition()).Coordinates() + rNode.FastGetSolutionStepValue(rUpdateVariable, BufferPosition);
     });
 
     KRATOS_CATCH("");

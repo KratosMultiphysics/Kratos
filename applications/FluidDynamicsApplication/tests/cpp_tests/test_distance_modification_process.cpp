@@ -53,6 +53,9 @@ void TriangleModelPartForDistanceModification(
         Vector elem_dist(3,1.0);
         elem_dist(0) = -1e-5;
         rModelPart.ElementsBegin()->SetValue(ELEMENTAL_DISTANCES, elem_dist);
+        Vector elem_edge_dist(3,-1.0);
+        elem_edge_dist(1) = 0.8;
+        rModelPart.ElementsBegin()->SetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, elem_edge_dist);
     }
 }
 
@@ -78,8 +81,8 @@ KRATOS_TEST_CASE_IN_SUITE(DistanceModificationTriangle, FluidDynamicsApplication
     dist_mod_process.ExecuteBeforeSolutionLoop();
     dist_mod_process.ExecuteInitializeSolutionStep();
     const double tolerance = 1e-9;
-    std::array<double, 3> expected_values = {-1.0e-3, 1.0, 1.0};
-    for (unsigned int i_node = 1; i_node < 4; ++i_node) {
+    const std::array<double, 3> expected_values = {-1.0e-3, 1.0, 1.0};
+    for (size_t i_node = 1; i_node < 4; ++i_node) {
         KRATOS_CHECK_NEAR((model_part.GetNode(i_node)).FastGetSolutionStepValue(DISTANCE), expected_values[i_node - 1], tolerance);
     }
 
@@ -88,8 +91,8 @@ KRATOS_TEST_CASE_IN_SUITE(DistanceModificationTriangle, FluidDynamicsApplication
 
     // Check the original distance recovering
     dist_mod_process.ExecuteFinalizeSolutionStep();
-    std::array<double, 3> expected_orig_values = {-1.0e-5, 1.0, 1.0};
-    for (unsigned int i_node = 1; i_node < 4; ++i_node) {
+    const std::array<double, 3> expected_orig_values = {-1.0e-5, 1.0, 1.0};
+    for (size_t i_node = 1; i_node < 4; ++i_node) {
         KRATOS_CHECK_NEAR((model_part.GetNode(i_node)).FastGetSolutionStepValue(DISTANCE), expected_orig_values[i_node - 1], tolerance);
     }
 }
@@ -114,23 +117,24 @@ KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceModificationTriangle, FluidDynami
     dist_mod_process.ExecuteInitialize();
     dist_mod_process.ExecuteBeforeSolutionLoop();
     dist_mod_process.ExecuteInitializeSolutionStep();
-    auto elem_dist = (model_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+    auto& r_elem_dist = (model_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+    auto& r_elem_edge_dist_extra = (model_part.ElementsBegin())->GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
     const double tolerance = 1e-9;
-    std::array<double, 3> expected_values = {-0.000797885, 1.0, 1.0};
-    for (unsigned int i = 0; i < elem_dist.size(); ++i) {
-        KRATOS_CHECK_NEAR(elem_dist[i], expected_values[i], tolerance);
-    }
+    const std::vector<double> expected_values = {-0.000797885, 1.0, 1.0};
+    const std::vector<double> expected_extra_values = {-1.0, 0.9992027516, -1.0};
+    KRATOS_CHECK_VECTOR_NEAR(r_elem_dist, expected_values, tolerance);
+    KRATOS_CHECK_VECTOR_NEAR(r_elem_edge_dist_extra, expected_extra_values, tolerance);
 
     // Check that the flag TO_SPLIT is correctly set
     KRATOS_CHECK((model_part.ElementsBegin())->Is(TO_SPLIT));
 
     // Check the original distance recovering
     dist_mod_process.ExecuteFinalizeSolutionStep();
-    elem_dist = (model_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-    std::array<double, 3> expected_orig_values = {-1.0e-5, 1.0, 1.0};
-    for (unsigned int i = 0; i < elem_dist.size(); ++i) {
-        KRATOS_CHECK_NEAR(elem_dist[i], expected_orig_values[i], tolerance);
-    }
+    r_elem_dist = (model_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+    r_elem_edge_dist_extra = (model_part.ElementsBegin())->GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
+    const std::vector<double> expected_orig_values = {-1.0e-5, 1.0, 1.0};
+    KRATOS_CHECK_VECTOR_NEAR(r_elem_dist, expected_orig_values, tolerance);
+    KRATOS_CHECK_VECTOR_NEAR(r_elem_edge_dist_extra, expected_extra_values, tolerance);
 }
 
 }
