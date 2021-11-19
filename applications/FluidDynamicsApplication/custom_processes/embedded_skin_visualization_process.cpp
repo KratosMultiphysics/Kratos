@@ -551,7 +551,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationMesh()
     // If MPI, this creates the communication plan among processes
     // If serial, it is only required to set the current mesh as local mesh in order to output the values
     if (mrVisualizationModelPart.IsDistributed()) {
-        ParallelEnvironment::CreateFillCommunicator(mrVisualizationModelPart)->Execute();
+        ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(mrVisualizationModelPart)->Execute();
     } else {
         mrVisualizationModelPart.GetCommunicator().SetLocalMesh(mrVisualizationModelPart.pGetMesh(0));
     }
