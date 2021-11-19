@@ -216,7 +216,7 @@ void DistanceModificationProcess::ModifyDistance() {
     }
     // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
     else {
-        const int num_chunks = 2 * ParallelUtils::GetNumThreads();
+        const int num_chunks = 2 * ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector partition_vec;
         OpenMPUtils::DivideInPartitions(r_nodes.size(),num_chunks,partition_vec);
 
@@ -299,7 +299,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
     } else {
         // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
 
-        const int num_chunks = 2 * ParallelUtils::GetNumThreads();
+        const int num_chunks = 2 * ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector partition_vec;
         OpenMPUtils::DivideInPartitions(n_elems,num_chunks,partition_vec);
 
