@@ -12,7 +12,7 @@ import KratosMultiphysics.DEMApplication.DEM_analysis_stage as dem_analysis
 # a different number of particles is recovered at the end of the simulation (more delay should lead
 # to equal ot greater number of particles at the end).
 
-debug_mode = True
+debug_mode = False
 
 
 class TestDEMEraseParticles(dem_analysis.DEMAnalysisStage):
