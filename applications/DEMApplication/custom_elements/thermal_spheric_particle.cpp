@@ -59,7 +59,7 @@ namespace Kratos
     // Check if it is time to compute heat transfer
     int step = r_process_info[TIME_STEPS];
     int freq = r_process_info[THERMAL_FREQUENCY];
-    is_time_to_solve = (step - 1) % freq == 0 && (step > 0);
+    is_time_to_solve = (step > 0) && (freq != 0) && (step - 1) % freq == 0;
   }
 
   template <class TBaseElement>
@@ -582,21 +582,16 @@ namespace Kratos
     // Get radii
     double particle_radius = GetParticleRadius();
     double neighbor_radius = GetNeighborRadius();
-    
-    // Get porosity
-    // TODO: currently, global average porosity is an input
-    double porosity = r_process_info[PRESCRIBED_GLOBAL_POROSITY];
+
+    // Get radius of voronoi cell face
+    double rij = GetVoronoiCellFaceRadius(r_process_info);
+    if (rij <= mContactRadiusAdjusted)
+      return 0.0;
 
     // Compute heat transfer coefficient
     double h = 0.0;
 
     if (mNeighborType & WALL_NEIGHBOR) {
-      // Compute voronoi edge radius from porosity
-      double rij = 0.56 * particle_radius * pow((1.0 - porosity), -1.0/3.0);
-
-      if (rij <= mContactRadiusAdjusted)
-        return 0.0;
-
       // Compute upper limit of integral
       double upp_lim = particle_radius * rij / sqrt(rij * rij + mNeighborDistanceAdjusted * mNeighborDistanceAdjusted);
 
@@ -611,12 +606,6 @@ namespace Kratos
       h = AdaptiveSimpsonIntegration(r_process_info, mContactRadiusAdjusted, upp_lim, params, &ThermalSphericParticle::EvalIntegrandVoronoiWall);
     }
     else if (particle_radius == neighbor_radius) {
-      // Compute voronoi edge radius from porosity
-      double rij = 0.56 * particle_radius * pow((1.0 - porosity), -1.0/3.0);
-
-      if (rij <= mContactRadiusAdjusted)
-        return 0.0;
-
       // Compute upper limit of integral
       double upp_lim = particle_radius * rij / sqrt(rij * rij + mNeighborDistanceAdjusted * mNeighborDistanceAdjusted / 4.0);
 
@@ -631,14 +620,7 @@ namespace Kratos
       h = AdaptiveSimpsonIntegration(r_process_info, mContactRadiusAdjusted, upp_lim, params, &ThermalSphericParticle::EvalIntegrandVoronoiMono);
     }
     else {
-      double rij, D1, D2, rij_, upp_lim;
-
-      // Compute voronoi edge radius from porosity
-      // Assumption: using average radius
-      rij = 0.56 * (particle_radius + neighbor_radius) / 2.0 * pow((1.0 - porosity), -1.0/3.0);
-
-      if (rij <= mContactRadiusAdjusted)
-        return 0.0;
+      double D1, D2, rij_, upp_lim;
 
       if (mNeighborInContact)
         D1 = sqrt(particle_radius * particle_radius - mContactRadiusAdjusted * mContactRadiusAdjusted);
@@ -692,20 +674,15 @@ namespace Kratos
     double fluid_conductivity    = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
     double core                  = r_process_info[ISOTHERMAL_CORE_RADIUS];
 
-    // Get porosity
-    // TODO: currently, global average porosity is an input
-    double porosity = r_process_info[PRESCRIBED_GLOBAL_POROSITY];
+    // Get radius of voronoi cell face
+    double rij = GetVoronoiCellFaceRadius(r_process_info);
+    if (rij <= mContactRadiusAdjusted)
+      return 0.0;
 
     // Compute heat transfer coefficient
     double h = 0.0;
 
     if (mNeighborType & WALL_NEIGHBOR) {
-      // Compute voronoi edge radius from porosity
-      double rij = 0.56 * particle_radius * pow((1.0 - porosity), -1.0/3.0);
-      
-      if (rij <= mContactRadiusAdjusted)
-        return 0.0;
-
       double kp = GetParticleConductivity();
       double rc = core * particle_radius;
       double d  = mNeighborDistanceAdjusted;
@@ -722,12 +699,6 @@ namespace Kratos
       h = Globals::Pi * ln / b;
     }
     else if (particle_radius == neighbor_radius) {
-      // Compute voronoi edge radius from porosity
-      double rij = 0.56 * particle_radius * pow((1.0 - porosity), -1.0/3.0);
-      
-      if (rij <= mContactRadiusAdjusted)
-        return 0.0;
-
       double keff = ComputeEffectiveConductivity();
       double rc   = core * particle_radius;
       double D    = mNeighborDistanceAdjusted / 2.0;
@@ -744,14 +715,7 @@ namespace Kratos
       h = Globals::Pi * ln / b;
     }
     else {
-      // Compute area of neighboring voronoi cells
-      // Assumption: using average radius for rij
-      double rij = 0.56 * (particle_radius + neighbor_radius) / 2.0 * pow((1.0 - porosity), -1.0/3.0);
-
-      if (rij <= mContactRadiusAdjusted)
-        return 0.0;
-
-      double An = Globals::Pi * rij * rij;
+      double An = Globals::Pi * rij * rij; // area of neighboring voronoi cells
 
       double gamma1 = particle_radius / mNeighborDistanceAdjusted;
       double gamma2 = neighbor_radius / mNeighborDistanceAdjusted;
@@ -840,7 +804,7 @@ namespace Kratos
 
     double Pr  = ComputePrandtlNumber(r_process_info);
     double Re  = ComputeReynoldNumber(r_process_info);
-    double por = r_process_info[PRESCRIBED_GLOBAL_POROSITY]; // TODO: currently, global average porosity is an input
+    double por = r_process_info[AVERAGE_POROSITY];
     
     return (7.0 - 10.0 * por + 5.0 * por * por) * (1.0 + 0.7 * pow(Re,0.2) * pow(Pr,1.0/3.0)) + (1.33 - 2.4 * por + 1.2 * por * por) * pow(Re,0.7) * pow(Pr,1.0/3.0);
 
@@ -853,7 +817,7 @@ namespace Kratos
 
     double Pr  = ComputePrandtlNumber(r_process_info);
     double Re  = ComputeReynoldNumber(r_process_info);
-    double por = r_process_info[PRESCRIBED_GLOBAL_POROSITY]; // TODO: currently, global average porosity is an input
+    double por = r_process_info[AVERAGE_POROSITY];
     double m   = 4.75; // Assumption: exponent "m = 4.75" recommended for dense systems (3.50 is recommended for dilute systems)
 
     if      (Re < 200.0)  return 2.0 + 0.6 * pow(por,m) * pow(Re,0.5) * pow(Pr,1.0/3.0);
@@ -871,7 +835,7 @@ namespace Kratos
     double particle_emissivity  = GetParticleEmissivity();
     double particle_surface     = GetParticleSurfaceArea();
     double particle_temperature = GetParticleTemperature();
-    double porosity             = r_process_info[PRESCRIBED_GLOBAL_POROSITY]; // TODO: currently, global average porosity is an input
+    double porosity             = r_process_info[AVERAGE_POROSITY];
     double f_temperature        = r_process_info[FLUID_TEMPERATURE];
 
     // Compute final value of environment temperature
@@ -1002,6 +966,46 @@ namespace Kratos
     array_1d<double, 3> rel_velocity;
     noalias(rel_velocity) = GetParticleVelocity() - r_process_info[FLUID_VELOCITY];
     return DEM_MODULUS_3(rel_velocity);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetVoronoiCellFaceRadius(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    double particle_radius = GetParticleRadius();
+    double neighbor_radius = GetNeighborRadius();
+
+    // Based on voronoi diagram
+    if (r_process_info[VORONOI_METHOD].compare("tesselation") == 0) {
+      if (mNeighborType & WALL_NEIGHBOR) {
+        // Assumption: radius of voronoi cell face is proportional to the particle radius
+        return 1.5 * particle_radius;
+      }
+      else if (mNeighborVoronoiRadius.count(mNeighbor_p->mDelaunayPointListIndex)) {
+        return mNeighborVoronoiRadius[mNeighbor_p->mDelaunayPointListIndex];
+      }
+      else {
+        return 0.0;
+      }
+    }
+
+    // Based on porosity
+    else if (r_process_info[VORONOI_METHOD].compare("posority") == 0) {
+      if (mNeighborType & WALL_NEIGHBOR) {
+        // Assumption: using particle radius only
+        return 0.56 * particle_radius * pow((1.0 - r_process_info[AVERAGE_POROSITY]), -1.0 / 3.0);
+      }
+      else {
+        // Assumption: using average radius
+        return 0.56 * (particle_radius + neighbor_radius) / 2.0 * pow((1.0 - r_process_info[AVERAGE_POROSITY]), -1.0 / 3.0);
+      }
+    }
+
+    else {
+      return 0.0;
+    }
 
     KRATOS_CATCH("")
   }

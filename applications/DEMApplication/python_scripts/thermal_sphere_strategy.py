@@ -14,6 +14,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         default_settings = Parameters("""
         {
             "thermal_solve_frequency"        : 1,
+            "voronoi_tesselation_frequency"  : 1000,
+	        "porosity_update_frequency"      : 1000,
             "compute_motion"                 : true,
             "compute_direct_conduction"      : false,
             "compute_indirect_conduction"    : false,
@@ -26,12 +28,15 @@ class ExplicitStrategy(BaseExplicitStrategy):
             "nusselt_correlation"            : "sphere_hanz_marshall",
             "radiation_model"                : "continuum_zhou",
             "adjusted_contact_model"         : "zhou",
+            "voronoi_method"                 : "tesselation",
+	        "porosity_method"                : "average_alpha_shape",
             "min_conduction_distance"        : 0.0000000275,
             "max_conduction_distance"        : 1.0,
             "fluid_layer_thickness"          : 0.4,
             "isothermal_core_radius"         : 0.5,
             "max_radiation_distance"         : 2.0,
             "global_porosity"                : 0.0,
+            "alpha_shape_parameter"          : 1.2,
             "integral_tolerance"             : 0.000001,
             "global_fluid_properties"        : {
                 "fluid_density"              : 1.0,
@@ -52,8 +57,12 @@ class ExplicitStrategy(BaseExplicitStrategy):
             raise Exception('DEM', '"strategy" not available.')
 
         # General options
-        self.thermal_solve_frequency = self.thermal_settings["thermal_solve_frequency"].GetInt()
-        self.compute_motion_option   = self.thermal_settings["compute_motion"].GetBool()
+        self.compute_motion_option = self.thermal_settings["compute_motion"].GetBool()
+
+        # Frequencies
+        self.thermal_solve_frequency       = self.thermal_settings["thermal_solve_frequency"].GetInt()
+        self.voronoi_tesselation_frequency = self.thermal_settings["voronoi_tesselation_frequency"].GetInt()
+        self.porosity_update_frequency     = self.thermal_settings["porosity_update_frequency"].GetInt()
 
         # Set booleans for active heat transfer mechanisms
         self.compute_direct_conduction_option   = self.thermal_settings["compute_direct_conduction"].GetBool()
@@ -69,6 +78,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.nusselt_correlation       = self.thermal_settings["nusselt_correlation"].GetString()
         self.radiation_model           = self.thermal_settings["radiation_model"].GetString()
         self.adjusted_contact_model    = self.thermal_settings["adjusted_contact_model"].GetString()
+        self.voronoi_method            = self.thermal_settings["voronoi_method"].GetString()
+        self.porosity_method           = self.thermal_settings["porosity_method"].GetString()
 
         # Check models
         if (self.direct_conduction_model != "batchelor_obrien" and
@@ -96,6 +107,15 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.adjusted_contact_model != "lu"):
             raise Exception('DEM', 'Adjusted contact model \'' + self.adjusted_contact_model + '\' is not implemented.')
 
+        if (self.voronoi_method != "tesselation" and
+            self.voronoi_method != "posority"):
+            raise Exception('DEM', 'Voronoi method \'' + self.voronoi_method + '\' is not implemented.')
+        
+        if (self.porosity_method != "global"              and
+            self.porosity_method != "average_convex_hull" and
+            self.porosity_method != "average_alpha_shape"):
+            raise Exception('DEM', 'Porosity method \'' + self.porosity_method + '\' is not implemented.')
+        
         # Set model parameters
         self.min_conduction_distance = self.thermal_settings["min_conduction_distance"].GetDouble()
         self.max_conduction_distance = self.thermal_settings["max_conduction_distance"].GetDouble()
@@ -103,11 +123,16 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.isothermal_core_radius  = self.thermal_settings["isothermal_core_radius"].GetDouble()
         self.max_radiation_distance  = self.thermal_settings["max_radiation_distance"].GetDouble()
         self.global_porosity         = self.thermal_settings["global_porosity"].GetDouble()
+        self.alpha_parameter         = self.thermal_settings["alpha_shape_parameter"].GetDouble()
         self.integral_tolerance      = self.thermal_settings["integral_tolerance"].GetDouble()
         
         # Check / adjust parameters
         if (self.thermal_solve_frequency <= 0):
             self.thermal_solve_frequency = 1
+        if (self.voronoi_tesselation_frequency < 0):
+            self.voronoi_tesselation_frequency = 0
+        if (self.porosity_update_frequency < 0):
+            self.porosity_update_frequency = 0
         if (self.min_conduction_distance <= 0):
             raise Exception('DEM', '"min_conduction_distance" must be positive.')
         if (self.max_conduction_distance < 0):
@@ -122,8 +147,36 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.max_radiation_distance = 0
         if (self.global_porosity < 0 or self.global_porosity >= 1):
             raise Exception('DEM', '"global_porosity" must be between zero and one.')
+        if (self.alpha_parameter < 0):
+            raise Exception('DEM', '"alpha_shape_parameter" must be positive.')
         if (self.integral_tolerance <= 0):
             raise Exception('DEM', '"integral_tolerance" must be positive.')
+
+        if (self.compute_indirect_conduction_option         and
+           (self.indirect_conduction_model == "voronoi_a"   or
+            self.indirect_conduction_model == "voronoi_b")  and
+            self.voronoi_method            == "tesselation"):
+            self.compute_voronoi = True
+        else:
+            self.compute_voronoi = False
+
+        if   (self.compute_indirect_conduction_option         and
+             (self.indirect_conduction_model == "voronoi_a"   or
+              self.indirect_conduction_model == "voronoi_b")  and
+              self.voronoi_method            == "posority"    and
+              self.porosity_method           != "global"):
+              self.compute_porosity = True
+        elif (self.compute_convection_option                  and
+             (self.nusselt_correlation == "sphere_gunn"       or
+              self.nusselt_correlation == "sphere_li_mason")  and
+              self.porosity_method     != "global"):
+              self.compute_porosity = True
+        elif (self.compute_radiation_option                   and
+              self.radiation_model == "continuum_zhou"        and
+              self.porosity_method != "global"):
+              self.compute_porosity = True
+        else:
+              self.compute_porosity = False
 
         # Set global properties of interstitial/surrounding fluid
         self.fluid_props                = self.thermal_settings["global_fluid_properties"]
@@ -168,13 +221,13 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(THERMAL_FREQUENCY, self.thermal_solve_frequency)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MOTION_OPTION, self.compute_motion_option)
         
-        temperature_dependent_radius = 0
+        temperature_dependent_radius = False
         for properties in self.spheres_model_part.Properties:
-            if ((properties.Has(THERMAL_EXPANSION_COEFFICIENT) and properties[THERMAL_EXPANSION_COEFFICIENT] != 0) or \
+            if ((properties.Has(THERMAL_EXPANSION_COEFFICIENT) and properties[THERMAL_EXPANSION_COEFFICIENT] != 0) or
                 (properties.HasTable(TEMPERATURE,THERMAL_EXPANSION_COEFFICIENT))):
-                temperature_dependent_radius = 1
+                temperature_dependent_radius = True
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, TEMPERATURE_DEPENDENT_RADIUS_OPTION, temperature_dependent_radius)
-        
+
         # Booleans for active heat transfer mechanisms
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, DIRECT_CONDUCTION_OPTION,   self.compute_direct_conduction_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, INDIRECT_CONDUCTION_OPTION, self.compute_indirect_conduction_option)
@@ -189,6 +242,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(CONVECTION_MODEL,          self.nusselt_correlation)
         self.spheres_model_part.ProcessInfo.SetValue(RADIATION_MODEL,           self.radiation_model)
         self.spheres_model_part.ProcessInfo.SetValue(ADJUSTED_CONTACT_MODEL,    self.adjusted_contact_model)
+        self.spheres_model_part.ProcessInfo.SetValue(VORONOI_METHOD,            self.voronoi_method)
+        self.spheres_model_part.ProcessInfo.SetValue(POSORITY_METHOD,           self.porosity_method)
 
         # Model parameters
         self.spheres_model_part.ProcessInfo.SetValue(MIN_CONDUCTION_DISTANCE,    self.min_conduction_distance)
@@ -196,7 +251,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_LAYER_THICKNESS,      self.fluid_layer_thickness)
         self.spheres_model_part.ProcessInfo.SetValue(ISOTHERMAL_CORE_RADIUS,     self.isothermal_core_radius)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_RADIATION_DISTANCE,     self.max_radiation_distance)
-        self.spheres_model_part.ProcessInfo.SetValue(PRESCRIBED_GLOBAL_POROSITY, self.global_porosity)
+        self.spheres_model_part.ProcessInfo.SetValue(AVERAGE_POROSITY,           self.global_porosity)
+        self.spheres_model_part.ProcessInfo.SetValue(ALPHA_SHAPE_PARAMETER,      self.alpha_parameter)
         self.spheres_model_part.ProcessInfo.SetValue(INTEGRAL_TOLERANCE,         self.integral_tolerance)
 
         # Global properties for interstitial/surrounding fluid 
@@ -223,15 +279,37 @@ class ExplicitStrategy(BaseExplicitStrategy):
         (self.cplusplus_strategy).InitializeThermalDataInSubModelParts()
         (self.cplusplus_strategy).InitializeGraphOutput()
 
+    def Predict(self):
+        if (self.compute_motion_option):
+            BaseExplicitStrategy.Predict(self)
+    
     def InitializeSolutionStep(self):
         if (self.compute_motion_option):
             BaseExplicitStrategy.InitializeSolutionStep(self)
         else:
             (self.cplusplus_strategy).InitializeSolutionStep()
+
+        # Perform tesselation-dependent tasks (triangulation or tetrahedralization)
+        update_voronoi  = self.IsTimeToUpdateVoronoi()
+        update_porosity = self.IsTimeToUpdatePorosity()
+        if (update_voronoi or update_porosity):
+            (self.cplusplus_strategy).TesselationTasks(update_voronoi,update_porosity)
     
-    def Predict(self):
-        if (self.compute_motion_option):
-            BaseExplicitStrategy.Predict(self)
+    def IsTimeToUpdateVoronoi(self):
+        if (self.compute_voronoi):
+            step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
+            freq = self.voronoi_tesselation_frequency
+            return step == 1 or (freq != 0 and step%freq == 0)
+        else:
+            return False
+    
+    def IsTimeToUpdatePorosity(self):
+        if (self.compute_porosity):
+            step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
+            freq = self.porosity_update_frequency
+            return step == 1 or (freq != 0 and step%freq == 0)
+        else:
+            return False
     
     def SolveSolutionStep(self):
         if (self.compute_motion_option):

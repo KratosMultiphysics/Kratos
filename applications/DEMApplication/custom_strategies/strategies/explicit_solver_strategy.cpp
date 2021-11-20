@@ -556,6 +556,320 @@ namespace Kratos {
       KRATOS_CATCH("")
     }
 
+    void ExplicitSolverStrategy::TesselationTasks(bool update_voronoi, bool update_porosity)
+    {
+      KRATOS_TRY
+
+      ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
+
+      if (r_process_info[DOMAIN_SIZE] == 2)
+        Triangulation(update_voronoi, update_porosity);
+      else if (r_process_info[DOMAIN_SIZE] == 3)
+        Tetrahedralization(update_voronoi, update_porosity);
+      else
+        KRATOS_ERROR << "Invalid domain size!";
+
+      KRATOS_CATCH("")
+    }
+
+    void ExplicitSolverStrategy::Triangulation(bool update_voronoi, bool update_porosity)
+    {
+      KRATOS_TRY
+
+      ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
+      struct triangulateio in, out, vorout;
+      char* meshing_options = "";
+
+      // Clear IO
+      ClearTriangle(in);
+      ClearTriangle(out);
+      ClearTriangle(vorout);
+
+      // Build input
+      int number_of_particles = (int)mListOfSphericParticles.size();
+      in.numberofpoints = number_of_particles;
+
+      in.pointlist = (double*)malloc(sizeof(double) * number_of_particles * 2);
+
+      #pragma omp parallel for schedule(dynamic, 100)
+      for (int i = 0; i < number_of_particles; i++) {
+        ThermalSphericParticle<SphericParticle>* p_sphere = dynamic_cast<ThermalSphericParticle<SphericParticle>*>(mListOfSphericParticles[i]);
+        const array_1d<double, 3>& coors = p_sphere->GetParticleCoordinates();
+        in.pointlist[2 * i + 0] = coors[0];
+        in.pointlist[2 * i + 1] = coors[1];
+        p_sphere->mDelaunayPointListIndex = i;
+      }
+
+      // Set switches
+      if      (update_voronoi)  meshing_options = "PQv";
+      else if (update_porosity) meshing_options = "PQ";
+
+      // Perform triangulation
+      int fail = 0;
+      try {
+        triangulate(meshing_options, &in, &out, &vorout);
+      }
+      catch (int error_code) {
+        fail = error_code;
+      }
+
+      if (fail || out.numberoftriangles == 0 || in.numberofpoints != out.numberofpoints) {
+        KRATOS_ERROR_IF(r_process_info[TIME_STEPS] == 1) << "Fail to generate triangulation!" << std::endl;
+        KRATOS_WARNING("DEM") << std::endl;
+        KRATOS_WARNING("DEM") << "Fail to generate triangulation! Results from previous successful triangulation will be used." << std::endl;
+        KRATOS_WARNING("DEM") << std::endl;
+        FreeTriangle(in);
+        FreeTriangle(out);
+        FreeTriangle(vorout);
+        return;
+      }
+
+      // Update voronoi diagram
+      if (update_voronoi) {
+        // Build a table for each particle:
+        // column 1: neighbor IDs
+        // column 2: edge "radius" (length/2)
+        #pragma omp parallel for schedule(dynamic, 100)
+        for (int i = 0; i < number_of_particles; i++) {
+          ThermalSphericParticle<SphericParticle>* p_sphere = dynamic_cast<ThermalSphericParticle<SphericParticle>*>(mListOfSphericParticles[i]);
+          p_sphere->mNeighborVoronoiRadius.clear();
+
+          for (int j = 0; j < out.numberofedges; j++) {
+            int v1 = out.edgelist[2 * j + 0] - 1;
+            int v2 = out.edgelist[2 * j + 1] - 1;
+            
+            if (v1 == p_sphere->mDelaunayPointListIndex || v2 == p_sphere->mDelaunayPointListIndex) {
+              // Length of voronoi edge dual to delaunay edge
+              int vv1    = vorout.edgelist[2 * j + 0] - 1;
+              int vv2    = vorout.edgelist[2 * j + 1] - 1;
+              double x1  = vorout.pointlist[2 * vv1 + 0];
+              double y1  = vorout.pointlist[2 * vv1 + 1];
+              double x2  = vorout.pointlist[2 * vv2 + 0];
+              double y2  = vorout.pointlist[2 * vv2 + 1];
+              double len = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+
+              // Add info to particle table
+              if      (v1 == p_sphere->mDelaunayPointListIndex) p_sphere->mNeighborVoronoiRadius[v2] = len/2.0;
+              else if (v2 == p_sphere->mDelaunayPointListIndex) p_sphere->mNeighborVoronoiRadius[v1] = len/2.0;
+            }
+          }
+        }
+      }
+
+      // Update average porosity
+      if (update_porosity) {
+        double total_area    = 0.0;
+        double particle_area = 0.0;
+        Vector addedParticle = ZeroVector(number_of_particles);
+
+        // Compute mean mesh size for alpha-shape (fixed in the beginning of analysis)
+        mMeanMeshSize = 0.0;
+
+        if (r_process_info[POSORITY_METHOD].compare("average_alpha_shape") == 0 && r_process_info[TIME_STEPS] == 1) {
+          for (int i = 0; i < out.numberoftriangles; i++) {
+            // Get vertices IDs
+            int p1 = out.trianglelist[3 * i + 0] - 1;
+            int p2 = out.trianglelist[3 * i + 1] - 1;
+            int p3 = out.trianglelist[3 * i + 2] - 1;
+
+            // Get vertices coordinates
+            double x1 = out.pointlist[2 * p1 + 0];
+            double y1 = out.pointlist[2 * p1 + 1];
+            double x2 = out.pointlist[2 * p2 + 0];
+            double y2 = out.pointlist[2 * p2 + 1];
+            double x3 = out.pointlist[2 * p3 + 0];
+            double y3 = out.pointlist[2 * p3 + 1];
+
+            // Get minimum edge length
+            std::vector<double>len;
+            len.push_back(sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2)));
+            len.push_back(sqrt(pow(x3 - x1, 2) + pow(y3 - y1, 2)));
+            len.push_back(sqrt(pow(x3 - x2, 2) + pow(y3 - y2, 2)));
+
+            mMeanMeshSize += *std::min_element(len.begin(), len.end());
+          }
+
+          // Average minimum length
+          mMeanMeshSize /= out.numberoftriangles;
+        }
+
+        #pragma omp parallel for schedule(dynamic, 100)
+        for (int i = 0; i < out.numberoftriangles; i++) {
+          // Get vertices IDs
+          int p1 = out.trianglelist[3 * i + 0] - 1;
+          int p2 = out.trianglelist[3 * i + 1] - 1;
+          int p3 = out.trianglelist[3 * i + 2] - 1;
+
+          // Get vertices coordinates
+          double x1 = out.pointlist[2 * p1 + 0];
+          double y1 = out.pointlist[2 * p1 + 1];
+          double x2 = out.pointlist[2 * p2 + 0];
+          double y2 = out.pointlist[2 * p2 + 1];
+          double x3 = out.pointlist[2 * p3 + 0];
+          double y3 = out.pointlist[2 * p3 + 1];
+
+          // Perform alpha-shape
+          if (r_process_info[POSORITY_METHOD].compare("average_alpha_shape") == 0) {
+            double AlphaRadius = mMeanMeshSize * r_process_info[ALPHA_SHAPE_PARAMETER];
+
+            // Calculate Jacobian
+            BoundedMatrix<double, 2, 2> J;
+            J(0, 0) = x2 - x1;
+            J(0, 1) = y2 - y1;
+            J(1, 0) = x3 - x1;
+            J(1, 1) = y3 - y1;
+            J *= 2.0;
+
+            // Calculate the determinant (volume/2)
+            double vol = J(0, 0) * J(1, 1) - J(0, 1) * J(1, 0);
+
+            // Calculate the inverse of the Jacobian
+            BoundedMatrix<double, 2, 2> Jinv;
+            Jinv(0, 0) =  J(1, 1);
+            Jinv(0, 1) = -J(0, 1);
+            Jinv(1, 0) = -J(1, 0);
+            Jinv(1, 1) =  J(0, 0);
+            Jinv /= vol;
+
+            // Calculate circle center
+            Vector Center = ZeroVector(2);
+            Center[0] += (x2 * x2);
+            Center[0] -= (x1 * x1);
+            Center[0] += (y2 * y2);
+            Center[0] -= (y1 * y1);
+            Center[1] += (x3 * x3);
+            Center[1] -= (x1 * x1);
+            Center[1] += (y3 * y3);
+            Center[1] -= (y1 * y1);
+            Center = prod(Jinv, Center);
+
+            // Calculate circle radius
+            Center[0] -= x1;
+            Center[1] -= y1;
+            double radius = norm_2(Center);
+
+            // Rejected triangle
+            if (radius < 0 || radius >= AlphaRadius)
+              continue;
+          }
+
+          // Add triangle area
+          total_area += fabs(0.5 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)));
+
+          // Add particles area
+          if (!addedParticle[p1]) {
+            addedParticle[p1] = 1;
+            double r = mListOfSphericParticles[p1]->GetRadius();
+            particle_area += Globals::Pi * r * r;
+          }
+          if (!addedParticle[p2]) {
+            addedParticle[p2] = 1;
+            double r = mListOfSphericParticles[p2]->GetRadius();
+            particle_area += Globals::Pi * r * r;
+          }
+          if (!addedParticle[p3]) {
+            addedParticle[p3] = 1;
+            double r = mListOfSphericParticles[p3]->GetRadius();
+            particle_area += Globals::Pi * r * r;
+          }
+        }
+
+        // Set new average porosity
+        r_process_info[AVERAGE_POROSITY] = 1.0 - particle_area / total_area;
+      }
+
+      // Free memory
+      FreeTriangle(in);
+      FreeTriangle(out);
+      FreeTriangle(vorout);
+
+      ClearTriangle(in);
+      ClearTriangle(out);
+      ClearTriangle(vorout);
+
+      KRATOS_CATCH("")
+    }
+
+    void ExplicitSolverStrategy::Tetrahedralization(bool update_voronoi, bool update_porosity)
+    {
+      KRATOS_TRY
+
+      tetgenio in, out, vorout;
+      char* meshing_options;
+
+      tetrahedralize(meshing_options, &in, &out, &vorout);
+
+      KRATOS_CATCH("")
+    }
+
+    void ExplicitSolverStrategy::ClearTriangle(struct triangulateio& tr)
+    {
+      KRATOS_TRY
+
+      tr.pointlist                  = (REAL*) NULL;
+      tr.pointattributelist         = (REAL*) NULL;
+      tr.pointmarkerlist            = (int*) NULL;
+      tr.numberofpoints             = 0;
+      tr.numberofpointattributes    = 0;
+
+      tr.trianglelist               = (int*) NULL;
+      tr.triangleattributelist      = (REAL*) NULL;
+      tr.trianglearealist           = (REAL*) NULL;
+      tr.neighborlist               = (int*) NULL;
+      tr.numberoftriangles          = 0;
+      tr.numberofcorners            = 3; //for three node triangles
+      tr.numberoftriangleattributes = 0;
+
+      tr.segmentlist                = (int*) NULL;
+      tr.segmentmarkerlist          = (int*) NULL;
+      tr.numberofsegments           = 0;
+
+      tr.holelist                   = (REAL*) NULL;
+      tr.numberofholes              = 0;
+
+      tr.regionlist                 = (REAL*) NULL;
+      tr.numberofregions            = 0;
+
+      tr.edgelist                   = (int*) NULL;
+      tr.edgemarkerlist             = (int*) NULL;
+      tr.normlist                   = (REAL*) NULL;
+      tr.numberofedges              = 0;
+
+      KRATOS_CATCH("")
+    }
+
+    void ExplicitSolverStrategy::FreeTriangle(struct triangulateio& tr)
+    {
+      KRATOS_TRY
+
+      if (tr.numberoftriangles) {
+        if (tr.trianglelist)          trifree(tr.trianglelist);
+        if (tr.triangleattributelist) trifree(tr.triangleattributelist);
+        if (tr.trianglearealist)      trifree(tr.trianglearealist);
+        if (tr.neighborlist)          trifree(tr.neighborlist);
+      }
+      if (tr.segmentlist)       trifree(tr.segmentlist);
+      if (tr.segmentmarkerlist) trifree(tr.segmentmarkerlist);
+      if (tr.holelist) {
+        delete[] tr.holelist;
+        tr.numberofholes = 0;
+      }
+      if (tr.regionlist) {
+        delete[] tr.regionlist;
+        tr.numberofregions = 0;
+      }
+      if (tr.edgelist)       trifree(tr.edgelist);
+      if (tr.edgemarkerlist) trifree(tr.edgemarkerlist);
+      if (tr.normlist)       trifree(tr.normlist);
+      if (tr.numberofpoints) {
+        if (tr.pointlist)          trifree(tr.pointlist);
+        if (tr.pointattributelist) trifree(tr.pointattributelist);
+        if (tr.pointmarkerlist)    trifree(tr.pointmarkerlist);
+      }
+
+      KRATOS_CATCH("")
+    }
+
     void ExplicitSolverStrategy::InitializeClusters() {
         KRATOS_TRY
         ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();

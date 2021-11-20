@@ -27,6 +27,21 @@
 #include <omp.h>
 #endif
 
+#ifndef TETLIBRARY
+#define TETLIBRARY
+#endif
+
+#if !defined(KRATOS_TETGEN_EXTERNAL_H_INCLUDED)
+#define KRATOS_TETGEN_EXTERNAL_H_INCLUDED
+#include "tetgen.h"
+#endif
+
+#ifndef TRILIBRARY
+#define TRILIBRARY
+#endif
+
+#include "triangle.h"
+
 #define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
 #include "includes/define.h"
@@ -61,6 +76,11 @@
 #endif
 
 namespace Kratos {
+
+    extern "C" {
+      void triangulate(char*, struct triangulateio*, struct triangulateio*, struct triangulateio*);
+      void trifree(void*);
+    }
 
     class ExplicitSolverSettings {
     public:
@@ -216,6 +236,11 @@ namespace Kratos {
         void InitializeThermalDataInSubModelParts();
         void InitializeGraphOutput();
         void WriteGraphOutput();
+        void TesselationTasks(bool update_voronoi, bool update_porosity);
+        void Triangulation(bool update_voronoi, bool update_porosity);
+        void Tetrahedralization(bool update_voronoi, bool update_porosity);
+        void ClearTriangle(struct triangulateio& tr);
+        void FreeTriangle(struct triangulateio& tr);
         virtual void InitializeClusters();
         virtual void GetClustersForce();
         virtual void GetRigidBodyElementsForce();
@@ -305,6 +330,7 @@ namespace Kratos {
         int mNumberOfThreads;
         double mMaxTimeStep;
         double mSafetyFactor;
+        double mMeanMeshSize;
         int mDeltaOption;
         ParticleCreatorDestructor::Pointer mpParticleCreatorDestructor;
         DEM_FEM_Search::Pointer mpDemFemSearch;

@@ -122,6 +122,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double ComputePrandtlNumber(const ProcessInfo& r_process_info);
   double ComputeReynoldNumber(const ProcessInfo& r_process_info);
   double ComputeFluidRelativeVelocity(const ProcessInfo& r_process_info);
+  double GetVoronoiCellFaceRadius(const ProcessInfo& r_process_info);
 
   // Numerical integration
   double AdaptiveSimpsonIntegration(const ProcessInfo& r_process_info, double a, double b, IntegrandParams params, double (ThermalSphericParticle::*evalIntegrand)(IntegrandParams));
@@ -211,6 +212,10 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double mPrescribedHeatFluxVolume;
   double mPrescribedHeatFlux;
   double mTotalHeatFlux;
+
+  // Delaunay/Voronoi data
+  std::map<int, double> mNeighborVoronoiRadius;
+  int mDelaunayPointListIndex;
 
   // Turn back information as a string.
   virtual std::string Info() const override {

@@ -8,6 +8,35 @@ include(pybind11Tools)
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/DEMApplication )
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication)
+
+## Set a default value for triangle and tetgen in case the user does not set it
+## to avoid problems with the define linkage block. By default we will compile the lib
+if(NOT DEFINED ${INCLUDE_TRIANGLE})
+  set(INCLUDE_TRIANGLE ON)
+  set(TRIANGLE_DIR "${KRATOS_SOURCE_DIR}/external_libraries/triangle")
+endif(NOT DEFINED ${INCLUDE_TRIANGLE})
+
+if(NOT DEFINED ${INCLUDE_TETGEN})
+  set(INCLUDE_TETGEN ON)
+  set(TETGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication/external_libraries/tetgen")
+endif(NOT DEFINED ${INCLUDE_TETGEN})
+
+set(MESHER_LIBRARIES "")
+if(${INCLUDE_TRIANGLE} MATCHES ON)
+  include_directories(${TRIANGLE_DIR})
+  list(APPEND MESHER_LIBRARIES triangle)
+endif(${INCLUDE_TRIANGLE} MATCHES ON)
+
+if(${INCLUDE_TETGEN} MATCHES ON)
+  include_directories(${TETGEN_DIR})
+  list(APPEND MESHER_LIBRARIES tetgen)
+endif(${INCLUDE_TETGEN} MATCHES ON)
+
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  list(APPEND MESHER_LIBRARIES m)
+endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
 ## generate variables with the sources
 set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/DEM_application.cpp
@@ -119,7 +148,7 @@ set(KRATOS_DEM_APPLICATION_PYTHON_INTERFACE
 )
 
 add_library(KratosDEMCore SHARED ${KRATOS_DEM_APPLICATION_CORE})
-target_link_libraries(KratosDEMCore PUBLIC KratosCore)
+target_link_libraries(KratosDEMCore PUBLIC KratosCore ${MESHER_LIBRARIES})
 set_target_properties(KratosDEMCore PROPERTIES COMPILE_DEFINITIONS "DEM_APPLICATION=EXPORT,API")
 
 ###############################################################
