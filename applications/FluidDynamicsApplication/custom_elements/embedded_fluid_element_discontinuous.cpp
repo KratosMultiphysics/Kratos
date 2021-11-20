@@ -305,13 +305,6 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
         }
     }
 
-    // Number of intersected edges
-    for (std::size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
-        if (rData.ElementalEdgeDistances[i] > 0.0) {
-            rData.NumIntersectedEdges++;
-        }
-    }
-
     // Number of edges cut by extrapolated geometry, if not empty
     for (std::size_t i = 0; i < rData.ElementalEdgeDistancesExtrapolated.size(); ++i) {
         if (rData.ElementalEdgeDistancesExtrapolated[i] > 0.0) {
@@ -319,7 +312,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
         }
     }
 
-    // Check whether element is intersected or incised and whether user gave flag CALCULATE_EXTRAPOLATED_EDGE_DISTANCES,
+    // Check whether element is intersected or incised and whether user gave flag CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED,
     // then use Ausas incised shape functions
     if ( rData.IsCut() ) {
         this->DefineCutGeometryData(rData);

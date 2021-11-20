@@ -26,6 +26,7 @@
 #include "includes/checks.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {

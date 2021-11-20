@@ -50,6 +50,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
             },
             "echo_level": 1,
             "time_order": 2,
+            "time_scheme" : "RK4",
             "move_mesh_flag": false,
             "shock_capturing": true,
             "compute_reactions": false,
@@ -124,11 +125,20 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         strategy_settings.AddEmptyValue("move_mesh_flag").SetBool(self.settings["move_mesh_flag"].GetBool())
         strategy_settings.AddEmptyValue("shock_capturing").SetBool(self.settings["shock_capturing"].GetBool())
 
-        strategy = KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4(
-            self.computing_model_part,
-            strategy_settings)
+        rk_parameter = self.settings["time_scheme"].GetString()
 
-        return strategy
+        rk_startegies = {
+            "RK3-TVD": KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD,
+            "RK4"    : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4
+        }
+
+        if rk_parameter in rk_startegies:
+            return rk_startegies[rk_parameter](self.computing_model_part, strategy_settings)
+
+        err_msg = "Runge-Kutta method of type '{}' not available. Try any of\n".format(rk_parameter)
+        for key in rk_startegies:
+            err_msg = err_msg + " - {}\n".format(key)
+        raise RuntimeError(err_msg)
 
     def _CreateEstimateDtUtility(self):
         """This method overloads FluidSolver in order to enforce:
