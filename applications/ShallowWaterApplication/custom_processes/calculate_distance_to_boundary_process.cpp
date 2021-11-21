@@ -22,6 +22,7 @@
 #include "geometries/line_2d_2.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "calculate_distance_to_boundary_process.h"
 
 
