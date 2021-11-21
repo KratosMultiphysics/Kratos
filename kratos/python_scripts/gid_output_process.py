@@ -29,6 +29,7 @@ class GiDOutputProcess(KM.Process):
                 "MultiFileFlag": "SingleFile"
             },
             "file_label": "time",
+            "time_label_format": "{:.12f}",
             "output_control_type": "step",
             "output_interval": 1.0,
             "flush_after_output": false,
@@ -198,6 +199,8 @@ class GiDOutputProcess(KM.Process):
             msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
             raise Exception(msg)
 
+        self.time_label_format = result_file_configuration["time_label_format"].GetString()
+
         output_control_type = result_file_configuration["output_control_type"].GetString()
         if output_control_type == "time":
             self.output_control_is_time = True
@@ -361,7 +364,7 @@ class GiDOutputProcess(KM.Process):
                                 WriteConditionsFlag.WriteConditionsOnly) # Cuts are conditions, so we always print conditions in the cut ModelPart
 
     def __get_pretty_time(self,time):
-        pretty_time = "{0:.12g}".format(time)
+        pretty_time = self.time_label_format.format(time)
         pretty_time = float(pretty_time)
         return pretty_time
 

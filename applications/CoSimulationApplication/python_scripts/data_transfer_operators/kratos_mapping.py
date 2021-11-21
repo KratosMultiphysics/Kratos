@@ -27,6 +27,12 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         "use_transpose" : KM.Mapper.USE_TRANSPOSE
     }
 
+    # initializing the static members necessary for MPI
+    # initializing on the fly does not work and leads to memory problems
+    # as the members are not proberly saved and randomly destucted!
+    __dummy_model = None
+    __rank_zero_model_part = None
+
     def __init__(self, settings):
         if not settings.Has("mapper_settings"):
             raise Exception('No "mapper_settings" provided!')
@@ -55,7 +61,7 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             model_part_origin      = self.__GetModelPartFromInterfaceData(from_solver_data)
             model_part_destination = self.__GetModelPartFromInterfaceData(to_solver_data)
 
-            if from_solver_data.IsDistributed() or to_solver_data.IsDistributed():
+            if model_part_origin.IsDistributed() or model_part_destination.IsDistributed():
                 mapper_create_fct = python_mapper_factory.CreateMPIMapper
             else:
                 mapper_create_fct = python_mapper_factory.CreateMapper
@@ -123,14 +129,14 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         if not KM.IsDistributedRun():
             raise Exception("This function can only be called when Kratos is running in MPI!")
 
-        if not hasattr(KratosMappingDataTransferOperator, "__rank_zero_model_part"):
+        if KratosMappingDataTransferOperator.__rank_zero_model_part is None:
             model = KM.Model()
             rank_zero_model_part = model.CreateModelPart("rank_zero")
 
             from KratosMultiphysics.mpi import ModelPartCommunicatorUtilities
             ModelPartCommunicatorUtilities.SetMPICommunicator(rank_zero_model_part, data_communicator_utilities.GetRankZeroDataCommunicator())
 
-            KratosMappingDataTransferOperator.__dumm_model = model
+            KratosMappingDataTransferOperator.__dummy_model = model
             KratosMappingDataTransferOperator.__rank_zero_model_part = rank_zero_model_part
 
         return KratosMappingDataTransferOperator.__rank_zero_model_part

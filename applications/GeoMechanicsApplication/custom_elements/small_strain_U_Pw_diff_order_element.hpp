@@ -116,8 +116,8 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
-                                     std::vector<int>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<int>& rValues,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<double> &rVariable,
                                       std::vector<double> &rOutput,
@@ -170,10 +170,14 @@ protected:
         Vector Nu; //Contains the displacement shape functions at every node
         Vector Np; //Contains the pressure shape functions at every node
         Matrix DNu_DX; //Contains the global derivatives of the displacement shape functions
+        Matrix DNu_DXInitialConfiguration; //Contains the global derivatives of the displacement shape functions
+
         Matrix DNp_DX; //Contains the global derivatives of the pressure shape functions
         Matrix B;
         double IntegrationCoefficient;
+        double IntegrationCoefficientInitialConfiguration;
         Vector StrainVector;
+        Vector StressVector;
         Matrix ConstitutiveMatrix;
 
         //Variables needed for consistency with the general constitutive law
@@ -181,14 +185,16 @@ protected:
         Matrix F;
 
         // needed for updated Lagrangian:
-        double detJ0;  // displacement
-        double detJp0; // pore pressure
+        double detJ;  // displacement
+        double detJInitialConfiguration;  // displacement
 
         //Nodal variables
         Vector BodyAcceleration;
         Vector DisplacementVector;
         Vector VelocityVector;
         Vector PressureVector;
+        Vector DeltaPressureVector;
+
         Vector PressureDtVector;
 
         ///Retention Law parameters
@@ -201,13 +207,14 @@ protected:
 
         //Properties and processinfo variables
         bool IgnoreUndrained;
+        bool UseHenckyStrain;
         bool ConsiderGeometricStiffness;
         double BiotCoefficient;
         double BiotModulusInverse;
         double DynamicViscosityInverse;
         Matrix IntrinsicPermeability;
-        double NewmarkCoefficient1;
-        double NewmarkCoefficient2;
+        double VelocityCoefficient;
+        double DtPressureCoefficient;
     };
 
     // Member Variables
@@ -240,12 +247,11 @@ protected:
 
     virtual void CalculateKinematics(ElementVariables& rVariables, const unsigned int &PointNumber);
 
-    virtual void CalculateKinematicsOnInitialConfiguration(ElementVariables& rVariables, unsigned int PointNumber);
-
-    double CalculateDerivativesOnInitialConfiguration(const GeometryType& Geometry,
-                                                      Matrix& DN_DX,
-                                                      const IndexType& PointNumber,
-                                                      IntegrationMethod ThisIntegrationMethod) const;
+    void CalculateDerivativesOnInitialConfiguration(double& detJ,
+                                                    Matrix& J0,
+                                                    Matrix& InvJ0,
+                                                    Matrix& DN_DX,
+                                                    const IndexType& PointNumber) const;
 
     void SetConstitutiveParameters(ElementVariables& rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters);
@@ -298,7 +304,11 @@ protected:
     virtual void CalculateCauchyAlmansiStrain( ElementVariables& rVariables );
     virtual void CalculateCauchyGreenStrain( ElementVariables& rVariables );
     virtual void CalculateCauchyStrain( ElementVariables& rVariables );
-    virtual void CalculateStrain( ElementVariables& rVariables );
+    virtual void CalculateStrain( ElementVariables& rVariables, const IndexType& GPoint );
+    virtual void CalculateHenckyStrain( ElementVariables& rVariables );
+
+    virtual void CalculateDeformationGradient( ElementVariables& rVariables,
+                                               const IndexType& GPoint );
 
     double CalculateFluidPressure( const ElementVariables &rVariables, const unsigned int &PointNumber );
 
@@ -310,6 +320,12 @@ protected:
                                      const unsigned int &GPoint );
 
     void CalculateSoilDensity(ElementVariables &rVariables);
+
+    void CalculateJacobianOnCurrentConfiguration(double& detJ,
+                                                 Matrix& rJ,
+                                                 Matrix& rInvJ,
+                                                 const IndexType& GPoint) const;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -327,7 +343,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }
-
 
     // Private Operations
 
