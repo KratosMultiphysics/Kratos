@@ -72,23 +72,23 @@ public:
     ///@{
 
     typedef array_1d<double, TSubstepCount> VectorType;
-    typedef array_1d<double,TSubstepCount-1> RowType;
-    typedef std::array<RowType, TSubstepCount-1> MatrixType;
-
-    static constexpr unsigned int Order() {return TOrder;}
-    static constexpr unsigned int SubstepCount() {return TSubstepCount; }
 
     /* Using the following constructs allows us to multiply parts of vectors with parts of matrices
      * while avoiding BOOST's size checks. This is useful to skip multiplications by zero, since
      * for all explicit runge-kutta methods a_ij = 0 for i>j
      */
 
+    typedef array_1d<double,TSubstepCount-1> RowType;
+    typedef std::array<RowType, TSubstepCount-1> MatrixType;
 
     struct ArraySlice
     {
         typename RowType::const_iterator begin;
         typename RowType::const_iterator end;
     };
+
+    static constexpr unsigned int Order() {return TOrder;}
+    static constexpr unsigned int SubstepCount() {return TSubstepCount; }
 
     ///@}
     ///@name Life Cycle
