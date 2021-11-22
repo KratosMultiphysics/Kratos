@@ -178,8 +178,8 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 if (rCurrentProcessInfo[MOMENTUM_CORRECTION]){
                     BoundedMatrix<double, LocalSize, LocalSize> lhs_acc_correction = ZeroMatrix(LocalSize,LocalSize);
 
-                    double positive_density;
-                    double negative_density;
+                    double positive_density = 0.0;
+                    double negative_density = 0.0;
 
                     const auto& r_geom = this->GetGeometry();
 
