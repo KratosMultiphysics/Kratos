@@ -47,7 +47,7 @@ protected:
 
   // Member Variables
   ModelPart& mrModelPart;
-  int mFreeOrFix;
+  bool mFreeOrFix;
 
 };  // Class
 
