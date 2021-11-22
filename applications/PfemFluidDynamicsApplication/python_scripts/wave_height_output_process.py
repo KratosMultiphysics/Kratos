@@ -70,6 +70,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
             height = self.wave_height_utility.Calculate(coordinates)
             value = "{}\t{}\n".format(time, height)
             file.write(value)
+            file.flush()
         
         self.next_output += self.settings["time_between_outputs"].GetDouble()
     
