@@ -33,7 +33,7 @@ CalculateWaveHeightUtility::CalculateWaveHeightUtility(
 ) : mrModelPart(rThisModelPart)
 {
     Parameters default_parameters(R"({
-        "coordinates"      : [0.0, 0.0, 0.0],
+        "model_part_name"  : ""
         "mean_water_level" : 0.0,
         "search_tolerance" : 1.0
     })");
@@ -41,13 +41,12 @@ CalculateWaveHeightUtility::CalculateWaveHeightUtility(
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     const array_1d<double,3> gravity = mrModelPart.GetProcessInfo()[GRAVITY];
-    mDirection = gravity / norm_2(gravity);
-    mCoordinates = ThisParameters["coordinates"].GetBool();
+    mDirection = -gravity / norm_2(gravity);
     mMeanWaterLevel = ThisParameters["mean_water_level"].GetBool();
     mSearchTolerance = ThisParameters["search_tolerance"].GetDouble();
 }
 
-double CalculateWaveHeightUtility::Execute() const
+double CalculateWaveHeightUtility::Calculate(const array_1d<double,3>& rCoordinates) const
 {
     KRATOS_TRY
 
@@ -64,7 +63,7 @@ double CalculateWaveHeightUtility::Execute() const
 
         if (rNode->IsNot(ISOLATED) && rNode->IsNot(RIGID) && rNode->Is(FREE_SURFACE))
         {
-            const auto vector_distance = MathUtils<double>::CrossProduct(mDirection, rNode);
+            const auto vector_distance = MathUtils<double>::CrossProduct(mDirection - rCoordinates, rNode);
             const double distance = norm_2(vector_distance);
 
             if (distance < mSearchTolerance)

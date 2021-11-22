@@ -70,7 +70,7 @@ public:
     /**
      * @brief Calculate the wave height.
      */
-    double Execute();
+    double Calculate(const array_1d<double,3>& rCoordinates) const;
 
     ///@}
     ///@name Input and output
