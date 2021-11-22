@@ -11,6 +11,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
     """WaveHeightOutputProcess
 
     This process records the wave height at several points.
+    The direction used to calculate the water weight is the opposite of the gravity.
     """
 
     @staticmethod
@@ -40,6 +41,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
         self.file_names_list = self.settings["file_names_list"]
 
     def Check(self):
+        """Check all the variables have the right size"""
         for coordinate in self.coordinates_list:
             if not coordinate.size() == 3:
                 raise Exception("WaveHeightOutputProcess. The coordinates must be given with a 3-dimensional array")
@@ -48,6 +50,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
             raise Exception("WaveHeightOutputProcess. The number of coordinates must coincide with the number of filenames")
 
     def ExecuteBeforeSolutionLoop(self):
+        """Initialize the files and the utility to calculate the water height"""
         self.files = []
         for file_name in self.file_names_list:
             file_settings = KM.Parameters()
@@ -61,10 +64,12 @@ class WaveHeightOutputProcess(KM.OutputProcess):
         self.wave_height_utility = PFEM.CalculateWaveHeightUtility(self.model_part, utility_settings)
 
     def IsOutputStep(self):
+        """The output control is time based"""
         time = self.model_part.ProcessInfo[KM.TIME]
         return time >= self.next_output
     
     def PrintOutput(self):
+        """Print the wave height corresponding to each gauge and schedule the next output"""
         time = self.model_part.ProcessInfo.GetValue(KM.TIME)
         for file, coordinates in zip(self.files, self.coordinates_list):
             height = self.wave_height_utility.Calculate(coordinates)
@@ -75,5 +80,6 @@ class WaveHeightOutputProcess(KM.OutputProcess):
         self.next_output += self.settings["time_between_outputs"].GetDouble()
     
     def ExecuteFinalize(self):
+        """Close all the files"""
         for file in self.files:
             file.close()
