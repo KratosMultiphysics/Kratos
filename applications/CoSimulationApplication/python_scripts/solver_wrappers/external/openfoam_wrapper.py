@@ -1,5 +1,4 @@
 # Importing the Kratos Library
-from sys import argv
 import KratosMultiphysics as KM
 
 # Importing the base class
@@ -24,23 +23,22 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
         }""")
 
         self.settings["solver_wrapper_settings"].ValidateAndAssignDefaults(settings_defaults)
-        model_part_utilities.CreateModelPartsFromCouplingDataSettings(self.settings["data"], self.model, self.name)
+        model_part_utilities.CreateMainModelPartsFromCouplingDataSettings(self.settings["data"], self.model, self.name)
         model_part_utilities.AllocateHistoricalVariablesFromCouplingDataSettings(self.settings["data"], self.model, self.name)
 
     def Initialize(self):
-        super(OpenFOAMWrapper, self).Initialize()
-
-        for data in self.data_dict.values():
-            data.GetModelPart().SetBufferSize(2)
-
         """ImportCouplingInterface()= Imports coupling interface from an external solver
         External solver sends, CoSimulation receives = load values"""
         for model_part_name in self.settings["solver_wrapper_settings"]["import_meshes"].GetStringArray():
             interface_config = {"model_part_name" : model_part_name}
             self.ImportCouplingInterface(interface_config)
 
+        super().Initialize()
+
+        for data in self.data_dict.values():
+            data.GetModelPart().GetRootModelPart().SetBufferSize(2)
+
     def AdvanceInTime(self, current_time):
-        """What is the use of this method?"""
         return 0.0 # TODO find a better solution here... maybe get time from solver through IO
 
     def SolveSolutionStep(self):
@@ -63,13 +61,3 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
 
     def _GetIOType(self):
         return self.settings["io_settings"]["type"].GetString()
-
-    def Finalize(self):
-        super().Finalize()
-
-        """ # DisConnect from OpenFOAM adapter
-        disconnect_settings = CoSimIO.Info()
-        disconnect_settings.SetString("connection_name", self.connection_name)
-        info = CoSimIO.Disconnect(disconnect_settings)
-        if info.GetInt("connection_status") != CoSimIO.ConnectionStatus.Disconnected:
-            raise Exception("Disconnecting failed!") """
