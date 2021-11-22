@@ -388,7 +388,7 @@ void FluidAuxiliaryUtilities::InternalCreateSlipMultiPointConstraints(
     rModelPart.RemoveMasterSlaveConstraints(rSlipFlag);
 
     // Get the maximum MPCs id
-    IndexType max_id(0);
+    int max_id(0);
     if (r_comm.LocalMesh().NumberOfMasterSlaveConstraints() != 0) {
         max_id = block_for_each<MaxReduction<IndexType>>(r_comm.LocalMesh().MasterSlaveConstraints(), [&](MasterSlaveConstraint& rMPC){
             return rMPC.Id();
