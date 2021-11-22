@@ -20,6 +20,7 @@
 // Project includes
 #include "utilities/math_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "calculate_wave_height_utility.h"
 
 
@@ -50,26 +51,35 @@ double CalculateWaveHeightUtility::Execute() const
 {
     KRATOS_TRY
 
-    double counter = 0.0;
-    double heightSum = 0.0;
+    using MultipleReduction = CombinedReduction<SumReduction<double>, SumReduction<double>>; 
 
-    for (NodeType& rNode : mrModelPart.Nodes())
+    double counter = 0.0;
+    double wave_height = 0.0;
+
+    std::tie(counter, height) = block_for_each<MultipleReduction>(
+        mrModelPart.Nodes(), [&](NodeType& rNode)
     {
+        double local_count = 0.0;
+        double local_wave_height = 0.0;
+
         if (rNode->IsNot(ISOLATED) && rNode->IsNot(RIGID) && rNode->Is(FREE_SURFACE))
         {
             const auto vector_distance = MathUtils<double>::CrossProduct(mDirection, rNode);
             const double distance = norm_2(vector_distance);
+
             if (distance < mSearchTolerance)
             {
-                const double wave_height = inner_prod(mDirection, rNode) - mHeightReference;
-                counter += 1.0;
-                heightSum += wave_height;
+                local_wave_height = inner_prod(mDirection, rNode) - mHeightReference;
+                local_count = 1.0;
             }
         }
-    }
+        double to_sum = data_vector[i];
+        double to_max = data_vector[i];
+        return std::make_tuple(local_count, local_wave_height);
+    });
 
-    const double height = heightSum / counter;
-    return height;
+    wave_height /= counter;
+    return wave_height;
 
     KRATOS_CATCH("");
 }
