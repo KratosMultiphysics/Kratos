@@ -217,7 +217,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    bool mFirstTimeStep = true;
+    bool mIsInitialized = false;
     bool mComputeAreasEveryStep = false;
     double mEntropyConstant = 0.0;
     double mEnergyConstant = 0.0;
