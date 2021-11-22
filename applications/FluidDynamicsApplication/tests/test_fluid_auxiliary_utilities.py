@@ -10,9 +10,62 @@ class FluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
         fluid_model_part = self.model.CreateModelPart("FluidModelPart")
         fluid_model_part.SetBufferSize(2)
         fluid_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, 2)
+        fluid_model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
         fluid_model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
         fluid_model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        fluid_model_part.AddNodalSolutionStepVariable(Kratos.MESH_VELOCITY)
         Kratos.ModelPartIO("Cavity/square5").ReadModelPart(fluid_model_part)
+
+    def testCreateSlipMultiPointConstraints(self):
+        # Add DOFs to model part
+        fluid_model_part = self.model.GetModelPart("FluidModelPart")
+        Kratos.VariableUtils().AddDof(Kratos.VELOCITY_X, fluid_model_part)
+        Kratos.VariableUtils().AddDof(Kratos.VELOCITY_Y, fluid_model_part)
+
+        # Set a slip BC node
+        node_1 = fluid_model_part.GetNode(1)
+        node_1.Set(Kratos.SLIP, True)
+        node_1.SetSolutionStepValue(Kratos.NORMAL, [2.0, 1.0, 0.0])
+        KratosFluid.FluidAuxiliaryUtilities.CreateSlipMultiPointConstraints(fluid_model_part, Kratos.VELOCITY, Kratos.SLIP)
+
+        # Check the slip MPCs arrays
+        mpc_1 = fluid_model_part.GetMasterSlaveConstraint(1)
+        slave_dofs_vect = mpc_1.GetSlaveDofsVector()
+        master_dofs_vect = mpc_1.GetMasterDofsVector()
+        relation_matrix = Kratos.Matrix()
+        constant_vector = Kratos.Vector()
+        mpc_1.CalculateLocalSystem(relation_matrix, constant_vector, fluid_model_part.ProcessInfo)
+
+        self.assertEqual(slave_dofs_vect[0].GetVariable(), Kratos.VELOCITY_X)
+        self.assertEqual(master_dofs_vect[0].GetVariable(), Kratos.VELOCITY_Y)
+        self.assertAlmostEqual(constant_vector[0], 0.0, 12)
+        self.assertAlmostEqual(relation_matrix[0,0], -0.5, 12)
+
+    def testCreateSlipMultiPointConstraintsWithWallVelocity(self):
+        # Add DOFs to model part
+        fluid_model_part = self.model.GetModelPart("FluidModelPart")
+        Kratos.VariableUtils().AddDof(Kratos.VELOCITY_X, fluid_model_part)
+        Kratos.VariableUtils().AddDof(Kratos.VELOCITY_Y, fluid_model_part)
+
+        # Set a slip BC node
+        node_1 = fluid_model_part.GetNode(1)
+        node_1.Set(Kratos.SLIP, True)
+        node_1.SetSolutionStepValue(Kratos.NORMAL, [2.0, 1.0, 0.0])
+        node_1.SetSolutionStepValue(Kratos.MESH_VELOCITY, [1.0, 1.0, 0.0])
+        KratosFluid.FluidAuxiliaryUtilities.CreateSlipMultiPointConstraints(fluid_model_part, Kratos.VELOCITY, Kratos.MESH_VELOCITY, Kratos.SLIP)
+
+        # Check the slip MPCs arrays
+        mpc_1 = fluid_model_part.GetMasterSlaveConstraint(1)
+        slave_dofs_vect = mpc_1.GetSlaveDofsVector()
+        master_dofs_vect = mpc_1.GetMasterDofsVector()
+        relation_matrix = Kratos.Matrix()
+        constant_vector = Kratos.Vector()
+        mpc_1.CalculateLocalSystem(relation_matrix, constant_vector, fluid_model_part.ProcessInfo)
+
+        self.assertEqual(slave_dofs_vect[0].GetVariable(), Kratos.VELOCITY_X)
+        self.assertEqual(master_dofs_vect[0].GetVariable(), Kratos.VELOCITY_Y)
+        self.assertAlmostEqual(constant_vector[0], 1.5, 12)
+        self.assertAlmostEqual(relation_matrix[0,0], -0.5, 12)
 
     def testCalculateFluidVolume(self):
         fluid_model_part = self.model.GetModelPart("FluidModelPart")
