@@ -166,7 +166,7 @@ void ShockCapturingEntropyViscosityProcess::ExecuteInitializeSolutionStep()
          *   Ideally would be computed at ExecuteInitialize but initial condition
          *      processes don't run until ExecuteInitializeSolutionStep
          */
-        mFirstTimeStep = false;
+        mIsInitialized = true;
     }
 }
 
