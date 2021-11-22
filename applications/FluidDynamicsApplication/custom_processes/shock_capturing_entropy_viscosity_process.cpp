@@ -156,7 +156,7 @@ double ShockCapturingEntropyViscosityProcess::TotalDerivativeUtil::Divergence(
 
 void ShockCapturingEntropyViscosityProcess::ExecuteInitializeSolutionStep()
 {
-    if(mFirstTimeStep)
+    if(!mIsInitialized)
     {
         UpdateNodalAreaProcess();
         ComputeNodalEntropies<1>();
