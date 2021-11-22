@@ -24,13 +24,13 @@ namespace Kratos {
 
         ~DEM_D_Linear_viscous_Coulomb() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
-        void Check(Properties::Pointer pProp) const override;
-
         std::string GetTypeOfLaw() override;
 
+        virtual void Check(Properties::Pointer pProp) const override;
+
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
+
+        std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override;
 
         void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;
 
@@ -61,6 +61,16 @@ namespace Kratos {
                                     SphericParticle* const element,
                                     Condition* const wall,
                                     bool& sliding) override;
+
+
+        double CalculateNormalForce(SphericParticle* const element1,
+                                            SphericParticle* const element2,
+                                            const double indentation,
+                                            double LocalCoordSystem[3][3]) override;
+
+        double CalculateNormalForce(SphericParticle* const element,
+                                            Condition* const wall,
+                                            const double indentation) override;
 
         double CalculateNormalForce(const double indentation) override;
 

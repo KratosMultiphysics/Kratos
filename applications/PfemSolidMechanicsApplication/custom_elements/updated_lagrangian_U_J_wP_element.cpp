@@ -119,7 +119,7 @@ namespace Kratos
 
       NewElement.mDeterminantF0 = mDeterminantF0;
 
-      NewElement.mTimeStep = mTimeStep; 
+      NewElement.mTimeStep = mTimeStep;
 
       NewElement.SetData(this->GetData());
       NewElement.SetFlags(this->GetFlags());
@@ -157,9 +157,9 @@ namespace Kratos
          rOutput.resize( integration_points_number );
       /*if ( rVariable == EFF_CON_WATER_FORCE) {
          const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-         int voigtSize = 3; 
+         int voigtSize = 3;
          if ( dimension == 3)
-            voigtSize = 6; 
+            voigtSize = 6;
 
          // vale, torno a fer de les meves...
          ElementDataType Variables;
@@ -181,14 +181,14 @@ namespace Kratos
                WaterPressure += GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE ) * Variables.N[i];
 
             for (unsigned int i = 0; i < dimension; i++) {
-               StressVector(i) += WaterPressure; 
+               StressVector(i) += WaterPressure;
             }
 
             double thisInt = integration_points[PointNumber].Weight() * Variables.detJ;
-            double IntegrationWeight = thisInt; 
+            double IntegrationWeight = thisInt;
             Vector WPF = IntegrationWeight * prod( trans( Variables.B ), StressVector );
 
-            rOutput[PointNumber] = WPF; 
+            rOutput[PointNumber] = WPF;
          }
 
       }
@@ -212,7 +212,7 @@ namespace Kratos
          const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod);
          //reading integration points
 
-         
+
          for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
          {
 
@@ -224,7 +224,7 @@ namespace Kratos
             //to take in account previous step writing
             if( mFinalizedStep ){
                this->GetHistoricalVariables(Variables,PointNumber);
-            }		
+            }
 
             //set general variables to constitutivelaw parameters
             this->SetElementData(Variables,Values,PointNumber);
@@ -234,11 +234,11 @@ namespace Kratos
             Matrix ElementalFT = Variables.H;
 
             // AND NOW IN THE OTHER WAY
-            Matrix m; double d; 
+            Matrix m; double d;
             ComputeConstitutiveVariables( Variables, m, d);
 
             Variables.H = m;
-            Variables.detH = d; 
+            Variables.detH = d;
             Values.SetDeformationGradientF( Variables.H);
             Values.SetDeterminantF( Variables.detH );
 
@@ -249,10 +249,10 @@ namespace Kratos
 
 
             // 2. Do My THIngs
-            Vector StressVector = Variables.StressVector; 
+            Vector StressVector = Variables.StressVector;
 
             const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-            // 2.b Compute The total stress (if necessary) 
+            // 2.b Compute The total stress (if necessary)
             if ( rVariable == EFF_CON_TOTAL_FORCE )
             {
 
@@ -261,15 +261,15 @@ namespace Kratos
                   WaterPressure += GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE ) * Variables.N[i];
 
                for (unsigned int i = 0; i < dimension; i++) {
-                  StressVector(i) += WaterPressure; 
+                  StressVector(i) += WaterPressure;
                }
             }
 
             double thisInt = integration_points[PointNumber].Weight() * Variables.detJ;
-            double IntegrationWeight = thisInt; 
+            double IntegrationWeight = thisInt;
             Vector WPF = IntegrationWeight * prod( trans( Variables.B ), StressVector );
 
-            rOutput[PointNumber] = WPF; 
+            rOutput[PointNumber] = WPF;
          }
 
 
@@ -382,7 +382,7 @@ namespace Kratos
 
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-         unsigned int index = i * (dimension + 2);  
+         unsigned int index = i * (dimension + 2);
          rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
          rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
          if ( dimension == 3 )
@@ -483,7 +483,7 @@ namespace Kratos
    }
      else if( rCurrentProcessInfo.Has(STABILIZATION_FACTOR_WP) ){
        StabilizationFactor = rCurrentProcessInfo[STABILIZATION_FACTOR_WP];
-            }		
+            }
      GetProperties().SetValue(STABILIZATION_FACTOR_WP, StabilizationFactor);
 
          }
@@ -546,7 +546,7 @@ namespace Kratos
       MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
       // ComputeBaseClass LHS
-      LocalSystemComponents UJLocalSystem; 
+      LocalSystemComponents UJLocalSystem;
       unsigned int MatSize = number_of_nodes * ( dimension+1);
       MatrixType  LocalLeftHandSideMatrix = ZeroMatrix(MatSize,MatSize) ;
       UJLocalSystem.SetLeftHandSideMatrix( LocalLeftHandSideMatrix);
@@ -579,7 +579,7 @@ namespace Kratos
       rLeftHandSideMatrix = WaterUtility.CalculateAndAddHydromechanicalLHS( HMVariables, rLeftHandSideMatrix, LocalLeftHandSideMatrix, rIntegrationWeight);
 
      // LHS. water pressure stabilization
-      ProcessInfo SomeProcessInfo; 
+      ProcessInfo SomeProcessInfo;
       std::vector< double> Mmodulus;
       GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
       double ConstrainedModulus = Mmodulus[0];
@@ -616,13 +616,13 @@ namespace Kratos
 
 
       //contribution of the internal and external forces
-      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
+      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
 
       // Compute Base Class RHS
       LocalSystemComponents BaseClassLocalSystem;
       Vector BaseClassRightHandSideVector = ZeroVector ( (dimension+1) * number_of_nodes );
       BaseClassLocalSystem.SetRightHandSideVector(BaseClassRightHandSideVector );
-      Vector VolumeForce = rVolumeForce; 
+      Vector VolumeForce = rVolumeForce;
       VolumeForce *= 0.0;
       UpdatedLagrangianUJElement::CalculateAndAddRHS( BaseClassLocalSystem, rVariables, VolumeForce, rIntegrationWeight);
 
@@ -646,10 +646,10 @@ namespace Kratos
       //HMVariables.ConstrainedModulus
       HMVariables.number_of_variables = number_of_variables;
 
-      rRightHandSideVector = WaterUtility.CalculateAndAddHydromechanicalRHS( HMVariables, rRightHandSideVector, BaseClassRightHandSideVector, rIntegrationWeight); 
+      rRightHandSideVector = WaterUtility.CalculateAndAddHydromechanicalRHS( HMVariables, rRightHandSideVector, BaseClassRightHandSideVector, rIntegrationWeight);
 
       // Add Stab term
-      ProcessInfo SomeProcessInfo; 
+      ProcessInfo SomeProcessInfo;
       std::vector< double> Mmodulus;
       GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
       double ConstrainedModulus = Mmodulus[0];
@@ -660,15 +660,15 @@ namespace Kratos
          ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
       HMVariables.ConstrainedModulus = ConstrainedModulus;
-      rRightHandSideVector = WaterUtility.CalculateAndAddStabilization( HMVariables, rRightHandSideVector, rIntegrationWeight); 
+      rRightHandSideVector = WaterUtility.CalculateAndAddStabilization( HMVariables, rRightHandSideVector, rIntegrationWeight);
 
 
       rVariables.detF = DeterminantF;
       rVariables.detF0 /= rVariables.detF;
- 
+
       KRATOS_CATCH( "" )
    }
- 
+
 
    //************************************************************************************
    //************************************************************************************
@@ -690,14 +690,14 @@ namespace Kratos
       // Not Lumped Mass Matrix (numerical integration):
 
       //reading integration points
-      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
+      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::IntegrationMethod::GI_GAUSS_2; //GeometryData::IntegrationMethod::GI_GAUSS_1;
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
       ElementDataType Variables;
       this->InitializeElementData(Variables,rCurrentProcessInfo);
 
- 
+
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
    {
          //compute element kinematics
@@ -710,12 +710,12 @@ namespace Kratos
 
          //compute the current density
          double Determinant = Variables.detF * Variables.detF0;
- 
+
       double WaterDensity = GetProperties()[DENSITY_WATER];
          double MixtureDensity = GetProperties()[DENSITY];
 
          double CurrentDensity = MixtureDensity / Determinant + ( Determinant-1)/Determinant*WaterDensity;
-   
+
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
             unsigned int indexupi = ( dimension + 2 ) * i;
@@ -733,13 +733,13 @@ namespace Kratos
 
    }
 
- 
+
       KRATOS_CATCH("")
    }
 
    //************************************************************************************
    //************************************************************************************
- 
+
    void UpdatedLagrangianUJwPElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY

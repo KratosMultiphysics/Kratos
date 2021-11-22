@@ -34,7 +34,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UPwSmallStrainFICElement3D4N
+Begin Elements UPwSmallStrainElement3D4N
   1  1  26 20 8 23
   2  1  23 26 18 8
   3  1  17 5 8 23

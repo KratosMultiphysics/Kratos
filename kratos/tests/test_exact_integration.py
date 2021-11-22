@@ -1,12 +1,10 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-
 class TestExactIntegration(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
-
 
     # Test exact integration in 2D
     # LINE
@@ -256,25 +254,8 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.GetNode(5).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
         model_part.GetNode(6).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
 
-        matrix_solution = KratosMultiphysics.Matrix()
-        solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
-
-        ## Debug
-        #exact_integration.TestIODebug(model_part, "GiD")
-        ##exact_integration.TestIODebug(model_part, "VTK")
-        #if solution:
-            #print("Integration accomplished", matrix_solution)
-
-        self.assertTrue(solution)
-        self.assertAlmostEqual(matrix_solution[0, 0], 0.25)
-        self.assertAlmostEqual(matrix_solution[0, 1], 1.0 / 12.0)
-        self.assertAlmostEqual(matrix_solution[0, 2], 1.0 / 12.0)
-        self.assertAlmostEqual(matrix_solution[1, 0], 0.75)
-        self.assertAlmostEqual(matrix_solution[1, 1], 1.0 / 12.0)
-        self.assertAlmostEqual(matrix_solution[1, 2], 1.0 / 12.0)
-        self.assertAlmostEqual(matrix_solution[2, 0], 0.5)
-        self.assertAlmostEqual(matrix_solution[2, 1], 1.0 / 3.0)
-        self.assertAlmostEqual(matrix_solution[2, 2], 1.0 / 12.0)
+        solution = exact_integration.TestGetExactAreaIntegration(cond1, cond2)
+        self.assertAlmostEqual(solution, 0.25)
 
     def test_triangle_exact_integration_2(self):
         self._test_triangle_exact_integration_2(False)
@@ -327,95 +308,17 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.GetNode(7).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
         model_part.GetNode(8).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
 
-        matrix_solution = KratosMultiphysics.Matrix()
+        solution = exact_integration.TestGetExactAreaIntegration(cond1, cond3)
+        self.assertAlmostEqual(solution, 0.25)
 
-        solution = exact_integration.TestGetExactIntegration(cond1, cond3, matrix_solution)
+        solution = exact_integration.TestGetExactAreaIntegration(cond1, cond4)
+        self.assertAlmostEqual(solution, 0.25)
 
-        ## Debug
-        #exact_integration.TestIODebug(model_part, "GiD")
-        ##exact_integration.TestIODebug(model_part, "VTK")
-        #if solution:
-            #print("Integration accomplished", matrix_solution)
+        solution = exact_integration.TestGetExactAreaIntegration(cond2, cond3)
+        self.assertAlmostEqual(solution, 0.25)
 
-        self.assertTrue(solution)
-        self.assertAlmostEqual(matrix_solution[0, 0], 0.25)
-        self.assertAlmostEqual(matrix_solution[0, 1], 1.0 / 12.0)
-        self.assertAlmostEqual(matrix_solution[0, 2], 1.0 / 12.0)
-        self.assertAlmostEqual(matrix_solution[1, 0], 0.75)
-        self.assertAlmostEqual(matrix_solution[1, 1], 1.0 / 12.0)
-        self.assertAlmostEqual(matrix_solution[1, 2], 1.0 / 12.0)
-        self.assertAlmostEqual(matrix_solution[2, 0], 0.5)
-        self.assertAlmostEqual(matrix_solution[2, 1], 1.0 / 3.0)
-        self.assertAlmostEqual(matrix_solution[2, 2], 1.0 / 12.0)
-
-        solution = exact_integration.TestGetExactIntegration(cond1, cond4, matrix_solution)
-
-        ## Debug
-        #exact_integration.TestIODebug(model_part, "GiD")
-        ##exact_integration.TestIODebug(model_part, "VTK")
-        #if solution:
-            #print("Integration accomplished", matrix_solution)
-
-        self.assertTrue(solution)
-        self.assertAlmostEqual(matrix_solution[0, 0], 1.0 / 12.0)
-        self.assertAlmostEqual(matrix_solution[0, 1], 0.25)
-        self.assertAlmostEqual(matrix_solution[0, 2], 1.0 / 12.0)
-        self.assertAlmostEqual(matrix_solution[1, 0], 1.0 / 3.0)
-        self.assertAlmostEqual(matrix_solution[1, 1], 0.5)
-        self.assertAlmostEqual(matrix_solution[1, 2], 1.0 / 12.0)
-        self.assertAlmostEqual(matrix_solution[2, 0], 1.0 / 12.0)
-        self.assertAlmostEqual(matrix_solution[2, 1], 0.75)
-        self.assertAlmostEqual(matrix_solution[2, 2], 1.0 / 12.0)
-
-        solution = exact_integration.TestGetExactIntegration(cond2, cond3, matrix_solution)
-
-        ## Debug
-        #exact_integration.TestIODebug(model_part, "GiD")
-        ##exact_integration.TestIODebug(model_part, "VTK")
-        #if solution:
-            #print("Integration accomplished", matrix_solution)
-
-        self.assertTrue(solution)
-        self.assertAlmostEqual(matrix_solution[0, 0],  1.0 / 6.0)
-        self.assertAlmostEqual(matrix_solution[0, 1], 1.0 / 12.0)
-        self.assertAlmostEqual(matrix_solution[0, 2],  1.0 / 12.0)
-        self.assertAlmostEqual(matrix_solution[1, 0], 2.0 / 3.0)
-        self.assertAlmostEqual(matrix_solution[1, 1], 1.0 / 12.0)
-        self.assertAlmostEqual(matrix_solution[1, 2], 1.0 / 12.0)
-        self.assertAlmostEqual(matrix_solution[2, 0], 1.0 / 6.0)
-        self.assertAlmostEqual(matrix_solution[2, 1], 1.0 / 3.0)
-        self.assertAlmostEqual(matrix_solution[2, 2], 1.0 / 12.0)
-
-        solution = exact_integration.TestGetExactIntegration(cond2, cond4, matrix_solution)
-
-        ## Debug
-        #exact_integration.TestIODebug(model_part, "GiD")
-        ##exact_integration.TestIODebug(model_part, "VTK")
-        #if solution:
-            #print("Integration accomplished", matrix_solution)
-
-        if use_delaunator:
-            self.assertTrue(solution)
-            self.assertAlmostEqual(matrix_solution[0, 0],  1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[0, 1],  0.5)
-            self.assertAlmostEqual(matrix_solution[0, 2],  1.0 / 12.0)
-            self.assertAlmostEqual(matrix_solution[1, 0],  4.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[1, 1],  0.25)
-            self.assertAlmostEqual(matrix_solution[1, 2],  1.0 / 12.0)
-            self.assertAlmostEqual(matrix_solution[2, 0],  1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[2, 1],  0.75)
-            self.assertAlmostEqual(matrix_solution[2, 2],  1.0 / 12.0)
-        else:
-            self.assertTrue(solution)
-            self.assertAlmostEqual(matrix_solution[0, 0],  4.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[0, 1],  0.25)
-            self.assertAlmostEqual(matrix_solution[0, 2],  1.0 / 12.0)
-            self.assertAlmostEqual(matrix_solution[1, 0],  1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[1, 1],  0.75)
-            self.assertAlmostEqual(matrix_solution[1, 2],  1.0 / 12.0)
-            self.assertAlmostEqual(matrix_solution[2, 0],  1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[2, 1],  1.0 / 2.0)
-            self.assertAlmostEqual(matrix_solution[2, 2],  1.0 / 12.0)
+        solution = exact_integration.TestGetExactAreaIntegration(cond2, cond4)
+        self.assertAlmostEqual(solution, 0.25)
 
     def test_triangle_exact_integration_3(self):
         self._test_triangle_exact_integration_3(False)
@@ -465,56 +368,8 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.GetNode(7).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
         model_part.GetNode(8).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
 
-        matrix_solution = KratosMultiphysics.Matrix()
-        solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
-
-        ## Debug
-        #exact_integration.TestIODebug(model_part, "GiD")
-        ##exact_integration.TestIODebug(model_part, "VTK")
-        #if solution:
-            #print("Integration accomplished", matrix_solution)
-
-        if use_delaunator:
-            self.assertTrue(solution)
-            self.assertAlmostEqual(matrix_solution[0, 0], -2.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[0, 1],  1.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[0, 2],  1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[1, 0], -2.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[1, 1], -2.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[1, 2],  1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[2, 0],  1.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[2, 1], -2.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[2, 2],  1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[3, 0],  2.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[3, 1], -1.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[3, 2],  1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[4, 0],  2.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[4, 1],  2.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[4, 2],  1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[5, 0], -1.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[5, 1],  2.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[5, 2],  1.0 / 6.0)
-
-        else:
-            self.assertTrue(solution)
-            self.assertAlmostEqual(matrix_solution[0, 0], -1.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[0, 1], -2.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[0, 2],  1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[1, 0],  2.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[1, 1], -2.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[1, 2],  1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[2, 0],  2.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[2, 1],  1.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[2, 2],  1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[3, 0], -2.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[3, 1], -1.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[3, 2],  1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[4, 0],  1.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[4, 1],  2.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[4, 2],  1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[5, 0], -2.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[5, 1],  2.0 / 3.0)
-            self.assertAlmostEqual(matrix_solution[5, 2],  1.0 / 6.0)
+        solution = exact_integration.TestGetExactAreaIntegration(cond1, cond2)
+        self.assertAlmostEqual(solution, 1.0)
 
     def test_quadrilateral_exact_integration_1(self):
         self._test_quadrilateral_exact_integration_1(False)
@@ -564,56 +419,8 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.GetNode(7).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
         model_part.GetNode(8).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
 
-        matrix_solution = KratosMultiphysics.Matrix()
-        solution = exact_integration.TestGetExactIntegration(cond1, cond2, matrix_solution)
-
-        ## Debug
-        #exact_integration.TestIODebug(model_part, "GiD")
-        ##exact_integration.TestIODebug(model_part, "VTK")
-        #if solution:
-            #print("Integration accomplished", matrix_solution)
-
-        if use_delaunator:
-            self.assertTrue(solution)
-            self.assertAlmostEqual(matrix_solution[0, 0], 1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[0, 1], 4.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[0, 2], 1.0 / 24.0)
-            self.assertAlmostEqual(matrix_solution[1, 0], 1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[1, 1], 1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[1, 2], 1.0 / 24.0)
-            self.assertAlmostEqual(matrix_solution[2, 0], 4.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[2, 1], 1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[2, 2], 1.0 / 24.0)
-            self.assertAlmostEqual(matrix_solution[3, 0], 5.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[3, 1], 2.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[3, 2], 1.0 / 24.0)
-            self.assertAlmostEqual(matrix_solution[4, 0], 5.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[4, 1], 5.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[4, 2], 1.0 / 24.0)
-            self.assertAlmostEqual(matrix_solution[5, 0], 2.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[5, 1], 5.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[5, 2], 1.0 / 24.0)
-
-        else:
-            self.assertTrue(solution)
-            self.assertAlmostEqual(matrix_solution[0, 0], 2.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[0, 1], 1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[0, 2], 1.0 / 24.0)
-            self.assertAlmostEqual(matrix_solution[1, 0], 5.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[1, 1], 1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[1, 2], 1.0 / 24.0)
-            self.assertAlmostEqual(matrix_solution[2, 0], 5.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[2, 1], 4.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[2, 2], 1.0 / 24.0)
-            self.assertAlmostEqual(matrix_solution[3, 0], 1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[3, 1], 2.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[3, 2], 1.0 / 24.0)
-            self.assertAlmostEqual(matrix_solution[4, 0], 4.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[4, 1], 5.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[4, 2], 1.0 / 24.0)
-            self.assertAlmostEqual(matrix_solution[5, 0], 1.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[5, 1], 5.0 / 6.0)
-            self.assertAlmostEqual(matrix_solution[5, 2], 1.0 / 24.0)
+        solution = exact_integration.TestGetExactAreaIntegration(cond1, cond2)
+        self.assertAlmostEqual(solution, 0.25)
 
     def test_quadrilateral_exact_integration_2(self):
         self._test_quadrilateral_exact_integration_2(False)

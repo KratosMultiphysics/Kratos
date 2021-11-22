@@ -57,7 +57,7 @@ std::string NewtonianTwoFluid3DLaw::Info() const {
 int NewtonianTwoFluid3DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     for (unsigned int i = 0; i < rElementGeometry.size(); i++) {
         const Node<3>& rNode = rElementGeometry[i];

@@ -21,9 +21,7 @@
 
 // Processes
 #include "custom_processes/apply_kinematic_constraints_process.hpp"
-#include "custom_processes/apply_kinematic_constraints_to_walls_process.hpp"
 #include "custom_processes/apply_forces_and_moments_process.hpp"
-#include "custom_processes/apply_forces_and_moments_to_walls_process.hpp"
 #include "custom_processes/control_module_2d_process.hpp"
 #include "custom_processes/automatic_dt_process.hpp"
 
@@ -43,16 +41,8 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     (m, "ApplyKinematicConstraintsProcess")
     .def(py::init < ModelPart&, Parameters>());
 
-    py::class_<ApplyKinematicConstraintsToWallsProcess, ApplyKinematicConstraintsToWallsProcess::Pointer, Process>
-    (m, "ApplyKinematicConstraintsToWallsProcess")
-    .def(py::init < ModelPart&, Parameters>());
-
     py::class_<ApplyForcesAndMomentsProcess, ApplyForcesAndMomentsProcess::Pointer, Process>
     (m, "ApplyForcesAndMomentsProcess")
-    .def(py::init < ModelPart&, Parameters >());
-
-    py::class_<ApplyForcesAndMomentsToWallsProcess, ApplyForcesAndMomentsToWallsProcess::Pointer, Process>
-    (m, "ApplyForcesAndMomentsToWallsProcess")
     .def(py::init < ModelPart&, Parameters >());
 
     py::class_<ControlModule2DProcess, ControlModule2DProcess::Pointer, Process>

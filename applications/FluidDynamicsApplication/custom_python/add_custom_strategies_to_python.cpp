@@ -30,7 +30,7 @@
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_periodic.h"
 
 //strategies
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/strategies/fractional_step_strategy.h"
 
 //schemes
@@ -63,7 +63,7 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-    typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
+    typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
 
     //********************************************************************

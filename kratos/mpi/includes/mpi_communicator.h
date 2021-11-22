@@ -711,7 +711,9 @@ public:
     MPICommunicator(VariablesList* pVariablesList, const DataCommunicator& rDataCommunicator)
     : BaseType(rDataCommunicator)
     , mpVariables_list(pVariablesList)
-    {}
+    {
+        KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Trying to create an MPICommunicator with a non-distributed DataCommunicator!" << std::endl;
+    }
 
     /// Copy constructor.
 

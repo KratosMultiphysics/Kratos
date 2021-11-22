@@ -31,7 +31,7 @@
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_utilities/create_and_destroy.h"
@@ -211,7 +211,6 @@ namespace Kratos {
         virtual void Initialize();
         virtual void AttachSpheresToStickyWalls();
         virtual void DisplayThreadInfo();
-        virtual void CalculateMaxTimeStep();
         double CalculateMaxInletTimeStep();
         virtual void InitializeClusters();
         virtual void GetClustersForce();
@@ -220,7 +219,6 @@ namespace Kratos {
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi = true);
         void SearchFEMOperations(ModelPart& r_model_part, bool has_mpi = true) ;
         virtual void ForceOperations(ModelPart& r_model_part);
-        void InitialTimeStepCalculation(); //TODO: remove this one
         void GetForce();
         void FastGetForce();
         virtual void PerformTimeIntegrationOfMotion(int StepFlag = 0);
@@ -262,6 +260,7 @@ namespace Kratos {
         void SynchronizeHistoricalVariables(ModelPart& r_model_part);
         void SynchronizeRHS(ModelPart& r_model_part);
         void CleanEnergies();
+        void Check_MPI(bool& has_mpi);
 
         ModelPart& GetModelPart() { return (*mpDem_model_part);}
         ModelPart& GetFemModelPart() { return (*mpFem_model_part);}
