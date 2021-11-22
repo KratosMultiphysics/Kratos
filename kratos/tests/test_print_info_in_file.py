@@ -8,6 +8,8 @@ def GetFilePath(fileName):
 
 class TestPrintInfoInFile(KratosUnittest.TestCase):
 
+    current_path = os.path.abspath(os.getcwd())
+
     current_model = KM.Model()
     model_part = current_model.CreateModelPart("test")
     properties = KM.Properties(1)
@@ -30,10 +32,10 @@ class TestPrintInfoInFile(KratosUnittest.TestCase):
     submodel_2 = model_part.CreateSubModelPart("to_plot_2")
     submodel_2.AddNodes([3,4])
 
-    node1.SetSolutionStepValue(KM.DISPLACEMENT, [1.0,0,0])
-    node2.SetSolutionStepValue(KM.DISPLACEMENT, [2.0,0,0])
+    node1.SetSolutionStepValue(KM.DISPLACEMENT, [1.1,0,0])
+    node2.SetSolutionStepValue(KM.DISPLACEMENT, [2.6,0,0])
     node3.SetSolutionStepValue(KM.DISPLACEMENT, [3.0,0,0])
-    node4.SetSolutionStepValue(KM.DISPLACEMENT, [4.0,0,0])
+    node4.SetSolutionStepValue(KM.DISPLACEMENT, [4.3,0,0])
 
     settings = KM.Parameters("""{
         "model_part_name"                    : "test.to_plot",
@@ -47,6 +49,30 @@ class TestPrintInfoInFile(KratosUnittest.TestCase):
         "write_buffer_size"                  : 1,
         "output_path"                        : ""}""")
     process = PrintProcess.PrintInfoInFileProcess(current_model, settings)
+    process.PrintOutput()
+
+    expected = [0.0, 3.7, 0.0, 0.0]
+
+    ref_file_name = os.path.abspath(settings["file_name"].GetString())
+
+    if not os.path.isfile(ref_file_name):
+                err_msg  = 'The specified reference file name "'
+                err_msg += ref_file_name
+                err_msg += '" is not valid!'
+                raise Exception(err_msg)
+
+    with open(ref_file_name, "r") as plot_file:
+        contents = plot_file.readlines()
+        print(ref_file_name)
+        print(contents)
+        for line in contents:
+            print(line)
+            if line[0] != "#":
+                numbers = line.split("\t")
+                if numbers[0] != 0.0 or numbers[1] != 3.7 or numbers[2] != 0.0 or numbers[3] != 0.0:
+                    raise Exception("The print does not give the expected result...")
+
+
 
 
 
