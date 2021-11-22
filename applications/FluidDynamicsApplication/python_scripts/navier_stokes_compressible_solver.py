@@ -122,6 +122,9 @@ class NavierStokesCompressibleSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TOTAL_ENERGY, KratosFluid.REACTION_ENERGY, self.main_model_part)
 
     def Initialize(self):
+        # Call base solver initialize
+        super().Initialize()
+
         # Construct and set the solution strategy
         solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -153,6 +156,12 @@ class NavierStokesCompressibleSolver(FluidSolver):
     #     prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
 
     #     check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
+
+    def _CreateSlipBoundaryConditionMPCs(self):
+        KratosMultiphysics.FluidDynamicsApplication.FluidAuxiliaryUtilities.CreateSlipMultiPointConstraints(
+            self.GetComputingModelPart(),
+            KratosMultiphysics.MOMENTUM,
+            KratosMultiphysics.SLIP)
 
     def _CreateScheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
