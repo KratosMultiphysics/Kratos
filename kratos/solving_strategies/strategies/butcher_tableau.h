@@ -66,27 +66,29 @@ namespace Kratos
 template<typename Derived, unsigned int TOrder, unsigned int TSubstepCount>
 class ButcherTableau
 {
+
 public:
     ///@name Type Definitions
     ///@{
 
-    static constexpr unsigned int Order() {return TOrder;}
-    static constexpr unsigned int SubstepCount() {return TSubstepCount; }
-
-    typedef array_1d<double, SubstepCount()> VectorType;
+    typedef array_1d<double, TSubstepCount> VectorType;
 
     /* Using the following constructs allows us to multiply parts of vectors with parts of matrices
      * while avoiding BOOST's size checks. This is useful to skip multiplications by zero, since
      * for all explicit runge-kutta methods a_ij = 0 for i>j
      */
-    typedef array_1d<double, SubstepCount()-1> RowType;
-    typedef std::array<RowType, SubstepCount()-1> MatrixType;
+
+    typedef array_1d<double,TSubstepCount-1> RowType;
+    typedef std::array<RowType, TSubstepCount-1> MatrixType;
 
     struct ArraySlice
     {
         typename RowType::const_iterator begin;
         typename RowType::const_iterator end;
     };
+
+    static constexpr unsigned int Order() {return TOrder;}
+    static constexpr unsigned int SubstepCount() {return TSubstepCount; }
 
     ///@}
     ///@name Life Cycle
@@ -228,20 +230,21 @@ private:
 class ButcherTableauForwardEuler : public ButcherTableau<ButcherTableauForwardEuler, 1, 1>
 {
 public:
+    typedef ButcherTableau<ButcherTableauForwardEuler, 1, 1> BaseType;
 
-    static const MatrixType GenerateRKMatrix()
+    static const BaseType::MatrixType GenerateRKMatrix()
     {
         return {};
     }
 
-    static const VectorType GenerateWeights()
+    static const BaseType::VectorType GenerateWeights()
     {
         VectorType B;
         B(0) = 1.0;
         return B;
     }
 
-    static const VectorType GenerateThetasVector()
+    static const BaseType::VectorType GenerateThetasVector()
     {
         VectorType C;
         C(0) = 0.0;
@@ -258,15 +261,16 @@ public:
 class ButcherTableauMidPointMethod : public ButcherTableau<ButcherTableauMidPointMethod, 2, 2>
 {
 public:
+    typedef ButcherTableau<ButcherTableauMidPointMethod, 2, 2> BaseType;
 
-    static const MatrixType GenerateRKMatrix()
+    static const BaseType::MatrixType GenerateRKMatrix()
     {
         MatrixType A;
         A[0][0] = 0.5;
         return A;
     }
 
-    static const VectorType GenerateWeights()
+    static const BaseType::VectorType GenerateWeights()
     {
         VectorType B;
         B(0) = 0.0;
@@ -274,7 +278,7 @@ public:
         return B;
     }
 
-    static const VectorType GenerateThetasVector()
+    static const BaseType::VectorType GenerateThetasVector()
     {
         VectorType C;
         C(0) = 0.0;
@@ -297,8 +301,9 @@ public:
 class ButcherTableauRK3TVD : public ButcherTableau<ButcherTableauRK3TVD, 3, 3>
 {
 public:
+    typedef ButcherTableau<ButcherTableauRK3TVD, 3, 3> BaseType;
 
-    static const MatrixType GenerateRKMatrix()
+    static const BaseType::MatrixType GenerateRKMatrix()
     {
         MatrixType A;
         A[0][0] = 1;
@@ -308,7 +313,7 @@ public:
         return A;
     }
 
-    static const VectorType GenerateWeights()
+    static const BaseType::VectorType GenerateWeights()
     {
         VectorType B;
         B(0) = 1.0 / 6.0;
@@ -317,7 +322,7 @@ public:
         return B;
     }
 
-    static const VectorType GenerateThetasVector()
+    static const BaseType::VectorType GenerateThetasVector()
     {
         VectorType C;
         C(0) = 0.0;
@@ -336,7 +341,8 @@ public:
 class ButcherTableauRK4 : public ButcherTableau<ButcherTableauRK4, 4, 4>
 {
 public:
-    static const MatrixType GenerateRKMatrix()
+    typedef ButcherTableau<ButcherTableauRK4, 4, 4> BaseType;
+    static const BaseType::MatrixType GenerateRKMatrix()
     {
         MatrixType A;
         std::fill(begin(A), end(A), ZeroVector(SubstepCount()-1));
@@ -346,7 +352,7 @@ public:
         return A;
     }
 
-    static const VectorType GenerateWeights()
+    static const BaseType::VectorType GenerateWeights()
     {
         VectorType B;
         B(0) = 1.0 / 6.0;
@@ -356,7 +362,7 @@ public:
         return B;
     }
 
-    static const VectorType GenerateThetasVector()
+    static const BaseType::VectorType GenerateThetasVector()
     {
         VectorType C;
         C(0) = 0.0;
