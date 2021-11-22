@@ -444,40 +444,6 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         rOutput.resize(integration_points.size());
     }
 
-    if (rVariable == PRESTRESS_VECTOR){
-
-        // pre-integrated global force vector w.r.t. only pk2 pre-stress, as "external" load vector
-        if (rOutput.size() != msLocalSize) {
-            rOutput.resize(msLocalSize);
-        }
-        BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
-        ZeroMatrix(msLocalSize, msLocalSize);
-
-        CreateTransformationMatrix(transformation_matrix);
-
-        const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-        const double A = GetProperties()[CROSS_AREA];
-
-        double prestress = 0.00;
-        if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-            prestress = GetProperties()[TRUSS_PRESTRESS_PK2];
-        }
-
-        const double normal_force = (prestress * l * A) / L0;
-
-        // internal force vectors
-        BoundedVector<double, msLocalSize> f_local = ZeroVector(msLocalSize);
-        f_local[0] = -1.00 * normal_force;
-        f_local[3] = 1.00 * normal_force;
-        Vector global_pre_stress_forces = ZeroVector(msLocalSize);
-        noalias(global_pre_stress_forces) = prod(transformation_matrix, f_local);
-
-        // * (-1) because this represents the "external" load vector due to pre stress
-        rOutput[0] = -1.0*global_pre_stress_forces;
-    }
-
-
     if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
         Vector strain = ZeroVector(msDimension);
         strain[0] = CalculateGreenLagrangeStrain();
