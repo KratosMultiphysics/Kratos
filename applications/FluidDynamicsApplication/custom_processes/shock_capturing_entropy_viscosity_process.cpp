@@ -127,8 +127,9 @@ const Parameters ShockCapturingEntropyViscosityProcess::GetDefaultParameters() c
 }
 
 
-double ShockCapturingEntropyViscosityProcess::TotalDerivativeUtil::
-Divergence(const Matrix& rShapeFunGradients, const Matrix& rNodalValues)
+double ShockCapturingEntropyViscosityProcess::TotalDerivativeUtil::Divergence(
+    const Matrix& rShapeFunGradients,
+    const Matrix& rNodalValues)
 {
     KRATOS_TRY
 
