@@ -28,27 +28,21 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkInitialize, KratosCoreFastSuite)
 		{
-			int max_threads = OpenMPUtils::GetCurrentNumberOfThreads();
-
 			std::size_t block_size_in_bytes = 5; // the aligned block size is 8
-			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
-			std::size_t chunk_size_in_bytes = header_size + 1024;
+			std::size_t chunk_size_in_bytes = 1024;
 
 			Chunk chunk(block_size_in_bytes, chunk_size_in_bytes);
 			chunk.Initialize();
 
 			std::size_t block_size_after_alignment = 8;
-			std::size_t available_blocks_should_be = (chunk_size_in_bytes - 2* max_threads * sizeof(Chunk::SizeType)) / block_size_after_alignment;
+			std::size_t available_blocks_should_be = (chunk_size_in_bytes) / block_size_after_alignment;
 			KRATOS_CHECK_EQUAL(chunk.GetNumberOfAvailableBlocks(), available_blocks_should_be) << " Available block :" << chunk.GetNumberOfAvailableBlocks() << " vs " << available_blocks_should_be;
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkInitializeSmallBlock, KratosCoreFastSuite)
 		{
-			int max_threads = OpenMPUtils::GetCurrentNumberOfThreads();
-
 			std::size_t block_size_in_bytes = 5; // the aligned block size is 8
-			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
-			std::size_t chunk_size_in_bytes = header_size + 5;
+			std::size_t chunk_size_in_bytes = 5;
 
 			Chunk too_small_chunk(block_size_in_bytes, chunk_size_in_bytes);
 			too_small_chunk.Initialize();
@@ -61,11 +55,10 @@ namespace Kratos {
 			int max_threads = ParallelUtilities::GetNumThreads();
 
 			std::size_t block_size_in_bytes = 5; // the aligned block size is 8
-			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
-			std::size_t chunk_size_in_bytes = header_size + 1024;
+			std::size_t chunk_size_in_bytes = 1024;
 
 			std::size_t block_size_after_alignment = 8;
-			std::size_t available_blocks_should_be = (chunk_size_in_bytes - 2* max_threads * sizeof(Chunk::SizeType)) / block_size_after_alignment;
+			std::size_t available_blocks_should_be = (chunk_size_in_bytes) / block_size_after_alignment;
 
 			auto repeat_number = 10;
 			#pragma omp parallel for
@@ -83,8 +76,7 @@ namespace Kratos {
 			int max_threads = ParallelUtilities::GetNumThreads();
 
 			std::size_t block_size_in_bytes = 5; // the aligned block size is 8
-			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
-			std::size_t chunk_size_in_bytes = header_size + 5;
+			std::size_t chunk_size_in_bytes = 5;
 
 			auto repeat_number = 10;
 			#pragma omp parallel for
@@ -101,8 +93,7 @@ namespace Kratos {
 		{
 			int max_threads = ParallelUtilities::GetNumThreads();
 			std::size_t block_size_in_bytes = 5;
-			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
-		  std::size_t chunk_size_in_bytes =  header_size + 1024;
+		  std::size_t chunk_size_in_bytes =  1024;
 			Chunk chunk(block_size_in_bytes, chunk_size_in_bytes);
 
 			chunk.Initialize();
@@ -126,8 +117,7 @@ namespace Kratos {
 		{
 			int max_threads = ParallelUtilities::GetNumThreads();
 			std::size_t block_size_in_bytes = 5;
-			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
-		  	std::size_t chunk_size_in_bytes =  header_size + 1024;
+		  	std::size_t chunk_size_in_bytes =  1024;
 
 			auto repeat_number = 10;
 			std::stringstream buffer;
@@ -167,8 +157,7 @@ namespace Kratos {
 		{
 			int max_threads = ParallelUtilities::GetNumThreads();
 			std::size_t block_size_in_bytes = 5;
-			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
-		  	std::size_t chunk_size_in_bytes =  header_size + 1024;
+		  	std::size_t chunk_size_in_bytes =  1024;
 
 		  	// KRATOS_ERROR << max_threads << " -- " << ParallelUtilities::GetNumThreads() << std::endl;
 
