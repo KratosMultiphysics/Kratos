@@ -165,6 +165,7 @@ public:
           mDamageDissipation(rOther.mDamageDissipation),
           mThreshold(rOther.mThreshold),
           mPlasticStrain(rOther.mPlasticStrain),
+          mOldStrain(rOther.mOldStrain),
           mComplianceMatrix(rOther.mComplianceMatrix)
     {
     }
@@ -608,6 +609,7 @@ private:
     double mDamageDissipation  = 0.0;
     double mThreshold          = 0.0;
     BoundedVectorType mPlasticStrain    = ZeroVector(VoigtSize);
+    BoundedVectorType mOldStrain        = ZeroVector(VoigtSize);
     BoundedMatrixType mComplianceMatrix = ZeroMatrix(VoigtSize, VoigtSize);
 
     ///@}
@@ -636,6 +638,7 @@ private:
         rSerializer.save("DamageDissipation", mDamageDissipation);
         rSerializer.save("Threshold", mThreshold);
         rSerializer.save("PlasticStrain", mPlasticStrain);
+        rSerializer.save("OldStrain", mOldStrain);
         rSerializer.save("ComplianceMatrix", mComplianceMatrix);
     }
 
@@ -646,6 +649,7 @@ private:
         rSerializer.load("DamageDissipation", mDamageDissipation);
         rSerializer.load("Threshold", mThreshold);
         rSerializer.load("PlasticStrain", mPlasticStrain);
+        rSerializer.load("OldStrain", mOldStrain);
         rSerializer.load("ComplianceMatrix", mComplianceMatrix);
     }
 

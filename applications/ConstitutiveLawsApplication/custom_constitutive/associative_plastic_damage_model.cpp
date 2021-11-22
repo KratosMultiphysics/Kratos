@@ -147,7 +147,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
         IntegrateStressPlasticDamageMechanics(rValues, plastic_damage_parameters);
         UpdateInternalVariables(plastic_damage_parameters);
     }
-
+    noalias(mOldStrain) = r_strain_vector;
 }
 
 /***********************************************************************************/
@@ -478,44 +478,54 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     bool is_converged = false;
     IndexType iteration = 0, max_iter = 1000;
 
-    while (is_converged == false && iteration <= max_iter) {
-        CalculateThresholdAndSlope(rValues, rPDParameters);
-        CalculateFlowVector(rValues, rPDParameters);
-        CalculatePlasticConsistencyIncrement(rValues, rPDParameters);
+    const double splits = 50;
+    noalias(rPDParameters.StressVector) = prod(rPDParameters.ConstitutiveMatrix, mOldStrain - rPDParameters.PlasticStrain);
+    // BoundedVectorType delta_stress = prod(rPDParameters.ConstitutiveMatrix, rPDParameters.StrainVector - mOldStrain) / splits;
+    for (int i = 0; i < splits; i++) {
+        // rPDParameters.StressVector += delta_stress;
+        rPDParameters.StressVector += prod(rPDParameters.ConstitutiveMatrix, rPDParameters.StrainVector - mOldStrain) / splits;
+        is_converged = false;
+        iteration = 0;
+        while (is_converged == false && iteration <= max_iter) {
+            CalculateThresholdAndSlope(rValues, rPDParameters);
+            CalculateFlowVector(rValues, rPDParameters);
+            CalculatePlasticConsistencyIncrement(rValues, rPDParameters);
 
-        // Update the analytical tangent tensor
-        if (rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
-            CalculateAnalyticalTangentTensor(rValues, rPDParameters);
+            // Update the analytical tangent tensor
+            if (rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
+                CalculateAnalyticalTangentTensor(rValues, rPDParameters);
 
-        // Compute the plastic strain increment
-        CalculatePlasticStrainIncrement(rValues, rPDParameters);
-        noalias(rPDParameters.PlasticStrain) += rPDParameters.PlasticStrainIncrement;
+            // Compute the plastic strain increment
+            CalculatePlasticStrainIncrement(rValues, rPDParameters);
+            noalias(rPDParameters.PlasticStrain) += rPDParameters.PlasticStrainIncrement;
 
-        // Compute the compliance increment -> C dot
-        CalculateComplianceMatrixIncrement(rValues, rPDParameters);
-        noalias(rPDParameters.ComplianceMatrix) += rPDParameters.ComplianceMatrixIncrement;
+            // Compute the compliance increment -> C dot
+            CalculateComplianceMatrixIncrement(rValues, rPDParameters);
+            noalias(rPDParameters.ComplianceMatrix) += rPDParameters.ComplianceMatrixIncrement;
 
-        noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement * prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
+            noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement * prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
 
-        CalculateConstitutiveMatrix(rValues, rPDParameters);
+            CalculateConstitutiveMatrix(rValues, rPDParameters);
 
-        // Compute the non-linear dissipation performed
-        CalculatePlasticDissipationIncrement(r_mat_properties, rPDParameters);
-        CalculateDamageDissipationIncrement(r_mat_properties, rPDParameters);
-        AddNonLinearDissipation(rPDParameters);
+            // Compute the non-linear dissipation performed
+            CalculatePlasticDissipationIncrement(r_mat_properties, rPDParameters);
+            CalculateDamageDissipationIncrement(r_mat_properties, rPDParameters);
+            AddNonLinearDissipation(rPDParameters);
 
-        // updated uniaxial and threshold stress check
-        TYieldSurfaceType::CalculateEquivalentStress(rPDParameters.StressVector, rPDParameters.StrainVector, rPDParameters.UniaxialStress, rValues);
-        CalculateThresholdAndSlope(rValues, rPDParameters);
-        rPDParameters.NonLinearIndicator = rPDParameters.UniaxialStress - rPDParameters.Threshold;
+            // updated uniaxial and threshold stress check
+            TYieldSurfaceType::CalculateEquivalentStress(rPDParameters.StressVector, rPDParameters.StrainVector, rPDParameters.UniaxialStress, rValues);
+            CalculateThresholdAndSlope(rValues, rPDParameters);
+            rPDParameters.NonLinearIndicator = rPDParameters.UniaxialStress - rPDParameters.Threshold;
 
-        if (rPDParameters.NonLinearIndicator <= tolerance*rPDParameters.Threshold) {
-            is_converged = true;
-        } else {
-            iteration++;
+            if (rPDParameters.NonLinearIndicator <= tolerance*rPDParameters.Threshold) {
+                is_converged = true;
+            } else {
+                iteration++;
+            }
         }
     }
-    KRATOS_ERROR_IF(iteration >= max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+    KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+    // KRATOS_ERROR_IF(iteration >= max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     KRATOS_CATCH("");
 }
 
