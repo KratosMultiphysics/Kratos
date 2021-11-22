@@ -78,8 +78,6 @@ public:
     static constexpr unsigned int Order() {return TOrder;}
     static constexpr unsigned int SubstepCount() {return TSubstepCount; }
 
-    // typedef array_1d<double, SubstepCount()> VectorType;
-
     /* Using the following constructs allows us to multiply parts of vectors with parts of matrices
      * while avoiding BOOST's size checks. This is useful to skip multiplications by zero, since
      * for all explicit runge-kutta methods a_ij = 0 for i>j
