@@ -94,8 +94,8 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
-    /// Copy constructor.
-    CalculateWaveHeightUtility(CalculateWaveHeightUtility const &rOther);
+    // /// Copy constructor.
+    // CalculateWaveHeightUtility(CalculateWaveHeightUtility const &rOther);
 
     ///@}
     ///@name Protected member Variables
@@ -117,7 +117,7 @@ private:
     ModelPart &mrModelPart;
     array_1d<double,3> mDirection;
     array_1d<double,3> mCoordinates;
-    double mHeightReference;
+    double mMeanWaterLevel;
     double mTolerance;
 
     ///@}
@@ -129,8 +129,8 @@ private:
     ///@name Private  Access
     ///@{
 
-    /// Assignment operator.
-    CalculateWaveHeightUtility &operator=(CalculateWaveHeightUtility const &rOther);
+    // /// Assignment operator.
+    // CalculateWaveHeightUtility &operator=(CalculateWaveHeightUtility const &rOther);
 
     ///@}
     ///@name Serialization
