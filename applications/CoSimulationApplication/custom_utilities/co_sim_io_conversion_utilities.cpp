@@ -27,9 +27,9 @@ const std::map<GeometryData::KratosGeometryType, CoSimIO::ElementType> elem_type
     {GeometryData::KratosGeometryType::Kratos_Hexahedra3D27,    CoSimIO::ElementType::Hexahedra3D27},
     {GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,     CoSimIO::ElementType::Hexahedra3D8},
     {GeometryData::KratosGeometryType::Kratos_Prism3D15,        CoSimIO::ElementType::Prism3D15},
-    {GeometryData::KratosGeometryType::Kratos_Prism3D6,         CoSimIO::ElementType::Pyramid3D13},
-    {GeometryData::KratosGeometryType::Kratos_Pyramid3D13,      CoSimIO::ElementType::Pyramid3D5},
-    {GeometryData::KratosGeometryType::Kratos_Pyramid3D5,       CoSimIO::ElementType::Prism3D6},
+    {GeometryData::KratosGeometryType::Kratos_Prism3D6,         CoSimIO::ElementType::Prism3D6},
+    {GeometryData::KratosGeometryType::Kratos_Pyramid3D13,      CoSimIO::ElementType::Pyramid3D13},
+    {GeometryData::KratosGeometryType::Kratos_Pyramid3D5,       CoSimIO::ElementType::Pyramid3D5},
     {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, CoSimIO::ElementType::Quadrilateral2D4},
     {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8, CoSimIO::ElementType::Quadrilateral2D8},
     {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9, CoSimIO::ElementType::Quadrilateral2D9},
@@ -57,6 +57,8 @@ const std::map<CoSimIO::ElementType, std::string> elem_name_map {
     {CoSimIO::ElementType::Hexahedra3D8, "Element3D8N"},
     {CoSimIO::ElementType::Prism3D15, "Element3D15N"},
     {CoSimIO::ElementType::Prism3D6, "Element3D6N"},
+    {CoSimIO::ElementType::Pyramid3D13, "Element3D13N"},
+    {CoSimIO::ElementType::Pyramid3D5, "Element3D5N"},
     {CoSimIO::ElementType::Quadrilateral2D4, "Element2D4N"},
     {CoSimIO::ElementType::Quadrilateral2D8, "Element2D8N"},
     {CoSimIO::ElementType::Quadrilateral2D9, "Element2D9N"},
@@ -93,23 +95,20 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
         rKratosModelPart.AddNodalSolutionStepVariable(PARTITION_INDEX); // to be on the safe side
     }
 
-    // check if nodes are ordered consecutively
-    // this is unfortunately necessary for several resons, e.g. AddElements and the ParallelFillCommunicator
-    std::size_t max_node_id = 0;
-    for (const auto& r_node : rCoSimIOModelPart.Nodes()) {
-        KRATOS_ERROR_IF(max_node_id >= static_cast<std::size_t>(r_node.Id())) << "The nodes must be consecutively ordered!" << std::endl;
-        max_node_id = r_node.Id();
-    }
-
     KRATOS_ERROR_IF(!is_distributed && rCoSimIOModelPart.GetPartitionModelParts().size()>0) << "Ghost entities exist in CoSimIO ModelPart in serial simulation!" << std::endl;
 
+    ModelPart::NodesContainerType ordered_nodes;
+    ModelPart::ElementsContainerType ordered_elements;
+    ordered_nodes.reserve(rCoSimIOModelPart.NumberOfNodes());
+    ordered_elements.reserve(rCoSimIOModelPart.NumberOfElements());
+
     for (const auto& r_node : rCoSimIOModelPart.Nodes()) {
-        auto p_node = rKratosModelPart.CreateNewNode(
+        ordered_nodes.push_back(rKratosModelPart.CreateNewNode(
             r_node.Id(),
             r_node.X(),
             r_node.Y(),
             r_node.Z()
-        );
+        ));
     };
 
     if (is_distributed) {
@@ -134,12 +133,8 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
     }
 
     std::vector<IndexType> conn;
-    std::size_t max_elem_id = 0;
     for (auto elem_it=rCoSimIOModelPart.ElementsBegin(); elem_it!=rCoSimIOModelPart.ElementsEnd(); ++elem_it) {
         const auto& r_elem = **elem_it;
-
-        KRATOS_ERROR_IF(max_elem_id >= static_cast<std::size_t>(r_elem.Id())) << "The elements must be consecutively ordered!" << std::endl;
-        max_elem_id = r_elem.Id();
 
         if (conn.size() != r_elem.NumberOfNodes()) {
             conn.resize(r_elem.NumberOfNodes());
@@ -160,18 +155,25 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
             KRATOS_ERROR << err.str();
         }
 
-        rKratosModelPart.CreateNewElement(
+        ordered_elements.push_back(rKratosModelPart.CreateNewElement(
             elem_name_it->second,
             r_elem.Id(),
             conn,
             p_props
-        );
+        ));
     };
 
     if (rDataComm.IsDistributed()) {
         // this calls the ParallelFillCommunicator
         ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(rKratosModelPart, rDataComm)->Execute();
     }
+
+    // unfortunately Kratos does several reorderings, e.g. in CreateNewElement or the ParallelFillComm
+    // hence we create a new SubModelPart with the original ordering that can be used to communicate through CoSimIO
+    auto& r_smp_orig_order = rKratosModelPart.CreateSubModelPart("original_order");
+    r_smp_orig_order.SetCommunicator(rKratosModelPart.GetCommunicator().Create(rDataComm));
+    r_smp_orig_order.Nodes() = ordered_nodes;
+    r_smp_orig_order.Elements() = ordered_elements;
 
     KRATOS_CATCH("")
 }
