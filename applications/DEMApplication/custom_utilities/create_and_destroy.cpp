@@ -1149,7 +1149,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             Element::Pointer p_element = *element_pointer_it;
             auto p_node = p_element->GetGeometry()(0);
 
-            if (CheckParticlePreservationCriteria(*(element_pointer_it.base()), current_time)) {
+            if (CheckParticlePreservationCriteria(*element_pointer_it, current_time)) {
                 if (k != good_elems_counter) {
                         *(rElements.ptr_begin() + good_elems_counter) = std::move(p_element);
                     }
@@ -1293,7 +1293,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             #pragma omp for
             for (int k = 0; k < (int)rElements.size(); k++){
                 Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
-                SphericParticle* p_spheric_particle = dynamic_cast<SphericParticle*> ((*(particle_pointer_it.base())).get());
+                SphericParticle* p_spheric_particle = dynamic_cast<SphericParticle*>((*particle_pointer_it).get());
 
                 if (p_spheric_particle->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
                 if (p_spheric_particle->Is(BLOCKED)) continue;
