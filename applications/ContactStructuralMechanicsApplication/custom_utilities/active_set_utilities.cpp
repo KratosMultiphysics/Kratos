@@ -17,6 +17,7 @@
 // Project includes
 #include "custom_utilities/active_set_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "utilities/atomic_utilities.h"
 
