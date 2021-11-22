@@ -54,7 +54,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.instant_previous_plot = 0.0
         self.integration_point = settings["integration_point_number"].GetInt()
-        self.sum_results_from_multiple_entites = settings["sum_results_from_multiple_entites"].GetBool()
+        self.sum_results_from_multiple_entites = settings["sum_results_from_multiple_entities"].GetBool()
 
         if self.model_part.IsDistributed():
             raise RuntimeError('MPI not supported yet')
