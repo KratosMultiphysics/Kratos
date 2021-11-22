@@ -24,19 +24,30 @@ class TestDEMEraseParticles(dem_analysis.DEMAnalysisStage):
         self.number_of_particles_by_the_end = len(self.spheres_model_part.GetElements())
         parent_return = super().Finalize()
 
-class TestTestDEMEraseParticlesWithNoDelay(KratosUnittest.TestCase):
-    @staticmethod
-    def GetExpectedNumberOfParticlesByTheEnd():
-        return 27
+class TestDEMEraseParticlesWithDelay(KratosUnittest.TestCase):
 
     def setUp(self):
         self.parameters_file_name = 'ProjectParametersDEMWithNoDelay.json'
         self.path = TestDEMEraseParticles.GetMainPath()
         self.analysis = TestDEMEraseParticles
 
-    def test_piecewise_linear_inlet(self):
-        print(self.parameters_file_name)
-        parameters_file_path = os.path.join(self.path, self.parameters_file_name)
+    def test_erase_particles_no_delay(self):
+        project_parameters_file_name = 'ProjectParametersDEMWithNoDelay.json'
+        expected_number_of_particles = 27
+        self.RunTest(project_parameters_file_name, expected_number_of_particles)
+
+    def test_erase_particles_little_delay(self):
+        project_parameters_file_name = 'ProjectParametersDEMWithLittleDelay.json'
+        expected_number_of_particles = 27
+        self.RunTest(project_parameters_file_name, expected_number_of_particles)
+
+    def test_erase_particles_with_delay(self):
+        project_parameters_file_name = 'ProjectParametersDEMWithDelay.json'
+        expected_number_of_particles = 29
+        self.RunTest(project_parameters_file_name, expected_number_of_particles)
+
+    def RunTest(self, project_parameters_file_name, expected_number_of_particles):
+        parameters_file_path = os.path.join(self.path, project_parameters_file_name)
         model = Kratos.Model()
 
         with open(parameters_file_path, 'r') as parameter_file:
@@ -44,22 +55,7 @@ class TestTestDEMEraseParticlesWithNoDelay(KratosUnittest.TestCase):
 
         analysis = self.analysis(model, project_parameters)
         analysis.Run()
-        self.assertEqual(type(self).GetExpectedNumberOfParticlesByTheEnd(), analysis.number_of_particles_by_the_end)
-
-
-class TestTestDEMEraseParticlesWithLittleDelay(TestTestDEMEraseParticlesWithNoDelay):
-    def setUp(self):
-        super().setUp()
-        self.parameters_file_name = 'ProjectParametersDEMWithLittleDelay.json'
-
-class TestTestDEMEraseParticlesWithDelay(TestTestDEMEraseParticlesWithNoDelay):
-    @staticmethod
-    def GetExpectedNumberOfParticlesByTheEnd():
-        return 29
-
-    def setUp(self):
-        super().setUp()
-        self.parameters_file_name = 'ProjectParametersDEMWithDelay.json'
+        self.assertEqual(expected_number_of_particles, analysis.number_of_particles_by_the_end)
 
 if __name__ == "__main__":
     if debug_mode:
