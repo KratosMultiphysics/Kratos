@@ -82,12 +82,10 @@ class ComputeBoundaryForce(CoSimulationCouplingOperation):
         sum_forces = [0.0, 0.0, 0.0]
         pressure_list = [0.0]
 
-        # aktuellen Zeitstep zurück setzen - warum ist das nötig ?
-        # TODO !!
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KM.REACTION_X, 0, 0)
-            node.SetSolutionStepValue(KM.REACTION_Y, 0, 0)
-            node.SetSolutionStepValue(KM.REACTION_Z, 0, 0)
+        utils = KM.VariableUtils()
+        utils.SetVariable(KM.REACTION_X, 0, self.model_part.Nodes)
+        utils.SetVariable(KM.REACTION_Y, 0, self.model_part.Nodes)
+        utils.SetVariable(KM.REACTION_Z, 0, self.model_part.Nodes)
 
         for element in self.model_part.Elements:
             geometry = element.GetGeometry()
