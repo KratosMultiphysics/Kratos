@@ -50,7 +50,7 @@ ShockCapturingEntropyViscosityProcess::ShockCapturingEntropyViscosityProcess(
 
 int ShockCapturingEntropyViscosityProcess::Check()
 {
-    const auto err_code = Process::Check();
+    const int err_code = Process::Check();
 
     KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo().Has(DOMAIN_SIZE))
         << "Missing variable DOMAIN_SIZE in model part process info." << std::endl;
