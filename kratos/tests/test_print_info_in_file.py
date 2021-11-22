@@ -61,12 +61,9 @@ class TestPrintInfoInFile(KratosUnittest.TestCase):
                 err_msg += '" is not valid!'
                 raise Exception(err_msg)
 
-    with open(ref_file_name, "r") as plot_file:
+    with open(ref_file_name, "r+") as plot_file:
         contents = plot_file.readlines()
-        print(ref_file_name)
-        print(contents)
         for line in contents:
-            print(line)
             if line[0] != "#":
                 numbers = line.split("\t")
                 if numbers[0] != 0.0 or numbers[1] != 3.7 or numbers[2] != 0.0 or numbers[3] != 0.0:
