@@ -43,7 +43,6 @@
             },
             "print_iteration_number_process": {
                 "type"       : "print_iteration_number",
-                "echo_level" : 0,
                 "solver"            : "pfem",
                 "model_part_name"   : "PfemFluidModelPart.Fluid",
                 "interval"               : [0.0,"End"]
