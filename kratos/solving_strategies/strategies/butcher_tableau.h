@@ -68,13 +68,12 @@ class ButcherTableau
 {
 
 public:
+    ///@name Type Definitions
+    ///@{
 
     typedef array_1d<double, TSubstepCount> VectorType;
     typedef array_1d<double,TSubstepCount-1> RowType;
     typedef std::array<RowType, TSubstepCount-1> MatrixType;
-
-    ///@name Type Definitions
-    ///@{
 
     static constexpr unsigned int Order() {return TOrder;}
     static constexpr unsigned int SubstepCount() {return TSubstepCount; }
