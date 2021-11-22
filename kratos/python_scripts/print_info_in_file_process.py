@@ -1,6 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
-from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
+import KratosMultiphysics.time_based_ascii_file_writer_utility as AsciiWriter
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -39,7 +39,9 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
             "integration_point_number" : 0,
             "erase_previous_info"      : true,
             "output_interval"          : 1,
-            "sum_results_from_multiple_entities" : false
+            "sum_results_from_multiple_entities" : false,
+            "write_buffer_size"        : 1,
+            "output_path"              : ""
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -69,10 +71,15 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         if settings["erase_previous_info"].GetBool():
             open_file_aproach = "w"
 
-        with open(self.file_name, open_file_aproach) as plot_file:
-            plot_file = open(self.file_name, open_file_aproach)
-            plot_file.write("# In this file we print the " + settings["results_type"].GetString() + " " + settings["variable_name"].GetString() + " in the ModelPart: " + settings["model_part_name"].GetString() + "\n\n")
-            plot_file.write("# TIME\t\t" + settings["variable_name"].GetString() + "\n")
+        ascii_writer_params = KratosMultiphysics.Parameters("""{}""")
+        ascii_writer_params.AddValue("file_name", settings["file_name"])
+        ascii_writer_params.AddValue("output_path", settings["output_path"])
+        ascii_writer_params.AddValue("write_buffer_size", settings["write_buffer_size"])
+        header = "# In this file we print the " + settings["results_type"].GetString() + " " + settings["variable_name"].GetString() + " in the ModelPart: " + settings["model_part_name"].GetString() + "\n\n" + "# TIME\t\t" + settings["variable_name"].GetString() + "\n"
+        self.ascii_writer = AsciiWriter.TimeBasedAsciiFileWriterUtility(self.model_part, ascii_writer_params, header).file
+        self.ascii_writer = open(self.file_name, open_file_aproach)
+        self.ascii_writer.write("# In this file we print the " + settings["results_type"].GetString() + " " + settings["variable_name"].GetString() + " in the ModelPart: " + settings["model_part_name"].GetString() + "\n\n")
+        self.ascii_writer.write("# TIME\t\t" + settings["variable_name"].GetString() + "\n")
 
     def PrintOutput(self):
         self.SetPreviousPlotInstant()
@@ -131,8 +138,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         return float("{0:.12g}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]))
 
     def PrintInFile(self, values):
-        with open(self.file_name, "a") as plot_file:
-            plot_file.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
-            for value in values:
-                plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
-            plot_file.write("\n")
+        self.ascii_writer.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
+        for value in values:
+            self.ascii_writer.write("{0:.4e}".format(value).rjust(11) + "\t")
+        self.ascii_writer.write("\n")
