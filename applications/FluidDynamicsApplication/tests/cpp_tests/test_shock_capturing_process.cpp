@@ -144,7 +144,7 @@ namespace ShockCapturingTestInternals {
             "thermal_sensor" : true,
             "thermally_coupled_formulation" : true
         })");
-        ShockCapturingProcess sc_process(model, sc_settings);
+        ShockCapturingPhysicsBasedProcess sc_process(model, sc_settings);
         sc_process.Execute();
 
         // Check values
@@ -193,7 +193,7 @@ namespace ShockCapturingTestInternals {
             "thermal_sensor" : true,
             "thermally_coupled_formulation" : true
         })");
-        ShockCapturingProcess sc_process(model, sc_settings);
+        ShockCapturingPhysicsBasedProcess sc_process(model, sc_settings);
         sc_process.Execute();
 
         // Check values

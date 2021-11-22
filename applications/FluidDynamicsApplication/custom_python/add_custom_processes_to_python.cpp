@@ -136,8 +136,8 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def("ComputeFlowOverBoundary", &MassConservationCheckProcess::ComputeFlowOverBoundary)
     ;
 
-    py::class_<ShockCapturingProcess, ShockCapturingProcess::Pointer, Process>
-    (m, "ShockCapturingProcess")
+    py::class_<ShockCapturingPhysicsBasedProcess, ShockCapturingPhysicsBasedProcess::Pointer, Process>
+    (m, "ShockCapturingPhysicsBasedProcess")
     .def(py::init < Model&, Parameters >())
     .def(py::init < ModelPart&, Parameters >())
     ;

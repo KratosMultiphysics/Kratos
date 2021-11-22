@@ -104,7 +104,7 @@ public:
 
         // Create the shock capturing process pointer
         if (mShockCapturing) {
-            mpShockCapturingProcess = mShockCapturingFactory(rModelPart, ThisParameters["shock_capturing_settings"]["Parameters"]);
+            mpShockCapturingPhysicsBasedProcess = mShockCapturingFactory(rModelPart, ThisParameters["shock_capturing_settings"]["Parameters"]);
         }
     }
 
@@ -163,7 +163,7 @@ public:
 
         // Shock capturing process check
         if (mShockCapturing) {
-            mpShockCapturingProcess->Check();
+            mpShockCapturingPhysicsBasedProcess->Check();
         }
 
         return err_code;
@@ -242,7 +242,7 @@ public:
         const static std::map<const std::string, ShockCapturingFactoryType> shock_capturing_factory_map
         {
             {"none"         , [](ModelPart& m, Parameters p) -> Process::UniquePointer {return nullptr;}},
-            {"physics_based", [](ModelPart& m, Parameters p) -> Process::UniquePointer {return Kratos::make_unique<ShockCapturingProcess>(m, p);}},
+            {"physics_based", [](ModelPart& m, Parameters p) -> Process::UniquePointer {return Kratos::make_unique<ShockCapturingPhysicsBasedProcess>(m, p);}},
             {"entropy_based", [](ModelPart& m, Parameters p) -> Process::UniquePointer {return Kratos::make_unique<ShockCapturingEntropyViscosityProcess>(m, p);}}
         };
 
@@ -302,7 +302,7 @@ public:
 
         // If required, initialize the physics-based shock capturing variables
         if (mShockCapturing) {
-            mpShockCapturingProcess->ExecuteInitialize();
+            mpShockCapturingPhysicsBasedProcess->ExecuteInitialize();
         }
     }
 
@@ -315,7 +315,7 @@ public:
         }
 
         if (mShockCapturing) {
-            mpShockCapturingProcess->ExecuteInitializeSolutionStep();
+            mpShockCapturingPhysicsBasedProcess->ExecuteInitializeSolutionStep();
         }
     }
 
@@ -344,7 +344,7 @@ public:
         // This needs to be done at the end of the step in order to include the future shock
         // capturing magnitudes in the next automatic dt calculation
         if (mShockCapturing) {
-            mpShockCapturingProcess->ExecuteFinalizeSolutionStep();
+            mpShockCapturingPhysicsBasedProcess->ExecuteFinalizeSolutionStep();
         }
     }
 
@@ -475,7 +475,7 @@ private:
     bool mApplySlipCondition = true;
     bool mCalculateNonConservativeMagnitudes = true;
 
-    Process::UniquePointer mpShockCapturingProcess = nullptr;
+    Process::UniquePointer mpShockCapturingPhysicsBasedProcess = nullptr;
 
     ///@}
     ///@name Private Operators
