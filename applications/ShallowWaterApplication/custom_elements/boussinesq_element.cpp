@@ -27,18 +27,18 @@ namespace Kratos
 {
 
 template<std::size_t TNumNodes>
-const Variable<double>& ConservativeElement<TNumNodes>::GetUnknownComponent(int Index) const
+const Variable<double>& BoussinesqElement<TNumNodes>::GetUnknownComponent(int Index) const
 {
     switch (Index) {
-        case 0: return MOMENTUM_X;
-        case 1: return MOMENTUM_Y;
-        case 2: return HEIGHT;
-        default: KRATOS_ERROR << "ConservativeElement::GetUnknownComponent index out of bounds." << std::endl;
+        case 0: return VELOCITY_X;
+        case 1: return VELOCITY_Y;
+        case 2: return FREE_SURFACE_ELEVATION;
+        default: KRATOS_ERROR << "BoussinesqElement::GetUnknownComponent index out of bounds." << std::endl;
     }
 }
 
 template<std::size_t TNumNodes>
-typename ConservativeElement<TNumNodes>::LocalVectorType ConservativeElement<TNumNodes>::GetUnknownVector(ElementData& rData)
+typename BoussinesqElement<TNumNodes>::LocalVectorType BoussinesqElement<TNumNodes>::GetUnknownVector(ElementData& rData)
 {
     std::size_t index = 0;
     array_1d<double,mLocalSize> unknown;
@@ -51,7 +51,7 @@ typename ConservativeElement<TNumNodes>::LocalVectorType ConservativeElement<TNu
 }
 
 template<std::size_t TNumNodes>
-void ConservativeElement<TNumNodes>::CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN)
+void BoussinesqElement<TNumNodes>::CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN)
 {
     const double h = inner_prod(rData.nodal_h, rN);
     const double c2 = rData.gravity * h;
@@ -61,11 +61,11 @@ void ConservativeElement<TNumNodes>::CalculateGaussPointData(ElementData& rData,
     rData.velocity = v;
 
     /**
-     * A_1 = {{2 * u_1   0   -u_1^2 + gh},
+     * A_1 = {{e * u_1   0   -u_1^2 + gh},
      *        {  u_2    u_1   -u_1 * u_2},
      *        {   1      0        0     }}
      */
-    rData.A1(0,0) = 2*v[0];
+    rData.A1(0,0) = v[0];
     rData.A1(0,1) = 0;
     rData.A1(0,2) = -v[0]*v[0] + c2;
     rData.A1(1,0) = v[1];
@@ -102,7 +102,7 @@ void ConservativeElement<TNumNodes>::CalculateGaussPointData(ElementData& rData,
 }
 
 template<std::size_t TNumNodes>
-double ConservativeElement<TNumNodes>::StabilizationParameter(const ElementData& rData) const
+double BoussinesqElement<TNumNodes>::StabilizationParameter(const ElementData& rData) const
 {
     const double lambda = std::sqrt(rData.gravity * std::abs(rData.height)) + norm_2(rData.velocity);
     const double epsilon = 1e-6;
@@ -112,7 +112,7 @@ double ConservativeElement<TNumNodes>::StabilizationParameter(const ElementData&
 }
 
 template<std::size_t TNumNodes>
-void ConservativeElement<TNumNodes>::CalculateArtificialViscosity(
+void BoussinesqElement<TNumNodes>::CalculateArtificialViscosity(
     BoundedMatrix<double,3,3>& rViscosity,
     BoundedMatrix<double,2,2>& rDiffusion,
     const ElementData& rData,
@@ -139,7 +139,7 @@ void ConservativeElement<TNumNodes>::CalculateArtificialViscosity(
 }
 
 template<std::size_t TNumNodes>
-void ConservativeElement<TNumNodes>::CalculateArtificialDamping(
+void BoussinesqElement<TNumNodes>::CalculateArtificialDamping(
     BoundedMatrix<double,3,3>& rDamping,
     const ElementData& rData)
 {
@@ -151,7 +151,7 @@ void ConservativeElement<TNumNodes>::CalculateArtificialDamping(
 }
 
 template<std::size_t TNumNodes>
-void ConservativeElement<TNumNodes>::CalculateGradient(
+void BoussinesqElement<TNumNodes>::CalculateGradient(
     array_1d<double,2>& rGradient,
     const GeometryType& rGeometry)
 {
@@ -168,7 +168,7 @@ void ConservativeElement<TNumNodes>::CalculateGradient(
 }
 
 template<std::size_t TNumNodes>
-void ConservativeElement<TNumNodes>::CalculateEdgeUnitNormal(
+void BoussinesqElement<TNumNodes>::CalculateEdgeUnitNormal(
     array_1d<double,2>& rNormal,
     const GeometryType& rGeometry)
 {
@@ -180,6 +180,6 @@ void ConservativeElement<TNumNodes>::CalculateEdgeUnitNormal(
     rNormal[1] = normal[1];
 }
 
-template class ConservativeElement<3>;
+template class BoussinesqElement<3>;
 
 } // namespace Kratos
