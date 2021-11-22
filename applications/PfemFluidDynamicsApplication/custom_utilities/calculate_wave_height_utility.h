@@ -47,6 +47,7 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef Node<3> NodeType;
 
     ///@}
     ///@name Life Cycle
@@ -118,7 +119,7 @@ private:
     array_1d<double,3> mDirection;
     array_1d<double,3> mCoordinates;
     double mMeanWaterLevel;
-    double mTolerance;
+    double mSearchTolerance;
 
     ///@}
     ///@name Private Operations
