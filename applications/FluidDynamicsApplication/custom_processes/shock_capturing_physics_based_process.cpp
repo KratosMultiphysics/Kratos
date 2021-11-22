@@ -23,7 +23,7 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
-#include "shock_capturing_process.h"
+#include "shock_capturing_physics_based_process.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos

@@ -30,7 +30,7 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "custom_processes/shock_capturing_process.h"
+#include "custom_processes/shock_capturing_physics_based_process.h"
 #include "custom_processes/shock_capturing_entropy_viscosity_process.h"
 
 namespace Kratos
