@@ -52,8 +52,6 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelInitialize, KratosCoreFastSuite)
 		{
-			int max_threads = ParallelUtilities::GetNumThreads();
-
 			std::size_t block_size_in_bytes = 5; // the aligned block size is 8
 			std::size_t chunk_size_in_bytes = 1024;
 
@@ -73,8 +71,6 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelInitializeSmallBlock, KratosCoreFastSuite)
 		{
-			int max_threads = ParallelUtilities::GetNumThreads();
-
 			std::size_t block_size_in_bytes = 5; // the aligned block size is 8
 			std::size_t chunk_size_in_bytes = 5;
 
@@ -91,9 +87,8 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkAllocateDeallocate, KratosCoreFastSuite)
 		{
-			int max_threads = ParallelUtilities::GetNumThreads();
 			std::size_t block_size_in_bytes = 5;
-		  std::size_t chunk_size_in_bytes =  1024;
+		    std::size_t chunk_size_in_bytes =  1024;
 			Chunk chunk(block_size_in_bytes, chunk_size_in_bytes);
 
 			chunk.Initialize();
@@ -115,7 +110,6 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelAllocate, KratosCoreFastSuite)
 		{
-			int max_threads = ParallelUtilities::GetNumThreads();
 			std::size_t block_size_in_bytes = 5;
 		  	std::size_t chunk_size_in_bytes =  1024;
 
@@ -155,11 +149,8 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelAllocateDeallocate, EXCLUDED_KratosCoreFastSuite)
 		{
-			int max_threads = ParallelUtilities::GetNumThreads();
 			std::size_t block_size_in_bytes = 5;
 		  	std::size_t chunk_size_in_bytes =  1024;
-
-		  	// KRATOS_ERROR << max_threads << " -- " << ParallelUtilities::GetNumThreads() << std::endl;
 
 			auto repeat_number = 100;
 			std::stringstream buffer;
