@@ -405,69 +405,8 @@ namespace Kratos {
 
         ComputeBrokenBondsRatio();
 
-        if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-            ComputeDifferentialStrainTensor();
-            ComputeStrainTensor();
-        }
-
         KRATOS_CATCH("")
     } //  ComputeBallToBallContactForce
-
-    void SphericContinuumParticle::ComputeStrainTensor() {
-
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                (*mStrainTensor)(i,j) += (*mDifferentialStrainTensor)(i,j);
-            }
-        }
-    }
-
-    void SphericContinuumParticle::ComputeDifferentialStrainTensor() {
-
-        BoundedMatrix<double, 3, 3> CoefficientsMatrix = ZeroMatrix(3,3);
-        BoundedMatrix<double, 3, 3> RightHandSide = ZeroMatrix(3,3);
-        array_1d<double, 3> assembly_centroid;
-        array_1d<double, 3> assembly_average_delta_displacement;
-        array_1d<double, 3> relative_position;
-        array_1d<double, 3> relative_delta_displacement;
-        assembly_centroid += this->GetGeometry()[0].Coordinates();
-        assembly_average_delta_displacement += this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-
-        for (unsigned int i = 0; i < this->mContinuumInitialNeighborsSize; i++) {
-            SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
-            array_1d<double, 3> node_coordinates = neighbour_iterator->GetGeometry()[0].Coordinates();
-            assembly_centroid += node_coordinates;
-            array_1d<double, 3> node_delta_displacement = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-            assembly_average_delta_displacement += node_delta_displacement;      
-        }
-        assembly_centroid /= (1.0 + mContinuumInitialNeighborsSize);  
-        assembly_average_delta_displacement /= (1.0 + mContinuumInitialNeighborsSize);
-
-        relative_position = this->GetGeometry()[0].Coordinates() - assembly_centroid;
-        relative_delta_displacement = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT) - assembly_average_delta_displacement;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                CoefficientsMatrix(j,i) += relative_position[j] * relative_position[i];
-                RightHandSide(j,i) += relative_delta_displacement[i] * relative_position[j];
-            }
-        }
-
-        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-            relative_position = mNeighbourElements[i]->GetGeometry()[0].Coordinates() - assembly_centroid;
-            relative_delta_displacement = mNeighbourElements[i]->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT) - assembly_average_delta_displacement;
-            for (int i = 0; i < 3; i++) {
-                for (int j = 0; j < 3; j++) {
-                    CoefficientsMatrix(j,i) += relative_position[j] * relative_position[i];
-                    RightHandSide(j,i) += relative_delta_displacement[i] * relative_position[j];
-                }
-            }
-        }
-
-        double det = 0.0;
-        BoundedMatrix<double, 3, 3> InvertedCoefficientsMatrix = ZeroMatrix(3,3);
-        MathUtils<double>::InvertMatrix3(CoefficientsMatrix, InvertedCoefficientsMatrix, det);
-        *mDifferentialStrainTensor = prod(InvertedCoefficientsMatrix, RightHandSide);
-    }
 
     void SphericContinuumParticle::ComputeRollingResistance(double& RollingResistance, const double& NormalLocalContactForce, const double& equiv_rolling_friction_coeff, const unsigned int i) {
 
@@ -557,7 +496,7 @@ namespace Kratos {
 
         //Update sphere mass and inertia taking into account the real volume of the represented volume:
         SetMass(this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) * GetDensity());
-        if (this->Is(DEMFlags::HAS_ROTATION) ){
+        if (this->Is(DEMFlags::HAS_ROTATION)) {
             GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = CalculateMomentOfInertia();
         }
 

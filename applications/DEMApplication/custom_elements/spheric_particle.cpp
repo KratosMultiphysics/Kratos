@@ -844,10 +844,6 @@ void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resist
     }
 }
 
-void SphericParticle::ComputeDifferentialStrainTensor() {}
-
-void SphericParticle::ComputeStrainTensor() {}
-
 void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
                                                     const ProcessInfo& r_process_info,
                                                     array_1d<double, 3>& r_elastic_force,
@@ -1601,6 +1597,9 @@ void SphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info){
             }
         }*/
 
+        ComputeDifferentialStrainTensor();
+        ComputeStrainTensor();
+
         FinalizeStressTensor(r_process_info, rRepresentative_Volume);
 
         SymmetrizeStressTensor();
@@ -1608,6 +1607,68 @@ void SphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info){
     KRATOS_CATCH("")
 }
 
+void SphericParticle::ComputeStrainTensor() {
+
+    const int Dim = 3; //GetGeometry().WorkingSpaceDimension();
+    for (int i = 0; i < Dim; i++) {
+        for (int j = 0; j < Dim; j++) {
+            (*mStrainTensor)(i,j) += (*mDifferentialStrainTensor)(i,j);
+        }
+    }
+}
+
+void SphericParticle::ComputeDifferentialStrainTensor() {
+
+    const int Dim = 3; //GetGeometry().WorkingSpaceDimension();
+    BoundedMatrix<double, 3, 3> CoefficientsMatrix = ZeroMatrix(3, 3);
+    BoundedMatrix<double, 3, 3> RightHandSide = ZeroMatrix(3, 3);
+    array_1d<double, 3> assembly_centroid;
+    array_1d<double, 3> assembly_average_delta_displacement;
+    array_1d<double, 3> relative_position;
+    array_1d<double, 3> relative_delta_displacement;
+    assembly_centroid = this->GetGeometry()[0].Coordinates();
+    assembly_average_delta_displacement = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+
+    int total_number_of_neighbours = 0;
+    for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+        if (!mNeighbourElements[i]) continue;
+        SphericParticle* neighbour_iterator = dynamic_cast<SphericParticle*>(mNeighbourElements[i]);
+        array_1d<double, 3> node_coordinates = neighbour_iterator->GetGeometry()[0].Coordinates();
+        assembly_centroid += node_coordinates;
+        array_1d<double, 3> node_delta_displacement = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+        assembly_average_delta_displacement += node_delta_displacement;
+        total_number_of_neighbours++;
+    }
+    
+    assembly_centroid /= (1.0 + total_number_of_neighbours);  
+    assembly_average_delta_displacement /= (1.0 + total_number_of_neighbours);
+
+    relative_position = this->GetGeometry()[0].Coordinates() - assembly_centroid;
+    relative_delta_displacement = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT) - assembly_average_delta_displacement;
+    for (int i = 0; i < Dim; i++) {
+        for (int j = 0; j < Dim; j++) {
+            CoefficientsMatrix(j,i) += relative_position[j] * relative_position[i];
+            RightHandSide(j,i) += relative_delta_displacement[i] * relative_position[j];
+        }
+    }
+
+    for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+        if (!mNeighbourElements[i]) continue;
+        relative_position = mNeighbourElements[i]->GetGeometry()[0].Coordinates() - assembly_centroid;
+        relative_delta_displacement = mNeighbourElements[i]->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT) - assembly_average_delta_displacement;
+        for (int i = 0; i < Dim; i++) {
+            for (int j = 0; j < Dim; j++) {
+                CoefficientsMatrix(j,i) += relative_position[j] * relative_position[i];
+                RightHandSide(j,i) += relative_delta_displacement[i] * relative_position[j];
+            }
+        }
+    }
+
+    double det = 0.0;
+    BoundedMatrix<double, 3, 3> InvertedCoefficientsMatrix = ZeroMatrix(3, 3);
+    MathUtils<double>::InvertMatrix3(CoefficientsMatrix, InvertedCoefficientsMatrix, det);
+    *mDifferentialStrainTensor = prod(InvertedCoefficientsMatrix, RightHandSide);
+}
 
 void SphericParticle::SymmetrizeStressTensor(){
     //The following operation symmetrizes the tensor. We will work with the symmetric stress tensor always, because the non-symmetric one is being filled while forces are being calculated
