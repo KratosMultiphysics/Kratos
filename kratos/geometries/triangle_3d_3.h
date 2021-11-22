@@ -641,7 +641,6 @@ public:
 
     /**
      * @brief Test the intersection with another geometry
-     * @details decomposes in smaller triangles
      * @param  ThisGeometry Geometry to intersect with
      * @return True if the geometries intersect, False in any other case.
      */
