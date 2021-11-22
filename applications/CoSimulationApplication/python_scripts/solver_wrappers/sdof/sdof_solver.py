@@ -46,6 +46,7 @@ class SDoFSolver(object):
                     "acceleration"  : 0.0
                 },
                 "boundary_conditions":{
+                    "modulus_external_force" : 1.0,
                     "load_impulse" : 0.0,
                     "omega_force"        : 0.0,
                     "omega_root_point_displacement"        : 0.0,
@@ -88,6 +89,7 @@ class SDoFSolver(object):
         self.initial_displacement = parameters["initial_values"]["displacement"]
         self.initial_velocity = parameters["initial_values"]["velocity"]
 
+        self.modulus_external_force = parameters["boundary_conditions"]["modulus_external_force"]
         self.excitation_function_force = parameters["boundary_conditions"]["excitation_function_force"]
         self.excitation_function_root_point_displacement = parameters["boundary_conditions"]["excitation_function_root_point_displacement"]
         self.load_impulse = parameters["boundary_conditions"]["load_impulse"]
@@ -312,7 +314,7 @@ class SDoFSolver(object):
             self.x[:,buffer_idx][2] = value
         elif identifier == "LOAD":
             self.load_vector[-1] = 0.0
-            self.load_vector[-1] = value
+            self.load_vector[-1] = value * self.modulus_external_force
         elif identifier == "ROOT_POINT_DISPLACEMENT":
             self.root_point_displacement = 0.0
             self.root_point_displacement = value
