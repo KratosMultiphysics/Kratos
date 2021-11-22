@@ -309,7 +309,10 @@ ShockCapturingEntropyViscosityProcess::InfNormData ShockCapturingEntropyViscosit
 
 
 std::tuple<ShockCapturingEntropyViscosityProcess::TotalDerivativeUtil, ShockCapturingEntropyViscosityProcess::TotalDerivativeUtil, Vector>
-ShockCapturingEntropyViscosityProcess::BuildTotalDerivativeUtils(const Element& rElement, const double DeltaTime, const double HeatCapacityRatio)
+ShockCapturingEntropyViscosityProcess::BuildTotalDerivativeUtils(
+    const Element& rElement,
+    const double DeltaTime,
+    const double HeatCapacityRatio)
 {
     KRATOS_TRY
 
