@@ -368,6 +368,7 @@ void EmbeddedMLSConstraintProcess::SetNegativeNodeSupportCloud(
                 auto& r_neigh = r_it_set_neighs[i_neigh];
                 if (r_neigh.Is(ACTIVE)) {
                     NodeType::Pointer p_neigh = &r_neigh;
+                    p_neigh->Set(INTERFACE, true);
                     aux_extra_set.insert(p_neigh);
                 }
             }

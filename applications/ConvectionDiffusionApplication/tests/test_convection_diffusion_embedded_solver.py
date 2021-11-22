@@ -30,6 +30,7 @@ class EmbeddedSolverDirichletCircleAnalysis(ConvectionDiffusionAnalysis):
         for elem in self._GetSolver().GetComputingModelPart().Elements:
             elem.SetValue(KratosMultiphysics.ConvectionDiffusionApplication.EMBEDDED_SCALAR, 0.0)
 
+
 @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class TestEmbeddedSolver(KratosUnittest.TestCase):
 
@@ -199,3 +200,4 @@ class TestEmbeddedSolver(KratosUnittest.TestCase):
 
 if __name__ == "__main__":
     KratosUnittest.main()
+    
