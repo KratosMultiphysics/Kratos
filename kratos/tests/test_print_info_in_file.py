@@ -39,7 +39,7 @@ class TestPrintInfoInFile(KratosUnittest.TestCase):
         "model_part_name"                    : "test.to_plot",
         "variable_name"                      : "DISPLACEMENT",
         "results_type"                       : "nodal_historical",
-        "file_name"                          : "info_file.txt",
+        "file_name"                          : "info_file.dat",
         "output_control_type"                : "step",
         "erase_previous_info"                : true,
         "output_interval"                    : 1,
