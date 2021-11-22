@@ -76,7 +76,7 @@ public:
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
     /// Shock capturing process factory
-    typedef Process::Pointer (*ShockCapturingFactoryType)(ModelPart&, Parameters);
+    typedef Process::UniquePointer (*ShockCapturingFactoryType)(ModelPart&, Parameters);
 
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG(SHOCK_CAPTURING);
