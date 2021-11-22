@@ -75,6 +75,9 @@ public:
     /// The local vector definition
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
+    /// Pointer definition of CompressibleNavierStokesExplicitSolvingStrategyRungeKutta
+    KRATOS_CLASS_POINTER_DEFINITION(CompressibleNavierStokesExplicitSolvingStrategyRungeKutta);
+
     /// Shock capturing process factory
     typedef Process::UniquePointer (*ShockCapturingFactoryType)(ModelPart&, Parameters);
 
