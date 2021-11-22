@@ -400,8 +400,9 @@ virtual void AddUpMomentsAndProject(double LocalCoordSystem[3][3],
                                     double ElasticLocalRotationalMoment[3],
                                     double ViscoLocalRotationalMoment[3]) final;
 
-virtual void ComputeStrainTensor();
 virtual void ComputeDifferentialStrainTensor();
+
+virtual void ComputeStrainTensor();
 
 virtual void ComputeWear(double LocalRelVel[3],
                         double mTimeStep,
