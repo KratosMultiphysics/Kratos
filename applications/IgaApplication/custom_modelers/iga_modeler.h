@@ -138,7 +138,8 @@ private:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rModelPart,
-        const Parameters rParameters) const;
+        const Parameters rParameters,
+        std::string& rGeometryType) const;
 
     ///@}
     ///@name CAD functionalities
