@@ -871,9 +871,9 @@ private:
 
     typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
-    const Kratos::Variable<int>& mrPeriodicIdVar;
-
     const bool mApplySlipRotation = true;
+
+    const Kratos::Variable<int>& mrPeriodicIdVar;
 
 //        ///@}
 //        ///@name Serialization

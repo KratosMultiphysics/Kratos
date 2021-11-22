@@ -341,12 +341,12 @@ private:
   ///@name Member Variables
   ///@{
 
-      const bool mApplySlipRotation = true;
   double mVelocityRelaxationFactor;
   double mPressureRelaxationFactor;
   CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> mRotationTool;
   Process::Pointer mpTurbulenceModel;
   typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
+  const bool mApplySlipRotation = true;
 
   ///@}
 };
