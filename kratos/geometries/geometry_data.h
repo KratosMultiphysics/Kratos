@@ -101,7 +101,7 @@ public:
         Kratos_Nurbs,
         Kratos_Brep,
         Kratos_Quadrature_Geometry,
-        Kratos_Coupling,
+        Kratos_Composite,
         Kratos_generic_family,
         NumberOfGeometryFamilies // Note that this entry needs to be always the last to be used as geometry families counter
     };
