@@ -87,7 +87,7 @@ int ShockCapturingEntropyViscosityProcess::Check()
     KRATOS_ERROR_IF(missing_temperature) << "Missing TEMPERATURE variable from one or more nodes" << std::endl;
     KRATOS_ERROR_IF(missing_velocity) << "Missing VELOCITY variable from one or more nodes" << std::endl;
 
-    if(mrModelPart.ElementsBegin() != mrModelPart.ElementsEnd())
+    if(mrModelPart.GetCommunicator().LocalMesh().NumberOfElements() != 0)
     {
         KRATOS_ERROR_IF_NOT(mrModelPart.ElementsBegin()->GetProperties().Has(HEAT_CAPACITY_RATIO))
             << "Variable HEAT_CAPACITY_RATIO missing from elemental properties." << std::endl;
