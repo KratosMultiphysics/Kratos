@@ -143,4 +143,6 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         for value in values:
             self.ascii_writer.write("{0:.4e}".format(value).rjust(11) + "\t")
         self.ascii_writer.write("\n")
+
+    def ExecuteFinalize(self):
         self.ascii_writer.close()

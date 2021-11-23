@@ -82,6 +82,7 @@ class TestPrintInfoInFile(KratosUnittest.TestCase):
                 if len(numbers) > 2:
                     if float(numbers[0]) != 0.0 or float(numbers[1]) != 7.3 or float(numbers[2]) != 0.1 or float(numbers[3]) != 0.3:
                         raise Exception("The print does not give the expected result...")
+    process.ExecuteFinalize()
     os.remove(ref_file_name)
 
 if __name__ == '__main__':
