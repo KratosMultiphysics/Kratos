@@ -16,7 +16,7 @@ class TimeBasedAsciiFileWriterUtility:
             "file_name"  : "",
             "output_path": "",
             "write_buffer_size" : -1,
-            "check_file_extension" : true
+            "file_extension" : "dat"
         }''')
         # write_buffer_size: -1 means we use the system default
         # write_buffer_size:  0 means no buffering is done. IMPORTANT : Only for binary output.
@@ -131,8 +131,8 @@ class TimeBasedAsciiFileWriterUtility:
             raise Exception('No "file_name" was specified!')
 
         # check and correct file extension
-        if self.file_name.suffix != ".dat" and self.check_file_extension:
-            self.file_name = self.file_name.with_suffix(".dat")
+        if self.file_name.suffix != self.file_extension:
+            self.file_name = self.file_name.with_suffix(self.file_extension)
 
         if self.file_name.parent != Path(): # check if folder was specified in "file_name"
             warn_msg  = 'Path contained wrongly in "file_name" "{}", this will be ignored in the future\n'.format(self.file_name)
