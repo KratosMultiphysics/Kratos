@@ -354,12 +354,6 @@ public:
         return mGeometryShapeFunctionContainer;
     }
 
-    /// Returns the GeometryShapeFunctionContainer.
-    GeometryShapeFunctionContainer<IntegrationMethod>& GetGeometryShapeFunctionContainer()
-    {
-        return mGeometryShapeFunctionContainer;
-    }
-
     ///@}
     ///@name Informations
     ///@{
