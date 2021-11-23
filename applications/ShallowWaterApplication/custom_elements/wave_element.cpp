@@ -21,9 +21,9 @@
 #include "includes/checks.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
-#include "custom_utilities/shallow_water_utilities.h"
-#include "custom_friction_laws/friction_laws_factory.h"
+#include "custom_utilities/phase_function.h"
 #include "shallow_water_application_variables.h"
+#include "custom_friction_laws/friction_laws_factory.h"
 
 namespace Kratos
 {
@@ -500,7 +500,7 @@ double WaveElement<TNumNodes>::InverseHeight(const ElementData& rData) const
 {
     const double height = rData.height;
     const double epsilon = rData.relative_dry_height * rData.length;
-    return ShallowWaterUtilities().InverseHeight(height, epsilon);
+    return PhaseFunction::InverseHeight(height, epsilon);
 }
 
 template<std::size_t TNumNodes>

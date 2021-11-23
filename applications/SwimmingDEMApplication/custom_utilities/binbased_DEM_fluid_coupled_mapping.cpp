@@ -791,7 +791,7 @@ double BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calcul
     Geometry<Node<3> >::ShapeFunctionsGradientsType DN_DX;
 
     // calculating the gradient of the shape functions on the Gauss points (its ok, since their value is constant over the element)
-    geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
+    geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
     Matrix S = ZeroMatrix(TDim, TDim);
     const unsigned int n_nodes = geom.PointsNumber();
@@ -829,7 +829,7 @@ array_1d<double, 3> BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingPart
     Geometry<Node<3> >::ShapeFunctionsGradientsType DN_DX;
 
     // calculating the gradient of the shape functions on the Gauss points (its ok, since their value is constant over the element)
-    geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
+    geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
     array_1d<double, 3> vorticity = ZeroVector(3);
     array_1d<double, 3> derivatives = ZeroVector(3);
