@@ -110,8 +110,8 @@ double SaturatedLaw::
 
 //-------------------------------------------------------------------------------------------------
 double& SaturatedLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
-                                        const Variable<double>& rThisVariable,
-                                        double& rValue)
+                                     const Variable<double>& rThisVariable,
+                                     double& rValue)
 {
     if (rThisVariable == DEGREE_OF_SATURATION)
     {
@@ -181,7 +181,7 @@ void SaturatedLaw::
 
 //-------------------------------------------------------------------------------------------------
 int SaturatedLaw::Check(const Properties& rMaterialProperties,
-                           const ProcessInfo& rCurrentProcessInfo)
+                        const ProcessInfo& rCurrentProcessInfo)
 {
     if (rMaterialProperties.Has(SATURATED_SATURATION))
     {

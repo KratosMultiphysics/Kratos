@@ -373,13 +373,13 @@ private:
     ///@{
 
     static double DistanceToLine(
-        const typename GeometryType::CoordinatesArrayType& rPoint,
-        const typename GeometryType::CoordinatesArrayType& rLineA,
-        const typename GeometryType::CoordinatesArrayType& rLineB
+        const CoordinatesArrayType& rPoint,
+        const CoordinatesArrayType& rLineA,
+        const CoordinatesArrayType& rLineB
     )
     {
-        typename GeometryType::CoordinatesArrayType vector_v = rLineA - rPoint;
-        typename GeometryType::CoordinatesArrayType vector_u = rLineB - rLineA;
+        CoordinatesArrayType vector_v = rLineA - rPoint;
+        CoordinatesArrayType vector_u = rLineB - rLineA;
 
         return MathUtils<double>::Norm(MathUtils<double>::CrossProduct(vector_v, vector_u)) / MathUtils<double>::Norm(vector_u);
     }

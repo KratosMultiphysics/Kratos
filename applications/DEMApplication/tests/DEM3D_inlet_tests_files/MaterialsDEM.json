@@ -52,6 +52,7 @@
         ["SpheresPart", "mat1"],
         ["RigidFacePart","mat2"],
         ["DEMInletPart.Inlet_Particle_injectors_Auto1", 1],
-        ["DEMInletPart.Inlet_Particle_injectors_Auto2", 1]
+        ["DEMInletPart.Inlet_Particle_injectors_Auto2", 1],
+        ["DEMInletPart.Inlet_Particle_injectors_Auto3", 1]
     ]
 }

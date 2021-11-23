@@ -80,6 +80,7 @@ void  ElasticIsotropicK03DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Par
         Vector& r_stress_vector = rValues.GetStressVector();
         CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
     }
+
     KRATOS_CATCH("");
 }
 
@@ -247,15 +248,18 @@ void ElasticIsotropicK03DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::
 
 int ElasticIsotropicK03DLaw::Check(const Properties& rMaterialProperties,
                                    const GeometryType& rElementGeometry,
-                                   const ProcessInfo& rCurrentProcessInfo)
+                                   const ProcessInfo& rCurrentProcessInfo) const
 {
+    KRATOS_ERROR_IF(!rMaterialProperties.Has(YOUNG_MODULUS))
+                    << "YOUNG_MODULUS is not availabe in material parameters" << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS is invalid value " << std::endl;
 
-    const double& nu = rMaterialProperties[POISSON_RATIO];
-    const bool check = static_cast<bool>((nu >0.499 && nu<0.501) || (nu < -0.999 && nu > -1.01));
-    KRATOS_ERROR_IF(check) << "POISSON_RATIO is invalid value " << std::endl;
+    KRATOS_ERROR_IF(!rMaterialProperties.Has(POISSON_RATIO))
+                    << "POISSON_RATIO is not availabe in material parameters" << std::endl;
 
-    KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0) << "DENSITY is invalid value " << std::endl;
+    const double& nu = rMaterialProperties[POISSON_RATIO];
+    const bool check = ((nu >0.499 && nu<0.501) || (nu < -0.999 && nu > -1.01));
+    KRATOS_ERROR_IF(check) << "POISSON_RATIO has invalid value " << std::endl;
 
     return 0;
 }

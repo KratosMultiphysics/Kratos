@@ -985,7 +985,6 @@ End Conditions
 
 Begin SubModelPart 0 // DEM-FEM-Wall. Group name: contactMP
   Begin SubModelPartData // DEM-FEM-Wall. Group name: contactMP
-  PROPERTIES_ID 0
   RIGID_BODY_MOTION 0
   FREE_BODY_MOTION 0
   IS_GHOST 0

@@ -174,17 +174,17 @@ public:
             error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
 
         //now let's verify that all integration methods give the same
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_1, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_2, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_3, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_4, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, expected_area, error_msg) ) succesful=false;
 
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_1, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_2, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, error_msg);
 
         if(succesful == false)
             KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
@@ -216,17 +216,17 @@ public:
             error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
 
         //now let's verify that all integration methods give the same
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_1, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_2, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_3, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_4, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, expected_area, error_msg) ) succesful=false;
 
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_1, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_2, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
 
@@ -259,17 +259,17 @@ public:
             error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
 
         //now let's verify that all integration methods give the same
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_1, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_2, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_3, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_4, expected_area, error_msg) ) succesful=false;
-//         if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, expected_area, error_msg) ) succesful=false;
+//         if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, expected_area, error_msg) ) succesful=false;
 
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_1, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_2, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
-//         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, error_msg);
+//         VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
 
@@ -297,17 +297,17 @@ public:
             error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
 
         //now let's verify that all integration methods give the same
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_1, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_2, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_3, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_4, expected_area, error_msg) ) succesful=false;
-//         if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, expected_area, error_msg) ) succesful=false;
+//         if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, expected_area, error_msg) ) succesful=false;
 
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_1, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_2, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
-//         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, error_msg);
+//         VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
 
@@ -334,17 +334,17 @@ public:
             error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
 
         //now let's verify that all integration methods give the same
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_1, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_2, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_3, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_4, expected_area, error_msg) ) succesful=false;
-//         if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, expected_area, error_msg) ) succesful=false;
+//         if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, expected_area, error_msg) ) succesful=false;
 
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_1, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_2, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
-//         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, error_msg);
+//         VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
 
@@ -373,17 +373,17 @@ public:
             error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
 
         //now let's verify that all integration methods give the same
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_1, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_2, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_3, expected_area, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_4, expected_area, error_msg) ) succesful=false;
-//         if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, expected_area, error_msg) ) succesful=false;
+//         if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, expected_area, error_msg) ) succesful=false;
 
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_1, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_2, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
-//         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, error_msg);
+//         VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
 
@@ -436,17 +436,17 @@ public:
             error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
 
         //now let's verify that all integration methods give the same
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_1, expected_vol, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_2, expected_vol, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_3, expected_vol, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_4, expected_vol, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
 
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_1, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_2, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, error_msg);
 
         array_1d<double,3> point_in(3,1.0/3.0);
         array_1d<double,3> point_out(3,5.0);
@@ -483,17 +483,17 @@ public:
             error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
 
         //now let's verify that all integration methods give the same
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_1, expected_vol, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_2, expected_vol, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_3, expected_vol, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_4, expected_vol, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
 
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_1, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_2, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
 
@@ -529,27 +529,27 @@ public:
             error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
 
         // Now let's verify that all integration methods give the same
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_1, expected_vol, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_2, expected_vol, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_3, expected_vol, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_4, expected_vol, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
-//         if( !VerifyAreaByIntegration( geom, GeometryData::GI_EXTENDED_GAUSS_1, expected_vol, error_msg) ) succesful=false;
-//         if( !VerifyAreaByIntegration( geom, GeometryData::GI_EXTENDED_GAUSS_2, expected_vol, error_msg) ) succesful=false;
-//         if( !VerifyAreaByIntegration( geom, GeometryData::GI_EXTENDED_GAUSS_3, expected_vol, error_msg) ) succesful=false;
-//         if( !VerifyAreaByIntegration( geom, GeometryData::GI_EXTENDED_GAUSS_4, expected_vol, error_msg) ) succesful=false;
-//         if( !VerifyAreaByIntegration( geom, GeometryData::GI_EXTENDED_GAUSS_5, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
+//         if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1, expected_vol, error_msg) ) succesful=false;
+//         if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2, expected_vol, error_msg) ) succesful=false;
+//         if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3, expected_vol, error_msg) ) succesful=false;
+//         if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4, expected_vol, error_msg) ) succesful=false;
+//         if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5, expected_vol, error_msg) ) succesful=false;
 
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_1, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_2, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
-//         VerifyStrainExactness( geom, GeometryData::GI_EXTENDED_GAUSS_1, error_msg);
-//         VerifyStrainExactness( geom, GeometryData::GI_EXTENDED_GAUSS_2, error_msg);
-//         VerifyStrainExactness( geom, GeometryData::GI_EXTENDED_GAUSS_3, error_msg);
-//         VerifyStrainExactness( geom, GeometryData::GI_EXTENDED_GAUSS_4, error_msg);
-//         VerifyStrainExactness( geom, GeometryData::GI_EXTENDED_GAUSS_5, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, error_msg);
+//         VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1, error_msg);
+//         VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2, error_msg);
+//         VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3, error_msg);
+//         VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4, error_msg);
+//         VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5, error_msg);
 
         error_msg << std::endl;
 
@@ -606,17 +606,17 @@ public:
             error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
 
         //now let's verify that all integration methods give the same
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_1, expected_vol, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_2, expected_vol, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_3, expected_vol, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_4, expected_vol, error_msg) ) succesful=false;
-        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
 
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_1, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_2, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
-        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
 
@@ -647,17 +647,17 @@ public:
 //              error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
 
 //          //now let's verify that all integration methods give the same
-//          if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_1, expected_vol, error_msg) ) succesful=false;
-//          if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_2, expected_vol, error_msg) ) succesful=false;
-//          if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_3, expected_vol, error_msg) ) succesful=false;
-//          if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_4, expected_vol, error_msg) ) succesful=false;
-//          if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
+//          if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, expected_vol, error_msg) ) succesful=false;
+//          if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, expected_vol, error_msg) ) succesful=false;
+//          if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, expected_vol, error_msg) ) succesful=false;
+//          if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, expected_vol, error_msg) ) succesful=false;
+//          if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
 
-//          VerifyStrainExactness( geom, GeometryData::GI_GAUSS_1, error_msg);
-//          VerifyStrainExactness( geom, GeometryData::GI_GAUSS_2, error_msg);
-//          VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
-//          VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
-//          VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
+//          VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, error_msg);
+//          VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, error_msg);
+//          VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, error_msg);
+//          VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, error_msg);
+//          VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, error_msg);
 
 //          error_msg << std::endl;
 
@@ -1111,27 +1111,27 @@ private:
     {
         switch(ThisMethod)
         {
-        case GeometryData::GI_GAUSS_1 :
+        case GeometryData::IntegrationMethod::GI_GAUSS_1 :
             return std::string("GI_GAUSS_1");
-        case GeometryData::GI_GAUSS_2 :
+        case GeometryData::IntegrationMethod::GI_GAUSS_2 :
             return std::string("GI_GAUSS_2");
-        case GeometryData::GI_GAUSS_3 :
+        case GeometryData::IntegrationMethod::GI_GAUSS_3 :
             return std::string("GI_GAUSS_3");
-        case GeometryData::GI_GAUSS_4 :
+        case GeometryData::IntegrationMethod::GI_GAUSS_4 :
             return std::string("GI_GAUSS_4");
-        case GeometryData::GI_GAUSS_5 :
+        case GeometryData::IntegrationMethod::GI_GAUSS_5 :
             return std::string("GI_GAUSS_5");
-        case GeometryData::GI_EXTENDED_GAUSS_1 :
+        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 :
             return std::string("GI_EXTENDED_GAUSS_1");
-        case GeometryData::GI_EXTENDED_GAUSS_2 :
+        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 :
             return std::string("GI_EXTENDED_GAUSS_2");
-        case GeometryData::GI_EXTENDED_GAUSS_3 :
+        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 :
             return std::string("GI_EXTENDED_GAUSS_3");
-        case GeometryData::GI_EXTENDED_GAUSS_4 :
+        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 :
             return std::string("GI_EXTENDED_GAUSS_4");
-        case GeometryData::GI_EXTENDED_GAUSS_5 :
+        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 :
             return std::string("GI_EXTENDED_GAUSS_5");
-        case GeometryData::NumberOfIntegrationMethods :
+        case GeometryData::IntegrationMethod::NumberOfIntegrationMethods :
             return std::string("NumberOfIntegrationMethods");
         };
 
@@ -1142,60 +1142,84 @@ private:
         GeometryData::KratosGeometryType geom_type = geom.GetGeometryType();
         switch(geom_type)
         {
-        case GeometryData::Kratos_generic_type :
+        case GeometryData::KratosGeometryType::Kratos_generic_type :
             return std::string("Kratos_generic_type");
-        case GeometryData::Kratos_Hexahedra3D20 :
+        case GeometryData::KratosGeometryType::Kratos_Hexahedra3D20 :
             return std::string("Kratos_Hexahedra3D20");
-        case GeometryData::Kratos_Hexahedra3D27 :
+        case GeometryData::KratosGeometryType::Kratos_Hexahedra3D27 :
             return std::string("Kratos_Hexahedra3D27");
-        case GeometryData::Kratos_Hexahedra3D8 :
+        case GeometryData::KratosGeometryType::Kratos_Hexahedra3D8 :
             return std::string("Kratos_Hexahedra3D8");
-        case GeometryData::Kratos_Prism3D15 :
+        case GeometryData::KratosGeometryType::Kratos_Prism3D15 :
             return std::string("Kratos_Prism3D15");
-        case GeometryData::Kratos_Prism3D6 :
+        case GeometryData::KratosGeometryType::Kratos_Prism3D6 :
             return std::string("Kratos_Prism3D6");
-        case GeometryData::Kratos_Quadrilateral2D4 :
+        case GeometryData::KratosGeometryType::Kratos_Pyramid3D13 :
+            return std::string("Kratos_Pyramid3D13");
+        case GeometryData::KratosGeometryType::Kratos_Pyramid3D5 :
+            return std::string("Kratos_Pyramid3D5");
+        case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4 :
             return std::string("Kratos_Quadrilateral2D4");
-        case GeometryData::Kratos_Quadrilateral2D8 :
+        case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8 :
             return std::string("Kratos_Quadrilateral2D8");
-        case GeometryData::Kratos_Quadrilateral2D9 :
+        case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9 :
             return std::string("Kratos_Quadrilateral2D9");
-        case GeometryData::Kratos_Quadrilateral3D4 :
+        case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4 :
             return std::string("Kratos_Quadrilateral3D4");
-        case GeometryData::Kratos_Quadrilateral3D8 :
+        case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8 :
             return std::string("Kratos_Quadrilateral3D8");
-        case GeometryData::Kratos_Quadrilateral3D9 :
+        case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9 :
             return std::string("Kratos_Quadrilateral3D9");
-        case GeometryData::Kratos_Tetrahedra3D10 :
+        case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10 :
             return std::string("Kratos_Tetrahedra3D10");
-        case GeometryData::Kratos_Tetrahedra3D4 :
+        case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 :
             return std::string("Kratos_Tetrahedra3D4");
-        case GeometryData::Kratos_Triangle2D3 :
+        case GeometryData::KratosGeometryType::Kratos_Triangle2D3 :
             return std::string("Kratos_Triangle2D3");
-        case GeometryData::Kratos_Triangle2D6 :
+        case GeometryData::KratosGeometryType::Kratos_Triangle2D6 :
             return std::string("Kratos_Triangle2D6");
-        case GeometryData::Kratos_Triangle3D3 :
+        case GeometryData::KratosGeometryType::Kratos_Triangle3D3 :
             return std::string("Kratos_Triangle3D3");
-        case GeometryData::Kratos_Triangle3D6 :
+        case GeometryData::KratosGeometryType::Kratos_Triangle3D6 :
             return std::string("Kratos_Triangle3D6");
-        case GeometryData::Kratos_Line2D2 :
+        case GeometryData::KratosGeometryType::Kratos_Line2D2 :
             return std::string("Kratos_Line2D2");
-        case GeometryData::Kratos_Line2D3 :
+        case GeometryData::KratosGeometryType::Kratos_Line2D3 :
             return std::string("Kratos_Line2D3");
-        case GeometryData::Kratos_Line3D2 :
+        case GeometryData::KratosGeometryType::Kratos_Line3D2 :
             return std::string("Kratos_Line3D2");
-        case GeometryData::Kratos_Line3D3 :
+        case GeometryData::KratosGeometryType::Kratos_Line3D3 :
             return std::string("Kratos_Line3D3");
-        case GeometryData::Kratos_Point2D :
+        case GeometryData::KratosGeometryType::Kratos_Point2D :
             return std::string("Kratos_Point2D");
-        case GeometryData::Kratos_Point3D :
+        case GeometryData::KratosGeometryType::Kratos_Point3D :
             return std::string("Kratos_Point3D");
-        case GeometryData::Kratos_Sphere3D1 :
+        case GeometryData::KratosGeometryType::Kratos_Sphere3D1 :
             return std::string("Kratos_Sphere3D1");
-        case GeometryData::Kratos_Brep_Surface:
-            return std::string("Kratos_Brep_Surface");
-        case GeometryData::Kratos_Brep_Curve:
+        case GeometryData::KratosGeometryType::Kratos_Nurbs_Curve:
+            return std::string("Kratos_Nurbs_Curve");
+        case GeometryData::KratosGeometryType::Kratos_Nurbs_Surface:
+            return std::string("Kratos_Nurbs_Surface");
+        case GeometryData::KratosGeometryType::Kratos_Nurbs_Volume:
+            return std::string("Kratos_Nurbs_Volume");
+        case GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface:
+            return std::string("Kratos_Nurbs_Curve_On_Surface");
+        case GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume:
+            return std::string("Kratos_Surface_In_Nurbs_Volume");
+        case GeometryData::KratosGeometryType::Kratos_Brep_Curve:
             return std::string("Kratos_Brep_Curve");
+        case GeometryData::KratosGeometryType::Kratos_Brep_Surface:
+            return std::string("Kratos_Brep_Surface");
+        case GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface:
+            return std::string("Kratos_Brep_Curve_On_Surface");
+        case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry:
+            return std::string("Kratos_Quadrature_Point_Geometry");
+        case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry:
+            return std::string("Kratos_Quadrature_Point_Curve_On_Surface_Geometry");
+        case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry:
+            return std::string("Kratos_Quadrature_Point_Surface_In_Volume_Geometry");
+        case GeometryData::KratosGeometryType::NumberOfGeometryTypes:
+            return std::string("UnknownGeometry");
         };
 
         return std::string("UnknownGeometry");

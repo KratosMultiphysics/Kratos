@@ -55,7 +55,7 @@ enum class DataLocation {
 /**
  * @class AuxiliarModelPartUtilities
  * @ingroup KratosCore
- * @brief This uility includes auxiliar methods not included in the model part to avoid increase more than necessary the API
+ * @brief This utility includes auxiliar methods not included in the model part to avoid increase more than necessary the API
  * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) AuxiliarModelPartUtilities
@@ -100,6 +100,13 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This method copies the structure of submodelparts
+     * @param rModelPartToCopyFromIt The model part to copy from it
+     * @param rModelPartToCopyIntoIt The model part where to copy the structure of the submodelparts
+     */
+    static void CopySubModelPartStructure(const ModelPart& rModelPartToCopyFromIt, ModelPart& rModelPartToCopyIntoIt);
 
     /**
      * @brief This method ensured that the properties of elements and conditions are on the model part (it does recursively in all model parts)

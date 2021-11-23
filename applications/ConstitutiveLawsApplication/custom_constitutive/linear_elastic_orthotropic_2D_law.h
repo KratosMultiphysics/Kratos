@@ -82,7 +82,7 @@ namespace Kratos
 		/**
 		* Voigt tensor size:
 		*/
-		SizeType GetStrainSize() override
+		SizeType GetStrainSize() const override
 		{
 			return 3;
 		};
@@ -118,7 +118,10 @@ namespace Kratos
 		* @param rCurrentProcessInfo
 		* @return
 		*/
-		int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+		int Check(
+			const Properties& rMaterialProperties,
+			const GeometryType& rElementGeometry,
+			const ProcessInfo& rCurrentProcessInfo) const override;
 
 	protected:
 

@@ -56,7 +56,7 @@ namespace Kratos {
  */
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class LaplacianMeshMovingStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> {
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> {
 
 public:
   /**@name Type Definitions */
@@ -65,7 +65,7 @@ public:
   /** Counted pointer of ClassName */
   KRATOS_CLASS_POINTER_DEFINITION(LaplacianMeshMovingStrategy);
 
-  typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+  typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
   typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
   typedef Scheme<TSparseSpace, TDenseSpace> SchemeType;
 
@@ -82,7 +82,7 @@ public:
                               bool CalculateMeshVelocities = true,
                               int EchoLevel = 0,
                               const bool ReInitializeModelPartEachStep = false)
-      : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(ModelPart) {
+      : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(ModelPart) {
 
     KRATOS_TRY;
 

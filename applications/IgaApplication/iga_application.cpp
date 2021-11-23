@@ -16,11 +16,13 @@ namespace Kratos {
 
 KratosIgaApplication::KratosIgaApplication()
     : KratosApplication("IgaApplication")
-    , mShell3pElement(0, Element::GeometryType::Pointer(
+    , mTrussElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    , mTrussEmbeddedEdgeElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mIgaMembraneElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
-    , mTrussEmbeddedEdgeElement(0, Element::GeometryType::Pointer(
+    , mShell3pElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mShell5pHierarchicElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
@@ -58,9 +60,10 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
                 << "Initializing KratosIgaApplication..." << std::endl;
 
     // ELEMENTS
-    KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
-    KRATOS_REGISTER_ELEMENT("IgaMembraneElement", mIgaMembraneElement)
+    KRATOS_REGISTER_ELEMENT("TrussElement", mTrussElement)
     KRATOS_REGISTER_ELEMENT("TrussEmbeddedEdgeElement", mTrussEmbeddedEdgeElement)
+    KRATOS_REGISTER_ELEMENT("IgaMembraneElement", mIgaMembraneElement)
+    KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
 
@@ -76,10 +79,22 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SupportNitscheCondition", mSupportNitscheCondition)
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
+    KRATOS_REGISTER_MODELER("RefinementModeler", mRefinementModeler);
     KRATOS_REGISTER_MODELER("NurbsGeometryModeler", mNurbsGeometryModeler);
 
     // VARIABLES
     KRATOS_REGISTER_VARIABLE(CROSS_AREA)
+      
+    KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_CAUCHY)
+    KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_PK2)
+    KRATOS_REGISTER_VARIABLE(TRUSS_STRESS_CAUCHY)
+    KRATOS_REGISTER_VARIABLE(TRUSS_STRESS_PK2)
+    KRATOS_REGISTER_VARIABLE(TRUSS_FORCE)
+    KRATOS_REGISTER_VARIABLE(TANGENT_MODULUS)
+    KRATOS_REGISTER_VARIABLE(TRUSS_GREEN_LAGRANGE_STRAIN)
+
+    // Structural Mechanics Application variables
+    KRATOS_REGISTER_VARIABLE(NODAL_INERTIA)
     KRATOS_REGISTER_VARIABLE(PRESTRESS_CAUCHY)
     KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(PRESTRESS)
     KRATOS_REGISTER_VARIABLE(TANGENTS)

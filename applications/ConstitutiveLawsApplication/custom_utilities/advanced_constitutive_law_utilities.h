@@ -452,7 +452,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
 
     /**
      * @brief This computes the total rotation matrix
-     * rotates from local to global coordinates.
+     * rotates from global to local coordinates.
      * The so-called "x convention" is used.
      * Order of the rotations:
      *    1. The first rotation PHI around the Z-axis

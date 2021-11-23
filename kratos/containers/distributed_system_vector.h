@@ -56,7 +56,7 @@ namespace Kratos
 
 /// Provides a DistributedSystemVector which implements FEM assemble capabilities
 template<class TDataType=double, class TIndexType=std::size_t>
-class DistributedSystemVector
+class DistributedSystemVector final
 {
 public:
     ///@name Type Definitions
@@ -89,7 +89,7 @@ public:
             const auto& graph = r_non_local_graphs[cpu_id];
             for(auto item=graph.begin(); item!=graph.end(); ++item)
             {
-                    IndexType global_id = GetNumbering().RemoteGlobalId(item.GetRowIndex(), cpu_id); 
+                    IndexType global_id = GetNumbering().RemoteGlobalId(item.GetRowIndex(), cpu_id);
                     mNonLocalData[global_id] = TDataType(); //first touching of nonlocaldata
             }
         }
@@ -104,7 +104,7 @@ public:
         KRATOS_ERROR_IF(LocalSize() != rOther.LocalSize());
         KRATOS_ERROR_IF(Size() != rOther.Size());
         //copying the data
-        mLocalData.resize(rOther.LocalSize(),false); 
+        mLocalData.resize(rOther.LocalSize(),false);
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] = rOther[i];
         });
@@ -123,7 +123,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~DistributedSystemVector(){}
+    ~DistributedSystemVector(){}
 
     ///@}
     ///@name Operators
@@ -170,12 +170,12 @@ public:
         return mLocalData[I];
     }
 
-    inline IndexType Size() const{ 
-        return mpNumbering->Size(); 
+    inline IndexType Size() const{
+        return mpNumbering->Size();
     }
 
     inline IndexType LocalSize() const{
-        return mpNumbering->LocalSize(); 
+        return mpNumbering->LocalSize();
     }
 
     DenseVector<TDataType>& GetLocalData(){
@@ -211,7 +211,7 @@ public:
              const DistributedSystemVector& rOtherVector
             )
     {
-        KRATOS_ERROR_IF(LocalSize() != rOtherVector.LocalSize()) << "size mismatch in Add Function. LocalSize is " << LocalSize() 
+        KRATOS_ERROR_IF(LocalSize() != rOtherVector.LocalSize()) << "size mismatch in Add Function. LocalSize is " << LocalSize()
                 << " " << " rOtherVector.LocalSize() " << rOtherVector.LocalSize() << std::endl;
 
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
@@ -221,7 +221,7 @@ public:
 
     /// Assignment operator.
     DistributedSystemVector& operator=(DistributedSystemVector const& rOtherVector){
-        KRATOS_ERROR_IF(LocalSize() != rOtherVector.LocalSize()) << "size mismatch in assinement operator. LocalSize is " << LocalSize() 
+        KRATOS_ERROR_IF(LocalSize() != rOtherVector.LocalSize()) << "size mismatch in assinement operator. LocalSize is " << LocalSize()
                 << " " << " rOtherVector.LocalSize() " << rOtherVector.LocalSize() << std::endl;
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] = rOtherVector.mLocalData[i];
@@ -231,7 +231,7 @@ public:
 
     void operator+=(const DistributedSystemVector& rOtherVector)
     {
-        KRATOS_ERROR_IF(LocalSize() != rOtherVector.LocalSize()) << "size mismatch in += operator. LocalSize is " << LocalSize() 
+        KRATOS_ERROR_IF(LocalSize() != rOtherVector.LocalSize()) << "size mismatch in += operator. LocalSize is " << LocalSize()
                 << " " << " rOtherVector.LocalSize() " << rOtherVector.LocalSize() << std::endl;
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] += rOtherVector.mLocalData[i];
@@ -240,7 +240,7 @@ public:
 
     void operator-=(const DistributedSystemVector& rOtherVector)
     {
-        KRATOS_ERROR_IF(LocalSize() != rOtherVector.LocalSize()) << "size mismatch in -= operator. LocalSize is " << LocalSize() 
+        KRATOS_ERROR_IF(LocalSize() != rOtherVector.LocalSize()) << "size mismatch in -= operator. LocalSize is " << LocalSize()
                 << " " << " rOtherVector.LocalSize() " << rOtherVector.LocalSize() << std::endl;
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] -= rOtherVector.mLocalData[i];
@@ -277,7 +277,7 @@ public:
         }
         auto ptmp = Kratos::make_unique< DistributedVectorExporter<TIndexType> >(GetComm(), non_local_global_ids, GetNumbering());
         mpexporter.swap(ptmp);
-    } 
+    }
 
     //communicate data to finalize the assembly
     void FinalizeAssemble()
@@ -320,9 +320,6 @@ public:
         }
     }
 
-
-
-
     ///@}
     ///@name Access
     ///@{
@@ -338,18 +335,18 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
-std::stringstream buffer;
-    buffer << "DistributedSystemVector" ;
-    return buffer.str();
+        std::stringstream buffer;
+        buffer << "DistributedSystemVector" ;
+        return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "DistributedSystemVector";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "DistributedSystemVector";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const {
         std::cout << mLocalData << std::endl;
     }
 
@@ -411,7 +408,7 @@ private:
     DenseVector<TDataType> mLocalData; //contains the local data
     std::unordered_map<IndexType, TDataType> mNonLocalData; //contains non local data as {global_id,value}
 
-    typename DistributedVectorExporter<TIndexType>::UniquePointer mpexporter = nullptr; 
+    typename DistributedVectorExporter<TIndexType>::UniquePointer mpexporter = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -436,7 +433,7 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-   
+
 
     ///@}
 

@@ -128,7 +128,45 @@ public:
         r_model_part.GetProcessInfo().SetValue(VELOCITY_COEFFICIENT,mGamma/(mBeta*mDeltaTime));
         r_model_part.GetProcessInfo().SetValue(DT_PRESSURE_COEFFICIENT,1.0/(mTheta*mDeltaTime));
 
+        const int NNodes = static_cast<int>(r_model_part.Nodes().size());
+        ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
+
+        // Initialize INITIAL_STRESS_TENSOR
+        #pragma omp parallel for
+        for(int i = 0; i < NNodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
+
+            Matrix& rInitialStress = itNode->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
+            if(rInitialStress.size1() != 3)
+                rInitialStress.resize(3,3,false);
+            noalias(rInitialStress) = ZeroMatrix(3,3);
+        }
+
         BaseType::mSchemeIsInitialized = true;
+
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void InitializeElements( ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        int NElems = static_cast<int>(rModelPart.Elements().size());
+        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
+
+        // #pragma omp parallel for
+        for(int i = 0; i < NElems; i++)
+        {
+            ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
+            itElem -> Initialize(CurrentProcessInfo);
+        }
+
+        this->SetElementsAreInitialized();
 
         KRATOS_CATCH("")
     }
@@ -266,8 +304,6 @@ public:
 
         if(rModelPart.GetProcessInfo()[NODAL_SMOOTHING] == true)
         {
-            unsigned int Dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
             const int NNodes = static_cast<int>(rModelPart.Nodes().size());
             ModelPart::NodesContainerType::iterator node_begin = rModelPart.NodesBegin();
 
@@ -279,9 +315,9 @@ public:
 
                 itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
                 Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
-                if(rNodalStress.size1() != Dim)
-                    rNodalStress.resize(Dim,Dim,false);
-                noalias(rNodalStress) = ZeroMatrix(Dim,Dim);
+                if(rNodalStress.size1() != 3)
+                    rNodalStress.resize(3,3,false);
+                noalias(rNodalStress) = ZeroMatrix(3,3);
                 array_1d<double,3>& r_nodal_grad_pressure = itNode->FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT);
                 noalias(r_nodal_grad_pressure) = ZeroVector(3);
                 itNode->FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) = 0.0;
@@ -304,10 +340,10 @@ public:
                     const double InvNodalArea = 1.0/NodalArea;
                     Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
                     array_1d<double,3>& r_nodal_grad_pressure = itNode->FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT);
-                    for(unsigned int i = 0; i<Dim; i++)
+                    for(unsigned int i = 0; i<3; i++)
                     {
                         r_nodal_grad_pressure[i] *= InvNodalArea;
-                        for(unsigned int j = 0; j<Dim; j++)
+                        for(unsigned int j = 0; j<3; j++)
                         {
                             rNodalStress(i,j) *= InvNodalArea;
                         }

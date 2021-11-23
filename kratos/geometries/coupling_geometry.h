@@ -338,21 +338,23 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        const double model_tolerance = 1e-3;
+        const double model_tolerance = 1e-2;
 
         if (this->Dimension() == 1) {
-            std::vector<double> intersection_master_spans;
-            std::vector<double> intersection_master_spans_on_master_spans;
+            std::vector<double> master_span_intersections_in_master_local_space;
+            std::vector<double> slave_span_intersections_in_master_local_space;
 
-            mpGeometries[0]->SpansLocalSpace(intersection_master_spans);
-            CurveTessellation<PointerVector<TPointType>> curve_tessellation;
-            curve_tessellation.Tessellate(
+            mpGeometries[0]->SpansLocalSpace(master_span_intersections_in_master_local_space);
+            
+            // Create tessellation for estimation of initial guesses.
+            CurveTessellation<PointerVector<TPointType>> curve_tessellation_master;
+            curve_tessellation_master.Tessellate(
                 *(mpGeometries[0].get()),
-                intersection_master_spans,
+                master_span_intersections_in_master_local_space,
                 1e-2, mpGeometries[0]->PolynomialDegree(0), false);
 
-            CoordinatesArrayType local_coords_slave = ZeroVector(3);
-            CoordinatesArrayType global_coords = ZeroVector(3);
+            CoordinatesArrayType local_coords_span_intersection_on_slave = ZeroVector(3);
+            CoordinatesArrayType global_coords_span_intersection_on_slave = ZeroVector(3);
             CoordinatesArrayType local_coords_master = ZeroVector(3);
             CoordinatesArrayType global_coords_master;
             for (IndexType i = 1; i < mpGeometries.size(); ++i) {
@@ -360,27 +362,36 @@ public:
                 mpGeometries[i]->SpansLocalSpace(intersection_slave_spans);
 
                 for (IndexType j = 0; j < intersection_slave_spans.size(); ++j) {
-                    local_coords_slave[0] = intersection_slave_spans[j];
+                    local_coords_span_intersection_on_slave[0] = intersection_slave_spans[j];
+                    // Get global coordinates of span intersection on slave.
                     mpGeometries[i]->GlobalCoordinates(
-                        global_coords, local_coords_slave);
-                    curve_tessellation.GetClosestPoint(
-                        global_coords, global_coords_master, local_coords_master);
-                    int success = mpGeometries[0]->ProjectionPoint(
-                        global_coords, global_coords_master, local_coords_master);
-                    KRATOS_DEBUG_ERROR_IF(success == 1 && (norm_2(global_coords - global_coords_master) > model_tolerance))
+                        global_coords_span_intersection_on_slave, local_coords_span_intersection_on_slave);
+                    // Get initial guess for projection on master curve.
+                    curve_tessellation_master.GetClosestPoint(
+                        global_coords_span_intersection_on_slave, global_coords_master, local_coords_master);
+                    // Projection on master curve.
+                    int success = mpGeometries[0]->ProjectionPointGlobalToLocalSpace(
+                        global_coords_span_intersection_on_slave, local_coords_master);
+
+                    #ifdef KRATOS_DEBUG
+                        mpGeometries[0]->GlobalCoordinates(global_coords_master, local_coords_master);
+                    #endif
+                    KRATOS_DEBUG_ERROR_IF((success > 1 && (norm_2(global_coords_span_intersection_on_slave - local_coords_master) > model_tolerance))
+                        || (success == 0 && (norm_2(global_coords_span_intersection_on_slave - local_coords_master) < model_tolerance)))
                         << "Projection of intersection spans failed. Global Coordinates on slave: "
-                        << global_coords << ", and global coordinates on master: "
-                        << global_coords_master << ". Difference: " << norm_2(global_coords - global_coords_master)
+                        << global_coords_span_intersection_on_slave << ", and global coordinates on master: "
+                        << global_coords_master << ". Difference: " << norm_2(global_coords_span_intersection_on_slave - global_coords_master)
                         << " larger than model tolerance: " << model_tolerance << std::endl;
 
                     // If success == 0, it is considered that the projection is on one of the boundaries.
-                    intersection_master_spans_on_master_spans.push_back(local_coords_master[0]);
+                    slave_span_intersections_in_master_local_space.push_back(local_coords_master[0]);
                 }
             }
-            std::vector<double> all_intersections;
-            MergeSpans(all_intersections, intersection_master_spans, intersection_master_spans_on_master_spans);
+            std::vector<double> all_intersections_in_master_local_space;
+            MergeSpans(all_intersections_in_master_local_space, master_span_intersections_in_master_local_space, slave_span_intersections_in_master_local_space);
 
-            IntegrationPointUtilities::CreateIntegrationPoints1D(rIntegrationPoints, all_intersections, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
+            IntegrationPointUtilities::CreateIntegrationPoints1D(
+                rIntegrationPoints, all_intersections_in_master_local_space, rIntegrationInfo);
         }
     }
 
@@ -404,7 +415,7 @@ public:
         const IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) override
     {
-        const double model_tolerance = 1e-3;
+        const double model_tolerance = 1e-2;
 
         const SizeType num_integration_points = rIntegrationPoints.size();
 
@@ -431,7 +442,7 @@ public:
         CoordinatesArrayType local_slave_coords = ZeroVector(3);
         CoordinatesArrayType global_slave_coords = ZeroVector(3);
 
-        if (!rIntegrationInfo.Is(IntegrationFlags::DO_NOT_CREATE_TESSELLATION_ON_SLAVE)) {
+        if (!rIntegrationInfo.Is(IntegrationInfo::DO_NOT_CREATE_TESSELLATION_ON_SLAVE)) {
             if (this->Dimension() == 1) {
                 CurveTessellation<PointerVector<TPointType>> curve_tesselation;
                 curve_tesselation.Tessellate(*(mpGeometries[1].get()), 1e-2, mpGeometries[1]->PolynomialDegree(0));
@@ -442,9 +453,8 @@ public:
                         global_slave_coords,
                         local_slave_coords);
 
-                    mpGeometries[1]->ProjectionPoint(
+                    mpGeometries[1]->ProjectionPointGlobalToLocalSpace(
                         integration_points_global_coords_vector[j],
-                        global_slave_coords,
                         local_slave_coords);
 
                     integration_points_slave[j][0] = local_slave_coords[0];
@@ -459,9 +469,8 @@ public:
         }
         else {
             for (SizeType j = 0; j < num_integration_points; ++j) {
-                mpGeometries[1]->ProjectionPoint(
+                mpGeometries[1]->ProjectionPointGlobalToLocalSpace(
                     integration_points_global_coords_vector[j],
-                    global_slave_coords,
                     local_slave_coords);
 
                 integration_points_slave[j][0] = local_slave_coords[0];
@@ -581,7 +590,7 @@ public:
         std::sort(std::begin(rResultSpans), std::end(rResultSpans));
 
         auto last = std::unique(std::begin(rResultSpans), std::end(rResultSpans),
-            [=](double a, double b) { return b - a < Tolerance; });
+            [Tolerance](double a, double b) { return b - a < Tolerance; });
 
         auto nb_unique = std::distance(std::begin(rResultSpans), last);
 
