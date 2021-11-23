@@ -30,7 +30,7 @@ namespace Kratos
  * @brief The PointOnGeometry acts as topology for points on various types
  *        of geometries as faces or curves.
  */
-template<class TContainerPointType, int TLocalSpaceDimension, int TWorkingSpaceDimension>
+template<class TContainerPointType, int TWorkingSpaceDimension, int TLocalSpaceDimensionOfBackground>
 class PointOnGeometry
     : public Geometry<typename TContainerPointType::value_type>
 {
@@ -199,6 +199,16 @@ public:
     }
 
     ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        return IntegrationInfo(0, 0, IntegrationInfo::QuadratureMethod::Default);
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
@@ -206,7 +216,8 @@ public:
      * @param return integration points list with one entry.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
         if (rIntegrationPoints.size() != 1) { rIntegrationPoints.resize(1); }
         rIntegrationPoints[0][0] = mLocalCoordinates[0];
@@ -231,21 +242,22 @@ public:
      */
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives) override
+        IndexType NumberOfShapeFunctionDerivatives,
+        IntegrationInfo& rIntegrationInfo) override
     {
         IntegrationPointsArrayType integration_point(1);
-        this->CreateIntegrationPoints(integration_point);
+        this->CreateIntegrationPoints(integration_point, rIntegrationInfo);
 
         GeometriesArrayType rQuadraturePointGeometries(1);
         mpBackgroundGeometry->CreateQuadraturePointGeometries(
-            rQuadraturePointGeometries, NumberOfShapeFunctionDerivatives, integration_point);
+            rQuadraturePointGeometries, NumberOfShapeFunctionDerivatives, integration_point, rIntegrationInfo);
 
         if (rResultGeometries.size() != 1) { rResultGeometries.resize(1); }
         // assignment operator for quadrature point geometry with Dimension being 0.
         rResultGeometries(0) = Kratos::make_shared<
-            QuadraturePointGeometry<PointType, TWorkingSpaceDimension, TLocalSpaceDimension, 0>>(
+            QuadraturePointGeometry<PointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground, 0>>(
                 std::move(rQuadraturePointGeometries(0)->Points()),
-                std::move(rQuadraturePointGeometries(0)->GetGeometryData().GetGeometryShapeFunctionContainer()));
+                rQuadraturePointGeometries(0)->GetGeometryData().GetGeometryShapeFunctionContainer());
     }
 
     ///@}
@@ -268,6 +280,15 @@ public:
         mpBackgroundGeometry->ShapeFunctionsLocalGradients(rResult, mLocalCoordinates);
 
         return rResult;
+    }
+
+    ///@}
+    ///@name Geometry Family
+    ///@{
+
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Point;
     }
 
     ///@}
@@ -354,14 +375,14 @@ private:
 ///@{
 
 /// input stream functions
-template<class TContainerPointType, int TLocalSpaceDimension, int TWorkingSpaceDimension> inline std::istream& operator >> (
+template<class TContainerPointType, int TWorkingSpaceDimension, int TLocalSpaceDimensionOfBackground> inline std::istream& operator >> (
     std::istream& rIStream,
-    PointOnGeometry<TContainerPointType, TLocalSpaceDimension, TWorkingSpaceDimension>& rThis );
+    PointOnGeometry<TContainerPointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground>& rThis );
 
 /// output stream functions
-template<class TContainerPointType, int TLocalSpaceDimension, int TWorkingSpaceDimension> inline std::ostream& operator << (
+template<class TContainerPointType, int TWorkingSpaceDimension, int TLocalSpaceDimensionOfBackground> inline std::ostream& operator << (
     std::ostream& rOStream,
-    const PointOnGeometry<TContainerPointType, TLocalSpaceDimension, TWorkingSpaceDimension>& rThis )
+    const PointOnGeometry<TContainerPointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground>& rThis )
 {
     rThis.PrintInfo( rOStream );
     rOStream << std::endl;
@@ -373,15 +394,15 @@ template<class TContainerPointType, int TLocalSpaceDimension, int TWorkingSpaceD
 ///@name Static Type Declarations
 ///@{
 
-template<class TContainerPointType, int TLocalSpaceDimension, int TWorkingSpaceDimension> const
-GeometryData PointOnGeometry<TContainerPointType, TLocalSpaceDimension, TWorkingSpaceDimension>::msGeometryData(
+template<class TContainerPointType, int TWorkingSpaceDimension, int TLocalSpaceDimensionOfBackground> const
+GeometryData PointOnGeometry<TContainerPointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
 
-template<class TContainerPointType, int TLocalSpaceDimension, int TWorkingSpaceDimension>
-const GeometryDimension PointOnGeometry<TContainerPointType, TLocalSpaceDimension, TWorkingSpaceDimension>::msGeometryDimension(
-    0, TWorkingSpaceDimension, TLocalSpaceDimension);
+template<class TContainerPointType, int TWorkingSpaceDimension, int TLocalSpaceDimensionOfBackground>
+const GeometryDimension PointOnGeometry<TContainerPointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground>::msGeometryDimension(
+    0, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground);
 
 ///@}
 }// namespace Kratos.
