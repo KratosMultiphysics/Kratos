@@ -592,9 +592,9 @@ namespace Kratos {
       #pragma omp parallel for schedule(dynamic, 100)
       for (int i = 0; i < in.numberofpoints; i++) {
         ThermalSphericParticle<SphericParticle>* p_sphere = dynamic_cast<ThermalSphericParticle<SphericParticle>*>(mListOfSphericParticles[i]);
-        const array_1d<double, 3>& coors = p_sphere->GetParticleCoordinates();
         p_sphere->mDelaunayPointListIndex = i;
 
+        const array_1d<double, 3>& coors = p_sphere->GetParticleCoordinates();
         in.pointlist[2 * i + 0] = coors[0];
         in.pointlist[2 * i + 1] = coors[1];
 
@@ -837,29 +837,30 @@ namespace Kratos {
       char* meshing_options = "";
 
       // Build input
-      in.firstnumber = 1;
-      in.mesh_dim    = 3;
-
-      int number_of_particles = (int)mListOfSphericParticles.size();
-      in.numberofpoints = number_of_particles;
-
-      in.pointlist = (double*)malloc(sizeof(double) * number_of_particles * 3);
+      in.firstnumber    = 1;
+      in.mesh_dim       = 3;
+      in.numberofpoints = (int)mListOfSphericParticles.size();
+      in.pointlist      = (double*)malloc(sizeof(double) * in.numberofpoints * 3);
 
       #pragma omp parallel for schedule(dynamic, 100)
-      for (int i = 0; i < number_of_particles; i++) {
+      for (int i = 0; i < in.numberofpoints; i++) {
         ThermalSphericParticle<SphericParticle>* p_sphere = dynamic_cast<ThermalSphericParticle<SphericParticle>*>(mListOfSphericParticles[i]);
+        p_sphere->mDelaunayPointListIndex = i;
+
         const array_1d<double, 3>& coors = p_sphere->GetParticleCoordinates();
         in.pointlist[3 * i + 0] = coors[0];
         in.pointlist[3 * i + 1] = coors[1];
         in.pointlist[3 * i + 2] = coors[2];
-        p_sphere->mDelaunayPointListIndex = i;
+        
+        if (update_voronoi)
+          p_sphere->mNeighborVoronoiRadius.clear();
       }
 
       // Set switches
       //if      (update_voronoi && update_porosity) meshing_options = "JQecv";
       //else if (update_voronoi)                    meshing_options = "JQev";
       //else if (update_porosity)                   meshing_options = "JQec";
-      meshing_options = "JQecv";
+      meshing_options = "JQefcv";
 
       // Perform triangulation
       int fail = 0;
@@ -878,45 +879,84 @@ namespace Kratos {
         return;
       }
 
-      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      for (int i = 0; i < out.numberofpoints; i++) {
-        double x = out.pointlist[3 * i + 0];
-        double y = out.pointlist[3 * i + 1];
-        double z = out.pointlist[3 * i + 2];
-        std::cout << i + 1 << " -> " << x << " " << y << " " << z << std::endl;
-      }
-
-      std::cout << std::endl;
-
-      int b = out.numberofedges;
-      for (int i = 0; i < out.numberofedges; i++) {
-        int v1 = out.edgelist[2 * i + 0];
-        int v2 = out.edgelist[2 * i + 1];
-        std::cout << i + 1 << " -> " << v1 << " " << v2 << std::endl;
-      }
-
-      std::cout << std::endl;
-
-      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
       // Update voronoi diagram
       if (update_voronoi) {
         // Build a table for each particle:
         // column 1: neighbor IDs
-        // column 2: edge "radius" (length/2)
+        // column 2: voronoi face equivalent radius (for a circle with the same area)
         #pragma omp parallel for schedule(dynamic, 100)
-        for (int i = 0; i < number_of_particles; i++) {
-          ThermalSphericParticle<SphericParticle>* p_sphere = dynamic_cast<ThermalSphericParticle<SphericParticle>*>(mListOfSphericParticles[i]);
-          p_sphere->mNeighborVoronoiRadius.clear();
+        for (int i = 0; i < out.numberofvfacets; i++) {
+          tetgenio::vorofacet face = out.vfacetlist[i];
 
-          for (int j = 0; j < out.numberofedges; j++) {
-            int v1 = out.edgelist[2 * j + 0] - 1;
-            int v2 = out.edgelist[2 * j + 1] - 1;
+          // Compute area of voronoi face by irradiation of triangles
+          double face_area = 0.0;
+          int num_face_edges = face.elist[0];
+          double x0, y0, z0; // Irradiating coordinates
 
-            if (v1 == p_sphere->mDelaunayPointListIndex || v2 == p_sphere->mDelaunayPointListIndex) {
-              int dummy = 0;
+          // Save vertices of 1st edge of voronoi face (one of them will be the irradiating vertex)
+          tetgenio::voroedge edge1 = out.vedgelist[face.elist[1] - 1];
+          int e1v1 = edge1.v1 - 1;
+          int e1v2 = edge1.v2 - 1;
+
+          // Triangle area irradiation from 2nd edge to last but one
+          for (int j = 2; j < num_face_edges; j++) {
+            double triangle_area = 0.0;
+
+            // Edge vertices
+            tetgenio::voroedge edge = out.vedgelist[face.elist[j] - 1];
+            int ev1 = edge.v1 - 1;
+            int ev2 = edge.v2 - 1;
+
+            // Determine irradiating vertex
+            if (j == 2) {
+              int ev;
+              if      (ev1 == e1v1) ev = e1v2;
+              else if (ev1 == e1v2) ev = e1v1;
+              else if (ev2 == e1v1) ev = e1v2;
+              else if (ev2 == e1v2) ev = e1v1;
+
+              x0 = out.vpointlist[3 * ev + 0];
+              y0 = out.vpointlist[3 * ev + 1];
+              z0 = out.vpointlist[3 * ev + 2];
             }
+            
+            // Edge coordinates
+            double x1 = out.vpointlist[3 * ev1 + 0];
+            double y1 = out.vpointlist[3 * ev1 + 1];
+            double z1 = out.vpointlist[3 * ev1 + 2];
+            double x2 = out.vpointlist[3 * ev2 + 0];
+            double y2 = out.vpointlist[3 * ev2 + 1];
+            double z2 = out.vpointlist[3 * ev2 + 2];
+
+            // Area of triangle in space
+            array_1d<double, 3> AB;
+            array_1d<double, 3> AC;
+            array_1d<double, 3> ABxAC;
+            AB[0] = x1 - x0;
+            AB[1] = y1 - y0;
+            AB[2] = z1 - z0;
+            AC[0] = x2 - x0;
+            AC[1] = y2 - y0;
+            AC[2] = z2 - z0;
+            GeometryFunctions::CrossProduct(AB, AC, ABxAC);
+            triangle_area = DEM_MODULUS_3(ABxAC) / 2.0;;
+
+            // Accumulate area
+            face_area += triangle_area;
           }
+
+          // Equivalent radius
+          double radius = sqrt(face_area / Globals::Pi);
+
+          // Delaunay vertices adjacent to voronoi face
+          int vd1 = face.c1 - 1;
+          int vd2 = face.c2 - 1;
+
+          // Add info to table of both particles
+          ThermalSphericParticle<SphericParticle>* particle_1 = dynamic_cast<ThermalSphericParticle<SphericParticle>*>(mListOfSphericParticles[vd1]);
+          ThermalSphericParticle<SphericParticle>* particle_2 = dynamic_cast<ThermalSphericParticle<SphericParticle>*>(mListOfSphericParticles[vd2]);
+          particle_1->mNeighborVoronoiRadius[vd2] = radius;
+          particle_2->mNeighborVoronoiRadius[vd1] = radius;
         }
       }
 
@@ -924,7 +964,7 @@ namespace Kratos {
       if (update_porosity) {
         double total_volume    = 0.0;
         double particle_volume = 0.0;
-        Vector addedParticle   = ZeroVector(number_of_particles);
+        Vector addedParticle   = ZeroVector(out.numberofpoints);
 
         // Compute mean mesh size for alpha-shape (fixed in the beginning of analysis)
         mMeanMeshSize = 0.0;
@@ -988,64 +1028,6 @@ namespace Kratos {
           double x4 = out.pointlist[3 * v4 + 0];
           double y4 = out.pointlist[3 * v4 + 1];
           double z4 = out.pointlist[3 * v4 + 2];
-
-          // Perform alpha-shape
-          //if (r_process_info[POSORITY_METHOD].compare("average_alpha_shape") == 0) {
-          //  double AlphaRadius = mMeanMeshSize * r_process_info[ALPHA_SHAPE_PARAMETER];
-          //  
-          //  BoundedMatrix<double, 3, 3> J;
-          //  BoundedMatrix<double, 3, 3> Jinv;
-          //  BoundedVector<double, 3>    center;
-
-          //  // Calculate Jacobian
-          //  for (unsigned int j = 0; j < 3; ++j)
-          //    for (unsigned int k = 0; k < 3; ++k)
-          //      J(j, k) = rVertices[j + 1][k] - rVertices[0][k];
-
-
-
-          //  //////////////////////////////////////////////////////////////
-          //  // Calculate Jacobian
-          //  J(0, 0) = x2 - x1;
-          //  J(0, 1) = y2 - y1;
-          //  J(1, 0) = x3 - x1;
-          //  J(1, 1) = y3 - y1;
-          //  J *= 2.0;
-
-          //  // Calculate the determinant (volume/2)
-          //  double vol = J(0, 0) * J(1, 1) - J(0, 1) * J(1, 0);
-
-          //  // Calculate the inverse of the Jacobian
-          //  Jinv(0, 0) =  J(1, 1);
-          //  Jinv(0, 1) = -J(0, 1);
-          //  Jinv(1, 0) = -J(1, 0);
-          //  Jinv(1, 1) =  J(0, 0);
-          //  Jinv /= vol;
-
-          //  // Calculate circle center
-          //  Vector Center = ZeroVector(2);
-          //  Center[0] += (x2 * x2);
-          //  Center[0] -= (x1 * x1);
-          //  Center[0] += (y2 * y2);
-          //  Center[0] -= (y1 * y1);
-          //  Center[1] += (x3 * x3);
-          //  Center[1] -= (x1 * x1);
-          //  Center[1] += (y3 * y3);
-          //  Center[1] -= (y1 * y1);
-          //  Center = prod(Jinv, Center);
-
-          //  // Calculate circle radius
-          //  Center[0] -= x1;
-          //  Center[1] -= y1;
-          //  double radius = norm_2(Center);
-
-          //  // Rejected triangle
-          //  if (radius < 0 || radius >= AlphaRadius)
-          //    continue;
-          //}
-
-          // Add tetahedron volume
-          //total_volume += fabs(0.5 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)));
 
           // Add particles volume
           if (!addedParticle[v1]) {
