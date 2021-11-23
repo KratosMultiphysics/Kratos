@@ -240,11 +240,10 @@ private:
     /**
      * @brief Computes nodal entropies and initializes artificial variables to 0.
      *
-     * @tparam WriteBufferIndex: The buffer index to write the result in. This is an
+     * @param WriteBufferIndex: The buffer index to write the result in. This is an
      * ugly hack to deal with the first time-step.
      */
-    template<unsigned int WriteBufferIndex = 0>
-    void ComputeNodalEntropies();
+    void ComputeNodalEntropies(unsigned int WriteBufferIndex = 0);
 
     void ComputeArtificialMagnitudes();
 
@@ -252,7 +251,8 @@ private:
         Element& rElement,
         const double ArtificialDynamicViscosity,
         const double ArtificialBulkViscosity,
-        const double ArtificialConductivity) const;
+        const double ArtificialConductivity,
+        const std::function<double(Geometry<Node<3>>)>& rGeometrySize) const;
 
     static double ComputeEntropy(const double Density, const double Pressure, const double Gamma);
 

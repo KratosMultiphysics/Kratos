@@ -159,7 +159,7 @@ void ShockCapturingEntropyViscosityProcess::ExecuteInitializeSolutionStep()
     if(!mIsInitialized)
     {
         UpdateNodalAreaProcess();
-        ComputeNodalEntropies<1>();
+        ComputeNodalEntropies(1);
         /* ^ Necessary in order to compute derivative in first step.
          *   Stored in buffer index 1 to prevent it from being overwritten at the
          *      end of this same time-step.
@@ -191,14 +191,13 @@ void ShockCapturingEntropyViscosityProcess::UpdateNodalAreaProcess()
 }
 
 
-template<unsigned int WriteBufferIndex>
-void ShockCapturingEntropyViscosityProcess::ComputeNodalEntropies()
+void ShockCapturingEntropyViscosityProcess::ComputeNodalEntropies(unsigned int WriteBufferIndex)
 {
-    if(mrModelPart.ElementsBegin() == mrModelPart.ElementsEnd()) return; // empty mpdelpart
+    if(mrModelPart.GetCommunicator().LocalMesh().NumberOfElements() == 0) return; // empty mpdelpart
 
     const double heat_capacity_ratio = mrModelPart.ElementsBegin()->GetProperties().GetValue(HEAT_CAPACITY_RATIO);
 
-    block_for_each(mrModelPart.Nodes(), [heat_capacity_ratio](NodeType& r_node)
+    block_for_each(mrModelPart.Nodes(), [&](NodeType& r_node)
     {
         const double density = r_node.FastGetSolutionStepValue(DENSITY);
         const double pressure = r_node.FastGetSolutionStepValue(PRESSURE);
@@ -221,9 +220,13 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
 
     const double delta_time = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
 
-    if(mrModelPart.ElementsBegin() == mrModelPart.ElementsEnd()) return; // Empty modelpart
+    if(mrModelPart.GetCommunicator().LocalMesh().NumberOfElements() != 0) return; // Empty modelpart
 
     const double heat_capacity_ratio = mrModelPart.ElementsBegin()->GetProperties().GetValue(HEAT_CAPACITY_RATIO);
+
+    const auto geometry_size = mrModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 3 ?
+         [](const Geometry<Node<3>>& r_geom) { return r_geom.Volume(); }
+        :[](const Geometry<Node<3>>& r_geom) { return r_geom.Area(); };
 
     block_for_each(mrModelPart.Elements(), [&](Element& r_element)
     {
@@ -239,7 +242,7 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
         const double mu_rho = mArtificialMassDiffusivityPrandtl * mu_h / inf_norm.Density;
         const double kappa  = mArtificialConductivityPrandtl * mu_h / (heat_capacity_ratio - 1.0);
 
-        DistributeVariablesToNodes(r_element, mu_h, mu_rho, kappa);
+        DistributeVariablesToNodes(r_element, mu_h, mu_rho, kappa, geometry_size);
     });
 
     KRATOS_CATCH("")
@@ -250,10 +253,11 @@ void ShockCapturingEntropyViscosityProcess::DistributeVariablesToNodes(
     Element& rElement,
     const double ArtificialBulkViscosity,
     const double ArtificialMassDiffusivity,
-    const double ArtificialConductivity) const
+    const double ArtificialConductivity,
+    const std::function<double(Geometry<Node<3>>)>& rGeometrySize) const
 {
     auto& r_geometry = rElement.GetGeometry();
-    const double element_volume = r_geometry.LocalSpaceDimension() == 3 ? r_geometry.Volume() : r_geometry.Area();
+    const double element_volume = rGeometrySize(r_geometry);
 
     for(unsigned int i=0; i<r_geometry.size(); ++i)
     {
@@ -327,8 +331,8 @@ ShockCapturingEntropyViscosityProcess::BuildTotalDerivativeUtils(
     {
         const auto& r_node = r_geometry[i];
 
-        const auto velocity = r_node.FastGetSolutionStepValue(VELOCITY);
-        const auto temperature = r_node.FastGetSolutionStepValue(TEMPERATURE);
+        const auto& velocity = r_node.FastGetSolutionStepValue(VELOCITY);
+        const double temperature = r_node.FastGetSolutionStepValue(TEMPERATURE);
 
         total_velocities[i] = norm_2(velocity) + std::sqrt(HeatCapacityRatio * temperature);
 
