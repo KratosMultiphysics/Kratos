@@ -55,25 +55,24 @@ double CalculateWaveHeightUtility::Calculate(const array_1d<double,3>& rCoordina
     double counter = 0.0;
     double wave_height = 0.0;
 
-    std::tie(counter, height) = block_for_each<MultipleReduction>(
+    std::tie(counter, wave_height) = block_for_each<MultipleReduction>(
         mrModelPart.Nodes(), [&](NodeType& rNode)
     {
         double local_count = 0.0;
         double local_wave_height = 0.0;
 
-        if (rNode->IsNot(ISOLATED) && rNode->IsNot(RIGID) && rNode->Is(FREE_SURFACE))
+        if (rNode.IsNot(ISOLATED) && rNode.IsNot(RIGID) && rNode.Is(FREE_SURFACE))
         {
-            const auto vector_distance = MathUtils<double>::CrossProduct(mDirection - rCoordinates, rNode);
-            const double distance = norm_2(vector_distance);
+            const array_1d<double,3> relative_position = rNode.Coordinates() - rCoordinates;
+            const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(mDirection, relative_position);
+            const double distance = norm_2(horizontal_position);
 
             if (distance < mSearchTolerance)
             {
-                local_wave_height = inner_prod(mDirection, rNode) - mHeightReference;
                 local_count = 1.0;
+                local_wave_height = inner_prod(mDirection, rNode) - mMeanWaterLevel;
             }
         }
-        double to_sum = data_vector[i];
-        double to_max = data_vector[i];
         return std::make_tuple(local_count, local_wave_height);
     });
 

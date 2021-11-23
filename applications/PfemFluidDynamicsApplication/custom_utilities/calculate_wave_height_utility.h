@@ -21,7 +21,7 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "include/kratos_parameters.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -86,6 +86,11 @@ public:
     void PrintInfo(std::ostream &rOStream) const
     {
       rOStream << "CalculateWaveHeightUtility";
+    }
+
+    ///@brief Print information about this object.
+    void PrintData(std::ostream &rOStream) const
+    {
     }
 
     ///@}
