@@ -33,7 +33,7 @@ CalculateWaveHeightUtility::CalculateWaveHeightUtility(
 ) : mrModelPart(rThisModelPart)
 {
     Parameters default_parameters(R"({
-        "model_part_name"  : ""
+        "model_part_name"  : "",
         "mean_water_level" : 0.0,
         "search_tolerance" : 1.0
     })");
@@ -42,7 +42,7 @@ CalculateWaveHeightUtility::CalculateWaveHeightUtility(
 
     const array_1d<double,3> gravity = mrModelPart.GetProcessInfo()[GRAVITY];
     mDirection = -gravity / norm_2(gravity);
-    mMeanWaterLevel = ThisParameters["mean_water_level"].GetBool();
+    mMeanWaterLevel = ThisParameters["mean_water_level"].GetDouble();
     mSearchTolerance = ThisParameters["search_tolerance"].GetDouble();
 }
 
