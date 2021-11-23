@@ -131,8 +131,8 @@ class TimeBasedAsciiFileWriterUtility:
             raise Exception('No "file_name" was specified!')
 
         # check and correct file extension
-        if self.file_name.suffix != ".dat" and self.check_file_extension:
-            self.file_name = self.file_name.with_suffix(".dat")
+        if self.file_name.suffix != self.file_extension:
+            self.file_name = self.file_name.with_suffix(self.file_extension)
 
         if self.file_name.parent != Path(): # check if folder was specified in "file_name"
             warn_msg  = 'Path contained wrongly in "file_name" "{}", this will be ignored in the future\n'.format(self.file_name)
