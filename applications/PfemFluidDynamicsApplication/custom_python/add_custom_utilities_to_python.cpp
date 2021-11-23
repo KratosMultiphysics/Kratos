@@ -43,9 +43,8 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
                       MultiFileFlag,
                       WriteDeformedMeshFlag,
                       WriteConditionsFlag>());
-    
+
     py::class_<MoveMeshUtility, MoveMeshUtility::Pointer>(m, "MoveMeshUtility")
-        .def(py::init<>())
         .def_static("ResetPfemKinematicValues", &MoveMeshUtility::ResetPfemKinematicValues);
 }
 
