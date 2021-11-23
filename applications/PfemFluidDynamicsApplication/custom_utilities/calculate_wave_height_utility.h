@@ -124,7 +124,7 @@ private:
     array_1d<double,3> mDirection;
     array_1d<double,3> mCoordinates;
     double mMeanWaterLevel;
-    double mSearchTolerance;
+    double mSearchRadius;
 
     ///@}
     ///@name Private Operations

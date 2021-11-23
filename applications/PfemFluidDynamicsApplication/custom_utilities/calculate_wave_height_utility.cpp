@@ -35,7 +35,7 @@ CalculateWaveHeightUtility::CalculateWaveHeightUtility(
     Parameters default_parameters(R"({
         "model_part_name"  : "",
         "mean_water_level" : 0.0,
-        "search_tolerance" : 1.0
+        "search_tolerance" : 1e-6
     })");
 
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -43,7 +43,13 @@ CalculateWaveHeightUtility::CalculateWaveHeightUtility(
     const array_1d<double,3> gravity = mrModelPart.GetProcessInfo()[GRAVITY];
     mDirection = -gravity / norm_2(gravity);
     mMeanWaterLevel = ThisParameters["mean_water_level"].GetDouble();
-    mSearchTolerance = ThisParameters["search_tolerance"].GetDouble();
+    double search_tolerance = ThisParameters["search_tolerance"].GetDouble();
+    double mean_elem_size = block_for_each<SumReduction<double>>(
+        mrModelPart.Elements(), [](Element& rElement) {
+        return rElement.GetGeometry().Length();
+    });
+    mean_elem_size /= mrModelPart.NumberOfElements();
+    mSearchRadius = 0.5 * mean_elem_size + search_tolerance;
 }
 
 double CalculateWaveHeightUtility::Calculate(const array_1d<double,3>& rCoordinates) const
@@ -67,7 +73,7 @@ double CalculateWaveHeightUtility::Calculate(const array_1d<double,3>& rCoordina
             const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(mDirection, relative_position);
             const double distance = norm_2(horizontal_position);
 
-            if (distance < mSearchTolerance)
+            if (distance < mSearchRadius)
             {
                 local_count = 1.0;
                 local_wave_height = inner_prod(mDirection, rNode) - mMeanWaterLevel;
