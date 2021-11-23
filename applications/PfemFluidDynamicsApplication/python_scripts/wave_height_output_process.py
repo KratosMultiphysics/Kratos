@@ -51,6 +51,8 @@ class WaveHeightOutputProcess(KM.OutputProcess):
         self.file_names_list = self._GetNamesList(self.settings["file_names"])
         self.output_path_list = self._GetNamesList(self.settings["output_path"])
 
+        self.next_output = self.model_part.ProcessInfo[KM.TIME]
+
     def Check(self):
         """Check all the variables have the right size"""
         for coordinate in self.coordinates_list:
@@ -84,7 +86,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
 
     def PrintOutput(self):
         """Print the wave height corresponding to each gauge and schedule the next output"""
-        time = self.model_part.ProcessInfo.GetValue(KM.TIME)
+        time = self.model_part.ProcessInfo[KM.TIME]
         for file, coordinates in zip(self.files, self.coordinates_list):
             height = self.wave_height_utility.Calculate(coordinates)
             value = "{}\t{}\n".format(time, height)
@@ -112,12 +114,12 @@ class WaveHeightOutputProcess(KM.OutputProcess):
             names_list = []
             for coordinate in self.coordinates_list:
                 name = settings.GetString()
-                name.replace("<x>", str(coordinate[0]))
-                name.replace("<X>", str(coordinate[0]))
-                name.replace("<y>", str(coordinate[1]))
-                name.replace("<Y>", str(coordinate[1]))
-                name.replace("<z>", str(coordinate[2]))
-                name.replace("<Z>", str(coordinate[2]))
+                name = name.replace("<x>", str(coordinate[0]))
+                name = name.replace("<X>", str(coordinate[0]))
+                name = name.replace("<y>", str(coordinate[1]))
+                name = name.replace("<Y>", str(coordinate[1]))
+                name = name.replace("<z>", str(coordinate[2]))
+                name = name.replace("<Z>", str(coordinate[2]))
                 names_list.append(name)
             return names_list
         else:
