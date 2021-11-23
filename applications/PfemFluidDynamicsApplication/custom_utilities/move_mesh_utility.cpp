@@ -40,8 +40,6 @@ void MoveMeshUtility::ResetPfemKinematicValues(ModelPart& rFluidModelPart)
             noalias(r_current_acc)  = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
         }
     });
-
-    KRATOS_INFO("MoveMeshUtility::ResetPfemKinematicValues") << " PFEM KINEMATICS RESET " << std::endl;
 }
 
 } //  Kratos

@@ -4,6 +4,9 @@ import KratosMultiphysics as KM
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
+# CoSimulation imports
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+
 def Create(*args):
     return ResetPfemKinematics(*args)
 
@@ -27,6 +30,12 @@ class ResetPfemKinematics(CoSimulationCouplingOperation):
         current_time = self.model_part.ProcessInfo[KM.TIME]
         if(self.interval.IsInInterval(current_time)):
             self._ResetPfemKinematicValues()
+
+            if(self.model_part.GetCommunicator().MyPID() == 0):
+                if(self.echo_level > 0):
+                    # print to screen the results at echo level 1 or higher
+                    result_msg = " PFEM KINEMATICS RESET "
+                    cs_tools.cs_print_info(self._ClassName(), result_msg)
 
     def _ResetPfemKinematicValues(self):
         KM.PfemFluidDynamicsApplication.MoveMeshUtility.ResetPfemKinematicValues(self.model_part)
