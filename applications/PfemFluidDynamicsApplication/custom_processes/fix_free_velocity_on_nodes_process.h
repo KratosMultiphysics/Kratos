@@ -14,30 +14,26 @@
 #if !defined(KRATOS_FIX_FREE_VELOCITY_ON_NODES_PROCESS)
 #define KRATOS_FIX_FREE_VELOCITY_ON_NODES_PROCESS
 
+// System includes
+
+// External includes
+
+// Project includes
+#include "includes/define.h"
 #include "processes/process.h"
-#include "pfem_fluid_dynamics_application_variables.h"
-#include "includes/variables.h"
+#include "includes/model_part.h"
 
 namespace Kratos {
 
-typedef std::size_t SizeType;
-typedef Node<3> NodeType;
-typedef ModelPart::NodesContainerType::iterator NodeIteratorType;
-
-class FixFreeVelocityOnNodesProcess : public Process 
+class FixFreeVelocityOnNodesProcess : public Process
 {
- public:
+public:
 
   /// Pointer definition of FixFreeVelocityOnNodesProcess
   KRATOS_CLASS_POINTER_DEFINITION(FixFreeVelocityOnNodesProcess);
 
-  typedef std::size_t IndexType;
-
   // Constructor
   FixFreeVelocityOnNodesProcess(ModelPart& rModelPart, const bool rFreeOrFix);
-
-  // Destructor
-  ~FixFreeVelocityOnNodesProcess() override = default;
 
   void operator()() { Execute(); }
 
@@ -49,7 +45,8 @@ protected:
   ModelPart& mrModelPart;
   bool mFreeOrFix;
 
-};  // Class
+};
 
 }  // namespace Kratos
-#endif /* KRATOS_FIX_FREE_VELOCITY_ON_NODES_PROCESS defined */
+
+#endif // KRATOS_FIX_FREE_VELOCITY_ON_NODES_PROCESS defined

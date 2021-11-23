@@ -11,9 +11,13 @@
 //                   Carlos Eulogio Flores
 //
 
+// System includes
+
+// External includes
+
+// Project includes
+#include "includes/variables.h"
 #include "custom_processes/fix_free_velocity_on_nodes_process.h"
-#include "includes/define.h"
-#include "includes/kratos_flags.h"
 #include "utilities/variable_utils.h"
 
 namespace Kratos {
@@ -29,24 +33,20 @@ FixFreeVelocityOnNodesProcess::FixFreeVelocityOnNodesProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void FixFreeVelocityOnNodesProcess::Execute() 
+void FixFreeVelocityOnNodesProcess::Execute()
 {
     VariableUtils().ApplyFixity(VELOCITY_X, mFreeOrFix, mrModelPart.Nodes());
     VariableUtils().ApplyFixity(VELOCITY_Y, mFreeOrFix, mrModelPart.Nodes());
     VariableUtils().ApplyFixity(VELOCITY_Z, mFreeOrFix, mrModelPart.Nodes());
 
-    if (mFreeOrFix) 
-    {
+    if (mFreeOrFix) {
         KRATOS_INFO("FixFreeVelocityOnNodesProcess") << " FIXED VELOCITY VALUES FOR THE NODES " << std::endl;
-    }
-    else
-    {
+    } else {
         KRATOS_INFO("FixFreeVelocityOnNodesProcess") << " FREED VELOCITY VALUES FOR THE NODES " << std::endl;
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
-
 
 }  // namespace Kratos
