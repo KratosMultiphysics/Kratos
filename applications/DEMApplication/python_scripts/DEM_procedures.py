@@ -506,6 +506,8 @@ class Procedures():
         if "PostStressStrainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR)
+                model_part.AddNodalSolutionStepVariable(DEM_STRAIN_TENSOR)
+                model_part.AddNodalSolutionStepVariable(DEM_DIFFERENTIAL_STRAIN_TENSOR)
 
         if self.solver.poisson_ratio_option:
             model_part.AddNodalSolutionStepVariable(POISSON_VALUE)
@@ -1517,6 +1519,8 @@ class DEMIo():
             if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 self.PushPrintVar(1, REPRESENTATIVE_VOLUME, self.spheres_variables)
                 self.PushPrintVar(1, DEM_STRESS_TENSOR, self.spheres_variables)
+                self.PushPrintVar(1, DEM_STRAIN_TENSOR, self.spheres_variables)
+                self.PushPrintVar(1, DEM_DIFFERENTIAL_STRAIN_TENSOR, self.spheres_variables)
 
         if "PostReactions" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostReactions"].GetBool():
