@@ -4,11 +4,6 @@ import KratosMultiphysics as KM
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
-# Additional imports
-
-# CoSimulation imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-
 def Create(*args):
     return ResetPfemKinematics(*args)
 
@@ -22,9 +17,9 @@ class ResetPfemKinematics(CoSimulationCouplingOperation):
     """
     def __init__(self, settings, solver_wrappers, process_info):
         super().__init__(settings, process_info)
-        self.model = solver_wrappers[self.settings["solver"].GetString()].model
-        self.model_part_name = self.settings["model_part_name"].GetString()
-        self.model_part = self.model[self.model_part_name]
+        model = solver_wrappers[self.settings["solver"].GetString()].model
+        model_part_name = self.settings["model_part_name"].GetString()
+        self.model_part = model[model_part_name]
 
         self.interval = KM.IntervalUtility(settings)
 
@@ -34,7 +29,7 @@ class ResetPfemKinematics(CoSimulationCouplingOperation):
             self._ResetPfemKinematicValues()
 
     def _ResetPfemKinematicValues(self):
-        KM.PfemFluidDynamicsApplication.MoveMeshUtility().ResetPfemKinematicValues(self.model_part)
+        KM.PfemFluidDynamicsApplication.MoveMeshUtility.ResetPfemKinematicValues(self.model_part)
 
     @classmethod
     def _GetDefaultParameters(cls):
