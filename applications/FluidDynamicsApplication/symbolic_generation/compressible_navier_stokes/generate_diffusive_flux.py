@@ -40,7 +40,7 @@ def ComputeDiffusiveFlux(dofs, dUdx, params):
 
     return G
 
-def ComputeDiffusiveFluxWithPhysicsBasedShockCapturing(dofs, dUdx, params, alpha_sc, beta_sc, lamb_sc, mu_sc):
+def ComputeDiffusiveFluxWithShockCapturing(dofs, dUdx, params, alpha_sc, beta_sc, lamb_sc, mu_sc):
     """Calculate the diffusive flux matrix with a physics-based shock capturing contribution.
     See A physics-based shock capturing methods for large-eddy simulation, Fernandez, Nguyen and Peraire (2018)."""
 

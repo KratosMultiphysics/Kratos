@@ -153,7 +153,7 @@ for dim in dim_vector:
         mu_sc = Symbol('mu_sc', positive = True) # Artificial dynamic viscosity for shock capturing
         beta_sc = Symbol('beta_sc', positive = True) # Artificial bulk viscosity for shock capturing
         lamb_sc = Symbol('lamb_sc', positive = True) # Artificial thermal conductivity for shock capturing
-        G = generate_diffusive_flux.ComputeDiffusiveFluxWithPhysicsBasedShockCapturing(Ug, H, params, alpha_sc, beta_sc, lamb_sc, mu_sc)
+        G = generate_diffusive_flux.ComputeDiffusiveFluxWithShockCapturing(Ug, H, params, alpha_sc, beta_sc, lamb_sc, mu_sc)
     else:
         G = generate_diffusive_flux.ComputeDiffusiveFlux(Ug, H, params)
     Tau = generate_stabilization_matrix.ComputeStabilizationMatrix(params)
