@@ -448,9 +448,9 @@ void FluidAuxiliaryUtilities::InternalCreateSlipMultiPointConstraints(
                 IndexType aux_j = 0;
                 slave_dofs.push_back(r_node.pGetDof(*(unknowns_map[slave_component])));
                 const double wall_normal_v = rWallNormalVelocityCalculator(r_node, unit_normal);
+                constant_vector(0) = wall_normal_v/unit_normal(slave_component);
                 for (IndexType d = 0; d < dim; ++d) {
                     if (d != slave_component) {
-                        constant_vector(aux_j) = wall_normal_v/unit_normal(slave_component);
                         relation_matrix(0,aux_j) = -(unit_normal(d)/unit_normal(slave_component));
                         master_dofs.push_back(r_node.pGetDof(*(unknowns_map[d])));
                         aux_j++;
