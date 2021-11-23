@@ -79,7 +79,6 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         ascii_writer_params.AddValue("check_file_extension", settings["check_file_extension"])
         header = "# In this file we print the " + settings["results_type"].GetString() + " " + settings["variable_name"].GetString() + " in the ModelPart: " + settings["model_part_name"].GetString() + "\n\n" + "# TIME\t\t" + settings["variable_name"].GetString() + "\n"
         self.ascii_writer = AsciiWriter.TimeBasedAsciiFileWriterUtility(self.model_part, ascii_writer_params, header).file
-        self.ascii_writer = open(self.file_name, open_file_aproach)
         self.ascii_writer.write("# In this file we print the " + settings["results_type"].GetString() + " " + settings["variable_name"].GetString() + " in the ModelPart: " + settings["model_part_name"].GetString() + "\n\n")
         self.ascii_writer.write("# TIME\t\t" + settings["variable_name"].GetString() + "\n")
 
