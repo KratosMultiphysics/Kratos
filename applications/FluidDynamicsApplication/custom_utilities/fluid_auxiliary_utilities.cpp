@@ -51,7 +51,7 @@ void FluidAuxiliaryUtilities::CreateSlipMultiPointConstraints(
     const Flags& rSlipFlag)
 {
     // Set the normal wall velocity calculation function
-    auto wall_normal_v_func = [](const NodeType& rNode, const array_1d<double,3>& rUnitNormal){
+    auto wall_normal_v_func = [&](const NodeType& rNode, const array_1d<double,3>& rUnitNormal){
         return inner_prod(rNode.FastGetSolutionStepValue(rWallVelocityVar), rUnitNormal);
     };
 
