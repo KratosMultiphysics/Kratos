@@ -479,12 +479,13 @@ namespace Kratos
     template< typename ContainerType, typename NodeFunctor, typename ...Args>
     BoundedVector<double, 3> Shell5pElement::InterpolateNodalVariable(const ContainerType& vec, const NodeFunctor& funct, const Args&... args) const
     {
-        BoundedVector<double, 3> result = ZeroVector(3);
+        BoundedVector<double, 3> nullVec;
+        nullVec = ZeroVector(3);
         for (IndexType i = 0; i < vec.size(); ++i) {
-            result += vec[i] * (GetGeometry()[i].*funct)(args...);
+            nullVec += vec[i] * (GetGeometry()[i].*funct)(args...);
         }
 
-        return result;//std::inner_product(vec.begin(), vec.end(), GetGeometry().begin(), nullVec, std::plus<BoundedVector<double, 3>>(), nodeValuesTimesAnsatzFunction);
+        return nullVec;//std::inner_product(vec.begin(), vec.end(), GetGeometry().begin(), nullVec, std::plus<BoundedVector<double, 3>>(), nodeValuesTimesAnsatzFunction);
     }
 
     void Shell5pElement::CalculateSVKMaterialTangent()

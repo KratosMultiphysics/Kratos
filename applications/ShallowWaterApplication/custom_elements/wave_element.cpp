@@ -158,7 +158,7 @@ void WaveElement<TNumNodes>::InitializeData(ElementData& rData, const ProcessInf
 }
 
 template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType& rGeometry)
+void WaveElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step)
 {
     rData.length = rGeometry.Length();
 
@@ -166,10 +166,10 @@ void WaveElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType
     {
         const IndexType block = 3 * i;
 
-        const auto h = rGeometry[i].FastGetSolutionStepValue(HEIGHT);
-        const array_1d<double,3> v = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
+        const auto h = rGeometry[i].FastGetSolutionStepValue(HEIGHT, Step);
+        const array_1d<double,3> v = rGeometry[i].FastGetSolutionStepValue(VELOCITY, Step);
 
-        rData.topography[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY);
+        rData.topography[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY, Step);
 
         rData.unknown[block]     = v[0];
         rData.unknown[block + 1] = v[1];

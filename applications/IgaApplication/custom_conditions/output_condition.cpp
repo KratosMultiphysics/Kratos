@@ -89,19 +89,30 @@ namespace Kratos
         if (rOutput.size() != r_integration_points.size())
             rOutput.resize(r_integration_points.size());
 
-        if (rVariable == PENALTY_REACTION)
+        if (rVariable == PENALTY_REACTION_FORCE)
         {
             SupportPenaltyCondition::CalculatePenaltyReaction(rOutput,
                 GetProperties()[PENALTY_FACTOR], GetProperties()[DISPLACEMENT],
                 r_integration_points, r_N, r_geometry);
         }
-        else if (rVariable == PENALTY_REACTION_FORCE)
+        else if (rVariable == PENALTY_REACTION)
         {
             SupportPenaltyCondition::CalculatePenaltyReaction(rOutput,
                 GetProperties()[PENALTY_FACTOR], GetProperties()[DISPLACEMENT],
                 r_integration_points, r_N, r_geometry);
-            for (IndexType i = 0; i < r_integration_points.size(); ++i) {
-                rOutput[i] *= determinants_of_jacobian[i];
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                rOutput[point_number] *= determinants_of_jacobian[point_number] * r_integration_points[point_number].Weight();
+            }
+        }
+        else if (rVariable == REACTION_FORCE) {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
+            {
+                rOutput[point_number] = ZeroVector(3);
+                for (IndexType i = 0; i < nb_nodes; ++i)
+                {
+                    array_1d<double, 3> output_solution_step_value = r_geometry[i].FastGetSolutionStepValue(REACTION);
+                    rOutput[point_number] += r_N(point_number, i) * output_solution_step_value;
+                }
             }
         }
         else if (rVariable == REACTION) {
@@ -113,7 +124,7 @@ namespace Kratos
                     array_1d<double, 3> output_solution_step_value = r_geometry[i].FastGetSolutionStepValue(rVariable);
                     rOutput[point_number] += r_N(point_number, i) * output_solution_step_value;
                 }
-                rOutput[point_number] *= r_integration_points[point_number].Weight();
+                rOutput[point_number] *= determinants_of_jacobian[point_number] * r_integration_points[point_number].Weight();
             }
         }
         else {

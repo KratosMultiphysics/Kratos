@@ -104,7 +104,7 @@ class OuputReactionProcess(KM.Process):
                 output_file.write(str(time_step)  + "  " + str(reaction) + "\n")
 
         with open(self.output_damage_file_name, 'a') as output_file:
-            output_file.write(str(time_step)  + "  " + str(self.model_part_root.GetElement(1).CalculateOnIntegrationPoints(CLA.DAMAGE_COMPRESSION, self.model_part_root.ProcessInfo)[0]) + "\n")
+            output_file.write(str(time_step)  + "  " + str(self.model_part_root.GetElement(1).CalculateOnIntegrationPoints(CLA.DAMAGE_COMPRESSION, self.model_part_root.ProcessInfo)[0])  + "  " + str(self.model_part_root.GetElement(1).CalculateOnIntegrationPoints(CLA.DAMAGE_TENSION, self.model_part_root.ProcessInfo)[0]) + "\n")
 
         if self.is_output_step(time_step):
             self.output_damage_file_name_compression = self.output_file_name_start + "_DAMAGE_COMPRESSION_" + str(int(time_step*1000)) + "_" + str(self.model_part_root.NumberOfNodes())

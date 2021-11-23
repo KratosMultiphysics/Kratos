@@ -334,11 +334,11 @@ namespace Kratos
     {
         rTransformationMatrices.TransformationMatrixTension(0, 0) = 1;
         rTransformationMatrices.TransformationMatrixTension(1, 1) = rMaterialProperties1.YieldStressTension / rMaterialProperties2.YieldStressTension;
-        rTransformationMatrices.TransformationMatrixTension(2, 2) = rMaterialProperties1.YieldStressShearTension / rMaterialProperties1.YieldStressShearTension;
+        rTransformationMatrices.TransformationMatrixTension(2, 2) = rMaterialProperties1.YieldStressShearTension / rMaterialProperties2.YieldStressShearTension;
 
         rTransformationMatrices.InverseTransformationMatrixTension(0, 0) = 1;
         rTransformationMatrices.InverseTransformationMatrixTension(1, 1) = rMaterialProperties2.YieldStressTension / rMaterialProperties1.YieldStressTension;
-        rTransformationMatrices.InverseTransformationMatrixTension(2, 2) = rMaterialProperties1.YieldStressShearTension / rMaterialProperties1.YieldStressShearTension;
+        rTransformationMatrices.InverseTransformationMatrixTension(2, 2) = rMaterialProperties2.YieldStressShearTension / rMaterialProperties1.YieldStressShearTension;
 
         rTransformationMatrices.TransformationMatrixCompression(0, 0) = 1;
         rTransformationMatrices.TransformationMatrixCompression(1, 1) = rMaterialProperties1.YieldStressCompression / rMaterialProperties2.YieldStressCompression;

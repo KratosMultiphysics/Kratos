@@ -12,16 +12,16 @@ import numpy as np
 def Factory(settings, model):
     if(type(settings) != KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return OuputReactionProcess(model, settings["Parameters"])
+    return OuputTotalReactionProcess(model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class OuputReactionProcess(KM.Process):
+class OuputTotalReactionProcess(KM.Process):
     def __init__(self, model, settings ):
         KM.Process.__init__(self)
 
         default_settings = KM.Parameters("""{
             "model_part_name" : "please_specify_model_part_name",
-            "output_file_name" : "reactions",
+            "output_file_name" : "total_reactions",
             "condition_variable_list" : []
         }""")
 
@@ -29,7 +29,9 @@ class OuputReactionProcess(KM.Process):
 
         self.model_part = model[settings["model_part_name"].GetString()]
 
-        self.output_file_name = settings["output_file_name"].GetString()
+        self.output_file_name = settings["output_file_name"].GetString() + ".txt"
+        with open(self.output_file_name, 'w') as output_file:
+            output_file.write("")
 
         self.condition_results_scalar, self.condition_results_vector = \
             CreateVariablesListFromInput(settings["condition_variable_list"])
@@ -40,22 +42,29 @@ class OuputReactionProcess(KM.Process):
         time_step = self.model_part.ProcessInfo[KM.TIME]
         self.time_data.append(time_step)
 
-        with open(self.output_file_name + "_" + str(time_step) + ".txt", 'w') as output_file:
-            output_file.write("")
+        with open(self.output_file_name, 'a') as output_file:
+            output_file.write(str(time_step))
 
-            for condition in self.model_part.Conditions:
-                location = condition.GetGeometry().Center()
-                output_file.write(str(location[0])  + "  " + str(location[1]) + "  " + str(location[2]))
+            for variable in self.condition_results_scalar:
+                value = 0.0
+                for condition in self.model_part.Conditions:
+                    value += condition.CalculateOnIntegrationPoints(variable, self.model_part.ProcessInfo)[0]
+                output_file.write("  " + str(value))
 
-                for variable in self.condition_results_scalar: 
+            for variable in self.condition_results_vector:
+                value_x = 0.0
+                value_y = 0.0
+                value_z = 0.0
+                value = 0.0
+                for condition in self.model_part.Conditions:
                     result = condition.CalculateOnIntegrationPoints(variable, self.model_part.ProcessInfo)[0]
-                    output_file.write("  " + str(result))
+                    value_x += result[0]
+                    value_y += result[1]
+                    value_z += result[2]
+                    value += sqrt(result[0]**2 + result[1]**2 + result[2]**2)
+                output_file.write("  " + str(value_x) + "  " + str(value_y) + "  " + str(value_z) + "  " + str(value))
 
-                for variable in self.condition_results_vector: 
-                    result = condition.CalculateOnIntegrationPoints(variable, self.model_part.ProcessInfo)[0]
-                    output_file.write("  " + str(result[0]) + "  " + str(result[1]) + "  " + str(result[2]))
-
-                output_file.write("\n")
+            output_file.write("\n")
 
 def CreateVariablesListFromInput(param):
     '''Parse a list of variables from input.'''

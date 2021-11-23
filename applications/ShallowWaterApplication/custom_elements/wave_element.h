@@ -299,7 +299,7 @@ protected:
 
     void InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo);
 
-    void GetNodalData(ElementData& rData, const GeometryType& rGeometry);
+    void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0);
 
     void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
 
@@ -308,7 +308,7 @@ protected:
         Matrix &rNContainer,
         ShapeFunctionsGradientsType &rDN_DX) const;
 
-    void AddWaveTerms(
+    virtual void AddWaveTerms(
         LocalMatrixType& rMatrix,
         LocalVectorType& rVector,
         const ElementData& rData,
@@ -316,7 +316,7 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
-    void AddFrictionTerms(
+    virtual void AddFrictionTerms(
         LocalMatrixType& rMatrix,
         LocalVectorType& rVector,
         const ElementData& rData,

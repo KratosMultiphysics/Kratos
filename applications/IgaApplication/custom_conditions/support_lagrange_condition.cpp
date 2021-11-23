@@ -46,8 +46,11 @@ namespace Kratos
         // Determinant of jacobian 
         // Determine the integration: conservative -> initial; non-conservative -> current
         Vector determinant_jacobian_vector(integration_points.size());
-        const bool integrate_conservative = GetProperties().Has(INTEGRATE_CONSERVATIVE)
-            ? GetProperties()[INTEGRATE_CONSERVATIVE]
+
+        const bool integrate_conservative = (HasProperties())
+            ? GetProperties().Has(INTEGRATE_CONSERVATIVE)
+                ? GetProperties()[INTEGRATE_CONSERVATIVE]
+                : false
             : false;
         if (integrate_conservative) {
             DeterminantOfJacobianInitial(r_geometry, determinant_jacobian_vector);

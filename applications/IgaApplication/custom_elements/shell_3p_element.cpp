@@ -301,6 +301,7 @@ namespace Kratos
             }
         }
         else if(rVariable==CAUCHY_STRESS || rVariable==CAUCHY_STRESS_TOP || rVariable==CAUCHY_STRESS_BOTTOM 
+                || PRINCIPAL_CAUCHY_STRESS
                 || rVariable==MEMBRANE_FORCE ||  rVariable==INTERNAL_MOMENT)
         {
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
@@ -314,6 +315,14 @@ namespace Kratos
                 if (rVariable==CAUCHY_STRESS)
                 {
                     rOutput[point_number] = membrane_stress_cau_car;
+                }
+                if (rVariable == PRINCIPAL_CAUCHY_STRESS)
+                {
+                    array_1d<double, 3> principal_cauchy_stress = ZeroVector(3);
+                    principal_cauchy_stress[0] = 0.50 * (membrane_stress_cau_car[0] + membrane_stress_cau_car[1]) + std::sqrt(0.25 * (std::pow(membrane_stress_cau_car[0] - membrane_stress_cau_car[1], 2.0)) + std::pow(membrane_stress_cau_car[2], 2.0));
+                    principal_cauchy_stress[1] = 0.50 * (membrane_stress_cau_car[0] + membrane_stress_cau_car[1]) - std::sqrt(0.25 * (std::pow(membrane_stress_cau_car[0] - membrane_stress_cau_car[1], 2.0)) + std::pow(membrane_stress_cau_car[2], 2.0));
+                    rOutput[point_number] = membrane_stress_cau_car;
+
                 }
                 else if (rVariable==CAUCHY_STRESS_TOP) 
                 {
@@ -536,9 +545,12 @@ namespace Kratos
             {
                 for (unsigned int s = 0; s<number_of_nodes; s++)
                 {
-                    rMassMatrix(3 * s, 3 * r) = r_N(point_number, s)*r_N(point_number, r) * mass;
-                    rMassMatrix(3 * s + 1, 3 * r + 1) = rMassMatrix(3 * s, 3 * r);
-                    rMassMatrix(3 * s + 2, 3 * r + 2) = rMassMatrix(3 * s, 3 * r);
+                    const IndexType index_s = 3 * s;
+                    const IndexType index_r = 3 * r;
+
+                    rMassMatrix(index_s, index_r) = r_N(point_number, s)*r_N(point_number, r) * mass;
+                    rMassMatrix(index_s + 1, index_r + 1) = rMassMatrix(index_s, index_r);
+                    rMassMatrix(index_s + 2, index_r + 2) = rMassMatrix(index_s, index_r);
                 }
             }
         }

@@ -16,13 +16,17 @@ class IgaOutputProcess(KratosMultiphysics.Process):
 
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""{
-            "nodal_results"             : [],
-            "integration_point_results" : [],
-            "output_file_name"          : "",
-            "model_part_name"           : "",
-            "file_label"                : "step",
-            "output_control_type"       : "step",
-            "output_frequency"          : 1.0
+            "nodal_results"              : [],
+            "integration_point_results"  : [],
+            "output_file_name"           : "",
+            "model_part_name"            : "",
+            "file_label"                 : "step",
+            "output_control_type"        : "step",
+            "output_frequency"           : 1.0,
+            "output_nodes_type_tag"      : "OnNodes",
+            "output_elements_type_tag"   : "OnGaussPoints",
+            "output_conditions_type_tag" : "OnGaussPoints",
+            "form_finding"               : false
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -63,6 +67,10 @@ class IgaOutputProcess(KratosMultiphysics.Process):
 
         self.output_frequency = self.params["output_frequency"].GetDouble()
 
+        self.output_nodes_type_tag = self.params["output_nodes_type_tag"].GetString()
+        self.output_elements_type_tag = self.params["output_elements_type_tag"].GetString()
+        self.output_conditions_type_tag = self.params["output_conditions_type_tag"].GetString()
+
         self.step_count = 0
         self.printed_step_count = 0
         self.next_output = 0.0
@@ -81,29 +89,44 @@ class IgaOutputProcess(KratosMultiphysics.Process):
             label = self.printed_step_count
 
         with open(self.output_file_name, 'a') as output_file:
-            for variable in self.nodal_results_scalar:
-                output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar OnNodes\nValues\n")
-                for node in self.model_part.Nodes:
-                    value = node.GetSolutionStepValue(variable, 0)
-                    output_file.write(str(node.Id) + "  " + str(value) + "\n")
-                output_file.write("End Values\n")
+            if self.form_finding == False:
+                for variable in self.nodal_results_scalar:
+                    output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar " + self.output_nodes_type_tag + "\nValues\n")
+                    for node in self.model_part.Nodes:
+                        value = node.GetSolutionStepValue(variable, 0)
+                        output_file.write(str(node.Id) + "  " + str(value) + "\n")
+                    output_file.write("End Values\n")
 
-            for variable in self.nodal_results_vector:
-                output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector OnNodes\nValues\n")
-                for node in self.model_part.Nodes:
-                    value = node.GetSolutionStepValue(variable, 0)
-                    output_file.write(str(node.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
-                output_file.write("End Values\n")
+                for variable in self.nodal_results_vector:
+                    output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector " + self.output_nodes_type_tag + "\nValues\n")
+                    for node in self.model_part.Nodes:
+                        value = node.GetSolutionStepValue(variable, 0)
+                        output_file.write(str(node.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
+                    output_file.write("End Values\n")
+            else:
+                for variable in self.nodal_results_scalar:
+                    output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar " + self.output_nodes_type_tag + "\nValues\n")
+                    for node in self.model_part.Nodes:
+                        value = node.GetValue(variable)
+                        output_file.write(str(node.Id) + "  " + str(value) + "\n")
+                    output_file.write("End Values\n")
+
+                for variable in self.nodal_results_vector:
+                    output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector " + self.output_nodes_type_tag + "\nValues\n")
+                    for node in self.model_part.Nodes:
+                        value = node.GetValue(variable)
+                        output_file.write(str(node.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
+                    output_file.write("End Values\n")
 
             for variable in self.integration_point_results_scalar:
-                output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar OnGaussPoints\nValues\n")
+                output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar " + self.output_elements_type_tag + "\nValues\n")
                 for element in self.model_part.Elements:
                     value = element.CalculateOnIntegrationPoints(variable, self.model_part.ProcessInfo)[0]
                     output_file.write(str(element.Id) + "  " + str(value) + "\n")
                 output_file.write("End Values\n")
 
             for variable in self.integration_point_results_vector:
-                output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector OnGaussPoints\nValues\n")
+                output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector " + self.output_elements_type_tag + "\nValues\n")
                 for element in self.model_part.Elements:
                     value = element.CalculateOnIntegrationPoints(variable, self.model_part.ProcessInfo)[0]
                     output_file.write(str(element.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")

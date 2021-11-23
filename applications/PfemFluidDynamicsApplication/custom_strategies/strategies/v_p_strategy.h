@@ -55,14 +55,14 @@ namespace Kratos
   template <class TSparseSpace,
             class TDenseSpace,
             class TLinearSolver>
-  class VPStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+  class VPStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace>
   {
   public:
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION(VPStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace> BaseType;
 
     typedef TwoStepVPSolverSettings<TSparseSpace, TDenseSpace, TLinearSolver> SolverSettingsType;
 
