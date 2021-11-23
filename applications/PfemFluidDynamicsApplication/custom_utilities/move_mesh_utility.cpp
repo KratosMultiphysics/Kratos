@@ -27,20 +27,20 @@ void MoveMeshUtility::ResetPfemKinematicValues(ModelPart& rFluidModelPart)
 {
     block_for_each(rFluidModelPart.Nodes(), [&](NodeType& rNode){
         if (rNode.IsNot(RIGID) && rNode.IsNot(SOLID)) { // We update only the fluid part
-            auto &r_current_displ = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
-            auto &r_current_vel   = rNode.FastGetSolutionStepValue(VELOCITY, 0);
-            auto &r_current_acc   = rNode.FastGetSolutionStepValue(ACCELERATION, 0);
+            array_1d<double, 3>& r_current_displ = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
+            array_1d<double, 3>& r_current_vel   = rNode.FastGetSolutionStepValue(VELOCITY, 0);
+            array_1d<double, 3>& r_current_acc   = rNode.FastGetSolutionStepValue(ACCELERATION, 0);
 
-            auto &r_old_displ     = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
-            auto &r_old_vel       = rNode.FastGetSolutionStepValue(VELOCITY, 1);
-            auto &r_old_acc       = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
+            array_1d<double, 3>& r_old_displ     = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+            array_1d<double, 3>& r_old_vel       = rNode.FastGetSolutionStepValue(VELOCITY, 1);
+            array_1d<double, 3>& r_old_acc       = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
 
-            auto copy_old_displ   = r_old_displ;
-            auto copy_old_vel     = r_old_vel;
-            auto copy_old_acc     = r_old_acc;
+            array_1d<double, 3> copy_old_displ   = r_old_displ;
+            array_1d<double, 3> copy_old_vel     = r_old_vel;
+            array_1d<double, 3> copy_old_acc     = r_old_acc;
 
-            auto& r_coordinates = rNode.Coordinates();
-            const auto& r_initial_coordinates = rNode.GetInitialPosition();
+            array_1d<double, 3>& r_coordinates = rNode.Coordinates();
+            const array_1d<double, 3>& r_initial_coordinates = rNode.GetInitialPosition();
             noalias(r_coordinates) = r_initial_coordinates + copy_old_displ;
 
             noalias(r_current_displ) = copy_old_displ;
