@@ -74,8 +74,8 @@ class CadJsonInput : public IO
     typedef BrepSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepSurfaceType;
     typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
     typedef BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveType;
-    typedef PointOnGeometry<ContainerNodeType, 2, 3> PointOnGeometryOnSurfaceType;
-    typedef PointOnGeometry<ContainerNodeType, 1, 3> PointOnGeometryOnCurveType;
+    typedef PointOnGeometry<ContainerNodeType, 3, 2> PointOnGeometryOnSurfaceType;
+    typedef PointOnGeometry<ContainerNodeType, 3, 1> PointOnGeometryOnCurveType;
 
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
@@ -559,8 +559,8 @@ private:
                     local_coordinates[2] = coordinates_vector[2];
 
                     GeometryPointerType p_brep_point = (p_geometry->LocalSpaceDimension() == 2)
-                        ? Kratos::make_shared<PointOnGeometryOnSurfaceType>(local_coordinates, p_geometry)
-                        : Kratos::make_shared<PointOnGeometryOnCurveType>(local_coordinates, p_geometry);
+                        ? (GeometryPointerType) Kratos::make_shared<PointOnGeometryOnSurfaceType>(local_coordinates, p_geometry)
+                        : (GeometryPointerType) Kratos::make_shared<PointOnGeometryOnCurveType>(local_coordinates, p_geometry);
 
                     SetIdOrName<GeometryType>(rParameters[brep_point_i], p_brep_point);
                     rModelPart.AddGeometry(p_brep_point);
