@@ -220,7 +220,7 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
 
     const double delta_time = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
 
-    if(mrModelPart.GetCommunicator().LocalMesh().NumberOfElements() != 0) return; // Empty modelpart
+    if(mrModelPart.GetCommunicator().LocalMesh().NumberOfElements() == 0) return; // Empty modelpart
 
     const double heat_capacity_ratio = mrModelPart.ElementsBegin()->GetProperties().GetValue(HEAT_CAPACITY_RATIO);
 
