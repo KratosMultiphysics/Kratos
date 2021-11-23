@@ -693,7 +693,7 @@ const GeometryDimension QuadraturePointGeometry<
     TWorkingSpaceDimension,
     TLocalSpaceDimension,
     TDimension>::msGeometryDimension(
-        TLocalSpaceDimension,
+        TDimension,
         TWorkingSpaceDimension,
         TLocalSpaceDimension);
 
