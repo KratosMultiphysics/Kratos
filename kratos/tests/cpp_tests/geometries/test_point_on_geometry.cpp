@@ -62,8 +62,10 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(geometry_vector[0].LocalSpaceDimension(), 1);
             KRATOS_CHECK_EQUAL(geometry_vector[0].WorkingSpaceDimension(), 3);
 
-            std::vector<double> location = { 0.5, 0.5, 0.0 };
+            std::vector<double> location = { 5, 0, 0.0 };
             KRATOS_CHECK_VECTOR_NEAR(geometry_vector[0].Center(), location, TOLERANCE);
+            std::vector<double> shape_functions{ { 0.5, 0.5 } };
+            KRATOS_CHECK_VECTOR_NEAR(row(geometry_vector[0].ShapeFunctionsValues(), 0), shape_functions, TOLERANCE);
         }
     } // namespace Testing.
 } // namespace Kratos.
