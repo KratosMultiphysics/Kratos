@@ -36,7 +36,7 @@ void FluidAuxiliaryUtilities::CreateSlipMultiPointConstraints(
     const Flags& rSlipFlag)
 {
     // Set the normal wall velocity calculation function
-    auto wall_normal_v_func = [&](const NodeType& rNode, const array_1d<double,3>& rUnitNormal){
+    auto wall_normal_v_func = [](const NodeType& rNode, const array_1d<double,3>& rUnitNormal){
         return 0.0;
     };
 
@@ -51,7 +51,7 @@ void FluidAuxiliaryUtilities::CreateSlipMultiPointConstraints(
     const Flags& rSlipFlag)
 {
     // Set the normal wall velocity calculation function
-    auto wall_normal_v_func = [&](const NodeType& rNode, const array_1d<double,3>& rUnitNormal){
+    auto wall_normal_v_func = [](const NodeType& rNode, const array_1d<double,3>& rUnitNormal){
         return inner_prod(rNode.FastGetSolutionStepValue(rWallVelocityVar), rUnitNormal);
     };
 
@@ -390,7 +390,7 @@ void FluidAuxiliaryUtilities::InternalCreateSlipMultiPointConstraints(
     // Get the maximum MPCs id
     int max_id(0);
     if (r_comm.LocalMesh().NumberOfMasterSlaveConstraints() != 0) {
-        max_id = block_for_each<MaxReduction<IndexType>>(r_comm.LocalMesh().MasterSlaveConstraints(), [&](MasterSlaveConstraint& rMPC){
+        max_id = block_for_each<MaxReduction<IndexType>>(r_comm.LocalMesh().MasterSlaveConstraints(), [](MasterSlaveConstraint& rMPC){
             return rMPC.Id();
         });
     }
