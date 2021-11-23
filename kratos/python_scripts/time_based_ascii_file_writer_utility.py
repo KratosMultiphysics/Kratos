@@ -15,7 +15,8 @@ class TimeBasedAsciiFileWriterUtility:
         default_settings = KratosMultiphysics.Parameters('''{
             "file_name"  : "",
             "output_path": "",
-            "write_buffer_size" : -1
+            "write_buffer_size" : -1,
+            "check_file_extension" : true
         }''')
         # write_buffer_size: -1 means we use the system default
         # write_buffer_size:  0 means no buffering is done. IMPORTANT : Only for binary output.
@@ -33,6 +34,7 @@ class TimeBasedAsciiFileWriterUtility:
         # file name and folder path specifications and check
         self.file_name = Path(params["file_name"].GetString())
         self.output_path = Path(params["output_path"].GetString())
+        self.check_file_extension = params["check_file_extension"].GetBool()
         self.__ValidateAndAssignOutputFolderPath()
 
         # size of the buffer in bytes. Set to "0" for flushing always
@@ -129,7 +131,7 @@ class TimeBasedAsciiFileWriterUtility:
             raise Exception('No "file_name" was specified!')
 
         # check and correct file extension
-        if self.file_name.suffix != ".dat":
+        if self.file_name.suffix != ".dat" and self.check_file_extension:
             self.file_name = self.file_name.with_suffix(".dat")
 
         if self.file_name.parent != Path(): # check if folder was specified in "file_name"
