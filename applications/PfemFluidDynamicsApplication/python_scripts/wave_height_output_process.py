@@ -58,13 +58,13 @@ class WaveHeightOutputProcess(KM.OutputProcess):
     def Check(self):
         """Check all the variables have the right size"""
         for coordinate in self.coordinates_list:
-            if not coordinate.size() == 3:
+            if not len(coordinate) == 3:
                 raise Exception("WaveHeightOutputProcess. The coordinates must be given with a 3-dimensional array")
 
-        if not self.file_names_list.size() == self.coordinates_list.size():
+        if not len(self.file_names_list) == len(self.coordinates_list):
             raise Exception("WaveHeightOutputProcess. The number of coordinates must coincide with the number of filenames")
 
-        if not self.output_path_list.size() == self.coordinates_list.size():
+        if not len(self.output_path_list) == len(self.coordinates_list):
             raise Exception("WaveHeightOutputProcess. The number of coordinates must coincide with the number of output paths")
 
     def ExecuteBeforeSolutionLoop(self):
