@@ -165,16 +165,23 @@ public:
     {
     }
 
-    /*
-    * Copy constructor.
-    * Construct this geometry shape function container as a copy of given geometry data.
-    */
+    /// Copy constructor.
     GeometryShapeFunctionContainer( const GeometryShapeFunctionContainer& rOther )
         : mDefaultMethod(rOther.mDefaultMethod)
         , mIntegrationPoints(rOther.mIntegrationPoints)
         , mShapeFunctionsValues( rOther.mShapeFunctionsValues )
         , mShapeFunctionsLocalGradients( rOther.mShapeFunctionsLocalGradients )
         , mShapeFunctionsDerivatives( rOther.mShapeFunctionsDerivatives )
+    {
+    }
+
+    /// Move constructor.
+    GeometryShapeFunctionContainer(GeometryShapeFunctionContainer&& rOther)
+        : mDefaultMethod(rOther.mDefaultMethod),
+          mIntegrationPoints(std::move(rOther.mIntegrationPoints)),
+          mShapeFunctionsValues(std::move(rOther.mShapeFunctionsValues)),
+          mShapeFunctionsLocalGradients(std::move(rOther.mShapeFunctionsLocalGradients)),
+          mShapeFunctionsDerivatives(std::move(rOther.mShapeFunctionsDerivatives))
     {
     }
 
