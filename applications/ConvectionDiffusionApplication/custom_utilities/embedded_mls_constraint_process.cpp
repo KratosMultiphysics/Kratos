@@ -18,6 +18,7 @@
 // Project includes
 #include "processes/find_nodal_neighbours_process.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
 #include "embedded_mls_constraint_process.h"
