@@ -75,8 +75,6 @@ public:
     /// The local vector definition
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
-    typedef Process::UniquePointer (*ShockCapturingFactoryType)(ModelPart&, Parameters);
-
     /// Pointer definition of CompressibleNavierStokesExplicitSolvingStrategyRungeKutta
     KRATOS_CLASS_POINTER_DEFINITION(CompressibleNavierStokesExplicitSolvingStrategyRungeKutta);
 
@@ -97,12 +95,13 @@ public:
         Parameters ThisParameters)
         : BaseType(rModelPart)
     {
+        KRATOS_TRY
+
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        const auto shock_capturing_factory = this->AssignSettings(ThisParameters);
+        this->AssignSettings(ThisParameters);
 
-        // Create the shock capturing process pointer
-        mpShockCapturingProcess = shock_capturing_factory(rModelPart, ThisParameters["shock_capturing_settings"]["Parameters"]);
+        KRATOS_CATCH("")
     }
 
     /**
@@ -204,27 +203,22 @@ public:
      * @brief This method assigns settings to member variables
      * @param ThisParameters Parameters that are assigned to the member variables
      */
-    ShockCapturingFactoryType AssignSettings(const Parameters ThisParameters) override
+    void AssignSettings(const Parameters ThisParameters) override
     {
         // Base class assign settings call
         BaseType::AssignSettings(ThisParameters);
         mCalculateNonConservativeMagnitudes = ThisParameters["calculate_non_conservative_magnitudes"].GetBool();
 
-        ShockCapturingFactoryType shock_capturing_factory;
-        bool shock_capturing_enabled;
-        std::tie(shock_capturing_factory, shock_capturing_enabled)
-            = SetUpShockCapturing(ThisParameters["shock_capturing_settings"]);
+        SetUpShockCapturing(ThisParameters["shock_capturing_settings"]);
 
-        if (shock_capturing_enabled && !mCalculateNonConservativeMagnitudes) {
+        if (mpShockCapturingProcess && !mCalculateNonConservativeMagnitudes) {
             KRATOS_WARNING("CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4")
                 << "\'shock_capturing\' requires \'calculate_non_conservative_magnitudes\' to be active. Activating it." << std::endl;
             mCalculateNonConservativeMagnitudes = true;
         }
-
-        return shock_capturing_factory;
     }
 
-    std::tuple<ShockCapturingFactoryType, bool> SetUpShockCapturing(Parameters ShockCapturingParameters)
+    void SetUpShockCapturing(Parameters ShockCapturingParameters)
     {
         KRATOS_TRY
 
@@ -241,7 +235,9 @@ public:
         ShockCapturingParameters.ValidateAndAssignDefaults(defaults);
         ShockCapturingParameters.RecursivelyAddMissingParameters(defaults);
 
-        const static std::map<const std::string, ShockCapturingFactoryType> shock_capturing_factory_map
+        using ShockCapturingFactoryType = Process::UniquePointer (*)(ModelPart&, Parameters);
+
+        const std::map<const std::string, ShockCapturingFactoryType> shock_capturing_factory_map
         {
             {"none"         , [](ModelPart& m, Parameters p) -> Process::UniquePointer {return nullptr;}},
             {"physics_based", [](ModelPart& m, Parameters p) -> Process::UniquePointer {return Kratos::make_unique<ShockCapturingPhysicsBasedProcess>(m, p);}},
@@ -250,10 +246,10 @@ public:
 
         const auto sc_type = ShockCapturingParameters["type"].GetString();
 
-        const auto it = shock_factory_map.find(sc_type);
-        if(it != shock_factory_map.end())
+        const auto it = shock_capturing_factory_map.find(sc_type);
+        if(it != shock_capturing_factory_map.end())
         {
-            return it->second;
+            mpShockCapturingProcess = it->second(BaseType::GetModelPart(), ShockCapturingParameters["Parameters"]);
         }
         else
         {

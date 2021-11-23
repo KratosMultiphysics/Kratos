@@ -30,7 +30,7 @@
 
 namespace Kratos {
 namespace Testing {
-namespace ShockCapturingTestInternals {
+namespace {
 
     void SetTestModelPart(ModelPart& rNewModelPart)
     {
@@ -121,12 +121,12 @@ namespace ShockCapturingTestInternals {
     /**
      * Checks the shock detection process with a smooth field with no expected shocks
      */
-    KRATOS_TEST_CASE_IN_SUITE(ShockCapturingSmoothField, FluidDynamicsApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(ShockCapturingPhysicsBasedSmoothField, FluidDynamicsApplicationFastSuite)
     {
         // Set the test model part
         Model model;
         auto& r_model_part = model.CreateModelPart("MainModelPart");
-        ShockCapturingTestInternals::SetTestModelPart(r_model_part);
+        SetTestModelPart(r_model_part);
 
         // Set a smooth field
         for (auto& r_node : r_model_part.Nodes()) {
@@ -176,13 +176,13 @@ namespace ShockCapturingTestInternals {
     /**
      * Checks the shock detection process with the Abgrall function
      */
-    KRATOS_TEST_CASE_IN_SUITE(ShockCapturingAbgrallFunction, FluidDynamicsApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(ShockCapturingPhysicsBasedAbgrallFunction, FluidDynamicsApplicationFastSuite)
     {
         // Set the test model part
         Model model;
         auto& r_model_part = model.CreateModelPart("MainModelPart");
-        ShockCapturingTestInternals::SetTestModelPart(r_model_part);
-        ShockCapturingTestInternals::SetAbgrallFunction(r_model_part);
+        SetTestModelPart(r_model_part);
+        SetAbgrallFunction(r_model_part);
 
         // Perform the shock detection
         Parameters sc_settings(R"(
