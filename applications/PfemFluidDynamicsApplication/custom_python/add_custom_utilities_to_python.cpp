@@ -45,7 +45,7 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
                       WriteConditionsFlag>());
 
     py::class_<CalculateWaveHeightUtility, CalculateWaveHeightUtility::Pointer>(m, "CalculateWaveHeightUtility")
-        .def(py::init<>(ModelPart&, Parameters))
+        .def(py::init<ModelPart&, Parameters>())
         .def("Calculate", &CalculateWaveHeightUtility::Calculate)
         ;
 
