@@ -83,9 +83,8 @@ namespace Kratos
         GetCadGeometryList(geometry_list, rCadModelPart, rParameters);
 
         if (!rParameters.Has("geometry_type")) {
-            std::string geometry_type = "";
             CreateQuadraturePointGeometries(
-                geometry_list, sub_model_part, rParameters["parameters"], geometry_type);
+                geometry_list, sub_model_part, rParameters["parameters"], std::string{});
         }
         else {
             std::string geometry_type = rParameters["geometry_type"].GetString();
