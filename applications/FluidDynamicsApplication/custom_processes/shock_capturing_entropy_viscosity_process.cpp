@@ -10,9 +10,6 @@
 //  Main author:     Eduard Gómez
 //
 
-#include <cmath>
-#include <tuple>
-
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "processes/calculate_nodal_area_process.h"
