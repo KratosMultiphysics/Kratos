@@ -1,6 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.time_based_ascii_file_writer_utility as AsciiWriter
+from pathlib import Path
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -41,8 +42,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
             "output_interval"          : 1,
             "sum_results_from_multiple_entities" : false,
             "write_buffer_size"        : 1,
-            "output_path"              : "",
-            "check_file_extension" : false
+            "output_path"              : ""
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -68,19 +68,14 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
             if not self.is_nodal_results_type and self.model_part.NumberOfElements() > 1:
                 raise NameError("The sum_results_from_multiple_entites is false but more than one element is given...")
 
-        open_file_aproach = "a"
-        if settings["erase_previous_info"].GetBool():
-            open_file_aproach = "w"
-
         ascii_writer_params = KratosMultiphysics.Parameters("""{}""")
         ascii_writer_params.AddValue("file_name", settings["file_name"])
         ascii_writer_params.AddValue("output_path", settings["output_path"])
         ascii_writer_params.AddValue("write_buffer_size", settings["write_buffer_size"])
-        ascii_writer_params.AddValue("check_file_extension", settings["check_file_extension"])
+        ascii_writer_params.AddEmptyValue("file_extension")
+        ascii_writer_params["file_extension"].SetString(Path(self.file_name).suffix)
         header = "# In this file we print the " + settings["results_type"].GetString() + " " + settings["variable_name"].GetString() + " in the ModelPart: " + settings["model_part_name"].GetString() + "\n\n" + "# TIME\t\t" + settings["variable_name"].GetString() + "\n"
         self.ascii_writer = AsciiWriter.TimeBasedAsciiFileWriterUtility(self.model_part, ascii_writer_params, header).file
-        self.ascii_writer.write("# In this file we print the " + settings["results_type"].GetString() + " " + settings["variable_name"].GetString() + " in the ModelPart: " + settings["model_part_name"].GetString() + "\n\n")
-        self.ascii_writer.write("# TIME\t\t" + settings["variable_name"].GetString() + "\n")
 
     def PrintOutput(self):
         self.SetPreviousPlotInstant()
