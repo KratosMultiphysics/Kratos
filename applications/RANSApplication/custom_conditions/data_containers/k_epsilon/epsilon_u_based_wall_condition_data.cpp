@@ -57,7 +57,7 @@ void EpsilonUBasedWallConditionData::Check(
 }
 GeometryData::IntegrationMethod EpsilonUBasedWallConditionData::GetIntegrationMethod()
 {
-    return GeometryData::GI_GAUSS_1;
+    return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 
 void EpsilonUBasedWallConditionData::CalculateConstants(

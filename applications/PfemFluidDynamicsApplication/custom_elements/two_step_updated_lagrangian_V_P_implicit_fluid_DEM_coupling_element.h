@@ -23,7 +23,7 @@
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 
-#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_FIC_element.h"
 
 namespace Kratos
 {
@@ -54,7 +54,7 @@ namespace Kratos
   /**
    */
   template <unsigned int TDim>
-  class TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement : public TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>
+  class TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement : public TwoStepUpdatedLagrangianVPImplicitFluidFicElement<TDim>
   {
 
   public:
@@ -65,7 +65,7 @@ namespace Kratos
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement);
 
     ///base type:
-    typedef TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim> BaseType;
+    typedef TwoStepUpdatedLagrangianVPImplicitFluidFicElement<TDim> BaseType;
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;

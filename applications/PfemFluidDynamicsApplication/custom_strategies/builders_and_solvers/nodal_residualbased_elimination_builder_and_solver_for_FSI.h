@@ -310,8 +310,8 @@ namespace Kratos
             if (solidEquationId.size() != localSize)
               solidEquationId.resize(localSize, false);
 
-            solidLHS_Contribution = ZeroMatrix(localSize, localSize);
-            solidRHS_Contribution = ZeroVector(localSize);
+            noalias(solidLHS_Contribution) = ZeroMatrix(localSize, localSize);
+            noalias(solidRHS_Contribution) = ZeroVector(localSize);
 
             this->SetMaterialPropertiesToSolid(itNode, density, deviatoricCoeff, volumetricCoeff, timeInterval, nodalVolume);
 
@@ -635,8 +635,8 @@ namespace Kratos
             if (EquationId.size() != localSize)
               EquationId.resize(localSize, false);
 
-            LHS_Contribution = ZeroMatrix(localSize, localSize);
-            RHS_Contribution = ZeroVector(localSize);
+            noalias(LHS_Contribution) = ZeroMatrix(localSize, localSize);
+            noalias(RHS_Contribution) = ZeroVector(localSize);
 
             this->SetMaterialPropertiesToFluid(itNode, density, deviatoricCoeff, volumetricCoeff, timeInterval, nodalVolume);
             // if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
@@ -996,16 +996,16 @@ namespace Kratos
       KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "Before the solution of the system"
                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-      const double start_solve = OpenMPUtils::GetCurrentTime();
-      Timer::Start("Solve");
+      // const double start_solve = OpenMPUtils::GetCurrentTime();
+      // Timer::Start("Solve");
 
       /* boost::timer m_solve_time; */
       SystemSolveWithPhysics(A, Dx, b, rModelPart);
       /* std::cout << "MOMENTUM EQ: solve_time : " << m_solve_time.elapsed() << std::endl; */
 
-      Timer::Stop("Solve");
-      const double stop_solve = OpenMPUtils::GetCurrentTime();
-      KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+      // Timer::Stop("Solve");
+      // const double stop_solve = OpenMPUtils::GetCurrentTime();
+      // KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
       KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "After the solution of the system"
                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
@@ -1040,7 +1040,7 @@ namespace Kratos
       //vector containing the localization in the system of the different
       //terms
       Element::EquationIdVectorType EquationId;
-      const double start_build = OpenMPUtils::GetCurrentTime();
+      // const double start_build = OpenMPUtils::GetCurrentTime();
 
 // assemble all elements
 #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId)
@@ -1094,8 +1094,8 @@ namespace Kratos
           }
         }
       }
-      const double stop_build = OpenMPUtils::GetCurrentTime();
-      KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System build time: " << stop_build - start_build << std::endl;
+      // const double stop_build = OpenMPUtils::GetCurrentTime();
+      // KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System build time: " << stop_build - start_build << std::endl;
 
       KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished building" << std::endl;
 
@@ -1165,7 +1165,7 @@ namespace Kratos
 
       ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-      unsigned int nthreads = OpenMPUtils::GetNumThreads();
+      unsigned int nthreads = ParallelUtilities::GetNumThreads();
 
       //         typedef boost::fast_pool_allocator< NodeType::DofType::Pointer > allocator_type;
       //         typedef std::unordered_set < NodeType::DofType::Pointer,

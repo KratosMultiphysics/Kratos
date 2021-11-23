@@ -52,13 +52,15 @@ public:
 
     void GetLawFeatures(Features& rFeatures) override;
 
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rMaterialProperties,
+              const GeometryType& rElementGeometry,
+              const ProcessInfo& rCurrentProcessInfo) const override;
 
     ConstitutiveLaw::Pointer Clone() const override;
 
     void InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues ) override;
 
-    virtual SizeType GetStrainSize() override
+    virtual SizeType GetStrainSize() const override
     {
         return 3;
     }

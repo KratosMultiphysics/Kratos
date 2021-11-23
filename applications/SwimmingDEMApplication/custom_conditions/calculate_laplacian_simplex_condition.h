@@ -28,7 +28,7 @@
 #include "includes/process_info.h"
 
 // Application includes
-#include "../FluidDynamicsApplication/fluid_dynamics_application_variables.h"
+#include "fluid_dynamics_application_variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
 
@@ -234,10 +234,10 @@ public:
 //        noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
 //        const GeometryType& rGeom = this->GetGeometry();
-//        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+//        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
 //        const unsigned int NumGauss = IntegrationPoints.size();
 
-//        MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+//        MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
 //        double Area;
 //        array_1d<double, TNumNodes> N;

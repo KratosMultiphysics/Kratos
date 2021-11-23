@@ -14,7 +14,8 @@ class ExplicitStrategy():
         default_settings = Parameters("""
         {
             "strategy" : "sphere_strategy",
-            "do_search_neighbours" : true,
+            "do_search_dem_neighbours" : true,
+            "do_search_fem_neighbours" : true,
             "RemoveBallsInitiallyTouchingWalls": false,
             "model_import_settings": {
                 "input_type": "mdpa",
@@ -24,6 +25,12 @@ class ExplicitStrategy():
                 "materials_filename" : "MaterialsDEM.json"
             }
         }""")
+
+        if self.solver_settings.Has("do_search_neighbours"):
+            Logger.PrintWarning("DEM", '\nWARNING!:  do_search_neighbours flag is deprecated. Please use do_search_dem_neighbours instead.\n')
+            self.solver_settings.AddValue("do_search_dem_neighbours", self.solver_settings["do_search_neighbours"])
+            self.solver_settings.RemoveValue("do_search_neighbours")
+
         self.solver_settings.ValidateAndAssignDefaults(default_settings)
 
         # Initialization of member variables
@@ -35,7 +42,7 @@ class ExplicitStrategy():
         self.contact_model_part = all_model_parts.Get("ContactPart")
 
         self.DEM_parameters = DEM_parameters
-        self.mesh_motion = DEMFEMUtilities()
+        self.dem_fem_utils = DEMFEMUtilities()
 
         self.dimension = DEM_parameters["Dimension"].GetInt()
 
@@ -49,11 +56,6 @@ class ExplicitStrategy():
             self.print_stress_tensor_option = 1
         else:
             self.print_stress_tensor_option = 0
-
-        if not "AutomaticTimestep" in DEM_parameters.keys():
-            self.critical_time_option = 0
-        else:
-            self.critical_time_option = DEM_parameters["AutomaticTimestep"].GetBool() #TODO: add suffix option
 
         self.trihedron_option        = DEM_parameters["PostEulerAngles"].GetBool()
         self.rotation_option         = DEM_parameters["RotationOption"].GetBool()
@@ -229,7 +231,6 @@ class ExplicitStrategy():
         # SIMULATION FLAGS
         self.spheres_model_part.ProcessInfo.SetValue(IS_TIME_TO_PRINT, False)
         self.spheres_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
-        self.spheres_model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
         self.spheres_model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
         self.spheres_model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROTATION_OPTION, self.rotation_option)
@@ -392,9 +393,9 @@ class ExplicitStrategy():
         dem_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
 
-        self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
-        self.mesh_motion.MoveAllMeshes(dem_inlet_model_part, time, dt)
-        self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
+        self.dem_fem_utils.MoveAllMeshes(spheres_model_part, time, dt)
+        self.dem_fem_utils.MoveAllMeshes(dem_inlet_model_part, time, dt)
+        self.dem_fem_utils.MoveAllMeshes(rigid_face_model_part, time, dt)
 
     def _UpdateTimeInModelParts(self, time, is_time_to_print = False):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")

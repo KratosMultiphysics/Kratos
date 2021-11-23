@@ -87,7 +87,7 @@ public:
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             rIntegrationPoints,
             rShapeFunctionValues,
             rShapeFunctionsDerivativesVector)
@@ -104,7 +104,7 @@ public:
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             rIntegrationPoints,
             rShapeFunctionValues,
             rShapeFunctionsDerivativesVector)
@@ -146,7 +146,7 @@ public:
         , mGeometryData(
             &msGeometryDimension,
             GeometryShapeFunctionContainerType(
-                GeometryData::GI_GAUSS_1,
+                GeometryData::IntegrationMethod::GI_GAUSS_1,
                 ThisIntegrationPoint,
                 ThisShapeFunctionsValues,
                 ThisShapeFunctionsDerivatives))
@@ -164,7 +164,7 @@ public:
         , mGeometryData(
             &msGeometryDimension,
             GeometryShapeFunctionContainerType(
-                GeometryData::GI_GAUSS_1,
+                GeometryData::IntegrationMethod::GI_GAUSS_1,
                 ThisIntegrationPoint,
                 ThisShapeFunctionsValues,
                 ThisShapeFunctionsDerivatives))
@@ -183,7 +183,7 @@ public:
     ) : BaseType( GeometryId, ThisPoints, &mGeometryData )
         , mGeometryData(
             &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             {}, {}, {})
     {
     }
@@ -195,7 +195,7 @@ public:
     ) : BaseType( GeometryName, ThisPoints, &mGeometryData )
         , mGeometryData(
             &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             {}, {}, {})
     {
     }
@@ -273,7 +273,7 @@ public:
         p_geometry->SetData(rGeometry.GetData());
         return p_geometry;
     }
-    
+
     ///@}
     ///@name Dynamic access to internals
     ///@{
@@ -527,6 +527,20 @@ public:
     }
 
     ///@}
+    ///@name Kratos Geometry Families
+    ///@{
+
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
+    }
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -560,7 +574,7 @@ protected:
             &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             {}, {}, {})
     {
     }
@@ -606,12 +620,12 @@ private:
         ShapeFunctionsValuesContainerType shape_functions_values;
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients;
 
-        rSerializer.load("IntegrationPoints", integration_points[GeometryData::GI_GAUSS_1]);
-        rSerializer.load("ShapeFunctionsValues", shape_functions_values[GeometryData::GI_GAUSS_1]);
-        rSerializer.load("ShapeFunctionsLocalGradients", shape_functions_local_gradients[GeometryData::GI_GAUSS_1]);
+        rSerializer.load("IntegrationPoints", integration_points[static_cast<int>(GeometryData::IntegrationMethod::GI_GAUSS_1)]);
+        rSerializer.load("ShapeFunctionsValues", shape_functions_values[static_cast<int>(GeometryData::IntegrationMethod::GI_GAUSS_1)]);
+        rSerializer.load("ShapeFunctionsLocalGradients", shape_functions_local_gradients[static_cast<int>(GeometryData::IntegrationMethod::GI_GAUSS_1)]);
 
         mGeometryData.SetGeometryShapeFunctionContainer(GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             integration_points,
             shape_functions_values,
             shape_functions_local_gradients));
