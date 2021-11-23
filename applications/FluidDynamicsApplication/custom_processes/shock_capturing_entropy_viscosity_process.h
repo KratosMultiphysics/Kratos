@@ -243,7 +243,7 @@ private:
      * @param WriteBufferIndex: The buffer index to write the result in. This is an
      * ugly hack to deal with the first time-step.
      */
-    void ComputeNodalEntropies(unsigned int WriteBufferIndex = 0);
+    void ComputeNodalEntropies(const unsigned int WriteBufferIndex = 0);
 
     void ComputeArtificialMagnitudes();
 
@@ -252,7 +252,7 @@ private:
         const double ArtificialDynamicViscosity,
         const double ArtificialBulkViscosity,
         const double ArtificialConductivity,
-        const std::function<double(Geometry<Node<3>>)>& rGeometrySize) const;
+        const std::function<double(Geometry<Node<3>>*)>& rGeometrySize) const;
 
     static double ComputeEntropy(const double Density, const double Pressure, const double Gamma);
 

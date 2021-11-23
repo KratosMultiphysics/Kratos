@@ -36,13 +36,10 @@ ShockCapturingEntropyViscosityProcess::ShockCapturingEntropyViscosityProcess(
 
     mComputeAreasEveryStep = rParameters["calculate_nodal_area_at_each_step"].GetBool();
     mEntropyConstant = rParameters["entropy_constant"].GetDouble();     // In the article: c_e
-    mEnergyConstant = rParameters["energy_constant"].GetDouble();   // In the article: c_max
+    mEnergyConstant = rParameters["energy_constant"].GetDouble();       // In the article: c_max
 
     mArtificialMassDiffusivityPrandtl = rParameters["artificial_mass_viscosity_Prandtl"].GetDouble();
     mArtificialConductivityPrandtl = rParameters["artificial_conductivity_Prandtl"].GetDouble();
-
-    mArtificialMassDiffusivityPrandtl = 0.0;
-
 
     KRATOS_CATCH("")
 }
@@ -50,6 +47,8 @@ ShockCapturingEntropyViscosityProcess::ShockCapturingEntropyViscosityProcess(
 
 int ShockCapturingEntropyViscosityProcess::Check()
 {
+    KRATOS_TRY
+
     const int err_code = Process::Check();
 
     KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo().Has(DOMAIN_SIZE))
@@ -58,34 +57,24 @@ int ShockCapturingEntropyViscosityProcess::Check()
     KRATOS_ERROR_IF(domain_size !=2 && domain_size !=3)
         << "ShockCapturingEntropyViscosityProcess is only implemented for 2D and 3D domains." << std::endl;
 
-    using OrReduction = MaxReduction<bool>;
-    using MultiOrReduction = CombinedReduction<OrReduction, OrReduction, OrReduction, OrReduction, OrReduction>;
 
-    bool missing_entropy;
-    bool missing_density;
-    bool missing_pressure;
-    bool missing_temperature;
-    bool missing_velocity;
-
-    std::tie(missing_entropy, missing_density, missing_pressure, missing_temperature, missing_velocity) =
-    block_for_each<MultiOrReduction>(mrModelPart.Nodes(), [](const NodeType& r_node)
+    block_for_each(mrModelPart.Nodes(), [](const NodeType& r_node)
     {
-        const bool missing_entropy = ! r_node.SolutionStepsDataHas(NUMERICAL_ENTROPY);
-        const bool missing_density = ! r_node.SolutionStepsDataHas(DENSITY);
-        const bool missing_pressure = ! r_node.SolutionStepsDataHas(PRESSURE);
-        const bool missing_temperature = ! r_node.SolutionStepsDataHas(TEMPERATURE);
-        const bool missing_velocity = ! r_node.SolutionStepsDataHas(VELOCITY);
+        KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(NUMERICAL_ENTROPY))
+            << "Missing NUMERICAL_ENTROPY variable from node #" << r_node.Id() << std::endl;
 
-        return std::tie(
-            missing_entropy, missing_density, missing_pressure, missing_temperature, missing_velocity
-        );
+        KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(DENSITY))
+            << "Missing DENSITY variable from node #" << r_node.Id() << std::endl;
+
+        KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(PRESSURE))
+            << "Missing PRESSURE variable from node #" << r_node.Id() << std::endl;
+
+        KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(TEMPERATURE))
+            << "Missing TEMPERATURE variable from node #" << r_node.Id() << std::endl;
+
+        KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(VELOCITY))
+            << "Missing VELOCITY variable from node #" << r_node.Id() << std::endl;;
     });
-
-    KRATOS_ERROR_IF(missing_entropy) << "Missing NUMERICAL_ENTROPY variable from one or more nodes" << std::endl;
-    KRATOS_ERROR_IF(missing_density) << "Missing DENSITY variable from one or more nodes" << std::endl;
-    KRATOS_ERROR_IF(missing_pressure) << "Missing PRESSURE variable from one or more nodes" << std::endl;
-    KRATOS_ERROR_IF(missing_temperature) << "Missing TEMPERATURE variable from one or more nodes" << std::endl;
-    KRATOS_ERROR_IF(missing_velocity) << "Missing VELOCITY variable from one or more nodes" << std::endl;
 
     if(mrModelPart.GetCommunicator().LocalMesh().NumberOfElements() != 0)
     {
@@ -94,21 +83,20 @@ int ShockCapturingEntropyViscosityProcess::Check()
 
 #ifdef KRATOS_DEBUG
         const double first_gamma = mrModelPart.ElementsBegin()->GetProperties().GetValue(HEAT_CAPACITY_RATIO);
+        static constexpr double tolerance = 1e-8;
 
-        const bool non_uniform_gamma =
-        block_for_each<OrReduction>(mrModelPart.Elements(), [&first_gamma](Element& r_element)
+        block_for_each(mrModelPart.Elements(), [&](Element& r_element)
         {
-            static constexpr double tolerance = 1e-8;
             const double this_gamma = r_element.GetProperties().GetValue(HEAT_CAPACITY_RATIO);
-            return std::fabs(first_gamma - this_gamma) > tolerance;
+            KRATOS_ERROR_IF((first_gamma - this_gamma) > tolerance)
+                << "HEAT_CAPACITY_RATIO is not constant in the domain" << std::endl;
         });
-
-        KRATOS_ERROR_IF(non_uniform_gamma)
-            << "HEAT_CAPACITY_RATIO is not constant in the domain" << std::endl;
 #endif
     }
 
     return err_code;
+
+    KRATOS_CATCH("")
 }
 
 
@@ -191,7 +179,7 @@ void ShockCapturingEntropyViscosityProcess::UpdateNodalAreaProcess()
 }
 
 
-void ShockCapturingEntropyViscosityProcess::ComputeNodalEntropies(unsigned int WriteBufferIndex)
+void ShockCapturingEntropyViscosityProcess::ComputeNodalEntropies(const unsigned int WriteBufferIndex)
 {
     if(mrModelPart.GetCommunicator().LocalMesh().NumberOfElements() == 0) return; // empty mpdelpart
 
@@ -225,8 +213,8 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
     const double heat_capacity_ratio = mrModelPart.ElementsBegin()->GetProperties().GetValue(HEAT_CAPACITY_RATIO);
 
     const auto geometry_size = mrModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 3 ?
-         [](const Geometry<Node<3>>& r_geom) { return r_geom.Volume(); }
-        :[](const Geometry<Node<3>>& r_geom) { return r_geom.Area(); };
+         [](const Geometry<Node<3>> * p_geom) { return p_geom->Volume(); }
+        :[](const Geometry<Node<3>> * p_geom) { return p_geom->Area(); };
 
     block_for_each(mrModelPart.Elements(), [&](Element& r_element)
     {
@@ -254,10 +242,10 @@ void ShockCapturingEntropyViscosityProcess::DistributeVariablesToNodes(
     const double ArtificialBulkViscosity,
     const double ArtificialMassDiffusivity,
     const double ArtificialConductivity,
-    const std::function<double(Geometry<Node<3>>)>& rGeometrySize) const
+    const std::function<double(Geometry<Node<3>>*)>& rGeometrySize) const
 {
     auto& r_geometry = rElement.GetGeometry();
-    const double element_volume = rGeometrySize(r_geometry);
+    const double element_volume = rGeometrySize(&r_geometry);
 
     for(unsigned int i=0; i<r_geometry.size(); ++i)
     {
