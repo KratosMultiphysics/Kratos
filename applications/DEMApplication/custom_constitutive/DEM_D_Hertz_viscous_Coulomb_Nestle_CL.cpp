@@ -15,12 +15,6 @@ namespace Kratos {
         return Kratos::make_unique<DEM_D_Hertz_viscous_Coulomb_Nestle>();
     }
 
-    void DEM_D_Hertz_viscous_Coulomb_Nestle::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-
-        if (verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Hertz_viscous_Coulomb_Nestle to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }
-
     void DEM_D_Hertz_viscous_Coulomb_Nestle::CalculateViscoDampingForce(double LocalRelVel[3],
                                                                  double ViscoDampingLocalContactForce[3],
                                                                  SphericParticle* const element1,

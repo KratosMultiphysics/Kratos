@@ -188,7 +188,7 @@ TrussElement3D2N::CalculateBodyForces()
     KRATOS_TRY
     // getting shapefunctionvalues
     const Matrix& Ncontainer =
-        GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+        GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
     // creating necessary values
     const double A = GetProperties()[CROSS_AREA];
