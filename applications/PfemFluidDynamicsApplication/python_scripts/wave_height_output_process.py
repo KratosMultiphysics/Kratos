@@ -11,34 +11,45 @@ class WaveHeightOutputProcess(KM.OutputProcess):
     """WaveHeightOutputProcess
 
     This process records the wave height at several points.
-    The direction used to calculate the water weight is the opposite of the gravity.
+    The direction used to calculate the water weight is defined as the opposite of the gravity direction.
+    Possible specifications of the Parameters:
+     - coordinates: it can be a single coordinate or a list of coordinates for each gauge.
+     - file_names:  it can be a single string or a list of string. If there is a single string and
+                    multiple coordinates, the string wil be repeated for all the coordinates.
+                    Some replacements can be added, such as 'gauge_<X>'.
+     - output_path: same as file_names.
     """
 
-    @staticmethod
-    def GetDefaultParameters():
-        return KM.Parameters("""{
-            "model_part_name"      : ""
-            "coordinates_list"     : [[0.0, 0.0, 0.0]],
+    def GetDefaultParameters(self):
+        default_parameters = KM.Parameters("""{
+            "model_part_name"      : "",
+            "coordinates"          : [[0.0, 0.0, 0.0]],
             "mean_water_level"     : 0.0,
             "search_tolerance"     : 1.0,
-            "file_names_list"      : [""],
-            "output_path"          : "",
+            "file_names"           : [""],
+            "output_path"          : [""],
             "time_between_outputs" : 0.01
         }""")
+        if self.settings.Has("file_names"):
+            if self.settings["file_names"].IsString():
+                default_parameters["file_names"].SetString("")
+        if self.settings.Has("output_path"):
+            if self.settings["output_path"].IsString():
+                default_parameters["output_path"].SetString("")
+        return default_parameters
 
     def __init__(self, model, settings):
         """The constructor of the WaveHeightOutputProcess"""
 
-        KM.Process.__init__(self)
+        KM.OutputProcess.__init__(self)
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.model_part = model.GetModelPart(self.settings["model_part_name"].GetString())
 
-        self.coordinates_list = []
-        for coordinate in self.settings["coordinates_list"]:
-            self.coordinates_list.append(coordinate.GetVector())
-        self.file_names_list = self.settings["file_names_list"]
+        self.coordinates_list = self._GetCoordinatesList()
+        self.file_names_list = self._GetNamesList(self.settings["file_names"])
+        self.output_path_list = self._GetNamesList(self.settings["output_path"])
 
     def Check(self):
         """Check all the variables have the right size"""
@@ -49,13 +60,16 @@ class WaveHeightOutputProcess(KM.OutputProcess):
         if not self.file_names_list.size() == self.coordinates_list.size():
             raise Exception("WaveHeightOutputProcess. The number of coordinates must coincide with the number of filenames")
 
+        if not self.output_path_list.size() == self.coordinates_list.size():
+            raise Exception("WaveHeightOutputProcess. The number of coordinates must coincide with the number of output paths")
+
     def ExecuteBeforeSolutionLoop(self):
         """Initialize the files and the utility to calculate the water height"""
         self.files = []
-        for file_name in self.file_names_list:
+        for file_name, output_path in zip(self.file_names_list, self.output_path_list):
             file_settings = KM.Parameters()
             file_settings.AddString("file_name", file_name)
-            file_settings.AddValue("output_path", self.settings["output_path"])
+            file_settings.AddString("output_path", output_path)
             header = "#Time \tHeight\n"
             self.files.append(TimeBasedAsciiFileWriterUtility(self.model_part, file_settings, header).file)
         utility_settings = KM.Parameters()
@@ -67,7 +81,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
         """The output control is time based"""
         time = self.model_part.ProcessInfo[KM.TIME]
         return time >= self.next_output
-    
+
     def PrintOutput(self):
         """Print the wave height corresponding to each gauge and schedule the next output"""
         time = self.model_part.ProcessInfo.GetValue(KM.TIME)
@@ -76,10 +90,35 @@ class WaveHeightOutputProcess(KM.OutputProcess):
             value = "{}\t{}\n".format(time, height)
             file.write(value)
             file.flush()
-        
+
         self.next_output += self.settings["time_between_outputs"].GetDouble()
-    
+
     def ExecuteFinalize(self):
         """Close all the files"""
         for file in self.files:
             file.close()
+
+    def _GetCoordinatesList(self):
+        coordinates_list = []
+        if self.settings["coordinates"].IsVector(): # There is a single coordinate
+            coordinates_list.append(self.settings["coordinates"].GetVector())
+        else:
+            for coordinate in self.settings["coordinates"]: # There is a list of coordinates
+                coordinates_list.append(coordinate.GetVector())
+        return coordinates_list
+
+    def _GetNamesList(self, settings):
+        if settings.IsString():
+            names_list = []
+            for coordinate in self.coordinates_list:
+                name = settings.GetString()
+                name.replace("<x>", str(coordinate[0]))
+                name.replace("<X>", str(coordinate[0]))
+                name.replace("<y>", str(coordinate[1]))
+                name.replace("<Y>", str(coordinate[1]))
+                name.replace("<z>", str(coordinate[2]))
+                name.replace("<Z>", str(coordinate[2]))
+                names_list.append(name)
+            return names_list
+        else:
+            return settings.GetStringArray()
