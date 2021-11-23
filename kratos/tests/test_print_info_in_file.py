@@ -48,11 +48,9 @@ class TestPrintInfoInFile(KratosUnittest.TestCase):
         "sum_results_from_multiple_entities" : true,
         "write_buffer_size"                  : 1,
         "output_path"                        : ""}""")
+
     process = PrintProcess.PrintInfoInFileProcess(current_model, settings)
     process.PrintOutput()
-
-    expected   = [0.0, 3.7, 0.0, 0.0]
-    expected_2 = [0.0, 7.3, 0.1, 0.3]
 
     ref_file_name = os.path.abspath(settings["file_name"].GetString())
 
@@ -71,6 +69,19 @@ class TestPrintInfoInFile(KratosUnittest.TestCase):
                     if float(numbers[0]) != 0.0 or float(numbers[1]) != 3.7 or float(numbers[2]) != 0.0 or float(numbers[3]) != 0.0:
                         raise Exception("The print does not give the expected result...")
 
+    # now we test the second submodel
+    settings["model_part_name"].SetString("test.to_plot_2")
+    process = PrintProcess.PrintInfoInFileProcess(current_model, settings)
+    process.PrintOutput()
+
+    with open(ref_file_name, "r") as plot_file:
+        contents = plot_file.readlines()
+        for line in contents:
+            if line[0] != "#":
+                numbers = line.split("\t")
+                if len(numbers) > 2:
+                    if float(numbers[0]) != 0.0 or float(numbers[1]) != 7.3 or float(numbers[2]) != 0.1 or float(numbers[3]) != 0.3:
+                        raise Exception("The print does not give the expected result...")
     os.remove(ref_file_name)
 
 if __name__ == '__main__':
