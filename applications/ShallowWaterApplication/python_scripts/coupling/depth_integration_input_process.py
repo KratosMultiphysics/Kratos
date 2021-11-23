@@ -94,7 +94,7 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
 
         # Find the common parts (prefix and suffix) of the found names and the file pattern
         # The different part is the time, we need to store all the available times
-        file_pattern = file.name.replace('<model_part_name>', self.input_model_part.Name)
+        file_pattern = str(file).replace('<model_part_name>', self.input_model_part.Name)
         prefix = commonprefix([file_pattern, file_names[0]])
         suffix = commonprefix([''.join(reversed(file_pattern)), ''.join(reversed(file_names[0]))])
         suffix = ''.join(reversed(suffix))

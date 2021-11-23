@@ -55,7 +55,7 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         '''Initialize the output model part.'''
         self._InitializeOutputModelPart()
         self._SetOutputProcessInfo()
-        if not self.store_historical:
+        if not self.settings["store_historical_database"].GetBool():
             for var in self.variables:
                 KM.VariableUtils().SetNonHistoricalVariableToZero(var, self.interface_model_part.Nodes)
                 KM.VariableUtils().SetNonHistoricalVariableToZero(var, self.output_model_part.Nodes)
