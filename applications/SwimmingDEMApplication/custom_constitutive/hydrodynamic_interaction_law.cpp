@@ -92,7 +92,7 @@ namespace Kratos {
                                     r_current_process_info);
     }
 
-    void HydrodynamicInteractionLaw::ComputeDragForce(Geometry<Node<3> >& r_geometry,
+    void HydrodynamicInteractionLaw::ComputeDragForce(SphericParticle* p_particle,
                                                       double particle_radius,
                                                       double fluid_density,
                                                       double fluid_kinematic_viscosity,
@@ -103,7 +103,7 @@ namespace Kratos {
         const double reynolds_number = ComputeParticleReynoldsNumber(particle_radius,
                                                                      fluid_kinematic_viscosity,
                                                                      SWIMMING_MODULUS_3(minus_slip_velocity));
-        mpDragLaw->ComputeForce(r_geometry,
+        mpDragLaw->ComputeForce(p_particle,
                                 reynolds_number,
                                 particle_radius,
                                 fluid_density,

@@ -152,27 +152,18 @@ void SmallStrainUMAT3DLaw::GetLawFeatures(Features &rFeatures)
 
 int SmallStrainUMAT3DLaw::Check(const Properties &rMaterialProperties,
                                 const GeometryType &rElementGeometry,
-                                const ProcessInfo &rCurrentProcessInfo)
+                                const ProcessInfo &rCurrentProcessInfo) const
 {
    // Verify Properties variables
    if (rMaterialProperties.Has(UDSM_NAME) == false || rMaterialProperties[UDSM_NAME] == "")
-      KRATOS_THROW_ERROR(std::invalid_argument, 
-                         "UDSM_NAME has Key zero, is not defined or has an invalid value for property",
-                         rMaterialProperties.Id())
-
+      KRATOS_ERROR << "UDSM_NAME has Key zero, is not defined for property"
+                   << rMaterialProperties.Id()
+                   << std::endl;
 
    if (rMaterialProperties.Has(IS_FORTRAN_UDSM) == false)
-      KRATOS_THROW_ERROR(std::invalid_argument,
-                         "IS_FORTRAN_UDSM has Key zero, is not defined or has an invalid value for property",
-                         rMaterialProperties.Id())
-
-   // load UMAT model
-   if (!mIsUMATLoaded) mIsUMATLoaded = loadUMAT(rMaterialProperties);
-
-   if (!mIsUMATLoaded)
-   {
-      KRATOS_THROW_ERROR(std::runtime_error, "cannot load the specified UMAT", rMaterialProperties[UDSM_NAME]);
-   }
+      KRATOS_ERROR << "IS_FORTRAN_UDSM is not defined for property"
+                   << rMaterialProperties.Id()
+                   << std::endl;
 
    return 0;
 }
@@ -185,6 +176,10 @@ void SmallStrainUMAT3DLaw::InitializeMaterial(const Properties &rMaterialPropert
    KRATOS_TRY;
    // we need to check if the model is loaded or not
    mIsUMATLoaded = loadUMAT(rMaterialProperties);
+
+   if (!mIsUMATLoaded) {
+      KRATOS_ERROR << "cannot load the specified UMAT" << rMaterialProperties[UDSM_NAME] << std::endl;
+   }
 
    ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
@@ -249,7 +244,7 @@ bool SmallStrainUMAT3DLaw::loadUMAT(const Properties &rMaterialProperties)
    return loadUMATLinux(rMaterialProperties);
 #endif
 
-   KRATOS_THROW_ERROR(std::logic_error, "loadUMAT is not supported yet for Mac OS applications", "");
+   KRATOS_ERROR << "loadUMAT is not supported yet for Mac OS applications" << std::endl;
 
    return isLoaded;
 
@@ -277,7 +272,7 @@ bool SmallStrainUMAT3DLaw::loadUMATLinux(const Properties &rMaterialProperties)
 
    if (!lib_handle)
    {
-      KRATOS_THROW_ERROR(std::runtime_error, "cannot load the specified UMAT ", rMaterialProperties[UDSM_NAME]);
+      KRATOS_ERROR << "cannot load the specified UMAT " << rMaterialProperties[UDSM_NAME] << std::endl;
       return false;
    }
    if (rMaterialProperties[IS_FORTRAN_UDSM])
@@ -292,14 +287,14 @@ bool SmallStrainUMAT3DLaw::loadUMATLinux(const Properties &rMaterialProperties)
 
    if (!pUserMod)
    {
-      KRATOS_THROW_ERROR(std::runtime_error, "cannot load function User_Mod in the specified UMAT ", rMaterialProperties[UDSM_NAME]);
+      KRATOS_ERROR << "cannot load function User_Mod in the specified UMAT " << rMaterialProperties[UDSM_NAME] << std::endl;
       return false;
    }
 
    return true;
 
 #else
-   KRATOS_THROW_ERROR(std::logic_error, "loadUMATLinux should be called in Linux applications", "");
+   KRATOS_ERROR << "loadUMATLinux should be called in Linux applications" << rMaterialProperties[UDSM_NAME] << std::endl;
    return false;
 #endif
 }
@@ -326,7 +321,7 @@ bool SmallStrainUMAT3DLaw::loadUMATWindows(const Properties &rMaterialProperties
    if (!hGetProcIDDLL)
    {
       KRATOS_INFO("Error in loadUMATWindows") << "cannot load the specified UMAT: " << rMaterialProperties[UDSM_NAME] << std::endl;
-      KRATOS_THROW_ERROR(std::runtime_error, "cannot load the specified UMAT ", rMaterialProperties[UDSM_NAME]);
+      KRATOS_ERROR << "cannot load the specified UMAT " << rMaterialProperties[UDSM_NAME] << std::endl;
       return false;
    }
 
@@ -334,13 +329,13 @@ bool SmallStrainUMAT3DLaw::loadUMATWindows(const Properties &rMaterialProperties
    if (!pUserMod)
    {
       KRATOS_INFO("Error in loadUMATWindows") << "cannot load function umat in the specified UMAT: "<< rMaterialProperties[UDSM_NAME] << std::endl;
-      KRATOS_THROW_ERROR(std::runtime_error, "cannot load function umat in the specified UMAT ", rMaterialProperties[UDSM_NAME]);
+      KRATOS_ERROR << "cannot load function umat in the specified UMAT " << rMaterialProperties[UDSM_NAME] << std::endl;
       return false;
    }
 
    return true;
 #else
-   KRATOS_THROW_ERROR(std::logic_error, "loadUMATWindows should be called in Windows applications", "");
+   KRATOS_ERROR << "loadUMATWindows should be called in Windows applications" << rMaterialProperties[UDSM_NAME] << std::endl;
    return false;
 #endif
 }
@@ -605,14 +600,11 @@ void SmallStrainUMAT3DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Param
    mStressVectorFinalized   = mStressVector;
 }
 
-void SmallStrainUMAT3DLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues)
+void SmallStrainUMAT3DLaw::
+   UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues)
 {
    const Vector& rStrainVector = rValues.GetStrainVector();
-
-   for (unsigned int i=0; i < mStrainVectorFinalized.size(); ++i)
-   {
-      mStrainVectorFinalized[i] = rStrainVector(i);
-   }
+   this->SetInternalStrainVector(rStrainVector);
 }
 
 /***********************************************************************************/

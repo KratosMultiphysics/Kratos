@@ -101,7 +101,7 @@ public:
     /**
      * @brief Destructor
      */
-    virtual ~ WaveElement(){}
+    ~ WaveElement() override {};
 
     ///@}
     ///@name Operations
@@ -234,7 +234,7 @@ public:
      */
     std::string Info() const override
     {
-        return "Wave element";
+        return "WaveElement";
     }
 
     /**
@@ -242,7 +242,7 @@ public:
      */
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Info() << Id();
+        rOStream << Info() << " : " << Id();
     }
 
     /**
@@ -250,7 +250,7 @@ public:
      */
     void PrintData(std::ostream& rOStream) const override
     {
-        rOStream << Info() << Id();
+        rOStream << GetGeometry();
     }
 
     ///@}
@@ -272,36 +272,57 @@ protected:
 
 
     ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
+    ///@name Protected Classes
     ///@{
 
     struct ElementData
     {
+        bool integrate_by_parts;
         double stab_factor;
         double shock_stab_factor;
-        double rel_dry_height;
+        double relative_dry_height;
         double gravity;
         double length;
 
         double height;
         array_1d<double,3> velocity;
 
-        array_1d<double,TNumNodes> topography;
-        LocalVectorType unknown;
+        BoundedMatrix<double,3,3> A1;
+        BoundedMatrix<double,3,3> A2;
+        array_1d<double,3> b1;
+        array_1d<double,3> b2;
+
+        array_1d<double,TNumNodes> nodal_h;
+        array_1d<double,TNumNodes> nodal_z;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_v;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_q;
 
         FrictionLaw::Pointer p_bottom_friction;
     };
 
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    virtual const Variable<double>& GetUnknownComponent(int Index) const;
+
+    virtual LocalVectorType GetUnknownVector(ElementData& rData);
+
     void InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo);
 
-    void GetNodalData(ElementData& rData, const GeometryType& rGeometry);
+    void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0);
 
-    void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
+    virtual void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
+
+    virtual void CalculateArtificialViscosity(
+        BoundedMatrix<double,3,3>& rViscosity,
+        BoundedMatrix<double,2,2>& rDiffusion,
+        const ElementData& rData,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
+
+    virtual void CalculateArtificialDamping(
+        BoundedMatrix<double,3,3>& rFriction,
+        const ElementData& rData);
 
     void CalculateGeometryData(
         Vector &rGaussWeights,
@@ -309,14 +330,6 @@ protected:
         ShapeFunctionsGradientsType &rDN_DX) const;
 
     void AddWaveTerms(
-        LocalMatrixType& rMatrix,
-        LocalVectorType& rVector,
-        const ElementData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-        const double Weight = 1.0);
-
-    void AddTopographyTerms(
         LocalMatrixType& rMatrix,
         LocalVectorType& rVector,
         const ElementData& rData,
@@ -332,6 +345,12 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
+    void AddArtificialViscosityTerms(
+        LocalMatrixType& rMatrix,
+        const ElementData& rData,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0);
+
     void AddMassTerms(
         LocalMatrixType& rMatrix,
         const ElementData& rData,
@@ -340,6 +359,10 @@ protected:
         const double Weight = 1.0);
 
     virtual double StabilizationParameter(const ElementData& rData) const;
+
+    double InverseHeight(const ElementData& rData) const;
+
+    const array_1d<double,3> VectorProduct(const array_1d<array_1d<double,3>,TNumNodes>& rV, const array_1d<double,TNumNodes>& rN) const;
 
     ///@}
     ///@name Protected  Access

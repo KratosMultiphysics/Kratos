@@ -330,8 +330,8 @@ public:
     {
         KRATOS_TRY
         block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
-            rNode.FastGetSolutionStepValue(DELTA_SCALAR1) = rNode.FastGetSolutionStepValue(*mScalarVar1) - rNode.FastGetSolutionStepValue(PROJECTED_SCALAR1);
-            noalias(rNode.FastGetSolutionStepValue(DELTA_VECTOR1)) = rNode.FastGetSolutionStepValue(*mVectorVar1) - rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1);
+            rNode.FastGetSolutionStepValue(DELTA_SCALAR) = rNode.FastGetSolutionStepValue(*mScalarVar1) - rNode.FastGetSolutionStepValue(PROJECTED_SCALAR);
+            noalias(rNode.FastGetSolutionStepValue(DELTA_VECTOR)) = rNode.FastGetSolutionStepValue(*mVectorVar1) - rNode.FastGetSolutionStepValue(PROJECTED_VECTOR);
         });
         KRATOS_CATCH("")
     }
@@ -503,8 +503,8 @@ public:
         // of the surrounding particles.
 
         block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
-            rNode.FastGetSolutionStepValue(PROJECTED_SCALAR1)=0.0;
-            noalias(rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1))=ZeroVector(3);
+            rNode.FastGetSolutionStepValue(PROJECTED_SCALAR)=0.0;
+            noalias(rNode.FastGetSolutionStepValue(PROJECTED_VECTOR))=ZeroVector(3);
             rNode.FastGetSolutionStepValue(INTEGRATION_WEIGHT)=0.0;
         });
 
@@ -569,11 +569,11 @@ public:
 
             for (int i = 0 ; i != TDim+1; ++i) {
                 geom[i].SetLock();
-                geom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1)   += nodes_added_scalar1[i];
+                geom[i].FastGetSolutionStepValue(PROJECTED_SCALAR)   += nodes_added_scalar1[i];
 
-                geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_X) += nodes_added_vector1[3*i+0];
-                geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y) += nodes_added_vector1[3*i+1];
-                geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Z) += nodes_added_vector1[3*i+2];
+                geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR_X) += nodes_added_vector1[3*i+0];
+                geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR_Y) += nodes_added_vector1[3*i+1];
+                geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR_Z) += nodes_added_vector1[3*i+2];
 
                 geom[i].FastGetSolutionStepValue(INTEGRATION_WEIGHT) += nodes_added_weights[i];
                 geom[i].UnSetLock();
@@ -584,15 +584,15 @@ public:
             double sum_weights = rNode.FastGetSolutionStepValue(INTEGRATION_WEIGHT);
             if (sum_weights > 0.00001)
             {
-                double & scalar = rNode.FastGetSolutionStepValue(PROJECTED_SCALAR1);
-                array_1d<double,3> & vector = rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1);
+                double & scalar = rNode.FastGetSolutionStepValue(PROJECTED_SCALAR);
+                array_1d<double,3> & vector = rNode.FastGetSolutionStepValue(PROJECTED_VECTOR);
                 scalar /= sum_weights;
                 vector /= sum_weights;
             }
             else // This should never happen because other ways to recover the information have been executed before, but leaving it just in case..
             {
-                rNode.FastGetSolutionStepValue(PROJECTED_SCALAR1)=rNode.FastGetSolutionStepValue(*mScalarVar1,1);
-                noalias(rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1))=rNode.FastGetSolutionStepValue(*mVectorVar1,1);
+                rNode.FastGetSolutionStepValue(PROJECTED_SCALAR)=rNode.FastGetSolutionStepValue(*mScalarVar1,1);
+                noalias(rNode.FastGetSolutionStepValue(PROJECTED_VECTOR))=rNode.FastGetSolutionStepValue(*mVectorVar1,1);
             }
         });
 
@@ -1036,8 +1036,8 @@ private:
 
         for(unsigned int j=0; j<(TDim+1); j++)
         {
-            delta_scalar1          += rGeom[j].FastGetSolutionStepValue(DELTA_SCALAR1)*N[j];
-            noalias(delta_vector1) += rGeom[j].FastGetSolutionStepValue(DELTA_VECTOR1)*N[j];
+            delta_scalar1          += rGeom[j].FastGetSolutionStepValue(DELTA_SCALAR)*N[j];
+            noalias(delta_vector1) += rGeom[j].FastGetSolutionStepValue(DELTA_VECTOR)*N[j];
         }
         particle_scalar1 = particle_scalar1 + delta_scalar1;
         particle_vector1 = particle_vector1 + delta_vector1;
@@ -1920,10 +1920,10 @@ private:
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA((*mVectorVar1), rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA((*mScalarVar1), rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DELTA_VECTOR1, rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DELTA_SCALAR1, rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_VECTOR1, rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_SCALAR1, rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DELTA_VECTOR, rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DELTA_SCALAR, rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_VECTOR, rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_SCALAR, rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(INTEGRATION_WEIGHT, rnode)
 
         return 0;

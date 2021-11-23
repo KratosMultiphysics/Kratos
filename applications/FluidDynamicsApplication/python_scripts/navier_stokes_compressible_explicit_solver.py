@@ -25,7 +25,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         elif custom_settings["domain_size"].GetInt() == 3:
             self.condition_name = "SurfaceCondition" # TODO: We need to create a Compressible NS condition (now using the base ones)
         else:
-            err_mgs = "Wrong domain size "
+            err_msg = "Wrong domain size "
             raise Exception(err_msg)
         self.min_buffer_size = 2
         self.element_has_nodal_properties = False # Note that DENSITY is nodally stored but considered as a DOF
@@ -50,6 +50,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
             },
             "echo_level": 1,
             "time_order": 2,
+            "time_scheme" : "RK4",
             "move_mesh_flag": false,
             "shock_capturing": true,
             "compute_reactions": false,
@@ -124,8 +125,36 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         strategy_settings.AddEmptyValue("move_mesh_flag").SetBool(self.settings["move_mesh_flag"].GetBool())
         strategy_settings.AddEmptyValue("shock_capturing").SetBool(self.settings["shock_capturing"].GetBool())
 
-        strategy = KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4(
-            self.computing_model_part,
-            strategy_settings)
+        rk_parameter = self.settings["time_scheme"].GetString()
 
-        return strategy
+        rk_startegies = {
+            "RK3-TVD": KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD,
+            "RK4"    : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4
+        }
+
+        if rk_parameter in rk_startegies:
+            return rk_startegies[rk_parameter](self.computing_model_part, strategy_settings)
+
+        err_msg = "Runge-Kutta method of type '{}' not available. Try any of\n".format(rk_parameter)
+        for key in rk_startegies:
+            err_msg = err_msg + " - {}\n".format(key)
+        raise RuntimeError(err_msg)
+
+    def _CreateEstimateDtUtility(self):
+        """This method overloads FluidSolver in order to enforce:
+        ```
+        self.settings["time_stepping"]["consider_compressibility_in_CFL"] == True
+        ```
+        """
+        if self.settings["time_stepping"].Has("consider_compressibility_in_CFL"):
+            KratosMultiphysics.Logger.PrintWarning("", "User-specifed consider_compressibility_in_CFL will be overriden with TRUE")
+        else:
+            self.settings["time_stepping"].AddEmptyValue("consider_compressibility_in_CFL")
+
+        self.settings["time_stepping"]["consider_compressibility_in_CFL"].SetBool(True)
+
+        estimate_dt_utility = KratosFluid.EstimateDtUtility(
+                self.GetComputingModelPart(),
+                self.settings["time_stepping"])
+
+        return estimate_dt_utility

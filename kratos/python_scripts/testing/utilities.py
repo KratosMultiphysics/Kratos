@@ -30,7 +30,7 @@ def ReadModelPart(mdpa_file_name, model_part, settings=None):
     if model_part.NumberOfNodes() > 0:
         raise Exception("ModelPart must not contain Nodes!")
 
-    communicator = Kratos.DataCommunicator.GetDefault()
+    communicator = Kratos.Testing.GetDefaultDataCommunicator()
     if communicator.IsDistributed():
         ReadDistributedModelPart(mdpa_file_name, model_part, settings)
     else:

@@ -90,21 +90,19 @@ RUN powershell.exe -Command \
     c:\python\39\python.exe -m pip install --upgrade pip; \
     c:\python\39\python.exe -m pip install --upgrade setuptools wheel
 
-#Downloand blas/lapack
-RUN powershell.exe -Command \
-	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-	mkdir c:\libs; \
-	wget https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/libblas.lib -OutFile c:\libs\libblas.lib; \
-	wget https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/liblapack.lib -OutFile c:\libs\liblapack.lib
+# #Downloand blas/lapack
+# RUN powershell.exe -Command \
+# 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+# 	mkdir c:\libs; \
+# 	wget https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/libblas.lib -OutFile c:\libs\libblas.lib; \
+# 	wget https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/liblapack.lib -OutFile c:\libs\liblapack.lib
 
 #set env variables
-ENV CMAKE c:\\cmake\\cmake-3.14.1-win64-x64\\bin\\cmake.exe
-ENV SEVEN_ZIP c:\\7zip\\7z.exe
-ENV VCVARS  \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\"
-ENV BOOST c:\\boost\\boost_1_71_0
-ENV BLAS c:\\libs\\libblas.lib
-ENV LAPACK c:\\libs\\liblapack.lib
-ENV PYTHONROOT c:\\python
+ENV CMAKE       "C:\\cmake\\cmake-3.14.1-win64-x64\\bin\\cmake.exe"
+ENV SEVEN_ZIP   "C:\\7zip\\7z.exe"
+ENV VCVARS      "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\\"
+ENV BOOST       "C:\\boost\\boost_1_71_0"
+ENV PYTHONROOT  "C:\\python"
 
 COPY start.ps1 c:\\scripts\\start.ps1
 
