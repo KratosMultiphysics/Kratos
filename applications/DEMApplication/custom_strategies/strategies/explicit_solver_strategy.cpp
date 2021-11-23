@@ -833,7 +833,7 @@ namespace Kratos {
       KRATOS_TRY
 
       ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
-      struct tetgenio in, out, vorout;
+      struct tetgenio in, out;
       char* meshing_options = "";
 
       // Build input
@@ -857,15 +857,15 @@ namespace Kratos {
       }
 
       // Set switches
-      //if      (update_voronoi && update_porosity) meshing_options = "JQecv";
-      //else if (update_voronoi)                    meshing_options = "JQev";
-      //else if (update_porosity)                   meshing_options = "JQec";
-      meshing_options = "JQefcv";
+      if      (update_voronoi && update_porosity) meshing_options = "JQv";
+      else if (update_voronoi)                    meshing_options = "JQv";
+      else if (update_porosity)                   meshing_options = "JQ";
+      //"JQefcv";
 
       // Perform triangulation
       int fail = 0;
       try {
-        tetrahedralize(meshing_options, &in, &out, &vorout);
+        tetrahedralize(meshing_options, &in, &out);
       }
       catch (int error_code) {
         fail = error_code;
@@ -886,20 +886,23 @@ namespace Kratos {
         // column 2: voronoi face equivalent radius (for a circle with the same area)
         #pragma omp parallel for schedule(dynamic, 100)
         for (int i = 0; i < out.numberofvfacets; i++) {
-          tetgenio::vorofacet face = out.vfacetlist[i];
-
           // Compute area of voronoi face by irradiation of triangles
+          tetgenio::vorofacet face = out.vfacetlist[i];
           double face_area = 0.0;
           int num_face_edges = face.elist[0];
-          double x0, y0, z0; // Irradiating coordinates
 
-          // Save vertices of 1st edge of voronoi face (one of them will be the irradiating vertex)
+          // Vertices of 1st edge of voronoi face
           tetgenio::voroedge edge1 = out.vedgelist[face.elist[1] - 1];
           int e1v1 = edge1.v1 - 1;
           int e1v2 = edge1.v2 - 1;
 
-          // Triangle area irradiation from 2nd edge to last but one
-          for (int j = 2; j < num_face_edges; j++) {
+          // Irradiating coordinates from a vertex of 1st edge
+          double x0   = out.vpointlist[3 * e1v1 + 0];
+          double y0   = out.vpointlist[3 * e1v1 + 1];
+          double z0   = out.vpointlist[3 * e1v1 + 2];
+
+          // Triangle area irradiation
+          for (int j = 2; j <= num_face_edges; j++) {
             double triangle_area = 0.0;
 
             // Edge vertices
@@ -907,20 +910,7 @@ namespace Kratos {
             int ev1 = edge.v1 - 1;
             int ev2 = edge.v2 - 1;
 
-            // Determine irradiating vertex
-            if (j == 2) {
-              int ev;
-              if      (ev1 == e1v1) ev = e1v2;
-              else if (ev1 == e1v2) ev = e1v1;
-              else if (ev2 == e1v1) ev = e1v2;
-              else if (ev2 == e1v2) ev = e1v1;
-
-              x0 = out.vpointlist[3 * ev + 0];
-              y0 = out.vpointlist[3 * ev + 1];
-              z0 = out.vpointlist[3 * ev + 2];
-            }
-            
-            // Edge coordinates
+            // Edge vertices coordinates
             double x1 = out.vpointlist[3 * ev1 + 0];
             double y1 = out.vpointlist[3 * ev1 + 1];
             double z1 = out.vpointlist[3 * ev1 + 2];
@@ -939,9 +929,7 @@ namespace Kratos {
             AC[1] = y2 - y0;
             AC[2] = z2 - z0;
             GeometryFunctions::CrossProduct(AB, AC, ABxAC);
-            triangle_area = DEM_MODULUS_3(ABxAC) / 2.0;;
-
-            // Accumulate area
+            triangle_area = DEM_MODULUS_3(ABxAC) / 2.0;
             face_area += triangle_area;
           }
 
