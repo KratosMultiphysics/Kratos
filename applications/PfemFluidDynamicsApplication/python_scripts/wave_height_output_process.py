@@ -12,10 +12,12 @@ class WaveHeightOutputProcess(KM.OutputProcess):
 
     This process records the wave height at several points.
     The direction used to calculate the water weight is defined as the opposite of the gravity direction.
+    The search radius is set as the average element half size plus the search tolerance. If no node is
+    found, Nan will be printed.
     Possible specifications of the Parameters:
      - coordinates: it can be a single coordinate or a list of coordinates for each gauge.
      - file_names:  it can be a single string or a list of string. If there is a single string and
-                    multiple coordinates, the string wil be repeated for all the coordinates.
+                    multiple coordinates, the string will be repeated for all the coordinates.
                     Some replacements can be added, such as 'gauge_<X>'.
      - output_path: same as file_names.
     """
@@ -25,7 +27,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
             "model_part_name"      : "",
             "coordinates"          : [[0.0, 0.0, 0.0]],
             "mean_water_level"     : 0.0,
-            "search_tolerance"     : 1.0,
+            "search_tolerance"     : 1e-6,
             "file_names"           : [""],
             "output_path"          : [""],
             "time_between_outputs" : 0.01
