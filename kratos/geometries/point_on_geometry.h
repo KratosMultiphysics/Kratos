@@ -242,9 +242,10 @@ public:
 
         if (rResultGeometries.size() != 1) { rResultGeometries.resize(1); }
         // assignment operator for quadrature point geometry with Dimension being 0.
-        rResultGeometries[0] = QuadraturePointGeometry<
-            PointType, TWorkingSpaceDimension, TLocalSpaceDimension,
-            0>(rQuadraturePointGeometries[0]);
+        rResultGeometries(0) = Kratos::make_shared<
+            QuadraturePointGeometry<PointType, TWorkingSpaceDimension, TLocalSpaceDimension, 0>>(
+                std::move(rQuadraturePointGeometries(0)->Points()),
+                std::move(rQuadraturePointGeometries(0)->GetGeometryData().GetGeometryShapeFunctionContainer()));
     }
 
     ///@}
