@@ -181,12 +181,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("CalculateFluidNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidNegativeVolume)
         ;
 
-    // Post process utilities
-    py::class_< FluidPostProcessUtilities > (m,"FluidPostProcessUtilities")
-        .def(py::init<>())
-        .def("CalculateFlow", &FluidPostProcessUtilities::CalculateFlow)
-        ;
-
 }
 
 }  // namespace Python.
