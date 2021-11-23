@@ -139,7 +139,7 @@ private:
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rModelPart,
         const Parameters rParameters,
-        std::string& rGeometryType) const;
+        std::string GeometryType) const;
 
     ///@}
     ///@name CAD functionalities

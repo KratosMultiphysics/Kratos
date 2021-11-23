@@ -107,7 +107,7 @@ namespace Kratos
         GeometriesArrayType& rGeometryList,
         ModelPart& rModelPart,
         const Parameters rParameters,
-        std::string& rGeometryType) const
+        std::string GeometryType) const
     {
         KRATOS_ERROR_IF_NOT(rParameters.Has("type"))
             << "\"type\" need to be specified." << std::endl;
@@ -157,7 +157,7 @@ namespace Kratos
                 }
             }
 
-            if (rGeometryType == "SurfaceEdge"
+            if (GeometryType == "SurfaceEdge"
                 && rGeometryList[i].GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Coupling_Geometry)
             {
                 rGeometryList[i].GetGeometryPart(0).CreateQuadraturePointGeometries(
