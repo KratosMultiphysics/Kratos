@@ -1597,19 +1597,19 @@ void SphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info){
             }
         }*/
 
-        ComputeDifferentialStrainTensor();
-        ComputeStrainTensor();
+        ComputeDifferentialStrainTensor(r_process_info);
+        SymmetrizeDifferentialStrainTensor();
+        ComputeStrainTensor(r_process_info);
 
         FinalizeStressTensor(r_process_info, rRepresentative_Volume);
-
         SymmetrizeStressTensor();
     }
     KRATOS_CATCH("")
 }
 
-void SphericParticle::ComputeStrainTensor() {
+void SphericParticle::ComputeStrainTensor(const ProcessInfo& r_process_info) {
 
-    const int Dim = 3; //GetGeometry().WorkingSpaceDimension();
+    const int Dim = r_process_info[DOMAIN_SIZE];
     for (int i = 0; i < Dim; i++) {
         for (int j = 0; j < Dim; j++) {
             (*mStrainTensor)(i,j) += (*mDifferentialStrainTensor)(i,j);
@@ -1617,9 +1617,9 @@ void SphericParticle::ComputeStrainTensor() {
     }
 }
 
-void SphericParticle::ComputeDifferentialStrainTensor() {
+void SphericParticle::ComputeDifferentialStrainTensor(const ProcessInfo& r_process_info) {
 
-    const int Dim = 3; //GetGeometry().WorkingSpaceDimension();
+    const int Dim = r_process_info[DOMAIN_SIZE];
     BoundedMatrix<double, 3, 3> CoefficientsMatrix = ZeroMatrix(3, 3);
     BoundedMatrix<double, 3, 3> RightHandSide = ZeroMatrix(3, 3);
     array_1d<double, 3> assembly_centroid;
@@ -1639,7 +1639,7 @@ void SphericParticle::ComputeDifferentialStrainTensor() {
         assembly_average_delta_displacement += node_delta_displacement;
         total_number_of_neighbours++;
     }
-    
+
     assembly_centroid /= (1.0 + total_number_of_neighbours);  
     assembly_average_delta_displacement /= (1.0 + total_number_of_neighbours);
 
@@ -1666,8 +1666,30 @@ void SphericParticle::ComputeDifferentialStrainTensor() {
 
     double det = 0.0;
     BoundedMatrix<double, 3, 3> InvertedCoefficientsMatrix = ZeroMatrix(3, 3);
+
+    if (Dim == 2) {
+        CoefficientsMatrix(2,2) = 1.0;
+        RightHandSide(2,2) = 1.0;
+    }
     MathUtils<double>::InvertMatrix3(CoefficientsMatrix, InvertedCoefficientsMatrix, det);
     *mDifferentialStrainTensor = prod(InvertedCoefficientsMatrix, RightHandSide);
+    if (Dim == 2) {
+        (*mDifferentialStrainTensor)(2,2) = (*mDifferentialStrainTensor)(0,2) = (*mDifferentialStrainTensor)(1,2) = (*mDifferentialStrainTensor)(2,1) = (*mDifferentialStrainTensor)(2,0) = 0.0;
+    }
+}
+
+void SphericParticle::SymmetrizeDifferentialStrainTensor() {
+    
+    for (int i = 0; i < 3; i++) {
+        for (int j = i; j < 3; j++) {
+            (*mDifferentialStrainTensor)(i,j) = 0.5 * ((*mDifferentialStrainTensor)(i,j) + (*mDifferentialStrainTensor)(j,i));
+        }
+    }
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < i; j++) {
+            (*mDifferentialStrainTensor)(i,j) = (*mDifferentialStrainTensor)(j,i);
+        }
+    }
 }
 
 void SphericParticle::SymmetrizeStressTensor(){

@@ -148,6 +148,9 @@ virtual void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
 virtual void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
 virtual void FinalizeStressTensor(const ProcessInfo& r_process_info, double& rRepresentative_Volume){};
 virtual void SymmetrizeStressTensor();
+virtual void ComputeStrainTensor(const ProcessInfo& r_process_info);
+virtual void ComputeDifferentialStrainTensor(const ProcessInfo& r_process_info);
+virtual void SymmetrizeDifferentialStrainTensor();
 virtual void CorrectRepresentativeVolume(double& rRepresentative_Volume/*, bool& is_smaller_than_sphere*/);
 virtual void ComputeReactions();
 virtual void PrepareForPrinting(const ProcessInfo& r_process_info);
@@ -399,9 +402,6 @@ virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
 virtual void AddUpMomentsAndProject(double LocalCoordSystem[3][3],
                                     double ElasticLocalRotationalMoment[3],
                                     double ViscoLocalRotationalMoment[3]) final;
-
-virtual void ComputeStrainTensor();
-virtual void ComputeDifferentialStrainTensor();
 
 virtual void ComputeWear(double LocalRelVel[3],
                         double mTimeStep,
