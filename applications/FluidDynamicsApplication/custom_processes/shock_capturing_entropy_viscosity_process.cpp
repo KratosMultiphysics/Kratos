@@ -209,7 +209,8 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
 
     const double heat_capacity_ratio = mrModelPart.ElementsBegin()->GetProperties().GetValue(HEAT_CAPACITY_RATIO);
 
-    const auto geometry_size = mrModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension() == 3 ?
+    const unsigned int ndim = mrModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension();
+    const std::function<double(Geometry<Node<3>>*)> geometry_size = ndim == 3 ?
          [](const Geometry<Node<3>> * p_geom) { return p_geom->Volume(); }
         :[](const Geometry<Node<3>> * p_geom) { return p_geom->Area(); };
 
