@@ -32,16 +32,16 @@ class TestPrintInfoInFile(KratosUnittest.TestCase):
     submodel_2 = model_part.CreateSubModelPart("to_plot_2")
     submodel_2.AddNodes([3,4])
 
-    node1.SetSolutionStepValue(KM.DISPLACEMENT, [1.1,0,0])
-    node2.SetSolutionStepValue(KM.DISPLACEMENT, [2.6,0,0])
-    node3.SetSolutionStepValue(KM.DISPLACEMENT, [3.0,0,0])
-    node4.SetSolutionStepValue(KM.DISPLACEMENT, [4.3,0,0])
+    node1.SetSolutionStepValue(KM.DISPLACEMENT, [1.1,0.0,0.0])
+    node2.SetSolutionStepValue(KM.DISPLACEMENT, [2.6,0.0,0.0])
+    node3.SetSolutionStepValue(KM.DISPLACEMENT, [3.0,0.1,0.0])
+    node4.SetSolutionStepValue(KM.DISPLACEMENT, [4.3,0.0,0.3])
 
     settings = KM.Parameters("""{
         "model_part_name"                    : "test.to_plot",
         "variable_name"                      : "DISPLACEMENT",
         "results_type"                       : "nodal_historical",
-        "file_name"                          : "info_file.dat",
+        "file_name"                          : "info_file.txt",
         "output_control_type"                : "step",
         "erase_previous_info"                : true,
         "output_interval"                    : 1,
@@ -51,7 +51,8 @@ class TestPrintInfoInFile(KratosUnittest.TestCase):
     process = PrintProcess.PrintInfoInFileProcess(current_model, settings)
     process.PrintOutput()
 
-    expected = [0.0, 3.7, 0.0, 0.0]
+    expected   = [0.0, 3.7, 0.0, 0.0]
+    expected_2 = [0.0, 7.3, 0.1, 0.3]
 
     ref_file_name = os.path.abspath(settings["file_name"].GetString())
 
@@ -61,39 +62,16 @@ class TestPrintInfoInFile(KratosUnittest.TestCase):
                 err_msg += '" is not valid!'
                 raise Exception(err_msg)
 
-    with open(ref_file_name, "r+") as plot_file:
+    with open(ref_file_name, "r") as plot_file:
         contents = plot_file.readlines()
         for line in contents:
             if line[0] != "#":
                 numbers = line.split("\t")
-                if numbers[0] != 0.0 or numbers[1] != 3.7 or numbers[2] != 0.0 or numbers[3] != 0.0:
-                    raise Exception("The print does not give the expected result...")
+                if len(numbers) > 2:
+                    if float(numbers[0]) != 0.0 or float(numbers[1]) != 3.7 or float(numbers[2]) != 0.0 or float(numbers[3]) != 0.0:
+                        raise Exception("The print does not give the expected result...")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    os.remove(ref_file_name)
 
 if __name__ == '__main__':
     KratosUnittest.main()
