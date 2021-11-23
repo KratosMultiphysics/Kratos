@@ -16,7 +16,7 @@ class TimeBasedAsciiFileWriterUtility:
             "file_name"  : "",
             "output_path": "",
             "write_buffer_size" : -1,
-            "check_file_extension" : true
+            "file_extension" : "dat"
         }''')
         # write_buffer_size: -1 means we use the system default
         # write_buffer_size:  0 means no buffering is done. IMPORTANT : Only for binary output.
