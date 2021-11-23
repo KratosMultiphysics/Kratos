@@ -333,6 +333,12 @@ public:
         mGeometryShapeFunctionContainer = rGeometryShapeFunctionContainer;
     }
 
+    /// Returns the GeometryShapeFunctionContainer.
+    const GeometryShapeFunctionContainer<IntegrationMethod>& GetGeometryShapeFunctionContainer() const
+    {
+        return mGeometryShapeFunctionContainer;
+    }
+
     ///@}
     ///@name Informations
     ///@{
