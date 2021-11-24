@@ -216,14 +216,6 @@ private:
         return ((DerivativeNodeIndex == NodeIndexA) - (DerivativeNodeIndex == NodeIndexB)) * (DerivativeDirectionIndex == EdgeDirection);
     }
 
-    /// Computes the squared distance between two nodes
-    static double EdgeLengthSquared(
-        const array_1d<double, 3> &A,
-        const array_1d<double, 3> &B) {
-      array_1d<double, 3> edge = B - A;
-      return inner_prod(edge, edge);
-    }
-
     /**
      * @brief      Reduces the edge lengths according to a provided reduction.
      * @param[in]  rGeometry        The geometry
@@ -234,12 +226,21 @@ private:
         const Geometry<Node<3>>& rGeometry,
         double(*Reduction)(const double, const double))
     {
-        double val = EdgeLengthSquared(rGeometry[0], rGeometry[TNumNodes-1]);
+        KRATOS_DEBUG_ERROR_IF(rGeometry.size() != TNumNodes);
+
+        static const auto distance_2 = 
+            [&](const std::size_t j, const std::size_t k)
+        {
+            const array_1d<double, 3> edge = rGeometry[j] - rGeometry[k];
+            return inner_prod(edge, edge);
+        };
+
+        double val = distance_2(0, TNumNodes-1);
 
         for (std::size_t i = 1; i < TNumNodes; ++i)
         {
-            const double L2 = EdgeLengthSquared(rGeometry[i - 1], rGeometry[i]);
-            val = Reduction(val, L2);
+            const double edge_length_2 = distance_2(i-1, i);
+            val = Reduction(val, edge_length_2);
         }
 
         return std::sqrt(val);
