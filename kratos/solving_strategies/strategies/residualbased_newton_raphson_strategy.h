@@ -946,7 +946,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
         double old_residual = 0.0;
         double new_residual = 1.0e9;
-        const bool damped = false;
+        bool damped = false;
 
         TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
@@ -1025,6 +1025,8 @@ class ResidualBasedNewtonRaphsonStrategy
                         TSparseSpace::SetToZero(rb);
 
                         p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+                        // if (iteration_number > 5)
+                        //     damped = true;
                         if (damped) {
                             int iteration = 0;
                             UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
@@ -1039,7 +1041,7 @@ class ResidualBasedNewtonRaphsonStrategy
                                 const int echo = BaseType::GetEchoLevel();
                                 BaseType::SetEchoLevel(0);
 
-                                while (new_residual > old_residual && iteration < 999) {
+                                while (new_residual > old_residual && iteration < 30) {
                                     TSparseSpace::SetToZero(rb);
                                     TSparseSpace::InplaceMult(rDx, 0.5);
                                     UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
@@ -1078,8 +1080,11 @@ class ResidualBasedNewtonRaphsonStrategy
             EchoInfo(iteration_number);
 
             // Updating the results stored in the database
-            if (!damped)
-                UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
+            if (!damped) {
+                TSparseSpace::InplaceMult(rDx, 0.4);
+                UpdateDatabase(rA, rDx , rb, BaseType::MoveMeshFlag());
+            }
+
 
             p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
             mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
