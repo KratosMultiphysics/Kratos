@@ -226,8 +226,6 @@ private:
         const Geometry<Node<3>>& rGeometry,
         double(*Reduction)(const double, const double))
     {
-        KRATOS_DEBUG_ERROR_IF(rGeometry.size() != TNumNodes);
-
         static const auto distance_2 = 
             [&](const std::size_t j, const std::size_t k)
         {
