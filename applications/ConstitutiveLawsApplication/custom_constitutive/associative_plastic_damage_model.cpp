@@ -419,6 +419,13 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
                 rPDParameters.Slope     = CalculateSlopeFiniteDifferences(implicit_function, function_derivative, rValues, rPDParameters);
                 break;
             }
+            case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::InitialHardeningExponentialSoftening: {
+                ResidualFunctionType implicit_function   = ExponentialHardeningImplicitFunction();
+                ResidualFunctionType function_derivative = ExponentialHardeningImplicitFunctionDerivative();
+                rPDParameters.Threshold = CalculateThresholdImplicitExpression(implicit_function, function_derivative, rValues, rPDParameters);
+                rPDParameters.Slope     = CalculateSlopeFiniteDifferences(implicit_function, function_derivative, rValues, rPDParameters);
+                break;
+            }
         }
     }
 }
