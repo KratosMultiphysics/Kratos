@@ -231,9 +231,9 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(Triangle2D3MinimumEdgeSize, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
-            nodes.push_back(NodeType::Pointer(new NodeType(1,  0.0, 0.0, 0.0)));
-            nodes.push_back(NodeType::Pointer(new NodeType(2,  2.0, 0.0, 0.0)));
-            nodes.push_back(NodeType::Pointer(new NodeType(3, -2.0, 3.0, 0.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(1, -2.0, 3.0, 0.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(2,  0.0, 0.0, 0.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(3,  2.0, 0.0, 0.0)));
             const auto geometry = Triangle2D3<NodeType>(nodes);
             
             const double computed = ElementSizeCalculator<2,3>::MinimumEdgeSize(geometry);
@@ -245,9 +245,9 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(Triangle2D3MaximumEdgeSize, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
-            nodes.push_back(NodeType::Pointer(new NodeType(1,  0.0, 0.0, 0.0)));
-            nodes.push_back(NodeType::Pointer(new NodeType(2,  2.0, 0.0, 0.0)));
-            nodes.push_back(NodeType::Pointer(new NodeType(3, -2.0, 3.0, 0.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(1, -2.0, 3.0, 0.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(2,  0.0, 0.0, 0.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(3,  2.0, 0.0, 0.0)));
             const auto geometry = Triangle2D3<NodeType>(nodes);
             
             const double computed = ElementSizeCalculator<2,3>::MaximumEdgeSize(geometry);
