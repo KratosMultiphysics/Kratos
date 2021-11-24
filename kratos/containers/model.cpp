@@ -119,18 +119,12 @@ ModelPart& Model::GetModelPart(const std::string& rFullModelPartName)
     const auto delim_pos = rFullModelPartName.find(".");
     const std::string& root_model_part_name = rFullModelPartName.substr(0, delim_pos);
 
-    if (delim_pos == std::string::npos) //it is a root model part
-    {
+    if (delim_pos == std::string::npos) { //it is a root model part
         auto search = mRootModelPartMap.find(root_model_part_name);
-        if(search != mRootModelPartMap.end())
-        {
+        if(search != mRootModelPartMap.end()) {
             return *(search->second);
-        }
-        else //let's also search it as a flat name - a feature that SHOULD BE DEPRECATED
-        {
-
-            for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); it++)
-            {
+        } else { //let's also search it as a flat name - a feature that SHOULD BE DEPRECATED
+            for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); it++) {
                 ModelPart* pmodel_part = RecursiveSearchByName(root_model_part_name, (it->second.get()));
                 if (pmodel_part != nullptr) { //give back the first one that was found
                     // Get the names of the parent-modelparts to print them in the warning
@@ -180,23 +174,17 @@ const ModelPart& Model::GetModelPart(const std::string& rFullModelPartName) cons
     const auto delim_pos = rFullModelPartName.find('.');
     const std::string& root_model_part_name = rFullModelPartName.substr(0, delim_pos);
 
-    if (delim_pos == std::string::npos) //it is a root model part
-    {
+    if (delim_pos == std::string::npos) { //it is a root model part
         auto search = mRootModelPartMap.find(root_model_part_name);
-        if(search != mRootModelPartMap.end())
-        {
+        if(search != mRootModelPartMap.end()) {
             return *(search->second);
-        }
-        else //let's also search it as a flat name - a feature that SHOULD BE DEPRECATED
-        {
-
-            for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); it++)
-            {
-                ModelPart* pmodel_part = RecursiveSearchByName(root_model_part_name, (it->second.get()));
-                if (pmodel_part != nullptr) { //give back the first one that was found
+        } else { //let's also search it as a flat name - a feature that SHOULD BE DEPRECATED
+            for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); it++) {
+                ModelPart* p_model_part = RecursiveSearchByName(root_model_part_name, (it->second.get()));
+                if (p_model_part != nullptr) { //give back the first one that was found
                     // Get the names of the parent-modelparts to print them in the warning
                     std::vector<std::string> model_part_names;
-                    GetNameWithAscendants(*pmodel_part, model_part_names);
+                    GetNameWithAscendants(*p_model_part, model_part_names);
 
                     std::stringstream msg;
                     msg << model_part_names[0];
@@ -206,7 +194,7 @@ const ModelPart& Model::GetModelPart(const std::string& rFullModelPartName) cons
 
                     KRATOS_ERROR << "DEPRECATION: The ModelPart \"" << root_model_part_name << "\" is retrieved from the Model by using the flat-map!\nThis was removed end of November 2019\nPlease prepend the Parent-ModelPart-Names like this:\n\"" << msg.str() << "\"" << std::endl;
 
-                    return *pmodel_part;
+                    return *p_model_part;
                 }
             }
 
@@ -215,9 +203,7 @@ const ModelPart& Model::GetModelPart(const std::string& rFullModelPartName) cons
                     << "\" was not found either as root-ModelPart or as a flat name. The total input string was \""
                     << rFullModelPartName << "\"" << std::endl;
         }
-    }
-    else //it is a submodelpart with the full name provided
-    {
+    } else { //it is a submodelpart with the full name provided
         auto search = mRootModelPartMap.find(root_model_part_name);
         if(search != mRootModelPartMap.end()) {
             ModelPart* p_model_part = (search->second).get();
