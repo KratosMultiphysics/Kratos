@@ -26,7 +26,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
             "model_part_name"        : "",
             "coordinates"            : [[0.0, 0.0, 0.0]],
             "mean_water_level"       : 0.0,
-            "relative_search_radius" : 0.7,
+            "relative_search_radius" : 1.0,
             "search_tolerance"       : 1e-6,
             "file_names"             : [""],
             "output_path"            : [""],
