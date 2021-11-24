@@ -69,7 +69,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "formulation": {
                 "dynamic_tau": 1.0,
                 "surface_tension": false,
-                "mass_source":false
+                "mass_source":false,
+                "momentum_correction":false
             },
             "levelset_convection_settings": {
                 "max_CFL" : 1.0,
@@ -137,6 +138,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if (self.settings["formulation"].Has("surface_tension")):
             surface_tension = self.settings["formulation"]["surface_tension"].GetBool()
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.SURFACE_TENSION, surface_tension)
+
+        self.momentum_correction = False
+        if self.settings["formulation"].Has("momentum_correction"):
+            self.momentum_correction = self.settings["formulation"]["momentum_correction"].GetBool()
+        self.main_model_part.ProcessInfo.SetValue(KratosCFD.MOMENTUM_CORRECTION, self.momentum_correction)
 
         self._reinitialization_type = self.settings["distance_reinitialization"].GetString()
 
@@ -233,6 +239,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def InitializeSolutionStep(self):
 
+        if self.momentum_correction:
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCFD.DISTANCE_CORRECTION, 0.0, self.main_model_part.Nodes)
+
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
             outlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(),KratosMultiphysics.OUTLET)
@@ -283,11 +292,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if self.mass_source:
                 water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
                 volume_error = (water_volume_after_transport - system_volume) / system_volume
+                self.initial_system_volume=water_volume_after_transport
             else:
                 volume_error=0
 
             self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, volume_error)
 
+            # We set this value at every time step as other processes/solvers also use them
+            dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 
 
     def FinalizeSolutionStep(self):

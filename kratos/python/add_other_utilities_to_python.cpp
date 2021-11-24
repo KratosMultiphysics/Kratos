@@ -25,6 +25,7 @@
 #include "processes/process.h"
 #include "includes/fill_communicator.h"
 #include "includes/global_pointer_variables.h"
+#include "includes/kratos_filesystem.h"
 
 //Other utilities
 #include "utilities/function_parser_utility.h"
@@ -59,6 +60,9 @@
 #include "utilities/dense_svd_decomposition.h"
 #include "utilities/force_and_torque_utils.h"
 #include "utilities/sub_model_part_entities_boolean_operation_utility.h"
+#include "utilities/model_part_combination_utilities.h"
+#include "utilities/single_import_model_part.h"
+#include "utilities/rve_periodicity_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -258,7 +262,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
-        .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactAreaIntegration)
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<2,2>& rExactMortarIntegrationUtility, ModelPart& rMainModelPart, Condition::Pointer pSlaveCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(rMainModelPart, pSlaveCond);})
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<2,2>& rExactMortarIntegrationUtility, Condition::Pointer pSlaveCond, Condition::Pointer pMasterCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(pSlaveCond, pMasterCond);})
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<2,2>::GetConsiderDelaunator)
         ;
 
     py::class_<ExactMortarIntegrationUtility<3,3>>(m,"ExactMortarIntegrationUtility3D3N")
@@ -269,7 +275,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
-        .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,3>& rExactMortarIntegrationUtility, ModelPart& rMainModelPart, Condition::Pointer pSlaveCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(rMainModelPart, pSlaveCond);})
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,3>& rExactMortarIntegrationUtility, Condition::Pointer pSlaveCond, Condition::Pointer pMasterCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(pSlaveCond, pMasterCond);})
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<3,3>::GetConsiderDelaunator)
         .def("TestIODebug",&ExactMortarIntegrationUtility<3,3>::TestIODebug)
         ;
 
@@ -281,7 +289,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
-        .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,4>& rExactMortarIntegrationUtility, ModelPart& rMainModelPart, Condition::Pointer pSlaveCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(rMainModelPart, pSlaveCond);})
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,4>& rExactMortarIntegrationUtility, Condition::Pointer pSlaveCond, Condition::Pointer pMasterCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(pSlaveCond, pMasterCond);})
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<3,4>::GetConsiderDelaunator)
         .def("TestIODebug",&ExactMortarIntegrationUtility<3,4>::TestIODebug)
         ;
 
@@ -293,7 +303,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3,false,4>::TestGetExactIntegration)
-        .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3,false,4>::TestGetExactAreaIntegration)
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,3,false,4>& rExactMortarIntegrationUtility, ModelPart& rMainModelPart, Condition::Pointer pSlaveCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(rMainModelPart, pSlaveCond);})
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,3,false,4>& rExactMortarIntegrationUtility, Condition::Pointer pSlaveCond, Condition::Pointer pMasterCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(pSlaveCond, pMasterCond);})
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<3,3,false,4>::GetConsiderDelaunator)
         .def("TestIODebug",&ExactMortarIntegrationUtility<3,3,false,4>::TestIODebug)
         ;
 
@@ -305,7 +317,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactIntegration)
-        .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactAreaIntegration)
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,4,false,3>& rExactMortarIntegrationUtility, ModelPart& rMainModelPart, Condition::Pointer pSlaveCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(rMainModelPart, pSlaveCond);})
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,4,false,3>& rExactMortarIntegrationUtility, Condition::Pointer pSlaveCond, Condition::Pointer pMasterCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(pSlaveCond, pMasterCond);})
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<3,4,false,3>::GetConsiderDelaunator)
         .def("TestIODebug",&ExactMortarIntegrationUtility<3,4,false,3>::TestIODebug)
         ;
 
@@ -365,6 +379,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     // Auxiliar ModelPart Utility
     py::class_<AuxiliarModelPartUtilities, typename AuxiliarModelPartUtilities::Pointer>(m, "AuxiliarModelPartUtilities")
         .def(py::init<ModelPart&>())
+        .def("CopySubModelPartStructure", &AuxiliarModelPartUtilities::CopySubModelPartStructure)
         .def("RecursiveEnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities) { rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties();})
         .def("RecursiveEnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, const bool RemovePreviousProperties) { rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties(RemovePreviousProperties);})
         .def("EnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities) { rAuxiliarModelPartUtilities.EnsureModelPartOwnsProperties();})
@@ -642,7 +657,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         ;
 
     py::class_<FillCommunicator, FillCommunicator::Pointer>(m,"FillCommunicator")
-        .def(py::init<ModelPart& >() )
+        .def(py::init([](ModelPart& rModelPart){
+            KRATOS_WARNING("FillCommunicator") << "Using deprecated constructor. Please use constructor with data communicator!";
+            return Kratos::make_shared<FillCommunicator>(rModelPart, ParallelEnvironment::GetDefaultDataCommunicator());
+        }) )
         .def(py::init<ModelPart&, const DataCommunicator& >() )
         .def("Execute", &FillCommunicator::Execute)
         .def("PrintDebugInfo", &FillCommunicator::PrintDebugInfo)
@@ -675,6 +693,24 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     AddSubModelPartEntitiesBooleanOperationToPython<MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType>(
         m, "SubModelPartConstraintsBooleanOperationUtility");
 
+    py::class_<ModelPartCombinationUtilities, ModelPartCombinationUtilities::Pointer>(m,"ModelPartCombinationUtilities")
+        .def(py::init<Model& >() )
+        .def("CombineModelParts", [&](ModelPartCombinationUtilities &self, Parameters Param) { return &self.CombineModelParts(Param); }, py::return_value_policy::reference_internal)
+    ;
+
+    auto single_model_part_import = m.def_submodule("SingleImportModelPart");
+    single_model_part_import.def("Import", &SingleImportModelPart::Import );
+  
+    // RVE periodicity utility
+    py::class_<RVEPeriodicityUtility>(m,"RVEPeriodicityUtility")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, std::size_t>())
+        .def("AssignPeriodicity",&RVEPeriodicityUtility::AssignPeriodicity)
+        .def("Finalize",&RVEPeriodicityUtility::Finalize)
+        ;
+
+    auto fs_extensions = m.def_submodule("FilesystemExtensions");
+    fs_extensions.def("MPISafeCreateDirectories", &FilesystemExtensions::MPISafeCreateDirectories );
 }
 
 } // namespace Python.

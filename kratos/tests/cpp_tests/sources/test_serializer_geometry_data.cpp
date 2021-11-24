@@ -87,7 +87,7 @@ namespace Kratos {
             Matrix DN_De = triangle->ShapeFunctionLocalGradient(0);
 
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
-                GeometryData::GI_GAUSS_1,
+                GeometryData::IntegrationMethod::GI_GAUSS_1,
                 integration_points[0],
                 N_i,
                 DN_De);
@@ -104,7 +104,7 @@ namespace Kratos {
         Geometry<Node<3>>::Pointer GenerateQuadraturePoint2DTestLoad() {
 
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
-                GeometryData::GI_GAUSS_1,
+                GeometryData::IntegrationMethod::GI_GAUSS_1,
                 IntegrationPoint<3>(),
                 Matrix(),
                 Matrix());

@@ -35,6 +35,11 @@
             "dynamic_tau": 1.0,
             "mass_source": true
         },
+        "levelset_convection_settings": {
+            "element_settings" : {
+                "dynamic_tau" : 1.0
+            }
+        },
         "time_stepping"  : {
             "automatic_time_step" 	: false,
             "time_step"           	: 0.1
@@ -103,7 +108,7 @@
             "Parameters"    : {
                 "model_part_name" : "FluidModelPart.FluidParts_Fluid",
                 "variable_name"   : "BODY_FORCE",
-                "modulus"         : 10,
+                "modulus"         : 9.81,
                 "constrained"     : false,
                 "direction"       : [0.0,-1,0.0]
             }

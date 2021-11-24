@@ -74,8 +74,8 @@ namespace Kratos
 
     // LargeDisplacementElement::Initialize();
     const GeometryType &rGeom = this->GetGeometry();
-    SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-    // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_4);
+    SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_4);
     if (this->mCurrentTotalCauchyStress.size() != integration_points_number)
       this->mCurrentTotalCauchyStress.resize(integration_points_number);
 
@@ -139,8 +139,8 @@ namespace Kratos
   {
     KRATOS_TRY;
     const GeometryType &rGeom = this->GetGeometry();
-    SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-    // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_4);
+    SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_4);
 
     for (unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++)
     {
