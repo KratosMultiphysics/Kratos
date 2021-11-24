@@ -181,21 +181,8 @@ protected:
 
     void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
 
-    void CalculateArtificialViscosity(
-        BoundedMatrix<double,3,3>& rViscosity,
-        BoundedMatrix<double,2,2>& rDiffusion,
-        const ElementData& rData,
-        const BoundedMatrix<double,TNumNodes,2>& rDN_DX) override;
-
-    void CalculateArtificialDamping(
-        BoundedMatrix<double,3,3>& rFriction,
-        const ElementData& rData) override;
-
     double StabilizationParameter(const ElementData& rData) const override;
 
-    void CalculateGradient(array_1d<double,2>& rGradient, const GeometryType& rGeometry);
-
-    void CalculateEdgeUnitNormal(array_1d<double,2>& rNormal, const GeometryType& rGeometry);
 
     ///@}
 
