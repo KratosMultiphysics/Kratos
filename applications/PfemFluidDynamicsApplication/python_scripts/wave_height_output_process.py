@@ -12,8 +12,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
 
     This process records the wave height at several points.
     The direction used to calculate the water weight is defined as the opposite of the gravity direction.
-    The search radius is set as the average element half size plus the search tolerance. If no node is
-    found, Nan will be printed.
+    If no node is found, Nan will be printed.
     Possible specifications of the Parameters:
      - coordinates: it can be a single coordinate or a list of coordinates for each gauge.
      - file_names:  it can be a single string or a list of string. If there is a single string and
@@ -24,13 +23,14 @@ class WaveHeightOutputProcess(KM.OutputProcess):
 
     def GetDefaultParameters(self):
         default_parameters = KM.Parameters("""{
-            "model_part_name"      : "",
-            "coordinates"          : [[0.0, 0.0, 0.0]],
-            "mean_water_level"     : 0.0,
-            "search_tolerance"     : 1e-6,
-            "file_names"           : [""],
-            "output_path"          : [""],
-            "time_between_outputs" : 0.01
+            "model_part_name"        : "",
+            "coordinates"            : [[0.0, 0.0, 0.0]],
+            "mean_water_level"       : 0.0,
+            "relative_search_radius" : 0.7,
+            "search_tolerance"       : 1e-6,
+            "file_names"             : [""],
+            "output_path"            : [""],
+            "time_between_outputs"   : 0.01
         }""")
         if self.settings.Has("file_names"):
             if self.settings["file_names"].IsString():
@@ -79,6 +79,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
         utility_settings = KM.Parameters()
         utility_settings.AddValue("mean_water_level", self.settings["mean_water_level"])
         utility_settings.AddValue("search_tolerance", self.settings["search_tolerance"])
+        utility_settings.AddValue("relative_search_radius", self.settings["relative_search_radius"])
         self.wave_height_utility = PFEM.CalculateWaveHeightUtility(self.model_part, utility_settings)
 
     def IsOutputStep(self):
