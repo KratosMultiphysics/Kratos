@@ -208,6 +208,62 @@ void ShockCapturingEntropyViscosityProcess::ComputeNodalEntropies(const unsigned
 }
 
 
+/**
+ * @brief 2D specialization. Assumes nodes are contiguous.
+ */
+template<>
+double ShockCapturingEntropyViscosityProcess::MinimumEdgeLengthSquared<2>(
+    const Element& rElement)
+{
+    const auto& r_geometry = rElement.GetGeometry();
+
+    const auto edge_length_squared = 
+        [&](const std::size_t j, const std::size_t k) -> double
+    {
+        const array_1d<double, 3> edge = r_geometry[k] - r_geometry[j];
+        return inner_prod(edge, edge);
+    };
+
+    double h_squared = edge_length_squared(0, r_geometry.size()-1);
+
+    for(unsigned int i=1; i < r_geometry.size(); ++i)
+    {
+        const double length_2 = edge_length_squared(i-1, i);
+        h_squared = std::min(h_squared, length_2);
+    }
+
+    return h_squared;
+}
+
+
+/**
+ * @brief 3D specialization. Works properly only for tetrahedra
+ */
+template<>
+double ShockCapturingEntropyViscosityProcess::MinimumEdgeLengthSquared<3>(
+    const Element& rElement)
+{
+    const auto& r_geometry = rElement.GetGeometry();
+
+    KRATOS_WARNING_IF("ShockCapturingEntropyViscosityProcess", r_geometry.size() != 4)
+        << "This process is only properly implemented in 2D (any geometry) and 3D tetrahedra" << std::endl;
+    // Should also work for reasonably non-deformed hexahedra (since diagonals are counted as well)
+
+    double h_squared = std::numeric_limits<double>::max();
+    for(unsigned int i=0; i<r_geometry.size(); ++i)
+    {
+        for(unsigned int j=0; j<i; ++j)
+        {
+            const array_1d<double, 3> edge = r_geometry[j] - r_geometry[i];
+            h_squared = std::min(h_squared, inner_prod(edge, edge));
+        }
+    }
+
+    return h_squared;
+}
+
+
+
 void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
 {
     KRATOS_TRY
@@ -219,6 +275,7 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
     const double heat_capacity_ratio = mrModelPart.ElementsBegin()->GetProperties().GetValue(HEAT_CAPACITY_RATIO);
 
     const unsigned int ndim = mrModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension();
+    
     const auto geometry_size = [&ndim]() -> std::function<double(Geometry<Node<3>>*)>
     {
         if(ndim == 2) return [](const Geometry<Node<3>> * const p_geom) { return p_geom->Area(); };
@@ -226,10 +283,17 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
         KRATOS_ERROR << "Invalid number of dimensions (" << ndim <<"). Only 2D and 3D are supported" << std::endl;
     }(); // The simpler "const auto var = condition ? lambda1 : lambda2;" does not compile with MSVC
 
+    const auto minimum_edge_squared = [&]() -> std::function<double(const Element&)>
+    {
+        if(ndim == 2) return [](const Element& r_element) { return MinimumEdgeLengthSquared<2>(r_element); };
+        if(ndim == 3) return [](const Element& r_element) { return MinimumEdgeLengthSquared<3>(r_element); };
+        KRATOS_ERROR << "Invalid number of dimensions (" << ndim <<"). Only 2D and 3D are supported" << std::endl;
+    }();
+
     block_for_each(mrModelPart.Elements(), [&](Element& r_element)
     {
         const auto inf_norm = ComputeElementalInfNormData(r_element, delta_time, heat_capacity_ratio);
-        const double h2 = ComputeHSquared(r_element);
+        const double h2 = minimum_edge_squared(r_element);
 
         r_element.SetValue(SHOCK_SENSOR, inf_norm.EntropyResidual);
 
@@ -277,25 +341,6 @@ double ShockCapturingEntropyViscosityProcess::ComputeEntropy(
 {
     return Density / (Gamma - 1.0) * std::log(Pressure / std::pow(Density, Gamma));
 }
-
-
-double ShockCapturingEntropyViscosityProcess::ComputeHSquared(const Element& rElement)
-{
-    double h_squared = std::numeric_limits<double>::max();
-    const auto& r_geometry = rElement.GetGeometry();
-
-    // H is the shortest edge of the element
-    for(unsigned int i=0; i<r_geometry.size(); ++i)
-    {
-        const unsigned j = (i + 1) % r_geometry.size();
-        const auto edge = r_geometry[j] - r_geometry[i];
-        h_squared = std::min(h_squared, inner_prod(edge, edge));
-    }
-
-    return h_squared;
-}
-
-
 ShockCapturingEntropyViscosityProcess::InfNormData ShockCapturingEntropyViscosityProcess::ComputeElementalInfNormData(
     const Element& rElement,
     const double DeltaTime,

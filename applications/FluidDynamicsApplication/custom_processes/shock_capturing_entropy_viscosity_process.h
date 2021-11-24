@@ -262,8 +262,10 @@ private:
      * @param rElement
      * @return double
      */
-    static double ComputeHSquared(const Element& rElement);
+    template <unsigned int TDim>
+    static double MinimumEdgeLengthSquared(const Element &rElement);
 
+    
     /**
      * @brief Computes the infinity norm of entropy and residual
      *
