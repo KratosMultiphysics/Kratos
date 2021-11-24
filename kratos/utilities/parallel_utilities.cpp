@@ -13,6 +13,7 @@
 //
 
 // System includes
+#include <mutex>
 #include <algorithm>
 #include <cstdlib> // for std::getenv
 

@@ -55,8 +55,20 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
         test_name = 'test_darcy_law'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
-
-        self.assert_outflow_discharge(simulation, 2)
+        # analytical result
+        Q = 2
+        # results from kratos
+        outflow_discharge = self.calculate_outflow_discharge(simulation)
+        self.assert_outflow_discharge(simulation, Q)
+        error_outflow_discharge = abs(outflow_discharge - Q) / (Q + 1e-60)
+        print('Writing tex file in: ', os.path.abspath(file_path + "\\test_darcy_law_on_one_element.tex"))
+        output_file_for_latex = open(file_path + "\\test_darcy_law_on_one_element.tex", "w")
+        output_file_for_latex.write(' & '.join(['Q',
+                                                str(round(Q, 2)),
+                                                str(round(outflow_discharge, 2)),
+                                                str(round(error_outflow_discharge * 100, 2))]) +
+                                    ' \\\\ \hline \n')
+        output_file_for_latex.close()
 
     def test_flow_under_dam(self):
         for test_name, Q in self.test_confined_aquifer:
