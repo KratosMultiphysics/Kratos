@@ -77,7 +77,7 @@ class ApplyExcavationProcess : public Process
 
         const int nelements = mr_model_part.GetMesh(0).Elements().size();
         if (nelements != 0) {
-            if (mDeactivateSoilPart == true) {
+            if (mDeactivateSoilPart) {
                 // Deactivation of the existing parts:
                 // ( User must specify each part through the interface)
                 ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
@@ -115,7 +115,7 @@ class ApplyExcavationProcess : public Process
                 for (int i = 0; i < nnodes; ++i) {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
                     it->Set(ACTIVE, true);
-                    it->Set(SOLID, true);
+                    //it->Set(SOLID, true);
                 }
             }
         }
@@ -145,7 +145,7 @@ class ApplyExcavationProcess : public Process
                 else it_cond->Set(ACTIVE, false);
                 */
 
-                if (mDeactivateSoilPart == true) it_cond->Set(ACTIVE, false);
+                if (mDeactivateSoilPart) it_cond->Set(ACTIVE, false);
                 else it_cond->Set(ACTIVE, true);
 
             }

@@ -135,7 +135,7 @@ protected:
         ModelPart::NodesContainerType::iterator node_begin = rModelPart.NodesBegin();
 
         #pragma omp parallel for private(DeltaPressure)
-        for(int i = 0; i < NNodes; i++)
+        for(int i = 0; i < NNodes; ++i)
         {
             ModelPart::NodesContainerType::iterator itNode = node_begin + i;
 

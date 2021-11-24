@@ -1073,7 +1073,7 @@ void SmallStrainUPwDiffOrderElement::
         }
     } else if (rVariable == DEGREE_OF_SATURATION ||
              rVariable == EFFECTIVE_SATURATION ||
-             rVariable == BISHOP_COEFICIENT ||
+             rVariable == BISHOP_COEFFICIENT ||
              rVariable == DERIVATIVE_OF_SATURATION ||
              rVariable == RELATIVE_PERMEABILITY )
     {
@@ -1095,7 +1095,7 @@ void SmallStrainUPwDiffOrderElement::
 
             if (rVariable == DEGREE_OF_SATURATION)     rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
             if (rVariable == EFFECTIVE_SATURATION)     rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateEffectiveSaturation(RetentionParameters);
-            if (rVariable == BISHOP_COEFICIENT)        rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
+            if (rVariable == BISHOP_COEFFICIENT)        rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
             if (rVariable == DERIVATIVE_OF_SATURATION) rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(RetentionParameters);
             if (rVariable == RELATIVE_PERMEABILITY )   rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
         }

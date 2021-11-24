@@ -240,9 +240,7 @@ void SmallStrainUDSM3DLaw::InitializeMaterial(const Properties &rMaterialPropert
    // loading the model
    mIsUDSMLoaded = loadUDSM(rMaterialProperties);
 
-   if (!mIsUDSMLoaded) {
-      KRATOS_ERROR << "cannot load the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
-   }
+   KRATOS_ERROR_IF_NOT(mIsUDSMLoaded) << "cannot load the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
 
    const int nUmatParametersSize = rMaterialProperties[UMAT_PARAMETERS].size();
    const int nParametersUDSM = GetNumberOfMaterialParametersFromUDSM(rMaterialProperties);

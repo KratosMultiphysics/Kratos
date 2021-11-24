@@ -288,7 +288,7 @@ public:
     {
         KRATOS_TRY
 
-        if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING] == true) {
+        if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING]) {
             unsigned int Dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
             SizeType StressTensorSize = STRESS_TENSOR_SIZE_2D;

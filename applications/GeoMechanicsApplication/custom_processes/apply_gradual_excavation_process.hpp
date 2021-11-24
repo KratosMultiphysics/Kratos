@@ -124,7 +124,7 @@ class ApplyGradualExcavationProcess : public ApplyExcavationProcess
 
         double activate_coordinate = min_vertical_coordinate + deltaH;
 
-        if (nelements != 0 && mDeactivateSoilPart == true)
+        if (nelements != 0 && mDeactivateSoilPart)
         {
             ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
 
