@@ -254,7 +254,13 @@ private:
         const double ArtificialConductivity,
         const std::function<double(Geometry<Node<3>>*)>& rGeometrySize) const;
 
-    static double ComputeEntropy(const double Density, const double Pressure, const double Gamma);
+    static double ComputeEntropy(
+        const double Density, 
+        const double Pressure, 
+        const double Gamma)
+    {
+        return Density / (Gamma - 1.0) * std::log(Pressure / std::pow(Density, Gamma));
+    }
 
     /**
      * @brief Computes the square of the element's shortest edge

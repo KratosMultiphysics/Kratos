@@ -176,15 +176,6 @@ void ShockCapturingEntropyViscosityProcess::UpdateNodalAreaProcess()
 }
 
 
-double ShockCapturingEntropyViscosityProcess::ComputeEntropy(
-    const double Density,
-    const double Pressure,
-    const double Gamma)
-{
-    return Density / (Gamma - 1.0) * std::log(Pressure / std::pow(Density, Gamma));
-}
-
-
 void ShockCapturingEntropyViscosityProcess::ComputeNodalEntropies(const unsigned int WriteBufferIndex)
 {
     if(mrModelPart.GetCommunicator().LocalMesh().NumberOfElements() == 0) return; // empty mpdelpart
@@ -334,13 +325,6 @@ void ShockCapturingEntropyViscosityProcess::DistributeVariablesToNodes(
 }
 
 
-double ShockCapturingEntropyViscosityProcess::ComputeEntropy(
-    const double Density,
-    const double Pressure,
-    const double Gamma)
-{
-    return Density / (Gamma - 1.0) * std::log(Pressure / std::pow(Density, Gamma));
-}
 ShockCapturingEntropyViscosityProcess::InfNormData ShockCapturingEntropyViscosityProcess::ComputeElementalInfNormData(
     const Element& rElement,
     const double DeltaTime,
