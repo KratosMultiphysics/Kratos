@@ -7,6 +7,9 @@ from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos import kratos_base_wrapper
 
+# CoSimulation imports
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+
 # Importing PfemFluidDynamics
 if not CheckIfApplicationsAvailable("PfemFluidDynamicsApplication"):
     raise ImportError("The PfemFluidDynamicsApplication is not available!")
@@ -30,14 +33,28 @@ class PfemFluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
     def SolveSolutionStep(self):
         # Fix the velocity on the pfem interface nodes only
-        for fix_model_part in self.list_of_fix_free_model_parts:
-            fix_nodes_model_part = KM.PfemFluidDynamicsApplication.FixFreeVelocityOnNodesProcess(self._analysis_stage._GetSolver().model[fix_model_part], True)
+        for fix_model_part_name in self.list_of_fix_free_model_parts:
+            fix_model_part = self._analysis_stage._GetSolver().model[fix_model_part_name]
+            fix_nodes_model_part = KM.PfemFluidDynamicsApplication.FixFreeVelocityOnNodesProcess(fix_model_part, True)
             fix_nodes_model_part.Execute()
+            self._PrintFixationStatus(fix_model_part, fix_model_part_name, True)
 
         # solve PFEM
         super().SolveSolutionStep()
 
         # Free the velocity on the pfem interface nodes only
-        for free_model_part in self.list_of_fix_free_model_parts:
-            free_nodes_model_part = KM.PfemFluidDynamicsApplication.FixFreeVelocityOnNodesProcess(self._analysis_stage._GetSolver().model[free_model_part], False)
+        for free_model_part_name in self.list_of_fix_free_model_parts:
+            free_model_part = self._analysis_stage._GetSolver().model[free_model_part_name]
+            free_nodes_model_part = KM.PfemFluidDynamicsApplication.FixFreeVelocityOnNodesProcess(free_model_part, False)
             free_nodes_model_part.Execute()
+            self._PrintFixationStatus(free_model_part, free_model_part_name, False)
+
+    def _PrintFixationStatus(self, model_part, model_part_name, fix_free_status):
+        if(model_part.GetCommunicator().MyPID() == 0):
+            if(self.echo_level > 0):
+                if(fix_free_status):
+                    result_msg = " FIXED VELOCITY VALUES FOR THE NODES IN MODEL PART: " + model_part_name
+                else:
+                    result_msg = " FREED VELOCITY VALUES FOR THE NODES IN MODEL PART: " + model_part_name
+
+                cs_tools.cs_print_info(self._ClassName(), result_msg)

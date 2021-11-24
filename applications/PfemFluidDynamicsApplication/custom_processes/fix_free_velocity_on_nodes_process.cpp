@@ -38,12 +38,6 @@ void FixFreeVelocityOnNodesProcess::Execute()
     VariableUtils().ApplyFixity(VELOCITY_X, mFreeOrFix, mrModelPart.Nodes());
     VariableUtils().ApplyFixity(VELOCITY_Y, mFreeOrFix, mrModelPart.Nodes());
     VariableUtils().ApplyFixity(VELOCITY_Z, mFreeOrFix, mrModelPart.Nodes());
-
-    if (mFreeOrFix) {
-        KRATOS_INFO("FixFreeVelocityOnNodesProcess") << " FIXED VELOCITY VALUES FOR THE NODES " << std::endl;
-    } else {
-        KRATOS_INFO("FixFreeVelocityOnNodesProcess") << " FREED VELOCITY VALUES FOR THE NODES " << std::endl;
-    }
 }
 
 /***********************************************************************************/
