@@ -136,13 +136,14 @@ class SetOfModelParts():
 
 class GranulometryUtils():
 
-    def __init__(self, domain_volume, model_part):
+    def __init__(self, domain_volume, model_part, do_print_results_option=False):
 
         if domain_volume <= 0.0:
             raise ValueError(
                 "Error: The input domain volume must be strictly positive!")
 
         self.spheres_model_part = model_part
+        self.do_print_results_option = do_print_results_option
         self.UpdateData(domain_volume)
 
     def UpdateData(self, domain_volume):
@@ -159,8 +160,8 @@ class GranulometryUtils():
 
         self.voids_volume = domain_volume - self.solid_volume
         self.global_porosity = self.voids_volume / domain_volume
-
-        self.PrintCurrentData()
+        if self.do_print_results_option:
+            self.PrintCurrentData()
 
     def PrintCurrentData(self):
 
