@@ -23,7 +23,6 @@
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
-#include "utilities/variable_utils.h"
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -102,8 +101,6 @@ class ResidualBasedNewtonRaphsonStrategy
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
-
-    typedef std::size_t SizeType;
 
     ///@}
     ///@name Life Cycle
@@ -900,39 +897,6 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_CATCH("");
     }
 
-
-
-
-    void CalculateResidualNorm(
-        ModelPart& rModelPart,
-        TDataType& rResidualSolutionNorm,
-        DofsArrayType& rDofSet,
-        const TSystemVectorType& rb
-        )
-    {
-        // Initialize
-        TDataType residual_solution_norm = TDataType();
-        SizeType dof_num = 0;
-
-        // Auxiliar values
-        TDataType residual_dof_value = 0.0;
-        const auto it_dof_begin = rDofSet.begin();
-        const int number_of_dof = static_cast<int>(rDofSet.size());
-
-        #pragma omp parallel for firstprivate(residual_dof_value) reduction(+:residual_solution_norm, dof_num)
-        for (int i = 0; i < number_of_dof; i++) {
-            auto it_dof = it_dof_begin + i;
-
-            if (!it_dof->IsFixed()) {
-                const IndexType dof_id = it_dof->EquationId();
-                residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
-                residual_solution_norm += std::pow(residual_dof_value, 2);
-                dof_num++;
-            }
-        }
-        rResidualSolutionNorm = std::sqrt(residual_solution_norm) / dof_num;
-    }
-
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
@@ -943,10 +907,6 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
         auto& r_dof_set = p_builder_and_solver->GetDofSet();
-
-        double old_residual = 0.0;
-        double new_residual = 1.0e9;
-        bool damped = false;
 
         TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
@@ -997,9 +957,6 @@ class ResidualBasedNewtonRaphsonStrategy
             is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
         }
 
-        // ******** we compute old_residual
-        CalculateResidualNorm(r_model_part, old_residual, r_dof_set, rb);
-
         //Iteration Cycle... performed only for NonLinearProblems
         while (is_converged == false &&
                iteration_number++ < mMaxIterationNumber)
@@ -1020,40 +977,12 @@ class ResidualBasedNewtonRaphsonStrategy
                 {
                     if (GetKeepSystemConstantDuringIterations() == false)
                     {
+                        //A = 0.00;
                         TSparseSpace::SetToZero(rA);
                         TSparseSpace::SetToZero(rDx);
                         TSparseSpace::SetToZero(rb);
 
                         p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
-                        // if (iteration_number > 5)
-                        //     damped = true;
-                        if (damped) {
-                            int iteration = 0;
-                            UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
-                            p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
-                            CalculateResidualNorm(r_model_part, new_residual, r_dof_set, rb);
-                            if (new_residual > old_residual) {
-                                std::cout << "NR: Damping required -> " << "new residual is " + std::to_string(new_residual / old_residual) 
-                                    + " greater than the old one" << std::endl;
-
-                                TSparseSpace::SetToZero(rb);
-                                TSparseSpace::InplaceMult(rDx, -1.0);
-                                const int echo = BaseType::GetEchoLevel();
-                                BaseType::SetEchoLevel(0);
-
-                                while (new_residual > old_residual && iteration < 30) {
-                                    TSparseSpace::SetToZero(rb);
-                                    TSparseSpace::InplaceMult(rDx, 0.5);
-                                    UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
-                                    p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
-                                    CalculateResidualNorm(r_model_part, new_residual, r_dof_set, rb);
-                                    iteration++;
-                                }
-                                std::cout << "NR: Damping converged in " << std::to_string(iteration) + " iterations" << std::endl;
-                                old_residual = new_residual;
-                                BaseType::SetEchoLevel(echo);
-                            }
-                        }
                     }
                     else
                     {
@@ -1080,11 +1009,7 @@ class ResidualBasedNewtonRaphsonStrategy
             EchoInfo(iteration_number);
 
             // Updating the results stored in the database
-            if (!damped) {
-                TSparseSpace::InplaceMult(rDx, 0.4);
-                UpdateDatabase(rA, rDx , rb, BaseType::MoveMeshFlag());
-            }
-
+            UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
 
             p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
             mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
@@ -1100,6 +1025,7 @@ class ResidualBasedNewtonRaphsonStrategy
                     p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
                     residual_is_updated = true;
                 }
+
                 is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
             }
         }
