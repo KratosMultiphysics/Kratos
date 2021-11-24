@@ -192,6 +192,8 @@ void WaveElement<TNumNodes>::InitializeData(ElementData& rData, const ProcessInf
     rData.shock_stab_factor = rCurrentProcessInfo[SHOCK_STABILIZATION_FACTOR];
     rData.relative_dry_height = rCurrentProcessInfo[RELATIVE_DRY_HEIGHT];
     rData.gravity = rCurrentProcessInfo[GRAVITY_Z];
+    rData.amplitude = rCurrentProcessInfo[AMPLITUDE];
+    rData.wavelength = rCurrentProcessInfo[WAVELENGTH];
     rData.p_bottom_friction = FrictionLawsFactory().CreateBottomFrictionLaw(
         this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 }
