@@ -228,6 +228,34 @@ namespace Kratos
                 ElementSizeCalculator<3, 8>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
+        KRATOS_TEST_CASE_IN_SUITE(Triangle2D3MinimumEdgeSize, KratosCoreFastSuite)
+        {
+            Geometry<NodeType>::PointsArrayType nodes;
+            nodes.push_back(NodeType::Pointer(new NodeType(1,  0.0, 0.0, 0.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(2,  2.0, 0.0, 0.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(3, -2.0, 3.0, 0.0)));
+            const auto geometry = Triangle2D3<NodeType>(nodes);
+            
+            const double computed = ElementSizeCalculator<2,3>::MinimumEdgeSize(geometry);
+            constexpr double analytical = 2.0;
+
+            KRATOS_CHECK_NEAR(computed, analytical, 1e-8);
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(Triangle2D3MaximumEdgeSize, KratosCoreFastSuite)
+        {
+            Geometry<NodeType>::PointsArrayType nodes;
+            nodes.push_back(NodeType::Pointer(new NodeType(1,  0.0, 0.0, 0.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(2,  2.0, 0.0, 0.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(3, -2.0, 3.0, 0.0)));
+            const auto geometry = Triangle2D3<NodeType>(nodes);
+            
+            const double computed = ElementSizeCalculator<2,3>::MaximumEdgeSize(geometry);
+            constexpr double analytical = 5.0;
+
+            KRATOS_CHECK_NEAR(computed, analytical, 1e-8);
+        }
+
     } // namespace Testing
 
 } // namespace Kratos
