@@ -284,6 +284,9 @@ protected:
         double gravity;
         double length;
 
+        double amplitude;
+        double wavelength;
+
         double height;
         array_1d<double,3> velocity;
 
