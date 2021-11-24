@@ -210,9 +210,12 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
     const double heat_capacity_ratio = mrModelPart.ElementsBegin()->GetProperties().GetValue(HEAT_CAPACITY_RATIO);
 
     const unsigned int ndim = mrModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension();
-    const std::function<double(Geometry<Node<3>>*)> geometry_size = ndim == 3 ?
-         [](const Geometry<Node<3>> * p_geom) { return p_geom->Volume(); }
-        :[](const Geometry<Node<3>> * p_geom) { return p_geom->Area(); };
+    const auto geometry_size = [&ndim]() -> std::function<double(Geometry<Node<3>>*)>
+    {
+        if(ndim == 2) return [](const Geometry<Node<3>> * const p_geom) { return p_geom->Area(); };
+        if(ndim == 3) return [](const Geometry<Node<3>> * const p_geom) { return p_geom->Volume(); };
+        KRATOS_ERROR << "Invalid number of dimensions (" << ndim <<"). Only 2D and 3D are supported" << std::endl;
+    }(); // The simpler "const auto var = condition ? lambda1 : lambda2;" does not compile with MSVC
 
     block_for_each(mrModelPart.Elements(), [&](Element& r_element)
     {
