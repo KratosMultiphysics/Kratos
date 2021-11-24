@@ -28,7 +28,7 @@ Condition::Pointer UPwNormalFluxFICCondition<TDim,TNumNodes>::Create(IndexType N
 template< unsigned int TDim, unsigned int TNumNodes >
 GeometryData::IntegrationMethod UPwNormalFluxFICCondition<TDim,TNumNodes>::GetIntegrationMethod()
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

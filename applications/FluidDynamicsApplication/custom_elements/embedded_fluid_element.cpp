@@ -329,16 +329,16 @@ void EmbeddedFluidElement<TBaseElement>::DefineCutGeometryData(
     // Fluid side
     p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
         rData.PositiveSideN, rData.PositiveSideDNDX, rData.PositiveSideWeights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Fluid side interface
     p_calculator->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
         rData.PositiveInterfaceN, rData.PositiveInterfaceDNDX,
-        rData.PositiveInterfaceWeights, GeometryData::GI_GAUSS_2);
+        rData.PositiveInterfaceWeights, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Fluid side interface normals
     p_calculator->ComputePositiveSideInterfaceAreaNormals(
-        rData.PositiveInterfaceUnitNormals, GeometryData::GI_GAUSS_2);
+        rData.PositiveInterfaceUnitNormals, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Normalize the normals
     // Note: we calculate h here (and we don't use the value in rData.ElementSize)

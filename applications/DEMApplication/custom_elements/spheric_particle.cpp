@@ -33,6 +33,8 @@ SphericParticle::SphericParticle()
     mRadius = 0;
     mRealMass = 0;
     mStressTensor = NULL;
+    mStrainTensor = NULL;
+    mDifferentialStrainTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
@@ -44,6 +46,8 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     mRadius = 0;
     mRealMass = 0;
     mStressTensor = NULL;
+    mStrainTensor = NULL;
+    mDifferentialStrainTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
@@ -56,6 +60,8 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     mRadius = 0;
     mRealMass = 0;
     mStressTensor = NULL;
+    mStrainTensor = NULL;
+    mDifferentialStrainTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
@@ -68,6 +74,8 @@ SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNode
     mRadius = 0;
     mRealMass = 0;
     mStressTensor = NULL;
+    mStrainTensor = NULL;
+    mDifferentialStrainTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
@@ -86,6 +94,14 @@ SphericParticle::~SphericParticle(){
         mStressTensor = NULL;
         delete mSymmStressTensor;
         mSymmStressTensor = NULL;
+    }
+    if (mStrainTensor) {
+        delete mStrainTensor;
+        mStrainTensor = NULL;
+    }
+    if (mDifferentialStrainTensor) {
+        delete mDifferentialStrainTensor;
+        mDifferentialStrainTensor = NULL;
     }
     if (mpTranslationalIntegrationScheme!=NULL) {
         if(mpTranslationalIntegrationScheme != mpRotationalIntegrationScheme) delete mpTranslationalIntegrationScheme;
@@ -122,8 +138,9 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     mRealMass = rOther.mRealMass;
     mClusterId = rOther.mClusterId;
     mGlobalDamping = rOther.mGlobalDamping;
+    mDiscontinuumConstitutiveLaw = rOther.mDiscontinuumConstitutiveLaw->CloneUnique();
 
-    if(rOther.mStressTensor != NULL) {
+    if (rOther.mStressTensor != NULL) {
         mStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mStressTensor = *rOther.mStressTensor;
 
@@ -131,9 +148,22 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
         *mSymmStressTensor = *rOther.mSymmStressTensor;
     }
     else {
-
         mStressTensor     = NULL;
         mSymmStressTensor = NULL;
+    }
+    if (rOther.mStrainTensor) {
+        mStrainTensor  = new BoundedMatrix<double, 3, 3>(3,3);
+        *mStrainTensor = *rOther.mStrainTensor;
+    }
+    else {
+        mStrainTensor = NULL;
+    }
+    if (rOther.mDifferentialStrainTensor) {
+        mDifferentialStrainTensor  = new BoundedMatrix<double, 3, 3>(3,3);
+        *mDifferentialStrainTensor = *rOther.mDifferentialStrainTensor;
+    }
+    else {
+        mDifferentialStrainTensor = NULL;
     }
 
     mFastProperties = rOther.mFastProperties; //This might be unsafe
@@ -151,6 +181,8 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
 void SphericParticle::Initialize(const ProcessInfo& r_process_info)
 {
     KRATOS_TRY
+
+    this->mInitializationTime = r_process_info[TIME];
 
     SetValue(NEIGHBOUR_IDS, DenseVector<int>());
 
@@ -888,7 +920,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             }
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-                AddNeighbourContributionToStressTensor(r_process_info,GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
+                AddNeighbourContributionToStressTensor(r_process_info, GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
             }
 
             if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) { //TODO: we should avoid calling a processinfo for each neighbour. We can put it once per time step in the buffer??
@@ -940,7 +972,7 @@ void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericPa
     data_buffer.mLocalRelVel[2] = 0.0;
     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, data_buffer.mLocalRelVel);
 
-    mDiscontinuumConstitutiveLaw = pGetDiscontinuumConstitutiveLawWithNeighbour(p_neighbour_element);
+    mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithNeighbour(p_neighbour_element);
     mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce,
             LocalElasticContactForce, LocalDeltDisp, data_buffer.mLocalRelVel, indentation, previous_indentation,
             ViscoDampingLocalContactForce, cohesive_force, this, p_neighbour_element, sliding, LocalCoordSystem);
@@ -1049,7 +1081,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             if (indentation > 0.0) {
 
                 GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, DeltVel, data_buffer.mLocalRelVel);
-                mDiscontinuumConstitutiveLaw = pGetDiscontinuumConstitutiveLawWithFEMNeighbour(wall);
+                mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithFEMNeighbour(wall);
                 mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(r_process_info,
                                                                     OldLocalElasticContactForce,
                                                                     LocalElasticContactForce,
@@ -1189,7 +1221,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
         if (indentation > 0.0)
         {
             GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, DeltVel, data_buffer.mLocalRelVel);
-            mDiscontinuumConstitutiveLaw = pGetDiscontinuumConstitutiveLawWithFEMNeighbour(wall);
+            mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithFEMNeighbour(wall);
             mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(
                 r_process_info,
                 OldLocalElasticContactForce,
@@ -1567,13 +1599,100 @@ void SphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info){
             }
         }*/
 
-        FinalizeStressTensor(r_process_info, rRepresentative_Volume);
+        ComputeDifferentialStrainTensor(r_process_info);
+        SymmetrizeDifferentialStrainTensor();
+        ComputeStrainTensor(r_process_info);
 
+        FinalizeStressTensor(r_process_info, rRepresentative_Volume);
         SymmetrizeStressTensor();
     }
     KRATOS_CATCH("")
 }
 
+void SphericParticle::ComputeStrainTensor(const ProcessInfo& r_process_info) {
+
+    const int Dim = r_process_info[DOMAIN_SIZE];
+    for (int i = 0; i < Dim; i++) {
+        for (int j = 0; j < Dim; j++) {
+            (*mStrainTensor)(i,j) += (*mDifferentialStrainTensor)(i,j);
+        }
+    }
+}
+
+void SphericParticle::ComputeDifferentialStrainTensor(const ProcessInfo& r_process_info) {
+
+    const int Dim = r_process_info[DOMAIN_SIZE];
+    BoundedMatrix<double, 3, 3> CoefficientsMatrix = ZeroMatrix(3, 3);
+    BoundedMatrix<double, 3, 3> RightHandSide = ZeroMatrix(3, 3);
+    array_1d<double, 3> assembly_centroid;
+    array_1d<double, 3> assembly_average_delta_displacement;
+    array_1d<double, 3> relative_position;
+    array_1d<double, 3> relative_delta_displacement;
+    assembly_centroid = this->GetGeometry()[0].Coordinates();
+    assembly_average_delta_displacement = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+
+    int total_number_of_neighbours = 0;
+    for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+        if (!mNeighbourElements[i]) continue;
+        SphericParticle* neighbour_iterator = dynamic_cast<SphericParticle*>(mNeighbourElements[i]);
+        array_1d<double, 3> node_coordinates = neighbour_iterator->GetGeometry()[0].Coordinates();
+        assembly_centroid += node_coordinates;
+        array_1d<double, 3> node_delta_displacement = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+        assembly_average_delta_displacement += node_delta_displacement;
+        total_number_of_neighbours++;
+    }
+
+    assembly_centroid /= (1.0 + total_number_of_neighbours);  
+    assembly_average_delta_displacement /= (1.0 + total_number_of_neighbours);
+
+    relative_position = this->GetGeometry()[0].Coordinates() - assembly_centroid;
+    relative_delta_displacement = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT) - assembly_average_delta_displacement;
+    for (int i = 0; i < Dim; i++) {
+        for (int j = 0; j < Dim; j++) {
+            CoefficientsMatrix(j,i) += relative_position[j] * relative_position[i];
+            RightHandSide(j,i) += relative_delta_displacement[i] * relative_position[j];
+        }
+    }
+
+    for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+        if (!mNeighbourElements[i]) continue;
+        relative_position = mNeighbourElements[i]->GetGeometry()[0].Coordinates() - assembly_centroid;
+        relative_delta_displacement = mNeighbourElements[i]->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT) - assembly_average_delta_displacement;
+        for (int i = 0; i < Dim; i++) {
+            for (int j = 0; j < Dim; j++) {
+                CoefficientsMatrix(j,i) += relative_position[j] * relative_position[i];
+                RightHandSide(j,i) += relative_delta_displacement[i] * relative_position[j];
+            }
+        }
+    }
+
+    double det = 0.0;
+    BoundedMatrix<double, 3, 3> InvertedCoefficientsMatrix = ZeroMatrix(3, 3);
+
+    if (Dim == 2) {
+        CoefficientsMatrix(2,2) = 1.0;
+        RightHandSide(2,2) = 1.0;
+    }
+    MathUtils<double>::InvertMatrix3(CoefficientsMatrix, InvertedCoefficientsMatrix, det);
+    *mDifferentialStrainTensor = prod(InvertedCoefficientsMatrix, RightHandSide);
+    if (Dim == 2) {
+        (*mDifferentialStrainTensor)(2,2) = (*mDifferentialStrainTensor)(0,2) = (*mDifferentialStrainTensor)(1,2) = (*mDifferentialStrainTensor)(2,1) = (*mDifferentialStrainTensor)(2,0) = 0.0;
+    }
+}
+
+void SphericParticle::SymmetrizeDifferentialStrainTensor() {
+    
+    for (int i = 0; i < 3; i++) {
+        for (int j = i; j < 3; j++) {
+            (*mDifferentialStrainTensor)(i,j) = 0.5 * ((*mDifferentialStrainTensor)(i,j) + (*mDifferentialStrainTensor)(j,i));
+        }
+    }
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < i; j++) {
+            (*mDifferentialStrainTensor)(i,j) = (*mDifferentialStrainTensor)(j,i);
+        }
+    }
+}
 
 void SphericParticle::SymmetrizeStressTensor(){
     //The following operation symmetrizes the tensor. We will work with the symmetric stress tensor always, because the non-symmetric one is being filled while forces are being calculated
@@ -1625,6 +1744,8 @@ void SphericParticle::PrepareForPrinting(const ProcessInfo& r_process_info){
 
     if (this->Is(DEMFlags::PRINT_STRESS_TENSOR)) {
         this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_TENSOR) = (*mSymmStressTensor);
+        this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRAIN_TENSOR) = (*mStrainTensor);
+        this->GetGeometry()[0].FastGetSolutionStepValue(DEM_DIFFERENTIAL_STRAIN_TENSOR) = (*mDifferentialStrainTensor);
     }
 }
 
@@ -1763,9 +1884,6 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
     if (r_process_info[ROLLING_FRICTION_OPTION]) this->Set(DEMFlags::HAS_ROLLING_FRICTION, true);
     else                                         this->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
 
-    if (r_process_info[CRITICAL_TIME_OPTION])    this->Set(DEMFlags::HAS_CRITICAL_TIME, true);   //obsolete
-    else                                         this->Set(DEMFlags::HAS_CRITICAL_TIME, false);
-
     if (r_process_info[COMPUTE_STRESS_TENSOR_OPTION]) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
     else                                              this->Set(DEMFlags::HAS_STRESS_TENSOR, false);
 
@@ -1773,45 +1891,33 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
     else                                            this->Set(DEMFlags::PRINT_STRESS_TENSOR, false);
 
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-
         mStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mStressTensor = ZeroMatrix(3,3);
-
         mSymmStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mSymmStressTensor = ZeroMatrix(3,3);
+        mStrainTensor  = new BoundedMatrix<double, 3, 3>(3,3);
+        *mStrainTensor = ZeroMatrix(3,3);
+        mDifferentialStrainTensor  = new BoundedMatrix<double, 3, 3>(3,3);
+        *mDifferentialStrainTensor = ZeroMatrix(3,3);
     }
     else {
-
         mStressTensor     = NULL;
         mSymmStressTensor = NULL;
+        mStrainTensor     = NULL;
+        mDifferentialStrainTensor     = NULL;
     }
 
     mGlobalDamping = r_process_info[GLOBAL_DAMPING];
 }
 
-double SphericParticle::CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) {
-    KRATOS_TRY
-
-    double max_sqr_period = 0.0;
-    for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
-        mDiscontinuumConstitutiveLaw = pGetDiscontinuumConstitutiveLawWithNeighbour(mNeighbourElements[i]);
-        double sqr_period_discontinuum = mDiscontinuumConstitutiveLaw->LocalPeriod(i, this, mNeighbourElements[i]);
-        if (sqr_period_discontinuum > max_sqr_period) { (max_sqr_period = sqr_period_discontinuum); }
-    }
-
-    return max_sqr_period;
-
-    KRATOS_CATCH("")
+std::unique_ptr<DEMDiscontinuumConstitutiveLaw> SphericParticle::pCloneDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour) {
+    Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour->GetProperties().Id());
+    return properties_of_this_contact[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->CloneUnique();
 }
 
-DEMDiscontinuumConstitutiveLaw* SphericParticle::pGetDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour) {
+std::unique_ptr<DEMDiscontinuumConstitutiveLaw> SphericParticle::pCloneDiscontinuumConstitutiveLawWithFEMNeighbour(Condition* neighbour) {
     Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour->GetProperties().Id());
-    return &*properties_of_this_contact[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER];
-}
-
-DEMDiscontinuumConstitutiveLaw* SphericParticle::pGetDiscontinuumConstitutiveLawWithFEMNeighbour(Condition* neighbour) {
-    Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour->GetProperties().Id());
-    return &*properties_of_this_contact[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER];
+    return properties_of_this_contact[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->CloneUnique();
 }
 
 void SphericParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {}
@@ -1823,45 +1929,6 @@ double SphericParticle::GetInitialDeltaWithFEM(int index) {//only available in c
 
 void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {
     KRATOS_TRY
-
-    //CRITICAL DELTA CALCULATION
-
-    if (rVariable == DELTA_TIME) {
-        double mass = GetMass();
-        double coeff = r_process_info[NODAL_MASS_COEFF];
-
-        if(coeff > 1.0) {
-            KRATOS_ERROR << "The coefficient assigned for virtual mass is larger than one. Virtual_mass_coeff is "<< coeff << std::endl;
-        }
-        else if ((coeff == 1.0) && (r_process_info[VIRTUAL_MASS_OPTION])) {
-            Output = 9.0E09;
-        }
-        else {
-            if (r_process_info[VIRTUAL_MASS_OPTION]) {
-                mass = mass / (1 - coeff);
-            }
-
-            double eq_mass = 0.5 * mass; //"mass" of the contact
-
-            double kn = 0.0;
-            double kt = 0.0;
-
-            double ini_delta = 0.05 * GetInteractionRadius(); // Hertz needs an initial Delta, linear ignores it
-
-            mDiscontinuumConstitutiveLaw = pGetDiscontinuumConstitutiveLawWithNeighbour(this);
-            mDiscontinuumConstitutiveLaw->GetContactStiffness(this, this, ini_delta, kn, kt);
-
-            //double K = Globals::Pi * GetYoung() * GetRadius(); //M. Error, should be the same that the local definition.
-
-            Output = 0.34 * sqrt(eq_mass / kn);
-
-            if (this->Is(DEMFlags::HAS_ROTATION)) {
-                //Output *= 0.5; //factor for critical time step when rotation is allowed.
-            }
-        }
-
-        return;
-    }
 
     if (rVariable == PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY) {
 
@@ -2096,6 +2163,9 @@ void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<doubl
 
 int    SphericParticle::GetClusterId()                                                    { return mClusterId;      }
 void   SphericParticle::SetClusterId(int givenId)                                         { mClusterId = givenId;   }
+double SphericParticle::GetInitializationTime() const                                     { return mInitializationTime;}
+double SphericParticle::GetProgrammedDestructionTime() const {return mProgrammedDestructionTime;}
+void SphericParticle::SetProgrammedDestructionTime(const double destruction_time){mProgrammedDestructionTime = destruction_time;}
 double SphericParticle::GetRadius()                                                       { return mRadius;         }
 double SphericParticle::CalculateVolume()                                                 { return 4.0 * Globals::Pi / 3.0 * mRadius * mRadius * mRadius;     }
 void   SphericParticle::SetRadius(double radius)                                          { mRadius = radius;       }

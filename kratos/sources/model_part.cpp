@@ -20,6 +20,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/exception.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -58,14 +59,55 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
 /// Destructor.
 ModelPart::~ModelPart()
 {
+    Clear();
+}
+
+void ModelPart::Clear()
+{
+    KRATOS_TRY
+
+    // Call recursively clear of all submodel parts
+    for (auto& r_sub_model_part : mSubModelParts) {
+        r_sub_model_part.Clear();
+    }
+
+    // Clear sub model parts list
+    mSubModelParts.clear();
+
+    // Clear meshes
+    for(auto& r_mesh : mMeshes) {
+        r_mesh.Clear();
+    }
+
+    // Clear meshes list
+    mMeshes.clear();
+
+    // Clear geometries
+    mGeometries.Clear();
+
+    mTables.clear();
+
     mpCommunicator->Clear();
 
-    for(auto i_mesh = mMeshes.begin() ; i_mesh != mMeshes.end() ; i_mesh++)
-      i_mesh->Clear();
+    this->AssignFlags(Flags());
 
+    KRATOS_CATCH("");
+}
 
-//     if (!IsSubModelPart())
-//       delete mpVariablesList;
+void ModelPart::Reset()
+{
+    KRATOS_TRY
+
+    // Clears the model part
+    Clear();
+
+    // construct a new variable list and process info. Old data ptrs is not destroyed
+    // since, same data may be shared with some other model parts as well.
+    mpVariablesList = Kratos::make_intrusive<VariablesList>();
+    mpProcessInfo = Kratos::make_shared<ProcessInfo>();
+    mBufferSize = 0;
+
+    KRATOS_CATCH("");
 }
 
 ModelPart::IndexType ModelPart::CreateSolutionStep()
@@ -485,8 +527,11 @@ void ModelPart::SetNodalSolutionStepVariablesList()
         << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
-    for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); ++i_node)
-        i_node->SetSolutionStepVariablesList(mpVariablesList);
+    // Iterate over nodes
+    auto& r_nodes_array = this->Nodes();
+    block_for_each(r_nodes_array,[&](NodeType& rNode) {
+        rNode.SetSolutionStepVariablesList(mpVariablesList);
+    });
 }
 
 /** Inserts a Table
@@ -1729,7 +1774,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     )
 {
     KRATOS_TRY
-    
+
     if (IsSubModelPart()) {
         GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, GeometryId, pGeometryNodes);
         this->AddGeometry(p_new_geometry);
@@ -1746,7 +1791,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     this->AddGeometry(p_geometry);
 
     return p_geometry;
-    
+
     KRATOS_CATCH("")
 }
 
@@ -1757,7 +1802,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     )
 {
     KRATOS_TRY
-    
+
     if (IsSubModelPart()) {
         GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, GeometryId, pGeometry);
         this->AddGeometry(p_new_geometry);
@@ -1774,7 +1819,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     this->AddGeometry(p_geometry);
 
     return p_geometry;
-    
+
     KRATOS_CATCH("")
 }
 

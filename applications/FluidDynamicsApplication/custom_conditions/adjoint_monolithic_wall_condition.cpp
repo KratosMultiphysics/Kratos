@@ -545,9 +545,9 @@ void AdjointMonolithicWallCondition<TDim, TNumNodes>::ApplyNeumannCondition(
     this->CalculateData(area, detJ, unit_normal);
 
     const auto& r_geometry = this->GetGeometry();
-    const auto& integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
+    const auto& integration_points = r_geometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
     const IndexType number_of_gauss_points = integration_points.size();
-    const Matrix& N_container = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+    const Matrix& N_container = r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
     const IndexType block_size = rLocalVector.size() / TNumNodes;
 
     for (IndexType g = 0; g < number_of_gauss_points; ++g) {
@@ -582,9 +582,9 @@ void AdjointMonolithicWallCondition<TDim, TNumNodes>::ApplyNeumannConditionShape
 
     const auto& r_geometry = this->GetGeometry();
 
-    const auto& integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
+    const auto& integration_points = r_geometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
     const IndexType number_of_gauss_points = integration_points.size();
-    const Matrix& N_container = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+    const Matrix& N_container = r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
     const IndexType block_size = rLocalMatrix.size2() / TNumNodes;
 
     // compute data derivatives

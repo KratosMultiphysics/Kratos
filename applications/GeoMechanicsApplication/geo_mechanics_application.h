@@ -180,8 +180,8 @@ public:
     ///// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-          KRATOS_WATCH("in KratosGeoMechanicsApplication");
-          KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        KRATOS_WATCH("in KratosGeoMechanicsApplication");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
 
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
@@ -391,16 +391,14 @@ private:
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D27N;
 
     // geo structural element
-    const GeoCrBeamElement2D2N mGeoCrBeamElement2D2N;
-    const GeoCrBeamElement3D2N mGeoCrBeamElement3D2N;
+    const GeoCrBeamElement2D2N       mGeoCrBeamElement2D2N;
+    const GeoCrBeamElement3D2N       mGeoCrBeamElement3D2N;
     const GeoCrBeamElementLinear2D2N mGeoCrBeamElementLinear2D2N;
     const GeoCrBeamElementLinear3D2N mGeoCrBeamElementLinear3D2N;
-    const GeoTrussElement<2,2> mGeoTrussElement2D2N;
-    const GeoTrussElement<3,2> mGeoTrussElement3D2N;
-
+    const GeoTrussElement<2,2>       mGeoTrussElement2D2N;
+    const GeoTrussElement<3,2>       mGeoTrussElement3D2N;
     const GeoLinearTrussElement<2,2> mGeoLinearTrussElement2D2N;
     const GeoLinearTrussElement<3,2> mGeoLinearTrussElement3D2N;
-
     const GeoCableElement<2,2> mGeoCableElement2D2N;
     const GeoCableElement<3,2> mGeoCableElement3D2N;
 

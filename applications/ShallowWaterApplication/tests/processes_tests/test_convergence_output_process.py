@@ -3,7 +3,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 try:
-    import KratosMultiphysics.ShallowWaterApplication.output.convergence_output_process as convergence_output
+    import KratosMultiphysics.ShallowWaterApplication.postprocess.convergence_output_process as convergence_output
     import h5py
     h5py_available = True
 except ImportError:
@@ -34,6 +34,7 @@ class TestConvergenceOutputProcess(KratosUnittest.TestCase):
     def testSingleConvergenceOutputProcessCheck(self):
         if not h5py_available:
             self.skipTest('h5py is not available')
+
         settings = KM.Parameters('''{
             "Parameters"         : {
                 "model_part_name"            : "model_part",
@@ -60,6 +61,7 @@ class TestConvergenceOutputProcess(KratosUnittest.TestCase):
     def testMultipleConvergenceOutputProcessCheck(self):
         if not h5py_available:
             self.skipTest('h5py is not available')
+
         settings = KM.Parameters('''{
             "Parameters"         : {
                 "model_part_name"            : "model_part",

@@ -1261,7 +1261,7 @@ namespace Kratos
 	      Geometry< Node<3> >::Pointer pGeom = trianglegeom.Create(NewPoints);
 	      //const unsigned int number_of_points = pGeom->size();
 	      //KRATOS_WATCH(number_of_points);
-	      mThisIntegrationMethod= GeometryData::GI_GAUSS_2;
+	      mThisIntegrationMethod= GeometryData::IntegrationMethod::GI_GAUSS_2;
 
 	      typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
 	      //const GeomtryType::IntegrationPointsArrayType& integration_points = pGeom->IntegrationPoints(mThisIntegrationMethod);
@@ -1275,7 +1275,7 @@ namespace Kratos
 	      Element::GeometryType::JacobiansType J0;
 	      J0 = pGeom->Jacobian(J0, mThisIntegrationMethod);
 
-	      const Matrix& Ncontainer = pGeom->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+	      const Matrix& Ncontainer = pGeom->ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
 	      double xp=0.0;
 	      double yp=0.0;
@@ -1929,7 +1929,7 @@ namespace Kratos
               Geometry< Node<3> >::Pointer pGeom = rGeom.Create(NewPoints);
       	      //const unsigned int number_of_points = pGeom->size();
 	      //number of gauss points
-	      mThisIntegrationMethod= GeometryData::GI_GAUSS_2;
+	      mThisIntegrationMethod= GeometryData::IntegrationMethod::GI_GAUSS_2;
 
 	      typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
 
@@ -1941,7 +1941,7 @@ namespace Kratos
 	      Element::GeometryType::JacobiansType J0;
 	      J0 = pGeom->Jacobian(J0, mThisIntegrationMethod);
 
-	      const Matrix& Ncontainer = pGeom->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+	      const Matrix& Ncontainer = pGeom->ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 	      double xp=0.0;
 	      double yp=0.0;
 	      double zp=0.0;
