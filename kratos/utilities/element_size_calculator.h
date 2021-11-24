@@ -146,7 +146,7 @@ public:
         return ReduceEdgeLengths(rGeometry, [](const double x, const double y){ return std::min(x,y); });
     }
 
-    /// Element size based on the shortest edge.
+    /// Element size based on the longest edge.
     /**
      * @param rGeometry: The geometry to mesure the maximum size of
      */
