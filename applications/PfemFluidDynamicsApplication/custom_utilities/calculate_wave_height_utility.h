@@ -35,7 +35,7 @@ namespace Kratos
 * @brief This function computes the wave height at a given point
 * @details The direction is taken from the gravity variable in the ProcessInfo
 */
-class CalculateWaveHeightUtility
+class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) CalculateWaveHeightUtility
 {
 public:
     ///@name Pointer Definition
