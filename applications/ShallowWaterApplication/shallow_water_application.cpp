@@ -45,6 +45,8 @@ namespace Kratos
     
         mCrankNicolsonWaveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
     
+        mBoussinesqElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+
         mConservativeElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
 
         mShallowWater2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
@@ -133,6 +135,8 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("WaveElement2D9N", mWaveElement2D9N)
 
         KRATOS_REGISTER_ELEMENT("CrankNicolsonWaveElement2D3N", mCrankNicolsonWaveElement2D3N)
+
+        KRATOS_REGISTER_ELEMENT("BoussinesqElement2D3N", mConservativeElement2D3N)
 
         KRATOS_REGISTER_ELEMENT("ConservativeElement2D3N", mConservativeElement2D3N)
 

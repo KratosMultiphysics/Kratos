@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_CONSERVATIVE_ELEMENT_H_INCLUDED
-#define KRATOS_CONSERVATIVE_ELEMENT_H_INCLUDED
+#ifndef KRATOS_BOUSSINESQ_ELEMENT_H_INCLUDED
+#define KRATOS_BOUSSINESQ_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -232,4 +232,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CONSERVATIVE_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_BOUSSINESQ_ELEMENT_H_INCLUDED  defined
