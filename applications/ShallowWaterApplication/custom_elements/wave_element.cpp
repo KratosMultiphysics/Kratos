@@ -159,7 +159,7 @@ const Variable<double>& WaveElement<TNumNodes>::GetUnknownComponent(int Index) c
 }
 
 template<std::size_t TNumNodes>
-typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetUnknownVector(ElementData& rData)
+typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetUnknownVector(const ElementData& rData) const
 {
     std::size_t index = 0;
     array_1d<double,mLocalSize> unknown;
@@ -169,6 +169,19 @@ typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetUnkn
         unknown[index++] = rData.nodal_h[i];
     }
     return unknown;
+}
+
+template<std::size_t TNumNodes>
+typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetAccelerationsVector(const ElementData& rData) const
+{
+    std::size_t index = 0;
+    array_1d<double,mLocalSize> accelerations;
+    for (std::size_t i = 0; i < TNumNodes; ++i) {
+        accelerations[index++] = rData.nodal_a[i][0];
+        accelerations[index++] = rData.nodal_a[i][1];
+        accelerations[index++] = rData.nodal_w[i];
+    }
+    return accelerations;
 }
 
 template<std::size_t TNumNodes>
@@ -192,8 +205,10 @@ void WaveElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType
     {
         rData.nodal_h[i] = rGeometry[i].FastGetSolutionStepValue(HEIGHT, Step);
         rData.nodal_z[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY, Step);
+        rData.nodal_w[i] = rGeometry[i].FastGetSolutionStepValue(VERTICAL_VELOCITY, Step);
         rData.nodal_v[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY, Step);
         rData.nodal_q[i] = rGeometry[i].FastGetSolutionStepValue(MOMENTUM, Step);
+        rData.nodal_a[i] = rGeometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
     }
 }
 

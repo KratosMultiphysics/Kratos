@@ -38,7 +38,7 @@ const Variable<double>& ConservativeElement<TNumNodes>::GetUnknownComponent(int 
 }
 
 template<std::size_t TNumNodes>
-typename ConservativeElement<TNumNodes>::LocalVectorType ConservativeElement<TNumNodes>::GetUnknownVector(ElementData& rData)
+typename ConservativeElement<TNumNodes>::LocalVectorType ConservativeElement<TNumNodes>::GetUnknownVector(const ElementData& rData) const
 {
     std::size_t index = 0;
     array_1d<double,mLocalSize> unknown;
