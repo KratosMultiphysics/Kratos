@@ -348,6 +348,14 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
+    void AddDispersiveterms(
+        LocalMatrixType& rMatrix,
+        LocalVectorType& rVector,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0);
+
     void AddArtificialViscosityTerms(
         LocalMatrixType& rMatrix,
         const ElementData& rData,

@@ -114,6 +114,17 @@ double BoussinesqElement<TNumNodes>::StabilizationParameter(const ElementData& r
     return w * rData.length * rData.stab_factor / (lambda + epsilon);
 }
 
+template<std::size_t TNumNodes>
+void AddDispersiveterms(
+    LocalMatrixType& rMatrix,
+    LocalVectorType& rVector,
+    const ElementData& rData,
+    const array_1d<double,TNumNodes>& rN,
+    const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+    const double Weight = 1.0)
+{
+    
+}
 
 template class BoussinesqElement<3>;
 
