@@ -83,7 +83,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 }
             },
             "distance_reinitialization": "variational",
-            "parallel_redistance_max_layers" : 50,
+            "parallel_redistance_max_layers" : 25,
             "distance_smoothing": false,
             "distance_smoothing_coefficient": 1.0,
             "distance_modification_settings": {
