@@ -73,7 +73,9 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         ascii_writer_params.AddValue("output_path", settings["output_path"])
         ascii_writer_params.AddValue("write_buffer_size", settings["write_buffer_size"])
         ascii_writer_params.AddEmptyValue("file_extension")
-        ascii_writer_params["file_extension"].SetString(Path(self.file_name).suffix)
+
+        file_extension = Path(self.file_name).suffix[1:len(Path(self.file_name).suffix)] # we avoid duplicating the "."
+        ascii_writer_params["file_extension"].SetString(file_extension)
         header = "# In this file we print the " + settings["results_type"].GetString() + " " + settings["variable_name"].GetString() + " in the ModelPart: " + settings["model_part_name"].GetString() + "\n\n" + "# TIME\t\t" + settings["variable_name"].GetString() + "\n"
         self.ascii_writer = AsciiWriter.TimeBasedAsciiFileWriterUtility(self.model_part, ascii_writer_params, header).file
 
