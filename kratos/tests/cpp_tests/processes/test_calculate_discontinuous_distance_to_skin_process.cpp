@@ -860,7 +860,7 @@ namespace Testing {
 
         // Check edge distances
         const auto &r_elem_dist_edge = (volume_part.ElementsBegin())->GetValue(ELEMENTAL_EDGE_DISTANCES);
-        const std::vector<double> expected_values_edge = {-1,-1,-1,0.961531,-1,-1};
+        const std::vector<double> expected_values_edge = {-1,-1,-1,0.959824,-1,-1};
         KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_edge, expected_values_edge, 1.0e-6);
     }
 
