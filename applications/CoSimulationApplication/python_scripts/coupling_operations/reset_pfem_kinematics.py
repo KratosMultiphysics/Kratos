@@ -21,8 +21,8 @@ class ResetPfemKinematics(CoSimulationCouplingOperation):
     def __init__(self, settings, solver_wrappers, process_info):
         super().__init__(settings, process_info)
         model = solver_wrappers[self.settings["solver"].GetString()].model
-        model_part_name = self.settings["model_part_name"].GetString()
-        self.model_part = model[model_part_name]
+        self.model_part_name = self.settings["model_part_name"].GetString()
+        self.model_part = model[self.model_part_name]
 
         self.interval = KM.IntervalUtility(settings)
 
@@ -34,7 +34,7 @@ class ResetPfemKinematics(CoSimulationCouplingOperation):
             if(self.model_part.GetCommunicator().MyPID() == 0):
                 if(self.echo_level > 0):
                     # print to screen the results at echo level 1 or higher
-                    result_msg = " PFEM KINEMATICS RESET "
+                    result_msg = " PFEM KINEMATICS RESET IN MODEL PART: " + self.model_part_name
                     cs_tools.cs_print_info(self._ClassName(), result_msg)
 
     def _ResetPfemKinematicValues(self):
