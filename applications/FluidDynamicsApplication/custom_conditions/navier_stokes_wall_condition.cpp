@@ -513,7 +513,7 @@ template<>
 void NavierStokesWallCondition<2,2>::ProjectViscousStress(
     const Vector& rViscousStress,
     const array_1d<double,3> rNormal,
-    array_1d<double,3> rProjectedViscousStress)
+    array_1d<double,3>& rProjectedViscousStress)
 {
     rProjectedViscousStress[0] = rViscousStress[0] * rNormal[0] + rViscousStress[2] * rNormal[1];
     rProjectedViscousStress[1] = rViscousStress[2] * rNormal[0] + rViscousStress[1] * rNormal[1];
@@ -524,7 +524,7 @@ template<>
 void NavierStokesWallCondition<3,3>::ProjectViscousStress(
     const Vector& rViscousStress,
     const array_1d<double,3> rNormal,
-    array_1d<double,3> rProjectedViscousStress)
+    array_1d<double,3>& rProjectedViscousStress)
 {
     rProjectedViscousStress[0] = rViscousStress[0] * rNormal[0] + rViscousStress[3] * rNormal[1] + rViscousStress[5] * rNormal[2];
     rProjectedViscousStress[1] = rViscousStress[3] * rNormal[0] + rViscousStress[1] * rNormal[1] + rViscousStress[4] * rNormal[2];
