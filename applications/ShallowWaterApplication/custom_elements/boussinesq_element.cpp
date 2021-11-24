@@ -126,6 +126,7 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
     const double C3 = beta + 0.5;
     const double C4 = beta;
     const double H = rData.depth;
+    const double lumping_factor = 1.0 / double(TNumNodes);
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
@@ -141,7 +142,7 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
 
             laplacian = outer_prod(gradients_vector_i, gradients_vector_j);
 
-            height_aux = (C1 + C3) * std::pow(H,3) * (rDN_DX(j,0) + rDN_DX(j,1)) * laplacian;
+            height_aux = (C1 + C3) * std::pow(H,3) * (rDN_DX(j,0) + rDN_DX(j,1)) * lumping_factor * laplacian;
             velocity_aux = (C2 + C4) * std::pow(H,2) * laplacian;
 
             MathUtils<double>::AddMatrix(height_dispersion, Weight * height_aux, 3*i, 3*j);
