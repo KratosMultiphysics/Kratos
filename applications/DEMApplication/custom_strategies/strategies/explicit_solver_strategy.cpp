@@ -857,10 +857,8 @@ namespace Kratos {
       }
 
       // Set switches
-      if      (update_voronoi && update_porosity) meshing_options = "JQv";
-      else if (update_voronoi)                    meshing_options = "JQv";
-      else if (update_porosity)                   meshing_options = "JQ";
-      //"JQefcv";
+      if      (update_voronoi)  meshing_options = "JQv";
+      else if (update_porosity) meshing_options = "JQ";
 
       // Perform tetrahedralization
       int fail = 0;
@@ -892,58 +890,71 @@ namespace Kratos {
           int num_face_edges = face.elist[0];
 
           // Vertices of 1st edge of voronoi face
-          tetgenio::voroedge edge1 = out.vedgelist[face.elist[1] - 1];
-          int e1v1 = edge1.v1 - 1;
-          int e1v2 = edge1.v2 - 1;
+          tetgenio::voroedge edge = out.vedgelist[face.elist[1] - 1];
+          int ev1 = edge.v1 - 1;
+          int ev2 = edge.v2 - 1;
 
-          // Irradiating coordinates from a vertex of 1st edge
-          int ev0 = (e1v1 >= 0) ? e1v1 : e1v2;
-          double x0 = out.vpointlist[3 * ev0 + 0];
-          double y0 = out.vpointlist[3 * ev0 + 1];
-          double z0 = out.vpointlist[3 * ev0 + 2];
+          // Check if face is bounded
+          bool bounded_face = ev1 >= 0 && ev2 >= 0;
 
-          // Triangle area irradiation
-          for (int j = 2; j <= num_face_edges; j++) {
-            double triangle_area = 0.0;
+          if (bounded_face) {
+            // Irradiating coordinates from a vertex of 1st edge
+            double x0 = out.vpointlist[3 * ev1 + 0];
+            double y0 = out.vpointlist[3 * ev1 + 1];
+            double z0 = out.vpointlist[3 * ev1 + 2];
 
-            // Edge vertices
-            tetgenio::voroedge edge = out.vedgelist[face.elist[j] - 1];
-            int ev1 = edge.v1 - 1;
-            int ev2 = edge.v2 - 1;
+            // Triangle area irradiation
+            for (int j = 2; j <= num_face_edges; j++) {
+              // Edge vertices
+              edge = out.vedgelist[face.elist[j] - 1];
+              ev1  = edge.v1 - 1;
+              ev2  = edge.v2 - 1;
 
-            // Edge vertices coordinates
-            double x1 = out.vpointlist[3 * ev1 + 0];
-            double y1 = out.vpointlist[3 * ev1 + 1];
-            double z1 = out.vpointlist[3 * ev1 + 2];
-            double x2 = out.vpointlist[3 * ev2 + 0];
-            double y2 = out.vpointlist[3 * ev2 + 1];
-            double z2 = out.vpointlist[3 * ev2 + 2];
+              // Check if face is bounded
+              if (ev1 < 0 || ev2 < 0) {
+                bounded_face = false;
+                break;
+              }
 
-            // Area of triangle in space
-            array_1d<double, 3> AB;
-            array_1d<double, 3> AC;
-            array_1d<double, 3> ABxAC;
-            AB[0] = x1 - x0;
-            AB[1] = y1 - y0;
-            AB[2] = z1 - z0;
-            AC[0] = x2 - x0;
-            AC[1] = y2 - y0;
-            AC[2] = z2 - z0;
-            GeometryFunctions::CrossProduct(AB, AC, ABxAC);
-            triangle_area = DEM_MODULUS_3(ABxAC) / 2.0;
-            face_area += triangle_area;
+              // Edge vertices coordinates
+              double x1 = out.vpointlist[3 * ev1 + 0];
+              double y1 = out.vpointlist[3 * ev1 + 1];
+              double z1 = out.vpointlist[3 * ev1 + 2];
+              double x2 = out.vpointlist[3 * ev2 + 0];
+              double y2 = out.vpointlist[3 * ev2 + 1];
+              double z2 = out.vpointlist[3 * ev2 + 2];
+
+              // Area of triangle in space
+              array_1d<double, 3> AB;
+              array_1d<double, 3> AC;
+              array_1d<double, 3> ABxAC;
+              AB[0] = x1 - x0;
+              AB[1] = y1 - y0;
+              AB[2] = z1 - z0;
+              AC[0] = x2 - x0;
+              AC[1] = y2 - y0;
+              AC[2] = z2 - z0;
+              GeometryFunctions::CrossProduct(AB, AC, ABxAC);
+              face_area += DEM_MODULUS_3(ABxAC) / 2.0;
+            }
           }
 
-          // Equivalent radius
-          double radius = sqrt(face_area / Globals::Pi);
-
-          // Delaunay vertices adjacent to voronoi face
+          // Delaunay vertices adjacent to voronoi face and corresponding particles
           int vd1 = face.c1 - 1;
           int vd2 = face.c2 - 1;
-
-          // Add info to table of both particles
           ThermalSphericParticle<SphericParticle>* particle_1 = dynamic_cast<ThermalSphericParticle<SphericParticle>*>(mListOfSphericParticles[vd1]);
           ThermalSphericParticle<SphericParticle>* particle_2 = dynamic_cast<ThermalSphericParticle<SphericParticle>*>(mListOfSphericParticles[vd2]);
+
+          // Equivalent radius
+          double radius = 0.0;
+
+          if (bounded_face)
+            radius = sqrt(face_area / Globals::Pi);
+          else
+            // Assumption: radius of unbounded voronoi face is proportional to the particles radius
+            radius = 0.75 * (particle_1->GetRadius() + particle_2->GetRadius());
+
+          // Add info to table of both particles
           particle_1->mNeighborVoronoiRadius[vd2] = radius;
           particle_2->mNeighborVoronoiRadius[vd1] = radius;
         }
@@ -996,6 +1007,7 @@ namespace Kratos {
           mMeanMeshSize /= out.numberoftetrahedra;
         }
 
+        // Accumulate total volume of tetahedra and particles
         #pragma omp parallel for schedule(dynamic, 100)
         for (int i = 0; i < out.numberoftetrahedra; i++) {
           // Get vertices IDs
@@ -1017,6 +1029,79 @@ namespace Kratos {
           double x4 = out.pointlist[3 * v4 + 0];
           double y4 = out.pointlist[3 * v4 + 1];
           double z4 = out.pointlist[3 * v4 + 2];
+
+          // Perform alpha-shape
+          if (r_process_info[POSORITY_METHOD].compare("average_alpha_shape") == 0) {
+            double AlphaRadius = mMeanMeshSize * r_process_info[ALPHA_SHAPE_PARAMETER];
+
+            // Calculate Jacobian
+            BoundedMatrix<double, 3, 3> J;
+            J(0, 0) = x2 - x1;
+            J(1, 0) = x3 - x1;
+            J(2, 0) = x4 - x1;
+            J(0, 1) = y2 - y1;
+            J(1, 1) = y3 - y1;
+            J(2, 1) = y4 - y1;
+            J(0, 2) = z2 - z1;
+            J(1, 2) = z3 - z1;
+            J(2, 2) = z4 - z1;
+
+            // Calculate the inverse of the Jacobian
+            BoundedMatrix<double, 3, 3> Jinv;
+            Jinv(0, 0) =  J(1, 1) * J(2, 2) - J(1, 2) * J(2, 1);
+            Jinv(1, 0) = -J(1, 0) * J(2, 2) + J(1, 2) * J(2, 0);
+            Jinv(2, 0) =  J(1, 0) * J(2, 1) - J(1, 1) * J(2, 0);
+            Jinv(0, 1) = -J(0, 1) * J(2, 2) + J(0, 2) * J(2, 1);
+            Jinv(1, 1) =  J(0, 0) * J(2, 2) - J(0, 2) * J(2, 0);
+            Jinv(2, 1) = -J(0, 0) * J(2, 1) + J(0, 1) * J(2, 0);
+            Jinv(0, 2) =  J(0, 1) * J(1, 2) - J(0, 2) * J(1, 1);
+            Jinv(1, 2) = -J(0, 0) * J(1, 2) + J(0, 2) * J(1, 0);
+            Jinv(2, 2) =  J(0, 0) * J(1, 1) - J(0, 1) * J(1, 0);
+
+            // Calculate the determinant (volume/6)
+            double vol = J(0, 0) * Jinv(0, 0) + J(0, 1) * Jinv(1, 0) + J(0, 2) * Jinv(2, 0);
+
+            // Calculate sphere center
+            BoundedVector<double, 3> RHS;
+            Vector Center = ZeroVector(3);
+            RHS[0]    = (J(0, 0) * J(0, 0) + J(0, 1) * J(0, 1) + J(0, 2) * J(0, 2));
+            RHS[1]    = (J(1, 0) * J(1, 0) + J(1, 1) * J(1, 1) + J(1, 2) * J(1, 2));
+            RHS[2]    = (J(2, 0) * J(2, 0) + J(2, 1) * J(2, 1) + J(2, 2) * J(2, 2));
+            Center[0] =  (+RHS[0]) * (J(1, 1) * J(2, 2) - J(1, 2) * J(2, 1));
+            Center[1] =  (-RHS[0]) * (J(1, 0) * J(2, 2) - J(1, 2) * J(2, 0));
+            Center[2] =  (+RHS[0]) * (J(1, 0) * J(2, 1) - J(1, 1) * J(2, 0));
+            Center[0] += (+RHS[1]) * (J(2, 1) * J(0, 2) - J(2, 2) * J(0, 1));
+            Center[1] += (-RHS[1]) * (J(2, 0) * J(0, 2) - J(2, 2) * J(0, 0));
+            Center[2] += (+RHS[1]) * (J(2, 0) * J(0, 1) - J(2, 1) * J(0, 0));
+            Center[0] += (+RHS[2]) * (J(0, 1) * J(1, 2) - J(0, 2) * J(1, 1));
+            Center[1] += (-RHS[2]) * (J(0, 0) * J(1, 2) - J(0, 2) * J(1, 0));
+            Center[2] += (+RHS[2]) * (J(0, 0) * J(1, 1) - J(0, 1) * J(1, 0));
+            Center /= (2.0 * vol);
+
+            // Calculate sphere radius
+            double radius = norm_2(Center);
+
+            // Rejected tetahedron
+            if (radius < 0 || radius >= AlphaRadius)
+              continue;
+          }
+
+          // Add tetahedron volume
+          array_1d<double, 3> a;
+          array_1d<double, 3> b;
+          array_1d<double, 3> c;
+          array_1d<double, 3> bxc;
+          a[0] = x2 - x1;
+          a[1] = y2 - y1;
+          a[2] = z2 - z1;
+          b[0] = x3 - x1;
+          b[1] = y3 - y1;
+          b[2] = z3 - z1;
+          c[0] = x4 - x1;
+          c[1] = y4 - y1;
+          c[2] = z4 - z1;
+          GeometryFunctions::CrossProduct(b, c, bxc);
+          total_volume += fabs(GeometryFunctions::DotProduct(a, bxc)) / 6.0;
 
           // Add particles volume
           if (!addedParticle[v1]) {
