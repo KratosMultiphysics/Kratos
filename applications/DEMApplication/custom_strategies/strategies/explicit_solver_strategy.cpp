@@ -862,7 +862,7 @@ namespace Kratos {
       else if (update_porosity)                   meshing_options = "JQ";
       //"JQefcv";
 
-      // Perform triangulation
+      // Perform tetrahedralization
       int fail = 0;
       try {
         tetrahedralize(meshing_options, &in, &out);
@@ -897,9 +897,10 @@ namespace Kratos {
           int e1v2 = edge1.v2 - 1;
 
           // Irradiating coordinates from a vertex of 1st edge
-          double x0   = out.vpointlist[3 * e1v1 + 0];
-          double y0   = out.vpointlist[3 * e1v1 + 1];
-          double z0   = out.vpointlist[3 * e1v1 + 2];
+          int ev0 = (e1v1 >= 0) ? e1v1 : e1v2;
+          double x0 = out.vpointlist[3 * ev0 + 0];
+          double y0 = out.vpointlist[3 * ev0 + 1];
+          double z0 = out.vpointlist[3 * ev0 + 2];
 
           // Triangle area irradiation
           for (int j = 2; j <= num_face_edges; j++) {
