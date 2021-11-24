@@ -139,7 +139,7 @@ public:
 
     /// Element size based on the shortest edge.
     /**
-     * @param rGeometry: The geometry to mesure the minimum size of
+     * @param rGeometry: The geometry to measure the minimum size of
      */
     static double MinimumEdgeSize(const Geometry<Node<3>>& rGeometry)
     {        
@@ -148,7 +148,7 @@ public:
 
     /// Element size based on the longest edge.
     /**
-     * @param rGeometry: The geometry to mesure the maximum size of
+     * @param rGeometry: The geometry to measure the maximum size of
      */
     static double MaximumEdgeSize(const Geometry<Node<3>>& rGeometry)
     {
