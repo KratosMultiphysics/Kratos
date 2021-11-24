@@ -136,6 +136,25 @@ public:
      */
     static double GradientsElementSize(const BoundedMatrix<double, 4, 3>& rDN_DX);
 
+
+    /// Element size based on the shortest edge.
+    /**
+     * @param rGeometry: The geometry to mesure the minimum size of
+     */
+    static double MinimumEdgeSize(const Geometry<Node<3>>& rGeometry)
+    {        
+        return ReduceEdgeLengths(rGeometry, [](const double x, const double y){ return std::min(x,y); });
+    }
+
+    /// Element size based on the shortest edge.
+    /**
+     * @param rGeometry: The geometry to mesure the maximum size of
+     */
+    static double MaximumEdgeSize(const Geometry<Node<3>>& rGeometry)
+    {
+        return ReduceEdgeLengths(rGeometry, [](const double x, const double y){ return std::max(x,y); });
+    }
+
     ///@}
 
 private:
@@ -195,6 +214,35 @@ private:
         const unsigned int EdgeDirection)
     {
         return ((DerivativeNodeIndex == NodeIndexA) - (DerivativeNodeIndex == NodeIndexB)) * (DerivativeDirectionIndex == EdgeDirection);
+    }
+
+    /// Computes the squared distance between two nodes
+    static double EdgeLengthSquared(
+        const array_1d<double, 3> &A,
+        const array_1d<double, 3> &B) {
+      array_1d<double, 3> edge = B - A;
+      return inner_prod(edge, edge);
+    }
+
+    /**
+     * @brief      Reduces the edge lengths according to a provided reduction.
+     * @param[in]  rGeometry        The geometry
+     * @param[in]  Reduction        { First parameter is the reduced edge length^2,
+     *  second parameter is the current edge length^2. Returns the updated reduced edge length^2. }
+     */
+    static double ReduceEdgeLengths(
+        const Geometry<Node<3>>& rGeometry,
+        double(*Reduction)(const double, const double))
+    {
+        double val = EdgeLengthSquared(rGeometry[0], rGeometry[TNumNodes-1]);
+
+        for (std::size_t i = 1; i < TNumNodes; ++i)
+        {
+            const double L2 = EdgeLengthSquared(rGeometry[i - 1], rGeometry[i]);
+            val = Reduction(val, L2);
+        }
+
+        return std::sqrt(val);
     }
 
     ///@}
