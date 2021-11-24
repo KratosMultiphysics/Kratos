@@ -18,6 +18,7 @@ have_potential_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("Com
 have_mpm_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("ParticleMechanicsApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "ConstitutiveLawsApplication")
 have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication")
 have_fem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("StructuralMechanicsApplication", "MappingApplication")
+have_pfem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("PfemFluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "ConstitutiveLawsApplication")
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -203,6 +204,16 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
                 fluid_solver_settings = self.cosim_parameters["solver_settings"]["solvers"]["fluid"]["solver_wrapper_settings"]
                 fluid_solver_settings["input_file"].SetString("fsi_sdof/ProjectParametersCFD_mpi") # TODO refactor such that serial file can be reused. Requires to update and dump new CFD settings (similar to mok test)
 
+            self._runTest()
+
+    def test_PFEM_FEM_water_slide_2d(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_pfem_fem_dependencies:
+            self.skipTest("PFEM FEM dependencies are not available!")
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("pfem_fem_waterslide2d","cosim_pfem_fem_waterslide2d")
             self._runTest()
 
     @classmethod
