@@ -573,10 +573,31 @@ public:
         ConstitutiveLaw::Parameters &rValues,
         PlasticDamageParameters &rPDParameters);
 
+    /**
+     * @brief Implicit function that relates the
+     * plastic-damage energy dissipation with the
+     * uniaxial stress threshold
+     */
     ResidualFunctionType ExponentialSofteningImplicitFunction();
 
+    /**
+     * @brief Implicit function derivative to be used
+     * in the minimization of the implicit function
+     */
     ResidualFunctionType ExponentialSofteningImplicitFunctionDerivative();
 
+    /**
+     * @brief Implicit function that relates the
+     * plastic-damage energy dissipation with the
+     * uniaxial stress threshold
+     */
+    ResidualFunctionType ExponentialHardeningImplicitFunction();
+
+    /**
+     * @brief Implicit function derivative to be used
+     * in the minimization of the implicit function
+     */
+    ResidualFunctionType ExponentialHardeningImplicitFunctionDerivative();
 protected:
 
     ///@name Protected static Member Variables
