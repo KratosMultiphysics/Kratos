@@ -40,7 +40,7 @@ void OutputQuadratureDomainProcess::ExecuteBeforeSolutionLoop()
     ModelPart& r_model_part = mrModel.GetModelPart(model_part_name);
     std::string output_file_name = mThisParameters["output_file_name"].GetString();
 
-    std::string contents = "{\n\"geometry_integration_points\":[\n";
+    std::string contents = "{\n\"geometry_integration_points\":[ \n";
 
     if (OutputGeometryElements) {
         for (auto element : r_model_part.Elements()) {
