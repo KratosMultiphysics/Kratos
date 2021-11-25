@@ -35,6 +35,8 @@
             "automatic_time_step" : false,
             "time_step"  : 1.0
         },
-        "distance_reinitialization": "none"
+        "distance_reinitialization_settings": {
+            "distance_reinitialization_type": "none"
+        }
     }
 }

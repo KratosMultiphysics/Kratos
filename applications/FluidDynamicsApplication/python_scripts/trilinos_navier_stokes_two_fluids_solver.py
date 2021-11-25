@@ -12,6 +12,9 @@ from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factor
 from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_two_fluids_solver import NavierStokesTwoFluidsSolver
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
+# Auxiliary imports
+from KratosMultiphysics.FluidDynamicsApplication.distance_reinitialization import ParallelDistanceReinitialization
+
 def CreateSolver(model, custom_settings):
     return NavierStokesMPITwoFluidsSolver(model, custom_settings)
 
@@ -140,41 +143,9 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
 
         return level_set_convection_process
 
-    def _CreateDistanceReinitializationProcess(self):
-        if (self._reinitialization_type == "variational"):
-            # Construct the variational distance calculation process
-            maximum_iterations = 2 #TODO: Make this user-definable
-            redistancing_linear_solver = self._GetRedistancingLinearSolver()
-            computing_model_part = self.GetComputingModelPart()
-            epetra_communicator = self._GetEpetraCommunicator()
-            if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-                distance_reinitialization_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess2D(
-                    epetra_communicator,
-                    computing_model_part,
-                    redistancing_linear_solver,
-                    maximum_iterations,
-                    KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
-            else:
-                distance_reinitialization_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess3D(
-                    epetra_communicator,
-                    computing_model_part,
-                    redistancing_linear_solver,
-                    maximum_iterations,
-                    KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
-
-        elif (self._reinitialization_type == "parallel"):
-            if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator2D()
-            else:
-                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator3D()
-
-        elif (self._reinitialization_type == "none"):
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing is turned off.")
-        else:
-            raise Exception("Please use a valid distance reinitialization type or set it as \'none\'. Valid types are: \'variational\' and \'parallel\'.")
-
-        return distance_reinitialization_process
-
+    def _CreateDistanceReinitialization(self):
+        return ParallelDistanceReinitialization(self.GetComputingModelPart(), self.settings["distance_reinitialization_settings"])
+        
     def _CreateDistanceSmoothingProcess(self):
         # construct the distance smoothing process
         linear_solver = self._GetSmoothingLinearSolver()

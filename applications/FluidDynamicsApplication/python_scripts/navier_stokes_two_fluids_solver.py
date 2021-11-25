@@ -12,6 +12,9 @@ if have_conv_diff:
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 from KratosMultiphysics.FluidDynamicsApplication.read_distance_from_file import DistanceImportUtility
 
+# Auxiliary imports
+from KratosMultiphysics.FluidDynamicsApplication.distance_reinitialization import DistanceReinitialization
+
 def CreateSolver(model, custom_settings):
     return NavierStokesTwoFluidsSolver(model, custom_settings)
 
@@ -82,8 +85,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     "cross_wind_stabilization_factor" : 0.7
                 }
             },
-            "distance_reinitialization": "variational",
-            "parallel_redistance_max_layers" : 25,
+            "distance_reinitialization_settings" : {},
             "distance_smoothing": false,
             "distance_smoothing_coefficient": 1.0,
             "distance_modification_settings": {
@@ -144,8 +146,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if self.settings["formulation"].Has("momentum_correction"):
             self.momentum_correction = self.settings["formulation"]["momentum_correction"].GetBool()
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.MOMENTUM_CORRECTION, self.momentum_correction)
-
-        self._reinitialization_type = self.settings["distance_reinitialization"].GetString()
 
         self._distance_smoothing = self.settings["distance_smoothing"].GetBool()
         smoothing_coefficient = self.settings["distance_smoothing_coefficient"].GetDouble()
@@ -232,6 +232,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
         self._GetLevelSetConvectionProcess()
 
+        self._GetDistanceReinitialization()
+
         self.mass_source = False
         if self.settings["formulation"].Has("mass_source"):
             self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
@@ -309,22 +311,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         if self._TimeBufferIsInitialized():
             # Recompute the distance field according to the new level-set position
-            if (self._reinitialization_type == "variational"):
-                self._GetDistanceReinitializationProcess().Execute()
-            elif (self._reinitialization_type == "parallel"):
-                layers = self.settings["parallel_redistance_max_layers"].GetInt()
-                max_distance = 1.0 # use this parameter to define the redistancing range
-                # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
-                self._GetDistanceReinitializationProcess().CalculateDistances(
-                    self.main_model_part,
-                    self._levelset_variable,
-                    KratosMultiphysics.NODAL_AREA,
-                    layers,
-                    max_distance,
-                    self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
-
-            if (self._reinitialization_type != "none"):
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
+            self._GetDistanceReinitialization().ReinitializeDistances()
 
             # Prepare distance correction for next step
             self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
@@ -445,9 +432,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._level_set_convection_process = self._CreateLevelSetConvectionProcess()
         return self._level_set_convection_process
 
-    def _GetDistanceReinitializationProcess(self):
+    def _GetDistanceReinitialization(self):
         if not hasattr(self, '_distance_reinitialization_process'):
-            self._distance_reinitialization_process = self._CreateDistanceReinitializationProcess()
+            self._distance_reinitialization_process = self._CreateDistanceReinitialization()
         return self._distance_reinitialization_process
 
     def _GetDistanceSmoothingProcess(self):
@@ -502,36 +489,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         return level_set_convection_process
 
-    def _CreateDistanceReinitializationProcess(self):
-        # Construct the variational distance calculation process
-        if (self._reinitialization_type == "variational"):
-            maximum_iterations = 2 #TODO: Make this user-definable
-            linear_solver = self._GetRedistancingLinearSolver()
-            computing_model_part = self.GetComputingModelPart()
-            if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-                distance_reinitialization_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
-                    computing_model_part,
-                    linear_solver,
-                    maximum_iterations,
-                    KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
-            else:
-                distance_reinitialization_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
-                    computing_model_part,
-                    linear_solver,
-                    maximum_iterations,
-                    KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
-
-        elif (self._reinitialization_type == "parallel"):
-            if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator2D()
-            else:
-                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator3D()
-        elif (self._reinitialization_type == "none"):
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing is turned off.")
-        else:
-            raise Exception("Please use a valid distance reinitialization type or set it as \'none\'. Valid types are: \'variational\' and \'parallel\'.")
-
-        return distance_reinitialization_process
+    def _CreateDistanceReinitialization(self):
+        return DistanceReinitialization(self.GetComputingModelPart(), self.settings["distance_reinitialization_settings"])
 
     def _CreateDistanceSmoothingProcess(self):
         # construct the distance smoothing process
