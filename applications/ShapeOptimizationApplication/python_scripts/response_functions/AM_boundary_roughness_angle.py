@@ -97,7 +97,7 @@ class AMBoundaryRoughnessAngleResponseFunction(ResponseFunctionInterface):
             only_part = self.model.GetModelPart(only)
             if only_part.NumberOfConditions() == 0:
                 _AddConditionsFromParent(self.model_part, only_part)
-                Logger.PrintWarning("AMBoundaryBoundaryAngleResponse", "Automatically added {} conditions to model_part '{}'.".format(only_part.NumberOfConditions(), only_part.Name))
+                Logger.PrintWarning("AMBoundaryRoughnessAngleResponse", "Automatically added {} conditions to model_part '{}'.".format(only_part.NumberOfConditions(), only_part.Name))
         else:
             only_part = self.model_part
 
@@ -112,21 +112,21 @@ class AMBoundaryRoughnessAngleResponseFunction(ResponseFunctionInterface):
         self.value = None
 
     def CalculateValue(self):
-        Logger.PrintInfo("AMBoundaryBoundaryAngleResponse", "Starting calculation of response value:", self.identifier)
+        Logger.PrintInfo("AMBoundaryRoughnessAngleResponse", "Starting calculation of response value:", self.identifier)
 
         startTime = timer.time()
         self.value = self.response_function_utility.CalculateValue()
-        Logger.PrintInfo("AMBoundaryBoundaryAngleResponse", "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("AMBoundaryRoughnessAngleResponse", "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
     def CalculateGradient(self):
-        Logger.PrintInfo("AMBoundaryBoundaryAngleResponse", "Starting gradient calculation for response", self.identifier)
+        Logger.PrintInfo("AMBoundaryRoughnessAngleResponse", "Starting gradient calculation for response", self.identifier)
 
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(KM.SHAPE_SENSITIVITY, [0.0, 0.0, 0.0])
 
         startTime = timer.time()
         self.response_function_utility.CalculateGradient()
-        Logger.PrintInfo("AMBoundaryBoundaryAngleResponse", "Time needed for calculating gradients",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("AMBoundaryRoughnessAngleResponse", "Time needed for calculating gradients",round(timer.time() - startTime,2),"s")
 
     def GetValue(self):
         return self.value
