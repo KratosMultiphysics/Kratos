@@ -442,19 +442,21 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
 {
     double old_threshold = rPDParameters.Threshold;
     double residual = 1.0;
+    double rel_residual = 1.0;
     double new_threshold = 0.0;
     double derivative = 0.0;
     int max_iter = 2000;
     int iteration = 0;
-    const double nr_tol = 1.0e-7;
+    const double nr_tol = 1.0e-9;
 
-    while (residual > nr_tol && iteration < max_iter) {
+    while (residual > nr_tol && iteration < max_iter && rel_residual > nr_tol) {
         derivative = rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
         if (std::abs(derivative) > 0.0)
-            new_threshold = (old_threshold - (1.0 / derivative) * rF(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters));
+            new_threshold = old_threshold - (1.0 / derivative) * rF(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
         else
             break;
-        residual = std::abs(new_threshold - old_threshold);
+        rel_residual = std::abs(new_threshold - old_threshold);
+        residual = rF(rPDParameters.TotalDissipation, new_threshold, rValues, rPDParameters);
         old_threshold = new_threshold;
         iteration++;
     }
