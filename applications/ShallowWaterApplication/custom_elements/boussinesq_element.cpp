@@ -132,8 +132,8 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
     LocalMatrixType height_dispersion = ZeroMatrix(mLocalSize, mLocalSize);
     LocalMatrixType velocity_dispersion = ZeroMatrix(mLocalSize, mLocalSize);
 
-    const double non_linearity_ratio = rData.amplitude / rData.depth;
-    const double m2 = std::pow(non_linearity_ratio, 2);
+    const double dispersive_ratio = rData.depth / rData.wavelength;
+    const double m2 = std::pow(dispersive_ratio, 2);
     const double beta = -0.531;
     const double C1 = 0.5 * std::pow(beta, 2) - 0.166666666666;
     const double C2 = 0.5 * std::pow(beta, 2);
