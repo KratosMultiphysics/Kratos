@@ -55,7 +55,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingProcess : public Process
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingPhysicsBasedProcess : public Process
 {
 public:
 
@@ -100,21 +100,21 @@ public:
         BoundedMatrix<double,3,3> VelocityShearLocalGradient;
     };
 
-    /// Pointer definition of ShockCapturingProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ShockCapturingProcess);
+    /// Pointer definition of ShockCapturingPhysicsBasedProcess
+    KRATOS_CLASS_POINTER_DEFINITION(ShockCapturingPhysicsBasedProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor with model
-    ShockCapturingProcess(
+    ShockCapturingPhysicsBasedProcess(
         Model& rModel,
         Parameters rParameters)
-        : ShockCapturingProcess(rModel.GetModelPart(rParameters["model_part_name"].GetString()), rParameters) {};
+        : ShockCapturingPhysicsBasedProcess(rModel.GetModelPart(rParameters["model_part_name"].GetString()), rParameters) {};
 
     /// Constructor with model part
-    ShockCapturingProcess(
+    ShockCapturingPhysicsBasedProcess(
         ModelPart& rModelPart,
         Parameters rParameters)
         : Process()
@@ -124,7 +124,7 @@ public:
     };
 
     /// Destructor.
-    ~ShockCapturingProcess() {};
+    ~ShockCapturingPhysicsBasedProcess() {};
 
     ///@}
     ///@name Operators
@@ -163,12 +163,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "ShockCapturingProcess";
+        buffer << "ShockCapturingPhysicsBasedProcess";
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const override { rOStream << "ShockCapturingProcess"; }
+    void PrintInfo(std::ostream &rOStream) const override { rOStream << "ShockCapturingPhysicsBasedProcess"; }
 
     /// Print object's data.
     void PrintData(std::ostream &rOStream) const override {}
@@ -555,14 +555,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    ShockCapturingProcess& operator=(ShockCapturingProcess const& rOther);
+    ShockCapturingPhysicsBasedProcess& operator=(ShockCapturingPhysicsBasedProcess const& rOther);
 
     /// Copy constructor.
-    ShockCapturingProcess(ShockCapturingProcess const& rOther);
+    ShockCapturingPhysicsBasedProcess(ShockCapturingPhysicsBasedProcess const& rOther);
 
     ///@}
 
-}; // Class ShockCapturingProcess
+}; // Class ShockCapturingPhysicsBasedProcess
 
 ///@}
 ///@name Type Definitions
@@ -576,7 +576,7 @@ private:
 /// output stream function
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const ShockCapturingProcess& rThis);
+    const ShockCapturingPhysicsBasedProcess& rThis);
 
 ///@}
 

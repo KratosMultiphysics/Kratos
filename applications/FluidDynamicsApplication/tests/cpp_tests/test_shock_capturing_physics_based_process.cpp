@@ -26,11 +26,11 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "custom_processes/shock_capturing_process.h"
+#include "custom_processes/shock_capturing_physics_based_process.h"
 
 namespace Kratos {
 namespace Testing {
-namespace ShockCapturingTestInternals {
+namespace ShockCapturingPhysicsBasedTesting{
 
     void SetTestModelPart(ModelPart& rNewModelPart)
     {
@@ -52,7 +52,8 @@ namespace ShockCapturingTestInternals {
         Parameters mesher_parameters(R"(
         {
             "number_of_divisions": 90,
-            "element_name": "Element2D3N"
+            "element_name": "Element2D3N",
+            "create_skin_sub_model_part": false
         })");
         StructuredMeshGeneratorProcess(geometry, rNewModelPart, mesher_parameters).Execute();
 
@@ -121,12 +122,12 @@ namespace ShockCapturingTestInternals {
     /**
      * Checks the shock detection process with a smooth field with no expected shocks
      */
-    KRATOS_TEST_CASE_IN_SUITE(ShockCapturingSmoothField, FluidDynamicsApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(ShockCapturingPhysicsBasedSmoothField, FluidDynamicsApplicationFastSuite)
     {
         // Set the test model part
         Model model;
         auto& r_model_part = model.CreateModelPart("MainModelPart");
-        ShockCapturingTestInternals::SetTestModelPart(r_model_part);
+        ShockCapturingPhysicsBasedTesting::SetTestModelPart(r_model_part);
 
         // Set a smooth field
         for (auto& r_node : r_model_part.Nodes()) {
@@ -144,7 +145,7 @@ namespace ShockCapturingTestInternals {
             "thermal_sensor" : true,
             "thermally_coupled_formulation" : true
         })");
-        ShockCapturingProcess sc_process(model, sc_settings);
+        ShockCapturingPhysicsBasedProcess sc_process(model, sc_settings);
         sc_process.Execute();
 
         // Check values
@@ -176,13 +177,13 @@ namespace ShockCapturingTestInternals {
     /**
      * Checks the shock detection process with the Abgrall function
      */
-    KRATOS_TEST_CASE_IN_SUITE(ShockCapturingAbgrallFunction, FluidDynamicsApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(ShockCapturingPhysicsBasedAbgrallFunction, FluidDynamicsApplicationFastSuite)
     {
         // Set the test model part
         Model model;
         auto& r_model_part = model.CreateModelPart("MainModelPart");
-        ShockCapturingTestInternals::SetTestModelPart(r_model_part);
-        ShockCapturingTestInternals::SetAbgrallFunction(r_model_part);
+        ShockCapturingPhysicsBasedTesting::SetTestModelPart(r_model_part);
+        ShockCapturingPhysicsBasedTesting::SetAbgrallFunction(r_model_part);
 
         // Perform the shock detection
         Parameters sc_settings(R"(
@@ -193,7 +194,7 @@ namespace ShockCapturingTestInternals {
             "thermal_sensor" : true,
             "thermally_coupled_formulation" : true
         })");
-        ShockCapturingProcess sc_process(model, sc_settings);
+        ShockCapturingPhysicsBasedProcess sc_process(model, sc_settings);
         sc_process.Execute();
 
         // Check values

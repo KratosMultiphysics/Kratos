@@ -23,21 +23,21 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
-#include "shock_capturing_process.h"
+#include "shock_capturing_physics_based_process.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
     /* Public functions *******************************************************/
 
-    void ShockCapturingProcess::Execute()
+    void ShockCapturingPhysicsBasedProcess::Execute()
     {
         Check();
         ExecuteInitialize();
         ExecuteFinalizeSolutionStep();
     }
 
-    void ShockCapturingProcess::ExecuteInitialize()
+    void ShockCapturingPhysicsBasedProcess::ExecuteInitialize()
     {
         // Initialize nodal values
         block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode) {
@@ -73,12 +73,12 @@ namespace Kratos
         nodal_area_process.Execute();
     }
 
-    void ShockCapturingProcess::ExecuteFinalizeSolutionStep()
+    void ShockCapturingPhysicsBasedProcess::ExecuteFinalizeSolutionStep()
     {
         CalculatePhysicsBasedShockCapturing();
     }
 
-    const Parameters ShockCapturingProcess::GetDefaultParameters() const
+    const Parameters ShockCapturingPhysicsBasedProcess::GetDefaultParameters() const
     {
         const Parameters default_parameters = Parameters(R"({
             "model_part_name" : "",
@@ -92,7 +92,7 @@ namespace Kratos
         return default_parameters;
     }
 
-    int ShockCapturingProcess::Check()
+    int ShockCapturingPhysicsBasedProcess::Check()
     {
         // Base process check
         int err_code = BaseType::Check();
@@ -118,7 +118,7 @@ namespace Kratos
 
     /* Private functions *****************************************************/
 
-    void ShockCapturingProcess::ValidateAndAssignParameters(Parameters& rParameters)
+    void ShockCapturingPhysicsBasedProcess::ValidateAndAssignParameters(Parameters& rParameters)
     {
         // Validate and assign defaults
         rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
@@ -140,7 +140,7 @@ namespace Kratos
      * This function calculates the artificial magnitudes using a physics-based shock capturing method.
      * References https://arc.aiaa.org/doi/abs/10.2514/6.2018-0062
      */
-    void ShockCapturingProcess::CalculatePhysicsBasedShockCapturing()
+    void ShockCapturingPhysicsBasedProcess::CalculatePhysicsBasedShockCapturing()
     {
         // Initialize the values to zero
         block_for_each(mrModelPart.Nodes(), [](Node<3> &rNode) {
@@ -182,7 +182,7 @@ namespace Kratos
         });
     }
 
-    double ShockCapturingProcess::LimitingFunction(
+    double ShockCapturingPhysicsBasedProcess::LimitingFunction(
         const double s,
         const double s_0,
         const double s_max,
@@ -193,7 +193,7 @@ namespace Kratos
         return aux_2 + s_max;
     }
 
-    double ShockCapturingProcess::SmoothedLimitingFunction(
+    double ShockCapturingPhysicsBasedProcess::SmoothedLimitingFunction(
         const double s,
         const double s_0,
         const double s_max)
@@ -204,7 +204,7 @@ namespace Kratos
     }
 
     // Smooth approximation of the max(s,0) function
-    double ShockCapturingProcess::SmoothedMaxFunction(const double s)
+    double ShockCapturingPhysicsBasedProcess::SmoothedMaxFunction(const double s)
     {
         const double b = 100;
         const double l_max = (s / Globals::Pi) * std::atan(b * s) + 0.5 * s - (1.0 / Globals::Pi) * std::atan(b) + 0.5;
@@ -212,13 +212,13 @@ namespace Kratos
     }
 
     // Smooth approximation of the min(s,0) function
-    double ShockCapturingProcess::SmoothedMinFunction(const double s)
+    double ShockCapturingPhysicsBasedProcess::SmoothedMinFunction(const double s)
     {
         return s - SmoothedMaxFunction(s);
     }
 
 
-    double ShockCapturingProcess::CalculateProjectedInverseMetricElementSize(
+    double ShockCapturingPhysicsBasedProcess::CalculateProjectedInverseMetricElementSize(
         const Matrix& rInverseMetricTensor,
         const array_1d<double,3>& rScalarGradient)
     {
@@ -232,7 +232,7 @@ namespace Kratos
     }
 
     template<>
-    void ShockCapturingProcess::CalculateShockSensorValues<2,3>(
+    void ShockCapturingPhysicsBasedProcess::CalculateShockSensorValues<2,3>(
         const Geometry<Node<3>>& rGeometry,
         const array_1d<double,3>& rN,
         const BoundedMatrix<double,3,2>& rDN_DX,
@@ -262,7 +262,7 @@ namespace Kratos
     }
 
     template<>
-    void ShockCapturingProcess::CalculateShockSensorValues<3,4>(
+    void ShockCapturingPhysicsBasedProcess::CalculateShockSensorValues<3,4>(
         const Geometry<Node<3>>& rGeometry,
         const array_1d<double,4>& rN,
         const BoundedMatrix<double,4,3>& rDN_DX,
@@ -302,7 +302,7 @@ namespace Kratos
     }
 
     template<std::size_t TDim, std::size_t TNumNodes>
-    void ShockCapturingProcess::CalculateTemperatureGradients(
+    void ShockCapturingPhysicsBasedProcess::CalculateTemperatureGradients(
         const Geometry<Node<3>>& rGeometry,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
         const Matrix& rJacobianMatrix,
@@ -328,7 +328,7 @@ namespace Kratos
     }
 
     template<std::size_t TDim, std::size_t TNumNodes>
-    void ShockCapturingProcess::CalculateShearSensorValues(
+    void ShockCapturingPhysicsBasedProcess::CalculateShearSensorValues(
         const Geometry<Node<3>>& rGeometry,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
@@ -362,28 +362,28 @@ namespace Kratos
     /// output stream function
     inline std::ostream& operator << (
         std::ostream& rOStream,
-        const ShockCapturingProcess& rThis) {
+        const ShockCapturingPhysicsBasedProcess& rThis) {
 
         rThis.PrintData(rOStream);
         return rOStream;
     }
 
     /* Explicit template instantiation ****************************************/
-    template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingProcess::CalculateTemperatureGradients<2,3>(
+    template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingPhysicsBasedProcess::CalculateTemperatureGradients<2,3>(
         const Geometry<Node<3>>& rGeometry,
         const BoundedMatrix<double,3,2>& rDN_DX,
         const Matrix& rJacobianMatrix,
         array_1d<double,3>& rTemperatureGradient,
         array_1d<double,3>& rTemperatureLocalGradient);
 
-    template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingProcess::CalculateTemperatureGradients<3,4>(
+    template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingPhysicsBasedProcess::CalculateTemperatureGradients<3,4>(
         const Geometry<Node<3>>& rGeometry,
         const BoundedMatrix<double,4,3>& rDN_DX,
         const Matrix& rJacobianMatrix,
         array_1d<double,3>& rTemperatureGradient,
         array_1d<double,3>& rTemperatureLocalGradient);
 
-    template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingProcess::CalculateShearSensorValues<2,3>(
+    template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingPhysicsBasedProcess::CalculateShearSensorValues<2,3>(
         const Geometry<Node<3>>& rGeometry,
         const array_1d<double,3>& rN,
         const BoundedMatrix<double,3,2>& rDN_DX,
@@ -391,7 +391,7 @@ namespace Kratos
         BoundedMatrix<double,2,2>& rLocalVelocityShearGradient,
         double& rSoundVelocity);
 
-    template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingProcess::CalculateShearSensorValues<3,4>(
+    template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingPhysicsBasedProcess::CalculateShearSensorValues<3,4>(
         const Geometry<Node<3>>& rGeometry,
         const array_1d<double,4>& rN,
         const BoundedMatrix<double,4,3>& rDN_DX,
