@@ -38,9 +38,22 @@ const Variable<double>& BoussinesqElement<TNumNodes>::GetUnknownComponent(int In
 }
 
 template<std::size_t TNumNodes>
+typename BoussinesqElement<TNumNodes>::LocalVectorType BoussinesqElement<TNumNodes>::GetUnknownVector(const ElementData& rData) const
+{
+    std::size_t index = 0;
+    array_1d<double,mLocalSize> unknown;
+    for (std::size_t i = 0; i < TNumNodes; ++i) {
+        unknown[index++] = rData.nodal_v[i][0];
+        unknown[index++] = rData.nodal_v[i][1];
+        unknown[index++] = rData.nodal_f[i];
+    }
+    return unknown;
+}
+
+template<std::size_t TNumNodes>
 void BoussinesqElement<TNumNodes>::CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN)
 {
-    const double eta = inner_prod(rData.nodal_h, rN);
+    const double eta = inner_prod(rData.nodal_f, rN);
     const double H = -inner_prod(rData.nodal_z, rN);
     const double g = rData.gravity;
     const double e = rData.amplitude / H;  // the non linearity ratio
@@ -115,8 +128,8 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
     BoundedMatrix<double,3,3> laplacian;
     BoundedMatrix<double,3,3> height_aux;
     BoundedMatrix<double,3,3> velocity_aux;
-    LocalMatrixType height_dispersion;
-    LocalMatrixType velocity_dispersion;
+    LocalMatrixType height_dispersion = ZeroMatrix(mLocalSize, mLocalSize);
+    LocalMatrixType velocity_dispersion = ZeroMatrix(mLocalSize, mLocalSize);
 
     const double non_linearity_ratio = rData.amplitude / rData.depth;
     const double m2 = std::pow(non_linearity_ratio, 2);

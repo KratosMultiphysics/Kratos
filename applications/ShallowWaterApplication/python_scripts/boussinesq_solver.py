@@ -6,9 +6,9 @@ import KratosMultiphysics.ShallowWaterApplication as SW
 from KratosMultiphysics.ShallowWaterApplication.shallow_water_base_solver import ShallowWaterBaseSolver
 
 def CreateSolver(model, custom_settings):
-    return WaveSolver(model, custom_settings)
+    return BoussinesqSolver(model, custom_settings)
 
-class WaveSolver(ShallowWaterBaseSolver):
+class BoussinesqSolver(ShallowWaterBaseSolver):
     def __init__(self, model, settings):
         super().__init__(model, settings)
         self.element_name = "BoussinesqElement"
