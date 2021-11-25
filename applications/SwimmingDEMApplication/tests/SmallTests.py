@@ -10,7 +10,6 @@ from KratosMultiphysics import Logger
 import KratosMultiphysics.KratosUnittest as UnitTest
 import BackwardCouplingTestFactory as BackwardCouplingTF
 import PorosityTestFactory as PorosityTF
-import GentleInjectionTestFactory as GentleTF
 
 # Importing test factories if possible
 try:
@@ -101,10 +100,6 @@ class porosity_field_conservation_test(PorosityTF.PorosityConservationTestFactor
      file_name = "porosity_tests/porosity_conservation/Test_porosityFluid"
      file_parameters = "porosity_tests/porosity_conservation/ProjectParameters.json"
 
-class gentle_injection_test(GentleTF.GentleInjectionTestFactory):
-     file_name = "gentle_injection_tests/cube_cavity_with_inlet"
-     file_parameters = "gentle_injection_tests/ProjectParameters.json"
-
 class chien_drag_test(DragTF.TestFactory):
      from  drag_tests.chien_law.chien_drag_test_analysis import ChienDragAnalysis
      analysis_stage_to_be_launched = ChienDragAnalysis
@@ -120,7 +115,6 @@ available_tests += [test_class for test_class in FDEMTF.TestFactory.__subclasses
 available_tests += [test_class for test_class in AnalyticTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in PorosityTF.PorosityConservationTestFactory.__subclasses__()]
 available_tests += [test_class for test_class in DragTF.TestFactory.__subclasses__()]
-available_tests += [test_class for test_class in GentleTF.GentleInjectionTestFactory.__subclasses__()]
 
 
 def SetTestSuite(suites):
