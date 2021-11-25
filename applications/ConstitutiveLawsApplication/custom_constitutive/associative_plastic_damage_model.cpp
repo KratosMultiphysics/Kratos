@@ -356,13 +356,15 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialHardeningImplicitFu
         const double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
         const double E = r_mat_properties[YOUNG_MODULUS];
         const double factor = std::pow(K0, 2) / E;
+        double chi_square;
 
         if (r_mat_properties.Has(MAXIMUM_STRESS)) {
             max_threshold = r_mat_properties[MAXIMUM_STRESS];
             chi = -std::sqrt(max_threshold / (max_threshold - K0));
+            chi_square = std::pow(chi, 2);
         } else {
             chi = (factor + g + std::sqrt(factor * (5.0 / 4.0 * factor + 2.0 * g))) / (0.5 * factor - g);
-            const double chi_square = std::pow(chi, 2);
+            chi_square = std::pow(chi, 2);
             max_threshold = (chi_square * K0) / (chi_square - 1.0);
         }
         const double diss_indicator = factor / (2.0 * g) * (1.0 - std::pow(max_threshold / K0, 2) * (1.0 + K0 * xi / max_threshold) - xi) +
@@ -370,7 +372,6 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialHardeningImplicitFu
 
         const double sign = (Dissipation < diss_indicator) ? -1.0 : 1.0; // In hardening should be negative
         const double gamma = (0.5*factor - g) / (g * (3.0 * chi + 1) * (chi - 1.0));
-        const double chi_square = std::pow(chi, 2);
         const double alpha = std::sqrt(std::pow(chi, 2) * (1.0 - Threshold / K0) + Threshold * K0);
         const double beta = (1.0 - chi_square) / K0 / (2.0 * std::sqrt(chi_square * (1.0 - Threshold / K0) + Threshold / K0));
         return gamma * (sign * beta * (2.0 * chi + 1.0 - sign * alpha) + (1.0 + sign * alpha) * (-sign * beta) - (chi_square - 1.0) / K0 * std::log((chi + sign * alpha) / (chi - 1.0)) - Threshold / K0 * (chi_square - 1.0) * ((chi - 1.0) / (chi + sign * alpha)) * (sign * beta / (chi - 1.0))) + factor / (2.0 * g) * (2.0 * Threshold / (std::pow(K0, 2)) * (1.0 + K0 / Threshold * xi - xi) + std::pow(Threshold / K0, 2) * (-K0 * xi / std::pow(Threshold, 2)));
@@ -567,7 +568,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     bool is_converged = false;
     IndexType iteration = 0, max_iter = 1000;
 
-    const double splits = 200;
+    const double splits = 1;
     noalias(rPDParameters.StressVector) = prod(rPDParameters.ConstitutiveMatrix, mOldStrain - rPDParameters.PlasticStrain);
     // BoundedVectorType delta_stress = prod(rPDParameters.ConstitutiveMatrix, rPDParameters.StrainVector - mOldStrain) / splits;
     for (int i = 0; i < splits; i++) {
