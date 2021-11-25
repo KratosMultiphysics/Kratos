@@ -86,7 +86,7 @@ namespace ShockCapturingEntropyViscosityTesting{
             double& r_vel  = r_node.FastGetSolutionStepValue(VELOCITY_X);
             double& r_pres = r_node.FastGetSolutionStepValue(PRESSURE);
 
-            r_rho  = r_node.X() < 0.0 ? 1.17712 : 2.07104; // Second value should be 2.07104, changing it on pupose to break it
+            r_rho  = r_node.X() < 0.0 ? 1.17712 : 2.07104;
             r_temp = r_node.X() < 0.0 ?     298 : 381.699;
             r_vel  = r_node.X() < 0.0 ?     500 : 284.185;
             r_pres = r_node.X() < 0.0 ?  101325 :  228345;
