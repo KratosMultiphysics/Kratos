@@ -1,6 +1,10 @@
 import os
 
-# This test................
+# This test consists in a cubic domain of fluid into which particles are injected.
+# The problem is run twice: one time without the 'gentle' injection technique and
+# the other with it. It is checked that the number of nonlinear iterations for the
+# fluid solver are always equal or less in the latter case; and it is required that,
+# at least in some cases, the number of iterations are indeed less.
 
 # Importing the Kratos Library
 import KratosMultiphysics as Kratos
