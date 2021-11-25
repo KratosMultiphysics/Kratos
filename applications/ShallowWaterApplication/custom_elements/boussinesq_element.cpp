@@ -125,6 +125,7 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
 {
     array_1d<double,3> gradients_vector_i;
     array_1d<double,3> gradients_vector_j;
+    BoundedMatrix<double,3,3> gradients_matrix_k = ZeroMatrix(3,3);
     BoundedMatrix<double,3,3> laplacian;
     BoundedMatrix<double,3,3> height_aux;
     BoundedMatrix<double,3,3> velocity_aux;
@@ -153,9 +154,11 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
             gradients_vector_j[1] = rDN_DX(j,1);
             gradients_vector_j[2] = 0.0;
 
-            laplacian = outer_prod(gradients_vector_i, gradients_vector_j);
+            laplacian = -outer_prod(gradients_vector_i, gradients_vector_j);
+            gradients_matrix_k(2,0) = rDN_DX(j,0);
+            gradients_matrix_k(2,1) = rDN_DX(j,1);
 
-            height_aux = (C1 + C3) * std::pow(H,3) * (rDN_DX(j,0) + rDN_DX(j,1)) * lumping_factor * laplacian;
+            height_aux = (C1 + C3) * std::pow(H,3) * lumping_factor * prod(gradients_matrix_k, laplacian);
             velocity_aux = (C2 + C4) * std::pow(H,2) * laplacian;
 
             MathUtils<double>::AddMatrix(height_dispersion, Weight * height_aux, 3*i, 3*j);
@@ -165,8 +168,8 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
     LocalVectorType acceleration = this->GetAccelerationsVector(rData);
     LocalVectorType velocity = this->GetUnknownVector(rData);
 
-    noalias(rVector) += m2 * prod(height_dispersion, velocity);
-    noalias(rVector) += m2 * prod(velocity_dispersion, acceleration);
+    noalias(rVector) -= m2 * prod(height_dispersion, velocity);
+    // noalias(rVector) -= m2 * prod(velocity_dispersion, acceleration);
 }
 
 template class BoussinesqElement<3>;
