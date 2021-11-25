@@ -36,6 +36,19 @@ const Variable<double>& BoussinesqCondition<TNumNodes>::GetUnknownComponent(int 
 }
 
 template<std::size_t TNumNodes>
+typename BoussinesqCondition<TNumNodes>::LocalVectorType BoussinesqCondition<TNumNodes>::GetUnknownVector(ConditionData& rData)
+{
+    std::size_t index = 0;
+    array_1d<double,mLocalSize> unknown;
+    for (std::size_t i = 0; i < TNumNodes; ++i) {
+        unknown[index++] = rData.nodal_v[i][0];
+        unknown[index++] = rData.nodal_v[i][1];
+        unknown[index++] = rData.nodal_f[i];
+    }
+    return unknown;
+}
+
+template<std::size_t TNumNodes>
 void BoussinesqCondition<TNumNodes>::CalculateGaussPointData(
     ConditionData& rData,
     const IndexType PointIndex,

@@ -181,6 +181,8 @@ protected:
 
     const Variable<double>& GetUnknownComponent(int Index) const override;
 
+    LocalVectorType GetUnknownVector(ConditionData& rData) override;
+
     void CalculateGaussPointData(
         ConditionData& rData,
         const IndexType PointIndex,
