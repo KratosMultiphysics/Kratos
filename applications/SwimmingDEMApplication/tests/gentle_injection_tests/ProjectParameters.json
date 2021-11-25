@@ -5,7 +5,7 @@
     },
     "time_stepping"           : {
         "automatic_time_step" : false,
-        "time_step"           : 2e-3
+        "time_step"           : 5e-3
     },
     "output_interval"         : 1e-2,
     "non_newtonian_fluid"     : {
@@ -60,7 +60,7 @@
         "BASSET_FORCE"                      : false,
         "BUOYANCY"                          : false,
         "CONTACT_FORCES"                    : false,
-        "DRAG_FORCE"                        : false,
+        "DRAG_FORCE"                        : true,
         "ELASTIC_FORCES"                    : false,
         "FLUID_ACCEL_PROJECTED"             : false,
         "FLUID_FRACTION_GRADIENT_PROJECTED" : false,
@@ -70,7 +70,7 @@
         "FLUID_VEL_PROJECTED_RATE"          : false,
         "FLUID_VEL_PROJECTED"               : true,
         "FLUID_VISCOSITY_PROJECTED"         : false,
-        "HYDRODYNAMIC_FORCE"                : false,
+        "HYDRODYNAMIC_FORCE"                : true,
         "HYDRODYNAMIC_MOMENT"               : false,
         "IMPACT_WEAR"                       : false,
         "LIFT_FORCE"                        : false,
@@ -184,7 +184,7 @@
     "dem_parameters"          : {
         "Dimension"                      : 3,
         "PeriodicDomainOption"           : false,
-        "BoundingBoxOption"              : true,
+        "BoundingBoxOption"              : false,
         "AutomaticBoundingBoxOption"     : false,
         "BoundingBoxEnlargementFactor"   : 1.1,
         "BoundingBoxStartTime"           : 0.0,
@@ -194,7 +194,7 @@
         "BoundingBoxMaxZ"                : 10,
         "BoundingBoxMinX"                : -10,
         "BoundingBoxMinY"                : -10,
-        "BoundingBoxMinZ"                : 0.3,
+        "BoundingBoxMinZ"                : -10,
         "dem_inlet_option"               : true,
         "GravityX"                       : 0.0,
         "GravityY"                       : 0.0,
@@ -215,7 +215,7 @@
         "OutputFileType"                 : "Binary",
         "Multifile"                      : "multiple_files",
         "ElementType"                    : "SphericPartDEMElement3D",
-        "TranslationalIntegrationScheme" : "Symplectic_Euler",
+        "TranslationalIntegrationScheme" : "Hybrid_Bashforth",
         "RotationalIntegrationScheme"    : "Direct_Integration",
         "MaxTimeStep"                    : 2e-3,
         "FinalTime"                      : 1.0,

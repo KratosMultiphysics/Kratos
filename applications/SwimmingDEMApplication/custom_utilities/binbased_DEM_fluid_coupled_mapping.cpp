@@ -1314,12 +1314,15 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
             const double& fluid_fraction                    = geom[i].FastGetSolutionStepValue(FLUID_FRACTION);
             const double& nodal_volume                      = geom[i].FastGetSolutionStepValue(NODAL_AREA);
             const double& density                           = geom[i].FastGetSolutionStepValue(DENSITY);
+            const double gentle_coupling_coeff              = p_node->FastGetSolutionStepValue(GENTLE_INITIATION_COUPLING_COEFFICIENT);
             const double denominator = fluid_fraction * density * nodal_volume;
+
+
             if (denominator < 1.0e-15){
-                noalias(hydrodynamic_reaction)                 -= mParticlesPerDepthDistance * N[i] / 1.0 * origin_data;
+                noalias(hydrodynamic_reaction)                 -= gentle_coupling_coeff * mParticlesPerDepthDistance * N[i] / 1.0 * origin_data;
             }
             else {
-                noalias(hydrodynamic_reaction)                 -= mParticlesPerDepthDistance * N[i] / denominator * origin_data;
+                noalias(hydrodynamic_reaction)                 -= gentle_coupling_coeff * mParticlesPerDepthDistance * N[i] / denominator * origin_data;
             }
 
             if (mTimeAveragingType == 0){
@@ -1331,7 +1334,6 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
                 mean_hydrodynamic_reaction                      = std::max(1, mNumberOfDEMSamplesSoFarInTheCurrentFluidStep) * mean_hydrodynamic_reaction;
                 noalias(mean_hydrodynamic_reaction)            += hydrodynamic_reaction;
                 mean_hydrodynamic_reaction                      = 1.0 / (mNumberOfDEMSamplesSoFarInTheCurrentFluidStep + 1) * mean_hydrodynamic_reaction;
-
                 noalias(body_force)                             += mean_hydrodynamic_reaction;
             }
         }
@@ -1474,9 +1476,10 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
                 noalias(contribution) = - weights[i] * origin_data / denominator;
             }
             //neighbours[i]->FastGetSolutionStepValue(r_destination_variable) += contribution;
-            array_1d<double, 3>& hydrodynamic_reaction      = neighbours[i]->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
-            array_1d<double, 3>& body_force                 = neighbours[i]->FastGetSolutionStepValue(GetBodyForcePerUnitMassVariable());
-            hydrodynamic_reaction += contribution;
+            array_1d<double, 3>& hydrodynamic_reaction = neighbours[i]->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
+            array_1d<double, 3>& body_force = neighbours[i]->FastGetSolutionStepValue(GetBodyForcePerUnitMassVariable());
+            const double gentle_coupling_coeff = node.FastGetSolutionStepValue(GENTLE_INITIATION_COUPLING_COEFFICIENT);
+            hydrodynamic_reaction += gentle_coupling_coeff * contribution;
 
             if (mTimeAveragingType == 0){
                 noalias(body_force) += hydrodynamic_reaction;

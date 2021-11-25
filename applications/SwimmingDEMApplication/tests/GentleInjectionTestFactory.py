@@ -26,32 +26,28 @@ class controlledExecutionScope:
 class GentleInjectionTestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            # Setting parameters
+        with open(self.file_parameters,'r') as parameter_file:
+            parameters_harsh = Kratos.Parameters(parameter_file.read())
 
-            with open(self.file_parameters,'r') as parameter_file:
-                parameters_harsh = Kratos.Parameters(parameter_file.read())
+        fluid_solver_settings = parameters_harsh['fluid_parameters']['solver_settings']
+        self.max_nonlinear_iterations = fluid_solver_settings['maximum_iterations'].GetInt()
 
-            fluid_solver_settings = parameters_harsh['fluid_parameters']['solver_settings']
-            self.max_nonlinear_iterations = fluid_solver_settings['maximum_iterations'].GetInt()
+        if not debug_mode:
+            parameters_harsh['fluid_parameters']['output_processes'] = Kratos.Parameters('''{}''')
 
-            if not debug_mode:
-                parameters_harsh['fluid_parameters']['output_processes'] = Kratos.Parameters('''{}''')
+        parameters_gentle = Kratos.Parameters(parameters_harsh.WriteJsonString())
 
-            parameters_gentle = Kratos.Parameters(parameters_harsh.WriteJsonString())
+        self.gentle_initiation_interval = 0.1
+        parameters_gentle['coupling']['gentle_coupling_initiation']['initiation_interval'].SetDouble(self.gentle_initiation_interval)
 
-            self.gentle_initiation_interval = 0.1
-            parameters_gentle['coupling']['gentle_coupling_initiation']['initiation_interval'].SetDouble(self.gentle_initiation_interval)
+        # Create Model
+        model_harsh = Kratos.Model()
+        model_gentle = Kratos.Model()
 
-            # Create Model
-            model_harsh = Kratos.Model()
-            model_gentle = Kratos.Model()
-
-            self.test_harsh_injection = GentleInjectionAnalysis(model_harsh, parameters_harsh)
-            self.test_gentle_injection = GentleInjectionAnalysis(model_gentle, parameters_gentle)
-            self.test_harsh_injection.name = 'harsh'
-            self.test_gentle_injection.name = 'gentle'
-
+        self.test_harsh_injection = GentleInjectionAnalysis(model_harsh, parameters_harsh)
+        self.test_gentle_injection = GentleInjectionAnalysis(model_gentle, parameters_gentle)
+        self.test_harsh_injection.name = 'harsh'
+        self.test_gentle_injection.name = 'gentle'
 
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -67,17 +63,14 @@ class GentleInjectionTestFactory(KratosUnittest.TestCase):
 
             if debug_mode:
                 import matplotlib.pyplot as plt
-                plt.plot(times, n_iterations_harsh, label='initiation_interval=' + str(round(self.gentle_initiation_interval, 1)))
-                plt.plot(times, n_iterations_gentle, label='initiation_interval=' + str(0.0))
+                plt.plot(times, n_iterations_harsh, label='initiation_interval=' + str(0.0))
+                plt.plot(times, n_iterations_gentle, label='initiation_interval=' + str(round(self.gentle_initiation_interval, 1)))
                 plt.xlabel('time (s)')
                 plt.ylabel('nonlinear iterations')
                 ax = plt.gca()
                 ax.set_ylim([0, self.max_nonlinear_iterations])
                 plt.legend()
                 plt.savefig('nonlinear_iterations.pdf')
-
-    def tearDown(self):
-        pass
 
 class GentleInjectionAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, parameters=Kratos.Parameters("{}")):
@@ -93,9 +86,3 @@ class GentleInjectionAnalysis(SwimmingDEMAnalysis):
         self.times.append(time)
         self.n_iterations.append(n_iterations)
         super(GentleInjectionAnalysis, self).FinalizeSolutionStep()
-
-    # def Finalize(self):
-    #     problem_name = project_parameters = self.project_parameters["problem_data"]["problem_name"].GetString()
-    #     print(os.path.realpath(__file__))
-    #     self.procedures.RemoveFoldersWithResults(os.path.realpath(__file__), problem_name , '')
-    #     super().Finalize()
