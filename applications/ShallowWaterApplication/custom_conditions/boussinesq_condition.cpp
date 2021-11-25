@@ -31,7 +31,7 @@ const Variable<double>& BoussinesqCondition<TNumNodes>::GetUnknownComponent(int 
         case 0: return VELOCITY_X;
         case 1: return VELOCITY_Y;
         case 2: return FREE_SURFACE_ELEVATION;
-        default: KRATOS_ERROR << "WaveCondition::GetUnknownComponent index out of bounds." << std::endl;
+        default: KRATOS_ERROR << "BoussinesqCondition::GetUnknownComponent index out of bounds." << std::endl;
     }
 }
 

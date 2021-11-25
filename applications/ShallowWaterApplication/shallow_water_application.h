@@ -176,7 +176,7 @@ namespace Kratos
         // Conditions
         const WaveCondition<2> mWaveCondition2D2N;
         const WaveCondition<3> mWaveCondition2D3N;
-        const WaveCondition<2> mBoussinesqCondition2D2N;
+        const BoussinesqCondition<2> mBoussinesqCondition2D2N;
         const ConservativeCondition<2> mConservativeCondition2D2N;
 
         // Modelers
