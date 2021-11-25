@@ -144,7 +144,10 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         return level_set_convection_process
 
     def _CreateDistanceReinitialization(self):
-        return ParallelDistanceReinitialization(self.GetComputingModelPart(), self.settings["distance_reinitialization_settings"])
+        return ParallelDistanceReinitialization(
+            self.GetComputingModelPart(),
+            self.settings["distance_reinitialization_settings"],
+            self._GetEpetraCommunicator())
         
     def _CreateDistanceSmoothingProcess(self):
         # construct the distance smoothing process

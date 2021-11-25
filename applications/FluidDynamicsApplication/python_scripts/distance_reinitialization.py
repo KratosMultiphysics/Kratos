@@ -112,12 +112,15 @@ class DistanceReinitialization:
 
 
 class ParallelDistanceReinitialization(DistanceReinitialization):
+    def __init__(self,model_part,params, epetra_communicator):
+        self._epetra_communicator = epetra_communicator
+        super().__init__(model_part, params)
+
     def _GetLinearSolver(self):
         linear_solver_configuration = self.params["linear_solver_settings"]
         return trilinos_linear_solver_factory.ConstructSolver(linear_solver_configuration)
 
     def _ConstructVariationalProcess(self, maximum_iterations, linear_solver, process_flag):
-        self._epetra_communicator = KratosTrilinos.CreateEpetraCommunicator(self.model_part.GetCommunicator().GetDataCommunicator())
         if self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             return KratosMultiphysics.TrilinosVariationalDistanceCalculationProcess2D(
                 self._epetra_communicator,
