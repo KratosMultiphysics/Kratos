@@ -17,6 +17,7 @@
 // Project includes
 #include "custom_utilities/mpm_particle_generator_utility.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
+#include "utilities/variable_utils.h" 
 
 
 namespace Kratos
@@ -404,6 +405,7 @@ namespace MPMParticleGeneratorUtility
                         }
                         // Loop over the conditions to create inner particle condition (except point load condition)
                         else{
+                            auto p_geometry_condition = i->pGetGeometry();
                             for ( unsigned int point_number = 0; point_number < integration_point_per_conditions; point_number++ )
                             {
                                 mpc_area[0] = int_volumes[point_number];
@@ -456,16 +458,13 @@ namespace MPMParticleGeneratorUtility
                                 }
                                 else if (boundary_condition_type == 2)
                                 {
-                                    auto p_new_node = rBackgroundGridModelPart.CreateNewNode(rBackgroundGridModelPart.Nodes().size() + 1, mpc_xg[0][0], mpc_xg[0][1], mpc_xg[0][2]);
-                                    p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_X,WEIGHTED_VECTOR_RESIDUAL_X);
-                                    p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Y,WEIGHTED_VECTOR_RESIDUAL_Y);
-                                    p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Z,WEIGHTED_VECTOR_RESIDUAL_Z);
-                                    p_new_node->AddDof(DISPLACEMENT_X,REACTION_X);
-                                    p_new_node->AddDof(DISPLACEMENT_Y,REACTION_Y);
-                                    p_new_node->AddDof(DISPLACEMENT_Z,REACTION_Z);
-
-                                    // cp_condition->SetValuesOnIntegrationPoints(MPC_LAGRANGE_NODE,p_new_node, process_info);
-                                    p_condition->SetValue(MPC_LAGRANGE_NODE, p_new_node);
+                                    Vector mpc_shape_function(r_geometry.size());
+                                    for ( unsigned int j = 0; j < r_geometry.size(); j ++){
+                                        mpc_shape_function(j) = shape_functions_values(point_number, j) ;
+                                    }
+                                    // Vector shape_function = shape_functions_values[point_number];
+                                    p_condition->SetValue(MPC_GEOMETRY, p_geometry_condition);
+                                    p_condition->SetValue(MPC_SHAPEFUNCTIONS, mpc_shape_function);
                                 }
                                     
 

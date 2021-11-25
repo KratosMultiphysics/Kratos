@@ -21,6 +21,7 @@
 #include "includes/variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/mat_variables.h"
+#include "includes/geometrical_object.h"
 
 
 namespace Kratos
@@ -119,7 +120,8 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, double, PENALTY_FACTOR )
     KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, int, MPC_BOUNDARY_CONDITION_TYPE )
     KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(PARTICLE_MECHANICS_APPLICATION, WEIGHTED_VECTOR_RESIDUAL )
-    KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, Node<3>::Pointer, MPC_LAGRANGE_NODE )
+    KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, Kratos::shared_ptr<typename Kratos::Geometry<typename Kratos::GeometricalObject::NodeType>>, MPC_GEOMETRY )
+    KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, Vector, MPC_SHAPEFUNCTIONS )
 
     // Natural Boundary Conditions
     // Nodal load variables

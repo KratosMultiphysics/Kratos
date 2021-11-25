@@ -76,14 +76,16 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
 
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
 
-    array_1d<double, 3 > & r_lagrange_multiplier  = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-
-    for ( unsigned int j = 0; j < dimension; j++ )
-    {
-        r_lagrange_multiplier[0] *= 0.0;
+    auto pBoundaryGeometry = GetValue(MPC_GEOMETRY);
+    for (unsigned int num_lm =0; num_lm< pBoundaryGeometry->PointsNumber(); num_lm++){
+        array_1d<double, 3 > & r_lagrange_multiplier = pBoundaryGeometry->GetPoint(num_lm).FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            r_lagrange_multiplier[0] *= 0.0;
+        }
     }
+    
 
     // Additional treatment for slip conditions
     if (Is(SLIP))
@@ -92,8 +94,12 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
 
         // Calculating shape function
         MPMShapeFunctionPointValues(Variables.N);
-        array_1d<double, 3 > & r_normal = pBoundaryParticle->FastGetSolutionStepValue(NORMAL);
-        r_normal = m_unit_normal;
+
+        for (unsigned int num_lm =0; num_lm< pBoundaryGeometry->PointsNumber(); num_lm++){
+            array_1d<double, 3 > & r_normal = pBoundaryGeometry->GetPoint(num_lm).FastGetSolutionStepValue(NORMAL);
+            r_normal = m_unit_normal;
+        }
+        
 
         // Here MPC contribution of normal vector are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -105,6 +111,19 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
             r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_unit_normal;
             r_geometry[i].UnSetLock();
         }
+    }
+
+    // Get NODAL_AREA from MPC_Area
+
+    Vector mpc_shape_function = GetValue(MPC_SHAPEFUNCTIONS);
+ 
+    const double & r_mpc_area = this->GetIntegrationWeight();
+    for ( unsigned int i = 0; i < pBoundaryGeometry->PointsNumber(); i++ )
+    {
+        
+        pBoundaryGeometry->GetPoint(i).SetLock();
+        pBoundaryGeometry->GetPoint(i).FastGetSolutionStepValue(NODAL_AREA, 0) += mpc_shape_function(i) * r_mpc_area;
+        pBoundaryGeometry->GetPoint(i).UnSetLock();
     }
 
 
@@ -127,8 +146,13 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int block_size = this->GetBlockSize();
 
+    auto pBoundaryGeometry = GetValue(MPC_GEOMETRY);
+    const unsigned int number_of_lm_nodes = pBoundaryGeometry->PointsNumber();
+    Vector mpc_shape_function = GetValue(MPC_SHAPEFUNCTIONS);
+    KRATOS_WATCH(mpc_shape_function)
+
     // Resizing as needed the LHS
-    const unsigned int matrix_size = number_of_nodes * dimension + dimension;
+    const unsigned int matrix_size = number_of_nodes * dimension + number_of_lm_nodes * dimension;
 
     if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
     {
@@ -198,15 +222,22 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
         Matrix lagrange_matrix = ZeroMatrix(matrix_size, matrix_size);
 
         // Loop over shape functions of displacements
-        for (unsigned int i = 0; i < number_of_nodes; i++)
-        {
-            const unsigned int ibase = dimension * number_of_nodes;
-            for (unsigned int k = 0; k < dimension; k++)
+        for (unsigned int num_lm = 0; num_lm < number_of_lm_nodes; num_lm++)
+        {    
+            for (unsigned int i = 0; i < number_of_nodes; i++)
             {
-                lagrange_matrix(i* dimension+k, ibase+k) = Variables.N[i];
-                lagrange_matrix(ibase+k, i*dimension + k) = Variables.N[i];
+                const unsigned int ibase = dimension * number_of_nodes;
+                for (unsigned int k = 0; k < dimension; k++)
+                {
+                    lagrange_matrix(i* dimension + k, ibase + k + num_lm * dimension) = mpc_shape_function[num_lm] * Variables.N[i];
+                    lagrange_matrix(ibase + k + num_lm * dimension, i * dimension + k) = mpc_shape_function[num_lm] * Variables.N[i];
+                    // stabilization
+                    lagrange_matrix(ibase + k + num_lm * dimension, ibase + k) = 1e-20;
+                    lagrange_matrix(ibase + k + num_lm * dimension, ibase + k + 2) = 1e-20;
+                }
             }
         }
+        KRATOS_WATCH(lagrange_matrix)
 
         // Calculate LHS Matrix and RHS Vector
         if ( CalculateStiffnessMatrixFlag == true )
@@ -232,27 +263,60 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
             }
             right_hand_side = prod(lagrange_matrix, gap_function);
+            
 
             //first rows of RHS
             gap_function = ZeroVector(matrix_size);
-            auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
-            const array_1d<double, 3>& r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-
-            for (unsigned int j = 0; j < dimension; j++){
-                gap_function[dimension * number_of_nodes+j] = r_lagrange_multiplier[j];
+            for (unsigned int num_lm =0; num_lm< pBoundaryGeometry->PointsNumber(); num_lm++){
+                array_1d<double, 3 > & r_lagrange_multiplier = pBoundaryGeometry->GetPoint(num_lm).FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                for (unsigned int j = 0; j < dimension; j++){
+                    gap_function[dimension * number_of_nodes+j + num_lm*dimension] = r_lagrange_multiplier[j];
+                }
             }
+            
+            // auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
+            // const array_1d<double, 3>& r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+
+            
             
             right_hand_side += prod(lagrange_matrix, gap_function);
 
-            //add imposed displacement
-            for (unsigned int j = 0; j < dimension; j++){
-                right_hand_side[dimension * number_of_nodes+j] -= m_imposed_displacement[j];
-            }
+            // //add imposed displacement
+            // for (unsigned int j = 0; j < dimension; j++){
+            //     right_hand_side[dimension * number_of_nodes+j] -= m_imposed_displacement[j];
+            // }
 
             
 
             right_hand_side *= this->GetIntegrationWeight();
             noalias(rRightHandSideVector) = -right_hand_side;
+            KRATOS_WATCH(right_hand_side)
+
+        //     // Calculation of reaction forces
+        //     GeometryType& r_geometry = GetGeometry();
+        // const unsigned int number_of_nodes = r_geometry.size();
+        // const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+        // const unsigned int block_size = this->GetBlockSize();
+
+        // // Calculate nodal forces
+        // Vector nodal_force = ZeroVector(3);
+        // for (unsigned int i = 0; i < number_of_nodes; i++)
+        // {
+        //     for (unsigned int j = 0; j < dimension; j++)
+        //     {
+        //         nodal_force[j] = rRightHandSideVector[block_size * i + j];
+        //     }
+
+        //     // Check whether there nodes are active and associated to material point elements
+        //     const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+        //     if (nodal_mass > std::numeric_limits<double>::epsilon())
+        //     {
+        //         r_geometry[i].SetLock();
+        //         r_geometry[i].FastGetSolutionStepValue(REACTION) += nodal_force;
+        //         r_geometry[i].UnSetLock();
+        //     }
+
+        // }
             
         }
     }
@@ -273,9 +337,48 @@ void MPMParticleLagrangeDirichletCondition::FinalizeSolutionStep( const ProcessI
     KRATOS_TRY
 
     MPMParticleBaseDirichletCondition::FinalizeSolutionStep(rCurrentProcessInfo);
-    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
-    const array_1d<double, 3>& r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-    m_contact_force = r_lagrange_multiplier;
+
+    auto pBoundaryGeometry = GetValue(MPC_GEOMETRY);
+    const unsigned int number_of_lm_nodes = pBoundaryGeometry->PointsNumber();
+    Vector mpc_shape_function = GetValue(MPC_SHAPEFUNCTIONS);
+    
+    
+    const double & r_mpc_area = this->GetIntegrationWeight();
+
+    // Interpolate the force to mpc_force assuming linear shape function
+    array_1d<double, 3 > mpc_force = ZeroVector(3);
+    for (unsigned int i = 0; i < number_of_lm_nodes; i++)
+    {
+        // Check whether there is material point inside the node
+        const double nodal_area  = pBoundaryGeometry->GetPoint(i).FastGetSolutionStepValue(NODAL_AREA, 0);
+        KRATOS_WATCH(nodal_area)
+        const Vector nodal_force = pBoundaryGeometry->GetPoint(i).FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+
+        if (nodal_area > std::numeric_limits<double>::epsilon())
+        {
+            mpc_force += mpc_shape_function(i) * nodal_force * r_mpc_area / nodal_area;
+        }
+    }
+
+    // Apply in the normal contact direction and allow releasing motion
+    if (Is(CONTACT))
+    {
+        // Apply only in the normal direction
+        const double normal_force = MathUtils<double>::Dot(mpc_force, m_unit_normal);
+
+        // This check is done to avoid sticking forces
+        if (normal_force > 0.0)
+            mpc_force = -1.0 * normal_force * m_unit_normal;
+        else
+            mpc_force = ZeroVector(3);
+    }
+    // Apply a sticking contact
+    else{
+        mpc_force *= -1.0;
+    }
+
+    // Set Contact Force
+    m_contact_force = mpc_force;
 
     KRATOS_CATCH( "" )
 }
@@ -285,13 +388,15 @@ void MPMParticleLagrangeDirichletCondition::EquationIdVector(
     const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
+    auto pBoundaryGeometry = GetValue(MPC_GEOMETRY);
+    const unsigned int number_of_lm_nodes = pBoundaryGeometry->PointsNumber();
 
     const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size() ;
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     if (rResult.size() != dimension * number_of_nodes + dimension)
     {
-        rResult.resize(dimension * number_of_nodes + dimension ,false);
+        rResult.resize(dimension * number_of_nodes + dimension * number_of_lm_nodes ,false);
     }
 
 
@@ -305,13 +410,15 @@ void MPMParticleLagrangeDirichletCondition::EquationIdVector(
 
     }
 
-    unsigned int index = number_of_nodes * dimension;
-    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
+    for (unsigned int num_lm =0; num_lm< pBoundaryGeometry->PointsNumber(); num_lm++){
 
-    rResult[index    ] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
-    rResult[index + 1] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
-    if(dimension == 3)
-        rResult[index + 2] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_Z).EquationId();
+        unsigned int index = number_of_nodes * dimension + dimension * num_lm;
+        rResult[index    ] = pBoundaryGeometry->GetPoint(num_lm).GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
+        rResult[index + 1] = pBoundaryGeometry->GetPoint(num_lm).GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
+        if(dimension == 3)
+            rResult[index + 2] = pBoundaryGeometry->GetPoint(num_lm).GetDof(VECTOR_LAGRANGE_MULTIPLIER_Z).EquationId();
+    }
+    
 
 
     KRATOS_CATCH("")
@@ -327,8 +434,12 @@ void MPMParticleLagrangeDirichletCondition::GetDofList(
     const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension =  r_geometry.WorkingSpaceDimension();
+
+    auto pBoundaryGeometry = GetValue(MPC_GEOMETRY);
+    const unsigned int number_of_lm_nodes = pBoundaryGeometry->PointsNumber();
+
     rElementalDofList.resize(0);
-    rElementalDofList.reserve(dimension * number_of_nodes + dimension);
+    rElementalDofList.reserve(dimension * number_of_nodes + dimension * number_of_lm_nodes);
 
     for (unsigned int i = 0; i < number_of_nodes; ++i)
     {
@@ -338,12 +449,18 @@ void MPMParticleLagrangeDirichletCondition::GetDofList(
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Z));
 
     }
-    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
 
-    rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
-    rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
-    if(dimension == 3)
-        rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
+    
+
+    for (unsigned int num_lm =0; num_lm< number_of_lm_nodes; num_lm++){
+
+        unsigned int index = number_of_nodes * dimension + dimension * num_lm;
+            rElementalDofList.push_back(pBoundaryGeometry->GetPoint(num_lm).pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+            rElementalDofList.push_back(pBoundaryGeometry->GetPoint(num_lm).pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
+            if(dimension == 3)
+                rElementalDofList.push_back(pBoundaryGeometry->GetPoint(num_lm).pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
+        }
+    
 
 
 
@@ -358,7 +475,11 @@ void MPMParticleLagrangeDirichletCondition::GetValuesVector(
     const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    const unsigned int mat_size = number_of_nodes * dimension + dimension;
+
+    auto pBoundaryGeometry = GetValue(MPC_GEOMETRY);
+    const unsigned int number_of_lm_nodes = pBoundaryGeometry->PointsNumber();
+
+    const unsigned int mat_size = number_of_nodes * dimension + dimension * number_of_lm_nodes;
 
     if (rValues.size() != mat_size)
     {
@@ -377,13 +498,18 @@ void MPMParticleLagrangeDirichletCondition::GetValuesVector(
             rValues[index + k] = r_displacement[k];
         }
     }
-    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
-    const array_1d<double, 3 > & r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, Step);
-    const unsigned int lagrange_index = number_of_nodes * dimension;
-    for(unsigned int k = 0; k < dimension; ++k)
-        {
-            rValues[lagrange_index + k] = r_lagrange_multiplier[k];
+
+
+    for (unsigned int num_lm =0; num_lm< number_of_lm_nodes; num_lm++){
+        const array_1d<double, 3 > & r_lagrange_multiplier = pBoundaryGeometry->GetPoint(num_lm).FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, Step);
+        const unsigned int lagrange_index = number_of_nodes * dimension + num_lm * dimension;
+        for(unsigned int k = 0; k < dimension; ++k)
+            {
+                rValues[lagrange_index + k] = r_lagrange_multiplier[k];
+            }
+
         }
+    
 }
 
 void MPMParticleLagrangeDirichletCondition::GetFirstDerivativesVector(
@@ -394,7 +520,11 @@ void MPMParticleLagrangeDirichletCondition::GetFirstDerivativesVector(
     const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    const unsigned int mat_size = number_of_nodes * dimension + dimension;
+
+    auto pBoundaryGeometry = GetValue(MPC_GEOMETRY);
+    const unsigned int number_of_lm_nodes = pBoundaryGeometry->PointsNumber();
+
+    const unsigned int mat_size = number_of_nodes * dimension + dimension * number_of_lm_nodes;
 
     if (rValues.size() != mat_size)
     {
@@ -421,7 +551,10 @@ void MPMParticleLagrangeDirichletCondition::GetSecondDerivativesVector(
     const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    const unsigned int mat_size = number_of_nodes * dimension + dimension;
+    auto pBoundaryGeometry = GetValue(MPC_GEOMETRY);
+    const unsigned int number_of_lm_nodes = pBoundaryGeometry->PointsNumber();
+
+    const unsigned int mat_size = number_of_nodes * dimension + dimension * number_of_lm_nodes;
 
     if (rValues.size() != mat_size)
     {
