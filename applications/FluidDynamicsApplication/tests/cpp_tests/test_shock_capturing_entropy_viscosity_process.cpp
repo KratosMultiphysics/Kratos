@@ -55,7 +55,8 @@ namespace ShockCapturingEntropyViscosityTesting{
         Parameters mesher_parameters(R"(
         {
             "number_of_divisions": 90,
-            "element_name": "Element2D3N"
+            "element_name": "Element2D3N",
+            "create_skin_sub_model_part": false
         })");
         StructuredMeshGeneratorProcess(geometry, rNewModelPart, mesher_parameters).Execute();
 
