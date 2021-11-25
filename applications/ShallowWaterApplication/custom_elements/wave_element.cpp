@@ -205,6 +205,7 @@ void WaveElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType
 
     for (IndexType i = 0; i < TNumNodes; i++)
     {
+        rData.nodal_f[i] = rGeometry[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, Step);
         rData.nodal_h[i] = rGeometry[i].FastGetSolutionStepValue(HEIGHT, Step);
         rData.nodal_z[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY, Step);
         rData.nodal_w[i] = rGeometry[i].FastGetSolutionStepValue(VERTICAL_VELOCITY, Step);

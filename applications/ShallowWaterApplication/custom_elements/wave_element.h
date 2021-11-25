@@ -296,6 +296,7 @@ protected:
         array_1d<double,3> b1;
         array_1d<double,3> b2;
 
+        array_1d<double,TNumNodes> nodal_f;
         array_1d<double,TNumNodes> nodal_h;
         array_1d<double,TNumNodes> nodal_z;
         array_1d<double,TNumNodes> nodal_w;
