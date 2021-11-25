@@ -137,7 +137,7 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("WaveElement2D8N", mWaveElement2D8N)
         KRATOS_REGISTER_ELEMENT("WaveElement2D9N", mWaveElement2D9N)
         KRATOS_REGISTER_ELEMENT("CrankNicolsonWaveElement2D3N", mCrankNicolsonWaveElement2D3N)
-        KRATOS_REGISTER_ELEMENT("BoussinesqElement2D3N", mConservativeElement2D3N)
+        KRATOS_REGISTER_ELEMENT("BoussinesqElement2D3N", mBoussinesqElement2D3N)
         KRATOS_REGISTER_ELEMENT("ConservativeElement2D3N", mConservativeElement2D3N)
 
         KRATOS_REGISTER_ELEMENT("ShallowWater2D3N", mShallowWater2D3N) // TODO: move to ConservativeElement
