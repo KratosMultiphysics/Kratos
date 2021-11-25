@@ -131,6 +131,9 @@ class MeshControllerWithSolver(MeshController) :
         KM.Logger.Print("")
         KM.Logger.PrintInfo("ShapeOpt", "Starting to update the mesh...")
         startTime = timer.time()
+        if self.MeshSolverSettings["processes"]["boundary_conditions_process_list"].size() == 0:
+            self.__FixWholeSurface(self.OptimizationModelPart, self.MeshSolverSettings)
+            self.has_automatic_boundary_process = True
 
         time_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(KM.TIME)
         step_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(KM.STEP)

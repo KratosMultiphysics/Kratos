@@ -126,7 +126,7 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             "airfoil_chord_length",
             "airfoil_perimeter"
         ]
-        csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]
+        csm_response_functions = ["strain_energy","strain_energy_stages", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]
         cps_response_functions = ["adjoint_lift_potential_jump", "stochastic_adjoint_lift_potential_jump"]
         convdiff_response_functions = ["point_temperature"]
 

@@ -100,8 +100,8 @@ class MeshSolverBase(PythonSolver):
 
     def AddVariables(self):
         # Add variables required for the mesh moving calculation
-        self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
-        self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_REACTION)
+        # self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
+        # self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_REACTION)
 
         # Adding Variables used for computation of Mesh-Velocity
         if self.settings["calculate_mesh_velocity"].GetBool():

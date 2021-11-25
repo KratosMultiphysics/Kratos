@@ -16,7 +16,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # ==============================================================================
-def CreateController(model_settings, model):
+def Create(model_settings, model):
     return ModelPartController(model_settings, model)
 
 # ==============================================================================
@@ -33,7 +33,7 @@ class ModelPartController:
                 "input_type"     : "mdpa",
                 "input_filename" : "OPTIMIZATION_MODEL_PART_FILENAME"
             },
-            "design_surface_sub_model_part_name" : "DESIGN_SURFACE_NAME",
+            "design_surfaces" : [],
             "damping" : {
                 "apply_damping"      : false,
                 "recalculate_damping": false,
@@ -42,12 +42,14 @@ class ModelPartController:
             },
             "mesh_motion" : {
                 "apply_mesh_solver" : false
-            }
+            },
+            "output_optimized_modepart": false
         }""")
 
         self.model_settings.ValidateAndAssignDefaults(default_settings)
         self.model_settings["model_import_settings"].ValidateAndAssignDefaults(default_settings["model_import_settings"])
         self.model_settings["damping"].ValidateAndAssignDefaults(default_settings["damping"])
+        self.output_optimized_mp = self.model_settings["output_optimized_modepart"].GetBool()
 
         self.model = model
 
@@ -62,22 +64,35 @@ class ModelPartController:
             from KratosMultiphysics.ShapeOptimizationApplication.mesh_controllers.mesh_controller_basic_updating import MeshControllerBasicUpdating
             self.mesh_controller = MeshControllerBasicUpdating(self.optimization_model_part)
 
-        self.design_surface = None
+        self.design_surfaces = {}
         self.damping_regions = {}
         self.damping_utility = None
+        self.is_initialized = False
 
     # --------------------------------------------------------------------------
     def Initialize(self):
-        self.__ImportOptimizationModelPart()
-        self.__IdentifyDesignSurface()
+        if(not self.is_initialized):
+            self.__ImportOptimizationModelPart()
+            self.__IdentifyDesignSurface()
 
-        self.mesh_controller.Initialize()
+            self.mesh_controller.Initialize()
 
         if self.model_settings["damping"]["apply_damping"].GetBool():
             self.__IdentifyDampingRegions()
             self.damping_utility = KSO.DampingUtilities(
-                self.design_surface, self.damping_regions, self.model_settings["damping"]
+                self.optimization_model_part, self.damping_regions, self.model_settings["damping"]
             )
+        self.is_initialized = True
+
+    def Finalize(self):
+        if self.output_optimized_mp:
+            self.OutputOptimizedModelpart()
+
+    def OutputOptimizedModelpart(self):
+        input_filename = self.model_settings["model_import_settings"]["input_filename"].GetString()
+        input_filename += "_optimized"
+        model_part_io = KM.ModelPartIO(input_filename, KM.ModelPartIO.WRITE)
+        model_part_io.WriteModelPart(self.optimization_model_part)
 
     # --------------------------------------------------------------------------
     def SetMinimalBufferSize(self, buffer_size):
@@ -95,7 +110,7 @@ class ModelPartController:
 
         if self.model_settings["damping"]["recalculate_damping"].GetBool():
             self.damping_utility = KSO.DampingUtilities(
-                self.design_surface, self.damping_regions, self.model_settings["damping"]
+                self.optimization_model_part, self.damping_regions, self.model_settings["damping"]
             )
 
     # --------------------------------------------------------------------------
@@ -119,8 +134,8 @@ class ModelPartController:
         return self.model
 
     # --------------------------------------------------------------------------
-    def GetDesignSurface(self):
-        return self.design_surface
+    def GetDesignSurfaces(self):
+        return self.design_surfaces
 
     # --------------------------------------------------------------------------
     def DampNodalVariableIfSpecified(self, variable):
@@ -129,11 +144,13 @@ class ModelPartController:
 
     # --------------------------------------------------------------------------
     def ComputeUnitSurfaceNormals(self):
-        KSO.GeometryUtilities(self.GetDesignSurface()).ComputeUnitSurfaceNormals()
+        for name, design_surface in self.design_surfaces.items():
+            KSO.GeometryUtilities(design_surface).ComputeUnitSurfaceNormals()
 
     # --------------------------------------------------------------------------
     def ProjectNodalVariableOnUnitSurfaceNormals(self, variable):
-        KSO.GeometryUtilities(self.GetDesignSurface()).ProjectNodalVariableOnUnitSurfaceNormals(variable)
+        for name, design_surface in self.design_surfaces.items():
+            KSO.GeometryUtilities(design_surface).ProjectNodalVariableOnUnitSurfaceNormals(variable)
 
     # --------------------------------------------------------------------------
     def __ImportOptimizationModelPart(self):
@@ -149,13 +166,15 @@ class ModelPartController:
 
     # --------------------------------------------------------------------------
     def __IdentifyDesignSurface(self):
-        nameOfDesignSurface = self.model_settings["design_surface_sub_model_part_name"].GetString()
-        if self.optimization_model_part.HasSubModelPart(nameOfDesignSurface):
-            self.design_surface = self.optimization_model_part.GetSubModelPart(nameOfDesignSurface)
-            KM.Logger.Print("")
-            KM.Logger.PrintInfo("ShapeOpt", "The following design surface was defined:\n\n",self.design_surface)
-        else:
-            raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesignSurface)
+        for design_surface in self.model_settings["design_surfaces"]:
+            design_surface_name = design_surface.GetString()
+            if self.optimization_model_part.HasSubModelPart(design_surface_name):
+                self.design_surfaces[design_surface_name] = self.optimization_model_part.GetSubModelPart(design_surface_name)
+            else:
+                raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",
+                design_surface_name)
+        KM.Logger.Print("")
+        KM.Logger.PrintInfo("ShapeOpt", "The following design surfaces are defined:\n\n",self.model_settings["design_surfaces"])
 
     # --------------------------------------------------------------------------
     def __IdentifyDampingRegions(self):
