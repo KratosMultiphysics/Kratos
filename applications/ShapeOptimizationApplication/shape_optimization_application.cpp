@@ -91,6 +91,10 @@ namespace Kratos
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(BACKGROUND_NORMAL);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(OUT_OF_PLANE_DELTA);
 
+    // For min-max angles constraints in additive manufacturing 
+    KRATOS_CREATE_VARIABLE(double,NODAL_MIN_ANGLE);
+    KRATOS_CREATE_VARIABLE(double,NODAL_MAX_ANGLE);    
+
     // Eof variables
 
     KratosShapeOptimizationApplication::KratosShapeOptimizationApplication() :
@@ -168,6 +172,11 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BACKGROUND_COORDINATE);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BACKGROUND_NORMAL);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(OUT_OF_PLANE_DELTA);
+
+        // For min-max angles constraints in additive manufacturing 
+        KRATOS_REGISTER_VARIABLE(NODAL_MIN_ANGLE);
+        KRATOS_REGISTER_VARIABLE(NODAL_MAX_ANGLE); 
+
  	}
 
 }  // namespace Kratos.

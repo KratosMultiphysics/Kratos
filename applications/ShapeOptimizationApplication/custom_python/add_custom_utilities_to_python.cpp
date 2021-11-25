@@ -34,6 +34,8 @@
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/search_based_functions.h"
 #include "custom_utilities/response_functions/face_angle_response_function_utility.h"
+#include "custom_utilities/response_functions/AM_boundary_slope_angle_response_function_utility.h"
+#include "custom_utilities/response_functions/AM_boundary_roughness_angle_response_function_utility.h"
 
 // ==============================================================================
 
@@ -232,6 +234,20 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CalculateValue", &FaceAngleResponseFunctionUtility::CalculateValue)
         .def("CalculateGradient", &FaceAngleResponseFunctionUtility::CalculateGradient)
         ;
+
+    py::class_<AMBoundarySlopeAngleResponseFunctionUtility >(m, "AMBoundarySlopeAngleResponseFunctionUtility")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Initialize", &AMBoundarySlopeAngleResponseFunctionUtility::Initialize)
+        .def("CalculateValue", &AMBoundarySlopeAngleResponseFunctionUtility::CalculateValue)
+        .def("CalculateGradient", &AMBoundarySlopeAngleResponseFunctionUtility::CalculateGradient)
+        ;
+
+    py::class_<AMBoundaryRoughnessAngleResponseFunctionUtility >(m, "AMBoundaryRoughnessAngleResponseFunctionUtility")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Initialize", &AMBoundaryRoughnessAngleResponseFunctionUtility::Initialize)
+        .def("CalculateValue", &AMBoundaryRoughnessAngleResponseFunctionUtility::CalculateValue)
+        .def("CalculateGradient", &AMBoundaryRoughnessAngleResponseFunctionUtility::CalculateGradient)
+        ;         
 
     // ========================================================================
     // Additional operations
