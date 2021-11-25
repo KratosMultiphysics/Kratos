@@ -125,8 +125,8 @@ namespace ShockCapturingEntropyViscosityTesting{
         // Set the test model part
         Model model;
         auto& r_model_part = model.CreateModelPart("MainModelPart");
-        SetTestModelPart(r_model_part);
-        SetSmoothFunction(r_model_part);
+        ShockCapturingEntropyViscosityTesting::SetTestModelPart(r_model_part);
+        ShockCapturingEntropyViscosityTesting::SetSmoothFunction(r_model_part);
 
         // Perform the shock detection
         Parameters sc_settings(R"(
@@ -162,8 +162,8 @@ namespace ShockCapturingEntropyViscosityTesting{
         // Set the test model part
         Model model;
         auto& r_model_part = model.CreateModelPart("MainModelPart");
-        SetTestModelPart(r_model_part);
-        SetShockFunction(r_model_part);
+        ShockCapturingEntropyViscosityTesting::SetTestModelPart(r_model_part);
+        ShockCapturingEntropyViscosityTesting::SetShockFunction(r_model_part);
 
         // Perform the shock detection
         Parameters sc_settings(R"(

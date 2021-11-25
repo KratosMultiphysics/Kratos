@@ -126,7 +126,7 @@ namespace ShockCapturingPhysicsBasedTesting{
         // Set the test model part
         Model model;
         auto& r_model_part = model.CreateModelPart("MainModelPart");
-        SetTestModelPart(r_model_part);
+        ShockCapturingPhysicsBasedTesting::SetTestModelPart(r_model_part);
 
         // Set a smooth field
         for (auto& r_node : r_model_part.Nodes()) {
@@ -181,8 +181,8 @@ namespace ShockCapturingPhysicsBasedTesting{
         // Set the test model part
         Model model;
         auto& r_model_part = model.CreateModelPart("MainModelPart");
-        SetTestModelPart(r_model_part);
-        SetAbgrallFunction(r_model_part);
+        ShockCapturingPhysicsBasedTesting::SetTestModelPart(r_model_part);
+        ShockCapturingPhysicsBasedTesting::SetAbgrallFunction(r_model_part);
 
         // Perform the shock detection
         Parameters sc_settings(R"(
