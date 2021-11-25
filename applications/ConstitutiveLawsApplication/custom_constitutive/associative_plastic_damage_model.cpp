@@ -374,7 +374,7 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialHardeningImplicitFu
         const double gamma = (0.5*factor - g) / (g * (3.0 * chi + 1) * (chi - 1.0));
         const double alpha = std::sqrt(chi_square * (1.0 - Threshold / K0) + Threshold / K0);
         const double beta = (1.0 - chi_square) / (2.0 * alpha*K0);
-        return gamma * (sign * beta * (2.0 * chi + 1.0 - sign * alpha) + (1.0 + sign * alpha) * (-sign * beta) - (chi_square - 1.0) / K0 * std::log((chi + sign * alpha) / (chi - 1.0)) - Threshold / K0 * (chi_square - 1.0) * ((chi - 1.0) / (chi + sign * alpha)) * (sign * beta / (chi - 1.0))) + factor / (2.0 * g) * (2.0 * Threshold / (std::pow(K0, 2)) * (1.0 + K0 / Threshold * xi - xi) + std::pow(Threshold / K0, 2) * (-K0 * xi / std::pow(Threshold, 2)));
+        return gamma * (sign * beta * (2.0 * chi + 1.0 - sign * alpha) + (1.0 + sign * alpha) * (-sign * beta) - (chi_square - 1.0) / K0 * std::log((chi + sign * alpha) / (chi - 1.0)) - Threshold / K0 * (chi_square - 1.0) * ((chi - 1.0) / (chi + sign * alpha)) * (sign * beta / (chi - 1.0))) + factor / (2.0 * g) * (-2.0 * Threshold / (std::pow(K0, 2)) * (1.0 + K0 / Threshold * xi - xi) + std::pow(Threshold / K0, 2) * (K0 * xi / std::pow(Threshold, 2)));
     };
     return function_derivative;
 }
