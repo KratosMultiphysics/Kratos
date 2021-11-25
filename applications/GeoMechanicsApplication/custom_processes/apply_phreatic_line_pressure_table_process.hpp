@@ -40,15 +40,11 @@ public:
     {
         KRATOS_TRY
 
-        for (unsigned int i=0; i < mpTable.size(); ++i)
-        {
+        for (unsigned int i=0; i < mpTable.size(); ++i) {
             unsigned int TableId = rParameters["table"][i].GetInt();
-            if (TableId > 0)
-            {
+            if (TableId > 0) {
                 mpTable[i] = model_part.pGetTable(TableId);
-            }
-            else
-            {
+            } else {
                 mpTable[i] = NULL;
             }
         }
@@ -79,14 +75,10 @@ public:
 
         const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
         array_1d<double, 2> deltaH;
-        for (unsigned int i=0; i < mpTable.size(); ++i)
-        {
-            if (mpTable[i] == NULL)
-            {
+        for (unsigned int i=0; i < mpTable.size(); ++i) {
+            if (mpTable[i] == NULL) {
                deltaH[i] = 0.0;
-            }
-            else
-            {
+            } else {
                deltaH[i] = mpTable[i]->GetValue(Time);
             }
         }
@@ -100,8 +92,7 @@ public:
 
         const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
 
-        if (nNodes != 0)
-        {
+        if (nNodes != 0) {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
             Vector3 Coordinates;
@@ -114,26 +105,22 @@ public:
                 noalias(Coordinates) = it->Coordinates();
 
                 double hight = 0.0;
-                if (Coordinates[mHorizontalDirection] >= mMinHorizontalCoordinate && Coordinates[mHorizontalDirection] <= mMaxHorizontalCoordinate)
-                {
+                if (Coordinates[mHorizontalDirection] >= mMinHorizontalCoordinate && Coordinates[mHorizontalDirection] <= mMaxHorizontalCoordinate) {
                     hight = mSlope * (Coordinates[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]) + y[0];
-                } else if (Coordinates[mHorizontalDirection] < mMinHorizontalCoordinate)
-                {
+
+                } else if (Coordinates[mHorizontalDirection] < mMinHorizontalCoordinate) {
                     hight = mSlope * (mMinHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + y[0];
-                } else if (Coordinates[mHorizontalDirection] > mMaxHorizontalCoordinate)
-                {
+
+                } else if (Coordinates[mHorizontalDirection] > mMaxHorizontalCoordinate) {
                     hight = mSlope * (mMaxHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + y[0];
                 }
 
                 const double distance = hight - Coordinates[mGravityDirection];
                 const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance;
 
-                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff)
-                {
+                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
                     it->FastGetSolutionStepValue(var) = pressure;
-                }
-                else
-                {
+                } else {
                     it->FastGetSolutionStepValue(var) = mPressureTensionCutOff;
                 }
             }
