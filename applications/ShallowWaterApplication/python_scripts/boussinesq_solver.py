@@ -28,8 +28,8 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
 
     def _SetProcessInfo(self):
         super()._SetProcessInfo()
-        self.main_model_part.ProcessInfo.SetValue(SW.AMPLITUDE, 0.5)
-        self.main_model_part.ProcessInfo.SetValue(SW.WAVELENGTH, 10.0)
+        self.main_model_part.ProcessInfo.SetValue(SW.AMPLITUDE, self.settings["amplitude"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(SW.WAVELENGTH, self.settings["wavelength"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(SW.RELATIVE_DRY_HEIGHT, self.settings["relative_dry_height"].GetDouble())
 
@@ -47,7 +47,9 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
     def GetDefaultParameters(cls):
         default_settings = KM.Parameters("""{
             "relative_dry_height"        : 0.1,
-            "stabilization_factor"       : 0.01
+            "stabilization_factor"       : 0.01,
+            "wavelength"                 : 10,
+            "amplitude"                  : 0.2
         }""")
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
