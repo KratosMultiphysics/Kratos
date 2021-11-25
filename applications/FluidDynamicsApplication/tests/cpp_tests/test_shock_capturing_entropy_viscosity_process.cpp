@@ -30,7 +30,7 @@
 
 namespace Kratos {
 namespace Testing {
-namespace {
+namespace ShockCapturingEntropyViscosityTesting{
 
     void SetTestModelPart(ModelPart& rNewModelPart)
     {
