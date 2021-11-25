@@ -84,21 +84,19 @@ public:
     /// right after reading the model and the groups
     void ExecuteInitialize() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
         const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
 
-        if (nNodes != 0)
-        {
+        if (nNodes != 0) {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
             Vector3 Coordinates;
 
             #pragma omp parallel for private(Coordinates)
-            for (int i = 0; i<nNodes; i++)
-            {
+            for (int i = 0; i<nNodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
                 if (mIsFixed) it->Fix(var);
@@ -108,12 +106,9 @@ public:
 
                 const double pressure = mSpecificWeight*( mreference_coordinate - Coordinates[mgravity_direction] );
 
-                if (pressure > 0.0)
-                {
+                if (pressure > 0.0) {
                     it->FastGetSolutionStepValue(var) = pressure;
-                }
-                else
-                {
+                } else {
                     it->FastGetSolutionStepValue(var) = 0.0;
                 }
             }
@@ -158,9 +153,6 @@ private:
 
     /// Assignment operator.
     ApplyConstantBoundaryHydrostaticPressureProcess& operator=(ApplyConstantBoundaryHydrostaticPressureProcess const& rOther);
-
-    /// Copy constructor.
-    //ApplyConstantHydrostaticPressureProcess(ApplyConstantBoundaryHydrostaticPressureProcess const& rOther);
 
 }; // Class ApplyConstantBoundaryHydrostaticPressureProcess
 

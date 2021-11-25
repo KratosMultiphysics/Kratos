@@ -283,15 +283,36 @@ void ElasticIsotropicK03DLaw::CalculateElasticMatrix(Matrix& rConstitutiveMatrix
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
+    double NU = r_material_properties[POISSON_RATIO];
 
-    this->CheckClearElasticMatrix(rConstitutiveMatrix);
+    const double& K0ValueXX = r_material_properties[K0_VALUE_XX];
+    const double& K0ValueYY = r_material_properties[K0_VALUE_YY];
+    const double& K0ValueZZ = r_material_properties[K0_VALUE_ZZ];
+
+    double K0 = 0.0;
+    const int &K0MainDirection = r_material_properties[K0_MAIN_DIRECTION];
+    if (K0MainDirection == VOIGT_INDEX_XX) {
+        K0 = 0.5*(K0ValueYY + K0ValueZZ);
+    } else if (K0MainDirection == VOIGT_INDEX_YY) {
+        K0 = 0.5*(K0ValueXX + K0ValueZZ);
+    } else if (K0MainDirection == VOIGT_INDEX_ZZ) {
+        K0 = 0.5*(K0ValueXX + K0ValueYY);
+    } else {
+         KRATOS_ERROR << "undefined K0_MAIN_DIRECTION in LinearElasticK03DLaw: " << K0MainDirection << std::endl;
+    }
+
+    NU = K0 / (K0 + 1.0);
+    NU = std::max(NU, 0.0);
+
+    const double limit = 0.005;
+    if (NU < (0.5 + limit) && NU > (0.5 - limit)) NU = 0.5 - limit;
 
     const double c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
     const double c2 = c1 * ( 1 - NU );
     const double c3 = c1 * NU;
     const double c4 = c1 * 0.5 * ( 1 - 2 * NU );
 
+    this->CheckClearElasticMatrix(rConstitutiveMatrix);
     rConstitutiveMatrix( 0, 0 ) = c2;
     rConstitutiveMatrix( 0, 1 ) = c3;
     rConstitutiveMatrix( 0, 2 ) = c3;
@@ -314,47 +335,28 @@ void ElasticIsotropicK03DLaw::CalculatePK2Stress(const Vector& rStrainVector,
                                                  ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
-
-    const double c1 = E / ((1.00 + NU) * (1 - 2 * NU));
-    const double c2 = c1 * (1 - NU);
-    const double c3 = c1 * NU;
-    const double c4 = c1 * 0.5 * (1 - 2 * NU);
-
-    rStressVector[0] = c2 * rStrainVector[0] + c3 * rStrainVector[1] + c3 * rStrainVector[2];
-    rStressVector[1] = c3 * rStrainVector[0] + c2 * rStrainVector[1] + c3 * rStrainVector[2];
-    rStressVector[2] = c3 * rStrainVector[0] + c3 * rStrainVector[1] + c2 * rStrainVector[2];
-    rStressVector[3] = c4 * rStrainVector[3];
-    rStressVector[4] = c4 * rStrainVector[4];
-    rStressVector[5] = c4 * rStrainVector[5];
+    Matrix C;
+    this->CalculateElasticMatrix(C, rValues);
+    noalias(rStressVector) = prod(C, rStrainVector);
 
     // apply K0 procedure:
     const double& K0ValueXX = r_material_properties[K0_VALUE_XX];
     const double& K0ValueYY = r_material_properties[K0_VALUE_YY];
     const double& K0ValueZZ = r_material_properties[K0_VALUE_ZZ];
-    const int& K0MainDirection = r_material_properties[K0_MAIN_DIRECTION];
 
-    if (K0MainDirection == VOIGT_INDEX_XX)
-    {
+    const int& K0MainDirection = r_material_properties[K0_MAIN_DIRECTION];
+    if (K0MainDirection == VOIGT_INDEX_XX) {
         rStressVector[VOIGT_INDEX_YY] = K0ValueYY * rStressVector[VOIGT_INDEX_XX];
         rStressVector[VOIGT_INDEX_ZZ] = K0ValueZZ * rStressVector[VOIGT_INDEX_XX];
-    }
-    else if (K0MainDirection == VOIGT_INDEX_YY)
-    {
+    } else if (K0MainDirection == VOIGT_INDEX_YY) {
         rStressVector[VOIGT_INDEX_XX] = K0ValueXX * rStressVector[VOIGT_INDEX_YY];
         rStressVector[VOIGT_INDEX_ZZ] = K0ValueZZ * rStressVector[VOIGT_INDEX_YY];
-    }
-    else if (K0MainDirection == VOIGT_INDEX_ZZ)
-    {
+    } else if (K0MainDirection == VOIGT_INDEX_ZZ) {
         rStressVector[VOIGT_INDEX_XX] = K0ValueXX * rStressVector[VOIGT_INDEX_ZZ];
         rStressVector[VOIGT_INDEX_YY] = K0ValueYY * rStressVector[VOIGT_INDEX_ZZ];
-    }
-    else
-    {
+    } else {
          KRATOS_ERROR << "undefined K0_MAIN_DIRECTION in LinearElasticK03DLaw: " << K0MainDirection << std::endl;
     }
-
 }
 
 /***********************************************************************************/
