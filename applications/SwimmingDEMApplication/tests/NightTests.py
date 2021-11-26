@@ -13,12 +13,19 @@ import GentleInjectionAndErasureTestFactory as GentleTF
 
 class gentle_injection_test(GentleTF.GentleInjectionAndErasureTestFactory):
      file_name = "gentle_injection_tests/cube_cavity_with_inlet"
-     file_parameters = "gentle_injection_tests/ProjectParametersInjection.json"
+     file_parameters_harsh = "gentle_injection_tests/ProjectParametersInjectionHarsh.json"
+     file_parameters_gentle = "gentle_injection_tests/ProjectParametersInjectionGentle.json"
+     def GetGentleParameterValueAndName(self, parameters):
+         parameter_name = 'initiation_interval'
+         return parameters['coupling']['gentle_coupling_initiation'][parameter_name].GetDouble(), parameter_name
 
 class gentle_erasure_test(GentleTF.GentleInjectionAndErasureTestFactory):
      file_name = "gentle_injection_tests/cube_cavity"
-     file_parameters = "gentle_injection_tests/ProjectParametersErasure.json"
-
+     file_parameters_harsh = "gentle_injection_tests/ProjectParametersErasureHarsh.json"
+     file_parameters_gentle = "gentle_injection_tests/ProjectParametersErasureGentle.json"
+     def GetGentleParameterValueAndName(self, parameters):
+         parameter_name = 'destruction_delay_interval'
+         return parameters['dem_parameters']['creator_destructor_settings'][parameter_name].GetDouble(), parameter_name
 
 # List of tests that are available
 available_tests = []
@@ -33,8 +40,8 @@ def SetTestSuite(suites):
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
-    small_suite = SmallTests.SetTestSuite(suites)
-    suites['all'].addTests(small_suite)
+    # small_suite = SmallTests.SetTestSuite(suites)
+    # suites['all'].addTests(small_suite)
     night_suite = SetTestSuite(suites)
     suites['all'].addTests(night_suite)
 
