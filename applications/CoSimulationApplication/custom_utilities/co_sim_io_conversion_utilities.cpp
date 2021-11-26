@@ -19,6 +19,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 #include "co_sim_io_conversion_utilities.h"
+#include "co_simulation_application_variables.h"
 
 namespace Kratos {
 namespace {
@@ -113,6 +114,9 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
             (const std::size_t i){
                 elements_id_to_index[i] = (**(rCoSimIOModelPart.ElementsBegin()+i)).Id();
     });
+
+    rKratosModelPart[NODES_ID_INDEX_MAP] = std::move(nodes_id_to_index);
+    rKratosModelPart[ELEMENTS_ID_INDEX_MAP] = std::move(elements_id_to_index);
 
     for (const auto& r_node : rCoSimIOModelPart.LocalNodes()) {
         rKratosModelPart.CreateNewNode(
