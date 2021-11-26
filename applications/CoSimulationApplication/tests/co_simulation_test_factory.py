@@ -187,6 +187,13 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._createTest("dem_fem_cable_net","cosim_dem_fem_cable_net")
             self._runTest()
 
+        # removing superfluous dem files after test
+        self.addCleanup(kratos_utils.DeleteFileIfExisting, GetFilePath("dem_fem_cable_net/cableNet.post.lst"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("dem_fem_cable_net/cableNet_Graphs"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("dem_fem_cable_net/cableNet_MPI_results"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("dem_fem_cable_net/cableNet_Post_Files"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("dem_fem_cable_net/cableNet_Results_and_Data"))
+
     def test_sdof_fsi(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
@@ -216,16 +223,6 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._createTest("pfem_fem_waterslide2d","cosim_pfem_fem_waterslide2d")
             self._runTest()
 
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-
-        # delete superfluous dem files
-        kratos_utils.DeleteFileIfExisting(GetFilePath("dem_fem_cable_net/cableNet.post.lst"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_Graphs"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_MPI_results"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_Post_Files"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_Results_and_Data"))
 
 if __name__ == '__main__':
     KratosUnittest.main()
