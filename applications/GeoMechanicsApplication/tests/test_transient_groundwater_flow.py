@@ -3,12 +3,11 @@ import os
 
 sys.path.append(os.path.join('..', '..', '..'))
 sys.path.append(os.path.join('..', 'python_scripts'))
-sys.path.append(os.path.join('D:\\kratos'))
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
-class TestKratosGeoMechanicsTransientGroundWaterFlowTests(KratosUnittest.TestCase):
+class KratosGeoMechanicsTransientGroundWaterFlowTests(KratosUnittest.TestCase):
     """
     This class contains benchmark tests which are checked with the analytical solution
     """
