@@ -128,17 +128,21 @@ class RankinePlasticPotential
 		double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 
         if (std::abs(checker) < 29.0) { // If it is not the edge
+            const double sqrt_J2 = std::sqrt(J2);
+            const double sqrt_3 = std::sqrt(3.0);
+            const double square_sin_3_lode = std::pow(std::sin(3.0 * lode_angle), 2);
             const double angle = lode_angle + Globals::Pi / 6.0;
+            const double dLode_dJ2 = (3.0 * sqrt_3 * J3) / (4.0 * J2 * J2 * sqrt_J2 * std::sqrt(1.0 - square_sin_3_lode));
+            const double dLode_dJ3 = -sqrt_3 / (2.0 * J2 * sqrt_J2 * std::sqrt(1.0 - square_sin_3_lode));
             c1 = 1.0 / 3.0;
-            c2 = 2.0 * std::sqrt(3.0) / 3.0 * std::cos(angle) +
-                 2.0 * std::sqrt(3.0 * J2) / 3.0 * std::tan(3.0 * lode_angle) * std::sin(angle) * J2 * std::sqrt(J2) / 3.0;
-            c3 = -2.0 * std::sqrt(3.0 * J2) / 3.0 * std::tan(3.0 * lode_angle) * std::sin(angle) * J3 / 9.0;
+            c2 = 2.0 * sqrt_3 / 3.0 * (std::cos(angle) / (2.0 * sqrt_J2) - 2.0 * sqrt_3 * sqrt_J2 / 3.0 * std::sin(angle) * dLode_dJ2) * 2.0 * sqrt_J2;
+            c3 = -2.0 * std::sqrt(3.0 * J2) / 3.0 * std::sin(angle) * dLode_dJ3;
         } else { // smoothing with drucker-praguer
             c1 = 3.0 * (2.0 * std::sin(friction_angle) / (std::sqrt(3.0) * (3.0 - std::sin(friction_angle))));
             c2 = 1.0;
             c3 = 0.0;
         }
-        noalias(rGFlux) = c2 * second_vector + c3 * third_vector;
+        noalias(rGFlux) = c1*first_vector + c2 * second_vector + c3 * third_vector;
     }
 
     /**
