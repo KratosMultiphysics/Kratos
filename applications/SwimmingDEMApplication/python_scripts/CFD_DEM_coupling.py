@@ -44,6 +44,8 @@ class ProjectionModule:
         self.projector_parameters.AddValue("viscosity_modification_type", project_parameters["coupling"]["backward_coupling"]["viscosity_modification_type"])
         self.projector_parameters.AddValue("n_particles_per_depth_distance", project_parameters["n_particles_in_depth"])
         self.projector_parameters.AddValue("body_force_per_unit_mass_variable_name", project_parameters["body_force_per_unit_mass_variable_name"])
+        self.projector_parameters.AddValue("gentle_coupling_initiation", project_parameters["coupling"]["gentle_coupling_initiation"])
+
 
         if self.dimension == 3:
 
