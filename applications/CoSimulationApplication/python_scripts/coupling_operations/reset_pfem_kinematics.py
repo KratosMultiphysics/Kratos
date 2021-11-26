@@ -27,8 +27,7 @@ class ResetPfemKinematics(CoSimulationCouplingOperation):
         self.interval = KM.IntervalUtility(settings)
 
     def InitializeCouplingIteration(self):
-        current_time = self.model_part.ProcessInfo[KM.TIME]
-        if self.interval.IsInInterval(current_time):
+        if self.interval.IsInInterval(self.model_part.ProcessInfo[KM.TIME]):
             self._ResetPfemKinematicValues()
 
             if self.echo_level > 0:

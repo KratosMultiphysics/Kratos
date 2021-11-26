@@ -47,7 +47,7 @@ class PfemFluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
             free_model_part = self._analysis_stage._GetSolver().model[free_model_part_name]
             free_nodes_model_part = KM.PfemFluidDynamicsApplication.FixFreeVelocityOnNodesProcess(free_model_part, False)
             free_nodes_model_part.Execute()
-            self._PrintFixationStatus(free_model_part, free_model_part_name, False)
+            self._PrintFixationStatus(free_model_part_name, False)
 
     def _PrintFixationStatus(self, model_part_name, fix_free_status):
         if self.echo_level > 0:
