@@ -90,12 +90,9 @@ public:
 
                 const double pressure = mSpecificWeight * distance;
 
-                if (pressure > 0.0)
-                {
+                if (pressure > 0.0) {
                     it->FastGetSolutionStepValue(var) = pressure;
-                }
-                else
-                {
+                } else {
                     it->FastGetSolutionStepValue(var) = 0.0;
                 }
             }
