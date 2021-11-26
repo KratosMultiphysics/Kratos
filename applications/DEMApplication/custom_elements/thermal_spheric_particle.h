@@ -202,12 +202,6 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   void               SetParticleMomentInertia             (const double moment_inertia);
   void               SetParticleRealYoungRatio            (const double ratio);
 
-  // Neighbor data
-  ThermalSphericParticle<TBaseElement>* mNeighbor_p;
-  DEMWall*                              mNeighbor_w;
-  int                                   mNeighborType;
-  int                                   mNeighborIndex;
-
   // Heat flux components
   double mConductionDirectHeatFlux;
   double mConductionIndirectHeatFlux;
@@ -238,6 +232,12 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
 
   // General
   bool is_time_to_solve;
+
+  // Neighbor data
+  ThermalSphericParticle<TBaseElement>* mNeighbor_p;
+  DEMWall*                              mNeighbor_w;
+  int                                   mNeighborType;
+  int                                   mNeighborIndex;
 
   // Interaction properties
   bool   mNeighborInContact;         // flag for contact interaction

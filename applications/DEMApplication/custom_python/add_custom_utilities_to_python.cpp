@@ -36,6 +36,7 @@
 #include "custom_utilities/random_variable.h"
 #include "custom_utilities/piecewise_linear_random_variable.h"
 #include "custom_utilities/discrete_random_variable.h"
+#include "custom_utilities/tesselation_utilities.h"
 
 
 namespace Kratos {
@@ -400,6 +401,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ProbabilityDensity", &DiscreteRandomVariable::ProbabilityDensity)
         .def("GetMean", &DiscreteRandomVariable::GetMean)
         ;
+
+    py::class_<TesselationUtilities, TesselationUtilities::Pointer>(m, "TesselationUtilities")
+      .def(py::init<>())
+      .def("ExecuteInitialize", &TesselationUtilities::ExecuteInitialize)
+      .def("ExecuteInitializeSolutionStep", &TesselationUtilities::ExecuteInitializeSolutionStep)
+      ;
 
     }
 
