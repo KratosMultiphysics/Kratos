@@ -124,14 +124,17 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
 {
     array_1d<double,3> gradients_vector_i;
     array_1d<double,3> gradients_vector_j;
-    BoundedMatrix<double,3,3> gradients_matrix_k = ZeroMatrix(3,3);
-    BoundedMatrix<double,3,3> laplacian;
-    BoundedMatrix<double,3,3> height_aux;
-    BoundedMatrix<double,3,3> velocity_aux;
-    BoundedMatrix<double,3,3> height_stab_aux;
-    BoundedMatrix<double,3,3> velocity_stab_aux;
-    LocalMatrixType height_dispersion = ZeroMatrix(mLocalSize, mLocalSize);
-    LocalMatrixType velocity_dispersion = ZeroMatrix(mLocalSize, mLocalSize);
+    // BoundedMatrix<double,3,3> gradients_matrix_k = ZeroMatrix(3,3);
+    LocalMatrixType laplacian = ZeroMatrix(mLocalSize, mLocalSize);
+    LocalMatrixType gradients_matrix = ZeroMatrix(mLocalSize, mLocalSize);
+    LocalMatrixType shape_functions = ZeroMatrix(mLocalSize, mLocalSize);
+    LocalMatrixType dispersive_field = ZeroMatrix(mLocalSize, mLocalSize);
+    // BoundedMatrix<double,3,3> height_aux;
+    // BoundedMatrix<double,3,3> velocity_aux;
+    // BoundedMatrix<double,3,3> height_stab_aux;
+    // BoundedMatrix<double,3,3> velocity_stab_aux;
+    LocalMatrixType height_dispersion;
+    LocalMatrixType velocity_dispersion;
 
     const double dispersive_ratio = rData.depth / rData.wavelength;
     const double m2 = std::pow(dispersive_ratio, 2);
@@ -156,32 +159,41 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
             gradients_vector_j[1] = rDN_DX(j,1);
             gradients_vector_j[2] = 0.0;
 
-            laplacian = -outer_prod(gradients_vector_i, gradients_vector_j);
-            gradients_matrix_k(2,0) = -rDN_DX(i,0);
-            gradients_matrix_k(2,1) = -rDN_DX(i,1);
+            // laplacian = -outer_prod(gradients_vector_i, gradients_vector_j);
+            MathUtils<double>::AddMatrix(laplacian, -outer_prod(gradients_vector_i, gradients_vector_j), 3*i, 3*j);
+            // gradients_matrix_k(2,0) = -rDN_DX(i,0);
+            // gradients_matrix_k(2,1) = -rDN_DX(i,1);
 
-            // Dispersive fields
-            height_aux = (C1 + C3) * std::pow(H,3) * inv_lumped_mass * prod(gradients_matrix_k, laplacian);
-            velocity_aux = (C2 + C4) * std::pow(H,2) * laplacian;
+            gradients_matrix(3*i+2, 3*j  ) = -rDN_DX(i,0);
+            gradients_matrix(3*i+2, 3*j+1) = -rDN_DX(i,1);
+            shape_functions(3*i  , 3*j  ) = rN[j];
+            shape_functions(3*i+1, 3*j+1) = rN[j];
 
-            // Stabilization terms
-            height_stab_aux  = l * rDN_DX(j,0) * prod(rData.A1, height_aux);
-            height_stab_aux += l * rDN_DX(j,1) * prod(rData.A2, height_aux);
-            velocity_stab_aux  = l * rDN_DX(i,0) * inv_lumped_mass * prod(rData.A1, velocity_aux);
-            velocity_stab_aux += l * rDN_DX(i,1) * inv_lumped_mass * prod(rData.A2, velocity_aux);
+            // // Dispersive fields
+            // height_aux = (C1 + C3) * std::pow(H,3) * inv_lumped_mass * prod(gradients_matrix_k, laplacian);
+            // velocity_aux = (C2 + C4) * std::pow(H,2) * laplacian;
 
-            // Contribution to the local matrix
-            MathUtils<double>::AddMatrix(height_dispersion, Weight * height_aux, 3*i, 3*j);
-            MathUtils<double>::AddMatrix(velocity_dispersion, Weight * velocity_aux, 3*i, 3*j);
-            MathUtils<double>::AddMatrix(height_dispersion, Weight * height_stab_aux, 3*i, 3*j);
-            MathUtils<double>::AddMatrix(velocity_dispersion, Weight * velocity_stab_aux, 3*i, 3*j);
+            // // Stabilization terms
+            // height_stab_aux  = l * rDN_DX(j,0) * prod(rData.A1, height_aux);
+            // height_stab_aux += l * rDN_DX(j,1) * prod(rData.A2, height_aux);
+            // velocity_stab_aux  = l * rDN_DX(i,0) * inv_lumped_mass * prod(rData.A1, velocity_aux);
+            // velocity_stab_aux += l * rDN_DX(i,1) * inv_lumped_mass * prod(rData.A2, velocity_aux);
+
+            // // Contribution to the local matrix
+            // MathUtils<double>::AddMatrix(height_dispersion, Weight * height_aux, 3*i, 3*j);
+            // MathUtils<double>::AddMatrix(velocity_dispersion, Weight * velocity_aux, 3*i, 3*j);
+            // MathUtils<double>::AddMatrix(height_dispersion, Weight * height_stab_aux, 3*i, 3*j);
+            // MathUtils<double>::AddMatrix(velocity_dispersion, Weight * velocity_stab_aux, 3*i, 3*j);
         }
     }
     LocalVectorType acceleration = this->GetAccelerationsVector(rData);
     LocalVectorType velocity = this->GetUnknownVector(rData);
 
+    noalias(height_dispersion) = (C1 + C3) * std::pow(H,3) * Weight * inv_lumped_mass * prod(gradients_matrix, dispersive_field);
+    noalias(velocity_dispersion) = (C2 + C4) * std::pow(H,2) * Weight * inv_lumped_mass * prod(shape_functions, dispersive_field);
+
     noalias(rVector) -= m2 * prod(height_dispersion, velocity);
-    // noalias(rVector) -= m2 * prod(velocity_dispersion, acceleration);
+    noalias(rVector) -= m2 * prod(velocity_dispersion, acceleration);
 }
 
 template class BoussinesqElement<3>;
