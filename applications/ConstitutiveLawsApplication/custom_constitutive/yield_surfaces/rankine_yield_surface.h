@@ -209,6 +209,7 @@ public:
         double J3, lode_angle;
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
+        const double friction_angle = rValues.GetMaterialProperties()[FRICTION_ANGLE] * Globals::Pi / 180.0;
 
         double c1, c3, c2;
 		double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
