@@ -35,6 +35,8 @@ class ActivationLayer(NeuralNetworkLayerClass):
 
         self.tunable = settings["tunable"].GetBool()
         self.layer_name = settings["layer_name"].GetString()
+        if self.layer_name == "":
+            self.layer_name = None
         if not settings["activation"].GetString() == "":
             self.activation = settings["activation"].GetString()
         elif not self.tunable:

@@ -33,6 +33,8 @@ class NeuralNetworkLayerClass:
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.layer_name = settings["layer_name"].GetString()
+        if self.layer_name == "":
+            self.layer_name = None
         self.trainable = settings["trainable"].GetBool()
         self.dtype = settings["dtype"].GetString()
         self.dynamic = settings["dynamic"].GetBool()
@@ -43,7 +45,7 @@ class NeuralNetworkLayerClass:
             Keyword arguments:
             self -- It signifies an instance of a class.
         """
-        self.layer = layers.Layer(trainable = self.layer_name, name = self.trainable, dtype = self.dtype, dynamic = self.dynamic)
+        self.layer = layers.Layer(trainable = self.trainable, name = self.layer_name, dtype = self.dtype, dynamic = self.dynamic)
         return self.layer
 
     def GetWeights(self):

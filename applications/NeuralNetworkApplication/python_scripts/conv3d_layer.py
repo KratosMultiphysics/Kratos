@@ -61,6 +61,8 @@ class Conv3DLayer(NeuralNetworkLayerClass):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.layer_name = settings["layer_name"].GetString()
+        if self.layer_name == "":
+            self.layer_name = None
         self.trainable = settings["trainable"].GetBool()
         self.dtype = settings["dtype"].GetString()
         self.dynamic = settings["dynamic"].GetBool()

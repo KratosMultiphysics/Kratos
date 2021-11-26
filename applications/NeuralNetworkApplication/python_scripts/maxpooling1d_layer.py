@@ -38,6 +38,8 @@ class MaxPooling1DLayer(NeuralNetworkLayerClass):
 
         self.tunable = settings["tunable"].GetBool()
         self.layer_name = settings["layer_name"].GetString()
+        if self.layer_name == "":
+            self.layer_name = None
 
         if not settings["strides"].GetInt() == 0:
             self.strides = settings["strides"].GetInt()

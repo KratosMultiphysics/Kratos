@@ -42,6 +42,8 @@ class MaxPooling3DLayer(NeuralNetworkLayerClass):
 
         self.tunable = settings["tunable"].GetBool()
         self.layer_name = settings["layer_name"].GetString()
+        if self.layer_name == "":
+            self.layer_name = None
 
         if not settings["strides_1"].GetInt() == 0:
             strides_1 = settings["strides_1"].GetInt()

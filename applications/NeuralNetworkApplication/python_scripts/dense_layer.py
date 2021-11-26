@@ -52,6 +52,8 @@ class DenseLayer(NeuralNetworkLayerClass):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.layer_name = settings["layer_name"].GetString()
+        if self.layer_name == "":
+            self.layer_name = None
         self.trainable = settings["trainable"].GetBool()
         self.output_layer = settings["output_layer"].GetBool()
         self.data_output = settings["data_output"].GetString()
