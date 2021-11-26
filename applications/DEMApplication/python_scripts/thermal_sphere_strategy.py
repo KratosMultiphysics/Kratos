@@ -16,8 +16,13 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         # Initialize member variables
         self.SetVoronoiPorosityFlags()
+        self.SetGraphFlags()
+
         if (self.compute_voronoi or self.compute_porosity):
             self.tesselation_utils = TesselationUtilities()
+            
+        if (self.write_graph):
+            self.graph_utils = GraphUtilities()
 
     def GetProjectParameters(self, DEM_parameters):
         # Get thermal settings and assign default values
@@ -219,6 +224,17 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
               self.compute_porosity = False
     
+    def SetGraphFlags(self):
+        if (self.PostGraphParticleTempMin  or
+            self.PostGraphParticleTempMax  or
+            self.PostGraphParticleTempAvg  or 
+            self.PostGraphParticleTempDev  or
+            self.PostGraphModelTempAvg     or
+            self.PostGraphFluxContributions):
+            self.write_graph = True
+        else:
+            self.write_graph = False
+
     def AddAdditionalVariables(self, model_part, DEM_parameters):
         # Add general additional variables (currently empty)
         BaseExplicitStrategy.AddAdditionalVariables(self, model_part, DEM_parameters)
@@ -277,25 +293,24 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_TEMPERATURE,          self.fluid_temperature)
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_VELOCITY,             self.fluid_velocity)
 
-        # Graph writing
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_TEMP_MIN,                self.PostGraphParticleTempMin)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_TEMP_MAX,                self.PostGraphParticleTempMax)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_TEMP_AVG,                self.PostGraphParticleTempAvg)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_TEMP_DEV,                self.PostGraphParticleTempDev)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_MODEL_TEMP_AVG,                   self.PostGraphModelTempAvg)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, GRAPH_PARTICLE_HEAT_FLUX_CONTRIBUTIONS, self.PostGraphFluxContributions)
-
     def Initialize(self):
         # Base class initializer
         BaseExplicitStrategy.Initialize(self)
 
         # Set thermal properties provided in SubModelParts data
         (self.cplusplus_strategy).InitializeThermalDataInSubModelParts()
-        (self.cplusplus_strategy).InitializeGraphOutput()
 
-        # Initialize tesselation utilities
+        # Initialize utilities
         if (self.compute_voronoi or self.compute_porosity):
             self.tesselation_utils.ExecuteInitialize(self.spheres_model_part, self.compute_voronoi, self.compute_porosity)
+
+        if (self.write_graph):
+            self.graph_utils.ExecuteInitialize(self.PostGraphParticleTempMin,
+                                               self.PostGraphParticleTempMax,
+                                               self.PostGraphParticleTempAvg,
+                                               self.PostGraphParticleTempDev,
+                                               self.PostGraphModelTempAvg,
+                                               self.PostGraphFluxContributions)
 
     def Predict(self):
         if (self.compute_motion_option):
@@ -340,4 +355,14 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
     def FinalizeSolutionStep(self):
         BaseExplicitStrategy.FinalizeSolutionStep(self)
-        (self.cplusplus_strategy).WriteGraphOutput()
+
+        # Write output graphs
+        if (self.write_graph):
+            self.graph_utils.ExecuteFinalizeSolutionStep(self.spheres_model_part)
+
+    def Finalize(self):
+        BaseExplicitStrategy.Finalize(self)
+
+        # Close graph files
+        if (self.write_graph):
+            self.graph_utils.ExecuteFinalize()

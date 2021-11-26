@@ -37,6 +37,7 @@
 #include "custom_utilities/piecewise_linear_random_variable.h"
 #include "custom_utilities/discrete_random_variable.h"
 #include "custom_utilities/tesselation_utilities.h"
+#include "custom_utilities/graph_utilities.h"
 
 
 namespace Kratos {
@@ -406,6 +407,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
       .def(py::init<>())
       .def("ExecuteInitialize", &TesselationUtilities::ExecuteInitialize)
       .def("ExecuteInitializeSolutionStep", &TesselationUtilities::ExecuteInitializeSolutionStep)
+      ;
+
+    py::class_<GraphUtilities, GraphUtilities::Pointer>(m, "GraphUtilities")
+      .def(py::init<>())
+      .def("ExecuteInitialize", &GraphUtilities::ExecuteInitialize)
+      .def("ExecuteFinalizeSolutionStep", &GraphUtilities::ExecuteFinalizeSolutionStep)
+      .def("ExecuteFinalize", &GraphUtilities::ExecuteFinalize)
       ;
 
     }

@@ -76,9 +76,7 @@ namespace Kratos {
   {
     KRATOS_TRY
 
-    ProcessInfo& r_process_info = r_modelpart.GetProcessInfo();
-    ModelPart::ElementsContainerType& rElements = r_modelpart.GetCommunicator().LocalMesh().Elements();
-    int num_particles = rElements.size();
+    int num_particles = r_modelpart.NumberOfElements();
     if (num_particles < 3)
       return;
 
@@ -94,7 +92,7 @@ namespace Kratos {
 
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < in.numberofpoints; i++) {
-      ModelPart::ElementsContainerType::iterator it = rElements.ptr_begin() + i;
+      ModelPart::ElementsContainerType::iterator it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
       ThermalSphericParticle<SphericParticle>& particle = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*it);
 
       particle.mDelaunayPointListIndex = i;
@@ -117,7 +115,7 @@ namespace Kratos {
     }
 
     if (fail || out.numberoftriangles == 0 || in.numberofpoints != out.numberofpoints) {
-      KRATOS_ERROR_IF(r_process_info[TIME_STEPS] == 1) << "Fail to generate triangulation!" << std::endl;
+      KRATOS_ERROR_IF(r_modelpart.GetProcessInfo()[TIME_STEPS] == 1) << "Fail to generate triangulation!" << std::endl;
       KRATOS_WARNING("DEM") << std::endl;
       KRATOS_WARNING("DEM") << "Fail to generate triangulation! Results from previous successful triangulation will be used." << std::endl;
       KRATOS_WARNING("DEM") << std::endl;
@@ -152,9 +150,7 @@ namespace Kratos {
   {
     KRATOS_TRY
 
-    ProcessInfo& r_process_info = r_modelpart.GetProcessInfo();
-    ModelPart::ElementsContainerType& rElements = r_modelpart.GetCommunicator().LocalMesh().Elements();
-    int num_particles = rElements.size();
+    int num_particles = r_modelpart.NumberOfElements();
     if (num_particles < 4)
       return;
 
@@ -167,7 +163,7 @@ namespace Kratos {
 
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < in.numberofpoints; i++) {
-      ModelPart::ElementsContainerType::iterator it = rElements.ptr_begin() + i;
+      ModelPart::ElementsContainerType::iterator it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
       ThermalSphericParticle<SphericParticle>& particle = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*it);
 
       particle.mDelaunayPointListIndex = i;
@@ -191,7 +187,7 @@ namespace Kratos {
     }
 
     if (fail || out.numberoftetrahedra == 0 || in.numberofpoints != out.numberofpoints) {
-      KRATOS_ERROR_IF(r_process_info[TIME_STEPS] == 1) << "Fail to generate tetrahedralization!" << std::endl;
+      KRATOS_ERROR_IF(r_modelpart.GetProcessInfo()[TIME_STEPS] == 1) << "Fail to generate tetrahedralization!" << std::endl;
       KRATOS_WARNING("DEM") << std::endl;
       KRATOS_WARNING("DEM") << "Fail to generate tetrahedralization! Results from previous successful tetrahedralization will be used." << std::endl;
       KRATOS_WARNING("DEM") << std::endl;
@@ -383,7 +379,6 @@ namespace Kratos {
   */
   void TesselationUtilities::UpdatePorosity2D(ModelPart& r_modelpart, struct triangulateio& out, struct triangulateio& vorout) {
     ProcessInfo& r_process_info = r_modelpart.GetProcessInfo();
-    ModelPart::ElementsContainerType& rElements = r_modelpart.GetCommunicator().LocalMesh().Elements();
     std::vector<int> addedParticle(out.numberofpoints,0);
     double total_area    = 0.0;
     double particle_area = 0.0;
@@ -437,7 +432,6 @@ namespace Kratos {
   */
   void TesselationUtilities::UpdatePorosity3D(ModelPart& r_modelpart, struct tetgenio& out) {
     ProcessInfo& r_process_info = r_modelpart.GetProcessInfo();
-    ModelPart::ElementsContainerType& rElements = r_modelpart.GetCommunicator().LocalMesh().Elements();
     std::vector<int> addedParticle(out.numberofpoints,0);
     double total_volume    = 0.0;
     double particle_volume = 0.0;
