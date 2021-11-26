@@ -25,7 +25,7 @@ class PrintIterationNumberOperation(CoSimulationCouplingOperation):
 
         self.interval = KM.IntervalUtility(settings)
 
-        if(self.model_part.GetCommunicator().MyPID() == 0):
+        if self.model_part.GetCommunicator().MyPID() == 0:
             output_file_name = self.model_part_name + "_number_iterations.dat"
             file_handler_settings = KM.Parameters(self.settings["output_file_settings"])
             if file_handler_settings.Has("file_name"):
@@ -38,17 +38,21 @@ class PrintIterationNumberOperation(CoSimulationCouplingOperation):
                 file_handler_settings["file_name"].SetString(output_file_name)
             file_header = self._GetFileHeader()
             self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part, file_handler_settings, file_header).file
-    
+
     def InitializeSolutionStep(self):
         self.iteration_number = 1
 
     def FinalizeCouplingIteration(self):
         current_time = self.model_part.ProcessInfo[KM.TIME]
-        if(self.interval.IsInInterval(current_time)):
-            if(self.model_part.GetCommunicator().MyPID() == 0):
+        if self.interval.IsInInterval(current_time):
+            if self.model_part.GetCommunicator().MyPID() == 0:
                 self.output_file.write(str(current_time) + "\t" + str(self.iteration_number) + "\n")
-        
+
         self.iteration_number += 1
+
+    def Finalize(self):
+        if self.model_part.GetCommunicator().MyPID() == 0:
+            self.output_file.close()
 
     def PrintInfo(self):
         pass
