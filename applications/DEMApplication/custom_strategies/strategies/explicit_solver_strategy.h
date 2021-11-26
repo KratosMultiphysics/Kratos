@@ -213,7 +213,6 @@ namespace Kratos {
         virtual void AttachSpheresToStickyWalls();
         virtual void DisplayThreadInfo();
         double CalculateMaxInletTimeStep();
-        void InitializeThermalDataInSubModelParts();
         virtual void InitializeClusters();
         virtual void GetClustersForce();
         virtual void GetRigidBodyElementsForce();

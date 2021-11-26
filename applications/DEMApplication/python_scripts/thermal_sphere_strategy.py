@@ -18,6 +18,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.SetVoronoiPorosityFlags()
         self.SetGraphFlags()
 
+        self.thermal_utils = ThermalUtilities()
+
         if (self.compute_voronoi or self.compute_porosity):
             self.tesselation_utils = TesselationUtilities()
             
@@ -297,10 +299,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
         # Base class initializer
         BaseExplicitStrategy.Initialize(self)
 
-        # Set thermal properties provided in SubModelParts data
-        (self.cplusplus_strategy).InitializeThermalDataInSubModelParts()
-
         # Initialize utilities
+        self.thermal_utils.ExecuteInitialize(self.spheres_model_part,self.fem_model_part)
+
         if (self.compute_voronoi or self.compute_porosity):
             self.tesselation_utils.ExecuteInitialize(self.spheres_model_part, self.compute_voronoi, self.compute_porosity)
 

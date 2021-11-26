@@ -36,6 +36,7 @@
 #include "custom_utilities/random_variable.h"
 #include "custom_utilities/piecewise_linear_random_variable.h"
 #include "custom_utilities/discrete_random_variable.h"
+#include "custom_utilities/thermal_utilities.h"
 #include "custom_utilities/tesselation_utilities.h"
 #include "custom_utilities/graph_utilities.h"
 
@@ -403,7 +404,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("GetMean", &DiscreteRandomVariable::GetMean)
         ;
 
-    py::class_<TesselationUtilities, TesselationUtilities::Pointer>(m, "TesselationUtilities")
+    py::class_<ThermalUtilities, ThermalUtilities::Pointer>(m, "ThermalUtilities")
+      .def(py::init<>())
+      .def("ExecuteInitialize", &ThermalUtilities::ExecuteInitialize)
+      ;
+
+	py::class_<TesselationUtilities, TesselationUtilities::Pointer>(m, "TesselationUtilities")
       .def(py::init<>())
       .def("ExecuteInitialize", &TesselationUtilities::ExecuteInitialize)
       .def("ExecuteInitializeSolutionStep", &TesselationUtilities::ExecuteInitializeSolutionStep)
