@@ -1,8 +1,8 @@
 {
     "problem_data": {
-        "problem_name":         "test_Transient_Case_A1_2D3N_stage2",
+        "problem_name":         "test_Transient_Case_B1_2D3N_stage2",
         "start_time":           0.0,
-        "end_time":             3.47,
+        "end_time":             15,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -14,7 +14,7 @@
         "start_time":                         0.0,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "test_Transient_Case_A1_2D3N_stage2"
+            "input_filename":   "test_Transient_Case_B1_2D3N_stage2"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters_stage2.json"
@@ -72,7 +72,7 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list":      ["bottom","top","gravity"],
+        "processes_sub_model_part_list":      ["bottom","gravity"],
         "body_domain_sub_model_part_list":    ["Soil"]
     },
     "output_processes": {
@@ -82,7 +82,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_Transient_Case_A1_2D3N_stage2",
+                "output_name": "test_Transient_Case_B1_2D3N_stage2",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -117,22 +117,7 @@
             "is_fixed":             true,
             "fluid_pressure_type": "Hydrostatic",
             "gravity_direction":    1,
-            "reference_coordinate": -1,
-            "table":                0,
-            "pressure_tension_cut_off":      1e10,
-            "specific_weight":      9.81
-        }
-    },{
-        "python_module": "apply_scalar_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyScalarConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name":      "PorousDomain.top",
-            "variable_name":        "WATER_PRESSURE",
-            "is_fixed":             true,
-            "fluid_pressure_type": "Hydrostatic",
-            "gravity_direction":    1,
-            "reference_coordinate": 2,
+            "reference_coordinate": 1.5,
             "table":                0,
             "pressure_tension_cut_off":      1e10,
             "specific_weight":      9.81
