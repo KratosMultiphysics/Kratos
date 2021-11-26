@@ -182,6 +182,11 @@ protected:
 
     void FillFromProcessInfo(int& rData, const Variable<int>& rVariable, const ProcessInfo& rProcessInfo);
 
+    void FillFromProcessInfo(
+        array_1d<double,3>& rData,
+        const Variable<array_1d<double,3>>& rVariable,
+        const ProcessInfo& rProcessInfo);
+
     void FillFromElementData(double& rData, const Variable<double>& rVariable, const Element& rElement);
 
     void FillFromElementData(Vector& rData, const Variable<Vector>& rVariable, const Element& rElement);
