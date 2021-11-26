@@ -378,15 +378,16 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialHardeningImplicitFu
         const double beta = (1.0 - chi_square) / (2.0 * alpha*K0);
 
         const double ey = K0/E;
-        const double max_abs_derivative = (ey*K0*(xi/K0 - (2*(0.98*max_threshold)*((K0*xi)/(0.98*max_threshold)
+        const double thrs = 0.9;
+        const double max_abs_derivative = (ey*K0*(xi/K0 - (2*(thrs*max_threshold)*((K0*xi)/(thrs*max_threshold)
             - xi + 1))/(K0*K0)))/(2*g) + ((g - (ey*K0)/2)*((-sign*
-            (1/K0 - chi*chi/K0)*(2*chi + -sign*std::sqrt((1 - (0.98*max_threshold)/K0)*(chi*chi) + (0.98*max_threshold)/K0)
-            + 1))/(2*std::sqrt((0.98*max_threshold)/K0 - (chi*chi)*((0.98*max_threshold)/K0 - 1))) + (-sign*(1/K0 - (chi*chi)/K0)*(-sign
-            *std::sqrt((1 - (0.98*max_threshold)/K0)*(chi*chi) + (0.98*max_threshold)/K0) - 1))
-            /(2*std::sqrt((0.98*max_threshold)/K0 - (chi*chi)*((0.98*max_threshold)/K0 - 1))) + (xi*std::log((chi -(-sign)
-            *std::sqrt((1 - (0.98*max_threshold)/K0)*(chi*chi) + (0.98*max_threshold)/K0))/(chi - 1))*((chi*chi) - 1))/K0
-            - (-sign*(0.98*max_threshold)*xi*(1/K0 - (chi*chi)/K0)*((chi*chi) - 1))
-            /(2*K0*std::sqrt((0.98*max_threshold)/K0 - (chi*chi)*((0.98*max_threshold)/K0 - 1))*(chi - -sign*std::sqrt((1 - (0.98*max_threshold)/K0)*(chi*chi) + (0.98*max_threshold)/K0)))))/(g*(3*chi + 1)*(chi - 1));
+            (1/K0 - chi*chi/K0)*(2*chi + -sign*std::sqrt((1 - (thrs*max_threshold)/K0)*(chi*chi) + (thrs*max_threshold)/K0)
+            + 1))/(2*std::sqrt((thrs*max_threshold)/K0 - (chi*chi)*((thrs*max_threshold)/K0 - 1))) + (-sign*(1/K0 - (chi*chi)/K0)*(-sign
+            *std::sqrt((1 - (thrs*max_threshold)/K0)*(chi*chi) + (thrs*max_threshold)/K0) - 1))
+            /(2*std::sqrt((thrs*max_threshold)/K0 - (chi*chi)*((thrs*max_threshold)/K0 - 1))) + (xi*std::log((chi -(-sign)
+            *std::sqrt((1 - (thrs*max_threshold)/K0)*(chi*chi) + (thrs*max_threshold)/K0))/(chi - 1))*((chi*chi) - 1))/K0
+            - (-sign*(thrs*max_threshold)*xi*(1/K0 - (chi*chi)/K0)*((chi*chi) - 1))
+            /(2*K0*std::sqrt((thrs*max_threshold)/K0 - (chi*chi)*((thrs*max_threshold)/K0 - 1))*(chi - -sign*std::sqrt((1 - (thrs*max_threshold)/K0)*(chi*chi) + (thrs*max_threshold)/K0)))))/(g*(3*chi + 1)*(chi - 1));
 
         const double current_derivative = (ey*K0*(xi/K0 - (2*Threshold*((K0*xi)/Threshold
             - xi + 1))/(K0*K0)))/(2*g) + ((g - (ey*K0)/2)*((-sign*
