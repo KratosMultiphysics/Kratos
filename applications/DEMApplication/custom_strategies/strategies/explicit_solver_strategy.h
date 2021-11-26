@@ -12,7 +12,6 @@
 // Project includes
 #include "utilities/timer.h"
 #include "custom_elements/Particle_Contact_Element.h"
-#include "custom_elements/thermal_spheric_particle.h"
 #include "includes/variables.h"
 #include "includes/deprecated_variables.h"
 
