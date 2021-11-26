@@ -24,7 +24,7 @@
         "end_time"      : 0.15,
         "number_of_threads": 1
     },
-    "do_print_results_option" : false,
+    "do_print_results_option" : true,
     "coupling"                : {
         "coupling_level_type"    : 3,
         "coupling_weighing_type" : 3,
@@ -33,7 +33,7 @@
             "time_averaging_type" : 0
         },
         "gentle_coupling_initiation": {
-            "initiation_interval": 0
+            "initiation_interval": 0.1
         },
         "backward_coupling"      : {
             "meso_scale_length"                          : 0.2,
@@ -50,11 +50,7 @@
         "do_solve_dem"                     : true,
         "do_search_neighbours"             : true,
         "type_of_dem_inlet"                : "VelocityImposed",
-        "translational_integration_scheme" : "Hybrid_Bashforth",
-        "creator_destructor_settings" : {
-            "apply_delayed_destruction" : true,
-            "destruction_delay_interval" : 0.1
-        }
+        "translational_integration_scheme" : "Hybrid_Bashforth"
     },
     "dem_nodal_results"       : {
         "ANGULAR_VELOCITY"                  : false,
@@ -202,11 +198,15 @@
         "GravityZ"                       : -9.81,
         "RotationOption"                 : true,
         "CleanIndentationsOption"        : false,
+        "creator_destructor_settings" : {
+            "apply_delayed_destruction" : true,
+            "destruction_delay_interval" : 0.0
+        },
         "solver_settings"                : {
             "RemoveBallsInitiallyTouchingWalls" : false,
             "strategy"                          : "swimming_sphere_strategy",
             "material_import_settings"          : {
-                "materials_filename" : "gentle_injection_tests/MaterialsDEM.json"
+                "materials_filename" : "gentle_injection_tests/MaterialsDEMInjection.json"
             }
         },
         "VirtualMassCoefficient"         : 1.0,
