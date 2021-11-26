@@ -66,52 +66,51 @@ public:
         BaseType::Check(rModelPart);
 
         //check that variables are correctly allocated
-        for (const auto& rNode : rModelPart.Nodes())
-        {
-            if(rNode.SolutionStepsDataHas(DISPLACEMENT) == false)
-                KRATOS_ERROR << "DISPLACEMENT variable is not allocated for node "
-                             << rNode.Id()
-                             << std::endl;
+        for (const auto& rNode : rModelPart.Nodes()) {
+            KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(DISPLACEMENT))
+                << "DISPLACEMENT variable is not allocated for node "
+                << rNode.Id()
+                << std::endl;
 
-            if(rNode.SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_ERROR << "VELOCITY variable is not allocated for node "
-                             << rNode.Id()
-                             << std::endl;
+            KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(VELOCITY))
+                << "VELOCITY variable is not allocated for node "
+                << rNode.Id()
+                << std::endl;
 
-            if(rNode.SolutionStepsDataHas(ACCELERATION) == false)
-                KRATOS_ERROR << "ACCELERATION variable is not allocated for node "
-                             << rNode.Id()
-                             << std::endl;
+            KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(ACCELERATION))
+                << "ACCELERATION variable is not allocated for node "
+                << rNode.Id()
+                << std::endl;
 
-            if(rNode.SolutionStepsDataHas(WATER_PRESSURE) == false)
-                KRATOS_ERROR << "WATER_PRESSURE variable is not allocated for node "
-                             << rNode.Id()
-                             << std::endl;
+            KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(WATER_PRESSURE))
+                << "WATER_PRESSURE variable is not allocated for node "
+                << rNode.Id()
+                << std::endl;
 
-            if(rNode.SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
-                KRATOS_ERROR << "DT_WATER_PRESSURE variable is not allocated for node "
-                             << rNode.Id()
-                             << std::endl;
+            KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(DT_WATER_PRESSURE))
+                << "DT_WATER_PRESSURE variable is not allocated for node "
+                << rNode.Id()
+                << std::endl;
 
-            if(rNode.HasDofFor(DISPLACEMENT_X) == false)
-                KRATOS_ERROR << "missing DISPLACEMENT_X dof on node "
-                             << rNode.Id()
-                             << std::endl;
+            KRATOS_ERROR_IF_NOT(rNode.HasDofFor(DISPLACEMENT_X))
+                << "missing DISPLACEMENT_X dof on node "
+                << rNode.Id()
+                << std::endl;
 
-            if(rNode.HasDofFor(DISPLACEMENT_Y) == false)
-                KRATOS_ERROR << "missing DISPLACEMENT_Y dof on node "
-                             << rNode.Id()
-                             << std::endl;
+            KRATOS_ERROR_IF_NOT(rNode.HasDofFor(DISPLACEMENT_Y))
+                << "missing DISPLACEMENT_Y dof on node "
+                << rNode.Id()
+                << std::endl;
 
-            if(rNode.HasDofFor(DISPLACEMENT_Z) == false)
-                KRATOS_ERROR << "missing DISPLACEMENT_Z dof on node "
-                             << rNode.Id()
-                             << std::endl;
+            KRATOS_ERROR_IF_NOT(rNode.HasDofFor(DISPLACEMENT_Z))
+                << "missing DISPLACEMENT_Z dof on node "
+                << rNode.Id()
+                << std::endl;
 
-            if(rNode.HasDofFor(WATER_PRESSURE) == false)
-                KRATOS_ERROR << "missing WATER_PRESSURE dof on node "
-                             << rNode.Id()
-                             << std::endl;
+            KRATOS_ERROR_IF_NOT(rNode.HasDofFor(WATER_PRESSURE))
+                << "missing WATER_PRESSURE dof on node "
+                << rNode.Id()
+                << std::endl;
         }
 
         //check for minimum value of the buffer index.
