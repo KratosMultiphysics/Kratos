@@ -28,14 +28,11 @@ class ResetPfemKinematics(CoSimulationCouplingOperation):
 
     def InitializeCouplingIteration(self):
         current_time = self.model_part.ProcessInfo[KM.TIME]
-        if(self.interval.IsInInterval(current_time)):
+        if self.interval.IsInInterval(current_time):
             self._ResetPfemKinematicValues()
 
-            if(self.model_part.GetCommunicator().MyPID() == 0):
-                if(self.echo_level > 0):
-                    # print to screen the results at echo level 1 or higher
-                    result_msg = " PFEM KINEMATICS RESET IN MODEL PART: " + self.model_part_name
-                    cs_tools.cs_print_info(self._ClassName(), result_msg)
+            if self.echo_level > 0:
+                cs_tools.cs_print_info(self._ClassName(), "PFEM KINEMATICS RESET IN MODEL PART: " + self.model_part_name)
 
     def _ResetPfemKinematicValues(self):
         KM.PfemFluidDynamicsApplication.MoveMeshUtility.ResetPfemKinematicValues(self.model_part)
