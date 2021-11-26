@@ -142,7 +142,7 @@ class RankinePlasticPotential
             c2 = 1.0;
             c3 = 0.0;
         }
-        noalias(rGFlux) = c1*first_vector + c2 * second_vector + c3 * third_vector;
+        noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
     }
 
     /**
