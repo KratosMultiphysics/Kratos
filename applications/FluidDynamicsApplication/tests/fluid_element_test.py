@@ -110,9 +110,9 @@ class FluidElementTest(UnitTest.TestCase):
             settings["solver_settings"]["formulation"]["use_orthogonal_subscales"].SetBool(self.oss_switch)
             settings["solver_settings"]["formulation"].AddEmptyValue("element_manages_time_integration")
             settings["solver_settings"]["formulation"]["element_manages_time_integration"].SetBool(True)
-        elif self.element == "symbolic":
-            settings["solver_settings"]["formulation"].AddEmptyValue("sound_velocity")
-            settings["solver_settings"]["formulation"]["sound_velocity"].SetDouble(1e12)
+        elif self.element == "weakly_compressible":
+            settings["solver_settings"]["formulation"].AddEmptyValue("angular_velocity")
+            settings["solver_settings"]["formulation"]["angular_velocity"].SetVector([0.0,0.0,0.0])
 
         settings["solver_settings"].AddEmptyValue("time_scheme")
         settings["solver_settings"]["time_scheme"].SetString("bdf2")
