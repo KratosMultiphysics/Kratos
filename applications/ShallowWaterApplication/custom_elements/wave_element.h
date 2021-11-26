@@ -355,7 +355,6 @@ protected:
         const double Weight = 1.0);
 
     virtual void AddDispersiveTerms(
-        LocalMatrixType& rMatrix,
         LocalVectorType& rVector,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,

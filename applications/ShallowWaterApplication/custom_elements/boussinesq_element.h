@@ -184,7 +184,6 @@ protected:
     double StabilizationParameter(const ElementData& rData) const override;
 
     void AddDispersiveTerms(
-        LocalMatrixType& rMatrix,
         LocalVectorType& rVector,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,

@@ -116,7 +116,6 @@ double BoussinesqElement<TNumNodes>::StabilizationParameter(const ElementData& r
 
 template<std::size_t TNumNodes>
 void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
-    LocalMatrixType& rMatrix,
     LocalVectorType& rVector,
     const ElementData& rData,
     const array_1d<double,TNumNodes>& rN,
