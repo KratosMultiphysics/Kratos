@@ -92,6 +92,7 @@ public:
             "scheme_type"                            : "bossak",
             "alpha_bossak"                           : -0.3,
             "stabilization_coefficient"              : 0.0,
+            "stabilization_matrix_calculation_point" : "initialize",
             "stabilization_residual_scaling_vector"  : [1.0],
             "stabilization_derivative_scaling_vector": [1.0]
         })");
@@ -104,6 +105,20 @@ public:
             << "stabilization_coefficient should be non-negative. [ "
                "stabilization_coefficient = "
             << mStabilizationCoefficient << " ].\n";
+
+        const auto stabilization_matrix_calculation_point =  Settings["stabilization_matrix_calculation_point"].GetString();
+        if (stabilization_matrix_calculation_point == "initialize") {
+            mDiffusionMatrixCalculationPoint = DiffusionMatrixCalculationPoint::INITIALIZE;
+        } else if (stabilization_matrix_calculation_point == "initialize_solution_step") {
+            mDiffusionMatrixCalculationPoint = DiffusionMatrixCalculationPoint::INITIALIZE_SOLUTION_STEP;
+        } else if (stabilization_matrix_calculation_point == "none") {
+            mDiffusionMatrixCalculationPoint = DiffusionMatrixCalculationPoint::NONE;
+        } else {
+            KRATOS_ERROR
+                << "Unsupported diffusion matrix calculation point specified [ "
+                   "\"stabilization_matrix_calculation_point\" = \""
+                << stabilization_matrix_calculation_point << "\" ].\nSupported points are:\n\tnone\n\tinitialize\n\tinitialize_solution_step\n";
+        }
 
         mStabilizationResidualScalingVector = Settings["stabilization_residual_scaling_vector"].GetVector();
         for (const double value : mStabilizationResidualScalingVector) {
@@ -221,8 +236,6 @@ public:
     {
         KRATOS_TRY
 
-        using IndexType = std::size_t;
-
         BaseType::Initialize(rModelPart);
 
         // Allocate auxiliary memory.
@@ -241,40 +254,9 @@ public:
 
         VariableUtils().SetNonHistoricalVariableToZero(NUMBER_OF_NEIGHBOUR_ELEMENTS, rModelPart.Nodes());
 
-        struct TLS {
-            Matrix Ns, D, I;
-            Vector Ws;
-            GeometryType::ShapeFunctionsGradientsType dNdXs;
-        };
-
-        block_for_each(rModelPart.Elements(), TLS(), [&](ModelPart::ElementType& rElement, TLS& rTLS) {
-            const auto& r_geometry = rElement.GetGeometry();
-            const IndexType number_of_nodes = r_geometry.PointsNumber();
-
-            if (rTLS.D.size1() != number_of_nodes) {
-                rTLS.D.resize(number_of_nodes, number_of_nodes, false);
-                rTLS.I = IdentityMatrix(number_of_nodes);
-            }
-
-            this->CalculateGeometryData(r_geometry, rElement.GetIntegrationMethod(),
-                                        rTLS.Ws, rTLS.Ns, rTLS.dNdXs);
-
-            const IndexType number_of_gauss_points = rTLS.Ws.size();
-
-            rTLS.D.clear();
-            for (IndexType g = 0; g < number_of_gauss_points; ++g) {
-                const auto& dNdX = rTLS.dNdXs[g];
-                const double W = rTLS.Ws[g];
-                noalias(rTLS.D) += prod(dNdX, trans(dNdX)) * W;
-            }
-
-            // making the diffusion matrix dominant by multiplying it by 100.0
-            // adding identity matrix to make it positive definite
-            rTLS.D *= (1e+4 / norm_frobenius(rTLS.D));
-            noalias(rTLS.D) += rTLS.I;
-
-            rElement.SetValue(PRIMAL_STEADY_RESIDUAL_FIRST_DERIVATIVES, rTLS.D);
-        });
+        if (mStabilizationCoefficient > 0.0 && mDiffusionMatrixCalculationPoint == DiffusionMatrixCalculationPoint::INITIALIZE) {
+            CalculateElementDiffusionMatrices(rModelPart);
+        }
 
         rModelPart.GetProcessInfo()[BOSSAK_ALPHA] = mBossak.Alpha;
 
@@ -290,6 +272,10 @@ public:
         KRATOS_TRY;
 
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
+
+        if (mStabilizationCoefficient > 0.0 && mDiffusionMatrixCalculationPoint == DiffusionMatrixCalculationPoint::INITIALIZE_SOLUTION_STEP) {
+            CalculateElementDiffusionMatrices(rModelPart);
+        }
 
         const auto& r_current_process_info = rModelPart.GetProcessInfo();
         mBossak = CalculateBossakConstants(mBossak.Alpha, GetTimeStep(r_current_process_info));
@@ -651,7 +637,7 @@ protected:
         const double sigma_1 = svd.singularValues()[0];
 
         // add diffusion matrix
-        noalias(r_tls.EquationDiffusionMatrix) = rCurrentElement.GetValue(PRIMAL_STEADY_RESIDUAL_FIRST_DERIVATIVES);
+        noalias(r_tls.EquationDiffusionMatrix) = rCurrentElement.GetValue(ADJOINT_STABILIZATION_DIFFUSION_MATRIX);
         r_tls.EquationDiffusionMatrix *= std::max(mStabilizationCoefficient * sigma_1, 0.0);
 
         for (IndexType i_eq = 0; i_eq < number_of_equations; ++i_eq) {
@@ -838,6 +824,15 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    enum DiffusionMatrixCalculationPoint
+    {
+        NONE = 0,
+        INITIALIZE = 1,
+        INITIALIZE_SOLUTION_STEP = 2
+    };
+
+    DiffusionMatrixCalculationPoint mDiffusionMatrixCalculationPoint;
 
     double mStabilizationCoefficient;
     Vector mStabilizationResidualScalingVector;
@@ -1523,6 +1518,46 @@ private:
             }
         }
         KRATOS_CATCH("");
+    }
+
+    void CalculateElementDiffusionMatrices(ModelPart& rModelPart)
+    {
+        using IndexType = std::size_t;
+
+        struct TLS {
+            Matrix Ns, D, I;
+            Vector Ws;
+            GeometryType::ShapeFunctionsGradientsType dNdXs;
+        };
+
+        block_for_each(rModelPart.Elements(), TLS(), [&](ModelPart::ElementType& rElement, TLS& rTLS) {
+            const auto& r_geometry = rElement.GetGeometry();
+            const IndexType number_of_nodes = r_geometry.PointsNumber();
+
+            if (rTLS.D.size1() != number_of_nodes) {
+                rTLS.D.resize(number_of_nodes, number_of_nodes, false);
+                rTLS.I = IdentityMatrix(number_of_nodes);
+            }
+
+            this->CalculateGeometryData(r_geometry, rElement.GetIntegrationMethod(),
+                                        rTLS.Ws, rTLS.Ns, rTLS.dNdXs);
+
+            const IndexType number_of_gauss_points = rTLS.Ws.size();
+
+            rTLS.D.clear();
+            for (IndexType g = 0; g < number_of_gauss_points; ++g) {
+                const auto& dNdX = rTLS.dNdXs[g];
+                const double W = rTLS.Ws[g];
+                noalias(rTLS.D) += prod(dNdX, trans(dNdX)) * W;
+            }
+
+            // making the diffusion matrix dominant by multiplying it by 100.0
+            // adding identity matrix to make it positive definite
+            rTLS.D *= (1e+4 / norm_frobenius(rTLS.D));
+            noalias(rTLS.D) += rTLS.I;
+
+            rElement.SetValue(ADJOINT_STABILIZATION_DIFFUSION_MATRIX, rTLS.D);
+        });
     }
 
     void CalculateGeometryData(
