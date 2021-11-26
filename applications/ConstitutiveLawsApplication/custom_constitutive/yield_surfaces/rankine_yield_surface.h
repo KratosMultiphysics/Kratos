@@ -17,6 +17,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/plastic_potentials/rankine_plastic_potential.h"
 
 namespace Kratos
 {
@@ -119,10 +120,15 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        array_1d<double, Dimension> principal_stress_vector = ZeroVector(Dimension);
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
-        // The rEquivalentStress is the maximum principal stress
-        rEquivalentStress = std::max(std::max(principal_stress_vector[0], principal_stress_vector[1]), principal_stress_vector[2]);
+        double I1, J2, J3, lode_angle;
+        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
+
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(deviator, J3);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
+
+        rEquivalentStress = 2.0 * std::sqrt(3 * J2) / 3.0 * std::cos(lode_angle + Globals::Pi / 6.0) + I1 / 3.0;
     }
 
     /**
@@ -201,31 +207,7 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
-
-        double J3, lode_angle;
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
-        const double friction_angle = rValues.GetMaterialProperties()[FRICTION_ANGLE] * Globals::Pi / 180.0;
-
-        double c1, c3, c2;
-		double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
-
-        if (std::abs(checker) < 29.0) { // If it is not the edge
-            const double angle = lode_angle + Globals::Pi / 6.0;
-            c1 = 1.0 / 3.0;
-            c2 = 2.0 * std::sqrt(3.0) / 3.0 * std::cos(angle) +
-                 2.0 * std::sqrt(3.0 * J2) / 3.0 * std::tan(3.0 * lode_angle) * std::sin(angle) * J2 * std::sqrt(J2) / 3.0;
-            c3 = -2.0 * std::sqrt(3.0 * J2) / 3.0 * std::tan(3.0 * lode_angle) * std::sin(angle) * J3 / 9.0;
-        } else { // smoothing with drucker-praguer
-            c1 = 3.0 * (2.0 * std::sin(friction_angle) / (std::sqrt(3.0) * (3.0 - std::sin(friction_angle))));
-            c2 = 1.0;
-            c3 = 0.0;
-        }
-        noalias(rFFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+        RankinePlasticPotential<VoigtSize>::CalculatePlasticPotentialDerivative(rPredictiveStressVector, rDeviator, J2, rFFlux, rValues);
     }
 
     /**
