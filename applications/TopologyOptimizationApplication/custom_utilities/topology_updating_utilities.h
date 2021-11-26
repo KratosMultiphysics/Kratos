@@ -269,6 +269,9 @@ public:
 				//Value of the lower bound of the previous iteration
 				double lower_boundary = element_i->GetValue(LOW);
 
+				double volume = element_i->GetValue(VOLUMETRIC_STRAIN);
+				std::cout << "Volume strain: "<< volume << std::endl;
+
 				
 				double Xmin = 0;
 				double Xmax = 1;
