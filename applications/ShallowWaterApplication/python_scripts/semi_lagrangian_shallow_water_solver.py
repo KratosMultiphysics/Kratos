@@ -17,7 +17,7 @@ class SemiLagrangianShallowWaterSolver(FreeSurfaceShallowWaterSolver):
 
     def AddVariables(self):
         super().AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_SCALAR1)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_SCALAR)
 
     def Initialize(self):
         super().Initialize()

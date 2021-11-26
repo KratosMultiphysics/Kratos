@@ -35,6 +35,8 @@
 #include "custom_utilities/multiaxial_control_module_generalized_2d_utilities.hpp"
 #include "custom_utilities/random_variable.h"
 #include "custom_utilities/piecewise_linear_random_variable.h"
+#include "custom_utilities/discrete_random_variable.h"
+
 
 namespace Kratos {
 
@@ -151,7 +153,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<ParticleCreatorDestructor, ParticleCreatorDestructor::Pointer>(m, "ParticleCreatorDestructor")
         .def(py::init<>())
+        .def(py::init<Parameters>())
         .def(py::init<AnalyticWatcher::Pointer>())
+        .def(py::init<AnalyticWatcher::Pointer, const Parameters&>())
         .def("CalculateSurroundingBoundingBox", &ParticleCreatorDestructor::CalculateSurroundingBoundingBox)
         .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox)
         .def("MarkParticlesForErasingGivenScalarVariableValue", &ParticleCreatorDestructor::MarkParticlesForErasingGivenScalarVariableValue)
@@ -190,6 +194,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
             )
         .def("GetTotalNumberOfParticlesInjectedSoFar", &DEM_Inlet::GetTotalNumberOfParticlesInjectedSoFar)
         .def("GetTotalMassInjectedSoFar", &DEM_Inlet::GetTotalMassInjectedSoFar)
+        .def("GetMaxRadius", &DEM_Inlet::GetMaxRadius)
         ;
 
     py::class_<DEM_Force_Based_Inlet, DEM_Force_Based_Inlet::Pointer, DEM_Inlet>(m, "DEM_Force_Based_Inlet")
@@ -377,6 +382,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<RandomVariable, RandomVariable::Pointer>(m, "RandomVariable")
         .def(py::init<const Parameters>())
+        .def("GetSupport", &RandomVariable::GetSupport)
         ;
 
     py::class_<PiecewiseLinearRandomVariable, PiecewiseLinearRandomVariable::Pointer, RandomVariable>(m, "PiecewiseLinearRandomVariable")
@@ -385,6 +391,14 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("Sample", &PiecewiseLinearRandomVariable::Sample)
         .def("ProbabilityDensity", &PiecewiseLinearRandomVariable::ProbabilityDensity)
         .def("GetMean", &PiecewiseLinearRandomVariable::GetMean)
+        ;
+
+    py::class_<DiscreteRandomVariable, DiscreteRandomVariable::Pointer, RandomVariable>(m, "DiscreteRandomVariable")
+        .def(py::init<const Parameters>())
+        .def(py::init<const Parameters, const int>())
+        .def("Sample", &DiscreteRandomVariable::Sample)
+        .def("ProbabilityDensity", &DiscreteRandomVariable::ProbabilityDensity)
+        .def("GetMean", &DiscreteRandomVariable::GetMean)
         ;
 
     }

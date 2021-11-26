@@ -102,8 +102,7 @@ class ApplyGradualExcavationProcess : public ApplyExcavationProcess
 
         ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
         #pragma omp parallel for
-        for (int i = 0; i < nnodes; ++i)
-        {
+        for (int i = 0; i < nnodes; ++i) {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
             noalias(Coordinates) = it->Coordinates();
             if (Coordinates[mGravityDirection] > max_vertical_coordinate)
@@ -125,10 +124,9 @@ class ApplyGradualExcavationProcess : public ApplyExcavationProcess
 
         double activate_coordinate = min_vertical_coordinate + deltaH;
 
-        if (nelements != 0 && mDeactivateSoilPart == true)
+        if (nelements != 0 && mDeactivateSoilPart)
         {
             ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
-            mNumNode = el_begin->GetGeometry().PointsNumber();
 
             #pragma omp parallel for
             for (int k = 0; k < nelements; ++k)
@@ -154,7 +152,6 @@ class ApplyGradualExcavationProcess : public ApplyExcavationProcess
             if (nelements != 0)
             {
                 ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
-                mNumNode = el_begin->GetGeometry().PointsNumber();
 
                 #pragma omp parallel for
                 for (int k = 0; k < nelements; ++k)

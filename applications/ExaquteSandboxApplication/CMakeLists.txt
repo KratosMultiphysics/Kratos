@@ -83,3 +83,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosExaquteSandboxCore DESTINATION libs )
 install(TARGETS KratosExaquteSandboxApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosExaquteSandboxCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosExaquteSandboxApplication" PARENT_SCOPE)

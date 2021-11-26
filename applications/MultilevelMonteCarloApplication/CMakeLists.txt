@@ -74,32 +74,12 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 install(TARGETS KratosMultilevelMonteCarloCore DESTINATION libs )
 install(TARGETS KratosMultilevelMonteCarloApplication DESTINATION libs )
 
-############################################################################
-#####
-#####        PyCOMPSs (Distributed Computation library)
-#####
-############################################################################
 # Install PyCOMPSs mockup library
-if(NOT DEFINED USING_PYCOMPSS OR NOT USING_PYCOMPSS)
-    message ( STATUS "Automatic installation of PyCOMPSs mockup library" )
-    add_definitions(-DKRATOS_MLMC_USE_MOCKUP_PYCOMPSS=1)
-	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/PyCOMPSs KratosMultiphysics/${CURRENT_DIR_NAME}/PyCOMPSs )
-else (USING_PYCOMPSS)
-    message ( STATUS "Manual installation of PyCOMPSs library" )
-    add_definitions(-DKRATOS_MLMC_USE_MOCKUP_PYCOMPSS=0)
-endif(NOT DEFINED USING_PYCOMPSS OR NOT USING_PYCOMPSS)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/PyCOMPSs KratosMultiphysics/${CURRENT_DIR_NAME}/PyCOMPSs )
 
-############################################################################
-#####
-#####        XMC (Uncertainty Quantification library)
-#####
-############################################################################
 # Install XMC library
-if (NOT DEFINED USING_INTERNAL_XMC OR USING_INTERNAL_XMC)
-    message ( STATUS "Automatic installation of XMC library" )
-    add_definitions(-DKRATOS_MLMC_USE_INTERNAL_XMC=1)
-	kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC KratosMultiphysics/${CURRENT_DIR_NAME}/XMC )
-else (NOT USING_INTERNAL_XMC)
-    message ( STATUS "Manual installation of XMC library" )
-    add_definitions(-DKRATOS_MLMC_USE_INTERNAL_XMC=0)
-endif(NOT DEFINED USING_INTERNAL_XMC OR USING_INTERNAL_XMC)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/XMC KratosMultiphysics/${CURRENT_DIR_NAME}/XMC )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMultilevelMonteCarloCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosMultilevelMonteCarloApplication" PARENT_SCOPE)

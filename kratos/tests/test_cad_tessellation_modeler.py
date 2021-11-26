@@ -1,7 +1,6 @@
 ﻿import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 
-
 def run_modelers(current_model, modelers_list):
     from KratosMultiphysics.modeler_factory import KratosModelerFactory
     factory = KratosModelerFactory()
@@ -18,7 +17,8 @@ def run_modelers(current_model, modelers_list):
     for modeler in list_of_modelers:
         modeler.SetupModelPart()
 
-
+# NOTE: This test is not added to KratosCore.py, therefore is not executed...
+# TODO: We need to define a flag so this test is skip without triangle compiled
 class TestCadTessellationModeler(KratosUnittest.TestCase):
     def test_cad_tessellation_modeler(self):
 
@@ -33,10 +33,10 @@ class TestCadTessellationModeler(KratosUnittest.TestCase):
             } }, {
             "modeler_name": "CadTessellationModeler",
             "Parameters": {
-                "echo_level": 1,
-                "cad_model_part_name": "CadModelPart",
-                "skin_model_part_name": "SkinModelPart",
-                "absolute_chordal_error"   : 1e-1,
+                "echo_level"                    : 1,
+                "cad_model_part_name"           : "CadModelPart",
+                "skin_model_part_name"          : "SkinModelPart",
+                "absolute_chordal_error"        : 1e-1,
                 "absolute_triangulation_error"  : 1e-1,
                 "initial_triangle_area"         : 5,
                 "max_triangulation_iteration"   : 1

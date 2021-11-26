@@ -24,7 +24,7 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
         pass
 
 
-    def test_interface_fixed_line_soil(self):
+    def test_interface_side_cohesive(self):
         """
         Tests an interface between a fixed line-element with and a non-fixed surface.
 
