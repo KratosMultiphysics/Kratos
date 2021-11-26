@@ -40,15 +40,16 @@ class PrintIterationNumberOperation(CoSimulationCouplingOperation):
             self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part, file_handler_settings, file_header).file
 
     def InitializeSolutionStep(self):
-        self.iteration_number = 1
+        self.iteration_number = 0
 
-    def FinalizeCouplingIteration(self):
+    def InitializeCouplingIteration(self):
+        self.iteration_number += 1
+
+    def FinalizeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KM.TIME]
         if self.interval.IsInInterval(current_time):
             if self.model_part.GetCommunicator().MyPID() == 0:
                 self.output_file.write(str(current_time) + "\t" + str(self.iteration_number) + "\n")
-
-        self.iteration_number += 1
 
     def Finalize(self):
         if self.model_part.GetCommunicator().MyPID() == 0:
