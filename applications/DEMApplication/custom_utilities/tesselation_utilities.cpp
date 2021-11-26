@@ -385,7 +385,7 @@ namespace Kratos {
 
     // Compute alpha radius
     // Assumption: Only in the 1st step - keeping alpha radius constant throghout simulation
-    if (r_process_info[POSORITY_METHOD].compare("average_alpha_shape") && r_process_info[TIME_STEPS] == 1)
+    if (r_process_info[POSORITY_METHOD].compare("average_alpha_shape") == 0 && r_process_info[TIME_STEPS] == 1)
       ComputeAlphaRadius2D(r_modelpart, out);
 
     // Accumulate total area of triangles and particles
@@ -438,7 +438,7 @@ namespace Kratos {
 
     // Compute alpha radius
     // Assumption: Only in the 1st step - keeping alpha radius constant throghout simulation
-    if (r_process_info[POSORITY_METHOD].compare("average_alpha_shape") && r_process_info[TIME_STEPS] == 1)
+    if (r_process_info[POSORITY_METHOD].compare("average_alpha_shape") == 0 && r_process_info[TIME_STEPS] == 1)
       ComputeAlphaRadius3D(r_modelpart, out);
 
     // Accumulate total volume of tetahedra and particles

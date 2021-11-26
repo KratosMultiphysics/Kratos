@@ -46,26 +46,32 @@ namespace Kratos {
     if (mGraph_ParticleTempMin) {
       mFile_ParticleTempMin.open("graph_particle_temp_min.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleTempMin) << "Could not open graph file for minimum particle temperature!" << std::endl;
+      mFile_ParticleTempMin << "TIME STEP | TIME | MIN PARTICLE TEMPERATURE" << std::endl;
     }
     if (mGraph_ParticleTempMax) {
       mFile_ParticleTempMax.open("graph_particle_temp_max.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleTempMax) << "Could not open graph file for maximum particle temperature!" << std::endl;
+      mFile_ParticleTempMax << "TIME STEP | TIME | MAX PARTICLE TEMPERATURE" << std::endl;
     }
     if (mGraph_ParticleTempAvg) {
       mFile_ParticleTempAvg.open("graph_particle_temp_avg.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleTempAvg) << "Could not open graph file for average particle temperature!" << std::endl;
+      mFile_ParticleTempAvg << "TIME STEP | TIME | AVERAGE PARTICLE TEMPERATURE" << std::endl;
     }
     if (mGraph_ParticleTempDev) {
       mFile_ParticleTempDev.open("graph_particle_temp_dev.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleTempDev) << "Could not open graph file for deviation of particle temperature!" << std::endl;
+      mFile_ParticleTempDev << "TIME STEP | TIME | PARTICLE TEMPERATURE STANDARD DEVIATION" << std::endl;
     }
     if (mGraph_ModelTempAvg) {
       mFile_ModelTempAvg.open("graph_model_temp_avg.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ModelTempAvg) << "Could not open graph file for average model temperature!" << std::endl;
+      mFile_ModelTempAvg << "TIME STEP | TIME | AVERAGE MODEL TEMPERATURE" << std::endl;
     }
     if (mGraph_ParticleHeatFluxContributions) {
       mFile_ParticleHeatFluxContributions.open("graph_flux_contributions.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleHeatFluxContributions) << "Could not open graph file for heat flux contributions!" << std::endl;
+      mFile_ParticleHeatFluxContributions << "TIME STEP | TIME | DIRECT CONDUCTION | INDIRECT CONDUCTION | RADIATION | FRICTION | CONVECTION | SURFACE PRESCRIBED | VOLUME PRESCRIBED" << std::endl;
     }
 
     KRATOS_CATCH("")
@@ -141,8 +147,8 @@ namespace Kratos {
 
     // Compute temperature results (avg, dev)
     particle_temp_avg /= num_of_particles;
-    particle_temp_dev  = sqrt(particle_temp_dev / num_of_particles - particle_temp_avg * particle_temp_avg);
     model_temp_avg    /= total_vol;
+    particle_temp_dev  = std::max(0.0, particle_temp_dev / num_of_particles - particle_temp_avg * particle_temp_avg);
 
     // Compute average of relative contribution of each heat transfer mechanism
     if (mGraph_ParticleHeatFluxContributions) {
