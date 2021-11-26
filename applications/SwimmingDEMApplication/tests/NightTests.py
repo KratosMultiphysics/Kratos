@@ -40,8 +40,8 @@ def SetTestSuite(suites):
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
-    # small_suite = SmallTests.SetTestSuite(suites)
-    # suites['all'].addTests(small_suite)
+    small_suite = SmallTests.SetTestSuite(suites)
+    suites['all'].addTests(small_suite)
     night_suite = SetTestSuite(suites)
     suites['all'].addTests(night_suite)
 
