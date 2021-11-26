@@ -1,6 +1,5 @@
 #!/bin/bash
-# PYTHONS=("cp36" "cp37" "cp38" "cp39" "cp310")
-PYTHONS=("cp38")
+PYTHONS=("cp36" "cp37" "cp38" "cp39" "cp310")
 export KRATOS_VERSION="9.0.0"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
