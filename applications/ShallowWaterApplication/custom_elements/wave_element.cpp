@@ -543,41 +543,87 @@ const array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
     return result;
 }
 
+
 template<>
-void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+void WaveElement<3>::CalculateSystem(LocalMatrixType& rLHS, LocalVectorType& rRHS, ElementData& rData)
 {
-    if(rLeftHandSideMatrix.size1() != mLocalSize)
-        rLeftHandSideMatrix.resize(mLocalSize, mLocalSize, false);
-
-    if(rRightHandSideVector.size() != mLocalSize)
-        rRightHandSideVector.resize(mLocalSize, false);
-
-    LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
-    LocalVectorType rhs = ZeroVector(mLocalSize);
-
-    // Struct to pass around the data
-    ElementData data;
-    InitializeData(data, rCurrentProcessInfo);
-    GetNodalData(data, this->GetGeometry());
-
     BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
     array_1d<double,3> N;            // Position of the gauss point
     double area;
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, area);
 
-    CalculateGaussPointData(data, N);
+    CalculateGaussPointData(rData, N);
 
-    AddWaveTerms(lhs, rhs, data, N, DN_DX);
-    AddFrictionTerms(lhs, rhs, data, N, DN_DX);
-    AddDispersiveTerms(rhs, data, N, DN_DX);
-    AddArtificialViscosityTerms(lhs, data, DN_DX);
+    AddWaveTerms(rLHS, rRHS, rData, N, DN_DX);
+    AddFrictionTerms(rLHS, rRHS, rData, N, DN_DX);
+    AddDispersiveTerms(rRHS, rData, N, DN_DX);
+    AddArtificialViscosityTerms(rLHS, rData, DN_DX);
 
-    // Substracting the Dirichlet term (since we use a residualbased approach)
-    noalias(rhs) -= prod(lhs, this->GetUnknownVector(data));
-
-    noalias(rLeftHandSideMatrix) = area * lhs;
-    noalias(rRightHandSideVector) = area * rhs;
+    rLHS *= area;
+    rRHS *= area;
 }
+
+
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::CalculateSystem(LocalMatrixType& rLHS, LocalVectorType& rRHS, ElementData& rData)
+{
+    Vector weights;
+    Matrix N_container;
+    ShapeFunctionsGradientsType DN_DX_container;
+    CalculateGeometryData(weights, N_container, DN_DX_container);
+    const IndexType num_gauss_points = weights.size();
+
+    for (IndexType g = 0; g < num_gauss_points; ++g)
+    {
+        const double weight = weights[g];
+        const array_1d<double,TNumNodes> N = row(N_container, g);
+        const BoundedMatrix<double,TNumNodes,2> DN_DX = DN_DX_container[g];
+
+        CalculateGaussPointData(rData, N);
+
+        AddWaveTerms(rLHS, rRHS, rData, N, DN_DX, weight);
+        AddFrictionTerms(rLHS, rRHS, rData, N, DN_DX, weight);
+        AddDispersiveTerms(rRHS, rData, N, DN_DX, weight);
+        AddArtificialViscosityTerms(rLHS, rData, DN_DX, weight);
+    }
+}
+
+
+// template<>
+// void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+// {
+//     if(rLeftHandSideMatrix.size1() != mLocalSize)
+//         rLeftHandSideMatrix.resize(mLocalSize, mLocalSize, false);
+
+//     if(rRightHandSideVector.size() != mLocalSize)
+//         rRightHandSideVector.resize(mLocalSize, false);
+
+//     LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
+//     LocalVectorType rhs = ZeroVector(mLocalSize);
+
+//     // Struct to pass around the data
+//     ElementData data;
+//     InitializeData(data, rCurrentProcessInfo);
+//     GetNodalData(data, this->GetGeometry());
+
+//     BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
+//     array_1d<double,3> N;            // Position of the gauss point
+//     double area;
+//     GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, area);
+
+//     CalculateGaussPointData(data, N);
+
+//     AddWaveTerms(lhs, rhs, data, N, DN_DX);
+//     AddFrictionTerms(lhs, rhs, data, N, DN_DX);
+//     AddDispersiveTerms(rhs, data, N, DN_DX);
+//     AddArtificialViscosityTerms(lhs, data, DN_DX);
+
+//     // Substracting the Dirichlet term (since we use a residualbased approach)
+//     noalias(rhs) -= prod(lhs, this->GetUnknownVector(data));
+
+//     noalias(rLeftHandSideMatrix) = area * lhs;
+//     noalias(rRightHandSideVector) = area * rhs;
+// }
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
@@ -596,25 +642,28 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
     InitializeData(data, rCurrentProcessInfo);
     GetNodalData(data, this->GetGeometry());
 
-    Vector weights;
-    Matrix N_container;
-    ShapeFunctionsGradientsType DN_DX_container;
-    CalculateGeometryData(weights, N_container, DN_DX_container);
-    const IndexType num_gauss_points = weights.size();
+    // Adding the physics
+    CalculateSystem(lhs, rhs, data);
 
-    for (IndexType g = 0; g < num_gauss_points; ++g)
-    {
-        const double weight = weights[g];
-        const array_1d<double,TNumNodes> N = row(N_container, g);
-        const BoundedMatrix<double,TNumNodes,2> DN_DX = DN_DX_container[g];
+    // Vector weights;
+    // Matrix N_container;
+    // ShapeFunctionsGradientsType DN_DX_container;
+    // CalculateGeometryData(weights, N_container, DN_DX_container);
+    // const IndexType num_gauss_points = weights.size();
 
-        CalculateGaussPointData(data, N);
+    // for (IndexType g = 0; g < num_gauss_points; ++g)
+    // {
+    //     const double weight = weights[g];
+    //     const array_1d<double,TNumNodes> N = row(N_container, g);
+    //     const BoundedMatrix<double,TNumNodes,2> DN_DX = DN_DX_container[g];
 
-        AddWaveTerms(lhs, rhs, data, N, DN_DX, weight);
-        AddFrictionTerms(lhs, rhs, data, N, DN_DX, weight);
-        AddDispersiveTerms(rhs, data, N, DN_DX, weight);
-        AddArtificialViscosityTerms(lhs, data, DN_DX, weight);
-    }
+    //     CalculateGaussPointData(data, N);
+
+    //     AddWaveTerms(lhs, rhs, data, N, DN_DX, weight);
+    //     AddFrictionTerms(lhs, rhs, data, N, DN_DX, weight);
+    //     AddDispersiveTerms(rhs, data, N, DN_DX, weight);
+    //     AddArtificialViscosityTerms(lhs, data, DN_DX, weight);
+    // }
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
     noalias(rhs) -= prod(lhs, this->GetUnknownVector(data));
@@ -622,6 +671,7 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
     noalias(rLeftHandSideMatrix) = lhs;
     noalias(rRightHandSideVector) = rhs;
 }
+
 
 template<>
 void WaveElement<3>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
