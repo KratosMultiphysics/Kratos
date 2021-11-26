@@ -376,9 +376,17 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialHardeningImplicitFu
         const double gamma = (0.5*factor - g) / (g * (3.0 * chi + 1) * (chi - 1.0));
         const double alpha = std::sqrt(chi_square * (1.0 - Threshold / K0) + Threshold / K0);
         const double beta = (1.0 - chi_square) / (2.0 * alpha*K0);
-        return gamma * (sign * beta * (2.0 * chi + 1.0 - sign * alpha) + (1.0 + sign * alpha) * (-sign * beta) 
-        -(xi*(chi_square-1.0)/K0)*(std::log((chi+sign*alpha)/(chi-1.0))+Threshold*(chi-1.0)/(chi+sign*alpha)*(-sign*beta/(chi-1.0)))) 
-        + factor / (2.0 * g) * (-2.0 * Threshold / (std::pow(K0, 2)) * (1.0 + K0 / Threshold * xi - xi) + std::pow(Threshold / K0, 2) * (K0 * xi / std::pow(Threshold, 2)));
+
+        const double ey = K0/E;
+        return (ey*K0*(xi/K0 - (2*Threshold*((K0*xi)/Threshold
+            - xi + 1))/(K0*K0)))/(2*g) + ((g - (ey*K0)/2)*((-sign*
+            (1/K0 - chi*chi/K0)*(2*chi + -sign*std::sqrt((1 - Threshold/K0)*(chi*chi) + Threshold/K0)
+            + 1))/(2*std::sqrt(Threshold/K0 - (chi*chi)*(Threshold/K0 - 1))) + (-sign*(1/K0 - (chi*chi)/K0)*(-sign
+            *std::sqrt((1 - Threshold/K0)*(chi*chi) + Threshold/K0) - 1))
+            /(2*std::sqrt(Threshold/K0 - (chi*chi)*(Threshold/K0 - 1))) + (xi*std::log((chi -(-sign)
+            *std::sqrt((1 - Threshold/K0)*(chi*chi) + Threshold/K0))/(chi - 1))*((chi*chi) - 1))/K0
+            - (-sign*Threshold*xi*(1/K0 - (chi*chi)/K0)*((chi*chi) - 1))
+            /(2*K0*std::sqrt(Threshold/K0 - (chi*chi)*(Threshold/K0 - 1))*(chi - -sign*std::sqrt((1 - Threshold/K0)*(chi*chi) + Threshold/K0)))))/(g*(3*chi + 1)*(chi - 1));
     };
     return function_derivative;
 }
@@ -444,7 +452,7 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
     PlasticDamageParameters &rPDParameters
 )
 {
-    double old_threshold = rPDParameters.Threshold;
+    double old_threshold = rPDParameters.Threshold + 1.0e-4* rPDParameters.Threshold;
     double residual = 1.0;
     double rel_residual = 1.0;
     double new_threshold = 0.0;
