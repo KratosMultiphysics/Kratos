@@ -378,7 +378,17 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialHardeningImplicitFu
         const double beta = (1.0 - chi_square) / (2.0 * alpha*K0);
 
         const double ey = K0/E;
-        return (ey*K0*(xi/K0 - (2*Threshold*((K0*xi)/Threshold
+        const double max_abs_derivative = (ey*K0*(xi/K0 - (2*(0.98*max_threshold)*((K0*xi)/(0.98*max_threshold)
+            - xi + 1))/(K0*K0)))/(2*g) + ((g - (ey*K0)/2)*((-sign*
+            (1/K0 - chi*chi/K0)*(2*chi + -sign*std::sqrt((1 - (0.98*max_threshold)/K0)*(chi*chi) + (0.98*max_threshold)/K0)
+            + 1))/(2*std::sqrt((0.98*max_threshold)/K0 - (chi*chi)*((0.98*max_threshold)/K0 - 1))) + (-sign*(1/K0 - (chi*chi)/K0)*(-sign
+            *std::sqrt((1 - (0.98*max_threshold)/K0)*(chi*chi) + (0.98*max_threshold)/K0) - 1))
+            /(2*std::sqrt((0.98*max_threshold)/K0 - (chi*chi)*((0.98*max_threshold)/K0 - 1))) + (xi*std::log((chi -(-sign)
+            *std::sqrt((1 - (0.98*max_threshold)/K0)*(chi*chi) + (0.98*max_threshold)/K0))/(chi - 1))*((chi*chi) - 1))/K0
+            - (-sign*(0.98*max_threshold)*xi*(1/K0 - (chi*chi)/K0)*((chi*chi) - 1))
+            /(2*K0*std::sqrt((0.98*max_threshold)/K0 - (chi*chi)*((0.98*max_threshold)/K0 - 1))*(chi - -sign*std::sqrt((1 - (0.98*max_threshold)/K0)*(chi*chi) + (0.98*max_threshold)/K0)))))/(g*(3*chi + 1)*(chi - 1));
+
+        const double current_derivative = (ey*K0*(xi/K0 - (2*Threshold*((K0*xi)/Threshold
             - xi + 1))/(K0*K0)))/(2*g) + ((g - (ey*K0)/2)*((-sign*
             (1/K0 - chi*chi/K0)*(2*chi + -sign*std::sqrt((1 - Threshold/K0)*(chi*chi) + Threshold/K0)
             + 1))/(2*std::sqrt(Threshold/K0 - (chi*chi)*(Threshold/K0 - 1))) + (-sign*(1/K0 - (chi*chi)/K0)*(-sign
@@ -387,6 +397,7 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialHardeningImplicitFu
             *std::sqrt((1 - Threshold/K0)*(chi*chi) + Threshold/K0))/(chi - 1))*((chi*chi) - 1))/K0
             - (-sign*Threshold*xi*(1/K0 - (chi*chi)/K0)*((chi*chi) - 1))
             /(2*K0*std::sqrt(Threshold/K0 - (chi*chi)*(Threshold/K0 - 1))*(chi - -sign*std::sqrt((1 - Threshold/K0)*(chi*chi) + Threshold/K0)))))/(g*(3*chi + 1)*(chi - 1));
+        return (std::abs(current_derivative) > std::abs(max_abs_derivative)) ? max_abs_derivative : current_derivative;
     };
     return function_derivative;
 }
@@ -452,7 +463,10 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
     PlasticDamageParameters &rPDParameters
 )
 {
-    double old_threshold = rPDParameters.Threshold + 1.0e-4* rPDParameters.Threshold;
+    double old_threshold = rPDParameters.Threshold;
+    if (std::abs(rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters)) < 1.0e-15) {
+        old_threshold += 1.0e-4* rPDParameters.Threshold;
+    }
     double residual = 1.0;
     double rel_residual = 1.0;
     double new_threshold = 0.0;
