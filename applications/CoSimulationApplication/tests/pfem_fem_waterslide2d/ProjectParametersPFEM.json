@@ -69,6 +69,7 @@
             "meshing_control_type"              : "step",
             "meshing_frequency"                 : 1.0,
             "meshing_before_output"             : true,
+            "write_totalVolumeBeforeMeshing"    : false,
             "update_conditions_on_free_surface" : {
                 "update_conditions" : false
             },

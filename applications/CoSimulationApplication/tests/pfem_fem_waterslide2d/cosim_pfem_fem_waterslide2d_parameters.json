@@ -41,12 +41,6 @@
                     "output_path": "force_output"
                     }
             },
-            "print_iteration_number_process": {
-                "type"       : "print_iteration_number",
-                "solver"            : "pfem",
-                "model_part_name"   : "PfemFluidModelPart.Fluid",
-                "interval"               : [0.0,"End"]
-            },
             "reset_pfem_kinematics_fluid": {
                 "type"       : "reset_pfem_kinematics",
                 "echo_level" : 0,
