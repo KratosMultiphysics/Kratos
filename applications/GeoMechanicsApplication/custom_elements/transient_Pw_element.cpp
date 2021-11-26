@@ -406,7 +406,7 @@ void TransientPwElement<TDim,TNumNodes>::
 
     if (rVariable == DEGREE_OF_SATURATION     ||
         rVariable == EFFECTIVE_SATURATION     ||
-        rVariable == BISHOP_COEFICIENT        ||
+        rVariable == BISHOP_COEFFICIENT        ||
         rVariable == DERIVATIVE_OF_SATURATION ||
         rVariable == RELATIVE_PERMEABILITY    ||
         rVariable == HYDRAULIC_HEAD)
@@ -418,9 +418,7 @@ void TransientPwElement<TDim,TNumNodes>::
         if ( rOutput.size() != mRetentionLawVector.size() )
             rOutput.resize(mRetentionLawVector.size());
 
-        for ( unsigned int i = 0;  i < mRetentionLawVector.size(); ++i ) {
-            rOutput[i] = 0.0;
-        }
+        std::fill(rOutput.begin(), rOutput.end(), 0.0);
     }
 
     // KRATOS_INFO("1-TransientPwElement::CalculateOnIntegrationPoints()") << std::endl;

@@ -83,6 +83,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 }
             },
             "distance_reinitialization": "variational",
+            "parallel_redistance_max_layers" : 25,
             "distance_smoothing": false,
             "distance_smoothing_coefficient": 1.0,
             "distance_modification_settings": {
@@ -311,8 +312,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if (self._reinitialization_type == "variational"):
                 self._GetDistanceReinitializationProcess().Execute()
             elif (self._reinitialization_type == "parallel"):
-                adjusting_parameter = 0.05
-                layers = int(adjusting_parameter*self.main_model_part.GetCommunicator().GlobalNumberOfElements()) # this parameter is essential
+                layers = self.settings["parallel_redistance_max_layers"].GetInt()
                 max_distance = 1.0 # use this parameter to define the redistancing range
                 # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
                 self._GetDistanceReinitializationProcess().CalculateDistances(
