@@ -150,7 +150,7 @@ class StabilizedFormulation(object):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "weakly_compressible",
             "dynamic_tau": 1.0,
-            "sound_velocity": 1.0e+12
+            "angular_velocity" : [0.0,0.0,0.0]
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -164,8 +164,7 @@ class StabilizedFormulation(object):
         self.non_historical_nodal_properties_variables_list = [KratosMultiphysics.SOUND_VELOCITY]
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
-        #TODO: Remove SOUND_VELOCITY from ProcessInfo. Should be obtained from the properties.
-        self.process_data[KratosMultiphysics.SOUND_VELOCITY] = settings["sound_velocity"].GetDouble()
+        self.process_data[KratosMultiphysics.ANGULAR_VELOCITY] = settings["angular_velocity"].GetVector()
 
 def CreateSolver(model, custom_settings):
     return NavierStokesSolverMonolithic(model, custom_settings)

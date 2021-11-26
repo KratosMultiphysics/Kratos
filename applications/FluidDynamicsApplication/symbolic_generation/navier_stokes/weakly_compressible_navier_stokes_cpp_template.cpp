@@ -198,9 +198,13 @@ void WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> >::
     const array_1d<double,3>& N = rData.N;
     const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
+    // Non-inertial frame or reference data
+    const array_1d<double,3>& omega = rData.AngularVelocity;
+
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 1.0;
 
     //TODO: Optimize this to directly add to the rLeftHandSideMatrix
     auto& lhs = rData.lhs;
@@ -236,9 +240,13 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
     const array_1d<double,4>& N = rData.N;
     const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
+    // Non-inertial frame or reference data
+    const array_1d<double,3>& omega = rData.AngularVelocity;
+
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 1.0;
 
     //TODO: Optimize this to directly add to the rLeftHandSideMatrix
     auto& lhs = rData.lhs;
@@ -282,9 +290,21 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<2,3>>::Co
     const array_1d<double,3>& N = rData.N;
     const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
+    // Non-inertial frame or reference data
+    const array_1d<double,3>& omega = rData.AngularVelocity;
+    const auto& r_geom = this->GetGeometry();
+    array_1d<double,3> gauss_pt_coord = ZeroVector(3);
+    for (IndexType i = 0; i < 3; ++i) {
+        const auto& r_coords = r_geom[i].Coordinates();
+        for (IndexType d = 0; d < 2; ++d) {
+            gauss_pt_coord(d) += N(i)*r_coords(d);
+        }
+    }
+
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 1.0;
 
     //TODO: Optimize this to directly add to the rRightHandSideVector
     auto& rhs = rData.rhs;
@@ -327,9 +347,21 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
     const array_1d<double,4>& N = rData.N;
     const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
+    // Non-inertial frame or reference data
+    const array_1d<double,3>& omega = rData.AngularVelocity;
+    const auto& r_geom = this->GetGeometry();
+    array_1d<double,3> gauss_pt_coord = ZeroVector(3);
+    for (IndexType i = 0; i < 4; ++i) {
+        const auto& r_coords = r_geom[i].Coordinates();
+        for (IndexType d = 0; d < 3; ++d) {
+            gauss_pt_coord(d) += N(i)*r_coords(d);
+        }
+    }
+
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 1.0;
 
     //TODO: Optimize this to directly add to the rRightHandSideVector
     auto& rhs = rData.rhs;

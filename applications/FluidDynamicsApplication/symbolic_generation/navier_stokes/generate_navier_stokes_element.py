@@ -2,6 +2,28 @@ from sympy import *
 from KratosMultiphysics import *
 from KratosMultiphysics.sympy_fe_utilities import *
 
+def CalculateCoriollisForce(w, v):
+    coriollis_force = Matrix(zeros(1,3))
+
+    coriollis_force[0] = w[1]*v[2]-w[2]*v[1]
+    coriollis_force[1] = w[2]*v[0]-w[0]*v[2]
+    coriollis_force[2] = w[0]*v[1]-w[1]*v[0]
+
+    return coriollis_force
+
+def CalculateCentrifugalForce(w,r):
+    centrifugal_force = Matrix(zeros(1,3))
+
+    aux_a = w[1]*r[2]-w[2]*r[1]
+    aux_b = w[2]*r[0]-w[0]*r[2]
+    aux_c = w[0]*r[1]-w[1]*r[0]
+
+    centrifugal_force[0] = w[1]*aux_c-w[2]*aux_b
+    centrifugal_force[1] = w[2]*aux_a-w[0]*aux_c
+    centrifugal_force[2] = w[0]*aux_b-w[1]*aux_a
+
+    return centrifugal_force
+
 ## Settings explanation
 # DIMENSION TO COMPUTE:
 # This symbolic generator is valid for both 2D and 3D cases. Since the element has been programed with a dimension template in Kratos,
@@ -18,6 +40,8 @@ from KratosMultiphysics.sympy_fe_utilities import *
 # CONVECTIVE TERM:
 # If set to true, the convective term is taken into account in the calculation of the variational form. This allows generating both
 # Navier-Stokes and Stokes elements.
+# NON INERTIAL FRAME OF REFERENCE TERMS:
+# If set to true, it adds the Coriollis and centrifugal forces to the momentum conservation equation.
 
 ## Symbolic generation settings
 mode = "c"
@@ -30,12 +54,14 @@ formulation = "WeaklyCompressibleNavierStokes" # Element type. Options: "WeaklyC
 if formulation == "WeaklyCompressibleNavierStokes":
     convective_term = True
     artificial_compressibility = True
+    non_inertial_frame_of_reference_terms = True
     linearisation = "Picard" # Convective term linearisation type. Options: "Picard", "FullNR"
     output_filename = "weakly_compressible_navier_stokes.cpp"
     template_filename = "weakly_compressible_navier_stokes_cpp_template.cpp"
 elif formulation == "Stokes":
     convective_term = False
     artificial_compressibility = False
+    non_inertial_frame_of_reference_terms = False
     output_filename = "symbolic_stokes.cpp"
     template_filename = "symbolic_stokes_cpp_template.cpp"
 else:
@@ -49,6 +75,7 @@ info_msg += "\t - Dimension: " + dim_to_compute + "\n"
 info_msg += "\t - ASGS stabilization: " + str(ASGS_stabilization) + "\n"
 info_msg += "\t - Pseudo-compressibility: " + str(artificial_compressibility) + "\n"
 info_msg += "\t - Divide mass conservation by rho: " + str(divide_by_rho) + "\n"
+info_msg += "\t - Non-inertial frame of reference terms: " + str(non_inertial_frame_of_reference_terms) + "\n"
 print(info_msg)
 
 #TODO: DO ALL ELEMENT TYPES FOR N-S TOO
@@ -110,6 +137,11 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         # With no weak-compressibility, the density (rho) is retrieved from the element properties and there is no speed of sound need
         rho = Symbol('rho', positive = True)     # Density
 
+    ## Non-inertial frame of reference definitions
+    if non_inertial_frame_of_reference_terms:
+        omega = DefineVector('omega',3) # Frame of reference angular velocity
+        gauss_pt_coord = DefineVector('gauss_pt_coord',3) # Gauss pt. coordinates vector to compute the centrifugal force
+
     ## Test functions definition
     w = DefineMatrix('w',nnodes,dim)            # Velocity field test function
     q = DefineVector('q',nnodes)                # Pressure field test function
@@ -125,12 +157,12 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     ## Other simbols definition
     dt  = Symbol('dt', positive = True)         # Time increment
-    nu  = Symbol('nu', positive = True)         # Kinematic viscosity (mu/rho)
     mu  = Symbol('mu', positive = True)         # Dynamic viscosity
     h = Symbol('h', positive = True)
     dyn_tau = Symbol('dyn_tau', positive = True)
     stab_c1 = Symbol('stab_c1', positive = True)
     stab_c2 = Symbol('stab_c2', positive = True)
+    stab_c3 = Symbol('stab_c3', positive = True)
 
     ## Backward differences coefficients
     bdf0 = Symbol('bdf0')
@@ -154,12 +186,27 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     ## Compute the stabilization parameters
     if convective_term:
+        # Convective velocity norm
         stab_norm_a = 0.0
         for i in range(0, dim):
             stab_norm_a += vconv_gauss[i]**2
         stab_norm_a = sqrt(stab_norm_a)
-        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*stab_norm_a)/h + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
-        tau2 = mu + (stab_c2*rho*stab_norm_a*h)/stab_c1                                  # Stabilization parameter 2
+
+        # Velocity subscale stabilization operator
+        if non_inertial_frame_of_reference_terms:
+            # Frame of reference angular velocity norm
+            stab_norm_omega = 0.0
+            for i in range(0, dim):
+                stab_norm_omega += omega[i]**2
+            stab_norm_omega = sqrt(stab_norm_omega)
+            # Stabilization parameter 1
+            tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*stab_norm_a)/h + (stab_c1*mu)/(h*h) + (stab_c3*rho*stab_norm_omega))
+        else:
+            # Stabilization parameter 1
+            tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*stab_norm_a)/h + (stab_c1*mu)/(h*h))
+
+        # Pressure subscale stabilization operator
+        tau2 = mu + (stab_c2*rho*stab_norm_a*h)/stab_c1
     else:
         tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
         tau2 = (h*h) / (stab_c1 * tau1)                    # Stabilization parameter 2
@@ -196,6 +243,28 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         convective_term_gauss = (vconv_gauss.transpose()*grad_v)
         rho_convective_term_gauss = vconv_gauss.transpose()*grad_rho
 
+    # Non-inertial frame of reference terms calculation
+    if non_inertial_frame_of_reference_terms:
+        # Define the Gauss pt. velocity (note that we need a three component array to perform the cross product)
+        if dim == 3:
+            v_gauss_aux = v_gauss
+        else:
+            v_gauss_aux = Matrix(zeros(1, 3))
+            v_gauss_aux[0] = v_gauss[0]
+            v_gauss_aux[1] = v_gauss[1]
+            v_gauss_aux[2] = 0.0
+
+        # Calculate the non-inertial frame of reference force terms
+        aux_coriollis_force = CalculateCoriollisForce(omega, v_gauss_aux)
+        aux_centrifugal_force = CalculateCentrifugalForce(omega, gauss_pt_coord)
+
+        # Keep only the relevant components according to the current dimension (note that w_{0} and w_{1} must be zero in 2D)
+        coriollis_force = Matrix(zeros(dim,1))
+        centrifugal_force = Matrix(zeros(dim,1))
+        for i in range(dim):
+            coriollis_force[i] = aux_coriollis_force[i]
+            centrifugal_force[i] = aux_centrifugal_force[i]
+
     ## Compute galerkin functional
     # Navier-Stokes functional
     if (divide_by_rho):
@@ -215,12 +284,19 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         if convective_term:
             rv_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
 
+    if non_inertial_frame_of_reference_terms:
+        rv_galerkin -= 2.0*rho*w_gauss.transpose()*coriollis_force # Coriollis force term
+        rv_galerkin -= rho*w_gauss.transpose()*centrifugal_force # Centrifugal force term
+
     ##  Stabilization functional terms
     # Momentum conservation residual
     # Note that the viscous stress term is dropped since linear elements are used
     vel_residual = rho*f_gauss - rho*accel_gauss - grad_p
     if convective_term:
         vel_residual -= rho*convective_term_gauss.transpose()
+    if non_inertial_frame_of_reference_terms:
+        vel_residual -= 2.0*rho*coriollis_force
+        vel_residual -= rho*centrifugal_force
 
     # Mass conservation residual
     if (divide_by_rho):
@@ -248,6 +324,28 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         rv_stab += rho*vconv_gauss.transpose()*grad_w*vel_subscale
         rv_stab += rho*div_vconv*w_gauss.transpose()*vel_subscale
     rv_stab += div_w*mas_subscale
+
+    # Calculate the Coriollis force contribution to the subscale
+    if non_inertial_frame_of_reference_terms:
+        # Define the Gauss pt. velocity (note that we need a three component array to perform the cross product)
+        if dim == 3:
+            vel_subscale_aux = vel_subscale
+        else:
+            vel_subscale_aux = Matrix(zeros(1, 3))
+            vel_subscale_aux[0] = vel_subscale[0]
+            vel_subscale_aux[1] = vel_subscale[1]
+            vel_subscale_aux[2] = 0.0
+
+        # Calculate the non-inertial frame of reference force terms
+        aux_coriollis_force = CalculateCoriollisForce(omega, vel_subscale_aux)
+
+        # Keep only the relevant components according to the current dimension (note that w_{0} and w_{1} must be zero in 2D)
+        coriollis_force_subscale = Matrix(zeros(dim,1))
+        for i in range(dim):
+            coriollis_force_subscale[i] = aux_coriollis_force[i]
+
+        # Add the Coriollis force coming from the velocity subscale
+        rv_stab -= 2.0*rho*w_gauss.transpose()*coriollis_force_subscale # Coriollis force subscale term
 
     ## Add the stabilization terms to the original residual terms
     if (ASGS_stabilization):
