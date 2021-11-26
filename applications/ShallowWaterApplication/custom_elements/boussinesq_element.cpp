@@ -157,8 +157,8 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
             gradients_vector_j[2] = 0.0;
 
             laplacian = -outer_prod(gradients_vector_i, gradients_vector_j);
-            gradients_matrix_k(2,0) = rDN_DX(i,0);
-            gradients_matrix_k(2,1) = rDN_DX(i,1);
+            gradients_matrix_k(2,0) = -rDN_DX(i,0);
+            gradients_matrix_k(2,1) = -rDN_DX(i,1);
 
             // Dispersive fields
             height_aux = (C1 + C3) * std::pow(H,3) * inv_lumped_mass * prod(gradients_matrix_k, laplacian);
@@ -167,8 +167,8 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
             // Stabilization terms
             height_stab_aux  = l * rDN_DX(j,0) * prod(rData.A1, height_aux);
             height_stab_aux += l * rDN_DX(j,1) * prod(rData.A2, height_aux);
-            velocity_stab_aux  = l * rDN_DX(i,0) * inv_lumped_mass * prod(rData.A1, height_aux);
-            velocity_stab_aux += l * rDN_DX(i,1) * inv_lumped_mass * prod(rData.A2, height_aux);
+            velocity_stab_aux  = l * rDN_DX(i,0) * inv_lumped_mass * prod(rData.A1, velocity_aux);
+            velocity_stab_aux += l * rDN_DX(i,1) * inv_lumped_mass * prod(rData.A2, velocity_aux);
 
             // Contribution to the local matrix
             MathUtils<double>::AddMatrix(height_dispersion, Weight * height_aux, 3*i, 3*j);
