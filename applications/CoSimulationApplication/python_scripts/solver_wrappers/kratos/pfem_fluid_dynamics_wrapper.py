@@ -37,7 +37,7 @@ class PfemFluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
             fix_model_part = self._analysis_stage._GetSolver().model[fix_model_part_name]
             fix_nodes_model_part = KM.PfemFluidDynamicsApplication.FixFreeVelocityOnNodesProcess(fix_model_part, True)
             fix_nodes_model_part.Execute()
-            self._PrintFixationStatus(fix_model_part, fix_model_part_name, True)
+            self._PrintFixationStatus(fix_model_part_name, True)
 
         # solve PFEM
         super().SolveSolutionStep()
@@ -49,12 +49,11 @@ class PfemFluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
             free_nodes_model_part.Execute()
             self._PrintFixationStatus(free_model_part, free_model_part_name, False)
 
-    def _PrintFixationStatus(self, model_part, model_part_name, fix_free_status):
-        if(model_part.GetCommunicator().MyPID() == 0):
-            if(self.echo_level > 0):
-                if(fix_free_status):
-                    result_msg = " FIXED VELOCITY VALUES FOR THE NODES IN MODEL PART: " + model_part_name
-                else:
-                    result_msg = " FREED VELOCITY VALUES FOR THE NODES IN MODEL PART: " + model_part_name
+    def _PrintFixationStatus(self, model_part_name, fix_free_status):
+        if self.echo_level > 0:
+            if fix_free_status:
+                result_msg = " FIXED VELOCITY VALUES FOR THE NODES IN MODEL PART: " + model_part_name
+            else:
+                result_msg = " FREED VELOCITY VALUES FOR THE NODES IN MODEL PART: " + model_part_name
 
-                cs_tools.cs_print_info(self._ClassName(), result_msg)
+            cs_tools.cs_print_info(self._ClassName(), result_msg)
