@@ -168,8 +168,8 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
             // Stabilization terms
             height_stab_aux  = l * rDN_DX(j,0) * prod(rData.A1, height_aux);
             height_stab_aux += l * rDN_DX(j,1) * prod(rData.A2, height_aux);
-            velocity_stab_aux = l * rDN_DX(i,0) * inv_lumped_mass * prod(rData.A1, height_aux);
-            velocity_stab_aux = l * rDN_DX(i,1) * inv_lumped_mass * prod(rData.A2, height_aux);
+            velocity_stab_aux  = l * rDN_DX(i,0) * inv_lumped_mass * prod(rData.A1, height_aux);
+            velocity_stab_aux += l * rDN_DX(i,1) * inv_lumped_mass * prod(rData.A2, height_aux);
 
             // Contribution to the local matrix
             MathUtils<double>::AddMatrix(height_dispersion, Weight * height_aux, 3*i, 3*j);
