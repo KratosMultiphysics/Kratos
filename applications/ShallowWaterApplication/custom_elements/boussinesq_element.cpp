@@ -129,6 +129,8 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
     BoundedMatrix<double,3,3> laplacian;
     BoundedMatrix<double,3,3> height_aux;
     BoundedMatrix<double,3,3> velocity_aux;
+    BoundedMatrix<double,3,3> height_stab_aux;
+    BoundedMatrix<double,3,3> velocity_stab_aux;
     LocalMatrixType height_dispersion = ZeroMatrix(mLocalSize, mLocalSize);
     LocalMatrixType velocity_dispersion = ZeroMatrix(mLocalSize, mLocalSize);
 
@@ -140,7 +142,8 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
     const double C3 = beta + 0.5;
     const double C4 = beta;
     const double H = rData.depth;
-    const double lumping_factor = 1.0 / double(TNumNodes);
+    const double inv_lumped_mass = double(TNumNodes);
+    const double l = StabilizationParameter(rData);
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
@@ -155,14 +158,24 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
             gradients_vector_j[2] = 0.0;
 
             laplacian = -outer_prod(gradients_vector_i, gradients_vector_j);
-            gradients_matrix_k(2,0) = rDN_DX(j,0);
-            gradients_matrix_k(2,1) = rDN_DX(j,1);
+            gradients_matrix_k(2,0) = rDN_DX(i,0);
+            gradients_matrix_k(2,1) = rDN_DX(i,1);
 
-            height_aux = (C1 + C3) * std::pow(H,3) * lumping_factor * prod(gradients_matrix_k, laplacian);
+            // Dispersive fields
+            height_aux = (C1 + C3) * std::pow(H,3) * inv_lumped_mass * prod(gradients_matrix_k, laplacian);
             velocity_aux = (C2 + C4) * std::pow(H,2) * laplacian;
 
+            // Stabilization terms
+            height_stab_aux  = l * rDN_DX(j,0) * prod(rData.A1, height_aux);
+            height_stab_aux += l * rDN_DX(j,1) * prod(rData.A2, height_aux);
+            velocity_stab_aux = l * rDN_DX(i,0) * inv_lumped_mass * prod(rData.A1, height_aux);
+            velocity_stab_aux = l * rDN_DX(i,1) * inv_lumped_mass * prod(rData.A2, height_aux);
+
+            // Contribution to the local matrix
             MathUtils<double>::AddMatrix(height_dispersion, Weight * height_aux, 3*i, 3*j);
             MathUtils<double>::AddMatrix(velocity_dispersion, Weight * velocity_aux, 3*i, 3*j);
+            MathUtils<double>::AddMatrix(height_dispersion, Weight * height_stab_aux, 3*i, 3*j);
+            MathUtils<double>::AddMatrix(velocity_dispersion, Weight * velocity_stab_aux, 3*i, 3*j);
         }
     }
     LocalVectorType acceleration = this->GetAccelerationsVector(rData);
