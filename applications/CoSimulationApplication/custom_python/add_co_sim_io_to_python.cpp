@@ -119,12 +119,15 @@ void AccessDataWithOrder(
     const std::vector<std::size_t>& rOrder,
     std::vector<double>& rData)
 {
+    KRATOS_ERROR_IF(rContainer.size() != rData.size()) << "Mismatch in container sizes!" << std::endl;
+
     IndexPartition<std::size_t>(rContainer.size()).for_each(
         [&rContainer, &rVariable, &rOrder, &rData]
             (const std::size_t Index) {
                 const std::size_t entity_id = rOrder[Index];
-                auto& r_entity = *rContainer.find(entity_id);
-                TAccessor::Execute(r_entity, rData, Index, rVariable);
+                auto it_entity = rContainer.find(entity_id);
+                KRATOS_DEBUG_ERROR_IF(it_entity == rContainer.end()) << "The entity with Id " << entity_id << " could not be found!" << std::endl;
+                TAccessor::Execute(*it_entity, rData, Index, rVariable);
     });
 }
 
