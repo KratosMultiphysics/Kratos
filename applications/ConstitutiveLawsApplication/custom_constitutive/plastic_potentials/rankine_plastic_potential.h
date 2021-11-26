@@ -122,14 +122,13 @@ class RankinePlasticPotential
         double J3, lode_angle;
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
-        const double friction_angle = rValues.GetMaterialProperties()[FRICTION_ANGLE] * Globals::Pi / 180.0;
 
         double c1, c3, c2;
 		double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
+        const double sqrt_3 = std::sqrt(3.0);
 
         if (std::abs(checker) < 29.0) { // If it is not the edge
             const double sqrt_J2 = std::sqrt(J2);
-            const double sqrt_3 = std::sqrt(3.0);
             const double square_sin_3_lode = std::pow(std::sin(3.0 * lode_angle), 2);
             const double angle = lode_angle + Globals::Pi / 6.0;
             const double dLode_dJ2 = (3.0 * sqrt_3 * J3) / (4.0 * J2 * J2 * sqrt_J2 * std::sqrt(1.0 - square_sin_3_lode));
@@ -138,8 +137,11 @@ class RankinePlasticPotential
             c2 = 2.0 * sqrt_3 / 3.0 * (std::cos(angle) / (2.0 * sqrt_J2) - 2.0 * sqrt_3 * sqrt_J2 / 3.0 * std::sin(angle) * dLode_dJ2) * 2.0 * sqrt_J2;
             c3 = -2.0 * std::sqrt(3.0 * J2) / 3.0 * std::sin(angle) * dLode_dJ3;
         } else { // smoothing with drucker-praguer
-            c1 = 3.0 * (2.0 * std::sin(friction_angle) / (std::sqrt(3.0) * (3.0 - std::sin(friction_angle))));
-            c2 = 1.0;
+            const double friction_angle = rValues.GetMaterialProperties()[FRICTION_ANGLE] * Globals::Pi / 180.0;
+            const double sin_phi = std::sin(friction_angle);
+            const double CFL = -sqrt_3 * (3.0 - sin_phi) / (3.0 * sin_phi - 3.0);
+            c1 = CFL * 2.0 * sin_phi / (sqrt_3 * (3.0 - sin_phi));
+            c2 = CFL;
             c3 = 0.0;
         }
         noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;

@@ -574,7 +574,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     bool is_converged = false;
     IndexType iteration = 0, max_iter = 1000;
 
-    const double splits = 1;
+    const double splits = 10;
     noalias(rPDParameters.StressVector) = prod(rPDParameters.ConstitutiveMatrix, mOldStrain - rPDParameters.PlasticStrain);
     // BoundedVectorType delta_stress = prod(rPDParameters.ConstitutiveMatrix, rPDParameters.StrainVector - mOldStrain) / splits;
     for (int i = 0; i < splits; i++) {
