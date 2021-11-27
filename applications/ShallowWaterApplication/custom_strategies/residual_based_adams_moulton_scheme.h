@@ -150,6 +150,9 @@ public:
     {
         KRATOS_TRY;
 
+        const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
+        KRATOS_ERROR_IF(delta_time < 1.0e-24) << "ERROR:: Detected delta_time near to zero" << std::endl;
+
         PredictDerivatives(rModelPart, rDofSet, rA, rDx, rb);
 
         const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -273,33 +276,6 @@ public:
         TCalculateRHSContribution(rCurrentCondition, rRHSContribution, rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.CalculateRHSContribution");
-    }
-
-    /**
-     * @brief It initializes time step solution. Only for reasons if the time step solution is restarted
-     * @param rModelPart The model part of the problem to solve
-     * @param rA LHS matrix
-     * @param rDx Incremental update of primary variables
-     * @param rb RHS Vector
-     */
-    void InitializeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        ) override
-    {
-        KRATOS_TRY;
-
-        const ProcessInfo r_current_process_info= rModelPart.GetProcessInfo();
-
-        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
-
-        const double delta_time = r_current_process_info[DELTA_TIME];
-
-        KRATOS_ERROR_IF(delta_time < 1.0e-24) << "ERROR:: Detected delta_time = 0 in the Solution Scheme DELTA_TIME. PLEASE : check if the time step is created correctly for the current time step" << std::endl;
-
-        KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.InitializeSolutionStep");
     }
 
     /**
