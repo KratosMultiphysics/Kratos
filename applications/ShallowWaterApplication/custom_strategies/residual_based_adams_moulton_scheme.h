@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_RESIDUAL_BASED_ADAMS_MOULTON_SCHEME_H_INCLUDED )
-#define  KRATOS_RESIDUAL_BASED_ADAMS_MOULTON_SCHEME_H_INCLUDED
+#ifndef KRATOS_RESIDUAL_BASED_ADAMS_MOULTON_SCHEME_H_INCLUDED
+#define KRATOS_RESIDUAL_BASED_ADAMS_MOULTON_SCHEME_H_INCLUDED
 
 /* System includes */
 
@@ -88,6 +88,9 @@ public:
         // Allocate auxiliary memory
         const std::size_t num_threads = ParallelUtilities::GetNumThreads();
         mM.resize(num_threads);
+        mU0.resize(num_threads);
+        mU1.resize(num_threads);
+        mDU.resize(num_threads);
     }
 
     /**
@@ -100,6 +103,9 @@ public:
         // Allocate auxiliary memory
         const std::size_t num_threads = ParallelUtilities::GetNumThreads();
         mM.resize(num_threads);
+        mU0.resize(num_threads);
+        mU1.resize(num_threads);
+        mDU.resize(num_threads);
     }
 
     /** 
@@ -108,6 +114,9 @@ public:
     explicit ResidualBasedAdamsMoultonScheme(ResidualBasedAdamsMoultonScheme& rOther)
         : BaseType(rOther)
         , mM(rOther.mM)
+        , mU0(rOther.mU0)
+        , mU1(rOther.mU1)
+        , mDU(rOther.mDU)
     {
     }
 
@@ -155,10 +164,10 @@ public:
 
         PredictDerivatives(rModelPart, rDofSet, rA, rDx, rb);
 
-        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        block_for_each(rModelPart.Elements(), [&](Element& rElement){
-            rElement.AddExplicitContribution(r_process_info);
-        });
+        // const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        // block_for_each(rModelPart.Elements(), [&](Element& rElement){
+        //     rElement.AddExplicitContribution(r_process_info);
+        // });
 
         KRATOS_CATCH( "" );
     }
@@ -337,6 +346,9 @@ protected:
     ///@{
 
     std::vector< Matrix > mM; /// First derivative matrix (usually mass matrix)
+    std::vector< Vector > mU0; /// Values vector at the current time step
+    std::vector< Vector > mU1; /// Values vector at the previous time step
+    std::vector< Vector > mDU; /// Increment of the values vector
 
     ///@}
     ///@name Protected Operators
@@ -347,7 +359,7 @@ protected:
     ///@{
 
     /**
-     * @brief Performing the update of the derivatives
+     * @brief Performing the prediction of the derivatives
      * @param rModelPart The model of the problem to solve
      * @param rDofSet Set of all primary variables
      * @param rA LHS matrix
@@ -363,29 +375,39 @@ protected:
         )
     {
         const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-        const double factor = 1.0 / (2.0 * delta_time);
+        const double factor = 0.5 / delta_time;
 
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-            const double f1 = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 1);
-            const double f2 = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 2);
-            const double f3 = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 3);
-            const array_1d<double,3> v1 = rNode.FastGetSolutionStepValue(VELOCITY, 1);
-            const array_1d<double,3> v2 = rNode.FastGetSolutionStepValue(VELOCITY, 2);
-            const array_1d<double,3> v3 = rNode.FastGetSolutionStepValue(VELOCITY, 3);
-            double& w1 = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY, 1);
-            double& w2 = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY, 2);
-            double& w3 = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY, 3);
-            array_1d<double,3>& a1 = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
-            array_1d<double,3>& a2 = rNode.FastGetSolutionStepValue(ACCELERATION, 2);
-            array_1d<double,3>& a3 = rNode.FastGetSolutionStepValue(ACCELERATION, 3);
-
-            w1 = factor * (3*f1 - 4*f2   + f3);
-            a1 = factor * (3*v1 - 4*v2   + v3);
-            w2 = factor * (  f1   - f2       );
-            a2 = factor * (  v1   - v2       );
-            w3 = factor * (  f1 - 4*f2  + 3*f3);
-            a3 = factor * (  v1 - 4*v2  + 3*v3);
+            PredictDerivative(rNode, VELOCITY, ACCELERATION, factor);
+            PredictDerivative(rNode, FREE_SURFACE_ELEVATION, VERTICAL_VELOCITY, factor);
         });
+    }
+
+    /**
+     * @brief Performing the prediction of the derivative
+     * @param rNode The node
+     * @param rPrimitiveVariable The primitive variable
+     * @param rDerivativeVariable The variable to predict
+     * @param Coefficient The time integration coefficient
+     */
+    template<class TDataType>
+    inline void PredictDerivative(
+        NodeType& rNode,
+        const Variable<TDataType>& rPrimitiveVariable,
+        const Variable<TDataType>& rDerivativeVariable,
+        const double Coefficient)
+    {
+        const TDataType& f1 = rNode.FastGetSolutionStepValue(rPrimitiveVariable, 1);
+        const TDataType& f2 = rNode.FastGetSolutionStepValue(rPrimitiveVariable, 2);
+        const TDataType& f3 = rNode.FastGetSolutionStepValue(rPrimitiveVariable, 3);
+
+        TDataType& d1 = rNode.FastGetSolutionStepValue(rDerivativeVariable, 1);
+        TDataType& d2 = rNode.FastGetSolutionStepValue(rDerivativeVariable, 2);
+        TDataType& d3 = rNode.FastGetSolutionStepValue(rDerivativeVariable, 3);
+
+        d1 = Coefficient * (3*f1 - 4*f2   + f3);
+        d2 = Coefficient * (  f1   - f2       );
+        d3 = Coefficient * ( -f1 + 4*f2  - 3*f3);
     }
 
     /**
@@ -408,32 +430,39 @@ protected:
         const double factor = 1.0 / (6.0 * delta_time);
 
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-            const double f0 = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 0);
-            const double f1 = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 1);
-            const double f2 = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 2);
-            const double f3 = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 3);
-            const array_1d<double,3> v0 = rNode.FastGetSolutionStepValue(VELOCITY, 0);
-            const array_1d<double,3> v1 = rNode.FastGetSolutionStepValue(VELOCITY, 1);
-            const array_1d<double,3> v2 = rNode.FastGetSolutionStepValue(VELOCITY, 2);
-            const array_1d<double,3> v3 = rNode.FastGetSolutionStepValue(VELOCITY, 3);
-            double& w0 = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY, 0);
-            double& w1 = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY, 1);
-            double& w2 = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY, 2);
-            double& w3 = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY, 3);
-            array_1d<double,3>& a0 = rNode.FastGetSolutionStepValue(ACCELERATION, 0);
-            array_1d<double,3>& a1 = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
-            array_1d<double,3>& a2 = rNode.FastGetSolutionStepValue(ACCELERATION, 2);
-            array_1d<double,3>& a3 = rNode.FastGetSolutionStepValue(ACCELERATION, 3);
-
-            w0 = factor * (11*f0 - 18*f1  + 9*f2  - 2*f3);
-            a0 = factor * (11*v0 - 18*v1  + 9*v2  - 2*v3);
-            w1 = factor * ( 2*f0  - 3*f1  - 6*f2    + f3);
-            a1 = factor * ( 2*v0  - 3*v1  - 6*v2    + v3);
-            w2 = factor * (  -f0  + 6*f1  - 3*f2  - 2*f3);
-            a2 = factor * (  -v0  + 6*v1  - 3*v2  - 2*v3);
-            w3 = factor * ( 2*f0  - 9*f1 + 18*f2 - 11*f3);
-            a3 = factor * ( 2*v0  - 9*v1 + 18*v2 - 11*v3);
+            UpdateDerivative(rNode, VELOCITY, ACCELERATION, factor);
+            UpdateDerivative(rNode, FREE_SURFACE_ELEVATION, VERTICAL_VELOCITY, factor);
         });
+    }
+
+    /**
+     * @brief Performing the prediction of the derivative
+     * @param rNode The node
+     * @param rPrimitiveVariable The primitive variable
+     * @param rDerivativeVariable The variable to predict
+     * @param Coefficient The time integration coefficient
+     */
+    template<class TDataType>
+    inline void UpdateDerivative(
+        NodeType& rNode,
+        const Variable<TDataType>& rPrimitiveVariable,
+        const Variable<TDataType>& rDerivativeVariable,
+        const double Coefficient)
+    {
+        const TDataType& f0 = rNode.FastGetSolutionStepValue(rPrimitiveVariable, 0);
+        const TDataType& f1 = rNode.FastGetSolutionStepValue(rPrimitiveVariable, 1);
+        const TDataType& f2 = rNode.FastGetSolutionStepValue(rPrimitiveVariable, 2);
+        const TDataType& f3 = rNode.FastGetSolutionStepValue(rPrimitiveVariable, 3);
+
+        TDataType& d0 = rNode.FastGetSolutionStepValue(rDerivativeVariable, 0);
+        TDataType& d1 = rNode.FastGetSolutionStepValue(rDerivativeVariable, 1);
+        TDataType& d2 = rNode.FastGetSolutionStepValue(rDerivativeVariable, 2);
+        TDataType& d3 = rNode.FastGetSolutionStepValue(rDerivativeVariable, 3);
+
+        d0 = Coefficient * (11*f0 - 18*f1  + 9*f2  - 2*f3);
+        d1 = Coefficient * ( 2*f0  - 3*f1  - 6*f2    + f3);
+        d2 = Coefficient * (  -f0  + 6*f1  - 3*f2  - 2*f3);
+        d3 = Coefficient * ( 2*f0  - 9*f1 + 18*f2 - 11*f3);
     }
 
     /**
@@ -444,11 +473,17 @@ protected:
      * @param rCurrentProcessInfo The current process info instance
      */
     void AddDynamicsToLHS(
-        LocalSystemMatrixType& M,
+        LocalSystemMatrixType& rLHSContribution,
+        LocalSystemMatrixType& rM,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        KRATOS_ERROR << "YOU ARE CALLING THE BASE CLASS OF AddDynamicsToLHS" << std::endl;
+        const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+
+        // Adding inertia contribution
+        if (rM.size1() != 0) {
+            rLHSContribution = 24.0 / delta_time * rM;
+        }
     }
 
     /**
@@ -462,11 +497,20 @@ protected:
     void AddDynamicsToRHS(
         Element& rCurrentElement,
         LocalSystemVectorType& rRHSContribution,
-        LocalSystemMatrixType& M,
+        LocalSystemMatrixType& rM,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        KRATOS_ERROR << "YOU ARE CALLING THE BASE CLASS OF AddDynamicsToRHS" << std::endl;
+        const std::size_t this_thread = OpenMPUtils::ThisThread();
+        const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+
+        // Adding inertia contribution
+        if (rM.size1() != 0) {
+            rCurrentElement.GetValuesVector(mU0[this_thread], 0);
+            rCurrentElement.GetValuesVector(mU1[this_thread], 1);
+            mDU[this_thread] = mU0[this_thread] - mU1[this_thread];
+            noalias(rRHSContribution) -= 24 / delta_time * prod(rM, mDU[this_thread]);
+        }
     }
 
     /**
@@ -480,11 +524,20 @@ protected:
     void AddDynamicsToRHS(
         Condition& rCurrentCondition,
         LocalSystemVectorType& rRHSContribution,
-        LocalSystemMatrixType& M,
+        LocalSystemMatrixType& rM,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        KRATOS_ERROR << "YOU ARE CALLING THE BASE CLASS OF AddDynamicsToRHS" << std::endl;
+        const std::size_t this_thread = OpenMPUtils::ThisThread();
+        const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+
+        // Adding inertia contribution
+        if (rM.size1() != 0) {
+            rCurrentCondition.GetValuesVector(mU0[this_thread], 0);
+            rCurrentCondition.GetValuesVector(mU1[this_thread], 1);
+            mDU[this_thread] = mU0[this_thread] - mU1[this_thread];
+            noalias(rRHSContribution) -= 24 / delta_time * prod(rM, mDU[this_thread]);
+        }
     }
 
     ///@}
@@ -547,7 +600,7 @@ private:
 
         rObject.EquationIdVector(EquationId, rCurrentProcessInfo);
 
-        AddDynamicsToLHS(mM[this_thread], rCurrentProcessInfo);
+        AddDynamicsToLHS(rLHSContribution, mM[this_thread], rCurrentProcessInfo);
 
         AddDynamicsToRHS(rObject, rRHSContribution, mM[this_thread], rCurrentProcessInfo);
 

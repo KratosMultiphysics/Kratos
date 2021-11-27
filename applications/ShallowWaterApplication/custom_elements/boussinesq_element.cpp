@@ -277,9 +277,12 @@ void BoussinesqElement<3>::AddExplicitContribution(const ProcessInfo& rCurrentPr
     for (auto& r_node : this->GetGeometry())
     {
         r_node.SetLock();
-        r_node.FastGetSolutionStepValue(VELOCITY_X) += increment[counter++];
-        r_node.FastGetSolutionStepValue(VELOCITY_Y) += increment[counter++];
-        r_node.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) += increment[counter++];
+        double& u = r_node.FastGetSolutionStepValue(VELOCITY_X);
+        double& v = r_node.FastGetSolutionStepValue(VELOCITY_Y);
+        double& f = r_node.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
+        u += increment[counter++];
+        v += increment[counter++];
+        f += increment[counter++];
         r_node.UnSetLock();
     }
 }
