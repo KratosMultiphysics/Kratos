@@ -241,6 +241,50 @@ void BoussinesqElement<3>::CalculateRightHandSide(VectorType& rRightHandSideVect
 }
 
 
+template<>
+void BoussinesqElement<3>::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
+{
+    LocalVectorType f1 = ZeroVector(mLocalSize);
+    LocalVectorType f2 = ZeroVector(mLocalSize);
+    LocalVectorType f3 = ZeroVector(mLocalSize);
+
+    // Struct to pass around the data
+    ElementData data;
+    InitializeData(data, rCurrentProcessInfo);
+
+    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
+    array_1d<double,3> N;            // Position of the gauss point
+    double area;
+    GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, area);
+
+    GetNodalData(data, this->GetGeometry(), 1);
+    AddRightHandSide(f1, data, N, DN_DX);
+
+    GetNodalData(data, this->GetGeometry(), 2);
+    AddRightHandSide(f2, data, N, DN_DX);
+
+    GetNodalData(data, this->GetGeometry(), 3);
+    AddRightHandSide(f3, data, N, DN_DX);
+
+    const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+    const double inv_lumped_mass = 3.0;
+    f1 *= delta_time * inv_lumped_mass / 12.0;
+    f2 *= delta_time * inv_lumped_mass / 12.0;
+    f3 *= delta_time * inv_lumped_mass / 12.0;
+
+    LocalVectorType increment = 23*f1 - 16*f2 + 5*f3;
+    std::size_t counter = 0;
+    for (auto& r_node : this->GetGeometry())
+    {
+        r_node.SetLock();
+        r_node.FastGetSolutionStepValue(VELOCITY_X) += increment[counter++];
+        r_node.FastGetSolutionStepValue(VELOCITY_Y) += increment[counter++];
+        r_node.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) += increment[counter++];
+        r_node.UnSetLock();
+    }
+}
+
+
 template class BoussinesqElement<3>;
 
 } // namespace Kratos

@@ -161,6 +161,12 @@ public:
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * @brief Add the explicit contribution according to the Adams-Bashforth scheme
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Input and output
     ///@{
