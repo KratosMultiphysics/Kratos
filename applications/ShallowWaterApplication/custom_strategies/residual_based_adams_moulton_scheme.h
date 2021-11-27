@@ -59,19 +59,16 @@ public:
     typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
 
     typedef typename BaseType::DofsArrayType                 DofsArrayType;
-    typedef typename Element::DofsVectorType                DofsVectorType;
 
-    typedef typename BaseType::TDataType                         TDataType;
     typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
+
     typedef typename BaseType::TSystemVectorType         TSystemVectorType;
+
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-    typedef ModelPart::NodesContainerType                   NodesArrayType;
-    typedef ModelPart::ElementsContainerType             ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
-
-    typedef std::size_t                                          IndexType;
+    typedef ModelPart::NodeType                                   NodeType;
 
     ///@}
     ///@name Pointer definition
@@ -134,6 +131,32 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Performing the update of the solution
+     * @param rModelPart The model of the problem to solve
+     * @param rDofSet Set of all primary variables
+     * @param rA LHS matrix
+     * @param rDx incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void Update(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY;
+
+        // Update of displacement (by DOF)
+        mpDofUpdater->UpdateDofs(rDofSet, rDx);
+
+        UpdateDerivatives(rModelPart, rDofSet, rA, rDx, rb);
+
+        KRATOS_CATCH( "" );
+    }
 
     /**
      * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
@@ -252,23 +275,11 @@ public:
     }
 
     /**
-     * @brief This function is designed to be called once to perform all the checks needed
-     * on the input provided.
-     * @details Checks can be "expensive" as the function is designed
-     * to catch user's errors.
-     * @param rModelPart The model part of the problem to solve
-     * @return Zero means  all ok
+     * @brief Free memory allocated by this class.
      */
-    int Check(const ModelPart& rModelPart) const override
+    void Clear() override
     {
-        KRATOS_TRY;
-
-        const int err = BaseType::Check(rModelPart);
-        if(err!=0) return err;
-
-        return 0;
-
-        KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.Check");
+        this->mpDofUpdater->Clear();
     }
 
     ///@}
@@ -332,14 +343,34 @@ protected:
     ///@{
 
     /**
+     * @brief Performing the update of the derivatives
+     * @param rModelPart The model of the problem to solve
+     * @param rDofSet Set of all primary variables
+     * @param rA LHS matrix
+     * @param rDx incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    inline void UpdateDerivatives(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
+    {
+        block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+
+        });
+    }
+
+    /**
      * @brief It adds the dynamic LHS contribution of the elements LHS = 24/dt*M
      * @param rLHSContribution The dynamic contribution for the LHS
      * @param D The damping matrix
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void AddDynamicsToLHS(
-        LocalSystemMatrixType& rLHSContribution,
+    void AddDynamicsToLHS(
         LocalSystemMatrixType& M,
         const ProcessInfo& rCurrentProcessInfo
         )
@@ -355,7 +386,7 @@ protected:
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void AddDynamicsToRHS(
+    void AddDynamicsToRHS(
         Element& rCurrentElement,
         LocalSystemVectorType& rRHSContribution,
         LocalSystemMatrixType& M,
@@ -373,7 +404,7 @@ protected:
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void AddDynamicsToRHS(
+    void AddDynamicsToRHS(
         Condition& rCurrentCondition,
         LocalSystemVectorType& rRHSContribution,
         LocalSystemMatrixType& M,
@@ -405,6 +436,9 @@ private:
     ///@name Member Variables
     ///@{
 
+    /// Utility class to perform the update after solving the system, will be different in MPI runs.
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -432,7 +466,7 @@ private:
     {
         KRATOS_TRY;
 
-        const IndexType this_thread = OpenMPUtils::ThisThread();
+        const auto this_thread = OpenMPUtils::ThisThread();
 
         rObject.CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
 
@@ -464,7 +498,7 @@ private:
     {
         KRATOS_TRY;
 
-        const IndexType this_thread = OpenMPUtils::ThisThread();
+        const auto this_thread = OpenMPUtils::ThisThread();
 
         rObject.CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
 
