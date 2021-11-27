@@ -183,6 +183,64 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
     noalias(rVector) -= m2 * prod(velocity_dispersion, acceleration);
 }
 
+
+template<std::size_t TNumNodes>
+void BoussinesqElement<TNumNodes>::AddRightHandSide(
+    LocalVectorType& rRHS,
+    ElementData& rData,
+    const array_1d<double,TNumNodes>& rN,
+    const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+    const double Weight)
+{
+    LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
+
+    CalculateGaussPointData(rData, rN);
+
+    this->AddWaveTerms(lhs, rRHS, rData, rN, rDN_DX);
+    this->AddFrictionTerms(lhs, rRHS, rData, rN, rDN_DX);
+    this->AddDispersiveTerms(rRHS, rData, rN, rDN_DX);
+    this->AddArtificialViscosityTerms(lhs, rData, rDN_DX);
+
+    noalias(rRHS) -= prod(lhs, this->GetUnknownVector(rData));
+}
+
+
+template<>
+void BoussinesqElement<3>::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+{
+    if(rRightHandSideVector.size() != mLocalSize)
+        rRightHandSideVector.resize(mLocalSize, false);
+
+    LocalVectorType f0 = ZeroVector(mLocalSize);
+    LocalVectorType f1 = ZeroVector(mLocalSize);
+    LocalVectorType f2 = ZeroVector(mLocalSize);
+    LocalVectorType f3 = ZeroVector(mLocalSize);
+
+    // Struct to pass around the data
+    ElementData data;
+    InitializeData(data, rCurrentProcessInfo);
+
+    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
+    array_1d<double,3> N;            // Position of the gauss point
+    double area;
+    GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, area);
+
+    GetNodalData(data, this->GetGeometry(), 0);
+    AddRightHandSide(f0, data, N, DN_DX);
+
+    GetNodalData(data, this->GetGeometry(), 1);
+    AddRightHandSide(f1, data, N, DN_DX);
+
+    GetNodalData(data, this->GetGeometry(), 2);
+    AddRightHandSide(f2, data, N, DN_DX);
+
+    GetNodalData(data, this->GetGeometry(), 3);
+    AddRightHandSide(f3, data, N, DN_DX);
+
+    noalias(rRightHandSideVector) = area * (9*f0 + 19*f1 - 5*f2 + f3);
+}
+
+
 template class BoussinesqElement<3>;
 
 } // namespace Kratos

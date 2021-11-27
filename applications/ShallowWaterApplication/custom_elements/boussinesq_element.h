@@ -62,6 +62,8 @@ public:
 
     typedef WaveElement<TNumNodes> WaveElementType;
 
+    typedef typename WaveElementType::VectorType VectorType;
+
     typedef typename WaveElementType::NodesArrayType NodesArrayType;
 
     typedef typename WaveElementType::PropertiesType PropertiesType;
@@ -151,6 +153,14 @@ public:
         return p_new_elem;
     }
 
+    /**
+     * @brief Calculate the rhs according to the Adams-Moulton scheme
+     * @param rRightHandSideVector Elemental right hand side vector
+     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the element
+     * @see ResidualBasedAdamsMoultonScheme
+     */
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -174,6 +184,13 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void AddRightHandSide(
+        LocalVectorType& rRHS,
+        ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0);
 
     const Variable<double>& GetUnknownComponent(int Index) const override;
 
