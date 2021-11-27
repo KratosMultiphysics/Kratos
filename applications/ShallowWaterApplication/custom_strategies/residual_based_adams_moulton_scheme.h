@@ -358,8 +358,34 @@ protected:
         TSystemVectorType& rb
         )
     {
-        block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+        const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
+        const double factor = 1.0 / (6 * delta_time);
+        block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+            const double f0 = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 0);
+            const double f1 = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 1);
+            const double f2 = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 2);
+            const double f3 = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 3);
+            const array_1d<double,3> v0 = rNode.FastGetSolutionStepValue(VELOCITY, 0);
+            const array_1d<double,3> v1 = rNode.FastGetSolutionStepValue(VELOCITY, 1);
+            const array_1d<double,3> v2 = rNode.FastGetSolutionStepValue(VELOCITY, 2);
+            const array_1d<double,3> v3 = rNode.FastGetSolutionStepValue(VELOCITY, 3);
+            double& w0 = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY, 0);
+            double& w1 = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY, 1);
+            double& w2 = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY, 2);
+            double& w3 = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY, 3);
+            array_1d<double,3>& a0 = rNode.FastGetSolutionStepValue(ACCELERATION, 0);
+            array_1d<double,3>& a1 = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
+            array_1d<double,3>& a2 = rNode.FastGetSolutionStepValue(ACCELERATION, 2);
+            array_1d<double,3>& a3 = rNode.FastGetSolutionStepValue(ACCELERATION, 3);
 
+            w0 = factor * (11*f0 - 18*f1  + 9*f2  - 2*f3);
+            a0 = factor * (11*v0 - 18*v1  + 9*v2  - 2*v3);
+            w1 = factor * ( 2*f0  - 3*f1  - 6*f2    + f3);
+            a1 = factor * ( 2*v0  - 3*v1  - 6*v2    + v3);
+            w2 = factor * (  -f0  + 6*f1  - 3*f2  - 2*f3);
+            a2 = factor * (  -v0  + 6*v1  - 3*v2  - 2*v3);
+            w3 = factor * ( 2*f0  - 9*f1 + 18*f2 - 11*f3);
+            a3 = factor * ( 2*v0  - 9*v1 + 18*v2 - 11*v3);
         });
     }
 
