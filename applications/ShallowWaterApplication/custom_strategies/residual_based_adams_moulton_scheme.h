@@ -133,6 +133,34 @@ public:
     ///@{
 
     /**
+     * @brief Perform the prediction using the explicit Adams-Bashforth scheme
+     * @param rModelPart The model of the problem to solve
+     * @param rDofSet set of all primary variables
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void Predict(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY;
+
+        PredictDerivatives(rModelPart, rDofSet, rA, rDx, rb);
+
+        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        block_for_each(rModelPart.Elements(), [&](Element& rElement){
+            rElement.AddExplicitContribution(r_process_info);
+        });
+
+        KRATOS_CATCH( "" );
+    }
+
+    /**
      * @brief Performing the update of the solution
      * @param rModelPart The model of the problem to solve
      * @param rDofSet Set of all primary variables
@@ -350,6 +378,48 @@ protected:
      * @param rDx incremental update of primary variables
      * @param rb RHS Vector
      */
+    inline void PredictDerivatives(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
+    {
+        const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
+        const double factor = 1.0 / (2.0 * delta_time);
+
+        block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+            const double f1 = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 1);
+            const double f2 = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 2);
+            const double f3 = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 3);
+            const array_1d<double,3> v1 = rNode.FastGetSolutionStepValue(VELOCITY, 1);
+            const array_1d<double,3> v2 = rNode.FastGetSolutionStepValue(VELOCITY, 2);
+            const array_1d<double,3> v3 = rNode.FastGetSolutionStepValue(VELOCITY, 3);
+            double& w1 = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY, 1);
+            double& w2 = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY, 2);
+            double& w3 = rNode.FastGetSolutionStepValue(VERTICAL_VELOCITY, 3);
+            array_1d<double,3>& a1 = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
+            array_1d<double,3>& a2 = rNode.FastGetSolutionStepValue(ACCELERATION, 2);
+            array_1d<double,3>& a3 = rNode.FastGetSolutionStepValue(ACCELERATION, 3);
+
+            w1 = factor * (3*f1 - 4*f2   + f3);
+            a1 = factor * (3*v1 - 4*v2   + v3);
+            w2 = factor * (  f1   - f2       );
+            a2 = factor * (  v1   - v2       );
+            w3 = factor * (  f1 - 4*f2  + 3*f3);
+            a3 = factor * (  v1 - 4*v2  + 3*v3);
+        });
+    }
+
+    /**
+     * @brief Performing the update of the derivatives
+     * @param rModelPart The model of the problem to solve
+     * @param rDofSet Set of all primary variables
+     * @param rA LHS matrix
+     * @param rDx incremental update of primary variables
+     * @param rb RHS Vector
+     */
     inline void UpdateDerivatives(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -359,7 +429,8 @@ protected:
         )
     {
         const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-        const double factor = 1.0 / (6 * delta_time);
+        const double factor = 1.0 / (6.0 * delta_time);
+
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
             const double f0 = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 0);
             const double f1 = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 1);
