@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Miguel Maso Sotomayor
 //
 
 
@@ -90,9 +90,7 @@ public:
     {
         // Allocate auxiliary memory
         const std::size_t num_threads = ParallelUtilities::GetNumThreads();
-
         mM.resize(num_threads);
-        mF.resize(num_threads);
     }
 
     /**
@@ -100,10 +98,11 @@ public:
      * @param ThisParameters The configuration parameters
      */
     explicit ResidualBasedAdamsMoultonScheme(Parameters ThisParameters)
-        :ResidualBasedAdamsMoultonScheme()
+        : BaseType(ThisParameters)
     {
-        this->ValidateAndAssignParameters(ThisParameters);
-        this->AssignSettings(ThisParameters);
+        // Allocate auxiliary memory
+        const std::size_t num_threads = ParallelUtilities::GetNumThreads();
+        mM.resize(num_threads);
     }
 
     /** 
@@ -112,7 +111,6 @@ public:
     explicit ResidualBasedAdamsMoultonScheme(ResidualBasedAdamsMoultonScheme& rOther)
         : BaseType(rOther)
         , mM(rOther.mM)
-        , mF(rOther.mF)
     {
     }
 
@@ -273,6 +271,10 @@ public:
         KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.Check");
     }
 
+    ///@}
+    ///@name Access
+    ///@{
+
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      * @return The default parameters
@@ -281,7 +283,7 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name" : "residualbased_implicit_time_scheme"
+            "name" : "residual_based_adams_moulton_scheme"
         })");
 
         // Getting base class default parameters
@@ -289,10 +291,6 @@ public:
         default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
         return default_parameters;
     }
-
-    ///@}
-    ///@name Access
-    ///@{
 
     ///@}
     ///@name Inquiry
@@ -324,7 +322,6 @@ protected:
     ///@{
 
     std::vector< Matrix > mM; /// First derivative matrix (usually mass matrix)
-    std::vector< Vector > mF; /// Forces vector (usually rhs vector matrix)
 
     ///@}
     ///@name Protected Operators
@@ -335,7 +332,7 @@ protected:
     ///@{
 
     /**
-     * @brief It adds the dynamic LHS contribution of the elements LHS = d(-RHS)/d(un0) = c0*c0*M + c0*D + K
+     * @brief It adds the dynamic LHS contribution of the elements LHS = 24/dt*M
      * @param rLHSContribution The dynamic contribution for the LHS
      * @param D The damping matrix
      * @param M The mass matrix
@@ -343,7 +340,6 @@ protected:
      */
     virtual void AddDynamicsToLHS(
         LocalSystemMatrixType& rLHSContribution,
-        LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
         const ProcessInfo& rCurrentProcessInfo
         )
@@ -362,7 +358,6 @@ protected:
     virtual void AddDynamicsToRHS(
         Element& rCurrentElement,
         LocalSystemVectorType& rRHSContribution,
-        LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
         const ProcessInfo& rCurrentProcessInfo
         )
@@ -381,7 +376,6 @@ protected:
     virtual void AddDynamicsToRHS(
         Condition& rCurrentCondition,
         LocalSystemVectorType& rRHSContribution,
-        LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
         const ProcessInfo& rCurrentProcessInfo
         )
@@ -440,17 +434,15 @@ private:
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
 
-        rObject.CalculateLocalSystem(rLHSContribution,rRHSContribution,rCurrentProcessInfo);
+        rObject.CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
 
-        rObject.EquationIdVector(EquationId,rCurrentProcessInfo);
+        rObject.CalculateMassMatrix(mM[this_thread], rCurrentProcessInfo);
 
-        rObject.CalculateMassMatrix(mMatrix.M[this_thread],rCurrentProcessInfo);
+        rObject.EquationIdVector(EquationId, rCurrentProcessInfo);
 
-        rObject.CalculateDampingMatrix(mMatrix.D[this_thread],rCurrentProcessInfo);
+        AddDynamicsToLHS(mM[this_thread], rCurrentProcessInfo);
 
-        AddDynamicsToLHS(rLHSContribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
-
-        AddDynamicsToRHS(rObject, rRHSContribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
+        AddDynamicsToRHS(rObject, rRHSContribution, mM[this_thread], rCurrentProcessInfo);
 
         KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.TCalculateSystemContributions");
     }
@@ -474,15 +466,13 @@ private:
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
 
-        rObject.CalculateRightHandSide(rRHSContribution,rCurrentProcessInfo);
+        rObject.CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
 
-        rObject.CalculateMassMatrix(mMatrix.M[this_thread], rCurrentProcessInfo);
-
-        rObject.CalculateDampingMatrix(mMatrix.D[this_thread],rCurrentProcessInfo);
+        rObject.CalculateMassMatrix(mM[this_thread], rCurrentProcessInfo);
 
         rObject.EquationIdVector(rEquationId,rCurrentProcessInfo);
 
-        AddDynamicsToRHS(rObject, rRHSContribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
+        AddDynamicsToRHS(rObject, rRHSContribution, mM[this_thread], rCurrentProcessInfo);
 
         KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.TCalculateRHSContribution");
     }
