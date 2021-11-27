@@ -311,8 +311,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void CalculateSystem(LocalMatrixType& rLHS, LocalVectorType& rRHS, ElementData& rData);
-
     virtual const Variable<double>& GetUnknownComponent(int Index) const;
 
     virtual LocalVectorType GetUnknownVector(const ElementData& rData) const;
