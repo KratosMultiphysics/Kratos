@@ -164,10 +164,10 @@ public:
 
         PredictDerivatives(rModelPart, rDofSet, rA, rDx, rb);
 
-        // const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        // block_for_each(rModelPart.Elements(), [&](Element& rElement){
-        //     rElement.AddExplicitContribution(r_process_info);
-        // });
+        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        block_for_each(rModelPart.Elements(), [&](Element& rElement){
+            rElement.AddExplicitContribution(r_process_info);
+        });
 
         KRATOS_CATCH( "" );
     }
@@ -406,8 +406,8 @@ protected:
         TDataType& d3 = rNode.FastGetSolutionStepValue(rDerivativeVariable, 3);
 
         d1 = Coefficient * (3*f1 - 4*f2   + f3);
-        d2 = Coefficient * (  f1   - f2       );
-        d3 = Coefficient * ( -f1 + 4*f2  - 3*f3);
+        d2 = Coefficient * (  f1          - f3);
+        d3 = Coefficient * ( -f1 + 4*f2  -3*f3);
     }
 
     /**

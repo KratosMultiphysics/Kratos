@@ -267,12 +267,9 @@ void BoussinesqElement<3>::AddExplicitContribution(const ProcessInfo& rCurrentPr
     AddRightHandSide(f3, data, N, DN_DX);
 
     const double delta_time = rCurrentProcessInfo[DELTA_TIME];
-    const double inv_lumped_mass = 3.0;
-    f1 *= delta_time * inv_lumped_mass / 12.0;
-    f2 *= delta_time * inv_lumped_mass / 12.0;
-    f3 *= delta_time * inv_lumped_mass / 12.0;
+    const double inv_lumped_mass = area / 3.0; // TODO: Check the predictor step!!!!!!! This is wrong!!!!!!
 
-    LocalVectorType increment = 23*f1 - 16*f2 + 5*f3;
+    LocalVectorType increment = delta_time * inv_lumped_mass / 12.0 * (23*f1 - 16*f2 + 5*f3);
     std::size_t counter = 0;
     for (auto& r_node : this->GetGeometry())
     {
