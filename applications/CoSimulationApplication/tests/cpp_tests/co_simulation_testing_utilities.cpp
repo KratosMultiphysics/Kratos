@@ -60,6 +60,60 @@ void CheckElementsAreEqual(
     KRATOS_CATCH("")
 }
 
+void CheckUnorderedNodesAreEqual(
+    const Kratos::ModelPart& rKratosModelPart,
+    const CoSimIO::ModelPart& rCoSimIOModelPart)
+{
+    KRATOS_TRY
+
+    KRATOS_CHECK(rKratosModelPart.Has(NODES_ID_INDEX_MAP));
+
+    // basic checks
+    KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfNodes(), rCoSimIOModelPart.NumberOfNodes());
+
+    const auto& r_nodes_id_map = rKratosModelPart[NODES_ID_INDEX_MAP];
+
+    KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfNodes(), r_nodes_id_map.size());
+
+    // check nodes
+    for (std::size_t i=0; i<rCoSimIOModelPart.NumberOfNodes(); ++i) {
+        const CoSimIO::Node& r_cosimio_node = **(rCoSimIOModelPart.NodesBegin()+i);
+        const auto it_node = rKratosModelPart.Nodes().find(r_cosimio_node.Id());
+        KRATOS_ERROR_IF(it_node == rKratosModelPart.Nodes().end()) << "Node with Id " << r_cosimio_node.Id() << " is not in the Kratos ModelPart!" << std::endl;
+        const Kratos::Node<3>& r_kratos_node = *it_node;
+        CheckNodesAreEqual(r_kratos_node, r_cosimio_node);
+    }
+
+    KRATOS_CATCH("")
+}
+
+void CheckUnorderedElementsAreEqual(
+    const Kratos::ModelPart& rKratosModelPart,
+    const CoSimIO::ModelPart& rCoSimIOModelPart)
+{
+    KRATOS_TRY
+
+    KRATOS_CHECK(rKratosModelPart.Has(ELEMENTS_ID_INDEX_MAP));
+
+    // basic checks
+    KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfElements(), rCoSimIOModelPart.NumberOfElements());
+
+    const auto& r_elements_id_map = rKratosModelPart[ELEMENTS_ID_INDEX_MAP];
+
+    KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfElements(), r_elements_id_map.size());
+
+    // check nodes
+    for (std::size_t i=0; i<rCoSimIOModelPart.NumberOfElements(); ++i) {
+        const CoSimIO::Element& r_cosimio_elem = **(rCoSimIOModelPart.ElementsBegin()+i);
+        const auto it_elem = rKratosModelPart.Elements().find(r_cosimio_elem.Id());
+        KRATOS_ERROR_IF(it_elem == rKratosModelPart.Elements().end()) << "Element with Id " << r_cosimio_elem.Id() << " is not in the Kratos ModelPart!" << std::endl;
+        const Kratos::Element& r_kratos_element = *it_elem;
+        CheckElementsAreEqual(r_kratos_element, r_cosimio_elem);
+    }
+
+    KRATOS_CATCH("")
+}
+
 void CheckModelPartsAreEqual(
     const Kratos::ModelPart& rKratosModelPart,
     const CoSimIO::ModelPart& rCoSimIOModelPart)
@@ -96,15 +150,17 @@ void CheckModelPartsAreEqualButEntitiesAreOrderedDifferently(
     KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfNodes(),      rCoSimIOModelPart.NumberOfNodes());
     KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfElements(),   rCoSimIOModelPart.NumberOfElements());
 
+    const auto& r_nodes_id_map = rKratosModelPart[NODES_ID_INDEX_MAP];
+    const auto& r_elements_id_map = rKratosModelPart[ELEMENTS_ID_INDEX_MAP];
+
+    KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfNodes(),    r_nodes_id_map.size());
+    KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfElements(), r_elements_id_map.size());
+
     // check nodes
-    for (std::size_t i=0; i<rCoSimIOModelPart.NumberOfNodes(); ++i) {
-        CheckNodesAreEqual(*(rKratosModelPart.NodesBegin()+i), **(rCoSimIOModelPart.NodesBegin()+i));
-    }
+    CheckUnorderedNodesAreEqual(rKratosModelPart, rCoSimIOModelPart);
 
     // check elements
-    for (std::size_t i=0; i<rCoSimIOModelPart.NumberOfElements(); ++i) {
-        CheckElementsAreEqual(*(rKratosModelPart.ElementsBegin()+i), **(rCoSimIOModelPart.ElementsBegin()+i));
-    }
+    CheckUnorderedElementsAreEqual(rKratosModelPart, rCoSimIOModelPart);
 
     KRATOS_CATCH("")
 }
