@@ -178,13 +178,13 @@ void SaturatedBelowPhreaticLevelLaw::
 int SaturatedBelowPhreaticLevelLaw::Check(const Properties& rMaterialProperties,
                            const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(SATURATED_SATURATION))
-                    << "SATURATED_SATURATION is not availabe in material parameters" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SATURATED_SATURATION))
+                        << "SATURATED_SATURATION is not availabe in material parameters" << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[SATURATED_SATURATION] < 0.0)
                     << "SATURATED_SATURATION cannot be less than 0 " << std::endl;
 
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(RESIDUAL_SATURATION))
-                    << "RESIDUAL_SATURATION is not availabe in material parameters" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(RESIDUAL_SATURATION))
+                        << "RESIDUAL_SATURATION is not availabe in material parameters" << std::endl;
     KRATOS_DEBUG_ERROR_IF_NOT(rMaterialProperties[RESIDUAL_SATURATION] > 0.0)
                             << "RESIDUAL_SATURATION must be greater than 0 " << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[RESIDUAL_SATURATION] > 1.0)
@@ -193,10 +193,10 @@ int SaturatedBelowPhreaticLevelLaw::Check(const Properties& rMaterialProperties,
     KRATOS_ERROR_IF(rMaterialProperties[SATURATED_SATURATION] < rMaterialProperties[RESIDUAL_SATURATION])
                     << "RESIDUAL_SATURATION cannot be greater than SATURATED_SATURATION " << std::endl;
 
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(MINIMUM_RELATIVE_PERMEABILITY))
-                    << "MINIMUM_RELATIVE_PERMEABILITY is not availabe in material parameters" << std::endl;
-    KRATOS_ERROR_IF(!(rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY] > 0.0))
-                    << "MINIMUM_RELATIVE_PERMEABILITY must be greater than 0 " << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MINIMUM_RELATIVE_PERMEABILITY))
+                        << "MINIMUM_RELATIVE_PERMEABILITY is not availabe in material parameters" << std::endl;
+    KRATOS_ERROR_IF_NOT((rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY] > 0.0))
+                        << "MINIMUM_RELATIVE_PERMEABILITY must be greater than 0 " << std::endl;
 
     return 0;
 }
