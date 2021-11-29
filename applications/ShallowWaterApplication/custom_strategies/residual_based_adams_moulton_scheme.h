@@ -146,7 +146,7 @@ public:
      * @param rModelPart The model of the problem to solve
      * @param rDofSet set of all primary variables
      * @param rA LHS matrix
-     * @param rDx Incremental update of primary variables
+     * @param rDx Incremental prediction of primary variables
      * @param rb RHS Vector
      */
     void Predict(
@@ -164,10 +164,10 @@ public:
 
         PredictDerivatives(rModelPart, rDofSet, rA, rDx, rb);
 
-        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        block_for_each(rModelPart.Elements(), [&](Element& rElement){
-            rElement.AddExplicitContribution(r_process_info);
-        });
+        // const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        // block_for_each(rModelPart.Elements(), [&](Element& rElement){
+        //     rElement.AddExplicitContribution(r_process_info);
+        // });
 
         KRATOS_CATCH( "" );
     }
