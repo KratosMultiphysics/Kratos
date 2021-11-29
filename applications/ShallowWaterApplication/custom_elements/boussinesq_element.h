@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_CONSERVATIVE_ELEMENT_H_INCLUDED
-#define KRATOS_CONSERVATIVE_ELEMENT_H_INCLUDED
+#ifndef KRATOS_BOUSSINESQ_ELEMENT_H_INCLUDED
+#define KRATOS_BOUSSINESQ_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -48,7 +48,7 @@ namespace Kratos
 
 ///@brief Implementation of a linear element for shallow water problems
 template<std::size_t TNumNodes>
-class ConservativeElement : public WaveElement<TNumNodes>
+class BoussinesqElement : public WaveElement<TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -61,6 +61,8 @@ public:
     typedef Geometry<NodeType> GeometryType;
 
     typedef WaveElement<TNumNodes> WaveElementType;
+
+    typedef typename WaveElementType::VectorType VectorType;
 
     typedef typename WaveElementType::NodesArrayType NodesArrayType;
 
@@ -78,7 +80,7 @@ public:
     ///@name Pointer definition
     ///@{
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ConservativeElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(BoussinesqElement);
 
     ///@}
     ///@name Life Cycle
@@ -87,27 +89,27 @@ public:
     /**
      * @brief Default constructor
      */
-    ConservativeElement() : WaveElementType(){}
+    BoussinesqElement() : WaveElementType(){}
 
     /**
      * @brief Constructor using an array of nodes
      */
-    ConservativeElement(IndexType NewId, const NodesArrayType& ThisNodes) : WaveElementType(NewId, ThisNodes){}
+    BoussinesqElement(IndexType NewId, const NodesArrayType& ThisNodes) : WaveElementType(NewId, ThisNodes){}
 
     /**
      * @brief Constructor using Geometry
      */
-    ConservativeElement(IndexType NewId, GeometryType::Pointer pGeometry) : WaveElementType(NewId, pGeometry){}
+    BoussinesqElement(IndexType NewId, GeometryType::Pointer pGeometry) : WaveElementType(NewId, pGeometry){}
 
     /**
      * @brief Constructor using Geometry and Properties
      */
-    ConservativeElement(IndexType NewId, GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties) : WaveElementType(NewId, pGeometry, pProperties){}
+    BoussinesqElement(IndexType NewId, GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties) : WaveElementType(NewId, pGeometry, pProperties){}
 
     /**
      * @brief Destructor
      */
-    ~ ConservativeElement() override {};
+    ~ BoussinesqElement() override {};
 
     ///@}
     ///@name Operations
@@ -122,7 +124,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<ConservativeElement<TNumNodes>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<BoussinesqElement<TNumNodes>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /**
@@ -134,7 +136,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<ConservativeElement<TNumNodes>>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<BoussinesqElement<TNumNodes>>(NewId, pGeom, pProperties);
     }
 
     /**
@@ -151,6 +153,20 @@ public:
         return p_new_elem;
     }
 
+    /**
+     * @brief Calculate the rhs according to the Adams-Moulton scheme
+     * @param rRightHandSideVector Elemental right hand side vector
+     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the element
+     * @see ResidualBasedAdamsMoultonScheme
+     */
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Add the explicit contribution according to the Adams-Bashforth scheme
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -160,7 +176,7 @@ public:
      */
     std::string Info() const override
     {
-        return "ConservativeElement";
+        return "BoussinesqElement";
     }
 
     ///@}
@@ -175,27 +191,27 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void AddRightHandSide(
+        LocalVectorType& rRHS,
+        ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0);
+
     const Variable<double>& GetUnknownComponent(int Index) const override;
 
     LocalVectorType GetUnknownVector(const ElementData& rData) const override;
 
     void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
 
-    void CalculateArtificialViscosity(
-        BoundedMatrix<double,3,3>& rViscosity,
-        BoundedMatrix<double,2,2>& rDiffusion,
-        const ElementData& rData,
-        const BoundedMatrix<double,TNumNodes,2>& rDN_DX) override;
-
-    void CalculateArtificialDamping(
-        BoundedMatrix<double,3,3>& rFriction,
-        const ElementData& rData) override;
-
     double StabilizationParameter(const ElementData& rData) const override;
 
-    void CalculateGradient(array_1d<double,2>& rGradient, const GeometryType& rGeometry);
-
-    void CalculateEdgeUnitNormal(array_1d<double,2>& rNormal, const GeometryType& rGeometry);
+    void AddDispersiveTerms(
+        LocalVectorType& rVector,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0) override;
 
     ///@}
 
@@ -227,7 +243,7 @@ private:
 
     ///@}
 
-}; // Class ConservativeElement
+}; // Class BoussinesqElement
 
 ///@}
 ///@name Input and output
@@ -240,4 +256,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CONSERVATIVE_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_BOUSSINESQ_ELEMENT_H_INCLUDED  defined
