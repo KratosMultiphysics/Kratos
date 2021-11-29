@@ -13,7 +13,7 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
         super().__init__(model, settings)
         self.element_name = "BoussinesqElement"
         self.condition_name = "BoussinesqCondition"
-        self.min_buffer_size = 2
+        self.min_buffer_size = 4
 
     def AddDofs(self):
         KM.VariableUtils().AddDof(KM.VELOCITY_X, self.main_model_part)
@@ -34,14 +34,7 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
         self.main_model_part.ProcessInfo.SetValue(SW.RELATIVE_DRY_HEIGHT, self.settings["relative_dry_height"].GetDouble())
 
     def _CreateScheme(self):
-        pass
-        # scheme = self.settings["time_integration_scheme"].GetString()
-        # order = self.settings["time_integration_order"].GetInt()
-        # if scheme == "bdf":
-        #     time_scheme = SW.VelocityHeightResidualBasedBDFScheme(order)
-        # else:
-        #     time_scheme = KM.ResidualBasedIncrementalUpdateStaticScheme()
-        # return time_scheme
+        return SW.ResidualBasedAdamsMoultonScheme()
 
     @classmethod
     def GetDefaultParameters(cls):
