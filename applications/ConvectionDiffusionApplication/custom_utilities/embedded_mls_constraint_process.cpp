@@ -26,8 +26,6 @@
 namespace Kratos
 {
 
-using MLSShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&)>;
-
 /* Public functions *******************************************************/
 
 EmbeddedMLSConstraintProcess::EmbeddedMLSConstraintProcess(
@@ -41,6 +39,9 @@ EmbeddedMLSConstraintProcess::EmbeddedMLSConstraintProcess(
     // Retrieve the required model parts
     const std::string model_part_name = ThisParameters["model_part_name"].GetString();
     mpModelPart = &rModel.GetModelPart(model_part_name);
+
+    // Retrieve the unknown variable
+    mUnknownVariable = ThisParameters["unknown_variable"].GetString();
 
     // Set the order of the MLS extension operator used in the MLS shape functions utility
     mMLSExtensionOperatorOrder = ThisParameters["mls_extension_operator_order"].GetInt();
@@ -127,7 +128,7 @@ void EmbeddedMLSConstraintProcess::ApplyExtensionConstraints(NodesCloudMapType& 
     // Initialize counter of master slave constraints
     ModelPart::IndexType id = mpModelPart->NumberOfMasterSlaveConstraints()+1;
     // Get variable to constrain 
-    const auto& r_var = KratosComponents<Variable<double>>::Get("TEMPERATURE");
+    const auto& r_var = KratosComponents<Variable<double>>::Get(mUnknownVariable);
 
     // Loop through all negative nodes of split elements (slave nodes)
     for (auto it_slave = rExtensionOperatorMap.begin(); it_slave != rExtensionOperatorMap.end(); ++it_slave) {
@@ -168,13 +169,10 @@ void EmbeddedMLSConstraintProcess::SetInterfaceFlags()
         auto& r_geom = rElement.GetGeometry();
         if (IsSplit(r_geom)) {
             // Mark the intersected elements as BOUNDARY
-            // The intersected elements are also flagged as non ACTIVE to avoid assembling them
-            // Note that the split elements BC is applied by means of the extension operators
-            rElement.Set(ACTIVE, false);
             rElement.Set(BOUNDARY, true);
             // Mark the positive intersected nodes as BOUNDARY
             for (auto& rNode : r_geom) {
-                if (!(rNode.FastGetSolutionStepValue(DISTANCE) < 0.0)) {
+                if (rNode.FastGetSolutionStepValue(DISTANCE) >= 0.0) {
                     rNode.Set(BOUNDARY, true);
                 }
             }
@@ -239,19 +237,15 @@ void EmbeddedMLSConstraintProcess::ReactivateElementsAndNodes()
 
 void EmbeddedMLSConstraintProcess::ModifyDistances()
 {
-    auto& r_nodes = mpModelPart->Nodes();
-    double tol_d = 1.0e-12;
-
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-        auto it_node = r_nodes.begin() + i;
-        double& d = it_node->FastGetSolutionStepValue(DISTANCE);
+    block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
+        const double tol_d = 1.0e-12;
+        double& d = rNode.FastGetSolutionStepValue(DISTANCE);
 
         // Check if the distance values are close to zero, if so set the tolerance as distance value
         if (std::abs(d) < tol_d) { 
             d = (d > 0.0) ? tol_d : -tol_d; 
         }
-    }
+    });
 }
 
 bool EmbeddedMLSConstraintProcess::IsSplit(const GeometryType& rGeometry)
@@ -279,7 +273,7 @@ bool EmbeddedMLSConstraintProcess::IsNegative(const GeometryType& rGeometry)
     return (n_neg == rGeometry.PointsNumber());
 }
 
-MLSShapeFunctionsFunctionType EmbeddedMLSConstraintProcess::GetMLSShapeFunctionsFunction()
+EmbeddedMLSConstraintProcess::MLSShapeFunctionsFunctionType EmbeddedMLSConstraintProcess::GetMLSShapeFunctionsFunction()
 {
     switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
         case 2:
@@ -319,30 +313,20 @@ void EmbeddedMLSConstraintProcess::SetNegativeNodeSupportCloud(
     NodesCloudSetType aux_set;
     std::vector<NodeType::Pointer> cur_layer_nodes;
     std::vector<NodeType::Pointer> prev_layer_nodes;
-    const std::size_t n_layers = mMLSExtensionOperatorOrder + 1;
+    const std::size_t n_layers = mMLSExtensionOperatorOrder + 2;
 
-    // Find the negative nodes neighbours that are in the surrogate boundary
+    // Add negative node to previous layer, in order to find the negative nodes neighbours that are in the surrogate boundary
     // This is to find the first layer of positive nodes neighbouring a negative one
-    auto& no_const_node = const_cast<NodeType&>(rNegativeNode);
-    auto& r_nod_neigh = no_const_node.GetValue(NEIGHBOUR_NODES);
-    const std::size_t n_neigh = r_nod_neigh.size();
-    for (std::size_t i_neigh = 0; i_neigh < n_neigh; ++i_neigh) {
-        auto& r_neigh = r_nod_neigh[i_neigh];
-        if (r_neigh.Is(BOUNDARY)) {
-            NodeType::Pointer p_node = &r_neigh;
-            aux_set.insert(p_node);
-            prev_layer_nodes.push_back(p_node);
-        }
-    }
+    NodeType* p_negative_node = &const_cast<NodeType&>(rNegativeNode);
+    prev_layer_nodes.push_back(p_negative_node);
 
-    // Add first layer neighbours to map
     // Note that we check the order of the MLS interpolation to add nodes from enough interior layers
     for (std::size_t i_layer = 0; i_layer < n_layers; ++i_layer) {
         for (auto& p_node : prev_layer_nodes) {
-            auto& r_pos_node_neigh = p_node->GetValue(NEIGHBOUR_NODES);
-            const std::size_t n_neigh = r_pos_node_neigh.size();
+            auto& r_node_neigh = p_node->GetValue(NEIGHBOUR_NODES);
+            const std::size_t n_neigh = r_node_neigh.size();
             for (std::size_t i_neigh = 0; i_neigh < n_neigh; ++i_neigh) {
-                auto& r_neigh = r_pos_node_neigh[i_neigh];
+                auto& r_neigh = r_node_neigh[i_neigh];
                 if (r_neigh.Is(ACTIVE)) {
                     NodeType::Pointer p_neigh = &r_neigh;
                     p_neigh->Set(INTERFACE, true);

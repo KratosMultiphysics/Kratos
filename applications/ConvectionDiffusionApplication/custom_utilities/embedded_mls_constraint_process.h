@@ -50,7 +50,7 @@ namespace Kratos
 /// Utility to add MLS-based master-slave-constraints to negative nodes of intersected elements 
 /// in order to prevent small cut instabilities.
 /// By default, the process also deactivates full negative distance elements.
-class EmbeddedMLSConstraintProcess : public Process
+class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) EmbeddedMLSConstraintProcess : public Process
 {
 public:
 
@@ -81,6 +81,9 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Default constructor.
+    EmbeddedMLSConstraintProcess() = delete;
+
     /// Constructor.
     EmbeddedMLSConstraintProcess(
         Model& rModel,
@@ -104,6 +107,7 @@ public:
     {
         const Parameters default_parameters = Parameters(R"({
             "model_part_name" : "",
+            "unknown_variable" : "TEMPERATURE",
             "mls_extension_operator_order" : 1,
             "avoid_zero_distances" : true,
             "deactivate_negative_elements" : true,
@@ -190,6 +194,8 @@ private:
 
     ModelPart* mpModelPart = nullptr;
 
+    std::string mUnknownVariable;
+
     std::size_t mMLSExtensionOperatorOrder;
 
     bool mAvoidZeroDistances;
@@ -241,19 +247,6 @@ private:
     ///@}
     ///@name Private Inquiry
     ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Default constructor.
-    EmbeddedMLSConstraintProcess() = delete;
-
-    /// Assignment operator.
-    // EmbeddedMLSConstraintProcess& operator=(EmbeddedMLSConstraintProcess const& rOther);
-
-    /// Copy constructor.
-    //EmbeddedMLSConstraintProcess(EmbeddedMLSConstraintProcess const& rOther);
 
     ///@}
 

@@ -156,13 +156,14 @@ class TestEmbeddedSolver(KratosUnittest.TestCase):
         self.parameters["processes"]["json_check_process_list"].Append(json_check_settings)
 
     def tearDown(self):
-        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            KratosUtilities.DeleteFileIfExisting("square.post.bin")
-            KratosUtilities.DeleteFileIfExisting("square_distance_modification.post.bin")
-            KratosUtilities.DeleteFileIfExisting("square_mls_constraints.post.bin")
-            KratosUtilities.DeleteFileIfExisting("test_convection_diffusion_embedded_solver.post.lst")
-            KratosUtilities.DeleteFileIfExisting("test_convection_diffusion_embedded_solver_distance_modification.post.lst")
-            KratosUtilities.DeleteFileIfExisting("test_convection_diffusion_embedded_solver_mls_constraints.post.lst")
+        if not self.print_output:
+            with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+                KratosUtilities.DeleteFileIfExisting("square.post.bin")
+                KratosUtilities.DeleteFileIfExisting("square_distance_modification.post.bin")
+                KratosUtilities.DeleteFileIfExisting("square_mls_constraints.post.bin")
+                KratosUtilities.DeleteFileIfExisting("test_convection_diffusion_embedded_solver.post.lst")
+                KratosUtilities.DeleteFileIfExisting("test_convection_diffusion_embedded_solver_distance_modification.post.lst")
+                KratosUtilities.DeleteFileIfExisting("test_convection_diffusion_embedded_solver_mls_constraints.post.lst")
 
     def testEmbeddedSolverDirichletCircle(self):
         self.file_name = "ProjectParameters.json"

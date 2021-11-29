@@ -63,6 +63,7 @@ class ConvectionDiffusionStationaryEmbeddedSolver(convection_diffusion_stationar
             # NOTE: elements in the negative distance region will be deactivated
             settings = KratosMultiphysics.Parameters("""{}""")
             settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
+            settings.AddEmptyValue("unknown_variable").SetString(self.settings.GetUnknownVariable())
             settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["mls_extension_operator_order"].GetInt())
             settings.AddEmptyValue("avoid_zero_distances").SetBool(True)
             settings.AddEmptyValue("deactivate_negative_elements").SetBool(True)
