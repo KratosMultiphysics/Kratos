@@ -1,7 +1,7 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
 
-from math import pi, sqrt
+from math import pi, sqrt, tanh
 
 def Factory(settings, Model):
     if not isinstance(settings, KM.Parameters):
@@ -102,4 +102,7 @@ class WaveGeneratorProcess(KM.Process):
         kh = wavenumber * self.depth
         beta = -0.531
         alpha = 0.5 * beta**2 + beta
-        return g * kh * wavenumber * (1 -(alpha + 1/3) * kh**2) / (1 -alpha * kh**2)
+        print('linear wave dispersion ratio : ', g * wavenumber * tanh(kh))
+        print('boussinesq dispersion ratio  : ', g * kh * wavenumber * (1 -(alpha + 1/3) * kh**2) / (1 -alpha * kh**2))
+        return g * wavenumber * tanh(kh)
+        # return g * kh * wavenumber * (1 -(alpha + 1/3) * kh**2) / (1 -alpha * kh**2)
