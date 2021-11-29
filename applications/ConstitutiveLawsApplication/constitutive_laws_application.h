@@ -97,6 +97,9 @@
 // Rules of mixtures
 #include "custom_constitutive/rule_of_mixtures_law.h"
 
+// Unified fatigue
+#include "custom_constitutive/unified_fatigue_rule_of_mixtures_law.h"
+
 #include "custom_constitutive/associative_plastic_damage_model.h"
 
 namespace Kratos {
@@ -605,6 +608,8 @@ private:
     // Rules of mixtures
     const ParallelRuleOfMixturesLaw<3> mParallelRuleOfMixturesLaw3D;
 	const ParallelRuleOfMixturesLaw<2> mParallelRuleOfMixturesLaw2D;
+
+    const UnifiedFatigueRuleOfMixturesLaw mUnifiedFatigueRuleOfMixturesLaw;
 
     // Anisotropic law
     const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;

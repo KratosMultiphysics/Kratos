@@ -90,6 +90,7 @@
 
 // Rules of mixtures
 #include "custom_constitutive/rule_of_mixtures_law.h"
+#include "custom_constitutive/unified_fatigue_rule_of_mixtures_law.h"
 
 #include "custom_constitutive/associative_plastic_damage_model.h"
 
@@ -1447,6 +1448,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     typename GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
     ConstitutiveLaw>
     (m,"SmallStrainOrthotropicDamageSimoJu2D").def(py::init<>());
+
+    py::class_< UnifiedFatigueRuleOfMixturesLaw, typename UnifiedFatigueRuleOfMixturesLaw::Pointer,  ConstitutiveLaw  >
+    (m,"UnifiedFatigueRuleOfMixturesLaw").def(py::init<>())
+    ;
 
     py::class_< ParallelRuleOfMixturesLaw<3>, typename ParallelRuleOfMixturesLaw<3>::Pointer,  ConstitutiveLaw  >
     (m,"ParallelRuleOfMixturesLaw3D").def(py::init<>())
