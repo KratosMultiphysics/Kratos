@@ -509,6 +509,7 @@ namespace Kratos {
     ProcessInfo& r_process_info = r_modelpart.GetProcessInfo();
     double MeanMeshSize = 0.0;
 
+    #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < out.numberoftriangles; i++) {
       // Get vertices IDs
       int v1 = out.trianglelist[3 * i + 0] - 1;
