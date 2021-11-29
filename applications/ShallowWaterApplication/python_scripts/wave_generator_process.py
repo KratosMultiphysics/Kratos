@@ -51,10 +51,8 @@ class WaveGeneratorProcess(KM.Process):
 
 
     def ExecuteInitialize(self):
-        wave_amplitude = 0.5 * self.wave_height
-        gravity = self.model_part.ProcessInfo[KM.GRAVITY_Z]
-        wave_velocity = sqrt(self.depth * gravity)
-        velocity_amplitude = wave_amplitude * wave_velocity / self.depth
+        wave_velocity = self.frequency / self.wavenumber
+        velocity_amplitude = self.wave_amplitude * wave_velocity / self.depth
 
         # Creation of the parameters for the c++ process
         velocity_parameters = KM.Parameters("""{}""")
@@ -68,8 +66,10 @@ class WaveGeneratorProcess(KM.Process):
         KM.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KM.DOMAIN_SIZE])
         SW.ShallowWaterUtilities().NormalizeVector(self.model_part, KM.NORMAL)
 
+
     def ExecuteBeforeSolutionLoop(self):
         self.ExecuteInitializeSolutionStep()
+
 
     def ExecuteInitializeSolutionStep(self):
         if self._IsInInterval():
@@ -83,6 +83,7 @@ class WaveGeneratorProcess(KM.Process):
                 if self.formulation == SW.Formulation.ConservativeVariables:
                     KM.VariableUtils().ApplyFixity(KM.MOMENTUM_X, True, self.model_part.Nodes)
                     KM.VariableUtils().ApplyFixity(KM.MOMENTUM_Y, True, self.model_part.Nodes)
+
 
     def _IsInInterval(self):
         """ Returns if we are inside the time interval or not """
