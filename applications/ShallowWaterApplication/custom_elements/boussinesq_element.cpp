@@ -267,7 +267,7 @@ void BoussinesqElement<3>::AddExplicitContribution(const ProcessInfo& rCurrentPr
     AddRightHandSide(f3, data, N, DN_DX);
 
     const double delta_time = rCurrentProcessInfo[DELTA_TIME];
-    const double inv_lumped_mass = area / 3.0; // TODO: Check the predictor step!!!!!!! This is wrong!!!!!!
+    const double inv_lumped_mass = 3.0;
 
     LocalVectorType increment = delta_time * inv_lumped_mass / 12.0 * (23*f1 - 16*f2 + 5*f3);
     std::size_t counter = 0;
@@ -277,9 +277,21 @@ void BoussinesqElement<3>::AddExplicitContribution(const ProcessInfo& rCurrentPr
         double& u = r_node.FastGetSolutionStepValue(VELOCITY_X);
         double& v = r_node.FastGetSolutionStepValue(VELOCITY_Y);
         double& f = r_node.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
-        u += increment[counter++];
-        v += increment[counter++];
-        f += increment[counter++];
+        if (r_node.IsFixed(VELOCITY_X)) {
+            counter++;
+        } else {
+            u += increment[counter++];
+        }
+        if (r_node.IsFixed(VELOCITY_Y)) {
+            counter++;
+        } else {
+            v += increment[counter++];
+        }
+        if (r_node.IsFixed(FREE_SURFACE_ELEVATION)) {
+            counter++;
+        } else {
+            f += increment[counter++];
+        }
         r_node.UnSetLock();
     }
 }
