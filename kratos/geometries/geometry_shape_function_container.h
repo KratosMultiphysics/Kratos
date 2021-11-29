@@ -181,16 +181,6 @@ public:
     {
     }
 
-    /// Move constructor.
-    GeometryShapeFunctionContainer(GeometryShapeFunctionContainer&& rOther)
-        : mDefaultMethod(rOther.mDefaultMethod),
-          mIntegrationPoints(std::move(rOther.mIntegrationPoints)),
-          mShapeFunctionsValues(std::move(rOther.mShapeFunctionsValues)),
-          mShapeFunctionsLocalGradients(std::move(rOther.mShapeFunctionsLocalGradients)),
-          mShapeFunctionsDerivatives(std::move(rOther.mShapeFunctionsDerivatives))
-    {
-    }
-
     /// Destructor. Do nothing!!!
     virtual ~GeometryShapeFunctionContainer() {}
 
