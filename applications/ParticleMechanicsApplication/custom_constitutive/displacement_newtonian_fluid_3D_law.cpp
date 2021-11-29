@@ -468,12 +468,14 @@ double& DispNewtonianFluid3DLaw::ConstitutiveComponent (double& rCabcd, const Ma
     double IdotI = rViscousVariables.Identity(a, b) * rViscousVariables.Identity(c, d);
     double Isym = (rViscousVariables.Identity(a, c) * rViscousVariables.Identity(b, d) +
         rViscousVariables.Identity(a, d) * rViscousVariables.Identity(b, c)) / 2.0;
+    Matrix I = rViscousVariables.Identity;
 
     Matrix f = prod(rViscousVariables.DeformationGradientF, mInverseDeformationGradientF0);
     Matrix FingerMatrix = prod(f, trans(f));
     Matrix inv_b;
     double aux_det;
     MathUtils<double>::InvertMatrix(FingerMatrix, inv_b, aux_det);
+    double trace_inv_b = inv_b(0, 0) + inv_b(1, 1) + inv_b(2, 2);
 
     // Volumetric part
     Vector Factors(3);
@@ -486,10 +488,12 @@ double& DispNewtonianFluid3DLaw::ConstitutiveComponent (double& rCabcd, const Ma
 
 
     // Deviatoric part
-    rCabcd += rViscousVariables.Mu / rViscousVariables.DeltaTime * (inv_b(a, c) * rViscousVariables.Identity(b, d) +
-        inv_b(c, b) * rViscousVariables.Identity(a, d) -
-        1.0 / 3.0 * inv_b(c, d) * rViscousVariables.Identity(a, b) -
-        1.0 / 3.0 * inv_b(d, c) * rViscousVariables.Identity(a, b));
+    rCabcd += rViscousVariables.Mu / rViscousVariables.DeltaTime * (I(a,c)*inv_b(b,d)+
+        I(a, d) * inv_b(b, c)+ I(b, d) * inv_b(a, c)+ I(b, c) * inv_b(a, d)-
+        I(c, d) * inv_b(a, b));
+
+    rCabcd -= rViscousVariables.Mu / rViscousVariables.DeltaTime * (2.0 / 3.0 * trace_inv_b * Isym
+        - 1.0 / 3.0 * trace_inv_b * I(a, b) * I(c, d) + 2.0 / 3.0 * I(a, b) * inv_b(c, d));
 
     return rCabcd;
 
@@ -572,6 +576,7 @@ double& DispNewtonianFluid3DLaw::IsochoricConstitutiveComponent(double& rCabcd,
     double IdotI = rViscousVariables.Identity(a, b) * rViscousVariables.Identity(c, d);
     double Isym = (rViscousVariables.Identity(a, c) * rViscousVariables.Identity(b, d) +
         rViscousVariables.Identity(a, d) * rViscousVariables.Identity(b, c)) / 2.0;
+    Matrix I = rViscousVariables.Identity;
 
     Matrix f = prod(rViscousVariables.DeformationGradientF, mInverseDeformationGradientF0);
     Matrix FingerMatrix = prod(f, trans(f));
@@ -579,8 +584,12 @@ double& DispNewtonianFluid3DLaw::IsochoricConstitutiveComponent(double& rCabcd,
     double aux_det;
     MathUtils<double>::InvertMatrix(FingerMatrix, inv_b, aux_det);
 
-    rCabcd = rViscousVariables.Mu / rViscousVariables.DeltaTime * (inv_b(a, c) * rViscousVariables.Identity(b, d) +
-        inv_b(c, b) * rViscousVariables.Identity(a, d));
+    rCabcd = rViscousVariables.Mu / rViscousVariables.DeltaTime * (I(a, c) * inv_b(b, d) +
+        I(a, d) * inv_b(b, c) + I(b, d) * inv_b(a, c) + I(b, c) * inv_b(a, d) -
+        I(c, d) * inv_b(a, b));
+
+    rCabcd += rViscousVariables.Mu / rViscousVariables.DeltaTime * IdotI
+        - 2.0 * rViscousVariables.Mu / rViscousVariables.DeltaTime * Isym;
 
     return rCabcd;
 }
@@ -668,7 +677,7 @@ int DispNewtonianFluid3DLaw::Check(const Properties& rMaterialProperties, const 
 
     KRATOS_ERROR_IF(DENSITY.Key()==0 || rMaterialProperties[DENSITY]<=0.00)<<"DENSITY has Key zero or invalid calue"<< std::endl;
 
-    KRATOS_ERROR_IF(DYNAMIC_VISCOSITY.Key() == 0 || rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.00) << "DENSITY has Key zero or invalid calue" << std::endl;
+    KRATOS_ERROR_IF(DYNAMIC_VISCOSITY.Key() == 0 || rMaterialProperties[DYNAMIC_VISCOSITY] < 0.00) << "DENSITY has Key zero or invalid calue" << std::endl;
 
     KRATOS_ERROR_IF(BULK_MODULUS.Key() == 0 || rMaterialProperties[BULK_MODULUS] <= 0.00) << "DENSITY has Key zero or invalid calue" << std::endl;
 
