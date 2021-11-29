@@ -120,6 +120,7 @@ for dim in dim_vector:
     f_ext = DefineMatrix('f_ext',n_nodes,dim)    # Forcing term
 
     # Nodal artificial magnitudes
+    alpha_sc_nodes = DefineVector('alpha_sc_nodes',n_nodes) # Nodal artificial mass diffusivity
     mu_sc_nodes = DefineVector('mu_sc_nodes',n_nodes) # Nodal artificial dynamic viscosity
     beta_sc_nodes = DefineVector('beta_sc_nodes',n_nodes) # Nodal artificial bulk viscosity
     lamb_sc_nodes = DefineVector('lamb_sc_nodes',n_nodes) # Nodal artificial bulk viscosity
@@ -148,10 +149,11 @@ for dim in dim_vector:
     S = generate_source_term.ComputeSourceMatrix(Ug, mg, f, rg, params)
     A = generate_convective_flux.ComputeEulerJacobianMatrix(Ug, params)
     if shock_capturing:
+        alpha_sc = Symbol('alpha_sc', positive = True) # Artificial density diffusivity for shock capturing
         mu_sc = Symbol('mu_sc', positive = True) # Artificial dynamic viscosity for shock capturing
         beta_sc = Symbol('beta_sc', positive = True) # Artificial bulk viscosity for shock capturing
         lamb_sc = Symbol('lamb_sc', positive = True) # Artificial thermal conductivity for shock capturing
-        G = generate_diffusive_flux.ComputeDiffusiveFluxWithPhysicsBasedShockCapturing(Ug, H, params, beta_sc, lamb_sc, mu_sc)
+        G = generate_diffusive_flux.ComputeDiffusiveFluxWithShockCapturing(Ug, H, params, alpha_sc, beta_sc, lamb_sc, mu_sc)
     else:
         G = generate_diffusive_flux.ComputeDiffusiveFlux(Ug, H, params)
     Tau = generate_stabilization_matrix.ComputeStabilizationMatrix(params)
@@ -317,6 +319,7 @@ for dim in dim_vector:
             f_gauss = f_ext.transpose() * N
             r_gauss = (r_ext.transpose()*N)[0]
             mass_gauss = (m_ext.transpose()*N)[0]
+            alpha_sc_gauss = (alpha_sc_nodes.transpose()*N)[0]
             mu_sc_gauss = (mu_sc_nodes.transpose()*N)[0]
             beta_sc_gauss = (beta_sc_nodes.transpose()*N)[0]
             lamb_sc_gauss = (lamb_sc_nodes.transpose()*N)[0]
@@ -352,6 +355,7 @@ for dim in dim_vector:
             SubstituteMatrixValue(rv_gauss, f, f_gauss)
             SubstituteScalarValue(rv_gauss, rg, r_gauss)
             SubstituteScalarValue(rv_gauss, mg, mass_gauss)
+            SubstituteScalarValue(rv_gauss, alpha_sc, alpha_sc_gauss)
             SubstituteScalarValue(rv_gauss, mu_sc, mu_sc_gauss)
             SubstituteScalarValue(rv_gauss, beta_sc, beta_sc_gauss)
             SubstituteScalarValue(rv_gauss, lamb_sc, lamb_sc_gauss)

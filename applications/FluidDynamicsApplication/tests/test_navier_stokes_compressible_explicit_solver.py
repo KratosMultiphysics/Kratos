@@ -15,14 +15,30 @@ class NavierStokesCompressibleExplicitSolverTest(KratosUnittest.TestCase):
 
         # 3D is supported: no exception should be raised
         settings = self.GetSettings(3)
-        solver = navier_stokes_compressible_explicit_solver.CreateSolver(model, settings)
+        _ = navier_stokes_compressible_explicit_solver.CreateSolver(model, settings)
 
         # 4D is unsupported: an exception should be raised
         settings = self.GetSettings(4)
         with self.assertRaises(Exception) as context:
-            solver = navier_stokes_compressible_explicit_solver.CreateSolver(model, settings)
-        
+            _ = navier_stokes_compressible_explicit_solver.CreateSolver(model, settings)
+
         self.assertIn("Wrong domain size", str(context.exception))
+
+    def test_ChoiceRungeKutta(self):
+        model = KratosMultiphysics.Model()
+        model.CreateModelPart("FluidModelPart").CreateSubModelPart("fluid_computational_model_part")
+
+        settings = self.GetSettings(3)
+        settings["time_scheme"].SetString("WrongValue")
+
+        # Ensuring helpful error
+        solver = navier_stokes_compressible_explicit_solver.CreateSolver(model, settings)
+        solver.ImportModelPart()
+        with self.assertRaises(Exception) as context:
+            solver.Initialize()
+        self.assertIn("WrongValue", str(context.exception))
+        self.assertIn("RK4", str(context.exception))
+        self.assertIn("RK3-TVD", str(context.exception))
 
     @classmethod
     def GetSettings(cls, n_dimensions):
@@ -32,9 +48,7 @@ class NavierStokesCompressibleExplicitSolverTest(KratosUnittest.TestCase):
                 "model_part_name": "FluidModelPart",
                 "domain_size": %d,
                 "model_import_settings": {
-                    "input_type": "mdpa",
-                    "input_filename": "",
-                    "reorder": false
+                    "input_type": "use_input_model_part"
                 },
                 "material_import_settings": {
                     "materials_filename": "FluidMaterials.json"
@@ -42,6 +56,7 @@ class NavierStokesCompressibleExplicitSolverTest(KratosUnittest.TestCase):
                 "echo_level": 1,
                 "time_order": 2,
                 "move_mesh_flag": false,
+                "time_scheme" : "RK4",
                 "shock_capturing": true,
                 "compute_reactions": false,
                 "reform_dofs_at_each_step" : false,

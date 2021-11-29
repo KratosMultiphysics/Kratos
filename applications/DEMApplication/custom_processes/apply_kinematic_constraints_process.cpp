@@ -33,7 +33,7 @@ namespace Kratos
         //only include validation with c++11 since raw_literals do not exist in c++03
         Parameters default_parameters( R"(
             {
-                "help"                 : "This process applies constraints to the particles in a certain submodelpart, for a certain time interval",
+                "help"                 : "This process applies constraints to the particles and walls in a certain submodelpart, for a certain time interval",
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "velocity_constraints_settings" : {
@@ -140,35 +140,35 @@ namespace Kratos
 
         if(!mInterval.IsInInterval(time)) return;
 
-        block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
+        block_for_each(mrModelPart.Elements(), [&](Element& rElement)
         {
 
-            array_1d<double, 3>& vel = rNode.FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3>& ang_vel = rNode.FastGetSolutionStepValue(ANGULAR_VELOCITY);
+            array_1d<double, 3>& vel = rElement.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3>& ang_vel = rElement.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
 
             if(mVelocityIsConstrained[0]) {
-                rNode.Set(DEMFlags::FIXED_VEL_X, true);
-                rNode.pGetDof(VELOCITY_X)->FixDof();
+                rElement.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
+                rElement.GetGeometry()[0].pGetDof(VELOCITY_X)->FixDof();
             }
             if(mVelocityIsConstrained[1]) {
-                rNode.Set(DEMFlags::FIXED_VEL_Y, true);
-                rNode.pGetDof(VELOCITY_Y)->FixDof();
+                rElement.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
+                rElement.GetGeometry()[0].pGetDof(VELOCITY_Y)->FixDof();
             }
             if(mVelocityIsConstrained[2]) {
-                rNode.Set(DEMFlags::FIXED_VEL_Z, true);
-                rNode.pGetDof(VELOCITY_Z)->FixDof();
+                rElement.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
+                rElement.GetGeometry()[0].pGetDof(VELOCITY_Z)->FixDof();
             }
             if(mAngularVelocityIsConstrained[0]) {
-                rNode.Set(DEMFlags::FIXED_ANG_VEL_X, true);
-                rNode.pGetDof(ANGULAR_VELOCITY_X)->FixDof();
+                rElement.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
+                rElement.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_X)->FixDof();
             }
             if(mAngularVelocityIsConstrained[1]) {
-                rNode.Set(DEMFlags::FIXED_ANG_VEL_Y, true);
-                rNode.pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
+                rElement.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+                rElement.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
             }
             if(mAngularVelocityIsConstrained[2]) {
-                rNode.Set(DEMFlags::FIXED_ANG_VEL_Z, true);
-                rNode.pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
+                rElement.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+                rElement.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
             }
 
             for(int i=0; i<3; i++) {
@@ -182,7 +182,7 @@ namespace Kratos
                             velocity_value = mVelocityValues[i];
                         }
                         else {
-                            velocity_value = mVelocityFunctions[i].CallFunction(rNode.X(), rNode.Y(), rNode.Z(), time);
+                            velocity_value = mVelocityFunctions[i].CallFunction(rElement.GetGeometry()[0].X(), rElement.GetGeometry()[0].Y(), rElement.GetGeometry()[0].Z(), time);
                         }
                         vel[i] = velocity_value;
                     }
@@ -198,7 +198,7 @@ namespace Kratos
                             angular_velocity_value = mAngularVelocityValues[i];
                         }
                         else {
-                            angular_velocity_value = mAngularVelocityFunctions[i].CallFunction(rNode.X(), rNode.Y(), rNode.Z(), time);
+                            angular_velocity_value = mAngularVelocityFunctions[i].CallFunction(rElement.GetGeometry()[0].X(), rElement.GetGeometry()[0].Y(), rElement.GetGeometry()[0].Z(), time);
                         }
                         ang_vel[i] = angular_velocity_value;
                     }
@@ -218,20 +218,21 @@ namespace Kratos
 
         if(!mInterval.IsInInterval(time)) return;
 
-        block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
+        block_for_each(mrModelPart.Elements(), [&](Element& rElement)
         {
-            rNode.Set(DEMFlags::FIXED_VEL_X, false);
-            rNode.Set(DEMFlags::FIXED_VEL_Y, false);
-            rNode.Set(DEMFlags::FIXED_VEL_Z, false);
-            rNode.Set(DEMFlags::FIXED_ANG_VEL_X, false);
-            rNode.Set(DEMFlags::FIXED_ANG_VEL_Y, false);
-            rNode.Set(DEMFlags::FIXED_ANG_VEL_Z, false);
-            rNode.pGetDof(VELOCITY_X)->FreeDof();
-            rNode.pGetDof(VELOCITY_Y)->FreeDof();
-            rNode.pGetDof(VELOCITY_Z)->FreeDof();
-            rNode.pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
-            rNode.pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
-            rNode.pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
+
+            rElement.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
+            rElement.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
+            rElement.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
+            rElement.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
+            rElement.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+            rElement.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+            rElement.GetGeometry()[0].pGetDof(VELOCITY_X)->FreeDof();
+            rElement.GetGeometry()[0].pGetDof(VELOCITY_Y)->FreeDof();
+            rElement.GetGeometry()[0].pGetDof(VELOCITY_Z)->FreeDof();
+            rElement.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
+            rElement.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
+            rElement.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
         });
 
         KRATOS_CATCH("");
