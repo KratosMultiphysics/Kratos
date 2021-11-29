@@ -358,8 +358,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCoSimIOModelPartToKratosModelPa
 
     CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, kratos_model_part, r_world_data_comm);
 
-    // Note: not using CheckDistributedModelPartsAreEqual as Communicator of SubModelPart "original_order" is not initialized
-    // CheckModelPartsAreEqual(kratos_model_part.GetSubModelPart("original_order"), co_sim_io_model_part);
+    CheckDistributedModelPartsAreEqualButEntitiesAreOrderedDifferently(kratos_model_part, co_sim_io_model_part);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedKratosModelPartToCoSimIOModelPart_NodesOnly, KratosCosimulationMPIFastSuite)
@@ -447,8 +446,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCoSimIOModelPartToKratosModelPa
 
     CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, kratos_model_part, r_world_data_comm);
 
-    // Note: not using CheckDistributedModelPartsAreEqual as Communicator of SubModelPart "original_order" is not initialized
-    // CheckModelPartsAreEqual(kratos_model_part.GetSubModelPart("original_order"), co_sim_io_model_part);
+    CheckDistributedModelPartsAreEqualButEntitiesAreOrderedDifferently(kratos_model_part, co_sim_io_model_part);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(KratosDistributedModelPartToCoSimIOModelPart, KratosCosimulationMPIFastSuite)
