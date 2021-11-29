@@ -12,7 +12,7 @@
 // System includes
 
 // External includes
-#include "custom_external_libraries/CoSimIO/co_sim_io/co_sim_io.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/includes/model_part.hpp"
 
 // Project includes
 #include "testing/testing.h"
@@ -31,6 +31,10 @@ void CheckElementsAreEqual(
     const CoSimIO::Element& rCoSimIOElement);
 
 void CheckModelPartsAreEqual(
+    const Kratos::ModelPart& rKratosModelPart,
+    const CoSimIO::ModelPart& rCoSimIOModelPart);
+
+void CheckModelPartsAreEqualButEntitiesAreOrderedDifferently(
     const Kratos::ModelPart& rKratosModelPart,
     const CoSimIO::ModelPart& rCoSimIOModelPart);
 

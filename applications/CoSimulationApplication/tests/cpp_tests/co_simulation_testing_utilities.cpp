@@ -14,6 +14,7 @@
 // External includes
 
 // Project includes
+#include "co_simulation_application_variables.h"
 #include "co_simulation_testing_utilities.h"
 
 
@@ -64,6 +65,32 @@ void CheckModelPartsAreEqual(
     const CoSimIO::ModelPart& rCoSimIOModelPart)
 {
     KRATOS_TRY
+
+    // basic checks
+    KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfNodes(),      rCoSimIOModelPart.NumberOfNodes());
+    KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfElements(),   rCoSimIOModelPart.NumberOfElements());
+
+    // check nodes
+    for (std::size_t i=0; i<rCoSimIOModelPart.NumberOfNodes(); ++i) {
+        CheckNodesAreEqual(*(rKratosModelPart.NodesBegin()+i), **(rCoSimIOModelPart.NodesBegin()+i));
+    }
+
+    // check elements
+    for (std::size_t i=0; i<rCoSimIOModelPart.NumberOfElements(); ++i) {
+        CheckElementsAreEqual(*(rKratosModelPart.ElementsBegin()+i), **(rCoSimIOModelPart.ElementsBegin()+i));
+    }
+
+    KRATOS_CATCH("")
+}
+
+void CheckModelPartsAreEqualButEntitiesAreOrderedDifferently(
+    const Kratos::ModelPart& rKratosModelPart,
+    const CoSimIO::ModelPart& rCoSimIOModelPart)
+{
+    KRATOS_TRY
+
+    KRATOS_CHECK(rKratosModelPart.Has(NODES_ID_INDEX_MAP));
+    KRATOS_CHECK(rKratosModelPart.Has(ELEMENTS_ID_INDEX_MAP));
 
     // basic checks
     KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfNodes(),      rCoSimIOModelPart.NumberOfNodes());
@@ -143,9 +170,11 @@ void CheckDistributedModelPartsAreEqualButEntitiesAreOrderedDifferently(
 
     KRATOS_CHECK(rKratosModelPart.IsDistributed());
     KRATOS_CHECK(rKratosModelPart.HasNodalSolutionStepVariable(PARTITION_INDEX));
+    KRATOS_CHECK(rKratosModelPart.Has(NODES_ID_INDEX_MAP));
+    KRATOS_CHECK(rKratosModelPart.Has(ELEMENTS_ID_INDEX_MAP));
 
     // serial checks
-    CheckModelPartsAreEqual(rKratosModelPart, rCoSimIOModelPart);
+    CheckModelPartsAreEqualButEntitiesAreOrderedDifferently(rKratosModelPart, rCoSimIOModelPart);
 
     // check local nodes
     KRATOS_CHECK_EQUAL(rKratosModelPart.GetCommunicator().LocalMesh().NumberOfNodes(), rCoSimIOModelPart.NumberOfLocalNodes());
