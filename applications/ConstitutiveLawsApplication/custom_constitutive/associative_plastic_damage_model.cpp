@@ -460,7 +460,7 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
         const double chi = (factor + g + std::sqrt(factor * (5.0 / 4.0 * factor + 2.0 * g))) / (0.5 * factor - g);
         const double chi_square = std::pow(chi, 2);
         const double max_threshold = (chi_square * K0) / (chi_square - 1.0);
-        const double limit_factor = 0.999;
+        const double limit_factor = 1.0-1.0e-15;
 
 
 
@@ -473,9 +473,11 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
 
 
     double old_threshold = rPDParameters.Threshold;
-    if (std::abs(rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters)) < 1.0e-15) {
-        old_threshold += 1.0e-4* rPDParameters.Threshold;
-        if (old_threshold > limit_factor*max_threshold) old_threshold -= 4.0*1.0e-4* rPDParameters.Threshold;
+    const double fact = 1.0e-7; 
+    if (std::abs(rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters)) < machine_tolerance) {
+        old_threshold += fact* rPDParameters.Threshold;
+        if (old_threshold >= limit_factor*max_threshold)
+            old_threshold -= 2.0*fact* rPDParameters.Threshold;
     }
     double residual = 1.0;
     double rel_residual = 1.0;
@@ -483,13 +485,16 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
     double derivative = 0.0;
     int max_iter = 2000;
     int iteration = 0;
-    const double nr_tol = 1.0e-9;
+    const double nr_tol = 1.0e-12;
 
     while (residual > nr_tol && iteration < max_iter && rel_residual > nr_tol) {
         derivative = rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
         if (std::abs(derivative) > 0.0) {
             new_threshold = old_threshold - (1.0 / derivative) * rF(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
-            new_threshold = (new_threshold > limit_factor*max_threshold) ? limit_factor*max_threshold : new_threshold;
+            if (new_threshold >= limit_factor*max_threshold) {
+                new_threshold = limit_factor*max_threshold;
+                break;
+            }
         } else {
             break;
         }
