@@ -17,9 +17,9 @@ class WaveGeneratorProcess(KM.Process):
     }
 
     __wave_theory = {
-        "boussinesq"    : wave_theory_utilities.BoussinesqTheory,
-        "linear_theory" : wave_theory_utilities.LinearTheory,
-        "shallow_water" : wave_theory_utilities.ShallowTheory
+        "boussinesq"     : wave_theory_utilities.BoussinesqTheory,
+        "linear_theory"  : wave_theory_utilities.LinearTheory,
+        "shallow_theory" : wave_theory_utilities.ShallowTheory
     }
 
     def GetDefaultParameters(self):
