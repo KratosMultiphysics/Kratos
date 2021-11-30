@@ -198,6 +198,51 @@ KRATOS_TEST_CASE_IN_SUITE(KratosModelPartToCoSimIOModelPart, KratosCosimulationF
     CheckModelPartsAreEqual(kratos_model_part, co_sim_io_model_part);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CoSimIODataExport_direct_node_historical, KratosCosimulationFastSuite)
+{
+    Model model;
+    auto& kratos_model_part = model.CreateModelPart("kratos_mp");
+    kratos_model_part.AddNodalSolutionStepVariable(AUX_INDEX);
+
+    constexpr std::size_t num_nodes = 5;
+    const std::vector<double> exp_values {2,6,8,4,1};
+
+    for (std::size_t i=0; i<num_nodes; ++i) {
+        auto p_node = kratos_model_part.CreateNewNode(i+1, i*1.5, i+3.5, i-8.6);
+        p_node->FastGetSolutionStepValue(AUX_INDEX) = exp_values[i];
+    }
+
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 0);
+
+    std::vector<double> values;
+    CoSimIOConversionUtilities::GetData(kratos_model_part, values, AUX_INDEX, DataLocation::NodeHistorical);
+
+    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CoSimIODataExport_direct_node_non_historical, KratosCosimulationFastSuite)
+{
+    Model model;
+    auto& kratos_model_part = model.CreateModelPart("kratos_mp");
+
+    constexpr std::size_t num_nodes = 5;
+    const std::vector<double> exp_values {2,6,8,4.21,1};
+
+    for (std::size_t i=0; i<num_nodes; ++i) {
+        auto p_node = kratos_model_part.CreateNewNode(i+1, i*1.5, i+3.5, i-8.6);
+        p_node->SetValue(AUX_INDEX, exp_values[i]);
+    }
+
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 0);
+
+    std::vector<double> values;
+    CoSimIOConversionUtilities::GetData(kratos_model_part, values, AUX_INDEX, DataLocation::NodeNonHistorical);
+
+    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);
+}
+
 namespace DistributedTestHelpers {
 
 std::size_t GetPartnerRank()
