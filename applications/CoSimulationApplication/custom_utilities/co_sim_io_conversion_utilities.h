@@ -73,7 +73,7 @@ public:
 
     template<typename TDataType>
     static void GetData(
-        const Kratos::ModelPart& rModelPart,
+        Kratos::ModelPart& rModelPart,
         std::vector<double>& rData,
         const Variable<TDataType>& rVariable,
         const DataLocation DataLoc);
