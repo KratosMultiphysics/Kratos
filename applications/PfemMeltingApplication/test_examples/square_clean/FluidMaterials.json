@@ -13,7 +13,7 @@
                 "DENSITY"           : 900.0,
                 "EMISSIVITY"        : 1.0,
                 "AMBIENT_TEMPERATURE" : 298.0,
-                "CONVECTION_COEFFICIENT" : 0.0             
+                "CONVECTION_COEFFICIENT" : 0.0
             },
             "Tables": {
                 "Table1" : {
@@ -30,7 +30,7 @@
                         [1373.0, 500.3]
                     ]
                 }
-	    }
+	        }
         }
     }]
 }
