@@ -215,6 +215,30 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
         for(IndexType i = 0; i < gauss_points_number; ++i)
             rValues[i] = output_value;
     }
+    else if(rVariable == I22) {
+        const double current_property_value = this->GetProperties()[rVariable];
+        // Resize Output
+        const SizeType  gauss_points_number = this->GetGeometry()
+            .IntegrationPointsNumber(this->GetIntegrationMethod());
+        if (rValues.size() != gauss_points_number)
+            rValues.resize(gauss_points_number);
+
+        // Write scalar result value on all Gauss-Points
+        for(IndexType i = 0; i < gauss_points_number; ++i)
+            rValues[i] = current_property_value;
+    }
+    else if(rVariable == THICKNESS) {
+        const double current_property_value = this->GetProperties()[rVariable];
+        // Resize Output
+        const SizeType  gauss_points_number = this->GetGeometry()
+            .IntegrationPointsNumber(this->GetIntegrationMethod());
+        if (rValues.size() != gauss_points_number)
+            rValues.resize(gauss_points_number);
+
+        // Write scalar result value on all Gauss-Points
+        for(IndexType i = 0; i < gauss_points_number; ++i)
+            rValues[i] = current_property_value;
+    }
     else
         KRATOS_ERROR << "Unsupported output variable." << std::endl;
 

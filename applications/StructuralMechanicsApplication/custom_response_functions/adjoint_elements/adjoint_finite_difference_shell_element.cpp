@@ -132,6 +132,17 @@ void AdjointFiniteDifferencingShellElement<TPrimalElement>::CheckSpecificPropert
 
 
 template <class TPrimalElement>
+void AdjointFiniteDifferencingShellElement<TPrimalElement>::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    if(rVariable == ADJOINT_SHELL_CURVATURE_GLOBAL) {
+        this->CalculateAdjointFieldOnIntegrationPoints(SHELL_CURVATURE_GLOBAL, rValues, rCurrentProcessInfo);
+    }
+}
+
+
+template <class TPrimalElement>
 double AdjointFiniteDifferencingShellElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) const
 {
     KRATOS_TRY;
