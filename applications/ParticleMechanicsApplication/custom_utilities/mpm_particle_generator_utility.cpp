@@ -330,7 +330,7 @@ namespace MPMParticleGeneratorUtility
                                 if(boundary_condition_type==1)
                                     condition_type_name = "MPMParticlePenaltyDirichletCondition";
                                 else if (boundary_condition_type ==2)
-                                    condition_type_name = "MPMParticleLagrangeDirichletCondition";
+                                    condition_type_name = "MPMParticlePointCondition";
                                 else 
                                     KRATOS_ERROR << "The boundary condition type is not yet implemented. Available options are Penalty=1 and Lagrange=2" << std::endl;
                             }
@@ -456,16 +456,10 @@ namespace MPMParticleGeneratorUtility
                                 }
                                 else if (boundary_condition_type == 2)
                                 {
-                                    auto p_new_node = rBackgroundGridModelPart.CreateNewNode(rBackgroundGridModelPart.Nodes().size() + 1, mpc_xg[0][0], mpc_xg[0][1], mpc_xg[0][2]);
-                                    p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_X,WEIGHTED_VECTOR_RESIDUAL_X);
-                                    p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Y,WEIGHTED_VECTOR_RESIDUAL_Y);
-                                    p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Z,WEIGHTED_VECTOR_RESIDUAL_Z);
-                                    p_new_node->AddDof(DISPLACEMENT_X,REACTION_X);
-                                    p_new_node->AddDof(DISPLACEMENT_Y,REACTION_Y);
-                                    p_new_node->AddDof(DISPLACEMENT_Z,REACTION_Z);
-
-                                    // cp_condition->SetValuesOnIntegrationPoints(MPC_LAGRANGE_NODE,p_new_node, process_info);
-                                    p_condition->SetValue(MPC_LAGRANGE_NODE, p_new_node);
+                                    // Create new submodelpart for LagrangeCondition which is created in the search 
+                                    auto& sub_model_part_lagrange_condition =    rMPMModelPart.GetSubModelPart(submodelpart_name).HasSubModelPart("lagrange_condition")
+                                        ? rMPMModelPart.GetSubModelPart(submodelpart_name).GetSubModelPart("lagrange_condition")
+                                        : rMPMModelPart.GetSubModelPart(submodelpart_name).CreateSubModelPart("lagrange_condition");
                                 }
                                     
 

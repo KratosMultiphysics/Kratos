@@ -172,14 +172,13 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                         
                 mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,[self.value],self.model_part.ProcessInfo)
 
-        if (self.max_number_of_mpc_element >0):
+        if (self.boundary_condition_type == 2):
             for mpc in self.model_part.Conditions:
-                id_parent = mpc.GetGeometry().GeometryParentId()
-                counter = 0
-                for mpc2 in self.model_part.Conditions:
-                    if (mpc2.Is(KratosMultiphysics.ACTIVE)):
-                        id_parent2 = mpc2.GetGeometry().GeometryParentId()
-                        if (id_parent == id_parent2):
-                            counter +=1
-                if (counter>self.max_number_of_mpc_element):
-                    mpc.Set(KratosMultiphysics.ACTIVE,False)
+                if (mpc.Is(KratosMultiphysics.INTERFACE)):
+                    contact_force = self.model_part.submodelpart("lagrange_condition").GetCondition(mpc.Id).CalculateOnIntegrationPoints(KratosParticle.MPC_CONTACT_FORCE, self.model_part.ProcessInfo)[0]
+                    counter = self.model_part.submodelpart("lagrange_condition").GetCondition(mpc.Id).CalculateOnIntegrationPoints(KratosParticle.MPC_COUNTER, self.model_part.ProcessInfo)[0]
+                    for i in range(3):
+                        contact_force[i] = contact_force[i]/counter
+
+                    mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_CONTACT_FORCE, contact_force, self.model_part.ProcessInfo)
+
