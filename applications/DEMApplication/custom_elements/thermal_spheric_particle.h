@@ -116,6 +116,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double NusseltLiMason(const ProcessInfo& r_process_info);
   double RadiationContinuumZhou(const ProcessInfo& r_process_info);
   double RadiationContinuumKrause(const ProcessInfo& r_process_info);
+  double FrictionGenerationSlidingVelocity(const ProcessInfo& r_process_info);
   double AdjustedContactRadiusZhou(const ProcessInfo& r_process_info);
   double AdjustedContactRadiusLu(const ProcessInfo& r_process_info);
 

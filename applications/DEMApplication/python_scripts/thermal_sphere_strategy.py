@@ -52,6 +52,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
             "fluid_layer_thickness"          : 0.4,
             "isothermal_core_radius"         : 0.5,
             "max_radiation_distance"         : 2.0,
+            "friction_heat_conversion_ratio" : 1.0,
             "global_porosity"                : 0.0,
             "alpha_shape_parameter"          : 1.2,
             "integral_tolerance"             : 0.000001,
@@ -104,6 +105,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.fluid_layer_thickness   = self.thermal_settings["fluid_layer_thickness"].GetDouble()
         self.isothermal_core_radius  = self.thermal_settings["isothermal_core_radius"].GetDouble()
         self.max_radiation_distance  = self.thermal_settings["max_radiation_distance"].GetDouble()
+        self.friction_heat_conversion = self.thermal_settings["friction_heat_conversion_ratio"].GetDouble()
         self.global_porosity         = self.thermal_settings["global_porosity"].GetDouble()
         self.alpha_parameter         = self.thermal_settings["alpha_shape_parameter"].GetDouble()
         self.integral_tolerance      = self.thermal_settings["integral_tolerance"].GetDouble()
@@ -183,6 +185,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.isothermal_core_radius = 1
         if (self.max_radiation_distance < 0 ):
             self.max_radiation_distance = 0
+        if (self.friction_heat_conversion < 0 or self.friction_heat_conversion > 1):
+            raise Exception('DEM', '"friction_heat_conversion_ratio" must be between zero and one.')
         if (self.global_porosity < 0 or self.global_porosity >= 1):
             raise Exception('DEM', '"global_porosity" must be between zero and one.')
         if (self.alpha_parameter < 0):
@@ -283,6 +287,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_LAYER_THICKNESS,      self.fluid_layer_thickness)
         self.spheres_model_part.ProcessInfo.SetValue(ISOTHERMAL_CORE_RADIUS,     self.isothermal_core_radius)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_RADIATION_DISTANCE,     self.max_radiation_distance)
+        self.spheres_model_part.ProcessInfo.SetValue(FRICTION_HEAT_CONVERSION,   self.friction_heat_conversion)
         self.spheres_model_part.ProcessInfo.SetValue(AVERAGE_POROSITY,           self.global_porosity)
         self.spheres_model_part.ProcessInfo.SetValue(ALPHA_SHAPE_PARAMETER,      self.alpha_parameter)
         self.spheres_model_part.ProcessInfo.SetValue(INTEGRAL_TOLERANCE,         self.integral_tolerance)

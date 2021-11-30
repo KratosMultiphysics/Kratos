@@ -440,28 +440,8 @@ namespace Kratos
     if (!mNeighborInContact)
       return;
 
-    // Model parameters
-    double friction_coeff   = GetContactDynamicFrictionCoefficient();
-    double velocity_tangent = 0.0;
-    double force_normal     = 0.0;
-
-    if (mNeighborType & PARTICLE_NEIGHBOR && mNeighborParticleLocalRelativeVelocity.count(mNeighbor_p))
-      velocity_tangent = mNeighborParticleLocalRelativeVelocity[mNeighbor_p][1];
-    else if (mNeighborType & WALL_NEIGHBOR && mNeighborWallLocalRelativeVelocity.count(mNeighbor_w))
-      velocity_tangent = mNeighborWallLocalRelativeVelocity[mNeighbor_w][1];
-
-    if (mNeighborType & PARTICLE_NEIGHBOR && mNeighborParticleLocalContactForce.count(mNeighbor_p))
-      force_normal = mNeighborParticleLocalContactForce[mNeighbor_p][0];
-    else if (mNeighborType & WALL_NEIGHBOR && mNeighborWallLocalContactForce.count(mNeighbor_w))
-      force_normal = mNeighborWallLocalContactForce[mNeighbor_w][0];
-
-    // Partition coefficient
-    double k1 = GetParticleConductivity();
-    double k2 = GetNeighborConductivity();
-    double partition = k1 / (k1 + k2);
-    
-    // Compute frictional heat transfer
-    mFrictionHeatFlux += partition * friction_coeff * fabs(velocity_tangent * force_normal);
+    // Compute heat generation by friction according to selected model
+    mFrictionHeatFlux += FrictionGenerationSlidingVelocity(r_process_info);
 
     KRATOS_CATCH("")
   }
@@ -933,6 +913,37 @@ namespace Kratos
 
     // Compute heat flux
     return STEFAN_BOLTZMANN * particle_emissivity * particle_surface * (pow(env_temperature,4.0) - pow(particle_temperature,4.0));
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::FrictionGenerationSlidingVelocity(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // Model parameters
+    double friction_conversion = r_process_info[FRICTION_HEAT_CONVERSION];
+    double friction_coeff      = GetContactDynamicFrictionCoefficient();
+    double velocity_tangent    = 0.0;
+    double force_normal        = 0.0;
+
+    if (mNeighborType & PARTICLE_NEIGHBOR && mNeighborParticleLocalRelativeVelocity.count(mNeighbor_p))
+      velocity_tangent = mNeighborParticleLocalRelativeVelocity[mNeighbor_p][1];
+    else if (mNeighborType & WALL_NEIGHBOR && mNeighborWallLocalRelativeVelocity.count(mNeighbor_w))
+      velocity_tangent = mNeighborWallLocalRelativeVelocity[mNeighbor_w][1];
+
+    if (mNeighborType & PARTICLE_NEIGHBOR && mNeighborParticleLocalContactForce.count(mNeighbor_p))
+      force_normal = mNeighborParticleLocalContactForce[mNeighbor_p][0];
+    else if (mNeighborType & WALL_NEIGHBOR && mNeighborWallLocalContactForce.count(mNeighbor_w))
+      force_normal = mNeighborWallLocalContactForce[mNeighbor_w][0];
+
+    // Partition coefficient
+    double k1 = GetParticleConductivity();
+    double k2 = GetNeighborConductivity();
+    double partition = k1 / (k1 + k2);
+    
+    // Compute frictional heat transfer
+    return partition * friction_conversion * friction_coeff * fabs(velocity_tangent * force_normal);
 
     KRATOS_CATCH("")
   }
