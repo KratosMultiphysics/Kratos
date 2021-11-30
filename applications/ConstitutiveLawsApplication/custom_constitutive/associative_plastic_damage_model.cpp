@@ -452,9 +452,30 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
     PlasticDamageParameters &rPDParameters
 )
 {
+        double K0;
+        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
+        const double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
+        const double E = rValues.GetMaterialProperties()[YOUNG_MODULUS];
+        const double factor = std::pow(K0, 2) / E;
+        const double chi = (factor + g + std::sqrt(factor * (5.0 / 4.0 * factor + 2.0 * g))) / (0.5 * factor - g);
+        const double chi_square = std::pow(chi, 2);
+        const double max_threshold = (chi_square * K0) / (chi_square - 1.0);
+        const double limit_factor = 0.999;
+
+
+
+
+
+
+
+
+
+
+
     double old_threshold = rPDParameters.Threshold;
     if (std::abs(rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters)) < 1.0e-15) {
         old_threshold += 1.0e-4* rPDParameters.Threshold;
+        if (old_threshold > limit_factor*max_threshold) old_threshold -= 4.0*1.0e-4* rPDParameters.Threshold;
     }
     double residual = 1.0;
     double rel_residual = 1.0;
@@ -466,10 +487,12 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
 
     while (residual > nr_tol && iteration < max_iter && rel_residual > nr_tol) {
         derivative = rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
-        if (std::abs(derivative) > 0.0)
+        if (std::abs(derivative) > 0.0) {
             new_threshold = old_threshold - (1.0 / derivative) * rF(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
-        else
+            new_threshold = (new_threshold > limit_factor*max_threshold) ? limit_factor*max_threshold : new_threshold;
+        } else {
             break;
+        }
         rel_residual = std::abs(new_threshold - old_threshold);
         residual = rF(rPDParameters.TotalDissipation, new_threshold, rValues, rPDParameters);
         old_threshold = new_threshold;
