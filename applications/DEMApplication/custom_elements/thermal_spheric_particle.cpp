@@ -63,8 +63,10 @@ namespace Kratos
 
     // Clear maps
     if (this->Is(DEMFlags::HAS_FRICTION_HEAT)) {
-      mNeighborLocalRelativeVelocity.clear();
-      mNeighborLocalContactForce.clear();
+      mNeighborParticleLocalRelativeVelocity.clear();
+      mNeighborParticleLocalContactForce.clear();
+      mNeighborWallLocalRelativeVelocity.clear();
+      mNeighborWallLocalContactForce.clear();
     }
   }
 
@@ -161,7 +163,7 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::StoreBallToBallForcesInfo(SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3]) {
+  void ThermalSphericParticle<TBaseElement>::StoreBallToBallForcesInfo(SphericParticle* neighbor, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3]) {
     KRATOS_TRY
 
     if (!this->Is(DEMFlags::HAS_FRICTION_HEAT))
@@ -176,9 +178,30 @@ namespace Kratos
     std::vector<double> LocalForce{ LocalContactForce[2], sqrt(LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]) };
 
     // Store information
-    SphericParticle* neighbour = data_buffer.mpOtherParticle;
-    mNeighborLocalRelativeVelocity[neighbour] = LocalRelativeVelocity;
-    mNeighborLocalContactForce[neighbour]     = LocalForce;
+    mNeighborParticleLocalRelativeVelocity[neighbor] = LocalRelativeVelocity;
+    mNeighborParticleLocalContactForce[neighbor]     = LocalForce;
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::StoreBallToRigidFaceForcesInfo(DEMWall* neighbor, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3]) {
+    KRATOS_TRY
+
+    if (!this->Is(DEMFlags::HAS_FRICTION_HEAT))
+      return;
+
+    // Local relavive velocity components (normal and tangential)
+    std::vector<double> LocalRelativeVelocity{ data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) };
+
+    // Local contact force components (normal and tangential)
+    double LocalContactForce[3] = { 0.0 };
+    GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, GlobalContactForce, LocalContactForce);
+    std::vector<double> LocalForce{ LocalContactForce[2], sqrt(LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]) };
+
+    // Store information
+    mNeighborWallLocalRelativeVelocity[neighbor] = LocalRelativeVelocity;
+    mNeighborWallLocalContactForce[neighbor]     = LocalForce;
 
     KRATOS_CATCH("")
   }
@@ -418,15 +441,19 @@ namespace Kratos
       return;
 
     // Model parameters
-    double friction_coeff = GetContactDynamicFrictionCoefficient();
+    double friction_coeff   = GetContactDynamicFrictionCoefficient();
     double velocity_tangent = 0.0;
     double force_normal     = 0.0;
 
-    if (mNeighborType & PARTICLE_NEIGHBOR && mNeighborLocalRelativeVelocity.count(mNeighbor_p))
-      velocity_tangent = mNeighborLocalRelativeVelocity[mNeighbor_p][1];
+    if (mNeighborType & PARTICLE_NEIGHBOR && mNeighborParticleLocalRelativeVelocity.count(mNeighbor_p))
+      velocity_tangent = mNeighborParticleLocalRelativeVelocity[mNeighbor_p][1];
+    else if (mNeighborType & WALL_NEIGHBOR && mNeighborWallLocalRelativeVelocity.count(mNeighbor_w))
+      velocity_tangent = mNeighborWallLocalRelativeVelocity[mNeighbor_w][1];
 
-    if (mNeighborType & PARTICLE_NEIGHBOR && mNeighborLocalContactForce.count(mNeighbor_p))
-      force_normal = mNeighborLocalContactForce[mNeighbor_p][0];
+    if (mNeighborType & PARTICLE_NEIGHBOR && mNeighborParticleLocalContactForce.count(mNeighbor_p))
+      force_normal = mNeighborParticleLocalContactForce[mNeighbor_p][0];
+    else if (mNeighborType & WALL_NEIGHBOR && mNeighborWallLocalContactForce.count(mNeighbor_w))
+      force_normal = mNeighborWallLocalContactForce[mNeighbor_w][0];
 
     // Partition coefficient
     double k1 = GetParticleConductivity();
