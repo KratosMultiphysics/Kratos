@@ -37,7 +37,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
                 "gravity": [0, 0, 0],
                 "ambient_temperature" : 0.15
             },
-
+            "mesh_element_size"    : 0.0,
             "fluid_solver_settings": {
                 "solver_type": "navier_stokes_solver_vmsmonolithic",
                 "model_import_settings": {
@@ -77,10 +77,16 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         from KratosMultiphysics.ConvectionDiffusionApplication import python_solvers_wrapper_convection_diffusion
         self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,self.settings["thermal_solver_settings"],"OpenMP")
 
+
+
+        self.readmeshSettings()
+
         self.readenvironmentSettings()
 
         #self.readLasserSettings()
 	#Laser settings
+
+        
 
         self.readMaterialCharacterization()
 
@@ -101,6 +107,13 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
         self.HeatSource = PfemM.HeatSource()
 
+    def readmeshSettings(self):
+
+        with open("ProjectParameters.json",'r') as parameter_file:
+            project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+        self.mesh_element_size=project_parameters["problem_data"]["mesh_element_size"]
+
     def readenvironmentSettings(self):
 
         with open("ProjectParameters.json",'r') as parameter_file:
@@ -109,7 +122,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
         self.gravity = []
 	#self.gravity= []
-        ambient_temperature=project_parameters["problem_data"]["environment_settings"]["ambient_temperature"]
+        self.ambient_temperature=project_parameters["problem_data"]["environment_settings"]["ambient_temperature"]
         self.gravity=project_parameters["problem_data"]["environment_settings"]["gravity"]
 
 
@@ -367,9 +380,10 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
         for node in self.fluid_solver.main_model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_X,0,self.gravity[0].GetDouble())
-
             node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Y,0,self.gravity[1].GetDouble())
             node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Z,0,self.gravity[2].GetDouble())
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,0,self.ambient_temperature.GetDouble())
+
 
 
 
@@ -535,10 +549,10 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
 
         for node in self.fluid_solver.main_model_part.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,0,0.15);
-            node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,0,0.0014);
-            node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,0,0.10);
-            #node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,0,0.095);
+            #node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,0,0.15);
+            #node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,0,0.0014);
+            #node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,0,0.10);
+            node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,0,self.mesh_element_size.GetDouble());
 
         for node in (self.fluid_solver.main_model_part).Nodes:
             node.Set(KratosMultiphysics.TO_ERASE, False)
