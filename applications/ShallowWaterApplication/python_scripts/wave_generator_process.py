@@ -43,6 +43,8 @@ class WaveGeneratorProcess(KM.Process):
         if self.settings.Has("wave_amplitude"):
             default_parameters.SetDouble("wave_amplitude", 0.0)
 
+        return default_parameters
+
 
     def __init__(self, model, settings ):
         """"""
@@ -58,23 +60,21 @@ class WaveGeneratorProcess(KM.Process):
         self.formulation = self.__formulation[self.settings["formulation"].GetString()]
         self.fix_dofs = True
 
-        # Wave parameters
-        wave_theory_class = self.__wave_theory[self.settings["wave_theory"].GetString()]
-        depth = self._CalculateMeanDepth()
-        gravity = self.model_part.ProcessInfo[KM.GRAVITY_Z]
-        self.wave_theory = wave_theory_class(depth, gravity)
-
 
     def ExecuteInitialize(self):
         """Initialize the wave theory and the periodic function."""
 
         # Setup the wave theory
-        wave_theory_utilities.SetWaveSpecifications(self.wave_theory, self.settings, self.model_part.ProcessInfo)
+        wave_theory_class = self.__wave_theory[self.settings["wave_theory"].GetString()]
+        depth = self._CalculateMeanDepth()
+        gravity = self.model_part.ProcessInfo[KM.GRAVITY_Z]
+        wave_theory = wave_theory_class(depth, gravity)
+        wave_theory_utilities.SetWaveSpecifications(wave_theory, self.settings, self.model_part.ProcessInfo)
 
         # Creation of the parameters for the c++ process
         velocity_parameters = KM.Parameters("""{}""")
-        velocity_parameters.AddEmptyValue("amplitude").SetDouble(self.wave_theory.horizontal_velocity)
-        velocity_parameters.AddEmptyValue("period").SetDouble(self.wave_theory.period)
+        velocity_parameters.AddEmptyValue("amplitude").SetDouble(wave_theory.horizontal_velocity)
+        velocity_parameters.AddEmptyValue("period").SetDouble(wave_theory.period)
         velocity_parameters.AddEmptyValue("phase_shift").SetDouble(0.0)
         velocity_parameters.AddEmptyValue("vertical_shift").SetDouble(0.0)
 
@@ -109,6 +109,6 @@ class WaveGeneratorProcess(KM.Process):
 
 
     def _CalculateMeanDepth(self):
-        sum_depths = -KM.VariableUtils().SumHistoricalVariable(SW.TOPOGRAPHY, self.model_part, 0)
+        sum_depths = -KM.VariableUtils().SumHistoricalNodeScalarVariable(SW.TOPOGRAPHY, self.model_part, 0)
         mean_depth = sum_depths / self.model_part.NumberOfNodes()
         return mean_depth
