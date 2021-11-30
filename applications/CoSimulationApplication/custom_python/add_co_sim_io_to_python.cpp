@@ -35,8 +35,9 @@
 namespace Kratos {
 namespace Python {
 
-// BIG TODO: make OMP parallel most loops
-// TOD use elements or conditions?? => how to switch?
+// TODO use elements or conditions?? => how to switch?
+// TODO using initial or current coordinates?? => how to switch?
+
 namespace CoSimIO_Wrappers { // helpers namespace
 
 // creating static buffers such that memory does not constantly have to be reallocated during the data-exchange
@@ -212,7 +213,6 @@ void  AddCoSimIOToPython(pybind11::module& m)
         .value("Condition",         DataLocation::Condition)
         .value("ModelPart",         DataLocation::ModelPart)
         ;
-
 }
 
 }  // namespace Python.
