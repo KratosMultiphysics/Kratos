@@ -435,8 +435,17 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
             case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::InitialHardeningExponentialSoftening: {
                 ResidualFunctionType implicit_function   = ExponentialHardeningImplicitFunction();
                 ResidualFunctionType function_derivative = ExponentialHardeningImplicitFunctionDerivative();
-                rPDParameters.Threshold = CalculateThresholdImplicitExpression(implicit_function, function_derivative, rValues, rPDParameters);
-                rPDParameters.Slope     = CalculateSlopeFiniteDifferences(implicit_function, function_derivative, rValues, rPDParameters);
+                double K0;
+                GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
+                const double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
+                const double E = rValues.GetMaterialProperties()[YOUNG_MODULUS];
+                const double factor = std::pow(K0, 2) / E;
+                const double chi = (factor + g + std::sqrt(factor * (5.0 / 4.0 * factor + 2.0 * g))) / (0.5 * factor - g);
+                const double chi_square = std::pow(chi, 2);
+                const double max_threshold = (chi_square * K0) / (chi_square - 1.0);
+                const double limit_factor = 1.0-1.0e-15;
+                rPDParameters.Threshold = CalculateThresholdImplicitExpression(implicit_function, function_derivative, rValues, rPDParameters, max_threshold*limit_factor);
+                rPDParameters.Slope     = CalculateSlopeFiniteDifferences(implicit_function, function_derivative, rValues, rPDParameters, max_threshold*limit_factor);
                 break;
             }
         }
@@ -449,35 +458,16 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
     ResidualFunctionType& rF,
     ResidualFunctionType& rdF_dk,
     ConstitutiveLaw::Parameters& rValues,
-    PlasticDamageParameters &rPDParameters
+    PlasticDamageParameters &rPDParameters,
+    const double MaxThreshold = std::numeric_limits<double>::max()
 )
 {
-        double K0;
-        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
-        const double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
-        const double E = rValues.GetMaterialProperties()[YOUNG_MODULUS];
-        const double factor = std::pow(K0, 2) / E;
-        const double chi = (factor + g + std::sqrt(factor * (5.0 / 4.0 * factor + 2.0 * g))) / (0.5 * factor - g);
-        const double chi_square = std::pow(chi, 2);
-        const double max_threshold = (chi_square * K0) / (chi_square - 1.0);
-        const double limit_factor = 1.0-1.0e-15;
-
-
-
-
-
-
-
-
-
-
-
     double old_threshold = rPDParameters.Threshold;
-    const double fact = 1.0e-7; 
+    const double perturbation = 1.0e-4; 
     if (std::abs(rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters)) < machine_tolerance) {
-        old_threshold += fact* rPDParameters.Threshold;
-        if (old_threshold >= limit_factor*max_threshold)
-            old_threshold -= 2.0*fact* rPDParameters.Threshold;
+        old_threshold += perturbation* rPDParameters.Threshold;
+        if (old_threshold >= MaxThreshold)
+            old_threshold -= 2.0*perturbation* rPDParameters.Threshold;
     }
     double residual = 1.0;
     double rel_residual = 1.0;
@@ -491,8 +481,8 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
         derivative = rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
         if (std::abs(derivative) > 0.0) {
             new_threshold = old_threshold - (1.0 / derivative) * rF(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters);
-            if (new_threshold >= limit_factor*max_threshold) {
-                new_threshold = limit_factor*max_threshold;
+            if (new_threshold >= MaxThreshold) {
+                new_threshold = MaxThreshold;
                 break;
             }
         } else {
@@ -514,15 +504,15 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateSlopeFiniteDif
     ResidualFunctionType& rF,
     ResidualFunctionType& rdF_dk,
     ConstitutiveLaw::Parameters& rValues,
-    PlasticDamageParameters &rPDParameters
+    PlasticDamageParameters &rPDParameters,
+    const double MaxThreshold = std::numeric_limits<double>::max()
 )
 {
     const double current_threshold = rPDParameters.Threshold;
-    // const double perturbation = std::max(1.0e-8 * rPDParameters.PlasticDissipation, 1.0e-8);
     const double perturbation = 1.0e-7;
 
     rPDParameters.TotalDissipation += perturbation;
-    const double perturbed_threshold = CalculateThresholdImplicitExpression(rF, rdF_dk, rValues, rPDParameters);
+    const double perturbed_threshold = CalculateThresholdImplicitExpression(rF, rdF_dk, rValues, rPDParameters, MaxThreshold);
     rPDParameters.TotalDissipation -= perturbation;
 
     return (perturbed_threshold - current_threshold) / perturbation;

@@ -560,7 +560,8 @@ public:
         ResidualFunctionType &rF,
         ResidualFunctionType &rdF_dk,
         ConstitutiveLaw::Parameters &rValues,
-        PlasticDamageParameters &rPDParameters);
+        PlasticDamageParameters &rPDParameters,
+        const double MaxThreshold = std::numeric_limits<double>::max());
 
     /**
      * @brief This method computes the slope or
@@ -571,7 +572,8 @@ public:
         ResidualFunctionType &rF,
         ResidualFunctionType &rdF_dk,
         ConstitutiveLaw::Parameters &rValues,
-        PlasticDamageParameters &rPDParameters);
+        PlasticDamageParameters &rPDParameters,
+        const double MaxThreshold = std::numeric_limits<double>::max());
 
     /**
      * @brief Implicit function that relates the
