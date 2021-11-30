@@ -79,6 +79,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   // Calculate right hand side
   void CalculateRightHandSide(const ProcessInfo& r_process_info, double dt, const array_1d<double, 3>& gravity) override;
   void ComputeHeatFluxes(const ProcessInfo& r_process_info);
+  void StoreBallToBallForcesInfo(SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3]) override;
 
   // Finalization methods
   void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
@@ -234,10 +235,12 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   bool is_time_to_solve;
 
   // Neighbor data
-  ThermalSphericParticle<TBaseElement>* mNeighbor_p;
-  DEMWall*                              mNeighbor_w;
-  int                                   mNeighborType;
-  int                                   mNeighborIndex;
+  ThermalSphericParticle<TBaseElement>*           mNeighbor_p;
+  DEMWall*                                        mNeighbor_w;
+  int                                             mNeighborType;
+  int                                             mNeighborIndex;
+  std::map<SphericParticle*, std::vector<double>> mNeighborLocalRelativeVelocity;
+  std::map<SphericParticle*, std::vector<double>> mNeighborLocalContactForce;
 
   // Interaction properties
   bool   mNeighborInContact;         // flag for contact interaction
