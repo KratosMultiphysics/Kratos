@@ -120,6 +120,7 @@ class RigidBodySolver(object):
         self.C = np.zeros((self.system_size,self.system_size)) # Damping matrix
         self.K = np.zeros((self.system_size,self.system_size)) # Stiffness matrix
         self.modulus_self_weight = np.zeros(self.system_size) # Gravity acceleration
+        self.modulus_external_force = np.zeros(self.system_size) 
         self.initial_displacement = np.zeros(self.system_size)
         self.initial_velocity = np.zeros(self.system_size)
         self.initial_acceleration = np.zeros(self.system_size)
@@ -132,6 +133,8 @@ class RigidBodySolver(object):
             self.C[index][index] = dof_params[dof]['system_parameters']['damping'].GetDouble()
             self.K[index][index] = dof_params[dof]['system_parameters']['stiffness'].GetDouble()
             self.modulus_self_weight[index] = dof_params[dof]['system_parameters']['modulus_self_weight'].GetDouble()
+            self.modulus_external_force[index] = dof_params[dof]['system_parameters']['modulus_external_force'].GetDouble()
+
             self.initial_displacement[index] = dof_params[dof]["initial_conditions"]["displacement"].GetDouble()
             self.initial_velocity[index] = dof_params[dof]["initial_conditions"]["velocity"].GetDouble()
             self.load_impulse[index] = dof_params[dof]["initial_conditions"]["load_impulse"].GetDouble()
@@ -455,7 +458,7 @@ class RigidBodySolver(object):
                 elif identifier == "ACCELERATION":
                     self.a[index, buffer_idx] = value
                 elif identifier in ["FORCE", "MOMENT", "FORCE_ALL"]:
-                    self.external_load[index] = value
+                    self.external_load[index] = value*self.modulus_external_force
                 elif identifier in ["ROOT_POINT_DISPLACEMENT", "ROOT_POINT_ROTATION", "ROOT_POINT_DISPLACEMENT_ALL"]:
                     self.external_root_point_displ[index] = value
                 else:

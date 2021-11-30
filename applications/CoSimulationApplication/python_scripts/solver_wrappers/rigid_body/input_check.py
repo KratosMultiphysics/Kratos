@@ -56,7 +56,9 @@ def _ValidateAndAssignRigidBodySolverDefaults(parameters, available_dofs):
             "mass"      : 1.0,
             "stiffness" : 1.0,
             "damping"   : 0.0,
-            "modulus_self_weight": 0.0
+            "modulus_self_weight": 0.0,
+            "modulus_external_force" : 1.0
+
         },
         "initial_conditions":{
             "displacement"  : 0.0,
