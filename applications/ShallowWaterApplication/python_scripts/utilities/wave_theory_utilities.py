@@ -1,6 +1,7 @@
 from numpy import pi, sqrt, tanh
 from scipy.optimize import root
 import KratosMultiphysics as KM
+import KratosMultiphysics.ShallowWaterApplication as SW
 
 
 class WaveTheory:
@@ -129,3 +130,48 @@ class ShallowTheory(WaveTheory):
     def _PhaseSpeed(self, wavenumber):
         gh = self.gravity * self.depth
         return sqrt(gh)
+
+
+def SetWaveSpecifications(wave_theory, parameters=KM.Parameters(), process_info=KM.ProcessInfo()):
+    # Check if the period is provided
+    if parameters.Has("wave_period"):
+        period = parameters["wave_period"].GetDouble()
+        wave_period_is_provided = True
+    elif process_info.Has(SW.PERIOD):
+        period = process_info.GetValue(SW.PERIOD)
+        wave_period_is_provided = True
+    else:
+        wave_period_is_provided = False
+
+    # Check if the wavelength is provided
+    if parameters.Has("wave_length"):
+        wavelength = parameters["wave_length"].GetDouble()
+        wave_length_is_provided = True
+    elif process_info.Has(SW.WAVELENGTH):
+        wavelength = process_info.GetValue(SW.WAVELENGTH)
+        wave_length_is_provided = True
+    else:
+        wave_length_is_provided = False
+
+    # Check if the wave specification is unique
+    if wave_period_is_provided and wave_length_is_provided:
+        raise Exception("WaveGeneratorProcess. Provide the period or the wavelength. Both parameters are incompatible.")
+
+    if not wave_period_is_provided and not wave_length_is_provided:
+        raise Exception("WaveGeneratorProcess. Please, specify the wavelength or the period in the project paramenters or hte process info.")
+
+    # Check if the amplitude is provided
+    if parameters.Has("wave_amplitude"):
+        amplitude = parameters["wave_amplitude"].GetDouble()
+    elif process_info.Has(SW.AMPLITUDE):
+        amplitude = process_info.GetValue(SW.AMPLITUDE)
+    else:
+        raise Exception("WaveGeneratorProcess. Please, specify the amplitude in the project parameters or the process info.")
+
+    # Apply the user settings
+    if wave_length_is_provided:
+        wave_theory.SetWavelength(wavelength)
+    else:
+        wave_theory.SetPeriod(period)
+    
+    wave_theory.SetAmplitude(amplitude)

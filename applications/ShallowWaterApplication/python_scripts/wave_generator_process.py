@@ -2,7 +2,6 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
 from KratosMultiphysics.ShallowWaterApplication.utilities import wave_theory_utilities
 
-from math import pi, sqrt, tanh
 
 def Factory(settings, Model):
     if not isinstance(settings, KM.Parameters):
@@ -67,13 +66,16 @@ class WaveGeneratorProcess(KM.Process):
 
 
     def ExecuteInitialize(self):
-        self._SetupWaveTheory()
+        """Initialize the wave theory and the periodic function."""
+
+        # Setup the wave theory
+        wave_theory_utilities.SetWaveSpecifications(self.wave_theory, self.settings, self.model_part.ProcessInfo)
 
         # Creation of the parameters for the c++ process
         velocity_parameters = KM.Parameters("""{}""")
-        velocity_parameters.AddEmptyValue("amplitude").SetDouble(velocity_amplitude)
-        velocity_parameters.AddEmptyValue("period").SetDouble(self.wave_period)
-        velocity_parameters.AddEmptyValue("phase_shift").SetDouble(self.wave_period / 4)
+        velocity_parameters.AddEmptyValue("amplitude").SetDouble(self.wave_theory.horizontal_velocity)
+        velocity_parameters.AddEmptyValue("period").SetDouble(self.wave_theory.period)
+        velocity_parameters.AddEmptyValue("phase_shift").SetDouble(0.0)
         velocity_parameters.AddEmptyValue("vertical_shift").SetDouble(0.0)
 
         self.velocity_process = SW.ApplySinusoidalFunctionToVector(self.model_part, KM.VELOCITY, velocity_parameters)
@@ -110,49 +112,3 @@ class WaveGeneratorProcess(KM.Process):
         sum_depths = -KM.VariableUtils().SumHistoricalVariable(SW.TOPOGRAPHY, self.model_part, 0)
         mean_depth = sum_depths / self.model_part.NumberOfNodes()
         return mean_depth
-
-
-    def _SetupWaveTheory(self):
-
-        # Check if the period is provided
-        if self.settings.Has("wave_period"):
-            period = self.settings["wave_period"].GetDouble()
-            wave_period_is_provided = True
-        elif self.model_part.ProcessInfo.Has(SW.PERIOD):
-            period = self.model_part.ProcessInfo.GetValue(SW.PERIOD)
-            wave_period_is_provided = True
-        else:
-            wave_period_is_provided = False
-
-        # Check if the wavelength is provided
-        if self.settings.Has("wave_length"):
-            wavelength = self.settings["wave_length"].GetDouble()
-            wave_length_is_provided = True
-        elif self.model_part.ProcessInfo.Has(SW.WAVELENGTH):
-            wavelength = self.model_part.ProcessInfo.GetValue(SW.WAVELENGTH)
-            wave_length_is_provided = True
-        else:
-            wave_length_is_provided = False
-
-        # Check if the wave specification is unique
-        if wave_period_is_provided and wave_length_is_provided:
-            raise Exception("WaveGeneratorProcess. Provide the period or the wavelength. Both parameters are incompatible.")
-
-        if not wave_period_is_provided and not wave_length_is_provided:
-            raise Exception("WaveGeneratorProcess. Please, specify the wavelength or the period in the project paramenters or hte process info.")
-
-        # Check if the amplitude is provided
-        if self.wave_amplitude_is_provided:
-            amplitude = self.settings["wave_amplitude"].GetDouble()
-        elif self.model_part.ProcessInfo.Has(SW.AMPLITUDE):
-            amplitude = self.model_part.ProcessInfo.GetValue(SW.AMPLITUDE)
-        else:
-            raise Exception("WaveGeneratorProcess. Please, specify the amplitude in the project parameters or the process info.")
-    
-        # Apply the user settings
-        if wave_length_is_provided:
-            self.wave_theory.SetWavelength(wavelength)
-        else:
-            self.wave_theory.SetPeriod(period)
-        
-        self.wave_theory.SetAmplitude(amplitude)
