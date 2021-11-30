@@ -6,11 +6,11 @@ import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
 from KratosMultiphysics.KratosUnittest import TestCase
-from KratosMultiphysics.ShapeOptimizationApplication.response_functions.AM_boundary_slope_angle import AMBoundarySlopeAngleResponseFunction
-from KratosMultiphysics.ShapeOptimizationApplication.response_functions.AM_boundary_roughness_angle import AMBoundaryRoughnessAngleResponseFunction
+from KratosMultiphysics.ShapeOptimizationApplication.response_functions.am_boundary_slope_angle import AMBoundarySlopeAngleResponseFunction
+from KratosMultiphysics.ShapeOptimizationApplication.response_functions.am_boundary_roughness_angle import AMBoundaryRoughnessAngleResponseFunction
 
 
-class FaceAngleTest(TestCase):
+class AMAnglesTest(TestCase):
 
     def _test_slope(self, settings, ref_gradient, ref_value):
         model = KM.Model()

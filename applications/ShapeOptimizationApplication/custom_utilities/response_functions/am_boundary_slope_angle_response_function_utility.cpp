@@ -13,7 +13,7 @@
 // External includes
 
 // Project includes
-#include "custom_utilities/response_functions/AM_boundary_slope_angle_response_function_utility.h"
+#include "custom_utilities/response_functions/am_boundary_slope_angle_response_function_utility.h"
 #include "shape_optimization_application.h"
 #include "utilities/variable_utils.h"
 

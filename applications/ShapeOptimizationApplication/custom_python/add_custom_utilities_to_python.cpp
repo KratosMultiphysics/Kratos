@@ -34,8 +34,8 @@
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/search_based_functions.h"
 #include "custom_utilities/response_functions/face_angle_response_function_utility.h"
-#include "custom_utilities/response_functions/AM_boundary_slope_angle_response_function_utility.h"
-#include "custom_utilities/response_functions/AM_boundary_roughness_angle_response_function_utility.h"
+#include "custom_utilities/response_functions/am_boundary_slope_angle_response_function_utility.h"
+#include "custom_utilities/response_functions/am_boundary_roughness_angle_response_function_utility.h"
 
 // ==============================================================================
 

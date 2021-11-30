@@ -12,8 +12,8 @@ from . import plane_based_packaging
 from . import mesh_based_packaging
 from . import surface_normal_shape_change
 from . import face_angle
-from . import AM_boundary_slope_angle
-from . import AM_boundary_roughness_angle
+from . import am_boundary_slope_angle
+from . import am_boundary_roughness_angle
 from . import airfoil_2d_responses
 
 def CreateResponseFunction(response_id, response_settings, model):
@@ -28,9 +28,9 @@ def CreateResponseFunction(response_id, response_settings, model):
     elif response_type == "face_angle":
         return face_angle.FaceAngleResponseFunction(response_id, response_settings, model)
     elif response_type == "AM_boundary_slope_angle":
-        return AM_boundary_slope_angle.AMBoundarySlopeAngleResponseFunction(response_id, response_settings, model)        
+        return am_boundary_slope_angle.AMBoundarySlopeAngleResponseFunction(response_id, response_settings, model)        
     elif response_type == "AM_boundary_roughness_angle":
-        return AM_boundary_roughness_angle.AMBoundaryRoughnessAngleResponseFunction(response_id, response_settings, model)          
+        return am_boundary_roughness_angle.AMBoundaryRoughnessAngleResponseFunction(response_id, response_settings, model)          
     elif response_type == "airfoil_angle_of_attack":
         return airfoil_2d_responses.AngleOfAttackResponseFunction(response_id, response_settings, model)
     elif response_type == "airfoil_chord_length":
