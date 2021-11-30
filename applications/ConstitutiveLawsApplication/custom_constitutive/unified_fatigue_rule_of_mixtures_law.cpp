@@ -28,13 +28,13 @@ namespace Kratos
 {
 ConstitutiveLaw::Pointer UnifiedFatigueRuleOfMixturesLaw::Create(Kratos::Parameters NewParameters) const
 {
-    const double fiber_volumetric_participation = NewParameters["combination_factors"][1].GetDouble();
+    const double high_cycle_fatigue_initial_volumetric_participation = NewParameters["combination_factors"][1].GetDouble();
     const int voigt_size = 6;
     Vector parallel_directions(voigt_size);
-    for (IndexType i_comp = 0; i_comp < voigt_size; ++i_comp) {
-        parallel_directions[i_comp] = NewParameters["parallel_behaviour_directions"][i_comp].GetInt();
-    }
-    return Kratos::make_shared<UnifiedFatigueRuleOfMixturesLaw>(fiber_volumetric_participation, parallel_directions);
+    // for (IndexType i_comp = 0; i_comp < voigt_size; ++i_comp) {
+    //     parallel_directions[i_comp] = NewParameters["parallel_behaviour_directions"][i_comp].GetInt();
+    // }
+    return Kratos::make_shared<UnifiedFatigueRuleOfMixturesLaw>(high_cycle_fatigue_initial_volumetric_participation, parallel_directions);
 }
 
 /***********************************************************************************/
@@ -122,28 +122,16 @@ void UnifiedFatigueRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
-        // Total strain vector
+        // Total strain vector hich is equal to component CLs strains
         Vector& r_strain_vector = rValues.GetStrainVector();
-        Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
-        Vector fiber_stress_vector, matrix_stress_vector;
-        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector,
-                                                    fiber_stress_vector,
-                                                    matrix_stress_vector,
-                                                    r_material_properties,
-                                                    rValues,
-                                                    serial_strain_matrix_old);
+
+        // This method integrates the stress according to each simple material CL
+        Vector high_cycle_fatigue_stress_vector, ultra_low_cycle_fatigue_stress_vector;
+        this->IntegrateStressesOfHCFAndULCFModels(rValues, r_strain_vector, r_strain_vector, high_cycle_fatigue_stress_vector, ultra_low_cycle_fatigue_stress_vector);
+
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
-        noalias(r_integrated_stress_vector) = mFiberVolumetricParticipation * fiber_stress_vector
-                                     + (1.0 - mFiberVolumetricParticipation) * matrix_stress_vector;
-
-        // Previous flags restored
-        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-
-        if (r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            this->CalculateTangentTensor(rValues);
-        }
+        noalias(r_integrated_stress_vector) = mHCFVolumetricParticipation * high_cycle_fatigue_stress_vector
+                                     + (1.0 - mHCFVolumetricParticipation) * ultra_low_cycle_fatigue_stress_vector;
     }
 
 } // End CalculateMaterialResponseCauchy
@@ -160,7 +148,7 @@ void UnifiedFatigueRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
 )
 {
     const std::size_t voigt_size = this->GetStrainSize();
-    const int num_parallel_components = inner_prod(mParallelDirections, mParallelDirections);
+    const int num_parallel_components = 1;
     const int num_serial_components = voigt_size - num_parallel_components;
 
     Matrix parallel_projector(voigt_size, num_parallel_components), serial_projector(num_serial_components, voigt_size);
@@ -215,7 +203,7 @@ void UnifiedFatigueRuleOfMixturesLaw::CorrectSerialStrainMatrix(
 )
 {
     const std::size_t voigt_size = this->GetStrainSize();
-    const int num_parallel_components = inner_prod(mParallelDirections, mParallelDirections);
+    const int num_parallel_components = 1;
     const int num_serial_components = voigt_size - num_parallel_components;
 
     auto& r_material_properties = rValues.GetMaterialProperties();
@@ -244,12 +232,12 @@ void UnifiedFatigueRuleOfMixturesLaw::CorrectSerialStrainMatrix(
 
     // Compute the tangent tensor of the matrix
     values_matrix.SetMaterialProperties(r_props_matrix_cl);
-    mpMatrixConstitutiveLaw->CalculateMaterialResponseCauchy(values_matrix);
+    mpHCFConstitutiveLaw->CalculateMaterialResponseCauchy(values_matrix);
     matrix_tangent_tensor = values_matrix.GetConstitutiveMatrix();
 
     // Compute the tangent tensor of the fiber
     values_fiber.SetMaterialProperties(r_props_fiber_cl);
-    mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
+    mpULCFConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
     fiber_tangent_tensor = values_fiber.GetConstitutiveMatrix();
 
     noalias(matrix_tangent_tensor_ss) = prod(rSerialProjector, Matrix(prod(matrix_tangent_tensor,trans(rSerialProjector))));
@@ -345,13 +333,44 @@ void UnifiedFatigueRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
 
     // Integrate Stress of the matrix
     values_matrix.SetMaterialProperties(r_props_matrix_cl);
-    mpMatrixConstitutiveLaw->CalculateMaterialResponseCauchy(values_matrix);
+    mpHCFConstitutiveLaw->CalculateMaterialResponseCauchy(values_matrix);
     rMatrixStressVector = values_matrix.GetStressVector();
 
     // Integrate Stress of the fiber
     values_fiber.SetMaterialProperties(r_props_fiber_cl);
-    mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
+    mpULCFConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
     rFiberStressVector = values_fiber.GetStressVector();
+}
+/***********************************************************************************/
+/***********************************************************************************/
+void UnifiedFatigueRuleOfMixturesLaw::IntegrateStressesOfHCFAndULCFModels(
+    ConstitutiveLaw::Parameters& rValues,
+    Vector rHCFStrainVector,
+    Vector rULCFStrainVector,
+    Vector& rHCFStressVector,
+    Vector& rULCFStressVector
+)
+{
+    auto& r_material_properties = rValues.GetMaterialProperties();
+    const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
+    const auto& r_props_HCF_cl = *(it_cl_begin);
+    const auto& r_props_ULCF_cl = *(it_cl_begin + 1);
+
+    ConstitutiveLaw::Parameters values_HCF  = rValues;
+    ConstitutiveLaw::Parameters values_ULCF = rValues;
+
+    values_HCF.SetStrainVector(rHCFStrainVector);
+    values_ULCF.SetStrainVector(rULCFStrainVector);
+
+    // Integrate Stress of the HCF part
+    values_HCF.SetMaterialProperties(r_props_HCF_cl);
+    mpHCFConstitutiveLaw->CalculateMaterialResponseCauchy(values_HCF);
+    rHCFStressVector = values_HCF.GetStressVector();
+
+    // Integrate Stress of the UÑCF part
+    values_ULCF.SetMaterialProperties(r_props_ULCF_cl);
+    mpULCFConstitutiveLaw->CalculateMaterialResponseCauchy(values_ULCF);
+    rULCFStressVector = values_ULCF.GetStressVector();
 }
 
 /***********************************************************************************/
@@ -434,7 +453,7 @@ void UnifiedFatigueRuleOfMixturesLaw::CalculateSerialParallelProjectionMatrices(
 )
 {
     const std::size_t voigt_size = this->GetStrainSize();
-    const int num_parallel_components = inner_prod(mParallelDirections, mParallelDirections);
+    const int num_parallel_components = 1;
     KRATOS_ERROR_IF(num_parallel_components == 0) << "There is no parallel direction!" << std::endl;
     const int num_serial_components = voigt_size - num_parallel_components;
     rParallelProjector = ZeroMatrix(voigt_size, num_parallel_components);
@@ -442,13 +461,9 @@ void UnifiedFatigueRuleOfMixturesLaw::CalculateSerialParallelProjectionMatrices(
 
     int parallel_counter = 0, serial_counter = 0;
     for (IndexType i_comp = 0; i_comp < voigt_size; ++i_comp) {
-        if (mParallelDirections[i_comp] == 1) {
-            rParallelProjector(i_comp, parallel_counter) = 1.0;
-            parallel_counter++;
-        } else {
+
             rSerialProjector(serial_counter, i_comp) = 1.0;
             serial_counter++;
-        }
     }
 }
 
@@ -582,8 +597,8 @@ void UnifiedFatigueRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
         values_fiber.SetStrainVector(fiber_strain_vector);
         values_matrix.SetStrainVector(matrix_strain_vector);
 
-        mpMatrixConstitutiveLaw->FinalizeMaterialResponseCauchy(values_matrix);
-        mpFiberConstitutiveLaw ->FinalizeMaterialResponseCauchy(values_fiber);
+        mpHCFConstitutiveLaw->FinalizeMaterialResponseCauchy(values_matrix);
+        mpULCFConstitutiveLaw ->FinalizeMaterialResponseCauchy(values_fiber);
     }
 }
 
@@ -596,14 +611,14 @@ double& UnifiedFatigueRuleOfMixturesLaw::GetValue(
     )
 {
     if (rThisVariable == DAMAGE_MATRIX) {
-        return mpMatrixConstitutiveLaw->GetValue(DAMAGE, rValue);
+        return mpHCFConstitutiveLaw->GetValue(DAMAGE, rValue);
     } else if (rThisVariable == DAMAGE_FIBER) {
-         return mpFiberConstitutiveLaw->GetValue(DAMAGE, rValue);
+         return mpULCFConstitutiveLaw->GetValue(DAMAGE, rValue);
     }
-    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
-        return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
-    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
-        return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
+    if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
+        return mpHCFConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else if (mpULCFConstitutiveLaw->Has(rThisVariable)) {
+        return mpULCFConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else {
         return rValue;
     }
@@ -617,10 +632,10 @@ Vector& UnifiedFatigueRuleOfMixturesLaw::GetValue(
     Vector& rValue
     )
 {
-    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
-        return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
-    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
-        return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
+    if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
+        return mpHCFConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else if (mpULCFConstitutiveLaw->Has(rThisVariable)) {
+        return mpULCFConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else {
         return rValue;
     }
@@ -634,10 +649,10 @@ Matrix& UnifiedFatigueRuleOfMixturesLaw::GetValue(
     Matrix& rValue
     )
 {
-    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
-        return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
-    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
-        return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
+    if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
+        return mpHCFConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else if (mpULCFConstitutiveLaw->Has(rThisVariable)) {
+        return mpULCFConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else {
         return rValue;
     }
@@ -648,9 +663,9 @@ Matrix& UnifiedFatigueRuleOfMixturesLaw::GetValue(
 
 bool UnifiedFatigueRuleOfMixturesLaw::Has(const Variable<bool>& rThisVariable)
 {
-    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+    if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
         return true;
-    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+    } else if (mpULCFConstitutiveLaw->Has(rThisVariable)) {
         return true;
     } else {
         return false;
@@ -662,9 +677,9 @@ bool UnifiedFatigueRuleOfMixturesLaw::Has(const Variable<bool>& rThisVariable)
 
 bool UnifiedFatigueRuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
 {
-    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+    if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
         return true;
-    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+    } else if (mpULCFConstitutiveLaw->Has(rThisVariable)) {
         return true;
     } else {
         return false;
@@ -676,9 +691,9 @@ bool UnifiedFatigueRuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
 
 bool UnifiedFatigueRuleOfMixturesLaw::Has(const Variable<Vector>& rThisVariable)
 {
-    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+    if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
         return true;
-    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+    } else if (mpULCFConstitutiveLaw->Has(rThisVariable)) {
         return true;
     } else {
         return false;
@@ -690,9 +705,9 @@ bool UnifiedFatigueRuleOfMixturesLaw::Has(const Variable<Vector>& rThisVariable)
 
 bool UnifiedFatigueRuleOfMixturesLaw::Has(const Variable<Matrix>& rThisVariable)
 {
-    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+    if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
         return true;
-    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+    } else if (mpULCFConstitutiveLaw->Has(rThisVariable)) {
         return true;
     } else {
         return false;
@@ -730,16 +745,16 @@ void UnifiedFatigueRuleOfMixturesLaw::InitializeMaterial(
     const Vector& rShapeFunctionsValues)
 {
     const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
-    const auto r_props_matrix_cl = *(it_cl_begin);
-    const auto r_props_fiber_cl  = *(it_cl_begin + 1);
+    const auto r_props_HCF_cl = *(it_cl_begin);
+    const auto r_props_ULCF_cl  = *(it_cl_begin + 1);
 
-    KRATOS_ERROR_IF_NOT(r_props_matrix_cl.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
-    KRATOS_ERROR_IF_NOT(r_props_fiber_cl.Has(CONSTITUTIVE_LAW))  << "No constitutive law set" << std::endl;
+    KRATOS_ERROR_IF_NOT(r_props_HCF_cl.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
+    KRATOS_ERROR_IF_NOT(r_props_ULCF_cl.Has(CONSTITUTIVE_LAW))  << "No constitutive law set" << std::endl;
 
-    mpMatrixConstitutiveLaw = r_props_matrix_cl[CONSTITUTIVE_LAW]->Clone();
-    mpFiberConstitutiveLaw  = r_props_fiber_cl[CONSTITUTIVE_LAW]->Clone();
-    mpMatrixConstitutiveLaw->InitializeMaterial(r_props_matrix_cl, rElementGeometry, rShapeFunctionsValues);
-    mpFiberConstitutiveLaw ->InitializeMaterial(r_props_fiber_cl, rElementGeometry, rShapeFunctionsValues);
+    mpHCFConstitutiveLaw = r_props_HCF_cl[CONSTITUTIVE_LAW]->Clone();
+    mpULCFConstitutiveLaw  = r_props_ULCF_cl[CONSTITUTIVE_LAW]->Clone();
+    mpHCFConstitutiveLaw->InitializeMaterial(r_props_HCF_cl, rElementGeometry, rShapeFunctionsValues);
+    mpULCFConstitutiveLaw ->InitializeMaterial(r_props_ULCF_cl, rElementGeometry, rShapeFunctionsValues);
 }
 
 /***********************************************************************************/
@@ -982,12 +997,12 @@ Matrix& UnifiedFatigueRuleOfMixturesLaw::CalculateValue(
 
         rValue.clear();
         rParameterValues.SetMaterialProperties(r_prop);
-        mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
+        mpHCFConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
         noalias(rValue) += (1.0 - mFiberVolumetricParticipation) * aux_value;
 
         r_prop = material_properties.GetSubProperties(1);
         rParameterValues.SetMaterialProperties(r_prop);
-        mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
+        mpHCFConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
         noalias(rValue) += (1.0 - mFiberVolumetricParticipation) * aux_value;
 
         // Reset properties

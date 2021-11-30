@@ -85,7 +85,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     * Constructor.
     */
     UnifiedFatigueRuleOfMixturesLaw(double FiberVolParticipation, const Vector& rParallelDirections)
-        : mFiberVolumetricParticipation(FiberVolParticipation), mParallelDirections(rParallelDirections)
+        : mFiberVolumetricParticipation(FiberVolParticipation)
     {
     }
 
@@ -99,8 +99,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
 
     // Copy constructor
     UnifiedFatigueRuleOfMixturesLaw(UnifiedFatigueRuleOfMixturesLaw const& rOther)
-        : ConstitutiveLaw(rOther), mpMatrixConstitutiveLaw(rOther.mpMatrixConstitutiveLaw), mpFiberConstitutiveLaw(rOther.mpFiberConstitutiveLaw),
-        mFiberVolumetricParticipation(rOther.mFiberVolumetricParticipation), mParallelDirections(rOther.mParallelDirections)
+        : ConstitutiveLaw(rOther), mpHCFConstitutiveLaw(rOther.mpHCFConstitutiveLaw), mpULCFConstitutiveLaw(rOther.mpULCFConstitutiveLaw),
+        mFiberVolumetricParticipation(rOther.mFiberVolumetricParticipation)
     {
     }
 
@@ -392,6 +392,20 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
         Vector& rFiberStressVector);
 
     /**
+     * This method computes the stresses of the matrix/fiber according to its own CL
+     * @param rValues the needed parameters for the CL calculation
+     * @param rMatrixStrainVector the strain vector of the matrix
+     * @param rMatrixStressVector  the stress vector of the matrix
+     * @param rFiberStressVector  the stress vector of the fiber
+     */
+    void IntegrateStressesOfHCFAndULCFModels(
+        ConstitutiveLaw::Parameters& rValues,
+        Vector rHCFStrainVector,
+        Vector rULCFStrainVector,
+        Vector& rHCFStressVector,
+        Vector& rULCFStressVector);
+
+    /**
      * This method checks wether the serial stresses are in equilibrium
      * @param rStrainVector The total strain of the composite
      * @param rSerialProjector The Serial behaviour projector
@@ -483,7 +497,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
      */
     ConstitutiveLaw::Pointer GetMatrixConstitutiveLaw()
     {
-        return mpMatrixConstitutiveLaw;
+        return mpHCFConstitutiveLaw;
     }
 
     /**
@@ -491,7 +505,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
      */
     void SetMatrixConstitutiveLaw(ConstitutiveLaw::Pointer pMatrixConstitutiveLaw)
     {
-        mpMatrixConstitutiveLaw = pMatrixConstitutiveLaw;
+        mpHCFConstitutiveLaw = pMatrixConstitutiveLaw;
     }
 
     /**
@@ -499,7 +513,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
      */
     ConstitutiveLaw::Pointer GetFiberConstitutiveLaw()
     {
-        return mpFiberConstitutiveLaw;
+        return mpULCFConstitutiveLaw;
     }
 
     /**
@@ -507,7 +521,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
      */
     void SetFiberConstitutiveLaw(ConstitutiveLaw::Pointer pFiberConstitutiveLaw)
     {
-        mpFiberConstitutiveLaw = pFiberConstitutiveLaw;
+        mpULCFConstitutiveLaw = pFiberConstitutiveLaw;
     }
 
     /**
@@ -516,7 +530,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
      */
     int GetNumberOfSerialComponents()
     {
-        const int parallel_components = inner_prod(mParallelDirections, mParallelDirections);
+        const int parallel_components = 1;
         return this->GetStrainSize() - parallel_components;
     }
 
@@ -545,10 +559,11 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     ///@name Member Variables
     ///@{
 
-    ConstitutiveLaw::Pointer mpMatrixConstitutiveLaw;
-    ConstitutiveLaw::Pointer mpFiberConstitutiveLaw;
+    ConstitutiveLaw::Pointer mpHCFConstitutiveLaw;
+    ConstitutiveLaw::Pointer mpULCFConstitutiveLaw;
     double mFiberVolumetricParticipation;
-    Vector mParallelDirections = ZeroVector(6);
+    double mHCFVolumetricParticipation;
+    // Vector mParallelDirections = ZeroVector(6);
     Vector mPreviousStrainVector = ZeroVector(6);
     Vector mPreviousSerialStrainMatrix = ZeroVector(GetNumberOfSerialComponents());
 
@@ -588,15 +603,15 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("MatrixConstitutiveLaw", mpMatrixConstitutiveLaw);
-        rSerializer.save("FiberConstitutiveLaw", mpFiberConstitutiveLaw);
+        rSerializer.save("HCFConstitutiveLaw", mpHCFConstitutiveLaw);
+        rSerializer.save("ULCFConstitutiveLaw", mpULCFConstitutiveLaw);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.load("MatrixConstitutiveLaw", mpMatrixConstitutiveLaw);
-        rSerializer.load("FiberConstitutiveLaw", mpFiberConstitutiveLaw);
+        rSerializer.load("HCFConstitutiveLaw", mpHCFConstitutiveLaw);
+        rSerializer.load("ULCFConstitutiveLaw", mpULCFConstitutiveLaw);
     }
 
     ///@}
