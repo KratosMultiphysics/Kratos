@@ -140,6 +140,9 @@ public:
     ///@}
     ///@name Access Get Values
     ///@{
+    void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+        std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
         std::vector<double>& rValues,
@@ -152,6 +155,10 @@ public:
     ///@}
     ///@name Access Set Values
     ///@{
+    void SetValuesOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        const std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
         const std::vector<double>& rValues,
@@ -269,6 +276,8 @@ private:
         Node<3>* pBoundaryParticle;
 
         array_1d<double, 3> m_contact_force;
+        int m_corresponding_condition_id = 0;
+        int m_counter = 0;
 
     ///@}
     ///@name Private Operators

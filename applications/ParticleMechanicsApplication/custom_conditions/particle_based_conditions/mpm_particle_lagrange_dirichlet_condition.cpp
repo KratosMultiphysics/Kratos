@@ -508,6 +508,26 @@ void MPMParticleLagrangeDirichletCondition::GetSecondDerivativesVector(
     }
 }
 
+void MPMParticleLagrangeDirichletCondition::CalculateOnIntegrationPoints(
+    const Variable<int>& rVariable,
+    std::vector<int>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MPC_CORRESPONDING_CONDITION_ID) {
+        rValues[0] = m_corresponding_condition_id;
+    }
+    else if (rVariable == MPC_COUNTER) {
+        rValues[0] = m_counter;
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
 void MPMParticleLagrangeDirichletCondition::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -542,6 +562,28 @@ void MPMParticleLagrangeDirichletCondition::CalculateOnIntegrationPoints(const V
             rVariable, rValues, rCurrentProcessInfo);
     }
 }
+
+void MPMParticleLagrangeDirichletCondition::SetValuesOnIntegrationPoints(
+    const Variable<int>& rVariable,
+    const std::vector<int>& rValues,
+    const ProcessInfo& rCurrentProcessInfo) {
+    
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MPC_CORRESPONDING_CONDITION_ID) {
+        m_corresponding_condition_id = rValues[0];
+    }
+    else if (rVariable == MPC_COUNTER) {
+        m_counter = rValues[0];
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
 
 void MPMParticleLagrangeDirichletCondition::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
     const std::vector<double>& rValues,
