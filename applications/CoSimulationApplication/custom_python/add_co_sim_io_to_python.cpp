@@ -22,7 +22,6 @@
 #include "custom_python/add_co_sim_io_to_python.h"
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "custom_utilities/co_sim_io_conversion_utilities.h"
-#include "co_simulation_application_variables.h"
 
 // CoSimIO
 #include "custom_external_libraries/CoSimIO/co_sim_io/co_sim_io.hpp"
