@@ -79,8 +79,8 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   // Calculate right hand side
   void CalculateRightHandSide(const ProcessInfo& r_process_info, double dt, const array_1d<double, 3>& gravity) override;
   void ComputeHeatFluxes(const ProcessInfo& r_process_info);
-  void StoreBallToBallForcesInfo(SphericParticle* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3]) override;
-  void StoreBallToRigidFaceForcesInfo(DEMWall* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3]) override;
+  void StoreBallToBallForcesInfo(SphericParticle* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) override;
+  void StoreBallToRigidFaceForcesInfo(DEMWall* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) override;
 
   // Finalization methods
   void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;

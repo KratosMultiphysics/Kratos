@@ -916,7 +916,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             //TODO: make different AddUpForces for continuum and discontinuum (different arguments, different operations!)
 
             // Store contact force information needed for other processes
-            StoreBallToBallForcesInfo(data_buffer.mpOtherParticle, data_buffer, GlobalContactForce);
+            StoreBallToBallForcesInfo(data_buffer.mpOtherParticle, data_buffer, GlobalContactForce, sliding);
 
             // ROTATION FORCES
             if (this->Is(DEMFlags::HAS_ROTATION) && !data_buffer.mMultiStageRHS) {
@@ -1108,7 +1108,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
                                      r_contact_force, mNeighbourRigidFacesElasticContactForce[i], mNeighbourRigidFacesTotalContactForce[i]);
 
             // Store contact force information needed for other processes
-            StoreBallToRigidFaceForcesInfo(wall, data_buffer, GlobalContactForce);
+            StoreBallToRigidFaceForcesInfo(wall, data_buffer, GlobalContactForce, sliding);
 
             rigid_element_force[0] -= GlobalContactForce[0];
             rigid_element_force[1] -= GlobalContactForce[1];
@@ -1932,9 +1932,9 @@ std::unique_ptr<DEMDiscontinuumConstitutiveLaw> SphericParticle::pCloneDiscontin
 
 void SphericParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {}
 
-void SphericParticle::StoreBallToBallForcesInfo(SphericParticle* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3]) {}
+void SphericParticle::StoreBallToBallForcesInfo(SphericParticle* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {}
 
-void SphericParticle::StoreBallToRigidFaceForcesInfo(DEMWall* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3]) {}
+void SphericParticle::StoreBallToRigidFaceForcesInfo(DEMWall* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {}
 
 double SphericParticle::GetInitialDeltaWithFEM(int index) {//only available in continuum_particle
     return 0.0;

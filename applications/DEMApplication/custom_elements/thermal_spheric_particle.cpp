@@ -163,7 +163,7 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::StoreBallToBallForcesInfo(SphericParticle* neighbor, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3]) {
+  void ThermalSphericParticle<TBaseElement>::StoreBallToBallForcesInfo(SphericParticle* neighbor, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {
     KRATOS_TRY
 
     if (!this->Is(DEMFlags::HAS_FRICTION_HEAT))
@@ -172,10 +172,14 @@ namespace Kratos
     // Local relavive velocity components (normal and tangential)
     std::vector<double> LocalRelativeVelocity{ data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) };
 
-    // Local contact force components (normal and tangential)
+    // Local contact force components (normal and sliding tangential)
     double LocalContactForce[3] = { 0.0 };
     GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, GlobalContactForce, LocalContactForce);
-    std::vector<double> LocalForce{ LocalContactForce[2], sqrt(LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]) };
+    std::vector<double> LocalForce{ LocalContactForce[2] };
+    if (sliding)
+      LocalForce.push_back(sqrt(LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]));
+    else
+      LocalForce.push_back(0.0);
 
     // Store information
     mNeighborParticleLocalRelativeVelocity[neighbor] = LocalRelativeVelocity;
@@ -185,19 +189,23 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::StoreBallToRigidFaceForcesInfo(DEMWall* neighbor, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3]) {
+  void ThermalSphericParticle<TBaseElement>::StoreBallToRigidFaceForcesInfo(DEMWall* neighbor, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {
     KRATOS_TRY
 
     if (!this->Is(DEMFlags::HAS_FRICTION_HEAT))
       return;
 
-    // Local relavive velocity components (normal and tangential)
+    // Local relavive velocity components (normal and sliding tangential)
     std::vector<double> LocalRelativeVelocity{ data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) };
 
-    // Local contact force components (normal and tangential)
+    // Local contact force components (normal and sliding tangential)
     double LocalContactForce[3] = { 0.0 };
     GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, GlobalContactForce, LocalContactForce);
-    std::vector<double> LocalForce{ LocalContactForce[2], sqrt(LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]) };
+    std::vector<double> LocalForce{ LocalContactForce[2] };
+    if (sliding)
+      LocalForce.push_back(sqrt(LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]));
+    else
+      LocalForce.push_back(0.0);
 
     // Store information
     mNeighborWallLocalRelativeVelocity[neighbor] = LocalRelativeVelocity;
