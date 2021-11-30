@@ -90,6 +90,7 @@ namespace Kratos
         mMPMParticlePenaltyDirichletCondition(0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
         mMPMParticlePenaltyCouplingInterfaceCondition( 0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
         mMPMParticlePointLoadCondition(0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
+        mMPMParticlePointCondition(0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
         mMPMParticleLagrangeDirichletCondition(0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
 
         /// Deprecated Conditions
@@ -148,6 +149,7 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition", mMPMParticlePenaltyDirichletCondition)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition", mMPMParticlePenaltyCouplingInterfaceCondition)
         KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition", mMPMParticlePointLoadCondition)
+        KRATOS_REGISTER_CONDITION( "MPMParticlePointCondition", mMPMParticlePointCondition)
         KRATOS_REGISTER_CONDITION( "MPMParticleLagrangeDirichletCondition", mMPMParticleLagrangeDirichletCondition)
         
         // deprecated conditions
@@ -237,7 +239,8 @@ namespace Kratos
 
         // Registering MP condition variable
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_COORD )
-        KRATOS_REGISTER_VARIABLE( MPC_CONDITION_ID )
+        KRATOS_REGISTER_VARIABLE( MPC_CORRESPONDING_CONDITION_ID )
+        KRATOS_REGISTER_VARIABLE( MPC_COUNTER )
         KRATOS_REGISTER_VARIABLE( MPC_IS_NEUMANN )
         KRATOS_REGISTER_VARIABLE( MPC_AREA )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_NORMAL )

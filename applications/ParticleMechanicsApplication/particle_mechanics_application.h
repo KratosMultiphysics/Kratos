@@ -45,6 +45,7 @@
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_coupling_interface_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_lagrange_dirichlet_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_load_condition.h"
+#include "custom_conditions/particle_based_conditions/mpm_particle_point_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_point_load_condition.h"
 
 //---element
@@ -257,6 +258,7 @@ private:
     const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition;
     const MPMParticleLagrangeDirichletCondition mMPMParticleLagrangeDirichletCondition;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition;
+    const MPMParticlePointCondition mMPMParticlePointCondition;
     
     // Deprecated Conditions
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D3N;
