@@ -63,30 +63,21 @@ public:
 
         const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
 
-        if (nNodes != 0)
-        {
+        if (nNodes > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
-            #pragma omp parallel for
-            for (int i = 0; i<nNodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
+            block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+                if (mIsFixed) rNode.Fix(var);
+                else          rNode.Free(var);
 
-                if (mIsFixed) it->Fix(var);
-                else          it->Free(var);
+                double pressure = CalculatePressure(rNode);
 
-                double pressure= CalculatePressure(it);
-
-                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff)
-                {
-                    it->FastGetSolutionStepValue(var) = pressure;
+                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
+                    rNode.FastGetSolutionStepValue(var) = pressure;
+                } else {
+                    rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
                 }
-                else
-                {
-                    it->FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                }
-            }
+            });
         }
 
         KRATOS_CATCH("");
