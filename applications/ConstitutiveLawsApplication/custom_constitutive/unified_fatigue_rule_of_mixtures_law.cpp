@@ -129,6 +129,15 @@ void UnifiedFatigueRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
         noalias(r_integrated_stress_vector) = mHCFVolumetricParticipation * high_cycle_fatigue_stress_vector
                                      + (1.0 - mHCFVolumetricParticipation) * ultra_low_cycle_fatigue_stress_vector;
+
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+
+        if (r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+            this->CalculateTangentTensor(rValues);
+        }
     }
 
 } // End CalculateMaterialResponseCauchy
@@ -207,7 +216,6 @@ void UnifiedFatigueRuleOfMixturesLaw::FinalizeMaterialResponseKirchhoff(Constitu
 void UnifiedFatigueRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     const Vector& r_strain_vector = rValues.GetStrainVector();
-    // mPreviousStrainVector = r_strain_vector;
 
     // Recalculation to obtain the serial_strain_matrix and store the value
     const SizeType voigt_size = GetStrainSize();
@@ -370,10 +378,19 @@ double& UnifiedFatigueRuleOfMixturesLaw::CalculateValue(
     const Variable<double>& rThisVariable,
     double& rValue)
 {
+    auto& r_material_properties = rParameterValues.GetMaterialProperties();
+    const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
+    const auto& r_props_HCF_cl = *(it_cl_begin);
+    const auto& r_props_ULCF_cl = *(it_cl_begin + 1);
+    ConstitutiveLaw::Parameters values_HCF  = rParameterValues;
+    ConstitutiveLaw::Parameters values_ULCF = rParameterValues;
+    values_HCF.SetMaterialProperties(r_props_HCF_cl);
+    values_ULCF.SetMaterialProperties(r_props_ULCF_cl);
+
     if (rThisVariable == UNIAXIAL_STRESS_HCF) {
-        return mpHCFConstitutiveLaw->CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
+        return mpHCFConstitutiveLaw->CalculateValue(values_HCF, UNIAXIAL_STRESS, rValue);
     } else if (rThisVariable == UNIAXIAL_STRESS_ULCF) {
-        return mpULCFConstitutiveLaw->CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
+        return mpULCFConstitutiveLaw->CalculateValue(values_ULCF, UNIAXIAL_STRESS, rValue);
     } else {
         return this->GetValue(rThisVariable, rValue);
     }
