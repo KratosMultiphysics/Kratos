@@ -1,5 +1,6 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
+from KratosMultiphysics.ShallowWaterApplication.utilities import BoussinesqTheory, LinearTheory, ShallowTheory
 
 from math import pi, sqrt, tanh
 
@@ -16,38 +17,52 @@ class WaveGeneratorProcess(KM.Process):
         "conserved_variables" : SW.Formulation.ConservativeVariables
     }
 
-    def __init__(self, model, settings ):
-        KM.Process.__init__(self)
+    __wave_theory = {
+        "boussinesq"  : BoussinesqTheory,
+        "linear_theory" : LinearTheory,
+        "shallow_water" : ShallowTheory
+    }
 
-        ## Settings string in json format
+    def GetDefaultParameters(self):
         default_parameters = KM.Parameters("""
         {
             "model_part_name"   : "model_part",
             "formulation"       : "primitive_variables",
-            "interval"          : [0.0, 1e30],
-            "wave_length"       : 10.0,
-            "wave_height"       : 1.0,
-            "smooth_time"       : 10.0
+            "wave_theory"       : "boussinesq",
+            "interval"          : [0.0, 1e30]
         }
         """)
+        if self.settings.Has("wave_length"):
+            default_parameters.SetDouble("wave_length", 0.0)
+            self.wave_length_is_provided = True
+
+        if self.settings.Has("wave_period"):
+            default_parameters.SetDouble("wave_period", 0.0)
+            self.wave_period_is_provided = True
+        
+        if self.settings.Has("wave_amplitude"):
+            default_parameters.SetDouble("wave_amplitude", 0.0)
+            self.wave_amplitude_is_provided = True
+
+
+    def __init__(self, model, settings ):
+        KM.Process.__init__(self)
 
         # Overwrite the default settings with user-provided parameters
-        settings.ValidateAndAssignDefaults(default_parameters)
+        self.settings = settings
+        self.settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        self.model_part = model[settings["model_part_name"].GetString()]
-        self.interval = KM.IntervalUtility(settings)
-        self.formulation = self.__formulation[settings["formulation"].GetString()]
-        self.smooth_time = settings["smooth_time"].GetDouble()
+        # Get the custom settings
+        self.model_part = model[self.settings["model_part_name"].GetString()]
+        self.interval = KM.IntervalUtility(self.settings)
+        self.formulation = self.__formulation[self.settings["formulation"].GetString()]
         self.fix_dofs = True
 
         # Wave parameters
-        wave_height = settings["wave_height"].GetDouble()
-        wave_length = settings["wave_length"].GetDouble()
-        self.depth = self._CalculateMeanDepth()
-
-        self.wave_amplitude = 0.5 * wave_height
-        self.wavenumber = 2 * pi / wave_length
-        self.frequency = sqrt(self._DispersionRelation(self.wavenumber))
+        wave_theory_class = self.__wave_theory[self.settings["wave_theory"].GetString()]
+        depth = self._CalculateMeanDepth()
+        gravity = self.model_part.ProcessInfo[KM.GRAVITY_Z]
+        self.wave_theory = wave_theory_class(depth, gravity)
 
 
     def ExecuteInitialize(self):
@@ -95,14 +110,3 @@ class WaveGeneratorProcess(KM.Process):
         sum_depths = -KM.VariableUtils().SumHistoricalVariable(SW.TOPOGRAPHY, self.model_part, 0)
         mean_depth = sum_depths / self.model_part.NumberOfNodes()
         return mean_depth
-
-
-    def _DispersionRelation(self, wavenumber):
-        g = self.model_part.ProcessInfo()[KM.GRAVITY_Z]
-        kh = wavenumber * self.depth
-        beta = -0.531
-        alpha = 0.5 * beta**2 + beta
-        print('linear wave dispersion ratio : ', g * wavenumber * tanh(kh))
-        print('boussinesq dispersion ratio  : ', g * kh * wavenumber * (1 -(alpha + 1/3) * kh**2) / (1 -alpha * kh**2))
-        return g * wavenumber * tanh(kh)
-        # return g * kh * wavenumber * (1 -(alpha + 1/3) * kh**2) / (1 -alpha * kh**2)
