@@ -66,6 +66,15 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
         super(PfemCoupledFluidThermalSolver, self).__init__(model, custom_settings)
 
+        self.settings["fluid_solver_settings"].AddEmptyValue("alpha")
+        self.settings["fluid_solver_settings"]["alpha"].SetDouble(0.0)
+        self.settings["fluid_solver_settings"].AddEmptyValue("move_mesh_strategy")
+        self.settings["fluid_solver_settings"]["move_mesh_strategy"].SetInt(2)
+        self.settings["fluid_solver_settings"].AddEmptyValue("reform_dofs_at_each_step")
+        self.settings["fluid_solver_settings"]["reform_dofs_at_each_step"].SetBool(True)
+        self.settings["thermal_solver_settings"].AddEmptyValue("reform_dofs_at_each_step")
+        self.settings["thermal_solver_settings"]["reform_dofs_at_each_step"].SetBool(True)
+
         ## Get domain size
         self.domain_size = self.settings["domain_size"].GetInt()
 
@@ -86,7 +95,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         #self.readLasserSettings()
 	#Laser settings
 
-        
+
 
         self.readMaterialCharacterization()
 
@@ -204,7 +213,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.AMBIENT_TEMPERATURE]=self.values_aux[1].GetDouble() #298.0
         self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.CONVECTION_COEFFICIENT]=self.values_aux[4].GetDouble()'''
         self.new_table_aux = KratosMultiphysics.PiecewiseLinearTable()
-        
+
         for i in range(table1["data"].size()):
             self.new_table_aux.AddRow(table1["data"][i][0].GetDouble(), table1["data"][i][1].GetDouble())
 
