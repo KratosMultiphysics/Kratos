@@ -30,16 +30,13 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
             "solver_type" : "ThermallyCoupled1",
             "domain_size" : -1,
             "echo_level": 0,
-            "laser_import_settings": {
-                        "laser_filename": "LaserSettings.json"
-                },
             "material_import_settings"    : {
-                "materials_filename" : "FluidMaterials.json"
+                "materials_filename" : "file_name_to_be_defined.json"
             },
             "environment_settings" : {
-	        "gravity": [0, 0, 0],
-		"ambient_temperature" : 0.15
-		},
+                "gravity": [0, 0, 0],
+                "ambient_temperature" : 0.15
+            },
 
             "fluid_solver_settings": {
                 "solver_type": "navier_stokes_solver_vmsmonolithic",
@@ -163,7 +160,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
     def readMaterialCharacterization(self):
 
-        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
+        materials_filename = self.settings["thermal_solver_settings"]["material_import_settings"]["materials_filename"].GetString()
 
         with open(materials_filename, 'r') as parameter_file:
                 materials = KratosMultiphysics.Parameters(parameter_file.read())
@@ -178,24 +175,25 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
             self.values_aux.append(value)
 
         #The part below reads the temperature dependent viscosity
-        table1=mat["Tables"]
+        table1=mat["Tables"]["Table1"]
 
-        taux1= table1["Table1"]
-        input_var = KratosMultiphysics.KratosGlobals.GetVariable(taux1["input_variable"].GetString())
-        output_var = KratosMultiphysics.KratosGlobals.GetVariable(taux1["output_variable"].GetString())
+        input_var = KratosMultiphysics.KratosGlobals.GetVariable(table1["input_variable"].GetString())
+        output_var = KratosMultiphysics.KratosGlobals.GetVariable(table1["output_variable"].GetString())
 
-        self.fluid_solver.main_model_part.GetProperties()[1][KratosMultiphysics.DYNAMIC_VISCOSITY]=self.values_aux[6].GetDouble()
-        self.fluid_solver.main_model_part.GetProperties()[1][KratosMultiphysics.DENSITY]=self.values_aux[5].GetDouble()
-        self.fluid_solver.main_model_part.GetProperties()[1][KratosMultiphysics.EMISSIVITY]=self.values_aux[7].GetDouble()
-        self.fluid_solver.main_model_part.GetProperties()[1][KratosMultiphysics.AMBIENT_TEMPERATURE]=self.values_aux[1].GetDouble() #298.0
-        self.fluid_solver.main_model_part.GetProperties()[1][KratosMultiphysics.CONVECTION_COEFFICIENT]=self.values_aux[4].GetDouble()
+        read_materials_utility = KratosMultiphysics.ReadMaterialsUtility(self.model)
+
+        read_materials_utility.AssignVariablesToProperty(mat, self.fluid_solver.main_model_part.GetProperties()[0])
+
+
+        '''self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.DYNAMIC_VISCOSITY]=self.values_aux[6].GetDouble()
+        self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.DENSITY]=self.values_aux[5].GetDouble()
+        self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.EMISSIVITY]=self.values_aux[7].GetDouble()
+        self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.AMBIENT_TEMPERATURE]=self.values_aux[1].GetDouble() #298.0
+        self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.CONVECTION_COEFFICIENT]=self.values_aux[4].GetDouble()
         self.new_table_aux = KratosMultiphysics.PiecewiseLinearTable()
 
-        for i in range(taux1["data"].size()):
-            self.new_table_aux.AddRow(taux1["data"][i][0].GetDouble(), taux1["data"][i][1].GetDouble())
-
-        #print(self.new_table_aux)
-
+        for i in range(table1["data"].size()):
+            self.new_table_aux.AddRow(table1["data"][i][0].GetDouble(), table1["data"][i][1].GetDouble())'''
 
 
         #taux1= table1["Table2"]
@@ -216,9 +214,6 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
         #for i in range(taux1["data"].size()):
         #    self.new_table_aux3.AddRow(taux1["data"][i][0].GetDouble(), taux1["data"][i][1].GetDouble())
-
-
-
 
 
     def AddVariables(self):

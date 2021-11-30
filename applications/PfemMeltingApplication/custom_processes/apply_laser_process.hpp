@@ -65,15 +65,7 @@ public:
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
-                "laser_profile" :{
-            		"shape": "flat",
-            		"radius": 0.0005,
-            		"power": 5.0},
-		"direction": [0.0, 0.0, -1.0],
-		"path" : {
-                	"table"    : [0.0, 0.0, 0.0,0.0]} 
-		
-
+                "filename"        : "./LaserSettings.json"
             }  )" );
 
 
@@ -105,7 +97,7 @@ public:
         	mpower=  rParameters["laser_profile"]["power"].GetDouble();
 	}
 
-	/*for(int i=0; i<3; i++) {	
+	/*for(int i=0; i<3; i++) {
 	if(rParameters["path"]["table"][i].IsNull()) {
                 mPositionLaserTableId[i] = 0;
             }
@@ -114,7 +106,7 @@ public:
 
 		KRATOS_WATCH(mPositionLaserTableId[i])
             }
-            mPositionLaserTable.push_back(rModelPart.pGetTable(mPositionLaserTableId[i])); 
+            mPositionLaserTable.push_back(rModelPart.pGetTable(mPositionLaserTableId[i]));
         }*/
 
         KRATOS_CATCH("");
@@ -159,79 +151,79 @@ public:
         typedef std::vector<PointType::Pointer>::iterator PointIterator;
         typedef std::vector<double> DistanceVector;
         typedef std::vector<double>::iterator DistanceIterator;
-	
+
         //creating an auxiliary list for the new nodes
         PointVector list_of_nodes;
 
         //  *************
         // Bucket types
         typedef Bucket< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-	
+
         typedef Tree< KDTreePartition<BucketType> > tree; //Kdtree;
-	
-	
+
+
         //starting calculating time of construction of the kdtree
         boost::timer kdtree_construction;
-	
+
         for (ModelPart::NodesContainerType::iterator node_it = mrModelPart.NodesBegin();
 	     node_it != mrModelPart.NodesEnd(); ++node_it)
 	  {
             PointTypePointer pnode = *(node_it.base());
-	    
+
             //putting the nodes of the destination_model part in an auxiliary list
             list_of_nodes.push_back(pnode);
 
 	    (node_it)->FastGetSolutionStepValue(FACE_HEAT_FLUX)=0.0;
 
 	  }
-	
+
         std::cout << "kdt constructin time " << kdtree_construction.elapsed() << std::endl;
-	
+
         //create a spatial database with the list of new nodes
         unsigned int bucket_size = 20;
         tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
-	
+
         //work arrays
         Node < 3 > work_point(0, 0.0, 0.0, 0.0);
         unsigned int MaximumNumberOfResults = 10000;
         PointVector Results(MaximumNumberOfResults);
         DistanceVector SquaredResultsDistances(MaximumNumberOfResults);
-	
+
         double sigma = 0.0;
         if (TDim == 2)
 	  sigma = 10.0 / (7.0 * 3.1415926);
         else
 	  sigma = 1.0 / 3.1415926;
-	
+
         work_point.X() = x;
 	work_point.Y() = y;
 	work_point.Z() = z;
 
         //find all of the new nodes within the radius
         int number_of_points_in_radius;
-		
+
         //look between the new nodes which of them is inside the radius of the circumscribed cyrcle
         number_of_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, Results.begin(), SquaredResultsDistances.begin(), MaximumNumberOfResults);
-		
+
         if (number_of_points_in_radius > 0)
 	{
-		    
-		double maximunweight = SPHCubicKernel(sigma, 0.0, radius);    
+
+		double maximunweight = SPHCubicKernel(sigma, 0.0, radius);
 		for (int k = 0; k < number_of_points_in_radius; k++)
 		{
 			double distance = sqrt(*(SquaredResultsDistances.begin() + k));
-	
+
 			double weight = SPHCubicKernel(sigma, distance, radius);
-			
+
 			PointIterator it_found = Results.begin() + k;
-			
+
 			if((*it_found)->FastGetSolutionStepValue(IS_FREE_SURFACE)==1) //MATERIAL_VARIABLE
 			  {
-			
+
 			    double& aux= (*it_found)->FastGetSolutionStepValue(FACE_HEAT_FLUX);
-                            aux =  face_heat_flux * weight / maximunweight; 
+                            aux =  face_heat_flux * weight / maximunweight;
 			}
-		}	     
+		}
 	  }
         KRATOS_CATCH("")
 
@@ -292,7 +284,7 @@ private:
         double h_half = 0.5 * hmax;
         const double s = r / h_half;
         const double coeff = sigma / pow(h_half, static_cast<int>(TDim));
-	
+
         if (s <= 1.0)
 	  return coeff * (1.0 - 1.5 * s * s + 0.75 * s * s * s);
         else if (s <= 2.0)

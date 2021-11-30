@@ -9,19 +9,20 @@ def Factory(settings, Model):
 class ApplyLaserProcess(KratosMultiphysics.Process):
 
     def __init__(self, Model, settings):
-         
+
         KratosMultiphysics.Process.__init__(self)
 
         # Check the default values
         default_settings = KratosMultiphysics.Parameters( """
         {
-            "model_part_name" : "CHOOSE_FLUID_MODELPART_NAME"
+            "model_part_name" : "CHOOSE_FLUID_MODELPART_NAME",
+            "filename"        : "provide_the_name_of_the laser_file"
         }  """ )
 
 
         # Get the fluid model part from the Model container
         self.fluid_model_part = Model[settings["model_part_name"].GetString()]
-        
+
         # Set the Boussinesq force process
         self.ApplyLaserProcess = PfemM.ApplyLaserProcess(self.fluid_model_part, settings)
 
