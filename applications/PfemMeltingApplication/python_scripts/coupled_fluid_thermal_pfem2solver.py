@@ -299,7 +299,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
         for i in range(self.skin_parts_list.size()):
             body_model_part_name=self.skin_parts_list[i].GetString()
-            if(body_model_part_name=="NoSlip3D_No_Slip_Auto1"):
+            if(body_model_part_name=="VelocityConstraints3D_floor"):
                 body_model_part_name=self.fluid_solver.main_model_part.GetSubModelPart(body_model_part_name)
                 for node in body_model_part_name.Nodes:
                     node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0, 1.0) #NODES NOT MOVE ARE CONSIDERED PART OF THE STRUCTURE
