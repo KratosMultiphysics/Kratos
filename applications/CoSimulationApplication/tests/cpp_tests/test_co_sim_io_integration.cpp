@@ -275,7 +275,7 @@ void CreateDistributedNodesUnordered(
         rCoSimIOModelPart.CreateNewNode(GetId(NumLocalNodesPerRank, i), 0,0,0);
     }
 
-    for (std::size_t i=0; i<NumGhostNodesPerRank; ++i) {
+    for (int i=static_cast<int>(NumGhostNodesPerRank); --i>=0;) { // must use signed type here!
         rCoSimIOModelPart.CreateNewGhostNode(GetGhostId(NumLocalNodesPerRank, i), 0,0,0, GetPartnerRank());
     }
 
