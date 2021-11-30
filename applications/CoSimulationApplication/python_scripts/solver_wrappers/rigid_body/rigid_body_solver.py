@@ -458,7 +458,7 @@ class RigidBodySolver(object):
                 elif identifier == "ACCELERATION":
                     self.a[index, buffer_idx] = value
                 elif identifier in ["FORCE", "MOMENT", "FORCE_ALL"]:
-                    self.external_load[index] = value*self.modulus_external_force
+                    self.external_load[index] = value*self.modulus_external_force[index]
                 elif identifier in ["ROOT_POINT_DISPLACEMENT", "ROOT_POINT_ROTATION", "ROOT_POINT_DISPLACEMENT_ALL"]:
                     self.external_root_point_displ[index] = value
                 else:
