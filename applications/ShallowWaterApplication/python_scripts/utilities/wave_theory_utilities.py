@@ -30,6 +30,9 @@ class WaveTheory:
     def SetAmplitude(self, amplitude):
         self.amplitude = amplitude
 
+    def SetWaveSpecifications(self, parameters = KM.Parameters(), process_info = KM.ProcessInfo()):
+        _CheckAndSetWaveSpecifications(self, parameters, process_info)
+
     @property
     def horizontal_velocity(self):
         frequency = 2 * pi / self.period
@@ -132,7 +135,7 @@ class ShallowTheory(WaveTheory):
         return sqrt(gh)
 
 
-def SetWaveSpecifications(wave_theory, parameters=KM.Parameters(), process_info=KM.ProcessInfo()):
+def _CheckAndSetWaveSpecifications(wave_theory, parameters, process_info):
     # Check if the period is provided
     if parameters.Has("wave_period"):
         period = parameters["wave_period"].GetDouble()

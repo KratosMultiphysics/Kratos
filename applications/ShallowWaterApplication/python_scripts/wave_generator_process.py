@@ -69,7 +69,7 @@ class WaveGeneratorProcess(KM.Process):
         depth = self._CalculateMeanDepth()
         gravity = self.model_part.ProcessInfo[KM.GRAVITY_Z]
         wave_theory = wave_theory_class(depth, gravity)
-        wave_theory_utilities.SetWaveSpecifications(wave_theory, self.settings, self.model_part.ProcessInfo)
+        wave_theory.SetWaveSpecifications(self.settings, self.model_part.ProcessInfo)
 
         # Creation of the parameters for the c++ process
         velocity_parameters = KM.Parameters("""{}""")
