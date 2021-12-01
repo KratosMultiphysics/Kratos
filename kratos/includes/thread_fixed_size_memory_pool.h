@@ -42,9 +42,7 @@ namespace Kratos
 	  ///@name Type Definitions
 	  ///@{
 
-		using DataType = Chunk::DataType;
-
-		using SizeType = DataType;
+		using SizeType = Chunk::SizeType;
 
 		using ChunkList = std::list<Chunk*>;
 
@@ -106,27 +104,32 @@ namespace Kratos
 		  KRATOS_DEBUG_CHECK_NOT_EQUAL(p_result, nullptr);
 		  if (r_available_chunk.IsFull())
 			  mAvailableChunks.pop_front();
+
+		// KRATOS_DEBUG_CHECK_EQUAL((std::size_t(p_result) - std::size_t(r_available_chunk.GetData())) % r_available_chunk.GetBlockSize(mBlockSizeInBytes), 0);
+		  std::cout << "Creating pointer " << p_result << " in " << r_available_chunk << std::endl;
 		  return p_result;
 	  }
 
-	  bool Deallocate(void* pPointrerToRelease) {
+	  bool Deallocate(void* pPointerToRelease) {
 		  if (!mAvailableChunks.empty()) {
 			  auto i_chunk = mAvailableChunks.begin();
-			  if ((*i_chunk)->Has(pPointrerToRelease)) {
-				  DeallocateFromAvailableChunk(pPointrerToRelease, i_chunk);
+			  if ((*i_chunk)->Has(pPointerToRelease)) {
+				  std::cout << "deleting pointer " << pPointerToRelease << " from " << **i_chunk << std::endl;
+				  DeallocateFromAvailableChunk(pPointerToRelease, i_chunk);
 				  return true;
 			  }
 		  }
 
 		  for (auto i_chunk = mChunks.begin(); i_chunk != mChunks.end(); i_chunk++)
 		  {
-			  if (i_chunk->Has(pPointrerToRelease)) {
+			  if (i_chunk->Has(pPointerToRelease)) {
+				  std::cout << "deleting pointer " << pPointerToRelease << " from " << *i_chunk << std::endl;
 				  if (i_chunk->IsFull())
-					DeallocateFromFullChunk(pPointrerToRelease, &(*i_chunk));
+					DeallocateFromFullChunk(pPointerToRelease, &(*i_chunk));
 				  else {
 					  auto i_available_chunk = std::find(mAvailableChunks.begin(), mAvailableChunks.end(), &(*i_chunk));
 					  KRATOS_DEBUG_CHECK_NOT_EQUAL(i_available_chunk, mAvailableChunks.end()); // Un explicable!
-					  DeallocateFromAvailableChunk(pPointrerToRelease, i_available_chunk);
+					  DeallocateFromAvailableChunk(pPointerToRelease, i_available_chunk);
 				  }
 				  return true;
 			  }
@@ -245,6 +248,7 @@ namespace Kratos
             Chunk* p_available_chunk = &(mChunks.back());
             p_available_chunk->Initialize();
             mAvailableChunks.push_front(p_available_chunk);
+			std::cout << "crating " << *p_available_chunk << std::endl;
 		}
 
 		void DeallocateFromAvailableChunk(void* pPointrerToRelease, ChunkList::iterator iChunk) {
