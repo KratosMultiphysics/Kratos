@@ -51,8 +51,9 @@ namespace Kratos
     this->Set(DEMFlags::HAS_ADJUSTED_CONTACT,             r_process_info[ADJUSTED_CONTACT_OPTION]);
     this->Set(DEMFlags::HAS_TEMPERATURE_DEPENDENT_RADIUS, r_process_info[TEMPERATURE_DEPENDENT_RADIUS_OPTION]);
 
-    store_contact_param = (this->Is(DEMFlags::HAS_DIRECT_CONDUCTION) && r_process_info[DIRECT_CONDUCTION_MODEL].compare("collisional") == 0) ||
-                           this->Is(DEMFlags::HAS_FRICTION_HEAT);
+    store_contact_param = this->Is(DEMFlags::HAS_MOTION) &&
+                         (this->Is(DEMFlags::HAS_FRICTION_HEAT) ||
+                         (this->Is(DEMFlags::HAS_DIRECT_CONDUCTION) && r_process_info[DIRECT_CONDUCTION_MODEL].compare("collisional") == 0));    
 
     // Initialize prescribed heat flux/source (currently a constant value)
     SetParticlePrescribedHeatFluxSurface(0.0);
