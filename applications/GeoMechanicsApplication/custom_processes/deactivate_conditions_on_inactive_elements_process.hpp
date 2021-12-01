@@ -94,19 +94,15 @@ public:
                                                             << "Call a process to find neighbour elements before calling this function."
                                                             << std::endl;
 
-            bool isElementActive = false;
+            bool AreAllElementsActive = false;
             for (unsigned int i=0; i < VectorOfNeighbours.size(); ++i) {
                 if (VectorOfNeighbours[i].IsDefined(ACTIVE)) {
-                    if (VectorOfNeighbours[i].Is(ACTIVE)) isElementActive = true;
+                    if (VectorOfNeighbours[i].Is(ACTIVE)) AreAllElementsActive = true;
                 } else {
-                    isElementActive = true;
+                    AreAllElementsActive = true;
                 }
             }
-            if (!isElementActive) {
-                itCond->Set(ACTIVE, false);
-            } else {
-                itCond->Set(ACTIVE, true);
-            }
+            itCond->Set(ACTIVE, AreAllElementsActive);
         }
 
         KRATOS_CATCH("")
