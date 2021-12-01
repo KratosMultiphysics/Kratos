@@ -34,14 +34,14 @@ class WaveGeneratorProcess(KM.Process):
             "interval"          : [0.0, 1e30]
         }
         """)
-        if self.settings.Has("wave_length"):
-            default_parameters.SetDouble("wave_length", 0.0)
+        if self.settings.Has("wavelength"):
+            default_parameters.SetDouble("wavelength", 0.0)
 
-        if self.settings.Has("wave_period"):
-            default_parameters.SetDouble("wave_period", 0.0)
+        if self.settings.Has("period"):
+            default_parameters.SetDouble("period", 0.0)
         
-        if self.settings.Has("wave_amplitude"):
-            default_parameters.SetDouble("wave_amplitude", 0.0)
+        if self.settings.Has("amplitude"):
+            default_parameters.SetDouble("amplitude", 0.0)
 
         return default_parameters
 

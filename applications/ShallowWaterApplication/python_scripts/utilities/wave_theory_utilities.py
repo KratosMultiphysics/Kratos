@@ -48,7 +48,7 @@ class WaveTheory:
         KM.Logger.PrintWarning('WaveTheory base class: it is not possible to calculate the disperison relation.')
         return 0
 
-    def _HorizontalVelocity(self, wave_amplitude, frequency, wavenumber):
+    def _HorizontalVelocity(self, amplitude, frequency, wavenumber):
         KM.Logger.PrintWarning('WaveTheory base class: it is not possible to calculate the horizontal velocity.')
         return 0
 
@@ -90,9 +90,9 @@ class BoussinesqTheory(WaveTheory):
         kh = wavenumber * self.depth
         return g * kh * wavenumber * (1 -(self.alpha + 1/3) * kh**2) / (1 -self.alpha * kh**2)
 
-    def _HorizontalVelocity(self, wave_amplitude, frequency, wavenumber):
+    def _HorizontalVelocity(self, amplitude, frequency, wavenumber):
         kh = wavenumber * self.depth
-        return frequency * wave_amplitude / kh / (1 -(self.alpha + 1/3) * kh**2)
+        return frequency * amplitude / kh / (1 -(self.alpha + 1/3) * kh**2)
 
     def _PhaseSpeed(self, wavenumber):
         kh = wavenumber * self.depth
@@ -108,9 +108,9 @@ class LinearTheory(WaveTheory):
         kh = wavenumber * self.depth
         return g * wavenumber * tanh(kh)
 
-    def _HorizontalVelocity(self, wave_amplitude, frequency, wavenumber):
+    def _HorizontalVelocity(self, amplitude, frequency, wavenumber):
         kh = wavenumber * self.depth
-        return frequency * wave_amplitude / kh # Note: 1/h * int{cosh(k*(z+h)) dz}_{-h}^{0} = sinh(kh) / kh
+        return frequency * amplitude / kh # Note: 1/h * int{cosh(k*(z+h)) dz}_{-h}^{0} = sinh(kh) / kh
 
     def _PhaseSpeed(self, wavenumber):
         kh = wavenumber * self.depth
@@ -126,9 +126,9 @@ class ShallowTheory(WaveTheory):
         kh = wavenumber * self.depth
         return g * wavenumber * kh
 
-    def _HorizontalVelocity(self, wave_amplitude, frequency, wavenumber):
+    def _HorizontalVelocity(self, amplitude, frequency, wavenumber):
         kh = wavenumber * self.depth
-        return frequency * wave_amplitude / kh
+        return frequency * amplitude / kh
 
     def _PhaseSpeed(self, wavenumber):
         gh = self.gravity * self.depth
@@ -137,42 +137,42 @@ class ShallowTheory(WaveTheory):
 
 def _CheckAndSetWaveSpecifications(wave_theory, parameters, process_info):
     # Check if the period is provided
-    if parameters.Has("wave_period"):
-        period = parameters["wave_period"].GetDouble()
-        wave_period_is_provided = True
+    if parameters.Has("period"):
+        period = parameters["period"].GetDouble()
+        period_is_provided = True
     elif process_info.Has(SW.PERIOD):
         period = process_info.GetValue(SW.PERIOD)
-        wave_period_is_provided = True
+        period_is_provided = True
     else:
-        wave_period_is_provided = False
+        period_is_provided = False
 
     # Check if the wavelength is provided
-    if parameters.Has("wave_length"):
-        wavelength = parameters["wave_length"].GetDouble()
-        wave_length_is_provided = True
+    if parameters.Has("wavelength"):
+        wavelength = parameters["wavelength"].GetDouble()
+        wavelength_is_provided = True
     elif process_info.Has(SW.WAVELENGTH):
         wavelength = process_info.GetValue(SW.WAVELENGTH)
-        wave_length_is_provided = True
+        wavelength_is_provided = True
     else:
-        wave_length_is_provided = False
+        wavelength_is_provided = False
 
     # Check if the wave specification is unique
-    if wave_period_is_provided and wave_length_is_provided:
+    if period_is_provided and wavelength_is_provided:
         raise Exception("WaveGeneratorProcess. Provide the period or the wavelength. Both parameters are incompatible.")
 
-    if not wave_period_is_provided and not wave_length_is_provided:
+    if not period_is_provided and not wavelength_is_provided:
         raise Exception("WaveGeneratorProcess. Please, specify the wavelength or the period in the project paramenters or hte process info.")
 
     # Check if the amplitude is provided
-    if parameters.Has("wave_amplitude"):
-        amplitude = parameters["wave_amplitude"].GetDouble()
+    if parameters.Has("amplitude"):
+        amplitude = parameters["amplitude"].GetDouble()
     elif process_info.Has(SW.AMPLITUDE):
         amplitude = process_info.GetValue(SW.AMPLITUDE)
     else:
         raise Exception("WaveGeneratorProcess. Please, specify the amplitude in the project parameters or the process info.")
 
     # Apply the user settings
-    if wave_length_is_provided:
+    if wavelength_is_provided:
         wave_theory.SetWavelength(wavelength)
     else:
         wave_theory.SetPeriod(period)
