@@ -457,7 +457,7 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
     ResidualFunctionType& rdF_dk,
     ConstitutiveLaw::Parameters& rValues,
     PlasticDamageParameters &rPDParameters,
-    const double MaxThreshold = std::numeric_limits<double>::max()
+    const double MaxThreshold
 )
 {
     double old_threshold = rPDParameters.Threshold;
@@ -503,7 +503,7 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateSlopeFiniteDif
     ResidualFunctionType& rdF_dk,
     ConstitutiveLaw::Parameters& rValues,
     PlasticDamageParameters &rPDParameters,
-    const double MaxThreshold = std::numeric_limits<double>::max()
+    const double MaxThreshold
 )
 {
     const double current_threshold = rPDParameters.Threshold;
