@@ -50,6 +50,29 @@ namespace Kratos {
 			KRATOS_CHECK_EQUAL(too_small_chunk.GetNumberOfAvailableBlocks(), 0) << " Available block :" << too_small_chunk.GetNumberOfAvailableBlocks();
 		}
 
+
+		KRATOS_TEST_CASE_IN_SUITE(ChunkHasPointer, KratosCoreFastSuite)
+		{
+			std::size_t block_size_in_bytes = 5; // the aligned block size is 8
+			std::size_t chunk_size_in_bytes = 1024;
+
+			Chunk chunk(block_size_in_bytes, chunk_size_in_bytes);
+			chunk.Initialize();
+
+			std::size_t block_size_after_alignment = 8;
+			std::size_t available_blocks_should_be = (chunk_size_in_bytes) / block_size_after_alignment;
+			KRATOS_CHECK_EQUAL(chunk.GetNumberOfAvailableBlocks(), available_blocks_should_be) << " Available block :" << chunk.GetNumberOfAvailableBlocks() << " vs " << available_blocks_should_be;
+
+			for(std::size_t i = 0 ; i < available_blocks_should_be; i++) {
+				const void* pointer = chunk.pGetData() + i*block_size_after_alignment;
+				KRATOS_CHECK_EQUAL(chunk.Has(pointer), true) << "The chunk starting from " << chunk.pGetData() << " with size " << chunk_size_in_bytes << " should have the pointer " << pointer << std::endl;
+			}
+			for(std::size_t i = available_blocks_should_be ; i < available_blocks_should_be + 5; i++) {
+				const void* pointer = chunk.pGetData() + i*block_size_after_alignment;
+				KRATOS_CHECK_EQUAL(chunk.Has(pointer), false) << "The chunk starting from " << chunk.pGetData() << " with size " << chunk_size_in_bytes << " should Not have the pointer " << pointer << std::endl;
+			}
+		}
+
 		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelInitialize, KratosCoreFastSuite)
 		{
 			std::size_t block_size_in_bytes = 5; // the aligned block size is 8
