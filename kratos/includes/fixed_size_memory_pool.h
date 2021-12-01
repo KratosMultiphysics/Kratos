@@ -42,9 +42,7 @@ namespace Kratos
 	  ///@name Type Definitions
 	  ///@{
 
-		using DataType = Chunk::DataType;
-
-		using SizeType = DataType;
+		using SizeType = Chunk::SizeType;
 
 	  ///@}
 
