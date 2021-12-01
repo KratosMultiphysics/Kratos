@@ -26,6 +26,7 @@ namespace Kratos
   //=====================================================================================================================================================================================
   // Initialization methods
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::Initialize(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -57,6 +58,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::InitializeSolutionStep(const ProcessInfo& r_process_info) {
     // Initialize base class
@@ -73,6 +75,7 @@ namespace Kratos
     mNumberOfContactParticleNeighbor = 0;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::InitializeHeatFluxComputation(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -99,6 +102,7 @@ namespace Kratos
   //=====================================================================================================================================================================================
   // Calculate right hand side (forces and heat fluxes)
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::CalculateRightHandSide(const ProcessInfo& r_process_info, double dt, const array_1d<double, 3>& gravity) {
     // Force components
@@ -110,6 +114,7 @@ namespace Kratos
       ComputeHeatFluxes(r_process_info);
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::ComputeHeatFluxes(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -165,6 +170,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle* neighbor, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {
     KRATOS_TRY
@@ -213,6 +219,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, DEMWall* neighbor, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {
     KRATOS_TRY
@@ -261,6 +268,7 @@ namespace Kratos
   //=====================================================================================================================================================================================
   // Finalization methods
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
     if (this->Is(DEMFlags::HAS_MOTION))
@@ -282,6 +290,7 @@ namespace Kratos
   //=====================================================================================================================================================================================
   // Update methods
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::UpdateTemperature(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -299,6 +308,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -318,6 +328,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(const ProcessInfo& r_process_info,
                                                                                                               double& thermalDeltDisp,
@@ -340,6 +351,7 @@ namespace Kratos
     //thermalRelVel                      = thermalRelVel + updated_other_radius * thermal_alpha * temperature_increment_elem2 / dt;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info,
                                                                                                             double DeltDisp[3], //IN GLOBAL AXES
@@ -360,6 +372,7 @@ namespace Kratos
   //=====================================================================================================================================================================================
   // Heat fluxes computation
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::ComputeHeatFluxWithNeighbor(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -380,6 +393,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::ComputeInteractionProps(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -407,6 +421,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::ComputeDirectConductionHeatFlux(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -425,6 +440,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::ComputeIndirectConductionHeatFlux(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -440,6 +456,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::ComputeRadiativeHeatFlux(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -472,6 +489,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::ComputeContinuumRadiativeHeatFlux(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -489,6 +507,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::ComputeFrictionHeatFlux(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -503,6 +522,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -527,6 +547,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::ComputePrescribedHeatFlux(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -545,6 +566,7 @@ namespace Kratos
   //=====================================================================================================================================================================================
   // Heat transfer models
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::DirectConductionBatchelorOBrien(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -557,6 +579,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::DirectConductionThermalPipe(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -569,6 +592,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::DirectConductionCollisional(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -613,6 +637,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::IndirectConductionSurroundingLayer(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -680,6 +705,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::IndirectConductionVoronoiA(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -767,6 +793,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::IndirectConductionVoronoiB(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -859,6 +886,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::IndirectConductionVargasMcCarthy(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -882,6 +910,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::NusseltHanzMarshall(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -894,6 +923,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::NusseltWhitaker(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -907,6 +937,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::NusseltGunn(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -920,6 +951,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::NusseltLiMason(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -936,6 +968,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::RadiationContinuumZhou(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -956,6 +989,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::RadiationContinuumKrause(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -974,6 +1008,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::FrictionGenerationSlidingVelocity(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -1004,6 +1039,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::AdjustedContactRadiusZhou(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -1018,6 +1054,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::AdjustedContactRadiusLu(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -1042,6 +1079,7 @@ namespace Kratos
   //=====================================================================================================================================================================================
   // Auxiliary computations
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::ComputeAddedSearchDistance(const ProcessInfo& r_process_info, double& added_search_distance) {
     KRATOS_TRY
@@ -1071,6 +1109,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::ComputePrandtlNumber(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -1084,6 +1123,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::ComputeReynoldNumber(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -1098,6 +1138,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::ComputeFluidRelativeVelocity(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -1109,6 +1150,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetVoronoiCellFaceRadius(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -1152,6 +1194,7 @@ namespace Kratos
   //=====================================================================================================================================================================================
   // Numerical integration
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::AdaptiveSimpsonIntegration(const ProcessInfo& r_process_info, double a, double b, IntegrandParams params, double (ThermalSphericParticle::*evalIntegrand)(IntegrandParams)) {
     KRATOS_TRY
@@ -1177,6 +1220,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::RecursiveSimpsonIntegration(double a, double b, double fa, double fb, double fc, double tol, IntegrandParams params, double (ThermalSphericParticle::*evalIntegrand)(IntegrandParams)) {
     KRATOS_TRY
@@ -1207,6 +1251,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::EvalIntegrandSurrLayer(IntegrandParams params) {
     KRATOS_TRY
@@ -1221,6 +1266,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::EvalIntegrandVoronoiWall(IntegrandParams params) {
     KRATOS_TRY
@@ -1236,6 +1282,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::EvalIntegrandVoronoiMono(IntegrandParams params) {
     KRATOS_TRY
@@ -1251,6 +1298,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::EvalIntegrandVoronoiMulti(IntegrandParams params) {
     KRATOS_TRY
@@ -1277,11 +1325,13 @@ namespace Kratos
   //=====================================================================================================================================================================================
   // Neighbor interaction computations
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::ComputeContactArea(const double rmin, double indentation, double& calculation_area) {
     calculation_area = Globals::Pi*rmin*rmin;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::CleanContactParameters(const ProcessInfo& r_process_info) {
     KRATOS_TRY
@@ -1303,6 +1353,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   bool ThermalSphericParticle<TBaseElement>::CheckAdiabaticNeighbor() {
     KRATOS_TRY
@@ -1313,6 +1364,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   bool ThermalSphericParticle<TBaseElement>::CheckSurfaceDistance(const double radius_factor) {
     KRATOS_TRY
@@ -1327,6 +1379,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::ComputeDistanceToNeighbor() {
     KRATOS_TRY
@@ -1386,6 +1439,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::ComputeDistanceToNeighborAdjusted() {
     KRATOS_TRY
@@ -1408,6 +1462,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::ComputeFourierNumber() {
     KRATOS_TRY
@@ -1429,6 +1484,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::ComputeMaxCollisionTime() {
     KRATOS_TRY
@@ -1445,6 +1501,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::ComputeMaxContactRadius() {
     KRATOS_TRY
@@ -1461,6 +1518,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::ComputeContactRadius() {
     KRATOS_TRY
@@ -1484,6 +1542,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::ComputeEffectiveRadius() {
     KRATOS_TRY
@@ -1503,6 +1562,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::ComputeEffectiveMass() {
     KRATOS_TRY
@@ -1522,6 +1582,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::ComputeEffectiveYoung() {
     KRATOS_TRY
@@ -1536,6 +1597,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::ComputeEffectiveYoungReal() {
     KRATOS_TRY
@@ -1550,6 +1612,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::ComputeEffectiveConductivity() {
     KRATOS_TRY
@@ -1562,6 +1625,7 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::ComputeAverageConductivity() {
     KRATOS_TRY
@@ -1579,6 +1643,7 @@ namespace Kratos
   //=====================================================================================================================================================================================
   // Get/Set methods
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetYoung() {
     if (GetProperties().HasTable(TEMPERATURE, YOUNG_MODULUS)) {
@@ -1590,6 +1655,7 @@ namespace Kratos
     }
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetPoisson() {
     if (GetProperties().HasTable(TEMPERATURE, POISSON_RATIO)) {
@@ -1601,6 +1667,7 @@ namespace Kratos
     }
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetDensity() {
     if (GetProperties().HasTable(TEMPERATURE, PARTICLE_DENSITY)) {
@@ -1612,61 +1679,73 @@ namespace Kratos
     }
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   array_1d<double, 3> ThermalSphericParticle<TBaseElement>::GetParticleCoordinates() {
     return GetGeometry()[0].Coordinates();
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   array_1d<double, 3> ThermalSphericParticle<TBaseElement>::GetParticleVelocity() {
     return GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleTemperature() {
     return GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleRadius() {
     return GetRadius();
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleSurfaceArea() {
     return 4 * Globals::Pi * GetRadius() * GetRadius();
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleCharacteristicLength() {
     return 2 * GetRadius();
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleVolume() {
     return CalculateVolume();
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleYoung() {
     return GetYoung();
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticlePoisson() {
     return GetPoisson();
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleDensity() {
     return GetDensity();
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleMass() {
     return GetMass();
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleHeatCapacity() {
     if (GetProperties().HasTable(TEMPERATURE, SPECIFIC_HEAT)) {
@@ -1679,6 +1758,7 @@ namespace Kratos
     }
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleConductivity() {
     if (GetProperties().HasTable(TEMPERATURE, THERMAL_CONDUCTIVITY)) {
@@ -1691,6 +1771,7 @@ namespace Kratos
     }
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleEmissivity() {
     if (GetProperties().HasTable(TEMPERATURE, EMISSIVITY)) {
@@ -1703,6 +1784,7 @@ namespace Kratos
     }
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleExpansionCoefficient() {
     if (GetProperties().HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT)) {
@@ -1715,11 +1797,13 @@ namespace Kratos
     }
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   array_1d<double, 3> ThermalSphericParticle<TBaseElement>::GetWallCoordinates() {
     return mNeighbor_w->GetGeometry().Center();
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetWallTemperature() {
     // Assumption: wall temperature is the average of its nodes
@@ -1730,12 +1814,14 @@ namespace Kratos
     return wall_temp / n_nodes;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetWallRadius() {
     // Assumption: zero to be consistent with its use in formulations
     return 0.0;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetWallYoung() {
     if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, YOUNG_MODULUS)) {
@@ -1747,6 +1833,7 @@ namespace Kratos
     }
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetWallPoisson() {
     if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, POISSON_RATIO)) {
@@ -1758,6 +1845,7 @@ namespace Kratos
     }
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetWallDensity() {
     if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, PARTICLE_DENSITY)) {
@@ -1769,12 +1857,14 @@ namespace Kratos
     }
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetWallMass() {
     // Assumption: zero to be consistent with its use in formulations
     return 0.0;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetWallHeatCapacity() {
     if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, SPECIFIC_HEAT)) {
@@ -1786,6 +1876,7 @@ namespace Kratos
     }
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetWallConductivity() {
     if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, THERMAL_CONDUCTIVITY)) {
@@ -1797,6 +1888,7 @@ namespace Kratos
     }
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetWallEmissivity() {
     if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, EMISSIVITY)) {
@@ -1808,6 +1900,7 @@ namespace Kratos
     }
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   array_1d<double, 3> ThermalSphericParticle<TBaseElement>::GetNeighborCoordinates() {
     if (mNeighborType & PARTICLE_NEIGHBOR)
@@ -1818,6 +1911,7 @@ namespace Kratos
       return vector<double>();
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborTemperature() {
     if (mNeighborType & PARTICLE_NEIGHBOR)
@@ -1828,6 +1922,7 @@ namespace Kratos
       return 0.0;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborRadius() {
     if (mNeighborType & PARTICLE_NEIGHBOR)
@@ -1838,6 +1933,7 @@ namespace Kratos
       return 0.0;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborYoung() {
     if (mNeighborType & PARTICLE_NEIGHBOR)
@@ -1848,6 +1944,7 @@ namespace Kratos
       return 0.0;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborPoisson() {
     if (mNeighborType & PARTICLE_NEIGHBOR)
@@ -1858,6 +1955,7 @@ namespace Kratos
       return 0.0;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborDensity() {
     if (mNeighborType & PARTICLE_NEIGHBOR)
@@ -1868,6 +1966,7 @@ namespace Kratos
       return 0.0;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborMass() {
     if (mNeighborType & PARTICLE_NEIGHBOR)
@@ -1878,6 +1977,7 @@ namespace Kratos
       return 0.0;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborHeatCapacity() {
     if (mNeighborType & PARTICLE_NEIGHBOR)
@@ -1888,6 +1988,7 @@ namespace Kratos
       return 0.0;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborConductivity() {
     if (mNeighborType & PARTICLE_NEIGHBOR)
@@ -1898,6 +1999,7 @@ namespace Kratos
       return 0.0;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetNeighborEmissivity() {
     if (mNeighborType & PARTICLE_NEIGHBOR)
@@ -1908,6 +2010,7 @@ namespace Kratos
       return 0.0;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetContactDynamicFrictionCoefficient() {
     if (mNeighborType & PARTICLE_NEIGHBOR) {
@@ -1922,42 +2025,50 @@ namespace Kratos
       return 0.0;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::SetParticleTemperature(const double temperature) {
     GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE) = temperature;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::SetParticleHeatFlux(const double heat_flux) {
     GetGeometry()[0].FastGetSolutionStepValue(HEATFLUX) = heat_flux;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::SetParticlePrescribedHeatFluxSurface(const double heat_flux) {
     mPrescribedHeatFluxSurface = heat_flux;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::SetParticlePrescribedHeatFluxVolume(const double heat_flux) {
     mPrescribedHeatFluxVolume = heat_flux;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::SetParticleRadius(const double radius) {
     SetRadius(radius);
     GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::SetParticleMomentInertia(const double moment_inertia) {
     GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_inertia;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::SetParticleRealYoungRatio(const double ratio) {
     mRealYoungRatio = ratio;
   }
 
+  //------------------------------------------------------------------------------------------------------------
   // Explicit Instantiation
   template class ThermalSphericParticle<SphericParticle>;
   template class ThermalSphericParticle<SphericContinuumParticle>;
