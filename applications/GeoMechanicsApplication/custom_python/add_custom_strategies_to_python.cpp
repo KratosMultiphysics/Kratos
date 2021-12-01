@@ -32,10 +32,10 @@
 #include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
+#include "custom_strategies/schemes/backward_euler_quasistatic_Pw_erosion_process_scheme.hpp"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
-
 
 namespace Kratos
 {
@@ -62,6 +62,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     typedef NewmarkQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >         NewmarkQuasistaticPwSchemeType;
     typedef BackwardEulerQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >  BackwardEulerQuasistaticUPwSchemeType;
     typedef BackwardEulerQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >   BackwardEulerQuasistaticPwSchemeType;
+    typedef BackwardEulerQuasistaticPwErosionProcessScheme< SparseSpaceType, LocalSpaceType >   BackwardEulerQuasistaticPwErosionProcessSchemeType;
 
     typedef GeoMechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsNewtonRaphsonStrategyType;
     typedef GeoMechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsRammArcLengthStrategyType;
@@ -90,6 +91,10 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 
     class_< BackwardEulerQuasistaticPwSchemeType, typename BackwardEulerQuasistaticPwSchemeType::Pointer, BaseSchemeType >
     (m, "BackwardEulerQuasistaticPwScheme")
+    .def(init< >());
+
+    class_< BackwardEulerQuasistaticPwErosionProcessSchemeType, typename BackwardEulerQuasistaticPwErosionProcessSchemeType::Pointer, BaseSchemeType >
+    (m, "BackwardEulerQuasistaticPwErosionProcessScheme")
     .def(init< >());
 
     class_< GeoMechanicsNewtonRaphsonStrategyType, typename GeoMechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
