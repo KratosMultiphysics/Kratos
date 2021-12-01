@@ -206,6 +206,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double             GetNeighborEmissivity();
   
   double             GetContactDynamicFrictionCoefficient();
+  ContactParams      GetContactParameters();
 
   void               SetParticleTemperature               (const double temperature);
   void               SetParticleHeatFlux                  (const double heat_flux);

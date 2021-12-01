@@ -5,6 +5,13 @@
 //   Revision:            $Revision:      1.0.0.0 $
 //
 
+/*
+* Important tags:
+*   attention;
+*   assumption;
+*   todo;
+*/
+
 // System includes
 #include <string>
 #include <iostream>
@@ -597,27 +604,24 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::DirectConductionCollisional(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    // This model is in stand-by untill the needed parameters are obtained: collision time and impact velocity
+    // Get collision time and impact normal velocity
+    typename ThermalSphericParticle<TBaseElement>::ContactParams contact_params = GetContactParameters();
+    double col_time = r_process_info[TIME] - contact_params.impact_time;
+    double impact_normal_velocity = fabs(contact_params.impact_velocity[0]);
 
-    // TODO: Decide which Young modulus to use when computing parameters: simulation or real?
-
-    // TODO: track collision time and save impact velocity
-    double col_time = 0.0;
-    double impact_normal_velocity = 0.0;
-
-    // Check if collision time is smaller than expected value, otherwise use static model (batchelor_obrien)
+    // Compute max collision time
     double col_time_max = 0.0;
-
     if (impact_normal_velocity != 0.0)
       col_time_max = ComputeMaxCollisionTime();
     
+    // Check if collision time is smaller than max value, otherwise use static model (batchelor_obrien)
     if (col_time < col_time_max) {
       double temp_grad = GetNeighborTemperature() - GetParticleTemperature();
       double Rc_max    = ComputeMaxContactRadius();
       double Fo        = ComputeFourierNumber();
 
       double a1 = GetParticleDensity() * GetParticleHeatCapacity();
-      double a2 = GetNeighborDensity() * GetNeighborHeatCapacity(); // do not use wall density
+      double a2 = GetNeighborDensity() * GetNeighborHeatCapacity();
       double b1 = a1 * GetParticleConductivity();
       double b2 = a2 * GetNeighborConductivity();
       double c  = a1 / a2;
@@ -1014,19 +1018,11 @@ namespace Kratos
     KRATOS_TRY
 
     // Model parameters
+    typename ThermalSphericParticle<TBaseElement>::ContactParams contact_params = GetContactParameters();
     double friction_conversion = r_process_info[FRICTION_HEAT_CONVERSION];
     double friction_coeff      = GetContactDynamicFrictionCoefficient();
-    double velocity_tangent    = 0.0;
-    double force_normal        = 0.0;
-
-    if (mNeighborType & PARTICLE_NEIGHBOR && mContactParamsParticle.count(mNeighbor_p)) {
-      velocity_tangent = mContactParamsParticle[mNeighbor_p].local_velocity[1];
-      force_normal     = mContactParamsParticle[mNeighbor_p].local_force[0];
-    }
-    else if (mNeighborType & WALL_NEIGHBOR && mContactParamsWall.count(mNeighbor_w)) {
-      velocity_tangent = mContactParamsWall[mNeighbor_w].local_velocity[1];
-      force_normal     = mContactParamsWall[mNeighbor_w].local_force[0];
-    }
+    double velocity_tangent    = contact_params.local_velocity[1];
+    double force_normal        = contact_params.local_force[0];
 
     // Partition coefficient
     double k1 = GetParticleConductivity();
@@ -1470,15 +1466,27 @@ namespace Kratos
     double col_time_max = ComputeMaxCollisionTime();
     double Rc_max       = ComputeMaxContactRadius();
 
-    double Fo_particle = GetParticleConductivity() * col_time_max / (GetParticleDensity() * GetParticleHeatCapacity() * Rc_max * Rc_max);
+    // Compute particle Fourier number
+    double Fo_particle;
+    if (Rc_max > 0.0)
+      Fo_particle = GetParticleConductivity() * col_time_max / (GetParticleDensity() * GetParticleHeatCapacity() * Rc_max * Rc_max);
+    else
+      Fo_particle = 0.0;
+
+    // Compute neighbor Fourier number
     double Fo_neighbor;
 
-    // Assumption: average of both particles
-    if (mNeighborType & PARTICLE_NEIGHBOR)
-      Fo_neighbor = GetNeighborConductivity() * col_time_max / (GetNeighborDensity() * GetNeighborHeatCapacity() * Rc_max * Rc_max);
-    else
+    if (mNeighborType & PARTICLE_NEIGHBOR) {
+      if (Rc_max > 0.0)
+        Fo_neighbor = GetNeighborConductivity() * col_time_max / (GetNeighborDensity() * GetNeighborHeatCapacity() * Rc_max * Rc_max);
+      else
+        Fo_neighbor = 0.0;
+    }
+    else {
       Fo_neighbor = Fo_particle;
+    }
 
+    // Assumption: average of both particles (only particle if neighbor is a wall)
     return (Fo_particle + Fo_neighbor) / 2.0;
 
     KRATOS_CATCH("")
@@ -1489,14 +1497,15 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::ComputeMaxCollisionTime() {
     KRATOS_TRY
 
-    // TODO: save impact normal velocity
-    // TODO: Use real Young modulus?
-    double impact_normal_velocity = 0.0;
-    double eff_radius = ComputeEffectiveRadius();
-    double eff_mass   = ComputeEffectiveMass();
-    double eff_young  = ComputeEffectiveYoung();
+    double eff_radius             = ComputeEffectiveRadius();
+    double eff_mass               = ComputeEffectiveMass();
+    double eff_young              = ComputeEffectiveYoungReal(); // ATTENTION: Assumption: Original model was not assumed real Young modulus!
+    double impact_normal_velocity = fabs(GetContactParameters().impact_velocity[0]);
 
-    return 2.87 * pow(eff_mass * eff_mass / (eff_radius * eff_young * eff_young * impact_normal_velocity), 0.2);
+    if (impact_normal_velocity != 0.0)
+      return 2.87 * pow(eff_mass * eff_mass / (eff_radius * eff_young * eff_young * impact_normal_velocity), 0.2);
+    else
+      return std::numeric_limits<double>::max();
 
     KRATOS_CATCH("")
   }
@@ -1506,15 +1515,13 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::ComputeMaxContactRadius() {
     KRATOS_TRY
 
-    // TODO: save impact normal velocity
-    // TODO: Use real Young modulus?
-    double impact_normal_velocity = 0.0;
-    double eff_radius = ComputeEffectiveRadius();
-    double eff_mass   = ComputeEffectiveMass();
-    double eff_young  = ComputeEffectiveYoung();
+    double eff_radius             = ComputeEffectiveRadius();
+    double eff_mass               = ComputeEffectiveMass();
+    double eff_young              = ComputeEffectiveYoungReal(); // ATTENTION: Assumption: Original model was not assumed real Young modulus!
+    double impact_normal_velocity = fabs(GetContactParameters().impact_velocity[0]);
 
     return pow(15.0 * eff_radius * eff_mass * impact_normal_velocity * impact_normal_velocity / (16.0 * eff_young), 0.2);
-
+    
     KRATOS_CATCH("")
   }
 
@@ -2023,6 +2030,25 @@ namespace Kratos
     }
     else
       return 0.0;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  template <class TBaseElement>
+  typename ThermalSphericParticle<TBaseElement>::ContactParams ThermalSphericParticle<TBaseElement>::GetContactParameters() {
+    if (mNeighborType & PARTICLE_NEIGHBOR && mContactParamsParticle.count(mNeighbor_p)) {
+      return mContactParamsParticle[mNeighbor_p];
+    }
+    else if (mNeighborType & WALL_NEIGHBOR && mContactParamsWall.count(mNeighbor_w)) {
+      return mContactParamsWall[mNeighbor_w];
+    }
+    else {
+      ThermalSphericParticle<TBaseElement>::ContactParams null_param;
+      null_param.impact_time = 0.0;
+      null_param.impact_velocity.assign(2, 0.0);
+      null_param.local_velocity.assign(2, 0.0);
+      null_param.local_force.assign(2, 0.0);
+      return null_param;
+    }
   }
 
   //------------------------------------------------------------------------------------------------------------
