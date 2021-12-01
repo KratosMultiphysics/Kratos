@@ -12,23 +12,23 @@ class WaveTheory:
         self.depth = depth
         if wavelength > 0 and amplitude > 0:
             raise Exception('WaveTheory. Specify only the wavelength or the period.')
-        if period > 0:
-            self.SetPeriod(period)
-        if wavelength > 0:
-            self.SetWavelength(wavelength)
-        if amplitude > 0:
-            self.SetAmplitude(amplitude)
+        self.SetPeriod(period)
+        self.SetWavelength(wavelength)
+        self.SetAmplitude(amplitude)
 
     def SetPeriod(self, period):
-        self.period = period
-        self.wavelength = self._CalculateWavelength(period)
+        if period > 0:
+            self.period = period
+            self.wavelength = self._CalculateWavelength(period)
 
     def SetWavelength(self, wavelength):
-        self.wavelength = wavelength
-        self.period = self._CalculatePeriod(wavelength)
+        if wavelength > 0:
+            self.wavelength = wavelength
+            self.period = self._CalculatePeriod(wavelength)
 
     def SetAmplitude(self, amplitude):
-        self.amplitude = amplitude
+        if amplitude > 0:
+            self.amplitude = amplitude
 
     def SetWaveSpecifications(self, parameters = KM.Parameters(), process_info = KM.ProcessInfo()):
         _CheckAndSetWaveSpecifications(self, parameters, process_info)
@@ -142,7 +142,7 @@ def _CheckAndSetWaveSpecifications(wave_theory, parameters, process_info):
     amplitude = _CheckAndGetIfAvailable(parameters, process_info, "amplitude", SW.AMPLITUDE)
 
     # Check if the wave specification is unique
-    if period is not None and wavelength is not None:
+    if period and wavelength:
         raise Exception("WaveGeneratorProcess. Provide the period or the wavelength. Both parameters are incompatible.")
     if not period and not wavelength:
         raise Exception("WaveGeneratorProcess. Please, specify the wavelength or the period in the project paramenters or hte process info.")
@@ -150,10 +150,8 @@ def _CheckAndSetWaveSpecifications(wave_theory, parameters, process_info):
         raise Exception("WaveGeneratorProcess. Please, specify the amplitude in the project parameters or the process info.")
 
     # Apply the user settings
-    if wavelength is not None:
-        wave_theory.SetWavelength(wavelength)
-    else:
-        wave_theory.SetPeriod(period)
+    wave_theory.SetWavelength(wavelength)
+    wave_theory.SetPeriod(period)
     wave_theory.SetAmplitude(amplitude)
 
 
@@ -163,4 +161,4 @@ def _CheckAndGetIfAvailable(parameters, process_info, name, variable):
     elif process_info.Has(variable):
         return process_info.GetValue(variable)
     else:
-        return None
+        return 0
