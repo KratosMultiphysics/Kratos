@@ -35,14 +35,19 @@ class WaveTheory:
 
     @property
     def horizontal_velocity(self):
-        frequency = 2 * pi / self.period
-        wavenumber = 2 * pi / self.wavelength
-        return self._HorizontalVelocity(self.amplitude, frequency, wavenumber)
+        return self._HorizontalVelocity(self.amplitude, self.frequency, self.wavenumber)
 
     @property
     def phase_speed(self):
-        wavenumber = 2 * pi / self.wavelength
-        return self._PhaseSpeed(wavenumber)
+        return self._PhaseSpeed(self.wavenumber)
+
+    @property
+    def wavenumber(self):
+        return 2 * pi / self.wavelength
+
+    @property
+    def frequency(self):
+        return 2 * pi / self.period
 
     def _DispersionRelation(self, wavenumber):
         KM.Logger.PrintWarning('WaveTheory base class: it is not possible to calculate the disperison relation.')
