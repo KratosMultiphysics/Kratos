@@ -806,7 +806,8 @@ namespace Kratos
 /* template<class TFunction> ApplyToLinearSolver(String Name){ */
 
 //Print Trace if defined
-#define KRATOS_WATCH(variable) std::cerr << #variable << " : " << variable << std::endl;
+#define KRATOS_WATCH(variable) std::cout << #variable << " : " << variable << std::endl;
+#define KRATOS_WATCH_CERR(variable) std::cerr << #variable << " : " << variable << std::endl;
 
 }  /* namespace Kratos.*/
 
