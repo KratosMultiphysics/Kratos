@@ -136,45 +136,31 @@ class ShallowTheory(WaveTheory):
 
 
 def _CheckAndSetWaveSpecifications(wave_theory, parameters, process_info):
-    # Check if the period is provided
-    if parameters.Has("period"):
-        period = parameters["period"].GetDouble()
-        period_is_provided = True
-    elif process_info.Has(SW.PERIOD):
-        period = process_info.GetValue(SW.PERIOD)
-        period_is_provided = True
-    else:
-        period_is_provided = False
-
-    # Check if the wavelength is provided
-    if parameters.Has("wavelength"):
-        wavelength = parameters["wavelength"].GetDouble()
-        wavelength_is_provided = True
-    elif process_info.Has(SW.WAVELENGTH):
-        wavelength = process_info.GetValue(SW.WAVELENGTH)
-        wavelength_is_provided = True
-    else:
-        wavelength_is_provided = False
+    # Check and get the wave specifications if provided
+    period = _CheckAndGetIfAvailable(parameters, process_info, "period", SW.PERIOD)
+    wavelength = _CheckAndGetIfAvailable(parameters, process_info, "wavelength", SW.WAVELENGTH)
+    amplitude = _CheckAndGetIfAvailable(parameters, process_info, "amplitude", SW.AMPLITUDE)
 
     # Check if the wave specification is unique
-    if period_is_provided and wavelength_is_provided:
+    if period is not None and wavelength is not None:
         raise Exception("WaveGeneratorProcess. Provide the period or the wavelength. Both parameters are incompatible.")
-
-    if not period_is_provided and not wavelength_is_provided:
+    if not period and not wavelength:
         raise Exception("WaveGeneratorProcess. Please, specify the wavelength or the period in the project paramenters or hte process info.")
-
-    # Check if the amplitude is provided
-    if parameters.Has("amplitude"):
-        amplitude = parameters["amplitude"].GetDouble()
-    elif process_info.Has(SW.AMPLITUDE):
-        amplitude = process_info.GetValue(SW.AMPLITUDE)
-    else:
+    if not amplitude:
         raise Exception("WaveGeneratorProcess. Please, specify the amplitude in the project parameters or the process info.")
 
     # Apply the user settings
-    if wavelength_is_provided:
+    if wavelength is not None:
         wave_theory.SetWavelength(wavelength)
     else:
         wave_theory.SetPeriod(period)
-    
     wave_theory.SetAmplitude(amplitude)
+
+
+def _CheckAndGetIfAvailable(parameters, process_info, name, variable):
+    if parameters.Has(name):
+        return parameters[name].GetDouble()
+    elif process_info.Has(variable):
+        return process_info.GetValue(variable)
+    else:
+        return None

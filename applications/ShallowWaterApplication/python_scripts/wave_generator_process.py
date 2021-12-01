@@ -22,28 +22,19 @@ class WaveGeneratorProcess(KM.Process):
         "shallow_theory" : wave_theory_utilities.ShallowTheory
     }
 
-    def GetDefaultParameters(self):
-        """The default settings depend on the specifications of the wave.
-        The user settings can be in the project parameters or in the process info."""
+    @staticmethod
+    def GetDefaultParameters():
+        """The wave specifications can be in the project parameters or in the process info."""
 
-        default_parameters = KM.Parameters("""
+        return KM.Parameters("""
         {
-            "model_part_name"   : "model_part",
-            "formulation"       : "primitive_variables",
-            "wave_theory"       : "boussinesq",
-            "interval"          : [0.0, 1e30]
+            "model_part_name"     : "model_part",
+            "formulation"         : "primitive_variables",
+            "interval"            : [0.0, 1e30],
+            "wave_theory"         : "boussinesq",
+            "wave_specifications" : {}
         }
         """)
-        if self.settings.Has("wavelength"):
-            default_parameters.SetDouble("wavelength", 0.0)
-
-        if self.settings.Has("period"):
-            default_parameters.SetDouble("period", 0.0)
-        
-        if self.settings.Has("amplitude"):
-            default_parameters.SetDouble("amplitude", 0.0)
-
-        return default_parameters
 
 
     def __init__(self, model, settings ):
@@ -69,7 +60,7 @@ class WaveGeneratorProcess(KM.Process):
         depth = self._CalculateMeanDepth()
         gravity = self.model_part.ProcessInfo[KM.GRAVITY_Z]
         wave_theory = wave_theory_class(depth, gravity)
-        wave_theory.SetWaveSpecifications(self.settings, self.model_part.ProcessInfo)
+        wave_theory.SetWaveSpecifications(self.settings["wave_specifications"], self.model_part.ProcessInfo)
 
         # Creation of the parameters for the c++ process
         velocity_parameters = KM.Parameters("""{}""")
