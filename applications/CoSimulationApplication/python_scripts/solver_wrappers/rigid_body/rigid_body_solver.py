@@ -552,13 +552,13 @@ class RigidBodySolver(object):
 
                 self.dictionary = {"time": self.time, "displacement": (self.x[index,0]),"displacement_r": (self.x_f[index,0]),
             "velocity": (self.v[index,0]),"velocity_r": (self.v_f[index,0]), "acceleration": (self.a[index,0]),"acceleration_r": str(self.a_f[index,0])}
-                with open(self.__GetFolderPathSave(dof)+'\\RigidBody_'+ str(self.__GetPrettyTime(time)) + '.json', 'w') as outfile:
+                with open(self.__GetFolderPathSave(dof)+'//RigidBody_'+ str(self.__GetPrettyTime(time)) + '.json', 'w') as outfile:
                     json.dump(self.dictionary, outfile)
         
         # Schedule next output
         if self.restart_save_frequency > 0.0: # Note: if == 0, we'll just always print
             while self.next_output <= control_label:
-                self.next_output += self.restart_save_frequency      
+                self.next_output += self.restart_save_frequency
 
         # Cleanup
         self._ClearObsoleteRestartFiles()
@@ -568,7 +568,7 @@ class RigidBodySolver(object):
         This function checks and returns whether a restart file should be written in this time-step
         """
         if self.restart_control_type_is_time:
-            return (self.time > self.next_output)
+            return (self.time >= self.next_output)
         else:
             pass
             # return (self.model_part.ProcessInfo[KM.STEP] >= self.next_output)
