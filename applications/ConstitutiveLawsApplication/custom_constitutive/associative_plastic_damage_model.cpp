@@ -373,20 +373,18 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialHardeningImplicitFu
             (0.5 * factor - g) / (g * (3.0 * chi + 1.0) * (chi - 1.0)) * ((2.0 * chi + 1) - max_threshold*xi / K0 * (std::pow(chi, 2) - 1.0) * std::log(chi / (chi - 1.0)));
 
         const double sign = (Dissipation < diss_indicator) ? -1.0 : 1.0; // In hardening should be negative
-        const double gamma = (0.5*factor - g) / (g * (3.0 * chi + 1) * (chi - 1.0));
+        const double gamma = (0.5*factor - g) / (g * (3.0 * chi + 1.0) * (chi - 1.0));
         const double alpha = std::sqrt(chi_square * (1.0 - Threshold / K0) + Threshold / K0);
         const double beta = (1.0 - chi_square) / (2.0 * alpha*K0);
 
         const double ey = K0/E;
-        return (ey*K0*(xi/K0 - (2*Threshold*((K0*xi)/Threshold
-            - xi + 1))/(K0*K0)))/(2*g) + ((g - (ey*K0)/2)*((-sign*
-            (1/K0 - chi*chi/K0)*(2*chi + -sign*std::sqrt((1 - Threshold/K0)*(chi*chi) + Threshold/K0)
-            + 1))/(2*std::sqrt(Threshold/K0 - (chi*chi)*(Threshold/K0 - 1))) + (-sign*(1/K0 - (chi*chi)/K0)*(-sign
-            *std::sqrt((1 - Threshold/K0)*(chi*chi) + Threshold/K0) - 1))
-            /(2*std::sqrt(Threshold/K0 - (chi*chi)*(Threshold/K0 - 1))) + (xi*std::log((chi -(-sign)
-            *std::sqrt((1 - Threshold/K0)*(chi*chi) + Threshold/K0))/(chi - 1))*((chi*chi) - 1))/K0
-            - (-sign*Threshold*xi*(1/K0 - (chi*chi)/K0)*((chi*chi) - 1))
-            /(2*K0*std::sqrt(Threshold/K0 - (chi*chi)*(Threshold/K0 - 1))*(chi - -sign*std::sqrt((1 - Threshold/K0)*(chi*chi) + Threshold/K0)))))/(g*(3*chi + 1)*(chi - 1));
+        return (ey * K0 * (xi / K0 - (2.0 * Threshold * ((K0 * xi) / Threshold - xi + 1.0)) / (K0 * K0))) / (2.0 * g) + ((g - (ey * K0) / 2.0) * ((-sign *
+                (1.0 / K0 - chi * chi / K0) * (2.0 * chi + -sign * std::sqrt((1.0 - Threshold / K0) * (chi * chi) + Threshold / K0) + 1.0)) /
+                (2.0 * std::sqrt(Threshold / K0 - (chi * chi) * (Threshold / K0 - 1.0))) + (-sign * (1.0 / K0 - (chi * chi) / K0) *
+                (-sign * std::sqrt((1.0 - Threshold / K0) * (chi * chi) + Threshold / K0) - 1.0)) / (2.0 * std::sqrt(Threshold / K0 - (chi * chi) * (Threshold / K0 - 1.0))) +
+                (xi * std::log((chi - (-sign) * std::sqrt((1.0 - Threshold / K0) * (chi * chi) + Threshold / K0)) / (chi - 1.0)) * ((chi * chi) - 1.0)) / K0 - (-sign * Threshold * xi *
+                 (1.0 / K0 - (chi * chi) / K0) * ((chi * chi) - 1.0)) / (2.0 * K0 * std::sqrt(Threshold / K0 - (chi * chi) * (Threshold / K0 - 1)) * (chi - -sign *
+                 std::sqrt((1.0 - Threshold / K0) * (chi * chi) + Threshold / K0))))) / (g * (3.0 * chi + 1.0) * (chi - 1.0));
     };
     return function_derivative;
 }
@@ -463,11 +461,11 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdImpli
 )
 {
     double old_threshold = rPDParameters.Threshold;
-    const double perturbation = 1.0e-4; 
+    const double perturbation = 1.0e-4;
     if (std::abs(rdF_dk(rPDParameters.TotalDissipation, old_threshold, rValues, rPDParameters)) < machine_tolerance) {
         old_threshold += perturbation* rPDParameters.Threshold;
         if (old_threshold >= MaxThreshold)
-            old_threshold -= 2.0*perturbation* rPDParameters.Threshold;
+            old_threshold -= 2.0 * perturbation * rPDParameters.Threshold;
     }
     double residual = 1.0;
     double rel_residual = 1.0;
