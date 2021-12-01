@@ -52,6 +52,15 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   #define WALL_NEIGHBOR_NONCONTACT   2   // binary = 010 (to use in bitwise operations)
   #define WALL_NEIGHBOR_CONTACT      1   // binary = 001 (to use in bitwise operations)
 
+  struct ContactParams
+  {
+    int                 updated_step;
+    double              impact_time;
+    std::vector<double> impact_velocity;
+    std::vector<double> local_velocity;
+    std::vector<double> local_force;
+  };
+
   struct IntegrandParams
   {
     double x;
@@ -79,8 +88,8 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   // Calculate right hand side
   void CalculateRightHandSide(const ProcessInfo& r_process_info, double dt, const array_1d<double, 3>& gravity) override;
   void ComputeHeatFluxes(const ProcessInfo& r_process_info);
-  void StoreBallToBallForcesInfo(SphericParticle* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) override;
-  void StoreBallToRigidFaceForcesInfo(DEMWall* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) override;
+  void StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) override;
+  void StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, DEMWall* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) override;
 
   // Finalization methods
   void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
@@ -137,6 +146,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
 
   // Neighbor interaction computations
   virtual void ComputeContactArea(const double rmin, double indentation, double& calculation_area);
+  void   CleanContactParameters(const ProcessInfo& r_process_info);
   bool   CheckAdiabaticNeighbor();
   bool   CheckSurfaceDistance(const double radius_factor);
   double ComputeDistanceToNeighbor();
@@ -233,18 +243,18 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
 
   protected:
 
-  // General
-  bool is_time_to_solve;
+  // General flags
+  bool is_time_to_solve;      // solve thermal problem in current step
+  bool store_contact_param;   // store contact parameters with neighbors when solving the mechanical problem
 
-  // Neighbor data
-  ThermalSphericParticle<TBaseElement>*           mNeighbor_p;
-  DEMWall*                                        mNeighbor_w;
-  int                                             mNeighborType;
-  int                                             mNeighborIndex;
-  std::map<SphericParticle*, std::vector<double>> mNeighborParticleLocalRelativeVelocity;
-  std::map<SphericParticle*, std::vector<double>> mNeighborParticleLocalContactForce;
-  std::map<DEMWall*, std::vector<double>>         mNeighborWallLocalRelativeVelocity;
-  std::map<DEMWall*, std::vector<double>>         mNeighborWallLocalContactForce;
+  // Neighboring data
+  ThermalSphericParticle<TBaseElement>*     mNeighbor_p;
+  DEMWall*                                  mNeighbor_w;
+  int                                       mNeighborType;
+  int                                       mNeighborIndex;
+  int                                       mNumberOfContactParticleNeighbor;
+  std::map<SphericParticle*, ContactParams> mContactParamsParticle;
+  std::map<DEMWall*, ContactParams>         mContactParamsWall;
 
   // Interaction properties
   bool   mNeighborInContact;         // flag for contact interaction

@@ -43,9 +43,16 @@ namespace Kratos
     this->Set(DEMFlags::HAS_ADJUSTED_CONTACT,             r_process_info[ADJUSTED_CONTACT_OPTION]);
     this->Set(DEMFlags::HAS_TEMPERATURE_DEPENDENT_RADIUS, r_process_info[TEMPERATURE_DEPENDENT_RADIUS_OPTION]);
 
+    store_contact_param = (this->Is(DEMFlags::HAS_DIRECT_CONDUCTION) && r_process_info[DIRECT_CONDUCTION_MODEL].compare("collisional") == 0) ||
+                           this->Is(DEMFlags::HAS_FRICTION_HEAT);
+
     // Initialize prescribed heat flux/source (currently a constant value)
     SetParticlePrescribedHeatFluxSurface(0.0);
     SetParticlePrescribedHeatFluxVolume(0.0);
+
+    // Clear maps
+    mContactParamsParticle.clear();
+    mContactParamsWall.clear();
 
     KRATOS_CATCH("")
   }
@@ -61,13 +68,9 @@ namespace Kratos
     int freq = r_process_info[THERMAL_FREQUENCY];
     is_time_to_solve = (step > 0) && (freq != 0) && (step - 1) % freq == 0;
 
-    // Clear maps
-    if (this->Is(DEMFlags::HAS_FRICTION_HEAT)) {
-      mNeighborParticleLocalRelativeVelocity.clear();
-      mNeighborParticleLocalContactForce.clear();
-      mNeighborWallLocalRelativeVelocity.clear();
-      mNeighborWallLocalContactForce.clear();
-    }
+    // Initialize number of contact particle neighbors
+    // (currently used only for cleaning contact parameters map)
+    mNumberOfContactParticleNeighbor = 0;
   }
 
   template <class TBaseElement>
@@ -117,8 +120,8 @@ namespace Kratos
     // Compute heat fluxes with neighbor particles
     for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
       if (mNeighbourElements[i] == NULL) continue;
-      mNeighbor_p   = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
-      mNeighborType = PARTICLE_NEIGHBOR;
+      mNeighbor_p    = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
+      mNeighborType  = PARTICLE_NEIGHBOR;
       mNeighborIndex = i;
       ComputeHeatFluxWithNeighbor(r_process_info);
     }
@@ -163,10 +166,58 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::StoreBallToBallForcesInfo(SphericParticle* neighbor, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {
+  void ThermalSphericParticle<TBaseElement>::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle* neighbor, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {
     KRATOS_TRY
 
-    if (!this->Is(DEMFlags::HAS_FRICTION_HEAT))
+    if (!store_contact_param)
+      return;
+
+    // Increment number of contact particle neighbors
+    mNumberOfContactParticleNeighbor++;
+
+    // Local relavive velocity components (normal and tangential)
+    std::vector<double> LocalRelativeVelocity{ data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) };
+
+    // Local contact force components (normal and sliding tangential)
+    double LocalContactForce[3] = { 0.0 };
+    GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, GlobalContactForce, LocalContactForce);
+    std::vector<double> LocalForce{ LocalContactForce[2] };
+
+    // Friction heat generation is not considered when particles are not sliding against each other, so tangent velocity is set to zero.
+    // ATTENTION: Becareful when using the tangent velocity in other context that is not friction heat generation, as it can be zero.
+    if (sliding)
+      LocalForce.push_back(sqrt(LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]));
+    else
+      LocalForce.push_back(0.0);
+
+    // Update contact parameters
+    ContactParams params;
+    params.updated_step   = r_process_info[TIME_STEPS];
+    params.local_velocity = LocalRelativeVelocity;
+    params.local_force    = LocalForce;
+
+    // Keep impact parameters if contact is not new
+    if (mContactParamsParticle.count(neighbor)) {
+      params.impact_time     = mContactParamsParticle[neighbor].impact_time;
+      params.impact_velocity = mContactParamsParticle[neighbor].impact_velocity;
+    }
+    // Set impact parameters for new contacts
+    else {
+      params.impact_time     = r_process_info[TIME];
+      params.impact_velocity = LocalRelativeVelocity;
+    }
+
+    // Add/Update parameters in map
+    mContactParamsParticle[neighbor] = params;
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, DEMWall* neighbor, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {
+    KRATOS_TRY
+
+    if (!store_contact_param)
       return;
 
     // Local relavive velocity components (normal and tangential)
@@ -176,40 +227,33 @@ namespace Kratos
     double LocalContactForce[3] = { 0.0 };
     GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, GlobalContactForce, LocalContactForce);
     std::vector<double> LocalForce{ LocalContactForce[2] };
+
+    // Friction heat generation is not considered when particles are not sliding against each other, so tangent velocity is set to zero.
+    // ATTENTION: Becareful when using the tangent velocity in other context that is not friction heat generation, as it can be zero.
     if (sliding)
       LocalForce.push_back(sqrt(LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]));
     else
       LocalForce.push_back(0.0);
 
-    // Store information
-    mNeighborParticleLocalRelativeVelocity[neighbor] = LocalRelativeVelocity;
-    mNeighborParticleLocalContactForce[neighbor]     = LocalForce;
+    // Update contact parameters
+    ContactParams params;
+    params.updated_step   = r_process_info[TIME_STEPS];
+    params.local_velocity = LocalRelativeVelocity;
+    params.local_force    = LocalForce;
 
-    KRATOS_CATCH("")
-  }
+    // Keep impact parameters if contact is not new
+    if (mContactParamsWall.count(neighbor)) {
+      params.impact_time     = mContactParamsWall[neighbor].impact_time;
+      params.impact_velocity = mContactParamsWall[neighbor].impact_velocity;
+    }
+    // Set impact parameters for new contacts
+    else {
+      params.impact_time     = r_process_info[TIME];
+      params.impact_velocity = LocalRelativeVelocity;
+    }
 
-  template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::StoreBallToRigidFaceForcesInfo(DEMWall* neighbor, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {
-    KRATOS_TRY
-
-    if (!this->Is(DEMFlags::HAS_FRICTION_HEAT))
-      return;
-
-    // Local relavive velocity components (normal and sliding tangential)
-    std::vector<double> LocalRelativeVelocity{ data_buffer.mLocalRelVel[2], sqrt(data_buffer.mLocalRelVel[0] * data_buffer.mLocalRelVel[0] + data_buffer.mLocalRelVel[1] * data_buffer.mLocalRelVel[1]) };
-
-    // Local contact force components (normal and sliding tangential)
-    double LocalContactForce[3] = { 0.0 };
-    GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, GlobalContactForce, LocalContactForce);
-    std::vector<double> LocalForce{ LocalContactForce[2] };
-    if (sliding)
-      LocalForce.push_back(sqrt(LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]));
-    else
-      LocalForce.push_back(0.0);
-
-    // Store information
-    mNeighborWallLocalRelativeVelocity[neighbor] = LocalRelativeVelocity;
-    mNeighborWallLocalContactForce[neighbor]     = LocalForce;
+    // Add/Update parameters in map
+    mContactParamsWall[neighbor] = params;
 
     KRATOS_CATCH("")
   }
@@ -222,6 +266,11 @@ namespace Kratos
     if (this->Is(DEMFlags::HAS_MOTION))
       TBaseElement::FinalizeSolutionStep(r_process_info);
 
+    // Remove non-contacting neighbors from maps of contact parameters
+    if (store_contact_param)
+      CleanContactParameters(r_process_info);
+
+    // Update temperature/heat flux
     if (is_time_to_solve) {
       mPreviousTemperature = GetParticleTemperature();
       UpdateTemperature(r_process_info);
@@ -935,15 +984,14 @@ namespace Kratos
     double velocity_tangent    = 0.0;
     double force_normal        = 0.0;
 
-    if (mNeighborType & PARTICLE_NEIGHBOR && mNeighborParticleLocalRelativeVelocity.count(mNeighbor_p))
-      velocity_tangent = mNeighborParticleLocalRelativeVelocity[mNeighbor_p][1];
-    else if (mNeighborType & WALL_NEIGHBOR && mNeighborWallLocalRelativeVelocity.count(mNeighbor_w))
-      velocity_tangent = mNeighborWallLocalRelativeVelocity[mNeighbor_w][1];
-
-    if (mNeighborType & PARTICLE_NEIGHBOR && mNeighborParticleLocalContactForce.count(mNeighbor_p))
-      force_normal = mNeighborParticleLocalContactForce[mNeighbor_p][0];
-    else if (mNeighborType & WALL_NEIGHBOR && mNeighborWallLocalContactForce.count(mNeighbor_w))
-      force_normal = mNeighborWallLocalContactForce[mNeighbor_w][0];
+    if (mNeighborType & PARTICLE_NEIGHBOR && mContactParamsParticle.count(mNeighbor_p)) {
+      velocity_tangent = mContactParamsParticle[mNeighbor_p].local_velocity[1];
+      force_normal     = mContactParamsParticle[mNeighbor_p].local_force[0];
+    }
+    else if (mNeighborType & WALL_NEIGHBOR && mContactParamsWall.count(mNeighbor_w)) {
+      velocity_tangent = mContactParamsWall[mNeighbor_w].local_velocity[1];
+      force_normal     = mContactParamsWall[mNeighbor_w].local_force[0];
+    }
 
     // Partition coefficient
     double k1 = GetParticleConductivity();
@@ -1235,7 +1283,28 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  bool ThermalSphericParticle<TBaseElement>::CheckAdiabaticNeighbor(void) {
+  void ThermalSphericParticle<TBaseElement>::CleanContactParameters(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // When size of contact parameters map is different from the number of contacting neighbors,
+    // it means that there are additional neighbors in the map that are no longer in contact and must be removed.
+    // PS1: mNumberOfContactParticleNeighbor must count the number of contacting particle neighbors.
+    // PS2: An indication that a neighbor must be removed from the map is when the updated_step parameter is not the current.
+
+    if (mContactParamsParticle.size() != mNumberOfContactParticleNeighbor)
+      for (std::map<SphericParticle*, ContactParams>::const_iterator it = mContactParamsParticle.cbegin(); it != mContactParamsParticle.cend(); )
+        it = (it->second.updated_step != r_process_info[TIME_STEPS]) ? mContactParamsParticle.erase(it) : std::next(it);
+
+    if (mContactParamsWall.size() != mNeighbourRigidFaces.size()) {
+      for (std::map<DEMWall*, ContactParams>::const_iterator it = mContactParamsWall.cbegin(); it != mContactParamsWall.cend(); )
+        it = (it->second.updated_step != r_process_info[TIME_STEPS]) ? mContactParamsWall.erase(it) : std::next(it);
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  bool ThermalSphericParticle<TBaseElement>::CheckAdiabaticNeighbor() {
     KRATOS_TRY
 
     return ((mNeighborType & PARTICLE_NEIGHBOR && mNeighbor_p->Is(DEMFlags::IS_ADIABATIC)) ||
