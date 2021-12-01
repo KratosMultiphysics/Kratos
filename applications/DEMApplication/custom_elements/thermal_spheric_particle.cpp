@@ -2043,7 +2043,8 @@ namespace Kratos
     }
     else {
       ThermalSphericParticle<TBaseElement>::ContactParams null_param;
-      null_param.impact_time = 0.0;
+      null_param.updated_step = 0;
+      null_param.impact_time  = 0.0;
       null_param.impact_velocity.assign(2, 0.0);
       null_param.local_velocity.assign(2, 0.0);
       null_param.local_force.assign(2, 0.0);
