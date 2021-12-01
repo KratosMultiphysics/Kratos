@@ -86,7 +86,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
     def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.GetSolutionScheme()
+        time_scheme = self._GetScheme()
         linear_solver = self._GetLinearSolver()
         builder_and_solver = self._GetBuilderAndSolver()
         calculate_reaction_flag = False

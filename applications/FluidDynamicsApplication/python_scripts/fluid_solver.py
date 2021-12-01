@@ -259,7 +259,7 @@ class FluidSolver(PythonSolver):
             self._estimate_dt_utility = self._CreateEstimateDtUtility()
         return self._estimate_dt_utility
 
-    def GetSolutionScheme(self):
+    def _GetScheme(self):
         if not hasattr(self, '_scheme'):
             self._scheme = self._CreateScheme()
         return self._scheme
@@ -378,7 +378,7 @@ class FluidSolver(PythonSolver):
 
     def _CreateLinearStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.GetSolutionScheme()
+        time_scheme = self._GetScheme()
         builder_and_solver = self._GetBuilderAndSolver()
         calculate_norm_dx = False
         return KratosMultiphysics.ResidualBasedLinearStrategy(
@@ -392,7 +392,7 @@ class FluidSolver(PythonSolver):
 
     def _CreateNewtonRaphsonStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        time_scheme = self.GetSolutionScheme()
+        time_scheme = self._GetScheme()
         convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self._GetBuilderAndSolver()
         return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(

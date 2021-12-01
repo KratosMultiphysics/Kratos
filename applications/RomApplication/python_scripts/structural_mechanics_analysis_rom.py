@@ -55,7 +55,7 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
                 counter+=1
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
-                self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], self._GetSolver().GetSolutionScheme())
+                self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], self._GetSolver()._GetScheme())
 
     def FinalizeSolutionStep(self):
         if self.hyper_reduction_element_selector != None:
