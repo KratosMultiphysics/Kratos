@@ -104,8 +104,9 @@ public:
             }
             if (!isElementActive) {
                 itCond->Set(ACTIVE, false);
+            } else {
+                itCond->Set(ACTIVE, true);
             }
-
         }
 
         KRATOS_CATCH("")
