@@ -64,12 +64,12 @@ namespace Kratos {
 			KRATOS_CHECK_EQUAL(chunk.GetNumberOfAvailableBlocks(), available_blocks_should_be) << " Available block :" << chunk.GetNumberOfAvailableBlocks() << " vs " << available_blocks_should_be;
 
 			for(std::size_t i = 0 ; i < available_blocks_should_be; i++) {
-				const void* pointer = chunk.pGetData() + i*block_size_after_alignment;
-				KRATOS_CHECK_EQUAL(chunk.Has(pointer), true) << "The chunk starting from " << chunk.pGetData() << " with size " << chunk_size_in_bytes << " should have the pointer " << pointer << std::endl;
+				const void* pointer = chunk.pGetData() + i*block_size_after_alignment / sizeof(Chunk::BlockType);
+				KRATOS_CHECK_EQUAL(chunk.Has(pointer), true) << chunk << " should have the pointer " << pointer << std::endl;
 			}
 			for(std::size_t i = available_blocks_should_be ; i < available_blocks_should_be + 5; i++) {
-				const void* pointer = chunk.pGetData() + i*block_size_after_alignment;
-				KRATOS_CHECK_EQUAL(chunk.Has(pointer), false) << "The chunk starting from " << chunk.pGetData() << " with size " << chunk_size_in_bytes << " should Not have the pointer " << pointer << std::endl;
+				const void* pointer = chunk.pGetData() + i*block_size_after_alignment / sizeof(Chunk::BlockType);
+				KRATOS_CHECK_EQUAL(chunk.Has(pointer), false) << chunk << " should Not have the pointer " << pointer << std::endl;
 			}
 		}
 
