@@ -108,9 +108,7 @@ public:
     {
         KRATOS_TRY
 
-        int nConditions = static_cast<int>(mrModelPart.Conditions().size());
-
-        if (nConditions > 0) {
+        if (mrModelPart.Conditions().size() > 0) {
             SizeType StressTensorSize = STRESS_TENSOR_SIZE_2D;
             if (mDimension == N_DIM_3D) StressTensorSize = STRESS_TENSOR_SIZE_3D;
 

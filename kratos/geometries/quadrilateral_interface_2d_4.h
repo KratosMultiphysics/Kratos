@@ -821,7 +821,12 @@ public:
      */
     SizeType EdgesNumber() const override
     {
-        return 4;
+        return 2;
+    }
+
+    SizeType FacesNumber() const override
+    {
+        return EdgesNumber();
     }
 
     /**
@@ -836,11 +841,38 @@ public:
     {
         GeometriesArrayType edges = GeometriesArrayType();
         edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
+        // edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
         edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 3 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 0 ) ) );
+        // edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 0 ) ) );
         return edges;
     }
+
+
+
+    //Connectivities of faces required
+    void NumberNodesInFaces(DenseVector<unsigned int>& NumberNodesInFaces) const override
+    {
+        if(NumberNodesInFaces.size() != 2 )
+            NumberNodesInFaces.resize(2, false);
+        // Linear Triangles have elements of 2 nodes as faces
+        NumberNodesInFaces[0]=2;
+        NumberNodesInFaces[1]=2;
+    }
+
+    void NodesInFaces(DenseMatrix<unsigned int>& NodesInFaces) const override
+    {
+        // faces in columns
+        if(NodesInFaces.size1() != 2 || NodesInFaces.size2() != 2)
+            NodesInFaces.resize(2, 2, false);
+
+        //face 1
+        NodesInFaces(0,0)=0;//contrary node to the face
+        NodesInFaces(1,0)=1;
+        //face 2
+        NodesInFaces(0,1)=2;//contrary node to the face
+        NodesInFaces(1,1)=3;
+    }
+
 
     ///@}
     ///@name Shape Function
@@ -1388,7 +1420,7 @@ GeometryData QuadrilateralInterface2D4<TPointType>::msGeometryData(
 
 template<class TPointType>
 const GeometryDimension QuadrilateralInterface2D4<TPointType>::msGeometryDimension(
-    2, 2, 1);
+    2, 2, 2);
 
 }// namespace Kratos.
 

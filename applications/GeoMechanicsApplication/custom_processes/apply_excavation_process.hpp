@@ -41,9 +41,7 @@ namespace Kratos
 
 class ApplyExcavationProcess : public Process
 {
-
   public:
-
 
     typedef std::size_t IndexType;
     typedef Table<double, double> TableType;
@@ -61,7 +59,7 @@ class ApplyExcavationProcess : public Process
         mDeactivateSoilPart =  rParameters["deactivate_soil_part"].GetBool();
         mModelPartName      =  rParameters["model_part_name"].GetString();
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------
@@ -75,7 +73,7 @@ class ApplyExcavationProcess : public Process
     {
         KRATOS_TRY
 
-        const int nElements = mrModelPart.GetMesh(0).Elements().size();
+        const unsigned int nElements = mrModelPart.GetMesh(0).Elements().size();
         if (nElements > 0) {
             if (mDeactivateSoilPart) {
                 // Deactivation of the existing parts:
@@ -90,8 +88,8 @@ class ApplyExcavationProcess : public Process
                 });
 
                 // Same nodes for both computing model part
-                const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-                if (nnodes > 0) {
+                const int nNodes = mrModelPart.GetMesh(0).Nodes().size();
+                if (nNodes > 0) {
                     block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode) {
                         rNode.Set(ACTIVE, true);
                     });
@@ -100,7 +98,7 @@ class ApplyExcavationProcess : public Process
         }
 
         // Conditions
-        const int nConditions = mrModelPart.GetMesh(0).Conditions().size();
+        const unsigned int nConditions = mrModelPart.GetMesh(0).Conditions().size();
         if (nConditions > 0) {
             if (mDeactivateSoilPart) {
                 block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
