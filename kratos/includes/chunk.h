@@ -42,11 +42,11 @@ namespace Kratos
 	  ///@{
 
 		// The reference algorithm uses unsigned char as data type
-		// Here I use std::size_t to ensure better alignment considering
+		// Here I use std::int64_t to ensure better alignment considering
 		// that objects in Kratos are "always" larger than a double
-		using DataType = std::size_t;
+		using BlockType = std::int64_t;
 
-		using SizeType = DataType;
+		using SizeType = std::size_t;
 
 
 	  ///@}
@@ -90,7 +90,7 @@ namespace Kratos
 	  void Initialize() {
 		  mOwnerThread = OpenMPUtils::ThisThread();  // initialization can change the owner thread
 		  std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
-		  mpData = new DataType[DataSize()];
+		  mpData = new BlockType[DataSize()];
   		  SetFirstAvailableBlockIndex(0);
 		  SetNumberOfAvailableBlocks(AllocatableDataSize() / block_size_after_alignment);
 
@@ -111,7 +111,7 @@ namespace Kratos
 
 		    lock();
 			  
-			DataType * p_result = GetData() + (GetFirstAvailableBlockIndex() * GetBlockSize(mBlockSizeInBytes));
+			BlockType * p_result = GetData() + (GetFirstAvailableBlockIndex() * GetBlockSize(mBlockSizeInBytes));
 			KRATOS_DEBUG_CHECK(Has(p_result));
 			SetFirstAvailableBlockIndex(*p_result);
 			SetNumberOfAvailableBlocks(GetNumberOfAvailableBlocks()-1);
@@ -128,7 +128,7 @@ namespace Kratos
 		  KRATOS_DEBUG_CHECK_NOT_EQUAL(GetData(), nullptr);
 		  // Range check at least in lower bound.
 		  KRATOS_DEBUG_CHECK_GREATER_EQUAL(pPointrerToRelease, GetData());
-		  DataType* p_to_release = static_cast<DataType*>(pPointrerToRelease);
+		  BlockType* p_to_release = static_cast<BlockType*>(pPointrerToRelease);
 
 		  // Alignment check
 		  KRATOS_DEBUG_CHECK_EQUAL((p_to_release - GetData()) % GetBlockSize(mBlockSizeInBytes), 0);
@@ -153,7 +153,7 @@ namespace Kratos
 	  }
 
 	  std::size_t Size() const {
-		  return mSize; // GetBlockSize(BlockSizeInBytes) * NumberOfBlocks * sizeof(DataType);
+		  return mSize; // GetBlockSize(BlockSizeInBytes) * NumberOfBlocks * sizeof(BlockType);
 	  }
 
 	  std::size_t MemoryUsed() const {
@@ -181,10 +181,17 @@ namespace Kratos
 		  return mNumberOfAvailableBlocks;
 	  }
 
-	  const DataType* pGetData() const {
+	  const BlockType* pGetData() const {
 		  return mpData;
 	  }
 
+	  const BlockType* pDataBegin() const {
+		  return mpData;
+	  }
+
+	  const BlockType* pDataEnd() const {
+		  return mpData + DataSize();
+	  }
 
 	  ///@}
       ///@name Inquiry
@@ -197,8 +204,8 @@ namespace Kratos
 		  return false;
 	  }
 
-	  bool Has(void* pThePointer) const {
-		  return ((pThePointer >= GetData()) && (pThePointer <= (mpData + Size() - mBlockSizeInBytes)));
+	  bool Has(const void* pThePointer) const {
+		  return ((pThePointer >= GetData()) && (pThePointer <= (mpData + DataSize() - GetBlockSize(mBlockSizeInBytes))));
 	  }
 
 	  bool IsEmpty() const {
@@ -233,7 +240,7 @@ namespace Kratos
 
       /// Print object's data.
 	  void PrintData(std::ostream& rOStream) const {
-		  rOStream << static_cast<SizeType>(GetNumberOfAvailableBlocks()) << " blocks are available" << std::endl;
+		  rOStream << " from " << pDataBegin() << " to " << pDataEnd() << " with size " << Size() << " bytes allocated as " << DataSize() << " size_t with " << static_cast<SizeType>(GetNumberOfAvailableBlocks()) << " available blocks" << std::endl;
 	  }
 
       ///@}
@@ -243,7 +250,7 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-		DataType * mpData;
+		BlockType * mpData;
 		SizeType mSize;
 		SizeType mBlockSizeInBytes;
 		SizeType mNumberOfAvailableBlocks;
@@ -258,20 +265,20 @@ namespace Kratos
 			return 0; // mFirstAvailableBlockIndex
 		}
 
-		const DataType* GetData() const {
+		const BlockType* GetData() const {
 			if (mpData == nullptr)
 				return nullptr;
 			return mpData + GetHeaderSize();
 		}
 
-		DataType* GetData() {
+		BlockType* GetData() {
 			if (mpData == nullptr)
 				return nullptr;
 			return mpData + GetHeaderSize();
 		}
 
 		SizeType DataSize() const {
-			return mSize / sizeof(DataType);
+			return mSize / sizeof(BlockType);
 		}
 
 		SizeType AllocatableDataSize() const {
@@ -283,7 +290,7 @@ namespace Kratos
 		}
 
 		static std::size_t GetBlockSize(std::size_t BlockSizeInBytes) {
-			return (BlockSizeInBytes + sizeof(DataType) - 1) / sizeof(DataType);
+			return (BlockSizeInBytes + sizeof(BlockType) - 1) / sizeof(BlockType);
 		}
 
 		void SetFirstAvailableBlockIndex(SizeType NewValue) {
@@ -321,7 +328,6 @@ namespace Kratos
 				    const Chunk& rThis)
     {
       rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
       rThis.PrintData(rOStream);
 
       return rOStream;
