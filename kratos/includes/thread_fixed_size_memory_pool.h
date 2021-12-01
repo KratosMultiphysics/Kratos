@@ -269,9 +269,9 @@ namespace Kratos
 		}
 
 		void ReleaseChunk(ChunkList::iterator iChunk) {
-			//(*iChunk)->Release();
-			//mAvailableChunks.splice(mAvailableChunks.end(), mAvailableChunks, iChunk);
-			//mNumberOfReleasedChunks++;
+			(*iChunk)->Release();
+			mAvailableChunks.splice(mAvailableChunks.end(), mAvailableChunks, iChunk);
+			mNumberOfReleasedChunks++;
 		}
 
 		std::list<Chunk*> const& GetAvailableChunks() {
