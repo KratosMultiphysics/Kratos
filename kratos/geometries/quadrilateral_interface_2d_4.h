@@ -821,7 +821,7 @@ public:
      */
     SizeType EdgesNumber() const override
     {
-        return 2;
+        return 4;
     }
 
     SizeType FacesNumber() const override
@@ -841,9 +841,9 @@ public:
     {
         GeometriesArrayType edges = GeometriesArrayType();
         edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
-        // edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
         edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 3 ) ) );
-        // edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 0 ) ) );
         return edges;
     }
 
@@ -852,25 +852,37 @@ public:
     //Connectivities of faces required
     void NumberNodesInFaces(DenseVector<unsigned int>& NumberNodesInFaces) const override
     {
-        if(NumberNodesInFaces.size() != 2 )
-            NumberNodesInFaces.resize(2, false);
+        if(NumberNodesInFaces.size() != 4 )
+            NumberNodesInFaces.resize(4, false);
         // Linear Triangles have elements of 2 nodes as faces
         NumberNodesInFaces[0]=2;
         NumberNodesInFaces[1]=2;
+        NumberNodesInFaces[2]=2;
+        NumberNodesInFaces[3]=2;
+
     }
 
     void NodesInFaces(DenseMatrix<unsigned int>& NodesInFaces) const override
     {
         // faces in columns
-        if(NodesInFaces.size1() != 2 || NodesInFaces.size2() != 2)
-            NodesInFaces.resize(2, 2, false);
+        if(NodesInFaces.size1() != 2 || NodesInFaces.size2() != 4)
+            NodesInFaces.resize(2, 4, false);
 
         //face 1
         NodesInFaces(0,0)=0;//contrary node to the face
         NodesInFaces(1,0)=1;
+
         //face 2
-        NodesInFaces(0,1)=2;//contrary node to the face
-        NodesInFaces(1,1)=3;
+        NodesInFaces(0,1)=1;//contrary node to the face
+        NodesInFaces(1,1)=2;
+
+        //face 3
+        NodesInFaces(0,2)=2;//contrary node to the face
+        NodesInFaces(1,2)=3;
+
+        //face 4
+        NodesInFaces(0,3)=3;//contrary node to the face
+        NodesInFaces(1,3)=0;
     }
 
 
