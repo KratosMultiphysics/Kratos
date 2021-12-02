@@ -420,6 +420,16 @@ protected:
 
     virtual void CalculateMaterialResponse(TElementData& rData) const;
 
+    /**
+     * @brief Calculate and save the strain rate in the data container
+     * This method calculates the strain rate with the information provided by the data container
+     * The resultant strain rate is stored in the StrainRate vector variable of the data container
+     * The base implementation calculates the standard symmetric gradient with the current step velocity
+     * However this can be overridden in derived classes (e.g. to calculate the mid step strain rate for alpha-type time schemes)
+     * @param rData Data container. Note that velocity and shape functions are assumed to be already stored in here
+     */
+    virtual void CalculateStrainRate(TElementData& rData) const;
+
     /// Determine integration point weights and shape funcition derivatives from the element's geometry.
     virtual void CalculateGeometryData(Vector& rGaussWeights,
                                        Matrix& rNContainer,

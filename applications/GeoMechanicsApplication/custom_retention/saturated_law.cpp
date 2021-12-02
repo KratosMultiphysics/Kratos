@@ -110,37 +110,33 @@ double SaturatedLaw::
 
 //-------------------------------------------------------------------------------------------------
 double& SaturatedLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
-                                        const Variable<double>& rThisVariable,
-                                        double& rValue)
+                                     const Variable<double>& rThisVariable,
+                                     double& rValue)
 {
-    if (rThisVariable == DEGREE_OF_SATURATION)
-    {
+    if (rThisVariable == DEGREE_OF_SATURATION) {
         rValue = this->CalculateSaturation(rParameterValues);
         return rValue;
     }
-    else if (rThisVariable == EFFECTIVE_SATURATION)
-    {
+    else if (rThisVariable == EFFECTIVE_SATURATION) {
         rValue = this->CalculateEffectiveSaturation(rParameterValues);
         return rValue;
     }
-    else if (rThisVariable == BISHOP_COEFICIENT)
-    {
+    else if (rThisVariable == BISHOP_COEFFICIENT) {
         rValue = this->CalculateBishopCoefficient(rParameterValues);
         return rValue;
     }
-    else if (rThisVariable == DERIVATIVE_OF_SATURATION)
-    {
+    else if (rThisVariable == DERIVATIVE_OF_SATURATION) {
         rValue = this->CalculateDerivativeOfSaturation(rParameterValues);
         return rValue;
     }
-    else if (rThisVariable == RELATIVE_PERMEABILITY)
-    {
+    else if (rThisVariable == RELATIVE_PERMEABILITY) {
         rValue = this->CalculateRelativePermeability(rParameterValues);
         return rValue;
     }
 
-    return( rValue );
+    return rValue;
 }
+
 
 //------------------------- RETENSION LAW GENERAL FEATURES ----------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -181,7 +177,7 @@ void SaturatedLaw::
 
 //-------------------------------------------------------------------------------------------------
 int SaturatedLaw::Check(const Properties& rMaterialProperties,
-                           const ProcessInfo& rCurrentProcessInfo)
+                        const ProcessInfo& rCurrentProcessInfo)
 {
     if (rMaterialProperties.Has(SATURATED_SATURATION))
     {

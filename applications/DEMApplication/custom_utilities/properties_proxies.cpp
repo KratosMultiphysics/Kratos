@@ -10,9 +10,8 @@
 // External includes
 
 // Project includes
-
 #include "properties_proxies.h"
-#include "../DEM_application_variables.h"
+#include "DEM_application_variables.h"
 
 
 namespace Kratos {
@@ -28,7 +27,7 @@ namespace Kratos {
 
     double  PropertiesProxy::GetPoisson()                                                     { return *mPoisson;                           }
     double* PropertiesProxy::pGetPoisson()                                                    { return  mPoisson;                           }
-    void    PropertiesProxy::SetPoissonFromProperties(double* poisson)                        { mPoisson = poisson;                         }    
+    void    PropertiesProxy::SetPoissonFromProperties(double* poisson)                        { mPoisson = poisson;                         }
 
     double  PropertiesProxy::GetDensity()                                                     { return *mDensity;                           }
     double* PropertiesProxy::pGetDensity()                                                    { return  mDensity;                           }
@@ -44,7 +43,7 @@ namespace Kratos {
         mYoung                      = props.pGetYoung();
         mPoisson                    = props.pGetPoisson();
         mDensity                    = props.pGetDensity();
-        mParticleMaterial           = props.pGetParticleMaterial();   
+        mParticleMaterial           = props.pGetParticleMaterial();
 
         return *this;
     }
@@ -76,7 +75,7 @@ namespace Kratos {
             vector_of_proxies[properties_counter].SetDensityFromProperties(aux_pointer);
 
             int* int_aux_pointer = &( props_it->GetValue(PARTICLE_MATERIAL) );
-            vector_of_proxies[properties_counter].SetParticleMaterialFromProperties(int_aux_pointer);        
+            vector_of_proxies[properties_counter].SetParticleMaterialFromProperties(int_aux_pointer);
 
             properties_counter++;
         }

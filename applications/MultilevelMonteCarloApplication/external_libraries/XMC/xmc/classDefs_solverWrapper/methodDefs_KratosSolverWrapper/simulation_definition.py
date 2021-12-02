@@ -24,10 +24,13 @@ class SimulationScenario(AnalysisStage):
         The constructor of the AnalysisStage-Object.
 
         Inputs:
-        - self:  an instance of the class
-        - model: the Model to be used
-        - parameters: the ProjectParameters to be used
-        - random_variable: the unknown parameter of the problem
+
+        model: KratosMultiphysics.Model object.
+            The Model to be used
+        parameters: KratosMultiphysics.Parameters object.
+            The ProjectParameters to be used
+        random_variable: list.
+            The unknown parameter of the problem
         """
 
         raise RuntimeError(
@@ -45,10 +48,11 @@ class SimulationScenario(AnalysisStage):
         This method is called once per every sample, at the end of the Kratos simulation.
 
         Inputs:
-        - self: an instance of the class
 
         Outputs:
-        - qoi_list: list containing scalars or list of scalars
+
+        qoi_list: list.
+            It contains scalars or list of scalars
         """
 
     def MappingAndEvaluateQuantityOfInterest(self) -> simulation_output_type:
@@ -62,8 +66,9 @@ class SimulationScenario(AnalysisStage):
         and internally can call the EvaluateQuantityOfInterest method.
 
         Inputs:
-        - self: an instance of the class
 
         Outputs:
-        - qoi_list: list containing scalars or list of scalars
+
+        qoi_list: list.
+            It contains scalars or list of scalars
         """

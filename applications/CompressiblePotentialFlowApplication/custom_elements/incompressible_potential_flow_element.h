@@ -231,8 +231,6 @@ private:
                                    const ElementalData<NumNodes, Dim>& data,
                                    unsigned int& row) const;
 
-    void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
-
     void ComputeElementInternalEnergy();
 
     ///@}

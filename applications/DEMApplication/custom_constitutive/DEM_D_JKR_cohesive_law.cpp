@@ -4,8 +4,8 @@
 
 // Project includes
 //#include "DEM_application.h"
-#include "../custom_constitutive/DEM_D_JKR_cohesive_law.h"
-#include "../custom_elements/spheric_particle.h"
+#include "custom_constitutive/DEM_D_JKR_cohesive_law.h"
+#include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
 
@@ -18,15 +18,14 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_D_JKR_Cohesive_Law::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_JKR_Cohesive_Law to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_JKR_Cohesive_Law::CloneUnique() {
+        return Kratos::make_unique<DEM_D_JKR_Cohesive_Law>();
     }
 
     double DEM_D_JKR_Cohesive_Law::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
 
         Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
-        const double equiv_cohesion = properties_of_this_contact[PARTICLE_COHESION]; 
+        const double equiv_cohesion = properties_of_this_contact[PARTICLE_COHESION];
         const double my_young       = element1->GetYoung();
         const double other_young    = element2->GetYoung();
         const double my_poisson     = element1->GetPoisson();

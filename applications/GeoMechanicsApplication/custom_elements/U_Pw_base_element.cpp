@@ -18,29 +18,27 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwBaseElement<TDim,TNumNodes>::Create(IndexType NewId, 
+Element::Pointer UPwBaseElement<TDim,TNumNodes>::Create(IndexType NewId,
                                                     NodesArrayType const& ThisNodes,
                                                     PropertiesType::Pointer pProperties) const
 {
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default Create method for a particular element ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the default Create method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     return Element::Pointer( new UPwBaseElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 Element::Pointer UPwBaseElement<TDim,TNumNodes>::Create(IndexType NewId,
                                                     GeometryType::Pointer pGeom,
                                                     PropertiesType::Pointer pProperties) const
 {
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default Create method for a particular element ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the default Create method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     return Element::Pointer( new UPwBaseElement( NewId, pGeom, pProperties ) );
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 int UPwBaseElement<TDim,TNumNodes>::
     Check( const ProcessInfo& rCurrentProcessInfo ) const
@@ -51,80 +49,75 @@ int UPwBaseElement<TDim,TNumNodes>::
     int ierr = Element::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    const PropertiesType& rProp = this->GetProperties();
+    const GeometryType& rGeom = this->GetGeometry();
 
     // verify nodal variables and dofs
+    for ( unsigned int i = 0; i < TNumNodes; ++i ) {
+        if ( rGeom[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
+            KRATOS_ERROR << "missing variable DISPLACEMENT on node " << rGeom[i].Id() << std::endl;
 
-    for ( unsigned int i = 0; i < TNumNodes; i++ )
-    {
-        if ( Geom[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", Geom[i].Id() )
-        if ( Geom[i].SolutionStepsDataHas( VELOCITY ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable VELOCITY on node ", Geom[i].Id() )
-        if ( Geom[i].SolutionStepsDataHas( ACCELERATION ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable ACCELERATION on node ", Geom[i].Id() )
-        if ( Geom[i].SolutionStepsDataHas( WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable WATER_PRESSURE on node ", Geom[i].Id() )
-        if ( Geom[i].SolutionStepsDataHas( DT_WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DT_WATER_PRESSURE on node ", Geom[i].Id() )
-        if ( Geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false )
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing VOLUME_ACCELERATION variable on node ", Geom[i].Id() );
+        if ( rGeom[i].SolutionStepsDataHas( VELOCITY ) == false )
+            KRATOS_ERROR << "missing variable VELOCITY on node " << rGeom[i].Id() << std::endl;
 
-        if ( Geom[i].HasDofFor( DISPLACEMENT_X ) == false || Geom[i].HasDofFor( DISPLACEMENT_Y ) == false || Geom[i].HasDofFor( DISPLACEMENT_Z ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", Geom[i].Id() )
-        if ( Geom[i].HasDofFor( WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable WATER_PRESSURE on node ", Geom[i].Id() )
+        if ( rGeom[i].SolutionStepsDataHas( ACCELERATION ) == false )
+            KRATOS_ERROR << "missing variable ACCELERATION on node " << rGeom[i].Id() << std::endl;
+
+        if ( rGeom[i].SolutionStepsDataHas( WATER_PRESSURE ) == false )
+            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << rGeom[i].Id() << std::endl;
+
+        if ( rGeom[i].SolutionStepsDataHas( DT_WATER_PRESSURE ) == false )
+            KRATOS_ERROR << "missing variable DT_WATER_PRESSURE on node " << rGeom[i].Id() << std::endl;
+
+        if ( rGeom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false )
+            KRATOS_ERROR << "missing variable VOLUME_ACCELERATION on node " << rGeom[i].Id() << std::endl;
+
+        if ( rGeom[i].HasDofFor( DISPLACEMENT_X ) == false ||
+             rGeom[i].HasDofFor( DISPLACEMENT_Y ) == false ||
+             rGeom[i].HasDofFor( DISPLACEMENT_Z ) == false )
+            KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node " << rGeom[i].Id() << std::endl;
+
+        if ( rGeom[i].HasDofFor( WATER_PRESSURE ) == false )
+            KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE on node " << rGeom[i].Id() << std::endl;
     }
 
     // Verify ProcessInfo variables
 
     // Verify properties
-    if ( Prop.Has( DENSITY_SOLID ) == false || Prop[DENSITY_SOLID] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_SOLID has Key zero, is not defined or has an invalid value at element", this->Id() )
-    if ( Prop.Has( DENSITY_WATER ) == false || Prop[DENSITY_WATER] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_WATER has Key zero, is not defined or has an invalid value at element", this->Id() )
+    if ( rProp.Has( DENSITY_SOLID ) == false || rProp[DENSITY_SOLID] < 0.0 )
+        KRATOS_ERROR << "DENSITY_SOLID has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
-    if ( Prop.Has( YOUNG_MODULUS ) == false )
-    {
-        if ( Prop.Has( UDSM_NAME ) == false )
-        {
-          KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero or is not defined at element", this->Id() )
-        }
-    } 
-    else
-    {
-        if ( Prop[YOUNG_MODULUS] <= 0.0 )
-            KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has an invalid value at element", this->Id() )
+    if ( rProp.Has( DENSITY_WATER ) == false || rProp[DENSITY_WATER] < 0.0 )
+        KRATOS_ERROR << "DENSITY_WATER has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
+
+    if ( rProp.Has( YOUNG_MODULUS ) == false ) {
+        if ( rProp.Has( UDSM_NAME ) == false )
+            KRATOS_ERROR << "YOUNG_MODULUS has Key zero or is not defined at element" << this->Id() << std::endl;
+    } else {
+        if ( rProp[YOUNG_MODULUS] <= 0.0 )
+            KRATOS_ERROR << "YOUNG_MODULUS has an invalid value at element" << this->Id() << std::endl;
     }
 
-    if ( Prop.Has( POISSON_RATIO ) == false )
-    {
-        if ( Prop.Has( UDSM_NAME ) == false )
-        {
-            KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has Key zero or is not defined at element", this->Id() )
-        } 
-    }
-    else
-    {
-        const double& PoissonRatio = Prop[POISSON_RATIO];
+    if ( rProp.Has( POISSON_RATIO ) == false ) {
+        if ( rProp.Has( UDSM_NAME ) == false )
+            KRATOS_ERROR << "POISSON_RATIO has Key zero or is not defined at element" << this->Id() << std::endl;
+    } else {
+        const double& PoissonRatio = rProp[POISSON_RATIO];
         if ( PoissonRatio < 0.0 || PoissonRatio >= 0.5 )
-            KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has an invalid value at element", this->Id() )
+            KRATOS_ERROR << "POISSON_RATIO has an invalid value at element" << this->Id() << std::endl;
     }
 
-    if ( Prop.Has( BULK_MODULUS_SOLID ) == false || Prop[BULK_MODULUS_SOLID] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_SOLID has Key zero, is not defined or has an invalid value at element", this->Id() )
-    if ( Prop.Has( POROSITY ) == false || Prop[POROSITY] < 0.0 || Prop[POROSITY] > 1.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"POROSITY has Key zero, is not defined or has an invalid value at element", this->Id() )
+    if ( rProp.Has( BULK_MODULUS_SOLID ) == false || rProp[BULK_MODULUS_SOLID] < 0.0 )
+        KRATOS_ERROR << "BULK_MODULUS_SOLID has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
+    if ( rProp.Has( POROSITY ) == false || rProp[POROSITY] < 0.0 || rProp[POROSITY] > 1.0 )
+        KRATOS_ERROR << "POROSITY has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
-    if ( TDim == 2 )
-    {
+    if ( TDim == 2 ) {
         // If this is a 2D problem, nodes must be in XY plane
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
-            if (Geom[i].Z() != 0.0)
-                KRATOS_THROW_ERROR( std::logic_error," Node with non-zero Z coordinate found. Id: ", Geom[i].Id() )
+        for (unsigned int i=0; i<TNumNodes; ++i) {
+            if (rGeom[i].Z() != 0.0)
+                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << rGeom[i].Id() << std::endl;
         }
     }
 
@@ -135,36 +128,34 @@ int UPwBaseElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwBaseElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement<TDim,TNumNodes>::
+    Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     // KRATOS_INFO("0-UPwBaseElement::Initialize()") << this->Id() << std::endl;
 
-    const PropertiesType &Prop = this->GetProperties();
-    const GeometryType &Geom = this->GetGeometry();
-    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+    const PropertiesType &rProp = this->GetProperties();
+    const GeometryType &rGeom = this->GetGeometry();
+    const unsigned int NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     // pointer to constitutive laws
     if ( mConstitutiveLawVector.size() != NumGPoints )
         mConstitutiveLawVector.resize( NumGPoints );
 
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-    {
-        mConstitutiveLawVector[i] = Prop[CONSTITUTIVE_LAW]->Clone();
+    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i ) {
+        mConstitutiveLawVector[i] = rProp[CONSTITUTIVE_LAW]->Clone();
         mConstitutiveLawVector[i]->
-            InitializeMaterial( Prop,
-                                Geom,
-                                row( Geom.ShapeFunctionsValues( this->GetIntegrationMethod() ), i ) );
+            InitializeMaterial( rProp,
+                                rGeom,
+                                row( rGeom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
     }
 
     // resize mStressVector:
-    if ( mStressVector.size() != NumGPoints )
-    {
+    if ( mStressVector.size() != NumGPoints ) {
        unsigned int VoigtSize = VOIGT_SIZE_3D;
        if (TDim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
        mStressVector.resize(NumGPoints);
-       for (unsigned int i=0; i < mStressVector.size(); ++i)
-       {
+       for (unsigned int i=0; i < mStressVector.size(); ++i) {
            mStressVector[i].resize(VoigtSize);
            std::fill(mStressVector[i].begin(), mStressVector[i].end(), 0.0);
        }
@@ -173,13 +164,11 @@ void UPwBaseElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProce
     // resizing and setting state variables
     if (mStateVariablesFinalized.size() != NumGPoints)
        mStateVariablesFinalized.resize(NumGPoints);
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
-    {
+    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
         int nStateVariables = 0;
         nStateVariables = mConstitutiveLawVector[i]->GetValue( NUMBER_OF_UMAT_STATE_VARIABLES,
                                                                nStateVariables);
-        if (nStateVariables > 0)
-        {
+        if (nStateVariables > 0) {
             //ProcessInfo rCurrentProcessInfo;
             mConstitutiveLawVector[i]->SetValue( STATE_VARIABLES,
                                                  mStateVariablesFinalized[i],
@@ -187,17 +176,15 @@ void UPwBaseElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProce
         }
     }
 
-
     if ( mRetentionLawVector.size() != NumGPoints )
         mRetentionLawVector.resize( NumGPoints );
-    for ( unsigned int i = 0; i < mRetentionLawVector.size(); i++ )
-    {
+    for ( unsigned int i = 0; i < mRetentionLawVector.size(); ++i ) {
         //RetentionLawFactory::Pointer pRetentionFactory;
-        mRetentionLawVector[i] = RetentionLawFactory::Clone(Prop);
+        mRetentionLawVector[i] = RetentionLawFactory::Clone(rProp);
         mRetentionLawVector[i]->
-            InitializeMaterial( Prop,
-                                Geom,
-                                row( Geom.ShapeFunctionsValues( this->GetIntegrationMethod() ), i ) );
+            InitializeMaterial( rProp,
+                                rGeom,
+                                row( rGeom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
     }
 
     mIsInitialised = true;
@@ -210,25 +197,59 @@ void UPwBaseElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProce
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwBaseElement<TDim,TNumNodes>::
+    ResetConstitutiveLaw()
+{
+    KRATOS_TRY
+    // KRATOS_INFO("0-UPwBaseElement::ResetConstitutiveLaw()") << this->Id() << std::endl;
+
+    // erasing stress vectors
+    for (unsigned int i=0; i < mStressVector.size(); ++i) {
+        mStressVector[i].clear();
+    }
+    mStressVector.clear();
+
+    for (unsigned int i=0; i < mStateVariablesFinalized.size(); ++i) {
+        mStateVariablesFinalized[i].clear();
+    }
+    mStateVariablesFinalized.clear();
+
+
+    KRATOS_CATCH( "" )
+
+    // KRATOS_INFO("1-UPwBaseElement::ResetConstitutiveLaw()") << this->Id() << std::endl;
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim,TNumNodes>::
     GetDofList( DofsVectorType& rElementalDofList,
                 const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
-    unsigned int index = 0;
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     if (rElementalDofList.size() != N_DOF)
       rElementalDofList.resize( N_DOF );
 
-    for (unsigned int i = 0; i < TNumNodes; i++)
-    {
-        rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
-        rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
-        if (TDim>2)
+    if (TDim == 3) {
+        unsigned int index = 0;
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
+            rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
-        rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
+            rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
+        }
+    } else if (TDim == 2) {
+        unsigned int index = 0;
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
+            rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
+            rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
+        }
+    } else {
+        KRATOS_ERROR << "undefined dimension in GetDofList... illegal operation!!" << this->Id() << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -238,8 +259,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 GeometryData::IntegrationMethod UPwBaseElement<TDim,TNumNodes>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
-    //return GetGeometry().GetDefaultIntegrationMethod();
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 //----------------------------------------------------------------------------------------
@@ -251,7 +271,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     //Resetting the LHS
     if ( rLeftHandSideMatrix.size1() != N_DOF )
@@ -306,7 +326,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     //Resetting the RHS
     if ( rRightHandSideVector.size() != N_DOF )
@@ -335,41 +355,34 @@ void UPwBaseElement<TDim,TNumNodes>::
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
-    unsigned int index = 0;
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     if (rResult.size() != N_DOF)
       rResult.resize( N_DOF, false );
 
-    if (TDim == 2)
-    {
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
+    if (TDim == 2) {
+        unsigned int index = 0;
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
         }
-    }
-    else if (TDim == 3)
-    {
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
+    } else if (TDim == 3) {
+        unsigned int index = 0;
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
             rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
         }
-    }
-    else
-    {
-        KRATOS_THROW_ERROR( std::logic_error, "undefined dimension in EquationIdVector... illegal operation!!", "" )
+    } else {
+        KRATOS_ERROR << "undefined dimension in EquationIdVector... illegal operation!!" << this->Id() << std::endl;
     }
 
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwBaseElement<TDim,TNumNodes>::
     CalculateMassMatrix( MatrixType& rMassMatrix,
@@ -377,48 +390,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
-
-    //Resizing mass matrix
-    if ( rMassMatrix.size1() != N_DOF )
-        rMassMatrix.resize( N_DOF, N_DOF, false );
-    noalias( rMassMatrix ) = ZeroMatrix( N_DOF, N_DOF );
-
-    const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( this->GetIntegrationMethod() );
-    const unsigned int NumGPoints = IntegrationPoints.size();
-
-    //Defining shape functions and the determinant of the jacobian at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
-    Vector detJContainer(NumGPoints);
-    Geom.DeterminantOfJacobian(detJContainer, this->GetIntegrationMethod());
-
-    //Defining necessary variables
-    double IntegrationCoefficient;
-    const double& Porosity = Prop[POROSITY];
-    const double Density = Porosity*Prop[DENSITY_WATER] + (1.0-Porosity)*Prop[DENSITY_SOLID];
-    BoundedMatrix<double,TDim+1, TNumNodes*(TDim+1)> Nut = ZeroMatrix(TDim+1, TNumNodes*(TDim+1));
-
-    //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
-    {
-        GeoElementUtilities::CalculateNuElementMatrix<TDim, TNumNodes>(Nut,NContainer,GPoint);
-
-        Matrix DNu_DX0;
-        double detJ = CalculateDerivativesOnInitialConfiguration(Geom,
-                                                                 DNu_DX0,
-                                                                 GPoint,
-                                                                 this->GetIntegrationMethod());
-
-        //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( IntegrationCoefficient,
-                                               detJ,
-                                               IntegrationPoints[GPoint].Weight() );
-
-        //Adding contribution to Mass matrix
-        noalias(rMassMatrix) += Density*prod(trans(Nut),Nut)*IntegrationCoefficient;
-    }
+    KRATOS_ERROR << "calling the default CalculateMassMatrix method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -433,7 +405,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 
     // Rayleigh Method (Damping Matrix = alpha*M + beta*K)
 
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     // Compute Mass Matrix
     MatrixType MassMatrix(N_DOF, N_DOF);
@@ -450,15 +422,15 @@ void UPwBaseElement<TDim,TNumNodes>::
         rDampingMatrix.resize( N_DOF, N_DOF, false );
     noalias( rDampingMatrix ) = ZeroMatrix( N_DOF, N_DOF );
 
-    const PropertiesType& Prop = this->GetProperties();
+    const PropertiesType& rProp = this->GetProperties();
 
-    if (Prop.Has( RAYLEIGH_ALPHA ))
-        noalias(rDampingMatrix) += Prop[RAYLEIGH_ALPHA] * MassMatrix;
+    if (rProp.Has( RAYLEIGH_ALPHA ))
+        noalias(rDampingMatrix) += rProp[RAYLEIGH_ALPHA] * MassMatrix;
     else
         noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * MassMatrix;
 
-    if (Prop.Has( RAYLEIGH_BETA ))
-        noalias(rDampingMatrix) += Prop[RAYLEIGH_BETA] * StiffnessMatrix;
+    if (rProp.Has( RAYLEIGH_BETA ))
+        noalias(rDampingMatrix) += rProp[RAYLEIGH_BETA] * StiffnessMatrix;
     else
         noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
 
@@ -472,32 +444,29 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const GeometryType& Geom = this->GetGeometry();
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     if ( rValues.size() != N_DOF )
         rValues.resize( N_DOF, false );
 
-    if ( TDim > 2 )
-    {
+    if ( TDim == 2 ) {
         unsigned int index = 0;
-        for ( unsigned int i = 0; i < TNumNodes; i++ )
-        {
-            rValues[index++] = Geom[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
-            rValues[index++] = Geom[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
-            rValues[index++] = Geom[i].FastGetSolutionStepValue( DISPLACEMENT_Z, Step );
+        for ( unsigned int i = 0; i < TNumNodes; ++i ) {
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
             rValues[index++] = 0.0;
         }
-    }
-    else
-    {
+    } else if ( TDim == 3 ){
         unsigned int index = 0;
-        for ( unsigned int i = 0; i < TNumNodes; i++ )
-        {
-            rValues[index++] = Geom[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
-            rValues[index++] = Geom[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
+        for ( unsigned int i = 0; i < TNumNodes; ++i ) {
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_Z, Step );
             rValues[index++] = 0.0;
         }
+    } else {
+        KRATOS_ERROR << "undefined dimension in GetValuesVector... illegal operation!!" << this->Id() << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -510,72 +479,64 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const GeometryType& Geom = this->GetGeometry();
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     if ( rValues.size() != N_DOF )
         rValues.resize( N_DOF, false );
 
-
-    if ( TDim > 2 )
-    {
+    if ( TDim == 2 ) {
         unsigned int index = 0;
-        for ( unsigned int i = 0; i < TNumNodes; i++ )
-        {
-            rValues[index++] = Geom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
-            rValues[index++] = Geom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
-            rValues[index++] = Geom[i].FastGetSolutionStepValue( VELOCITY_Z, Step );
+        for ( unsigned int i = 0; i < TNumNodes; ++i ) {
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
             rValues[index++] = 0.0;
         }
-    }
-    else
-    {
+    } else if (TDim == 3) {
         unsigned int index = 0;
-        for ( unsigned int i = 0; i < TNumNodes; i++ )
-        {
-            rValues[index++] = Geom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
-            rValues[index++] = Geom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
+        for ( unsigned int i = 0; i < TNumNodes; ++i ) {
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Z, Step );
             rValues[index++] = 0.0;
         }
+    } else {
+        KRATOS_ERROR << "undefined dimension in GetFirstDerivativesVector... illegal operation!!" << this->Id() << std::endl;
     }
 
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwBaseElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, int Step ) const
+void UPwBaseElement<TDim,TNumNodes>::
+    GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
 
-    const GeometryType& Geom = this->GetGeometry();
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     if ( rValues.size() != N_DOF )
         rValues.resize( N_DOF, false );
 
-    unsigned int index = 0;
-
-    if ( TDim > 2 )
-    {
-        for ( unsigned int i = 0; i < TNumNodes; i++ )
-        {
-            rValues[index++] = Geom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
-            rValues[index++] = Geom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
-            rValues[index++] = Geom[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
+    if ( TDim == 2 ) {
+        unsigned int index = 0;
+        for ( unsigned int i = 0; i < TNumNodes; ++i ) {
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
             rValues[index++] = 0.0;
         }
-
-    }
-    else
-    {
-        for ( unsigned int i = 0; i < TNumNodes; i++ )
-        {
-            rValues[index++] = Geom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
-            rValues[index++] = Geom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
+    } else if (TDim == 3) {
+        unsigned int index = 0;
+        for ( unsigned int i = 0; i < TNumNodes; ++i ) {
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
             rValues[index++] = 0.0;
         }
+    } else {
+        KRATOS_ERROR << "undefined dimension in GetSecondDerivativesVector... illegal operation!!" << this->Id() << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -590,7 +551,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
         mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
 
     KRATOS_CATCH( "" )
@@ -605,12 +566,11 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
         mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
 
     KRATOS_CATCH( "" )
 }
-
 
 //-------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
@@ -621,13 +581,11 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
         mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
 
     KRATOS_CATCH( "" )
 }
-
-
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
@@ -638,12 +596,11 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    if (rVariable == CONSTITUTIVE_LAW)
-    {
+    if (rVariable == CONSTITUTIVE_LAW) {
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize(mConstitutiveLawVector.size());
 
-        for (unsigned int i=0; i < mConstitutiveLawVector.size(); i++)
+        for (unsigned int i=0; i < mConstitutiveLawVector.size(); ++i)
             rValues[i] = mConstitutiveLawVector[i];
     }
 
@@ -658,7 +615,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateMaterialStiffnessMatrix method for a particular element ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the default CalculateMaterialStiffnessMatrix method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -675,39 +632,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateAll method for a particular element ... illegal operation!!", "" )
-
-    KRATOS_CATCH( "" )
-}
-
-//----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwBaseElement<TDim,TNumNodes>::
-    CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-                                    const double& detJ,
-                                    const double& weight)
-{
-    rIntegrationCoefficient = weight * detJ;
-}
-
-//----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-Matrix& UPwBaseElement<TDim,TNumNodes>::
-    CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const
-{
-    KRATOS_TRY
-
-    DeltaDisplacement.resize(TNumNodes , TDim, false);
-
-    for ( IndexType i_node = 0; i_node < TNumNodes; i_node++ ) {
-        const array_1d<double, 3>& current_displacement  = GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        const array_1d<double, 3>& previous_displacement = GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-        for ( IndexType iDim = 0; iDim < TDim; ++iDim )
-            DeltaDisplacement(i_node, iDim) = current_displacement[iDim] - previous_displacement[iDim];
-    }
-
-    return DeltaDisplacement;
+    KRATOS_ERROR << "calling the default CalculateAll method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -715,25 +640,107 @@ Matrix& UPwBaseElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 double UPwBaseElement<TDim,TNumNodes>::
-    CalculateDerivativesOnInitialConfiguration(const GeometryType& Geometry,
+    CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+                                    const IndexType& PointNumber,
+                                    const double& detJ)
+
+{
+    return IntegrationPoints[PointNumber].Weight() * detJ;
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim,TNumNodes>::
+    CalculateDerivativesOnInitialConfiguration(double& detJ,
+                                               Matrix& J0,
+                                               Matrix& InvJ0,
                                                Matrix& DNu_DX0,
-                                               const IndexType& GPoint,
-                                               IntegrationMethod ThisIntegrationMethod) const
+                                               const IndexType& GPoint) const
+{
+    KRATOS_TRY
+    // KRATOS_INFO("0-UPwBaseElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
+
+    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( mThisIntegrationMethod );
+
+    GeometryUtils::JacobianOnInitialConfiguration(rGeom, IntegrationPoints[GPoint], J0);
+    const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[GPoint];
+    MathUtils<double>::InvertMatrix( J0, InvJ0, detJ );
+    GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
+
+    // KRATOS_INFO("1-UPwBaseElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim,TNumNodes>::
+    CalculateJacobianOnCurrentConfiguration(double& detJ,
+                                            Matrix& rJ,
+                                            Matrix& rInvJ,
+                                            const IndexType& GPoint) const
+{
+    KRATOS_TRY
+    // KRATOS_INFO("0-UPwBaseElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
+
+    const GeometryType& rGeom = this->GetGeometry();
+
+    rJ = rGeom.Jacobian( rJ, GPoint, mThisIntegrationMethod );
+    MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
+
+    // KRATOS_INFO("1-UPwBaseElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim,TNumNodes>::
+    CalculateJacobianOnCurrentConfiguration(double& detJ,
+                                            Matrix& J,
+                                            Matrix& InvJ,
+                                            Matrix& GradNpT,
+                                            const IndexType &GPoint) const
 {
     KRATOS_TRY
 
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+    const GeometryType& rGeom = this->GetGeometry();
+    Matrix DisplacementMatrix;
+    GeoElementUtilities::
+        GetNodalVariableMatrix<TDim, TNumNodes>(DisplacementMatrix, rGeom, DISPLACEMENT);
 
-    Matrix J0, InvJ0;
-    double detJ0;
-    GeometryUtils::JacobianOnInitialConfiguration(Geometry, IntegrationPoints[GPoint], J0);
-    const Matrix& DN_De = Geometry.ShapeFunctionsLocalGradients(ThisIntegrationMethod)[GPoint];
-    MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
-    GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
+    J.clear();
+    J = this->GetGeometry().Jacobian(J, GPoint, mThisIntegrationMethod, DisplacementMatrix);
 
-    return detJ0;
+    MathUtils<double>::InvertMatrix( J, InvJ, detJ );
+
+    const Matrix& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod)[GPoint];
+    noalias( GradNpT ) = prod( DN_De, InvJ);
 
     KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+    double UPwBaseElement<TDim,TNumNodes>::
+        CalculateDerivativesOnCurrentConfiguration( Matrix& rJ,
+                                                    Matrix& rInvJ,
+                                                    Matrix& rDN_DX,
+                                                    const IndexType &PointNumber,
+                                                    IntegrationMethod ThisIntegrationMethod ) const
+{
+    double detJ;
+    rJ = this->GetGeometry().Jacobian( rJ, PointNumber, ThisIntegrationMethod );
+    const Matrix& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
+    MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
+    GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
+    return detJ;
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+unsigned int UPwBaseElement<TDim,TNumNodes>::GetNumberOfDOF() const
+{
+    return TNumNodes * (TDim + 1);
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------

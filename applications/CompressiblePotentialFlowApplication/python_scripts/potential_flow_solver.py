@@ -131,6 +131,7 @@ class PotentialFlowSolver(FluidSolver):
             },
             "maximum_iterations": 10,
             "echo_level": 0,
+            "potential_application_echo_level": 0,
             "relative_tolerance": 1e-12,
             "absolute_tolerance": 1e-12,
             "compute_reactions": false,
@@ -197,7 +198,8 @@ class PotentialFlowSolver(FluidSolver):
         solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
-        self.GetComputingModelPart().ProcessInfo.SetValue(KCPFApp.ECHO_LEVEL, self.settings["echo_level"].GetInt())
+        self.GetComputingModelPart().ProcessInfo.SetValue(
+            KCPFApp.ECHO_LEVEL, self.settings["potential_application_echo_level"].GetInt())
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
