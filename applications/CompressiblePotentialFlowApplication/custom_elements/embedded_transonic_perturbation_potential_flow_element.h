@@ -197,43 +197,15 @@ public:
     ///@}
 protected:
 
-    // void CalculateKuttaWakeLocalSystem(MatrixType& rLeftHandSideMatrix,
-    //                           VectorType& rRightHandSideVector,
-    //                           const ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateLeftHandSideSubsonicElement(MatrixType& rLeftHandSideMatrix,
-                                            const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSideNormalElement(VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLeftHandSideNormalElement(MatrixType& rLeftHandSideMatrix,
-                                            const ProcessInfo& rCurrentProcessInfo) override;
-
-    // void CalculateRightHandSideSupersonicElement(VectorType& rRightHandSideVector,
-    //                                         const ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
-                                          const ProcessInfo& rCurrentProcessInfo) override;
-
-    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateLeftHandSideWakeConditions(
-                                            const ElementalData& rData,
-                                            const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateRightHandSideWakeElement(VectorType& rRightHandSideVector,
-                                          const ProcessInfo& rCurrentProcessInfo) override;
-
 
     void CalculateLeftHandSideKuttaWakeElement(MatrixType& rLeftHandSideMatrix,
                                           const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRightHandSideKuttaWakeElement(VectorType& rRightHandSideVector,
                                           const ProcessInfo& rCurrentProcessInfo);
-
-    BoundedVector<double, TNumNodes> CalculateRightHandSideWakeConditions(
-                                            const ElementalData& rData,
-                                            const ProcessInfo& rCurrentProcessInfo,
-                                            const array_1d<double, TDim>& rDiff_velocity) override;
 
     void CalculateLeftHandSideContribution(BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_total,
                                          const ProcessInfo& rCurrentProcessInfo,
@@ -256,49 +228,6 @@ private:
 
     GlobalPointer<Element> mpUpwindElement;
 
-
-
-
-    void CalculateLeftHandSideSubdividedElement(Matrix& lhs_positive,
-                                               Matrix& lhs_negative,
-                                               const ProcessInfo& rCurrentProcessInfo);
-    void CalculateVolumesSubdividedElement(double& rUpper_vol,
-                                           double& rLower_vol,
-                                           const ProcessInfo& rCurrentProcessInfo);
-
-    void ComputeLHSGaussPointContribution(const double weight,
-                                          Matrix& lhs,
-                                          const ElementalData& data) const;
-
-    void AssignLeftHandSideSubdividedElement(
-        Matrix& rLeftHandSideMatrix,
-        Matrix& lhs_positive,
-        Matrix& lhs_negative,
-        const BoundedMatrix<double, TNumNodes, TNumNodes>& rUpper_lhs_total,
-        const BoundedMatrix<double, TNumNodes, TNumNodes>& rLower_lhs_total,
-        const BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_wake_condition,
-        const ElementalData& data) const;
-
-    void AssignLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
-                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rUpper_lhs_total,
-                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rLower_lhs_total,
-                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_wake_condition,
-                                    const ElementalData& rData) const;
-
-    void AssignLeftHandSideWakeNode(MatrixType& rLeftHandSideMatrix,
-                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rUpper_lhs_total,
-                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rLower_lhs_total,
-                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_wake_condition,
-                                    const ElementalData& rData,
-                                    unsigned int row) const;
-
-    void AssignRightHandSideWakeNode(VectorType& rRightHandSideVector,
-                                    const BoundedVector<double, TNumNodes>& rUpper_rhs,
-                                    const BoundedVector<double, TNumNodes>& rLower_rhs,
-                                    const BoundedVector<double, TNumNodes>& rWake_rhs,
-                                    const ElementalData& rData,
-                                    unsigned int& rRow) const;
-
     // void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
 
     // void FindUpwindEdge(GeometryType& rUpwindEdge,
@@ -308,13 +237,6 @@ private:
 
     // array_1d<double, 3> GetEdgeNormal(const GeometryType& rEdge);
 
-    void CalculateEmbeddedLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateKuttaWakeLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Private Operations
