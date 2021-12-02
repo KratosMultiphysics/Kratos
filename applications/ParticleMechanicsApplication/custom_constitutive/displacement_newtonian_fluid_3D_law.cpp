@@ -20,6 +20,7 @@
 #include "custom_constitutive/displacement_newtonian_fluid_3D_law.hpp"
 
 #include "particle_mechanics_application_variables.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {

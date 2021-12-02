@@ -7,9 +7,9 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Bodhinanda Chandra
+//  Main authors:    Contri Alessandro
 //
-//  References:      This class is adapted from applications/SolidMechanicsApplication/custom_constitutive/hyperelastic_U_P_3D_law.cpp
+//  References:      This class is adapted from applications/ParticleMechanicsApplication/custom_constitutive/hyperelastic_U_P_3D_law.cpp
 
 
 // System includes
@@ -18,6 +18,7 @@
 
 // Project includes
 #include "custom_constitutive/displacement_newtonian_fluid_UP_3D_law.hpp"
+#include "includes/cfd_variables.h"
 
 #include "particle_mechanics_application_variables.h"
 

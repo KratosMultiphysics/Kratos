@@ -24,6 +24,7 @@
 #include "includes/constitutive_law.h"
 #include "particle_mechanics_application_variables.h"
 #include "includes/checks.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
