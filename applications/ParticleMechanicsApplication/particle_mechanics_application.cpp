@@ -90,6 +90,7 @@ namespace Kratos
         mMPMParticlePenaltyDirichletCondition(0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
         mMPMParticlePenaltyCouplingInterfaceCondition( 0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
         mMPMParticlePointLoadCondition(0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
+        mMPMParticleLineLoadCondition(0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
 
         /// Deprecated Conditions
         mMPMParticlePenaltyDirichletCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -143,6 +144,7 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition", mMPMParticlePenaltyDirichletCondition)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition", mMPMParticlePenaltyCouplingInterfaceCondition)
         KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition", mMPMParticlePointLoadCondition)
+        KRATOS_REGISTER_CONDITION( "MPMParticleLineLoadCondition", mMPMParticleLineLoadCondition)
         
         // deprecated conditions
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition2D3N", mMPMParticlePenaltyDirichletCondition2D3N)
@@ -225,7 +227,7 @@ namespace Kratos
 
         // Registering MP condition variable
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_COORD )
-        KRATOS_REGISTER_VARIABLE( MPC_CONDITION_ID )
+        KRATOS_REGISTER_VARIABLE( MPC_CORRESPONDING_CONDITION_ID )
         KRATOS_REGISTER_VARIABLE( MPC_IS_NEUMANN )
         KRATOS_REGISTER_VARIABLE( MPC_AREA )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_NORMAL )
@@ -237,6 +239,8 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_IMPOSED_ACCELERATION )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_CONTACT_FORCE )
         KRATOS_REGISTER_VARIABLE( PARTICLES_PER_CONDITION )
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MPC_ID_LIST )
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_AREA_LIST )
 
         // Registering grid node variable
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_MOMENTUM )
