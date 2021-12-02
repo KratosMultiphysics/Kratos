@@ -54,7 +54,7 @@ class ApplyExcavationProcess : public Process
 
     /// Constructor
     ApplyExcavationProcess(ModelPart&  model_part,
-                           Parameters& rParameters) : Process(Flags()), mr_model_part(model_part)
+                           Parameters& rParameters) : Process(Flags()), mrModelPart(model_part)
     {
         KRATOS_TRY
 
@@ -73,85 +73,47 @@ class ApplyExcavationProcess : public Process
 
     void ExecuteInitialize() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        const int nelements = mr_model_part.GetMesh(0).Elements().size();
-        if (nelements != 0) {
+        const int nElements = mrModelPart.GetMesh(0).Elements().size();
+        if (nElements > 0) {
             if (mDeactivateSoilPart) {
                 // Deactivation of the existing parts:
-                // ( User must specify each part through the interface)
-                ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
-                #pragma omp parallel for
-                for (int k = 0; k < nelements; ++k) {
-                    ModelPart::ElementsContainerType::iterator it = el_begin + k;
-                    it->Set(ACTIVE, false);
-                    it->ResetConstitutiveLaw();
-                }
-
-                // Same nodes for both computing model part
-                // const int nnodes = mr_model_part.GetMesh(0).Nodes().size();
-                // ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
-                // #pragma omp parallel for
-                // for (int i = 0; i < nnodes; ++i) {
-                //     ModelPart::NodesContainerType::iterator it = it_begin + i;
-                //     it->Set(ACTIVE, false);
-                //     it->Set(SOLID, false);
-
-                // }
+                block_for_each(mrModelPart.Elements(), [&](Element& rElement) {
+                    rElement.Set(ACTIVE, false);
+                    rElement.ResetConstitutiveLaw();
+                });
             } else {
                 // Activation of the existing parts:
-                // ( User must specify each part through the interface)
-                ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
-                #pragma omp parallel for
-                for (int k = 0; k < nelements; ++k) {
-                    ModelPart::ElementsContainerType::iterator it = el_begin + k;
-                    it->Set(ACTIVE, true);
-                }
+                block_for_each(mrModelPart.Elements(), [&](Element& rElement) {
+                    rElement.Set(ACTIVE, true);
+                });
 
                 // Same nodes for both computing model part
-                const int nnodes = mr_model_part.GetMesh(0).Nodes().size();
-                ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
-                #pragma omp parallel for
-                for (int i = 0; i < nnodes; ++i) {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    it->Set(ACTIVE, true);
-                    //it->Set(SOLID, true);
+                const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
+                if (nnodes > 0) {
+                    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode) {
+                        rNode.Set(ACTIVE, true);
+                    });
                 }
             }
         }
 
         // Conditions
-        const int nconditions = mr_model_part.GetMesh(0).Conditions().size();
-        if (nconditions != 0) {
-            ModelPart::ConditionsContainerType::iterator cond_begin = mr_model_part.ConditionsBegin();
-
-            for (int k = 0; k < nconditions; ++k) {
-                ModelPart::ConditionsContainerType::iterator it_cond = cond_begin + k;
-
-                // VG: there is a problem in this part
-                /*
-                const unsigned int number_of_points = (*it_cond).GetGeometry().PointsNumber();
-                bool active_condition = true;
-                for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
-                {
-                    if ((*it_cond).GetGeometry()[i_node].IsNot(ACTIVE))
-                    {
-                        active_condition = false;
-                        break;
-                    }
-                }
-
-                if (active_condition) it_cond->Set(ACTIVE, true);
-                else it_cond->Set(ACTIVE, false);
-                */
-
-                if (mDeactivateSoilPart) it_cond->Set(ACTIVE, false);
-                else it_cond->Set(ACTIVE, true);
-
+        const int nConditions = mrModelPart.GetMesh(0).Conditions().size();
+        if (nConditions > 0) {
+            if (mDeactivateSoilPart) {
+                block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
+                    rCondition.Set(ACTIVE, false);
+                });
+            } else {
+                block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
+                    rCondition.Set(ACTIVE, true);
+                });
             }
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -162,7 +124,7 @@ class ApplyExcavationProcess : public Process
   protected:
     /// Member Variables
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
     bool mDeactivateSoilPart;
     std::string mModelPartName;
 

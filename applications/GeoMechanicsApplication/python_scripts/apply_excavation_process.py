@@ -22,14 +22,7 @@ class ApplyExcavationProcess(KratosMultiphysics.Process):
 
         if settings.Has("deactivate_soil_part"):
             params.AddValue("deactivate_soil_part",settings["deactivate_soil_part"])
-            if settings.Has("gradual_excavation"):
-                if settings["gradual_excavation"]:
-                    params.AddValue("gravity_direction",settings["gravity_direction"])
-                    self.process = KratosGeo.ApplyGradualExcavationProcess(model_part, params)
-                else:
-                    self.process = KratosGeo.ApplyExcavationProcess(model_part, params)
-            else:
-                self.process = KratosGeo.ApplyExcavationProcess(model_part, params)
+            self.process = KratosGeo.ApplyExcavationProcess(model_part, params)
 
     def ExecuteInitialize(self):
         self.process.ExecuteInitialize()

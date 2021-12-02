@@ -118,55 +118,41 @@ public:
     /// right after reading the model and the groups
     void ExecuteInitialize() override
     {
-        KRATOS_TRY;
-
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        KRATOS_TRY
 
         const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
 
-        if (nNodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
+        if (nNodes > 0) {
+            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
-            Vector3 Coordinates;
+            block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+                if (mIsFixed) rNode.Fix(var);
+                else          rNode.Free(var);
 
-            #pragma omp parallel for private(Coordinates)
-            for (int i = 0; i<nNodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                const double HorizontalCoordiante = rNode.Coordinates()[mHorizontalDirection];
 
-                if (mIsFixed) it->Fix(var);
-                else          it->Free(var);
-
-                noalias(Coordinates) = it->Coordinates();
-
-                double hight = 0.0;
-                if (Coordinates[mHorizontalDirection] >= mMinHorizontalCoordinate && Coordinates[mHorizontalDirection] <= mMaxHorizontalCoordinate)
-                {
-                    hight = mSlope * (Coordinates[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
-                } else if (Coordinates[mHorizontalDirection] < mMinHorizontalCoordinate)
-                {
-                    hight = mSlope * (mMinHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
-                } else if (Coordinates[mHorizontalDirection] > mMaxHorizontalCoordinate)
-                {
-                    hight = mSlope * (mMaxHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
+                double height = 0.0;
+                if (HorizontalCoordiante >= mMinHorizontalCoordinate && HorizontalCoordiante <= mMaxHorizontalCoordinate) {
+                    height = mSlope * (HorizontalCoordiante - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
+                } else if (HorizontalCoordiante < mMinHorizontalCoordinate) {
+                    height = mSlope * (mMinHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
+                } else if (HorizontalCoordiante > mMaxHorizontalCoordinate) {
+                    height = mSlope * (mMaxHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
                 }
 
-                double distance = hight - Coordinates[mGravityDirection];
+                const double distance = height - rNode.Coordinates()[mGravityDirection];
                 const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance ;
 
-                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff)
-                {
-                    it->FastGetSolutionStepValue(var) = pressure;
+                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
+                    rNode.FastGetSolutionStepValue(var) = pressure;
+                } else {
+                    rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
                 }
-                else
-                {
-                    it->FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                }
-            }
+            });
+
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.
