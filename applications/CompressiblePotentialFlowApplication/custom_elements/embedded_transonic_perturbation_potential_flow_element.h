@@ -221,22 +221,16 @@ protected:
 
     ModifiedShapeFunctions::Pointer pGetModifiedShapeFunctions(Vector& rDistances);
 
+    void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo) override;
+
 private:
     ///@}
     ///@name Member Variables
     ///@{
 
-    GlobalPointer<Element> mpUpwindElement;
-
-    // void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
-
-    // void FindUpwindEdge(GeometryType& rUpwindEdge,
-    //                     const ProcessInfo& rCurrentProcessInfo);
-
-    // void GetElementGeometryBoundary(GeometriesArrayType& rElementGeometryBoundary);
-
-    // array_1d<double, 3> GetEdgeNormal(const GeometryType& rEdge);
-
+    void SelectUpwindElement(std::vector<IndexType>& rUpwindElementNodesIds,
+                            GlobalPointersVector<Element>& rUpwindElementCandidates,
+                            const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Private Operations
