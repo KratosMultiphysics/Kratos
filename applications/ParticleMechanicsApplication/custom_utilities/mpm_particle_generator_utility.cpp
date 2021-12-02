@@ -326,17 +326,18 @@ namespace MPMParticleGeneratorUtility
 
                         // If dirichlet boundary or coupling interface
                         if (!is_neumann_condition){
-                            if(!is_interface){
-                                if(boundary_condition_type==1)
+                            
+                            if(boundary_condition_type==1){
+                                if(!is_interface)
                                     condition_type_name = "MPMParticlePenaltyDirichletCondition";
-                                else if (boundary_condition_type ==2)
-                                    condition_type_name = "MPMParticlePointCondition";
-                                else 
-                                    KRATOS_ERROR << "The boundary condition type is not yet implemented. Available options are Penalty=1 and Lagrange=2" << std::endl;
-                            }
-                            else{
+                                else
                                     condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition";
-                                }
+                            }    
+                            else if (boundary_condition_type ==2)
+                                condition_type_name = "MPMParticlePointCondition";
+                            else 
+                                KRATOS_ERROR << "The boundary condition type is not yet implemented. Available options are Penalty=1 and Lagrange=2" << std::endl;
+                            
                         }
                         else{
                             if( i->Has( POINT_LOAD ) ){
