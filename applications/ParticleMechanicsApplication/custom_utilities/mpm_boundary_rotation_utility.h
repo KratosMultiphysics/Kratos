@@ -111,142 +111,145 @@ public:
 		const unsigned int num_nodes = rGeometry.PointsNumber();
 		const unsigned int dimension = this->GetDomainSize();
 		const unsigned int local_size = num_nodes * dimension;
-
-		if (rLocalVector.size() == local_size) // irreducible case
-		{
-			if (this->GetDomainSize() == 2) this->template RotateAuxPure<2>(rLocalMatrix,rLocalVector,rGeometry);
-			else if (this->GetDomainSize() == 3) this->template RotateAuxPure<3>(rLocalMatrix,rLocalVector,rGeometry);
-		}
-		else if (rLocalVector.size() == dimension + local_size) //lagrange multiplier condition
-		{
-			// TODO: Improve if with dimension --> template it in coordinate_transformation_utilities?; 
-			// if same rotation matrix is used for all nodes then more then 2 boundary particles (2D) can be applied otherwise it is limited 
-			// in this case a constant rotation matrix (from node 1) is assumed 
-			if (dimension==2)
+	
+		
+		if (rLocalVector.size()>0){
+			if (rLocalVector.size() == local_size) // irreducible case
 			{
-				const unsigned int LocalSize = rLocalVector.size();
-
-				unsigned int Index = 0;
-				int rotations_needed = 0;
-				const unsigned int NumBlocks = num_nodes + 1;
-				const unsigned int BlockSize = 2;
-
-				std::vector< BoundedMatrix<double,BlockSize,BlockSize> > rRot(NumBlocks);
-				for(unsigned int j = 0; j < NumBlocks; ++j)
+				if (this->GetDomainSize() == 2) this->template RotateAuxPure<2>(rLocalMatrix,rLocalVector,rGeometry);
+				else if (this->GetDomainSize() == 3) this->template RotateAuxPure<3>(rLocalMatrix,rLocalVector,rGeometry);
+			}
+			else if (rLocalVector.size() == dimension + local_size) //lagrange multiplier condition
+			{
+				// TODO: Improve if with dimension --> template it in coordinate_transformation_utilities?; 
+				// if same rotation matrix is used for all nodes then more then 2 boundary particles (2D) can be applied otherwise it is limited 
+				// in this case a constant rotation matrix (from node 1) is assumed 
+				if (dimension==2)
 				{
-					if (j<num_nodes)
+					const unsigned int LocalSize = rLocalVector.size();
+
+					unsigned int Index = 0;
+					int rotations_needed = 0;
+					const unsigned int NumBlocks = num_nodes + 1;
+					const unsigned int BlockSize = 2;
+
+					std::vector< BoundedMatrix<double,BlockSize,BlockSize> > rRot(NumBlocks);
+					for(unsigned int j = 0; j < NumBlocks; ++j)
 					{
-						// Normals of the nodes (only node 1 is considered)
-						if( this->IsSlip(rGeometry[j]) )
+						if (j<num_nodes)
 						{
-							rotations_needed++;
-							LocalRotationOperatorPure(rRot[j],rGeometry[0]);
+							// Normals of the nodes (only node 1 is considered)
+							if( this->IsSlip(rGeometry[j]) )
+							{
+								rotations_needed++;
+								LocalRotationOperatorPure(rRot[j],rGeometry[0]);
+							}
 						}
-					}
-					else{
-						if( this->IsSlip(rGeometry[0]) )
-						{
-							// normal of node 1 is considered
-							rotations_needed++;
-							LocalRotationOperatorPure(rRot[j],rGeometry[0]);
+						else{
+							if( this->IsSlip(rGeometry[0]) )
+							{
+								// normal of node 1 is considered
+								rotations_needed++;
+								LocalRotationOperatorPure(rRot[j],rGeometry[0]);
+							}
 						}
+
+						Index += BlockSize;
 					}
 
-					Index += BlockSize;
+					if(rotations_needed > 0)
+					{
+						BoundedMatrix<double,BlockSize,BlockSize> mat_block, tmp;
+						array_1d<double,BlockSize> aux, aux1;
+
+						for(unsigned int i=0; i<NumBlocks; i++)
+						{
+							for(unsigned int j=0; j<NumBlocks; j++)
+							{
+								this->ReadBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
+								noalias(tmp) = prod(mat_block,trans(rRot[j]));
+								noalias(mat_block) = prod(rRot[i],tmp);
+								this->WriteBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
+							}
+
+							for(unsigned int k=0; k<BlockSize; k++)
+							aux[k] = rLocalVector[i*BlockSize+k];
+
+							noalias(aux1) = prod(rRot[i],aux);
+
+							for(unsigned int k=0; k<BlockSize; k++)
+							rLocalVector[i*BlockSize+k] = aux1[k];
+
+						}
+					}
 				}
-
-				if(rotations_needed > 0)
+				else 	// dimension=3
 				{
-					BoundedMatrix<double,BlockSize,BlockSize> mat_block, tmp;
-					array_1d<double,BlockSize> aux, aux1;
+					const unsigned int LocalSize = rLocalVector.size();
 
-					for(unsigned int i=0; i<NumBlocks; i++)
+					unsigned int Index = 0;
+					int rotations_needed = 0;
+					const unsigned int NumBlocks = num_nodes + 1;
+					const unsigned int BlockSize = 3;
+
+					std::vector< BoundedMatrix<double,BlockSize,BlockSize> > rRot(NumBlocks);
+					for(unsigned int j = 0; j < NumBlocks; ++j)
 					{
-						for(unsigned int j=0; j<NumBlocks; j++)
+						if (j<num_nodes)
 						{
-							this->ReadBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
-							noalias(tmp) = prod(mat_block,trans(rRot[j]));
-							noalias(mat_block) = prod(rRot[i],tmp);
-							this->WriteBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
+							// Normals of the nodes (only node 1 is considered)
+							if( this->IsSlip(rGeometry[j]) )
+							{
+								rotations_needed++;
+								LocalRotationOperatorPure(rRot[j],rGeometry[0]);
+
+							}
+						}
+						else{
+							if( this->IsSlip(rGeometry[0]) )
+							{
+								
+								rotations_needed++;
+								LocalRotationOperatorPure(rRot[j],rGeometry[0]);
+
+							}
 						}
 
-						for(unsigned int k=0; k<BlockSize; k++)
-						aux[k] = rLocalVector[i*BlockSize+k];
+						Index += BlockSize;
+					}
 
-						noalias(aux1) = prod(rRot[i],aux);
+					if(rotations_needed > 0)
+					{
+						BoundedMatrix<double,BlockSize,BlockSize> mat_block, tmp;
+						array_1d<double,BlockSize> aux, aux1;
 
-						for(unsigned int k=0; k<BlockSize; k++)
-						rLocalVector[i*BlockSize+k] = aux1[k];
+						for(unsigned int i=0; i<NumBlocks; i++)
+						{
+							for(unsigned int j=0; j<NumBlocks; j++)
+							{
+								this->ReadBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
+								noalias(tmp) = prod(mat_block,trans(rRot[j]));
+								noalias(mat_block) = prod(rRot[i],tmp);
+								this->WriteBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
+							}
 
+							for(unsigned int k=0; k<BlockSize; k++)
+							aux[k] = rLocalVector[i*BlockSize+k];
+
+							noalias(aux1) = prod(rRot[i],aux);
+
+							for(unsigned int k=0; k<BlockSize; k++)
+							rLocalVector[i*BlockSize+k] = aux1[k];
+
+						}
 					}
 				}
 			}
-			else 	// dimension=3
+			else // mixed formulation case
 			{
-				const unsigned int LocalSize = rLocalVector.size();
-
-				unsigned int Index = 0;
-				int rotations_needed = 0;
-				const unsigned int NumBlocks = num_nodes + 1;
-				const unsigned int BlockSize = 3;
-
-				std::vector< BoundedMatrix<double,BlockSize,BlockSize> > rRot(NumBlocks);
-				for(unsigned int j = 0; j < NumBlocks; ++j)
-				{
-					if (j<num_nodes)
-					{
-						// Normals of the nodes (only node 1 is considered)
-						if( this->IsSlip(rGeometry[j]) )
-						{
-							rotations_needed++;
-							LocalRotationOperatorPure(rRot[j],rGeometry[0]);
-
-						}
-					}
-					else{
-						if( this->IsSlip(rGeometry[0]) )
-						{
-							
-							rotations_needed++;
-							LocalRotationOperatorPure(rRot[j],rGeometry[0]);
-
-						}
-					}
-
-					Index += BlockSize;
-				}
-
-				if(rotations_needed > 0)
-				{
-					BoundedMatrix<double,BlockSize,BlockSize> mat_block, tmp;
-					array_1d<double,BlockSize> aux, aux1;
-
-					for(unsigned int i=0; i<NumBlocks; i++)
-					{
-						for(unsigned int j=0; j<NumBlocks; j++)
-						{
-							this->ReadBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
-							noalias(tmp) = prod(mat_block,trans(rRot[j]));
-							noalias(mat_block) = prod(rRot[i],tmp);
-							this->WriteBlockMatrix<BlockSize>(mat_block, rLocalMatrix, i*BlockSize, j*BlockSize);
-						}
-
-						for(unsigned int k=0; k<BlockSize; k++)
-						aux[k] = rLocalVector[i*BlockSize+k];
-
-						noalias(aux1) = prod(rRot[i],aux);
-
-						for(unsigned int k=0; k<BlockSize; k++)
-						rLocalVector[i*BlockSize+k] = aux1[k];
-
-					}
-				}
+				if (this->GetDomainSize() == 2) this->template RotateAux<2,3>(rLocalMatrix,rLocalVector,rGeometry);
+				else if (this->GetDomainSize() == 3) this->template RotateAux<3,4>(rLocalMatrix,rLocalVector,rGeometry);
 			}
-		}
-		else // mixed formulation case
-		{
-			if (this->GetDomainSize() == 2) this->template RotateAux<2,3>(rLocalMatrix,rLocalVector,rGeometry);
-			else if (this->GetDomainSize() == 3) this->template RotateAux<3,4>(rLocalMatrix,rLocalVector,rGeometry);
 		}
 
 	}
@@ -403,25 +406,29 @@ public:
 		else if (this->IsLagrange(rGeometry))
 		{
 			const unsigned int dimension = this->GetDomainSize();
+			const unsigned int LocalSize = rLocalVector.size();
 
-			for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+			if (LocalSize > 0)
 			{
-				if(this->IsSlip(rGeometry[itNode]) )
+				for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
 				{
-					// Remove all other value in LHS than the normal component
-					const unsigned int ibase = dimension * rGeometry.PointsNumber();
-					for (unsigned int k = 0; k < dimension-1; k++){
-						rLocalMatrix(itNode * dimension + k, ibase + k + 1) = 0.0;
-						rLocalMatrix(itNode * dimension + k + 1, ibase + k + 1) = 0.0;
-						rLocalMatrix(ibase + k + 1 ,itNode * dimension + k) = 0.0;
-						rLocalMatrix(ibase + k + 1, itNode * dimension + k +1) = 0.0;
-						rLocalMatrix(ibase + k + 1 ,ibase + k + 1) = 1.0;
+					if(this->IsSlip(rGeometry[itNode]) )
+					{
+						// Remove all other value in LHS than the normal component
+						const unsigned int ibase = dimension * rGeometry.PointsNumber();
+						for (unsigned int k = 0; k < dimension-1; k++){
+							rLocalMatrix(itNode * dimension + k, ibase + k + 1) = 0.0;
+							rLocalMatrix(itNode * dimension + k + 1, ibase + k + 1) = 0.0;
+							rLocalMatrix(ibase + k + 1 ,itNode * dimension + k) = 0.0;
+							rLocalMatrix(ibase + k + 1, itNode * dimension + k +1) = 0.0;
+							rLocalMatrix(ibase + k + 1 ,ibase + k + 1) = 1.0;
+						}
+						
+						// Remove all other value in RHS than the normal component
+						for (unsigned int k = 1; k < dimension; k++){
+							rLocalVector[dimension * rGeometry.PointsNumber() + k] = 0.0;
+						}
 					}
-					
-					// Remove all other value in RHS than the normal component
-					for (unsigned int k = 1; k < dimension; k++){
-                    	rLocalVector[dimension * rGeometry.PointsNumber() + k] = 0.0;
-                	}
 				}
 			}
 
@@ -464,18 +471,20 @@ public:
 		}
 		else if (this->IsLagrange(rGeometry))
 		{
-			
 			const unsigned int dimension = this->GetDomainSize();
-			for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+			if (rLocalVector.size() > 0)
 			{
-					if(this->IsSlip(rGeometry[itNode]) )
-					{
-						
-						// Remove all other value in RHS than the normal component
-						for (unsigned int k = 1; k < dimension; k++){
-							rLocalVector[dimension * rGeometry.PointsNumber() + k] = 0.0;
+				for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+				{
+						if(this->IsSlip(rGeometry[itNode]) )
+						{
+							
+							// Remove all other value in RHS than the normal component
+							for (unsigned int k = 1; k < dimension; k++){
+								rLocalVector[dimension * rGeometry.PointsNumber() + k] = 0.0;
+							}
 						}
-					}
+				}
 			}
 
 		}
