@@ -3,60 +3,12 @@ from KratosMultiphysics import *
 from KratosMultiphysics.sympy_fe_utilities import *
 
 from params_dict import params
+from shape_functions import DefineShapeFunctionsMatrix
 import generate_convective_flux
 import generate_diffusive_flux
 import generate_source_term
 import generate_stabilization_matrix
 
-def DefineShapeFunctionsMatrix(dim, n_nodes, n_gauss):
-    mat_N = DefineMatrix('mat_N', n_gauss, n_nodes)
-    if dim == 2:
-        if n_gauss == 1:
-            mat_N[0,0] = 1.0 / 3.0
-            mat_N[0,1] = 1.0 / 3.0
-            mat_N[0,2] = 1.0 / 3.0
-        elif n_gauss == 3:
-            mat_N[0,0] = 2.0 / 3.0
-            mat_N[0,1] = 1.0 / 6.0
-            mat_N[0,2] = 1.0 / 6.0
-            mat_N[1,0] = 1.0 / 6.0
-            mat_N[1,1] = 2.0 / 3.0
-            mat_N[1,2] = 1.0 / 6.0
-            mat_N[2,0] = 1.0 / 6.0
-            mat_N[2,1] = 1.0 / 6.0
-            mat_N[2,2] = 2.0 / 3.0
-        else:
-            err_msg = "Invalid quadrature for dimension " + str(dim) + " and number of Gauss points " + str(n_gauss) + "."
-    elif dim == 3:
-        if n_gauss == 1:
-            mat_N[0,0] = 1.0 / 4.0
-            mat_N[0,1] = 1.0 / 4.0
-            mat_N[0,2] = 1.0 / 4.0
-            mat_N[0,3] = 1.0 / 4.0
-        elif n_gauss == 4:
-            mat_N[0,0] = 0.58541020
-            mat_N[0,1] = 0.13819660
-            mat_N[0,2] = 0.13819660
-            mat_N[0,3] = 0.13819660
-            mat_N[1,0] = 0.13819660
-            mat_N[1,1] = 0.58541020
-            mat_N[1,2] = 0.13819660
-            mat_N[1,3] = 0.13819660
-            mat_N[2,0] = 0.13819660
-            mat_N[2,1] = 0.13819660
-            mat_N[2,2] = 0.58541020
-            mat_N[2,3] = 0.13819660
-            mat_N[3,0] = 0.13819660
-            mat_N[3,1] = 0.13819660
-            mat_N[3,2] = 0.13819660
-            mat_N[3,3] = 0.58541020
-        else:
-            err_msg = "Invalid quadrature for dimension " + str(dim) + " and number of Gauss points " + str(n_gauss) + "."
-    else:
-        err_msg = "Invalid dimension " + str(dim) + "."
-        raise Exception(err_msg)
-
-    return mat_N
 
 mode = "c"                          # Output mode to a c++ file
 is_explicit = True                  # Explicit (True) or implicit (False) time integration
