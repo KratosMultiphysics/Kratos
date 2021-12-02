@@ -63,8 +63,8 @@ public:
 
         mVariableName = rParameters["variable_name"].GetString();
         mIsFixed = rParameters["is_fixed"].GetBool();
-        mgravity_direction = rParameters["gravity_direction"].GetInt();
-        mreference_coordinate = rParameters["reference_coordinate"].GetDouble();
+        mGravityDirection = rParameters["gravity_direction"].GetInt();
+        mReferenceCoordinate = rParameters["reference_coordinate"].GetDouble();
         mSpecificWeight = rParameters["specific_weight"].GetDouble();
 
         if (rParameters.Has("pressure_tension_cut_off"))
@@ -91,42 +91,28 @@ public:
     /// right after reading the model and the groups
     void ExecuteInitialize() override
     {
-        KRATOS_TRY;
-
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        KRATOS_TRY
 
         const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
 
-        if (nNodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
+        if (nNodes > 0) {
+            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
-            Vector3 Coordinates;
+            block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+                if (mIsFixed) rNode.Fix(var);
+                else          rNode.Free(var);
 
-            #pragma omp parallel for private(Coordinates)
-            for (int i = 0; i<nNodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight*( mReferenceCoordinate - rNode.Coordinates()[mGravityDirection] );
 
-                if (mIsFixed) it->Fix(var);
-                else          it->Free(var);
-
-                noalias(Coordinates) = it->Coordinates();
-
-                const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight*( mreference_coordinate - Coordinates[mgravity_direction] );
-
-                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff)
-                {
-                    it->FastGetSolutionStepValue(var) = pressure;
+                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
+                    rNode.FastGetSolutionStepValue(var) = pressure;
+                } else {
+                    rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
                 }
-                else
-                {
-                    it->FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                }
-            }
+            });
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.
@@ -155,8 +141,8 @@ protected:
     ModelPart& mrModelPart;
     std::string mVariableName;
     bool mIsFixed;
-    unsigned int mgravity_direction;
-    double mreference_coordinate;
+    unsigned int mGravityDirection;
+    double mReferenceCoordinate;
     double mSpecificWeight;
     double mPressureTensionCutOff;
 

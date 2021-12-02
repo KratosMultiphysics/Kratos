@@ -868,6 +868,31 @@ namespace Kratos
             KRATOS_CHECK_EQUAL(a(1,0), 0.0);
             KRATOS_CHECK_EQUAL(a(0,1), 0.0);
             KRATOS_CHECK_EQUAL(a(1,1), 1.0);
+
+            BoundedMatrix<double,3,3> c = IdentityMatrix(3);
+            BoundedMatrix<double,2,2> d = IdentityMatrix(2);
+
+            MathUtils<double>::AddMatrix(c, d, 0 ,0);
+
+            KRATOS_CHECK_EQUAL(c(0,0), 2.0);
+            KRATOS_CHECK_EQUAL(c(1,0), 0.0);
+            KRATOS_CHECK_EQUAL(c(0,1), 0.0);
+            KRATOS_CHECK_EQUAL(c(1,1), 2.0);
+            KRATOS_CHECK_EQUAL(c(2,2), 1.0);
+        }
+
+        /** Checks if it calculates the vector operations
+         */
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsVectorOperations, KratosCoreFastSuite)
+        {
+            array_1d<double,3> a = ZeroVector(3);
+            array_1d<double,2> b (2, 1.0);
+        
+            MathUtils<double>::AddVector(a, b, 0);
+
+            KRATOS_CHECK_EQUAL(a[0], 1.0);
+            KRATOS_CHECK_EQUAL(a[1], 1.0);
+            KRATOS_CHECK_EQUAL(a[2], 0.0);
         }
 
         /** Checks if it calculates the Factorial

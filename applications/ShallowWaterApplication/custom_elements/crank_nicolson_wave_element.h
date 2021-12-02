@@ -109,7 +109,7 @@ public:
     /**
      * @brief Destructor
      */
-    virtual ~ CrankNicolsonWaveElement(){}
+    ~ CrankNicolsonWaveElement() override {};
 
     ///@}
     ///@name Operations

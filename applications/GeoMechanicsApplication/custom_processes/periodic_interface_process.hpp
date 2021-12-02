@@ -36,7 +36,7 @@ public:
 
     /// Constructor
     PeriodicInterfaceProcess( ModelPart& model_part,
-                              Parameters rParameters ) : Process(Flags()) , mr_model_part(model_part)
+                              Parameters rParameters ) : Process(Flags()) , mrModelPart(model_part)
     {
         KRATOS_TRY
 
@@ -77,87 +77,67 @@ public:
     /// right after reading the model and the groups
     void ExecuteInitialize() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        int NCons = static_cast<int>(mr_model_part.Conditions().size());
-        ModelPart::ConditionsContainerType::iterator con_begin = mr_model_part.ConditionsBegin();
+        int nConditions = static_cast<int>(mrModelPart.Conditions().size());
 
-        #pragma omp parallel for
-        for (int i = 0; i < NCons; i++)
-        {
-            ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-            Condition::GeometryType& rGeom = itCond->GetGeometry();
+        if (nConditions > 0) {
+            block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
+                Condition::GeometryType& rGeom = rCondition.GetGeometry();
 
-            itCond->Set(PERIODIC,true);
+                rCondition.Set(PERIODIC,true);
 
-            rGeom[0].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = rGeom[1].Id();
-            rGeom[1].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = rGeom[0].Id();
+                rGeom[0].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = rGeom[1].Id();
+                rGeom[1].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = rGeom[0].Id();
+            });
         }
 
-        int NElems = static_cast<int>(mr_model_part.Elements().size());
-        ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
+        int nElements = static_cast<int>(mrModelPart.Elements().size());
 
-        #pragma omp parallel for
-        for (int i = 0; i < NElems; i++)
-        {
-            ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
-            itElem->Set(ACTIVE,false);
+        if (nElements > 0) {
+            block_for_each(mrModelPart.Elements(), [&](Element& rElement) {
+                rElement.Set(ACTIVE,false);
+            });
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// this function will be executed at every time step AFTER performing the solve phase
     void ExecuteFinalizeSolutionStep() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        int NCons = static_cast<int>(mr_model_part.Conditions().size());
-        ModelPart::ConditionsContainerType::iterator con_begin = mr_model_part.ConditionsBegin();
+        int nConditions = static_cast<int>(mrModelPart.Conditions().size());
 
-        SizeType StressTensorSize = STRESS_TENSOR_SIZE_2D;
-        if (mDimension == N_DIM_3D) StressTensorSize = STRESS_TENSOR_SIZE_3D; 
+        if (nConditions > 0) {
+            SizeType StressTensorSize = STRESS_TENSOR_SIZE_2D;
+            if (mDimension == N_DIM_3D) StressTensorSize = STRESS_TENSOR_SIZE_3D;
 
-        #pragma omp parallel for
-        for (int i = 0; i < NCons; i++)
-        {
-            ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-            Condition::GeometryType& rGeom = itCond->GetGeometry();
+            block_for_each(mrModelPart.Conditions(), [&StressTensorSize](Condition& rCondition) {
+                Condition::GeometryType& rGeom = rCondition.GetGeometry();
 
-            Matrix NodalStressMatrix(StressTensorSize, StressTensorSize);
-            noalias(NodalStressMatrix) = 0.5 * ( rGeom[0].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)
-                                                + rGeom[1].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) );
-            Vector PrincipalStresses(StressTensorSize);
-            // if (mDimension == 2)
-            // {
-            //     PrincipalStresses[0] = 0.5*(NodalStressMatrix(0,0)+NodalStressMatrix(1,1)) +
-            //                         sqrt(0.25*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1))*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1)) +
-            //                                 NodalStressMatrix(0,1)*NodalStressMatrix(0,1));
-            //     PrincipalStresses[1] = 0.5*(NodalStressMatrix(0,0)+NodalStressMatrix(1,1)) -
-            //                         sqrt(0.25*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1))*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1)) +
-            //                                 NodalStressMatrix(0,1)*NodalStressMatrix(0,1));
-            // }
-            // else
-            // {
+                Matrix NodalStressMatrix(StressTensorSize, StressTensorSize);
+                noalias(NodalStressMatrix) = 0.5 * ( rGeom[0].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)
+                                                    + rGeom[1].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) );
+                Vector PrincipalStresses(StressTensorSize);
                 noalias(PrincipalStresses) = SolidMechanicsMathUtilities<double>::EigenValuesDirectMethod(NodalStressMatrix);
-            // }
 
-            // Check whether the principal stress S1 at the node is higher than the prescribed limit to activate the joints
-            if (PrincipalStresses[0] >= mStressLimit)
-            {
-                itCond->Set(PERIODIC,false);
-                rGeom[0].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = 0;
-                rGeom[1].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = 0;
+                // Check whether the principal stress S1 at the node is higher than the prescribed limit to activate the joints
+                if (PrincipalStresses[0] >= mStressLimit) {
+                    rCondition.Set(PERIODIC,false);
+                    rGeom[0].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = 0;
+                    rGeom[1].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = 0;
 
-                GlobalPointersVector<Element>& rE = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
-                for (unsigned int ie = 0; ie < rE.size(); ie++)
-                {
-                    #pragma omp critical
-                    {
-                        rE[ie].Set(ACTIVE,true);
+                    GlobalPointersVector<Element>& rE = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
+                    for (unsigned int ie = 0; ie < rE.size(); ie++) {
+                        #pragma omp critical
+                        {
+                            rE[ie].Set(ACTIVE,true);
+                        }
                     }
                 }
-            }
+            });
         }
 
         KRATOS_CATCH("");
@@ -186,7 +166,7 @@ protected:
 
     /// Member Variables
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
     int mDimension;
     double mStressLimit;
 
