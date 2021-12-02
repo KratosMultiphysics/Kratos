@@ -53,6 +53,7 @@ public:
 
     typedef TransonicPerturbationPotentialFlowElement<TDim,TNumNodes> BaseType;
 
+    typedef typename BaseType::SizeType SizeType;
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::GeometryType GeometryType;
     typedef typename BaseType::PropertiesType PropertiesType;
