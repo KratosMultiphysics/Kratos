@@ -395,7 +395,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ParallelRuleOfMixturesLaw3D", mParallelRuleOfMixturesLaw3D);
 
     // Unified fatigue
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("UnifiedFatigueRuleOfMixturesLaw", mUnifiedFatigueRuleOfMixturesLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("UnifiedFatigueRuleOfMixturesLawVonMisesVonMises", mUnifiedFatigueRuleOfMixturesLawVonMisesVonMises);
 
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DVonMisesVonMises", mAssociativePlasticDamageModel3DVonMisesVonMises);

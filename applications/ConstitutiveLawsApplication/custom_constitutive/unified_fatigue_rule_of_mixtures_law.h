@@ -22,6 +22,9 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
+#include "custom_constitutive/generic_small_strain_isotropic_damage.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
+#include "custom_constitutive/linear_plane_strain.h"
 
 
 namespace Kratos
@@ -51,8 +54,9 @@ namespace Kratos
  * @details
  * @author Alejandro Cornejo
  */
+template <class TConstLawIntegratorType>
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
-    : public ConstitutiveLaw
+    : public std::conditional<TConstLawIntegratorType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
   public:
     ///@name Type Definitions
@@ -64,9 +68,17 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
 
+
     /// Definition of the machine precision tolerance
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
+    /// The define the working dimension size, already defined in the integrator
+    static constexpr SizeType Dimension = TConstLawIntegratorType::Dimension;
+
+    /// The define the Voigt size, already defined in the  integrator
+    static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
+
+    typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
     /// Counted pointer of SerialParallelRuleOfMixturesLaw
     KRATOS_CLASS_POINTER_DEFINITION(UnifiedFatigueRuleOfMixturesLaw);
 
@@ -84,8 +96,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     /**
     * Constructor.
     */
-    UnifiedFatigueRuleOfMixturesLaw(double FiberVolParticipation, const Vector& rParallelDirections)
-        : mHCFVolumetricParticipation(FiberVolParticipation)
+    UnifiedFatigueRuleOfMixturesLaw(double HCFVolParticipation)
+        : mHCFVolumetricParticipation(HCFVolParticipation)
     {
     }
 
@@ -94,12 +106,12 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<UnifiedFatigueRuleOfMixturesLaw>(*this);
+        return Kratos::make_shared<UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>>(*this);
     }
 
     // Copy constructor
     UnifiedFatigueRuleOfMixturesLaw(UnifiedFatigueRuleOfMixturesLaw const& rOther)
-        : ConstitutiveLaw(rOther), mpHCFConstitutiveLaw(rOther.mpHCFConstitutiveLaw), mpULCFConstitutiveLaw(rOther.mpULCFConstitutiveLaw),
+        :  BaseType(rOther), mpHCFConstitutiveLaw(rOther.mpHCFConstitutiveLaw), mpULCFConstitutiveLaw(rOther.mpULCFConstitutiveLaw),
         mHCFVolumetricParticipation(rOther.mHCFVolumetricParticipation)
     {
     }
@@ -263,7 +275,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
      * @param rValue output: the value of the specified variable
      */
     double& CalculateValue(
-        Parameters& rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<double>& rThisVariable,
         double& rValue) override;
 
@@ -275,7 +287,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
      * @param rValue output: the value of the specified variable
      */
     Vector& CalculateValue(
-        Parameters& rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Vector>& rThisVariable,
         Vector& rValue) override;
 
@@ -287,7 +299,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
      * @param rValue output: the value of the specified variable
      */
     Matrix& CalculateValue(
-        Parameters& rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue) override;
 
@@ -305,10 +317,28 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
         const Vector& rShapeFunctionsValues) override;
 
     /**
-     * Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponsePK2(Parameters& rValues) override;
+    void InitializeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Kirchhoff stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Cauchy stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * This method computes the stresses of the matrix/fiber according to its own CL
@@ -377,48 +407,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     ///@name Protected Operators
     ///@{
 
-    /**
-     * @brief This method the constitutive law of the matrix material
-     */
-    ConstitutiveLaw::Pointer GetMatrixConstitutiveLaw()
-    {
-        return mpHCFConstitutiveLaw;
-    }
-
-    /**
-     * @brief This method sets the constitutive law of the matrix material
-     */
-    void SetMatrixConstitutiveLaw(ConstitutiveLaw::Pointer pMatrixConstitutiveLaw)
-    {
-        mpHCFConstitutiveLaw = pMatrixConstitutiveLaw;
-    }
-
-    /**
-     * @brief This method the constitutive law of the fiber material
-     */
-    ConstitutiveLaw::Pointer GetFiberConstitutiveLaw()
-    {
-        return mpULCFConstitutiveLaw;
-    }
-
-    /**
-     * @brief This method sets the constitutive law of the fiber material
-     */
-    void SetFiberConstitutiveLaw(ConstitutiveLaw::Pointer pFiberConstitutiveLaw)
-    {
-        mpULCFConstitutiveLaw = pFiberConstitutiveLaw;
-    }
-
-    /**
-     * @brief This method returns the number of directions
-     * with serial behaviour (iso-stress behaviour)
-     */
-    int GetNumberOfSerialComponents()
-    {
-        const int parallel_components = 1;
-        return this->GetStrainSize() - parallel_components;
-    }
-
     ///@}
     ///@name Protected Operations
     ///@{
@@ -449,7 +437,11 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     double mHCFVolumetricParticipation;
     // Vector mParallelDirections = ZeroVector(6);
     // Vector mPreviousStrainVector = ZeroVector(6);
-    Vector mPreviousSerialStrainMatrix = ZeroVector(GetNumberOfSerialComponents());
+
+    double mFatigueReductionFactor = 1.0;
+    Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
+    double mMaxStress = 0.0;
+    double mMinStress = 0.0;
 
     ///@}
     ///@name Private Operators
@@ -458,15 +450,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     ///@}
     ///@name Private Operations
     ///@{
-
-    // /**
-    //  * @brief This method computes the elastic tensor
-    //  * @param rElasticityTensor The elastic tensor
-    //  * @param rMaterialProperties The material properties
-    //  */
-    // void CalculateElasticMatrix(
-    //     Matrix& rElasticityTensor,
-    //     const Properties& rMaterialProperties);
 
     ///@}
     ///@name Private  Access

@@ -609,7 +609,7 @@ private:
     const ParallelRuleOfMixturesLaw<3> mParallelRuleOfMixturesLaw3D;
 	const ParallelRuleOfMixturesLaw<2> mParallelRuleOfMixturesLaw2D;
 
-    const UnifiedFatigueRuleOfMixturesLaw mUnifiedFatigueRuleOfMixturesLaw;
+    const UnifiedFatigueRuleOfMixturesLaw <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mUnifiedFatigueRuleOfMixturesLawVonMisesVonMises;
 
     // Anisotropic law
     const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;

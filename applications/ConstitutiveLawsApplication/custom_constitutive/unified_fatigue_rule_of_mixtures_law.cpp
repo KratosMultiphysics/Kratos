@@ -22,22 +22,102 @@
 #include "constitutive_laws_application_variables.h"
 #include "unified_fatigue_rule_of_mixtures_law.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
+#include "custom_constitutive/constitutive_laws_integrators/high_cycle_fatigue_law_integrator.h"
 
+
+#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
+
+// Yield surfaces
+#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
+
+// Plastic potentials
+#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/tresca_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
 namespace Kratos
 {
-ConstitutiveLaw::Pointer UnifiedFatigueRuleOfMixturesLaw::Create(Kratos::Parameters NewParameters) const
+template<class TConstLawIntegratorType>
+ConstitutiveLaw::Pointer UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Create(Kratos::Parameters NewParameters) const
 {
     const double high_cycle_fatigue_initial_volumetric_participation = NewParameters["combination_factors"][0].GetDouble();
-    const int voigt_size = 6;
-    Vector parallel_directions(voigt_size);
-    return Kratos::make_shared<UnifiedFatigueRuleOfMixturesLaw>(high_cycle_fatigue_initial_volumetric_participation, parallel_directions);
+    return Kratos::make_shared<UnifiedFatigueRuleOfMixturesLaw>(high_cycle_fatigue_initial_volumetric_participation);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UnifiedFatigueRuleOfMixturesLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMaterialResponsePK1(
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMaterialResponsePK2(
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMaterialResponseKirchhoff(
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+    // const double max_stress = mMaxStress;
+    // const double min_stress = mMinStress;
+    // bool max_indicator = mMaxDetected;
+    // bool min_indicator = mMinDetected;
+    // double fatigue_reduction_factor = mFatigueReductionFactor;
+    // double reversion_factor_relative_error = mReversionFactorRelativeError;
+    // double max_stress_relative_error = mMaxStressRelativeError;
+    // unsigned int global_number_of_cycles = mNumberOfCyclesGlobal;
+    // unsigned int local_number_of_cycles = mNumberOfCyclesLocal;
+    // double B0 = mFatigueReductionParameter;
+    // double previous_max_stress = mPreviousMaxStress;
+    // double previous_min_stress = mPreviousMinStress;
+    // double wohler_stress = mWohlerStress;
+    // bool new_cycle = false;
+    // double s_th = mThresholdStress;
+    // double cycles_to_failure = mCyclesToFailure;
+    // bool adnvance_strategy_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
+    // bool damage_activation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -45,7 +125,8 @@ void UnifiedFatigueRuleOfMixturesLaw::CalculateMaterialResponsePK1(ConstitutiveL
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UnifiedFatigueRuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -53,7 +134,8 @@ void UnifiedFatigueRuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveL
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UnifiedFatigueRuleOfMixturesLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -61,7 +143,8 @@ void UnifiedFatigueRuleOfMixturesLaw::CalculateMaterialResponseKirchhoff(Constit
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UnifiedFatigueRuleOfMixturesLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     // Some auxiliar values
     const SizeType dimension = WorkingSpaceDimension();
@@ -144,7 +227,9 @@ void UnifiedFatigueRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
 
 /***********************************************************************************/
 /***********************************************************************************/
-void UnifiedFatigueRuleOfMixturesLaw::IntegrateStressesOfHCFAndULCFModels(
+
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::IntegrateStressesOfHCFAndULCFModels(
     ConstitutiveLaw::Parameters& rValues,
     Vector rHCFStrainVector,
     Vector rULCFStrainVector,
@@ -177,7 +262,8 @@ void UnifiedFatigueRuleOfMixturesLaw::IntegrateStressesOfHCFAndULCFModels(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UnifiedFatigueRuleOfMixturesLaw::FinalizeSolutionStep(
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeSolutionStep(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -189,7 +275,8 @@ void UnifiedFatigueRuleOfMixturesLaw::FinalizeSolutionStep(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UnifiedFatigueRuleOfMixturesLaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     this->FinalizeMaterialResponseCauchy(rValues);
 }
@@ -197,7 +284,8 @@ void UnifiedFatigueRuleOfMixturesLaw::FinalizeMaterialResponsePK1(ConstitutiveLa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UnifiedFatigueRuleOfMixturesLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     this->FinalizeMaterialResponseCauchy(rValues);
 }
@@ -205,7 +293,8 @@ void UnifiedFatigueRuleOfMixturesLaw::FinalizeMaterialResponsePK2(ConstitutiveLa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UnifiedFatigueRuleOfMixturesLaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     this->FinalizeMaterialResponseCauchy(rValues);
 }
@@ -213,7 +302,8 @@ void UnifiedFatigueRuleOfMixturesLaw::FinalizeMaterialResponseKirchhoff(Constitu
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UnifiedFatigueRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     const Vector& r_strain_vector = rValues.GetStrainVector();
 
@@ -258,15 +348,48 @@ void UnifiedFatigueRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
         values_HCF.SetStrainVector(r_strain_vector);
         values_ULCF.SetStrainVector(r_strain_vector);
 
-        mpHCFConstitutiveLaw->FinalizeMaterialResponseCauchy(values_HCF);
-        mpULCFConstitutiveLaw->FinalizeMaterialResponseCauchy(values_ULCF);
+        mpHCFConstitutiveLaw->CalculateMaterialResponseCauchy(values_HCF);
+        mpULCFConstitutiveLaw->CalculateMaterialResponseCauchy(values_ULCF);
+
+        Vector high_cycle_fatigue_stress_vector, ultra_low_cycle_fatigue_stress_vector;
+
+        high_cycle_fatigue_stress_vector = values_HCF.GetStressVector();
+        ultra_low_cycle_fatigue_stress_vector = values_ULCF.GetStressVector();
+
+        Vector& r_integrated_stress_vector = rValues.GetStressVector();
+        noalias(r_integrated_stress_vector) = mHCFVolumetricParticipation * high_cycle_fatigue_stress_vector
+                                     + (1.0 - mHCFVolumetricParticipation) * ultra_low_cycle_fatigue_stress_vector;
+
+        double uniaxial_stress;
+        TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(r_integrated_stress_vector, r_strain_vector, uniaxial_stress, rValues);
+
+        double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(r_integrated_stress_vector);
+        uniaxial_stress *= sign_factor;
+        // double max_stress = mMaxStress;
+        // double min_stress = mMinStress;
+        // bool max_indicator = mMaxDetected;
+        // bool min_indicator = mMinDetected;
+        // double fatigue_reduction_factor = mFatigueReductionFactor;
+
+        // HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(
+        //     uniaxial_stress,
+        //     max_stress,
+        //     min_stress,
+        //     mPreviousStresses,
+        //     max_indicator,
+        //     min_indicator);
+        // mMaxStress = max_stress;
+        // mMinStress = min_stress;
+        // mMaxDetected = max_indicator;
+        // mMinDetected = min_indicator;
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-double& UnifiedFatigueRuleOfMixturesLaw::GetValue(
+template <class TConstLawIntegratorType>
+double& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
     )
@@ -283,7 +406,8 @@ double& UnifiedFatigueRuleOfMixturesLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector& UnifiedFatigueRuleOfMixturesLaw::GetValue(
+template <class TConstLawIntegratorType>
+Vector& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::GetValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue
     )
@@ -300,7 +424,8 @@ Vector& UnifiedFatigueRuleOfMixturesLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix& UnifiedFatigueRuleOfMixturesLaw::GetValue(
+template <class TConstLawIntegratorType>
+Matrix& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::GetValue(
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
     )
@@ -317,7 +442,8 @@ Matrix& UnifiedFatigueRuleOfMixturesLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool UnifiedFatigueRuleOfMixturesLaw::Has(const Variable<bool>& rThisVariable)
+template <class TConstLawIntegratorType>
+bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variable<bool>& rThisVariable)
 {
     if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
         return true;
@@ -331,7 +457,8 @@ bool UnifiedFatigueRuleOfMixturesLaw::Has(const Variable<bool>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool UnifiedFatigueRuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
+template <class TConstLawIntegratorType>
+bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
 {
     if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
         return true;
@@ -345,7 +472,8 @@ bool UnifiedFatigueRuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool UnifiedFatigueRuleOfMixturesLaw::Has(const Variable<Vector>& rThisVariable)
+template <class TConstLawIntegratorType>
+bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variable<Vector>& rThisVariable)
 {
     if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
         return true;
@@ -359,7 +487,8 @@ bool UnifiedFatigueRuleOfMixturesLaw::Has(const Variable<Vector>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool UnifiedFatigueRuleOfMixturesLaw::Has(const Variable<Matrix>& rThisVariable)
+template <class TConstLawIntegratorType>
+bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variable<Matrix>& rThisVariable)
 {
     if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
         return true;
@@ -373,8 +502,9 @@ bool UnifiedFatigueRuleOfMixturesLaw::Has(const Variable<Matrix>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-double& UnifiedFatigueRuleOfMixturesLaw::CalculateValue(
-    Parameters& rParameterValues,
+template <class TConstLawIntegratorType>
+double& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
     double& rValue)
 {
@@ -394,14 +524,14 @@ double& UnifiedFatigueRuleOfMixturesLaw::CalculateValue(
     } else {
         return this->GetValue(rThisVariable, rValue);
     }
-
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector& UnifiedFatigueRuleOfMixturesLaw::CalculateValue(
-    Parameters& rParameterValues,
+template <class TConstLawIntegratorType>
+Vector& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Vector>& rThisVariable,
     Vector& rValue)
 {
@@ -411,7 +541,8 @@ Vector& UnifiedFatigueRuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UnifiedFatigueRuleOfMixturesLaw::InitializeMaterial(
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues)
@@ -432,7 +563,8 @@ void UnifiedFatigueRuleOfMixturesLaw::InitializeMaterial(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix& UnifiedFatigueRuleOfMixturesLaw::CalculateValue(
+template <class TConstLawIntegratorType>
+Matrix& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
@@ -514,14 +646,8 @@ Matrix& UnifiedFatigueRuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UnifiedFatigueRuleOfMixturesLaw::InitializeMaterialResponsePK2(Parameters& rValues)
-{
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void UnifiedFatigueRuleOfMixturesLaw::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -540,4 +666,6 @@ void UnifiedFatigueRuleOfMixturesLaw::CalculateTangentTensor(ConstitutiveLaw::Pa
 }
 /***********************************************************************************/
 /***********************************************************************************/
+template class UnifiedFatigueRuleOfMixturesLaw<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
+
 } // namespace Kratos

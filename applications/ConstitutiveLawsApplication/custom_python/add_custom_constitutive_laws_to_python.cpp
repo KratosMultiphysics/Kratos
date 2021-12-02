@@ -1449,9 +1449,9 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     ConstitutiveLaw>
     (m,"SmallStrainOrthotropicDamageSimoJu2D").def(py::init<>());
 
-    py::class_< UnifiedFatigueRuleOfMixturesLaw, typename UnifiedFatigueRuleOfMixturesLaw::Pointer,  ConstitutiveLaw  >
-    (m,"UnifiedFatigueRuleOfMixturesLaw").def(py::init<>())
-    ;
+    py::class_<  UnifiedFatigueRuleOfMixturesLaw <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
+    typename UnifiedFatigueRuleOfMixturesLaw <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer, ConstitutiveLaw >
+    (m,"UnifiedFatigueRuleOfMixturesLawVonMisesVonMises").def(py::init<>());
 
     py::class_< ParallelRuleOfMixturesLaw<3>, typename ParallelRuleOfMixturesLaw<3>::Pointer,  ConstitutiveLaw  >
     (m,"ParallelRuleOfMixturesLaw3D").def(py::init<>())
