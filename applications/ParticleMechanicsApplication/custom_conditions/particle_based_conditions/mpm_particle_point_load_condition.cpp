@@ -226,6 +226,24 @@ namespace Kratos
         // Update the Material Point Condition Position
         m_xg += delta_xg ;
         m_velocity = MPC_velocity;
+        
+    }
+
+    void MPMParticlePointLoadCondition::CalculateOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rValues.size() != 1)
+            rValues.resize(1);
+
+        if (rVariable == MPC_CORRESPONDING_CONDITION_ID) {
+            rValues[0] = m_corresponding_condition_id;
+        }
+        else
+        {
+            KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+        }
     }
 
     void MPMParticlePointLoadCondition::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
@@ -247,11 +265,29 @@ namespace Kratos
         else if (rVariable == MPC_DISPLACEMENT) {
             rValues[0] = m_delta_xg;
         }
+        else if (rVariable == MP_DISPLACEMENT) {
+            rValues[0] = m_disp_xg;
+        }
         else {
             MPMParticleBaseLoadCondition::CalculateOnIntegrationPoints(
                 rVariable, rValues, rCurrentProcessInfo);
         }
     }
+
+    void MPMParticlePointLoadCondition::SetValuesOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        const std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) {
+        
+        KRATOS_ERROR_IF(rValues.size() > 1)
+            << "Only 1 value per integration point allowed! Passed values vector size: "
+            << rValues.size() << std::endl;
+
+        if (rVariable == MPC_CORRESPONDING_CONDITION_ID) {
+            m_corresponding_condition_id = rValues[0];
+        }
+    }
+
     void MPMParticlePointLoadCondition::SetValuesOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
         const std::vector<array_1d<double, 3 > >& rValues,
@@ -272,6 +308,9 @@ namespace Kratos
         }
         else if (rVariable == MPC_DISPLACEMENT) {
             m_delta_xg = rValues[0];
+        }
+        else if (rVariable == MP_DISPLACEMENT) {
+            m_disp_xg = rValues[0];
         }
         else {
             MPMParticleBaseLoadCondition::SetValuesOnIntegrationPoints(

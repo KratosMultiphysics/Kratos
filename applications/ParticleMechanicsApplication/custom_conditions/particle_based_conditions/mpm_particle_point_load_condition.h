@@ -103,10 +103,18 @@ public:
     ///@}
     ///@name Access
     ///@{
+    void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+        std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
         std::vector<array_1d<double, 3 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        const std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)override;
 
     void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
         const std::vector<array_1d<double, 3 > >& rValues,
@@ -223,6 +231,8 @@ private:
     array_1d<double, 3> m_point_load;
     array_1d<double, 3> m_delta_xg;
     array_1d<double, 3> m_velocity;
+    int m_corresponding_condition_id = 0;
+    array_1d<double, 3> m_disp_xg;
 
     ///@}
     ///@name Private Operators
