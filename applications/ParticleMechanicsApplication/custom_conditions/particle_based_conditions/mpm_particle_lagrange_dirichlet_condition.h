@@ -277,6 +277,7 @@ private:
 
         array_1d<double, 3> m_contact_force;
         int m_corresponding_condition_id = 0;
+        int m_corresponding_node_id = 0;
         int m_counter = 0;
 
     ///@}

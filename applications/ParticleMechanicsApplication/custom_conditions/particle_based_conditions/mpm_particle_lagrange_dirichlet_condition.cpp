@@ -249,41 +249,11 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
                 right_hand_side[dimension * number_of_nodes+j] -= m_imposed_displacement[j];
             }
 
-            
-
             right_hand_side *= this->GetIntegrationWeight();
             noalias(rRightHandSideVector) = -right_hand_side;
             
         }
 
-
-        if ( CalculateResidualVectorFlag == true )
-        {
-            GeometryType& r_geometry = GetGeometry();
-            const unsigned int number_of_nodes = r_geometry.size();
-            const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-            const unsigned int block_size = this->GetBlockSize();
-
-            // Calculate nodal forces
-            Vector nodal_force = ZeroVector(3);
-            for (unsigned int i = 0; i < number_of_nodes; i++)
-            {
-                for (unsigned int j = 0; j < dimension; j++)
-                {
-                    nodal_force[j] = rRightHandSideVector[dimension * i + j];
-                }
-
-                // Check whether there nodes are active and associated to material point elements
-                const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
-                if (nodal_mass > std::numeric_limits<double>::epsilon())
-                {
-                    r_geometry[i].SetLock();
-                    r_geometry[i].FastGetSolutionStepValue(REACTION) += nodal_force;
-                    r_geometry[i].UnSetLock();
-                }
-
-            }
-        }
     }
     else{
 
@@ -300,30 +270,11 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 void MPMParticleLagrangeDirichletCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-
     MPMParticleBaseDirichletCondition::FinalizeSolutionStep(rCurrentProcessInfo);
-    GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.PointsNumber();
-
-    // Prepare variables
-    GeneralVariables Variables;
-    const double & r_mpc_area = this->GetIntegrationWeight();
-    MPMShapeFunctionPointValues(Variables.N);
-
-    // Interpolate the force to mpc_force assuming linear shape function
     array_1d<double, 3 > mpc_force = ZeroVector(3);
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-    {
-        // Check whether there is material point inside the node
-        const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
-        const double nodal_area  = r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
-        const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
+    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
 
-        if (nodal_mass > std::numeric_limits<double>::epsilon() && nodal_area > std::numeric_limits<double>::epsilon())
-        {
-            mpc_force += Variables.N[i] * nodal_force * r_mpc_area / nodal_area;
-        }
-    }
+    mpc_force = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);;
 
     // Apply in the normal contact direction and allow releasing motion
     if (Is(CONTACT))
@@ -340,7 +291,7 @@ void MPMParticleLagrangeDirichletCondition::FinalizeSolutionStep( const ProcessI
     // Apply a sticking contact
     else{
         mpc_force *= -1.0;
-    }
+    } 
 
     // Set Contact Force
     m_contact_force = mpc_force;
@@ -519,6 +470,9 @@ void MPMParticleLagrangeDirichletCondition::CalculateOnIntegrationPoints(
     if (rVariable == MPC_CORRESPONDING_CONDITION_ID) {
         rValues[0] = m_corresponding_condition_id;
     }
+    else if (rVariable == MPC_CORRESPONDING_NODE_ID) {
+        rValues[0] = m_corresponding_node_id;
+    }
     else if (rVariable == MPC_COUNTER) {
         rValues[0] = m_counter;
     }
@@ -548,10 +502,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateOnIntegrationPoints(const V
     if (rValues.size() != 1)
         rValues.resize(1);
 
-    if (rVariable == MPC_IMPOSED_DISPLACEMENT) {
-        rValues[0] = m_imposed_displacement;
-    }
-    else if (rVariable == MPC_NORMAL) {
+    if (rVariable == MPC_NORMAL) {
         rValues[0] = m_unit_normal;
     }
     else if (rVariable == MPC_CONTACT_FORCE) {
@@ -574,6 +525,9 @@ void MPMParticleLagrangeDirichletCondition::SetValuesOnIntegrationPoints(
 
     if (rVariable == MPC_CORRESPONDING_CONDITION_ID) {
         m_corresponding_condition_id = rValues[0];
+    }
+    else if (rVariable == MPC_CORRESPONDING_NODE_ID) {
+        m_corresponding_node_id = rValues[0];
     }
     else if (rVariable == MPC_COUNTER) {
         m_counter = rValues[0];
@@ -608,10 +562,7 @@ void MPMParticleLagrangeDirichletCondition::SetValuesOnIntegrationPoints(
         << "Only 1 value per integration point allowed! Passed values vector size: "
         << rValues.size() << std::endl;
 
-    if (rVariable == MPC_IMPOSED_DISPLACEMENT) {
-        m_imposed_displacement = rValues[0];
-    }
-    else if (rVariable == MPC_NORMAL) {
+    if (rVariable == MPC_NORMAL) {
         m_unit_normal = rValues[0];
         ParticleMechanicsMathUtilities<double>::Normalize(m_unit_normal);
     }
