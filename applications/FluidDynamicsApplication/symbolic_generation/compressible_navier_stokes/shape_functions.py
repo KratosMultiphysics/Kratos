@@ -1,4 +1,5 @@
 import sympy
+from sympy.functions.combinatorial.numbers import catalan
 
 
 def DefineShapeFunctionsMatrix(dim, n_nodes, n_gauss):
@@ -7,7 +8,11 @@ def DefineShapeFunctionsMatrix(dim, n_nodes, n_gauss):
         (2, 4): QuadrilateralShapeFunctions,
         (3, 4): TetrahedronShapeFunctions
     }
-    return quadrature_data[(dim, n_nodes)](n_gauss)
+    try:
+        return quadrature_data[(dim, n_nodes)](n_gauss)
+    except KeyError as e:
+        msg = "Geomerty {}D {}N is not implemented".format(dim, n_nodes)
+        raise NotImplementedError(msg) from e
 
 
 def TriangleShapeFunctions(n_gauss):
@@ -25,7 +30,7 @@ def TriangleShapeFunctions(n_gauss):
         mat_N[2, 1] = 1.0 / 6.0
         mat_N[2, 2] = 2.0 / 3.0
         return mat_N
-    msg = "Invalid quadrature: tetrahedron with %d integration points".format(n_gauss)
+    msg = "Triangle with %d gauss points not implemented".format(n_gauss)
     raise NotImplementedError(msg)
 
 
@@ -42,7 +47,7 @@ def QuadrilateralShapeFunctions(n_gauss):
         eta = [-3**-0.5, -3**0.5,  3**-0.5, 3**0.5]
         return sympy.Matrix(n_gauss, 4, lambda i, j: N[j](xi[i], eta[i]))
 
-    msg = "Invalid quadrature: tetrahedron with %d integration points".format(n_gauss)
+    msg = "Quadrilateral with %d gauss points not implemented".format(n_gauss)
     raise NotImplementedError(msg)
 
 
@@ -68,5 +73,5 @@ def TetrahedronShapeFunctions(n_gauss):
         mat_N[3, 2] = 0.13819660
         mat_N[3, 3] = 0.58541020
         return mat_N
-    msg = "Invalid quadrature: tetrahedron with %d integration points".format(n_gauss)
+    msg = "Tetrahedron with %d gauss points not implemented".format(n_gauss)
     raise NotImplementedError(msg)
