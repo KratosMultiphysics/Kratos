@@ -102,17 +102,17 @@
                     "disp" : {
                     "model_part_name" : "PfemFluidModelPart.InterfaceWall",
                     "variable_name"   : "DISPLACEMENT",
-                    "dimension"       : 3
+                    "dimension"       : 2
                     },
                     "vel" : {
                         "model_part_name" : "PfemFluidModelPart.InterfaceWall",
                         "variable_name"   : "VELOCITY",
-                        "dimension"       : 3
+                        "dimension"       : 2
                     },
                     "contact_force" : {
                         "model_part_name" : "PfemFluidModelPart.InterfaceWall",
                         "variable_name"   : "REACTION",
-                        "dimension"       : 3
+                        "dimension"       : 2
                     }
                 }
             },

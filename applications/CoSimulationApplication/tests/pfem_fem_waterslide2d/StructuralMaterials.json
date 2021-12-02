@@ -10,7 +10,7 @@
                 "DENSITY"             : 7850.0,
                 "YOUNG_MODULUS"       : 20690000.0,
                 "CROSS_AREA"          : 0.01,
-                "TRUSS_PRESTRESS_PK2" : 0.0,
+                "TRUSS_PRESTRESS_PK2" : 0.01,
                 "RAYLEIGH_ALPHA"      : 1.0,
                 "RAYLEIGH_BETA"       : 0.1
             },
