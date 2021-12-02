@@ -165,7 +165,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_IsGroup1, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(GetTestFile().IsGroup("invalid_path");
-                                     , "Invalid path: \"invalid_path\"");
+                                     , "Invalid path: \"invalid_path\". Path should start with \"/\" and should only have characters A-Z, a-z, 0-9, \"/\", and \"_\".");
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
@@ -443,7 +443,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_AddPath1, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(GetTestFile().AddPath("invalid_path");
-                                     , "Invalid path: invalid_path");
+                                     , "Invalid path: \"invalid_path\". Path should start with \"/\" and should only have characters A-Z, a-z, 0-9, \"/\", and \"_\".");
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
