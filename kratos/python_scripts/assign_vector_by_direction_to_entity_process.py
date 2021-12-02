@@ -109,7 +109,7 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
                 avg_normal = KratosMultiphysics.VariableUtils().SumConditionVectorVariable(KratosMultiphysics.NORMAL, self.model_part)
                 avg_normal_norm = math.sqrt(pow(avg_normal[0],2) + pow(avg_normal[1],2) + pow(avg_normal[2],2))
                 if avg_normal_norm < 1.0e-6:
-                    raise Exception("Direction norm is close to 0 in AssignVectorByDirectionToConditionProcess.")
+                    raise Exception("Direction norm is close to 0 in AssignVectorByDirectionToEntityProcess.")
 
                 unit_direction = KratosMultiphysics.Vector(3)
                 unit_direction = (1.0/avg_normal_norm) * avg_normal
@@ -134,7 +134,7 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
             if all_numeric:
                 direction_norm = math.sqrt(direction_norm)
                 if direction_norm < 1.0e-6:
-                    raise Exception("Direction norm is close to 0 in AssignVectorByDirectionToConditionProcess.")
+                    raise Exception("Direction norm is close to 0 in AssignVectorByDirectionToEntityProcess.")
 
                 for i in range(0,3):
                     unit_direction[i] = unit_direction[i]/direction_norm
