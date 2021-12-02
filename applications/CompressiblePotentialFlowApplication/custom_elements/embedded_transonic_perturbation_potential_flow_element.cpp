@@ -401,6 +401,68 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Assembl
     }
 }
 
+template <int TDim, int TNumNodes>
+void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindElement(const ProcessInfo& rCurrentProcessInfo)
+{
+    GeometryType upwind_element_boundary=this->GetGeometry();
+    std::vector<size_t> upwind_element_nodes;
+    GlobalPointersVector<Element> upwind_element_candidates;
+    PotentialFlowUtilities::GetNodeNeighborElementCandidates<TDim, TNumNodes>(upwind_element_candidates, upwind_element_boundary);
+
+    SelectUpwindElement(upwind_element_nodes, upwind_element_candidates, rCurrentProcessInfo);
+}
+
+template <int TDim, int TNumNodes>
+void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::SelectUpwindElement(
+    std::vector<IndexType>& rUpwindElementNodeIds,
+    GlobalPointersVector<Element>& rUpwindElementCandidates,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    double minimum_edge_flux = 0.0;
+    const auto& element_boundary_geometry = this->GetGeometry().GenerateBoundariesEntities();
+
+    for (SizeType i = 0; i < rUpwindElementCandidates.size(); i++)
+    {
+        // get sorted node ids of neighbording elements
+        std::vector<size_t> neighbor_element_ids;
+        PotentialFlowUtilities::GetSortedIds<TDim, TNumNodes>(neighbor_element_ids, rUpwindElementCandidates[i].GetGeometry());
+
+        // find element which shares the upwind element nodes with current element
+        // but is not the current element
+        // extra check if its active
+
+        if (rUpwindElementCandidates[i].Is(ACTIVE) && rUpwindElementCandidates[i].Id()!=this->Id()) {
+            for (auto& r_geom_boundary : element_boundary_geometry) {
+                std::vector<size_t> this_sorted_ids;
+                PotentialFlowUtilities::GetSortedIds<TDim, TNumNodes>(this_sorted_ids, r_geom_boundary);
+
+
+                if(std::includes(neighbor_element_ids.begin(), neighbor_element_ids.end(),
+                this_sorted_ids.begin(), this_sorted_ids.end()))
+                {
+                    const auto edge_normal = BaseType::GetEdgeNormal(r_geom_boundary);
+
+                    const double edge_flux = inner_prod(edge_normal, free_stream_velocity);
+
+                    if(edge_flux < minimum_edge_flux) {
+                        minimum_edge_flux = edge_flux;
+                        this->pSetUpwindElement(rUpwindElementCandidates(i));
+                    }
+                }
+            }
+        }
+    }
+
+    // If no upwind element is found, the element is an INLET element and the
+    // upwind element pointer points to itself
+    if (this->CheckUpwindElement())
+    {
+        this->pSetUpwindElement(this);
+        this->SetFlags(INLET);
+    }
+}
+
 template <>
 ModifiedShapeFunctions::Pointer EmbeddedTransonicPerturbationPotentialFlowElement<2,3>::pGetModifiedShapeFunctions(Vector& rDistances) {
     return Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(), rDistances);
