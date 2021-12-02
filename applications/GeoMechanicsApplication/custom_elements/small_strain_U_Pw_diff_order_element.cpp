@@ -2510,17 +2510,13 @@ void SmallStrainUPwDiffOrderElement::
                                                   InvJ,
                                                   GPoint);
 
-    if(detJ < 0.0) {
-        std::cerr << "Error: Element " << this->Id() << " is inverted. DetJ: " << detJ << std::endl 
-        << "This usually indicates the deformations are too large for the mesh size." << std::endl;
-
-        KRATOS_ERROR_IF(detJ < 0.0)
-            << "ERROR:: ELEMENT ID: "
-            << this->Id()
-            << " INVERTED. DETJ: "
-            << detJ
-            << std::endl;
-    }
+    KRATOS_ERROR_IF(detJ < 0.0)
+        << "ERROR:: Element "
+        << this->Id()
+        << " is inverted. DetJ: "
+        << detJ
+        << std::endl
+        << "This usually indicates that the deformations are too large for the mesh size." << std::endl;
 
     // Deformation gradient
     noalias(rVariables.F) = prod( J, InvJ0 );

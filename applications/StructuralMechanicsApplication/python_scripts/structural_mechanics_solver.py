@@ -96,6 +96,7 @@ class MechanicalSolver(PythonSolver):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type" : "mechanical_solver",
             "model_part_name" : "",
+            "computing_sub_model_part_name" : "",
             "domain_size" : -1,
             "echo_level": 0,
             "buffer_size": 2,
@@ -261,7 +262,13 @@ class MechanicalSolver(PythonSolver):
             raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
     def GetComputingModelPart(self):
-        return self.main_model_part
+        computing_sub_model_part_name = self.settings["computing_sub_model_part_name"].GetString()
+        if computing_sub_model_part_name == "":
+            # if the user didn't specify a SubModelPart, then use the MainModelPart
+            return self.main_model_part
+        else:
+            computing_model_part_name = self.main_model_part.Name + "." + computing_sub_model_part_name
+            return self.model[computing_model_part_name]
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -280,7 +287,7 @@ class MechanicalSolver(PythonSolver):
 
     #### Specific internal functions ####
 
-    def get_solution_scheme(self):
+    def _GetScheme(self):
         if not hasattr(self, '_solution_scheme'):
             self._solution_scheme = self._create_solution_scheme()
         return self._solution_scheme
@@ -455,7 +462,7 @@ class MechanicalSolver(PythonSolver):
 
     def _create_linear_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
+        mechanical_scheme = self._GetScheme()
         builder_and_solver = self.get_builder_and_solver()
         return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
                                                               mechanical_scheme,
@@ -467,7 +474,7 @@ class MechanicalSolver(PythonSolver):
 
     def _create_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
+        mechanical_scheme = self._GetScheme()
         mechanical_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
@@ -483,7 +490,7 @@ class MechanicalSolver(PythonSolver):
 
     def _create_line_search_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
+        mechanical_scheme = self._GetScheme()
         linear_solver = self.get_linear_solver()
         mechanical_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
