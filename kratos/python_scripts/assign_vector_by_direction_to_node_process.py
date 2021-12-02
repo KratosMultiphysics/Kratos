@@ -35,7 +35,7 @@ class AssignVectorByDirectionToNodeProcess(assign_vector_by_direction_to_entity_
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
-            "modulus"              : 1.0,
+            "modulus"              : 0.0,
             "direction"            : [1.0, 0.0, 0.0],
             "local_axes"           : {},
             "entities"             : ["nodes"]
