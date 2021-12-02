@@ -1218,6 +1218,8 @@ private:
             return std::string("Kratos_Quadrature_Point_Curve_On_Surface_Geometry");
         case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry:
             return std::string("Kratos_Quadrature_Point_Surface_In_Volume_Geometry");
+        case GeometryData::KratosGeometryType::Kratos_Coupling_Geometry:
+            return std::string("Kratos_Quadrature_Point_Surface_In_Volume_Geometry");
         case GeometryData::KratosGeometryType::NumberOfGeometryTypes:
             return std::string("UnknownGeometry");
         };

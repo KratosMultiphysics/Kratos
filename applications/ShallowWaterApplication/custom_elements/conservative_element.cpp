@@ -33,12 +33,12 @@ const Variable<double>& ConservativeElement<TNumNodes>::GetUnknownComponent(int 
         case 0: return MOMENTUM_X;
         case 1: return MOMENTUM_Y;
         case 2: return HEIGHT;
-        default: KRATOS_ERROR << "WaveElement::GetUnknownComponent index out of bounds." << std::endl;
+        default: KRATOS_ERROR << "ConservativeElement::GetUnknownComponent index out of bounds." << std::endl;
     }
 }
 
 template<std::size_t TNumNodes>
-typename ConservativeElement<TNumNodes>::LocalVectorType ConservativeElement<TNumNodes>::GetUnknownVector(ElementData& rData)
+typename ConservativeElement<TNumNodes>::LocalVectorType ConservativeElement<TNumNodes>::GetUnknownVector(const ElementData& rData) const
 {
     std::size_t index = 0;
     array_1d<double,mLocalSize> unknown;

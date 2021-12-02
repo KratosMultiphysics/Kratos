@@ -190,6 +190,7 @@ void WaveCondition<TNumNodes>::InitializeData(
 
     for (IndexType i = 0; i < TNumNodes; i++)
     {
+        rData.nodal_f[i] = r_geom[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
         rData.nodal_h[i] = r_geom[i].FastGetSolutionStepValue(HEIGHT);
         rData.nodal_z[i] = r_geom[i].FastGetSolutionStepValue(TOPOGRAPHY);
         rData.nodal_v[i] = r_geom[i].FastGetSolutionStepValue(VELOCITY);
@@ -364,5 +365,6 @@ void WaveCondition<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, cons
 }
 
 template class WaveCondition<2>;
+template class WaveCondition<3>;
 
 } // namespace Kratos

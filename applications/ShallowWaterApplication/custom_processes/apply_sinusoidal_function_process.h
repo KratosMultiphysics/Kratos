@@ -138,43 +138,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -186,11 +149,12 @@ private:
 
     ModelPart& mrModelPart;
     const TVarType& mrVariable;
+    array_1d<double,3> mDirection;
     double mAmplitude;
-    double mPeriod;
-    double mAngularFrequency;
+    double mFrequency;
+    double mWavenumber;
     double mPhase;
-    double mVerticalShift;
+    double mShift;
     double mSmoothTime;
 
     ///@}
@@ -204,7 +168,7 @@ private:
 
     const Parameters GetDefaultParameters() const override;
 
-    double Function(double& rTime);
+    double Function(const array_1d<double,3>& rCoordinates, const double& rTime);
 
     ///@}
     ///@name Private  Access
