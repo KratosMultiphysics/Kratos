@@ -36,7 +36,7 @@ class AssignVectorVariableToElementProcess(assign_vector_variable_to_entities_pr
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
-            "value"                : [10.0, "3*t", "x+y"],
+            "value"                : [0.0, 0.0, 0.0],
             "local_axes"           : {},
             "entities"             : ["elements"]
         }

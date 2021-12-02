@@ -37,7 +37,7 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
-            "value"                : [1.0, 0.0, 0.0],
+            "value"                : [0.0, 0.0, 0.0],
             "constrained"          : [true,true,true],
             "local_axes"           : {}
         }
