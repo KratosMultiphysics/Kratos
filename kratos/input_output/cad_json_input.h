@@ -32,6 +32,8 @@
 #include "geometries/brep_curve_on_surface.h"
 #include "geometries/brep_curve.h"
 
+#include "geometries/point_on_geometry.h"
+
 namespace Kratos
 {
 
@@ -72,6 +74,8 @@ class CadJsonInput : public IO
     typedef BrepSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepSurfaceType;
     typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
     typedef BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveType;
+    typedef PointOnGeometry<ContainerNodeType, 3, 2> PointOnGeometryOnSurfaceType;
+    typedef PointOnGeometry<ContainerNodeType, 3, 1> PointOnGeometryOnCurveType;
 
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
@@ -160,6 +164,18 @@ private:
             if (rParameters[brep_index].Has("edges"))
             {
                 ReadBrepCurveOnSurfaces(rParameters[brep_index]["edges"], rModelPart, EchoLevel);
+            }
+        }
+
+        for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
+        {
+            KRATOS_INFO_IF("ReadBreps", (EchoLevel > 0))
+                << "Reading Brep \"" << GetIdOrName(rParameters[brep_index])
+                << "\" - points." << std::endl;
+
+            if (rParameters[brep_index].Has("vertices"))
+            {
+                ReadPointsOnGeometries(rParameters[brep_index]["vertices"], rModelPart, EchoLevel);
             }
         }
     }
@@ -516,6 +532,53 @@ private:
         SetIdOrName<CouplingGeometryType>(rParameters, p_coupling_geometry);
 
         rModelPart.AddGeometry(p_coupling_geometry);
+    }
+
+    static void ReadPointsOnGeometries(
+        const Parameters rParameters,
+        ModelPart& rModelPart,
+        SizeType EchoLevel = 0)
+    {
+        KRATOS_ERROR_IF_NOT(rParameters.IsArray())
+            << "\"vertices\" section needs to be an array of PointsOnGeometries." << std::endl;
+
+        KRATOS_INFO_IF("ReadPointsOnGeometries", EchoLevel > 2)
+            << "Reading " << rParameters.size() << " PointsOnGeometries..." << std::endl;
+
+        for (IndexType brep_point_i = 0; brep_point_i < rParameters.size(); ++brep_point_i)
+        {
+            KRATOS_INFO_IF("ReadPointsOnGeometries", (EchoLevel > 3))
+                << "Reading PointOnGeometry \"" << GetIdOrName(rParameters[brep_point_i]) << "\"" << std::endl;
+
+            if (rParameters[brep_point_i]["topology"].size() == 1) {
+                auto p_geometry = GetGeometry(rParameters[brep_point_i]["topology"][0], rModelPart);
+
+                if (rParameters[brep_point_i]["topology"][0].Has("local_coordinates"))
+                {
+                    auto coordinates_vector = rParameters[brep_point_i]["topology"][0]["local_coordinates"].GetVector();
+                    array_1d<double, 3> local_coordinates;
+                    local_coordinates[0] = coordinates_vector[0];
+                    local_coordinates[1] = coordinates_vector[1];
+                    local_coordinates[2] = coordinates_vector[2];
+
+                    GeometryPointerType p_brep_point = (p_geometry->LocalSpaceDimension() == 2)
+                        ? (GeometryPointerType) Kratos::make_shared<PointOnGeometryOnSurfaceType>(local_coordinates, p_geometry)
+                        : (GeometryPointerType) Kratos::make_shared<PointOnGeometryOnCurveType>(local_coordinates, p_geometry);
+
+                    SetIdOrName<GeometryType>(rParameters[brep_point_i], p_brep_point);
+                    rModelPart.AddGeometry(p_brep_point);
+                }
+                else {
+                    KRATOS_ERROR << "Topology of brep point: " << GetIdOrName(rParameters[brep_point_i])
+                        << " does not provide local coordinates. No other import option provided. Topology as following: "
+                        << rParameters[brep_point_i]["topology"] << std::endl;
+                }
+
+            }
+            else {
+                KRATOS_ERROR << "Coupling PointsOnGeometries are not yet provided." << std::endl;
+            }
+        }
     }
 
     ///@}
