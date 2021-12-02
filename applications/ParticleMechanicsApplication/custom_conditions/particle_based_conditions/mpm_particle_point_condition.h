@@ -245,6 +245,7 @@ private:
     double m_area;
 
     int m_corresponding_condition_id = 0;
+    int m_corresponding_node_id = 0;
 
     ///@}
     ///@name Private Operators

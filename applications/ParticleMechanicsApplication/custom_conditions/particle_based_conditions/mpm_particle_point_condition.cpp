@@ -177,6 +177,9 @@ namespace Kratos
         if (rVariable == MPC_CORRESPONDING_CONDITION_ID) {
             rValues[0] = m_corresponding_condition_id;
         }
+        else if (rVariable == MPC_CORRESPONDING_NODE_ID) {
+            rValues[0] = m_corresponding_node_id;
+        }
         else
         {
             KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
@@ -249,6 +252,9 @@ namespace Kratos
 
         if (rVariable == MPC_CORRESPONDING_CONDITION_ID) {
             m_corresponding_condition_id = rValues[0];
+        }
+        else if (rVariable == MPC_CORRESPONDING_NODE_ID) {
+            m_corresponding_node_id = rValues[0];
         }
     }
 
