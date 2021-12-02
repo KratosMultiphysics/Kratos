@@ -12,11 +12,11 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 
-
+@KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
 class ROMStationaryConvDiff(KratosUnittest.TestCase):
 #########################################################################################
 
-    @KratosUnittest.skipIf(numpy_available == False, "numpy is required for RomApplication")
+    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def test_ConvDiff_Stationary_ROM_2D(self):
 
         with KratosUnittest.WorkFolderScope(".", __file__):

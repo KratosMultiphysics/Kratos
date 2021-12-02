@@ -42,7 +42,7 @@ class BaseBenchmarkProcess(KM.Process):
         self.benchmark_settings = settings["benchmark_settings"]
 
     def ExecuteInitialize(self):
-        """This method sets the topography and the initial conditions"""
+        """Set the topography and the initial conditions."""
 
         time = self.model_part.ProcessInfo[KM.TIME]
         for node in self.model_part.Nodes:
@@ -52,8 +52,8 @@ class BaseBenchmarkProcess(KM.Process):
             node.SetSolutionStepValue(KM.MOMENTUM, self._Momentum(node, time))
         SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.model_part)
 
-    def ExecuteFinalizeSolutionStep(self):
-        """This method computes the exact values of the benchmark and computes the error of the simulation"""
+    def ExecuteBeforeOutputStep(self):
+        """Compute the exact values of the benchmark and the error of the simulation."""
 
         time = self.model_part.ProcessInfo[KM.TIME]
         for node in self.model_part.Nodes:
@@ -73,7 +73,7 @@ class BaseBenchmarkProcess(KM.Process):
                 node.SetValue(error_variable, fem_value - exact_value)
 
     def Check(self):
-        """This method checks if the input values have physical sense."""
+        """Check if the input values have physical sense."""
 
         if len(self.variables) != len(self.exact_variables):
             raise Exception("The input variables list does not match the input exact variables list")

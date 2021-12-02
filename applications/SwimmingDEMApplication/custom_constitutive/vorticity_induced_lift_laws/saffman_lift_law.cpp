@@ -11,7 +11,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    SaffmanLiftLaw::SaffmanLiftLaw(Parameters& r_parameters)
+    SaffmanLiftLaw::SaffmanLiftLaw(Parameters r_parameters)
     {
 
     }

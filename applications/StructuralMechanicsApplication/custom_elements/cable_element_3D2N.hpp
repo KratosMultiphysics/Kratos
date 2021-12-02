@@ -32,7 +32,7 @@ namespace Kratos
  *
  * @author Klaus B Sautter
  */
-class CableElement3D2N : public TrussElement3D2N
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CableElement3D2N : public TrussElement3D2N
 {
 
 public:

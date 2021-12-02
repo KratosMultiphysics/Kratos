@@ -3,13 +3,13 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 
     ## Source auxiliar procedures
     source [file join $problemtypedir ProjectParametersAuxProcs.tcl]
-        
+
     ## Start ProjectParameters.json file
     set filename [file join $dir ProjectParameters.json]
     set FileVar [open $filename w]
-    
+
     puts $FileVar "\{"
-   
+
     ## AMR data
     puts $FileVar "   \"AMR_data\": \{"
 	puts $FileVar "        \"activate_AMR\":  [GiD_AccessValue get gendata Activate_MMG_Remeshing_Technique],"
@@ -21,7 +21,6 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "    \},"
     ## problem_data
     puts $FileVar "   \"problem_data\": \{"
-    puts $FileVar "        \"is_hexahedron\":        [GiD_AccessValue get gendata Use_Hexahedrons],"      
     puts $FileVar "        \"problem_name\":         \"$basename\","
     puts $FileVar "        \"model_part_name\":      \"Structure\","
     puts $FileVar "        \"domain_size\":          [GiD_AccessValue get gendata Domain_Size],"
@@ -31,6 +30,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 	puts $FileVar "        \"echo_level\":           0"
     puts $FileVar "    \},"
     puts $FileVar "  \"DEM_FEM_contact\":                 true,"
+    puts $FileVar "  \"tangent_operator\":                 2,"
     puts $FileVar "  \"create_initial_skin\":             false,"
     ## solver_settings
     puts $FileVar "   \"solver_settings\": \{"
@@ -42,7 +42,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         puts $FileVar "            \"solver_type\":                       \"FemDemDynamicSolver\","
         puts $FileVar "            \"solution_type\":                     \"Dynamic\","
         puts $FileVar "            \"time_integration_method\":           \"Implicit\","
-        puts $FileVar "            \"scheme_type\":                       \"Newmark\","
+        puts $FileVar "            \"scheme_type\":                       \"[GiD_AccessValue get gendata Scheme_Type]\","
     }
 	puts $FileVar "            \"echo_level\":                         [GiD_AccessValue get gendata Echo_Level],"
     puts $FileVar "            \"model_import_settings\":              \{"
@@ -58,9 +58,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "            \"residual_relative_tolerance\":          [GiD_AccessValue get gendata Residual_Relative_Tolerance],"
     puts $FileVar "            \"residual_absolute_tolerance\":          [GiD_AccessValue get gendata Residual_Absolute_Tolerance],"
     puts $FileVar "            \"max_iteration\":                        [GiD_AccessValue get gendata Max_Iterations],"
-    puts $FileVar "            \"extrapolation_required\":               [GiD_AccessValue get gendata Use_Hexahedrons]," 
     puts $FileVar "            \"linear_solver_settings\":     \{"
-    puts $FileVar "                 \"solver_type\":      \"[GiD_AccessValue get gendata Solver_Type]\","
+    puts $FileVar "                 \"solver_type\":      \"LinearSolversApplication.[GiD_AccessValue get gendata Solver_Type]\","
     puts $FileVar "                 \"scaling\":           false"
     puts $FileVar "            \},"
 
@@ -75,10 +74,10 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     }
 	# try
     set PutStrings [string trimright $PutStrings ,]
-	
+
     append PutStrings \]
     puts $FileVar "        \"problem_domain_sub_model_part_list\": $PutStrings,"
-   
+
     ## processes_sub_model_part_list
     set PutStrings \[
     # Solid_Displacement
@@ -99,12 +98,12 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
     puts $FileVar "        \"processes_sub_model_part_list\":      $PutStrings"
-    puts $FileVar "   \}," 
+    puts $FileVar "   \},"
     ## body_domain_sub_model_part_list
     set PutStrings \[
     AppendGroupNames PutStrings Body_Part
     set PutStrings [string trimright $PutStrings ,]
-    append PutStrings \]   
+    append PutStrings \]
 
     ## constraints_process_list
     set Groups [GiD_Info conditions Solid_Displacement groups]
@@ -159,7 +158,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     } else {
         puts $FileVar "    \"loads_process_list\":       \[\],"
     }
-    
+
     ## output_configuration
     puts $FileVar "    \"output_configuration\": \{"
     puts $FileVar "        \"result_file_configuration\": \{"
@@ -176,7 +175,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "            \"node_output\":          [GiD_AccessValue get gendata Node_output],"
     puts $FileVar "            \"skin_output\":          [GiD_AccessValue get gendata Skin_output],"
     puts $FileVar "            \"plane_output\":         \[\],"
-    
+
     # nodal_results
     set PutStrings \[
     set iGroup 0
@@ -202,7 +201,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     set PutStrings \[
     set iGroup 0
     set MatGroups [GiD_Info conditions Body_Part groups]
-	
+
     if {[lindex [lindex $MatGroups 0] 13] eq "true"} {
         AppendOutputVariables PutStrings iGroup Write_Predictive_Stress CONCRETE_STRESS_TENSOR_INTEGRATED
         AppendOutputVariables PutStrings iGroup Write_Integrated_Stress CONCRETE_STRESS_TENSOR
@@ -253,7 +252,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     append MyString \],
 
     puts $FileVar "    \"list_of_nodes_displacement\":  $MyString"
-    
+
 
     # print Reaction nodes to plot
     set Groups [GiD_Info conditions list_of_nodes_reaction groups]

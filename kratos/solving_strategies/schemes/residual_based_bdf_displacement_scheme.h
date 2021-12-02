@@ -183,8 +183,8 @@ public:
         const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
 
         // Getting position
-        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
-        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
+        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_X)) : -1;
+        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? static_cast<int>(it_node_begin->GetDofPosition(ACCELERATION_X)) : -1;
 
         std::array<bool, 3> fixed = {false, false, false};
         const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
@@ -246,8 +246,8 @@ public:
         // Getting position
         KRATOS_ERROR_IF_NOT(it_node_begin->HasDofFor(DISPLACEMENT_X)) << "ResidualBasedBDFDisplacementScheme:: DISPLACEMENT is not added" << std::endl;
         const int disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
-        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
-        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
+        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_X)) : -1;
+        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? static_cast<int>(it_node_begin->GetDofPosition(ACCELERATION_X)) : -1;
 
         // Getting dimension
         KRATOS_WARNING_IF("ResidualBasedBDFDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;

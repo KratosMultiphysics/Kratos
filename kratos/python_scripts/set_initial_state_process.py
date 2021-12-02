@@ -35,7 +35,7 @@ def components_to_functions(vect):
         else:
             msg = "SetInitialStateProcess: Vector component must be scalar or string"
             raise Exception(msg)
-        function = KratosMultiphysics.PythonGenericFunctionUtility(s)
+        function = KratosMultiphysics.GenericFunctionUtility(s)
         if function.DependsOnSpace():
             msg = "SetInitialStateProcess: 'x', 'y' and 'z' variables not supported yet"
             raise Exception(msg)

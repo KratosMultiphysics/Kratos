@@ -135,8 +135,6 @@ public:
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
     ///@}
     ///@name Access
     ///@{
@@ -178,8 +176,6 @@ private:
     ///@name Private Operators
     ///@{
 
-    void GetWakeDistances(array_1d<double, NumNodes>& distances) const;
-
     void GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const;
 
     void GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult) const;
@@ -201,8 +197,17 @@ private:
     void CalculateLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
                                          const ProcessInfo& rCurrentProcessInfo);
 
+    void CalculateBlockLeftHandSideWakeElement(BoundedMatrix<double, NumNodes, NumNodes>& rLhs_total,
+                                             BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
+                                             const ElementalData<NumNodes, Dim>& rData,
+                                             const ProcessInfo& rCurrentProcessInfo);
+
     void CalculateRightHandSideWakeElement(VectorType& rRightHandSideVector,
                                          const ProcessInfo& rCurrentProcessInfo);
+
+    BoundedVector<double, NumNodes> CalculateRightHandSideWakeCondition(const ElementalData<NumNodes, Dim>& rData,
+                                             const ProcessInfo& rCurrentProcessInfo,
+                                             const array_1d<double, Dim>& rDiff_velocity);
 
     void CalculateLeftHandSideSubdividedElement(BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
                                                BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
@@ -220,14 +225,17 @@ private:
                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+                                            BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
                                             const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
                                       BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+                                      BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
                                       const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLeftHandSideWakeNode(MatrixType& rLeftHandSideMatrix,
                                    BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+                                   BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
                                    const ElementalData<NumNodes, Dim>& data,
                                    unsigned int& row) const;
 
@@ -237,8 +245,6 @@ private:
                                    const BoundedVector<double, NumNodes>& rWake_rhs,
                                    const ElementalData<NumNodes, Dim>& rData,
                                    unsigned int& rRow) const;
-
-    void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Serialization

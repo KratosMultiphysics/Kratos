@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -34,33 +35,33 @@ SimpleContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SimpleContactSearc
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void SimpleContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
-    typename NodesArrayType::iterator ItNode,
+    NodeType& rNode,
     const double CommonEpsilon,
     const double ScaleFactor
     )
 {
     // First we activate
-    BaseType::SetActiveNode(ItNode, CommonEpsilon);
+    BaseType::SetActiveNode(rNode, CommonEpsilon);
 
     // Normal gap
-    const double normal_gap = ItNode->Has(NORMAL_GAP) ? ItNode->GetValue(NORMAL_GAP) : 0.0;
+    const double normal_gap = rNode.Has(NORMAL_GAP) ? rNode.GetValue(NORMAL_GAP) : 0.0;
 
     // In case of penetration
     if (normal_gap < 0.0) {
         // Auxiliar values
-        const double epsilon = (ItNode->Has(INITIAL_PENALTY) ? ItNode->GetValue(INITIAL_PENALTY) : CommonEpsilon)/ScaleFactor;
-        const double nodal_area = ItNode->Has(NODAL_AREA) ? ItNode->GetValue(NODAL_AREA) : 1.0;
+        const double epsilon = (rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : CommonEpsilon)/ScaleFactor;
+        const double nodal_area = rNode.Has(NODAL_AREA) ? rNode.GetValue(NODAL_AREA) : 1.0;
 
         // Setting approximation
         switch(BaseType::mTypeSolution) {
             case BaseType::TypeSolution::VectorLagrangeMultiplier :
-                noalias(ItNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = epsilon * nodal_area * normal_gap * ItNode->FastGetSolutionStepValue(NORMAL);
+                noalias(rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = epsilon * nodal_area * normal_gap * rNode.FastGetSolutionStepValue(NORMAL);
                 break;
             case BaseType::TypeSolution::ScalarLagrangeMultiplier :
-                ItNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = epsilon * nodal_area * normal_gap;
+                rNode.FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = epsilon * nodal_area * normal_gap;
                 break;
             case BaseType::TypeSolution::NormalContactStress :
-                ItNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = epsilon * nodal_area * normal_gap;
+                rNode.FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = epsilon * nodal_area * normal_gap;
                 break;
             case BaseType::TypeSolution::FrictionlessPenaltyMethod :
                 break;

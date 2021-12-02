@@ -24,6 +24,7 @@
 
 // Project includes
 #include "includes/node.h"
+#include "includes/properties.h"
 #include "includes/process_info.h"
 #include "geometries/geometry.h"
 
@@ -101,50 +102,51 @@ public:
     /**
      * @brief Initialize the friction law variables
      */
-    virtual void Initialize(const GeometryType& rGeometry, const ProcessInfo& rProcessInfo) {}
+    virtual void Initialize(
+        const GeometryType& rGeometry,
+        const Properties& rProperty,
+        const ProcessInfo& rProcessInfo) {}
 
     /**
      * @brief Calculate the LHS coefficient for the given data
      * @param rHeight The layer depth
-     * @param rVector The layer velocity or momentum
+     * @param rVector The layer velocity
      * @return The LHS coefficient
      */
     virtual double CalculateLHS(const double& rHeight, const array_1d<double,3>& rVelocity)
     {
-        KRATOS_ERROR << "Calling the base class of CalculateLHS of the friction law" << std::endl;
+        return 0.0;
     }
 
     /**
      * @brief Calculate the RHS coefficient for the given data
      * @param rHeight The layer depth
-     * @param rVector The layer velocity or momentum
+     * @param rVector The layer velocity
      * @return The components of the RHS coefficients
      */
     virtual array_1d<double,3> CalculateRHS(const double& rHeight, const array_1d<double,3>& rVelocity)
     {
-        KRATOS_ERROR << "Calling the base class of CalculateRHS of the friction law" << std::endl;
+        return ZeroVector(3);
     }
 
     /**
      * @brief Calculate the LHS coefficient for the given data
-     * @param rInnerLayer The current layer velocity or momentum
-     * @param rOuterLayer The outer layer velocity or momentum
+     * @param rInnerLayer The current layer velocity
      * @return The LHS coefficient
      */
-    virtual double CalculateLHS(const array_1d<double,3>& rInnerLayer, const array_1d<double,3>& rOuterLayer)
+    virtual double CalculateLHS(const array_1d<double,3>& rInnerLayer)
     {
-        KRATOS_ERROR << "Calling the base class of CalculateLHS of the friction law" << std::endl;
+        return 0.0;
     }
 
     /**
      * @brief Calculate the RHS coefficient for the given data
-     * @param rInnerLayer The current layer velocity or momentum
-     * @param rOuterLayer The outer layer velocity or momentum
+     * @param rInnerLayer The current layer velocity
      * @return The components of the RHS coefficients
      */
-    virtual array_1d<double,3> CalculateRHS(const array_1d<double,3>& rInnerLayer, const array_1d<double,3>& rOuterLayer)
+    virtual array_1d<double,3> CalculateRHS(const array_1d<double,3>& rInnerLayer)
     {
-        KRATOS_ERROR << "Calling the base class of CalculateRHS of the friction law" << std::endl;
+        return ZeroVector(3);
     }
 
     ///@}
@@ -175,7 +177,7 @@ public:
      */
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "FrictionLaw";
+        rOStream << Info();
     }
 
     /**

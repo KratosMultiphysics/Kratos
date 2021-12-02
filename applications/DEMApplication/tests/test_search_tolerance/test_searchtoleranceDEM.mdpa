@@ -1,0 +1,84 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Nodes
+    2   0.0000000000   0.5000000000   0.0000000000
+    3  -1.0500000000   1.6500000000   0.0000000000
+    4  -0.8500000000   0.1500000000   0.0000000000
+End Nodes
+
+Begin Elements SphericParticle3D// GUI group identifier: Define particle groups Auto1
+        3          0     2 
+End Elements
+
+Begin Elements SphericParticle3D// GUI group identifier: Define particle groups Auto2
+        4          0     4 
+End Elements
+
+Begin Elements SphericParticle3D// GUI group identifier: Define particle groups Auto3
+        5          0     3 
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: Define particle groups Auto1
+          2 0        0.5
+End NodalData
+
+Begin NodalData RADIUS // GUI group identifier: Define particle groups Auto2
+          4 0       0.15
+End NodalData
+
+Begin NodalData RADIUS // GUI group identifier: Define particle groups Auto3
+          3 0          1
+End NodalData
+
+Begin SubModelPart DEMParts_Define_particle_groups_Auto1 // Group Define particle groups Auto1 // Subtree DEMParts
+    Begin SubModelPartNodes
+            2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            3
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DEMParts_Define_particle_groups_Auto2 // Group Define particle groups Auto2 // Subtree DEMParts
+    Begin SubModelPartNodes
+            4
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            4
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DEMParts_Define_particle_groups_Auto3 // Group Define particle groups Auto3 // Subtree DEMParts
+    Begin SubModelPartNodes
+            3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            5
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DEM-VelocityIC_Define_particle_groups_Auto3 // GUI DEM-VelocityIC - DEM-VelocityIC - group identifier: Define particle groups Auto3
+  Begin SubModelPartData // DEM-VelocityIC. Group name: Define particle groups Auto3
+    INITIAL_VELOCITY_X_VALUE 0.0
+    INITIAL_VELOCITY_Y_VALUE -6.0
+    INITIAL_VELOCITY_Z_VALUE 0.0
+    INITIAL_ANGULAR_VELOCITY_X_VALUE 0.0
+    INITIAL_ANGULAR_VELOCITY_Y_VALUE 0.0
+    INITIAL_ANGULAR_VELOCITY_Z_VALUE 0.0
+    RIGID_BODY_MOTION 0
+    FORCE_INTEGRATION_GROUP 0
+    IDENTIFIER Define_particle_groups_Auto3
+  End SubModelPartData
+  Begin SubModelPartNodes
+         3
+  End SubModelPartNodes
+End SubModelPart
+

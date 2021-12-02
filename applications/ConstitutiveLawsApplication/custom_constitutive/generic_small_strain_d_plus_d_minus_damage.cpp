@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
@@ -16,7 +18,7 @@
 
 // Project includes
 #include "custom_utilities/tangent_operator_calculator_utility.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 #include "custom_constitutive/generic_small_strain_d_plus_d_minus_damage.h"
 #include "custom_constitutive/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_compression_constitutive_law_integrator.h"
 #include "custom_constitutive/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_tension_constitutive_law_integrator.h"
@@ -114,7 +116,7 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
 
         // Perform the separation of the Stress in tension and compression
         array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
-        ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector, predictive_stress_vector_tension, predictive_stress_vector_compression);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector, predictive_stress_vector_tension, predictive_stress_vector_compression);
 
         damage_parameters.TensionStressVector     = predictive_stress_vector_tension;
         damage_parameters.CompressionStressVector = predictive_stress_vector_compression;
@@ -162,7 +164,7 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
         }
         rIntegratedStressVectorTension *= (1.0 - rParameters.DamageTension);
     } else { // Increasing damage...
-        const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+        const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
 
         // This routine updates the IntegratedStressVectorTension to verify the yield surf
         TConstLawIntegratorTensionType::IntegrateStressVector(
@@ -208,7 +210,7 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
         }
         rIntegratedStressVectorCompression *= (1.0 - rParameters.DamageCompression);
     } else { // Increasing damage...
-        const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+        const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
 
         // This routine updates the IntegratedStressVectorCompression to verify the yield surf
         TConstLawIntegratorCompressionType::IntegrateStressVector(
@@ -525,7 +527,7 @@ Vector& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
         this->CalculateMaterialResponseCauchy(rParameterValues);
         const array_1d<double, VoigtSize>& predictive_stress_vector = rParameterValues.GetStressVector();
         array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
-        ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
+        AdvancedConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
                                                                    predictive_stress_vector_tension,
                                                                    predictive_stress_vector_compression);
         rValue = predictive_stress_vector_tension;
@@ -547,7 +549,7 @@ Vector& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
         this->CalculateMaterialResponseCauchy(rParameterValues);
         const array_1d<double, VoigtSize>& predictive_stress_vector = rParameterValues.GetStressVector();
         array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
-        ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
+        AdvancedConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
                                                                    predictive_stress_vector_tension,
                                                                    predictive_stress_vector_compression);
         rValue = predictive_stress_vector_compression;
@@ -569,7 +571,7 @@ Vector& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
         this->CalculateMaterialResponseCauchy(rParameterValues);
         const array_1d<double, VoigtSize>& predictive_stress_vector = rParameterValues.GetStressVector();
         array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
-        ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
+        AdvancedConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
                                                                    predictive_stress_vector_tension,
                                                                    predictive_stress_vector_compression);
         rValue = predictive_stress_vector_compression / (1.0 - mCompressionDamage);
@@ -591,7 +593,7 @@ Vector& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
         this->CalculateMaterialResponseCauchy(rParameterValues);
         const array_1d<double, VoigtSize>& predictive_stress_vector = rParameterValues.GetStressVector();
         array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
-        ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
+        AdvancedConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
                                                                    predictive_stress_vector_tension,
                                                                    predictive_stress_vector_compression);
         rValue = predictive_stress_vector_tension / (1.0 - mTensionDamage);
@@ -632,7 +634,7 @@ Matrix& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
         this->CalculateMaterialResponseCauchy(rParameterValues);
         const array_1d<double, VoigtSize>& predictive_stress_vector = rParameterValues.GetStressVector();
         array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
-        ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
+        AdvancedConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
                                                                    predictive_stress_vector_tension,
                                                                    predictive_stress_vector_compression);
         rValue = MathUtils<double>::StressVectorToTensor(predictive_stress_vector_tension);
@@ -654,7 +656,7 @@ Matrix& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
         this->CalculateMaterialResponseCauchy(rParameterValues);
         const array_1d<double, VoigtSize>& predictive_stress_vector = rParameterValues.GetStressVector();
         array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
-        ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
+        AdvancedConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
                                                                    predictive_stress_vector_tension,
                                                                    predictive_stress_vector_compression);
 
@@ -681,7 +683,7 @@ int GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLa
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     const int check_integrator_tension = TConstLawIntegratorTensionType::Check(rMaterialProperties);
