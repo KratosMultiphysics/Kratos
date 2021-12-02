@@ -270,7 +270,7 @@ private:
 
     void ComputeLHSGaussPointContribution(const double weight,
                                           Matrix& lhs,
-                                          const ElementalData<TNumNodes, TDim>& data) const;
+                                          const ElementalData& data) const;
 
     void AssignLeftHandSideSubdividedElement(
         Matrix& rLeftHandSideMatrix,
@@ -279,26 +279,26 @@ private:
         const BoundedMatrix<double, TNumNodes, TNumNodes>& rUpper_lhs_total,
         const BoundedMatrix<double, TNumNodes, TNumNodes>& rLower_lhs_total,
         const BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_wake_condition,
-        const ElementalData<TNumNodes, TDim>& data) const;
+        const ElementalData& data) const;
 
     void AssignLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rUpper_lhs_total,
                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rLower_lhs_total,
                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_wake_condition,
-                                    const ElementalData<TNumNodes, TDim>& rData) const;
+                                    const ElementalData& rData) const;
 
     void AssignLeftHandSideWakeNode(MatrixType& rLeftHandSideMatrix,
                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rUpper_lhs_total,
                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rLower_lhs_total,
                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_wake_condition,
-                                    const ElementalData<TNumNodes, TDim>& rData,
+                                    const ElementalData& rData,
                                     unsigned int row) const;
 
     void AssignRightHandSideWakeNode(VectorType& rRightHandSideVector,
                                     const BoundedVector<double, TNumNodes>& rUpper_rhs,
                                     const BoundedVector<double, TNumNodes>& rLower_rhs,
                                     const BoundedVector<double, TNumNodes>& rWake_rhs,
-                                    const ElementalData<TNumNodes, TDim>& rData,
+                                    const ElementalData& rData,
                                     unsigned int& rRow) const;
 
     void AssembleSupersonicLeftHandSide(MatrixType& rLeftHandSideMatrix,
