@@ -21,6 +21,8 @@ class PotentialFlowFormulation(object):
                 self._SetUpEmbeddedIncompressibleElement(formulation_settings)
             elif element_type == "embedded_compressible":
                 self._SetUpEmbeddedCompressibleElement(formulation_settings)
+            elif element_type == "embedded_perturbation_transonic":
+                self._SetUpEmbeddedTransonicPerturbationElement(formulation_settings)
             elif element_type == "perturbation_incompressible":
                 self._SetUpIncompressiblePerturbationElement(formulation_settings)
             elif element_type == "perturbation_compressible":
@@ -102,6 +104,19 @@ class PotentialFlowFormulation(object):
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "EmbeddedCompressiblePotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+        self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
+        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+
+    def _SetUpEmbeddedTransonicPerturbationElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "embedded_perturbation_transonic",
+            "stabilization_factor": 0.0,
+            "penalty_coefficient": 0.0
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "EmbeddedTransonicPerturbationPotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
         self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
         self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
