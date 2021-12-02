@@ -31,6 +31,8 @@ class WaveGeneratorProcess(KM.Process):
             "model_part_name"     : "model_part",
             "formulation"         : "primitive_variables",
             "interval"            : [0.0, 1e30],
+            "direction"           : [0.0, 0.0, 0.0],
+            "smooth_time"         : 0.0,
             "wave_theory"         : "boussinesq",
             "wave_specifications" : {}
         }
@@ -41,8 +43,18 @@ class WaveGeneratorProcess(KM.Process):
         """"""
         KM.Process.__init__(self)
 
-        # Overwrite the default settings with user-provided parameters
+        # Check if the direction is specified by 'normal'
         self.settings = settings
+        self.direction_by_normal = False
+        if self.settings.Has("direction"):
+            if self.settings["direction"].IsString():
+                if self.settings["direction"].GetString() == "normal":
+                    self.settings["direction"].SetVector(KM.Vector(3))
+                    self.direction_by_normal = True
+        else:
+            self.direction_by_normal = True
+
+        # Overwrite the default settings with user-provided parameters
         self.settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         # Get the custom settings
@@ -55,6 +67,11 @@ class WaveGeneratorProcess(KM.Process):
     def ExecuteInitialize(self):
         """Initialize the wave theory and the periodic function."""
 
+        # Check the direction
+        if self.direction_by_normal:
+            normal = self._CalculateUnitNormal()
+            self.settings["direction"].SetVector(-1 * normal)
+
         # Setup the wave theory
         wave_theory_class = self.__wave_theory[self.settings["wave_theory"].GetString()]
         depth = self._CalculateMeanDepth()
@@ -65,14 +82,14 @@ class WaveGeneratorProcess(KM.Process):
         # Creation of the parameters for the c++ process
         velocity_parameters = KM.Parameters("""{}""")
         velocity_parameters.AddEmptyValue("amplitude").SetDouble(wave_theory.horizontal_velocity)
+        velocity_parameters.AddEmptyValue("wavelength").SetDouble(wave_theory.wavelength)
         velocity_parameters.AddEmptyValue("period").SetDouble(wave_theory.period)
-        velocity_parameters.AddEmptyValue("phase_shift").SetDouble(0.0)
-        velocity_parameters.AddEmptyValue("vertical_shift").SetDouble(0.0)
+        velocity_parameters.AddEmptyValue("phase").SetDouble(0.0)
+        velocity_parameters.AddEmptyValue("shift").SetDouble(0.0)
+        velocity_parameters.AddValue("smooth_time", self.settings["smooth_time"])
+        velocity_parameters.AddValue("direction", self.settings["direction"])
 
         self.velocity_process = SW.ApplySinusoidalFunctionToVector(self.model_part, KM.VELOCITY, velocity_parameters)
-
-        KM.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KM.DOMAIN_SIZE])
-        SW.ShallowWaterUtilities().NormalizeVector(self.model_part, KM.NORMAL)
 
 
     def ExecuteBeforeSolutionLoop(self):
@@ -103,3 +120,9 @@ class WaveGeneratorProcess(KM.Process):
         sum_depths = -KM.VariableUtils().SumHistoricalNodeScalarVariable(SW.TOPOGRAPHY, self.model_part, 0)
         mean_depth = sum_depths / self.model_part.NumberOfNodes()
         return mean_depth
+
+
+    def _CalculateUnitNormal(self):
+        geometry = self.model_part.Conditions.__iter__().__next__().GetGeometry()
+        normal = geometry.UnitNormal()
+        return normal
