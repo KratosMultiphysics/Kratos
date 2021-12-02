@@ -188,7 +188,6 @@ void DispNewtonianFluid3DLaw::CalculateMaterialResponseCauchy(Parameters& rValue
     //1.- Material constants
     ViscousVariables.Mu = MaterialProperties[DYNAMIC_VISCOSITY];
     ViscousVariables.BulkModulus = MaterialProperties[BULK_MODULUS];
-    ViscousVariables.PressureCoefficient = MaterialProperties[PRESSURE_COEFFICIENT];
 
     ViscousVariables.DeltaTime = current_process_info[DELTA_TIME];
 
@@ -345,8 +344,7 @@ double& DispNewtonianFluid3DLaw::CalculateVolumetricPressure(const MaterialRespo
     double& rPressure)
 {
 
-    rPressure = -1.0 * (rViscousVariables.BulkModulus * (pow(rViscousVariables.DeterminantF,
-        -1.0 * rViscousVariables.PressureCoefficient) - 1));
+    rPressure = -1.0 * rViscousVariables.BulkModulus * (pow(rViscousVariables.DeterminantF, -1.0) - 1.0);
 
     return rPressure;
 }
@@ -365,10 +363,7 @@ Vector& DispNewtonianFluid3DLaw::CalculateVolumetricPressureFactors(const Materi
     double Pressure = 0;
     this->CalculateVolumetricPressure(rViscousVariables, Pressure);
 
-    double Pressure_tilde = Pressure +
-        rViscousVariables.BulkModulus * rViscousVariables.PressureCoefficient *
-        pow(rViscousVariables.DeterminantF, -1.0 * rViscousVariables.PressureCoefficient);
-
+    double Pressure_tilde = rViscousVariables.BulkModulus;
 
     rFactors[0] = Pressure_tilde;
     rFactors[1] = (2.0 * Pressure);
@@ -675,13 +670,11 @@ bool DispNewtonianFluid3DLaw::CheckParameters(Parameters& rValues)
 int DispNewtonianFluid3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
 
-    KRATOS_ERROR_IF(DENSITY.Key()==0 || rMaterialProperties[DENSITY]<=0.00)<<"DENSITY has Key zero or invalid calue"<< std::endl;
+    KRATOS_ERROR_IF(DENSITY.Key()==0 || rMaterialProperties[DENSITY]<=0.00)<<"DENSITY has Key zero or invalid value"<< std::endl;
 
-    KRATOS_ERROR_IF(DYNAMIC_VISCOSITY.Key() == 0 || rMaterialProperties[DYNAMIC_VISCOSITY] < 0.00) << "DENSITY has Key zero or invalid calue" << std::endl;
+    KRATOS_ERROR_IF(DYNAMIC_VISCOSITY.Key() == 0 || rMaterialProperties[DYNAMIC_VISCOSITY] < 0.00) << "DYNAMIC_VISCOSITY has Key zero or invalid value" << std::endl;
 
-    KRATOS_ERROR_IF(BULK_MODULUS.Key() == 0 || rMaterialProperties[BULK_MODULUS] <= 0.00) << "DENSITY has Key zero or invalid calue" << std::endl;
-
-    KRATOS_ERROR_IF(PRESSURE_COEFFICIENT.Key() == 0 || rMaterialProperties[PRESSURE_COEFFICIENT] <= 0.00) << "DENSITY has Key zero or invalid calue" << std::endl;
+    KRATOS_ERROR_IF(BULK_MODULUS.Key() == 0 || rMaterialProperties[BULK_MODULUS] <= 0.00) << "BULK_MODULUS has Key zero or invalid value" << std::endl;
 
     return 0;
 }

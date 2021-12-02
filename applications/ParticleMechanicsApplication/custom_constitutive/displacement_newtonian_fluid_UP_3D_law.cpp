@@ -108,7 +108,6 @@ void DispNewtonianFluidUP3DLaw::CalculateMaterialResponseCauchy (Parameters& rVa
     //1.- Material constants
     ViscousVariables.Mu = MaterialProperties[DYNAMIC_VISCOSITY];
     ViscousVariables.BulkModulus = MaterialProperties[BULK_MODULUS];
-    ViscousVariables.PressureCoefficient = MaterialProperties[PRESSURE_COEFFICIENT];
 
     ViscousVariables.DeltaTime = current_process_info[DELTA_TIME];
 

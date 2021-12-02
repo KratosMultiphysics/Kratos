@@ -47,7 +47,6 @@ protected:
 	// general material properties
         double Mu; // shear modulus
         double BulkModulus;
-        double PressureCoefficient; // coefficient as in H. R. Cole (1948), Underwater explosion
 
 	// kinematic properties
         double DeterminantF;
