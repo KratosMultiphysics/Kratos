@@ -27,7 +27,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/key_hash.h"
-#include "shape_optimization_application.h"
+#include "shape_optimization_application_variables.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"

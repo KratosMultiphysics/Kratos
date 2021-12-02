@@ -18,7 +18,7 @@
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
 #include "utilities/parallel_utilities.h"
-#include "shape_optimization_application.h"
+#include "shape_optimization_application_variables.h"
 #include "symmetry_base.h"
 #include "symmetry_revolution.h"
 

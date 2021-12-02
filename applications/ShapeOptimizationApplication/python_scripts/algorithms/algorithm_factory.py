@@ -22,6 +22,12 @@ def CreateOptimizationAlgorithm(optimization_settings, analyzer, communicator, m
                                         analyzer,
                                         communicator,
                                         model_part_controller)
+    elif algorithm_name == "steepest_descent_implicit_vm":
+        from .algorithm_steepest_descent_implicit_vm import AlgorithmSteepestDescentImplicitVM
+        return AlgorithmSteepestDescentImplicitVM(optimization_settings,
+                                                    analyzer,
+                                                    communicator,
+                                                    model_part_controller)                                        
     elif algorithm_name == "gradient_projection":
         from .algorithm_gradient_projection import AlgorithmGradientProjection
         return AlgorithmGradientProjection(optimization_settings,

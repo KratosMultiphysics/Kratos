@@ -32,7 +32,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "utilities/variable_utils.h"
-#include "shape_optimization_application.h"
+#include "shape_optimization_application_variables.h"
 
 // ==============================================================================
 

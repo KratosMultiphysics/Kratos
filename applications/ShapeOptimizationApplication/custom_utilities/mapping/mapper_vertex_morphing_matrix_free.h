@@ -26,7 +26,7 @@
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/builtin_timer.h"
 #include "spaces/ublas_space.h"
-#include "shape_optimization_application.h"
+#include "shape_optimization_application_variables.h"
 #include "mapper_base.h"
 #include "custom_utilities/filter_function.h"
 

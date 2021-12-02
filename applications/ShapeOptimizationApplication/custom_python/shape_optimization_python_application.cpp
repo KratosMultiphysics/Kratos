@@ -24,6 +24,7 @@
 // ------------------------------------------------------------------------------
 #include "includes/define_python.h"
 #include "shape_optimization_application.h"
+#include "shape_optimization_application_variables.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
 // ==============================================================================
@@ -107,6 +108,12 @@ PYBIND11_MODULE(KratosShapeOptimizationApplication, m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, BACKGROUND_COORDINATE);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, BACKGROUND_NORMAL);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, OUT_OF_PLANE_DELTA);
+
+    // For implicit vertex-morphing with Helmholtz PDE
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_DIRECTION )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_POISSON_RATIO )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, HELMHOLTZ_VARS )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, HELMHOLTZ_SOURCE )    
   }
 
 }  // namespace Python.

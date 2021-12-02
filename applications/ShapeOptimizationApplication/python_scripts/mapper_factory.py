@@ -15,6 +15,7 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 from .mapping import in_plane_vertex_morphing_mapper
+from .mapping import implicit_vertex_morphing_mapper
 
 # ==============================================================================
 def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
@@ -26,6 +27,8 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         "matrix_free_filtering"      : false,
         "consistent_mapping"         : false,
         "improved_integration"       : false,
+        "implicit_vm"                : false,
+        "implicit_vm_settings"       : {},        
         "integration_method"         : "gauss_integration",
         "number_of_gauss_points"     : 5,
         "in_plane_morphing"          : false,
@@ -44,7 +47,9 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
 
     mapper_settings.ValidateAndAssignDefaults(default_settings)
 
-    if mapper_settings["in_plane_morphing"].GetBool():
+    if mapper_settings["implicit_vm"].GetBool():
+        return implicit_vertex_morphing_mapper.ImplicitVertexMorphingMapper(origin_model_part, destination_model_part, mapper_settings)
+    elif mapper_settings["in_plane_morphing"].GetBool():
         return in_plane_vertex_morphing_mapper.InPlaneVertexMorphingMapper(origin_model_part, destination_model_part, mapper_settings)
     elif mapper_settings["matrix_free_filtering"].GetBool():
         if mapper_settings["consistent_mapping"].GetBool():
@@ -62,7 +67,7 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         elif mapper_settings["plane_symmetry"].GetBool():
             return KSO.MapperVertexMorphingSymmetric(origin_model_part, destination_model_part, mapper_settings)
         elif mapper_settings["revolution"].GetBool():
-            return KSO.MapperVertexMorphingSymmetric(origin_model_part, destination_model_part, mapper_settings)
+            return KSO.MapperVertexMorphingSymmetric(origin_model_part, destination_model_part, mapper_settings)          
         else:
             return KSO.MapperVertexMorphing(origin_model_part, destination_model_part, mapper_settings)
 

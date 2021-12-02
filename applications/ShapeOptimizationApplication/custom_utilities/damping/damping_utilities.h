@@ -28,7 +28,7 @@
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/builtin_timer.h"
 #include "custom_utilities/filter_function.h"
-#include "shape_optimization_application.h"
+#include "shape_optimization_application_variables.h"
 
 // ==============================================================================
 

@@ -61,7 +61,7 @@ class DataLogger():
     # -----------------------------------------------------------------------------
     def __CreateValueLogger( self ):
         AlgorithmName = self.OptimizationSettings["optimization_algorithm"]["name"].GetString()
-        if AlgorithmName == "steepest_descent":
+        if AlgorithmName == "steepest_descent" or AlgorithmName == "steepest_descent_implicit_vm":
             return ValueLoggerSteepestDescent( self.Communicator, self.OptimizationSettings )
         elif AlgorithmName == "penalized_projection":
             return ValueLoggerPenalizedProjection( self.Communicator, self.OptimizationSettings )

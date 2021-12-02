@@ -26,6 +26,7 @@
 #include "custom_utilities/optimization_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing.h"
+#include "custom_utilities/mapping/mapper_implicit_vertex_morphing.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_symmetric.h"
@@ -34,6 +35,8 @@
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/search_based_functions.h"
 #include "custom_utilities/response_functions/face_angle_response_function_utility.h"
+//linear solvers
+#include "linear_solvers/linear_solver.h"
 
 // ==============================================================================
 
@@ -90,6 +93,9 @@ inline void AssembleMatrixForVariableList(
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;    
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
@@ -103,6 +109,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("InverseMap", InverseMapScalar<MapperVertexMorphing>)
         .def("InverseMap", InverseMapVector<MapperVertexMorphing>)
         ;
+    py::class_<MapperImplicitVertexMorphing >(m, "MapperImplicitVertexMorphing")
+        .def(py::init<ModelPart&, LinearSolverType::Pointer, Parameters>())
+        .def("Initialize", &MapperImplicitVertexMorphing::Initialize)
+        .def("Update", &MapperImplicitVertexMorphing::Update)
+        .def("Map", MapScalar<MapperImplicitVertexMorphing>)
+        .def("Map", MapVector<MapperImplicitVertexMorphing>)
+        .def("InverseMap", InverseMapScalar<MapperImplicitVertexMorphing>)
+        .def("InverseMap", InverseMapVector<MapperImplicitVertexMorphing>)
+        ;        
     py::class_<MapperVertexMorphingMatrixFree >(m, "MapperVertexMorphingMatrixFree")
         .def(py::init<ModelPart&, ModelPart&, Parameters>())
         .def("Initialize", &MapperVertexMorphingMatrixFree::Initialize)
