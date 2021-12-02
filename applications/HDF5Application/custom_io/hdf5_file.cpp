@@ -209,7 +209,7 @@ bool File::HasPath(const std::string& rPath) const
 {
     KRATOS_TRY;
     // Expects a valid path.
-    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: \"" << rPath << '"' << std::endl;
+    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: \"" << rPath << "\". Path should only have characters A-Z, a-z, 0-9, \"/\", and \"_\"." << std::endl;
 
     std::vector<std::string> splitted_path = Internals::Split(rPath, '/');
     std::string sub_path;
@@ -379,7 +379,7 @@ std::vector<std::string> File::GetDataSetNames(const std::string& rGroupPath) co
 
 void File::AddPath(const std::string& rPath)
 {
-    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: " << rPath << std::endl;
+    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: \"" << rPath << "\". Path should only have characters A-Z, a-z, 0-9, \"/\", and \"_\"." << std::endl;
 
     std::vector<std::string> splitted_path = Internals::Split(rPath, '/');
     std::string sub_path;
