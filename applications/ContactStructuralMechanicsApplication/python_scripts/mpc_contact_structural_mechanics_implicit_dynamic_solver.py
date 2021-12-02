@@ -89,7 +89,7 @@ class MPCContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
 
     def _create_contact_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        self.mechanical_scheme = self.get_solution_scheme()
+        self.mechanical_scheme = self._GetScheme()
         self.mechanical_convergence_criterion = self.get_convergence_criterion()
         self.builder_and_solver = self.get_builder_and_solver()
         return auxiliar_methods_solvers.AuxiliarMPCNewton(computing_model_part, self.mechanical_scheme, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.mpc_contact_settings)

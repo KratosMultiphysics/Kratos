@@ -30,7 +30,8 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "custom_processes/shock_capturing_process.h"
+#include "custom_processes/shock_capturing_physics_based_process.h"
+#include "custom_processes/shock_capturing_entropy_viscosity_process.h"
 
 namespace Kratos
 {
@@ -58,7 +59,7 @@ namespace Kratos
  * @details This is the base class from which we will derive all the explicit strategies (FE, RK4, ...)
  */
 template <class TSparseSpace, class TDenseSpace, class TButcherTableau>
-class CompressibleNavierStokesExplicitSolvingStrategyRungeKutta 
+class CompressibleNavierStokesExplicitSolvingStrategyRungeKutta
 : public ExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, TButcherTableau>
 {
 public:
@@ -94,22 +95,13 @@ public:
         Parameters ThisParameters)
         : BaseType(rModelPart)
     {
+        KRATOS_TRY
+
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
 
-        // Create the shock capturing process pointer
-        if (mShockCapturing) {
-            Parameters sc_settings(R"(
-            {
-                "calculate_nodal_area_at_each_step" : false,
-                "shock_sensor" : true,
-                "shear_sensor" : true,
-                "thermal_sensor" : true,
-                "thermally_coupled_formulation" : true
-            })");
-            mpShockCapturingProcess = Kratos::make_unique<ShockCapturingProcess>(rModelPart, sc_settings);
-        }
+        KRATOS_CATCH("")
     }
 
     /**
@@ -166,7 +158,7 @@ public:
         KRATOS_ERROR_IF_NOT(r_process_info.Has(OSS_SWITCH)) << "OSS_SWITCH variable has not been set in the ProcessInfo container. Please set it in the strategy \'Initialize\'." << std::endl;
 
         // Shock capturing process check
-        if (mShockCapturing) {
+        if (mpShockCapturingProcess) {
             mpShockCapturingProcess->Check();
         }
 
@@ -179,19 +171,23 @@ public:
      */
     Parameters GetDefaultParameters() const override
     {
+        KRATOS_TRY
+
         Parameters default_parameters = Parameters(R"(
         {
             "name" : "compressible_navier_stokes_explicit_explicit_solving_strategy_runge_kutta_4",
             "rebuild_level" : 0,
             "move_mesh_flag": false,
-            "shock_capturing" : true,
-            "calculate_non_conservative_magnitudes" : true
+            "calculate_non_conservative_magnitudes" : true,
+            "shock_capturing_settings" : { }
         })");
 
         // Getting base class default parameters
         const Parameters base_default_parameters = BaseType::GetDefaultParameters();
         default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
         return default_parameters;
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -211,14 +207,65 @@ public:
     {
         // Base class assign settings call
         BaseType::AssignSettings(ThisParameters);
-
-        // Set the specific compressible NS settings
-        mShockCapturing = ThisParameters["shock_capturing"].GetBool();
         mCalculateNonConservativeMagnitudes = ThisParameters["calculate_non_conservative_magnitudes"].GetBool();
-        if (mShockCapturing && !mCalculateNonConservativeMagnitudes) {
-            KRATOS_WARNING("CompressibleNavierStokesExplicitSolvingStrategyRungeKutta") << "\'shock_capturing\' requires \'calculate_non_conservative_magnitudes\' to be active. Activating it." << std::endl;
+
+        SetUpShockCapturing(ThisParameters["shock_capturing_settings"]);
+
+        if (mpShockCapturingProcess && !mCalculateNonConservativeMagnitudes) {
+            KRATOS_WARNING("CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4")
+                << "\'shock_capturing\' requires \'calculate_non_conservative_magnitudes\' to be active. Activating it." << std::endl;
             mCalculateNonConservativeMagnitudes = true;
         }
+    }
+
+    void SetUpShockCapturing(Parameters ShockCapturingParameters)
+    {
+        KRATOS_TRY
+
+        auto defaults = Parameters(R"(
+            {
+                "type" : "physics_based",
+                "Parameters" : {
+                    "model_part_name" : ""
+                }
+            }
+        )");
+        defaults["Parameters"]["model_part_name"].SetString(BaseType::GetModelPart().Name());
+
+        ShockCapturingParameters.ValidateAndAssignDefaults(defaults);
+        ShockCapturingParameters.RecursivelyAddMissingParameters(defaults);
+
+        using ShockCapturingFactoryType = Process::UniquePointer (*)(ModelPart&, Parameters);
+
+        const std::map<const std::string, ShockCapturingFactoryType> shock_capturing_factory_map
+        {
+            {"none"         , [](ModelPart& m, Parameters p) -> Process::UniquePointer {return nullptr;}},
+            {"physics_based", [](ModelPart& m, Parameters p) -> Process::UniquePointer {return Kratos::make_unique<ShockCapturingPhysicsBasedProcess>(m, p);}},
+            {"entropy_based", [](ModelPart& m, Parameters p) -> Process::UniquePointer {return Kratos::make_unique<ShockCapturingEntropyViscosityProcess>(m, p);}}
+        };
+
+        const auto sc_type = ShockCapturingParameters["type"].GetString();
+
+        const auto it = shock_capturing_factory_map.find(sc_type);
+        if(it != shock_capturing_factory_map.end())
+        {
+            mpShockCapturingProcess = it->second(BaseType::GetModelPart(), ShockCapturingParameters["Parameters"]);
+        }
+        else
+        {
+            std::stringstream msg;
+            msg << "Provided shock capturing type \""<< sc_type <<"\" does not match any of the available ones.\n";
+            msg << "Please choose one from the following list:\n";
+            for(const auto& keyvaluepair: shock_capturing_factory_map)
+            {
+                msg <<" - " << keyvaluepair.first << "\n";
+            }
+            msg << std::endl;
+
+            KRATOS_ERROR << msg.str();
+        }
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -250,8 +297,21 @@ public:
         }
 
         // If required, initialize the physics-based shock capturing variables
-        if (mShockCapturing) {
+        if (mpShockCapturingProcess) {
             mpShockCapturingProcess->ExecuteInitialize();
+        }
+    }
+
+    void InitializeSolutionStep() override
+    {
+        BaseType::InitializeSolutionStep();
+
+        if (mCalculateNonConservativeMagnitudes) {
+            CalculateNonConservativeMagnitudes();
+        }
+
+        if (mpShockCapturingProcess) {
+            mpShockCapturingProcess->ExecuteInitializeSolutionStep();
         }
     }
 
@@ -279,7 +339,7 @@ public:
         // Perform the shock capturing detection and artificial values calculation
         // This needs to be done at the end of the step in order to include the future shock
         // capturing magnitudes in the next automatic dt calculation
-        if (mShockCapturing) {
+        if (mpShockCapturingProcess) {
             mpShockCapturingProcess->ExecuteFinalizeSolutionStep();
         }
     }
@@ -406,11 +466,10 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mShockCapturing = true;
     bool mApplySlipCondition = true;
     bool mCalculateNonConservativeMagnitudes = true;
 
-    ShockCapturingProcess::UniquePointer mpShockCapturingProcess = nullptr;
+    Process::UniquePointer mpShockCapturingProcess = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -543,10 +602,10 @@ private:
 
 ///@}
 
-template<class TSparseSpace, class TDenseSpace> 
+template<class TSparseSpace, class TDenseSpace>
 using CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4 = CompressibleNavierStokesExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, ButcherTableauRK4>;
 
-template<class TSparseSpace, class TDenseSpace> 
+template<class TSparseSpace, class TDenseSpace>
 using CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD = CompressibleNavierStokesExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, ButcherTableauRK3TVD>;
 
 } /* namespace Kratos.*/

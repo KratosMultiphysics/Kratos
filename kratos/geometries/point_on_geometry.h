@@ -257,7 +257,8 @@ public:
         rResultGeometries(0) = Kratos::make_shared<
             QuadraturePointGeometry<PointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground, 0>>(
                 std::move(rQuadraturePointGeometries(0)->Points()),
-                rQuadraturePointGeometries(0)->GetGeometryData().GetGeometryShapeFunctionContainer());
+                rQuadraturePointGeometries(0)->GetGeometryData().GetGeometryShapeFunctionContainer(),
+                this);
     }
 
     ///@}

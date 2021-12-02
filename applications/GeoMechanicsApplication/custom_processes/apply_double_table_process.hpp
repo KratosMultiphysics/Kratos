@@ -51,57 +51,43 @@ public:
     /// right after reading the model and the groups
     void ExecuteInitialize() override
     {
-        KRATOS_TRY;
-
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        KRATOS_TRY
 
         const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
 
-        if (nNodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
+        if (nNodes > 0) {
+            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
-            #pragma omp parallel for
-            for (int i = 0; i<nNodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
+            block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+                if (mIsFixed) rNode.Fix(var);
+                else          rNode.Free(var);
 
-                if (mIsFixed) it->Fix(var);
-                else          it->Free(var);
+                rNode.FastGetSolutionStepValue(var) = mInitialValue;
+            });
 
-                it->FastGetSolutionStepValue(var) = mInitialValue;
-            }
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// this function will be executed at every time step BEFORE performing the solve phase
     void ExecuteInitializeSolutionStep() override
     {
-        KRATOS_TRY;
-
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
-
-        const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
-        double value = mpTable->GetValue(Time);
+        KRATOS_TRY
 
         const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
 
-        if (nNodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
+        if (nNodes > 0) {
+            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+            const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
+            const double value = mpTable->GetValue(Time);
 
-            #pragma omp parallel for
-            for (int i = 0; i<nNodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                it->FastGetSolutionStepValue(var) = value;
-            }
+            block_for_each(mrModelPart.Nodes(), [&var, &value](Node<3>& rNode) {
+                rNode.FastGetSolutionStepValue(var) = value;
+            });
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.
