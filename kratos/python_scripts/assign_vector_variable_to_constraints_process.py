@@ -43,6 +43,10 @@ class AssignVectorVariableToConstraintProcess(assign_vector_variable_to_entities
         """
         )
 
+        if not settings.Has("value"):
+            raise RuntimeError("Please specify the value to set the vector to. Example:\n" \
+                               + '{\n\t"value" : [10.0, "3*t", "x+y"]\n}\n')
+
         settings.ValidateAndAssignDefaults(default_settings)
 
         # Here i do a trick, since i want to allow "value" to be a string or a double value

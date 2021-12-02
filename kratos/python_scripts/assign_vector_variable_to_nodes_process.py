@@ -43,6 +43,10 @@ class AssignVectorVariableToNodeProcess(assign_vector_variable_to_entities_proce
         """
         )
 
+        if not settings.Has("value"):
+            raise RuntimeError("Please specify the value to set the vector to. Example:\n" \
+                               + '{\n\t"value" : [10.0, "3*t", "x+y"]\n}\n')
+
         settings.ValidateAndAssignDefaults(default_settings)
 
         # Ensure proper entities

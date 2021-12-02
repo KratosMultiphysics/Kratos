@@ -54,6 +54,10 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
                 for i in range(3):
                     settings["constrained"][i].SetBool(is_fixed)
 
+        if not settings.Has("value"):
+            raise RuntimeError("Please specify the value to set the vector to. Example:\n" \
+                               + '{\n\t"value" : [10.0, "3*t", "x+y"]\n}\n')
+
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())

@@ -49,10 +49,14 @@ class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_en
         if settings.Has("modulus"):
             if settings["modulus"].IsString():
                 default_settings["modulus"].SetString("0.0")
+        else:
+            raise RuntimeError("Please specify the modulus of the vector")
 
         if settings.Has("direction"):
             if settings["direction"].IsString():
                 default_settings["direction"].SetString("Automatic")
+        else:
+            raise RuntimeError("Please specify the direction of the vector")
 
         # Detect "End" as a tag and replace it by a large number
         if settings.Has("interval"):
