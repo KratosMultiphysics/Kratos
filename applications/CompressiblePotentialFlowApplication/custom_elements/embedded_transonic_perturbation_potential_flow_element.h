@@ -153,11 +153,6 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                 const ProcessInfo& rCurrentProcessInfo) override;
 

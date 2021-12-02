@@ -66,23 +66,10 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Initial
 }
 
 template <int TDim, int TNumNodes>
-void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
-    CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
-}
-
-template <int TDim, int TNumNodes>
 void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // std::cout << "COMPUTING RIGHT HAND SIDE: " << this->Id()<< std::endl;
-    if (this->Id()==80000000) KRATOS_WATCH("COMPUTING RIGHT HAND SIDE")
-
     const EmbeddedTransonicPerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
@@ -92,11 +79,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
     }
     const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<TDim,TNumNodes>(distances);
 
-    if (this->Id()==80000000) KRATOS_WATCH(is_embedded)
-    if (this->Id()==80000000) KRATOS_WATCH(wake)
     if (is_embedded && wake == 0) {
-         if (this->Id()==80000000) KRATOS_WATCH("COMPUTING RIGHT HAND SIDE EMB")
-
         CalculateRightHandSideNormalElement(rRightHandSideVector,rCurrentProcessInfo);
         // if (std::abs(rCurrentProcessInfo[STABILIZATION_FACTOR]) > std::numeric_limits<double>::epsilon()) {
         //     PotentialFlowUtilities::AddPotentialGradientStabilizationTerm<Dim, NumNodes>(*this,rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
@@ -104,12 +87,9 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
     }
     else {
         if (wake==0) {
-            if (this->Id()==80000000) KRATOS_WATCH("COMPUTING RIGHT HAND SIDE BASE")
-
             BaseType::CalculateRightHandSideNormalElement(rRightHandSideVector, rCurrentProcessInfo);
             // CalculateKuttaWakeLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
         } else {
-            if (this->Id()==80000000) KRATOS_WATCH("COMPUTING RIGHT HAND SIDE BASE WAKE")
 
             if (this->Is(STRUCTURE)) {
                 CalculateRightHandSideKuttaWakeElement(rRightHandSideVector, rCurrentProcessInfo);
@@ -121,7 +101,6 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
         }
     }
 
-
     if (std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
         PotentialFlowUtilities::AddKuttaConditionPenaltyRightHandSideTerm<TDim,TNumNodes>(r_this,rRightHandSideVector,rCurrentProcessInfo);
     }
@@ -132,8 +111,6 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // std::cout << "COMPUTING LEFT HAND SIDE: " << this->Id()<< std::endl;
-    if (this->Id()==80000000) KRATOS_WATCH("COMPUTING LEFT HAND SIDE")
     const EmbeddedTransonicPerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
@@ -142,12 +119,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
         distances[i_node] = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
     }
     const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<TDim,TNumNodes>(distances);
-    if (this->Id() ==80000000) {
-        KRATOS_WATCH(this->Id())
-        KRATOS_WATCH(is_embedded);
-        KRATOS_WATCH(this->pGetUpwindElement()->Id())
-        KRATOS_WATCH(this->pGetUpwindElement()->Is(ACTIVE))
-    }
+
     if (wake == 0) { // Normal element (non-wake) - eventually an embedded
         if (r_this.IsNot(INLET)) {
             if (rLeftHandSideMatrix.size1() != TNumNodes + 1 ||
@@ -156,7 +128,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
                 }
 
             rLeftHandSideMatrix.clear();
-            // KRATOS_WATCH("calculate normal left system")
+
             if (is_embedded)
                 CalculateLeftHandSideNormalElement(rLeftHandSideMatrix, rCurrentProcessInfo);
             else
@@ -177,8 +149,6 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
 
     }
     else { // Wake element
-        if (this->Id()==80000000) KRATOS_WATCH("COMPUTING LEFT HAND SIDE BASE WAKE")
-
         if (this->Is(STRUCTURE)) {
             CalculateLeftHandSideKuttaWakeElement(rLeftHandSideMatrix, rCurrentProcessInfo);
         }
@@ -197,7 +167,6 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-
     // Note that the rhs has double the size
     if (rRightHandSideVector.size() != 2 * TNumNodes)
     {
@@ -206,8 +175,6 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
     rRightHandSideVector.clear();
 
     ElementalData data;
-
-    if (this->Id()==80000000) KRATOS_WATCH("ENTERING KUTTA-WAKE RIGHT HAND SIDE BASE")
 
     // Calculate shape functions
     const auto& r_geometry = this->GetGeometry();
@@ -244,10 +211,6 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
-
-    if (this->Id()==80000000) KRATOS_WATCH("COMPUTING LEFT HAND SIDE BASE KUTTA-WAKE ELEMENT")
-    this->Set(MARKER);
-
     // Note that the lhs and rhs have double the size
     if (rLeftHandSideMatrix.size1() != 2 * TNumNodes ||
         rLeftHandSideMatrix.size2() != 2 * TNumNodes)
@@ -318,35 +281,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rValues.size() != 1)
-    {
-        rValues.resize(1);
-    }
-    if (rVariable == PRESSURE_COEFFICIENT)
-    {
-        rValues[0] = PotentialFlowUtilities::ComputePerturbationCompressiblePressureCoefficient<TDim, TNumNodes>(*this, rCurrentProcessInfo);
-    }
-    else if (rVariable == DENSITY)
-    {
-        const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
-        const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
-        rValues[0] = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
-    }
-    else if (rVariable == MACH)
-    {
-        const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
-        rValues[0] = std::sqrt(PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo));
-    }
-    else if (rVariable == SOUND_VELOCITY)
-    {
-        const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
-        rValues[0] = std::sqrt(PotentialFlowUtilities::ComputeLocalSpeedofSoundSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo));
-    }
-    else if (rVariable == WAKE)
-    {
-        const EmbeddedTransonicPerturbationPotentialFlowElement& r_this = *this;
-        rValues[0] = r_this.GetValue(WAKE);
-    }
+    BaseType::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 template <int TDim, int TNumNodes>
@@ -355,34 +290,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
     std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rValues.size() != 1)
-    {
-        rValues.resize(1);
-    }
-    if (rVariable == TRAILING_EDGE)
-    {
-        rValues[0] = this->GetValue(TRAILING_EDGE);
-    }
-    else if (rVariable == KUTTA)
-    {
-        rValues[0] = this->GetValue(KUTTA);
-    }
-    else if (rVariable == WAKE)
-    {
-        rValues[0] = this->GetValue(WAKE);
-    }
-    else if (rVariable == ZERO_VELOCITY_CONDITION)
-    {
-        rValues[0] = this->GetValue(ZERO_VELOCITY_CONDITION);
-    }
-    else if (rVariable == TRAILING_EDGE_ELEMENT)
-    {
-        rValues[0] = this->GetValue(TRAILING_EDGE_ELEMENT);
-    }
-    else if (rVariable == DECOUPLED_TRAILING_EDGE_ELEMENT)
-    {
-        rValues[0] = this->GetValue(DECOUPLED_TRAILING_EDGE_ELEMENT);
-    }
+    BaseType::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 template <int TDim, int TNumNodes>
@@ -391,34 +299,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
     std::vector<array_1d<double, 3>>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rValues.size() != 1)
-    {
-        rValues.resize(1);
-    }
-    if (rVariable == VELOCITY)
-    {
-        array_1d<double, 3> v(3, 0.0);
-        array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
-        for (unsigned int k = 0; k < TDim; k++)
-        {
-            v[k] = velocity[k];
-        }
-        rValues[0] = v;
-    }
-    else if (rVariable == PERTURBATION_VELOCITY)
-    {
-        array_1d<double, 3> v(3, 0.0);
-        array_1d<double, TDim> vaux = PotentialFlowUtilities::ComputeVelocity<TDim,TNumNodes>(*this);
-        for (unsigned int k = 0; k < TDim; k++)
-        {
-            v[k] = vaux[k];
-        }
-        rValues[0] = v;
-    }
-    else if (rVariable == VECTOR_TO_UPWIND_ELEMENT)
-    {
-        rValues[0] = this->pGetUpwindElement()->GetGeometry().Center() - this->GetGeometry().Center();
-    }
+    BaseType::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
