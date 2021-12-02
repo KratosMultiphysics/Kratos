@@ -74,7 +74,7 @@ class EigenSolver(MechanicalSolver):
         return eigen_solver_factory.ConstructSolver(self.settings["eigensolver_settings"])
 
     def _create_mechanical_solution_strategy(self):
-        eigen_scheme = self.get_solution_scheme() # The scheme defines the matrices of the eigenvalue problem.
+        eigen_scheme = self._GetScheme() # The scheme defines the matrices of the eigenvalue problem.
         builder_and_solver = self.get_builder_and_solver() # The eigensolver is created here.
         computing_model_part = self.GetComputingModelPart()
 
