@@ -201,6 +201,7 @@ bool File::HasPath(const std::string& rPath) const
     KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: \"" << rPath << "\". Path should start with \"/\" and should only have characters A-Z, a-z, 0-9, \"/\", and \"_\"." << std::endl;
 
     std::vector<std::string> splitted_path = StringUtilities::SplitStringByDelimiter(rPath, '/');
+    splitted_path.erase(std::remove_if(splitted_path.begin(), splitted_path.end(), [](const std::string& s) {return (s.size() == 0);}));
     std::string sub_path;
     for (const auto& r_link: splitted_path)
     {
@@ -371,6 +372,7 @@ void File::AddPath(const std::string& rPath)
     KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: \"" << rPath << "\". Path should start with \"/\" and should only have characters A-Z, a-z, 0-9, \"/\", and \"_\"." << std::endl;
 
     std::vector<std::string> splitted_path = StringUtilities::SplitStringByDelimiter(rPath, '/');
+    splitted_path.erase(std::remove_if(splitted_path.begin(), splitted_path.end(), [](const std::string& s) {return (s.size() == 0);}));
     std::string sub_path;
     for (const auto& r_link: splitted_path)
     {
