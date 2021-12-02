@@ -358,12 +358,25 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::PrintData(std::
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int TDim, int TNumNodes>
-inline GlobalPointer<Element> TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::pGetUpwindElement() const
+GlobalPointer<Element> TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::pGetUpwindElement() const
 {
     KRATOS_ERROR_IF(mpUpwindElement.get() == nullptr)
         << "No upwind element found for element #" << this->Id() << std::endl;
     return mpUpwindElement;
 }
+
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::pSetUpwindElement(GlobalPointer<Element> pUpwindElement)
+{
+    mpUpwindElement = pUpwindElement;
+}
+
+template <int TDim, int TNumNodes>
+bool TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CheckUpwindElement()
+{
+    return mpUpwindElement.get() == nullptr;
+}
+
 
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetWakeDistances(
