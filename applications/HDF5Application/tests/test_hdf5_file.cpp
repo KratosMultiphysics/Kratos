@@ -58,26 +58,6 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_IsPath6, KratosHDF5TestSuite)
     KRATOS_CHECK(HDF5::Internals::IsPath("/foo//bar") == false);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_Split1, KratosHDF5TestSuite)
-{
-    KRATOS_CHECK(HDF5::Internals::Split("", '/').size() == 0);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_Split2, KratosHDF5TestSuite)
-{
-    auto result = HDF5::Internals::Split("foo", '/');
-    KRATOS_CHECK(result.size() == 1);
-    KRATOS_CHECK(result[0] == "foo");
-}
-
-KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_Split3, KratosHDF5TestSuite)
-{
-    auto result = HDF5::Internals::Split("/foo//bar", '/');
-    KRATOS_CHECK(result.size() == 2);
-    KRATOS_CHECK(result[0] == "foo");
-    KRATOS_CHECK(result[1] == "bar");
-}
-
 KRATOS_TEST_CASE_IN_SUITE(HDF5_File_File1, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
