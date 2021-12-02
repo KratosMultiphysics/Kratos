@@ -455,9 +455,9 @@ namespace MPMSearchElementUtility
                 for (int c = 0; c < static_cast<int>(lagrange_model_part.Conditions().size()); ++c) {
                     auto it_condition = it_condition_begin + c;
                     std::vector<int> node_id(1);
-                    it_condition->CalculateOnIntegrationPoints(MPC_CORRESPONDING_CONDITION_ID, node_id, rMPMModelPart.GetProcessInfo() );
+                    it_condition->CalculateOnIntegrationPoints(MPC_CORRESPONDING_NODE_ID, node_id, rMPMModelPart.GetProcessInfo() );
                     rBackgroundGridModelPart.RemoveNodeFromAllLevels(node_id[0]);
-
+                    
                     toRemove.push_back(it_condition->Id());
                 }
                 for (unsigned int c : toRemove) lagrange_model_part.RemoveConditionFromAllLevels(c);
@@ -474,11 +474,11 @@ namespace MPMSearchElementUtility
                 IndexType condition_id = submodelpart.GetRootModelPart().Conditions().back().Id() + 1;
 
                 for(auto mpc=submodelpart.ConditionsBegin(); mpc!=submodelpart.ConditionsEnd(); ++mpc){
-                    mpc->Set(ACTIVE,true);
+                    mpc->Set(VISITED,false);
                 }
 
                 for(auto mpc=submodelpart.ConditionsBegin(); mpc!=submodelpart.ConditionsEnd(); ++mpc){
-                    if (mpc->Is(ACTIVE)){
+                    if (mpc->IsNot(VISITED)){
                         int id_parent = mpc->GetGeometry().GetGeometryParent(0).Id();
                         Properties::Pointer properties = mpc->pGetProperties();
                         std::vector<double> mpc_area(1);
@@ -486,23 +486,30 @@ namespace MPMSearchElementUtility
                         std::vector<array_1d<double, 3>> xg = {ZeroVector(3)};
                         std::vector<array_1d<double, 3>> normal = {ZeroVector(3)};
                         std::vector<array_1d<double, 3>> imposed_disp = {ZeroVector(3)};
+                        std::vector<array_1d<double, 3>> mpc_velocity = { ZeroVector(3) };
+                        std::vector<array_1d<double, 3>> mpc_imposed_velocity = { ZeroVector(3) };
+                        std::vector<array_1d<double, 3>> mpc_acceleration = { ZeroVector(3) };
+                        std::vector<array_1d<double, 3>> mpc_imposed_acceleration = { ZeroVector(3) };
+                        std::vector<array_1d<double, 3>> mpc_contact_force = { ZeroVector(3) };
                         std::vector<int> mpc_counter(1);
                         mpc_counter[0]=0;
+                        int corresponding_condition_id = int(condition_id);
                         int lagrange_node_id = rBackgroundGridModelPart.Nodes().size() + 1;
                         for(auto mpc2=submodelpart.ConditionsBegin(); mpc2!=submodelpart.ConditionsEnd(); ++mpc2){
-                            int id_parent2 = mpc2->GetGeometry().GetGeometryParent(0).Id();
-                            mpc2->Set(ACTIVE,false);
+                            int id_parent2 = mpc2->GetGeometry().GetGeometryParent(0).Id();                          
                             if (id_parent == id_parent2){
+                                mpc2->Set(VISITED,true);
                                 std::vector<array_1d<double, 3>> xg_tmp;
                                 std::vector<double> mpc_area_tmp(1);
                                 std::vector<array_1d<double, 3>> normal_tmp;
                                 std::vector<array_1d<double, 3>> imposed_disp_tmp;
                                 mpc2->CalculateOnIntegrationPoints(MPC_AREA, mpc_area_tmp, rMPMModelPart.GetProcessInfo() );
                                 mpc2->CalculateOnIntegrationPoints(MPC_COORD, xg_tmp, rMPMModelPart.GetProcessInfo() );
-                                mpc2->CalculateOnIntegrationPoints(NORMAL, normal_tmp, rMPMModelPart.GetProcessInfo() );
+                                mpc2->CalculateOnIntegrationPoints(MPC_NORMAL, normal_tmp, rMPMModelPart.GetProcessInfo() );
                                 mpc2->CalculateOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, imposed_disp_tmp, rMPMModelPart.GetProcessInfo() );
-                                mpc2->SetValuesOnIntegrationPoints(MPC_CORRESPONDING_CONDITION_ID, {lagrange_node_id}, rMPMModelPart.GetProcessInfo() );
-                                mpc_area[0] += mpc_area[0];
+                                mpc2->SetValuesOnIntegrationPoints(MPC_CORRESPONDING_NODE_ID, {lagrange_node_id}, rMPMModelPart.GetProcessInfo() );
+                                mpc2->SetValuesOnIntegrationPoints(MPC_CORRESPONDING_CONDITION_ID, {corresponding_condition_id}, rMPMModelPart.GetProcessInfo() );
+                                mpc_area[0] += mpc_area_tmp[0];
                                 xg[0] += xg_tmp[0];
                                 normal[0] += normal_tmp[0];
                                 imposed_disp[0] += imposed_disp_tmp[0];
@@ -517,6 +524,9 @@ namespace MPMSearchElementUtility
                             imposed_disp[0][i] = imposed_disp[0][i]/ mpc_counter[0];
                             normal[0][i] = normal[0][i]/ mpc_counter[0];
                         }
+                        const bool is_slip = mpc->Is(SLIP);
+                        const bool is_contact = mpc->Is(CONTACT);
+                        const bool is_interface = mpc->Is(INTERFACE);
 
                         typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
                         Element::Pointer pelem;
@@ -534,13 +544,13 @@ namespace MPMSearchElementUtility
                         p_condition->SetValuesOnIntegrationPoints(MPC_NORMAL, normal, rMPMModelPart.GetProcessInfo());
                         p_condition->SetValuesOnIntegrationPoints(MPC_COUNTER, mpc_counter, rMPMModelPart.GetProcessInfo());
 
-                        
                         // p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
                         p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, imposed_disp, rMPMModelPart.GetProcessInfo());
-                        // p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
-                        // p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
-                        // p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
-                        // p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
+                        p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, rMPMModelPart.GetProcessInfo());
+                        p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, rMPMModelPart.GetProcessInfo());
+                        p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, rMPMModelPart.GetProcessInfo());
+                        p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, rMPMModelPart.GetProcessInfo());
+                        p_condition->SetValuesOnIntegrationPoints(MPC_CONTACT_FORCE,  mpc_contact_force , rMPMModelPart.GetProcessInfo());
 
                         auto p_new_node = rBackgroundGridModelPart.CreateNewNode(rBackgroundGridModelPart.Nodes().size() + 1, xg[0][0], xg[0][1], xg[0][2]);
                         p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_X,WEIGHTED_VECTOR_RESIDUAL_X);
@@ -551,6 +561,16 @@ namespace MPMSearchElementUtility
                         p_new_node->AddDof(DISPLACEMENT_Z,REACTION_Z);
 
                         p_condition->SetValue(MPC_LAGRANGE_NODE, p_new_node);
+
+                        if (is_slip)
+                            p_condition->Set(SLIP);
+                        if (is_contact)
+                            p_condition->Set(CONTACT);
+                        if (is_interface)
+                            p_condition->Set(INTERFACE);
+
+                        // Add the MP Condition to the model part
+                        lagrange_model_part.AddCondition(p_condition);
 
                         condition_id+=1;
                     }
