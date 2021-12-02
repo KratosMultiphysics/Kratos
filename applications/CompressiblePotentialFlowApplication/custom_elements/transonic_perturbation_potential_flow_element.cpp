@@ -1172,8 +1172,7 @@ BoundedVector<double, TNumNodes + 1> TransonicPerturbationPotentialFlowElement<T
     const GeometryType& r_geom = this->GetGeometry();
     const GeometryType& r_upwind_geom = pGetUpwindElement()->GetGeometry();
 
-    const array_1d<size_t, TNumNodes> upwind_node_key = GetAssemblyKey(r_geom, r_upwind_geom, rCurrentProcessInfo);
-
+    array_1d<size_t, TNumNodes> upwind_node_key = GetAssemblyKey(r_geom, r_upwind_geom, rCurrentProcessInfo);
 
     ElementalData currentElementdata;
     ElementalData upwindElementdata;
@@ -1186,15 +1185,6 @@ BoundedVector<double, TNumNodes + 1> TransonicPerturbationPotentialFlowElement<T
 
     BoundedVector<double, TNumNodes + 1> assembly_DNV;
     assembly_DNV.clear();
-
-    // Correct upwind keys for wake elements
-    for (std::size_t i = 0; i < upwind_node_key.size(); i++)
-    {
-        if (upwind_node_key[i] > TNumNodes-1)
-        {
-            upwind_node_key[i] = TNumNodes;
-        }
-    }
 
     for (int i = 0; i < TNumNodes; i++)
     {
