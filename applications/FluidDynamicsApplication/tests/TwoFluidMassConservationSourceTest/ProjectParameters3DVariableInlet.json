@@ -37,6 +37,11 @@
             "dynamic_tau": 1.0,
             "mass_source": true
         },
+        "levelset_convection_settings": {
+            "element_settings" : {
+                "dynamic_tau" : 1.0
+            }
+        },
         "time_stepping"  : {
             "automatic_time_step" 	: false,
             "time_step"           	: 0.1
@@ -48,9 +53,9 @@
     "processes"        : {
         "initial_conditions_process_list"  : [],
         "boundary_conditions_process_list" : [{
-            "python_module" : "apply_noslip_process",
-            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-            "process_name"  : "ApplyNoSlipProcess",
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorVariableProcess",
             "Parameters"    : {
                 "model_part_name" : "FluidModelPart.NoSlip3D_Wall1",
                 "variable_name"      : "VELOCITY",
@@ -80,9 +85,9 @@
                 "h_top"              : 0.0
             }
         },{
-            "python_module" : "apply_noslip_process",
-            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-            "process_name"  : "ApplyNoSlipProcess",
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorVariableProcess",
             "Parameters"    : {
                 "model_part_name" : "FluidModelPart.NoSlip3D_Wall2",
                 "variable_name"      : "VELOCITY",
@@ -90,9 +95,9 @@
                 "value"              : [null,null,0.0]
             }
         },{
-            "python_module" : "apply_noslip_process",
-            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-            "process_name"  : "ApplyNoSlipProcess",
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorVariableProcess",
             "Parameters"    : {
                 "model_part_name" : "FluidModelPart.NoSlip3D_Top",
                 "variable_name"      : "VELOCITY",
@@ -100,9 +105,9 @@
                 "value"              : [null,0.0,null]
             }
         },{
-            "python_module" : "apply_noslip_process",
-            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-            "process_name"  : "ApplyNoSlipProcess",
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorVariableProcess",
             "Parameters"    : {
                 "model_part_name" : "FluidModelPart.NoSlip3D_Floor",
                 "variable_name"      : "VELOCITY",
@@ -117,7 +122,7 @@
             "Parameters"    : {
                 "model_part_name" : "FluidModelPart.FluidParts_Fluid",
                 "variable_name"   : "BODY_FORCE",
-                "modulus"         : 9.81,
+                "modulus"         : 0,
                 "constrained"     : false,
                 "direction"       : [-1.0,0.0,0.0]
             }

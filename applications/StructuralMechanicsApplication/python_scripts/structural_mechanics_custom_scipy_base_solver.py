@@ -64,7 +64,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
             warn_msg = "In case an eigenvalue problem is computed an elimantion builder shall be used to ensure boundary conditions are applied correctly!"
             KratosMultiphysics.Logger.PrintWarning("CustomScipyBaseSolver", warn_msg)
 
-        eigen_scheme = self.get_solution_scheme() # The scheme defines the matrices
+        eigen_scheme = self._GetScheme() # The scheme defines the matrices
         computing_model_part = self.GetComputingModelPart()
         builder_and_solver = self.get_builder_and_solver()
 

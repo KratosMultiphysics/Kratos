@@ -57,11 +57,6 @@ class ExplicitStrategy():
         else:
             self.print_stress_tensor_option = 0
 
-        if not "AutomaticTimestep" in DEM_parameters.keys():
-            self.critical_time_option = 0
-        else:
-            self.critical_time_option = DEM_parameters["AutomaticTimestep"].GetBool() #TODO: add suffix option
-
         self.trihedron_option        = DEM_parameters["PostEulerAngles"].GetBool()
         self.rotation_option         = DEM_parameters["RotationOption"].GetBool()
         self.bounding_box_option     = DEM_parameters["BoundingBoxOption"].GetBool()
@@ -236,7 +231,6 @@ class ExplicitStrategy():
         # SIMULATION FLAGS
         self.spheres_model_part.ProcessInfo.SetValue(IS_TIME_TO_PRINT, False)
         self.spheres_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
-        self.spheres_model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
         self.spheres_model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
         self.spheres_model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROTATION_OPTION, self.rotation_option)

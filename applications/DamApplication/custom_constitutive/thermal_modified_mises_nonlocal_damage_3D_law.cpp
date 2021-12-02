@@ -37,7 +37,7 @@ ThermalModifiedMisesNonlocalDamage3DLaw::~ThermalModifiedMisesNonlocalDamage3DLa
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-int ThermalModifiedMisesNonlocalDamage3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
+int ThermalModifiedMisesNonlocalDamage3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     int ierr = ThermalNonlocalDamage3DLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     if(ierr != 0) return ierr;

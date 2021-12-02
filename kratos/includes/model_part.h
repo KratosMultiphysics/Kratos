@@ -289,6 +289,14 @@ public:
     /// Assignment operator.
     ModelPart & operator=(ModelPart const& rOther) = delete;
 
+    /// Function to wipe a modelpart clean,
+    /// However, variables list, buffer size and process info is preserved
+    void Clear();
+
+    /// Function to wipe a model part clean
+    /// Variables list, buffer size are not preserved
+    void Reset();
+
     ///@}
     ///@name Solution Steps
     ///@{
@@ -316,6 +324,11 @@ public:
 
     //this function returns the "Owner" Model
     Model& GetModel()
+    {
+        return mrModel;
+    }
+
+    const Model& GetModel() const
     {
         return mrModel;
     }
@@ -1518,7 +1531,7 @@ public:
                 }
             }
         }
-        
+
         // Add to root model part
         for(auto& p_geom : aux_root) {
             p_root_model_part->AddGeometry(p_geom);

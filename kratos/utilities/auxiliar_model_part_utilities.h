@@ -55,7 +55,7 @@ enum class DataLocation {
 /**
  * @class AuxiliarModelPartUtilities
  * @ingroup KratosCore
- * @brief This uility includes auxiliar methods not included in the model part to avoid increase more than necessary the API
+ * @brief This utility includes auxiliar methods not included in the model part to avoid increase more than necessary the API
  * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) AuxiliarModelPartUtilities
@@ -100,6 +100,13 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This method copies the structure of submodelparts
+     * @param rModelPartToCopyFromIt The model part to copy from it
+     * @param rModelPartToCopyIntoIt The model part where to copy the structure of the submodelparts
+     */
+    static void CopySubModelPartStructure(const ModelPart& rModelPartToCopyFromIt, ModelPart& rModelPartToCopyIntoIt);
 
     /**
      * @brief This method ensured that the properties of elements and conditions are on the model part (it does recursively in all model parts)
@@ -638,16 +645,16 @@ private:
     ///@{
 
     template<typename TDataType, class TContainerType>
-    void GetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, std::vector<TDataType>& data) const
+    void GetScalarDataFromContainer(const TContainerType& rContainer, const Variable<TDataType>& rVariable, std::vector<TDataType>& data) const
     {
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
-            auto& r_entity = *(rContainer.begin() + index);
+            const auto& r_entity = *(rContainer.begin() + index);
             data[index] = r_entity.GetValue(rVariable);
         });
     }
 
     template<typename TDataType, class TContainerType>
-    void GetVectorDataFromContainer(TContainerType& rContainer, const std::size_t TSize, const Variable<TDataType>& rVariable, std::vector<double>& data) const
+    void GetVectorDataFromContainer(const TContainerType& rContainer, const std::size_t TSize, const Variable<TDataType>& rVariable, std::vector<double>& data) const
     {
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             const auto& r_entity = *(rContainer.begin() + index);
