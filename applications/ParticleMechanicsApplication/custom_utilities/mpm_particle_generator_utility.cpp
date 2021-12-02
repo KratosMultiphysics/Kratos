@@ -215,21 +215,17 @@ namespace MPMParticleGeneratorUtility
         std::vector<array_1d<double, 3>> mpc_imposed_acceleration = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mpc_contact_force = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> point_load = { ZeroVector(3) };
+        std::vector<array_1d<double, 3>> line_load = { ZeroVector(3) };
+
+        PointerVector<Condition> PointLoadConditions;
 
         std::vector<double> mpc_area(1);
         std::vector<double> mpc_penalty_factor(1);
 
         // Determine condition index: This convention is done in order for the purpose of visualization in GiD
-        const unsigned int number_conditions = rBackgroundGridModelPart.NumberOfConditions();
-        const unsigned int number_elements = rBackgroundGridModelPart.NumberOfElements() + rInitialModelPart.NumberOfElements() + rMPMModelPart.NumberOfElements();
-        const unsigned int number_nodes = rBackgroundGridModelPart.NumberOfNodes();
         unsigned int last_condition_id;
-        if (number_elements > number_nodes && number_elements > number_conditions)
-            last_condition_id = number_elements;
-        else if (number_nodes > number_elements && number_nodes > number_conditions)
-            last_condition_id = number_nodes;
-        else
-            last_condition_id = number_conditions;
+        last_condition_id = rMPMModelPart.Elements().back().Id();
+      
 
         BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
         SearchStructure.UpdateSearchDatabase();
@@ -338,6 +334,10 @@ namespace MPMParticleGeneratorUtility
                                 point_load[0] = i->GetValue( POINT_LOAD );
                                 condition_type_name = "MPMParticlePointLoadCondition";
                             }
+                            else if ( i->Has( LINE_LOAD ) ){
+                                line_load[0] = i->GetValue( LINE_LOAD );
+                                condition_type_name = "MPMParticlePointLoadCondition";
+                            }
                             else{
                                 KRATOS_ERROR << "Particle line load / surface load condition is not yet implemented." << std::endl;
                             }
@@ -351,7 +351,7 @@ namespace MPMParticleGeneratorUtility
                         unsigned int new_condition_id = 0;
 
                         // Create Particle Point Load Condition
-                        if (condition_type_name == "MPMParticlePointLoadCondition" ){
+                        if (i->Has( POINT_LOAD ) ){
                             // create point load condition
                             mpc_area[0] = 1;
 
@@ -404,10 +404,158 @@ namespace MPMParticleGeneratorUtility
 
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
-                            last_condition_id +=1;
 
                         }
-                        // Loop over the conditions to create inner particle condition (except point load condition)
+                        else if (i->Has( LINE_LOAD ) ){
+                            
+                            // Create Line Load condition
+                            new_condition_id = last_condition_id + 1 ;
+
+                            // Create Modelpart to save line load geometry during the calculation
+                            auto& sub_model_part_line_geom =    rMPMModelPart.GetSubModelPart(submodelpart_name).HasSubModelPart("line_load_geometry")
+                                ? rMPMModelPart.GetSubModelPart(submodelpart_name).GetSubModelPart("line_load_geometry")
+                                : rMPMModelPart.GetSubModelPart(submodelpart_name).CreateSubModelPart("line_load_geometry");
+
+                            // Line Load condition is discretized by point loads
+                            const Condition& new_line_condition = KratosComponents<Condition>::Get("MPMParticleLineLoadCondition");
+
+                            // Create Line Load Condition to save geometry of the line load
+                            Condition::Pointer p_line_condition = new_line_condition.Create(
+                                new_condition_id, i->pGetGeometry(), properties);
+
+                            p_line_condition->SetValuesOnIntegrationPoints(LINE_LOAD, {line_load}, rMPMModelPart.GetProcessInfo());
+                            p_line_condition->SetValuesOnIntegrationPoints(MPC_AREA, mpc_area, rMPMModelPart.GetProcessInfo());
+
+                            // Add the Line Condition to a seperate model part
+                            sub_model_part_line_geom.AddCondition(p_line_condition);
+                            
+                            // Create submodelpart to save inner point load conditions (Point loads at the nodes of line load are saved in a seperate model part)
+                            auto& inner_point_load_model_part =    rMPMModelPart.HasSubModelPart("inner_discretized_load_particles")
+                                ? rMPMModelPart.GetSubModelPart("inner_discretized_load_particles")
+                                : rMPMModelPart.CreateSubModelPart("inner_discretized_load_particles");
+
+                            last_condition_id += 1;
+                            
+                            std::vector<IntegrationPoint<3>> integration_points;
+                            // Create new material point condition (only the conditions at the node of the line condition are created)
+                            std::vector<double> spans = {-1, 1};
+                            IndexType number_of_points_per_span = 0;
+                    
+                            auto integration_info = IntegrationInfo(1, number_of_points_per_span, IntegrationInfo::QuadratureMethod::GRID);
+                    
+                            IntegrationPointUtilities::CreateIntegrationPoints1D(
+                                integration_points, spans, integration_info);
+
+
+                            array_1d<double, 3> local_coordinates;
+                            array_1d<double, 3> xg;
+                            std::vector<array_1d<double, 3>> xg_tmp;
+                            std::vector<double> area_temp(1);
+                            std::vector<array_1d<double, 3>> point_load_tmp = { ZeroVector(3) };
+                            unsigned int counter = 0;
+                            ProcessInfo process_info = ProcessInfo();
+                            std::vector<int> corresponding_condition_id(1);
+                            corresponding_condition_id[0]=0;
+
+                            std::vector<array_1d<double, 3>> mpc_id_list= { ZeroVector(3) };
+                            std::vector<array_1d<double, 3>> mpc_area_list ={ ZeroVector(3) };;
+
+                            // Create only the Point load conditions at the nodes of the line load condition
+                            for ( IndexType i_integration_point = 0; i_integration_point < integration_points.size(); ++i_integration_point )
+                            {
+                                new_condition_id = last_condition_id + 1 ;
+                                // create point load condition
+                                mpc_area[0] = integration_points[i_integration_point].Weight() * r_geometry.DeterminantOfJacobian(i_integration_point);
+                                point_load[0] = mpc_area[0] * line_load[0];
+                                
+                                local_coordinates = integration_points[i_integration_point];
+                                r_geometry.GlobalCoordinates(xg, local_coordinates);
+
+                                mpc_xg[0] = xg;
+                                
+                                typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
+                                Element::Pointer pelem;
+                                Vector N;
+
+                                // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
+                                bool is_found = SearchStructure.FindPointOnMesh(mpc_xg[0], N, pelem, result_begin);
+                                if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::search failed." << std::endl;
+
+                                auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                                    pelem->pGetGeometry(), mpc_xg[0],
+                                    mpc_area[0]);
+
+                                
+                                mpc_area_list[0][counter] = mpc_area[0];
+                                bool create_condition = true;
+
+                                // Point load condition are not created twice
+                                for(auto it=PointLoadConditions.begin(); it!=PointLoadConditions.end(); ++it)
+                                {
+                                    it->CalculateOnIntegrationPoints(MPC_COORD, xg_tmp, rMPMModelPart.GetProcessInfo());
+                                    
+                                    if (mpc_xg[0][0] == xg_tmp[0][0] && mpc_xg[0][1] == xg_tmp[0][1]  && mpc_xg[0][2] == xg_tmp[0][2] )
+                                    {
+                                        create_condition = false;
+                                        it->CalculateOnIntegrationPoints(MPC_AREA, area_temp, rMPMModelPart.GetProcessInfo());
+                                        it->CalculateOnIntegrationPoints(POINT_LOAD, {point_load_tmp}, rMPMModelPart.GetProcessInfo());
+                                        
+                                        area_temp[0] += mpc_area[0];
+                                        point_load_tmp[0]+=point_load[0];
+                                        
+
+                                        it->SetValuesOnIntegrationPoints(MPC_AREA, area_temp, rMPMModelPart.GetProcessInfo());
+                                        it->SetValuesOnIntegrationPoints(POINT_LOAD, {point_load_tmp}, rMPMModelPart.GetProcessInfo());
+                                        
+                                        mpc_id_list[0][counter]=it->Id();
+                                        
+                                    }
+                                }
+
+                                if (create_condition){
+                                    Condition::Pointer p_condition = new_condition.Create(
+                                        new_condition_id, p_new_geometry, properties);
+
+                                    mpc_id_list[0][counter]=new_condition_id;
+                                    
+                                    PointLoadConditions.push_back(p_condition);
+
+                                    if (is_interface)
+                                    {
+                                        p_condition->Set(INTERFACE);
+                                        p_condition->SetValuesOnIntegrationPoints(POINT_LOAD,  mpc_contact_force , process_info);
+                                        
+                                    }
+
+                                    // Setting particle condition's initial condition
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_AREA, mpc_area, process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(POINT_LOAD, { point_load }, process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_CORRESPONDING_CONDITION_ID, corresponding_condition_id, process_info);
+                                    // Mark as boundary condition
+                                    p_condition->Set(BOUNDARY, true);
+
+
+                                    // Add the MP Condition to the model part
+                                    
+                                    rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
+                                    last_condition_id +=1;
+                                        
+                                    }
+                                    counter +=1;
+
+                            
+                                
+                            }
+                            
+                            p_line_condition->SetValuesOnIntegrationPoints(MPC_ID_LIST, {mpc_id_list}, process_info);
+                            p_line_condition->SetValuesOnIntegrationPoints(MPC_AREA_LIST, mpc_area_list, process_info);
+                            
+                        }
+                        // Loop over the conditions to create inner particle condition (dirichlet conditions)
                         else{
                             for ( unsigned int point_number = 0; point_number < integration_point_per_conditions; point_number++ )
                             {
@@ -440,7 +588,7 @@ namespace MPMParticleGeneratorUtility
                                 ProcessInfo process_info = ProcessInfo();
 
                                 // Setting particle condition's initial condition
-                                //p_condition->SetValuesOnIntegrationPoints(MPC_CONDITION_ID, mpc_condition_id, process_info);
+                                //p_condition->SetValuesOnIntegrationPoints(MPC_CORRESPONDING_CONDITION_ID, mpc_condition_id, process_info);
                                 p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
                                 p_condition->SetValuesOnIntegrationPoints(MPC_AREA,  mpc_area  , process_info);
                                 p_condition->SetValuesOnIntegrationPoints(MPC_NORMAL, { mpc_normal }, process_info);

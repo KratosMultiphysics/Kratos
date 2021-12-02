@@ -132,31 +132,32 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
         """
         
         for mpc in self.model_part.Conditions:
-            current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+            if self.variable == KratosMultiphysics.KratosGlobals.GetVariable("POINT_LOAD"):
+                current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+                
+                mpc_coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
             
-            mpc_coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
-           
 
-            if self.interval.IsInInterval(current_time):
+                if self.interval.IsInInterval(current_time):
 
-                self.step_is_active = True
+                    self.step_is_active = True
 
-                for i in range(3):
-                    if not self.value_direction_is_numeric[i]:
-                        if self.aux_function_direction[i].DependsOnSpace() == False: #depends on time only
-                            self.vector_direction[i] = self.aux_function_direction[i].CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0) 
+                    for i in range(3):
+                        if not self.value_direction_is_numeric[i]:
+                            if self.aux_function_direction[i].DependsOnSpace() == False: #depends on time only
+                                self.vector_direction[i] = self.aux_function_direction[i].CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0) 
+                            else: #most general case - space varying function (possibly also time varying)
+                                self.vector_direction[i]= self.aux_function_direction[i].CallFunction(mpc_coord[0],mpc_coord[1],mpc_coord[2],current_time,0.0,0.0,0.0) 
+                    
+                    
+                    if not self.value_is_numeric:
+                        if self.aux_function.DependsOnSpace() == False: #depends on time only
+                            self.value = self.aux_function.CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0) * self.vector_direction
                         else: #most general case - space varying function (possibly also time varying)
-                            self.vector_direction[i]= self.aux_function_direction[i].CallFunction(mpc_coord[0],mpc_coord[1],mpc_coord[2],current_time,0.0,0.0,0.0) 
-                
-                
-                if not self.value_is_numeric:
-                    if self.aux_function.DependsOnSpace() == False: #depends on time only
-                        self.value = self.aux_function.CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0) * self.vector_direction
-                    else: #most general case - space varying function (possibly also time varying)
-                        self.value = self.aux_function.CallFunction(mpc_coord[0],mpc_coord[1],mpc_coord[2],current_time,0.0,0.0,0.0) * self.vector_direction
-                else:
-                    self.value = self.vector_direction * self.modulus
-                        
-
-                mpc.SetValuesOnIntegrationPoints(KratosParticle.POINT_LOAD,[self.value],self.model_part.ProcessInfo)
+                            self.value = self.aux_function.CallFunction(mpc_coord[0],mpc_coord[1],mpc_coord[2],current_time,0.0,0.0,0.0) * self.vector_direction
+                    else:
+                        self.value = self.vector_direction * self.modulus
+                            
+                    if(mpc.Has(KratosParticle.POINT_LOAD)):
+                        mpc.SetValuesOnIntegrationPoints(KratosParticle.POINT_LOAD,[self.value],self.model_part.ProcessInfo)
                 

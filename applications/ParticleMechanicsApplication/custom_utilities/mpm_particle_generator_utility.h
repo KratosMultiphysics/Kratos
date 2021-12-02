@@ -24,6 +24,8 @@
 #include "utilities/quadrature_points_utility.h"
 #include "particle_mechanics_application_variables.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
+#include "integration/integration_info.h"
+#include "integration/integration_point_utilities.h"
 
 
 namespace Kratos

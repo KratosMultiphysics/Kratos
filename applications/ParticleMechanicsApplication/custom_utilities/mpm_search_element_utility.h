@@ -23,12 +23,16 @@
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/quadrature_points_utility.h"
 
+#include "integration/integration_info.h"
+#include "integration/integration_point_utilities.h"
+
 #include "particle_mechanics_application_variables.h"
 
 #include "geometries/geometry.h"
 #include "includes/model_part.h"
 
 #include "pqmpm_partition_utilities.h"
+#include <math.h>
 
 namespace Kratos
 {
@@ -436,6 +440,154 @@ namespace MPMSearchElementUtility
             BinBasedSearchElementsAndConditions<TDimension>(rMPMModelPart,
                 rBackgroundGridModelPart, missing_elements, missing_conditions,
                 MaxNumberOfResults, Tolerance);
+
+        for (auto& submodelpart : rMPMModelPart.SubModelParts())
+        {
+            // Create additional Point load conditions if there is a line load
+            if (submodelpart.HasSubModelPart("line_load_geometry"))
+            {
+                Vector N;
+                const int max_result = 1000;
+
+                // Submodelpart where inner point load conditions are saved; are recreated in each time-step
+                auto& inner_point_load_model_part = rMPMModelPart.GetSubModelPart("inner_discretized_load_particles");
+                    
+                std::vector<Kratos::IndexType> toRemove;
+                const auto it_condition_begin = inner_point_load_model_part.Conditions().begin();
+                for (int c = 0; c < static_cast<int>(inner_point_load_model_part.Conditions().size()); ++c) {
+                    auto it_condition = it_condition_begin + c;
+                    toRemove.push_back(it_condition->Id());
+                }
+                
+                for (unsigned int c : toRemove) inner_point_load_model_part.RemoveConditionFromAllLevels(c);
+                
+                IndexType condition_id = submodelpart.GetRootModelPart().Conditions().back().Id() + 1;
+                
+
+                BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
+                SearchStructure.UpdateSearchDatabase();
+                typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(max_result);
+
+                // Line load geometry is saved in this submodelpart
+                auto& line_load_model_part = submodelpart.GetSubModelPart("line_load_geometry");
+                PointerVector<Condition> toLoop;
+
+                for(auto it=line_load_model_part.ConditionsBegin(); it!=line_load_model_part.ConditionsEnd(); ++it){
+                    toLoop.push_back(*(it.base()));
+                }
+
+                // Delete Point Load and Area at point load conditions
+                std::vector<double> mpc_area(1);
+                std::vector<int> mpc_corresponding_condition_id(1);
+                for(auto it=submodelpart.ConditionsBegin(); it!=submodelpart.ConditionsEnd(); ++it){
+                    it->SetValuesOnIntegrationPoints(MPC_AREA,  mpc_area , rMPMModelPart.GetProcessInfo());
+                } 
+
+                for(auto it=toLoop.begin(); it!=toLoop.end(); ++it)
+                {
+                    Properties::Pointer properties = it->pGetProperties();
+                    Geometry< Node < 3 > >& r_geometry = it->GetGeometry(); // current line condition's geometry
+                    
+                    std::vector<IntegrationPoint<3>> integration_points;
+                    
+                    std::vector<double> spans = {-1, 1};
+
+                    std::vector<array_1d<double, 3>> mpc_id_list;
+                    std::vector<array_1d<double, 3>> mpc_area_list;
+                    it->CalculateOnIntegrationPoints(MPC_ID_LIST, mpc_id_list, rMPMModelPart.GetProcessInfo());
+                    it->CalculateOnIntegrationPoints(MPC_AREA_LIST, mpc_area_list, rMPMModelPart.GetProcessInfo());
+
+                    // Update the line load geometry
+                    std::vector<array_1d<double, 3>> new_position;
+                    for ( IndexType i = 0; i < r_geometry.size(); i++ ) {
+                        // Update Point load and area at the nodes
+                        submodelpart.pGetCondition(mpc_id_list[0][i])->CalculateOnIntegrationPoints(MPC_COORD, new_position, rMPMModelPart.GetProcessInfo());
+                        r_geometry[i].X() =new_position[0][0];
+                        r_geometry[i].Y() =new_position[0][1];
+                        r_geometry[i].Z() =new_position[0][2];  
+                    }
+                    IndexType number_of_points_per_span = round(r_geometry.Length()/0.005)*2;
+                    
+
+                    
+                    auto integration_info = IntegrationInfo(1, number_of_points_per_span, IntegrationInfo::QuadratureMethod::GRID);
+                    
+                    IntegrationPointUtilities::CreateIntegrationPoints1D(
+                                integration_points, spans, integration_info);
+                    
+                    
+                    array_1d<double, 3> local_coordinates;
+                    array_1d<double, 3> xg;
+                    
+                    
+                    std::vector<array_1d<double, 3>> line_load = { ZeroVector(3) };
+                    std::vector<array_1d<double, 3>> point_load = { ZeroVector(3) };
+                    
+
+                    it->CalculateOnIntegrationPoints(LINE_LOAD, line_load, rMPMModelPart.GetProcessInfo());
+
+                    // Update Area 
+                    mpc_area_list[0][0]= integration_points[0].Weight() * r_geometry.DeterminantOfJacobian(0);
+                    mpc_area_list[0][1]= integration_points[integration_points.size()- 1].Weight() * r_geometry.DeterminantOfJacobian(integration_points.size()-1);
+                    it->SetValuesOnIntegrationPoints(MPC_AREA_LIST, mpc_area_list, rMPMModelPart.GetProcessInfo());
+
+                    // Update point load of existing conditions
+                    for ( IndexType i = 0; i < r_geometry.size(); i++ ) {
+
+                        submodelpart.pGetCondition(mpc_id_list[0][i])->CalculateOnIntegrationPoints(MPC_AREA, mpc_area, rMPMModelPart.GetProcessInfo());
+
+                        mpc_area[0] += mpc_area_list[0][i];
+                        point_load[0] = mpc_area[0] * line_load[0];
+
+                        submodelpart.pGetCondition(mpc_id_list[0][i])->SetValuesOnIntegrationPoints(MPC_AREA, mpc_area, rMPMModelPart.GetProcessInfo());
+                        submodelpart.pGetCondition(mpc_id_list[0][i])->SetValuesOnIntegrationPoints(POINT_LOAD, {point_load}, rMPMModelPart.GetProcessInfo());
+                         
+                    }
+
+                    // Create only inner point load conditions, Conditions at the nodes are already created
+                    const Condition& new_condition = KratosComponents<Condition>::Get("MPMParticlePointLoadCondition");
+
+                    for ( IndexType i_integration_point = 1; i_integration_point < integration_points.size()-1; ++i_integration_point )
+                    {
+                        local_coordinates = integration_points[i_integration_point];
+                        
+                        r_geometry.GlobalCoordinates(xg, local_coordinates);
+                        
+                        typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
+                        Element::Pointer pelem;
+                        bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
+                        
+                        auto p_quadrature_point_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                            pelem->pGetGeometry(),
+                            xg,
+                            integration_points[i_integration_point].Weight());
+
+                        Condition::Pointer p_condition = new_condition.Create(
+                                    condition_id, p_quadrature_point_geometry, properties);
+
+                        point_load[0] = line_load[0] * integration_points[i_integration_point].Weight() * r_geometry.DeterminantOfJacobian(i_integration_point);
+
+                        p_condition->SetValuesOnIntegrationPoints(POINT_LOAD,  point_load , rMPMModelPart.GetProcessInfo());
+                        p_condition->SetValuesOnIntegrationPoints(MPC_COORD,  {xg} , rMPMModelPart.GetProcessInfo());
+
+                        if (i_integration_point < integration_points.size()/2)
+                            mpc_corresponding_condition_id[0] = submodelpart.pGetCondition(mpc_id_list[0][0])->Id();
+                        else
+                            mpc_corresponding_condition_id[0] = submodelpart.pGetCondition(mpc_id_list[0][1])->Id();
+
+                        p_condition->SetValuesOnIntegrationPoints(MPC_CORRESPONDING_CONDITION_ID,  mpc_corresponding_condition_id , rMPMModelPart.GetProcessInfo());
+                       
+                        
+                        inner_point_load_model_part.AddCondition(p_condition);
+
+                        condition_id++;
+
+                    }
+                }
+                
+                
+            }
+        }
     }
 } // end namespace MPMSearchElementUtility
 
