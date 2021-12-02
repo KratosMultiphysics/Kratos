@@ -1172,7 +1172,7 @@ BoundedVector<double, TNumNodes + 1> TransonicPerturbationPotentialFlowElement<T
     const GeometryType& r_geom = this->GetGeometry();
     const GeometryType& r_upwind_geom = pGetUpwindElement()->GetGeometry();
 
-    array_1d<size_t, TNumNodes> upwind_node_key = GetAssemblyKey(r_geom, r_upwind_geom, rCurrentProcessInfo);
+    const array_1d<size_t, TNumNodes> upwind_node_key = GetAssemblyKey(r_geom, r_upwind_geom, rCurrentProcessInfo);
 
     ElementalData currentElementdata;
     ElementalData upwindElementdata;
@@ -1216,6 +1216,8 @@ array_1d<size_t, TNumNodes> TransonicPerturbationPotentialFlowElement<TDim, TNum
                 upwind_element_ids[i]);
 
         upwind_node_key[i] = std::distance(current_element_ids.begin(), current_id);
+        if (upwind_node_key[i] > TNumNodes-1)
+            upwind_node_key[i] = TNumNodes;
     }
 
     return upwind_node_key;
