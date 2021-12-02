@@ -55,13 +55,6 @@ class ComputeDragProcess(KratosMultiphysics.Process):
             raise Exception('No "model_part_name" was specified!')
         else:
             self.model_part = model[self.params["model_part_name"].GetString()]
-        
-        self.forced_flush_step_frequency = self.params["forced_flush_step_frequency"].GetInt()
-        # If write_buffer_size is set to default, change it for a large number
-        # so the forced_flush_step_frequency governs the flush.
-        if self.params["output_file_settings"].Has("write_buffer_size"):
-            if self.params["output_file_settings"]["write_buffer_size"].GetInt() < 0 and self.forced_flush_step_frequency > 0:
-                self.params["output_file_settings"]["write_buffer_size"].SetInt(10)
 
     def ExecuteInitialize(self):
 
@@ -108,9 +101,6 @@ class ComputeDragProcess(KratosMultiphysics.Process):
                 # in the file writer when restarting
                 if (self.write_drag_output_file):
                     self.output_file.write(str(current_time)+" "+format(drag_force[0],self.format)+" "+format(drag_force[1],self.format)+" "+format(drag_force[2],self.format)+"\n")
-
-                    if self.forced_flush_step_frequency > 0 and current_step % self.forced_flush_step_frequency == 0:
-                        self.output_file.flush()
 
     def ExecuteFinalize(self):
         if (self.write_drag_output_file):
