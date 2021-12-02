@@ -206,7 +206,7 @@ namespace Kratos
         if (rValues.size() != 1)
             rValues.resize(1);
 
-        if (rVariable == NORMAL) {
+        if (rVariable == MPC_NORMAL) {
             rValues[0] = m_normal;
         }
         else if (rVariable == MPC_CONTACT_FORCE) {
@@ -278,7 +278,7 @@ namespace Kratos
             << "Only 1 value per integration point allowed! Passed values vector size: "
             << rValues.size() << std::endl;
 
-        if (rVariable == NORMAL) {
+        if (rVariable == MPC_NORMAL) {
             m_normal = rValues[0];
         }
         else if (rVariable == MPC_DISPLACEMENT) {
