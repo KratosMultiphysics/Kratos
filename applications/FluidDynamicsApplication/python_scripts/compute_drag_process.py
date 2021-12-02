@@ -32,8 +32,7 @@ class ComputeDragProcess(KratosMultiphysics.Process):
                 "print_drag_to_screen"      : false,
                 "print_format"              : ".8f",
                 "write_drag_output_file"    : true,
-                "output_file_settings": {},
-                "forced_flush_step_frequency" : -1
+                "output_file_settings": {}
             }
             """)
 
