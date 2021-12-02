@@ -10,6 +10,7 @@ if not CheckIfApplicationsAvailable("ParticleMechanicsApplication"):
     raise ImportError("The ParticleMechanicsApplication is not available!")
 import KratosMultiphysics.ParticleMechanicsApplication as KPM
 from KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis import ParticleMechanicsAnalysis
+import numpy as np
 
 # Other imports
 import math
@@ -28,6 +29,9 @@ class ParticleMechanicsNeumannWrapper(kratos_base_wrapper.KratosBaseWrapper):
         model_part_name = self.project_parameters["coupling_settings"]["interface_model_part_name"].GetString() # TODO this should be specified in "solver_wrapper_settings" in teh cosim-json
         model_part = self.model.GetModelPart(model_part_name)
         
+        mpm_model_part = model_part.GetRootModelPart()
+        model_part_discretized_line_load = mpm_model_part.GetSubModelPart("inner_discretized_load_particles")
+        
         # calculate_mpm=False
         ## Transfer information from coupling_mp to mp
         for coupling_node in coupling_model_part.Nodes:
@@ -35,7 +39,22 @@ class ParticleMechanicsNeumannWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
             ## IMPOSED Point load
             point_load = coupling_node.GetSolutionStepValue(KM.CONTACT_FORCE)
+
+            counter = 0
+            corresponding_conditions =[]
+            for point_cond in model_part_discretized_line_load.Conditions:
+                corresponding_condition_id = point_cond.CalculateOnIntegrationPoints(KPM.MPC_CORRESPONDING_CONDITION_ID, model_part.ProcessInfo)[0]
+                if (corresponding_condition_id == coupling_id):
+                    counter +=1
+                    corresponding_conditions.append(point_cond)
+            
+            point_load = point_load /(counter + 1)
+            
             model_part.GetCondition(coupling_id).SetValuesOnIntegrationPoints(KPM.POINT_LOAD, [point_load], model_part.ProcessInfo)
+
+            for point_cond in corresponding_conditions:
+                point_cond.SetValuesOnIntegrationPoints(KPM.POINT_LOAD, [point_load], model_part.ProcessInfo)
+
         
         super().SolveSolutionStep()
 

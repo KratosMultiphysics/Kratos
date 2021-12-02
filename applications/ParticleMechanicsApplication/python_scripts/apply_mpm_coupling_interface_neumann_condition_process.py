@@ -65,6 +65,8 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
     def ExecuteInitializeSolutionStep(self):
         ### Clone delta time
         self.coupling_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        mpm_model_part = self.model_part.GetRootModelPart()
+        model_part_discretized_line_load = mpm_model_part.GetSubModelPart("inner_discretized_load_particles")
 
         # ### Send Point Load from coupling node to condition
 
@@ -72,8 +74,19 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
             coupling_id  = coupling_node.Id
             point_load = coupling_node.GetSolutionStepValue(KratosMultiphysics.CONTACT_FORCE)
 
+            counter = 0
+            corresponding_conditions =[]
+            for point_cond in model_part_discretized_line_load.Conditions:
+                corresponding_condition_id = point_cond.CalculateOnIntegrationPoints(KratosParticle.MPC_CORRESPONDING_CONDITION_ID, self.model_part.ProcessInfo)[0]
+                if (corresponding_condition_id == coupling_id):
+                    counter +=1
+                    corresponding_conditions.append(point_cond)
+            
+            point_load = point_load /(counter + 1)
             self.model_part.GetCondition(coupling_id).SetValuesOnIntegrationPoints(KratosParticle.POINT_LOAD, [point_load], self.model_part.ProcessInfo)
 
+            for point_cond in corresponding_conditions:
+                point_cond.SetValuesOnIntegrationPoints(KratosParticle.POINT_LOAD, [point_load], self.model_part.ProcessInfo)
 
 
     def ExecuteFinalizeSolutionStep(self):
@@ -101,6 +114,8 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
                 
                 
                 self.coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,displacement)
+                # save total displacement at the conditions for the output
+                mpc.SetValuesOnIntegrationPoints(KratosParticle.MP_DISPLACEMENT, [displacement], self.model_part.ProcessInfo)
 
     # Local functions
     def _prepare_coupling_model_part(self, coupling_model_part):
