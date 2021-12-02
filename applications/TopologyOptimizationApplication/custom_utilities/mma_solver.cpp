@@ -78,7 +78,7 @@ void MMASolver::SetAsymptotes(double init, double decrease, double increase)
     }
 
 void MMASolver::Update(double *xval, const double *dfdx, const double *gx, const double *dgdx,
-	const double *xmin, const double *xmax, const double *xold1, const double *xold2, const int iter, double *low, double *upp)
+	const double *xmin, const double *xmax, double *xold1, double *xold2, const int iter, double *low, double *upp)
     {
         KRATOS_TRY
 
@@ -86,8 +86,12 @@ void MMASolver::Update(double *xval, const double *dfdx, const double *gx, const
         GenSub(xval, dfdx, gx, dgdx, xmin, xmax, xold1, xold2, iter, low, upp);
 
         // Update xolds
-        ///xold2 = xold1;
-        ///std::copy_n(xval, nano, xold1.data());
+        for (int i=0; i<nano; i++)
+        {
+            xold2[i]=xold1[i];
+            xold1[i]=xval[i];
+        }
+        //std::copy_n(xval, nano, xold1.data());
 
         // Solve the dual with an interior point method
         SolveDIP(xval, low, upp);
@@ -372,7 +376,7 @@ void MMASolver::XYZofLAMBDA(double *x, double *low, double *upp)
     }
 
 void MMASolver::GenSub(const double *xval, const double *dfdx, const double *gx, const double *dgdx, const double *xmin,
-                        const double *xmax, const double *xold1, const double *xold2, const int iter,  double *low, double *upp)
+                        const double *xmax, double *xold1, double *xold2, const int iter,  double *low, double *upp)
     {
         
         KRATOS_TRY

@@ -209,7 +209,7 @@ public:
 
 /// MMA as a optimization Algorithm
 
-	void UpdateDensitiesUsingMMAMethod( char update_type[], double volfrac,  double OptItr, double  Obj_Function_initial)
+	void UpdateDensitiesUsingMMAMethod( char update_type[], double volfrac,  double OptItr)
 	{
 		KRATOS_TRY;
 		if ( strcmp( update_type , "MMA_algorithm" ) == 0 )
@@ -252,10 +252,10 @@ public:
 				double xval = element_i->GetValue(X_PHYS);
 
 				//Density value of the previous iteration
-				double xold_1 = element_i->GetValue(X_PHYS_OLD_1);
+				double xold_1 = element_i->GetValue(X_PHYS_OLD);
 
 				//Density of the iteration before that (OptIter-2)
-				double xold_2 = element_i->GetValue(X_PHYS_OLD_2);
+				double xold_2 = element_i->GetValue(X_PHYS_OLD_1);
 
 				//Value of the objective function sensitivity
 				double dfdx = (element_i->GetValue(DCDX));
@@ -269,17 +269,17 @@ public:
 				//Value of the lower bound of the previous iteration
 				double lower_boundary = element_i->GetValue(LOW);
 
-				double volume = element_i->GetValue(VOLUMETRIC_STRAIN);
-				std::cout << "Volume strain: "<< volume << std::endl;
+				//double volume = element_i->GetValue(VOLUMETRIC_STRAIN);
+				//std::cout << "Volume strain: "<< volume << std::endl;
+
+				double youngs_modulus = element_i->GetValue(E_0);
 
 				
 				double Xmin = 0;
 				double Xmax = 1;
 				vol_summ = vol_summ + xval;
-
-				
 				x[iteration]= xval;
-				df[iteration]= dfdx/(Obj_Function_initial*nn*1e-3);
+				df[iteration]= dfdx/youngs_modulus;
 				dg[iteration] = dgdx;
 				xmax[iteration] = Xmax;
 				xmin[iteration] = Xmin; 
@@ -299,7 +299,7 @@ public:
 
 			g[0] = 0;
 			vol_frac_iteration = vol_summ;
-			g[0] = vol_frac_iteration - volfrac*nn;
+			g[0] = (vol_frac_iteration - volfrac*nn);
 
 			double Xminn = 0;
 			double Xmaxx= 1;
@@ -320,10 +320,12 @@ public:
 
 			for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin();
 					elem_i!=mrModelPart.ElementsEnd(); elem_i++)
-				{	
+				{
 				elem_i->SetValue(X_PHYS, x[jiter]);
 				elem_i->SetValue(UPP, upp[jiter]);
 				elem_i->SetValue(LOW, low[jiter]);
+				elem_i->SetValue(X_PHYS_OLD,xold1[jiter]);
+				elem_i->SetValue(X_PHYS_OLD_1,xold2[jiter]);
 				jiter= jiter +1;
 				}
 

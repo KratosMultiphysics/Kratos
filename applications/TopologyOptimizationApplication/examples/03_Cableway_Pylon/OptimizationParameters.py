@@ -9,7 +9,7 @@ optimization_method = "simp_method"
 simp_property         	= 1             # Property ID of the material
 penalty               	= 3             # Penalty Factor - Recomended: 3
 continuation_strategy 	= 0             # Options: Activated=1, Deactivated=0
-E_min                 	= 0.000000001   # Elastic modulus of void material
+E_min                 	= 100			# Elastic modulus of void material
 initial_volume_fraction = 0.15			# Initial densitiy distribution
 density_filter			= "densit"		# density filter active if "density" else unactive
 
@@ -23,7 +23,7 @@ filter_type = "sensitivity"
 filter_kernel = "linear"
 # options: "linear"
 
-filter_radius     		  	  = 1.5
+filter_radius     		  	  = 0.75
 max_elements_in_filter_radius = 500 # Defines max number of elements considered within
 							        # specified filter radius (reduces memory footprint)
 
@@ -38,11 +38,11 @@ q_max = 2 # Recomended: 2
 # OPTIMIZATION ALGORITHM
 #========================================================================================
     
-optimization_algorithm = "oc_algorithm"  #"MMA_algorithm"  #"oc_algorithm" für OC und "MMA_algorithm" für MMA
+optimization_algorithm = "MMA_algorithm"  #"MMA_algorithm"  #"oc_algorithm" für OC und "MMA_algorithm" für MMA
 # options: "oc_algorithm"
     
 # General convergence criterions
-max_opt_iterations = 100
+max_opt_iterations =   100
 relative_tolerance = 0.000001      
 increasing_obj     = 0 # Stops the optimization when objective function value is increasing
 # options: Activated=1, Deactivated=0

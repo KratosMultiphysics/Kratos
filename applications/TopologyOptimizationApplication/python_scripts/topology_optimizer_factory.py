@@ -397,23 +397,17 @@ class SIMPMethod:
 
             # RUN FEM: Call analyzer with current X to compute response (global_strain_energy, dcdx)
             self.analyzer(self.controller.get_controls(), response, opt_itr)
-
-            if opt_itr == 1:
-                Obj_Function = response[only_F_id]["func"]
-                Obj_Function_initial = Obj_Function
             
-            Obj_initial = float(Obj_Function_initial)
-
             
             # Filter sensitivities
-           # print("\n::[Filter Sensitivities]::")
-            #self.filter_utils.ApplyFilterSensitivity(self.config.filter_type , self.config.filter_kernel )
+            print("\n::[Filter Sensitivities]::")
+            self.filter_utils.ApplyFilterSensitivity(self.config.filter_type , self.config.filter_kernel )
 
 
             print("\n::[Update Densities with MMA]::")
             self.design_update_utils.UpdateDensitiesUsingMMAMethod( self.config.optimization_algorithm,
                                                 self.config.initial_volume_fraction,
-                                                opt_itr,  Obj_initial)
+                                                opt_itr)
 
             # Filtering of the densities
             if (self.config.density_filter == "density"):
@@ -488,9 +482,9 @@ class SIMPMethod:
 
             # Set X_PHYS_OLD, DCDX_OLD and DCDX_OLD_2  to update the value for the next simulation's "change percentage"
             for element_i in self.opt_model_part.Elements:
-                element_i.SetValue(X_PHYS_OLD_2, element_i.GetValue(X_PHYS_OLD_1))
-                element_i.SetValue(X_PHYS_OLD_1, element_i.GetValue(X_PHYS_OLD))
-                element_i.SetValue(X_PHYS_OLD, element_i.GetValue(X_PHYS))
+                #element_i.SetValue(X_PHYS_OLD_2, element_i.GetValue(X_PHYS_OLD_1))
+                #element_i.SetValue(X_PHYS_OLD_1, element_i.GetValue(X_PHYS_OLD))
+                #element_i.SetValue(X_PHYS_OLD, element_i.GetValue(X_PHYS))
                 element_i.SetValue(DCDX_OLD_2, element_i.GetValue(DCDX_OLD))
                 element_i.SetValue(DCDX_OLD, element_i.GetValue(DCDX))
 
