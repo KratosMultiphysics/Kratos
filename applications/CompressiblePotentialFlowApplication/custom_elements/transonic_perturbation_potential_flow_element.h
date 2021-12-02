@@ -199,6 +199,43 @@ public:
     ///@}
 protected:
 
+    BoundedVector<double, TNumNodes + 1> AssembleDensityDerivativeAndShapeFunctions(const double densityDerivativeWRTVelocitySquared, const double densityDerivativeWRTUpwindVelocitySquared, const array_1d<double, TDim>& velocity, const array_1d<double, TDim>& upwindVelocity,const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void CalculateRightHandSideNormalElement(VectorType& rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateLeftHandSideNormalElement(MatrixType& rLeftHandSideMatrix,
+                                            const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
+                                          const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void CalculateRightHandSideWakeElement(VectorType& rRightHandSideVector,
+                                          const ProcessInfo& rCurrentProcessInfo);
+
+
+    virtual void AssembleSupersonicLeftHandSide(MatrixType& rLeftHandSideMatrix,
+        const double densityDerivativeWRTVelocity,
+        const double densityDerivativeWRTUpwindVelocity,
+        const array_1d<double, TDim> velocity,
+        const array_1d<double, TDim> upwindVelocity,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void CalculateLeftHandSideContribution(BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_total,
+                                         const ProcessInfo& rCurrentProcessInfo,
+                                         const array_1d<double, TDim>& rVelocity,
+                                         const ElementalData& rData);
+
+    GlobalPointer<Element> pGetUpwindElement() const;
+
+    bool CheckUpwindElement();
+
+    void pSetUpwindElement(GlobalPointer<Element> pUpwindElement);
+
+    array_1d<double, 3> GetEdgeNormal(const GeometryType& rEdge);
+
+    virtual void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
+
 private:
     ///@}
     ///@name Member Variables
@@ -208,7 +245,6 @@ private:
 
     ///@name Private Operators
     ///@{
-    inline GlobalPointer<Element> pGetUpwindElement() const;
 
     void GetWakeDistances(array_1d<double,
                          TNumNodes>& distances) const;
@@ -232,34 +268,17 @@ private:
     void CalculateLeftHandSideSubsonicElement(MatrixType& rLeftHandSideMatrix,
                                             const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateRightHandSideNormalElement(VectorType& rRightHandSideVector,
-                                            const ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateLeftHandSideNormalElement(MatrixType& rLeftHandSideMatrix,
-                                            const ProcessInfo& rCurrentProcessInfo);
-
     // void CalculateRightHandSideSupersonicElement(VectorType& rRightHandSideVector,
     //                                         const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
-                                          const ProcessInfo& rCurrentProcessInfo);
-
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateLeftHandSideWakeConditions(
-                                            const ElementalData<TNumNodes, TDim>& rData,
+                                            const ElementalData& rData,
                                             const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateRightHandSideWakeElement(VectorType& rRightHandSideVector,
-                                          const ProcessInfo& rCurrentProcessInfo);
-
     BoundedVector<double, TNumNodes> CalculateRightHandSideWakeConditions(
-                                            const ElementalData<TNumNodes, TDim>& rData,
+                                            const ElementalData& rData,
                                             const ProcessInfo& rCurrentProcessInfo,
                                             const array_1d<double, TDim>& rDiff_velocity);
-
-    void CalculateLeftHandSideContribution(BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_total,
-                                         const ProcessInfo& rCurrentProcessInfo,
-                                         const array_1d<double, TDim>& rVelocity,
-                                         const ElementalData<TNumNodes, TDim>& rData);
 
     void CalculateLeftHandSideSubdividedElement(Matrix& lhs_positive,
                                                Matrix& lhs_negative,
@@ -301,25 +320,13 @@ private:
                                     const ElementalData& rData,
                                     unsigned int& rRow) const;
 
-    void AssembleSupersonicLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                        const double densityDerivativeWRTVelocity,
-                                        const double densityDerivativeWRTUpwindVelocity,
-                                        const array_1d<double, TDim> velocity,
-                                        const array_1d<double, TDim> upwindVelocity,
-                                        const ProcessInfo& rCurrentProcessInfo);
-
-    BoundedVector<double, TNumNodes + 1> AssembleDensityDerivativeAndShapeFunctions(const double densityDerivativeWRTVelocitySquared, const double densityDerivativeWRTUpwindVelocitySquared, const array_1d<double, TDim>& velocity, const array_1d<double, TDim>& upwindVelocity,const ProcessInfo& rCurrentProcessInfo);
-
     array_1d<size_t, TNumNodes> GetAssemblyKey(const GeometryType& rGeom, const GeometryType& rUpwindGeom, const ProcessInfo& rCurrentProcessInfo);
-
-    void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
 
     void FindUpwindEdge(GeometryType& rUpwindEdge,
                         const ProcessInfo& rCurrentProcessInfo);
 
     void GetElementGeometryBoundary(GeometriesArrayType& rElementGeometryBoundary);
 
-    array_1d<double, 3> GetEdgeNormal(const GeometryType& rEdge);
 
     void SelectUpwindElement(std::vector<IndexType>& rUpwindElementNodesIds,
                              GlobalPointersVector<Element>& rUpwindElementCandidates);
