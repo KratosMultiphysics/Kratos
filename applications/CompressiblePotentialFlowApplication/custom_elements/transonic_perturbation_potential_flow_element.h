@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/element.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {
@@ -45,22 +46,13 @@ template <int TDim, int TNumNodes>
 class TransonicPerturbationPotentialFlowElement : public Element
 {
 public:
-    template <unsigned int NumNodes, unsigned int Dim>
-    struct ElementalData
-    {
-        array_1d<double, TNumNodes> potentials, distances;
-        double vol;
-
-        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-        array_1d<double, TNumNodes> N;
-    };
-
     ///@name Type Definitions
     ///@{
 
     typedef Element BaseType;
 
     typedef PointerVector<GeometryType> GeometriesArrayType;
+    typedef PotentialFlowUtilities::ElementalData<TNumNodes, TDim> ElementalData;
 
     ///@}
     ///@name Pointer Definitions
