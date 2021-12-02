@@ -1187,6 +1187,15 @@ BoundedVector<double, TNumNodes + 1> TransonicPerturbationPotentialFlowElement<T
     BoundedVector<double, TNumNodes + 1> assembly_DNV;
     assembly_DNV.clear();
 
+    // Correct upwind keys for wake elements
+    for (std::size_t i = 0; i < upwind_node_key.size(); i++)
+    {
+        if (upwind_node_key[i] > TNumNodes-1)
+        {
+            upwind_node_key[i] = TNumNodes;
+        }
+    }
+
     for (int i = 0; i < TNumNodes; i++)
     {
         assembly_DNV[i] += current_DNV[i];
@@ -1206,6 +1215,8 @@ array_1d<size_t, TNumNodes> TransonicPerturbationPotentialFlowElement<TDim, TNum
     EquationIdVectorType upwind_element_ids, current_element_ids;
 
     upwind_node_key.clear();
+
+    KRATOS_WARNING_IF("TransonicElement", pGetUpwindElement()->GetValue(WAKE)) << "Updwind wake element detected!!" << std::endl;
 
     pGetUpwindElement()->EquationIdVector(upwind_element_ids, rCurrentProcessInfo);
     this->EquationIdVector(current_element_ids, rCurrentProcessInfo);
