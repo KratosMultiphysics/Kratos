@@ -94,11 +94,13 @@ namespace Kratos
   		  SetFirstAvailableBlockIndex(0);
 		  SetNumberOfAvailableBlocks(AllocatableDataSize() / block_size_after_alignment);
 
-		  SizeType i_block = 0;
-		  for (auto p = GetData(); i_block < GetNumberOfBlocks(); p += block_size_after_alignment)
-			  *p = ++i_block;
+		//   SizeType i_block = 0;
+		  *mpData = -1;
 
-		  KRATOS_DEBUG_CHECK_EQUAL(i_block, GetNumberOfAvailableBlocks());
+		//   for (auto p = GetData(); i_block < GetNumberOfBlocks(); p += block_size_after_alignment)
+		// 	  *p = ++i_block;
+
+		//   KRATOS_DEBUG_CHECK_EQUAL(i_block, GetNumberOfAvailableBlocks());
 	  }
 
 	  /// This function does not throw and returns zero if cannot allocate
@@ -112,8 +114,18 @@ namespace Kratos
 		    lock();
 			  
 			BlockType * p_result = GetData() + (GetFirstAvailableBlockIndex() * GetBlockSize(mBlockSizeInBytes));
+			if(*p_result < 0) {
+				*p_result = -(*p_result);
+				if(GetNumberOfAvailableBlocks() > 1) {
+					*(p_result + GetBlockSize(mBlockSizeInBytes)) = -(*p_result + 1);
+				}
+			}
+				
 			KRATOS_DEBUG_CHECK(Has(p_result));
 			SetFirstAvailableBlockIndex(*p_result);
+
+			
+
 			SetNumberOfAvailableBlocks(GetNumberOfAvailableBlocks()-1);
 	
 			unlock();
