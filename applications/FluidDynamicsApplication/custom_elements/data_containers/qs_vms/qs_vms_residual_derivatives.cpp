@@ -79,7 +79,7 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::Check(
 template <unsigned int TDim, unsigned int TNumNodes>
 GeometryData::IntegrationMethod QSVMSResidualDerivatives<TDim, TNumNodes>::GetIntegrationMethod()
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 

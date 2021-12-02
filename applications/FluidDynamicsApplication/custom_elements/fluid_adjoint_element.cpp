@@ -302,7 +302,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Initialize(const
 
         const GeometryType& r_geometry = this->GetGeometry();
         const auto& r_shape_functions =
-            r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+            r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
         mpConstitutiveLaw->InitializeMaterial(r_properties, r_geometry,
                                               row(r_shape_functions, 0));
@@ -658,7 +658,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidShapeDer
         GeometricalSensitivityUtility::ShapeFunctionsGradientType dNdX_derivative;
         const Matrix& rJ = J[g];
         const Matrix& rDN_De = DN_De[g];
-        const double inv_detJ = 1.0 / MathUtils<double>::DetMat(rJ);
+        const double inv_detJ = 1.0 / MathUtils<double>::Det(rJ);
         GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
 
         ShapeParameter deriv;
