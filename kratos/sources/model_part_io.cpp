@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/model_part_io.h"
+#include "includes/kratos_filesystem.h"
 #include "input_output/logger.h"
 #include "utilities/quaternion.h"
 #include "utilities/openmp_utils.h"
@@ -829,7 +830,7 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
     const fs::path folder_name = base_path.parent_path() / raw_file_name += "_partitioned";
 
     fs::remove_all(folder_name); // to remove leftovers
-    fs::create_directory(folder_name);
+    FilesystemExtensions::MPISafeCreateDirectories(folder_name.string());
 
     for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
     {

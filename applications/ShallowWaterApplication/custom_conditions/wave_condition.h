@@ -258,7 +258,9 @@ protected:
         bool integrate_by_parts;
         double gravity;
         double height;
+        double depth;
         double length;
+        double amplitude;
         double stab_factor;
         double relative_dry_height;
         array_1d<double,3> velocity;
@@ -269,6 +271,7 @@ protected:
         array_1d<double,3> b1;
         array_1d<double,3> b2;
 
+        array_1d<double,TNumNodes> nodal_f;
         array_1d<double,TNumNodes> nodal_h;
         array_1d<double,TNumNodes> nodal_z;
         array_1d<array_1d<double,3>,TNumNodes> nodal_v;

@@ -223,6 +223,9 @@ private:
                     inner_loops,
                     is_trimmed);
 
+            /// Sets the brep as geometry parent of the nurbs surface.
+            p_surface->SetGeometryParent(p_brep_surface.get());
+
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
 
             ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
