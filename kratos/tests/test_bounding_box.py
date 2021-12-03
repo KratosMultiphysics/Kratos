@@ -1,8 +1,6 @@
 import KratosMultiphysics as KM
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import sys
 
 class TestArray1DInterface(KratosUnittest.TestCase):
     def CreateModelPart(self):
@@ -53,8 +51,7 @@ class TestArray1DInterface(KratosUnittest.TestCase):
         self._CheckBoundingBoxPoints(bb)
 
     def _CheckBoundingBoxPoints(self, bounding_box):
-        min_point = bounding_box.GetMinPoint()
-        max_point = bounding_box.GetMaxPoint()
+        min_point, max_point = bounding_box.GetPoints()
 
         self.assertAlmostEqual(min_point.X, -1.0)
         self.assertAlmostEqual(min_point.Y, -5.0)
