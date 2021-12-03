@@ -52,6 +52,8 @@ public:
     /// Constructor.
     PartitionedModelPartIO(File::Pointer pFile, std::string const& rPrefix);
 
+    PartitionedModelPartIO(File::Pointer pFile, std::string const& rPrefix, const bool IsUpdatedMeshIndicationFlagUsed, const Flags& rUpdatedMeshIndicationFlag);
+
     ///@}
     ///@name Operations
     ///@{
@@ -70,7 +72,7 @@ protected:
     void Check();
 
     std::tuple<unsigned, unsigned> StartIndexAndBlockSize(std::string const& rPath) const override;
-    
+
     void StoreWriteInfo(std::string const& rPath, WriteInfo const& rInfo) override;
 
     ///@}

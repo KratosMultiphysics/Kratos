@@ -20,6 +20,16 @@ PartitionedModelPartIO::PartitionedModelPartIO(File::Pointer pFile, std::string 
     KRATOS_CATCH("");
 }
 
+PartitionedModelPartIO::PartitionedModelPartIO(File::Pointer pFile, std::string const& rPrefix, const bool IsUpdatedMeshIndicationFlagUsed, const Flags& rUpdatedMeshIndicationFlag)
+: ModelPartIO(pFile, rPrefix, IsUpdatedMeshIndicationFlagUsed, rUpdatedMeshIndicationFlag)
+{
+    KRATOS_TRY;
+
+    Check();
+
+    KRATOS_CATCH("");
+}
+
 bool PartitionedModelPartIO::ReadNodes(NodesContainerType& rNodes)
 {
     KRATOS_TRY;
