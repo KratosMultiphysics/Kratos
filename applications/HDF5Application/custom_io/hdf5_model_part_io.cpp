@@ -54,16 +54,16 @@ int GlobalNumberOfConditions(ModelPart const& rModelPart)
 ModelPartIO::ModelPartIO(File::Pointer pFile, std::string const& rPrefix)
     : mpFile(pFile),
       mPrefix(rPrefix),
-      mIsUpdateMeshIndicationFlagUsed(false),
-      mUpdateMeshIndicationFlag(MODIFIED)
+      mIsUpdatedMeshIndicationFlagUsed(false),
+      mUpdatedMeshIndicationFlag(MODIFIED)
 {
 }
 
-ModelPartIO::ModelPartIO(File::Pointer pFile, std::string const& rPrefix, const bool IsUpdateMeshIndicationFlagUsed, const Flags& rUpdatedMeshIndicationFlag)
+ModelPartIO::ModelPartIO(File::Pointer pFile, std::string const& rPrefix, const bool IsUpdatedMeshIndicationFlagUsed, const Flags& rUpdatedMeshIndicationFlag)
     : mpFile(pFile),
       mPrefix(rPrefix),
-      mIsUpdateMeshIndicationFlagUsed(IsUpdateMeshIndicationFlagUsed),
-      mUpdateMeshIndicationFlag(rUpdatedMeshIndicationFlag)
+      mIsUpdatedMeshIndicationFlagUsed(IsUpdatedMeshIndicationFlagUsed),
+      mUpdatedMeshIndicationFlag(rUpdatedMeshIndicationFlag)
 {
 }
 
@@ -203,8 +203,8 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
-    if (mIsUpdateMeshIndicationFlagUsed) {
-        if (!rModelPart.Is(mUpdateMeshIndicationFlag)) {
+    if (mIsUpdatedMeshIndicationFlagUsed) {
+        if (!rModelPart.Is(mUpdatedMeshIndicationFlag)) {
             return;
         }
     }

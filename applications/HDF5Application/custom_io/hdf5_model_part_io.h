@@ -53,7 +53,7 @@ public:
     /// Constructor.
     ModelPartIO(File::Pointer pFile, std::string const& rPrefix);
 
-    ModelPartIO(File::Pointer pFile, std::string const& rPrefix, const bool IsUpdateMeshIndicationFlagUsed, const Flags& rUpdatedMeshIndicationFlag);
+    ModelPartIO(File::Pointer pFile, std::string const& rPrefix, const bool IsUpdatedMeshIndicationFlagUsed, const Flags& rUpdatedMeshIndicationFlag);
 
     ///@}
     ///@name Operations
@@ -103,8 +103,8 @@ protected:
     File::Pointer mpFile;
     const std::string mPrefix;
 
-    const bool mIsUpdateMeshIndicationFlagUsed;
-    const Flags& mUpdateMeshIndicationFlag;
+    const bool mIsUpdatedMeshIndicationFlagUsed;
+    const Flags& mUpdatedMeshIndicationFlag;
 
     ///@}
 
