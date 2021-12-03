@@ -52,7 +52,13 @@ class ModelPartOutput:
 
     def __init__(self, settings):
         settings.SetDefault('prefix', '/ModelData')
+        settings.SetDefault('is_updated_mesh_indication_flag_used', False)
+        settings.SetDefault('updated_mesh_indication_flag_name', 'MODIFIED')
+
         self.prefix = settings['prefix']
+        self.is_updated_mesh_indication_flag_used = settings['is_updated_mesh_indication_flag_used']
+        updated_mesh_indication_flag_name = settings['updated_mesh_indication_flag_name']
+        self.updated_mesh_indication_flag = KratosMultiphysics.KratosGlobals.GetFlag(updated_mesh_indication_flag_name)
         if '<time>' in self.prefix:
             settings.SetDefault('time_format', '0.4f')
             self.time_format = settings['time_format']
@@ -63,7 +69,7 @@ class ModelPartOutput:
         else:
             prefix = Prefix(self.prefix, model_part)
         KratosHDF5.HDF5ModelPartIO(
-            hdf5_file, prefix).WriteModelPart(model_part)
+            hdf5_file, prefix, self.is_updated_mesh_indication_flag_used, self.updated_mesh_indication_flag).WriteModelPart(model_part)
 
 
 class PartitionedModelPartOutput:
@@ -71,7 +77,13 @@ class PartitionedModelPartOutput:
 
     def __init__(self, settings):
         settings.SetDefault('prefix', '/ModelData')
+        settings.SetDefault('is_updated_mesh_indication_flag_used', False)
+        settings.SetDefault('updated_mesh_indication_flag_name', 'MODIFIED')
+
         self.prefix = settings['prefix']
+        self.is_updated_mesh_indication_flag_used = settings['is_updated_mesh_indication_flag_used']
+        updated_mesh_indication_flag_name = settings['updated_mesh_indication_flag_name']
+        self.updated_mesh_indication_flag = KratosMultiphysics.KratosGlobals.GetFlag(updated_mesh_indication_flag_name)
         if '<time>' in self.prefix:
             settings.SetDefault('time_format', '0.4f')
             self.time_format = settings['time_format']
@@ -82,7 +94,7 @@ class PartitionedModelPartOutput:
         else:
             prefix = Prefix(self.prefix, model_part)
         KratosHDF5.HDF5PartitionedModelPartIO(
-            hdf5_file, prefix).WriteModelPart(model_part)
+            hdf5_file, prefix, self.is_updated_mesh_indication_flag_used, self.updated_mesh_indication_flag).WriteModelPart(model_part)
 
 
 class VariableIO:
