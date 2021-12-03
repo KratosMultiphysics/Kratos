@@ -78,35 +78,12 @@ const std::map<CoSimIO::ElementType, std::string> elem_name_map {
 };
 
 
-struct Accessor_Hist_Get_Scalar
+struct Accessor_Hist_Get
 {
     static void Execute(const Node<3>& rNode, std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
         rData[Index] = rNode.FastGetSolutionStepValue(rVariable);
     }
-};
-struct Accessor_NonHist_Get_Scalar
-{
-    template<class TEntityType>
-    static void Execute(const TEntityType& rEntity, std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
-        rData[Index] = rEntity.GetValue(rVariable);
-    }
-};
-struct Accessor_Hist_Set_Scalar
-{
-    static void Execute(Node<3>& rNode, const std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
-        rNode.FastGetSolutionStepValue(rVariable) = rData[Index];
-    }
-};
-struct Accessor_NonHist_Set_Scalar
-{
-    template<class TEntityType>
-    static void Execute(TEntityType& rEntity, const std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
-        rEntity.GetValue(rVariable) = rData[Index];
-    }
-};
 
-struct Accessor_Hist_Get_Vector
-{
     template<std::size_t TSize>
     static void Execute(const Node<3>& rNode, std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
         const array_1d<double, TSize>& var = rNode.FastGetSolutionStepValue(rVariable);
@@ -114,17 +91,31 @@ struct Accessor_Hist_Get_Vector
     }
 };
 
-struct Accessor_NonHist_Get_Vector
+struct Accessor_NonHist_Get
 {
+    template<class TEntityType>
+    static void Execute(const TEntityType& rEntity, std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
+        rData[Index] = rEntity.GetValue(rVariable);
+    }
+
     template<class TEntityType, std::size_t TSize>
     static void Execute(const TEntityType& rNode, std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
         const array_1d<double, TSize>& var = rNode.GetValue(rVariable);
         for (std::size_t i=0; i<TSize; ++i) { rData[Index+i] = var[i]; }
     }
+
+    // template<class TContainerType>
+    // static void SizeCheck(const TContainerType& rContainer, std::vector<double>& rData) {
+    //     if (rData.size() != rContainer.size()) {rData.resize(rContainer.size());}
+    // }
 };
 
-struct Accessor_Hist_Set_Vector
+struct Accessor_Hist_Set
 {
+    static void Execute(Node<3>& rNode, const std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
+        rNode.FastGetSolutionStepValue(rVariable) = rData[Index];
+    }
+
     template<std::size_t TSize>
     static void Execute(Node<3>& rNode, const std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
         array_1d<double, TSize>& var = rNode.FastGetSolutionStepValue(rVariable);
@@ -132,8 +123,13 @@ struct Accessor_Hist_Set_Vector
     }
 };
 
-struct Accessor_NonHist_Set_Vector
+struct Accessor_NonHist_Set
 {
+    template<class TEntityType>
+    static void Execute(TEntityType& rEntity, const std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
+        rEntity.GetValue(rVariable) = rData[Index];
+    }
+
     template<class TEntityType, std::size_t TSize>
     static void Execute(TEntityType& rNode, const std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
         array_1d<double, TSize>& var = rNode.GetValue(rVariable);
@@ -148,7 +144,9 @@ void AccessDataWithOrder(
     const std::vector<std::size_t>& rOrder,
     TDataContainerType& rData)
 {
-    KRATOS_ERROR_IF(rContainer.size() != rData.size()) << "Mismatch in container sizes!" << std::endl;
+    KRATOS_TRY
+
+    // TAccessor::SizeCheck(rContainer, rData);
 
     IndexPartition<std::size_t>(rContainer.size()).for_each(
         [&rContainer, &rVariable, &rOrder, &rData]
@@ -158,6 +156,8 @@ void AccessDataWithOrder(
                 KRATOS_DEBUG_ERROR_IF(it_entity == rContainer.end()) << "The entity with Id " << entity_id << " could not be found!" << std::endl;
                 TAccessor::Execute(*it_entity, rData, Index, rVariable);
     });
+
+    KRATOS_CATCH("")
 }
 
 } // anonymous namespace
@@ -281,6 +281,8 @@ void CoSimIOConversionUtilities::KratosModelPartToCoSimIOModelPart(
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF(rCoSimIOModelPart.NumberOfNodes() > 0) << "ModelPart is not empty, it has nodes!" << std::endl;
+
     const int my_rank = rKratosModelPart.GetCommunicator().MyPID();
     const bool is_distributed = rKratosModelPart.IsDistributed();
 
@@ -349,11 +351,11 @@ void CoSimIOConversionUtilities::GetData(
     KRATOS_TRY
 
     if (DataLoc == DataLocation::NodeHistorical && rModelPart.Has(NODES_ID_INDEX_MAP)) {
-        AccessDataWithOrder<Accessor_Hist_Get_Scalar>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
+        AccessDataWithOrder<Accessor_Hist_Get>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
     } else if (DataLoc == DataLocation::NodeNonHistorical && rModelPart.Has(NODES_ID_INDEX_MAP)) {
-        AccessDataWithOrder<Accessor_NonHist_Get_Scalar>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
+        AccessDataWithOrder<Accessor_NonHist_Get>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
     } else if (DataLoc == DataLocation::Element && rModelPart.Has(ELEMENTS_ID_INDEX_MAP)) {
-        AccessDataWithOrder<Accessor_NonHist_Get_Scalar>(rModelPart.Elements(), rVariable, rModelPart[ELEMENTS_ID_INDEX_MAP], rData);
+        AccessDataWithOrder<Accessor_NonHist_Get>(rModelPart.Elements(), rVariable, rModelPart[ELEMENTS_ID_INDEX_MAP], rData);
     } else {
         AuxiliarModelPartUtilities(rModelPart).GetScalarData<double>(rVariable, DataLoc, rData);
     }
@@ -371,11 +373,11 @@ void CoSimIOConversionUtilities::SetData(
     KRATOS_TRY
 
     if (DataLoc == DataLocation::NodeHistorical && rModelPart.Has(NODES_ID_INDEX_MAP)) {
-        AccessDataWithOrder<Accessor_Hist_Set_Scalar>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
+        AccessDataWithOrder<Accessor_Hist_Set>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
     } else if (DataLoc == DataLocation::NodeNonHistorical && rModelPart.Has(NODES_ID_INDEX_MAP)) {
-        AccessDataWithOrder<Accessor_NonHist_Set_Scalar>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
+        AccessDataWithOrder<Accessor_NonHist_Set>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
     } else if (DataLoc == DataLocation::Element && rModelPart.Has(ELEMENTS_ID_INDEX_MAP)) {
-        AccessDataWithOrder<Accessor_NonHist_Set_Scalar>(rModelPart.Elements(), rVariable, rModelPart[ELEMENTS_ID_INDEX_MAP], rData);
+        AccessDataWithOrder<Accessor_NonHist_Set>(rModelPart.Elements(), rVariable, rModelPart[ELEMENTS_ID_INDEX_MAP], rData);
     } else {
         AuxiliarModelPartUtilities(rModelPart).SetScalarData<double>(rVariable, DataLoc, rData);
     }
@@ -393,11 +395,11 @@ void CoSimIOConversionUtilities::GetData(
     KRATOS_TRY
 
     if (DataLoc == DataLocation::NodeHistorical && rModelPart.Has(NODES_ID_INDEX_MAP)) {
-        AccessDataWithOrder<Accessor_Hist_Get_Vector>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
+        AccessDataWithOrder<Accessor_Hist_Get>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
     } else if (DataLoc == DataLocation::NodeNonHistorical && rModelPart.Has(NODES_ID_INDEX_MAP)) {
-        AccessDataWithOrder<Accessor_NonHist_Get_Vector>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
+        AccessDataWithOrder<Accessor_NonHist_Get>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
     } else if (DataLoc == DataLocation::Element && rModelPart.Has(ELEMENTS_ID_INDEX_MAP)) {
-        AccessDataWithOrder<Accessor_NonHist_Get_Vector>(rModelPart.Elements(), rVariable, rModelPart[ELEMENTS_ID_INDEX_MAP], rData);
+        AccessDataWithOrder<Accessor_NonHist_Get>(rModelPart.Elements(), rVariable, rModelPart[ELEMENTS_ID_INDEX_MAP], rData);
     } else {
         AuxiliarModelPartUtilities(rModelPart).GetVectorData< array_1d<double, 3> >(rVariable, DataLoc, rData);
     }
@@ -415,11 +417,11 @@ void CoSimIOConversionUtilities::SetData(
     KRATOS_TRY
 
     if (DataLoc == DataLocation::NodeHistorical && rModelPart.Has(NODES_ID_INDEX_MAP)) {
-        AccessDataWithOrder<Accessor_Hist_Set_Vector>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
+        AccessDataWithOrder<Accessor_Hist_Set>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
     } else if (DataLoc == DataLocation::NodeNonHistorical && rModelPart.Has(NODES_ID_INDEX_MAP)) {
-        AccessDataWithOrder<Accessor_NonHist_Set_Vector>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
+        AccessDataWithOrder<Accessor_NonHist_Set>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
     } else if (DataLoc == DataLocation::Element && rModelPart.Has(ELEMENTS_ID_INDEX_MAP)) {
-        AccessDataWithOrder<Accessor_NonHist_Set_Vector>(rModelPart.Elements(), rVariable, rModelPart[ELEMENTS_ID_INDEX_MAP], rData);
+        AccessDataWithOrder<Accessor_NonHist_Set>(rModelPart.Elements(), rVariable, rModelPart[ELEMENTS_ID_INDEX_MAP], rData);
     } else {
         AuxiliarModelPartUtilities(rModelPart).SetVectorData< array_1d<double, 3> >(rVariable, DataLoc, rData);
     }
