@@ -75,6 +75,7 @@ void AddCustomIOToPython(pybind11::module& m)
 
     py::class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, IO>(m,"HDF5ModelPartIO")
         .def(py::init<HDF5::File::Pointer, std::string const&>())
+        .def(py::init<HDF5::File::Pointer, std::string const&, const bool, const Flags&>())
         ;
 
     py::class_<HDF5::NodalSolutionStepDataIO, HDF5::NodalSolutionStepDataIO::Pointer>(
