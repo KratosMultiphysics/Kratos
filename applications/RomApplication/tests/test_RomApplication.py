@@ -5,8 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-from thermal_static_test_files.test_ROM import ROMStationaryConvDiff
-from thermal_dynamic_test_files.test_ROM import ROMDynamicConvDiff
+from test_thermal_rom import TestThermalRom
 from structural_static_test_files.test_ROM import ROMStaticStruct
 from structural_dynamic_test_files.test_ROM import ROMDynamicStruct
 from fluid_dynamics_test_files.test_ROM import ROMFluidDynamics
@@ -33,8 +32,7 @@ def AssembleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
-    smallSuite.addTest(ROMStationaryConvDiff('test_ConvDiff_Stationary_ROM_2D'))
-    smallSuite.addTest(ROMDynamicConvDiff('test_ConvDiff_Dynamic_ROM_2D'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestThermalRom]))
     smallSuite.addTest(ROMStaticStruct('test_Struct_Static_ROM_2D'))
     smallSuite.addTest(ROMStaticStruct('test_Struct_Static_HROM_2D'))
     smallSuite.addTest(ROMDynamicStruct('test_Struct_Dynamic_ROM_2D'))
