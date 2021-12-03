@@ -1,17 +1,23 @@
 # import KratosMultiphysics
-from sympy import Symbol, Matrix, zeros, diff
+from sympy import var, Symbol, Matrix, zeros, diff
 
 from KratosMultiphysics.sympy_fe_utilities import                  \
-    DefineMatrix, DefineVector, DfjDxi, Compute_RHS, Compute_LHS,  \
+    DfjDxi, Compute_RHS, Compute_LHS,  \
     SubstituteMatrixValue, SubstituteScalarValue,                  \
     OutputMatrix_CollectingFactors, OutputVector_CollectingFactors
 
-from params_dict import params
-from shape_functions import DefineShapeFunctionsMatrix
 import generate_convective_flux
 import generate_diffusive_flux
 import generate_source_term
 import generate_stabilization_matrix
+
+
+#################################################
+#                                               #
+#                 DATA ENTRY                    #
+#                                               #
+#################################################
+
 
 do_simplifications = False          # Simplify resulting differenctiations
 subscales_vector = ["ASGS", "OSS"]  # Subscales types to be computed
@@ -20,13 +26,35 @@ is_explicit = True                  # Explicit or implicit time integration
 shock_capturing = True
 mode = 'c'
 
-template_filename = "" # TODO
-with open(template_filename) as f:
-    outstring = f.read()
+template_filename = "compressible_navier_stokes_explicit_cpp_quad_template_with_integration.cpp"
+output_filename = "compressible_navier_stokes_quad.cpp"
 
 
-def ComputeNonLinearOperator(block_size, Ug, S, A, H):
-    L = Matrix(zeros(block_size, 1))
+#################################################
+#                                               #
+#              SUPPORT FUNCTIONS                #
+#                                               #
+#################################################
+
+
+def DefineMatrix(name, n, m):
+    return Matrix(n, m, lambda i, j: Symbol("{}({},{})".format(name, i, j), real=True))
+
+
+def DefineVector(name, n):
+    return Matrix(n, 1, lambda i, _: Symbol("{}({})".format(name, i), real=True))
+
+
+def ZeroMatrix(rows, cols):
+    return Matrix(rows, cols, lambda *_: 0.0)
+
+
+def ZeroVector(rows):
+    return ZeroMatrix(rows, 1)
+
+
+def ComputeNonLinearOperator():
+    L = ZeroVector(block_size)
     for j in range(dim):
         # Convective operator product (A x grad(U))
         A_j = A[j]
@@ -43,7 +71,7 @@ def ComputeNonLinearOperator(block_size, Ug, S, A, H):
     return L
 
 
-def ComputeAdjointOperator(dim, block_size, V, Q, S, A, H):
+def ComputeAdjointOperator():
     L_adj = Matrix(zeros(block_size, 1))
     for j in range(dim):
         Q_j = Q.col(j)
@@ -69,7 +97,7 @@ def ComputeAdjointOperator(dim, block_size, V, Q, S, A, H):
     return L_adj
 
 
-def ComputeVariationalFormulation(is_explicit, block_size, Q, G, A, H):
+def ComputeVariationalFormulation():
     # Convective term - FE scale
     conv_flux = zeros(block_size, 1)
     for j in range(dim):
@@ -97,66 +125,85 @@ def ComputeVariationalFormulation(is_explicit, block_size, Q, G, A, H):
     return rv
 
 
-def CalculateResidualsProjections(dim, n_nodes, n_gauss, mat_N, is_explicit):
-    res_rho_proj = Matrix(zeros(n_nodes, 1))
-    res_mom_proj = Matrix(zeros(n_nodes*dim, 1))
-    res_tot_ener_proj = Matrix(zeros(n_nodes, 1))
-    for i_gauss in range(n_gauss):
-        print("\tGauss point: " + str(i_gauss))
-        res_gauss = res.copy()
+def CalculateResidualsProjections():
+    res_rho_proj = ZeroVector(n_nodes)
+    res_mom_proj = ZeroVector(n_nodes*dim)
+    res_tot_ener_proj = ZeroVector(n_nodes)
 
-        # Get Gauss point geometry data
-        N = mat_N.row(i_gauss)
+    res_gauss = res.copy()
 
-        # Data interpolation at the gauss point
-        U_gauss = N * U
-        f_gauss = N * f_ext
-        r_gauss = (N * r_ext)[0]
-        mass_gauss = (N * m_ext)[0]
-        if is_explicit:
-            # previous step one. Note that in the explicit case this
-            # acceleration is only used in the calculation of the stabilization
-            # terms
-            acc_gauss = N * dUdt
-        else:
-            # In the explicit case, the acceleration is linearised taking the
-            # In the implicit case, calculate the time derivatives with the
-            # BDF2 formula
-            acc_gauss = N * (bdf0 * U + bdf1 * Un + bdf2 * Unn)
+    # Data interpolation at the gauss point
+    U_gauss = U.T * N
+    f_gauss = f_ext.T * N
+    r_gauss = (r_ext.T * N)[0]
+    mass_gauss = (m_ext.T * N)[0]
+    if is_explicit:
+        # previous step one. Note that in the explicit case this
+        # acceleration is only used in the calculation of the stabilization
+        # terms
+        acc_gauss = dUdt.T * N
+    else:
+        # In the explicit case, the acceleration is linearised taking the
+        # In the implicit case, calculate the time derivatives with the
+        # BDF formula
+        acc_gauss = (bdf[0] * U + bdf[1] * Un + bdf[2] * Unn).T * N
 
-        # Gradients computation
-        grad_U = DfjDxi(DN, U).transpose()
+    # Gradients computation
+    grad_U = DfjDxi(DN_DX, U).transpose()
 
-        # Substitute the symbols in the residual
-        SubstituteMatrixValue(res_gauss, Ug, U_gauss)
-        SubstituteMatrixValue(res_gauss, acc, acc_gauss)
-        SubstituteMatrixValue(res_gauss, H, grad_U)
-        SubstituteMatrixValue(res_gauss, f, f_gauss)
-        SubstituteScalarValue(res_gauss, rg, r_gauss)
-        SubstituteScalarValue(res_gauss, mg, mass_gauss)
+    # Substitute the symbols in the residual
+    SubstituteMatrixValue(res_gauss, Ug, U_gauss)
+    SubstituteMatrixValue(res_gauss, acc, acc_gauss)
+    SubstituteMatrixValue(res_gauss, H, grad_U)
+    SubstituteMatrixValue(res_gauss, f, f_gauss)
+    SubstituteScalarValue(res_gauss, rg, r_gauss)
+    SubstituteScalarValue(res_gauss, mg, mass_gauss)
 
-        # Add the projection contributions
-        for i_node in range(n_nodes):
-            # Note that the weights will be added later on in the cpp
-            res_rho_proj[i_node] += N[i_node] * res_gauss[0]
-            res_tot_ener_proj[i_node] += N[i_node] * res_gauss[dim + 1]
-            for d in range(dim):
-                res_mom_proj[i_node * dim + d] += N[i_node] * res_gauss[1 + d]
+    # Add the projection contributions
+    for i_node in range(n_nodes):
+        # Note that the weights will be added later on in the cpp
+        res_rho_proj[i_node] += N[i_node] * res_gauss[0]
+        res_tot_ener_proj[i_node] += N[i_node] * res_gauss[dim + 1]
+        for d in range(dim):
+            res_mom_proj[i_node * dim + d] += N[i_node] * res_gauss[1 + d]
     return (res_rho_proj, res_mom_proj, res_tot_ener_proj)
 
 
 def OutputProjections(res_rho_proj, res_mom_proj, res_tot_ener_proj, outstring):
-    res_rho_proj_out = OutputVector_CollectingFactors(res_rho_proj, "rho_proj", mode)
-    res_mom_proj_out = OutputVector_CollectingFactors(res_mom_proj, "mom_proj", mode)
-    res_tot_ener_proj_out = OutputVector_CollectingFactors(res_tot_ener_proj, "tot_ener_proj", mode)
+    res_rho_proj = OutputVector_CollectingFactors(res_rho_proj, "rho_proj", mode, replace_indices=False, assignment_op=" += ")
+    res_mom_proj = OutputVector_CollectingFactors(res_mom_proj, "mom_proj", mode, replace_indices=False, assignment_op=" += ")
+    res_ener_proj = OutputVector_CollectingFactors(res_tot_ener_proj, "tot_ener_proj", mode, replace_indices=False, assignment_op=" += ")
 
     outstring = outstring.replace("//substitute_rho_proj_{}D".format(dim),
-                                  res_rho_proj_out)
+                                  res_rho_proj)
     outstring = outstring.replace("//substitute_mom_proj_{}D".format(dim),
-                                  res_mom_proj_out)
+                                  res_mom_proj)
     outstring = outstring.replace("//substitute_tot_ener_proj_{}D".format(dim),
-                                  res_tot_ener_proj_out)
+                                  res_ener_proj)
     return outstring
+
+
+#################################################
+#                                               #
+#                     MAIN                      #
+#                                               #
+#################################################
+
+
+with open(template_filename) as f:
+    outstring = f.read()
+
+params = {
+    "dim": -1,                                       # Dimension
+    "mu": Symbol('data.mu', positive=True),          # Dynamic viscosity
+    "h": Symbol('data.h', positive=True),            # Element size
+    "lambda": Symbol('data.lambda', positive=True),  # Thermal Conductivity of the fluid
+    "c_v": Symbol('data.c_v', positive=True),        # Specific Heat at Constant volume
+    "gamma": Symbol('data.gamma', positive=True),    # Gamma (Cp/Cv)
+    "stab_c1": Symbol('stab_c1', positive=True),     # Algorithm constant
+    "stab_c2": Symbol('stab_c2', positive=True),     # Algorithm constant
+    "stab_c3": Symbol('stab_c3', positive=True),     # Algorithm constant
+}
 
 
 for dim in dim_vector:
@@ -170,36 +217,34 @@ for dim in dim_vector:
         3: (8, 8)
     }[dim]
 
-    DN = DefineMatrix('DN', n_nodes, dim)
-    mat_N = DefineShapeFunctionsMatrix(dim, n_nodes, n_gauss)
+    N = DefineVector("N", n_nodes)
+    DN_DX = DefineMatrix("DN_DX", n_nodes, dim)
 
     # Unknown fields definition (Used later for the gauss point interpolation)
     block_size = dim + 2
-    U = DefineMatrix('U', n_nodes, block_size)  # Vector of Unknowns
+    U = DefineMatrix('data.U', n_nodes, block_size)  # Vector of Unknowns
     ResProj = DefineMatrix('ResProj', n_nodes, block_size)
     if is_explicit:  # Previous step data
-        dUdt = DefineMatrix('dUdt', n_nodes, block_size)
+        dUdt = DefineMatrix('data.dUdt', n_nodes, block_size)
     else:
-        Un = DefineMatrix('Un', n_nodes, block_size)
-        Unn = DefineMatrix('Unn', n_nodes, block_size)
+        Un = DefineMatrix('data.Un', n_nodes, block_size)
+        Unn = DefineMatrix('data.Unn', n_nodes, block_size)
         # Backward differantiation coefficients
-        bdf0 = Symbol('bdf0')
-        bdf1 = Symbol('bdf1')
-        bdf2 = Symbol('bdf2')
+        bdf = [Symbol('bdf0'), Symbol('bdf1'), Symbol('bdf2')]
 
     # Test functions defintiion
     w = DefineMatrix('w', n_nodes, block_size)   # Variables field test
 
     # External terms definition
-    m_ext = DefineVector('m_ext', n_nodes)       # Mass source term
-    r_ext = DefineVector('r_ext', n_nodes)       # Thermal sink/source term
-    f_ext = DefineMatrix('f_ext', n_nodes, dim)  # Forcing term
+    m_ext = DefineVector('data.m_ext', n_nodes)       # Mass source term
+    r_ext = DefineVector('data.r_ext', n_nodes)       # Thermal sink/source term
+    f_ext = DefineMatrix('data.f_ext', n_nodes, dim)  # Forcing term
 
     # Nodal artificial magnitudes
-    alpha_sc_nodes = DefineVector('alpha_sc_nodes', n_nodes)  # mass diffusivity
-    mu_sc_nodes = DefineVector('mu_sc_nodes', n_nodes)  # dynamic viscosity
-    beta_sc_nodes = DefineVector('beta_sc_nodes', n_nodes)  # bulk viscosity
-    lamb_sc_nodes = DefineVector('lamb_sc_nodes', n_nodes)  # bulk viscosity
+    alpha_sc_nodes = DefineVector('data.alpha_sc_nodes', n_nodes)  # mass diffusivity
+    mu_sc_nodes = DefineVector('data.mu_sc_nodes', n_nodes)  # dynamic viscosity
+    beta_sc_nodes = DefineVector('data.beta_sc_nodes', n_nodes)  # bulk viscosity
+    lamb_sc_nodes = DefineVector('data.lamb_sc_nodes', n_nodes)  # bulk viscosity
 
     # Construction of the variational equation
     Ug = DefineVector('Ug', block_size)     # Dofs vector
@@ -231,7 +276,7 @@ for dim in dim_vector:
 
     # Non-linear operator definition
     print("\nCompute non-linear operator\n")
-    L = ComputeNonLinearOperator(block_size, Ug, S, A, H)
+    L = ComputeNonLinearOperator()
 
     # FE residuals definition
     # Note that we include the DOF time derivatives in both the implicit and
@@ -245,19 +290,24 @@ for dim in dim_vector:
 
     # Non-linear adjoint operator definition
     print("\nCompute non-linear adjoint operator\n")
-    L_adj = ComputeAdjointOperator(dim, block_size, V, Q, S, A, H)
+    L_adj = ComputeAdjointOperator()
 
     # Variational formulation (Galerkin functional)
     print("\nCompute variational formulation\n")
-    rv = ComputeVariationalFormulation(is_explicit, block_size, Q, G, A, H)
+    rv = ComputeVariationalFormulation()
 
     # OSS Residual projections calculation #
     # Calculate the residuals projection
     print("\nCalculate the projections of the residuals")
-    projections = CalculateResidualsProjections(dim, n_nodes, n_gauss, mat_N, is_explicit)
+    projections = CalculateResidualsProjections()
 
     # Output the projections
     outstring = OutputProjections(*projections, outstring)
 
     # Algebraic form calculation #
 
+
+print("\nWriting " + output_filename + " \n")
+with open(output_filename, 'w') as f:
+    f.write(outstring)
+print("\n" + output_filename + " generated\n")

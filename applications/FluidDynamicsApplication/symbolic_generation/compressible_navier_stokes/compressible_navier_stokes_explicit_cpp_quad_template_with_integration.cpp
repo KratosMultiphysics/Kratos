@@ -203,37 +203,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMomentumProjection(const Pr
 
         DN_DX = prod(Jinv, DN_DX);
         
-const double cmom_proj0 =             data.gamma - 1;
-const double cmom_proj1 =             N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
-const double cmom_proj2 =             DN_DX(0,1)*data.U(0,1) + DN_DX(1,1)*data.U(1,1) + DN_DX(2,1)*data.U(2,1) + DN_DX(3,1)*data.U(3,1);
-const double cmom_proj3 =             1.0/cmom_proj1;
-const double cmom_proj4 =             N(0)*data.U(0,2) + N(1)*data.U(1,2) + N(2)*data.U(2,2) + N(3)*data.U(3,2);
-const double cmom_proj5 =             cmom_proj3*cmom_proj4;
-const double cmom_proj6 =             DN_DX(0,1)*data.U(0,2) + DN_DX(1,1)*data.U(1,2) + DN_DX(2,1)*data.U(2,2) + DN_DX(3,1)*data.U(3,2);
-const double cmom_proj7 =             N(0)*data.U(0,1) + N(1)*data.U(1,1) + N(2)*data.U(2,1) + N(3)*data.U(3,1);
-const double cmom_proj8 =             cmom_proj3*cmom_proj7;
-const double cmom_proj9 =             DN_DX(0,0)*data.U(0,2) + DN_DX(1,0)*data.U(1,2) + DN_DX(2,0)*data.U(2,2) + DN_DX(3,0)*data.U(3,2);
-const double cmom_proj10 =             1.0*cmom_proj0;
-const double cmom_proj11 =             DN_DX(0,0)*data.U(0,1) + DN_DX(1,0)*data.U(1,1) + DN_DX(2,0)*data.U(2,1) + DN_DX(3,0)*data.U(3,1);
-const double cmom_proj12 =             1.0*data.gamma - 3.0;
-const double cmom_proj13 =             pow(cmom_proj1, -2);
-const double cmom_proj14 =             cmom_proj13*(DN_DX(0,1)*data.U(0,0) + DN_DX(1,1)*data.U(1,0) + DN_DX(2,1)*data.U(2,0) + DN_DX(3,1)*data.U(3,0));
-const double cmom_proj15 =             cmom_proj4*cmom_proj7;
-const double cmom_proj16 =             pow(cmom_proj7, 2);
-const double cmom_proj17 =             pow(cmom_proj4, 2);
-const double cmom_proj18 =             0.5*cmom_proj0*(cmom_proj16 + cmom_proj17);
-const double cmom_proj19 =             cmom_proj13*(DN_DX(0,0)*data.U(0,0) + DN_DX(1,0)*data.U(1,0) + DN_DX(2,0)*data.U(2,0) + DN_DX(3,0)*data.U(3,0));
-const double cmom_proj20 =             N(0)*data.dUdt(0,1) + N(1)*data.dUdt(1,1) + N(2)*data.dUdt(2,1) + N(3)*data.dUdt(3,1) + cmom_proj0*(DN_DX(0,0)*data.U(0,3) + DN_DX(1,0)*data.U(1,3) + DN_DX(2,0)*data.U(2,3) + DN_DX(3,0)*data.U(3,3)) - cmom_proj1*(N(0)*data.f_ext(0,0) + N(1)*data.f_ext(1,0) + N(2)*data.f_ext(2,0) + N(3)*data.f_ext(3,0)) - cmom_proj10*cmom_proj5*cmom_proj9 - cmom_proj11*cmom_proj12*cmom_proj8 - cmom_proj14*cmom_proj15 + cmom_proj19*(-cmom_proj16 + cmom_proj18) + cmom_proj2*cmom_proj5 + cmom_proj6*cmom_proj8;
-const double cmom_proj21 =             N(0)*data.dUdt(0,2) + N(1)*data.dUdt(1,2) + N(2)*data.dUdt(2,2) + N(3)*data.dUdt(3,2) + cmom_proj0*(DN_DX(0,1)*data.U(0,3) + DN_DX(1,1)*data.U(1,3) + DN_DX(2,1)*data.U(2,3) + DN_DX(3,1)*data.U(3,3)) - cmom_proj1*(N(0)*data.f_ext(0,1) + N(1)*data.f_ext(1,1) + N(2)*data.f_ext(2,1) + N(3)*data.f_ext(3,1)) - cmom_proj10*cmom_proj2*cmom_proj8 + cmom_proj11*cmom_proj5 - cmom_proj12*cmom_proj5*cmom_proj6 + cmom_proj14*(-cmom_proj17 + cmom_proj18) - cmom_proj15*cmom_proj19 + cmom_proj8*cmom_proj9;
-            mom_proj[0] += -N(0)*cmom_proj20;
-            mom_proj[1] += -N(0)*cmom_proj21;
-            mom_proj[2] += -N(1)*cmom_proj20;
-            mom_proj[3] += -N(1)*cmom_proj21;
-            mom_proj[4] += -N(2)*cmom_proj20;
-            mom_proj[5] += -N(2)*cmom_proj21;
-            mom_proj[6] += -N(3)*cmom_proj20;
-            mom_proj[7] += -N(3)*cmom_proj21;
-
+//substitute_mom_proj_2D
     }
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
@@ -278,12 +248,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateDensityProjection(const Pro
 
         DN_DX = prod(Jinv, DN_DX);
         
-const double crho_proj0 =             DN_DX(0,0)*data.U(0,1) + DN_DX(0,1)*data.U(0,2) + DN_DX(1,0)*data.U(1,1) + DN_DX(1,1)*data.U(1,2) + DN_DX(2,0)*data.U(2,1) + DN_DX(2,1)*data.U(2,2) + DN_DX(3,0)*data.U(3,1) + DN_DX(3,1)*data.U(3,2) + N(0)*data.dUdt(0,0) - N(0)*data.m_ext(0) + N(1)*data.dUdt(1,0) - N(1)*data.m_ext(1) + N(2)*data.dUdt(2,0) - N(2)*data.m_ext(2) + N(3)*data.dUdt(3,0) - N(3)*data.m_ext(3);
-            rho_proj[0] += -N(0)*crho_proj0;
-            rho_proj[1] += -N(1)*crho_proj0;
-            rho_proj[2] += -N(2)*crho_proj0;
-            rho_proj[3] += -N(3)*crho_proj0;
-
+//substitute_rho_proj_2D
     }
     
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
@@ -324,30 +289,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateTotalEnergyProjection(const
 
         DN_DX = prod(Jinv, DN_DX);
         
-const double ctot_ener_proj0 =             N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
-const double ctot_ener_proj1 =             N(0)*data.U(0,1) + N(1)*data.U(1,1) + N(2)*data.U(2,1) + N(3)*data.U(3,1);
-const double ctot_ener_proj2 =             N(0)*data.U(0,2) + N(1)*data.U(1,2) + N(2)*data.U(2,2) + N(3)*data.U(3,2);
-const double ctot_ener_proj3 =             1.0/ctot_ener_proj0;
-const double ctot_ener_proj4 =             ctot_ener_proj3*data.gamma;
-const double ctot_ener_proj5 =             data.gamma - 1;
-const double ctot_ener_proj6 =             pow(ctot_ener_proj0, -2);
-const double ctot_ener_proj7 =             1.0*ctot_ener_proj1*ctot_ener_proj2*ctot_ener_proj5*ctot_ener_proj6;
-const double ctot_ener_proj8 =             pow(ctot_ener_proj1, 2);
-const double ctot_ener_proj9 =             ctot_ener_proj3*ctot_ener_proj5;
-const double ctot_ener_proj10 =             1.0*ctot_ener_proj9;
-const double ctot_ener_proj11 =             N(0)*data.U(0,3);
-const double ctot_ener_proj12 =             N(1)*data.U(1,3);
-const double ctot_ener_proj13 =             N(2)*data.U(2,3);
-const double ctot_ener_proj14 =             N(3)*data.U(3,3);
-const double ctot_ener_proj15 =             pow(ctot_ener_proj2, 2);
-const double ctot_ener_proj16 =             -ctot_ener_proj11 - ctot_ener_proj12 - ctot_ener_proj13 - ctot_ener_proj14 - ctot_ener_proj5*(ctot_ener_proj11 + ctot_ener_proj12 + ctot_ener_proj13 + ctot_ener_proj14 - ctot_ener_proj3*(0.5*ctot_ener_proj15 + 0.5*ctot_ener_proj8));
-const double ctot_ener_proj17 =             ctot_ener_proj6*(ctot_ener_proj16 + 0.5*ctot_ener_proj9*(ctot_ener_proj15 + ctot_ener_proj8));
-const double ctot_ener_proj18 =             N(0)*data.dUdt(0,3) + N(1)*data.dUdt(1,3) + N(2)*data.dUdt(2,3) + N(3)*data.dUdt(3,3) - ctot_ener_proj0*(N(0)*data.r_ext(0) + N(1)*data.r_ext(1) + N(2)*data.r_ext(2) + N(3)*data.r_ext(3)) + ctot_ener_proj1*ctot_ener_proj17*(DN_DX(0,0)*data.U(0,0) + DN_DX(1,0)*data.U(1,0) + DN_DX(2,0)*data.U(2,0) + DN_DX(3,0)*data.U(3,0)) + ctot_ener_proj1*ctot_ener_proj4*(DN_DX(0,0)*data.U(0,3) + DN_DX(1,0)*data.U(1,3) + DN_DX(2,0)*data.U(2,3) + DN_DX(3,0)*data.U(3,3)) - ctot_ener_proj1*(N(0)*data.f_ext(0,0) + N(1)*data.f_ext(1,0) + N(2)*data.f_ext(2,0) + N(3)*data.f_ext(3,0)) + ctot_ener_proj17*ctot_ener_proj2*(DN_DX(0,1)*data.U(0,0) + DN_DX(1,1)*data.U(1,0) + DN_DX(2,1)*data.U(2,0) + DN_DX(3,1)*data.U(3,0)) + ctot_ener_proj2*ctot_ener_proj4*(DN_DX(0,1)*data.U(0,3) + DN_DX(1,1)*data.U(1,3) + DN_DX(2,1)*data.U(2,3) + DN_DX(3,1)*data.U(3,3)) - ctot_ener_proj2*(N(0)*data.f_ext(0,1) + N(1)*data.f_ext(1,1) + N(2)*data.f_ext(2,1) + N(3)*data.f_ext(3,1)) - ctot_ener_proj3*(ctot_ener_proj10*ctot_ener_proj15 + ctot_ener_proj16)*(DN_DX(0,1)*data.U(0,2) + DN_DX(1,1)*data.U(1,2) + DN_DX(2,1)*data.U(2,2) + DN_DX(3,1)*data.U(3,2)) - ctot_ener_proj3*(ctot_ener_proj10*ctot_ener_proj8 + ctot_ener_proj16)*(DN_DX(0,0)*data.U(0,1) + DN_DX(1,0)*data.U(1,1) + DN_DX(2,0)*data.U(2,1) + DN_DX(3,0)*data.U(3,1)) - ctot_ener_proj7*(DN_DX(0,0)*data.U(0,2) + DN_DX(1,0)*data.U(1,2) + DN_DX(2,0)*data.U(2,2) + DN_DX(3,0)*data.U(3,2)) - ctot_ener_proj7*(DN_DX(0,1)*data.U(0,1) + DN_DX(1,1)*data.U(1,1) + DN_DX(2,1)*data.U(2,1) + DN_DX(3,1)*data.U(3,1));
-            tot_ener_proj[0] += -N(0)*ctot_ener_proj18;
-            tot_ener_proj[1] += -N(1)*ctot_ener_proj18;
-            tot_ener_proj[2] += -N(2)*ctot_ener_proj18;
-            tot_ener_proj[3] += -N(3)*ctot_ener_proj18;
-
+//substitute_tot_ener_proj_2D
     }
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
