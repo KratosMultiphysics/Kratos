@@ -171,13 +171,14 @@ struct Accessor_NonHist_Set : public Accessor_Set_Base
 {
     template<class TEntityType>
     static void Execute(TEntityType& rEntity, const std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
-        rEntity.GetValue(rVariable) = rData[Index];
+        rEntity.SetValue(rVariable, rData[Index]);
     }
 
     template<class TEntityType, std::size_t TSize>
     static void Execute(TEntityType& rNode, const std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
-        array_1d<double, TSize>& var = rNode.GetValue(rVariable);
-        for (std::size_t i=0; i<TSize; ++i) { var[i] = rData[Index*TSize+i]; }
+        array_1d<double, TSize> temp_var;
+        for (std::size_t i=0; i<TSize; ++i) { temp_var[i] = rData[Index*TSize+i]; }
+        rNode.SetValue(rVariable, temp_var);
     }
 };
 
