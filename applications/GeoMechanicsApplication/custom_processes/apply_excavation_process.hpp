@@ -73,8 +73,7 @@ class ApplyExcavationProcess : public Process
     {
         KRATOS_TRY
 
-        const unsigned int nElements = mrModelPart.GetMesh(0).Elements().size();
-        if (nElements > 0) {
+        if (mrModelPart.NumberOfElements() > 0) {
             if (mDeactivateSoilPart) {
                 // Deactivation of the existing parts:
                 block_for_each(mrModelPart.Elements(), [&](Element& rElement) {
@@ -88,8 +87,7 @@ class ApplyExcavationProcess : public Process
                 });
 
                 // Same nodes for both computing model part
-                const int nNodes = mrModelPart.GetMesh(0).Nodes().size();
-                if (nNodes > 0) {
+                if (mrModelPart.NumberOfNodes() > 0) {
                     block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode) {
                         rNode.Set(ACTIVE, true);
                     });
@@ -98,8 +96,7 @@ class ApplyExcavationProcess : public Process
         }
 
         // Conditions
-        const unsigned int nConditions = mrModelPart.GetMesh(0).Conditions().size();
-        if (nConditions > 0) {
+        if (mrModelPart.NumberOfConditions() > 0) {
             if (mDeactivateSoilPart) {
                 block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
                     rCondition.Set(ACTIVE, false);

@@ -103,7 +103,7 @@ public:
     {
         KRATOS_TRY
 
-        if (mrModelPart.Nodes().size() > 0) {
+        if (mrModelPart.NumberOfNodes() > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
             Vector3 direction=ZeroVector(3);
             direction[mGravityDirection] = 1.0;

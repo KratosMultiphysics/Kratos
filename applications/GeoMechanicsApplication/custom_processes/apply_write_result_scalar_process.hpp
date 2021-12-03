@@ -85,7 +85,7 @@ public:
     {
         KRATOS_TRY
 
-        const unsigned int nNodes = mrModelPart.Nodes().size();
+        const std::size_t nNodes = mrModelPart.NumberOfNodes();
 
         if (nNodes > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
@@ -107,7 +107,7 @@ public:
                     // open a new file and overwrite
                     mOutFile[i].open(fileName, std::ios::trunc); // overwrite
                     mOutFile[i] << "Time" << "   " << mVariableName << "\n";
-                    const double &value = it->FastGetSolutionStepValue(var);
+                    const double value = it->FastGetSolutionStepValue(var);
                     mOutFile[i] << Time << "   " << value << "\n";
                 }
             }
@@ -123,7 +123,7 @@ public:
     {
         KRATOS_TRY
 
-        const unsigned int nNodes = mrModelPart.Nodes().size();
+        const std::size_t nNodes = mrModelPart.NumberOfNodes();
 
         if (nNodes > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
@@ -133,7 +133,7 @@ public:
             for (int i = 0; i<nNodes; ++i) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                const double &value = it->FastGetSolutionStepValue(var);
+                const double value = it->FastGetSolutionStepValue(var);
                 mOutFile[i] << Time << "   " << value << "\n";
             }
         }

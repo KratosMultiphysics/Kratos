@@ -59,6 +59,8 @@ public:
     // Definition of the geometry
     typedef Geometry<NodeType> GeometryType;
 
+    typedef std::unordered_map<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > hashmap;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -67,7 +69,7 @@ public:
     /**
      * @param rModelPart The model part to check.
      */
-    FindNeighbourElementsOfConditionsProcess( ModelPart& rModelPart ):  Process(),
+    FindNeighbourElementsOfConditionsProcess( ModelPart& rModelPart ): Process(),
             mrModelPart(rModelPart)
     {
     }
@@ -90,14 +92,13 @@ public:
     ///@{
 
 
-    /// Check elements to make sure that their jacobian is positive and conditions to ensure that their face normals point outwards
+    /// Finds neighbour elements of conditions
     void Execute() override
     {
         KRATOS_TRY
 
         // Next check that the conditions are oriented accordingly
         // to do so begin by putting all of the conditions in a map
-        typedef std::unordered_map<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > hashmap;
         hashmap FacesMap;
 
         for (auto itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); ++itCond) {
@@ -106,9 +107,40 @@ public:
 
             DenseVector<int> Ids(rGeometry.size());
 
-            for (IndexType i=0; i<Ids.size(); ++i) {
+            for (IndexType i=0; i < Ids.size(); ++i) {
                 rGeometry[i].Set(BOUNDARY,true);
                 Ids[i] = rGeometry[i].Id();
+            }
+
+            // DIRTY SOLUTION: swap position 1 and 2 of Ids[] if the size is 3 (line condition)
+            if (rGeometry.LocalSpaceDimension() == 1 && Ids.size() == 3) {
+                // Line2D3 or Line3D3
+                // incosistent face ordering
+                std::swap(Ids[1], Ids[2]);
+            }
+
+            if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
+                // reverse ordering to be consistent with face ordering
+                std::swap(Ids[1], Ids[2]);
+            }
+
+            if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6) {
+                // reverse ordering to be consistent with face ordering
+                std::swap(Ids[1], Ids[2]);
+                std::swap(Ids[3], Ids[5]);
+            }
+
+            if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) {
+                // reverse ordering to be consistent with face ordering
+                std::swap(Ids[0], Ids[3]);
+                std::swap(Ids[1], Ids[2]);
+            }
+
+            if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8) {
+                // reverse ordering to be consistent with face ordering
+                std::swap(Ids[0], Ids[3]);
+                std::swap(Ids[1], Ids[2]);
+                std::swap(Ids[4], Ids[6]);
             }
 
             // adds to the map
@@ -116,12 +148,10 @@ public:
         }
 
         // Now loop for all the elements and for each face of the element check if it is in the "FacesMap"
-        // if it happens to be there check the orientation
         for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
-            // only active elements are considered
             const auto &rGeometryElement = itElem->GetGeometry();
             const auto rBoundaryGeometries = rGeometryElement.GenerateBoundariesEntities();
-            const auto ElementType = rGeometryElement.GetGeometryType();
+            // const auto ElementType = rGeometryElement.GetGeometryType();
 
             for (IndexType iFace = 0; iFace < rBoundaryGeometries.size(); ++iFace) {
                 DenseVector<int> FaceIds(rBoundaryGeometries[iFace].size());
@@ -132,7 +162,23 @@ public:
                 }
 
                 hashmap::iterator itFace = FacesMap.find(FaceIds);
-                if (itFace != FacesMap.end()) { // It was actually found!!
+                if (itFace == FacesMap.end()) {
+                    if (rGeometryElement.LocalSpaceDimension() == 3) {
+                        // try different orderings
+                        if (rGeometryElement.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10) {
+                            itFace = FindFaceReorderingTetrahedra3D10(FaceIds, FacesMap);
+                        } else if (rGeometryElement.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) {
+                            itFace = FindFaceReorderingTetrahedra3D4(FaceIds, FacesMap);
+                        } else if (rGeometryElement.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8) {
+                            itFace = FindFaceReorderingHexahedra3D8(FaceIds, FacesMap);
+                        } else if (rGeometryElement.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Hexahedra3D20) {
+                            itFace = FindFaceReorderingHexahedra3D20(FaceIds, FacesMap);
+                        }
+                    }
+                }
+
+                if (itFace != FacesMap.end()) {
+                    // condition is found!
                     // Mark the condition as visited. This will be useful for a check at the endif
                     std::vector<Condition::Pointer>& ListConditions = itFace->second;
                     for (Condition::Pointer pCondition : ListConditions) {
@@ -161,10 +207,9 @@ public:
         if (!AllVisited) {
             // Now try point loads:
             for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
-                // only active elements are considered
                 const auto &rGeometryElement = itElem->GetGeometry();
                 const auto rPointGeometries = rGeometryElement.GeneratePoints();
-                const auto ElementType = rGeometryElement.GetGeometryType();
+                // const auto ElementType = rGeometryElement.GetGeometryType();
 
                 for (IndexType iPoint = 0; iPoint < rPointGeometries.size(); ++iPoint) {
                     DenseVector<int> PointIds(rPointGeometries[iPoint].size());
@@ -175,7 +220,8 @@ public:
                     }
 
                     hashmap::iterator itFace = FacesMap.find(PointIds);
-                    if (itFace != FacesMap.end()) { // It was actually found!!
+                    if (itFace != FacesMap.end()) {
+                        // Condition is found!
                         // Mark the condition as visited. This will be useful for a check at the endif
                         std::vector<Condition::Pointer>& ListConditions = itFace->second;
                         for (Condition::Pointer pCondition : ListConditions) {
@@ -198,7 +244,7 @@ public:
         for (auto& rCond : mrModelPart.Conditions()) {
             if (rCond.IsNot(VISITED)) {
                 AllVisited = false;
-                KRATOS_WARNING("Condition without any corresponding element, ID ") << rCond.Id() << "\n";
+                KRATOS_INFO("Condition without any corresponding element, ID ") << rCond.Id() << std::endl;
             }
         }
 
@@ -251,7 +297,140 @@ public:
 private:
     ///@name Static Member Variables
     ///@{
+    hashmap::iterator FindFaceReorderingTetrahedra3D10(DenseVector<int> FaceIds, hashmap &FacesMap)
+    {
 
+    hashmap::iterator itFace;
+
+    if (FaceIds.size() == 6) {
+        // first try
+        std::swap(FaceIds[0],FaceIds[1]);
+        std::swap(FaceIds[1],FaceIds[2]);
+        std::swap(FaceIds[3],FaceIds[4]);
+        std::swap(FaceIds[4],FaceIds[5]);
+
+        itFace = FacesMap.find(FaceIds);
+        if (itFace != FacesMap.end()) return itFace;
+
+        // Second try
+        std::swap(FaceIds[0],FaceIds[1]);
+        std::swap(FaceIds[1],FaceIds[2]);
+        std::swap(FaceIds[3],FaceIds[4]);
+        std::swap(FaceIds[4],FaceIds[5]);
+
+        itFace = FacesMap.find(FaceIds);
+        if (itFace != FacesMap.end()) return itFace;
+    }
+
+    return FacesMap.end();
+
+    }
+
+    hashmap::iterator FindFaceReorderingTetrahedra3D4(DenseVector<int> FaceIds, hashmap &FacesMap)
+    {
+
+    hashmap::iterator itFace;
+
+    if (FaceIds.size() == 3) {
+        // first try
+        std::swap(FaceIds[0],FaceIds[1]);
+        std::swap(FaceIds[1],FaceIds[2]);
+
+        itFace = FacesMap.find(FaceIds);
+        if (itFace != FacesMap.end()) return itFace;
+
+        // Second try
+        std::swap(FaceIds[0],FaceIds[1]);
+        std::swap(FaceIds[1],FaceIds[2]);
+
+        itFace = FacesMap.find(FaceIds);
+        if (itFace != FacesMap.end()) return itFace;
+    }
+
+    return FacesMap.end();
+
+    }
+
+    hashmap::iterator FindFaceReorderingHexahedra3D8(DenseVector<int> FaceIds, hashmap &FacesMap)
+    {
+
+    hashmap::iterator itFace;
+
+    if (FaceIds.size() == 4) {
+        // first try
+        std::swap(FaceIds[0],FaceIds[1]);
+        std::swap(FaceIds[1],FaceIds[2]);
+        std::swap(FaceIds[2],FaceIds[3]);
+
+        itFace = FacesMap.find(FaceIds);
+        if (itFace != FacesMap.end()) return itFace;
+
+        // Second try
+        std::swap(FaceIds[0],FaceIds[1]);
+        std::swap(FaceIds[1],FaceIds[2]);
+        std::swap(FaceIds[2],FaceIds[3]);
+
+        itFace = FacesMap.find(FaceIds);
+        if (itFace != FacesMap.end()) return itFace;
+
+        // Third try
+        std::swap(FaceIds[0],FaceIds[1]);
+        std::swap(FaceIds[1],FaceIds[2]);
+        std::swap(FaceIds[2],FaceIds[3]);
+
+        itFace = FacesMap.find(FaceIds);
+        if (itFace != FacesMap.end()) return itFace;
+    }
+
+    return FacesMap.end();
+
+    }
+
+
+    hashmap::iterator FindFaceReorderingHexahedra3D20(DenseVector<int> FaceIds, hashmap &FacesMap)
+    {
+
+    hashmap::iterator itFace;
+
+    if (FaceIds.size() == 8) {
+        // first try
+        std::swap(FaceIds[0],FaceIds[1]);
+        std::swap(FaceIds[1],FaceIds[2]);
+        std::swap(FaceIds[2],FaceIds[3]);
+        std::swap(FaceIds[4],FaceIds[5]);
+        std::swap(FaceIds[5],FaceIds[6]);
+        std::swap(FaceIds[6],FaceIds[7]);
+
+        itFace = FacesMap.find(FaceIds);
+        if (itFace != FacesMap.end()) return itFace;
+
+        // Second try
+        std::swap(FaceIds[0],FaceIds[1]);
+        std::swap(FaceIds[1],FaceIds[2]);
+        std::swap(FaceIds[2],FaceIds[3]);
+        std::swap(FaceIds[4],FaceIds[5]);
+        std::swap(FaceIds[5],FaceIds[6]);
+        std::swap(FaceIds[6],FaceIds[7]);
+
+        itFace = FacesMap.find(FaceIds);
+        if (itFace != FacesMap.end()) return itFace;
+
+        // Third try
+        std::swap(FaceIds[0],FaceIds[1]);
+        std::swap(FaceIds[1],FaceIds[2]);
+        std::swap(FaceIds[2],FaceIds[3]);
+        std::swap(FaceIds[4],FaceIds[5]);
+        std::swap(FaceIds[5],FaceIds[6]);
+        std::swap(FaceIds[6],FaceIds[7]);
+
+        itFace = FacesMap.find(FaceIds);
+        if (itFace != FacesMap.end()) return itFace;
+
+    }
+
+    return FacesMap.end();
+
+    }
 
     ///@}
     ///@name Member Variables

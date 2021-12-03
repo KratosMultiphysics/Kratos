@@ -92,7 +92,7 @@ public:
     {
         KRATOS_TRY
 
-        if (mrModelPart.Nodes().size() > 0) {
+        if (mrModelPart.NumberOfNodes() > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
             block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
@@ -111,7 +111,7 @@ public:
     {
         KRATOS_TRY
 
-        if (mrModelPart.Nodes().size() > 0) {
+        if (mrModelPart.NumberOfNodes() > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
             const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
             const double value = mpTable->GetValue(Time);

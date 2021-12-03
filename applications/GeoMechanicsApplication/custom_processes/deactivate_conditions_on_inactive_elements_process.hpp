@@ -83,27 +83,28 @@ public:
     ///@{
 
 
-    /// Check elements to make sure that their jacobian is positive and conditions to ensure that their face normals point outwards
+    /// deactive conditions which are imposed on inactive elments
     void Execute() override
     {
         KRATOS_TRY
 
-        for (auto itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); ++itCond) {
-            const auto &VectorOfNeighbours =  itCond->GetValue(NEIGHBOUR_ELEMENTS);
-            KRATOS_ERROR_IF(VectorOfNeighbours.size() == 0) << "Condition without any corresponding element, ID " << itCond->Id() << "\n"
-                                                            << "Call a process to find neighbour elements before calling this function."
-                                                            << std::endl;
+        block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
+            const auto &VectorOfNeighbours = rCondition.GetValue(NEIGHBOUR_ELEMENTS);
+            KRATOS_ERROR_IF(VectorOfNeighbours.size() == 0)
+                << "Condition without any corresponding element, ID " << rCondition.Id() << "\n"
+                << "Call a process to find neighbour elements before calling this function."
+                << std::endl;
 
-            bool AreAllElementsActive = false;
+            bool IsElementActive = false;
             for (unsigned int i=0; i < VectorOfNeighbours.size(); ++i) {
                 if (VectorOfNeighbours[i].IsDefined(ACTIVE)) {
-                    if (VectorOfNeighbours[i].Is(ACTIVE)) AreAllElementsActive = true;
+                    if (VectorOfNeighbours[i].Is(ACTIVE)) IsElementActive = true;
                 } else {
-                    AreAllElementsActive = true;
+                    IsElementActive = true;
                 }
             }
-            itCond->Set(ACTIVE, AreAllElementsActive);
-        }
+            rCondition.Set(ACTIVE, IsElementActive);
+        });
 
         KRATOS_CATCH("")
     }
