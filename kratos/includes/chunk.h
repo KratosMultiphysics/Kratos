@@ -32,7 +32,7 @@ namespace Kratos
 	  layer of it holding a chunk of NumberOfBlocks objects of BlockSize.
 	  This implemnetation is designed for larg chunk size (i.e. 1M)
 	  imposes more overhead than the reference for stroing a header
-	  containing the chunk size and block size and thread private links.
+	  containing the chunk size and block size.
   */
   class Chunk : public LockObject
     {
@@ -68,9 +68,7 @@ namespace Kratos
 		  , mSize(SizeInBytes)
 		  , mBlockSizeInBytes(BlockSizeInBytes)
 		  , mNumberOfAvailableBlocks(0) // to be initialized in initialize
-		  , mFirstAvailableBlockIndex(0){
-		  mOwnerThread = OpenMPUtils::ThisThread();
-	  }
+		  , mFirstAvailableBlockIndex(0){}
 
       /// Destructor is not virtual. This class can not be drived.
 	  ~Chunk() noexcept {
@@ -88,24 +86,16 @@ namespace Kratos
       ///@name Operations
       ///@{
 	  void Initialize() {
-		  mOwnerThread = OpenMPUtils::ThisThread();  // initialization can change the owner thread
 		  std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
 		  mpData = new BlockType[DataSize()];
   		  SetFirstAvailableBlockIndex(0);
 		  SetNumberOfAvailableBlocks(AllocatableDataSize() / block_size_after_alignment);
 
-		//   SizeType i_block = 0;
 		  *mpData = -1;
-
-		//   for (auto p = GetData(); i_block < GetNumberOfBlocks(); p += block_size_after_alignment)
-		// 	  *p = ++i_block;
-
-		//   KRATOS_DEBUG_CHECK_EQUAL(i_block, GetNumberOfAvailableBlocks());
 	  }
 
 	  /// This function does not throw and returns zero if cannot allocate
 	  void* Allocate() {
-		  KRATOS_DEBUG_CHECK_EQUAL(mOwnerThread, OpenMPUtils::ThisThread()); // Allocate should be called only by owner thread
 		  KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
 
 		  if (GetNumberOfAvailableBlocks() == 0)
@@ -267,7 +257,6 @@ namespace Kratos
 		SizeType mBlockSizeInBytes;
 		SizeType mNumberOfAvailableBlocks;
 		SizeType mFirstAvailableBlockIndex;
-		int mOwnerThread;
 
       ///@}
       ///@name Operations
@@ -307,19 +296,16 @@ namespace Kratos
 
 		void SetFirstAvailableBlockIndex(SizeType NewValue) {
 			KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
-			// remember that the first n blocks are the FirstAvailableBlockIndex for each n threads
 			mFirstAvailableBlockIndex = NewValue;
 		}
 
 		SizeType GetFirstAvailableBlockIndex() const {
 			KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
-			// remember that the first n blocks are the FirstAvailableBlockIndex for each n threads
 			return mFirstAvailableBlockIndex;
 		}
 
 		void SetNumberOfAvailableBlocks(SizeType NumberOfAvailableBlocks) {
 			KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
-			// remember that the first n blocks are the FirstAvailableBlockIndex for each n threads
 			mNumberOfAvailableBlocks = NumberOfAvailableBlocks;
 		}
 
