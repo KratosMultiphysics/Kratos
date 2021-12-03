@@ -177,7 +177,6 @@ namespace Kratos
 	  }
 
 	  SizeType GetNumberOfAvailableBlocks() const {
-		  KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
 		  return mNumberOfAvailableBlocks;
 	  }
 
