@@ -83,6 +83,13 @@ class Optimizer:
                 model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
                 model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
                 model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
+        if self.optimization_settings["design_variables"]["filter"].Has("sliding_edge_morphing") and \
+            self.optimization_settings["design_variables"]["filter"]["sliding_edge_morphing"].GetBool():
+                model_part = self.model_part_controller.GetOptimizationModelPart()
+                model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
+                model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
+                model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
+                model_part.AddNodalSolutionStepVariable(KSO.DAMPED_NODES)
 
     # --------------------------------------------------------------------------
     def Optimize(self):

@@ -31,6 +31,9 @@
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "includes/node.h"
+//#include "includes/element.h"
+#include "includes/global_pointer_variables.h"
 
 #include "spatial_containers/spatial_containers.h"
 
@@ -153,6 +156,8 @@ public:
             array_3d &nodal_variable = node_i->FastGetSolutionStepValue(rNodalVariable);
             array_3d &node_normal = node_i->FastGetSolutionStepValue(rPlaneNormalVariable);
 
+            //KRATOS_INFO("node_normal") << "Current node_normal  :: " << node_normal << "of node :: " << node_i->Id() << std::endl;
+
             const double magnitude = inner_prod(nodal_variable, node_normal);
             nodal_variable -= magnitude * node_normal;
         }
@@ -219,6 +224,45 @@ public:
     	r_boundary_model_part.AddNodes(temp_boundary_node_ids);
 
     	KRATOS_CATCH("");
+    }
+
+    // --------------------------------------------------------------------------
+    void ExtractEdgeNodes( std::string const& rEdgeSubModelPartName ) {
+        KRATOS_TRY;
+
+        KRATOS_ERROR_IF(mrModelPart.Elements().size() == 0) << "ExtractEdgeNodes: No elements defined. Automatic edge detection will not find any edge nodes!" << std::endl;
+
+        ModelPart& r_edge_model_part = mrModelPart.GetSubModelPart(rEdgeSubModelPartName);
+
+        KRATOS_ERROR_IF(r_edge_model_part.Nodes().size() != 0) << "ExtractEdgeNodes: The edge model part already has nodes!" << std::endl;
+        //for (ModelPart::NodeIterator p_node = mrModelPart.NodesBegin(); p_node != mrModelPart.NodesEnd(); ++p_node)
+        
+        // typedef Node < 3 > NodeType;
+        // typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
+
+        // for (ModelPart::NodesContainerType::iterator p_node = mrModelPart.NodesBegin(); p_node != mrModelPart.NodesEnd(); ++p_node) {
+        //for (GlobalPointersVector< Node<3> >::iterator p_node =	mrModelPart.NodesBegin(); p_node != mrModelPart.NodesEnd(); p_node++) {
+        for (auto& r_node_i : mrModelPart.Nodes()) {
+            Node<3>* p_node_i = &r_node_i;
+            GlobalPointersVector< Node<3 > >& r_node_i_neighbours = p_node_i->GetValue(NEIGHBOUR_NODES);
+            for( GlobalPointersVector< Node<3> >::iterator j =	r_node_i_neighbours.begin(); j != r_node_i_neighbours.end(); j++) {
+                GlobalPointersVector<Element>& r_element_neighbours = p_node_i->GetValue(NEIGHBOUR_ELEMENTS);
+                int count = 0;
+                for( GlobalPointersVector<Element>::iterator k = r_element_neighbours.begin(); k != r_element_neighbours.end(); k++) {
+                    Geometry<Node<3> >& nGeometry = k->GetGeometry();
+                    //for( GlobalPointersVector< Node<3> >::iterator k =	j->GetGeometry().Point().begin(); k != j->GetGeometry().Point().end(); k++) {
+                    for(unsigned int node_l = 0; node_l < nGeometry.size(); ++node_l) {
+                        if ((nGeometry[node_l].Id()) == (j->Id())) count ++;
+                    }
+                    // if (j->GetGeometry().Has(*i)) count ++;
+                }
+                if (count < 2){
+                    r_edge_model_part.AddNode(p_node_i);
+                    break;
+                }
+            }
+        }
+        KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
