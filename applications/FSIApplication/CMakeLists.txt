@@ -28,11 +28,11 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################################
 ## FSIApplication core library (C++ parts)
-add_library( KratosFSICore SHARED ${KRATOS_FSI_APPLICATION_CORE_SOURCES} ${KRATOS_FLUID_DYNAMICS_TESTING_SOURCES} )
+add_library( KratosFSICore SHARED ${KRATOS_FSI_APPLICATION_CORE_SOURCES} ${KRATOS_FSI_TESTING_SOURCES} )
 target_link_libraries( KratosFSICore PUBLIC KratosCore)
 set_target_properties( KratosFSICore PROPERTIES COMPILE_DEFINITIONS "FSI_APPLICATION=EXPORT,API")
 
-## FluidDynamicsApplication python module
+## FSIApplication python module
 pybind11_add_module( KratosFSIApplication MODULE THIN_LTO ${KRATOS_FSI_APPLICATION_PYTHON_INTERFACE_SOURCES} )
 target_link_libraries( KratosFSIApplication PRIVATE KratosFSICore)
 set_target_properties( KratosFSIApplication PROPERTIES PREFIX "")
