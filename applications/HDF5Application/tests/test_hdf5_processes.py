@@ -41,6 +41,8 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ElementGaussPointOutput', autospec=True)
         self.patcher12 = patch(
             'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionGaussPointOutput', autospec=True)
+        self.patcher13 = patch(
+            "KratosMultiphysics.kratos_globals.KratosGlobalsImpl.GetFlag", autospec=True)
         self.HDF5FileSerial = self.patcher1.start()
         self.HDF5ModelPartIO = self.patcher2.start()
         self.HDF5NodalSolutionStepDataIO = self.patcher3.start()
@@ -55,6 +57,8 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.HDF5ConditionDataValueIO = self.patcher10.start()
         self.HDF5ElementGaussPointOutput = self.patcher11.start()
         self.HDF5ConditionGaussPointOutput = self.patcher12.start()
+        self.GetFlag = self.patcher13.start()
+        self.GetFlag.return_value = "MODIFIED"
 
     def tearDown(self):
         self.patcher1.stop()
@@ -69,6 +73,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.patcher10.stop()
         self.patcher11.stop()
         self.patcher12.stop()
+        self.patcher13.stop()
 
     def test_SingleMeshTemporalOutputProcess(self):
         settings = KratosMultiphysics.Parameters('''
@@ -132,7 +137,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(
             self.HDF5FileSerial.call_args[0][0]['echo_level'].GetInt(), 1)
         self.HDF5ModelPartIO.assert_called_once_with(
-            self.HDF5FileSerial.return_value, '/ModelData/test_model_part')
+            self.HDF5FileSerial.return_value, '/ModelData/test_model_part', False, "MODIFIED")
         self.HDF5ModelPartIO.return_value.WriteModelPart.assert_called_once_with(
             self.model_part)
         self.assertEqual(self.HDF5NodalSolutionStepDataIO.call_count, 2)
@@ -257,7 +262,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             self.HDF5FileSerial.call_args[0][0]['echo_level'].GetInt(), 0)
         self.assertEqual(self.HDF5ModelPartIO.call_count, 3)
         self.HDF5ModelPartIO.assert_called_with(
-            self.HDF5FileSerial.return_value, '/ModelData')
+            self.HDF5FileSerial.return_value, '/ModelData', False, "MODIFIED")
         self.assertEqual(
             self.HDF5ModelPartIO.return_value.WriteModelPart.call_count, 3)
         self.HDF5ModelPartIO.return_value.WriteModelPart.assert_called_with(

@@ -304,7 +304,9 @@ class TestOperations(KratosUnittest.TestCase):
         settings = variable_io.GetSettings(_SurrogateModelPart())
         self.assertEqual(settings['prefix'], '/ModelData/model_part/1.23')
 
-    def test_ModelPartOutput(self):
+    @patch("KratosMultiphysics.kratos_globals.KratosGlobalsImpl.GetFlag", autospec=True)
+    def test_ModelPartOutput(self, mock_get_flag):
+        mock_get_flag.return_value = "MODIFIED"
         settings = ParametersWrapper()
         model_part_output = operations.Create(settings)
         self.assertTrue(settings.Has('operation_type'))
@@ -315,7 +317,7 @@ class TestOperations(KratosUnittest.TestCase):
             model_part = _SurrogateModelPart()
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
             model_part_output(model_part, hdf5_file)
-            p.assert_called_once_with(hdf5_file, '/ModelData')
+            p.assert_called_once_with(hdf5_file, '/ModelData', False, "MODIFIED")
             model_part_io.WriteModelPart.assert_called_once_with(model_part)
 
     def test_ModelPartOutput_NonTerminalPrefix(self):
