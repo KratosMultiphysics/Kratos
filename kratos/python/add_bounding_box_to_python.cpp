@@ -28,53 +28,34 @@ namespace Python
 typedef BoundingBox<Point> BoundingBoxType;
 typedef ModelPart::NodesContainerType NodesContainerType;
 
-BoundingBoxType BoundingBoxConstructorWithNodes(NodesContainerType& rNodes)
-{
-    return BoundingBoxType(rNodes.begin(), rNodes.end());
-}
-
-void Set(BoundingBoxType& rBoundingBox, NodesContainerType& rNodes)
-{
-    rBoundingBox.Set(rNodes.begin(), rNodes.end());
-}
-
-void Extend1(BoundingBoxType& rBoundingBox, NodesContainerType& rNodes)
-{
-    rBoundingBox.Extend(rNodes.begin(), rNodes.end());
-}
-
-void Extend2(BoundingBoxType& rBoundingBox, double Margin)
-{
-    rBoundingBox.Extend(Margin);
-}
-
-Point& GetMinPoint(BoundingBoxType& rBoundingBox)
-{
-    return rBoundingBox.GetMinPoint();
-}
-
-Point& GetMaxPoint(BoundingBoxType& rBoundingBox)
-{
-    return rBoundingBox.GetMaxPoint();
-}
-
 void AddBoundingBoxToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
     py::class_<BoundingBoxType, BoundingBoxType::Pointer >(m, "BoundingBox")
-    // .def(py::init<>(BoundingBoxConstructorWithNodes))
-    .def(py::init([](NodesContainerType& rNodes){
+    .def(py::init<Point, Point>())
+    .def(py::init([](const NodesContainerType& rNodes){
         return BoundingBoxType(rNodes.begin(), rNodes.end());
     }))
-    .def(py::init<Point, Point>())
-    .def("Set", Set)
-    .def("Extend", Extend1)
-    .def("Extend", Extend2)
-    .def("GetMinPoint", GetMinPoint)
-    .def("GetMaxPoint", GetMaxPoint)
+    .def("Set", [](BoundingBoxType& rBoundingBox, const NodesContainerType& rNodes){
+        rBoundingBox.Set(rNodes.begin(), rNodes.end());
+    })
+    .def("Extend", [](BoundingBoxType& rBoundingBox, double Margin){
+        rBoundingBox.Extend(Margin);
+    })
+    .def("Extend", [](BoundingBoxType& rBoundingBox, const NodesContainerType& rNodes){
+        rBoundingBox.Extend(rNodes.begin(), rNodes.end());
+    })
+    .def("GetMinPoint", [](BoundingBoxType& rBoundingBox){
+        return rBoundingBox.GetMinPoint();
+    })
+    .def("GetMaxPoint", [](BoundingBoxType& rBoundingBox){
+        return rBoundingBox.GetMaxPoint();
+    })
+    .def("GetPoints", [](BoundingBoxType& rBoundingBox){
+        return std::make_tuple(rBoundingBox.GetMinPoint(), rBoundingBox.GetMaxPoint());
+    })
     ;
-
 }
 
 }  // namespace Python.
