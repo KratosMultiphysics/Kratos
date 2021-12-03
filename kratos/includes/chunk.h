@@ -103,7 +103,7 @@ namespace Kratos
 
 		    lock();
 			  
-			BlockType * p_result = GetData() + (mFirstAvailableBlockIndex * GetBlockSize(mBlockSizeInBytes));
+			BlockType * p_result = mpData + (mFirstAvailableBlockIndex * GetBlockSize(mBlockSizeInBytes));
 			if(*p_result < 0) {
 				*p_result = -(*p_result);
 				if(GetNumberOfAvailableBlocks() > 1) {
@@ -125,19 +125,19 @@ namespace Kratos
 		  if (pPointrerToRelease == nullptr)
 			  return;
 
-		  KRATOS_DEBUG_CHECK_NOT_EQUAL(GetData(), nullptr);
+		  KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
 		  // Range check at least in lower bound.
-		  KRATOS_DEBUG_CHECK_GREATER_EQUAL(pPointrerToRelease, GetData());
+		  KRATOS_DEBUG_CHECK_GREATER_EQUAL(pPointrerToRelease, mpData);
 		  BlockType* p_to_release = static_cast<BlockType*>(pPointrerToRelease);
 
 		  // Alignment check
-		  KRATOS_DEBUG_CHECK_EQUAL((p_to_release - GetData()) % GetBlockSize(mBlockSizeInBytes), 0);
+		  KRATOS_DEBUG_CHECK_EQUAL((p_to_release - mpData) % GetBlockSize(mBlockSizeInBytes), 0);
 		  lock();
 		  *p_to_release = mFirstAvailableBlockIndex;
-		  mFirstAvailableBlockIndex = static_cast<SizeType>((p_to_release - GetData()) / GetBlockSize(mBlockSizeInBytes));
+		  mFirstAvailableBlockIndex = static_cast<SizeType>((p_to_release - mpData) / GetBlockSize(mBlockSizeInBytes));
 
 		  // Check if there is no truncation error
-		  KRATOS_DEBUG_CHECK_EQUAL(mFirstAvailableBlockIndex, double(p_to_release - GetData()) / GetBlockSize(mBlockSizeInBytes));
+		  KRATOS_DEBUG_CHECK_EQUAL(mFirstAvailableBlockIndex, double(p_to_release - mpData) / GetBlockSize(mBlockSizeInBytes));
 		  mNumberOfAvailableBlocks++;
 		  unlock();
 		  pPointrerToRelease = nullptr;
@@ -205,7 +205,7 @@ namespace Kratos
 	  }
 
 	  bool Has(const void* pThePointer) const {
-		  return ((pThePointer >= GetData()) && (pThePointer <= (mpData + DataSize() - GetBlockSize(mBlockSizeInBytes))));
+		  return ((pThePointer >= mpData) && (pThePointer <= (mpData + DataSize() - GetBlockSize(mBlockSizeInBytes))));
 	  }
 
 	  bool IsEmpty() const {
@@ -262,18 +262,6 @@ namespace Kratos
 
 		SizeType GetHeaderSize() const {
 			return 0; // mFirstAvailableBlockIndex
-		}
-
-		const BlockType* GetData() const {
-			if (mpData == nullptr)
-				return nullptr;
-			return mpData + GetHeaderSize();
-		}
-
-		BlockType* GetData() {
-			if (mpData == nullptr)
-				return nullptr;
-			return mpData + GetHeaderSize();
 		}
 
 		SizeType DataSize() const {
