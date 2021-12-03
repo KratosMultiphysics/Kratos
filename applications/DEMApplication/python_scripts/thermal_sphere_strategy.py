@@ -100,15 +100,15 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.porosity_method           = self.thermal_settings["porosity_method"].GetString()
         
         # Model parameters
-        self.min_conduction_distance = self.thermal_settings["min_conduction_distance"].GetDouble()
-        self.max_conduction_distance = self.thermal_settings["max_conduction_distance"].GetDouble()
-        self.fluid_layer_thickness   = self.thermal_settings["fluid_layer_thickness"].GetDouble()
-        self.isothermal_core_radius  = self.thermal_settings["isothermal_core_radius"].GetDouble()
-        self.max_radiation_distance  = self.thermal_settings["max_radiation_distance"].GetDouble()
+        self.min_conduction_distance  = self.thermal_settings["min_conduction_distance"].GetDouble()
+        self.max_conduction_distance  = self.thermal_settings["max_conduction_distance"].GetDouble()
+        self.fluid_layer_thickness    = self.thermal_settings["fluid_layer_thickness"].GetDouble()
+        self.isothermal_core_radius   = self.thermal_settings["isothermal_core_radius"].GetDouble()
+        self.max_radiation_distance   = self.thermal_settings["max_radiation_distance"].GetDouble()
         self.friction_heat_conversion = self.thermal_settings["friction_heat_conversion_ratio"].GetDouble()
-        self.global_porosity         = self.thermal_settings["global_porosity"].GetDouble()
-        self.alpha_parameter         = self.thermal_settings["alpha_shape_parameter"].GetDouble()
-        self.integral_tolerance      = self.thermal_settings["integral_tolerance"].GetDouble()
+        self.global_porosity          = self.thermal_settings["global_porosity"].GetDouble()
+        self.alpha_parameter          = self.thermal_settings["alpha_shape_parameter"].GetDouble()
+        self.integral_tolerance       = self.thermal_settings["integral_tolerance"].GetDouble()
 
         # Interstitial fluid properties
         self.fluid_props                = self.thermal_settings["global_fluid_properties"]
