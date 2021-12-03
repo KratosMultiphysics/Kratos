@@ -4,10 +4,10 @@ import numpy as np
 
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as KratosROM
-from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom
+from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 
-def CreateRomAnalysisInstance(cls, global_model, parameters):
+def CreateRomAnalysisInstance(cls, global_model, parameters, hyper_reduction_element_selector = None):
     class RomAnalysis(cls):
 
         def __init__(self,global_model, parameters, hyper_reduction_element_selector = None):
@@ -71,7 +71,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                     self.ResidualUtilityObject = KratosROM.RomResidualsUtility(
                         computing_model_part,
                         self.project_parameters["solver_settings"]["rom_settings"],
-                        self._GetSolver().get_solution_scheme()) #TODO: CHANGE THIS TO _GetScheme() ONCE WE MERGE THE PR WITH THE STYLE CONVENTION.
+                        self._GetSolver()._GetScheme())
 
         def FinalizeSolutionStep(self):
             if self.hyper_reduction_element_selector:
@@ -96,7 +96,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                         input_filename)
                     self.hyper_reduction_element_selector.Run()
 
-    return RomAnalysis(global_model, parameters)
+    return RomAnalysis(global_model, parameters, hyper_reduction_element_selector)
 
 if __name__ == "__main__":
 
