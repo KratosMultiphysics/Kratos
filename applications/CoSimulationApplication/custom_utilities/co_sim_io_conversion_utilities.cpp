@@ -114,7 +114,7 @@ struct Accessor_Set_Base
         TDataContainerType& rData,
         const Variable<double>& rVariable)
     {
-        KRATOS_ERROR_IF(rContainer.size() != rData.size()) << "Mismatch in container sizes!" << std::endl;
+        KRATOS_ERROR_IF(rContainer.size() != rData.size()) << "Mismatch in container sizes! Size of Container: " << rContainer.size() << " | size of Data: " << rData.size() << std::endl;
     }
 
     template<class TContainerType, class TDataContainerType, std::size_t TSize>
@@ -123,7 +123,7 @@ struct Accessor_Set_Base
         TDataContainerType& rData,
         const Variable<array_1d<double, TSize>>& rVariable)
     {
-        KRATOS_ERROR_IF(rContainer.size() != rData.size()) << "Mismatch in container sizes!" << std::endl;
+        KRATOS_ERROR_IF(rContainer.size()*TSize != rData.size()) << "Mismatch in container sizes! Size of Container: " << rContainer.size()*TSize << " | size of Data: " << rData.size() << std::endl;
     }
 };
 
