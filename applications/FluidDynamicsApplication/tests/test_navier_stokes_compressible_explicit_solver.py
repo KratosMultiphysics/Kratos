@@ -57,7 +57,6 @@ class NavierStokesCompressibleExplicitSolverTest(KratosUnittest.TestCase):
                 "time_order": 2,
                 "move_mesh_flag": false,
                 "time_scheme" : "RK4",
-                "shock_capturing": true,
                 "compute_reactions": false,
                 "reform_dofs_at_each_step" : false,
                 "assign_neighbour_elements_to_conditions": true,
