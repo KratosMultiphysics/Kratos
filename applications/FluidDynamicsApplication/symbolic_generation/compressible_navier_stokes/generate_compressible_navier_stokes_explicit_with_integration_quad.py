@@ -328,7 +328,7 @@ for dim in dim_vector:
     # Unknown fields definition (Used later for the gauss point interpolation)
     block_size = dim + 2
     U = DefineMatrix('data.U', n_nodes, block_size)  # Vector of Unknowns
-    ResProj = DefineMatrix('ResProj', n_nodes, block_size)
+    ResProj = DefineMatrix('data.ResProj', n_nodes, block_size)
     if is_explicit:  # Previous step data
         dUdt = DefineMatrix('data.dUdt', n_nodes, block_size)
     else:
