@@ -52,7 +52,18 @@ int GlobalNumberOfConditions(ModelPart const& rModelPart)
 }
 
 ModelPartIO::ModelPartIO(File::Pointer pFile, std::string const& rPrefix)
-: mpFile(pFile), mPrefix(rPrefix)
+    : mpFile(pFile),
+      mPrefix(rPrefix),
+      mIsUpdateMeshIndicationFlagUsed(false),
+      mUpdateMeshIndicationFlag(MODIFIED)
+{
+}
+
+ModelPartIO::ModelPartIO(File::Pointer pFile, std::string const& rPrefix, const bool IsUpdateMeshIndicationFlagUsed, const Flags& rUpdatedMeshIndicationFlag)
+    : mpFile(pFile),
+      mPrefix(rPrefix),
+      mIsUpdateMeshIndicationFlagUsed(IsUpdateMeshIndicationFlagUsed),
+      mUpdateMeshIndicationFlag(rUpdatedMeshIndicationFlag)
 {
 }
 
@@ -191,6 +202,12 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
 void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
 {
     KRATOS_TRY;
+
+    if (mIsUpdateMeshIndicationFlagUsed) {
+        if (!rModelPart.Is(mUpdateMeshIndicationFlag)) {
+            return;
+        }
+    }
 
     BuiltinTimer timer;
     Internals::WriteVariablesList(*mpFile, mPrefix, rModelPart);
