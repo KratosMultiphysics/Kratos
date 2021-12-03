@@ -243,6 +243,66 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataExport_direct_node_non_historical, KratosCo
     KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CoSimIODataExport_direct_element, KratosCosimulationFastSuite)
+{
+    Model model;
+    auto& kratos_model_part = model.CreateModelPart("kratos_mp");
+
+    constexpr std::size_t num_nodes = 5;
+    const std::vector<double> exp_values {2,-6.147,8,4.21,1};
+
+    auto p_props = kratos_model_part.CreateNewProperties(0);
+
+    for (std::size_t i=0; i<num_nodes; ++i) {
+        kratos_model_part.CreateNewNode(i+1, i*1.5, i+3.5, i-8.6);
+        auto p_elem = kratos_model_part.CreateNewElement("Element2D1N", i+1, {i+1}, p_props);
+        p_elem->SetValue(AUX_INDEX, exp_values[i]);
+    }
+
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfElements(), num_nodes);
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 1);
+
+    std::vector<double> values;
+    CoSimIOConversionUtilities::GetData(kratos_model_part, values, AUX_INDEX, DataLocation::Element);
+
+    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CoSimIODataExport_reordered_node_historical, KratosCosimulationFastSuite)
+{
+    CoSimIO::ModelPart co_sim_io_model_part("co_sim_io_mp");
+
+    Model model;
+    auto& kratos_model_part = model.CreateModelPart("kratos_mp");
+    kratos_model_part.AddNodalSolutionStepVariable(AUX_INDEX);
+
+    constexpr std::size_t num_nodes = 5;
+    const std::vector<double> exp_values {2,6,8,4,1};
+    const std::vector<double> cosimio_ids {1,5,2,6,3};
+
+    for (std::size_t i=0; i<num_nodes; ++i) {
+        co_sim_io_model_part.CreateNewNode(cosimio_ids[i], i*1.5, i+3.5, i-8.6);
+    }
+
+    const auto& r_serial_data_comm = ParallelEnvironment::GetDataCommunicator("Serial");
+    CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, kratos_model_part, r_serial_data_comm);
+
+    kratos_model_part.Nodes().Sort(); // force a sort which causes the issues in MPI (and sometimes happens randomly)
+
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 0);
+
+    for (std::size_t i=0; i<num_nodes; ++i) {
+        kratos_model_part.Nodes().find(cosimio_ids[i])->FastGetSolutionStepValue(AUX_INDEX) = exp_values[i];
+    }
+
+    std::vector<double> values;
+    CoSimIOConversionUtilities::GetData(kratos_model_part, values, AUX_INDEX, DataLocation::NodeHistorical);
+
+    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);
+}
+
 namespace DistributedTestHelpers {
 
 std::size_t GetPartnerRank()

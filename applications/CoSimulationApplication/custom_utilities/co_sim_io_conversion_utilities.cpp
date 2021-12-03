@@ -77,8 +77,57 @@ const std::map<CoSimIO::ElementType, std::string> elem_name_map {
     {CoSimIO::ElementType::Point3D, "Element3D1N"}
 };
 
+template<typename A>
+void ResizeIfRequired(
+    A& rA,
+    std::size_t Size)
+{
+    if (rA.size() != Size) rA.resize(Size);
+}
 
-struct Accessor_Hist_Get
+struct Accessor_Get_Base
+{
+    template<class TContainerType, class TDataContainerType>
+    static void SizeCheck(
+        const TContainerType& rContainer,
+        TDataContainerType& rData,
+        const Variable<double>& rVariable)
+    {
+        ResizeIfRequired(rData, rContainer.size());
+    }
+
+    template<class TContainerType, class TDataContainerType, std::size_t TSize>
+    static void SizeCheck(
+        const TContainerType& rContainer,
+        TDataContainerType& rData,
+        const Variable<array_1d<double, TSize>>& rVariable)
+    {
+        ResizeIfRequired(rData, rContainer.size()*TSize);
+    }
+};
+
+struct Accessor_Set_Base
+{
+    template<class TContainerType, class TDataContainerType>
+    static void SizeCheck(
+        const TContainerType& rContainer,
+        TDataContainerType& rData,
+        const Variable<double>& rVariable)
+    {
+        KRATOS_ERROR_IF(rContainer.size() != rData.size()) << "Mismatch in container sizes!" << std::endl;
+    }
+
+    template<class TContainerType, class TDataContainerType, std::size_t TSize>
+    static void SizeCheck(
+        const TContainerType& rContainer,
+        TDataContainerType& rData,
+        const Variable<array_1d<double, TSize>>& rVariable)
+    {
+        KRATOS_ERROR_IF(rContainer.size() != rData.size()) << "Mismatch in container sizes!" << std::endl;
+    }
+};
+
+struct Accessor_Hist_Get : public Accessor_Get_Base
 {
     static void Execute(const Node<3>& rNode, std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
         rData[Index] = rNode.FastGetSolutionStepValue(rVariable);
@@ -91,7 +140,7 @@ struct Accessor_Hist_Get
     }
 };
 
-struct Accessor_NonHist_Get
+struct Accessor_NonHist_Get : public Accessor_Get_Base
 {
     template<class TEntityType>
     static void Execute(const TEntityType& rEntity, std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
@@ -103,14 +152,9 @@ struct Accessor_NonHist_Get
         const array_1d<double, TSize>& var = rNode.GetValue(rVariable);
         for (std::size_t i=0; i<TSize; ++i) { rData[Index+i] = var[i]; }
     }
-
-    // template<class TContainerType>
-    // static void SizeCheck(const TContainerType& rContainer, std::vector<double>& rData) {
-    //     if (rData.size() != rContainer.size()) {rData.resize(rContainer.size());}
-    // }
 };
 
-struct Accessor_Hist_Set
+struct Accessor_Hist_Set : public Accessor_Set_Base
 {
     static void Execute(Node<3>& rNode, const std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
         rNode.FastGetSolutionStepValue(rVariable) = rData[Index];
@@ -123,7 +167,7 @@ struct Accessor_Hist_Set
     }
 };
 
-struct Accessor_NonHist_Set
+struct Accessor_NonHist_Set : public Accessor_Set_Base
 {
     template<class TEntityType>
     static void Execute(TEntityType& rEntity, const std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
@@ -146,7 +190,7 @@ void AccessDataWithOrder(
 {
     KRATOS_TRY
 
-    // TAccessor::SizeCheck(rContainer, rData);
+    TAccessor::SizeCheck(rContainer, rData, rVariable);
 
     IndexPartition<std::size_t>(rContainer.size()).for_each(
         [&rContainer, &rVariable, &rOrder, &rData]
