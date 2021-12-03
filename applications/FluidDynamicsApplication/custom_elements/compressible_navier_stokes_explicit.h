@@ -28,6 +28,7 @@
 #include "utilities/geometry_utilities.h"
 #include "includes/cfd_variables.h"
 #include "utilities/element_size_calculator.h"
+#include "utilities/atomic_utilities.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
