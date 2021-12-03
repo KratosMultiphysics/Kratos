@@ -2,7 +2,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
-class TestArray1DInterface(KratosUnittest.TestCase):
+class TestBoundingBox(KratosUnittest.TestCase):
     def CreateModelPart(self):
         current_model = KM.Model()
         model_part = current_model.CreateModelPart("TestModelPart")
