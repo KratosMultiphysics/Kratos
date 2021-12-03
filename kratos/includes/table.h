@@ -521,23 +521,30 @@ public:
     // Get the value for the given argument using piecewise linear
     result_type GetValue(argument_type const& X) const
     {
-        std::size_t size = mData.size();
-
-        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
-
-        if(size==1) // constant table. Returning the only value we have.
+        int u = mData.size()-1; //using directly u for optimizing one allocation
+        KRATOS_ERROR_IF(u == -1) << "Get value from empty table" << std::endl;
+        if(u==0) // constant table. Returning the only value we have.
             return mData.begin()->second[0];
+        if(X <=  mData.begin()->first)
+            return Interpolate(X,  mData.begin()->first, mData.begin()->second[0], mData[1].first, mData[1].second[0]);
 
-        result_type result;
-        if(X <= mData[0].first)
-            return Interpolate(X, mData[0].first, mData[0].second[0], mData[1].first, mData[1].second[0], result);
+        if(X >= mData[u].first)
+            // now the x is outside the table and we hae to extrapolate it using last two records of table.
+            return Interpolate(X, mData[u-1].first, mData[u-1].second[0], mData[u].first, mData[u].second[0]);
 
-        for(std::size_t i = 1 ; i < size ; i++)
-            if(X <= mData[i].first)
-                return Interpolate(X, mData[i-1].first, mData[i-1].second[0], mData[i].first, mData[i].second[0], result);
+        // Now the value lies inside the table domain, we apply a binary search
+        int l = 0;
+        int m;
 
-        // now the x is outside the table and we hae to extrapolate it using last two records of table.
-        return Interpolate(X, mData[size-2].first, mData[size-2].second[0], mData[size-1].first, mData[size-1].second[0], result);
+        while(u>l+1){
+            m = round((u+l)/2);
+            if(X < mData[m].first){
+                u = m;
+            }else{
+                l = m;
+            }
+        }
+        return Interpolate(X, mData[l].first, mData[l].second[0], mData[u].first, mData[u].second[0]);
     }
 
     // Get the nesrest value for the given argument
@@ -603,21 +610,10 @@ public:
         return mData[size-1].second[0];
     }
 
-    result_type& Interpolate(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2, result_type& Result) const
+    result_type Interpolate(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2) const
     {
-        const double epsilon = 1e-12;
-
-        double dx = X2 - X1;
-        result_type dy = Y2 - Y1;
-
-        double scale = 0.00;
-
-        if (dx > epsilon)
-            scale = (X - X1) / dx;
-
-        Result = Y1 + dy * scale;
-
-        return Result;
+        // const double epsilon = 1e-12;
+        return Y1 + (X2 - X1 > 1.0e-12) * (Y2 - Y1)*(X - X1)/(X2 - X1);
 
     }
 
@@ -660,30 +656,34 @@ public:
      // Get the derivative for the given argument using piecewise linear
     result_type GetDerivative(argument_type const& X) const
     {
-        std::size_t size = mData.size();
+        int u = mData.size()-1; //using directly u for optimizing one allocation
+        KRATOS_ERROR_IF(u == -1) << "Get value from empty table" << std::endl;
+        if(X <=  mData.begin()->first)
+            return InterpolateDerivative(mData.begin()->first, mData.begin()->second[0], mData[1].first, mData[1].second[0]);
 
-        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
+        if(X >= mData[u].first)
+            // now the x is outside the table and we hae to extrapolate it using last two records of table.
+            return InterpolateDerivative(mData[u-1].first, mData[u-1].second[0], mData[u].first, mData[u].second[0]);
 
-        if(size==1) // constant table. Returning the only value we have.
-            return 0.0;
+        // Now the value lies inside the table domain, we apply a binary search
+        int l = 0;
+        int m;
 
-        result_type result;
-        if(X <= mData[0].first)
-            //return Interpolate(X, mData[0].first, mData[0].second[0], mData[1].first, mData[1].second[0], result);
-            return 0.0;
+        while(u>l+1){
+            m = round((u+l)/2);
+            if(X < mData[m].first){
+                u = m;
+            }else{
+                l = m;
+            }
+        }
+        return InterpolateDerivative(mData[l].first, mData[l].second[0], mData[u].first, mData[u].second[0]);
 
-        for(std::size_t i = 1 ; i < size ; i++)
-            if(X <= mData[i].first)
-                return InterpolateDerivative( mData[i-1].first, mData[i-1].second[0], mData[i].first, mData[i].second[0], result);
-
-        // If it lies outside the table values we will return 0.0.
-        return 0.0;
     }
-     result_type& InterpolateDerivative( argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2, result_type& Result) const
+     result_type InterpolateDerivative( argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2) const
     {
         const double epsilon = 1e-12;
         argument_type dx = X2 - X1;
-        result_type dy = Y2 - Y1;
         if (dx < epsilon)
         {
             dx=epsilon;
@@ -693,10 +693,9 @@ public:
             << "*** DERIVATIVE FROM TABLE. SET TO 1E-12 ***\n"
             << "*******************************************" <<std::endl;
         }
-        Result= dy/dx;
-        return Result;
+        return (Y2 - Y1)/dx;
     }
-    
+
     /**
      * @brief This method clears databse
      */
