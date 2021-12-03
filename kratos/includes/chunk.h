@@ -86,12 +86,12 @@ namespace Kratos
       ///@name Operations
       ///@{
 	  void Initialize() {
-		  std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
+		  const std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
 		  mpData = new BlockType[DataSize()];
   		  mFirstAvailableBlockIndex = 0;
-		  SetNumberOfAvailableBlocks(AllocatableDataSize() / block_size_after_alignment);
+		  mNumberOfAvailableBlocks = AllocatableDataSize() / block_size_after_alignment;
 
-		  *mpData = -1;
+		  *mpData = -1; // The first entry of the link list to the next one
 	  }
 
 	  /// This function does not throw and returns zero if cannot allocate
@@ -114,9 +114,7 @@ namespace Kratos
 			KRATOS_DEBUG_CHECK(Has(p_result));
 			mFirstAvailableBlockIndex = *p_result;
 
-			
-
-			SetNumberOfAvailableBlocks(GetNumberOfAvailableBlocks()-1);
+			mNumberOfAvailableBlocks--;
 	
 			unlock();
 
@@ -140,7 +138,7 @@ namespace Kratos
 
 		  // Check if there is no truncation error
 		  KRATOS_DEBUG_CHECK_EQUAL(GetFirstAvailableBlockIndex(), double(p_to_release - GetData()) / GetBlockSize(mBlockSizeInBytes));
-		  SetNumberOfAvailableBlocks(GetNumberOfAvailableBlocks() + 1);
+		  mNumberOfAvailableBlocks++;
 		  unlock();
 		  pPointrerToRelease = nullptr;
 
