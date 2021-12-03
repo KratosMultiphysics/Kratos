@@ -523,14 +523,19 @@ public:
     {
         int u = mData.size()-1; //using directly u for optimizing one allocation
         KRATOS_ERROR_IF(u == -1) << "Get value from empty table" << std::endl;
-        if(u==0) // constant table. Returning the only value we have.
+        if(u==0) {
+            // constant table. Returning the only value we have.
             return mData.begin()->second[0];
-        if(X <=  mData.begin()->first)
+        }
+        if(X <=  mData.begin()->first) {
             return Interpolate(X,  mData.begin()->first, mData.begin()->second[0], mData[1].first, mData[1].second[0]);
+        }
 
-        if(X >= mData[u].first)
+        if(X >= mData[u].first) {
             // now the x is outside the table and we hae to extrapolate it using last two records of table.
             return Interpolate(X, mData[u-1].first, mData[u-1].second[0], mData[u].first, mData[u].second[0]);
+        }
+
 
         // Now the value lies inside the table domain, we apply a binary search
         int l = 0;
@@ -658,12 +663,14 @@ public:
     {
         int u = mData.size()-1; //using directly u for optimizing one allocation
         KRATOS_ERROR_IF(u == -1) << "Get value from empty table" << std::endl;
-        if(X <=  mData.begin()->first)
+        if(X <=  mData.begin()->first){
             return InterpolateDerivative(mData.begin()->first, mData.begin()->second[0], mData[1].first, mData[1].second[0]);
+        }
 
-        if(X >= mData[u].first)
+        if(X >= mData[u].first){
             // now the x is outside the table and we hae to extrapolate it using last two records of table.
             return InterpolateDerivative(mData[u-1].first, mData[u-1].second[0], mData[u].first, mData[u].second[0]);
+        }
 
         // Now the value lies inside the table domain, we apply a binary search
         int l = 0;
