@@ -122,7 +122,7 @@ def ComputeVariationalFormulation():
     else:
         n1 = - V.transpose()*acc  # Mass (inertial) term - FE scale
         rv = n1 + n2 + n3 + n4 + n5  # Implicit (includes the inertial term n1)
-    return rv
+    return (rv, subscales)
 
 
 def CalculateResidualsProjections():
@@ -183,6 +183,111 @@ def OutputProjections(res_rho_proj, res_mom_proj, res_tot_ener_proj, outstring):
     return outstring
 
 
+def ComputeLeftAndRightHandSide():
+    # Substitution of the discretized values at the gauss points
+    # Loop and accumulate the residual in each Gauss point
+    print("\nSubscales type: " + subscales_type)
+    print("\n- Substitution of the discretized values at the gauss points")
+
+    rv_ = rv.copy()  # Copy for this subscales type
+
+    # Substitute the subscales model
+    if subscales_type == "ASGS":
+        asgs_subscales = Tau * res
+        SubstituteMatrixValue(rv_, subscales, asgs_subscales)
+    elif subscales_type == "OSS":
+        oss_subscales = Tau * (res - res_proj)
+        SubstituteMatrixValue(rv_, subscales, oss_subscales)
+    else:
+        raise ValueError("Unknown subscales type: {}".format(subscales_type))
+
+    # Data interpolation at the gauss point
+    U_gauss = U.transpose() * N
+    w_gauss = w.transpose() * N
+    f_gauss = f_ext.transpose() * N
+    r_gauss = (r_ext.transpose()*N)[0]
+    mass_gauss = (m_ext.transpose()*N)[0]
+    alpha_sc_gauss = (alpha_sc_nodes.transpose()*N)[0]
+    mu_sc_gauss = (mu_sc_nodes.transpose()*N)[0]
+    beta_sc_gauss = (beta_sc_nodes.transpose()*N)[0]
+    lamb_sc_gauss = (lamb_sc_nodes.transpose()*N)[0]
+
+    if is_explicit:
+        # In the explicit case, the acceleration is linearised taking the
+        # previous step one. Note that in the explicit case this acceleration
+        # is only used in the calculation of the stabilization terms
+        acc_gauss = dUdt.transpose()*N
+    else:
+        # In the implicit case, calculate the time derivatives with the BDF2
+        # formula
+        acc_gauss = (bdf[0] * U + bdf[1] * Un + bdf[2] * Unn).transpose()*N
+
+    # Gauss pt. stabilization matrix calculation
+    if shock_capturing:
+        tau_gauss = generate_stabilization_matrix.ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss, mu_sc_gauss, lamb_sc_gauss)
+    else:
+        tau_gauss = generate_stabilization_matrix.ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss)
+
+    # If OSS, residual projections interpolation
+    if subscales_type == "OSS":
+        res_proj_gauss = ResProj.transpose() * N
+
+    # Gradients computation
+    grad_U = DfjDxi(DN_DX, U).transpose()
+    grad_w = DfjDxi(DN_DX, w).transpose()
+
+    print("\t- Substitution in the variational formulation")
+    SubstituteMatrixValue(rv_, Ug, U_gauss)
+    SubstituteMatrixValue(rv_, acc, acc_gauss)
+    SubstituteMatrixValue(rv_, H, grad_U)
+    SubstituteMatrixValue(rv_, V, w_gauss)
+    SubstituteMatrixValue(rv_, Q, grad_w)
+    SubstituteMatrixValue(rv_, Tau, tau_gauss)
+    SubstituteMatrixValue(rv_, f, f_gauss)
+    SubstituteScalarValue(rv_, rg, r_gauss)
+    SubstituteScalarValue(rv_, mg, mass_gauss)
+    SubstituteScalarValue(rv_, alpha_sc, alpha_sc_gauss)
+    SubstituteScalarValue(rv_, mu_sc, mu_sc_gauss)
+    SubstituteScalarValue(rv_, beta_sc, beta_sc_gauss)
+    SubstituteScalarValue(rv_, lamb_sc, lamb_sc_gauss)
+    if subscales_type == "OSS":
+        SubstituteMatrixValue(rv_, res_proj, res_proj_gauss)
+
+    # Compute LHS and RHS
+
+    # Set the DOFs and test function matrices to do the differentiation
+    dofs = ZeroMatrix(n_nodes*block_size, 1)
+    testfunc = ZeroMatrix(n_nodes*block_size, 1)
+    for i in range(n_nodes):
+        for j in range(block_size):
+            dofs[i*block_size + j] = U[i, j]
+            testfunc[i*block_size + j] = w[i, j]
+
+    print("\n- Compute RHS")
+    rhs = Compute_RHS(rv_, testfunc, do_simplifications)
+
+    lhs = None
+    if not is_explicit:
+        print("\n- Compute LHS")
+        lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications)
+
+    return lhs, rhs
+
+
+def WriteLeftAndRightHandSide(lhs, rhs, outstring):
+    rhs_out = OutputVector_CollectingFactors(rhs, "rRightHandSideBoundedVector", mode, replace_indices=False, assignment_op=" += ")
+
+    if not is_explicit:
+        lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode, replace_indices=False, assignment_op=" += ")
+
+    # Reading and filling the template file
+    print("\n- Substituting outstring in " + template_filename + " \n")
+    outstring = outstring.replace("//substitute_rhs_" + str(dim) + "D_" + subscales_type, rhs_out)
+    if not is_explicit:
+        outstring = outstring.replace("//substitute_lhs_" + str(dim) + "D_" + subscales_type, lhs_out)
+    return outstring
+
+
 #################################################
 #                                               #
 #                     MAIN                      #
@@ -197,8 +302,8 @@ params = {
     "dim": -1,                                       # Dimension
     "mu": Symbol('data.mu', positive=True),          # Dynamic viscosity
     "h": Symbol('data.h', positive=True),            # Element size
-    "lambda": Symbol('data.lambda', positive=True),  # Thermal Conductivity of the fluid
-    "c_v": Symbol('data.c_v', positive=True),        # Specific Heat at Constant volume
+    "lambda": Symbol('data.lambda', positive=True),  # Thermal Conductivity
+    "c_v": Symbol('data.c_v', positive=True),        # Specific Heat at constant volume
     "gamma": Symbol('data.gamma', positive=True),    # Gamma (Cp/Cv)
     "stab_c1": Symbol('stab_c1', positive=True),     # Algorithm constant
     "stab_c2": Symbol('stab_c2', positive=True),     # Algorithm constant
@@ -212,9 +317,9 @@ for dim in dim_vector:
 
     # Shape functions and Gauss pts. settings
     (n_nodes, n_gauss) = {
-        1: (1, 2),
-        2: (4, 4),
-        3: (8, 8)
+        1: (1, 2),  # Line
+        2: (4, 4),  # Quad
+        3: (8, 8)   # Hexa
     }[dim]
 
     N = DefineVector("N", n_nodes)
@@ -242,9 +347,9 @@ for dim in dim_vector:
 
     # Nodal artificial magnitudes
     alpha_sc_nodes = DefineVector('data.alpha_sc_nodes', n_nodes)  # mass diffusivity
-    mu_sc_nodes = DefineVector('data.mu_sc_nodes', n_nodes)  # dynamic viscosity
-    beta_sc_nodes = DefineVector('data.beta_sc_nodes', n_nodes)  # bulk viscosity
-    lamb_sc_nodes = DefineVector('data.lamb_sc_nodes', n_nodes)  # bulk viscosity
+    mu_sc_nodes = DefineVector('data.mu_sc_nodes', n_nodes)        # dynamic viscosity
+    beta_sc_nodes = DefineVector('data.beta_sc_nodes', n_nodes)    # bulk viscosity
+    lamb_sc_nodes = DefineVector('data.lamb_sc_nodes', n_nodes)    # bulk viscosity
 
     # Construction of the variational equation
     Ug = DefineVector('Ug', block_size)     # Dofs vector
@@ -294,17 +399,18 @@ for dim in dim_vector:
 
     # Variational formulation (Galerkin functional)
     print("\nCompute variational formulation\n")
-    rv = ComputeVariationalFormulation()
+    (rv, subscales) = ComputeVariationalFormulation()
 
     # OSS Residual projections calculation #
     # Calculate the residuals projection
     print("\nCalculate the projections of the residuals")
     projections = CalculateResidualsProjections()
-
-    # Output the projections
     outstring = OutputProjections(*projections, outstring)
 
-    # Algebraic form calculation #
+    # LSH and RHS
+    for subscales_type in subscales_vector:
+        matrices = ComputeLeftAndRightHandSide()
+        outstring = WriteLeftAndRightHandSide(*matrices, outstring)
 
 
 print("\nWriting " + output_filename + " \n")
