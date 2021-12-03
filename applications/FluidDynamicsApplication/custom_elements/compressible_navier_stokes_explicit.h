@@ -927,7 +927,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void CompressibleNavierStokesExplicit<TDim, TNumNodes>::AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo)
 {
     // Calculate the explicit residual vector
-    BoundedVector<double, BlockSize> rhs;
+    BoundedVector<double, DofSize> rhs;
     CalculateRightHandSideInternal(rhs, rCurrentProcessInfo);
 
     // Add the residual contribution
