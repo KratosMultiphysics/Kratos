@@ -57,17 +57,13 @@ void GeoCrBeamElement2D2N::InitializeSolutionStep(const ProcessInfo& rCurrentPro
 {
     KRATOS_TRY;
 
-    if (mIsInitialization)
-    {
-        if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS))
-        {
+    if (mIsInitialization) {
+        if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
             if (rCurrentProcessInfo[RESET_DISPLACEMENTS])
                 noalias(mInternalGlobalForcesFinalizedPrevious) = mInternalGlobalForcesFinalized;
             else
                 noalias(mInternalGlobalForcesFinalized) = mInternalGlobalForcesFinalizedPrevious;
-        }
-        else
-        {
+        } else {
             noalias(mInternalGlobalForcesFinalized) = ZeroVector(msElementSize);
             noalias(mInternalGlobalForcesFinalizedPrevious) = ZeroVector(msElementSize);
         }
@@ -170,7 +166,7 @@ void GeoCrBeamElement2D2N::CalculateOnIntegrationPoints(
     KRATOS_TRY
     // Element with two nodes can only represent results at one node
     const auto& r_geometry = GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(Kratos::GeometryData::GI_GAUSS_3);
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
     const SizeType write_points_number = r_integration_points.size();
     if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
