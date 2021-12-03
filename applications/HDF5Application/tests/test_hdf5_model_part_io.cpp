@@ -129,6 +129,27 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadConditions3, KratosHDF5TestSuite)
     model_part_io.ReadConditions(r_read_model_part.Nodes(), r_read_model_part.rProperties(), r_read_model_part.Conditions());
 }
 
+KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ConditionalWriteModelPart, KratosHDF5TestSuite)
+{
+    Model this_model;
+    ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
+    ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
+
+    TestModelPartFactory::CreateModelPart(r_write_model_part, {}, {});
+    HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/Step", true, MODIFIED);
+
+    model_part_io.WriteModelPart(r_write_model_part);
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part_io.ReadModelPart(r_read_model_part), "H5Aexists_by_name failed.");
+
+    r_write_model_part.Set(MODIFIED, true);
+    model_part_io.WriteModelPart(r_write_model_part);
+    model_part_io.ReadModelPart(r_read_model_part);
+
+    KRATOS_CHECK_EQUAL(r_write_model_part.NumberOfNodes(), r_read_model_part.NumberOfNodes());
+    KRATOS_CHECK_EQUAL(r_write_model_part.NumberOfElements(), r_read_model_part.NumberOfElements());
+    KRATOS_CHECK_EQUAL(r_write_model_part.NumberOfConditions(), r_read_model_part.NumberOfConditions());
+}
+
 KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_Properties1, KratosHDF5TestSuite)
 {
     Model this_model;
