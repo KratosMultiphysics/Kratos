@@ -1,13 +1,57 @@
 import numpy as np
 import math
+import os
+import sys
 
 from pathlib import Path
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StatisticsApplication as KratosStats
 
-from KratosMultiphysics.RANSApplication.formulations.utilities import ExecutionScope
-from KratosMultiphysics.RANSApplication.formulations.utilities import SolveProblem
+def AddFileLoggerOutput(log_file_name):
+    file_logger = Kratos.FileLoggerOutput(log_file_name)
+    default_severity = Kratos.Logger.GetDefaultOutput().GetSeverity()
+    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
+    Kratos.Logger.AddOutput(file_logger)
+
+    return default_severity, file_logger
+
+def RemoveFileLoggerOutput(default_severity, file_logger):
+    Kratos.Logger.Flush()
+    Kratos.Logger.RemoveOutput(file_logger)
+    Kratos.Logger.GetDefaultOutput().SetSeverity(default_severity)
+
+class ExecutionScope:
+    def __init__(self, execution_path):
+        self.currentPath = Path.cwd()
+        self.scope = Path(execution_path)
+
+    def __enter__(self):
+        self.scope.mkdir(parents=True, exist_ok=True)
+        sys.path.append(str(self.scope.absolute()))
+        os.chdir(str(self.scope))
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.chdir(self.currentPath)
+        sys.path.remove(str(self.scope.absolute()))
+
+def SolveProblem(analysis_class_type, kratos_parameters, execution_prefix):
+    # set the loggers
+    default_severity, file_logger = AddFileLoggerOutput(execution_prefix + ".log")
+
+    # run the primal analysis
+    model = Kratos.Model()
+    primal_simulation = analysis_class_type(model, kratos_parameters)
+    primal_simulation.Run()
+
+    with open(execution_prefix + ".json", "w") as file_output:
+        file_output.write(kratos_parameters.PrettyPrintJsonString())
+
+    # flush the primal output
+    RemoveFileLoggerOutput(default_severity, file_logger)
+    Kratos.Logger.PrintInfo("SolvePrimalProblem", "Solved primal evaluation at {}.".format(execution_prefix + ".json"))
+
+    return model, primal_simulation
 
 def __Bisect(data):
     if len(data) != 3:
