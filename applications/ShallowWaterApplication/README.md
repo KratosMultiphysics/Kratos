@@ -21,4 +21,4 @@ If the coupling with a Navier-Stokes is required, add the following applications
 
 ### References
 
-- M. Masó, I. De-Pouplana, E. Oñate. title:      A FIC-FEM stabilized formulation for the shallow water equations over partially dry domains. Computer Methods in Applied Mechanics and Engineering, 389C (2022) 114362.
+- M. Masó, I. De-Pouplana, E. Oñate. A FIC-FEM stabilized formulation for the shallow water equations over partially dry domains. Computer Methods in Applied Mechanics and Engineering, 389C (2022) 114362.
