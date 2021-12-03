@@ -201,14 +201,14 @@
 
         "creator_destructor_settings" : {
             "apply_delayed_destruction" : true,
-            "destruction_delay_interval" : 0.0
+            "destruction_delay_interval" : 0.15
         },
 
         "solver_settings"                : {
             "RemoveBallsInitiallyTouchingWalls" : false,
             "strategy"                          : "swimming_sphere_strategy",
             "material_import_settings"          : {
-                "materials_filename" : "gentle_injection_tests/MaterialsDEMErasure.json"
+                "materials_filename" : "fluid_convergence_tests/MaterialsDEMErasure.json"
             }
         },
         "VirtualMassCoefficient"         : 1.0,
@@ -316,10 +316,10 @@
             "solver_type"                 : "MonolithicDEM",
             "model_import_settings"       : {
                 "input_type"     : "mdpa",
-                "input_filename" : "gentle_injection_tests/cube_cavityFluid"
+                "input_filename" : "fluid_convergence_tests/cube_cavityFluid"
             },
             "material_import_settings"    : {
-                "materials_filename" : "gentle_injection_tests/FluidMaterials.json"
+                "materials_filename" : "fluid_convergence_tests/FluidMaterials.json"
             },
             "time_scheme" : "bdf2",
             "echo_level"                  : 1,
