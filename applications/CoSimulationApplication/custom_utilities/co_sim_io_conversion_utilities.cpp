@@ -136,7 +136,7 @@ struct Accessor_Hist_Get : public Accessor_Get_Base
     template<std::size_t TSize>
     static void Execute(const Node<3>& rNode, std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
         const array_1d<double, TSize>& var = rNode.FastGetSolutionStepValue(rVariable);
-        for (std::size_t i=0; i<TSize; ++i) { rData[Index+i] = var[i]; }
+        for (std::size_t i=0; i<TSize; ++i) { rData[Index*TSize+i] = var[i]; }
     }
 };
 
@@ -150,7 +150,7 @@ struct Accessor_NonHist_Get : public Accessor_Get_Base
     template<class TEntityType, std::size_t TSize>
     static void Execute(const TEntityType& rNode, std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
         const array_1d<double, TSize>& var = rNode.GetValue(rVariable);
-        for (std::size_t i=0; i<TSize; ++i) { rData[Index+i] = var[i]; }
+        for (std::size_t i=0; i<TSize; ++i) { rData[Index*TSize+i] = var[i]; }
     }
 };
 
@@ -163,7 +163,7 @@ struct Accessor_Hist_Set : public Accessor_Set_Base
     template<std::size_t TSize>
     static void Execute(Node<3>& rNode, const std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
         array_1d<double, TSize>& var = rNode.FastGetSolutionStepValue(rVariable);
-        for (std::size_t i=0; i<TSize; ++i) { var[i] = rData[Index+i]; }
+        for (std::size_t i=0; i<TSize; ++i) { var[i] = rData[Index*TSize+i]; }
     }
 };
 
@@ -177,7 +177,7 @@ struct Accessor_NonHist_Set : public Accessor_Set_Base
     template<class TEntityType, std::size_t TSize>
     static void Execute(TEntityType& rNode, const std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
         array_1d<double, TSize>& var = rNode.GetValue(rVariable);
-        for (std::size_t i=0; i<TSize; ++i) { var[i] = rData[Index+i]; }
+        for (std::size_t i=0; i<TSize; ++i) { var[i] = rData[Index*TSize+i]; }
     }
 };
 
@@ -213,7 +213,6 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
 {
     KRATOS_TRY
 
-    // fill ModelPart from received Mesh
     KRATOS_ERROR_IF(rKratosModelPart.NumberOfNodes() > 0) << "ModelPart is not empty, it has nodes!" << std::endl;
     KRATOS_ERROR_IF(rKratosModelPart.NumberOfProperties() > 0) << "ModelPart is not empty, it has properties!" << std::endl;
     KRATOS_ERROR_IF(rKratosModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
