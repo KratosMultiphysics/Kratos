@@ -25,8 +25,6 @@
 
 // Application includes
 #include "custom_elements/compressible_navier_stokes_explicit.h"
-#include <bits/c++config.h>
-#include <boost/numeric/ublas/detail/definitions.hpp>
 
 
 namespace Kratos {
@@ -310,6 +308,8 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
+
+    std::fill(rRightHandSideBoundedVector.begin(), rRightHandSideBoundedVector.end(), 0.0);
 
     // Struct to pass around the data
     ElementDataStruct data;

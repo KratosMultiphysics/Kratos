@@ -25,8 +25,6 @@
 
 // Application includes
 #include "custom_elements/compressible_navier_stokes_explicit.h"
-#include <bits/c++config.h>
-#include <boost/numeric/ublas/detail/definitions.hpp>
 
 
 namespace Kratos {
