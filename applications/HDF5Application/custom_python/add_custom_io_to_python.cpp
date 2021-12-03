@@ -155,6 +155,7 @@ void AddCustomIOToPython(pybind11::module& m)
     py::class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, HDF5::ModelPartIO>
         (m,"HDF5PartitionedModelPartIO")
         .def(py::init<HDF5::File::Pointer, std::string const&>())
+        .def(py::init<HDF5::File::Pointer, std::string const&, const bool, const Flags&>())
         ;
 #endif
 
