@@ -23,6 +23,7 @@
 // Project includes
 #include "custom_retention/retention_law.h"
 #include "custom_retention/van_genuchten_law.h"
+#include "custom_retention/brooks_corey_law.h"
 #include "custom_retention/saturated_law.h"
 #include "custom_retention/saturated_below_phreatic_level_law.h"
 
@@ -53,6 +54,9 @@ public:
             const std::string &RetentionLawName = rMaterialProperties[RETENTION_LAW];
             if (RetentionLawName == "VanGenuchtenLaw")
                 return make_unique<VanGenuchtenLaw>();
+
+            if (RetentionLawName == "BrooksCoreyLaw")
+                return make_unique<BrooksCoreyLaw>();
 
             if (RetentionLawName == "SaturatedLaw")
                 return make_unique<SaturatedLaw>();
