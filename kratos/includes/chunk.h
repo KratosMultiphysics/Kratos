@@ -88,7 +88,7 @@ namespace Kratos
 	  void Initialize() {
 		  std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
 		  mpData = new BlockType[DataSize()];
-  		  SetFirstAvailableBlockIndex(0);
+  		  mFirstAvailableBlockIndex = 0;
 		  SetNumberOfAvailableBlocks(AllocatableDataSize() / block_size_after_alignment);
 
 		  *mpData = -1;
@@ -112,7 +112,7 @@ namespace Kratos
 			}
 				
 			KRATOS_DEBUG_CHECK(Has(p_result));
-			SetFirstAvailableBlockIndex(*p_result);
+			mFirstAvailableBlockIndex = *p_result;
 
 			
 
@@ -136,7 +136,7 @@ namespace Kratos
 		  KRATOS_DEBUG_CHECK_EQUAL((p_to_release - GetData()) % GetBlockSize(mBlockSizeInBytes), 0);
 		  lock();
 		  *p_to_release = GetFirstAvailableBlockIndex();
-		  SetFirstAvailableBlockIndex(static_cast<SizeType>((p_to_release - GetData()) / GetBlockSize(mBlockSizeInBytes)));
+		  mFirstAvailableBlockIndex = static_cast<SizeType>((p_to_release - GetData()) / GetBlockSize(mBlockSizeInBytes));
 
 		  // Check if there is no truncation error
 		  KRATOS_DEBUG_CHECK_EQUAL(GetFirstAvailableBlockIndex(), double(p_to_release - GetData()) / GetBlockSize(mBlockSizeInBytes));
@@ -292,11 +292,6 @@ namespace Kratos
 
 		static std::size_t GetBlockSize(std::size_t BlockSizeInBytes) {
 			return (BlockSizeInBytes + sizeof(BlockType) - 1) / sizeof(BlockType);
-		}
-
-		void SetFirstAvailableBlockIndex(SizeType NewValue) {
-			KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
-			mFirstAvailableBlockIndex = NewValue;
 		}
 
 		SizeType GetFirstAvailableBlockIndex() const {
