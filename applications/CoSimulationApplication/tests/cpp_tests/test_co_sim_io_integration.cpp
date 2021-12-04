@@ -211,7 +211,7 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataExport_direct_scalar, KratosCosimulationFas
 
     for (std::size_t i=0; i<num_nodes; ++i) {
         auto p_node = kratos_model_part.CreateNewNode(i+1, i*1.5, i+3.5, i-8.6);
-        auto p_elem = kratos_model_part.CreateNewElement("Element2D1N", i+1, {i+1}, p_props);
+        auto p_elem = kratos_model_part.CreateNewElement("Element2D1N", i+1, std::vector<std::size_t>{i+1ul}, p_props);
         p_node->FastGetSolutionStepValue(AUX_INDEX) = exp_values[i];
         p_node->GetValue(PRESSURE) = exp_values[i];
         p_elem->GetValue(TEMPERATURE) = exp_values[i];
@@ -296,7 +296,7 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataExport_direct_vector, KratosCosimulationFas
 
     for (std::size_t i=0; i<num_nodes; ++i) {
         auto p_node = kratos_model_part.CreateNewNode(i+1, i*1.5, i+3.5, i-8.6);
-        auto p_elem = kratos_model_part.CreateNewElement("Element2D1N", i+1, {i+1}, p_props);
+        auto p_elem = kratos_model_part.CreateNewElement("Element2D1N", i+1, std::vector<std::size_t>{i+1ul}, p_props);
         const array_1d<double, 3> vals(3, ref_values[i]);
         p_node->FastGetSolutionStepValue(DISPLACEMENT) = vals;
         p_node->GetValue(ROTATION) = vals;
@@ -384,7 +384,7 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataImport_direct_scalar, KratosCosimulationFas
 
     for (std::size_t i=0; i<num_nodes; ++i) {
         auto p_node = kratos_model_part.CreateNewNode(i+1, i*1.5, i+3.5, i-8.6);
-        auto p_elem = kratos_model_part.CreateNewElement("Element2D1N", i+1, {i+1}, p_props);
+        auto p_elem = kratos_model_part.CreateNewElement("Element2D1N", i+1, std::vector<std::size_t>{i+1ul}, p_props);
     }
 
     KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
@@ -464,7 +464,7 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataImport_direct_vector, KratosCosimulationFas
 
     for (std::size_t i=0; i<num_nodes; ++i) {
         auto p_node = kratos_model_part.CreateNewNode(i+1, i*1.5, i+3.5, i-8.6);
-        auto p_elem = kratos_model_part.CreateNewElement("Element2D1N", i+1, {i+1}, p_props);
+        auto p_elem = kratos_model_part.CreateNewElement("Element2D1N", i+1, std::vector<std::size_t>{i+1ul}, p_props);
     }
 
     KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
