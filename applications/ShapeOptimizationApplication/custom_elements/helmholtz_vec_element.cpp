@@ -321,6 +321,14 @@ void HelmholtzVecElement::CalculateLocalSystem(
     const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
 
+    const auto& r_prop = GetProperties();
+
+    // Checking radius
+    KRATOS_ERROR_IF_NOT(r_prop.Has(HELMHOLTZ_RADIUS)) << "HELMHOLTZ_RADIUS has to be provided for the calculations of the HelmholtzElement!" << std::endl;  
+
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(COMPUTE_CONTROL_POINTS))
+        << "COMPUTE_CONTROL_POINTS not defined in the ProcessInfo!" << std::endl;  
+
   GeometryType &rgeom = this->GetGeometry();
   const IntegrationMethod this_integration_method =
       rgeom.GetDefaultIntegrationMethod();
@@ -332,10 +340,12 @@ void HelmholtzVecElement::CalculateLocalSystem(
   CheckElementMatrixDimension(rLeftHandSideMatrix, rRightHandSideVector);
 
 
-    Element::GeometryType::JacobiansType J0;
-    rgeom.Jacobian(J0,rgeom.GetDefaultIntegrationMethod());
-    Matrix InvJ0(dimension,dimension);
-    double detJ0;
+  Element::GeometryType::JacobiansType J0;
+  rgeom.Jacobian(J0,rgeom.GetDefaultIntegrationMethod());
+  Matrix InvJ0(dimension,dimension);
+  double detJ0;
+
+  MatrixType K = ZeroMatrix(rLeftHandSideMatrix.size1(),rLeftHandSideMatrix.size2());
 
   for (unsigned int point_number = 0; point_number < integration_points.size(); ++point_number) {
      MathUtils<double>::InvertMatrix(J0[point_number],InvJ0,detJ0);;
@@ -343,19 +353,17 @@ void HelmholtzVecElement::CalculateLocalSystem(
 
     MatrixType B = CalculateBMatrix(dimension, point_number);
 
-    MatrixType constitutive_matrix = SetAndModifyConstitutiveLaw(dimension, point_number);
-    // Compute LHS
-    noalias(rLeftHandSideMatrix) +=
-        -400 * prod(trans(B), weight * Matrix(prod(constitutive_matrix, B)));
+    const double r_helmholtz = r_prop[HELMHOLTZ_RADIUS];
 
-    // Compute RHS
-    VectorType last_values;
-    this->GetValuesVector(last_values, 0);
-    // noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, last_values);
+    MatrixType constitutive_matrix = SetAndModifyConstitutiveLaw(dimension, point_number);
+
+    K += -r_helmholtz * r_helmholtz * prod(trans(B), weight * Matrix(prod(constitutive_matrix, B)));
   }
 
   MatrixType M;
   CalculateMMatrix(M,rCurrentProcessInfo);
+  //Add mass matrix to the total stifness matrix
+  K += M;
 
   const unsigned int number_of_points = rgeom.size();
   Vector nodal_vals(number_of_points*3);
@@ -365,11 +373,17 @@ void HelmholtzVecElement::CalculateLocalSystem(
       nodal_vals[3 * node_element + 0] = source[0];
       nodal_vals[3 * node_element + 1] = source[1];
       nodal_vals[3 * node_element + 2] = source[2];
+  }
+
+  if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS]){
+      noalias(rLeftHandSideMatrix) += M;
+      noalias(rRightHandSideVector) += prod(K,nodal_vals);
+  }            
+  else{
+      noalias(rLeftHandSideMatrix) += K;
+      noalias(rRightHandSideVector) += prod(M,nodal_vals);
   }  
 
-  noalias(rLeftHandSideMatrix) += M;
-
-  noalias(rRightHandSideVector) += prod(M,nodal_vals);
 
   KRATOS_CATCH("");
 }

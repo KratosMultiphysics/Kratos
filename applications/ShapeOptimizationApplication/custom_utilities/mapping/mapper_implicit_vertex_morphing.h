@@ -27,7 +27,9 @@
 #include "spaces/ublas_space.h"
 #include "mapper_base.h"
 #include "custom_elements/helmholtz_element.h"
+#include "custom_elements/helmholtz_vec_element.h"
 #include "custom_strategies/strategies/helmholtz_strategy.h"
+#include "custom_strategies/strategies/helmholtz_vec_strategy.h"
 #include "containers/model.h"
 #include "linear_solvers/linear_solver.h"
 
@@ -129,11 +131,11 @@ public:
         for (int i = 0; i < (int)mrModelPart.Elements().size(); i++) {
             ModelPart::ElementsContainerType::iterator it =
                 mrModelPart.ElementsBegin() + i;
-            Element::Pointer p_element = new HelmholtzElement(it->Id(), it->pGetGeometry(), p_vm_property);
+            Element::Pointer p_element = new HelmholtzVecElement(it->Id(), it->pGetGeometry(), p_vm_property);
             rmesh_elements.push_back(p_element);
         }
 
-        mpHelmholtzStrategy = new HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> (*mpVMModePart,mpLinearSystemSolver);
+        mpHelmholtzStrategy = new HelmholtzVecStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> (*mpVMModePart,mpLinearSystemSolver);
         mpHelmholtzStrategy->Initialize();
 
 
@@ -342,7 +344,7 @@ protected:
     Parameters mMapperSettings;
     bool mIsMappingInitialized = false;
     ModelPart* mpVMModePart;
-    HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>* mpHelmholtzStrategy;
+    HelmholtzVecStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>* mpHelmholtzStrategy;
 
     ///@}
     ///@name Protected Operators

@@ -19,7 +19,6 @@
 /* External includes */
 
 /* Project includes */
-#include "helmholtz_application_variables.h"
 #include "containers/model.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
