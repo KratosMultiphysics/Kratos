@@ -22,6 +22,35 @@
 #include "co_simulation_application_variables.h"
 
 namespace Kratos {
+
+template<>
+void CoSimIOConversionUtilities::GetData(
+    Kratos::ModelPart& rModelPart,
+    std::vector<double>& rData,
+    const Variable<double>& rVariable,
+    const DataLocation DataLoc);
+
+template<>
+void CoSimIOConversionUtilities::GetData(
+    Kratos::ModelPart& rModelPart,
+    std::vector<double>& rData,
+    const Variable<array_1d<double,3>>& rVariable,
+    const DataLocation DataLoc);
+
+template<>
+void CoSimIOConversionUtilities::SetData(
+    Kratos::ModelPart& rModelPart,
+    const std::vector<double>& rData,
+    const Variable<double>& rVariable,
+    const DataLocation DataLoc);
+
+template<>
+void CoSimIOConversionUtilities::SetData(
+    Kratos::ModelPart& rModelPart,
+    const std::vector<double>& rData,
+    const Variable<array_1d<double,3>>& rVariable,
+    const DataLocation DataLoc);
+
 namespace {
 
 //  TODO refactor with switch?

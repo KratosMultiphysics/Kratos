@@ -92,7 +92,7 @@ void ExportData_ModelPart_Scalar(
 {
     KRATOS_TRY
 
-    CoSimIOConversionUtilities::GetData<double>(rModelPart, DataBuffers::vector_doubles, rVariable, DataLoc);
+    CoSimIOConversionUtilities::GetData(rModelPart, DataBuffers::vector_doubles, rVariable, DataLoc);
 
     CoSimIO::ExportData(rInfo, DataBuffers::vector_doubles);
 
@@ -109,7 +109,7 @@ void ImportData_ModelPart_Scalar(
 
     CoSimIO::ImportData(rInfo, DataBuffers::vector_doubles);
 
-    CoSimIOConversionUtilities::SetData<double>(rModelPart, DataBuffers::vector_doubles, rVariable, DataLoc);
+    CoSimIOConversionUtilities::SetData(rModelPart, DataBuffers::vector_doubles, rVariable, DataLoc);
 
     KRATOS_CATCH("")
 }
@@ -123,7 +123,7 @@ void ExportData_ModelPart_Vector(
 
     KRATOS_TRY
 
-    CoSimIOConversionUtilities::GetData<array_1d<double, 3>>(rModelPart, DataBuffers::vector_doubles, rVariable, DataLoc);
+    CoSimIOConversionUtilities::GetData(rModelPart, DataBuffers::vector_doubles, rVariable, DataLoc);
 
     CoSimIO::ExportData(rInfo, DataBuffers::vector_doubles);
 
@@ -140,7 +140,7 @@ void ImportData_ModelPart_Vector(
 
     CoSimIO::ImportData(rInfo, DataBuffers::vector_doubles);
 
-    CoSimIOConversionUtilities::SetData<array_1d<double, 3>>(rModelPart, DataBuffers::vector_doubles, rVariable, DataLoc);
+    CoSimIOConversionUtilities::SetData(rModelPart, DataBuffers::vector_doubles, rVariable, DataLoc);
 
     KRATOS_CATCH("")
 }
