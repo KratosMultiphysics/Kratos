@@ -72,10 +72,10 @@ namespace Kratos {
                 Vector N;
                 typename BinBasedFastPointLocator<2>::ResultContainerType results(max_results);
                 typename BinBasedFastPointLocator<2>::ResultIteratorType results_begin = results.begin();
-                Vector unitary_radial_vector = ZeroVector(2);
+                Vector unitary_radial_vector = ZeroVector(3);
 
                 #pragma omp for
-                for (int i=0; i<(int)mrDestinationModelPart.Nodes().size(); i++) {
+                for (int i = 0; i < (int)mrDestinationModelPart.Nodes().size(); i++) {
                     auto node_it = mrDestinationModelPart.NodesBegin() + i;
                     auto& particle_coordinates = node_it->Coordinates();
                     const double norm = MathUtils<double>::Norm(particle_coordinates);
@@ -83,6 +83,7 @@ namespace Kratos {
                         const double inv_norm = 1.0 / norm;
                         unitary_radial_vector[0] = particle_coordinates[0] * inv_norm;
                         unitary_radial_vector[1] = particle_coordinates[1] * inv_norm;
+                        unitary_radial_vector[2] = particle_coordinates[2] * inv_norm;
                     }
                     else {
                         continue; //In the DEM walls modelpart there is a node which represents the center of gravity of the solid...
@@ -93,9 +94,9 @@ namespace Kratos {
                     Element::Pointer shared_p_element;
                     is_found = mpSearchStructure->FindPointOnMesh(particle_coordinates, N, shared_p_element, results_begin, max_results, 0.0);
                     if (is_found) {
-                        Matrix interpolated_effective_stress_tensor = ZeroMatrix(2, 2);
+                        Matrix interpolated_effective_stress_tensor = ZeroMatrix(3, 3);
                         const auto& geom = shared_p_element->GetGeometry();
-                        for(size_t j=0; j<geom.size(); j++){
+                        for (size_t j = 0; j < geom.size(); j++) {
                             const Matrix& tempM = geom[j].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
                             noalias(interpolated_effective_stress_tensor) += N[j] * tempM;
                         }

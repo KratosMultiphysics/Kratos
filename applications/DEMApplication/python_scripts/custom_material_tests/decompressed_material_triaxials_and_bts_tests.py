@@ -1211,8 +1211,10 @@ if __name__ == "__main__":
     machine_learning_file = "machine_learning_data.grf"
     machine_learning_data = open(machine_learning_file, 'w')
 
+    # TEST DATA
     confinement_pressure_list = [0.34, 6.9, 13.8] # For the triaxials, in MPa
     num_of_discretization_points = 10 # To compute relative errors
+    run_also_bts = True
     print_images = False
     
     number_of_triaxials = len(confinement_pressure_list)
@@ -1222,8 +1224,11 @@ if __name__ == "__main__":
         model = KratosMultiphysics.Model()
         DecompressedMaterialTriaxialTest(model, parameters).Run()
 
-    with open("ProjectParametersDEM_bts.json", 'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
+    if run_also_bts:
+        with open("ProjectParametersDEM_bts.json", 'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-    model = KratosMultiphysics.Model()
-    DecompressedMaterialBTSTest(model, parameters).Run()
+        model = KratosMultiphysics.Model()
+        DecompressedMaterialBTSTest(model, parameters).Run()
+    else:
+        machine_learning_data.close()

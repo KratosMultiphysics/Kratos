@@ -301,14 +301,14 @@ class DEMAnalysisStage(AnalysisStage):
                 y = node.Y
 
                 if (y > side - dist):
-                    node.SetSolutionStepValue(VELOCITY_X, vel)
+                    node.SetSolutionStepValue(VELOCITY_X, 0.0)
                     node.SetSolutionStepValue(VELOCITY_Y, -vel)
                     node.SetSolutionStepValue(VELOCITY_Z, 0.0)
                     node.Fix(VELOCITY_X)
                     node.Fix(VELOCITY_Y)
                     node.Fix(VELOCITY_Z)
                 if y < dist:
-                    node.SetSolutionStepValue(VELOCITY_X, -vel)
+                    node.SetSolutionStepValue(VELOCITY_X, -0.0)
                     node.SetSolutionStepValue(VELOCITY_Y, vel)
                     node.SetSolutionStepValue(VELOCITY_Z, 0.0)
                     node.Fix(VELOCITY_X)
