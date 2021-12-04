@@ -35,8 +35,20 @@ class ImplicitVertexMorphingMapper():
     @classmethod
     def GetDefaultImplicitVMSettings(cls):
         return KM.Parameters("""{
-            "linear_solver_settings"       : {
-                    "solver_type"     : "skyline_lu_factorization"
+            "linear_solver_settings" : {
+                "solver_type" : "amgcl",
+                "smoother_type":"ilu0",
+                "krylov_type": "gmres",
+                "coarsening_type": "aggregation",
+                "max_iteration": 200,
+                "provide_coordinates": false,
+                "gmres_krylov_space_dimension": 100,
+                "verbosity" : 0,
+                "tolerance": 1e-7,
+                "scaling": false,
+                "block_size": 1,
+                "use_block_matrices_if_possible" : true,
+                "coarse_enough" : 5000
             }
         }""")
 

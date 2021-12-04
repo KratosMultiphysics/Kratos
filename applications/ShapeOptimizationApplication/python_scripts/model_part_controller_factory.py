@@ -124,8 +124,14 @@ class ModelPartController:
 
     # --------------------------------------------------------------------------
     def DampNodalVariableIfSpecified(self, variable):
-        if self.model_settings["damping"]["apply_damping"].GetBool():
-            self.damping_utility.DampNodalVariable(variable)
+        # if self.model_settings["damping"]["apply_damping"].GetBool():
+        #     self.damping_utility.DampNodalVariable(variable)
+        for key, value in self.damping_regions.items():
+            for node in value.Nodes:
+                node.Fix(KSO.HELMHOLTZ_VARS_X)
+                node.Fix(KSO.HELMHOLTZ_VARS_Y)            
+                node.Fix(KSO.HELMHOLTZ_VARS_Z)
+            
 
     # --------------------------------------------------------------------------
     def ComputeUnitSurfaceNormals(self):

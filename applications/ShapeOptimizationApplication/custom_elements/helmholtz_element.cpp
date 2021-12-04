@@ -63,8 +63,17 @@ void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 {
     KRATOS_TRY
 
-    KRATOS_DEBUG_ERROR_IF_NOT(rCurrentProcessInfo.Has(HELMHOLTZ_DIRECTION))
+    const auto& r_prop = GetProperties();
+
+    // Checking radius
+    KRATOS_ERROR_IF_NOT(r_prop.Has(HELMHOLTZ_RADIUS)) << "HELMHOLTZ_RADIUS has to be provided for the calculations of the HelmholtzElement!" << std::endl;
+
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(HELMHOLTZ_DIRECTION))
         << "HELMHOLTZ_DIRECTION not defined in the ProcessInfo!" << std::endl;   
+
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(COMPUTE_CONTROL_POINTS))
+        << "COMPUTE_CONTROL_POINTS not defined in the ProcessInfo!" << std::endl;  
+
     const unsigned int component_index = rCurrentProcessInfo[HELMHOLTZ_DIRECTION] - 1; 
 
     const auto& r_geometry = GetGeometry();
@@ -93,12 +102,10 @@ void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     Vector temp(number_of_points);
 
     Vector nodal_x(number_of_points);
-    Vector nodal_r(number_of_points);
     for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
     {
         const VectorType &source = r_geometry[node_element].FastGetSolutionStepValue(HELMHOLTZ_SOURCE);
         nodal_x[node_element] = source[component_index];
-        nodal_r[node_element] = 20;
     }
 
     r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
@@ -114,15 +121,20 @@ void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
         auto N = row(N_gausspoint,i_point); //these are the N which correspond to the gauss point "i_point"
         const double IntToReferenceWeight = integration_points[i_point].Weight() * DetJ0;
-        const double r_gauss = inner_prod(N, nodal_r);
-        noalias(rLeftHandSideMatrix) += -1 * IntToReferenceWeight * r_gauss * r_gauss * prod(DN_DX, trans(DN_DX)) + IntToReferenceWeight * outer_prod(N, N);//
+        const double r_helmholtz = r_prop[HELMHOLTZ_RADIUS];
+        MatrixType K = -1 * IntToReferenceWeight * r_helmholtz * r_helmholtz * prod(DN_DX, trans(DN_DX)) + IntToReferenceWeight * outer_prod(N, N);
+        MatrixType M = IntToReferenceWeight * outer_prod(N, N);
 
-        // Calculating the local RHS
-        const double xgauss = inner_prod(N, nodal_x);
-
-        noalias(rRightHandSideVector) += IntToReferenceWeight*xgauss*N;
+        if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS]){
+            noalias(rLeftHandSideMatrix) += M;
+            noalias(rRightHandSideVector) += prod(K,nodal_x);
+        }            
+        else{
+            noalias(rLeftHandSideMatrix) += K;
+            noalias(rRightHandSideVector) += prod(M,nodal_x);
+        }
+            
     }
-
 
     // RHS = ExtForces - K*temp;
     for (SizeType iNode = 0; iNode < number_of_points; ++iNode) {

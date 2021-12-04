@@ -22,7 +22,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
-
+import math
 # ==============================================================================
 class AlgorithmSteepestDescentImplicitVM(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
@@ -73,8 +73,9 @@ class AlgorithmSteepestDescentImplicitVM(OptimizationAlgorithm):
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
-        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.HELMHOLTZ_VARS);
-        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.HELMHOLTZ_SOURCE);
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.HELMHOLTZ_VARS)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.HELMHOLTZ_SOURCE)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.CONTROL_POINT)
 
 
 
@@ -89,11 +90,19 @@ class AlgorithmSteepestDescentImplicitVM(OptimizationAlgorithm):
     def InitializeOptimizationLoop(self):
         self.model_part_controller.Initialize()
 
+        self.design_surface = self.model_part_controller.GetDesignSurface()
+
         # here we add DOFs needed by implicit vertex-morphing.
         for node in self.optimization_model_part.Nodes:
-            node.AddDof(KSO.HELMHOLTZ_VARS_X);
-            node.AddDof(KSO.HELMHOLTZ_VARS_Y);
-            node.AddDof(KSO.HELMHOLTZ_VARS_Z);   
+            node.AddDof(KSO.HELMHOLTZ_VARS_X)
+            node.AddDof(KSO.HELMHOLTZ_VARS_Y)
+            node.AddDof(KSO.HELMHOLTZ_VARS_Z)
+
+        for key, value in self.model_part_controller.damping_regions.items():
+            for node in value.Nodes:
+                node.Fix(KSO.HELMHOLTZ_VARS_X)
+                node.Fix(KSO.HELMHOLTZ_VARS_Y)            
+                node.Fix(KSO.HELMHOLTZ_VARS_Z)               
 
         self.analyzer.InitializeBeforeOptimizationLoop()
 
@@ -110,35 +119,31 @@ class AlgorithmSteepestDescentImplicitVM(OptimizationAlgorithm):
         timer = Timer()
         timer.StartTimer()
 
-        KM.Logger.Print("HIIIIIIIIIIIIIIIIIIIIIIII")
 
-        # for self.optimization_iteration in range(1,self.max_iterations):
-        #     KM.Logger.Print("")
-        #     KM.Logger.Print("===============================================================================")
-        #     KM.Logger.PrintInfo("ShapeOpt", "",timer.GetTimeStamp(), ": Starting optimization iteration ",self.optimization_iteration)
-        #     KM.Logger.Print("===============================================================================\n")
+        for self.optimization_iteration in range(1,self.max_iterations):
+            KM.Logger.Print("")
+            KM.Logger.Print("===============================================================================")
+            KM.Logger.PrintInfo("ShapeOpt", "",timer.GetTimeStamp(), ": Starting optimization iteration ",self.optimization_iteration)
+            KM.Logger.Print("===============================================================================\n")
 
-        #     timer.StartNewLap()
+            timer.StartNewLap()
 
-        #     self.__initializeNewShape()
+            self.__initializeNewShape()
 
-        #     self.__analyzeShape()
+            self.__analyzeShape()
 
-        #     if self.line_search_type == "adaptive_stepping" and self.optimization_iteration > 1:
-        #         self.__adjustStepSize()
+            self.__computeShapeUpdate()
 
-        #     self.__computeShapeUpdate()
+            self.__logCurrentOptimizationStep()
 
-        #     self.__logCurrentOptimizationStep()
+            KM.Logger.Print("")
+            KM.Logger.PrintInfo("ShapeOpt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
+            KM.Logger.PrintInfo("ShapeOpt", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
-        #     KM.Logger.Print("")
-        #     KM.Logger.PrintInfo("ShapeOpt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
-        #     KM.Logger.PrintInfo("ShapeOpt", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
-
-        #     if self.__isAlgorithmConverged():
-        #         break
-        #     else:
-        #         self.__determineAbsoluteChanges()
+            if self.__isAlgorithmConverged():
+                break
+            else:
+                self.__determineAbsoluteChanges()
 
 
 
@@ -150,8 +155,6 @@ class AlgorithmSteepestDescentImplicitVM(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __initializeNewShape(self):
         self.model_part_controller.UpdateTimeStep(self.optimization_iteration)
-        self.model_part_controller.UpdateMeshAccordingInputVariable(KSO.SHAPE_UPDATE)
-        self.model_part_controller.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
     def __analyzeShape(self):
@@ -171,55 +174,31 @@ class AlgorithmSteepestDescentImplicitVM(OptimizationAlgorithm):
         self.model_part_controller.DampNodalVariableIfSpecified(KSO.DF1DX)
 
     # --------------------------------------------------------------------------
-    def __adjustStepSize(self):
-        current_a = self.step_size
-
-        # Compare actual and estimated improvement using linear information from the previos step
-        dfda1 = 0.0
-        for node in self.design_surface.Nodes:
-            # The following variables are not yet updated and therefore contain the information from the previos step
-            s1 = node.GetSolutionStepValue(KSO.SEARCH_DIRECTION)
-            dfds1 = node.GetSolutionStepValue(KSO.DF1DX_MAPPED)
-            dfda1 += s1[0]*dfds1[0] + s1[1]*dfds1[1] + s1[2]*dfds1[2]
-
-        f2 = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
-        f1 = self.previos_objective_value
-
-        df_actual = f2 - f1
-        df_estimated = current_a*dfda1
-
-        # Adjust step size if necessary
-        if f2 < f1:
-            estimation_error = (df_actual-df_estimated)/df_actual
-
-            # Increase step size if estimation based on linear extrapolation matches the actual improvement within a specified tolerance
-            if estimation_error < self.estimation_tolerance:
-                new_a = min(current_a*self.increase_factor, self.max_step_size)
-
-            # Leave step size unchanged if a nonliner change in the objective is observed but still a descent direction is obtained
-            else:
-                new_a = current_a
-        else:
-            # Search approximation of optimal step using interpolation
-            a = current_a
-            corrected_step_size = - 0.5 * dfda1 * a**2 / (f2 - f1 - dfda1 * a )
-
-            # Starting from the new design, and assuming an opposite gradient direction, the step size to the approximated optimum behaves reciprocal
-            new_a = current_a-corrected_step_size
-
-        self.step_size = new_a
-
-    # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
         self.mapper.Update()
         self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
 
-        self.optimization_utilities.ComputeSearchDirectionSteepestDescent(self.design_surface)
-        normalize = self.algorithm_settings["line_search"]["normalize_search_direction"].GetBool()
-        self.optimization_utilities.ComputeControlPointUpdate(self.design_surface, self.step_size, normalize)
+        # self.optimization_utilities.ComputeSearchDirectionSteepestDescent(self.design_surface)
+        # normalize = self.algorithm_settings["line_search"]["normalize_search_direction"].GetBool()
+        # self.optimization_utilities.ComputeControlPointUpdate(self.design_surface, self.step_size, normalize)
 
-        self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
-        self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
+        self.mapper.Map(KSO.DF1DX_MAPPED, KSO.SHAPE_UPDATE)
+        max_norm = 0
+        for node in self.optimization_model_part.Nodes:
+            node_shape_update = node.GetSolutionStepValue(KSO.SHAPE_UPDATE)
+            norm = math.sqrt(node_shape_update[0]**2 + node_shape_update[1]**2 + node_shape_update[2]**2)
+            if norm > max_norm :
+                max_norm = norm
+
+        for node in self.optimization_model_part.Nodes:
+            node_shape_update = node.GetSolutionStepValue(KSO.SHAPE_UPDATE)  
+            node.X -= self.step_size * (node_shape_update[0]/max_norm)
+            node.X0 = node.X
+            node.Y -= self.step_size * (node_shape_update[1]/max_norm)
+            node.Y0 = node.Y
+            node.Z -= self.step_size * (node_shape_update[2]/max_norm)   
+            node.Z0 = node.Z 
+
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):

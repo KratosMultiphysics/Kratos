@@ -123,7 +123,8 @@ public:
             mpVMModePart->Elements();
 
         // create a new property for the vm
-        Properties::Pointer p_vm_property = mpVMModePart->CreateNewProperties(0);
+        Properties::Pointer p_vm_property = mpVMModePart->CreateNewProperties(0);        
+        p_vm_property->SetValue(HELMHOLTZ_RADIUS,mMapperSettings["filter_radius"].GetDouble());
 
         for (int i = 0; i < (int)mrModelPart.Elements().size(); i++) {
             ModelPart::ElementsContainerType::iterator it =
@@ -133,9 +134,33 @@ public:
         }
 
         mpHelmholtzStrategy = new HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> (*mpVMModePart,mpLinearSystemSolver);
-
         mpHelmholtzStrategy->Initialize();
 
+
+        ProcessInfo &rCurrentProcessInfo = mpVMModePart->GetProcessInfo();
+        rCurrentProcessInfo[COMPUTE_CONTROL_POINTS] = true;
+
+        for(auto& node_i : mpVMModePart->Nodes())
+        {
+            array_3d& r_nodal_coords = node_i.Coordinates();
+            array_3d& r_nodal_variable_hl_source = node_i.FastGetSolutionStepValue(HELMHOLTZ_SOURCE);
+            r_nodal_variable_hl_source(0) = r_nodal_coords(0);
+            r_nodal_variable_hl_source(1) = r_nodal_coords(1);
+            r_nodal_variable_hl_source(2) = r_nodal_coords(2);
+        }
+
+        mpHelmholtzStrategy->Solve();
+
+        for(auto& node_i : mpVMModePart->Nodes())
+        {
+            array_3d& r_nodal_variable_control = node_i.FastGetSolutionStepValue(CONTROL_POINT);
+            array_3d& r_nodal_variable_hl_vars = node_i.FastGetSolutionStepValue(HELMHOLTZ_VARS);
+            r_nodal_variable_control(0) = r_nodal_variable_hl_vars(0);
+            r_nodal_variable_control(1) = r_nodal_variable_hl_vars(1);
+            r_nodal_variable_control(2) = r_nodal_variable_hl_vars(2);
+        } 
+
+        rCurrentProcessInfo[COMPUTE_CONTROL_POINTS] = false;
         mIsMappingInitialized = true;
 
         Update();
@@ -152,6 +177,32 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("") << std::endl;
         KRATOS_INFO("ShapeOpt") << "Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
+
+        //filling the source
+        for(auto& node_i : mpVMModePart->Nodes())
+        {
+            array_3d& r_nodal_variable_org = node_i.FastGetSolutionStepValue(rOriginVariable);
+            array_3d& r_nodal_variable_hl_source = node_i.FastGetSolutionStepValue(HELMHOLTZ_SOURCE);
+            array_3d& r_nodal_variable_hl_vars = node_i.FastGetSolutionStepValue(HELMHOLTZ_VARS);
+            r_nodal_variable_hl_source(0) = r_nodal_variable_org(0);
+            r_nodal_variable_hl_source(1) = r_nodal_variable_org(1);
+            r_nodal_variable_hl_source(2) = r_nodal_variable_org(2);
+            r_nodal_variable_hl_vars(0) = 0.0;
+            r_nodal_variable_hl_vars(1) = 0.0;
+            r_nodal_variable_hl_vars(2) = 0.0;
+        }
+
+        mpHelmholtzStrategy->Solve();
+
+        //filling the solution
+        for(auto& node_i : mpVMModePart->Nodes())
+        {
+            array_3d& r_nodal_variable_des = node_i.FastGetSolutionStepValue(rDestinationVariable);
+            array_3d& r_nodal_variable_hl_vars = node_i.FastGetSolutionStepValue(HELMHOLTZ_VARS);
+            r_nodal_variable_des(0) = r_nodal_variable_hl_vars(0);
+            r_nodal_variable_des(1) = r_nodal_variable_hl_vars(1);
+            r_nodal_variable_des(2) = r_nodal_variable_hl_vars(2);
+        }  
 
         KRATOS_INFO("ShapeOpt") << "Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
@@ -178,7 +229,32 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("") << std::endl;
         KRATOS_INFO("ShapeOpt") << "Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
+        
+        //filling the source
+        for(auto& node_i : mpVMModePart->Nodes())
+        {
+            array_3d& r_nodal_variable_des = node_i.FastGetSolutionStepValue(rDestinationVariable);
+            array_3d& r_nodal_variable_hl_source = node_i.FastGetSolutionStepValue(HELMHOLTZ_SOURCE);
+            array_3d& r_nodal_variable_hl_vars = node_i.FastGetSolutionStepValue(HELMHOLTZ_VARS);
+            r_nodal_variable_hl_source(0) = r_nodal_variable_des(0);
+            r_nodal_variable_hl_source(1) = r_nodal_variable_des(1);
+            r_nodal_variable_hl_source(2) = r_nodal_variable_des(2);
+            r_nodal_variable_hl_vars(0) = 0.0;
+            r_nodal_variable_hl_vars(1) = 0.0;
+            r_nodal_variable_hl_vars(2) = 0.0;            
+        }
 
+        mpHelmholtzStrategy->Solve();
+
+        //filling the solution
+        for(auto& node_i : mpVMModePart->Nodes())
+        {
+            array_3d& r_nodal_variable_origin = node_i.FastGetSolutionStepValue(rOriginVariable);
+            array_3d& r_nodal_variable_hl_vars = node_i.FastGetSolutionStepValue(HELMHOLTZ_VARS);
+            r_nodal_variable_origin(0) = r_nodal_variable_hl_vars(0);
+            r_nodal_variable_origin(1) = r_nodal_variable_hl_vars(1);
+            r_nodal_variable_origin(2) = r_nodal_variable_hl_vars(2);
+        }        
 
         KRATOS_INFO("ShapeOpt") << "Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
