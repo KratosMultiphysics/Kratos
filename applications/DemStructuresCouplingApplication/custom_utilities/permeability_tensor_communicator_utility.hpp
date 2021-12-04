@@ -49,7 +49,6 @@ namespace Kratos {
         typedef SpatialSearch                                           SearchType;
         typedef SearchType::ElementsContainerType                       ElementsContainerType;
         typedef SearchType::ElementsContainerType::ContainerType        ContainerType;
-        typedef SearchType::ElementsContainerType                       ElementsContainerType;
         typedef SearchType::NodesContainerType                          NodesContainerType;
         typedef SearchType::ElementType                                 ElementType;
         typedef ContainerType::value_type                               PointerType;
@@ -206,6 +205,7 @@ namespace Kratos {
             int max_number_of_results = r_dem_elements.size();
             ResultElementsContainerType   localResults(max_number_of_results);
             DistanceType                  localResultsDistances(max_number_of_results);
+	        ResultElementsContainerType::iterator loc_res_iter = localResults.begin();
 
             for (int k = 0; k < (int) mrFEMModelPart.Elements().size(); k++) {
 
@@ -217,10 +217,10 @@ namespace Kratos {
                 node_centroid.push_back(Node<3>::Pointer(new Node<3>(1, centroid[0], centroid[1], centroid[2])));
                 Element::Pointer p_particle = Kratos::make_intrusive<SphericParticle>(1, node_centroid);
                 const double radius = rGeom.Length();
-                number_of_results = p_bins->SearchObjectsInRadiusExclusive(p_particle, radius, localResults.begin(), localResultsDistances.begin(), max_number_of_results);
+                number_of_results = p_bins->SearchObjectsInRadiusExclusive(p_particle, radius, loc_res_iter, localResultsDistances.begin(), max_number_of_results);
                 BoundedMatrix<double, 3, 3> K_full_total = ZeroMatrix(3,3);
 
-                for (int i = 0; i <  number_of_results; ++i) {
+                for (unsigned int i = 0; i <  number_of_results; ++i) {
 
                     SphericParticle* particle = dynamic_cast<SphericParticle*>(&*localResults[i]);
                     const BoundedMatrix<double, 3, 3> strain_tensor = *particle->mStrainTensor;
