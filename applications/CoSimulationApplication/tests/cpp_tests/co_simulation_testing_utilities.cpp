@@ -182,10 +182,10 @@ void CheckModelPartsAreEqualButEntitiesAreOrderedDifferently(
 
     // check that orderings are created correctly
     for (std::size_t i=0; i<rCoSimIOModelPart.NumberOfNodes(); ++i) {
-        KRATOS_CHECK_EQUAL(r_nodes_id_map[i], (**(rCoSimIOModelPart.NodesBegin()+i)).Id());
+        KRATOS_CHECK_EQUAL(r_nodes_id_map[i], static_cast<std::size_t>((**(rCoSimIOModelPart.NodesBegin()+i)).Id()));
     }
     for (std::size_t i=0; i<rCoSimIOModelPart.NumberOfElements(); ++i) {
-        KRATOS_CHECK_EQUAL(r_elements_id_map[i], (**(rCoSimIOModelPart.ElementsBegin()+i)).Id());
+        KRATOS_CHECK_EQUAL(r_elements_id_map[i], static_cast<std::size_t>((**(rCoSimIOModelPart.ElementsBegin()+i)).Id()));
     }
 
     KRATOS_CATCH("")
