@@ -23,28 +23,28 @@
 
 namespace Kratos {
 
-template<>
+template<> KRATOS_API(CO_SIMULATION_APPLICATION)
 void CoSimIOConversionUtilities::GetData(
     Kratos::ModelPart& rModelPart,
     std::vector<double>& rData,
     const Variable<double>& rVariable,
     const DataLocation DataLoc);
 
-template<>
+template<> KRATOS_API(CO_SIMULATION_APPLICATION)
 void CoSimIOConversionUtilities::GetData(
     Kratos::ModelPart& rModelPart,
     std::vector<double>& rData,
     const Variable<array_1d<double,3>>& rVariable,
     const DataLocation DataLoc);
 
-template<>
+template<> KRATOS_API(CO_SIMULATION_APPLICATION)
 void CoSimIOConversionUtilities::SetData(
     Kratos::ModelPart& rModelPart,
     const std::vector<double>& rData,
     const Variable<double>& rVariable,
     const DataLocation DataLoc);
 
-template<>
+template<> KRATOS_API(CO_SIMULATION_APPLICATION)
 void CoSimIOConversionUtilities::SetData(
     Kratos::ModelPart& rModelPart,
     const std::vector<double>& rData,
