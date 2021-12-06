@@ -67,12 +67,11 @@ public:
         mIsFixed = rParameters["is_fixed"].GetBool();
         mGravityDirection = rParameters["gravity_direction"].GetInt();
         mOutOfPlaneDirection = rParameters["out_of_plane_direction"].GetInt();
-        if (mGravityDirection == mOutOfPlaneDirection)
-        {
-            KRATOS_ERROR << "Gravity direction cannot be the same as Out-of-Plane directions "
-                         << rParameters
-                         << std::endl;
-        }
+        KRATOS_ERROR_IF(mGravityDirection == mOutOfPlaneDirection)
+            << "Gravity direction cannot be the same as Out-of-Plane directions "
+            << rParameters
+            << std::endl;
+
         for (unsigned int i=0; i<N_DIM_3D; ++i)
            if (i!=mGravityDirection && i!=mOutOfPlaneDirection) mHorizontalDirection = i;
 
@@ -82,12 +81,10 @@ public:
         mMinHorizontalCoordinate = std::min(mFirstReferenceCoordinate[mHorizontalDirection], mSecondReferenceCoordinate[mHorizontalDirection]);
         mMaxHorizontalCoordinate = std::max(mFirstReferenceCoordinate[mHorizontalDirection], mSecondReferenceCoordinate[mHorizontalDirection]);
 
-        if (!(mMaxHorizontalCoordinate > mMinHorizontalCoordinate))
-        {
-            KRATOS_ERROR << "First and second point on the phreatic line have the same horizontal coordinate"
-                         << rParameters
-                         << std::endl;
-        }
+        KRATOS_ERROR_IF_NOT(mMaxHorizontalCoordinate > mMinHorizontalCoordinate)
+            << "First and second point on the phreatic line have the same horizontal coordinate"
+            << rParameters
+            << std::endl;
 
         mSlope = (mSecondReferenceCoordinate[mGravityDirection] - mFirstReferenceCoordinate[mGravityDirection])
                 /(mSecondReferenceCoordinate[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]);
@@ -115,49 +112,33 @@ public:
     {
         KRATOS_TRY;
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
-
         const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
 
-        if (nNodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
+        if (nNodes > 0) {
+            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
-            Vector3 Coordinates;
+            block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode){
+                if (mIsFixed) rNode.Fix(var);
+                else          rNode.Free(var);
 
-            #pragma omp parallel for private(Coordinates)
-            for (int i = 0; i<nNodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                if (mIsFixed) it->Fix(var);
-                else          it->Free(var);
-
-                noalias(Coordinates) = it->Coordinates();
-
-                double hight = 0.0;
-                if (Coordinates[mHorizontalDirection] >= mMinHorizontalCoordinate && Coordinates[mHorizontalDirection] <= mMaxHorizontalCoordinate)
-                {
-                    hight = mSlope * (Coordinates[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
-                } else if (Coordinates[mHorizontalDirection] < mMinHorizontalCoordinate)
-                {
-                    hight = mSlope * (mMinHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
-                } else if (Coordinates[mHorizontalDirection] > mMaxHorizontalCoordinate)
-                {
-                    hight = mSlope * (mMaxHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
+                double height = 0.0;
+                if (rNode.Coordinates()[mHorizontalDirection] >= mMinHorizontalCoordinate && rNode.Coordinates()[mHorizontalDirection] <= mMaxHorizontalCoordinate) {
+                    height = mSlope * (rNode.Coordinates()[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
+                } else if (rNode.Coordinates()[mHorizontalDirection] < mMinHorizontalCoordinate) {
+                    height = mSlope * (mMinHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
+                } else if (rNode.Coordinates()[mHorizontalDirection] > mMaxHorizontalCoordinate) {
+                    height = mSlope * (mMaxHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
                 }
-                double distance = hight - Coordinates[mGravityDirection];
+                const double distance = height - rNode.Coordinates()[mGravityDirection];
                 const double pressure = mSpecificWeight * distance ;
 
-                if (pressure > 0.0)
-                {
-                    it->FastGetSolutionStepValue(var) = pressure;
+                if (pressure > 0.0) {
+                    rNode.FastGetSolutionStepValue(var) = pressure;
+                } else {
+                    rNode.FastGetSolutionStepValue(var) = 0.0;
                 }
-                else
-                {
-                    it->FastGetSolutionStepValue(var) = 0.0;
-                }
-            }
+            });
+
         }
 
         KRATOS_CATCH("");

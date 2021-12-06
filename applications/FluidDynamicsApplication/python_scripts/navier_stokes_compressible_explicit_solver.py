@@ -14,6 +14,9 @@ def CreateSolver(model, custom_settings):
 
 class NavierStokesCompressibleExplicitSolver(FluidSolver):
     def __init__(self, model, custom_settings):
+        # Deprecated shock capturing
+        self._CheckDeprecatedSettings(custom_settings)
+
         # Call base fluid solver constructor
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(NavierStokesCompressibleExplicitSolver,self).__init__(model,custom_settings)
@@ -52,7 +55,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
             "time_order": 2,
             "time_scheme" : "RK4",
             "move_mesh_flag": false,
-            "shock_capturing": true,
+            "shock_capturing_settings" : { },
             "compute_reactions": false,
             "reform_dofs_at_each_step" : false,
             "assign_neighbour_elements_to_conditions": true,
@@ -85,6 +88,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MASS_SOURCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.HEAT_SOURCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.NUMERICAL_ENTROPY) # TODO: This is only necessary whith shock capturing entropy_based
 
         # Post-process variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MACH)
@@ -105,7 +109,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
 
     def Initialize(self):
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.OSS_SWITCH] = int(self.settings["use_oss"].GetBool())
-        self.GetComputingModelPart().ProcessInfo[KratosFluid.SHOCK_CAPTURING_SWITCH] = int(self.settings["shock_capturing"].GetBool())
+        self._ReadShockCapturingSettings()
 
         self.solver = self._get_solution_strategy()
         self.solver.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -123,7 +127,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         strategy_settings = KratosMultiphysics.Parameters('''{}''')
         strategy_settings.AddEmptyValue("rebuild_level").SetInt(0 if self.settings["reform_dofs_at_each_step"].GetBool() else 1)
         strategy_settings.AddEmptyValue("move_mesh_flag").SetBool(self.settings["move_mesh_flag"].GetBool())
-        strategy_settings.AddEmptyValue("shock_capturing").SetBool(self.settings["shock_capturing"].GetBool())
+        strategy_settings.AddEmptyValue("shock_capturing_settings").RecursivelyAddMissingParameters(self.settings["shock_capturing_settings"])
 
         rk_parameter = self.settings["time_scheme"].GetString()
 
@@ -158,3 +162,34 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
                 self.settings["time_stepping"])
 
         return estimate_dt_utility
+
+    def _CheckDeprecatedSettings(self, custom_settings):
+        if custom_settings.Has("shock_capturing"):
+            KratosMultiphysics.Logger.PrintInfo(
+                '::[NavierStokesCompressibleExplicitSolver]:: "',
+                "\n".join(['Setting "shock_capturing" is deprecated. Please use:',
+                           '   {',
+                           '       "shock_capturing_settings" : {',
+                           '            "type" : "physics_based"',
+                           '       }',
+                           '   }',
+                           'to maintain the same functionality with the newer syntax.'
+                ]))
+
+            custom_settings.RemoveValue("shock_capturing")
+            # Not adding new syntax -> Using defauts
+
+
+    def _ReadShockCapturingSettings(self):
+        "Determines if shock capturing will be enabled and sets up SHOCK_CAPTURING_SWITCH"
+        default_parameters = KratosMultiphysics.Parameters("""
+            {
+                    "type" : "physics_based",
+                    "Parameters" : { }
+            }
+        """)
+
+        self.settings["shock_capturing_settings"].ValidateAndAssignDefaults(default_parameters)
+        enable_shock_capturing = self.settings["shock_capturing_settings"]["type"].GetString() != "none"
+
+        self.GetComputingModelPart().ProcessInfo[KratosFluid.SHOCK_CAPTURING_SWITCH] = int(enable_shock_capturing)

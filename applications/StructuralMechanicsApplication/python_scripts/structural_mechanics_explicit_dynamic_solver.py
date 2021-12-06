@@ -116,7 +116,7 @@ class ExplicitMechanicalSolver(MechanicalSolver):
 
     def _create_mechanical_solution_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
+        mechanical_scheme = self._GetScheme()
 
         mechanical_solution_strategy = StructuralMechanicsApplication.MechanicalExplicitStrategy(computing_model_part,
                                             mechanical_scheme,
@@ -128,4 +128,3 @@ class ExplicitMechanicalSolver(MechanicalSolver):
         return mechanical_solution_strategy
 
     #### Private functions ####
-
