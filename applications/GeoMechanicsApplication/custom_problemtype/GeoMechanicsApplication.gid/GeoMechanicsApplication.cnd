@@ -444,12 +444,13 @@ VALUE: 0.0
 QUESTION: STATE_VARIABLE_50
 VALUE: 0.0
 
-QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw)
+QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
 VALUE: SaturatedBelowPhreaticLevelLaw
 HELP: Retention model for flow
-DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
-DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#)
-DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
+DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Landa,#CURRENT#, RESTORE, Beta,#CURRENT#)
 QUESTION: Saturated_Saturation
 VALUE: 1.0
 HELP: Maximum degree of saturation.
@@ -468,6 +469,12 @@ HELP: Gl power in Van Genuchten model to calcualte relative permeability.
 QUESTION: Minimum_Relative_Permeability
 VALUE: 0.0001
 HELP: Mimimum allowed relative permeability to prevent singular matrix. 
+QUESTION: Landa
+VALUE: 1.377
+HELP: Landa is pore size index in Brooks Corey model.
+QUESTION: Beta
+VALUE: 0.4
+HELP: Beta is a fitting parameter between 0.4 and 0.7.
 
 QUESTION: Use_Biot_Coefficiet#CB#(true,false)
 VALUE: true
@@ -925,13 +932,13 @@ VALUE: 0.0
 QUESTION: STATE_VARIABLE_50
 VALUE: 0.0
 
-QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw)
+QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
 VALUE: SaturatedBelowPhreaticLevelLaw
 HELP: Retention model for flow
-DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
-DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#)
-DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
-
+DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Landa,#CURRENT#, RESTORE, Beta,#CURRENT#)
 QUESTION: Saturated_Saturation
 VALUE: 1.0
 HELP: Maximum degree of saturation.
@@ -950,6 +957,12 @@ HELP: Gl power in Van Genuchten model to calcualte relative permeability.
 QUESTION: Minimum_Relative_Permeability
 VALUE: 0.0001
 HELP: Mimimum allowed relative permeability to prevent singular matrix. 
+QUESTION: Landa
+VALUE: 1.377
+HELP: Landa is pore size index in Brooks Corey model.
+QUESTION: Beta
+VALUE: 0.4
+HELP: Beta is a fitting parameter between 0.4 and 0.7.
 
 QUESTION: Use_Biot_Coefficiet#CB#(true,false)
 VALUE: true
@@ -1405,13 +1418,13 @@ VALUE: 0.0
 QUESTION: STATE_VARIABLE_50
 VALUE: 0.0
 
-QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw)
+QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
 VALUE: SaturatedBelowPhreaticLevelLaw
 HELP: Retention model for flow
-DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
-DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#)
-DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
-
+DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Landa,#CURRENT#, RESTORE, Beta,#CURRENT#)
 QUESTION: Saturated_Saturation
 VALUE: 1.0
 HELP: Maximum degree of saturation.
@@ -1430,6 +1443,12 @@ HELP: Gl power in Van Genuchten model to calcualte relative permeability.
 QUESTION: Minimum_Relative_Permeability
 VALUE: 0.0001
 HELP: Mimimum allowed relative permeability to prevent singular matrix. 
+QUESTION: Landa
+VALUE: 1.377
+HELP: Landa is pore size index in Brooks Corey model.
+QUESTION: Beta
+VALUE: 0.4
+HELP: Beta is a fitting parameter between 0.4 and 0.7.
 
 QUESTION: Use_Biot_Coefficiet#CB#(true,false)
 VALUE: true
@@ -1910,12 +1929,37 @@ QUESTION: Dynamic_Viscosity
 VALUE: 8.90e-7
 HELP: Units in kN/m2·s
 
-QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw)
+QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
 VALUE: VanGenuchtenLaw
 HELP: Retention model for flow
-DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
-DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#)
-DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
+DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Landa,#CURRENT#, RESTORE, Beta,#CURRENT#)
+QUESTION: Saturated_Saturation
+VALUE: 1.0
+HELP: Maximum degree of saturation.
+QUESTION: Residual_Saturation
+VALUE: 0.06203
+HELP: Minimum degree of saturation.
+QUESTION: Air_Entry_Pressure
+VALUE: 2.561
+HELP: Air entry pressure in kPa.
+QUESTION: Gn
+VALUE: 1.377
+HELP: Gn power in Van Genuchten model.
+QUESTION: Gl
+VALUE: 1.25
+HELP: Gl power in Van Genuchten model to calcualte relative permeability.
+QUESTION: Minimum_Relative_Permeability
+VALUE: 0.0001
+HELP: Mimimum allowed relative permeability to prevent singular matrix. 
+QUESTION: Landa
+VALUE: 1.377
+HELP: Landa is pore size index in Brooks Corey model.
+QUESTION: Beta
+VALUE: 0.4
+HELP: Beta is a fitting parameter between 0.4 and 0.7.
 
 QUESTION: Saturated_Saturation
 VALUE: 1.0
@@ -1935,6 +1979,12 @@ HELP: Gl power in Van Genuchten model to calcualte relative permeability.
 QUESTION: Minimum_Relative_Permeability
 VALUE: 0.0001
 HELP: Mimimum allowed relative permeability to prevent singular matrix. 
+QUESTION: Landa
+VALUE: 1.377
+HELP: Landa is pore size index in Brooks Corey model.
+QUESTION: Beta
+VALUE: 0.4
+HELP: Beta is a fitting parameter between 0.4 and 0.7.
 
 QUESTION: Use_Biot_Coefficiet#CB#(true,false)
 VALUE: true
@@ -2469,13 +2519,13 @@ VALUE: 0.0
 QUESTION: STATE_VARIABLE_50
 VALUE: 0.0
 
-QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw)
+QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
 VALUE: SaturatedBelowPhreaticLevelLaw
 HELP: Retention model for flow
-DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
-DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#)
-DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
-
+DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Landa,#CURRENT#, RESTORE, Beta,#CURRENT#)
 QUESTION: Saturated_Saturation
 VALUE: 1.0
 HELP: Maximum degree of saturation.
@@ -2493,7 +2543,13 @@ VALUE: 1.25
 HELP: Gl power in Van Genuchten model to calcualte relative permeability.
 QUESTION: Minimum_Relative_Permeability
 VALUE: 0.0001
-HELP: Mimimum allowed relative permeability to prevent singular matrix.
+HELP: Mimimum allowed relative permeability to prevent singular matrix. 
+QUESTION: Landa
+VALUE: 1.377
+HELP: Landa is pore size index in Brooks Corey model.
+QUESTION: Beta
+VALUE: 0.4
+HELP: Beta is a fitting parameter between 0.4 and 0.7.
 QUESTION: Consider_Gap_Closure#CB#(true,false)
 VALUE: false
 HELP: True means that the interface (joint) will be activated during the calculation as soon as gap width is smaller than the threshold.
@@ -2916,13 +2972,13 @@ VALUE: 0.0
 QUESTION: STATE_VARIABLE_50
 VALUE: 0.0
 
-QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw)
+QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
 VALUE: SaturatedBelowPhreaticLevelLaw
 HELP: Retention model for flow
-DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
-DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#)
-DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
-
+DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Landa,#CURRENT#, RESTORE, Beta,#CURRENT#)
 QUESTION: Saturated_Saturation
 VALUE: 1.0
 HELP: Maximum degree of saturation.
@@ -2941,6 +2997,12 @@ HELP: Gl power in Van Genuchten model to calcualte relative permeability.
 QUESTION: Minimum_Relative_Permeability
 VALUE: 0.0001
 HELP: Mimimum allowed relative permeability to prevent singular matrix. 
+QUESTION: Landa
+VALUE: 1.377
+HELP: Landa is pore size index in Brooks Corey model.
+QUESTION: Beta
+VALUE: 0.4
+HELP: Beta is a fitting parameter between 0.4 and 0.7.
 QUESTION: Consider_Gap_Closure#CB#(true,false)
 VALUE: false
 HELP: True means that the interface (joint) will be activated during the calculation as soon as gap width is smaller than the threshold.
@@ -3365,13 +3427,13 @@ VALUE: 0.0
 QUESTION: STATE_VARIABLE_50
 VALUE: 0.0
 
-QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw)
+QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
 VALUE: SaturatedBelowPhreaticLevelLaw
 HELP: Retention model for flow
-DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
-DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#)
-DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
-
+DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Landa,#CURRENT#, RESTORE, Beta,#CURRENT#)
 QUESTION: Saturated_Saturation
 VALUE: 1.0
 HELP: Maximum degree of saturation.
@@ -3452,13 +3514,13 @@ QUESTION: Minimum_Joint_Width
 VALUE: 1.0e-3
 HELP: Small number for avoiding division by zero in zero-thickness cases. Units in m
 
-QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw)
+QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
 VALUE: VanGenuchtenLaw
 HELP: Retention model for flow
-DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
-DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#)
-DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
-
+DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (SaturatedBelowPhreaticLevelLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, 1e-10,     HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Landa,#CURRENT#, HIDE, Beta,#CURRENT#)
+DEPENDENCIES: (BrooksCoreyLaw,    RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,   Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#,RESTORE,   Minimum_Relative_Permeability,#CURRENT#, RESTORE, Landa,#CURRENT#, RESTORE, Beta,#CURRENT#)
 QUESTION: Saturated_Saturation
 VALUE: 1.0
 HELP: Maximum degree of saturation.
@@ -3476,7 +3538,13 @@ VALUE: 1.25
 HELP: Gl power in Van Genuchten model to calcualte relative permeability.
 QUESTION: Minimum_Relative_Permeability
 VALUE: 0.0001
-HELP: Mimimum allowed relative permeability to prevent singular matrix.
+HELP: Mimimum allowed relative permeability to prevent singular matrix. 
+QUESTION: Landa
+VALUE: 1.377
+HELP: Landa is pore size index in Brooks Corey model.
+QUESTION: Beta
+VALUE: 0.4
+HELP: Beta is a fitting parameter between 0.4 and 0.7.
 
 QUESTION: Use_Biot_Coefficiet#CB#(true,false)
 VALUE: true
