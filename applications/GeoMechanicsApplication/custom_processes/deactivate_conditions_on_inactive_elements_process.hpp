@@ -19,11 +19,8 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
-#include "geometries/geometry.h"
-#include "includes/kratos_flags.h"
 
 
 namespace Kratos
@@ -43,7 +40,8 @@ namespace Kratos
  * @note Allways neighbour elements should be found before calling this process, otherwise an error will be given.
  * @author Vahid Galavi
  */
-class DeactivateConditionsOnInactiveElements : public Process
+class KRATOS_API(GEO_MECHANICS_APPLICATION) DeactivateConditionsOnInactiveElements
+    : public Process
 {
 public:
     ///@name Type Definitions
@@ -82,32 +80,8 @@ public:
     ///@name Operations
     ///@{
 
-
     /// deactive conditions which are imposed on inactive elments
-    void Execute() override
-    {
-        KRATOS_TRY
-
-        block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
-            const auto &VectorOfNeighbours = rCondition.GetValue(NEIGHBOUR_ELEMENTS);
-            KRATOS_ERROR_IF(VectorOfNeighbours.size() == 0)
-                << "Condition without any corresponding element, ID " << rCondition.Id() << "\n"
-                << "Call a process to find neighbour elements before calling this function."
-                << std::endl;
-
-            bool IsElementActive = false;
-            for (unsigned int i=0; i < VectorOfNeighbours.size(); ++i) {
-                if (VectorOfNeighbours[i].IsDefined(ACTIVE)) {
-                    if (VectorOfNeighbours[i].Is(ACTIVE)) IsElementActive = true;
-                } else {
-                    IsElementActive = true;
-                }
-            }
-            rCondition.Set(ACTIVE, IsElementActive);
-        });
-
-        KRATOS_CATCH("")
-    }
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -146,14 +120,11 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
 
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
