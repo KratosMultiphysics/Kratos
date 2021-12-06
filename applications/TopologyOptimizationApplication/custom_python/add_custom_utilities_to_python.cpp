@@ -73,6 +73,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 	.def(py::init<ModelPart&>())
     .def("UpdateDensitiesUsingOCMethod", &TopologyUpdatingUtilities::UpdateDensitiesUsingOCMethod)
 	.def("UpdateDensitiesUsingMMAMethod", &TopologyUpdatingUtilities::UpdateDensitiesUsingMMAMethod)
+	.def("UpdateDensitiesUsingGCMMAMethod_outer", &TopologyUpdatingUtilities::UpdateDensitiesUsingGCMMAMethod_outer)
+	.def("UpdateDensitiesUsingGCMMAMethod_inner", &TopologyUpdatingUtilities::UpdateDensitiesUsingGCMMAMethod_inner)
 /* 	.def("InitializeMMA", &TopologyUpdatingUtilities::InitializeMMA) */
 	;
 

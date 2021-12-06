@@ -51,7 +51,7 @@ template	<class TSparseSpace,
 			class TLinearSolver
 			>
 class StructureAdjointSensitivityStrategy
-	: public SolvingStrategy<TSparseSpace, TDenseSpace,TLinearSolver>
+	: public SolvingStrategy<TSparseSpace, TDenseSpace>
 {
 public:
 
@@ -60,7 +60,7 @@ public:
 
 	KRATOS_CLASS_POINTER_DEFINITION(StructureAdjointSensitivityStrategy);
 
-	typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+	typedef SolvingStrategy<TSparseSpace,TDenseSpace> BaseType;
 
 	typedef typename Scheme<TSparseSpace,TDenseSpace>::Pointer SchemePointerType;
 	typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderAndSolverPointerType;

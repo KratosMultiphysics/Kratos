@@ -40,7 +40,7 @@ q_max = 2 # Recomended: 2
 # OPTIMIZATION ALGORITHM
 #========================================================================================
     
-optimization_algorithm = "MMA_algorithm" #"MMA_algorithm"  #"oc_algorithm" für OC und "MMA_algorithm" für MMA
+optimization_algorithm = "GCMMA_algorithm" #"GCMMA_algorithm" for GCMMA,   "MMA_algorithm"  #"oc_algorithm" für OC und "MMA_algorithm" für MMA
 # options: "oc_algorithm"
     
 # General convergence criterions
@@ -48,6 +48,8 @@ max_opt_iterations = 100
 relative_tolerance = 0.001      
 increasing_obj     = 0 # Stops the optimization when objective function value is increasing
 # options: Activated=1, Deactivated=0
+
+f0app = 100
 
   
 #========================================================================================
