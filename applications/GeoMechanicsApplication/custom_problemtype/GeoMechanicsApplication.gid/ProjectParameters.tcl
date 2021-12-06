@@ -47,14 +47,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"clear_storage\":                      false,"
     puts $FileVar "        \"compute_reactions\":                  [GiD_AccessValue get gendata Write_Reactions],"
     puts $FileVar "        \"move_mesh_flag\":                     [GiD_AccessValue get gendata Move_Mesh],"
-
-    set IsGapClosure [GiD_AccessValue get gendata Gap_Closure_Interface_Conditions]
-    if {$IsGapClosure eq true} {
-        puts $FileVar "        \"reform_dofs_at_each_step\":           true,"
-    } else {
-        puts $FileVar "        \"reform_dofs_at_each_step\":           [GiD_AccessValue get gendata Reform_Dofs_At_Each_Step],"
-    }
-
+    puts $FileVar "        \"reform_dofs_at_each_step\":           [GiD_AccessValue get gendata Reform_Dofs_At_Each_Step],"
     puts $FileVar "        \"nodal_smoothing\":                    [GiD_AccessValue get gendata Nodal_Smoothing],"
     puts $FileVar "        \"block_builder\":                      [GiD_AccessValue get gendata Block_Builder],"
     puts $FileVar "        \"solution_type\":                      \"[GiD_AccessValue get gendata Solution_Type]\","
@@ -160,6 +153,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Truss
     # Anchor part
     AppendGroupNames PutStrings Anchor
+    # Interface_two_phase Part
+    AppendGroupNames PutStrings Interface_two_phase
     # Interface_drained Part
     AppendGroupNames PutStrings Interface_drained
     # Interface_undrained Part
@@ -214,17 +209,6 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Record_LINE_LOAD
     # Record_SURFACE_LOAD
     AppendGroupNames PutStrings Record_SURFACE_LOAD
-    # Gap_Closure_Bars
-    if {$IsGapClosure eq true} {
-        set interface_Groups [list [GiD_Info conditions Interface_two_phase groups] [GiD_Info conditions Interface_drained groups] [GiD_Info conditions Interface_undrained groups]]
-        foreach Groups $interface_Groups {
-            for {set i 0} {$i < [llength $Groups]} {incr i} {
-                if {[lindex [lindex $Groups $i] 135] eq true} {
-                    append PutStrings \" Gap_Closure_Bars_[lindex [lindex $Groups $i] 1] \" ,
-                }
-            }
-        }
-    }
 
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
@@ -547,31 +531,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     }
 
     ## auxiliar_process_list
-    set NumGroups 0
-    if {$IsGapClosure eq true} {
-        set interface_Groups [list [GiD_Info conditions Interface_two_phase groups] [GiD_Info conditions Interface_drained groups] [GiD_Info conditions Interface_undrained groups]]
-        foreach Groups $interface_Groups {
-            for {set i 0} {$i < [llength $Groups]} {incr i} {
-                if {[lindex [lindex $Groups $i] 135] eq true} {
-                    incr NumGroups
-                }
-            }
-        }
-    }
-
-    if {$NumGroups > 0} {
-        set iGroup 0
-        puts $FileVar "        \"auxiliar_process_list\": \[\{"
-        # Gap_Closure_Bars
-        if {$IsGapClosure eq true} {
-            set interface_Groups [list [GiD_Info conditions Interface_two_phase groups] [GiD_Info conditions Interface_drained groups] [GiD_Info conditions Interface_undrained groups]]
-            foreach Groups $interface_Groups {
-                WriteGapClosureInterfaceProcess FileVar iGroup $Groups $NumGroups
-            }
-        }
-    } else {
-        puts $FileVar "        \"auxiliar_process_list\": \[\]"
-    }
+    puts $FileVar "        \"auxiliar_process_list\": \[\]"
 
     puts $FileVar "    \}"
     puts $FileVar "\}"

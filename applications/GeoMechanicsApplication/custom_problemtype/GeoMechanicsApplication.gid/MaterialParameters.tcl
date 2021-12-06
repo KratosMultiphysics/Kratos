@@ -1990,22 +1990,21 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
                 puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
             }
-
-            if {[lindex [lindex $Groups $i] 136] eq true} {
-                puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 137],"
-            }
-            puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 128]\","
-            puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 129],"
-            puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 130],"
-            puts $FileVar "              \"VAN_GENUCHTEN_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 131],"
-            puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 132],"
-            puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 133],"
-            puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 134]"
-
-            puts $FileVar "         \},"
-            puts $FileVar "         \"Tables\": \{\}"
-            puts $FileVar "      \}"
         }
+        if {[lindex [lindex $Groups $i] 136] eq true} {
+            puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 137],"
+        }
+        puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 128]\","
+        puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 129],"
+        puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 130],"
+        puts $FileVar "              \"VAN_GENUCHTEN_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 131],"
+        puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 132],"
+        puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 133],"
+        puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 134]"
+
+        puts $FileVar "         \},"
+        puts $FileVar "         \"Tables\": \{\}"
+        puts $FileVar "      \}"
     }
 
 
@@ -2274,21 +2273,21 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
                     puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
                 }
-                if {[lindex [lindex $Groups $i] 136] eq true} {
-                    puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 137],"
-                }
-                puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 128]\","
-                puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 129],"
-                puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 130],"
-                puts $FileVar "              \"VAN_GENUCHTEN_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 131],"
-                puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 132],"
-                puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 133],"
-                puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 134]"
-
-                puts $FileVar "         \},"
-                puts $FileVar "         \"Tables\": \{\}"
-                puts $FileVar "      \}"
             }
+            if {[lindex [lindex $Groups $i] 136] eq true} {
+                puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 137],"
+            }
+            puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 128]\","
+            puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 129],"
+            puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 130],"
+            puts $FileVar "              \"VAN_GENUCHTEN_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 131],"
+            puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 132],"
+            puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 133],"
+            puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 134]"
+
+            puts $FileVar "         \},"
+            puts $FileVar "         \"Tables\": \{\}"
+            puts $FileVar "      \}"
         }
     }
 
