@@ -144,6 +144,21 @@ public:
         KRATOS_CATCH("");
     }
 
+    void AreaDeintegrateNodalVariable( const Variable<array_3d> &rNodalVariable)
+    {
+        KRATOS_TRY;
+
+        for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
+        {
+            array_3d &nodal_variable = node_i->FastGetSolutionStepValue(rNodalVariable);
+            array_3d &area_normal = node_i->FastGetSolutionStepValue(NORMAL);
+            const double area = norm_2(area_normal);
+            nodal_variable /= area;            
+        }
+
+        KRATOS_CATCH("");
+    }    
+
     void ProjectNodalVariableOnTangentPlane( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rPlaneNormalVariable)
     {
         KRATOS_TRY;

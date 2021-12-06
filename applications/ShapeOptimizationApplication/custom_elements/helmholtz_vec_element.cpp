@@ -247,8 +247,6 @@ void HelmholtzVecElement::CalculateMMatrix(
 {
     KRATOS_TRY;
 
-    const auto& r_prop = GetProperties();
-
     const auto& r_geom = GetGeometry();
     SizeType dimension = r_geom.WorkingSpaceDimension();
     SizeType number_of_nodes = r_geom.size();
@@ -362,26 +360,29 @@ void HelmholtzVecElement::CalculateLocalSystem(
 
   MatrixType M;
   CalculateMMatrix(M,rCurrentProcessInfo);
-  //Add mass matrix to the total stifness matrix
-  K += M;
+  //Now compute total LHS matrix
+  MatrixType A = K + M;
 
   const unsigned int number_of_points = rgeom.size();
   Vector nodal_vals(number_of_points*3);
   for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
   {
       const VectorType &source = rgeom[node_element].FastGetSolutionStepValue(HELMHOLTZ_SOURCE);
-      nodal_vals[3 * node_element + 0] = source[0];
-      nodal_vals[3 * node_element + 1] = source[1];
-      nodal_vals[3 * node_element + 2] = source[2];
+      auto node_weight = rgeom[node_element].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+      if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS])
+        node_weight = 1.0;
+      nodal_vals[3 * node_element + 0] = source[0]/node_weight;
+      nodal_vals[3 * node_element + 1] = source[1]/node_weight;
+      nodal_vals[3 * node_element + 2] = source[2]/node_weight;
   }
 
   if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS]){
       noalias(rLeftHandSideMatrix) += M;
-      noalias(rRightHandSideVector) += prod(K,nodal_vals);
+      noalias(rRightHandSideVector) += prod(A,nodal_vals);
   }            
   else{
-      noalias(rLeftHandSideMatrix) += K;
-      noalias(rRightHandSideVector) += prod(M,nodal_vals);
+      noalias(rLeftHandSideMatrix) += A;
+      noalias(rRightHandSideVector) += nodal_vals;
   }  
 
 

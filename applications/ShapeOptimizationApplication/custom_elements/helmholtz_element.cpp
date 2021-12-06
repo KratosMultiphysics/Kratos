@@ -101,11 +101,14 @@ void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     Matrix InvJ0(dim,dim);
     Vector temp(number_of_points);
 
-    Vector nodal_x(number_of_points);
+    Vector nodal_vals(number_of_points);
     for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
     {
         const VectorType &source = r_geometry[node_element].FastGetSolutionStepValue(HELMHOLTZ_SOURCE);
-        nodal_x[node_element] = source[component_index];
+        auto node_weight = r_geometry[node_element].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+        if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS])
+            node_weight = 1.0;        
+        nodal_vals[node_element] = source[component_index]/node_weight;
     }
 
     r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
@@ -122,28 +125,29 @@ void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         auto N = row(N_gausspoint,i_point); //these are the N which correspond to the gauss point "i_point"
         const double IntToReferenceWeight = integration_points[i_point].Weight() * DetJ0;
         const double r_helmholtz = r_prop[HELMHOLTZ_RADIUS];
-        MatrixType K = -1 * IntToReferenceWeight * r_helmholtz * r_helmholtz * prod(DN_DX, trans(DN_DX)) + IntToReferenceWeight * outer_prod(N, N);
+        MatrixType K = -1 * IntToReferenceWeight * r_helmholtz * r_helmholtz * prod(DN_DX, trans(DN_DX));
         MatrixType M = IntToReferenceWeight * outer_prod(N, N);
+        MatrixType A = K + M;
 
         if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS]){
             noalias(rLeftHandSideMatrix) += M;
-            noalias(rRightHandSideVector) += prod(K,nodal_x);
+            noalias(rRightHandSideVector) += prod(A,nodal_vals);
         }            
         else{
-            noalias(rLeftHandSideMatrix) += K;
-            noalias(rRightHandSideVector) += prod(M,nodal_x);
+            noalias(rLeftHandSideMatrix) += A;
+            noalias(rRightHandSideVector) += nodal_vals;
         }
             
     }
 
-    // RHS = ExtForces - K*temp;
-    for (SizeType iNode = 0; iNode < number_of_points; ++iNode) {
-        const VectorType &vars = r_geometry[iNode].FastGetSolutionStepValue(HELMHOLTZ_VARS);
-        temp[iNode] = vars[component_index];
-    }
+    // // RHS = ExtForces - K*temp;
+    // for (SizeType iNode = 0; iNode < number_of_points; ++iNode) {
+    //     const VectorType &vars = r_geometry[iNode].FastGetSolutionStepValue(HELMHOLTZ_VARS);
+    //     temp[iNode] = vars[component_index];
+    // }
 
-    //axpy_prod(rLeftHandSideMatrix, temp, rRightHandSideVector, false);  //RHS -= K*temp
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
+    // //axpy_prod(rLeftHandSideMatrix, temp, rRightHandSideVector, false);  //RHS -= K*temp
+    // noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
 
 
     KRATOS_CATCH("")

@@ -65,7 +65,7 @@ class DataLogger():
             return ValueLoggerSteepestDescent( self.Communicator, self.OptimizationSettings )
         elif AlgorithmName == "penalized_projection":
             return ValueLoggerPenalizedProjection( self.Communicator, self.OptimizationSettings )
-        elif AlgorithmName == "gradient_projection":
+        elif AlgorithmName == "gradient_projection" or AlgorithmName == "gradient_projection_implicit_vm":
             return ValueLoggerGradientProjection( self.Communicator, self.OptimizationSettings )
         elif AlgorithmName == "trust_region":
             return ValueLoggerTrustRegion( self.Communicator, self.OptimizationSettings )

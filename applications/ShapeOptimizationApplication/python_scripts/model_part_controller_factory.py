@@ -124,15 +124,9 @@ class ModelPartController:
 
     # --------------------------------------------------------------------------
     def DampNodalVariableIfSpecified(self, variable):
-        # if self.model_settings["damping"]["apply_damping"].GetBool():
-        #     self.damping_utility.DampNodalVariable(variable)
-        for key, value in self.damping_regions.items():
-            for node in value.Nodes:
-                node.Fix(KSO.HELMHOLTZ_VARS_X)
-                node.Fix(KSO.HELMHOLTZ_VARS_Y)            
-                node.Fix(KSO.HELMHOLTZ_VARS_Z)
-            
-
+        if self.model_settings["damping"]["apply_damping"].GetBool():
+            self.damping_utility.DampNodalVariable(variable)
+        
     # --------------------------------------------------------------------------
     def ComputeUnitSurfaceNormals(self):
         KSO.GeometryUtilities(self.GetDesignSurface()).ComputeUnitSurfaceNormals()
@@ -140,6 +134,10 @@ class ModelPartController:
     # --------------------------------------------------------------------------
     def ProjectNodalVariableOnUnitSurfaceNormals(self, variable):
         KSO.GeometryUtilities(self.GetDesignSurface()).ProjectNodalVariableOnUnitSurfaceNormals(variable)
+
+    # --------------------------------------------------------------------------    
+    def AreaDeintegrateNodalVariable(self, variable):
+        KSO.GeometryUtilities(self.GetDesignSurface()).AreaDeintegrateNodalVariable(variable)
 
     # --------------------------------------------------------------------------
     def __ImportOptimizationModelPart(self):

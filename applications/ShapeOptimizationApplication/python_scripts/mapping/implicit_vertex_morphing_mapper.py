@@ -22,19 +22,21 @@ class ImplicitVertexMorphingMapper():
         self.origin_model_part = origin_model_part
         self.destination_model_part = destination_model_part
 
-        implicit_settings = self.settings["implicit_vm_settings"]
-        implicit_settings.RecursivelyValidateAndAssignDefaults(self.GetDefaultImplicitVMSettings())
+        self.implicit_settings = self.settings["implicit_vm_settings"]
+        self.implicit_settings.RecursivelyValidateAndAssignDefaults(self.GetDefaultImplicitVMSettings())
+        self.implicit_settings.AddValue("filter_radius",self.settings["filter_radius"])
 
         ## Construct the linear solver
         import KratosMultiphysics.python_linear_solver_factory as python_linear_solver_factory
-        self.linear_solver = python_linear_solver_factory.ConstructSolver(implicit_settings["linear_solver_settings"])
+        self.linear_solver = python_linear_solver_factory.ConstructSolver(self.implicit_settings["linear_solver_settings"])
 
-        self.im_vm_mapper = KSO.MapperImplicitVertexMorphing(self.origin_model_part, self.linear_solver, self.settings)
+        self.im_vm_mapper = KSO.MapperImplicitVertexMorphing(self.origin_model_part, self.linear_solver, self.implicit_settings)
 
 
     @classmethod
     def GetDefaultImplicitVMSettings(cls):
         return KM.Parameters("""{
+            "element_type" : "helmholtz_vec_element",
             "linear_solver_settings" : {
                 "solver_type" : "amgcl",
                 "smoother_type":"ilu0",
