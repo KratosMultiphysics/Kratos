@@ -118,17 +118,20 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
             if (itFace != FacesMap.end()) {
                 // condition is found!
-                // Mark the condition as visited. This will be useful for a check at the endif
-                std::vector<Condition::Pointer>& ListConditions = itFace->second;
-                for (Condition::Pointer pCondition : ListConditions) {
-                    pCondition->Set(VISITED,true);
-                }
+                // but check if there are more than one condition on the element
+                std::pair <hashmap::iterator, hashmap::iterator> ret;
+                ret = FacesMap.equal_range(FaceIds);
+                for (hashmap::iterator it=ret.first; it!=ret.second; ++it) {
+                    std::vector<Condition::Pointer>& ListConditions = it->second;
 
-                GlobalPointersVector< Element > VectorOfNeighbours;
-                VectorOfNeighbours.resize(1);
-                VectorOfNeighbours(0) = Element::WeakPointer( *itElem.base() );
-                for (Condition::Pointer pCondition : ListConditions) {
-                    pCondition->SetValue(NEIGHBOUR_ELEMENTS, VectorOfNeighbours);
+                    GlobalPointersVector< Element > VectorOfNeighbours;
+                    VectorOfNeighbours.resize(1);
+                    VectorOfNeighbours(0) = Element::WeakPointer( *itElem.base() );
+
+                    for (Condition::Pointer pCondition : ListConditions) {
+                        pCondition->Set(VISITED,true);
+                        pCondition->SetValue(NEIGHBOUR_ELEMENTS, VectorOfNeighbours);
+                    }
                 }
             }
         }
@@ -159,18 +162,21 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
                 hashmap::iterator itFace = FacesMap.find(PointIds);
                 if (itFace != FacesMap.end()) {
-                    // Condition is found!
-                    // Mark the condition as visited. This will be useful for a check at the endif
-                    std::vector<Condition::Pointer>& ListConditions = itFace->second;
-                    for (Condition::Pointer pCondition : ListConditions) {
-                        pCondition->Set(VISITED,true);
-                    }
+                    // condition is found!
+                    // but check if there are more than one condition on the element
+                    std::pair <hashmap::iterator, hashmap::iterator> ret;
+                    ret = FacesMap.equal_range(PointIds);
+                    for (hashmap::iterator it=ret.first; it!=ret.second; ++it) {
+                        std::vector<Condition::Pointer>& ListConditions = it->second;
 
-                    GlobalPointersVector< Element > VectorOfNeighbours;
-                    VectorOfNeighbours.resize(1);
-                    VectorOfNeighbours(0) = Element::WeakPointer( *itElem.base() );
-                    for (Condition::Pointer pCondition : ListConditions) {
-                        pCondition->SetValue(NEIGHBOUR_ELEMENTS, VectorOfNeighbours);
+                        GlobalPointersVector< Element > VectorOfNeighbours;
+                        VectorOfNeighbours.resize(1);
+                        VectorOfNeighbours(0) = Element::WeakPointer( *itElem.base() );
+
+                        for (Condition::Pointer pCondition : ListConditions) {
+                            pCondition->Set(VISITED,true);
+                            pCondition->SetValue(NEIGHBOUR_ELEMENTS, VectorOfNeighbours);
+                        }
                     }
                 }
             }
