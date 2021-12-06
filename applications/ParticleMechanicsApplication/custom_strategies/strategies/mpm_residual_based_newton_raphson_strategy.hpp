@@ -319,8 +319,8 @@ public:
         }
 
         //calculate reactions if required
-        if (mCalculateReactionsFlag == true)
-            p_builder_and_solver->CalculateReactions(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
+        //if (mCalculateReactionsFlag == true)
+        //    p_builder_and_solver->CalculateReactions(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
 
         return is_converged;
     }
