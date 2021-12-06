@@ -24,7 +24,8 @@
 namespace Kratos
 {
 
-class ApplyTimeDependentInterpolateLinePressureProcess : public ApplyConstantInterpolateLinePressureProcess
+class ApplyTimeDependentInterpolateLinePressureProcess :
+    public ApplyConstantInterpolateLinePressureProcess
 {
 
 public:
@@ -40,7 +41,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------
@@ -59,18 +60,16 @@ public:
     /// right after reading the model and the groups
     void ExecuteInitializeSolutionStep() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
-
-        if (nNodes > 0) {
+        if (mrModelPart.NumberOfNodes() > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
             block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
                 if (mIsFixed) rNode.Fix(var);
                 else          rNode.Free(var);
 
-                double pressure = CalculatePressure(rNode);
+                const double pressure = CalculatePressure(rNode);
 
                 if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
                     rNode.FastGetSolutionStepValue(var) = pressure;
@@ -80,7 +79,7 @@ public:
             });
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.

@@ -72,7 +72,7 @@ public:
         else
           mPressureTensionCutOff = 0.0;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------
@@ -93,9 +93,7 @@ public:
     {
         KRATOS_TRY
 
-        const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
-
-        if (nNodes > 0) {
+        if (mrModelPart.NumberOfNodes() > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
             block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {

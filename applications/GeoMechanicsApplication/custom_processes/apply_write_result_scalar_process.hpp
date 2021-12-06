@@ -25,7 +25,7 @@ namespace Kratos
 
 class ApplyWriteScalarProcess : public Process
 {
-    
+
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ApplyWriteScalarProcess);
@@ -85,7 +85,7 @@ public:
     {
         KRATOS_TRY
 
-        const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
+        const std::size_t nNodes = mrModelPart.NumberOfNodes();
 
         if (nNodes > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
@@ -97,7 +97,7 @@ public:
             for (int i = 0; i<nNodes; ++i) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                int nodeId = it->Id();
+                const int nodeId = it->Id();
                 std::string fileName = mModelPartName + "_" + std::to_string(nodeId) + "_" + mVariableName + ".res";
 
                 if (mAppendFile) {
@@ -106,14 +106,14 @@ public:
                 } else {
                     // open a new file and overwrite
                     mOutFile[i].open(fileName, std::ios::trunc); // overwrite
-                    mOutFile[i] << "Time" << "   " << mVariableName << std::endl;
-                    double value = it->FastGetSolutionStepValue(var);
-                    mOutFile[i] << Time << "   " << value << std::endl;
+                    mOutFile[i] << "Time" << "   " << mVariableName << "\n";
+                    const double value = it->FastGetSolutionStepValue(var);
+                    mOutFile[i] << Time << "   " << value << "\n";
                 }
             }
         }
         
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /**
@@ -123,7 +123,7 @@ public:
     {
         KRATOS_TRY
 
-        const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
+        const std::size_t nNodes = mrModelPart.NumberOfNodes();
 
         if (nNodes > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
@@ -133,12 +133,12 @@ public:
             for (int i = 0; i<nNodes; ++i) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double value = it->FastGetSolutionStepValue(var);
-                mOutFile[i] << Time << "   " << value << std::endl;
+                const double value = it->FastGetSolutionStepValue(var);
+                mOutFile[i] << Time << "   " << value << "\n";
             }
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /**
@@ -146,13 +146,13 @@ public:
      */
     void ExecuteFinalize() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         for (unsigned int i = 0; i < mOutFile.size(); ++i) {
             mOutFile[i].close();
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.
@@ -186,7 +186,7 @@ protected:
     std::vector<std::ofstream> mOutFile;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
 private:
 
     /// Assignment operator.

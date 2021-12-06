@@ -65,8 +65,7 @@ public:
     {
         KRATOS_TRY
 
-        const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
-        if (nNodes > 0) {
+        if (mrModelPart.NumberOfNodes() > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
             const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
             const double deltaH = mpTable->GetValue(Time);
