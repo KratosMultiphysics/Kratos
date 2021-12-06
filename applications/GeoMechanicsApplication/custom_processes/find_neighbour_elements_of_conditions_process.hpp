@@ -308,7 +308,8 @@ private:
     hashmap::iterator FindFaceReorderingTetrahedra3D10(DenseVector<int> FaceIds, hashmap &FacesMap)
     {
 
-    hashmap::iterator itFace;
+    hashmap::iterator itFace = FacesMap.find(FaceIds);
+    if (itFace != FacesMap.end()) return itFace;
 
     if (FaceIds.size() == 6) {
         // first try
@@ -337,7 +338,8 @@ private:
     hashmap::iterator FindFaceReorderingTetrahedra3D4(DenseVector<int> FaceIds, hashmap &FacesMap)
     {
 
-    hashmap::iterator itFace;
+    hashmap::iterator itFace = FacesMap.find(FaceIds);
+    if (itFace != FacesMap.end()) return itFace;
 
     if (FaceIds.size() == 3) {
         // first try
@@ -362,7 +364,8 @@ private:
     hashmap::iterator FindFaceReorderingHexahedra3D8(DenseVector<int> FaceIds, hashmap &FacesMap)
     {
 
-    hashmap::iterator itFace;
+    hashmap::iterator itFace = FacesMap.find(FaceIds);
+    if (itFace != FacesMap.end()) return itFace;
 
     if (FaceIds.size() == 4) {
         // first try
@@ -398,7 +401,8 @@ private:
     hashmap::iterator FindFaceReorderingHexahedra3D20(DenseVector<int> FaceIds, hashmap &FacesMap)
     {
 
-    hashmap::iterator itFace;
+    hashmap::iterator itFace = FacesMap.find(FaceIds);
+    if (itFace != FacesMap.end()) return itFace;
 
     if (FaceIds.size() == 8) {
         // first try
