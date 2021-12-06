@@ -100,6 +100,7 @@ public:
         // Next check that the conditions are oriented accordingly
         // to do so begin by putting all of the conditions in a map
         hashmap FacesMap;
+        hashmap FacesMapSorted;
 
         for (auto itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); ++itCond) {
             itCond->Set(VISITED, false);
@@ -145,13 +146,16 @@ public:
 
             // adds to the map
             FacesMap.insert( hashmap::value_type(Ids, std::vector<Condition::Pointer>({*itCond.base()})) );
+
+            DenseVector<int> IdsSorted = Ids;
+            std::sort(IdsSorted.begin(), IdsSorted.end());
+            FacesMapSorted.insert( hashmap::value_type(IdsSorted, std::vector<Condition::Pointer>({*itCond.base()})) );
         }
 
-        // Now loop for all the elements and for each face of the element check if it is in the "FacesMap"
+        // Now loop over all elements and check if one of the faces is in the "FacesMap"
         for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
             const auto &rGeometryElement = itElem->GetGeometry();
             const auto rBoundaryGeometries = rGeometryElement.GenerateBoundariesEntities();
-            // const auto ElementType = rGeometryElement.GetGeometryType();
 
             for (IndexType iFace = 0; iFace < rBoundaryGeometries.size(); ++iFace) {
                 DenseVector<int> FaceIds(rBoundaryGeometries[iFace].size());
@@ -162,8 +166,13 @@ public:
                 }
 
                 hashmap::iterator itFace = FacesMap.find(FaceIds);
-                if (itFace == FacesMap.end()) {
-                    if (rGeometryElement.LocalSpaceDimension() == 3) {
+
+                if (itFace == FacesMap.end() && rGeometryElement.LocalSpaceDimension() == 3) {
+                    // condition is not found but might be a problem of ordering in 3D geometries!
+                    DenseVector<int> FaceIdsSorted = FaceIds;
+                    std::sort(FaceIdsSorted.begin(), FaceIdsSorted.end());
+                    hashmap::iterator itFaceSorted = FacesMapSorted.find(FaceIdsSorted);
+                    if (itFaceSorted != FacesMapSorted.end()) {
                         // try different orderings
                         if (rGeometryElement.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10) {
                             itFace = FindFaceReorderingTetrahedra3D10(FaceIds, FacesMap);
@@ -209,7 +218,6 @@ public:
             for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
                 const auto &rGeometryElement = itElem->GetGeometry();
                 const auto rPointGeometries = rGeometryElement.GeneratePoints();
-                // const auto ElementType = rGeometryElement.GetGeometryType();
 
                 for (IndexType iPoint = 0; iPoint < rPointGeometries.size(); ++iPoint) {
                     DenseVector<int> PointIds(rPointGeometries[iPoint].size());
