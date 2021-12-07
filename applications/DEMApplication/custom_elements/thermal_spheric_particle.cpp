@@ -618,7 +618,7 @@ namespace Kratos
     // Check if collision time is smaller than max value, otherwise use static model (batchelor_obrien)
     if (col_time < col_time_max) {
       double temp_grad = GetNeighborTemperature() - GetParticleTemperature();
-      double Rc_max    = ComputeMaxContactRadius();
+      double Rc_max    = ComputeMaxContactRadius(); // TODO: This should be multiplied by the correction coefficient (and not computed with real Young modulus)
       double Fo        = ComputeFourierNumber();
 
       double a1 = GetParticleDensity() * GetParticleHeatCapacity();
@@ -1521,7 +1521,7 @@ namespace Kratos
     double eff_young              = ComputeEffectiveYoungReal(); // ATTENTION: Assumption: Original model was not assumed real Young modulus!
     double impact_normal_velocity = fabs(GetContactParameters().impact_velocity[0]);
 
-    return pow(15.0 * eff_radius * eff_mass * impact_normal_velocity * impact_normal_velocity / (16.0 * eff_young), 0.2);
+    return pow(15.0 * eff_mass * eff_radius * eff_radius * impact_normal_velocity * impact_normal_velocity / (16.0 * eff_young), 0.2);
     
     KRATOS_CATCH("")
   }
