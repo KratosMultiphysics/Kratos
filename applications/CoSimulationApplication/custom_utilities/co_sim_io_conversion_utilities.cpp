@@ -213,7 +213,7 @@ struct Accessor_NonHist_Set : public Accessor_Set_Base
 
 template<class TAccessor, class TContainerType, class TVarDataType, class TDataContainerType>
 void AccessDataWithOrder(
-    TContainerType& rContainer,
+    const TContainerType& rContainer, // must be const as otherwise PointerVectorSet might sort in "find", which causes the parallel access to crash. The content (i.e. nodes or elements can still be modified)
     const Variable<TVarDataType>& rVariable,
     const std::vector<std::size_t>& rOrder,
     TDataContainerType& rData)
