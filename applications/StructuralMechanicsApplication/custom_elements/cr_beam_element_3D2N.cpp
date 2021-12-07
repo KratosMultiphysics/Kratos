@@ -1106,10 +1106,15 @@ CrBeamElement3D2N::CalculateElementForces() const
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
 
+    double initial_unit_elongation = 0.00;
+    if (Has(BEAM_INITIAL_UNIT_ELONGATION)) {
+        initial_unit_elongation = GetValue(BEAM_INITIAL_UNIT_ELONGATION);
+    }
+
     Vector phi_s = CalculateSymmetricDeformationMode();
     Vector phi_a = CalculateAntiSymmetricDeformationMode();
 
-    deformation_modes_total_v[3] = l - L;
+    deformation_modes_total_v[3] = l - L - initial_unit_elongation * L;
     for (int i = 0; i < 3; ++i) {
         deformation_modes_total_v[i] = phi_s[i];
     }
