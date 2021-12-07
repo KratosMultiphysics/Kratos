@@ -103,7 +103,10 @@ class AlgorithmSteepestDescentImplicitVM(OptimizationAlgorithm):
             for node in value.Nodes:
                 node.Fix(KSO.HELMHOLTZ_VARS_X)
                 node.Fix(KSO.HELMHOLTZ_VARS_Y)            
-                node.Fix(KSO.HELMHOLTZ_VARS_Z)               
+                node.Fix(KSO.HELMHOLTZ_VARS_Z)   
+                node.SetSolutionStepValue(KSO.HELMHOLTZ_VARS_X,0,node.X0)
+                node.SetSolutionStepValue(KSO.HELMHOLTZ_VARS_Y,0,node.Y0)            
+                node.SetSolutionStepValue(KSO.HELMHOLTZ_VARS_Z,0,node.Z0)                             
 
         self.analyzer.InitializeBeforeOptimizationLoop()
 

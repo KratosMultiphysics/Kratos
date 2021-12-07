@@ -99,7 +99,7 @@ void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     Element::GeometryType::JacobiansType J0;
     Matrix DN_DX(number_of_points,dim);
     Matrix InvJ0(dim,dim);
-    Vector temp(number_of_points);
+    
 
     Vector nodal_vals(number_of_points);
     for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
@@ -132,6 +132,12 @@ void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS]){
             noalias(rLeftHandSideMatrix) += M;
             noalias(rRightHandSideVector) += prod(A,nodal_vals);
+            Vector temp(number_of_points);
+                for (SizeType iNode = 0; iNode < number_of_points; ++iNode) {
+                    const VectorType &vars = r_geometry[iNode].FastGetSolutionStepValue(HELMHOLTZ_VARS,0);
+                    temp[iNode] = vars[component_index];
+                }
+                noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);                    
         }            
         else{
             noalias(rLeftHandSideMatrix) += A;
@@ -139,16 +145,6 @@ void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         }
             
     }
-
-    // // RHS = ExtForces - K*temp;
-    // for (SizeType iNode = 0; iNode < number_of_points; ++iNode) {
-    //     const VectorType &vars = r_geometry[iNode].FastGetSolutionStepValue(HELMHOLTZ_VARS);
-    //     temp[iNode] = vars[component_index];
-    // }
-
-    // //axpy_prod(rLeftHandSideMatrix, temp, rRightHandSideVector, false);  //RHS -= K*temp
-    // noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
-
 
     KRATOS_CATCH("")
 }

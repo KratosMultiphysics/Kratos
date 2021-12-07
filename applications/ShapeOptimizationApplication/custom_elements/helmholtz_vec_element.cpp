@@ -379,11 +379,21 @@ void HelmholtzVecElement::CalculateLocalSystem(
   if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS]){
       noalias(rLeftHandSideMatrix) += M;
       noalias(rRightHandSideVector) += prod(A,nodal_vals);
+      //apply drichlet BC
+      Vector temp(number_of_points*3);
+      for (SizeType iNode = 0; iNode < number_of_points; ++iNode) {
+          const VectorType &vars = rgeom[iNode].FastGetSolutionStepValue(HELMHOLTZ_VARS,0);
+          temp[3*iNode] = vars[0];
+          temp[3*iNode+1] = vars[1];
+          temp[3*iNode+2] = vars[2];
+      }
+      noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);     
   }            
   else{
       noalias(rLeftHandSideMatrix) += A;
       noalias(rRightHandSideVector) += nodal_vals;
   }  
+
 
 
   KRATOS_CATCH("");
