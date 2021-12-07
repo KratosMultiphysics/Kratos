@@ -9,7 +9,6 @@ import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 # Import time library
 from time import time
 
-
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")

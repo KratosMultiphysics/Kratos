@@ -64,10 +64,12 @@ class ParticleMechanicsAnalysis(AnalysisStage):
                 KratosMultiphysics.Logger.PrintInfo("ParticleMechanicsAnalysis", info_msg)
                 if self.project_parameters.Has("grid_output_configuration"):
                     grid_gid_output= self._SetUpGiDOutput("grid_output")
+                    grid_gid_output= self._SetUpVTKOutput("grid_output")
                     list_of_processes += [grid_gid_output,]
                 if self.project_parameters.Has("body_output_configuration"):
                     mp_gid_output= self._SetUpGiDOutput("body_output")
-                    list_of_processes += [mp_gid_output,]
+                    mp_gid_output= self._SetUpVTKOutput("body_output")
+                    list_of_processes += [mp_gid_output,]        
         else:
             raise NameError("wrong parameter name")
 
@@ -87,6 +89,21 @@ class ParticleMechanicsAnalysis(AnalysisStage):
                 gid_output = OutputProcess(self._GetSolver().GetComputingModelPart(), mp_output_file_name,
                                     self.project_parameters["body_output_configuration"])
         return gid_output
+
+    def _SetUpVTKOutput(self, parameter_name):
+        '''Initialize a VTK output instance'''
+        if self.parallel_type == "OpenMP":
+            if parameter_name == "grid_output":
+                from KratosMultiphysics.vtk_output_process import VtkOutputProcess as OutputProcess
+                grid_output_file_name = self.project_parameters["problem_data"]["problem_name"].GetString() + "_Grid"
+                vtk_output = OutputProcess(self._GetSolver().GetGridModelPart(), grid_output_file_name,
+                                    self.project_parameters["grid_output_configuration"])
+            elif parameter_name == "body_output":
+                from KratosMultiphysics.ParticleMechanicsApplication.particle_vtk_output_process import ParticleVTKOutputProcess as OutputProcess
+                mp_output_file_name = self.project_parameters["problem_data"]["problem_name"].GetString() + "_Body"
+                vtk_output = OutputProcess(self._GetSolver().GetComputingModelPart(), mp_output_file_name,
+                                    self.project_parameters["body_output_configuration"])
+        return vtk_output
 
     def _GetSimulationName(self):
         return "::[Particle Mechanics Analysis]:: "
