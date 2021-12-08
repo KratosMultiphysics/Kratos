@@ -60,9 +60,9 @@ Element::Pointer EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNod
 template <int TDim, int TNumNodes>
 void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-
+    KRATOS_TRY
     BaseType::Initialize(rCurrentProcessInfo);
-
+    KRATOS_CATCH("");
 }
 
 template <int TDim, int TNumNodes>
