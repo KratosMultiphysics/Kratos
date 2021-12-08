@@ -72,24 +72,44 @@ public:
             Vector3 direction=ZeroVector(3);
             direction[mGravityDirection] = 1.0;
 
-            block_for_each(mrModelPart.Nodes(), [&var, &direction, &deltaH, this](Node<3>& rNode) {
-                double distance = 0.0;
-                double d = 0.0;
-                for (unsigned int j=0; j < rNode.Coordinates().size(); ++j) {
-                    distance += mNormalVector[j]*rNode.Coordinates()[j];
-                    d += mNormalVector[j]*direction[j];
-                }
-                distance = -(distance - mEqRHS) / d;
-                distance += deltaH;
-                const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance ;
+            if (mIsSeepage) {
+                block_for_each(mrModelPart.Nodes(), [&var, &direction, &deltaH, this](Node<3>& rNode) {
+                    double distance = 0.0;
+                    double d = 0.0;
+                    for (unsigned int j=0; j < rNode.Coordinates().size(); ++j) {
+                        distance += mNormalVector[j]*rNode.Coordinates()[j];
+                        d += mNormalVector[j]*direction[j];
+                    }
+                    distance = -(distance - mEqRHS) / d;
+                    distance += deltaH;
+                    const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance ;
 
-                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
-                    rNode.FastGetSolutionStepValue(var) = pressure;
-                } else {
-                    rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                }
-            });
+                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0) {
+                        rNode.FastGetSolutionStepValue(var) = pressure;
+                        if (mIsFixed) rNode.Fix(var);
+                    } else {
+                        rNode.Free(var);
+                    }
+                });
+            } else {
+                block_for_each(mrModelPart.Nodes(), [&var, &direction, &deltaH, this](Node<3>& rNode) {
+                    double distance = 0.0;
+                    double d = 0.0;
+                    for (unsigned int j=0; j < rNode.Coordinates().size(); ++j) {
+                        distance += mNormalVector[j]*rNode.Coordinates()[j];
+                        d += mNormalVector[j]*direction[j];
+                    }
+                    distance = -(distance - mEqRHS) / d;
+                    distance += deltaH;
+                    const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance ;
 
+                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
+                        rNode.FastGetSolutionStepValue(var) = pressure;
+                    } else {
+                        rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
+                    }
+                });
+            }
         }
 
         KRATOS_CATCH("");
