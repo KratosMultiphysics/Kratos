@@ -230,7 +230,8 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-
+    /// Calculate Shape Function Values as a vector
+    virtual void MPMShapeFunctionPointValues(Vector& rResult) const override;
 
     /**
      * This functions calculates both the RHS and the LHS

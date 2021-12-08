@@ -110,6 +110,35 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
 
 }
 
+void MPMParticleLagrangeDirichletCondition::MPMShapeFunctionPointValues( Vector& rResult ) const
+{
+    KRATOS_TRY
+
+    MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues(rResult);
+
+    // Additional check to eliminate loss of point load quantity
+    const GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    
+    double denominator = 1.0;
+    int counter = 0;
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
+            denominator -= rResult[i];
+            rResult[i] = 0;
+            counter +=1;
+        }
+    }
+
+    // all nodes are not connected to body
+    if (counter == number_of_nodes)
+        rResult *=0;
+    else
+        rResult = rResult/denominator;
+
+    KRATOS_CATCH( "" )
+}
 //************************************************************************************
 //************************************************************************************
 
@@ -161,14 +190,6 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     bool apply_constraints = true;
 
-    // Check nodal mass to avoid singularity; only apply condition if particles are inside
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-    {
-        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS) <= std::numeric_limits<double>::epsilon() ) 
-        {
-            apply_constraints=false;      
-        }
-    }  
 
     if (Is(CONTACT))
     {
@@ -258,7 +279,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
     else{
 
         KRATOS_WATCH("NO CONDITIONS APPLIED")
-
+        
     }
 
     KRATOS_CATCH( "" )
@@ -274,7 +295,7 @@ void MPMParticleLagrangeDirichletCondition::FinalizeSolutionStep( const ProcessI
     array_1d<double, 3 > mpc_force = ZeroVector(3);
     auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
 
-    mpc_force = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);;
+    mpc_force = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
 
     // Apply in the normal contact direction and allow releasing motion
     if (Is(CONTACT))
