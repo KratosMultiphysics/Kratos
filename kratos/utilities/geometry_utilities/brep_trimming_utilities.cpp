@@ -85,14 +85,14 @@ namespace Kratos
                     c.Execute(ClipperLib::ctIntersection, solution, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
 
                     const double span_area = std::abs(ClipperLib::Area(span[0])) / factor;
-                    double clip_area = std::abs(ClipperLib::Area(solution[0])) / factor;
-                    if (solution.size() > 1)
+                    double clip_area = 0.0;
+                    if (solution.size() > 0)
                     {
+                        clip_area = std::abs(ClipperLib::Area(solution[0])) / factor;
                         for (IndexType k = 1; k < solution.size(); ++k) {
                             clip_area -= std::abs(ClipperLib::Area(solution[k])) / factor;
                         }
                     }
-
                     if (solution.size() == 0) {
                         continue;
                     }

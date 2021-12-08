@@ -1034,7 +1034,7 @@ int AssociativePlasticDamageModel<TYieldSurfaceType>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     // The auxiliar output
     int aux_out = 0;

@@ -17,6 +17,9 @@ class TestCadJsonInput(KratosUnittest.TestCase):
         self.assertEqual(cad_model_part.NumberOfGeometries(), 8)
         self.assertTrue(cad_model_part.HasGeometry(1))
         self.assertFalse(cad_model_part.HasGeometry(10))
+        # Point on Geometry:
+        self.assertTrue(cad_model_part.HasGeometry(39))
+        # Brep Curve:
         self.assertTrue(cad_model_part.HasGeometry(55))
 
         # Check trimming edge index

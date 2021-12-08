@@ -37,8 +37,8 @@ namespace Kratos
 
 ///@name Kratos Classes
 ///@{
-/// Input for CAD-files.
-/** Gives IO capabilities for Nurbs based Brep models in the JSON format defined in
+/// Output for CAD-files.
+/** Gives output capabilities for Nurbs based Brep models in the JSON format defined in
 https://amses-journal.springeropen.com/articles/10.1186/s40323-018-0109-4. */
 class KRATOS_API(KRATOS_CORE) CadJsonOutput
 {
@@ -104,9 +104,11 @@ class KRATOS_API(KRATOS_CORE) CadJsonOutput
     static void GetParameters(
         ModelPart& rModelPart, Parameters& rCadGeometry, IndexType EchoLevel);
 
+    /// Returns the paramaters/json of a specific brep_surface
     static void GetBrepSurfaceParameters(
         const typename ModelPart::GeometryIterator rGeometryIterator, Parameters& rBrepsParameters, IndexType EchoLevel);
 
+    /// Returns the paramaters/json of a loop - typically from a brep_surface
     static void GetBoundaryLoopParameters(
         const BrepCurveOnSurfaceArrayType& rCurveOnSurfaceArray, Parameters& rCadGeometry, IndexType EchoLevel);
 

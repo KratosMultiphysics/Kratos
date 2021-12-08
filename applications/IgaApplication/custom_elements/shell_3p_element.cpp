@@ -321,7 +321,7 @@ namespace Kratos
                     array_1d<double, 3> principal_cauchy_stress = ZeroVector(3);
                     principal_cauchy_stress[0] = 0.50 * (membrane_stress_cau_car[0] + membrane_stress_cau_car[1]) + std::sqrt(0.25 * (std::pow(membrane_stress_cau_car[0] - membrane_stress_cau_car[1], 2.0)) + std::pow(membrane_stress_cau_car[2], 2.0));
                     principal_cauchy_stress[1] = 0.50 * (membrane_stress_cau_car[0] + membrane_stress_cau_car[1]) - std::sqrt(0.25 * (std::pow(membrane_stress_cau_car[0] - membrane_stress_cau_car[1], 2.0)) + std::pow(membrane_stress_cau_car[2], 2.0));
-                    rOutput[point_number] = membrane_stress_cau_car;
+                    rOutput[point_number] = principal_cauchy_stress;
 
                 }
                 else if (rVariable==CAUCHY_STRESS_TOP) 

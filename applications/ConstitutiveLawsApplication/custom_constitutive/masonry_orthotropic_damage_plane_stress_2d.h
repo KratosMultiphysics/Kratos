@@ -74,7 +74,7 @@ namespace Kratos
         };
 
         /// @brief returns the size of the strain vector of the current constitutive law
-        SizeType GetStrainSize() override
+        SizeType GetStrainSize() const override
         {
             return VoigtSize;
         };
@@ -300,10 +300,10 @@ namespace Kratos
         int Check(
             const Properties & rProperties,
             const GeometryType & rGeometry,
-            const ProcessInfo & rCurrentProcessInfo) override;
+            const ProcessInfo & rCurrentProcessInfo) const override;
 
         int CheckOrthotropicParameter(
-            const Properties& rProperties);
+            const Properties& rProperties) const;
 
     protected:
 

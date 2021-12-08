@@ -218,7 +218,7 @@ int UserProvidedLinearElasticLaw<TDim>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     return 0;
 }

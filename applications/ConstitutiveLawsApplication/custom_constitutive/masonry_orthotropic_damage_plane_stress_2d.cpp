@@ -210,7 +210,7 @@ namespace Kratos
     int MasonryOrthotropicDamagePlaneStress2DLaw::Check(
         const Properties& rProperties,
         const GeometryType& rGeometry,
-        const ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY;
 
@@ -227,7 +227,7 @@ namespace Kratos
     }
 
     int MasonryOrthotropicDamagePlaneStress2DLaw::CheckOrthotropicParameter(
-        const Properties& rProperties)
+        const Properties& rProperties) const
     {
         KRATOS_ERROR_IF_NOT(rProperties.Has(YOUNG_MODULUS)) << "Missing variable: YOUNG_MODULUS";
         KRATOS_ERROR_IF_NOT(rProperties.Has(POISSON_RATIO)) << "Missing variable: POISSON_RATIO";
@@ -367,6 +367,10 @@ namespace Kratos
             + (1 / pow(material_length_2_tension, 2)) * pow(sin(AngleToDamage), 2)));
 
         rProjectedProperties.FractureEnergyTension = (pow(rProjectedProperties.YieldStressTension, 2) / (2 * rProjectedProperties.E)) * material_length_projected_tension;
+
+        //std::cout << rProjectedProperties.FractureEnergyTension << "\n";
+        //std::cout << rMaterialProperties1.FractureEnergyTension << "\n";
+        //std::cout << rMaterialProperties2.FractureEnergyTension << "\n";
 
         const double material_length_1_compression = 2.0 * rMaterialProperties1.E * rMaterialProperties1.FractureEnergyCompression /
             pow(rMaterialProperties1.YieldStressCompression, 2);
