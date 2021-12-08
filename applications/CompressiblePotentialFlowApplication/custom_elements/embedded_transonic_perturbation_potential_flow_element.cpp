@@ -80,7 +80,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
     const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<TDim,TNumNodes>(distances);
 
     if (is_embedded && wake == 0) {
-        CalculateRightHandSideNormalElement(rRightHandSideVector,rCurrentProcessInfo);
+        BaseType::CalculateRightHandSideNormalElement(rRightHandSideVector,rCurrentProcessInfo);
         // if (std::abs(rCurrentProcessInfo[STABILIZATION_FACTOR]) > std::numeric_limits<double>::epsilon()) {
         //     PotentialFlowUtilities::AddPotentialGradientStabilizationTerm<Dim, NumNodes>(*this,rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
         // }
@@ -228,37 +228,24 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
 }
 
 template <int TDim, int TNumNodes>
-void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightHandSideNormalElement(
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
+void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightHandSideContribution(
+    BoundedVector<double, TNumNodes>& rRhs_total,
+    const double rDensity,
+    const array_1d<double, TDim>& rVelocity)
 {
-    const EmbeddedTransonicPerturbationPotentialFlowElement& r_this = *this;
-
-    const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(r_this, rCurrentProcessInfo);
-
-    double density = 0.0;
-
-    if(r_this.IsNot(INLET)) {
-        if (rRightHandSideVector.size() != TNumNodes + 1) {
-            rRightHandSideVector.resize(TNumNodes + 1, false);
-        }
-        rRightHandSideVector.clear();
-        const array_1d<double, TDim> upwind_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this->pGetUpwindElement(), rCurrentProcessInfo);
-        density = PotentialFlowUtilities::ComputeUpwindedDensity<TDim, TNumNodes>(velocity, upwind_velocity, rCurrentProcessInfo);
-
-    } else {
-        if (rRightHandSideVector.size() != TNumNodes) {
-            rRightHandSideVector.resize(TNumNodes, false);
-        }
-        rRightHandSideVector.clear();
-
-        const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
-        density = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
-    }
     Vector distances(TNumNodes);
     for(unsigned int i_node = 0; i_node<TNumNodes; i_node++)
         distances(i_node) = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
 
+    const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<TDim,TNumNodes>(distances);
+    if (!is_embedded) {
+        BaseType::CalculateRightHandSideContribution(rRhs_total,
+            rDensity,
+            rVelocity);
+        return;
+    }
+
+    rRhs_total.clear();
     ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(distances);
     Matrix positive_side_sh_func;
     ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
@@ -268,15 +255,10 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
         positive_side_sh_func_gradients,
         positive_side_weights,
         GeometryData::GI_GAUSS_2);
-    BoundedVector<double, TNumNodes> current_rhs = ZeroVector(TNumNodes);
+
     for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
         BoundedMatrix<double, TNumNodes, TDim> DN_DX = positive_side_sh_func_gradients(i_gauss);
-        current_rhs += - positive_side_weights(i_gauss) * density * prod(DN_DX, velocity);
-    }
-
-    for (int i = 0; i < TNumNodes; i++)
-    {
-        rRightHandSideVector[i] = current_rhs[i];
+        rRhs_total += - positive_side_weights(i_gauss) * rDensity * prod(DN_DX, rVelocity);
     }
 }
 

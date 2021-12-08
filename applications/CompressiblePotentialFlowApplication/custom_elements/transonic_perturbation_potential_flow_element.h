@@ -201,7 +201,7 @@ protected:
 
     BoundedVector<double, TNumNodes + 1> AssembleDensityDerivativeAndShapeFunctions(const double densityDerivativeWRTVelocitySquared, const double densityDerivativeWRTUpwindVelocitySquared, const array_1d<double, TDim>& velocity, const array_1d<double, TDim>& upwindVelocity,const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void CalculateRightHandSideNormalElement(VectorType& rRightHandSideVector,
+    void CalculateRightHandSideNormalElement(VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateLeftHandSideNormalElement(MatrixType& rLeftHandSideMatrix,
@@ -225,6 +225,10 @@ protected:
                                          const ProcessInfo& rCurrentProcessInfo,
                                          const array_1d<double, TDim>& rVelocity,
                                          const ElementalData& rData);
+
+    virtual void CalculateRightHandSideContribution(BoundedVector<double, TNumNodes>& rRhs_total,
+                                        const double rDensity,
+                                        const array_1d<double, TDim>& rVelocity);
 
     GlobalPointer<Element> pGetUpwindElement() const;
 

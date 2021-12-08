@@ -199,9 +199,6 @@ public:
 protected:
 
 
-    void CalculateRightHandSideNormalElement(VectorType& rRightHandSideVector,
-                                            const ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateLeftHandSideKuttaWakeElement(MatrixType& rLeftHandSideMatrix,
                                           const ProcessInfo& rCurrentProcessInfo);
 
@@ -212,6 +209,11 @@ protected:
                                          const ProcessInfo& rCurrentProcessInfo,
                                          const array_1d<double, TDim>& rVelocity,
                                          const ElementalData& rData) override;
+
+    void CalculateRightHandSideContribution(BoundedVector<double, TNumNodes>& rRhs_total,
+                                        const double rDensity,
+                                        const array_1d<double, TDim>& rVelocity) override;
+
 
     void AssembleSupersonicLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                         const double densityDerivativeWRTVelocity,

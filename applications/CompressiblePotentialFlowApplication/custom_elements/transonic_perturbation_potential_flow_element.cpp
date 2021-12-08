@@ -606,16 +606,27 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
         const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
         density = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
     }
-    // Calculate shape functions
-    ElementalData data;
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const BoundedVector<double, TNumNodes> current_rhs = - data.vol * density * prod(data.DN_DX, velocity);
+    BoundedVector<double, TNumNodes> current_rhs;
+    CalculateRightHandSideContribution(current_rhs, density, velocity);
 
     for (int i = 0; i < TNumNodes; i++)
     {
         rRightHandSideVector[i] = current_rhs[i];
     }
+}
+
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightHandSideContribution(
+    BoundedVector<double, TNumNodes>& rRhs_total,
+    const double rDensity,
+    const array_1d<double, TDim>& rVelocity)
+{
+    // Calculate shape functions
+    ElementalData data;
+    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+    rRhs_total = - data.vol * rDensity * prod(data.DN_DX, rVelocity);
 }
 
 template <int TDim, int TNumNodes>
