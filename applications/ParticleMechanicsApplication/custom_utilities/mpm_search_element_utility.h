@@ -437,30 +437,30 @@ namespace MPMSearchElementUtility
                 rBackgroundGridModelPart, missing_elements, missing_conditions,
                 MaxNumberOfResults, Tolerance);
 
+       
+        auto& lagrange_model_part =    rMPMModelPart.HasSubModelPart("lagrange_condition")
+                                ? rMPMModelPart.GetSubModelPart("lagrange_condition")
+                                : rMPMModelPart.CreateSubModelPart("lagrange_condition");
         
+
+        // Delete old conditions and the corresponding nodes
+        std::vector<Kratos::IndexType> toRemove;
+        const auto it_condition_begin = lagrange_model_part.Conditions().begin();
+        for (int c = 0; c < static_cast<int>(lagrange_model_part.Conditions().size()); ++c) {
+            auto it_condition = it_condition_begin + c;
+            std::vector<int> node_id(1);
+            it_condition->CalculateOnIntegrationPoints(MPC_CORRESPONDING_NODE_ID, node_id, rMPMModelPart.GetProcessInfo() );
+            rBackgroundGridModelPart.RemoveNodeFromAllLevels(node_id[0]);
+            
+            toRemove.push_back(it_condition->Id());
+        }
+        for (unsigned int c : toRemove) lagrange_model_part.RemoveConditionFromAllLevels(c);
+          
 
         for (auto& submodelpart : rMPMModelPart.SubModelParts())
         {
-            // Create additional Point load conditions if there is a line load
             if (submodelpart.HasSubModelPart("lagrange_condition"))
             {
-                auto& lagrange_model_part =    rMPMModelPart.HasSubModelPart("lagrange_condition")
-                                        ? rMPMModelPart.GetSubModelPart("lagrange_condition")
-                                        : rMPMModelPart.CreateSubModelPart("lagrange_condition");
-                
-
-                // Delete old conditions and the corresponding nodes
-                std::vector<Kratos::IndexType> toRemove;
-                const auto it_condition_begin = lagrange_model_part.Conditions().begin();
-                for (int c = 0; c < static_cast<int>(lagrange_model_part.Conditions().size()); ++c) {
-                    auto it_condition = it_condition_begin + c;
-                    std::vector<int> node_id(1);
-                    it_condition->CalculateOnIntegrationPoints(MPC_CORRESPONDING_NODE_ID, node_id, rMPMModelPart.GetProcessInfo() );
-                    rBackgroundGridModelPart.RemoveNodeFromAllLevels(node_id[0]);
-                    
-                    toRemove.push_back(it_condition->Id());
-                }
-                for (unsigned int c : toRemove) lagrange_model_part.RemoveConditionFromAllLevels(c);
 
                 Vector N;
                 const int max_result = 1000;
