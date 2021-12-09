@@ -57,8 +57,9 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
 SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : DiscreteElement(NewId, pGeometry, pProperties), mRealMass(0)
 {
-    mRadius = 0;
+    mRadius = 0.0;
     mRealMass = 0;
+    mDummyVar = 0.0;
     mStressTensor = NULL;
     mStrainTensor = NULL;
     mDifferentialStrainTensor = NULL;
