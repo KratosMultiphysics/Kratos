@@ -147,15 +147,15 @@ public:
         KRATOS_INFO("ShapeOpt") << "Starting to prepare direction damping..." << std::endl;
 
         const std::string sub_model_part_name = mDampingSettings["sub_model_part_name"].GetString();
-        ModelPart& damping_region = mrModelPartToDamp.GetRootModelPart().GetSubModelPart(sub_model_part_name);
+        const ModelPart& damping_region = mrModelPartToDamp.GetRootModelPart().GetSubModelPart(sub_model_part_name);
 
         const std::string damping_function_type = mDampingSettings["damping_function_type"].GetString();
         const double damping_radius = mDampingSettings["damping_radius"].GetDouble();
 
-        auto p_damping_function = CreateDampingFunction( damping_function_type, damping_radius );
+        const auto p_damping_function = CreateDampingFunction( damping_function_type, damping_radius );
 
         // Loop over all nodes in specified damping sub-model part
-        for(auto& node_i : damping_region.Nodes())
+        for(const auto& node_i : damping_region.Nodes())
         {
             NodeVector neighbor_nodes( mMaxNeighborNodes );
             DoubleVector resulting_squared_distances( mMaxNeighborNodes,0.0 );
@@ -184,12 +184,12 @@ public:
         KRATOS_INFO("ShapeOpt") << "Finished preparation of direction damping." << std::endl;
     }
 
-    FilterFunction::Pointer CreateDampingFunction( std::string damping_type, double damping_radius )
+    FilterFunction::Pointer CreateDampingFunction( std::string damping_type, double damping_radius ) const
     {
         return Kratos::make_unique<FilterFunction>(damping_type, damping_radius);
     }
 
-    void ThrowWarningIfNodeNeighborsExceedLimit( const ModelPart::NodeType& given_node, const unsigned int number_of_neighbors )
+    void ThrowWarningIfNodeNeighborsExceedLimit( const ModelPart::NodeType& given_node, const unsigned int number_of_neighbors ) const
     {
         if(number_of_neighbors >= mMaxNeighborNodes)
             KRATOS_WARNING("ShapeOpt::DirectionDampingUtilities") << "For node " << given_node.Id() << " and specified damping radius, maximum number of neighbor nodes (=" << mMaxNeighborNodes << " nodes) reached!" << std::endl;
