@@ -37,7 +37,8 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
-                "step_size"                  : 1.0
+                "step_size"                  : 1.0,
+                "step_size_in_geometry_space": false
             }
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
@@ -75,6 +76,11 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.CORRECTION)
+
+        self.step_size_in_geometry_space = self.algorithm_settings["line_search"]["step_size_in_geometry_space"].GetBool()
+
+        if self.step_size_in_geometry_space and self.algorithm_settings["line_search"]["line_search_type"].GetString() != "manual_stepping":
+            raise RuntimeError("'step_size_in_geometry_space' can only be used with line_search_type: 'manual_stepping'")
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -214,6 +220,12 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
         self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
 
+        if self.step_size_in_geometry_space:
+            norm_shape_update = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SHAPE_UPDATE)
+            for node in self.design_surface.Nodes:
+                shape_update = node.GetSolutionStepValue(KSO.SHAPE_UPDATE)
+                node.SetSolutionStepValue(KSO.SHAPE_UPDATE, shape_update / norm_shape_update * self.step_size)
+
     # --------------------------------------------------------------------------
     def __computeControlPointUpdate(self):
         """adapted from https://doi.org/10.1007/978-94-011-2550-5 chapter 5"""
@@ -259,6 +271,9 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c.norm_inf()} to {self.max_correction_share * self.step_size}.")
                 c *= self.max_correction_share * self.step_size / c.norm_inf()
                 s *= (1.0 - self.max_correction_share) * self.step_size / s.norm_inf()
+
+            if self.step_size_in_geometry_space:
+                KM.Logger.PrintWarning("ShapeOpt", "Calculating the step size in geometry space will make the computed correction incorrect! Use with care!")
         else:
             s *= self.step_size / s.norm_inf()
 

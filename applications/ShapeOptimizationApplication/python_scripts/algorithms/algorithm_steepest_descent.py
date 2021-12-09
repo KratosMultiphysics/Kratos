@@ -215,7 +215,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
 
         if self.step_size_in_geometry_space:
-            norm_shape_update = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.SHAPE_UPDATE)
+            norm_shape_update = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SHAPE_UPDATE)
             for node in self.design_surface.Nodes:
                 shape_update = node.GetSolutionStepValue(KSO.SHAPE_UPDATE)
                 node.SetSolutionStepValue(KSO.SHAPE_UPDATE, shape_update / norm_shape_update * self.step_size)

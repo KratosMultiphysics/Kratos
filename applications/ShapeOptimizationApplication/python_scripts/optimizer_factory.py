@@ -54,28 +54,19 @@ class Optimizer:
         number_of_constraints = self.optimization_settings["constraints"].size()
 
         filter_settings = self.optimization_settings["design_variables"]["filter"]
-        if filter_settings.Has("normal") and filter_settings["normal"].GetBool():
-            _CONTROL_POINT_UPDATE = KSO.CONTROL_POINT_UPDATE_N
-            _CONTROL_POINT_CHANGE = KSO.CONTROL_POINT_CHANGE_N
-            mapped_variable_suffix = "_N"
-        else:
-            _CONTROL_POINT_UPDATE = KSO.CONTROL_POINT_UPDATE
-            _CONTROL_POINT_CHANGE = KSO.CONTROL_POINT_CHANGE
-            mapped_variable_suffix = ""
 
-        nodal_variable = KM.KratosGlobals.GetVariable("DF1DX")
-        model_part.AddNodalSolutionStepVariable(nodal_variable)
-        nodal_variable = KM.KratosGlobals.GetVariable(f"DF1DX_MAPPED{mapped_variable_suffix}")
-        model_part.AddNodalSolutionStepVariable(nodal_variable)
+
+        model_part.AddNodalSolutionStepVariable(KSO.DF1DX)
+        model_part.AddNodalSolutionStepVariable(KSO.DF1DX_MAPPED)
 
         for itr in range(1,number_of_constraints+1):
             nodal_variable = KM.KratosGlobals.GetVariable(f"DC{itr}DX")
             model_part.AddNodalSolutionStepVariable(nodal_variable)
-            nodal_variable = KM.KratosGlobals.GetVariable(f"DC{itr}DX_MAPPED{mapped_variable_suffix}")
+            nodal_variable = KM.KratosGlobals.GetVariable(f"DC{itr}DX_MAPPED")
             model_part.AddNodalSolutionStepVariable(nodal_variable)
 
-        model_part.AddNodalSolutionStepVariable(_CONTROL_POINT_UPDATE)
-        model_part.AddNodalSolutionStepVariable(_CONTROL_POINT_CHANGE)
+        model_part.AddNodalSolutionStepVariable(KSO.CONTROL_POINT_UPDATE)
+        model_part.AddNodalSolutionStepVariable(KSO.CONTROL_POINT_CHANGE)
         model_part.AddNodalSolutionStepVariable(KSO.SHAPE_UPDATE)
         model_part.AddNodalSolutionStepVariable(KSO.SHAPE_CHANGE)
         model_part.AddNodalSolutionStepVariable(KSO.MESH_CHANGE)
