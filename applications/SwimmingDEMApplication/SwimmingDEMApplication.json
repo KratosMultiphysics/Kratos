@@ -1,7 +1,7 @@
  {
 	"wheel_name": "KratosSwimmingDEMApplication",
 	"included_modules": ["SwimmingDEMApplication"],
-	"included_binaries": ["KratosSwimmingDEMApplication.*", "KratosSwimmingDEMApplicationCore.*", "libKratosSwimmingDEMApplicationCore.*"],
+	"included_binaries": ["KratosSwimmingDEMApplication.*", "KratosSwimmingDEMCore.*", "libKratosSwimmingDEMCore.*"],
 	"excluded_binaries": ["libKratosFluidDynamicsCore.*", "libKratosDEMCore.*"],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}", "KratosFluidDynamicsApplication==${KRATOS_VERSION}", "KratosDEMApplication==${KRATOS_VERSION}"],
 	"author": "Kratos Team",
