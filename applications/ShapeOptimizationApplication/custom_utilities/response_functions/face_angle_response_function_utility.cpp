@@ -58,7 +58,7 @@ void FaceAngleResponseFunctionUtility::Initialize()
     KRATOS_INFO("ShapeOpt") << "Considering only initially feasible faces for face angle response."<< std::endl;
 	block_for_each(mrModelPart.Conditions(), [&](Condition& rCond) {
 		const double g_i = CalculateConditionValue(rCond);
-		rCond.SetValue(FACE_ANGLE_CONSIDER, (g_i <= 0));
+		rCond.SetValue(CONSIDER_FACE_ANGLE, (g_i <= 0));
 	});
 
 	KRATOS_CATCH("");
@@ -69,7 +69,7 @@ double FaceAngleResponseFunctionUtility::CalculateValue()
 	KRATOS_TRY;
 
 	const double value = block_for_each<SumReduction<double>>(mrModelPart.Conditions(), [&](Condition& rCond) {
-		if (mConsiderOnlyInitiallyFeasible && !(rCond.GetValue(FACE_ANGLE_CONSIDER))){
+		if (mConsiderOnlyInitiallyFeasible && !(rCond.GetValue(CONSIDER_FACE_ANGLE))){
 			return 0.0;
 		}
 		const double g_i = CalculateConditionValue(rCond);
@@ -93,7 +93,7 @@ void FaceAngleResponseFunctionUtility::CalculateGradient()
 	VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
 
 	for (auto& cond_i : mrModelPart.Conditions()){
-		if (mConsiderOnlyInitiallyFeasible && !(cond_i.GetValue(FACE_ANGLE_CONSIDER))){
+		if (mConsiderOnlyInitiallyFeasible && !(cond_i.GetValue(CONSIDER_FACE_ANGLE))){
 			continue;
 		}
 		const double g_i = CalculateConditionValue(cond_i);
