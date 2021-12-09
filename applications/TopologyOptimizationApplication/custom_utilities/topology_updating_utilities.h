@@ -631,6 +631,9 @@ public:
 
 	}
 
+	
+	/// Check for convergence in Inner and Outer Iteration in GCMMA
+
 	int  ConCheck( char update_type[], double volfrac,  double OptItr, double f_old, double f_new, double f0app)
 	{
 		KRATOS_TRY;
@@ -639,6 +642,7 @@ public:
 			// Create object of updating function
 			int nn = mrModelPart.NumberOfElements();
 			int mm = 1; /// constraints
+
 			double *g = new double[mm];
 			double vol_summ = 0;
 			double vol_frac_iteration = 0;

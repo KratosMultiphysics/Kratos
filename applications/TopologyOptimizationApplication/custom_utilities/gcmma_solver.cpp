@@ -144,6 +144,7 @@ namespace Kratos
 		}
 		for (int j = 0; j < m; ++j) {
 			if (fapp[j] + epsimin < fxnew[j]) {
+				std::cout << "Consrain value " << fapp[j]<< std::endl;
 				return false;
 			}
 		}

@@ -599,6 +599,10 @@ class SIMPMethod:
 
             inneriter = 0
             while (inneriter<15) and (Con<1):
+                # Filter sensitivities
+                print("\n::[Filter Sensitivities]::")
+                self.filter_utils.ApplyFilterSensitivity(self.config.filter_type , self.config.filter_kernel )        
+                        
                 print("\n::[Update Densities with GCMMA, Inner Iteration]::")
                 f0app = self.design_update_utils.UpdateDensitiesUsingGCMMAMethod_inner( self.config.optimization_algorithm,
                                             self.config.initial_volume_fraction,
