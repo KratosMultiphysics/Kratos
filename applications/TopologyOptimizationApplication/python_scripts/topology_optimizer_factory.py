@@ -519,6 +519,7 @@ class SIMPMethod:
         Obj_Function_initial          = None
         Obj_Function_relative_change  = None
         Obj_Function_absolute_change  = None
+        f0app                         = None
 
         # Print the Topology Optimization Settings that will be used in the program
         print("\n::[Topology Optimization Settings]::")
@@ -540,6 +541,7 @@ class SIMPMethod:
             print("  No restart file will be done during the simulation")
 
         f0app = 0
+
 
         # Start optimization loop
         for opt_itr in range(1,self.config.max_opt_iterations+1):
@@ -578,28 +580,39 @@ class SIMPMethod:
             Obj_Function_optimization_outer = Obj_Function
 
 
-            print("\n::[Update Densities with GCMMA]::")
-            self.design_update_utils.UpdateDensitiesUsingGCMMAMethod_outer( self.config.optimization_algorithm,
+            print("\n::[Update Densities with GCMMA, Outer Iteration]::")
+            f0app = self.design_update_utils.UpdateDensitiesUsingGCMMAMethod_outer( self.config.optimization_algorithm,
                                                 self.config.initial_volume_fraction,
                                                 opt_itr, Obj_Function_optimization_outer, f0app)
+            #print("\n::[Update Densities with GCMMA, f0 ist bei OUTER]::", f0app)
+
+            Con = self.design_update_utils.ConCheck( self.config.optimization_algorithm,
+                                        self.config.initial_volume_fraction,
+                                        opt_itr, Obj_Function_optimization_outer, Obj_Function_optimization_outer, f0app)
+            #print("\n::[Update Densities with GCMMA, f0 ist bei INNER]::", Con)
 
             
             # RUN FEM: Call analyzer with current X to compute response (global_strain_energy, dcdx)
             self.analyzer(self.controller.get_controls(), response, opt_itr)
-
             Obj_Function = response[only_F_id]["func"]
             Obj_Function_optimization_inner = Obj_Function
-            inneriter = 0
-            while (inneriter<15):
-                self.design_update_utils.UpdateDensitiesUsingGCMMAMethod_inner( self.config.optimization_algorithm,
-                                        self.config.initial_volume_fraction,
-                                        opt_itr, Obj_Function_optimization_outer, Obj_Function_optimization_inner, f0app)
 
+            inneriter = 0
+            while (inneriter<15) and (Con<1):
+                print("\n::[Update Densities with GCMMA, Inner Iteration]::")
+                f0app = self.design_update_utils.UpdateDensitiesUsingGCMMAMethod_inner( self.config.optimization_algorithm,
+                                            self.config.initial_volume_fraction,
+                                            opt_itr, Obj_Function_optimization_outer, Obj_Function_optimization_inner, f0app)
+                Con = self.design_update_utils.ConCheck( self.config.optimization_algorithm,
+                                            self.config.initial_volume_fraction,
+                                            opt_itr, Obj_Function_optimization_outer, Obj_Function_optimization_inner, f0app)
+                #print("\n::[Update Densities with GCMMA, f0 ist bei INNER]::", Con)
+                
                 # RUN FEM: Call analyzer with current X to compute response (global_strain_energy, dcdx)
                 self.analyzer(self.controller.get_controls(), response, opt_itr)
-
                 Obj_Function = response[only_F_id]["func"]
                 Obj_Function_optimization_inner = Obj_Function
+
                 inneriter+=1
 
 

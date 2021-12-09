@@ -350,7 +350,7 @@ public:
 
 	/// GCMMA as a optimization Algorithm - outer update
 
-	void UpdateDensitiesUsingGCMMAMethod_outer( char update_type[], double volfrac,  double OptItr, double Obj_func, double f0app)
+	double UpdateDensitiesUsingGCMMAMethod_outer( char update_type[], double volfrac,  double OptItr, double Obj_func, double f0app)
 	{
 		KRATOS_TRY;
 		if ( strcmp( update_type , "GCMMA_algorithm" ) == 0 )
@@ -455,10 +455,8 @@ public:
 				xmax[iEl] = std::min(Xmaxx, x[iEl] + movlim);
 				xmin[iEl] = std::max(Xminn, x[iEl] - movlim); 
 			}
-
-			
-			gcmma->OuterUpdate(xmma,x,f,df,g,dg,xmin,xmax,xold1,xold2, iter, low, upp, f0app);
-
+		
+			f0app = gcmma->OuterUpdate(xmma,x,f,df,g,dg,xmin,xmax,xold1,xold2, iter, low, upp, f0app);
 
 			int jiter = 0;
 
@@ -476,6 +474,7 @@ public:
 
 
 			// Printing of results
+			return f0app;
 			clock_t end = clock();
 			std::cout << "  Updating of values performed               [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
 		}
@@ -492,13 +491,12 @@ public:
 		
 	/// GCMMA as a optimization Algorithm - inner update
 
-	void UpdateDensitiesUsingGCMMAMethod_inner( char update_type[], double volfrac,  double OptItr, double f_old, double f_new, double f0app)
+	double  UpdateDensitiesUsingGCMMAMethod_inner( char update_type[], double volfrac,  double OptItr, double f_old, double f_new, double f0app)
 	{
 		KRATOS_TRY;
 		if ( strcmp( update_type , "GCMMA_algorithm" ) == 0 )
 		{
 			clock_t begin = clock();
-			std::cout << "  Method of Moving Asymthodes (MMA) chosen to solve the optimization problem" << std::endl;
 
 
 			// Create object of updating function
@@ -599,9 +597,8 @@ public:
 				xmax[iEl] = std::min(Xmaxx, x[iEl] + movlim);
 				xmin[iEl] = std::max(Xminn, x[iEl] - movlim); 
 			}
-			
-			gcmma->InnerUpdate(xmma,fnew,gnew,x,f,df,g,dg,xmin,xmax,xold1,xold2, iter, low, upp, f0app);
 
+			f0app = gcmma->InnerUpdate(xmma,fnew,gnew,x,f,df,g,dg,xmin,xmax,xold1,xold2, iter, low, upp, f0app);
 
 
 			int jiter = 0;
@@ -620,8 +617,62 @@ public:
 
 
 			// Printing of results
+			return f0app;
 			clock_t end = clock();
 			std::cout << "  Updating of values performed               [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+		}
+		else 
+		{
+
+			KRATOS_ERROR << "No valid optimization_algorithm selected for the simulation. Selected one: " << update_type << std::endl;
+		}
+
+		KRATOS_CATCH("");
+
+	}
+
+	int  ConCheck( char update_type[], double volfrac,  double OptItr, double f_old, double f_new, double f0app)
+	{
+		KRATOS_TRY;
+		if ( strcmp( update_type , "GCMMA_algorithm" ) == 0 )
+		{
+			// Create object of updating function
+			int nn = mrModelPart.NumberOfElements();
+			int mm = 1; /// constraints
+			double *g = new double[mm];
+			double vol_summ = 0;
+			double vol_frac_iteration = 0;
+
+			for( ModelPart::ElementsContainerType::iterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
+			{	
+				
+				double xval = element_i->GetValue(X_PHYS);
+
+				
+				vol_summ = vol_summ + xval;
+
+			}
+
+			g[0] = 0;
+			vol_frac_iteration = vol_summ;
+			g[0] = (vol_frac_iteration - volfrac*nn);
+			// Initialize MMA
+			GCMMASolver *gcmma = new GCMMASolver(nn,mm);
+
+			bool ConCheck = gcmma->ConCheck(f_new,g,f0app );
+			int l = 0;
+
+			if (ConCheck==true)
+				{
+					l = 1;
+				}
+			else
+			{ 
+				l =0;
+			}
+
+			return l;
+
 		}
 		else 
 		{

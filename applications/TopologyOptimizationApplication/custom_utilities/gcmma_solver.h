@@ -116,12 +116,12 @@ namespace Kratos
 		void SetAsymptotes(double init, double decrease, double increase);
 
 		// Compute [L, U, raa0, raa], build and solve GCMMA subproblem, compute [f0app, fapp]
-		void OuterUpdate(double *xmma, const double *xval, double f0x, const double *df0dx,
+		double OuterUpdate(double *xmma, const double *xval, double f0x, const double *df0dx,
 			const double *fx, const double *dfdx, const double *xmin, const double *xmax, 
 			double *xold1, double *xold2, const int iter, double *low, double *upp, double f0app);
 
 		// Update [raa0, raa], build and solve GCMMA subproblem, compute [f0app, fapp]
-		void InnerUpdate(double *xmma, double f0xnew, const double *fxnew,
+		double InnerUpdate(double *xmma, double f0xnew, const double *fxnew,
 			const double *xval, double f0x, const double *df0dx, const double *fx,
 			const double *dfdx, const double *xmin, const double *xmax, double *xold1, double *xold2, 
 			const int iter, double *low, double *upp, double f0app);
@@ -150,12 +150,12 @@ namespace Kratos
 		double z;
 
 		std::vector<double> lam, mu, s;
-		std::vector<double> low, upp, alpha, beta, p0, q0, pij, qij, b, grad, hess;
+		std::vector<double> alpha, beta, p0, q0, pij, qij, b, grad, hess; //low, upp, 
 
-		double r0, f0app;
+		double r0;// f0app;
 		std::vector<double> r, fapp;
 
-		std::vector<double> xold1, xold2;
+		//std::vector<double> xold1, xold2;
 
 	private:
 		// Compute [low, upp, raa0, raa]
@@ -165,7 +165,7 @@ namespace Kratos
 
 		// Update [raa0, raa]
 		void RaaUpdate(const double *xmma, const double *xval, double f0xnew,
-			const double *fxnew, const double *xmin, const double *xmax,  double *low, double *upp, double f0app);
+			const double *fxnew, const double *xmin, const double *xmax,  double *low, double *upp, const double f0app);
 
 		// Build CGMMA subproblem
 		void GenSub(const double *xval, double f0x, const double *df0dx, const double *fx,
@@ -173,7 +173,7 @@ namespace Kratos
 			double *xold1, double *xold2, const int iter,  double *low, double *upp);
 
 		// Compute [f0app, fapp]
-		void ComputeApprox(const double *xmma, double *low, double *upp, double f0app);
+		double ComputeApprox(const double *xmma, double *low, double *upp, double f0app);
 
 		void SolveDSA(double *x, double *low, double *upp);
         void SolveDIP(double *x, double *low, double *upp);

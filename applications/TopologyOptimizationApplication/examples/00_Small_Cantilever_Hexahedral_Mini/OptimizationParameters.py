@@ -49,8 +49,6 @@ relative_tolerance = 0.001
 increasing_obj     = 0 # Stops the optimization when objective function value is increasing
 # options: Activated=1, Deactivated=0
 
-f0app = 100
-
   
 #========================================================================================
 # RESPONSE FUNCTIONS
