@@ -1,9 +1,9 @@
 import importlib
 
 import KratosMultiphysics
-from KratosMultiphysics.RomApplication.rom_analysis import CreateRomAnalysisInstance
+import KratosMultiphysics.RomApplication.rom_analysis
 
-def SetUpSimulationInstance(model, parameters, hyper_reduction_element_selector = None):
+def SetUpSimulationInstance(model, parameters, is_hrom = False, hyper_reduction_element_selector = None):
     """ Creates and returns a ROM simulation instance """
 
     # Get the parent simulation class
@@ -16,7 +16,8 @@ def SetUpSimulationInstance(model, parameters, hyper_reduction_element_selector 
 
     # Set up simulation
     model = KratosMultiphysics.Model()
-    simulation = CreateRomAnalysisInstance(
+    instance_factory = KratosMultiphysics.RomApplication.rom_analysis.CreateHRomAnalysisInstance if is_hrom else KratosMultiphysics.RomApplication.rom_analysis.CreateRomAnalysisInstance
+    simulation = instance_factory(
         analysis_stage_class,
         model,
         parameters,

@@ -98,6 +98,27 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, hyper_reduction_ele
 
     return RomAnalysis(global_model, parameters, hyper_reduction_element_selector)
 
+def CreateHRomAnalysisInstance(cls, global_model, parameters, hyper_reduction_element_selector = None):
+    # Create an standard ROM analysis instance to get the type
+    # This is required as RomAnalysis is defined inside CreateRomAnalysisInstance function
+    rom_analysis = CreateRomAnalysisInstance(cls, global_model, parameters, hyper_reduction_element_selector)
+
+    # Extend the ModifyAfterSolverInitialize method to set the element and condition hyper-reduction weights
+    class HRomAnalysis(type(rom_analysis)):
+
+        def ModifyAfterSolverInitialize(self):
+            super().ModifyAfterSolverInitialize()
+            computing_model_part = self._GetSolver().GetComputingModelPart()
+
+            with open('ElementsAndWeights.json') as f:
+                HR_data = json.load(f)
+                for key in HR_data["Elements"].keys():
+                    computing_model_part.GetElement(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, HR_data["Elements"][key])
+                for key in HR_data["Conditions"].keys():
+                    computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, HR_data["Conditions"][key])
+
+    return HRomAnalysis(global_model, parameters, hyper_reduction_element_selector)
+
 if __name__ == "__main__":
 
     with open("ProjectParameters.json", 'r') as parameter_file:
