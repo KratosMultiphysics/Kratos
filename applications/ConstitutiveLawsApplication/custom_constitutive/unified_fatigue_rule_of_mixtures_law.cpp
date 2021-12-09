@@ -93,24 +93,103 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
 template <class TConstLawIntegratorType>
 void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    // const double max_stress = mMaxStress;
-    // const double min_stress = mMinStress;
-    // bool max_indicator = mMaxDetected;
-    // bool min_indicator = mMinDetected;
-    // double fatigue_reduction_factor = mFatigueReductionFactor;
+    const double max_stress = mMaxStress;
+    const double min_stress = mMinStress;
+    bool max_indicator = mMaxDetected;
+    bool min_indicator = mMinDetected;
+    double fatigue_reduction_factor = mFatigueReductionFactor;
     // double reversion_factor_relative_error = mReversionFactorRelativeError;
     // double max_stress_relative_error = mMaxStressRelativeError;
-    // unsigned int global_number_of_cycles = mNumberOfCyclesGlobal;
-    // unsigned int local_number_of_cycles = mNumberOfCyclesLocal;
+    unsigned int global_number_of_cycles = mNumberOfCyclesGlobal;
+    unsigned int local_number_of_cycles = mNumberOfCyclesLocal;
     // double B0 = mFatigueReductionParameter;
     // double previous_max_stress = mPreviousMaxStress;
     // double previous_min_stress = mPreviousMinStress;
     // double wohler_stress = mWohlerStress;
-    // bool new_cycle = false;
+    bool new_cycle = false;
     // double s_th = mThresholdStress;
     // double cycles_to_failure = mCyclesToFailure;
     // bool adnvance_strategy_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
     // bool damage_activation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
+
+    if (max_indicator && min_indicator) {
+        // const double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
+        // const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
+        // double alphat;
+        // HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
+        //     max_stress,
+        //     reversion_factor,
+        //     rValues.GetMaterialProperties(),
+        //     B0,
+        //     s_th,
+        //     alphat,
+        //     cycles_to_failure);
+
+        // double betaf = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
+        // if (std::abs(min_stress) < 0.001) {
+        //     reversion_factor_relative_error = std::abs(reversion_factor - previous_reversion_factor);
+        // } else {
+        //     reversion_factor_relative_error = std::abs((reversion_factor - previous_reversion_factor) / reversion_factor);
+        // }
+        // max_stress_relative_error = std::abs((max_stress - previous_max_stress) / max_stress);
+
+        // if (!damage_activation && global_number_of_cycles > 2 && !adnvance_strategy_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.001)) {
+        //     local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / (betaf * betaf)))) + 1;
+        // }
+        global_number_of_cycles++;
+        local_number_of_cycles++;
+        new_cycle = true;
+        max_indicator = false;
+        min_indicator = false;
+        // previous_max_stress = max_stress;
+        // previous_min_stress = min_stress;
+        // mCyclesToFailure = cycles_to_failure;
+
+        // HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
+        //                                                                                 max_stress,
+        //                                                                                 local_number_of_cycles,
+        //                                                                                 global_number_of_cycles,
+        //                                                                                 B0,
+        //                                                                                 s_th,
+        //                                                                                 alphat,
+        //                                                                                 fatigue_reduction_factor,
+        //                                                                                 wohler_stress);
+    }
+    // if (adnvance_strategy_applied) {
+    //     const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
+    //     double alphat;
+    //     HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
+    //         max_stress,
+    //         reversion_factor,
+    //         rValues.GetMaterialProperties(),
+    //         B0,
+    //         s_th,
+    //         alphat,
+    //         cycles_to_failure);
+    //     HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
+    //                                                                                     max_stress,
+    //                                                                                     local_number_of_cycles,
+    //                                                                                     global_number_of_cycles,
+    //                                                                                     B0,
+    //                                                                                     s_th,
+    //                                                                                     alphat,
+    //                                                                                     fatigue_reduction_factor,
+    //                                                                                     wohler_stress);
+    // }
+    mNumberOfCyclesGlobal = global_number_of_cycles;
+    mNumberOfCyclesLocal = local_number_of_cycles;
+    // mReversionFactorRelativeError = reversion_factor_relative_error;
+    // mMaxStressRelativeError = max_stress_relative_error;
+    mMaxDetected = max_indicator;
+    mMinDetected = min_indicator;
+    // mFatigueReductionParameter = B0;
+    // mPreviousMaxStress = previous_max_stress;
+    // mPreviousMinStress = previous_min_stress;
+    mFatigueReductionFactor = fatigue_reduction_factor;
+    // mWohlerStress = wohler_stress;
+    mNewCycleIndicator = new_cycle;
+    // mThresholdStress = s_th;
+    // KRATOS_WATCH(global_number_of_cycles)
 }
 
 /***********************************************************************************/
@@ -357,6 +436,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
         ultra_low_cycle_fatigue_stress_vector = values_ULCF.GetStressVector();
 
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
+        // KRATOS_WATCH(r_integrated_stress_vector)
         noalias(r_integrated_stress_vector) = mHCFVolumetricParticipation * high_cycle_fatigue_stress_vector
                                      + (1.0 - mHCFVolumetricParticipation) * ultra_low_cycle_fatigue_stress_vector;
 
@@ -365,23 +445,37 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
 
         double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(r_integrated_stress_vector);
         uniaxial_stress *= sign_factor;
-        // double max_stress = mMaxStress;
-        // double min_stress = mMinStress;
-        // bool max_indicator = mMaxDetected;
-        // bool min_indicator = mMinDetected;
-        // double fatigue_reduction_factor = mFatigueReductionFactor;
+        double max_stress = mMaxStress;
+        double min_stress = mMinStress;
+        bool max_indicator = mMaxDetected;
+        bool min_indicator = mMinDetected;
+        double fatigue_reduction_factor = mFatigueReductionFactor;
 
-        // HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(
-        //     uniaxial_stress,
-        //     max_stress,
-        //     min_stress,
-        //     mPreviousStresses,
-        //     max_indicator,
-        //     min_indicator);
-        // mMaxStress = max_stress;
-        // mMinStress = min_stress;
-        // mMaxDetected = max_indicator;
-        // mMinDetected = min_indicator;
+        HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(
+            uniaxial_stress,
+            max_stress,
+            min_stress,
+            mPreviousStresses,
+            max_indicator,
+            min_indicator);
+        mMaxStress = max_stress;
+        mMinStress = min_stress;
+        mMaxDetected = max_indicator;
+        mMinDetected = min_indicator;
+
+        Vector previous_stresses = ZeroVector(2);
+        const Vector& r_aux_stresses = mPreviousStresses;
+        previous_stresses[1] = uniaxial_stress;
+        previous_stresses[0] = r_aux_stresses[1];
+        mPreviousStresses = previous_stresses;
+
+        // KRATOS_WATCH(uniaxial_stress)
+        // KRATOS_WATCH(previous_stresses[0])
+        // KRATOS_WATCH(previous_stresses[1])
+        // KRATOS_WATCH(max_stress)
+        // KRATOS_WATCH(min_stress)
+        // KRATOS_WATCH(max_stress)
+        // KRATOS_WATCH(min_stress)
     }
 }
 
@@ -508,6 +602,20 @@ double& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateValue
     const Variable<double>& rThisVariable,
     double& rValue)
 {
+    // const Vector& r_strain_vector = rParameterValues.GetStrainVector();
+
+    // Recalculation to obtain the serial_strain_matrix and store the value
+    // const SizeType voigt_size = GetStrainSize();
+
+    // Get Values to compute the constitutive law:
+    // Flags& r_flags = rParameterValues.GetOptions();
+
+    // Previous flags saved
+    // const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    // const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    // const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+
+
     auto& r_material_properties = rParameterValues.GetMaterialProperties();
     const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
     const auto& r_props_HCF_cl = *(it_cl_begin);
@@ -517,7 +625,34 @@ double& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateValue
     values_HCF.SetMaterialProperties(r_props_HCF_cl);
     values_ULCF.SetMaterialProperties(r_props_ULCF_cl);
 
-    if (rThisVariable == UNIAXIAL_STRESS_HCF) {
+    if (rThisVariable == UNIAXIAL_STRESS) {
+        // Get Values to compute the constitutive law:
+        // Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        // const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        // const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+        // r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        // r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+
+        // Calculate the stress vector
+        CalculateMaterialResponseCauchy(rParameterValues);
+
+        // r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        // r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        // r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+
+        Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector& r_integrated_stress_vector = rParameterValues.GetStressVector();
+        TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress( r_integrated_stress_vector, r_strain_vector, rValue, rParameterValues);
+
+        // // Previous flags restored
+        // r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        // r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        return rValue;
+
+    } else if (rThisVariable == UNIAXIAL_STRESS_HCF) {
         return mpHCFConstitutiveLaw->CalculateValue(values_HCF, UNIAXIAL_STRESS, rValue);
     } else if (rThisVariable == UNIAXIAL_STRESS_ULCF) {
         return mpULCFConstitutiveLaw->CalculateValue(values_ULCF, UNIAXIAL_STRESS, rValue);

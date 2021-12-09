@@ -111,8 +111,10 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
 
     // Copy constructor
     UnifiedFatigueRuleOfMixturesLaw(UnifiedFatigueRuleOfMixturesLaw const& rOther)
-        :  BaseType(rOther), mpHCFConstitutiveLaw(rOther.mpHCFConstitutiveLaw), mpULCFConstitutiveLaw(rOther.mpULCFConstitutiveLaw),
-        mHCFVolumetricParticipation(rOther.mHCFVolumetricParticipation)
+        :  BaseType(rOther),
+            mpHCFConstitutiveLaw(rOther.mpHCFConstitutiveLaw),
+            mpULCFConstitutiveLaw(rOther.mpULCFConstitutiveLaw),
+            mHCFVolumetricParticipation(rOther.mHCFVolumetricParticipation)
     {
     }
 
@@ -442,6 +444,11 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
     double mMaxStress = 0.0;
     double mMinStress = 0.0;
+    bool mMaxDetected = false; // Maximum's indicator in the current cycle
+    bool mMinDetected = false; // Minimum's indicator in the current cycle
+    unsigned int mNumberOfCyclesGlobal = 1; // Total number of cycles in the whole analysis
+    unsigned int mNumberOfCyclesLocal = 1; // Equivalent number of cycles for the current cyclic load
+    bool mNewCycleIndicator = false; // New cycle identifier required for the advancing process.
 
     ///@}
     ///@name Private Operators
