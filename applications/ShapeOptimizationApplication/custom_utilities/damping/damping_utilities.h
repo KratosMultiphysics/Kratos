@@ -72,7 +72,6 @@ public:
     typedef std::vector<NodeTypePointer>::iterator NodeVectorIterator;
     typedef std::vector<double> DoubleVector;
     typedef std::vector<double>::iterator DoubleVectorIterator;
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
     // Type definitions for tree-search
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeVectorIterator, DoubleVectorIterator > BucketType;
@@ -152,18 +151,18 @@ public:
         KRATOS_INFO("ShapeOpt") << "Starting to prepare damping..." << std::endl;
 
         // Loop over all regions for which damping is to be applied
-        for (unsigned int regionNumber = 0; regionNumber < mDampingSettings["damping_regions"].size(); regionNumber++)
+        for (const auto& r_region_parameters : mDampingSettings["damping_regions"])
         {
-            std::string dampingRegionSubModelPartName = mDampingSettings["damping_regions"][regionNumber]["sub_model_part_name"].GetString();
-            ModelPart& dampingRegion = mrModelPartToDamp.GetRootModelPart().GetSubModelPart(dampingRegionSubModelPartName);
+            const auto& sub_model_part_name = r_region_parameters["sub_model_part_name"].GetString();
+            ModelPart& dampingRegion = mrModelPartToDamp.GetRootModelPart().GetSubModelPart(sub_model_part_name);
 
-            bool dampX = mDampingSettings["damping_regions"][regionNumber]["damp_X"].GetBool();
-            bool dampY = mDampingSettings["damping_regions"][regionNumber]["damp_Y"].GetBool();
-            bool dampZ = mDampingSettings["damping_regions"][regionNumber]["damp_Z"].GetBool();
-            std::string dampingFunctionType = mDampingSettings["damping_regions"][regionNumber]["damping_function_type"].GetString();
-            double dampingRadius = mDampingSettings["damping_regions"][regionNumber]["damping_radius"].GetDouble();
+            const bool dampX = r_region_parameters["damp_X"].GetBool();
+            const bool dampY = r_region_parameters["damp_Y"].GetBool();
+            const bool dampZ = r_region_parameters["damp_Z"].GetBool();
+            const auto& dampingFunctionType = r_region_parameters["damping_function_type"].GetString();
+            const double dampingRadius = r_region_parameters["damping_radius"].GetDouble();
 
-            auto p_damping_function = CreateDampingFunction( dampingFunctionType, dampingRadius );
+            const auto p_damping_function = CreateDampingFunction(dampingFunctionType, dampingRadius );
 
             // Loop over all nodes in specified damping sub-model part
             for(auto& node_i : dampingRegion.Nodes())
@@ -171,7 +170,7 @@ public:
                 ModelPart::NodeType& currentDampingNode = node_i;
                 NodeVector neighbor_nodes( mMaxNeighborNodes );
                 DoubleVector resulting_squared_distances( mMaxNeighborNodes,0.0 );
-                unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( currentDampingNode,
+                const unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( currentDampingNode,
                                                                                  dampingRadius,
                                                                                  neighbor_nodes.begin(),
                                                                                  resulting_squared_distances.begin(),
@@ -202,13 +201,13 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    FilterFunction::Pointer CreateDampingFunction( std::string damping_type, double damping_radius )
+    FilterFunction::Pointer CreateDampingFunction( std::string damping_type, double damping_radius ) const
     {
         return Kratos::make_unique<FilterFunction>(damping_type, damping_radius);
     }
 
     // --------------------------------------------------------------------------
-    void ThrowWarningIfNodeNeighborsExceedLimit( ModelPart::NodeType& given_node, unsigned int number_of_neighbors )
+    void ThrowWarningIfNodeNeighborsExceedLimit( const ModelPart::NodeType& given_node, const unsigned int number_of_neighbors ) const
     {
         if(number_of_neighbors >= mMaxNeighborNodes)
             KRATOS_WARNING("ShapeOpt::DampingUtilities") << "For node " << given_node.Id() << " and specified damping radius, maximum number of neighbor nodes (=" << mMaxNeighborNodes << " nodes) reached!" << std::endl;
@@ -219,7 +218,7 @@ public:
     {
         for(auto& node_i : mrModelPartToDamp.Nodes())
         {
-            auto& damping_factor = node_i.GetValue(DAMPING_FACTOR);
+            const auto& damping_factor = node_i.GetValue(DAMPING_FACTOR);
             auto& nodalVariable = node_i.FastGetSolutionStepValue(rNodalVariable);
 
             nodalVariable[0] *= damping_factor[0];
