@@ -112,7 +112,9 @@ namespace Kratos {
                 sliding,
                 r_process_info);
 
-        FindMaximumValueOfNormalAndTangentialDamageComponents();
+        // FindMaximumValueOfNormalAndTangentialDamageComponents();
+        
+        CalculationOfNormalAndTangentialDamageComponents();
 
         KRATOS_CATCH("")
     }
@@ -359,13 +361,26 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void DEM_KDEM_with_damage::FindMaximumValueOfNormalAndTangentialDamageComponents() {
+    /*void DEM_KDEM_with_damage::FindMaximumValueOfNormalAndTangentialDamageComponents() {
 
         KRATOS_TRY
 
         mDamageNormal = std::max(mDamageNormal, mDamageTangential);
         mDamageTangential = std::max(mDamageNormal, mDamageTangential);
         mDamageMoment = std::max(mDamageNormal, mDamageTangential);
+
+        KRATOS_CATCH("")
+    }*/
+    
+
+    void DEM_KDEM_with_damage::CalculationOfNormalAndTangentialDamageComponents() {
+
+        KRATOS_TRY
+
+        mDamageReal += std::sqrt((mDamageNormal - mDamageReal) * (mDamageNormal - mDamageReal) + (mDamageTangential - mDamageReal) * (mDamageTangential - mDamageReal));
+        mDamageNormal = mDamageReal;
+        mDamageTangential = mDamageReal;
+        mDamageMoment = mDamageReal;
 
         KRATOS_CATCH("")
     }

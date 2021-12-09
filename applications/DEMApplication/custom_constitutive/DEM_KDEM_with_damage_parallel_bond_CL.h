@@ -114,7 +114,9 @@ namespace Kratos {
 
         virtual double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
-        virtual void FindMaximumValueOfNormalAndTangentialDamageComponents(SphericContinuumParticle* element1, SphericContinuumParticle* element2);
+        //virtual void FindMaximumValueOfNormalAndTangentialDamageComponents(SphericContinuumParticle* element1, SphericContinuumParticle* element2);
+
+        virtual void CalculationOfNormalAndTangentialDamageComponents(SphericContinuumParticle* element1, SphericContinuumParticle* element2);
 
         double mUnbondedLocalElasticContactForce2 = 0.0;
         double mUnbondedNormalElasticConstant = 0.0;
@@ -128,6 +130,7 @@ namespace Kratos {
         double mUnbondedEquivViscoDampCoeffTangential = 0.0;
         double mUnbondedEquivViscoDampCoeffNormal = 0.0;
         double mInitialIndentationForBondedPart = 0.0;
+        double mAccumulatedBondedTangentialLocalDisplacement[2] = {0.0};
 
     private:
 

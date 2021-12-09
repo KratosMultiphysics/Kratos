@@ -95,12 +95,15 @@ namespace Kratos {
                                                     double equiv_poisson,
                                                     double indentation) override;
 
-        void FindMaximumValueOfNormalAndTangentialDamageComponents();
+        //void FindMaximumValueOfNormalAndTangentialDamageComponents();
+
+        void CalculationOfNormalAndTangentialDamageComponents();
 
         double mDamageNormal = 0.0;
         double mDamageTangential = 0.0;
         double mDamageMoment = 0.0;
         const double mDamageThresholdTolerance = 0.999;
+        double mDamageReal = 0.0;
 
     private:
 
