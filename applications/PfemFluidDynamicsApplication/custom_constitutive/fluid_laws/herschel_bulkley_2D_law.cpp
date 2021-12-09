@@ -79,9 +79,10 @@ namespace Kratos
         }
         else
         {
-            //Se tomará el índice de consistencia como la dynamic_vicosity
+        //Se tomará el índice de consistencia como la dynamic_vicosity
             double regularization = 1.0 - std::exp(-adaptive_exponent * equivalent_strain_rate);
-            effective_dynamic_viscosity = dynamic_viscosity * pow(equivalent_strain_rate,flow_index - 1) + regularization * yield_shear / equivalent_strain_rate;
+            double aux_flow_index = flow_index - 1;
+            effective_dynamic_viscosity = dynamic_viscosity * std::pow(equivalent_strain_rate,aux_flow_index) + regularization * yield_shear / equivalent_strain_rate;
         }
 
         const double strain_trace = r_strain_vector[0] + r_strain_vector[1];

@@ -26,7 +26,6 @@
 
 namespace Kratos
 {
-
     //********************************CONSTRUCTOR*********************************
     //****************************************************************************
 
@@ -53,7 +52,6 @@ namespace Kratos
 
     void HerschelBulkley3DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {
-
         Flags &r_options = rValues.GetOptions();
 
         const Properties &r_properties = rValues.GetMaterialProperties();
@@ -65,6 +63,7 @@ namespace Kratos
         const double yield_shear = this->GetEffectiveYieldShear(rValues);
         const double adaptive_exponent = r_properties[ADAPTIVE_EXPONENT];
         double effective_dynamic_viscosity;
+        const double flow_index = this->GetFlowIndex(rValues);
 
         const double equivalent_strain_rate =
             std::sqrt(2.0 * r_strain_vector[0] * r_strain_vector[0] + 2.0 * r_strain_vector[1] * r_strain_vector[1] +
@@ -80,11 +79,14 @@ namespace Kratos
         else
         {
             double regularization = 1.0 - std::exp(-adaptive_exponent * equivalent_strain_rate);
-            effective_dynamic_viscosity = dynamic_viscosity + regularization * yield_shear / equivalent_strain_rate;
+            double aux_flow_index = flow_index - 1;
+            effective_dynamic_viscosity = dynamic_viscosity * pow(equivalent_strain_rate,aux_flow_index) + regularization * yield_shear / equivalent_strain_rate;
         }
 
         const double strain_trace = r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2];
 
+        //This stress_vector is only deviatoric
+        // d' = d - I * tr(d)/3
         r_stress_vector[0] = 2.0 * effective_dynamic_viscosity * (r_strain_vector[0] - strain_trace / 3.0);
         r_stress_vector[1] = 2.0 * effective_dynamic_viscosity * (r_strain_vector[1] - strain_trace / 3.0);
         r_stress_vector[2] = 2.0 * effective_dynamic_viscosity * (r_strain_vector[2] - strain_trace / 3.0);
