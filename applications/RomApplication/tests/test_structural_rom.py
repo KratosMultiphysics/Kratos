@@ -33,8 +33,9 @@ class TestStructuralRom(KratosUnittest.TestCase):
             # Set up simulation
             with open(parameters_filename,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            is_hrom = False
             model = KratosMultiphysics.Model()
-            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
+            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters, is_hrom)
 
             # Run test case
             self.simulation.Run()
@@ -64,32 +65,12 @@ class TestStructuralRom(KratosUnittest.TestCase):
             # Set up and run simulation
             with open(parameters_filename,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            is_hrom = True
             model = KratosMultiphysics.Model()
-            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
-
-            # Patch the RomAnalysis class to set the HROM weights
-            def ModifyAfterSolverInitialize(cls):
-                super(type(self.simulation), cls).ModifyAfterSolverInitialize()
-                computing_model_part = cls._GetSolver().GetComputingModelPart()
-                print(computing_model_part)
-
-                with open('ElementsAndWeights.json') as f:
-                    HR_data = json.load(f)
-                    print(HR_data)
-                    for key in HR_data["Elements"].keys():
-                        computing_model_part.GetElement(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, HR_data["Elements"][key])
-                    for key in HR_data["Conditions"].keys():
-                        computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, HR_data["Conditions"][key])
-                print("Done")
-
-            self.simulation.ModifyAfterSolverInitialize  = types.MethodType(ModifyAfterSolverInitialize, self.simulation)
-
-            print("here!")
+            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters, is_hrom)
 
             # Run test case
             self.simulation.Run()
-
-            print("here2")
 
             # Check results
             expected_output = np.load(expected_output_filename)
