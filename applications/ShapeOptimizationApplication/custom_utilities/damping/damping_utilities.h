@@ -18,7 +18,6 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <pybind11/pybind11.h>
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -87,9 +86,8 @@ public:
     ///@{
 
     /// Default constructor.
-    DampingUtilities( ModelPart& modelPartToDamp, pybind11::dict subModelPartsForDamping, Parameters DampingSettings )
+    DampingUtilities( ModelPart& modelPartToDamp, Parameters DampingSettings )
         : mrModelPartToDamp( modelPartToDamp ),
-          mrDampingRegions( subModelPartsForDamping ),
           mDampingSettings( DampingSettings ),
           mMaxNeighborNodes( DampingSettings["max_neighbor_nodes"].GetInt() )
     {
@@ -99,7 +97,6 @@ public:
         CreateListOfNodesOfModelPart();
         CreateSearchTreeWithAllNodesOfModelPart();
         KRATOS_INFO("ShapeOpt") << "Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
-
         InitalizeDampingFactorsToHaveNoInfluence();
         SetDampingFactorsForAllDampingRegions();
     }
@@ -155,10 +152,10 @@ public:
         KRATOS_INFO("ShapeOpt") << "Starting to prepare damping..." << std::endl;
 
         // Loop over all regions for which damping is to be applied
-        for (unsigned int regionNumber = 0; regionNumber < len(mrDampingRegions); regionNumber++)
+        for (unsigned int regionNumber = 0; regionNumber < mDampingSettings["damping_regions"].size(); regionNumber++)
         {
             std::string dampingRegionSubModelPartName = mDampingSettings["damping_regions"][regionNumber]["sub_model_part_name"].GetString();
-            ModelPart& dampingRegion = pybind11::cast<ModelPart&>( mrDampingRegions[pybind11::str(dampingRegionSubModelPartName)] );
+            ModelPart& dampingRegion = mrModelPartToDamp.GetRootModelPart().GetSubModelPart(dampingRegionSubModelPartName);
 
             bool dampX = mDampingSettings["damping_regions"][regionNumber]["damp_X"].GetBool();
             bool dampY = mDampingSettings["damping_regions"][regionNumber]["damp_Y"].GetBool();
@@ -322,7 +319,6 @@ private:
     // Initialized by class constructor
     // ==============================================================================
     ModelPart& mrModelPartToDamp;
-    pybind11::dict mrDampingRegions;
     Parameters mDampingSettings;
 
     // ==============================================================================
