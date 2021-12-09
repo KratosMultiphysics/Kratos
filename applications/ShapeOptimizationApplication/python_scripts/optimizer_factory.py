@@ -55,12 +55,14 @@ class Optimizer:
 
         filter_settings = self.optimization_settings["design_variables"]["filter"]
 
-
         model_part.AddNodalSolutionStepVariable(KSO.DF1DX)
+        model_part.AddNodalSolutionStepVariable(KSO.DF1DX_RAW)
         model_part.AddNodalSolutionStepVariable(KSO.DF1DX_MAPPED)
 
         for itr in range(1,number_of_constraints+1):
             nodal_variable = KM.KratosGlobals.GetVariable(f"DC{itr}DX")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
+            nodal_variable = KM.KratosGlobals.GetVariable(f"DC{itr}DX_RAW")
             model_part.AddNodalSolutionStepVariable(nodal_variable)
             nodal_variable = KM.KratosGlobals.GetVariable(f"DC{itr}DX_MAPPED")
             model_part.AddNodalSolutionStepVariable(nodal_variable)

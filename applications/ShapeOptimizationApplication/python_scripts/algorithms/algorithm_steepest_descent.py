@@ -126,6 +126,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
             self.__logCurrentOptimizationStep()
 
+            self.__printEstimatedResponseChange()
+
             KM.Logger.Print("")
             KM.Logger.PrintInfo("ShapeOpt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
             KM.Logger.PrintInfo("ShapeOpt", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
@@ -156,6 +158,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
         objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
         WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX)
+        WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX_RAW)
 
         if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
             self.model_part_controller.ComputeUnitSurfaceNormals()
@@ -261,5 +264,18 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     def __determineAbsoluteChanges(self):
         self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.CONTROL_POINT_UPDATE, KSO.CONTROL_POINT_CHANGE)
         self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
+
+    def __printEstimatedResponseChange(self):
+        def estimate_response_change(variable):
+            v = 0
+            for node in self.design_surface.Nodes:
+                grad = node.GetSolutionStepValue(variable)
+                update = node.GetSolutionStepValue(KSO.SHAPE_UPDATE)
+                v += grad[0] * update[0] + grad[1] * update[1] + grad[2] * update[2]
+            return v
+
+        KM.Logger.Print("")
+        KM.Logger.Print(f"Estimated change for objective '{self.objectives[0]['identifier'].GetString()}': {estimate_response_change(KSO.DF1DX_RAW)}")
+
 
 # ==============================================================================
