@@ -18,6 +18,7 @@
 #include "custom_utilities/multiaxial_control_module_fem_dem_generalized_2d_utilities.hpp"
 #include "custom_utilities/effective_stresses_communicator_utility.hpp"
 #include "custom_utilities/pore_pressure_communicator_utility.hpp"
+#include "custom_utilities/permeability_tensor_communicator_utility.hpp"
 
 namespace Kratos {
 
@@ -57,6 +58,12 @@ namespace Kratos {
                 .def(init<ModelPart&,ModelPart&>())
                 .def("Initialize", &PorePressureCommunicatorUtility::Initialize)
                 .def("ComputeForceOnParticlesDueToPorePressureGradient", &PorePressureCommunicatorUtility::ComputeForceOnParticlesDueToPorePressureGradient)
+            ;
+
+            class_<PermeabilityTensorCommunicatorUtility> (m, "PermeabilityTensorCommunicatorUtility")
+                .def(init<ModelPart&,ModelPart&>())
+                .def("Initialize", &PermeabilityTensorCommunicatorUtility::Initialize)
+                .def("TrasferUpdatedPermeabilityTensor", &PermeabilityTensorCommunicatorUtility::TrasferUpdatedPermeabilityTensor)
             ;
 
             class_<InterpolateStructuralSolutionForDEM> (m, "InterpolateStructuralSolutionForDEM")

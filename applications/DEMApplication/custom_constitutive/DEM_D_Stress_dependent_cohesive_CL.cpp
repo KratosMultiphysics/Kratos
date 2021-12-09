@@ -2,7 +2,6 @@
 // Date: April 2019
 
 #include "DEM_D_Stress_dependent_cohesive_CL.h"
-#include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
 

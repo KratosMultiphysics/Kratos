@@ -79,7 +79,7 @@ class DecompressedMaterialBTSTest(DEMAnalysisStage):
 
     def RunSolutionLoop(self):
 
-        print("\n************************************ Applying standard triaxial...\n", flush=True)
+        print("\n************************************ Applying standard BTS...\n", flush=True)
         while self.KeepAdvancingSolutionLoop():
             self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
@@ -87,7 +87,7 @@ class DecompressedMaterialBTSTest(DEMAnalysisStage):
             self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
-        print("\n*************************** Finished Applying standard triaxial...\n", flush=True)
+        print("\n*************************** Finished Applying standard BTS...\n", flush=True)
 
     def OutputSolutionStep(self):
         super().OutputSolutionStep()

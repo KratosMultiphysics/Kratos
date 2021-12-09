@@ -33,6 +33,8 @@ SphericParticle::SphericParticle()
     mRadius = 0;
     mRealMass = 0;
     mStressTensor = NULL;
+    mStrainTensor = NULL;
+    mDifferentialStrainTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
@@ -44,6 +46,8 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     mRadius = 0;
     mRealMass = 0;
     mStressTensor = NULL;
+    mStrainTensor = NULL;
+    mDifferentialStrainTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
@@ -56,6 +60,8 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     mRadius = 0;
     mRealMass = 0;
     mStressTensor = NULL;
+    mStrainTensor = NULL;
+    mDifferentialStrainTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
@@ -68,6 +74,8 @@ SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNode
     mRadius = 0;
     mRealMass = 0;
     mStressTensor = NULL;
+    mStrainTensor = NULL;
+    mDifferentialStrainTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
@@ -86,6 +94,14 @@ SphericParticle::~SphericParticle(){
         mStressTensor = NULL;
         delete mSymmStressTensor;
         mSymmStressTensor = NULL;
+    }
+    if (mStrainTensor) {
+        delete mStrainTensor;
+        mStrainTensor = NULL;
+    }
+    if (mDifferentialStrainTensor) {
+        delete mDifferentialStrainTensor;
+        mDifferentialStrainTensor = NULL;
     }
     if (mpTranslationalIntegrationScheme!=NULL) {
         if(mpTranslationalIntegrationScheme != mpRotationalIntegrationScheme) delete mpTranslationalIntegrationScheme;
@@ -123,7 +139,7 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     mClusterId = rOther.mClusterId;
     mGlobalDamping = rOther.mGlobalDamping;
 
-    if(rOther.mStressTensor != NULL) {
+    if (rOther.mStressTensor != NULL) {
         mStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mStressTensor = *rOther.mStressTensor;
 
@@ -134,6 +150,20 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
 
         mStressTensor     = NULL;
         mSymmStressTensor = NULL;
+    }
+    if (rOther.mStrainTensor) {
+        mStrainTensor  = new BoundedMatrix<double, 3, 3>(3,3);
+        *mStrainTensor = *rOther.mStrainTensor;
+    }
+    else {
+        mStrainTensor = NULL;
+    }
+    if (rOther.mDifferentialStrainTensor) {
+        mDifferentialStrainTensor  = new BoundedMatrix<double, 3, 3>(3,3);
+        *mDifferentialStrainTensor = *rOther.mDifferentialStrainTensor;
+    }
+    else {
+        mDifferentialStrainTensor = NULL;
     }
 
     mFastProperties = rOther.mFastProperties; //This might be unsafe
@@ -1567,13 +1597,99 @@ void SphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info){
             }
         }*/
 
-        FinalizeStressTensor(r_process_info, rRepresentative_Volume);
+        ComputeDifferentialStrainTensor(r_process_info);
+        SymmetrizeDifferentialStrainTensor();
+        ComputeStrainTensor(r_process_info);
 
+        FinalizeStressTensor(r_process_info, rRepresentative_Volume);
         SymmetrizeStressTensor();
     }
     KRATOS_CATCH("")
 }
 
+void SphericParticle::ComputeStrainTensor(const ProcessInfo& r_process_info) {
+
+    const int Dim = r_process_info[DOMAIN_SIZE];
+    for (int i = 0; i < Dim; i++) {
+        for (int j = 0; j < Dim; j++) {
+            (*mStrainTensor)(i,j) += (*mDifferentialStrainTensor)(i,j);
+        }
+    }
+}
+
+void SphericParticle::ComputeDifferentialStrainTensor(const ProcessInfo& r_process_info) {
+
+    // Following Bagi, Katalin. "Analysis of microstructural strain tensors for granular assemblies". 2005. Section 2.3.1.
+    const int Dim = r_process_info[DOMAIN_SIZE];
+    array_1d<double, 3> assembly_centroid = this->GetGeometry()[0].Coordinates();
+    array_1d<double, 3> assembly_average_delta_displacement = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+    int total_number_of_neighbours = 0;
+    for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+        if (!mNeighbourElements[i]) continue;
+        SphericParticle* neighbour_iterator = dynamic_cast<SphericParticle*>(mNeighbourElements[i]);
+        array_1d<double, 3> node_coordinates = neighbour_iterator->GetGeometry()[0].Coordinates();
+        assembly_centroid += node_coordinates;
+        array_1d<double, 3> node_delta_displacement = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+        assembly_average_delta_displacement += node_delta_displacement;
+        total_number_of_neighbours++;
+    }
+    
+    if (total_number_of_neighbours < Dim) {
+        *mDifferentialStrainTensor = ZeroMatrix(3,3);
+    } else {
+        BoundedMatrix<double, 3, 3> CoefficientsMatrix = ZeroMatrix(3, 3);
+        BoundedMatrix<double, 3, 3> RightHandSide = ZeroMatrix(3, 3);
+        assembly_centroid /= (1.0 + total_number_of_neighbours);  
+        assembly_average_delta_displacement /= (1.0 + total_number_of_neighbours);
+
+        array_1d<double, 3> relative_position = this->GetGeometry()[0].Coordinates() - assembly_centroid;
+        array_1d<double, 3> relative_delta_displacement = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT) - assembly_average_delta_displacement;
+        for (int i = 0; i < Dim; i++) {
+            for (int j = 0; j < Dim; j++) {
+                CoefficientsMatrix(j,i) += relative_position[j] * relative_position[i];
+                RightHandSide(j,i) += relative_delta_displacement[i] * relative_position[j];
+            }
+        }
+
+        for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+            if (!mNeighbourElements[i]) continue;
+            relative_position = mNeighbourElements[i]->GetGeometry()[0].Coordinates() - assembly_centroid;
+            relative_delta_displacement = mNeighbourElements[i]->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT) - assembly_average_delta_displacement;
+            for (int i = 0; i < Dim; i++) {
+                for (int j = 0; j < Dim; j++) {
+                    CoefficientsMatrix(j,i) += relative_position[j] * relative_position[i];
+                    RightHandSide(j,i) += relative_delta_displacement[i] * relative_position[j];
+                }
+            }
+        }
+
+        double det = 0.0;
+        BoundedMatrix<double, 3, 3> InvertedCoefficientsMatrix = ZeroMatrix(3, 3);
+        if (Dim == 2) {
+            CoefficientsMatrix(2,2) = 1.0;
+            RightHandSide(2,2) = 1.0;
+        }
+        MathUtils<double>::InvertMatrix3(CoefficientsMatrix, InvertedCoefficientsMatrix, det);
+        *mDifferentialStrainTensor = prod(InvertedCoefficientsMatrix, RightHandSide);
+        if (Dim == 2) {
+            (*mDifferentialStrainTensor)(2,2) = (*mDifferentialStrainTensor)(0,2) = (*mDifferentialStrainTensor)(1,2) = (*mDifferentialStrainTensor)(2,1) = (*mDifferentialStrainTensor)(2,0) = 0.0;
+        }
+    }
+}
+
+void SphericParticle::SymmetrizeDifferentialStrainTensor() {
+    
+    for (int i = 0; i < 3; i++) {
+        for (int j = i; j < 3; j++) {
+            (*mDifferentialStrainTensor)(i,j) = 0.5 * ((*mDifferentialStrainTensor)(i,j) + (*mDifferentialStrainTensor)(j,i));
+        }
+    }
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < i; j++) {
+            (*mDifferentialStrainTensor)(i,j) = (*mDifferentialStrainTensor)(j,i);
+        }
+    }
+}
 
 void SphericParticle::SymmetrizeStressTensor(){
     //The following operation symmetrizes the tensor. We will work with the symmetric stress tensor always, because the non-symmetric one is being filled while forces are being calculated
@@ -1625,6 +1741,8 @@ void SphericParticle::PrepareForPrinting(const ProcessInfo& r_process_info){
 
     if (this->Is(DEMFlags::PRINT_STRESS_TENSOR)) {
         this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_TENSOR) = (*mSymmStressTensor);
+        this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRAIN_TENSOR) = (*mStrainTensor);
+        this->GetGeometry()[0].FastGetSolutionStepValue(DEM_DIFFERENTIAL_STRAIN_TENSOR) = (*mDifferentialStrainTensor);
     }
 }
 
@@ -1779,11 +1897,17 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
 
         mSymmStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mSymmStressTensor = ZeroMatrix(3,3);
+        mStrainTensor  = new BoundedMatrix<double, 3, 3>(3,3);
+        *mStrainTensor = ZeroMatrix(3,3);
+        mDifferentialStrainTensor  = new BoundedMatrix<double, 3, 3>(3,3);
+        *mDifferentialStrainTensor = ZeroMatrix(3,3);
     }
     else {
 
         mStressTensor     = NULL;
         mSymmStressTensor = NULL;
+        mStrainTensor     = NULL;
+        mDifferentialStrainTensor = NULL;
     }
 
     mGlobalDamping = r_process_info[GLOBAL_DAMPING];
