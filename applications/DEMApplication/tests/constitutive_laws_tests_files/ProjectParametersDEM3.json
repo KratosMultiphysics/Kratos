@@ -46,7 +46,7 @@
 "AutomaticTimestep"                : false,
 "DeltaTimeSafetyFactor"            : 1.0,
 "MaxTimeStep"                      : 5e-9,
-"FinalTime"                        : 1e-6,
+"FinalTime"                        : 1e-5,
 "ControlTime"                      : 4.0,
 "NeighbourSearchFrequency"         : 20,
 "material_test_settings"              : {
