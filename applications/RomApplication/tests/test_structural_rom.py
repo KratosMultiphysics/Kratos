@@ -87,6 +87,61 @@ class TestStructuralRom(KratosUnittest.TestCase):
             l2 = np.sqrt(numerator/denominator)*100
             self.assertLess(l2, self.relative_tolerance)
 
+    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
+    def testStructuralDynamicRom2D(self):
+        self.work_folder = "structural_dynamic_test_files"
+        parameters_filename = "ProjectParameters.json"
+        expected_output_filename = "ExpectedOutput.npy"
+
+        time_snapshots = [2,4,6,8,10]
+
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            # Set up and run simulation
+            with open(parameters_filename,'r') as parameter_file:
+                parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            is_hrom = False
+            model = KratosMultiphysics.Model()
+            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters, is_hrom)
+
+            # Patch the RomAnalysis class to save the selected time steps results
+            def Initialize(cls):
+                super(type(self.simulation), cls).Initialize()
+                cls.selected_time_step_solution_container = []
+
+            def FinalizeSolutionStep(cls):
+                super(type(self.simulation), cls).FinalizeSolutionStep()
+
+                array_of_displacements = []
+                time = cls._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
+                if np.any(np.isclose(time, time_snapshots)):
+                    for node in cls._solver.GetComputingModelPart().Nodes:
+                        aux_disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+                        array_of_displacements.append(aux_disp[0])
+                        array_of_displacements.append(aux_disp[1])
+                    cls.selected_time_step_solution_container.append(array_of_displacements)
+
+            self.simulation.Initialize  = types.MethodType(Initialize, self.simulation)
+            self.simulation.FinalizeSolutionStep  = types.MethodType(FinalizeSolutionStep, self.simulation)
+
+            # Run test case
+            self.simulation.Run()
+
+            # Check results
+            expected_output = np.load(expected_output_filename)
+            n_values = len(self.simulation.selected_time_step_solution_container[0])
+            n_snapshots = len(self.simulation.selected_time_step_solution_container)
+            obtained_snapshot_matrix = np.zeros((n_values, n_snapshots))
+            for i in range(n_snapshots):
+                snapshot_i= np.array(self.simulation.selected_time_step_solution_container[i])
+                obtained_snapshot_matrix[:,i] = snapshot_i.transpose()
+
+            tolerance = 1.0e-10
+            for i in range (n_snapshots):
+                up = sum((expected_output[:,i] - obtained_snapshot_matrix[:,i])**2)
+                down = sum((expected_output[:,i])**2)
+                l2 = np.sqrt(up/down)
+                self.assertLess(l2, tolerance)
+
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             # Cleaning
