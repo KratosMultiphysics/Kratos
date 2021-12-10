@@ -89,7 +89,7 @@ class Optimizer:
                 model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
                 model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
                 model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
-                model_part.AddNodalSolutionStepVariable(KSO.DAMPED_NODES)
+                model_part.AddNodalSolutionStepVariable(KSO.EDGE_DELTA)
 
     # --------------------------------------------------------------------------
     def Optimize(self):

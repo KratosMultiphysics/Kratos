@@ -235,13 +235,7 @@ public:
         ModelPart& r_edge_model_part = mrModelPart.GetSubModelPart(rEdgeSubModelPartName);
 
         KRATOS_ERROR_IF(r_edge_model_part.Nodes().size() != 0) << "ExtractEdgeNodes: The edge model part already has nodes!" << std::endl;
-        //for (ModelPart::NodeIterator p_node = mrModelPart.NodesBegin(); p_node != mrModelPart.NodesEnd(); ++p_node)
-        
-        // typedef Node < 3 > NodeType;
-        // typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
 
-        // for (ModelPart::NodesContainerType::iterator p_node = mrModelPart.NodesBegin(); p_node != mrModelPart.NodesEnd(); ++p_node) {
-        //for (GlobalPointersVector< Node<3> >::iterator p_node =	mrModelPart.NodesBegin(); p_node != mrModelPart.NodesEnd(); p_node++) {
         for (auto& r_node_i : mrModelPart.Nodes()) {
             Node<3>* p_node_i = &r_node_i;
             GlobalPointersVector< Node<3 > >& r_node_i_neighbours = p_node_i->GetValue(NEIGHBOUR_NODES);
@@ -250,11 +244,9 @@ public:
                 int count = 0;
                 for( GlobalPointersVector<Element>::iterator k = r_element_neighbours.begin(); k != r_element_neighbours.end(); k++) {
                     Geometry<Node<3> >& nGeometry = k->GetGeometry();
-                    //for( GlobalPointersVector< Node<3> >::iterator k =	j->GetGeometry().Point().begin(); k != j->GetGeometry().Point().end(); k++) {
                     for(unsigned int node_l = 0; node_l < nGeometry.size(); ++node_l) {
                         if ((nGeometry[node_l].Id()) == (j->Id())) count ++;
                     }
-                    // if (j->GetGeometry().Has(*i)) count ++;
                 }
                 if (count < 2){
                     r_edge_model_part.AddNode(p_node_i);
