@@ -26,6 +26,12 @@ namespace Detail
 {
 
 
+const NodalVariableGetter::UniquePointer Vertex::mpHistoricalVariableGetter(new HistoricalVariableGetter);
+
+
+const NodalVariableGetter::UniquePointer Vertex::mpNonHistoricalVariableGetter(new NonHistoricalVariableGetter);
+
+
 Vertex::Vertex(const array_1d<double,3>& rPosition,
                const PointLocatorAdaptor& rLocator,
                std::size_t id,
@@ -37,18 +43,17 @@ Vertex::Vertex(const array_1d<double,3>& rPosition,
     KRATOS_TRY
 
     if (isHistorical) {
-        mpVariableGetter = NodalVariableGetter::UniquePointer(new HistoricalVariableGetter);
+        mpVariableGetter = &*mpHistoricalVariableGetter;
     }
     else {
-        mpVariableGetter = NodalVariableGetter::UniquePointer(new NonHistoricalVariableGetter);
+        mpVariableGetter = &*mpNonHistoricalVariableGetter;
     }
 
     // Get shape function values if the containing element was found
     if (mpContainingElement.get()) {
         Point local_coordinates;
-        mpContainingElement->GetGeometry().IsInside(*this, local_coordinates);
-
         const auto& r_geometry = mpContainingElement->GetGeometry();
+        r_geometry.PointLocalCoordinates(local_coordinates, *this);
         r_geometry.ShapeFunctionsValues(mShapeFunctionValues, local_coordinates);
     }
 
@@ -61,6 +66,7 @@ Vertex::Vertex()
       mID(std::numeric_limits<std::size_t>::max()),
       mpContainingElement()
 {
+    KRATOS_ERROR << "Call to default constructor is forbidden";
 }
 
 

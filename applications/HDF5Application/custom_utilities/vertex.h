@@ -33,6 +33,10 @@ class KRATOS_API(HDF5Application) Vertex : public Point
 public:
     KRATOS_CLASS_POINTER_DEFINITION(Vertex);
 
+    Vertex(Vertex&& rOther) = default;
+
+    Vertex(const Vertex& rOther) = default;
+
     /** Constructor
      *
      *  @details a search using the provided locator is used to find which element contains this vertex.
@@ -51,7 +55,7 @@ public:
            bool isHistorical = true);
 
     /** Default constructor required by PointerVector
-     *  @note this constructor does not locate the vertex and should
+     *  @note this constructor does not locate the vertex and must
      *  not be called.
      */
     Vertex();
@@ -92,9 +96,13 @@ private:
 
     const Element::WeakPointer mpContainingElement;
 
-    NodalVariableGetter::UniquePointer mpVariableGetter;
+    const NodalVariableGetter* mpVariableGetter;
 
     Kratos::Vector mShapeFunctionValues;
+
+    static const NodalVariableGetter::UniquePointer mpHistoricalVariableGetter;
+
+    static const NodalVariableGetter::UniquePointer mpNonHistoricalVariableGetter;
 };
 
 
