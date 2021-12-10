@@ -7,7 +7,7 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Miguel Maso Sotomayor
 //
 
 #ifndef KRATOS_ADD_BOUNDING_BOX_TO_PYTHON_H_INCLUDED
