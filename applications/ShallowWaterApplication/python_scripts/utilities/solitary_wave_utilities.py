@@ -16,6 +16,10 @@ class SolitaryWaveSolution:
         phase = self.k * (self.c * t - x)
         return self.amplitude1 * sech(phase)**2 + self.amplitude2 * sech(phase)**4
 
+    def u(self, x, t):
+        eta = self.eta(x, t)
+        return self.c * eta / (self.depth + eta)
+
     @property
     def k(self):
         raise Exception("SolitaryWaveSolution. The wavenumber 'k' is not defined in the base class.")
