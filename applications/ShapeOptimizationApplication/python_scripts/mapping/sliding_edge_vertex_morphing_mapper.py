@@ -92,7 +92,7 @@ class SlidingEdgeVertexMorphingMapper():
                 "solver_type"     : "static",
                 "echo_level"      : 0,
                 "analysis_type"   : "linear",
-                "model_part_name" : "Main",
+                "model_part_name" : "main",
                 "domain_size"     : 3,
                 "time_stepping" : {
                     "time_step"       : 1.0
@@ -123,69 +123,7 @@ class SlidingEdgeVertexMorphingMapper():
                     "process_name"  : "AssignVectorVariableProcess",
                     "Parameters"    : {
                         "mesh_id"         : 0,
-                        "model_part_name" : "Main.FixedConditions",
-                        "variable_name"   : "DISPLACEMENT",
-                        "value"           : [0.0,0.0,0.0]
-                    }
-                }
-                ],
-                "loads_process_list"       : []
-            }
-        }""")
-
-    def GetStructuralSimilaritySetttingsWithMPC(self):
-        return KM.Parameters(
-        """{
-            "problem_data"    : {
-                "problem_name"    : "structural_similarity",
-                "parallel_type"   : "OpenMP",
-                "start_time"      : 0.0,
-                "end_time"        : 1.0,
-                "echo_level"      : 0
-            },
-            "solver_settings" : {
-                "solver_type"     : "static",
-                "echo_level"      : 0,
-                "analysis_type"   : "linear",
-                "model_part_name" : "Main",
-                "domain_size"     : 3,
-                "time_stepping" : {
-                    "time_step"       : 1.0
-                },
-                "model_import_settings"              : {
-                    "input_type"     : "use_input_model_part"
-                },
-                "line_search"                        : false,
-                "convergence_criterion"              : "residual_criterion",
-                "displacement_relative_tolerance"    : 0.0001,
-                "displacement_absolute_tolerance"    : 1e-9,
-                "residual_relative_tolerance"        : 0.0001,
-                "residual_absolute_tolerance"        : 1e-9,
-                "max_iteration"                      : 10,
-                "linear_solver_settings"             : {
-                    "solver_type" : "LinearSolversApplication.sparse_lu",
-                    "scaling"     : false,
-                    "verbosity"   : 0
-                },
-                "rotation_dofs"                      : true
-            },
-            "processes" : {
-                "constraints_process_list" : [
-                {
-                    "python_module": "mpc_normal_support_process",
-                    "process_name": "MPCNormalSupportProcess",
-                    "Parameters": {
-                        "model_part_name": "Main.without_edges"
-                    }
-                },
-                {
-                    "python_module" : "assign_vector_variable_process",
-                    "kratos_module" : "KratosMultiphysics",
-                    "help"          : "This process fixes the selected components of a given vector variable",
-                    "process_name"  : "AssignVectorVariableProcess",
-                    "Parameters"    : {
-                        "mesh_id"         : 0,
-                        "model_part_name" : "Main.FixedConditions",
+                        "model_part_name" : "main.fixed_bc",
                         "variable_name"   : "DISPLACEMENT",
                         "value"           : [0.0,0.0,0.0]
                     }
@@ -225,16 +163,12 @@ class SlidingEdgeVertexMorphingMapper():
 
         KSO.MeshControllerUtilities(self.background_mesh).WriteCoordinatesToVariable(KSO.BACKGROUND_COORDINATE)
 
-        self._output_boundary_geometry()
-        
-        #self._structural_mechanics_analysis = StructuralMechanicsAnalysis(model, self.MeshSolverSettings)
-
     def Update(self):
         self.vm_mapper.Update()
         self.spacial_mapper.UpdateInterface()
         self.spacial_mapper.Map(KSO.NORMALIZED_SURFACE_NORMAL, KSO.BACKGROUND_NORMAL)
 
-        # Model kopieren als Structural model
+        # create structural similarity model and analysis
         self._structural_model = KM.Model()
         self._CreateStructuralModel(self._structural_model)
 
@@ -242,22 +176,13 @@ class SlidingEdgeVertexMorphingMapper():
         self._CreateStructuralModel(self._structural_model_correction)
 
         structural_mechanics_analysis_setings = self.GetStructuralSimilaritySetttings()
+        # two structural similarity analysis for damping vectors and non-linear correction
         self._structural_mechanics_analysis = StructuralMechanicsAnalysis(self._structural_model, structural_mechanics_analysis_setings)
-
         self._structural_mechanics_analysis_correction = StructuralMechanicsAnalysis(self._structural_model_correction, structural_mechanics_analysis_setings)
-
-        #self._CreateStructuralModel()
-
-        # print(self._structural_model)
 
     def Map(self, origin_variable, destination_variable):
         self.vm_mapper.Map(origin_variable, destination_variable)
 
-        """
-            VARIANTE 1: Damping field (KSO.BACKGROUND_NORMAL) auf shape_update anwenden 
-                        + nichtlineare teil (Correction des sliding_edge) anbringen mit zusätzlicher Strukturanalyse
-        """
-        # background_normals werden nach wenigen schritten nicht mehr smooth!!
         geometry_utilities = KSO.GeometryUtilities(self.destination_model_part)
 
         geometry_utilities.ProjectNodalVariableOnTangentPlane(
@@ -266,71 +191,28 @@ class SlidingEdgeVertexMorphingMapper():
         # non-linear correction
         self._CorrectOutOfPlanePart(destination_variable)
 
-        mesh_utilities_struct =  KSO.MeshControllerUtilities(self._structural_model_correction.GetModelPart("Main"))
+        mesh_utilities_struct =  KSO.MeshControllerUtilities(self._structural_model_correction.GetModelPart("main"))
 
-        for node in self._structural_model_correction.GetModelPart("Main").Nodes:
+        # copy linear shape update to structural model
+        for node in self._structural_model_correction.GetModelPart("main").Nodes:
             node.SetSolutionStepValue(destination_variable, self.destination_model_part.Nodes[node.Id].GetSolutionStepValue(destination_variable))
 
+        # update structural model
         mesh_utilities_struct.UpdateMeshAccordingInputVariable(destination_variable)
         mesh_utilities_struct.SetReferenceMeshToMesh()
+
+        # perform mesh motion for non-linear correction
         self._PerformStructuralSimilarityAnalysis(self._structural_mechanics_analysis_correction, self._structural_model_correction, KSO.OUT_OF_PLANE_DELTA)
+
+        # revert structural model
         mesh_utilities_struct.RevertMeshUpdateAccordingInputVariable(destination_variable)
         mesh_utilities_struct.SetReferenceMeshToMesh()
 
+        # add non-linear correction to shape update
         mesh_utilities = KSO.MeshControllerUtilities(self.destination_model_part)
         mesh_utilities.AddFirstVariableToSecondVariable(KSO.OUT_OF_PLANE_DELTA, destination_variable)
 
-        """
-            VARIANTE 2: EDGE_DELTA (linearer+nichtlinearer Teil zusammen) als Randverschiebung anbringen
-        """
-
-        # mesh_utilities_edge = KSO.MeshControllerUtilities(self.sliding_edge_mesh)
-        # mesh_utilities = KSO.MeshControllerUtilities(self.destination_model_part)
-        # mesh_utilities_struct =  KSO.MeshControllerUtilities(self._structural_model_correction.GetModelPart("Main"))
-
-        # geometry_utilities = KSO.GeometryUtilities(self.sliding_edge_mesh)
-
-        # KM.VariableUtils().CopyVariable(
-        #         destination_variable,
-        #         KSO.EDGE_DELTA,
-        #         self.sliding_edge_mesh.Nodes)
-
-
-        # geometry_utilities.ProjectNodalVariableOnTangentPlane(
-        #     destination_variable, KSO.BACKGROUND_NORMAL)
-
-
-        # geometry_utilities.ProjectNodalVariableOnDirection(
-        #     KSO.EDGE_DELTA, KSO.BACKGROUND_NORMAL
-        # )
-
-        # self._CorrectOutOfPlanePart(destination_variable)
-
-        # # revert linear EDGE_DELTA
-        # mesh_utilities_edge.AddFirstVariableToSecondVariable(KSO.EDGE_DELTA, destination_variable)
-
-        # # change to correct sign of linear EDGE_DELTA
-        # for node in self.sliding_edge_mesh.Nodes:
-        #     node.SetSolutionStepValue(KSO.EDGE_DELTA, -1*(node.GetSolutionStepValue(KSO.EDGE_DELTA)))
-
-        # mesh_utilities_edge.AddFirstVariableToSecondVariable(KSO.OUT_OF_PLANE_DELTA, KSO.EDGE_DELTA)
-
-        # for node in self._structural_model_correction.GetModelPart("Main").Nodes:
-        #     node.SetSolutionStepValue(destination_variable, self.destination_model_part.Nodes[node.Id].GetSolutionStepValue(destination_variable))
-
-        # mesh_utilities_struct.UpdateMeshAccordingInputVariable(destination_variable)
-        # mesh_utilities_struct.SetReferenceMeshToMesh()
-        # self._PerformStructuralSimilarityAnalysis(self._structural_mechanics_analysis_correction, self._structural_model_correction, KSO.EDGE_DELTA)
-        # mesh_utilities_struct.RevertMeshUpdateAccordingInputVariable(destination_variable)
-        # mesh_utilities_struct.SetReferenceMeshToMesh()
-
-        # mesh_utilities.AddFirstVariableToSecondVariable(KSO.EDGE_DELTA, destination_variable)
-
-        # self._structural_model = None
-        # self._structural_mechanics_analysis = None
-
     def InverseMap(self, destination_variable, origin_variable):
-        #geometry_utilities = KSO.GeometryUtilities(self.sliding_edge_mesh)
         geometry_utilities = KSO.GeometryUtilities(self.destination_model_part)
 
         self._PerformStructuralSimilarityAnalysis(self._structural_mechanics_analysis, self._structural_model, KSO.BACKGROUND_NORMAL)
@@ -355,66 +237,41 @@ class SlidingEdgeVertexMorphingMapper():
         mesh_utilities.RevertMeshUpdateAccordingInputVariable(destination_variable)
         mesh_utilities.SetReferenceMeshToMesh()
 
-        # mesh_utilities.AddFirstVariableToSecondVariable(KSO.OUT_OF_PLANE_DELTA, destination_variable)
-
     def _PerformStructuralSimilarityAnalysis(self, structural_analysis, structural_model, input_variable):
-        
-        mesh_utilities = KSO.MeshControllerUtilities(structural_model.GetModelPart("Main"))
 
-        mesh_motion_condition_part = structural_model.GetModelPart("Main.MeshMotionConditions")
+        mesh_utilities = KSO.MeshControllerUtilities(structural_model.GetModelPart("main"))
+        mesh_motion_condition_part = structural_model.GetModelPart("main.prescribed_bc")
 
         for node in mesh_motion_condition_part.Nodes:
-            # node.SetSolutionStepValue(KM.DISPLACEMENT, 1E-10*(self.destination_model_part.Nodes[node.Id].GetSolutionStepValue(input_variable)))
             node.SetSolutionStepValue(KM.DISPLACEMENT, self.destination_model_part.Nodes[node.Id].GetSolutionStepValue(input_variable))
             node.Fix(KM.DISPLACEMENT_X)
             node.Fix(KM.DISPLACEMENT_Y)
             node.Fix(KM.DISPLACEMENT_Z)
 
-        #structural_analysis.Run()
         structural_analysis.Initialize()
         structural_analysis.RunSolutionLoop()
-        #structural_analysis.Finalize()
 
-
-        # for node in structural_model.GetModelPart("Main.without_edges").Nodes:
-        #     node.SetSolutionStepValue(input_variable, node.GetSolutionStepValue(KM.DISPLACEMENT))   
-
-        for node in structural_model.GetModelPart("Main").Nodes:
-            # self.destination_model_part.Nodes[node.Id].SetSolutionStepValue(input_variable, 1E10*(node.GetSolutionStepValue(KM.DISPLACEMENT)))
+        for node in structural_model.GetModelPart("main").Nodes:
             self.destination_model_part.Nodes[node.Id].SetSolutionStepValue(input_variable, node.GetSolutionStepValue(KM.DISPLACEMENT))
 
-        # for node in structural_model.GetModelPart("Main.MeshMotionConditions").Nodes:
-        #     node.SetSolutionStepValue(KM.DISPLACEMENT, [0.0,0.0,0.0])
-
-
-        # structural_analysis.Clear()
         structural_analysis.Finalize()
 
-        for node in structural_model.GetModelPart("Main.MeshMotionConditions").Nodes:
+        for node in structural_model.GetModelPart("main.prescribed_bc").Nodes:
             node.Free(KM.DISPLACEMENT_X)
             node.Free(KM.DISPLACEMENT_Y)
             node.Free(KM.DISPLACEMENT_Z)
 
         mesh_utilities.RevertMeshUpdateAccordingInputVariable(KM.DISPLACEMENT)
         mesh_utilities.SetReferenceMeshToMesh()
-        
-
-        #for node in 
-
-        #self._output_structural_model()
-
 
     def _CreateStructuralModel(self, structural_model):
-        
-        
-        main_part = structural_model.CreateModelPart("Main")
-        #main_part = self._structural_model.GetModelPart("Main")
-        #main_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
-        mesh_motion_conditions = main_part.CreateSubModelPart("MeshMotionConditions")
-        fixed_nodes = main_part.CreateSubModelPart("FixedConditions")
 
+        main_part = structural_model.CreateModelPart("main")
+        mesh_motion_conditions = main_part.CreateSubModelPart("prescribed_bc")
+        fixed_nodes = main_part.CreateSubModelPart("fixed_bc")
+
+        # add solution variables necessary for structural mechanics analysis
         main_part.AddNodalSolutionStepVariable(KSO.SHAPE_UPDATE)
-
         main_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
         main_part.AddNodalSolutionStepVariable(KM.ROTATION)
         main_part.AddNodalSolutionStepVariable(KM.REACTION)
@@ -430,29 +287,25 @@ class SlidingEdgeVertexMorphingMapper():
         main_part.AddNodalSolutionStepVariable(KSO.NORMALIZED_SURFACE_NORMAL)
 
         material_properties = main_part.GetProperties()[0]
-        self._apply_material_properties(material_properties)
-        #main_part.AddProperties(material_properties)
-        #print(material_properties)
-        for node in self.sliding_edge_mesh.Nodes:
-            # neue Knoten erstellen! können selbe IDs haben
-            mesh_motion_conditions.CreateNewNode(node.Id, node.X, node.Y, node.Z)
-            #mesh_motion_conditions.AddNode(node, 0)
+        self._ApplyMaterialProperties(material_properties)
 
-            #print(node.GetValue(KSO.BACKGROUND_NORMAL))
-        
+        # create nodes of prescribed bc
+        for node in self.sliding_edge_mesh.Nodes:
+            mesh_motion_conditions.CreateNewNode(node.Id, node.X, node.Y, node.Z)
+
         # Identify mesh motion area / nodes to be damped
         KM.VariableUtils().SetFlag(KM.STRUCTURE, False, main_part.Nodes)
         radius = self.settings["filter_radius"].GetDouble()
         search_based_functions = KSO.SearchBasedFunctions(self.destination_model_part)
         search_based_functions.FlagNodesInRadius(mesh_motion_conditions.Nodes, KM.STRUCTURE, 2*radius)
 
+        # create nodes for main_part
         for node in self.destination_model_part.Nodes:
             if node.Is(KM.STRUCTURE):
                 main_part.CreateNewNode(node.Id, node.X, node.Y, node.Z)
-                # main_part.AddNode(node, 0)
-                node.SetValue(KM.NODE_PROPERTY_ID, node.Id)
-
+        # create elements for main_part
         ele_id = 0
+        node_ids_to_remove = []
         for surface_condition in self.destination_model_part.Conditions:
             node_counter = 0
             number_of_nodes = len(surface_condition.GetNodes())
@@ -463,26 +316,32 @@ class SlidingEdgeVertexMorphingMapper():
                     node_counter += 1
                 else:
                     break
-
             if node_counter == number_of_nodes:
                     ele_id += 1
-                    # check LocalDimension of condition = 2? wenn 1 oder 3 => Fehler
-                    # wieviele knoten hat condition? => erstelle Element 3D3N, 3D4N; erstelle für 3D6N, 3D8N jeweils 2 element
-                    # dafür brauche ich die eckknoten (indices sind immer gleich => geometrie aus z.b. triangle_3d_6.h), lösche die mittelkantenknoten
-                    main_part.CreateNewElement("ShellThinElement3D3N", ele_id, ele_node_ids, material_properties)
-                    # main_part.CreateNewElement("ShellThickElementCorotational3D3N", ele_id, ele_node_ids, material_properties)
-                    # main_part.CreateNewElement("ShellThinElementCorotational3D3N", ele_id, ele_node_ids, material_properties)
-                    main_part.CreateNewCondition("SurfaceCondition3D3N", ele_id, ele_node_ids, material_properties)
-                    #main_part.AddCondition(surface_condition)
+                    condition_dim = surface_condition.GetGeometry().LocalSpaceDimension()
+                    if condition_dim != 2:
+                        raise Exception("SlidingEdgeVertexMorphingMapper: Design model part can only be a surface!")
+                    if number_of_nodes == 3:
+                        main_part.CreateNewElement("ShellThinElement3D3N", ele_id, ele_node_ids, material_properties)
+                    elif number_of_nodes == 4:
+                        main_part.CreateNewElement("ShellThinElement3D4N", ele_id, ele_node_ids, material_properties)
+                    elif number_of_nodes == 6:
+                        edge_nodes = ele_node_ids[:3]
+                        node_ids_to_remove.extend(ele_node_ids[3:])
+                        main_part.CreateNewElement("ShellThinElement3D3N", ele_id, edge_nodes, material_properties)
+                    elif number_of_nodes == 8 or number_of_nodes == 9:
+                        edge_nodes = ele_node_ids[:4]
+                        node_ids_to_remove.extend(ele_node_ids[4:])
+                        main_part.CreateNewElement("ShellThinElement3D4N", ele_id, edge_nodes, material_properties)
 
-        
+        # remove nodes from prescribed bc again
+        for node_id in node_ids_to_remove:
+            mesh_motion_conditions.RemoveNode(node_id)
+            main_part.RemoveNode(node_id)
+
+        # TODO: mapper zwischen structural models und optimierungs model => nearest element
+
         # find edges
-        # main_part.AddNodalSolutionStepVariable(NEIGHBOUR_NODES)
-        # main_part.AddNodalSolutionStepVariable(NEIGHBOUR_ELEMENTS)
-        # neighbor_search = KM.FindNodalNeighboursProcess(main_part)
-        # neighbor_search.ClearNeighbours()
-        # neighbor_search.Execute()
-
         neighbor_node_search = KM.FindGlobalNodalNeighboursProcess(main_part)
         neighbor_node_search.ClearNeighbours()
         neighbor_node_search.Execute()
@@ -490,235 +349,24 @@ class SlidingEdgeVertexMorphingMapper():
         neighbour_element_search.ClearNeighbours()
         neighbour_element_search.Execute()
 
-        KSO.GeometryUtilities(main_part).ExtractEdgeNodes("FixedConditions")
-        #edge_part = main_part.GetSubModelPart("auto_surface_nodes")
-       
+        KSO.GeometryUtilities(main_part).ExtractEdgeNodes("fixed_bc")
+
+        # remove nodes of prescribed bc from the fixed bc
         node_ids_to_remove = []
         for node in fixed_nodes.Nodes:
             if mesh_motion_conditions.HasNode(node.Id):
                 node_ids_to_remove.append(node.Id)
-
         for node_id in node_ids_to_remove:
             fixed_nodes.RemoveNode(node_id)
 
-        #self._output_edge_model(main_part)
-        # for node in main_part.Nodes:
-        #     neighbour_node_ids = node.GetValue(KM.NEIGHBOUR_NODES)
-        #     for neighbour_node_id in neighbour_node_ids:
-        #         neighbour_node = main_part.GetNode(neighbour_node_id)
-        #         neighbour_element_ids = node.GetValue(KM.NEIGHBOUR_ELEMENTS) 
-
-        #main_part.Check(main_part.ProcessInfo)
-        
-
-        without_edges = main_part.CreateSubModelPart("without_edges")
-        for node in main_part.Nodes:
-            without_edges.AddNode(node, 0)
-
-        node_ids_to_remove = []
-        for node in fixed_nodes.Nodes:
-            node_ids_to_remove.append(node.Id)
-        for node in mesh_motion_conditions.Nodes:
-            node_ids_to_remove.append(node.Id)
-        for node_id in node_ids_to_remove:
-            without_edges.RemoveNode(node_id)
-
-        ele_id = 0
-        for surface_condition in main_part.Conditions:
-            node_counter = 0
-            number_of_nodes = len(surface_condition.GetNodes())
-            ele_node_ids = []
-            for node in surface_condition.GetNodes():
-                if without_edges.HasNode(node.Id):
-                    ele_node_ids.append(node.Id)
-                    node_counter += 1
-                else:
-                    break
-            if node_counter == number_of_nodes:
-                    ele_id += 1
-                    without_edges.AddCondition(surface_condition)
-
-        # neighbor_node_search = KM.FindGlobalNodalNeighboursProcess(main_part)
-        # neighbor_node_search.ClearNeighbours()
-        # neighbor_node_search.Execute()
-        # neighbour_node_id_map = neighbor_node_search.GetNeighbourIds(main_part.Nodes)
-        # print(neighbour_node_id_map)
-
-
-        #self._output_structural_model()
-
-        # neighbour_element_search = KM.FindGlobalNodalElementalNeighboursProcess(main_part)
-        # neighbour_element_search.ClearNeighbours()
-        # neighbour_element_search.Execute()
-
-        # for node in main_part.Nodes:
-        #     print(node.GetValue(KM.NUMBER_OF_NEIGHBOUR_ELEMENTS))
-        # neighbour_element_id_map = neighbour_element_search.GetNeighbourIds(main_part.Nodes)        
-        # print(neighbour_element_id_map)
-
-        # for node in main_part.Nodes:
-        #     for neighbour_node_id in neighbour_node_id_map[node.Id]:
-        #         neighbour_node = main_part.GetNode(neighbour_node_id)
-        #         neighbour_element_ids = node.GetValue(KM.NEIGHBOUR_ELEMENTS) 
-
-
-    # def _apply_material_properties(self, model):
-    #     #define properties
-    #     model.GetProperties()[1].SetValue(KM.YOUNG_MODULUS,2.06900E+8)
-    #     model.GetProperties()[1].SetValue(KM.POISSON_RATIO,2.90000E-01)
-    #     model.GetProperties()[1].SetValue(KM.THICKNESS,0.1)
-    #     model.GetProperties()[1].SetValue(KM.DENSITY,7.85)
-
-    #     constitutive_law = KSM.LinearElasticPlaneStress2DLaw()
-
-    #     model.GetProperties()[1].SetValue(KM.CONSTITUTIVE_LAW,constitutive_law)
-
-    def _output_structural_model(self):
-        from KratosMultiphysics.vtk_output_process import VtkOutputProcess
-
-        self.vtk_output_process = VtkOutputProcess(self._structural_model,
-                                    KM.Parameters("""{
-                                            "model_part_name"                    : "Main",
-                                            "nodal_solution_step_data_variables" : ["DISPLACEMENT"],
-                                            "nodal_data_value_variables"         : ["NODE_PROPERTY_ID", "BACKGROUND_NORMAL"],
-                                            "nodal_flags"                        : ["STRUCTURE"],
-                                            "write_ids"                          : true
-                                        }
-                                        """)
-                                    )
-
-        self.vtk_output_process.ExecuteInitialize()
-        self.vtk_output_process.ExecuteBeforeSolutionLoop()
-        self.vtk_output_process.ExecuteInitializeSolutionStep()
-        self.vtk_output_process.PrintOutput()
-        self.vtk_output_process.ExecuteFinalizeSolutionStep()
-        self.vtk_output_process.ExecuteFinalize()
-
-    def _output_edge_model(self, Main):
-        from KratosMultiphysics.vtk_output_process import VtkOutputProcess
-
-        self.vtk_output_process = VtkOutputProcess(self._structural_model,
-                                    KM.Parameters("""{
-                                            "model_part_name"                    : "Main.FixedConditions",
-                                            "nodal_solution_step_data_variables" : [],
-                                            "nodal_data_value_variables"         : ["NODE_PROPERTY_ID"],
-                                            "nodal_flags"                        : ["STRUCTURE"],
-                                            "write_ids"                          : true
-                                        }
-                                        """)
-                                    )
-
-        self.vtk_output_process.ExecuteInitialize()
-        self.vtk_output_process.ExecuteBeforeSolutionLoop()
-        self.vtk_output_process.ExecuteInitializeSolutionStep()
-        self.vtk_output_process.PrintOutput()
-        self.vtk_output_process.ExecuteFinalizeSolutionStep()
-        self.vtk_output_process.ExecuteFinalize()
-
-
-    def _apply_material_properties(self, material_properties):
+    def _ApplyMaterialProperties(self, material_properties):
         #define properties
-        # material_properties.SetValue(KM.YOUNG_MODULUS,2.06900E+8)
-        # material_properties.SetValue(KM.POISSON_RATIO,2.90000E-01)
-        # material_properties.SetValue(KM.THICKNESS,0.1)
-        # material_properties.SetValue(KM.DENSITY,7.85)
-        # material_properties.SetValue(KM.YOUNG_MODULUS,1.0E+8)
-        # material_properties.SetValue(KM.POISSON_RATIO,0.49999)
-        # material_properties.SetValue(KM.THICKNESS,1.0)
-        # material_properties.SetValue(KM.DENSITY,0.0)
-
+        radius = self.settings["filter_radius"].GetDouble()
         material_properties.SetValue(KM.YOUNG_MODULUS,1.0E+8)
         material_properties.SetValue(KM.POISSON_RATIO,0.0)
-        material_properties.SetValue(KM.THICKNESS,100.0)
+        material_properties.SetValue(KM.THICKNESS,2*radius)
         material_properties.SetValue(KM.DENSITY,0.0)
 
-
-        # Vorschlag Armin:
-        # poisson = 0.3-0.4
-        # dicke = elementgröße = 10
-        # => biegesteif
         constitutive_law = KSM.LinearElasticPlaneStress2DLaw()
 
         material_properties.SetValue(KM.CONSTITUTIVE_LAW,constitutive_law)
-
-
-    # def _GetMaterialProperties(self):
-    #     return KM.Parameters("""{
-    #         "model_part_name": "Main",
-    #         "properties_id": 0,
-    #         "Material": {
-    #                 "name": "Shell_Material",
-    #                 "constitutive_law": {
-    #                         "name": "LinearElasticPlaneStress2DLaw"
-    #                 },
-    #                 "Variables": {
-    #                         "DENSITY": 0.0,
-    #                         "YOUNG_MODULUS": 1.0E+8,
-    #                         "POISSON_RATIO": 0.2,
-    #                         "THICKNESS": 1.00000E-01
-    #                 },
-    #                 "Tables": {}
-    #         }
-    #     }""")
-
-    # def _GetMaterialProperties(self):
-    #     return KM.Parameters("""{
-    #         "model_part_name": "Main",
-    #         "properties_id": 0,
-    #         "Material": {
-    #                 "name": "Shell_Material",
-    #                 "constitutive_law": {
-    #                         "name": "LinearElasticPlaneStress2DLaw"
-    #                 },
-    #                 "Variables": {
-    #                         "DENSITY": 7.85,
-    #                         "YOUNG_MODULUS": 2.06900E+8,
-    #                         "POISSON_RATIO": 2.90000E-01,
-    #                         "THICKNESS": 1.00000E-01
-    #                 },
-    #                 "Tables": {}
-    #         }
-    #     }""")
-
-    def _output_boundary_geometry(self):
-        from KratosMultiphysics.vtk_output_process import VtkOutputProcess
-
-        self.vtk_output_process = VtkOutputProcess(self._background_model,
-                                    KM.Parameters("""{
-                                            "model_part_name"                    : "background_mesh",
-                                            "nodal_solution_step_data_variables" : [],
-                                            "nodal_data_value_variables"         : ["NODE_PROPERTY_ID"],
-                                            "nodal_flags"                        : [],
-                                            "write_ids"                          : true
-                                        }
-                                        """)
-                                    )
-
-        self.vtk_output_process.ExecuteInitialize()
-        self.vtk_output_process.ExecuteBeforeSolutionLoop()
-        self.vtk_output_process.ExecuteInitializeSolutionStep()
-        self.vtk_output_process.PrintOutput()
-        self.vtk_output_process.ExecuteFinalizeSolutionStep()
-        self.vtk_output_process.ExecuteFinalize()
-
-    def _output_destination_geometry(self):
-        from KratosMultiphysics.vtk_output_process import VtkOutputProcess
-
-        self.vtk_output_process = VtkOutputProcess(self.destination_model_part,
-                                    KM.Parameters("""{
-                                            "model_part_name"                    : "background_mesh",
-                                            "nodal_solution_step_data_variables" : [],
-                                            "nodal_data_value_variables"         : ["NODE_PROPERTY_ID"],
-                                            "nodal_flags"                        : [],
-                                            "write_ids"                          : true
-                                        }
-                                        """)
-                                    )
-
-        self.vtk_output_process.ExecuteInitialize()
-        self.vtk_output_process.ExecuteBeforeSolutionLoop()
-        self.vtk_output_process.ExecuteInitializeSolutionStep()
-        self.vtk_output_process.PrintOutput()
-        self.vtk_output_process.ExecuteFinalizeSolutionStep()
-        self.vtk_output_process.ExecuteFinalize()
-
