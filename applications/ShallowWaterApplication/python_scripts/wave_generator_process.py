@@ -28,13 +28,14 @@ class WaveGeneratorProcess(KM.Process):
 
         return KM.Parameters("""
         {
-            "model_part_name"     : "model_part",
-            "formulation"         : "primitive_variables",
-            "interval"            : [0.0, 1e30],
-            "direction"           : [0.0, 0.0, 0.0],
-            "smooth_time"         : 0.0,
-            "wave_theory"         : "boussinesq",
-            "wave_specifications" : {}
+            "model_part_name"          : "model_part",
+            "formulation"              : "primitive_variables",
+            "interval"                 : [0.0, "End"],
+            "direction"                : [0.0, 0.0, 0.0],
+            "normal_positive_outwards" : true,
+            "smooth_time"              : 0.0,
+            "wave_theory"              : "boussinesq",
+            "wave_specifications"      : {}
         }
         """)
 
@@ -70,7 +71,9 @@ class WaveGeneratorProcess(KM.Process):
         # Check the direction
         if self.direction_by_normal:
             normal = self._CalculateUnitNormal()
-            self.settings["direction"].SetVector(-1 * normal)
+            if self.settings["normal_positive_outwards"].GetBool():
+                normal *= -1
+            self.settings["direction"].SetVector(normal)
 
         # Setup the wave theory
         wave_theory_class = self.__wave_theory[self.settings["wave_theory"].GetString()]
