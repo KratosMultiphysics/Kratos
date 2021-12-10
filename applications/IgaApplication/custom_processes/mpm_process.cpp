@@ -62,7 +62,7 @@ void MpmProcess::ExecuteInitializeSolutionStep()
             std::vector<IntegrationPoint<3>> integration_points_array(1);
             PointerVector<Geometry<Node<3>>> geometries(1);
             integration_points_array[0] = integration_point;
-            r_parent_geometry.CreateQuadraturePointGeometries(geometries, 3, integration_points_array);
+            r_parent_geometry.CreateQuadraturePointGeometries(geometries, 3, integration_points_array, geometries[0].GetDefaultIntegrationInfo());
             auto& geom = element.GetGeometry();
             geom = geometries[0];
 
