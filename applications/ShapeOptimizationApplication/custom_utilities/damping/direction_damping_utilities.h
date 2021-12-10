@@ -25,6 +25,7 @@
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/parallel_utilities.h"
 #include "custom_utilities/filter_function.h"
 #include "shape_optimization_application.h"
 
@@ -88,9 +89,7 @@ public:
 
         KRATOS_ERROR_IF(!mDampingSettings.Has("direction")) << "DirectionDampingUtilities: 'direction' vector is missing!" << std::endl;
 
-        // Validate against defaults -- this ensures no type mismatch
         mDampingSettings.ValidateAndAssignDefaults(default_parameters);
-
         KRATOS_ERROR_IF(mDampingSettings["damping_radius"].GetDouble() < 0.0) << "DirectionDampingUtilities: 'damping_radius' is a mandatory setting and has to be > 0.0!" << std::endl;
 
         mDirection = mDampingSettings["direction"].GetVector();
@@ -155,31 +154,30 @@ public:
         const auto p_damping_function = CreateDampingFunction( damping_function_type, damping_radius );
 
         // Loop over all nodes in specified damping sub-model part
-        for(const auto& node_i : damping_region.Nodes())
-        {
+        block_for_each(damping_region.Nodes(), [&](const ModelPart::NodeType& rNode) {
             NodeVector neighbor_nodes( mMaxNeighborNodes );
-            DoubleVector resulting_squared_distances( mMaxNeighborNodes,0.0 );
-            const unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
+            const unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( rNode,
                                                                                 damping_radius,
                                                                                 neighbor_nodes.begin(),
-                                                                                resulting_squared_distances.begin(),
                                                                                 mMaxNeighborNodes );
 
-            ThrowWarningIfNodeNeighborsExceedLimit( node_i, number_of_neighbors );
+            ThrowWarningIfNodeNeighborsExceedLimit( rNode, number_of_neighbors );
 
             // Loop over all nodes in radius (including node on damping region itself)
             for(unsigned int j_itr = 0 ; j_itr<number_of_neighbors ; j_itr++)
             {
                 ModelPart::NodeType& neighbor_node = *neighbor_nodes[j_itr];
-                const double damping_factor = 1.0 - p_damping_function->ComputeWeight( node_i.Coordinates(), neighbor_node.Coordinates());
+                const double damping_factor = 1.0 - p_damping_function->ComputeWeight( rNode.Coordinates(), neighbor_node.Coordinates());
 
                 // We check if new damping factor is smaller than the assigned one for the current node.
                 // In case yes, we overwrite the value. This ensures that the damping factor of a node is computed by its closest distance to the damping region
                 const int mapping_id = neighbor_node.GetValue(MAPPING_ID);
+                neighbor_node.SetLock();
                 if(damping_factor < mDampingFactors[mapping_id])
                     mDampingFactors[mapping_id] = damping_factor;
+                neighbor_node.UnSetLock();
             }
-        }
+        });
 
         KRATOS_INFO("ShapeOpt") << "Finished preparation of direction damping." << std::endl;
     }
@@ -197,23 +195,22 @@ public:
 
     void DampNodalVariable( const Variable<array_3d> &rNodalVariable )
     {
-        for(auto& node_i : mrModelPartToDamp.Nodes())
-        {
-            const int mapping_id = node_i.GetValue(MAPPING_ID);
+        block_for_each(mrModelPartToDamp.Nodes(), [&](ModelPart::NodeType& rNode) {
+            const int mapping_id = rNode.GetValue(MAPPING_ID);
             const double damping_factor = mDampingFactors[mapping_id];
 
-            if (damping_factor >= 1.0)
-                continue;  // skipping for efficiency
+            if (damping_factor < 1.0)
+            {
+                auto& nodal_value = rNode.FastGetSolutionStepValue(rNodalVariable);
 
-            auto& nodal_value = node_i.FastGetSolutionStepValue(rNodalVariable);
+                // mDirection is already normalized
+                const double projected_length = inner_prod(nodal_value, mDirection);
+                const array_3d correction = - projected_length * mDirection;
+                const double damping_value = 1.0 - damping_factor;
 
-            // mDirection is already normalized
-            const double projected_length = inner_prod(nodal_value, mDirection);
-            const array_3d correction = - projected_length * mDirection;
-            const double damping_value = 1.0 - damping_factor;
-
-            nodal_value += correction * damping_value;
-        }
+                nodal_value += correction * damping_value;
+            }
+        });
     }
 
 
