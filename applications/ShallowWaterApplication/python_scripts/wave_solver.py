@@ -24,6 +24,10 @@ class WaveSolver(ShallowWaterBaseSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
 
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+        SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
+
     def _SetProcessInfo(self):
         super()._SetProcessInfo()
         self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())

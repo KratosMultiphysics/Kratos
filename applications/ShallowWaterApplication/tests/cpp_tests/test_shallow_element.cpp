@@ -229,7 +229,7 @@ KRATOS_TEST_CASE_IN_SUITE(SteadySubcriticalSkewShallowWater2D3N, ShallowWaterApp
 }
 
 /**
- * @brief Check the ShallowWater2D3N element with subcritical flow (Froude = 2.72789)
+ * @brief Check the ShallowWater2D3N element with supercritical flow (Froude = 2.72789)
  */
 KRATOS_TEST_CASE_IN_SUITE(SteadySupercriticalShallowWater2D3N, ShallowWaterApplicationFastSuite)
 {
@@ -249,13 +249,12 @@ KRATOS_TEST_CASE_IN_SUITE(SteadySupercriticalShallowWater2D3N, ShallowWaterAppli
  */
 KRATOS_TEST_CASE_IN_SUITE(SteadyVariableFreeSurfaceShallowWater2D3N, ShallowWaterApplicationFastSuite)
 {
-    const double manning = 0.0;
+    const double manning = 0.01;
     const double height = 5.0;
     array_1d<double,3> height_grad = ZeroVector(3);
     array_1d<double,3> momentum = ZeroVector(3);
     height_grad[0] = .05;
     momentum[0] = 5.0;
-    momentum[1] = 0.0;
     const double gravity = 9.81;
     const double central_height = height + height_grad[0] / 3.; // at the barycenter of the element
     const array_1d<double,3> friction = std::pow(manning, 2.) * norm_2(momentum) * momentum / std::pow(central_height, 10./3.);

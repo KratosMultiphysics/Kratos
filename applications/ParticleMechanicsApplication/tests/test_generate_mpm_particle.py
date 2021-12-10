@@ -74,7 +74,7 @@ class TestGenerateMPMParticle(KratosUnittest.TestCase):
         # Check volume of first material point
         for mp in material_point_model_part.Elements:
             mp_volume = mp.CalculateOnIntegrationPoints(KratosParticle.MP_VOLUME, grid_model_part.ProcessInfo)[0]
-            self.assertEqual(expected_mp_volume,mp_volume)
+            self.assertAlmostEqual(expected_mp_volume,mp_volume)
             break
 
     def _create_nodes(self, initial_mp, dimension, geometry_element):

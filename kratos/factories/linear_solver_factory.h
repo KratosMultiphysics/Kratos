@@ -102,7 +102,7 @@ public:
     {
         std::string solver_name = Settings["solver_type"].GetString();
         // remove name of the application (if passed)
-        // e.g. "ExternalSolversApplication.super_lu" => "super_lu"
+        // e.g. "LinearSolversApplication.sparse_lu" => "sparse_lu"
         solver_name = solver_name.substr(solver_name.find(".") + 1);
 
         KRATOS_ERROR_IF_NOT(Has(solver_name))

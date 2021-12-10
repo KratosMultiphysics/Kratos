@@ -27,13 +27,14 @@ class FluidDynamicsAnalysisMassConservation(FluidDynamicsAnalysis):
             for node in self._GetSolver().GetComputingModelPart().Nodes:
                 d0=node.X-h0
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,d0)
-
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,1,d0)
         else:
             h0=0.5
             hmax=0.1
             for node in self._GetSolver().GetComputingModelPart().Nodes:
                 d0=node.Y-(h0+hmax*math.cos(math.pi*(1-node.X)))
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,d0)
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,1,d0)
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()

@@ -253,6 +253,19 @@ public:
         Matrix& rCustomSolution
         );
 
+
+    /**
+     * @brief This utility computes the exact integration of the mortar condition and returns the area
+     * @param pSlaveCond The slave condition
+     * @param pMasterCond The master condition
+     * @return The total area integrated
+     */
+    double TestGetExactAreaIntegration(
+        Condition::Pointer pSlaveCond,
+        Condition::Pointer pMasterCond
+        );
+
+
     /**
      * @brief This utility computes the exact integration of the mortar condition and returns the area
      * @param rMainModelPart The main model part
@@ -349,6 +362,24 @@ public:
     void SetZeroToleranceFactor(const double ZeroToleranceFactor)
     {
         mZeroToleranceFactor = ZeroToleranceFactor;
+    }
+
+    /**
+     * @brief This method gets the current mConsiderDelaunator
+     * @return If considering delaunator
+     */
+    bool& GetConsiderDelaunator()
+    {
+        return mConsiderDelaunator;
+    }
+
+    /**
+     * @brief This method sets the current mConsiderDelaunator
+     * @param ConsiderDelaunator If considering delaunator
+     */
+    void SetConsiderDelaunator(const bool ConsiderDelaunator)
+    {
+        mConsiderDelaunator = ConsiderDelaunator;
     }
 
     ///@}

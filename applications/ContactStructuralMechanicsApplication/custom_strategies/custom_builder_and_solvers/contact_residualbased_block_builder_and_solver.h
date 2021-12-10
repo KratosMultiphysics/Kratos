@@ -288,50 +288,44 @@ private:
     {
         KRATOS_ERROR_IF_NOT(rModelPart.HasSubModelPart("Contact")) << "CONTACT MODEL PART NOT CREATED" << std::endl;
         KRATOS_ERROR_IF_NOT(rModelPart.HasSubModelPart("ComputingContact")) << "CONTACT COMPUTING MODEL PART NOT CREATED" << std::endl;
-        ModelPart& contact_model_part = rModelPart.GetSubModelPart("Contact");
-        ModelPart& computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
+        ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
+        ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
 
         // We reset the flag
-        auto& nodes_array = contact_model_part.Nodes();
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            (nodes_array.begin() + i)->Set(VISITED, false);
-            (nodes_array.begin() + i)->Set(ISOLATED, false);
-        }
+        auto& r_nodes_array = r_contact_model_part.Nodes();
+        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            rNode.Set(VISITED, false);
+            rNode.Set(ISOLATED, false);
+        });
 
         // Now we set the flag in the nodes
-        auto& conditions_array = computing_contact_model_part.Conditions();
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
-            auto it_cond = conditions_array.begin() + i;
-            auto& r_parent_geometry = it_cond->GetGeometry().GetGeometryPart(0);
+        auto& r_conditions_array = r_computing_contact_model_part.Conditions();
+        block_for_each(r_conditions_array, [&](Condition& rCond) {
+            auto& r_parent_geometry = rCond.GetGeometry().GetGeometryPart(0);
             for (std::size_t i_node = 0; i_node < r_parent_geometry.size(); ++i_node) {
                 r_parent_geometry[i_node].SetLock();
                 if (r_parent_geometry[i_node].Is(VISITED) == false) {
-                    r_parent_geometry[i_node].Set(ISOLATED, it_cond->Is(ISOLATED));
+                    r_parent_geometry[i_node].Set(ISOLATED, rCond.Is(ISOLATED));
                     r_parent_geometry[i_node].Set(VISITED, true);
                 } else {
-                    r_parent_geometry[i_node].Set(ISOLATED, r_parent_geometry[i_node].Is(ISOLATED) && it_cond->Is(ISOLATED));
+                    r_parent_geometry[i_node].Set(ISOLATED, r_parent_geometry[i_node].Is(ISOLATED) && rCond.Is(ISOLATED));
                 }
                 r_parent_geometry[i_node].UnSetLock();
             }
-        }
+        });
 
         // We fix the LM
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
-            if (it_node->Is(ISOLATED) == true) {
-                if (it_node->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
-                    it_node->Fix(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
-                else if (it_node->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X)) {
-                    it_node->Fix(VECTOR_LAGRANGE_MULTIPLIER_X);
-                    it_node->Fix(VECTOR_LAGRANGE_MULTIPLIER_Y);
-                    it_node->Fix(VECTOR_LAGRANGE_MULTIPLIER_Z);
+        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            if (rNode.Is(ISOLATED)) {
+                if (rNode.SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
+                    rNode.Fix(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
+                } else if (rNode.SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X)) {
+                    rNode.Fix(VECTOR_LAGRANGE_MULTIPLIER_X);
+                    rNode.Fix(VECTOR_LAGRANGE_MULTIPLIER_Y);
+                    rNode.Fix(VECTOR_LAGRANGE_MULTIPLIER_Z);
                 }
             }
-        }
+        });
     }
 
     /**
@@ -341,23 +335,21 @@ private:
     void FreeIsolatedNodes(ModelPart& rModelPart)
     {
         KRATOS_ERROR_IF_NOT(rModelPart.HasSubModelPart("Contact")) << "CONTACT MODEL PART NOT CREATED" << std::endl;
-        ModelPart& contact_model_part = rModelPart.GetSubModelPart("Contact");
+        ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
 
         // We release the LM
-        auto& nodes_array = contact_model_part.Nodes();
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
-            if (it_node->Is(ISOLATED) == true) {
-                if (it_node->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
-                    it_node->Free(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
-                else if (it_node->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X)) {
-                    it_node->Free(VECTOR_LAGRANGE_MULTIPLIER_X);
-                    it_node->Free(VECTOR_LAGRANGE_MULTIPLIER_Y);
-                    it_node->Free(VECTOR_LAGRANGE_MULTIPLIER_Z);
+        auto& r_nodes_array = r_contact_model_part.Nodes();
+        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            if (rNode.Is(ISOLATED)) {
+                if (rNode.SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
+                    rNode.Free(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
+                } else if (rNode.SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X)) {
+                    rNode.Free(VECTOR_LAGRANGE_MULTIPLIER_X);
+                    rNode.Free(VECTOR_LAGRANGE_MULTIPLIER_Y);
+                    rNode.Free(VECTOR_LAGRANGE_MULTIPLIER_Z);
                 }
             }
-        }
+        });
     }
 
     ///@}
