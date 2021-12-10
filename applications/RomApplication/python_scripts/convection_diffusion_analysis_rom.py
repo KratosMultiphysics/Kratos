@@ -10,6 +10,7 @@ import json
 class ConvectionDiffusionAnalysisROM(ConvectionDiffusionAnalysis):
 
     def __init__(self,model,project_parameters):
+        KratosMultiphysics.Logger.PrintWarning("ConvectionDiffusionAnalysisROM", "This class is deprecated. Use the \'RomAnalysis\' one instead.")
         super().__init__(model,project_parameters)
 
     #### Internal functions ####
@@ -42,6 +43,3 @@ class ConvectionDiffusionAnalysisROM(ConvectionDiffusionAnalysis):
                         aux[j,i] = nodal_modes[Counter][j][i]
                 node.SetValue(romapp.ROM_BASIS, aux ) # ROM basis
                 counter+=1
-
-
-
