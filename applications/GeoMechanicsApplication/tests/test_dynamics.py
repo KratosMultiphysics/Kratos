@@ -1,9 +1,6 @@
 import sys
 import os
 
-sys.path.append(os.path.join('..', '..', '..'))
-sys.path.append(os.path.join('..', 'python_scripts'))
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
@@ -63,9 +60,4 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         pass
 
 if __name__ == '__main__':
-    suites = KratosUnittest.KratosSuites
-    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsDynamicsTests]))
-    allSuite = suites['all']
-    allSuite.addTests(smallSuite)
-    KratosUnittest.runTests(suites)
+    KratosUnittest.main()

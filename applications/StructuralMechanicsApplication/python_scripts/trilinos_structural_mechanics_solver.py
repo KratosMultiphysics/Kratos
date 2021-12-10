@@ -104,7 +104,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
 
     def _create_linear_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
+        mechanical_scheme = self._GetScheme()
         linear_solver = self.get_linear_solver()
         builder_and_solver = self.get_builder_and_solver()
         return TrilinosApplication.TrilinosLinearStrategy(computing_model_part,
@@ -117,7 +117,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
 
     def _create_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        solution_scheme = self.get_solution_scheme()
+        solution_scheme = self._GetScheme()
         linear_solver = self.get_linear_solver()
         convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
