@@ -29,7 +29,7 @@ VertexContainerIO::VertexContainerIO(Parameters parameters, File::Pointer pFile)
     KRATOS_TRY
 
     parameters.ValidateAndAssignDefaults(VertexContainerIO::GetDefaultParameters());
-    
+
     KRATOS_CATCH("");
 }
 
@@ -165,7 +165,7 @@ Parameters VertexContainerCoordinateIO::FormatParameters(Parameters parameters)
     KRATOS_TRY
 
     parameters.ValidateAndAssignDefaults(VertexContainerCoordinateIO::GetDefaultParameters());
-    
+
     Parameters output = parameters.Clone();
     output.RemoveValue("write_vertex_ids");
 
