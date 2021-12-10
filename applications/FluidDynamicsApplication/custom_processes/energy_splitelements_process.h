@@ -151,7 +151,146 @@ public:
         if(mDomainSize == 2)
         // Total Energy check for 2D cases[Fluid1_energy and FLuid2_energy]: A loop in each element of the mesh considering splitted elements (air/water elements)
         {
+            double total_energy = 0.0;
+            double total_potential_energy = 0.0;
+            double total_kinematic_energy = 0.0;
+
+            for (auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); ++it_elem)
+            {
+                auto &r_geom = it_elem->GetGeometry();
+                const auto elem_dist = SetDistanceVector(*it_elem);
+
+                // Split element case
+                if (this->IsCut(elem_dist))
+                {
+                    // Generate the splitting pattern
+                    DivideTriangle2D3::Pointer p_divide_util = Kratos::make_shared<DivideTriangle2D3>(r_geom, elem_dist);
+                    p_divide_util->GenerateDivision();
+
+                    // Generate the modified shape functions util
+                    auto p_geom = it_elem->pGetGeometry();
+                    ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, elem_dist);
+
+                    Matrix N_neg_side;
+                    Vector w_gauss_neg_side;
+                    Matrix N_neg_side_interface;
+                    Vector w_gauss_interface;
+
+                    Geometry<Node<2>>::ShapeFunctionsGradientsType DN_DX_neg_side;
+                    Geometry<Node<2>>::ShapeFunctionsGradientsType DN_DX_neg_side_interface;
+                    p_ausas_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(N_neg_side, DN_DX_neg_side, w_gauss_neg_side, GeometryData::IntegrationMethod::GI_GAUSS_2);
+                    p_ausas_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(N_neg_side_interface, DN_DX_neg_side_interface, w_gauss_interface, GeometryData::IntegrationMethod::GI_GAUSS_2);
+                    // Save the coordinates of all the subdivision Gauss pts.nl
+                    const unsigned int n_neg_gauss_pt = w_gauss_neg_side.size();
+                    const unsigned int n_interface_side_gauss_pt=w_gauss_interface.size();
+                    for (unsigned int i_gauss_interface = 0; i_gauss_interface < n_interface_side_gauss_pt ; ++i_gauss_interface)
+                    {
+                        interface_area+=w_gauss_interface[i_gauss_interface];;
+                    }
+
+                    for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss)
+                    {
+                        const double Water_Density = 1e+3;
+                        Vector N_gauss = row(N_neg_side, i_gauss);
+                        const double w_gauss = w_gauss_neg_side[i_gauss];
+                        const double kinetic_energy = CalculateGaussPointKinematicEnergy(r_geom, N_gauss, w_gauss, Water_Density);
+
+                        //const double potential_energy = CalculateGaussPointPotentialEnergy(r_geom, N_gauss, w_gauss, Water_Density);
+                        water_zg += CalculateGaussPointPotentialEnergyGravityCenter(r_geom,N_gauss,w_gauss);
+                        // const double total_energy_gauss = kinetic_energy + potential_energy;
+
+                        total_area_negative += w_gauss;
+
+                        // Total_energy_water += total_energy_gauss;
+                        // Total_energy_water_splitted+= total_energy_gauss;
+                        Total_cinematic_energy_water += kinetic_energy;
+
+                    }
+                    Matrix N_pos_side;
+                    Vector w_gauss_pos_side;
+                    Geometry<Node<2>>::ShapeFunctionsGradientsType DN_DX_pos_side;
+                    p_ausas_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(N_pos_side, DN_DX_pos_side, w_gauss_pos_side, GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+                    // Save the coordinates of all the subdivision Gauss pts.
+                    const unsigned int n_pos_gauss_pt = w_gauss_pos_side.size();
+
+                    for (unsigned int i_gauss = 0; i_gauss < n_pos_gauss_pt; ++i_gauss)
+                    {
+                        const double Air_Density = 1.22;
+                        Vector N_gauss = row(N_pos_side, i_gauss);
+                        const double w_gauss = w_gauss_pos_side[i_gauss];
+                        const double kinetic_energy = CalculateGaussPointKinematicEnergy(r_geom, N_gauss, w_gauss, Air_Density);
+                        const double potential_energy = CalculateGaussPointPotentialEnergy(r_geom, N_gauss, w_gauss, Air_Density);
+                        const double total_energy_gauss = kinetic_energy + potential_energy;
+                        air_zg += CalculateGaussPointPotentialEnergyGravityCenter(r_geom,N_gauss,w_gauss);
+
+                        total_area_positive+=w_gauss;
+
+                        Total_energy_air += total_energy_gauss;
+                        Total_energy_air_splitted+= total_energy_gauss;
+                        Total_cinematic_energy_air+=kinetic_energy;
+
+                        // Total_hydrostatic_energy_air+=potential_energy;
+                    }
+                }
+                // No split element case
+                else
+                {
+                    // Get geometry data
+                    Vector jac_vect;
+                    r_geom.DeterminantOfJacobian(jac_vect, GeometryData::IntegrationMethod::GI_GAUSS_2);
+                    auto N = r_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+                    const auto& r_integrations_points = r_geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+                    const unsigned int n_gauss = r_integrations_points.size();
+                    // Check if the element is in the positive (fluid) region
+                    if (this->IsPositive(elem_dist))
+                    {
+                        for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss){
+                            const double Air_Density = 1.22;
+                            Vector N_gauss = row(N, i_gauss);
+                            const double w_gauss = r_integrations_points[i_gauss].Weight() * jac_vect[i_gauss];
+                            const double kinetic_energy = CalculateGaussPointKinematicEnergy(r_geom, N_gauss, w_gauss, Air_Density);
+                            const double potential_energy = CalculateGaussPointPotentialEnergy(r_geom, N_gauss, w_gauss, Air_Density);
+                            const double total_energy_gauss = kinetic_energy + potential_energy;
+                            air_zg += CalculateGaussPointPotentialEnergyGravityCenter(r_geom,N_gauss,w_gauss);
+                            total_area_positive += w_gauss;
+
+                            Total_energy_air += total_energy_gauss;
+                            Total_energy_air_entire_element+= total_energy_gauss;
+                            Total_cinematic_energy_air+=kinetic_energy;
+                            Total_hydrostatic_energy_air+=potential_energy;
+                        }
+                    } else {
+                        for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss){
+                            const double Water_Density = 1e+3;
+                            Vector N_gauss = row(N, i_gauss);
+                            const double w_gauss = r_integrations_points[i_gauss].Weight() * jac_vect[i_gauss];
+                            const double kinetic_energy = CalculateGaussPointKinematicEnergy(r_geom, N_gauss, w_gauss, Water_Density);
+                            const double potential_energy = CalculateGaussPointPotentialEnergy(r_geom, N_gauss, w_gauss, Water_Density);
+                            const double total_energy_gauss = kinetic_energy + potential_energy;
+
+                            water_zg += CalculateGaussPointPotentialEnergyGravityCenter(r_geom,N_gauss,w_gauss);
+                            total_area_negative += w_gauss;
+
+                            Total_energy_water += total_energy_gauss;
+                            Total_energy_water_entire_element+= total_energy_gauss;
+                            Total_cinematic_energy_water+=kinetic_energy;
+                            Total_hydrostatic_energy_water+=potential_energy;
+
+
+
+
+
+
+
+
+                        }
+                    }
+                }
+            }
         }
+
+
         else if(mDomainSize == 3)
         {
             double total_energy = 0.0;
@@ -279,13 +418,6 @@ public:
                             Total_energy_water_entire_element+= total_energy_gauss;
                             Total_cinematic_energy_water+=kinetic_energy;
                             Total_hydrostatic_energy_water+=potential_energy;
-
-
-
-
-
-
-
 
                         }
                     }
@@ -518,8 +650,9 @@ protected:
         const double gravity = 9.81;
         double z_interpolated = 0.0;
         const unsigned int n_nodes = rGeometry.PointsNumber();
+// It should be improve in order to have z_interpolated depending on the directions of the problem gravity
         for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
-            z_interpolated += rGeometry[i_node].Z() * rN[i_node];
+            z_interpolated += rGeometry[i_node].Y() * rN[i_node];
         }
         // Calculate and return Gauss pt. potential energy
         return (Density * gravity * z_interpolated) * Weight;
@@ -534,7 +667,7 @@ protected:
         double z_interpolated = 0.0;
         const unsigned int n_nodes = rGeometry.PointsNumber();
         for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
-            z_interpolated += rGeometry[i_node].Z() * rN[i_node];
+            z_interpolated += rGeometry[i_node].Y() * rN[i_node];
         }
 
         return (z_interpolated) * Weight;
