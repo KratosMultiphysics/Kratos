@@ -161,7 +161,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     // Also note that we do consider time varying time step but a constant theta (we incur in a small error when switching from BE to CN)
     // Note as well that there is a minus sign (this comes from the divergence sign)
     if (IsCut()) {
-        const double previous_dt = rProcessInfo.GetPreviousTimeStepInfo().GetValue(DELTA_TIME);
+        double previous_dt = rProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
         this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
         // double ratio_dt = (1.0-theta)*previous_dt + theta*DeltaTime;
         VolumeError /= -previous_dt;
@@ -169,7 +169,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
         VolumeError = 0.0;
     }
 
-}
+} 
 
 void UpdateGeometryValues(
     unsigned int IntegrationPointIndex,

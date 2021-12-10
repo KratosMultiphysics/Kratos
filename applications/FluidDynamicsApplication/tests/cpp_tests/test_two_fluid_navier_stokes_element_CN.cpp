@@ -81,6 +81,10 @@ namespace Kratos {
             modelPart.CreateNewElement("TwoFluidNavierStokesCN2D3N", 1, elemNodes, pElemProp);
 
             Element::Pointer pElement = modelPart.pGetElement(1);
+            
+            // Fake time advance to set the previous ProcessInfo container
+            modelPart.CloneSolutionStep();
+
             // Define the nodal values
             Matrix vel_original(3, 3);
             vel_original(0, 0) = 0.0;
@@ -129,15 +133,15 @@ namespace Kratos {
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
             Vector reference_RHS = ZeroVector(9);
-            reference_RHS[0] = -118.03889688;
-            reference_RHS[1] = 14.78243843;
-            reference_RHS[2] = -213.62425998;
-            reference_RHS[3] = -0.05448084;
-            reference_RHS[4] = 22.78371861;
-            reference_RHS[5] = 27.42496766;
-            reference_RHS[6] = -403.33194690;
-            reference_RHS[7] = 0.15778148;
-            reference_RHS[8] = 60.36872332;
+            reference_RHS[0] = -1.3020051644966286;
+            reference_RHS[1] = -17.100810939731524;
+            reference_RHS[2] = -0.029529267231041285;
+            reference_RHS[3] = -41.558154067996313;
+            reference_RHS[4] =  -43.088273424402665;
+            reference_RHS[5] = -0.054171727738553124;
+            reference_RHS[6] = -31.603783172994675;
+            reference_RHS[7] = -65.593632069531324;
+            reference_RHS[8] = -0.058799005030405603;
 
             KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
         }
@@ -183,6 +187,9 @@ namespace Kratos {
             modelPart.CreateNewElement("TwoFluidNavierStokesCN3D4N", 1, elemNodes, pElemProp);
 
             Element::Pointer pElement = modelPart.pGetElement(1);
+
+            // Fake time advance to set the previous ProcessInfo container
+            modelPart.CloneSolutionStep();
 
             // Define the nodal values
             Matrix vel_original(4,3);
@@ -285,6 +292,8 @@ namespace Kratos {
 
             Element::Pointer pElement = modelPart.pGetElement(1);
 
+            // Fake time advance to set the previous ProcessInfo container
+            modelPart.CloneSolutionStep();
             // Define the nodal values
             Matrix vel_original(4,3);
             vel_original(0,0) = 0.0; vel_original(0,1) = 0.1; vel_original(0,2) = 0.2;
@@ -340,7 +349,8 @@ namespace Kratos {
             const auto& r_process_info = modelPart.GetProcessInfo();
             pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
-
+            std::cout << pElement->Info() << std::setprecision(10) << std::endl;
+            KRATOS_WATCH(RHS)
             reference_RHS[0] = -268.0132371599088;
             reference_RHS[1] = -4.182094107233524;
             reference_RHS[2]= -81.37622307441862;
@@ -406,6 +416,8 @@ namespace Kratos {
 
             Element::Pointer pElement = modelPart.pGetElement(1);
 
+            // Fake time advance to set the previous ProcessInfo container
+            modelPart.CloneSolutionStep();
             // Define the nodal values
             Matrix vel_original(4, 3);
             vel_original(0, 0) = 0.0; vel_original(0, 1) = 0.1; vel_original(0, 2) = 0.2;
@@ -506,6 +518,8 @@ namespace Kratos {
 
             Element::Pointer pElement = modelPart.pGetElement(1);
 
+            // Fake time advance to set the previous ProcessInfo container
+            modelPart.CloneSolutionStep();
             // Define the nodal values
             Matrix vel_original(4, 3);
             vel_original(0, 0) = 0.0; vel_original(0, 1) = 0.1; vel_original(0, 2) = 0.2;
@@ -611,6 +625,8 @@ namespace Kratos {
 
             Element::Pointer pElement = modelPart.pGetElement(1);
 
+            // Fake time advance to set the previous ProcessInfo container
+            modelPart.CloneSolutionStep();
             // Define the nodal values as 0 for hydrostatic case
             Matrix vel_original(3,2);
             vel_original(0,0) = 0.0; vel_original(0,1) = 0.0;
@@ -1331,6 +1347,8 @@ namespace Kratos {
 
             Element::Pointer pElement = modelPart.pGetElement(1);
 
+            // Fake time advance to set the previous ProcessInfo container
+            modelPart.CloneSolutionStep();
             // Define the nodal values
             Matrix vel_original(4, 3);
             vel_original(0, 0) = 0.0; vel_original(0, 1) = 0.1; vel_original(0, 2) = 0.2;
@@ -1838,7 +1856,8 @@ namespace Kratos {
 
             Element::Pointer pElement = modelPart.pGetElement(1);
 
-
+            // Fake time advance to set the previous ProcessInfo container
+            modelPart.CloneSolutionStep();
             // Define the nodal values
             Matrix vel_original(3, 2);
             vel_original(0, 0) = 0.0;
@@ -1883,15 +1902,16 @@ namespace Kratos {
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
             Vector reference_RHS = ZeroVector(9);
 
-            reference_RHS[0] = 5726.11532439;
-            reference_RHS[1] = 3306.70144012;
-            reference_RHS[2] = -28.5925842818;
-            reference_RHS[3] = -5842.91825503;
-            reference_RHS[4] = 918.807742518;
-            reference_RHS[5] = -15.9819989975;
-            reference_RHS[6] = 239.927930637;
-            reference_RHS[7] = -3954.25918264;
-            reference_RHS[8] = -5.57541672072;
+
+            reference_RHS[0] = 8335.2388854083;
+            reference_RHS[1] = 5918.3920120158;
+            reference_RHS[2] = -28.397659967501;
+            reference_RHS[3] = -8536.4363261524;
+            reference_RHS[4] = 728.84099552099;
+            reference_RHS[5] = -16.169418906375;
+            reference_RHS[6] = 104.21361475935;
+            reference_RHS[7] = -6812.7401985861;
+            reference_RHS[8] = -5.5754211261236;
 
             KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
         }
@@ -1938,6 +1958,9 @@ namespace Kratos {
             modelPart.CreateNewElement("TwoFluidNavierStokesCN3D4N", 1, elemNodes, pElemProp);
 
             Element::Pointer pElement = modelPart.pGetElement(1);
+
+            // Fake time advance to set the previous ProcessInfo container
+            modelPart.CloneSolutionStep();
             // Define the nodal values
             Matrix vel_original(4, 3);
             vel_original(0, 0) = 0.0;
@@ -1984,26 +2007,28 @@ namespace Kratos {
             const auto &r_process_info = modelPart.GetProcessInfo();
             pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
-
+            std::cout << pElement->Info() << std::setprecision(14) << std::endl;
+            KRATOS_WATCH(RHS)
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
+
             Vector reference_RHS = ZeroVector(16);
-            reference_RHS[0] = -118.03889688;
-            reference_RHS[1] = 14.78243843;
-            reference_RHS[2] = -213.62425998;
-            reference_RHS[3] = -0.05448084;
-            reference_RHS[4] = 22.78371861;
-            reference_RHS[5] = 27.42496766;
-            reference_RHS[6] = -403.33194690;
-            reference_RHS[7] = 0.15778148;
-            reference_RHS[8] = 60.36872332;
-            reference_RHS[9] = 15.21517182;
-            reference_RHS[10] = -419.85282231;
-            reference_RHS[11] = 0.00659561;
-            reference_RHS[12] = 80.61562161;
-            reference_RHS[13] = 37.68158875;
-            reference_RHS[14] = -453.71180415;
-            reference_RHS[15] = -0.20989625;
+            reference_RHS[0] = 5296.9786005331;
+            reference_RHS[1] = 4263.3799570741;
+            reference_RHS[2] = 5170.4098239881;
+            reference_RHS[3] = -5.484149787548;
+            reference_RHS[4] = -5293.8736432031;
+            reference_RHS[5] = 177.25011048508;
+            reference_RHS[6] = -360.67964473884;
+            reference_RHS[7] = -4.0814790346543;
+            reference_RHS[8] = -38.761850001062;
+            reference_RHS[9] = -4947.6559214163;
+            reference_RHS[10] = -367.43380889534;
+            reference_RHS[11] = -2.9002626167209;
+            reference_RHS[12] = -29.788575252941;
+            reference_RHS[13] = 419.76946341698;
+            reference_RHS[14] = -5621.1894327254;
+            reference_RHS[15] = -4.2957752277434;
 
             KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
         }
