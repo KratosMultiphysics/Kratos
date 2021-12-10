@@ -30,18 +30,6 @@
 #include "spatial_containers/bins_dynamic.h"
 #include "custom_search/bins_dynamic_objects_periodic.h"
 
-// External includes
-
-/* Timer defines */
-#include "utilities/timer.h"
-#ifdef CUSTOMTIMER
-#define KRATOS_TIMER_START(t) Timer::Start(t);
-#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
-#else
-#define KRATOS_TIMER_START(t)
-#define KRATOS_TIMER_STOP(t)
-#endif
-
 namespace Kratos
 {
 
