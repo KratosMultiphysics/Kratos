@@ -87,22 +87,22 @@ namespace Kratos {
       return;
 
     // Initialize results
-    int    num_of_particles                    = r_modelpart.NumberOfElements();
-    int    time_step                           = r_process_info[TIME_STEPS];
-    double time                                = r_process_info[TIME];
-    double total_vol                           = 0.0;
-    double particle_temp_min                   = DBL_MAX;
+    int    num_of_particles                    =  r_modelpart.NumberOfElements();
+    int    time_step                           =  r_process_info[TIME_STEPS];
+    double time                                =  r_process_info[TIME];
+    double total_vol                           =  0.0;
+    double particle_temp_min                   =  DBL_MAX;
     double particle_temp_max                   = -DBL_MAX;
-    double particle_temp_avg                   = 0.0;
-    double particle_temp_dev                   = 0.0;
-    double model_temp_avg                      = 0.0;
-    double particle_flux_conducdir_ratio_avg   = 0.0;
-    double particle_flux_conducindir_ratio_avg = 0.0;
-    double particle_flux_rad_ratio_avg         = 0.0;
-    double particle_flux_fric_ratio_avg        = 0.0;
-    double particle_flux_conv_ratio_avg        = 0.0;
-    double particle_flux_prescsurf_ratio_avg   = 0.0;
-    double particle_flux_prescvol_ratio_avg    = 0.0;
+    double particle_temp_avg                   =  0.0;
+    double particle_temp_dev                   =  0.0;
+    double model_temp_avg                      =  0.0;
+    double particle_flux_conducdir_ratio_avg   =  0.0;
+    double particle_flux_conducindir_ratio_avg =  0.0;
+    double particle_flux_rad_ratio_avg         =  0.0;
+    double particle_flux_fric_ratio_avg        =  0.0;
+    double particle_flux_conv_ratio_avg        =  0.0;
+    double particle_flux_prescsurf_ratio_avg   =  0.0;
+    double particle_flux_prescvol_ratio_avg    =  0.0;
 
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < num_of_particles; i++) {
