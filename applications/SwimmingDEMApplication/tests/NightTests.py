@@ -29,13 +29,13 @@ class gentle_erasure_test(GentleTF.GentleInjectionAndErasureTestFactory):
          parameter_name = 'destruction_delay_interval'
          return parameters['dem_parameters']['creator_destructor_settings'][parameter_name].GetDouble(), parameter_name
 
-# class periodic_backward_coupling(PeriodicBackwardTF.PeriodicBackwardCouplingTestFactory):
-#      file_name = "fluid_convergence_tests/cube_cavity"
-#      file_parameters_harsh = "fluid_convergence_tests/ProjectParametersPeriodicHarsh.json"
-#      file_parameters_gentle = "fluid_convergence_tests/ProjectParametersPeriodicGentle.json"
-#      def GetGentleParameterValueAndName(self, parameters):
-#          parameter_name = 'destruction_delay_interval'
-#          return parameters['dem_parameters']['creator_destructor_settings'][parameter_name].GetDouble(), parameter_name
+class periodic_backward_coupling(PeriodicBackwardTF.PeriodicBackwardCouplingTestFactory):
+     file_name = "fluid_convergence_tests/cube_cavity"
+     file_parameters_harsh = "fluid_convergence_tests/ProjectParametersPeriodicHarsh.json"
+     file_parameters_gentle = "fluid_convergence_tests/ProjectParametersPeriodicHarsh.json"
+     def GetGentleParameterValueAndName(self, parameters):
+         parameter_name = 'destruction_delay_interval'
+         return parameters['dem_parameters']['creator_destructor_settings'][parameter_name].GetDouble(), parameter_name
 
 
 
