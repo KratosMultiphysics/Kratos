@@ -153,7 +153,7 @@ public:
         // Loop over all regions for which damping is to be applied
         for (const auto& r_region_parameters : mDampingSettings["damping_regions"])
         {
-            const auto& sub_model_part_name = r_region_parameters["sub_model_part_name"].GetString();
+            const std::string& sub_model_part_name = r_region_parameters["sub_model_part_name"].GetString();
             ModelPart& dampingRegion = mrModelPartToDamp.GetRootModelPart().GetSubModelPart(sub_model_part_name);
 
             const bool dampX = r_region_parameters["damp_X"].GetBool();
@@ -165,36 +165,36 @@ public:
             const auto p_damping_function = CreateDampingFunction(dampingFunctionType, dampingRadius );
 
             // Loop over all nodes in specified damping sub-model part
-            for(auto& node_i : dampingRegion.Nodes())
-            {
-                ModelPart::NodeType& currentDampingNode = node_i;
+            block_for_each(dampingRegion.Nodes(), [&](const ModelPart::NodeType& rNode) {
                 NodeVector neighbor_nodes( mMaxNeighborNodes );
                 DoubleVector resulting_squared_distances( mMaxNeighborNodes,0.0 );
-                const unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( currentDampingNode,
+                const unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( rNode,
                                                                                  dampingRadius,
                                                                                  neighbor_nodes.begin(),
                                                                                  resulting_squared_distances.begin(),
                                                                                  mMaxNeighborNodes );
 
-                ThrowWarningIfNodeNeighborsExceedLimit( currentDampingNode, number_of_neighbors );
+                ThrowWarningIfNodeNeighborsExceedLimit( rNode, number_of_neighbors );
 
                 // Loop over all nodes in radius (including node on damping region itself)
                 for(unsigned int j_itr = 0 ; j_itr<number_of_neighbors ; j_itr++)
                 {
                     ModelPart::NodeType& neighbor_node = *neighbor_nodes[j_itr];
-                    const double dampingFactor = 1-p_damping_function->ComputeWeight( currentDampingNode.Coordinates(), neighbor_node.Coordinates());
+                    const double dampingFactor = 1.0 - p_damping_function->ComputeWeight( rNode.Coordinates(), neighbor_node.Coordinates());
 
                     // For every specified damping direction we check if new damping factor is smaller than the assigned one for current node.
                     // In case yes, we overwrite the value. This ensures that the damping factor of a node is computed by its closest distance to the damping region
-                    auto& damping_factor_variable = neighbor_node.GetValue(DAMPING_FACTOR);
+                    array_3d& damping_factor_variable = neighbor_node.GetValue(DAMPING_FACTOR);
+                    neighbor_node.SetLock();
                     if(dampX && dampingFactor < damping_factor_variable[0])
                         damping_factor_variable[0] = dampingFactor;
                     if(dampY && dampingFactor < damping_factor_variable[1])
                         damping_factor_variable[1] = dampingFactor;
                     if(dampZ && dampingFactor < damping_factor_variable[2])
                         damping_factor_variable[2] = dampingFactor;
+                    neighbor_node.UnSetLock();
                 }
-            }
+            });
         }
 
         KRATOS_INFO("ShapeOpt") << "Finished preparation of damping." << std::endl;
@@ -216,15 +216,14 @@ public:
     // --------------------------------------------------------------------------
     void DampNodalVariable( const Variable<array_3d> &rNodalVariable )
     {
-        for(auto& node_i : mrModelPartToDamp.Nodes())
-        {
-            const auto& damping_factor = node_i.GetValue(DAMPING_FACTOR);
-            auto& nodalVariable = node_i.FastGetSolutionStepValue(rNodalVariable);
+        block_for_each(mrModelPartToDamp.Nodes(), [&](ModelPart::NodeType& rNode) {
+            const array_3d& damping_factor = rNode.GetValue(DAMPING_FACTOR);
+            array_3d& nodalVariable = rNode.FastGetSolutionStepValue(rNodalVariable);
 
             nodalVariable[0] *= damping_factor[0];
             nodalVariable[1] *= damping_factor[1];
             nodalVariable[2] *= damping_factor[2];
-        }
+        });
     }
 
     // ==============================================================================
