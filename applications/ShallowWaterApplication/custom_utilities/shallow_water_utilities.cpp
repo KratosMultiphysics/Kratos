@@ -17,7 +17,10 @@
 
 
 // Project includes
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "shallow_water_utilities.h"
+#include "phase_function.h"
 
 
 namespace Kratos
@@ -45,7 +48,7 @@ void ShallowWaterUtilities::ComputeVelocity(ModelPart& rModelPart, bool PerformP
         const double rel_dry_h = rModelPart.GetProcessInfo()[RELATIVE_DRY_HEIGHT];
         block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
             const double h = r_node.FastGetSolutionStepValue(HEIGHT);
-            const double inv_h = InverseHeight(h, rel_dry_h * r_node.GetValue(NODAL_H));
+            const double inv_h = PhaseFunction::InverseHeight(h, rel_dry_h * r_node.GetValue(NODAL_H));
             r_node.FastGetSolutionStepValue(VELOCITY) = inv_h * r_node.FastGetSolutionStepValue(MOMENTUM);
         });
     }
@@ -72,7 +75,7 @@ void ShallowWaterUtilities::ComputeSmoothVelocity(ModelPart& rModelPart)
         }
         height /= num_nodes;
         CalculateMassMatrix(r_local_mass_matrix, r_geom);
-        r_local_mass_matrix *= InverseHeight(height, rel_dry_h * r_geom.Length());
+        r_local_mass_matrix *= PhaseFunction::InverseHeight(height, rel_dry_h * r_geom.Length());
         Vector nodal_velocity_x(num_nodes);
         Vector nodal_velocity_y(num_nodes);
         nodal_velocity_x = num_nodes * prod(r_local_mass_matrix, nodal_discharge_x);
@@ -105,7 +108,7 @@ void ShallowWaterUtilities::ComputeFroude(ModelPart& rModelPart, const double Ep
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
         const double height = rNode.FastGetSolutionStepValue(HEIGHT);
         const double velocity = norm_2(rNode.FastGetSolutionStepValue(VELOCITY));
-        const double inverse_c = std::sqrt(InverseHeight(height, Epsilon) / g);
+        const double inverse_c = std::sqrt(PhaseFunction::InverseHeight(height, Epsilon) / g);
         GetValue<THistorical>(rNode, FROUDE) = velocity * inverse_c;
     });
 }
@@ -158,17 +161,41 @@ void ShallowWaterUtilities::IdentifySolidBoundary(ModelPart& rSkinModelPart, dou
     });
 }
 
-void ShallowWaterUtilities::IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double RelativeDryHeight)
+void ShallowWaterUtilities::FlagWetElements(ModelPart& rModelPart, Flags WetFlag, double RelativeDryHeight)
 {
-    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        rNode.Set(WetFlag, false);
+    if (RelativeDryHeight < 0.0) {
+        RelativeDryHeight = rModelPart.GetProcessInfo()[RELATIVE_DRY_HEIGHT];
+    }
+    block_for_each(rModelPart.Elements(), [&](Element& rElement){
+        const auto& r_geom = rElement.GetGeometry();
+        const bool is_wet = IsWet(r_geom, RelativeDryHeight);
+        rElement.Set(WetFlag, is_wet);
     });
-
-    IdentifyWetEntities(rModelPart.Elements(), WetFlag, RelativeDryHeight);
-    IdentifyWetEntities(rModelPart.Conditions(), WetFlag, RelativeDryHeight);
 }
 
-void ShallowWaterUtilities::NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable)
+void ShallowWaterUtilities::ExtrapolateElementalFlagToNodes(ModelPart& rModelPart, Flags Flag)
+{
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        rNode.Set(Flag, false);
+    });
+    block_for_each(rModelPart.Elements(), [&](Element& rElement){
+        const auto& r_geom = rElement.GetGeometry();
+        for (auto& r_node : r_geom)
+        {
+            if (rElement.Is(Flag))
+            {
+                if (r_node.IsNot(Flag))
+                {
+                    r_node.SetLock();
+                    r_node.Set(Flag);
+                    r_node.UnSetLock();
+                }
+            }
+        }
+    });
+}
+
+void ShallowWaterUtilities::NormalizeVector(ModelPart& rModelPart, const Variable<array_1d<double,3>>& rVariable)
 {
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
         auto& vector = rNode.FastGetSolutionStepValue(rVariable);
@@ -207,6 +234,33 @@ void ShallowWaterUtilities::SetMeshZCoordinate(ModelPart& rModelPart, const Vari
     });
 }
 
+void ShallowWaterUtilities::SwapYZCoordinates(ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+        std::swap(rNode.Y(), rNode.Z());
+    });
+}
+
+void ShallowWaterUtilities::SwapY0Z0Coordinates(ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+        std::swap(rNode.Y0(), rNode.Z0());
+    });
+}
+
+void ShallowWaterUtilities::StoreNonHistoricalGiDNoDataIfDry(ModelPart& rModelPart, const Variable<double>& rVariable)
+{
+    const double relative_dry_height = rModelPart.GetProcessInfo()[RELATIVE_DRY_HEIGHT];
+    const double length = rModelPart.ElementsBegin()->GetGeometry().Length();
+    const double dry_height = relative_dry_height * length;
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        const double height = rNode.FastGetSolutionStepValue(HEIGHT);
+        const bool is_wet = IsWet(height, dry_height);
+        const double value = (is_wet) ? rNode.FastGetSolutionStepValue(rVariable) : std::numeric_limits<float>::lowest();
+        rNode.SetValue(rVariable, value);
+    });
+}
+
 template<bool THistorical>
 double ShallowWaterUtilities::ComputeL2Norm(ModelPart& rModelPart, const Variable<double>& rVariable)
 {
@@ -241,18 +295,6 @@ double ShallowWaterUtilities::ComputeL2NormAABB(
         return partial_l2_norm;
     });
     return std::sqrt(l2_norm);
-}
-
-double ShallowWaterUtilities::InverseHeight(const double Height, const double Epsilon)
-{
-    const double h4 = std::pow(Height, 4);
-    const double epsilon4 = std::pow(Epsilon, 4);
-    return std::sqrt(2) * std::max(Height, .0) / std::sqrt(h4 + std::max(h4, epsilon4));
-}
-
-double ShallowWaterUtilities::WetFraction(const double Height, const double Epsilon)
-{
-    return Height * InverseHeight(Height, Epsilon);
 }
 
 void ShallowWaterUtilities::CalculateMassMatrix(Matrix& rMassMatrix, const GeometryType& rGeometry)
@@ -335,11 +377,14 @@ bool ShallowWaterUtilities::IsWet(const GeometryType& rGeometry, const double Re
 bool ShallowWaterUtilities::IsWet(const GeometryType& rGeometry, const double Height, const double RelativeDryHeight)
 {
     const double epsilon = RelativeDryHeight * rGeometry.Length();
-    const double wet_fraction = WetFraction(Height, epsilon);
-    const double threshold = 1.0 - 1e-16;
-    const bool is_wet = (wet_fraction >= threshold);
-    return is_wet;
+    return IsWet(Height, epsilon);
+}
 
+bool ShallowWaterUtilities::IsWet(const double Height, const double DryHeight)
+{
+    const double wet_fraction = PhaseFunction::WetFraction(Height, DryHeight);
+    const double threshold = 1.0 - 1e-6;
+    return (wet_fraction >= threshold);
 }
 
 template<>

@@ -164,8 +164,8 @@ namespace Testing {
         auto p_surface = surface_in_volume.pGetSurface();
 
         // Check kratos geometry families
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume;
         KRATOS_CHECK_EQUAL(surface_in_volume.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(surface_in_volume.GetGeometryType(), geometry_type);
 
@@ -209,8 +209,8 @@ namespace Testing {
         KRATOS_CHECK_NEAR( quad_geometries[0].DeterminantOfJacobian(0, integration_method )*weight, 0.5, 1e-10);
 
         // Check kratos geometry families
-        const int geometry_family_qp = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
-        const int geometry_type_qp = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry;
+        const auto geometry_family_qp = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
+        const auto geometry_type_qp = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry;
         KRATOS_CHECK_EQUAL(quad_geometries[0].GetGeometryFamily(), geometry_family_qp);
         KRATOS_CHECK_EQUAL(quad_geometries[0].GetGeometryType(), geometry_type_qp);
     }
@@ -237,8 +237,8 @@ namespace Testing {
         surface_in_volume.CreateQuadraturePointGeometries(quad_geometries, 2, integration_points_created, integration_info);
 
         // Check kratos geometry families
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume;
         KRATOS_CHECK_EQUAL(surface_in_volume.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(surface_in_volume.GetGeometryType(), geometry_type);
 
@@ -288,8 +288,8 @@ namespace Testing {
         KRATOS_CHECK_NEAR( global_area_triangle, std::sqrt(2.0)*2.0, 1e-10);
 
         // Check kratos geometry families
-        const int geometry_family_qp = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
-        const int geometry_type_qp = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry;
+        const auto geometry_family_qp = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
+        const auto geometry_type_qp = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry;
         for( SizeType i = 0; i < quad_geometries.size(); ++i ){
             KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryFamily(), geometry_family_qp);
             KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryType(), geometry_type_qp);
@@ -347,8 +347,8 @@ namespace Testing {
         surface_in_volume.CreateQuadraturePointGeometries(quad_geometries, 2, integration_points_created, integration_info);
 
         // Check kratos geometry families
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume;
         KRATOS_CHECK_EQUAL(surface_in_volume.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(surface_in_volume.GetGeometryType(), geometry_type);
 
@@ -407,8 +407,8 @@ namespace Testing {
         KRATOS_CHECK_NEAR( global_area_triangle, area_ref, 1e-10);
 
         // Check kratos geometry families
-        const int geometry_family_qp = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
-        const int geometry_type_qp = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry;
+        const auto geometry_family_qp = GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
+        const auto geometry_type_qp = GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry;
         for( SizeType i = 0; i < quad_geometries.size(); ++i ){
             KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryFamily(), geometry_family_qp);
             KRATOS_CHECK_EQUAL(quad_geometries[i].GetGeometryType(), geometry_type_qp);

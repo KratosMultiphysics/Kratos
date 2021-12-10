@@ -432,13 +432,13 @@ void MonolithicDEMCoupled<2,3>::CalculateWeights(ShapeFunctionDerivativesArrayTy
 
   const GeometryType& rGeom = this->GetGeometry();
   Vector DetJ;
-  rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, GeometryData::GI_GAUSS_2);
-  rNContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-  const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+  rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, GeometryData::IntegrationMethod::GI_GAUSS_2);
+  rNContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+  const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-  rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2), false);
+  rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2), false);
 
-  for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
+  for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2); g++)
       rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
 }
 
@@ -450,13 +450,13 @@ void MonolithicDEMCoupled<3,4>::CalculateWeights(ShapeFunctionDerivativesArrayTy
 {
     const GeometryType& rGeom = this->GetGeometry();
     Vector DetJ;
-    rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, GeometryData::GI_GAUSS_2);
-    rNContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+    rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, GeometryData::IntegrationMethod::GI_GAUSS_2);
+    rNContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-    rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2), false);
+    rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2), false);
 
-    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
+    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2); g++)
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
 }
 //ZZ

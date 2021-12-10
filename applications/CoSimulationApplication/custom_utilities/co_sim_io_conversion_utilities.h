@@ -16,8 +16,8 @@
 // System includes
 
 // External includes
-#include "custom_external_libraries/co_sim_io/impl/model_part.hpp"
-#include "custom_external_libraries/co_sim_io/impl/info.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/includes/model_part.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/includes/info.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -63,7 +63,8 @@ public:
 
     static void CoSimIOModelPartToKratosModelPart(
         const CoSimIO::ModelPart& rCoSimIOModelPart,
-        Kratos::ModelPart& rKratosModelPart);
+        Kratos::ModelPart& rKratosModelPart,
+        const DataCommunicator& rDataComm);
 
     static void KratosModelPartToCoSimIOModelPart(
         const Kratos::ModelPart& rKratosModelPart,

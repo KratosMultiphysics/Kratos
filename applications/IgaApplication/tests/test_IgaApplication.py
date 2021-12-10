@@ -46,6 +46,8 @@ from iga_test_factory import TwoPatchCantileverRefinedCouplingPenaltyTest as Two
 from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolumeElements
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
+# Processes tests
+from test_map_nurbs_volume_results_to_embedded_geometry_process import TestMapNurbsVolumeResultsToEmbeddedGeometryProcess as TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
 
 has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
@@ -91,7 +93,8 @@ def AssembleTestSuites():
         # Volumes
         TTestNurbsVolumeElements,
         # Modelers
-        TTestModelers
+        TTestModelers,
+        TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
     ]))
 
     if has_linear_solvers_application:

@@ -299,12 +299,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Triangle;
+        return GeometryData::KratosGeometryFamily::Kratos_Triangle;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Triangle3D3;
+        return GeometryData::KratosGeometryType::Kratos_Triangle3D3;
     }
 
     ///@}
@@ -609,7 +609,7 @@ public:
     }
 
 
-	bool AllSameSide(array_1d<double, 3> const& Distances)
+	bool AllSameSide(array_1d<double, 3> const& Distances) const
     {
         constexpr double epsilon = std::numeric_limits<double>::epsilon();
 
@@ -633,7 +633,7 @@ public:
 
 	}
 
-	int GetMajorAxis(array_1d<double, 3> const& V)
+	int GetMajorAxis(array_1d<double, 3> const& V) const
     {
         int index = static_cast<int>(std::abs(V[0]) < std::abs(V[1]));
         return (std::abs(V[index]) > std::abs(V[2])) ? index : 2;
@@ -641,11 +641,10 @@ public:
 
     /**
      * @brief Test the intersection with another geometry
-     * @details decomposes in smaller triangles
      * @param  ThisGeometry Geometry to intersect with
      * @return True if the geometries intersect, False in any other case.
      */
-    bool HasIntersection(const GeometryType& rThisGeometry) override
+    bool HasIntersection(const GeometryType& rThisGeometry) const override
     {
         const auto geometry_type = rThisGeometry.GetGeometryType();
 
@@ -676,7 +675,7 @@ public:
      * @param rLowPoint first corner of the box
      * @param rHighPoint second corner of the box
      */
-    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint) override
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint) const override
     {
         Point box_center;
         Point box_half_size;
@@ -1445,64 +1444,23 @@ public:
         return rResult;
     }
 
-    /**
-     * Calculates the Gradients of the shape functions.
-     * Calculates the gradients of the shape functions with regard to
-     * the global coordinates in all
-     * integration points (\f$ \frac{\partial N^i}{\partial X_j} \f$)
-     *
-     * @param rResult a container which takes the calculated gradients
-     * @param ThisMethod the given IntegrationMethod
-     *
-     * @return the gradients of all shape functions with regard to the global coordinates
-     * KLUDGE: method call only works with explicit JacobiansType rather than creating
-     * JacobiansType within argument list
-    */
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    ///@}
+    ///@name Shape Function Integration Points Gradient
+    ///@{
+
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
-        IntegrationMethod ThisMethod ) const override
+        IntegrationMethod ThisMethod) const override
     {
-        const unsigned int integration_points_number =
-            msGeometryData.IntegrationPointsNumber( ThisMethod );
+        KRATOS_ERROR << "Jacobian is not square" << std::endl;
+    }
 
-        if ( integration_points_number == 0 )
-            KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
-
-        //workaround by riccardo
-        if ( rResult.size() != integration_points_number )
-        {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            ShapeFunctionsGradientsType temp( integration_points_number );
-            rResult.swap( temp );
-        }
-
-        //calculating the local gradients
-        ShapeFunctionsGradientsType locG =
-            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-
-        //getting the inverse jacobian matrices
-        JacobiansType temp( integration_points_number );
-
-        JacobiansType invJ = InverseOfJacobian( temp, ThisMethod );
-
-        //loop over all integration points
-        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
-            rResult[pnt].resize( 3, 2,false );
-
-            for ( int i = 0; i < 3; i++ )
-            {
-                for ( int j = 0; j < 2; j++ )
-                {
-                    rResult[pnt]( i, j ) =
-                        ( locG[pnt]( i, 0 ) * invJ[pnt]( j, 0 ) )
-                        + ( locG[pnt]( i, 1 ) * invJ[pnt]( j, 1 ) );
-                }
-            }
-        }//end of loop over integration points
-
-        return rResult;
+    void ShapeFunctionsIntegrationPointsGradients(
+        ShapeFunctionsGradientsType &rResult,
+        Vector &rDeterminantsOfJacobian,
+        IntegrationMethod ThisMethod) const override
+    {
+        KRATOS_ERROR << "Jacobian is not square" << std::endl;
     }
 
     ///@}
@@ -1867,8 +1825,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -1904,8 +1861,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -1960,25 +1916,25 @@ private:
         {
             {
                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 ),
                  Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                     GeometryData::GI_EXTENDED_GAUSS_1 ),
+                     GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
                  Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                     GeometryData::GI_EXTENDED_GAUSS_2 ),
+                     GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
                  Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                     GeometryData::GI_EXTENDED_GAUSS_3 ),
+                     GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
                  Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                     GeometryData::GI_EXTENDED_GAUSS_4 ),
+                     GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
                  Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                     GeometryData::GI_EXTENDED_GAUSS_5 )
+                     GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -1993,16 +1949,16 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 ),
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 ),
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_1 ),
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_2 ),
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_3 ),
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_4 ),
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_5 )
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_1 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;
@@ -2076,7 +2032,7 @@ private:
 
     bool LineTriangleOverlap(
         const Point& rPoint1,
-        const Point& rPoint2)
+        const Point& rPoint2) const
     {
         array_1d<double,3> intersection_point;
         const int result = IntersectionUtilities::ComputeTriangleLineIntersection(*this, rPoint1, rPoint2, intersection_point);
@@ -2086,7 +2042,7 @@ private:
     bool TriangleTriangleOverlap(
         const Point& rPoint1,
         const Point& rPoint2,
-        const Point& rPoint3)
+        const Point& rPoint3) const
     {
         // Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
         // and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
@@ -2179,7 +2135,7 @@ private:
 		double& C,
 		double& X0,
 		double& X1
-		)
+		) const
 	{
 		double D0D1 = D0 * D1;
 		double D0D2 = D0 * D2;
@@ -2233,7 +2189,7 @@ private:
         const array_1d<double,3>& N,
 		const Point& rPoint1,
 		const Point& rPoint2,
-		const Point& rPoint3)
+		const Point& rPoint3) const
 	{
 		array_1d<double, 3 > A;
 		int i0, i1;
@@ -2279,9 +2235,9 @@ private:
 		const int& i1,
 		const Point& V0,
 		const Point& V1,
-		const Point& U0,
-		const Point& U1,
-		const Point& U2)
+		const Point&U0,
+		const Point&U1,
+		const Point&U2) const
 	{
 		double Ax, Ay, Bx, By, Cx, Cy, e, d, f;
 		Ax = V1[i0] - V0[i0];
@@ -2316,7 +2272,7 @@ private:
 		const int& i1,
 		const Point& V0,
 		const Point& U0,
-		const Point& U1)
+		const Point& U1) const
 	{
 		Bx = U0[i0] - U1[i0];
 		By = U0[i1] - U1[i1];
@@ -2346,7 +2302,7 @@ private:
         const Point& V0,
         const Point& U0,
         const Point& U1,
-        const Point& U2)
+        const Point& U2) const
     {
         double a,b,c,d0,d1,d2;
         /* is T1 completely inside T2? */
@@ -2365,7 +2321,7 @@ private:
         b = -(U0[i0] - U2[i0]);
         c = -a * U2[i0] - b * U2[i1];
         d2 = a * V0[i0] + b * V0[i1] + c;
-        
+
         if (d0 * d1 > 0.0){
             if (d0 * d2 > 0.0) return true;
         }
@@ -2380,7 +2336,7 @@ private:
      * 2) normal of the triangle
      * 3) crossproduct (edge from tri, {x,y,z}-direction) gives 3x3=9 more tests
      */
-    inline bool TriBoxOverlap(Point& rBoxCenter, Point& rBoxHalfSize)
+    inline bool TriBoxOverlap(Point& rBoxCenter, Point& rBoxHalfSize) const
     {
         double abs_ex, abs_ey, abs_ez, distance;
         array_1d<double,3 > vert0, vert1, vert2;
@@ -2459,7 +2415,7 @@ private:
      *
      * plane equation: rNormal*x+rDist=0
      */
-    bool PlaneBoxOverlap(const array_1d<double,3>& rNormal, const double& rDist, const array_1d<double,3>& rMaxBox)
+    bool PlaneBoxOverlap(const array_1d<double,3>& rNormal, const double& rDist, const array_1d<double,3>& rMaxBox) const
     {
         array_1d<double,3> vmin, vmax;
         for(int q = 0; q < 3; q++)
@@ -2495,7 +2451,7 @@ private:
                    double& rAbsEdgeY, double& rAbsEdgeZ,
                    array_1d<double,3>& rVertA,
                    array_1d<double,3>& rVertC,
-                   Point& rBoxHalfSize)
+                   Point& rBoxHalfSize) const
     {
         double proj_a, proj_c, rad;
         proj_a = rEdgeY*rVertA[2] - rEdgeZ*rVertA[1];
@@ -2522,7 +2478,7 @@ private:
                    double& rAbsEdgeX, double& rAbsEdgeZ,
                    array_1d<double,3>& rVertA,
                    array_1d<double,3>& rVertC,
-                   Point& rBoxHalfSize)
+                   Point& rBoxHalfSize) const
     {
         double proj_a, proj_c, rad;
         proj_a = rEdgeZ*rVertA[0] - rEdgeX*rVertA[2];
@@ -2549,7 +2505,7 @@ private:
                    double& rAbsEdgeX, double& rAbsEdgeY,
                    array_1d<double,3>& rVertA,
                    array_1d<double,3>& rVertC,
-                   Point& rBoxHalfSize)
+                   Point& rBoxHalfSize) const
     {
         double proj_a, proj_c, rad;
         proj_a = rEdgeX*rVertA[1] - rEdgeY*rVertA[0];
@@ -2619,7 +2575,7 @@ template<class TPointType> inline std::ostream& operator << (
 template<class TPointType> const
 GeometryData Triangle3D3<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     Triangle3D3<TPointType>::AllIntegrationPoints(),
     Triangle3D3<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()

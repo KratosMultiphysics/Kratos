@@ -188,8 +188,8 @@ namespace Testing {
             }
             KRATOS_CHECK_NEAR(volume, 32.21333333333333, TOLERANCE);
 
-            const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-            const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
+            const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+            const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
             KRATOS_CHECK_EQUAL(TruncatedPyramid.GetGeometryFamily(), geometry_family);
             KRATOS_CHECK_EQUAL(TruncatedPyramid.GetGeometryType(), geometry_type);
         }
@@ -335,8 +335,8 @@ namespace Testing {
         KRATOS_CHECK_NEAR(global_coordinates[2], 2.4642328320000004,TOLERANCE);
 
         // Check kratos geometry family
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
         KRATOS_CHECK_EQUAL(TruncatedPyramid.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(TruncatedPyramid.GetGeometryType(), geometry_type);
     }
@@ -360,8 +360,8 @@ namespace Testing {
         KRATOS_CHECK_NEAR(volume, 44.3259259259, TOLERANCE);
 
         // Check kratos geometry family
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
         KRATOS_CHECK_EQUAL(DistortedCube.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(DistortedCube.GetGeometryType(), geometry_type);
     }
@@ -434,8 +434,8 @@ namespace Testing {
         KRATOS_CHECK_NEAR(derivatives[9][2], 0.0, TOLERANCE);
 
         // Check kratos geometry family
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
         KRATOS_CHECK_EQUAL(DistortedCube.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(DistortedCube.GetGeometryType(), geometry_type);
     }
@@ -482,8 +482,8 @@ namespace Testing {
             TOLERANCE);
 
         // Check kratos geometry family
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
         KRATOS_CHECK_EQUAL(pyramid.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(pyramid.GetGeometryType(), geometry_type);
     }

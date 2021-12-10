@@ -289,6 +289,14 @@ public:
     /// Assignment operator.
     ModelPart & operator=(ModelPart const& rOther) = delete;
 
+    /// Function to wipe a modelpart clean,
+    /// However, variables list, buffer size and process info is preserved
+    void Clear();
+
+    /// Function to wipe a model part clean
+    /// Variables list, buffer size are not preserved
+    void Reset();
+
     ///@}
     ///@name Solution Steps
     ///@{

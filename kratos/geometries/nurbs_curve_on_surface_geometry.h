@@ -659,7 +659,7 @@ private:
 template<int TWorkingSpaceDimension, class TCurveContainerPointType, class TSurfaceContainerPointType>
 const GeometryData NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveContainerPointType, TSurfaceContainerPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
 
 template<int TWorkingSpaceDimension, class TCurveContainerPointType, class TSurfaceContainerPointType>
