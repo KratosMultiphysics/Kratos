@@ -88,6 +88,7 @@ namespace Kratos {
 
     // Initialize results
     int    num_of_particles                    =  r_modelpart.NumberOfElements();
+    int    num_ratio_particles                 = 0;
     int    time_step                           =  r_process_info[TIME_STEPS];
     double time                                =  r_process_info[TIME];
     double total_vol                           =  0.0;
@@ -137,6 +138,7 @@ namespace Kratos {
         if (flux_total != 0.0) {
           #pragma omp critical
           {
+            num_ratio_particles++;
             particle_flux_conducdir_ratio_avg   += flux_conducdir   / flux_total;
             particle_flux_conducindir_ratio_avg += flux_conducindir / flux_total;
             particle_flux_rad_ratio_avg         += flux_rad         / flux_total;
@@ -156,13 +158,13 @@ namespace Kratos {
 
     // Compute average of relative contribution of each heat transfer mechanism
     if (mGraph_ParticleHeatFluxContributions) {
-      particle_flux_conducdir_ratio_avg   /= num_of_particles;
-      particle_flux_conducindir_ratio_avg /= num_of_particles;
-      particle_flux_rad_ratio_avg         /= num_of_particles;
-      particle_flux_fric_ratio_avg        /= num_of_particles;
-      particle_flux_conv_ratio_avg        /= num_of_particles;
-      particle_flux_prescsurf_ratio_avg   /= num_of_particles;
-      particle_flux_prescvol_ratio_avg    /= num_of_particles;
+      particle_flux_conducdir_ratio_avg   /= num_ratio_particles;
+      particle_flux_conducindir_ratio_avg /= num_ratio_particles;
+      particle_flux_rad_ratio_avg         /= num_ratio_particles;
+      particle_flux_fric_ratio_avg        /= num_ratio_particles;
+      particle_flux_conv_ratio_avg        /= num_ratio_particles;
+      particle_flux_prescsurf_ratio_avg   /= num_ratio_particles;
+      particle_flux_prescvol_ratio_avg    /= num_ratio_particles;
     }
 
     // Write results to files
