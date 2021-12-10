@@ -62,7 +62,7 @@ void AddCustomUtilitiesToPython(pybind11::module& rModule)
     using Array6 = array_1d<double,6>;
     using Array9 = array_1d<double,9>;
 
-    pybind11::class_<HDF5::Detail::Vertex, HDF5::Detail::Vertex::Pointer>(rModule, "Vertex")
+    pybind11::class_<HDF5::Detail::Vertex, HDF5::Detail::Vertex::Pointer, Point>(rModule, "Vertex")
         .def(pybind11::init<const array_1d<double,3>&, const HDF5::PointLocatorAdaptor&, bool>())
         KRATOS_DEFINE_VERTEX_GETVALUE_OVERLOAD_BINDING(bool)
         KRATOS_DEFINE_VERTEX_GETVALUE_OVERLOAD_BINDING(int)
@@ -76,6 +76,7 @@ void AddCustomUtilitiesToPython(pybind11::module& rModule)
         KRATOS_DEFINE_VERTEX_GETVALUE_OVERLOAD_BINDING(DenseVector<int>)
         .def_static("MakeShared", &HDF5::Detail::Vertex::MakeShared)
         .def("IsLocated", &HDF5::Detail::Vertex::IsLocated)
+        .def("GetID", &HDF5::Detail::Vertex::GetID)
         ;
 
     pybind11::class_<HDF5::Detail::VertexContainerType, HDF5::Detail::VertexContainerType::Pointer>(rModule, "VertexContainer")
