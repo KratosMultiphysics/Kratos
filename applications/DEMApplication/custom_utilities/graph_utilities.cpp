@@ -110,16 +110,17 @@ namespace Kratos {
       ThermalSphericParticle<SphericParticle>& particle = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*it);
 
       // Accumulate total volume
-      double vol = particle.CalculateVolume();
-      total_vol += vol;
-
-      // Accumulate temperature results (min, max, avg, dev)
+      double vol  = particle.CalculateVolume();
       double temp = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
-      if (temp < particle_temp_min) particle_temp_min = temp;
-      if (temp > particle_temp_max) particle_temp_max = temp;
-      particle_temp_avg += temp;
-      particle_temp_dev += temp * temp;
-      model_temp_avg    += temp * vol;
+      #pragma omp critical
+      {
+        total_vol += vol;
+        if (temp < particle_temp_min) particle_temp_min = temp;
+        if (temp > particle_temp_max) particle_temp_max = temp;
+        particle_temp_avg += temp;
+        particle_temp_dev += temp * temp;
+        model_temp_avg    += temp * vol;
+      }
 
       if (mGraph_ParticleHeatFluxContributions) {
         // Get absolute value of particle heat transfer mechanisms
@@ -134,13 +135,16 @@ namespace Kratos {
 
         // Compute relative contribution of each heat transfer mechanism for current particle
         if (flux_total != 0.0) {
-          particle_flux_conducdir_ratio_avg   += flux_conducdir   / flux_total;
-          particle_flux_conducindir_ratio_avg += flux_conducindir / flux_total;
-          particle_flux_rad_ratio_avg         += flux_rad         / flux_total;
-          particle_flux_fric_ratio_avg        += flux_fric        / flux_total;
-          particle_flux_conv_ratio_avg        += flux_conv        / flux_total;
-          particle_flux_prescsurf_ratio_avg   += flux_prescsurf   / flux_total;
-          particle_flux_prescvol_ratio_avg    += flux_prescvol    / flux_total;
+          #pragma omp critical
+          {
+            particle_flux_conducdir_ratio_avg   += flux_conducdir   / flux_total;
+            particle_flux_conducindir_ratio_avg += flux_conducindir / flux_total;
+            particle_flux_rad_ratio_avg         += flux_rad         / flux_total;
+            particle_flux_fric_ratio_avg        += flux_fric        / flux_total;
+            particle_flux_conv_ratio_avg        += flux_conv        / flux_total;
+            particle_flux_prescsurf_ratio_avg   += flux_prescsurf   / flux_total;
+            particle_flux_prescvol_ratio_avg    += flux_prescvol    / flux_total;
+          }
         }
       }
     }
