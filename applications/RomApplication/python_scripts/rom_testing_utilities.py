@@ -25,6 +25,16 @@ def SetUpSimulationInstance(model, parameters, is_hrom = False, hyper_reduction_
 
     return simulation
 
+def GetNodalResults(model_part, variables_list):
+    # Set and return an array containing the values of the variables in the variable list
+    # Note that the array type variables need to be specified componentwise
+    results_array = []
+    for node in model_part.Nodes:
+        for variable in variables_list:
+            results_array.append(node.GetSolutionStepValue(variable))
+
+    return results_array
+
 def GetScalarNodalResults(model_part, variable):
     # Set and return an array containing the scalar variable values
     results_array = []
