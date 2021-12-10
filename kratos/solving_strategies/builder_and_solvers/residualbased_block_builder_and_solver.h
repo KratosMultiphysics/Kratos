@@ -539,7 +539,6 @@ public:
         Timer::Stop("Solve");
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
 
-
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
         KRATOS_CATCH("")
@@ -564,8 +563,9 @@ public:
         const bool MoveMesh
         ) override
     {
-        KRATOS_INFO_IF("BlockBuilderAndSolver", this->GetEchoLevel() > 0)
-            << "Linearizing on Old iteration" << std::endl;
+        Timer::Start("Linearizing on Old iteration");
+             
+        KRATOS_INFO_IF("BlockBuilderAndSolver", this->GetEchoLevel() > 0) << "Linearizing on Old iteration" << std::endl;
 
         KRATOS_ERROR_IF(rModelPart.GetBufferSize() == 1) << "BlockBuilderAndSolver: \n"
                 << "The buffer size needs to be at least 2 in order to use \n"
@@ -603,8 +603,14 @@ public:
         if (MoveMesh) {
             VariableUtils().UpdateCurrentPosition(rModelPart.Nodes(),DISPLACEMENT,0);
         }
+             
+        Timer::Stop("Linearizing on Old iteration");
 
+        Timer::Start("Build");
+             
         this->Build(pScheme, rModelPart, rA, rb);
+             
+        Timer::Stop("Build");
 
         // Put back the prediction into the database
         TSparseSpace::InplaceMult(dx_prediction, -1.0); //change sign to dx_prediction
@@ -617,7 +623,6 @@ public:
         if (MoveMesh) {
             VariableUtils().UpdateCurrentPosition(rModelPart.Nodes(),DISPLACEMENT,0);
         }
-
 
         // Apply rb -= A*dx_prediction
         TSparseSpace::Mult(rA, dx_prediction, rhs_addition);
@@ -634,7 +639,20 @@ public:
             KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
         }
         this->ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+             
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
+            
+        const auto timer = BuiltinTimer();
+             
+        Timer::Start("Solve");
+
         this->SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+
+        Timer::Stop("Solve");
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
+
     }
 
     /**
