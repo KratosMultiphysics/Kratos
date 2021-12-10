@@ -5,10 +5,10 @@ from mpmath import sech
 class SolitaryWaveSolution:
     """Base class for analytical solutions of a solitary wave."""
 
-    def __init__(self, depth, amplitude):
+    def __init__(self, depth, gravity=9.81, *, amplitude):
         self.depth = depth
         self.amplitude = amplitude
-        self.gravity = 9.81
+        self.gravity = gravity
         self.amplitude1 = self.amplitude
         self.amplitude2 = 0
 
@@ -49,7 +49,7 @@ class RayleighSolution(SolitaryWaveSolution):
         return np.sqrt(3 * self.amplitude / 4 / self.depth**2 / (self.depth + self.amplitude))
 
 
-class WeiSolution(SolitaryWaveSolution):
+class BoussinesqSolution(SolitaryWaveSolution):
     """Analytical solution for a solitary wave with the modified Boussinesq equations.
 
     G. Wei and J. T. Kirby, Time-dependent numerical Code for extended Boussinesq equations.
@@ -59,8 +59,8 @@ class WeiSolution(SolitaryWaveSolution):
     Journal of Waterway, Port, Coastal and Ocean Engineering, 1993
     """
 
-    def __init__(self, depth, amplitude):
-        super().__init__(depth, amplitude)
+    def __init__(self, depth, gravity=9.81, *, amplitude):
+        super().__init__(depth, gravity, amplitude=amplitude)
         self.beta = -0.531
         self.alpha = 0.5 * self.beta**2 + self.beta
         self.delta = self.amplitude / self.depth
