@@ -1,4 +1,7 @@
+# Core imports
 import KratosMultiphysics
+
+# HDF5 imports
 import KratosMultiphysics.HDF5Application as HDF5Application
 from KratosMultiphysics.HDF5Application.core.operations.model_part import Prefix
 
@@ -40,7 +43,7 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
 
         self.file_parameters = parameters["file_parameters"].Clone()
 
-        self.isMPIRun = self.model_part.IsDistributed()
+        self.is_distributed = self.model_part.IsDistributed()
 
         self.coordinates_prefix_pattern = parameters["coordinates_prefix"].GetString()
         self.variables_prefix_pattern = parameters["variables_prefix"].GetString()
@@ -73,7 +76,7 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
             "write_vertex_ids" : true
         }""")
         io_parameters["prefix"].SetString(coordinates_path)
-        with PointSetOutputProcess.OpenHDF5File(self.__GetCurrentFileParameters(), self.isMPIRun) as file:
+        with OpenHDF5File(self.__GetCurrentFileParameters(), self.is_distributed) as file:
             HDF5Application.VertexContainerCoordinateIO(io_parameters, file).Write(self.vertices)
 
 
@@ -86,7 +89,11 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
         io_parameters.AddString("prefix", prefix)
         io_parameters.AddValue("list_of_variables", self.variables.Clone())
 
-        with PointSetOutputProcess.OpenHDF5File(self.__GetCurrentFileParameters(), self.isMPIRun) as file:
+        # Set append mode to avoid overwriting the coordinates
+        file_parameters = self.__GetCurrentFileParameters()
+        file_parameters["file_access_mode"].SetString("read_write")
+
+        with OpenHDF5File(file_parameters, self.is_distributed) as file:
             HDF5Application.VertexContainerVariableIO(io_parameters, file).Write(self.vertices)
 
 
@@ -122,23 +129,23 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
         return parameters
 
 
-    class OpenHDF5File(object):
+class OpenHDF5File(object):
 
-        def __init__(self,
-                     file_parameters: KratosMultiphysics.Parameters,
-                     isMPIRun: bool):
-            parameters = file_parameters.Clone()
-            if isMPIRun:
-                parameters["file_driver"].SetString("mpio")
-                self.file =  HDF5Application.HDF5FileParallel(parameters)
-            else:
-                self.file =  HDF5Application.HDF5FileSerial(parameters)
-
-
-        def __enter__(self):
-            return self.file
+    def __init__(self,
+                    file_parameters: KratosMultiphysics.Parameters,
+                    is_distributed: bool):
+        parameters = file_parameters.Clone()
+        if is_distributed:
+            parameters["file_driver"].SetString("mpio")
+            self.file =  HDF5Application.HDF5FileParallel(parameters)
+        else:
+            self.file =  HDF5Application.HDF5FileSerial(parameters)
 
 
-        def __exit__(self, exit_type, exit_value, exit_traceback):
-            # HDF5::File has RAII, so this is the best we can do to close it
-            self.file = None
+    def __enter__(self):
+        return self.file
+
+
+    def __exit__(self, exit_type, exit_value, exit_traceback):
+        # HDF5::File has RAII, so this is the best we can do to close it
+        self.file = None
