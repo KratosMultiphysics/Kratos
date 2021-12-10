@@ -15,7 +15,8 @@ class CopySingleToDistributed(CoSimulationDataTransferOperator):
         data_comm = from_solver_data.model_part.GetCommunicator().GetDataCommunicator()
 
         if (not data_comm.SumAll(data_value.size) == 1):
-            raise Exception('Interface data "{}" of solver "{}" requires to be of size 1, got: {}'.format(from_solver_data.name, from_solver_data.solver_name, data_value.size))
+            if (not data_value.size == 1):
+                raise Exception('Interface data "{}" of solver "{}" requires to be of size 1, got: {}'.format(from_solver_data.name, from_solver_data.solver_name, data_value.size))
 
         # Get Value from solver, if not existent set 0
         if data_value.size == 0:
