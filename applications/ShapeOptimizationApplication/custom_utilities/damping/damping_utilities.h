@@ -169,11 +169,9 @@ public:
             // Loop over all nodes in specified damping sub-model part
             block_for_each(dampingRegion.Nodes(), [&](const ModelPart::NodeType& rNode) {
                 NodeVector neighbor_nodes( mMaxNeighborNodes );
-                DoubleVector resulting_squared_distances( mMaxNeighborNodes,0.0 );
                 const unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( rNode,
                                                                                  dampingRadius,
                                                                                  neighbor_nodes.begin(),
-                                                                                 resulting_squared_distances.begin(),
                                                                                  mMaxNeighborNodes );
 
                 ThrowWarningIfNodeNeighborsExceedLimit( rNode, number_of_neighbors );
