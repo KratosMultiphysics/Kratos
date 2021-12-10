@@ -127,6 +127,7 @@ void TransformNeighbourCoorsToClosestInPeriodicDomain(const ProcessInfo& r_proce
                                                     const double coors[3],
                                                     double neighbour_coors[3]);
 
+
 virtual bool CalculateRelativePositionsOrSkipContact(ParticleDataBuffer & data_buffer);
 
 void Initialize(const ProcessInfo& r_process_info) override;
@@ -181,7 +182,9 @@ virtual void RenewData();
 virtual void SendForcesToFEM();
 int   GetClusterId();
 void  SetClusterId(const int Id);
-
+double GetInitializationTime() const;
+double GetProgrammedDestructionTime() const;
+void SetProgrammedDestructionTime(const double time);
 virtual double GetRadius();
 virtual void   SetRadius(double radius);
 virtual void   SetRadius();
@@ -429,6 +432,8 @@ virtual void ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& tot
 
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> mDiscontinuumConstitutiveLaw;
 
+double mInitializationTime;
+double mProgrammedDestructionTime=-1.0; // set to a negative value, so that when marked TO_ERASE, elimination is by default.
 double mRadius;
 double mSearchRadius;
 double mRealMass;

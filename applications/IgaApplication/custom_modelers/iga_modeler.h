@@ -138,7 +138,15 @@ private:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rModelPart,
-        const Parameters rParameters) const;
+        const Parameters rParameters,
+        std::string GeometryType) const;
+
+    void CreateQuadraturePointGeometriesAtIsoCurve(
+        GeometryType& rGeometry,
+        GeometriesArrayType& rQuadraturePointGeometryList,
+        int ShapeFunctionDerivativesOrder,
+        IntegrationInfo& rIntegrationInfo,
+        const Vector& rLocalCoordinates) const;
 
     ///@}
     ///@name CAD functionalities

@@ -4,7 +4,8 @@ import KratosMultiphysics.MappingApplication as Mapping
 from KratosMultiphysics.kratos_utilities import GenerateVariableListFromInput
 from KratosMultiphysics.HDF5Application import import_model_part_from_hdf5_process
 from KratosMultiphysics.HDF5Application import single_mesh_temporal_input_process
-from os import path, listdir
+from os.path import commonprefix
+from pathlib import Path
 
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
@@ -87,18 +88,18 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
 
     def _GetInputTimes(self, file_settings):
         # Get all the file names
-        file_name = file_settings["file_name"].GetString()
-        folder_name = path.dirname(file_name)
-        file_names = [f for f in listdir(folder_name) if path.isfile(path.join(folder_name, f))]
+        file = Path(file_settings["file_name"].GetString())
+        directory = file.parent
+        file_names = [str(f) for f in directory.glob("*.h5")]
 
         # Find the common parts (prefix and suffix) of the found names and the file pattern
         # The different part is the time, we need to store all the available times
-        self.file_pattern = path.basename(file_name)
-        self.file_pattern = self.file_pattern.replace('<model_part_name>', self.input_model_part.Name)
-        prefix = path.commonprefix([self.file_pattern, file_names[0]])
-        suffix = self.file_pattern.replace(prefix, '')
-        suffix = path.commonprefix([''.join(reversed(suffix)), ''.join(reversed(file_names[0]))])
+        file_pattern = str(file).replace('<model_part_name>', self.input_model_part.Name)
+        prefix = commonprefix([file_pattern, file_names[0]])
+        suffix = commonprefix([''.join(reversed(file_pattern)), ''.join(reversed(file_names[0]))])
         suffix = ''.join(reversed(suffix))
+
+        # Store the times
         self.times = []
         for f in file_names:
             f = f.replace(prefix, '')

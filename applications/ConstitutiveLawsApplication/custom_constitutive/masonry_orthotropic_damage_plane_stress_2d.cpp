@@ -309,20 +309,31 @@ namespace Kratos
     double MasonryOrthotropicDamagePlaneStress2DLaw::CalculateDamageAngle(
         const array_1d<double, 3>& rStressVector)
     {
-        array_1d<double, 2> local_stress_1, local_coordinate_1;
-        local_stress_1[0] = rStressVector[0];
-        local_stress_1[1] = rStressVector[2]/2;
-        local_coordinate_1[0] = 0;
-        local_coordinate_1[1] = 1;
-        if (norm_2(local_stress_1) < 1e-2 && sqrt(pow(rStressVector[1], 2) + pow(rStressVector[2] / 2, 2)) > 1e-2) {
-            local_stress_1[0] = rStressVector[2]/2;
-            local_stress_1[1] = rStressVector[1];
-            local_coordinate_1[0] = 1;
-            local_coordinate_1[1] = 0;
-        }
-        else return 0;
+        //array_1d<double, 2> local_stress_1, local_coordinate_1;
+        //local_stress_1[0] = rStressVector[0];
+        //local_stress_1[1] = rStressVector[2];
+        //local_coordinate_1[0] = 0;
+        //local_coordinate_1[1] = 1;
+        //if (norm_2(local_stress_1) < 1e-2 && sqrt(pow(rStressVector[1], 2) + pow(rStressVector[2], 2)) > 1e-2) {
+        //    local_stress_1[0] = rStressVector[2]c;
+        //    local_stress_1[1] = rStressVector[1];
+        //    local_coordinate_1[0] = 1;
+        //    local_coordinate_1[1] = 0;
+        //}
+        //else return 0;
 
-        return acos(inner_prod(local_stress_1, local_coordinate_1)/(norm_2(local_stress_1)));
+        if (std::abs(rStressVector[0] * rStressVector[1]) < 0.000001)
+            return 0;
+        if (rStressVector[0] > rStressVector[1])
+        {
+            return 0.5 * (atan((2 * rStressVector[2]) / (rStressVector[0] * rStressVector[1])));
+        }
+        else
+        {
+            return 0.5 * (atan((2 * rStressVector[2]) / (rStressVector[0] * rStressVector[1]))) + 3.14159265358979323846/2;
+        }
+
+        //return acos(inner_prod(local_stress_1, local_coordinate_1)/(norm_2(local_stress_1)));
 
     }
     /***********************************************************************************/

@@ -59,6 +59,7 @@ public:
 
     /// Counted pointer of NurbsSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsSurfaceGeometry);
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -941,6 +942,7 @@ private:
         rSerializer.save("KnotsU", mKnotsU);
         rSerializer.save("KnotsV", mKnotsV);
         rSerializer.save("Weights", mWeights);
+        rSerializer.save("pGeometryParent", mpGeometryParent);
     }
 
     void load(Serializer& rSerializer) override
@@ -951,6 +953,7 @@ private:
         rSerializer.load("KnotsU", mKnotsU);
         rSerializer.load("KnotsV", mKnotsV);
         rSerializer.load("Weights", mWeights);
+        rSerializer.load("pGeometryParent", mpGeometryParent);
     }
 
     NurbsSurfaceGeometry() : BaseType(PointsArrayType(), &msGeometryData) {};

@@ -92,7 +92,7 @@ public:
     /// Constructor with points, geometry shape function container, parent
     QuadraturePointCurveOnSurfaceGeometry(
         const PointsArrayType& ThisPoints,
-        GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
+        GeometryShapeFunctionContainerType ThisGeometryShapeFunctionContainer,
         double LocalTangentsU,
         double LocalTangentsV,
         GeometryType* pGeometryParent)
