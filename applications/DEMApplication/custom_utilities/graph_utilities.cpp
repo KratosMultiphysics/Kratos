@@ -92,7 +92,7 @@ namespace Kratos {
     double time                                = r_process_info[TIME];
     double total_vol                           = 0.0;
     double particle_temp_min                   = DBL_MAX;
-    double particle_temp_max                   = DBL_MIN;
+    double particle_temp_max                   = -DBL_MAX;
     double particle_temp_avg                   = 0.0;
     double particle_temp_dev                   = 0.0;
     double model_temp_avg                      = 0.0;
