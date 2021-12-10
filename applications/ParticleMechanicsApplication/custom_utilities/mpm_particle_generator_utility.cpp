@@ -993,6 +993,56 @@ namespace MPMParticleGeneratorUtility
 
         // Get shape function values
         if (!IsEqualVolumes) rN = rGeom.ShapeFunctionsValues(rIntegrationMethod);
+        // TODO: Distribute boundary particles equally for line in 2D (only hardcoded....)
+        if (geo_type == GeometryData::Kratos_Line2D2  || geo_type == GeometryData::Kratos_Line3D2)
+        {
+            IsEqualVolumes = true;
+            switch (ParticlesPerCondition)
+            {
+            case 1:
+                rN(0,0) = 0.5;
+                rN(0,1) = 0.5;
+                break;
+            case 2:
+                rN(0,0) = 0.75;
+                rN(0,1) = 0.25;
+                rN(1,0) = 0.25;
+                rN(1,1) = 0.75;
+                break;
+            case 3:
+                rN(0,0) = 0.8333333;
+                rN(0,1) = 0.1666667;
+                rN(1,0) = 0.5;
+                rN(1,1) = 0.5;
+                rN(2,0) = 0.1666667;
+                rN(2,1) = 0.8333333;
+                break;
+            case 4:
+                rN(0,0) = 0.875;
+                rN(0,1) = 0.125;
+                rN(1,0) = 0.625;
+                rN(1,1) = 0.375;
+                rN(2,0) = 0.375;
+                rN(2,1) = 0.625;
+                rN(3,0) = 0.125;
+                rN(3,1) = 0.875;
+                break;
+            case 5:
+                rN(0,0) = 0.9;
+                rN(0,1) = 0.1;
+                rN(1,0) = 0.7;
+                rN(1,1) = 0.3;
+                rN(2,0) = 0.5;
+                rN(2,1) = 0.5;
+                rN(3,0) = 0.3;
+                rN(3,1) = 0.7;
+                rN(4,0) = 0.1;
+                rN(4,1) = 0.9;
+                break;
+            default:
+                break;
+            }
+        }
     }
 
     //
