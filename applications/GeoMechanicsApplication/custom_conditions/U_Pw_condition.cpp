@@ -40,29 +40,22 @@ void UPwCondition<TDim,TNumNodes>::
     if (rConditionDofList.size() != conditionSize)
         rConditionDofList.resize( conditionSize );
 
-    if (TDim == 3)
-    {
+    if (TDim == 2) {
         unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
+            rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
+            rConditionDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
+        }
+    } else if (TDim == 3) {
+        unsigned int index = 0;
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
             rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
             rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
             rConditionDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
         }
-    }
-    else if (TDim == 2)
-    {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
-            rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
-            rConditionDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
-            rConditionDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
-        }
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR << "undefined dimension in U_Pw_condition!!" << std::endl;
     }
 
@@ -145,29 +138,22 @@ void UPwCondition<TDim,TNumNodes>::
     if (rResult.size() != conditionSize)
         rResult.resize( conditionSize );
 
-    if (TDim == 3)
-    {
+    if (TDim == 2) {
         unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
+        }
+    } else if (TDim == 3) {
+        unsigned int index = 0;
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
             rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
         }
-    }
-    else if (TDim == 2)
-    {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
-            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
-            rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
-        }
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR << "Undefined dimension in U_Pw_condition!!" << std::endl;
     }
 
@@ -181,7 +167,7 @@ void UPwCondition<TDim,TNumNodes>::
                   VectorType& rRightHandSideVector,
                   const ProcessInfo& CurrentProcessInfo )
 {
-    this->CalculateRHS(rRightHandSideVector,CurrentProcessInfo);
+    this->CalculateRHS(rRightHandSideVector, CurrentProcessInfo);
 }
 
 //----------------------------------------------------------------------------------------
