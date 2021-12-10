@@ -188,7 +188,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the end of the iteration process

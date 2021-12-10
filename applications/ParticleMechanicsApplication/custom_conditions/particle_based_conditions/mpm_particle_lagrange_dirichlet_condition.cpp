@@ -110,6 +110,23 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
 
 }
 
+void MPMParticleLagrangeDirichletCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+
+    // At the beginning of NonLinearIteration, REACTION has to be reset to zero
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        r_geometry[i].SetLock();
+        r_geometry[i].FastGetSolutionStepValue(REACTION).clear();
+        r_geometry[i].UnSetLock();
+    }
+
+      
+}
+
 void MPMParticleLagrangeDirichletCondition::MPMShapeFunctionPointValues( Vector& rResult ) const
 {
     KRATOS_TRY
@@ -281,12 +298,43 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
         KRATOS_WATCH("NO CONDITIONS APPLIED")
         
     }
+    m_rhs = rRightHandSideVector;
 
     KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
 //************************************************************************************
+void MPMParticleLagrangeDirichletCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    MPMParticleBaseDirichletCondition::FinalizeNonLinearIteration(rCurrentProcessInfo);
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    GeneralVariables Variables;
+
+    // Calculate nodal forces
+    Vector nodal_force = ZeroVector(3);
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+    {
+        for (unsigned int j = 0; j < dimension; j++)
+        {
+            nodal_force[j] = m_rhs[dimension * i + j];
+        }
+
+        // Check whether there nodes are active and associated to material point elements
+        const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+        if (nodal_mass > std::numeric_limits<double>::epsilon())
+        {
+            r_geometry[i].SetLock();
+            r_geometry[i].FastGetSolutionStepValue(REACTION) += nodal_force;
+            r_geometry[i].UnSetLock();
+        }
+
+    }
+    KRATOS_CATCH( "" )
+}
 
 void MPMParticleLagrangeDirichletCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {

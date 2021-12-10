@@ -71,6 +71,24 @@ MPMParticlePenaltyDirichletCondition::~MPMParticlePenaltyDirichletCondition()
 void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     MPMParticleBaseDirichletCondition::InitializeSolutionStep( rCurrentProcessInfo );
+    // Prepare variables
+    GeneralVariables Variables;
+    MPMShapeFunctionPointValues(Variables.N);
+
+    // Get NODAL_AREA from MPC_Area
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    const double & r_mpc_area = this->GetIntegrationWeight();
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (r_geometry[i].SolutionStepsDataHas(NODAL_AREA))
+        {
+            r_geometry[i].SetLock();
+            r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0) += Variables.N[i] * r_mpc_area;
+            r_geometry[i].UnSetLock();
+        }
+        else break;
+    }
 
     // Additional treatment for slip conditions
     if (Is(SLIP))
@@ -92,6 +110,23 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
             r_geometry[i].UnSetLock();
         }
     }
+}
+
+void MPMParticlePenaltyDirichletCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+
+    // At the beginning of NonLinearIteration, REACTION has to be reset to zero
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        r_geometry[i].SetLock();
+        r_geometry[i].FastGetSolutionStepValue(REACTION).clear();
+        r_geometry[i].UnSetLock();
+    }
+
+      
 }
 
 //************************************************************************************
@@ -236,18 +271,74 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
             noalias(rLeftHandSideMatrix) = IdentityMatrix(matrix_size);
         }
     }
+    m_rhs = rRightHandSideVector;
 
     KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
 //************************************************************************************
+void MPMParticlePenaltyDirichletCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    MPMParticleBaseDirichletCondition::FinalizeNonLinearIteration(rCurrentProcessInfo);
+    
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    GeneralVariables Variables;
+
+    // Calculate nodal forces
+    Vector nodal_force = ZeroVector(3);
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+    {
+        for (unsigned int j = 0; j < dimension; j++)
+        {
+            nodal_force[j] = m_rhs[dimension * i + j];
+        }
+        
+
+        // Check whether there nodes are active and associated to material point elements
+        const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+        if (nodal_mass > std::numeric_limits<double>::epsilon())
+        {
+            r_geometry[i].SetLock();
+            r_geometry[i].FastGetSolutionStepValue(REACTION) += nodal_force;
+            r_geometry[i].UnSetLock();
+        }
+
+    }
+    KRATOS_CATCH( "" )
+}
 
 void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
     MPMParticleBaseDirichletCondition::FinalizeSolutionStep(rCurrentProcessInfo);
+
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = GetGeometry().size();
+    GeneralVariables Variables;
+    const double & r_mpc_area = this->GetIntegrationWeight();
+    MPMShapeFunctionPointValues(Variables.N);
+
+    // Interpolate the force to mpc_force assuming linear shape function
+    array_1d<double, 3 > mpc_force = ZeroVector(3);
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+    {
+        // Check whether there is material point inside the node
+        const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+        const double nodal_area  = r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
+        const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
+
+        if (nodal_mass > std::numeric_limits<double>::epsilon() && nodal_area > std::numeric_limits<double>::epsilon())
+        {
+            mpc_force += Variables.N[i] * nodal_force * r_mpc_area / nodal_area;
+        }
+        
+    }
+    m_contact_force = mpc_force;
 
     // Additional treatment for slip conditions
     if (Is(SLIP))
@@ -298,6 +389,9 @@ void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Va
     else if (rVariable == MPC_NORMAL) {
         rValues[0] = m_unit_normal;
     }
+    else if (rVariable == MPC_CONTACT_FORCE) {
+        rValues[0] = m_contact_force;
+    }
     else {
         MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
@@ -336,6 +430,9 @@ void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(
     else if (rVariable == MPC_NORMAL) {
         m_unit_normal = rValues[0];
         ParticleMechanicsMathUtilities<double>::Normalize(m_unit_normal);
+    }
+    else if (rVariable == MPC_CONTACT_FORCE) {
+        m_contact_force = rValues[0];
     }
     else {
         MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(

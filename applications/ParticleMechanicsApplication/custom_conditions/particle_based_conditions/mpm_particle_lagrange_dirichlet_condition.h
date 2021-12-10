@@ -95,6 +95,15 @@ public:
      */
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    /**
+     * Called at the begining at each nonlinear iteration
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Operations
     ///@{
@@ -280,6 +289,7 @@ private:
         int m_corresponding_condition_id = 0;
         int m_corresponding_node_id = 0;
         int m_counter = 0;
+        VectorType m_rhs;
 
     ///@}
     ///@name Private Operators

@@ -172,17 +172,17 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                         
                 mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,[self.value],self.model_part.ProcessInfo)
 
-    def ExecuteFinalizeSolutionStep(self):
-        if (self.boundary_condition_type == 2):
-            mpm_model_part = self.model_part.GetRootModelPart()
-            lagrange_model_part = mpm_model_part.GetSubModelPart("lagrange_condition")
+    # def ExecuteFinalizeSolutionStep(self):
+    #     if (self.boundary_condition_type == 2):
+    #         mpm_model_part = self.model_part.GetRootModelPart()
+    #         lagrange_model_part = mpm_model_part.GetSubModelPart("lagrange_condition")
             
-            for mpc in self.model_part.Conditions:
-                id_lagrange_cond = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_CORRESPONDING_CONDITION_ID, self.model_part.ProcessInfo)[0] 
-                contact_force = lagrange_model_part.GetCondition(id_lagrange_cond).CalculateOnIntegrationPoints(KratosParticle.MPC_CONTACT_FORCE, self.model_part.ProcessInfo)[0]
-                counter = lagrange_model_part.GetCondition(id_lagrange_cond).CalculateOnIntegrationPoints(KratosParticle.MPC_COUNTER, self.model_part.ProcessInfo)[0]
-                for i in range(3):
-                    contact_force[i] = contact_force[i]/counter
+    #         for mpc in self.model_part.Conditions:
+    #             id_lagrange_cond = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_CORRESPONDING_CONDITION_ID, self.model_part.ProcessInfo)[0] 
+    #             contact_force = lagrange_model_part.GetCondition(id_lagrange_cond).CalculateOnIntegrationPoints(KratosParticle.MPC_CONTACT_FORCE, self.model_part.ProcessInfo)[0]
+    #             counter = lagrange_model_part.GetCondition(id_lagrange_cond).CalculateOnIntegrationPoints(KratosParticle.MPC_COUNTER, self.model_part.ProcessInfo)[0]
+    #             for i in range(3):
+    #                 contact_force[i] = contact_force[i]/counter
 
-                mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_CONTACT_FORCE, [contact_force], self.model_part.ProcessInfo)
+    #             mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_CONTACT_FORCE, [contact_force], self.model_part.ProcessInfo)
 

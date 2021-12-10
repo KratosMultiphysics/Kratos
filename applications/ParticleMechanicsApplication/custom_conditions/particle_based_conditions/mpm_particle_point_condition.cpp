@@ -62,6 +62,28 @@ namespace Kratos
     MPMParticlePointCondition::~MPMParticlePointCondition()
     {
     }
+    void MPMParticlePointCondition::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
+    {
+        
+        // Prepare variables
+        GeneralVariables Variables;
+        Variables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
+
+        // Get NODAL_AREA from MPC_Area
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            if (r_geometry[i].SolutionStepsDataHas(NODAL_AREA))
+            {
+                r_geometry[i].SetLock();
+                r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0) += Variables.N[i] * m_area;
+                r_geometry[i].UnSetLock();
+            }
+            else break;
+        }
+
+    }
 
 
     void MPMParticlePointCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
@@ -79,7 +101,7 @@ namespace Kratos
         array_1d<double, 3 > MPC_velocity = ZeroVector(3);
         
         Variables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
-
+        
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
@@ -141,6 +163,7 @@ namespace Kratos
 
         array_1d<double,3> delta_xg = ZeroVector(3);
         array_1d<double, 3 > MPC_velocity = ZeroVector(3);
+        array_1d<double, 3 > mpc_force = ZeroVector(3);
         
 
         Variables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
@@ -158,12 +181,21 @@ namespace Kratos
                     delta_xg[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
                     MPC_velocity[j] += Variables.N[i] * nodal_velocity[j];
                 }
+                const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+                const double nodal_area  = r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
+                const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
+
+                if (nodal_mass > std::numeric_limits<double>::epsilon() && nodal_area > std::numeric_limits<double>::epsilon())
+                {
+                    mpc_force += Variables.N[i] * nodal_force * m_area / nodal_area;
+                }
             }
         }
         
         // Update the Material Point Condition Position
         m_xg += delta_xg ;
         m_velocity = MPC_velocity;
+        m_contact_force = mpc_force;
     }
 
     void MPMParticlePointCondition::CalculateOnIntegrationPoints(
