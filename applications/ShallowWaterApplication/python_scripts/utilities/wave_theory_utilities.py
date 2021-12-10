@@ -1,7 +1,5 @@
 from numpy import pi, sqrt, tanh
 from scipy.optimize import root
-import KratosMultiphysics as KM
-import KratosMultiphysics.ShallowWaterApplication as SW
 
 
 class WaveTheory:
@@ -10,7 +8,7 @@ class WaveTheory:
     def __init__(self, depth, gravity=9.81, *, period=0, wavelength=0, amplitude=0):
         self.gravity = gravity
         self.depth = depth
-        if wavelength > 0 and amplitude > 0:
+        if wavelength > 0 and period > 0:
             raise Exception('WaveTheory. Specify only the wavelength or the period.')
         self.SetPeriod(period)
         self.SetWavelength(wavelength)
@@ -30,9 +28,6 @@ class WaveTheory:
         if amplitude > 0:
             self.amplitude = amplitude
 
-    def SetWaveSpecifications(self, parameters = KM.Parameters(), process_info = KM.ProcessInfo()):
-        _CheckAndSetWaveSpecifications(self, parameters, process_info)
-
     @property
     def horizontal_velocity(self):
         return self._HorizontalVelocity(self.amplitude, self.frequency, self.wavenumber)
@@ -50,16 +45,13 @@ class WaveTheory:
         return 2 * pi / self.period
 
     def _DispersionRelation(self, wavenumber):
-        KM.Logger.PrintWarning('WaveTheory base class: it is not possible to calculate the disperison relation.')
-        return 0
+        raise Exception('WaveTheory base class: it is not possible to calculate the disperison relation.')
 
     def _HorizontalVelocity(self, amplitude, frequency, wavenumber):
-        KM.Logger.PrintWarning('WaveTheory base class: it is not possible to calculate the horizontal velocity.')
-        return 0
+        raise Exception('WaveTheory base class: it is not possible to calculate the horizontal velocity.')
 
     def _PhaseSpeed(self, wavenumber):
-        KM.Logger.PrintWarning('WaveTheory base class: it is not possible to calculate the phase speed.')
-        return 0
+        raise Exception('WaveTheory base class: it is not possible to calculate the phase speed.')
 
     def _CalculateFrequency(self, wavenumber):
         return sqrt(self._DispersionRelation(wavenumber))
@@ -138,32 +130,3 @@ class ShallowTheory(WaveTheory):
     def _PhaseSpeed(self, wavenumber):
         gh = self.gravity * self.depth
         return sqrt(gh)
-
-
-def _CheckAndSetWaveSpecifications(wave_theory, parameters, process_info):
-    # Check and get the wave specifications if provided
-    period = _CheckAndGetIfAvailable(parameters, process_info, "period", SW.PERIOD)
-    wavelength = _CheckAndGetIfAvailable(parameters, process_info, "wavelength", SW.WAVELENGTH)
-    amplitude = _CheckAndGetIfAvailable(parameters, process_info, "amplitude", SW.AMPLITUDE)
-
-    # Check if the wave specification is unique
-    if period and wavelength:
-        raise Exception("WaveGeneratorProcess. Provide the period or the wavelength. Both parameters are incompatible.")
-    if not period and not wavelength:
-        raise Exception("WaveGeneratorProcess. Please, specify the wavelength or the period in the project paramenters or hte process info.")
-    if not amplitude:
-        raise Exception("WaveGeneratorProcess. Please, specify the amplitude in the project parameters or the process info.")
-
-    # Apply the user settings
-    wave_theory.SetWavelength(wavelength)
-    wave_theory.SetPeriod(period)
-    wave_theory.SetAmplitude(amplitude)
-
-
-def _CheckAndGetIfAvailable(parameters, process_info, name, variable):
-    if parameters.Has(name):
-        return parameters[name].GetDouble()
-    elif process_info.Has(variable):
-        return process_info.GetValue(variable)
-    else:
-        return 0
