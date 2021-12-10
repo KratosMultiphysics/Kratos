@@ -94,6 +94,8 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
       typedef BinsObjectDynamicPeriodic<ElementConfigureType>       BinsTypePeriodic;
       typedef std::unique_ptr<BinsType>                             BinsUniquePointerType;
       typedef BinsObjectDynamic<NodeConfigureType>                  NodeBinsType;
+      typedef BinsObjectDynamicPeriodic<NodeConfigureType>          NodeBinsTypePeriodic;
+      typedef std::unique_ptr<NodeBinsType>                         NodeBinsUniquePointerType;
       typedef BinsObjectDynamic<GeometricalConfigureType>           GeometricalBinsType;
 
       //GeoimetricalObject
@@ -336,29 +338,43 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
 
           int MaxNumberOfNodes = rStructureNodes.size();
 
-          NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
-          NodesContainerType::ContainerType& nodes_ModelPart = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
+          NodesContainerType::ContainerType& nodes_ModelPart = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
+          NodesContainerType::ContainerType& nodes_array = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
+          KRATOS_WATCH(Radius)
+          KRATOS_WATCH(rStructureNodes.size())
+          KRATOS_WATCH(rNodes.size())
+          KRATOS_WATCH(nodes_array.size())
+          KRATOS_WATCH(nodes_ModelPart.size())
 
-          NodeBinsType bins(nodes_ModelPart.begin(), nodes_ModelPart.end());
+        //   NodeBinsType bins(nodes_ModelPart.begin(), nodes_ModelPart.end());
+          NodeBinsUniquePointerType p_bins = GetBins(nodes_ModelPart);
+        KRATOS_WATCH("afterrrrrrrrrrr")
+
 
           #pragma omp parallel
           {
               ResultNodesContainerType  localResults(MaxNumberOfNodes);
               DistanceType              localResultsDistances(MaxNumberOfNodes);
               std::size_t               NumberOfResults = 0;
-
+              KRATOS_WATCH(MaxNumberOfNodes)
               #pragma omp for
               for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
               {
                   ResultNodesContainerType::iterator    ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
-
-                  NumberOfResults = bins.SearchObjectsInRadiusExclusive(nodes_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfNodes);
-
+                  KRATOS_WATCH(Radius[i])
+                  NumberOfResults = p_bins->SearchObjectsInRadiusExclusive(nodes_array[i],Radius[i],ResultsPointer,MaxNumberOfNodes);
+                  KRATOS_WATCH("OK")
+                  KRATOS_WATCH(rResults)
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
+                  KRATOS_WATCH("OK2")
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
+                  KRATOS_WATCH("OK3")
               }
           }
+          KRATOS_WATCH(rResults)
+          KRATOS_WATCH(rResultsDistance)
+          KRATOS_WATCH("end")
 
           KRATOS_CATCH("")
       }
@@ -804,6 +820,17 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
 
             else {
                 return std::unique_ptr<BinsType>(new BinsType(r_model_part_container.begin(), r_model_part_container.end()));
+            }
+        }
+
+        NodeBinsUniquePointerType GetBins(NodesContainerType::ContainerType& r_model_part_container)
+        {
+            if (mDomainPeriodicity){
+                return std::unique_ptr<NodeBinsType>(new NodeBinsTypePeriodic(r_model_part_container.begin(), r_model_part_container.end(), this->mDomainMin, this->mDomainMax));
+            }
+
+            else {
+                return std::unique_ptr<NodeBinsType>(new NodeBinsType(r_model_part_container.begin(), r_model_part_container.end()));
             }
         }
 
