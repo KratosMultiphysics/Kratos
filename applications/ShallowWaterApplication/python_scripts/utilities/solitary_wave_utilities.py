@@ -7,25 +7,25 @@ class SolitaryWaveSolution:
 
     def __init__(self, depth, gravity=9.81, *, amplitude):
         self.depth = depth
-        self.amplitude = amplitude
         self.gravity = gravity
-        self.amplitude1 = self.amplitude
+        self.amplitude = amplitude
+        self.amplitude1 = amplitude
         self.amplitude2 = 0
 
     def eta(self, x, t):
-        phase = self.k * (self.c * t - x)
+        phase = self.wavenumber * (self.phase_speed * t - x)
         return self.amplitude1 * sech(phase)**2 + self.amplitude2 * sech(phase)**4
 
     def u(self, x, t):
         eta = self.eta(x, t)
-        return self.c * eta / (self.depth + eta)
+        return self.phase_speed * eta / (self.depth + eta)
 
     @property
-    def k(self):
-        raise Exception("SolitaryWaveSolution. The wavenumber 'k' is not defined in the base class.")
+    def wavenumber(self):
+        raise Exception("SolitaryWaveSolution. The wavenumber is not defined in the base class.")
 
     @property
-    def c(self):
+    def phase_speed(self):
         return np.sqrt(self.gravity * (self.amplitude + self.depth))
 
 
@@ -37,7 +37,7 @@ class GoringSolution(SolitaryWaveSolution):
     """
 
     @property
-    def k(self):
+    def wavenumber(self):
         return np.sqrt(3 / 4 * self.amplitude / self.depth**3)
 
 
@@ -49,7 +49,7 @@ class RayleighSolution(SolitaryWaveSolution):
     """
 
     @property
-    def k(self):
+    def wavenumber(self):
         return np.sqrt(3 * self.amplitude / 4 / self.depth**2 / (self.depth + self.amplitude))
 
 
@@ -84,12 +84,19 @@ class BoussinesqSolution(SolitaryWaveSolution):
         self.amplitude2 = -(c2 - gh)**2 / 2 / gh / c2 * (gha3 + 2 * self.alpha * c2) / (gha3 - self.alpha * c2) * self.depth
 
     @property
-    def c(self):
+    def phase_speed(self):
         return np.sqrt(self.gravity * self.depth) * self.c_dimless
 
     @property
-    def k(self):
+    def wavenumber(self):
         gh = self.gravity * self.depth
-        c2 = self.c**2
+        c2 = self.phase_speed**2
         gha3 = gh * (self.alpha + 1 / 3)
         return np.sqrt((c2 - gh) / 4 / (gha3 - self.alpha * c2)) / self.depth
+
+    def u(self, x, t):
+        gh = self.gravity * self.depth
+        c2 = self.phase_speed**2
+        horizontal_velocity = (c2 - gh) / self.phase_speed
+        phase = self.wavenumber * (self.phase_speed * t - x)
+        return horizontal_velocity * sech(phase)**2
