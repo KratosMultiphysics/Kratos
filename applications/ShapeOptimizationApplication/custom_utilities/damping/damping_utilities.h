@@ -26,6 +26,7 @@
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/parallel_utilities.h"
 #include "custom_utilities/filter_function.h"
 #include "shape_optimization_application.h"
 
@@ -90,6 +91,23 @@ public:
           mDampingSettings( DampingSettings ),
           mMaxNeighborNodes( DampingSettings["max_neighbor_nodes"].GetInt() )
     {
+        Parameters default_parameters( R"(
+            {
+                "sub_model_part_name"   : "MODEL_PART_NAME",
+                "damp_X"                : true,
+                "damp_Y"                : true,
+                "damp_Z"                : true,
+                "damping_function_type" : "cosine",
+                "damping_radius"        : -1.0
+            }  )" );
+
+        // Loop over all regions for which damping is to be applied
+        for (auto& r_region_parameters : mDampingSettings["damping_regions"])
+        {
+            r_region_parameters.ValidateAndAssignDefaults(default_parameters);
+            KRATOS_ERROR_IF(r_region_parameters["damping_radius"].GetDouble() < 0.0) << "DirectionDampingUtilities: 'damping_radius' is a mandatory setting and has to be > 0.0!" << std::endl;
+        }
+
         BuiltinTimer timer;
         KRATOS_INFO("") << std::endl;
         KRATOS_INFO("ShapeOpt") << "Creating search tree to perform damping..." << std::endl;
