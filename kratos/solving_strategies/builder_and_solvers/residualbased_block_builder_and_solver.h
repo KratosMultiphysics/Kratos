@@ -223,7 +223,7 @@ public:
         //terms
         Element::EquationIdVectorType EquationId;
 
-        // assemble all elements
+        // Assemble all elements
         const auto timer = BuiltinTimer();
 
         #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
@@ -360,9 +360,7 @@ public:
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time LHS: " << timer.ElapsedSeconds() << std::endl;
 
-
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 2) << "Finished parallel building LHS" << std::endl;
-
 
         KRATOS_CATCH("")
     }
@@ -522,9 +520,11 @@ public:
         Timer::Stop("Build");
 
         if(rModelPart.MasterSlaveConstraints().size() != 0) {
+            const auto timer_constraints = BuiltinTimer();
             Timer::Start("ApplyConstraints");
             ApplyConstraints(pScheme, rModelPart, A, b);
             Timer::Stop("ApplyConstraints");
+            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
         }
 
         ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
@@ -627,7 +627,11 @@ public:
             dof.FixDof();
 
         if (!rModelPart.MasterSlaveConstraints().empty()) {
+            const auto timer_constraints = BuiltinTimer();
+            Timer::Start("ApplyConstraints");
             this->ApplyConstraints(pScheme, rModelPart, rA, rb);
+            Timer::Stop("ApplyConstraints");
+            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
         }
         this->ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
         this->SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
