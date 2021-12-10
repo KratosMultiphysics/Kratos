@@ -148,6 +148,8 @@ public:
     void SetDampingFactorsForAllDampingRegions()
     {
         KRATOS_INFO("") << std::endl;
+
+        BuiltinTimer timer;
         KRATOS_INFO("ShapeOpt") << "Starting to prepare damping..." << std::endl;
 
         // Loop over all regions for which damping is to be applied
@@ -197,7 +199,7 @@ public:
             });
         }
 
-        KRATOS_INFO("ShapeOpt") << "Finished preparation of damping." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Finished preparation of damping in: " << timer.ElapsedSeconds() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
