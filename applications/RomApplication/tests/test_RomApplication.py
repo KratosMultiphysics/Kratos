@@ -5,9 +5,9 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
+from test_fluid_rom import TestFluidRom
 from test_thermal_rom import TestThermalRom
 from test_structural_rom import TestStructuralRom
-from fluid_dynamics_test_files.test_ROM import ROMFluidDynamics
 from test_randomized_singular_value_decomposition import TestRandomizedSVD
 from test_empirical_cubature_method import TestEmpiricalCubatureMethod
 
@@ -31,9 +31,9 @@ def AssembleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFluidRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestThermalRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStructuralRom]))
-    smallSuite.addTest(ROMFluidDynamics('test_Fluid_Dynamics_ROM_2D'))
     smallSuite.addTest(TestRandomizedSVD('test_radomized_svd'))
     smallSuite.addTest(TestEmpiricalCubatureMethod('test_empirical_cubature_method'))
 

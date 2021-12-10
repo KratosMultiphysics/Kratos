@@ -10,7 +10,6 @@ except:
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-from KratosMultiphysics.RomApplication.rom_analysis import CreateRomAnalysisInstance
 import KratosMultiphysics.RomApplication.rom_testing_utilities as rom_testing_utilities
 if kratos_utilities.CheckIfApplicationsAvailable("ConvectionDiffusionApplication"):
     import KratosMultiphysics.ConvectionDiffusionApplication

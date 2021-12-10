@@ -1,5 +1,4 @@
 import os
-import json
 import types
 
 try:
@@ -11,8 +10,6 @@ except:
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-import KratosMultiphysics.RomApplication as KratosROM
-from KratosMultiphysics.RomApplication.rom_analysis import CreateRomAnalysisInstance
 import KratosMultiphysics.RomApplication.rom_testing_utilities as rom_testing_utilities
 if kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
     import KratosMultiphysics.StructuralMechanicsApplication
@@ -111,13 +108,9 @@ class TestStructuralRom(KratosUnittest.TestCase):
             def FinalizeSolutionStep(cls):
                 super(type(self.simulation), cls).FinalizeSolutionStep()
 
-                array_of_displacements = []
                 time = cls._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
                 if np.any(np.isclose(time, time_snapshots)):
-                    for node in cls._solver.GetComputingModelPart().Nodes:
-                        aux_disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-                        array_of_displacements.append(aux_disp[0])
-                        array_of_displacements.append(aux_disp[1])
+                    array_of_displacements = rom_testing_utilities.GetVectorNodalResults(self.simulation._GetSolver().GetComputingModelPart(), KratosMultiphysics.DISPLACEMENT)
                     cls.selected_time_step_solution_container.append(array_of_displacements)
 
             self.simulation.Initialize  = types.MethodType(Initialize, self.simulation)
