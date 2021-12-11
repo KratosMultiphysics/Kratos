@@ -314,6 +314,17 @@ namespace Kratos {
                     K_diag(1,1) = initial_permeability_yy * (initial_porosity + D(0,0)) * (initial_porosity + D(2,2)) / (initial_porosity * initial_porosity * (1.0 + D(0,0)) * (1.0 + D(2,2)));
                     K_diag(2,2) = initial_permeability_zz * (initial_porosity + D(0,0)) * (initial_porosity + D(1,1)) / (initial_porosity * initial_porosity * (1.0 + D(0,0)) * (1.0 + D(1,1)));
                     K_diag(1,0) = K_diag(0,1) = K_diag(2,0) = K_diag(0,2) = 0.0;
+                    // To avoid negative permeabilities: // TODO
+                    if (K_diag(0,0) < 0.0) {
+                        K_diag(0,0) = initial_permeability_xx;
+                    }
+                    if (K_diag(1,1) < 0.0) {
+                        K_diag(1,1) = initial_permeability_yy;
+                    }
+                    if (K_diag(2,2) < 0.0) {
+                        K_diag(2,2) = initial_permeability_zz;
+                    }
+
                     // De-diagonalise K_diag so K_full = Q * K_diag * QT
                     BoundedMatrix<double, 3, 3> Temp = prod(Q, K_diag);
                     BoundedMatrix<double, 3, 3> K_full = prod(Temp, QT);
@@ -323,7 +334,7 @@ namespace Kratos {
 
                 // Divide obtained full permeability matrix by the number_of_results
                 if (number_of_results) {
-                    K_full_total /= 1.0; //number_of_results;
+                    K_full_total /= 1.0; //number_of_results; // TODO
                 } else {
                     continue;
                 }
