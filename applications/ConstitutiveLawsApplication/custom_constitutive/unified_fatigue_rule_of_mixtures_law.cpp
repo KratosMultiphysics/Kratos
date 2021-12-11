@@ -23,8 +23,6 @@
 #include "unified_fatigue_rule_of_mixtures_law.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "custom_constitutive/constitutive_laws_integrators/high_cycle_fatigue_law_integrator.h"
-
-
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
 
 // Yield surfaces
@@ -98,62 +96,81 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
     bool max_indicator = mMaxDetected;
     bool min_indicator = mMinDetected;
     double fatigue_reduction_factor = mFatigueReductionFactor;
-    // double reversion_factor_relative_error = mReversionFactorRelativeError;
-    // double max_stress_relative_error = mMaxStressRelativeError;
+    double reversion_factor_relative_error = mReversionFactorRelativeError;
+    double max_stress_relative_error = mMaxStressRelativeError;
     unsigned int global_number_of_cycles = mNumberOfCyclesGlobal;
     unsigned int local_number_of_cycles = mNumberOfCyclesLocal;
-    // double B0 = mFatigueReductionParameter;
-    // double previous_max_stress = mPreviousMaxStress;
-    // double previous_min_stress = mPreviousMinStress;
-    // double wohler_stress = mWohlerStress;
+    double B0 = mFatigueReductionParameter;
+    double previous_max_stress = mPreviousMaxStress;
+    double previous_min_stress = mPreviousMinStress;
+    double wohler_stress = mWohlerStress;
     bool new_cycle = false;
-    // double s_th = mThresholdStress;
-    // double cycles_to_failure = mCyclesToFailure;
-    // bool adnvance_strategy_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
-    // bool damage_activation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
+    double s_th = mThresholdStress;
+    double cycles_to_failure = mCyclesToFailure;
+    bool adnvance_strategy_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
+    bool damage_activation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
 
     if (max_indicator && min_indicator) {
-        // const double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
-        // const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
-        // double alphat;
-        // HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
-        //     max_stress,
-        //     reversion_factor,
-        //     rValues.GetMaterialProperties(),
-        //     B0,
-        //     s_th,
-        //     alphat,
-        //     cycles_to_failure);
+        auto& r_material_properties = rValues.GetMaterialProperties();
+        const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
+        const auto& r_props_HCF_cl = *(it_cl_begin);
+        const auto& r_props_ULCF_cl = *(it_cl_begin + 1);
+        ConstitutiveLaw::Parameters values_fatigue  = rValues;
 
-        // double betaf = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
-        // if (std::abs(min_stress) < 0.001) {
-        //     reversion_factor_relative_error = std::abs(reversion_factor - previous_reversion_factor);
-        // } else {
-        //     reversion_factor_relative_error = std::abs((reversion_factor - previous_reversion_factor) / reversion_factor);
-        // }
-        // max_stress_relative_error = std::abs((max_stress - previous_max_stress) / max_stress);
+        //Checking which material has the fatigue properties
+        if (r_props_HCF_cl.Has(HIGH_CYCLE_FATIGUE_COEFFICIENTS)) {
+                values_fatigue.SetMaterialProperties(r_props_HCF_cl);
+        } else if (r_props_ULCF_cl.Has(HIGH_CYCLE_FATIGUE_COEFFICIENTS)) {
+                values_fatigue.SetMaterialProperties(r_props_ULCF_cl);
+        } else {
+                KRATOS_ERROR << "Fatigue properties not defined" << std::endl;
+        }
 
-        // if (!damage_activation && global_number_of_cycles > 2 && !adnvance_strategy_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.001)) {
-        //     local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / (betaf * betaf)))) + 1;
-        // }
+        const double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
+        const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
+        double alphat;
+        HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
+            max_stress,
+            reversion_factor,
+            values_fatigue.GetMaterialProperties(),
+            B0,
+            s_th,
+            alphat,
+            cycles_to_failure);
+
+        double betaf = values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
+        KRATOS_WATCH(betaf)
+        if (std::abs(min_stress) < 0.001) {
+            reversion_factor_relative_error = std::abs(reversion_factor - previous_reversion_factor);
+        } else {
+            reversion_factor_relative_error = std::abs((reversion_factor - previous_reversion_factor) / reversion_factor);
+        }
+        if (std::abs(max_stress) < 0.001) {
+            max_stress_relative_error = std::abs(max_stress - previous_max_stress);
+        } else {
+            max_stress_relative_error = std::abs((max_stress - previous_max_stress) / max_stress);
+        }
+        if (!damage_activation && global_number_of_cycles > 2 && !adnvance_strategy_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.001)) {
+            local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / (betaf * betaf)))) + 1;
+        }
         global_number_of_cycles++;
         local_number_of_cycles++;
         new_cycle = true;
         max_indicator = false;
         min_indicator = false;
-        // previous_max_stress = max_stress;
-        // previous_min_stress = min_stress;
-        // mCyclesToFailure = cycles_to_failure;
+        previous_max_stress = max_stress;
+        previous_min_stress = min_stress;
+        mCyclesToFailure = cycles_to_failure;
 
-        // HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
-        //                                                                                 max_stress,
-        //                                                                                 local_number_of_cycles,
-        //                                                                                 global_number_of_cycles,
-        //                                                                                 B0,
-        //                                                                                 s_th,
-        //                                                                                 alphat,
-        //                                                                                 fatigue_reduction_factor,
-        //                                                                                 wohler_stress);
+        HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(values_fatigue.GetMaterialProperties(),
+                                                                                        max_stress,
+                                                                                        local_number_of_cycles,
+                                                                                        global_number_of_cycles,
+                                                                                        B0,
+                                                                                        s_th,
+                                                                                        alphat,
+                                                                                        fatigue_reduction_factor,
+                                                                                        wohler_stress);
     }
     // if (adnvance_strategy_applied) {
     //     const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
@@ -178,18 +195,17 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
     // }
     mNumberOfCyclesGlobal = global_number_of_cycles;
     mNumberOfCyclesLocal = local_number_of_cycles;
-    // mReversionFactorRelativeError = reversion_factor_relative_error;
-    // mMaxStressRelativeError = max_stress_relative_error;
+    mReversionFactorRelativeError = reversion_factor_relative_error;
+    mMaxStressRelativeError = max_stress_relative_error;
     mMaxDetected = max_indicator;
     mMinDetected = min_indicator;
-    // mFatigueReductionParameter = B0;
-    // mPreviousMaxStress = previous_max_stress;
-    // mPreviousMinStress = previous_min_stress;
+    mFatigueReductionParameter = B0;
+    mPreviousMaxStress = previous_max_stress;
+    mPreviousMinStress = previous_min_stress;
     mFatigueReductionFactor = fatigue_reduction_factor;
-    // mWohlerStress = wohler_stress;
+    mWohlerStress = wohler_stress;
     mNewCycleIndicator = new_cycle;
-    // mThresholdStress = s_th;
-    // KRATOS_WATCH(global_number_of_cycles)
+    mThresholdStress = s_th;
 }
 
 /***********************************************************************************/
@@ -436,7 +452,6 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
         ultra_low_cycle_fatigue_stress_vector = values_ULCF.GetStressVector();
 
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
-        // KRATOS_WATCH(r_integrated_stress_vector)
         noalias(r_integrated_stress_vector) = mHCFVolumetricParticipation * high_cycle_fatigue_stress_vector
                                      + (1.0 - mHCFVolumetricParticipation) * ultra_low_cycle_fatigue_stress_vector;
 
@@ -449,7 +464,6 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
         double min_stress = mMinStress;
         bool max_indicator = mMaxDetected;
         bool min_indicator = mMinDetected;
-        double fatigue_reduction_factor = mFatigueReductionFactor;
 
         HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(
             uniaxial_stress,
@@ -468,14 +482,6 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
         previous_stresses[1] = uniaxial_stress;
         previous_stresses[0] = r_aux_stresses[1];
         mPreviousStresses = previous_stresses;
-
-        // KRATOS_WATCH(uniaxial_stress)
-        // KRATOS_WATCH(previous_stresses[0])
-        // KRATOS_WATCH(previous_stresses[1])
-        // KRATOS_WATCH(max_stress)
-        // KRATOS_WATCH(min_stress)
-        // KRATOS_WATCH(max_stress)
-        // KRATOS_WATCH(min_stress)
     }
 }
 
@@ -492,9 +498,25 @@ double& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::GetValue(
         return mpHCFConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else if (mpULCFConstitutiveLaw->Has(rThisVariable)) {
         return mpULCFConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else if (rThisVariable == WOHLER_STRESS) {
+        rValue = mWohlerStress;
+    } else if (rThisVariable == CYCLES_TO_FAILURE) {
+        rValue = mCyclesToFailure;
+    } else if (rThisVariable == REVERSION_FACTOR_RELATIVE_ERROR) {
+        rValue = mReversionFactorRelativeError;
+    } else if (rThisVariable == MAX_STRESS_RELATIVE_ERROR) {
+        rValue = mMaxStressRelativeError;
+    } else if (rThisVariable == MAX_STRESS) {
+        rValue = mMaxStress;
+    } else if (rThisVariable == THRESHOLD_STRESS) {
+        rValue = mThresholdStress;
+    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
+        rValue = mFatigueReductionFactor;
     } else {
         return rValue;
     }
+    return rValue;
+
 }
 
 /***********************************************************************************/
@@ -557,6 +579,8 @@ bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variabl
     if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
         return true;
     } else if (mpULCFConstitutiveLaw->Has(rThisVariable)) {
+        return true;
+    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
         return true;
     } else {
         return false;
