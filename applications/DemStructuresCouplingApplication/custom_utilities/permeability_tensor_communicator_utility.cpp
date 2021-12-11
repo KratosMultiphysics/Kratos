@@ -323,7 +323,7 @@ namespace Kratos {
 
                 // Divide obtained full permeability matrix by the number_of_results
                 if (number_of_results) {
-                    K_full_total /= number_of_results;
+                    K_full_total /= 1.0; //number_of_results;
                 } else {
                     continue;
                 }
