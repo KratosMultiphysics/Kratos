@@ -23,7 +23,7 @@ namespace Wind
 {
 
 
-std::vector<shared_ptr<ModelPart>> ModelSubdivisionUtilities::SortNodesBySlabs(
+std::vector<Kratos::shared_ptr<ModelPart>> ModelSubdivisionUtilities::SortNodesBySlabs(
     ModelPart& rModelPart,
     const array_1d<double,3>& rBottomPoint,
     const array_1d<double,3>& rTopPoint,

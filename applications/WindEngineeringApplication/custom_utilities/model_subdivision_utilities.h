@@ -46,7 +46,7 @@ public:
      *  @param isRootSlabOpen defines whether the top and bottom planes of the top and bottom
      *  slabs respectively are considered to be inside the domain (true: not considered inside).
      */
-    static std::vector<shared_ptr<ModelPart>> SortNodesBySlabs(
+    static std::vector<Kratos::shared_ptr<ModelPart>> SortNodesBySlabs(
         ModelPart& rModelPart,
         const array_1d<double,3>& rBottomPoint,
         const array_1d<double,3>& rTopPoint,
