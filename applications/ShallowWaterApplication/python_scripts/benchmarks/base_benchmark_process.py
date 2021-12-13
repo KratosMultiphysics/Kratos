@@ -20,6 +20,9 @@ class BaseBenchmarkProcess(KM.Process):
 
         super().__init__()
 
+        self.model = model
+        self.settings = settings
+
         default_settings = KM.Parameters("""
             {
                 "model_part_name"      : "model_part",
@@ -31,40 +34,41 @@ class BaseBenchmarkProcess(KM.Process):
             """
             )
         default_settings["benchmark_settings"] = self._GetBenchmarkDefaultSettings()
-        settings.RecursivelyValidateAndAssignDefaults(default_settings)
+        self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
-        self.model = model
-        self.model_part = self.model[settings["model_part_name"].GetString()]
-
-        self.variables = GenerateVariableListFromInput(settings["variables_list"])
-        self.exact_variables = GenerateVariableListFromInput(settings["exact_variables_list"])
-        self.error_variables = GenerateVariableListFromInput(settings["error_variables_list"])
+        self.model_part = self.model[self.settings["model_part_name"].GetString()]
+        self.variables = GenerateVariableListFromInput(self.settings["variables_list"])
+        self.exact_variables = GenerateVariableListFromInput(self.settings["exact_variables_list"])
+        self.error_variables = GenerateVariableListFromInput(self.settings["error_variables_list"])
         self.benchmark_settings = settings["benchmark_settings"]
+
 
     def ExecuteInitialize(self):
         """Set the topography and the initial conditions."""
 
         time = self.model_part.ProcessInfo[KM.TIME]
         for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(SW.TOPOGRAPHY, self._Topography(node))
+            if self._Topography(node):
+                node.SetSolutionStepValue(SW.TOPOGRAPHY, self._Topography(node))
             node.SetSolutionStepValue(SW.HEIGHT, self._Height(node, time))
             node.SetSolutionStepValue(KM.VELOCITY, self._Velocity(node, time))
             node.SetSolutionStepValue(KM.MOMENTUM, self._Momentum(node, time))
-        SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.model_part)
+            node.SetSolutionStepValue(SW.FREE_SURFACE_ELEVATION, self._FreeSurfaceElevation(node, time))
+
 
     def ExecuteBeforeOutputStep(self):
         """Compute the exact values of the benchmark and the error of the simulation."""
 
         time = self.model_part.ProcessInfo[KM.TIME]
-            for (variable, exact_variable, error_variable) in zip(self.variables, self.exact_variables, self.error_variables):
+        for (variable, exact_variable, error_variable) in zip(self.variables, self.exact_variables, self.error_variables):
 
-                if variable == SW.HEIGHT:
+            if variable == SW.HEIGHT:
                 exact_value_function = self._Height
-                elif variable == KM.VELOCITY:
+            elif variable == KM.VELOCITY:
                 exact_value_function = self._Velocity
-                elif variable == KM.MOMENTUM:
+            elif variable == KM.MOMENTUM:
                 exact_value_function = self._Momentum
-                elif variable == SW.FREE_SURFACE_ELEVATION:
+            elif variable == SW.FREE_SURFACE_ELEVATION:
                 exact_value_function = self._FreeSurfaceElevation
 
             for node in self.model_part.Nodes:
@@ -93,12 +97,13 @@ class BaseBenchmarkProcess(KM.Process):
                 msg = var.Name() + " variable type does not match the " + error.Name() + " variable type"
                 raise Exception(msg)
 
+
     @classmethod
     def _GetBenchmarkDefaultSettings(cls):
         raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark settings")
 
     def _Topography(self, coordinates):
-        raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")
+        return 0
 
     def _Height(self, coordinates, time):
         raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")
