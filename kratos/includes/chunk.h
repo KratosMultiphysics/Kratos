@@ -15,6 +15,8 @@
 #if !defined(KRATOS_CHUNK_H_INCLUDED )
 #define  KRATOS_CHUNK_H_INCLUDED
 
+#include <atomic>
+
 #include "includes/lock_object.h"
 #include "utilities/openmp_utils.h"
 
@@ -101,7 +103,7 @@ namespace Kratos
 			  return nullptr;
 
 		    const std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
-			  
+			lock();  
 			BlockType * p_result = mpData + (mFirstAvailableBlockOffset);
 			if(*p_result < 0) {
 				*p_result = -(*p_result);
@@ -114,6 +116,7 @@ namespace Kratos
 			mFirstAvailableBlockOffset = *p_result;
 
 			mNumberOfAvailableBlocks--;
+			unlock();
 	
 		  return p_result;
 	  }
@@ -129,10 +132,12 @@ namespace Kratos
 
 		  // Alignment check
 		  KRATOS_DEBUG_CHECK_EQUAL((p_to_release - mpData) % GetBlockSize(mBlockSizeInBytes), 0);
+		  lock();
 		  *p_to_release = mFirstAvailableBlockOffset;
 		  mFirstAvailableBlockOffset = static_cast<SizeType>((p_to_release - mpData));
 
 		  mNumberOfAvailableBlocks++;
+		  unlock();
 		  pPointrerToRelease = nullptr;
 
 	  }
@@ -216,6 +221,15 @@ namespace Kratos
 		  return mpData == nullptr;
 	  }
 
+	  void lock(){
+		while(std::atomic_flag_test_and_set_explicit(&mLocked, std::memory_order_acquire))
+             ; // spin until the lock is acquired
+	  }
+
+	  void unlock(){
+		std::atomic_flag_clear_explicit(&mLocked, std::memory_order_release);
+	  }
+
 	  ///@}
       ///@name Input and output
       ///@{
@@ -247,6 +261,7 @@ namespace Kratos
 		SizeType mBlockSizeInBytes;
 		SizeType mNumberOfAvailableBlocks;
 		SizeType mFirstAvailableBlockOffset;
+		std::atomic_flag mLocked = ATOMIC_FLAG_INIT;
 
       ///@}
       ///@name Operations
