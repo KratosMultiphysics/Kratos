@@ -39,7 +39,6 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
 
         self.interval_utility = KratosMultiphysics.IntervalUtility(parameters)
         self.output_frequency = parameters["output_frequency"].GetInt()
-        self.output_counter = 0
 
         self.file_parameters = parameters["file_parameters"].Clone()
 
@@ -63,7 +62,8 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
 
     def IsOutputStep(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        return self.interval_utility.IsInInterval(time) and (self.output_counter % self.output_frequency == 0)
+        step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
+        return self.interval_utility.IsInInterval(time) and (step % self.output_frequency == 0)
 
 
     def ExecuteInitialize(self):
