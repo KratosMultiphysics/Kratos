@@ -21,13 +21,6 @@ class SetMeshMotionAndGetForcesProcess(KratosMultiphysics.Process):
         self.parameters = parameters
         self.parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        if self.parameters['interval'][1].IsString():
-            if self.parameters['interval'][1].GetString() == "End":
-                self.parameters['interval'][1].SetDouble(1e30)
-            else:
-                raise Exception("The second value of interval can be 'End' or a number, interval currently:" +
-                    self.parameters["interval"].PrettyPrintJsonString())
-
         self.model_part = model[self.parameters["model_part_name"].GetString()]
 
         # Transformation variables
@@ -57,7 +50,7 @@ class SetMeshMotionAndGetForcesProcess(KratosMultiphysics.Process):
 
         self._InitializeOutput(self.parameters)
 
-        self.interval = self.parameters["interval"].GetVector()
+        self.interval_utility = KratosMultiphysics.IntervalUtility(self.parameters)
 
 
     def ExecuteInitializeSolutionStep(self):
@@ -84,7 +77,7 @@ class SetMeshMotionAndGetForcesProcess(KratosMultiphysics.Process):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
 
-        if self.interval[0] <= time and time <= self.interval[1]:
+        if self.interval_utility.IsInInterval(time):
             # Update reference point for moment reduction
             pitch_increment = self.prescribed_motion.pitch.Evaluate(time)
             heave_increment = self.prescribed_motion.heave.Evaluate(time)
@@ -213,7 +206,7 @@ class SetMeshMotionAndGetForcesProcess(KratosMultiphysics.Process):
     def GetDefaultParameters():
         return KratosMultiphysics.Parameters("""{
             "model_part_name" : "",
-            "interval" : [0.0, "End"],
+            "interval"              : [0.0, "End"],
             "rampup_time"           : 0.0,
             "reference_point"       : [0.0,0.0,0.0],
             "z_rotation_angle"      : 0.0,
