@@ -80,6 +80,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             "rotation_dofs"              : false,
             "block_builder"              : true,
             "search_neighbours_step"     : false,
+            "keep_system_constant_during_iterations": true,
             "linear_solver_settings":{
                 "solver_type": "AMGCL",
                 "tolerance": 1.0e-6,
@@ -466,6 +467,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
                                                                            move_mesh_flag)
         else:
             raise Exception("Undefined strategy type", strategy_type)
+            solving_strategy =SetKeepSystemConstantDuringIterations(self.settings["keep_system_constant_during_iterations"])
 
         return solving_strategy
 
