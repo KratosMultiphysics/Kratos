@@ -71,7 +71,6 @@ public:
 
     /// The definition of the sizetype
     typedef std::size_t SizeType;
-    /// bis Hier!!!!!!!
 
     /// Counted pointer of SmallDisplacementSIMPElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallDisplacementSIMPElement );
@@ -154,7 +153,6 @@ public:
     // =============================================================================================================================================
     
     /// Function that gets the value on the Integration Point (For printing purposes in the output GiD)
-/* void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;*/
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Function to calculate the sensitivities and the objective function
