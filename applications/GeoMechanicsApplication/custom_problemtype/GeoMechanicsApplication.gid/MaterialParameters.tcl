@@ -1588,8 +1588,8 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
         puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 22],"
         puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 23],"
         puts $FileVar "              \"BROOKS_COREY_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 24],"
-        puts $FileVar "              \"PORE_SIZE_INDEX\"                 :  [lindex [lindex $Groups $i] 25],"
-        puts $FileVar "              \"FITTING_PARAMETER\"                 :  [lindex [lindex $Groups $i] 26],"
+        puts $FileVar "              \"BROOKS_COREY_PORE_SIZE_INDEX\"                 :  [lindex [lindex $Groups $i] 25],"
+        puts $FileVar "              \"BROOKS_COREY_FITTING_PARAMETER\"                 :  [lindex [lindex $Groups $i] 26],"
         puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 27]"
 
         puts $FileVar "         \},"
@@ -2013,8 +2013,8 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
             puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 132],"
             puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 133],"
             puts $FileVar "              \"BROOKS_COREY_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 134],"
-            puts $FileVar "              \"PORE_SIZE_INDEX\"                 :  [lindex [lindex $Groups $i] 135],"
-            puts $FileVar "              \"FITTING_PARAMETER\"                 :  [lindex [lindex $Groups $i] 136],"
+            puts $FileVar "              \"BROOKS_COREY_PORE_SIZE_INDEX\"                 :  [lindex [lindex $Groups $i] 135],"
+            puts $FileVar "              \"BROOKS_COREY_FITTING_PARAMETER\"                 :  [lindex [lindex $Groups $i] 136],"
             puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 137]"
 
             puts $FileVar "         \},"
@@ -2299,8 +2299,8 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 132],"
                 puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 133],"
                 puts $FileVar "              \"BROOKS_COREY_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 134],"
-                puts $FileVar "              \"PORE_SIZE_INDEX\"                 :  [lindex [lindex $Groups $i] 135],"
-                puts $FileVar "              \"FITTING_PARAMETER\"                 :  [lindex [lindex $Groups $i] 136],"   
+                puts $FileVar "              \"BROOKS_COREY_PORE_SIZE_INDEX\"                 :  [lindex [lindex $Groups $i] 135],"
+                puts $FileVar "              \"BROOKS_COREY_FITTING_PARAMETER\"                 :  [lindex [lindex $Groups $i] 136],"   
                 puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 137]"
 
                 puts $FileVar "         \},"
@@ -2371,8 +2371,8 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
         puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 20],"
         puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 21],"
         puts $FileVar "              \"BROOKS_COREY_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 22],"
-        puts $FileVar "              \"PORE_SIZE_INDEX\"                 :  [lindex [lindex $Groups $i] 23],"
-        puts $FileVar "              \"FITTING_PARAMETER\"                 :  [lindex [lindex $Groups $i] 24],"
+        puts $FileVar "              \"BROOKS_COREY_PORE_SIZE_INDEX\"                 :  [lindex [lindex $Groups $i] 23],"
+        puts $FileVar "              \"BROOKS_COREY_FITTING_PARAMETER\"                 :  [lindex [lindex $Groups $i] 24],"
         puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 25]"
 
         puts $FileVar "         \},"
