@@ -62,7 +62,7 @@ std::vector<shared_ptr<ModelPart>> ModelSubdivisionUtilities::SortNodesBySlabs(
     );
 
     // Convert raw pointers to smart ones
-    std::vector<shared_ptr<ModelPart>> output;
+    std::vector<Kratos::shared_ptr<ModelPart>> output;
     output.reserve(sub_model_parts.size());
 
     for (std::size_t i_model_part=0; i_model_part<sub_model_parts.size(); ++i_model_part) {
