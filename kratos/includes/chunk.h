@@ -101,8 +101,6 @@ namespace Kratos
 			  return nullptr;
 
 		    const std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
-
-		    // lock();
 			  
 			BlockType * p_result = mpData + (mFirstAvailableBlockOffset);
 			if(*p_result < 0) {
@@ -117,8 +115,6 @@ namespace Kratos
 
 			mNumberOfAvailableBlocks--;
 	
-			// unlock();
-
 		  return p_result;
 	  }
 
@@ -133,12 +129,10 @@ namespace Kratos
 
 		  // Alignment check
 		  KRATOS_DEBUG_CHECK_EQUAL((p_to_release - mpData) % GetBlockSize(mBlockSizeInBytes), 0);
-		//   lock();
 		  *p_to_release = mFirstAvailableBlockOffset;
 		  mFirstAvailableBlockOffset = static_cast<SizeType>((p_to_release - mpData));
 
 		  mNumberOfAvailableBlocks++;
-		//   unlock();
 		  pPointrerToRelease = nullptr;
 
 	  }
