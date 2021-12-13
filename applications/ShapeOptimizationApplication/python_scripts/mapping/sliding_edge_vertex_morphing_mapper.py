@@ -12,11 +12,8 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 import KratosMultiphysics.StructuralMechanicsApplication as KSM
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
-try:
-    import KratosMultiphysics.MappingApplication as KMA
-    SpacialMapperFactory = KMA.MapperFactory
-except ImportError:
-    SpacialMapperFactory = None
+SpacialMapperFactory = KM.MapperFactory
+
 from ..custom_ios.wrl_io import WrlIO
 
 class SlidingEdgeVertexMorphingMapper():
@@ -188,20 +185,27 @@ class SlidingEdgeVertexMorphingMapper():
         geometry_utilities.ProjectNodalVariableOnTangentPlane(
             destination_variable, KSO.BACKGROUND_NORMAL)
 
-        # non-linear correction
+        # non-linear correction on sliding mesh
         self._CorrectOutOfPlanePart(destination_variable)
 
         mesh_utilities_struct =  KSO.MeshControllerUtilities(self._structural_model_correction.GetModelPart("main"))
 
-        # copy linear shape update to structural model
-        for node in self._structural_model_correction.GetModelPart("main").Nodes:
-            node.SetSolutionStepValue(destination_variable, self.destination_model_part.Nodes[node.Id].GetSolutionStepValue(destination_variable))
+        # map linear shape update to structural model
+        ne_mapper_settings = KM.Parameters("""{
+                                "mapper_type": "nearest_element",
+                                "echo_level" : 0
+                            }""")
+        model_mapper = SpacialMapperFactory.CreateMapper(
+            self.destination_model_part, self._structural_model_correction.GetModelPart("main"),
+            ne_mapper_settings)
+
+        model_mapper.Map(destination_variable, destination_variable)
 
         # update structural model
         mesh_utilities_struct.UpdateMeshAccordingInputVariable(destination_variable)
         mesh_utilities_struct.SetReferenceMeshToMesh()
 
-        # perform mesh motion for non-linear correction
+        # propagate non-linear correction from sliding mesh to destination
         self._PerformStructuralSimilarityAnalysis(self._structural_mechanics_analysis_correction, self._structural_model_correction, KSO.OUT_OF_PLANE_DELTA)
 
         # revert structural model
@@ -215,6 +219,7 @@ class SlidingEdgeVertexMorphingMapper():
     def InverseMap(self, destination_variable, origin_variable):
         geometry_utilities = KSO.GeometryUtilities(self.destination_model_part)
 
+        # propagate background normal field from sliding mesh to destination
         self._PerformStructuralSimilarityAnalysis(self._structural_mechanics_analysis, self._structural_model, KSO.BACKGROUND_NORMAL)
 
         geometry_utilities.ProjectNodalVariableOnTangentPlane(
@@ -240,29 +245,46 @@ class SlidingEdgeVertexMorphingMapper():
     def _PerformStructuralSimilarityAnalysis(self, structural_analysis, structural_model, input_variable):
 
         mesh_utilities = KSO.MeshControllerUtilities(structural_model.GetModelPart("main"))
-        mesh_motion_condition_part = structural_model.GetModelPart("main.prescribed_bc")
+        mesh_prescribed_part = structural_model.GetModelPart("main.prescribed_bc")
 
-        for node in mesh_motion_condition_part.Nodes:
-            node.SetSolutionStepValue(KM.DISPLACEMENT, self.destination_model_part.Nodes[node.Id].GetSolutionStepValue(input_variable))
+        # nearest element mapping from destination to sliding mesh 
+        ne_mapper_settings = KM.Parameters("""{
+                                "mapper_type": "nearest_element",
+                                "echo_level" : 0
+                            }""")
+        prescribed_mapper = SpacialMapperFactory.CreateMapper(
+            self.destination_model_part, mesh_prescribed_part,
+            ne_mapper_settings)
+       
+        prescribed_mapper.Map(input_variable, KM.DISPLACEMENT)
+
+        # fix dbc on sliding mesh
+        for node in mesh_prescribed_part.Nodes:
             node.Fix(KM.DISPLACEMENT_X)
             node.Fix(KM.DISPLACEMENT_Y)
             node.Fix(KM.DISPLACEMENT_Z)
 
         structural_analysis.Initialize()
         structural_analysis.RunSolutionLoop()
-
-        for node in structural_model.GetModelPart("main").Nodes:
-            self.destination_model_part.Nodes[node.Id].SetSolutionStepValue(input_variable, node.GetSolutionStepValue(KM.DISPLACEMENT))
-
         structural_analysis.Finalize()
 
-        for node in structural_model.GetModelPart("main.prescribed_bc").Nodes:
+        for node in mesh_prescribed_part.Nodes:
             node.Free(KM.DISPLACEMENT_X)
             node.Free(KM.DISPLACEMENT_Y)
             node.Free(KM.DISPLACEMENT_Z)
 
+        # nearest element mapping from structural model to destination
         mesh_utilities.RevertMeshUpdateAccordingInputVariable(KM.DISPLACEMENT)
         mesh_utilities.SetReferenceMeshToMesh()
+
+        ne_mapper_settings = KM.Parameters("""{
+                                "mapper_type": "nearest_element",
+                                "echo_level" : 0
+                            }""")
+        main_mapper = SpacialMapperFactory.CreateMapper(
+            structural_model.GetModelPart("main"), self.destination_model_part,
+            ne_mapper_settings)
+        main_mapper.Map(KM.DISPLACEMENT, input_variable)
 
     def _CreateStructuralModel(self, structural_model):
 
@@ -334,12 +356,10 @@ class SlidingEdgeVertexMorphingMapper():
                         node_ids_to_remove.extend(ele_node_ids[4:])
                         main_part.CreateNewElement("ShellThinElement3D4N", ele_id, edge_nodes, material_properties)
 
-        # remove nodes from prescribed bc again
+        # remove nodes from prescribed bc again if higher order surface conditions have been used
         for node_id in node_ids_to_remove:
             mesh_motion_conditions.RemoveNode(node_id)
             main_part.RemoveNode(node_id)
-
-        # TODO: mapper zwischen structural models und optimierungs model => nearest element
 
         # find edges
         neighbor_node_search = KM.FindGlobalNodalNeighboursProcess(main_part)
@@ -360,7 +380,8 @@ class SlidingEdgeVertexMorphingMapper():
             fixed_nodes.RemoveNode(node_id)
 
     def _ApplyMaterialProperties(self, material_properties):
-        #define properties
+        # define properties
+        # artificially high bending stiffness via large thickness
         radius = self.settings["filter_radius"].GetDouble()
         material_properties.SetValue(KM.YOUNG_MODULUS,1.0E+8)
         material_properties.SetValue(KM.POISSON_RATIO,0.0)
