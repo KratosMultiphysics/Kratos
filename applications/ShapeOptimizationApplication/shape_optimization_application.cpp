@@ -91,9 +91,6 @@ namespace Kratos
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(BACKGROUND_NORMAL);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(OUT_OF_PLANE_DELTA);
 
-    // For edge in plane mapping operations
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(EDGE_DELTA);
-
     // Eof variables
 
     KratosShapeOptimizationApplication::KratosShapeOptimizationApplication() :
@@ -171,9 +168,6 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BACKGROUND_COORDINATE);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BACKGROUND_NORMAL);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(OUT_OF_PLANE_DELTA);
-
-        // For edge in plane mapping operations
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(EDGE_DELTA);
  	}
 
 }  // namespace Kratos.

@@ -16,14 +16,13 @@ SpacialMapperFactory = KM.MapperFactory
 
 from ..custom_ios.wrl_io import WrlIO
 
-class SlidingEdgeVertexMorphingMapper():
+class SlidingVertexMorphingMapper():
     """
-    The InPlaneVertexMorphingMapper extends the standard Vertex Morphing approach
-    by restricting the shape update of nodes to an in-plane motion only. The nodes
-    are only allowed to float on a predefined background mesh.
-    The background mesh can be the initial mesh of the design surface, or another mesh
-    describing the same geometry (ideally also filling holes in the surface).
-    This is especially important if the design surface extends during the optimization.
+    The SlidingVertexMorphingMapper extends the standard Vertex Morphing approach
+    by restricting the nodal shape update of a specified model part. The nodes of this model 
+    part have to lie on a predefined background mesh and are only allowed to float/slide on it.
+    SlidingVertexMorphingMapper uses similar techniques as directional damping and
+    InPlaneVertexMorphingMapper.
 
     Limitations:
     - Damping can only be used if all cartesian directions (x,y,z) are damped.
@@ -33,18 +32,18 @@ class SlidingEdgeVertexMorphingMapper():
     def __init__(self, origin_model_part, destination_model_part, settings):
         from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
         if not SpacialMapperFactory:
-            raise Exception("SlidingEdgeVertexMorphingMapper: MappingApplication is required!")
+            raise Exception("SlidingVertexMorphingMapper: MappingApplication is required!")
 
         self.settings = settings
         self.origin_model_part = origin_model_part
         self.destination_model_part = destination_model_part
 
         extracted_vm_settings = settings.Clone()
-        extracted_vm_settings["sliding_edge_morphing"].SetBool(False)
-        extracted_vm_settings.RemoveValue("sliding_edge_morphing_settings")
+        extracted_vm_settings["sliding_morphing"].SetBool(False)
+        extracted_vm_settings.RemoveValue("sliding_morphing_settings")
         self.vm_mapper = mapper_factory.CreateMapper(origin_model_part, destination_model_part, extracted_vm_settings)
 
-        in_plane_settings = self.settings["sliding_edge_morphing_settings"]
+        in_plane_settings = self.settings["sliding_morphing_settings"]
         in_plane_settings.RecursivelyValidateAndAssignDefaults(self.GetDefaultInPlaneSettings())
 
         self._background_model = KM.Model()
@@ -58,7 +57,8 @@ class SlidingEdgeVertexMorphingMapper():
             raise Exception("Other model part input options are not yet implemented.")
 
         self.background_mesh = None  # created in Initialize
-        self.spacial_mapper = None  # created in Initialize
+        self.spacial_mapper = None   # created in Initialize
+        self.sliding_mesh = None     # created in Initialize
 
     @classmethod
     def GetDefaultInPlaneSettings(cls):
@@ -67,7 +67,7 @@ class SlidingEdgeVertexMorphingMapper():
                 "input_type" : "mdpa",
                 "input_filename" : "UNKNOWN_NAME"
             },
-            "sliding_edge_sub_model_part_name" : "",
+            "sliding_sub_model_part_name" : "",
             "background_sub_model_part_name" : "",
             "spacial_mapper_settings" : {
                 "mapper_type": "nearest_element",
@@ -133,30 +133,30 @@ class SlidingEdgeVertexMorphingMapper():
     def Initialize(self):
         self.vm_mapper.Initialize()
 
-        sliding_edge_settings = self.settings["sliding_edge_morphing_settings"]
+        sliding_settings = self.settings["sliding_morphing_settings"]
 
         background_main_mesh = self._background_model.GetModelPart("background_mesh")
-        if sliding_edge_settings["model_import_settings"]["input_type"].GetString() == "mdpa":
-            model_part_io = KM.ModelPartIO(sliding_edge_settings["model_import_settings"]["input_filename"].GetString())
+        if sliding_settings["model_import_settings"]["input_type"].GetString() == "mdpa":
+            model_part_io = KM.ModelPartIO(sliding_settings["model_import_settings"]["input_filename"].GetString())
             model_part_io.ReadModelPart(background_main_mesh)
-        elif sliding_edge_settings["model_import_settings"]["input_type"].GetString() in ["vrml", "wrl"]:
-            model_part_io = WrlIO(sliding_edge_settings["model_import_settings"]["input_filename"].GetString())
+        elif sliding_settings["model_import_settings"]["input_type"].GetString() in ["vrml", "wrl"]:
+            model_part_io = WrlIO(sliding_settings["model_import_settings"]["input_filename"].GetString())
             model_part_io.ReadModelPart(background_main_mesh)
 
-        background_sub_model_part_name = sliding_edge_settings["background_sub_model_part_name"].GetString()
+        background_sub_model_part_name = sliding_settings["background_sub_model_part_name"].GetString()
         if background_sub_model_part_name == "":
             self.background_mesh = background_main_mesh
         else:
             self.background_mesh = background_main_mesh.GetSubModelPart(background_sub_model_part_name)
 
-        sliding_edge_sub_model_part_name = sliding_edge_settings["sliding_edge_sub_model_part_name"].GetString()
+        sliding_sub_model_part_name = sliding_settings["sliding_sub_model_part_name"].GetString()
         root_model_part = self.destination_model_part.GetRootModelPart()
-        self.sliding_edge_mesh = root_model_part.GetSubModelPart(sliding_edge_sub_model_part_name)
+        self.sliding_mesh = root_model_part.GetSubModelPart(sliding_sub_model_part_name)
 
         background_geometry_utilities = KSO.GeometryUtilities(self.background_mesh)
         background_geometry_utilities.ComputeUnitSurfaceNormals()
         self.spacial_mapper = SpacialMapperFactory.CreateMapper(
-            self.background_mesh, self.sliding_edge_mesh, sliding_edge_settings["spacial_mapper_settings"])
+            self.background_mesh, self.sliding_mesh, sliding_settings["spacial_mapper_settings"])
 
         KSO.MeshControllerUtilities(self.background_mesh).WriteCoordinatesToVariable(KSO.BACKGROUND_COORDINATE)
 
@@ -228,8 +228,8 @@ class SlidingEdgeVertexMorphingMapper():
         self.vm_mapper.InverseMap(destination_variable, origin_variable)
 
     def _CorrectOutOfPlanePart(self, destination_variable):
-        geometry_utilities = KSO.GeometryUtilities(self.sliding_edge_mesh)
-        mesh_utilities = KSO.MeshControllerUtilities(self.sliding_edge_mesh)
+        geometry_utilities = KSO.GeometryUtilities(self.sliding_mesh)
+        mesh_utilities = KSO.MeshControllerUtilities(self.sliding_mesh)
 
         mesh_utilities.UpdateMeshAccordingInputVariable(destination_variable)
         mesh_utilities.SetReferenceMeshToMesh()
@@ -312,7 +312,7 @@ class SlidingEdgeVertexMorphingMapper():
         self._ApplyMaterialProperties(material_properties)
 
         # create nodes of prescribed bc
-        for node in self.sliding_edge_mesh.Nodes:
+        for node in self.sliding_mesh.Nodes:
             mesh_motion_conditions.CreateNewNode(node.Id, node.X, node.Y, node.Z)
 
         # Identify mesh motion area / nodes to be damped
@@ -342,7 +342,7 @@ class SlidingEdgeVertexMorphingMapper():
                     ele_id += 1
                     condition_dim = surface_condition.GetGeometry().LocalSpaceDimension()
                     if condition_dim != 2:
-                        raise Exception("SlidingEdgeVertexMorphingMapper: Design model part can only be a surface!")
+                        raise Exception("SlidingVertexMorphingMapper: Design model part can only be a surface!")
                     if number_of_nodes == 3:
                         main_part.CreateNewElement("ShellThinElement3D3N", ele_id, ele_node_ids, material_properties)
                     elif number_of_nodes == 4:
