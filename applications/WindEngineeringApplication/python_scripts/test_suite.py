@@ -6,18 +6,18 @@ from enum import Enum
 
 
 class SuiteFlags(Enum):
-    all         = 0
-    small       = 1
-    nightly     = 2
-    validation  = 3
-    mpi         = 4     # prepends suite names with "mpi_"
-    mpi_only    = 5     # same as above but won't get added to single process suites
+    ALL         = 0
+    SMALL       = 1
+    NIGHTLY     = 2
+    VALIDATION  = 3
+    MPI         = 4     # prepends suite names with "mpi_"
+    MPI_ONLY    = 5     # same as above but won't get added to single process suites
 
 
 class TestSuite(UnitTest.TestSuite):
     """Custom test suite class for sorting cases into suites automatically while globbing."""
 
-    suite_flags = set([SuiteFlags.all])
+    suite_flags = set([SuiteFlags.ALL])
 
 
     def addTest(self, test):

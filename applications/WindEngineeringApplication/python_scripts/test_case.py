@@ -8,4 +8,4 @@ from KratosMultiphysics.WindEngineeringApplication.test_suite import SuiteFlags,
 class TestCase(UnitTest.TestCase):
     """Custom test case class for sorting cases into suites automatically while globbing."""
 
-    suite_flags = set([SuiteFlags.all])
+    suite_flags = set([SuiteFlags.ALL])

@@ -30,7 +30,7 @@ def AssembleTestSuites(enable_mpi=False):
     static_suites = UnitTest.KratosSuites
 
     # Test cases will be organized into lists first, then loaded into their
-    # corresponding suites all at once 
+    # corresponding suites all at once
     local_cases = {}
     for key in static_suites.keys():
         local_cases[key] = []
@@ -50,8 +50,8 @@ def AssembleTestSuites(enable_mpi=False):
         suite_flags = set(test_case.suite_flags)
 
         # Check whether the test case has a flag for mpi
-        mpi = SuiteFlags.mpi in suite_flags
-        mpi_only = SuiteFlags.mpi_only in suite_flags
+        mpi = SuiteFlags.MPI in suite_flags
+        mpi_only = SuiteFlags.MPI_ONLY in suite_flags
 
         # Don't add the test if its mpi-exclusive and mpi is not enabled
         if (not enable_mpi) and mpi_only:
@@ -59,19 +59,19 @@ def AssembleTestSuites(enable_mpi=False):
 
         # Remove mpi flags
         if mpi:
-            suite_flags.remove(SuiteFlags.mpi)
+            suite_flags.remove(SuiteFlags.MPI)
 
         if mpi_only:
-            suite_flags.remove(SuiteFlags.mpi_only)
+            suite_flags.remove(SuiteFlags.MPI_ONLY)
 
         # Add case to the corresponding suites
         for suite_flag in suite_flags:
-            local_cases[suite_flag.name].append(test_case)
+            local_cases[suite_flag.name.lower()].append(test_case)
             if mpi or mpi_only:
-                local_cases["mpi_" + suite_flag.name].append(test_case)
+                local_cases["mpi_" + suite_flag.name.lower()].append(test_case)
 
         # Put test in 'all' if it isn't already there
-        if not (SuiteFlags.all in suite_flags):
+        if not (SuiteFlags.ALL in suite_flags):
             if not mpi_only:
                 local_cases["all"].append(test_case)
             if mpi or mpi_only:

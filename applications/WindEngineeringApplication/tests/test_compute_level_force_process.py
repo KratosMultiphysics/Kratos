@@ -15,7 +15,7 @@ def GetFilePath(fileName):
 
 
 class TestComputeLevelForceProcess(TestCase):
-    suite_flags = [SuiteFlags.all, SuiteFlags.mpi]
+    suite_flags = [SuiteFlags.ALL, SuiteFlags.MPI]
 
     def GenerateModel(self):
         model = KratosMultiphysics.Model()
@@ -68,6 +68,7 @@ class TestComputeLevelForceProcess(TestCase):
 
     @classmethod
     def tearDown(cls):
+        KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
         KratosUtils.DeleteFileIfExisting(GetFilePath("test_compute_level_force_process_0.dat"))
         KratosUtils.DeleteFileIfExisting(GetFilePath("test_compute_level_force_process_1.dat"))
         KratosUtils.DeleteFileIfExisting(GetFilePath("test_compute_level_force_process_2.dat"))
