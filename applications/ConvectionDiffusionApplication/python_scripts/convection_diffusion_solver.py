@@ -416,7 +416,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             self._linear_solver = self._create_linear_solver()
         return self._linear_solver
 
-    def get_builder_and_solver(self):
+    def _GetBuilderAndSolver(self):
         if not hasattr(self, '_builder_and_solver'):
             self._builder_and_solver = self._create_builder_and_solver()
         return self._builder_and_solver
@@ -654,7 +654,7 @@ class ConvectionDiffusionSolver(PythonSolver):
     def _create_linear_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         convection_diffusion_scheme = self._GetScheme()
-        builder_and_solver = self.get_builder_and_solver()
+        builder_and_solver = self._GetBuilderAndSolver()
         if not computing_model_part.IsDistributed():
             return KratosMultiphysics.ResidualBasedLinearStrategy(
                 computing_model_part,
@@ -678,7 +678,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         computing_model_part = self.GetComputingModelPart()
         convection_diffusion_scheme = self._GetScheme()
         convection_diffusion_convergence_criterion = self._GetConvergenceCriterion()
-        builder_and_solver = self.get_builder_and_solver()
+        builder_and_solver = self._GetBuilderAndSolver()
         if not computing_model_part.IsDistributed():
             return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
                 computing_model_part,
@@ -704,7 +704,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         computing_model_part = self.GetComputingModelPart()
         convection_diffusion_scheme = self._GetScheme()
         convection_diffusion_convergence_criterion = self._GetConvergenceCriterion()
-        builder_and_solver = self.get_builder_and_solver()
+        builder_and_solver = self._GetBuilderAndSolver()
         if not computing_model_part.IsDistributed():
             return KratosMultiphysics.LineSearchStrategy(
                 computing_model_part,

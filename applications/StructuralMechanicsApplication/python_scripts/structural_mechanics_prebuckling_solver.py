@@ -58,7 +58,7 @@ class PrebucklingSolver(MechanicalSolver):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
     # Builder and Solver Eigen
-    def get_builder_and_solver_eigen(self):
+    def _GetBuilderAndSolverEigen(self):
         if not hasattr(self, '_builder_and_solver_eigen'):
             self._builder_and_solver_eigen = self._create_builder_and_solver_eigen()
         return self._builder_and_solver_eigen
@@ -103,8 +103,8 @@ class PrebucklingSolver(MechanicalSolver):
 
     def _create_mechanical_solution_strategy(self):
         solution_scheme = self._GetScheme()
-        eigen_solver = self.get_builder_and_solver_eigen() # The eigensolver is created here.
-        builder_and_solver = self.get_builder_and_solver() # The linear solver is created here.
+        eigen_solver = self._GetBuilderAndSolverEigen() # The eigensolver is created here.
+        builder_and_solver = self._GetBuilderAndSolver() # The linear solver is created here.
         convergence_criteria = self._GetConvergenceCriterion()
         computing_model_part = self.GetComputingModelPart()
         buckling_settings = self.settings["buckling_settings"]

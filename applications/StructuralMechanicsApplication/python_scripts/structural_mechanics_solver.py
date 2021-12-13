@@ -302,7 +302,7 @@ class MechanicalSolver(PythonSolver):
             self._linear_solver = self._create_linear_solver()
         return self._linear_solver
 
-    def get_builder_and_solver(self):
+    def _GetBuilderAndSolver(self):
         if (self.settings["multi_point_constraints_used"].GetBool() is False and
             self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
             self.settings["multi_point_constraints_used"].SetBool(True)
@@ -463,7 +463,7 @@ class MechanicalSolver(PythonSolver):
     def _create_linear_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._GetScheme()
-        builder_and_solver = self.get_builder_and_solver()
+        builder_and_solver = self._GetBuilderAndSolver()
         return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
                                                               mechanical_scheme,
                                                               builder_and_solver,
@@ -476,7 +476,7 @@ class MechanicalSolver(PythonSolver):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._GetScheme()
         mechanical_convergence_criterion = self._GetConvergenceCriterion()
-        builder_and_solver = self.get_builder_and_solver()
+        builder_and_solver = self._GetBuilderAndSolver()
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
                                                                      mechanical_scheme,
                                                                      mechanical_convergence_criterion,
@@ -493,7 +493,7 @@ class MechanicalSolver(PythonSolver):
         mechanical_scheme = self._GetScheme()
         linear_solver = self._GetLinearSolver()
         mechanical_convergence_criterion = self._GetConvergenceCriterion()
-        builder_and_solver = self.get_builder_and_solver()
+        builder_and_solver = self._GetBuilderAndSolver()
         strategy = KratosMultiphysics.LineSearchStrategy(computing_model_part,
                                                      mechanical_scheme,
                                                      linear_solver,

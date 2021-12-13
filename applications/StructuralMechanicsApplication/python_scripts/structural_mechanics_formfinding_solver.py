@@ -59,7 +59,7 @@ class FormfindingMechanicalSolver(MechanicalSolver):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._GetScheme()
         mechanical_convergence_criterion = self._GetConvergenceCriterion()
-        builder_and_solver = self.get_builder_and_solver()
+        builder_and_solver = self._GetBuilderAndSolver()
 
 
         # in some cases not all elements need to be reset by the formfinding strategy
