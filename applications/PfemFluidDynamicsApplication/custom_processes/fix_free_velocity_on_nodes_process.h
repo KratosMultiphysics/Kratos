@@ -25,7 +25,7 @@
 
 namespace Kratos {
 
-class FixFreeVelocityOnNodesProcess : public Process
+class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) FixFreeVelocityOnNodesProcess : public Process
 {
 public:
 
