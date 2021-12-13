@@ -56,21 +56,24 @@ class BaseBenchmarkProcess(KM.Process):
         """Compute the exact values of the benchmark and the error of the simulation."""
 
         time = self.model_part.ProcessInfo[KM.TIME]
-        for node in self.model_part.Nodes:
             for (variable, exact_variable, error_variable) in zip(self.variables, self.exact_variables, self.error_variables):
-                if variable == SW.HEIGHT:
-                    exact_value = self._Height(node, time)
-                elif variable == KM.VELOCITY:
-                    exact_value = self._Velocity(node, time)
-                elif variable == KM.MOMENTUM:
-                    exact_value = self._Momentum(node, time)
-                elif variable == SW.FREE_SURFACE_ELEVATION:
-                    exact_value = self._FreeSurfaceElevation(node, time)
 
+                if variable == SW.HEIGHT:
+                exact_value_function = self._Height
+                elif variable == KM.VELOCITY:
+                exact_value_function = self._Velocity
+                elif variable == KM.MOMENTUM:
+                exact_value_function = self._Momentum
+                elif variable == SW.FREE_SURFACE_ELEVATION:
+                exact_value_function = self._FreeSurfaceElevation
+
+            for node in self.model_part.Nodes:
+                exact_value = exact_value_function(node, time)
                 fem_value = node.GetSolutionStepValue(variable)
 
                 node.SetValue(exact_variable, exact_value)
                 node.SetValue(error_variable, fem_value - exact_value)
+
 
     def Check(self):
         """Check if the input values have physical sense."""
