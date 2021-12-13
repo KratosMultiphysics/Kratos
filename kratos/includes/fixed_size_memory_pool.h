@@ -101,8 +101,6 @@ namespace Kratos
 					  return;
 				  }
 
-		  mThreadsPool[OpenMPUtils::ThisThread()].UnSetLock();
-
 		  KRATOS_ERROR << "The Pointer with address " << pPointrerToRelease << " was not found in this pool" << std::endl;
 	  }
 
