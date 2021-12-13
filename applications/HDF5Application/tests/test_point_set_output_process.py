@@ -60,7 +60,7 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
 
         # Open output file
         file_parameters = parameters["file_parameters"].Clone()
-        file_parameters["file_access_mode"].SetString("read_only")
+        file_parameters.AddString("file_access_mode","read_only")
         if self.communicator.IsDistributed():
             File = KratosMultiphysics.HDF5Application.HDF5FileParallel
             file_parameters.AddString("file_driver", "mpio")

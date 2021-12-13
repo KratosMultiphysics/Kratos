@@ -24,21 +24,59 @@ class TestLineOutputProcess(UnitTest.TestCase):
         # so if you need to validate the results, comment the line
         # below.
         self.communicator.Barrier()
-        #KratosUtils.DeleteFileIfExisting(self.file_name)
+        KratosUtils.DeleteFileIfExisting(self.file_name)
 
 
     def test_LineOutputProcess(self):
-        number_of_elements = 100
-        edge_length = 1.0
-
         model, model_part = self.MakeModel()
+        parameters = self.parameters
+        number_of_steps = 10
 
+        process = LineOutputProcessFactory(parameters, model)
+        process.ExecuteInitialize()
+
+        for i_step in range(number_of_steps):
+            # Create new step data
+            model_part.CloneTimeStep(2.0 * i_step)
+            model_part.ProcessInfo[KratosMultiphysics.STEP] = i_step
+
+            # Modify variables
+            for node in model_part.Nodes:
+                for variable, increment in zip((KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.VELOCITY), (1.0, [0.0,0.0,1.0])):
+                    node.SetSolutionStepValue(variable,node.GetSolutionStepValue(variable) + increment)
+
+            # Print output if requested
+            if process.IsOutputStep():
+                process.PrintOutput()
+
+        self.communicator.Barrier()
+
+        # Open output file
+        file_parameters = parameters["file_parameters"].Clone()
+        file_parameters.AddString("file_access_mode","read_only")
+        if self.communicator.IsDistributed():
+            File = KratosMultiphysics.HDF5Application.HDF5FileParallel
+            file_parameters.AddString("file_driver", "mpio")
+        else:
+            File = KratosMultiphysics.HDF5Application.HDF5FileSerial
+
+        file = File(file_parameters)
+
+        # Check output file structure
+        root = "/test_line_output_{}".format(parameters["model_part_name"].GetString())
+        self.assertTrue(file.IsGroup(root))
+        self.assertTrue(file.IsDataSet(root + "/POSITION"))
+
+
+    @property
+    def parameters(self) -> KratosMultiphysics.Parameters:
         parameters = KratosMultiphysics.Parameters("""{
             "model_part_name"   : "main",
             "start_point"       : [0.0, 0.0, 0.0],
             "end_point"         : [1.0, 0.0, 0.0],
             "number_of_points"  : 51,
             "output_variables"  : ["DISPLACEMENT_X", "VELOCITY"],
+            "output_frequency"  : 3,
             "coordinates_prefix" : "/test_line_output_<model_part_name>",
             "variables_prefix"   : "/test_line_output_<model_part_name>/test_step_<step>",
             "file_parameters"   : {
@@ -46,11 +84,7 @@ class TestLineOutputProcess(UnitTest.TestCase):
             }
         }""")
         parameters["file_parameters"]["file_name"].SetString(self.file_name)
-
-        # Write coordinates and variables
-        point_set_output_process = LineOutputProcessFactory(parameters, model)
-        point_set_output_process.ExecuteInitialize()
-        point_set_output_process.PrintOutput()
+        return parameters
 
 
     @staticmethod
