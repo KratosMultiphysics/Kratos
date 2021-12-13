@@ -40,7 +40,6 @@ class BaseBenchmarkProcess(KM.Process):
         self.variables = GenerateVariableListFromInput(self.settings["variables_list"])
         self.exact_variables = GenerateVariableListFromInput(self.settings["exact_variables_list"])
         self.error_variables = GenerateVariableListFromInput(self.settings["error_variables_list"])
-        self.benchmark_settings = settings["benchmark_settings"]
 
 
     def ExecuteInitialize(self):

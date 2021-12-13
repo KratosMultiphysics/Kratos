@@ -26,8 +26,8 @@ class DryDamBreakBenchmark(BaseBenchmarkProcess):
         """
         super().__init__(model, settings)
 
-        self.dam = self.benchmark_settings["dam_position"].GetDouble()
-        self.hl = self.benchmark_settings["left_height"].GetDouble()
+        self.dam = self.settings["benchmark_settings"]["dam_position"].GetDouble()
+        self.hl = self.settings["benchmark_settings"]["left_height"].GetDouble()
         self.g = self.model_part.ProcessInfo[KM.GRAVITY_Z]
 
     def Check(self):
