@@ -1,3 +1,4 @@
+import KratosMultiphysics
 import test_WindEngineeringApplication
 
 if __name__ == "__main__":

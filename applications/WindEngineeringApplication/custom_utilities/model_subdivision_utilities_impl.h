@@ -18,6 +18,9 @@
 // Core includes
 #include "utilities/math_utils.h"
 
+// STL includes
+#include <mutex> // for std::lock_guard
+
 
 namespace Kratos
 {
