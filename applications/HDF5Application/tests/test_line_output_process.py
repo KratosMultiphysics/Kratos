@@ -2,6 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtils
 from KratosMultiphysics import KratosUnittest as UnitTest
 from KratosMultiphysics.HDF5Application.line_output_process import Factory as LineOutputProcessFactory
+from KratosMultiphysics.testing.utilities import ReadModelPart
 
 import math
 import pathlib
@@ -22,23 +23,22 @@ class TestLineOutputProcess(UnitTest.TestCase):
         # The output file is not actually checked yet in the script,
         # so if you need to validate the results, comment the line
         # below.
-        KratosUtils.DeleteFileIfExisting(self.file_name)
+        self.communicator.Barrier()
+        #KratosUtils.DeleteFileIfExisting(self.file_name)
 
 
     def test_LineOutputProcess(self):
         number_of_elements = 100
         edge_length = 1.0
 
-        model, model_part = self.MakeModel(
-            number_of_elements = number_of_elements,
-            edge_length = edge_length)
+        model, model_part = self.MakeModel()
 
         parameters = KratosMultiphysics.Parameters("""{
             "model_part_name"   : "main",
-            "start_point"       : [0.0, 0.5, 0.0],
-            "end_point"         : [100.0, 0.5, 0.0],
-            "number_of_points"  : 201,
-            "output_variables"  : ["DISPLACEMENT", "REACTION"],
+            "start_point"       : [0.0, 0.0, 0.0],
+            "end_point"         : [1.0, 0.0, 0.0],
+            "number_of_points"  : 51,
+            "output_variables"  : ["DISPLACEMENT_X", "VELOCITY"],
             "coordinates_prefix" : "/test_line_output_<model_part_name>",
             "variables_prefix"   : "/test_line_output_<model_part_name>/test_step_<step>",
             "file_parameters"   : {
@@ -54,50 +54,36 @@ class TestLineOutputProcess(UnitTest.TestCase):
 
 
     @staticmethod
-    def MakeModel(number_of_elements = 100,
-                  edge_length = 1.0):
-        """Generate a horizontal row of square elements in the xy plane."""
-
+    def MakeModel():
         model = KratosMultiphysics.Model()
         model_part = model.CreateModelPart("main")
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
-        # Linear node/element partition for mpi (shifted for debugging purposes)
-        communicator = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
-        number_of_ranks = communicator.Size()
-        rank = communicator.Rank()
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_X)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
 
-        chunk_size = math.ceil(number_of_elements / float(number_of_ranks))
-        element_index_range = [(rank_id * chunk_size, min((rank_id+1) * chunk_size, number_of_elements)) for rank_id in range(number_of_ranks)][(rank+1) % number_of_ranks]
+        ReadModelPart("/home/mate/build/kratos/Debug/install/kratos/tests/auxiliar_files_for_python_unittest/mdpa_files/test_processes", model_part)
 
-        # Generate nodes
-        for bottom_index in range(element_index_range[0], element_index_range[1] + 1):
-            bottom_node = model_part.CreateNewNode(bottom_index + 1,
-                                                   bottom_index * edge_length,
-                                                   0.0,
-                                                   0.0)
-            bottom_node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, [bottom_index, 0.0, 0.0])
-            bottom_node.SetSolutionStepValue(KratosMultiphysics.REACTION, [0.0, 0.0, bottom_index])
-
-            top_index = bottom_index + number_of_elements + 1
-            top_node = model_part.CreateNewNode(top_index + 1,
-                                                bottom_index * edge_length,
-                                                edge_length,
-                                                0.0)
-            top_node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, [top_index, 0.0, 0.0])
-            top_node.SetSolutionStepValue(KratosMultiphysics.REACTION, [0.0, 0.0, top_index])
-
-        # Generate elements
-        properties = model_part.GetProperties()[1]
-        for element_index in range(*element_index_range):
-            model_part.CreateNewElement(
-                "Element2D4N",
-                element_index,
-                [element_index + 1, element_index + 2, element_index + number_of_elements + 3, element_index + number_of_elements + 2],
-                properties)
+        for node in model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, node.X)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, [node.X, node.Y, node.Z])
 
         return model, model_part
+
+
+
+    @staticmethod
+    def GetInputMDPAPath() -> pathlib.Path:
+        script_directory      = pathlib.Path(__file__).absolute().parent
+        kratos_root_directory = script_directory.parent.parent.parent
+        test_input_directory  = kratos_root_directory / "kratos" / "tests" / "auxiliar_files_for_python_unittest"
+        test_file_stem        = test_input_directory / "mdpa_files" / "test_processes"
+        test_file_path        = pathlib.Path(str(test_file_stem) + ".mdpa")
+
+        if not test_file_path.is_file():
+            raise FileNotFoundError("Test file not found: {}".format(test_file_path))
+
+        return test_file_stem
 
 
 

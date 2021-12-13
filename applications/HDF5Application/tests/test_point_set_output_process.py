@@ -25,16 +25,17 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
         self.communicator.Barrier()
 
 
-    #def tearDown(self):
-    #    # The output file is not actually checked yet in the script,
-    #    # so if you need to validate the results, comment the line
-    #    # below.
-    #    KratosUtils.DeleteFileIfExisting(self.file_name)
+    def tearDown(self):
+        # The output file is not actually checked yet in the script,
+        # so if you need to validate the results, comment the line
+        # below.
+        self.communicator.Barrier()
+        KratosUtils.DeleteFileIfExisting(self.file_name)
 
 
     def test_PointSetOutputProcessWrite(self):
         model, model_part = self.MakeModel()
-        parameters = self.__GetParameters()
+        parameters = self.parameters
         number_of_steps = 10
 
         # Write coordinates and variables
@@ -42,7 +43,16 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
         point_set_output_process.ExecuteInitialize()
 
         for i_step in range(number_of_steps):
+            # Create new step data
             model_part.CloneTimeStep(2.0 * i_step)
+            model_part.ProcessInfo[KratosMultiphysics.STEP] = i_step
+
+            # Modify variables
+            for node in model_part.Nodes:
+                for variable, increment in zip((KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.VELOCITY), (1.0, [0.0,0.0,1.0])):
+                    node.SetSolutionStepValue(variable,node.GetSolutionStepValue(variable) + increment)
+
+            # Print output if necessary
             if point_set_output_process.IsOutputStep():
                 point_set_output_process.PrintOutput()
 
@@ -65,7 +75,8 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
         self.assertTrue(file.IsDataSet(root + "/POSITION"))
 
 
-    def __GetParameters(self) -> KratosMultiphysics.Parameters:
+    @property
+    def parameters(self) -> KratosMultiphysics.Parameters:
         parameters = KratosMultiphysics.Parameters("""{
             "model_part_name"      : "main",
             "positions"            : [],
