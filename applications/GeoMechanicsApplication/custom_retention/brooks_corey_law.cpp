@@ -58,7 +58,7 @@ double BrooksCoreyLaw::
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
         const double &pa     = rMaterialProperties[BROOKS_COREY_AIR_ENTRY_PRESSURE];
-        const double &Landa     = rMaterialProperties[PORE_SIZE_INDEX];
+        const double &Landa     = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
         
 
         double sat = satMin + (satMax - satMin) *  pow(pa/p, Landa);
@@ -104,7 +104,7 @@ double BrooksCoreyLaw::
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
         const double &pa     = rMaterialProperties[BROOKS_COREY_AIR_ENTRY_PRESSURE];
-        const double &Landa  = rMaterialProperties[PORE_SIZE_INDEX];
+        const double &Landa  = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
         
 
         double dSdp = (satMax - satMin) * (-Landa) * pow(pa,Landa)*pow(p, -Landa-1.0);
@@ -129,7 +129,7 @@ double BrooksCoreyLaw::
 
     const auto &rMaterialProperties = rParameters.GetMaterialProperties();
     const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
-    const double &Landa  = rMaterialProperties[PORE_SIZE_INDEX];
+    const double &Landa  = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
 
     double relPerm = pow(effSat, ((2+3*Landa)/Landa)); 
 
@@ -155,8 +155,8 @@ if (p > 0.0)
         const double &Porosity = rMaterialProperties[POROSITY];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
         const double &pa     = rMaterialProperties[BROOKS_COREY_AIR_ENTRY_PRESSURE];
-        const double &Landa  = rMaterialProperties[PORE_SIZE_INDEX];
-        const double &Beta  = rMaterialProperties[FITTING_PARAMETER];// which is considered between 0.4 to 0.7
+        const double &Landa  = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
+        const double &Beta  = rMaterialProperties[BROOKS_COREY_FITTING_PARAMETER];// which is considered between 0.4 to 0.7
 
         double BishopCo = pow(pa/p, Beta)+pow(pa/p, 1+Beta)*Porosity*(Landa/(Landa-1))*(1-satMin)*(1-pow(pa/p, Landa-1)); 
    
