@@ -681,6 +681,42 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
     }
 }
 
+namespace CompressibleNavierStokesExplicitInternal
+{
+    template<unsigned int TDim, unsigned int TNumNodes>
+    using ElementDataStruct = typename CompressibleNavierStokesExplicit<TDim, TNumNodes>::ElementDataStruct;
+
+    // Using SFINAE to select the shape function and element size computation
+
+    // Specialization for geometries with uniform jacobian
+    template<unsigned int TDim, unsigned int TNumNodes>
+    typename std::enable_if<TDim+1 == TNumNodes, void>::type ComputeGeometryData(
+        const Geometry<Node<3>> & rGeometry,
+        ElementDataStruct<TDim, TNumNodes>& rData)
+    {
+        GeometryUtils::CalculateGeometryData(rGeometry, rData.DN_DX, rData.N, rData.volume);
+        rData.h = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rData.DN_DX);
+    }
+
+    /* Specialization for geometries with non-uniform jacobian
+     * Shape functions cannot be obtained here. They will need to be calculated
+     * during integration at each gauss point.
+     */
+    template<unsigned int TDim, unsigned int TNumNodes>
+    typename std::enable_if<TDim+1 != TNumNodes, void>::type ComputeGeometryData(
+        const Geometry<Node<3>> & rGeometry,
+        ElementDataStruct<TDim, TNumNodes>& rData)
+    {        
+        switch (TDim) {
+            case 2: rData.volume = rGeometry.Area();   break;
+            case 3: rData.volume = rGeometry.Volume(); break;
+        }
+
+        rData.h = ElementSizeCalculator<TDim, TNumNodes>::AverageElementSize(rGeometry);
+    }
+}
+
+
 template <unsigned int TDim, unsigned int TNumNodes>
 void CompressibleNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
     ElementDataStruct &rData,
@@ -688,10 +724,9 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
 {
     // Getting data for the given geometry
     const auto& r_geometry = GetGeometry();
-    GeometryUtils::CalculateGeometryData(r_geometry, rData.DN_DX, rData.N, rData.volume);
 
-    // Compute element size
-    rData.h = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rData.DN_DX);
+    // Loads shape function info only if jacobian is uniform
+    CompressibleNavierStokesExplicitInternal::ComputeGeometryData<TDim, TNumNodes>(r_geometry, rData);
 
     // Database access to all of the variables needed
     Properties &r_properties = this->GetProperties();
