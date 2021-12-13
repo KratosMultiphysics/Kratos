@@ -18,8 +18,6 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
-#include "custom_utilities/interface_element_utilities.hpp"
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
