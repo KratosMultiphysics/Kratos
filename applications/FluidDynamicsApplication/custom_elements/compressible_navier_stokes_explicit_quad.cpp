@@ -306,7 +306,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateTotalEnergyProjection(const
     this->FillElementData(data, rCurrentProcessInfo);
 
     // Calculate shock capturing values
-    BoundedVector<double, 3> tot_ener_proj = ZeroVector(NumNodes);
+    BoundedVector<double, NumNodes> tot_ener_proj = ZeroVector(NumNodes);
 
     Vector N;
     Matrix DN_DX;
