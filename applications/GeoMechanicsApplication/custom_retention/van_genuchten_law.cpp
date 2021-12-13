@@ -57,7 +57,7 @@ double VanGenuchtenLaw::
     {
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
-        const double &pb     = rMaterialProperties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE];
+        const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
         const double &gn     = rMaterialProperties[VAN_GENUCHTEN_GN];
         const double gc      = (1.0 - gn) / gn;
 
@@ -103,7 +103,7 @@ double VanGenuchtenLaw::
         const auto &rMaterialProperties = rParameters.GetMaterialProperties();
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
-        const double &pb     = rMaterialProperties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE];
+        const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
         const double &gn     = rMaterialProperties[VAN_GENUCHTEN_GN];
         const double gc      = (1.0 - gn) / gn;
 
@@ -237,10 +237,10 @@ int VanGenuchtenLaw::Check(const Properties& rMaterialProperties,
     KRATOS_ERROR_IF(rMaterialProperties[SATURATED_SATURATION] < rMaterialProperties[RESIDUAL_SATURATION])
                     << "RESIDUAL_SATURATION cannot be greater than SATURATED_SATURATION " << std::endl;
 
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE))
-                    << "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE is not availabe in material parameters" << std::endl;
-    KRATOS_ERROR_IF(!(rMaterialProperties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE] > 0.0))
-                    << "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE must be greater than 0 " << std::endl;
+    KRATOS_ERROR_IF(!rMaterialProperties.Has(AIR_ENTRY_PRESSURE))
+                    << "AIR_ENTRY_PRESSURE is not availabe in material parameters" << std::endl;
+    KRATOS_ERROR_IF(!(rMaterialProperties[AIR_ENTRY_PRESSURE] > 0.0))
+                    << "AIR_ENTRY_PRESSURE must be greater than 0 " << std::endl;
 
     KRATOS_ERROR_IF(!rMaterialProperties.Has(MINIMUM_RELATIVE_PERMEABILITY))
                     << "MINIMUM_RELATIVE_PERMEABILITY is not availabe in material parameters" << std::endl;
