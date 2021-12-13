@@ -44,7 +44,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 	//base types
 	typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-	typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+	typedef SolvingStrategy< SparseSpaceType, LocalSpaceType> BaseSolvingStrategyType;
 	typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
 	//custom scheme types

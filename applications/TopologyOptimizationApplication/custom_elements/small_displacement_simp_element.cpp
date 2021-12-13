@@ -234,7 +234,6 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 		if (rVariable == DCDX)
 		{
 			// Calculation of the compliance sensitivities DCDX
-			// Do they have to be normalized?
 			double dcdx = (-penalty)* (E_initial - E_min) * pow(x_phys, penalty - 1) * ue_Ke0_ue;
 			this->SetValue(DCDX, dcdx); 
 		}

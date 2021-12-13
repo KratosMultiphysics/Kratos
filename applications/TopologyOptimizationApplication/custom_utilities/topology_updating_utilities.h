@@ -31,10 +31,12 @@
 #include "includes/process_info.h"
 
 #include "mma_solver.cpp"
+#include "gcmma_solver.cpp"
 
 
 // Application includes
 #include "topology_optimization_application.h"
+#include "structure_response_function_utilities.h"
 
 
 namespace Kratos
@@ -207,9 +209,9 @@ public:
 
 	}
 
-/// MMA as a optimization Algorithm
+	/// MMA as a optimization Algorithm
 
-	void UpdateDensitiesUsingMMAMethod( char update_type[], double volfrac,  double OptItr, double  Obj_Function_initial)
+	void UpdateDensitiesUsingMMAMethod( char update_type[], double volfrac,  double OptItr)
 	{
 		KRATOS_TRY;
 		if ( strcmp( update_type , "MMA_algorithm" ) == 0 )
@@ -252,10 +254,10 @@ public:
 				double xval = element_i->GetValue(X_PHYS);
 
 				//Density value of the previous iteration
-				double xold_1 = element_i->GetValue(X_PHYS_OLD_1);
+				double xold_1 = element_i->GetValue(X_PHYS_OLD);
 
 				//Density of the iteration before that (OptIter-2)
-				double xold_2 = element_i->GetValue(X_PHYS_OLD_2);
+				double xold_2 = element_i->GetValue(X_PHYS_OLD_1);
 
 				//Value of the objective function sensitivity
 				double dfdx = (element_i->GetValue(DCDX));
@@ -269,17 +271,17 @@ public:
 				//Value of the lower bound of the previous iteration
 				double lower_boundary = element_i->GetValue(LOW);
 
-				double volume = element_i->GetValue(VOLUMETRIC_STRAIN);
-				std::cout << "Volume strain: "<< volume << std::endl;
+				//double volume = element_i->GetValue(VOLUMETRIC_STRAIN);
+				//std::cout << "Volume strain: "<< volume << std::endl;
+
+				double youngs_modulus = element_i->GetValue(E_0);
 
 				
 				double Xmin = 0;
 				double Xmax = 1;
 				vol_summ = vol_summ + xval;
-
-				
 				x[iteration]= xval;
-				df[iteration]= dfdx/(Obj_Function_initial*nn*1e-3);
+				df[iteration]= dfdx/youngs_modulus;
 				dg[iteration] = dgdx;
 				xmax[iteration] = Xmax;
 				xmin[iteration] = Xmin; 
@@ -299,7 +301,7 @@ public:
 
 			g[0] = 0;
 			vol_frac_iteration = vol_summ;
-			g[0] = vol_frac_iteration - volfrac*nn;
+			g[0] = (vol_frac_iteration - volfrac*nn);
 
 			double Xminn = 0;
 			double Xmaxx= 1;
@@ -320,10 +322,12 @@ public:
 
 			for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin();
 					elem_i!=mrModelPart.ElementsEnd(); elem_i++)
-				{	
+				{
 				elem_i->SetValue(X_PHYS, x[jiter]);
 				elem_i->SetValue(UPP, upp[jiter]);
 				elem_i->SetValue(LOW, low[jiter]);
+				elem_i->SetValue(X_PHYS_OLD,xold1[jiter]);
+				elem_i->SetValue(X_PHYS_OLD_1,xold2[jiter]);
 				jiter= jiter +1;
 				}
 
@@ -332,6 +336,347 @@ public:
 			// Printing of results
 			clock_t end = clock();
 			std::cout << "  Updating of values performed               [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+		}
+		else 
+		{
+
+			KRATOS_ERROR << "No valid optimization_algorithm selected for the simulation. Selected one: " << update_type << std::endl;
+		}
+
+		KRATOS_CATCH("");
+
+	}
+
+
+	/// GCMMA as a optimization Algorithm - outer update
+
+	double UpdateDensitiesUsingGCMMAMethod_outer( char update_type[], double volfrac,  double OptItr, double Obj_func, double f0app)
+	{
+		KRATOS_TRY;
+		if ( strcmp( update_type , "GCMMA_algorithm" ) == 0 )
+		{
+			clock_t begin = clock();
+			std::cout << "  Method of Moving Asymthodes (MMA) chosen to solve the optimization problem" << std::endl;
+
+
+			// Create object of updating function
+			int nn = mrModelPart.NumberOfElements();
+			int mm = 1; /// constraints
+
+
+			// number of iterations while running through the elements calling their properties
+			int iteration = 0; 
+
+			// constructing vectors for the density of the given iteration, of the iteration before and the iteration before that
+			// additionally the sensitivities and constraints are saved to pass them on to the MMA optimization algorithm
+			double *x = new double[nn];
+			double *df = new double[nn];
+			double *xold1 = new double[nn];
+			double *xold2 = new double[nn];
+			double *g = new double[mm];
+			double *dg = new double[nn*mm];
+			double *xmin = new double[nn];
+			double *xmax = new double[nn];
+			double *low = new double[nn];
+			double *upp = new double[nn];
+			double *xmma = new double[nn];
+			double vol_summ = 0;
+			double vol_frac_iteration = 0;
+			double f = Obj_func;
+
+			// Number of iterations of the optimization process. Important for MMA optimization algorithm
+			int iter = OptItr;
+			
+
+			//get the information from the element and save them in the new vectors
+			for( ModelPart::ElementsContainerType::iterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
+			{	
+				
+				double xval = element_i->GetValue(X_PHYS);
+
+				//Density value of the previous iteration
+				double xold_1 = element_i->GetValue(X_PHYS_OLD);
+
+				//Density of the iteration before that (OptIter-2)
+				double xold_2 = element_i->GetValue(X_PHYS_OLD_1);
+
+				//Value of the objective function sensitivity
+				double dfdx = (element_i->GetValue(DCDX));
+
+				// Value of the constraint function sensitivity
+				double dgdx = (element_i->GetValue(DVDX));   /// DVDX=1, gilt nur für regelmäßige Vernetzung!!!
+
+				//Value of the upper bound of the previous iteration
+				double upper_boundary = element_i->GetValue(UPP);
+
+				//Value of the lower bound of the previous iteration
+				double lower_boundary = element_i->GetValue(LOW);
+
+				//double volume = element_i->GetValue(VOLUMETRIC_STRAIN);
+				//std::cout << "Volume strain: "<< volume << std::endl;
+
+				double youngs_modulus = element_i->GetValue(E_0);
+
+				
+				double Xmin = 0;
+				double Xmax = 1;
+				vol_summ = vol_summ + xval;
+				x[iteration]= xval;
+				xmma[iteration]= xval;
+				df[iteration]= dfdx/youngs_modulus;
+				dg[iteration] = dgdx;
+				xmax[iteration] = Xmax;
+				xmin[iteration] = Xmin; 
+				xold1[iteration] = xold_1;
+				xold2[iteration] = xold_2;
+				upp[iteration] = upper_boundary;
+				low[iteration] = lower_boundary;
+				iteration = iteration + 1;
+			}
+			
+			
+
+
+ 			// Initialize MMA
+			GCMMASolver *gcmma = new GCMMASolver(nn,mm);
+	
+
+			g[0] = 0;
+			vol_frac_iteration = vol_summ;
+			g[0] = (vol_frac_iteration - volfrac*nn);
+
+			double Xminn = 0;
+			double Xmaxx= 1;
+			double movlim = 0.2;
+	
+
+			for (int iEl = 0; iEl < nn; iEl++) 
+			{
+				xmax[iEl] = std::min(Xmaxx, x[iEl] + movlim);
+				xmin[iEl] = std::max(Xminn, x[iEl] - movlim); 
+			}
+		
+			f0app = gcmma->OuterUpdate(xmma,x,f,df,g,dg,xmin,xmax,xold1,xold2, iter, low, upp, f0app);
+
+			int jiter = 0;
+
+			for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin();
+					elem_i!=mrModelPart.ElementsEnd(); elem_i++)
+				{
+				elem_i->SetValue(X_PHYS, xmma[jiter]);
+				elem_i->SetValue(UPP, upp[jiter]);
+				elem_i->SetValue(LOW, low[jiter]);
+				elem_i->SetValue(X_PHYS_OLD,xold1[jiter]);
+				elem_i->SetValue(X_PHYS_OLD_1,xold2[jiter]);
+				jiter= jiter +1;
+				}
+
+
+
+			// Printing of results
+			return f0app;
+			clock_t end = clock();
+			std::cout << "  Updating of values performed               [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+		}
+		else 
+		{
+
+			KRATOS_ERROR << "No valid optimization_algorithm selected for the simulation. Selected one: " << update_type << std::endl;
+		}
+
+		KRATOS_CATCH("");
+
+	}
+
+		
+	/// GCMMA as a optimization Algorithm - inner update
+
+	double  UpdateDensitiesUsingGCMMAMethod_inner( char update_type[], double volfrac,  double OptItr, double f_old, double f_new, double f0app)
+	{
+		KRATOS_TRY;
+		if ( strcmp( update_type , "GCMMA_algorithm" ) == 0 )
+		{
+			clock_t begin = clock();
+
+
+			// Create object of updating function
+			int nn = mrModelPart.NumberOfElements();
+			int mm = 1; /// constraints
+
+
+			// number of iterations while running through the elements calling their properties
+			int iteration = 0; 
+
+			// constructing vectors for the density of the given iteration, of the iteration before and the iteration before that
+			// additionally the sensitivities and constraints are saved to pass them on to the MMA optimization algorithm
+			double *x = new double[nn];
+			double *df = new double[nn];
+			double *xold1 = new double[nn];
+			double *xold2 = new double[nn];
+			double *g = new double[mm];
+			double *dg = new double[nn*mm];
+			double *xmin = new double[nn];
+			double *xmax = new double[nn];
+			double *low = new double[nn];
+			double *upp = new double[nn];
+			double *xmma = new double[nn];
+			double fnew = f_new;
+			double *gnew = new double[nn];
+			double vol_summ = 0;
+			double vol_frac_iteration = 0;
+			double f = f_old;
+
+			// Number of iterations of the optimization process. Important for MMA optimization algorithm
+			int iter = OptItr;
+			
+
+			//get the information from the element and save them in the new vectors
+			for( ModelPart::ElementsContainerType::iterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
+			{	
+				
+				double xval = element_i->GetValue(X_PHYS);
+
+				//Density value of the previous iteration
+				double xold_1 = element_i->GetValue(X_PHYS_OLD);
+
+				//Density of the iteration before that (OptIter-2)
+				double xold_2 = element_i->GetValue(X_PHYS_OLD_1);
+
+				//Value of the objective function sensitivity
+				double dfdx = (element_i->GetValue(DCDX));
+
+				// Value of the constraint function sensitivity
+				double dgdx = (element_i->GetValue(DVDX));   /// DVDX=1, gilt nur für regelmäßige Vernetzung!!!
+
+				//Value of the upper bound of the previous iteration
+				double upper_boundary = element_i->GetValue(UPP);
+
+				//Value of the lower bound of the previous iteration
+				double lower_boundary = element_i->GetValue(LOW);
+
+				//double volume = element_i->GetValue(VOLUMETRIC_STRAIN);
+				//std::cout << "Volume strain: "<< volume << std::endl;
+
+				double youngs_modulus = element_i->GetValue(E_0);
+
+				
+				double Xmin = 0;
+				double Xmax = 1;
+				vol_summ = vol_summ + xval;
+				x[iteration]= xval;
+				xmma[iteration]= xval;
+				df[iteration]= dfdx/youngs_modulus;
+				dg[iteration] = dgdx;
+				xmax[iteration] = Xmax;
+				xmin[iteration] = Xmin; 
+				xold1[iteration] = xold_1;
+				xold2[iteration] = xold_2;
+				upp[iteration] = upper_boundary;
+				low[iteration] = lower_boundary;
+				iteration = iteration + 1;
+			}
+			
+			
+
+
+ 			// Initialize MMA
+			GCMMASolver *gcmma = new GCMMASolver(nn,mm);
+	
+
+			g[0] = 0;
+			vol_frac_iteration = vol_summ;
+			g[0] = (vol_frac_iteration - volfrac*nn);
+
+			double Xminn = 0;
+			double Xmaxx= 1;
+			double movlim = 0.2;
+	
+
+			for (int iEl = 0; iEl < nn; iEl++) 
+			{
+				xmax[iEl] = std::min(Xmaxx, x[iEl] + movlim);
+				xmin[iEl] = std::max(Xminn, x[iEl] - movlim); 
+			}
+
+			f0app = gcmma->InnerUpdate(xmma,fnew,gnew,x,f,df,g,dg,xmin,xmax,xold1,xold2, iter, low, upp, f0app);
+
+
+			int jiter = 0;
+
+			for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin();
+					elem_i!=mrModelPart.ElementsEnd(); elem_i++)
+				{
+				elem_i->SetValue(X_PHYS, xmma[jiter]);
+				elem_i->SetValue(UPP, upp[jiter]);
+				elem_i->SetValue(LOW, low[jiter]);
+				elem_i->SetValue(X_PHYS_OLD,xold1[jiter]);
+				elem_i->SetValue(X_PHYS_OLD_1,xold2[jiter]);
+				jiter= jiter +1;
+				}
+
+
+
+			// Printing of results
+			return f0app;
+			clock_t end = clock();
+			std::cout << "  Updating of values performed               [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+		}
+		else 
+		{
+
+			KRATOS_ERROR << "No valid optimization_algorithm selected for the simulation. Selected one: " << update_type << std::endl;
+		}
+
+		KRATOS_CATCH("");
+
+	}
+
+	
+	/// Check for convergence in Inner and Outer Iteration in GCMMA
+
+	int  ConCheck( char update_type[], double volfrac,  double OptItr, double f_old, double f_new, double f0app)
+	{
+		KRATOS_TRY;
+		if ( strcmp( update_type , "GCMMA_algorithm" ) == 0 )
+		{
+			// Create object of updating function
+			int nn = mrModelPart.NumberOfElements();
+			int mm = 1; /// constraints
+
+			double *g = new double[mm];
+			double vol_summ = 0;
+			double vol_frac_iteration = 0;
+
+			for( ModelPart::ElementsContainerType::iterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
+			{	
+				
+				double xval = element_i->GetValue(X_PHYS);
+
+				
+				vol_summ = vol_summ + xval;
+
+			}
+
+			g[0] = 0;
+			vol_frac_iteration = vol_summ;
+			g[0] = (vol_frac_iteration - volfrac*nn);
+			// Initialize MMA
+			GCMMASolver *gcmma = new GCMMASolver(nn,mm);
+
+			bool ConCheck = gcmma->ConCheck(f_new,g,f0app );
+			int l = 0;
+
+			if (ConCheck==true)
+				{
+					l = 1;
+				}
+			else
+			{ 
+				l =0;
+			}
+
+			return l;
+
 		}
 		else 
 		{

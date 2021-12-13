@@ -1,14 +1,24 @@
-// ==============================================================================
-//  KratosTopologyOptimizationApplication
+////////////////////////////////////////////////////////////////////////////////
+// Copyright © 2018 Jérémie Dumas
 //
-//  License:         BSD License
-//                   license: TopologyOptimizationApplication/license.txt
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
-//                   Octaviano Malfavón Farías
-//                   Eric Gonzales
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// ==============================================================================
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+////////////////////////////////////////////////////////////////////////////////
 
 #include "mma_solver.h"
 #include <algorithm>
@@ -78,7 +88,7 @@ void MMASolver::SetAsymptotes(double init, double decrease, double increase)
     }
 
 void MMASolver::Update(double *xval, const double *dfdx, const double *gx, const double *dgdx,
-	const double *xmin, const double *xmax, const double *xold1, const double *xold2, const int iter, double *low, double *upp)
+	const double *xmin, const double *xmax, double *xold1, double *xold2, const int iter, double *low, double *upp)
     {
         KRATOS_TRY
 
@@ -86,8 +96,12 @@ void MMASolver::Update(double *xval, const double *dfdx, const double *gx, const
         GenSub(xval, dfdx, gx, dgdx, xmin, xmax, xold1, xold2, iter, low, upp);
 
         // Update xolds
-        ///xold2 = xold1;
-        ///std::copy_n(xval, nano, xold1.data());
+        for (int i=0; i<nano; i++)
+        {
+            xold2[i]=xold1[i];
+            xold1[i]=xval[i];
+        }
+        //std::copy_n(xval, nano, xold1.data());
 
         // Solve the dual with an interior point method
         SolveDIP(xval, low, upp);
@@ -372,7 +386,7 @@ void MMASolver::XYZofLAMBDA(double *x, double *low, double *upp)
     }
 
 void MMASolver::GenSub(const double *xval, const double *dfdx, const double *gx, const double *dgdx, const double *xmin,
-                        const double *xmax, const double *xold1, const double *xold2, const int iter,  double *low, double *upp)
+                        const double *xmax, double *xold1, double *xold2, const int iter,  double *low, double *upp)
     {
         
         KRATOS_TRY
