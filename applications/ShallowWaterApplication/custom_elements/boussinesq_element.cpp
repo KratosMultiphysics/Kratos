@@ -51,6 +51,20 @@ typename BoussinesqElement<TNumNodes>::LocalVectorType BoussinesqElement<TNumNod
 }
 
 template<std::size_t TNumNodes>
+typename BoussinesqElement<TNumNodes>::LocalVectorType BoussinesqElement<TNumNodes>::ConservativeVector(
+    const LocalVectorType& rVector,
+    const ElementData& rData) const
+{
+    array_1d<double,mLocalSize> conservative_vector;
+    for (std::size_t i = 0; i < TNumNodes; ++i) {
+        conservative_vector[3*i    ] = -rVector[3*i    ] * rData.nodal_z[i];
+        conservative_vector[3*i + 1] = -rVector[3*i + 1] * rData.nodal_z[i];
+        conservative_vector[3*i + 2] =  rVector[3*i + 2];
+    }
+    return conservative_vector;
+}
+
+template<std::size_t TNumNodes>
 void BoussinesqElement<TNumNodes>::CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN)
 {
     const double eta = inner_prod(rData.nodal_f, rN);
@@ -175,12 +189,16 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
     }
     LocalVectorType acceleration = this->GetAccelerationsVector(rData);
     LocalVectorType velocity = this->GetUnknownVector(rData);
+    LocalVectorType acceleration_H = ConservativeVector(acceleration, rData);
+    LocalVectorType velocity_H = ConservativeVector(velocity, rData);
 
-    noalias(height_dispersion) = (C1 + C3) * std::pow(H,3) * Weight * inv_lumped_mass * prod(gradients_matrix, laplacian);
-    noalias(velocity_dispersion) = (C2 + C4) * std::pow(H,2) * Weight * inv_lumped_mass * prod(shape_functions, laplacian);
+    noalias(height_dispersion)  = m2 * Weight * inv_lumped_mass * prod(gradients_matrix, laplacian);
+    noalias(velocity_dispersion) = m2 * Weight * inv_lumped_mass * prod(shape_functions, laplacian);
 
-    noalias(rVector) -= m2 * prod(height_dispersion, velocity);
-    noalias(rVector) -= m2 * prod(velocity_dispersion, acceleration);
+    noalias(rVector) -= C1 * std::pow(H,3) * prod(height_dispersion, velocity);
+    noalias(rVector) -= C3 * std::pow(H,2) * prod(height_dispersion, velocity_H);
+    noalias(rVector) -= C2 * std::pow(H,2) * prod(velocity_dispersion, acceleration);
+    noalias(rVector) -= C4 *          H    * prod(velocity_dispersion, acceleration_H);
 }
 
 
