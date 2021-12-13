@@ -34,7 +34,7 @@ namespace Kratos
 	  imposes more overhead than the reference for stroing a header
 	  containing the chunk size and block size.
   */
-  class Chunk : public LockObject
+  class Chunk 
     {
     public:
 
@@ -63,8 +63,7 @@ namespace Kratos
 
 	  /// The constructor to be called
 	  Chunk(std::size_t BlockSizeInBytes, SizeType SizeInBytes) noexcept
-		  : LockObject()
-		  , mpData(nullptr)
+		  : mpData(nullptr)
 		  , mSize(SizeInBytes)
 		  , mBlockSizeInBytes(BlockSizeInBytes)
 		  , mNumberOfAvailableBlocks(0) // to be initialized in initialize
