@@ -193,7 +193,7 @@ class MeshSolverBase(PythonSolver):
 
     #### Specific internal functions ####
 
-    def get_linear_solver(self):
+    def _GetLinearSolver(self):
         if not hasattr(self, '_linear_solver'):
             self._linear_solver = self._create_linear_solver()
         return self._linear_solver

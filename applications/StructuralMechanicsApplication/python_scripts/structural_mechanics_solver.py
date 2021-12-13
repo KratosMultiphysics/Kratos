@@ -297,7 +297,7 @@ class MechanicalSolver(PythonSolver):
             self._convergence_criterion = self._create_convergence_criterion()
         return self._convergence_criterion
 
-    def get_linear_solver(self):
+    def _GetLinearSolver(self):
         if not hasattr(self, '_linear_solver'):
             self._linear_solver = self._create_linear_solver()
         return self._linear_solver
@@ -426,7 +426,7 @@ class MechanicalSolver(PythonSolver):
             return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
     def _create_builder_and_solver(self):
-        linear_solver = self.get_linear_solver()
+        linear_solver = self._GetLinearSolver()
         if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             bs_params = self.settings["builder_and_solver_settings"]["advanced_settings"]
             if not self.settings["builder_and_solver_settings"]["use_lagrange_BS"].GetBool():
@@ -491,7 +491,7 @@ class MechanicalSolver(PythonSolver):
     def _create_line_search_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._GetScheme()
-        linear_solver = self.get_linear_solver()
+        linear_solver = self._GetLinearSolver()
         mechanical_convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self.get_builder_and_solver()
         strategy = KratosMultiphysics.LineSearchStrategy(computing_model_part,

@@ -411,7 +411,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             self._convergence_criterion = self._create_convergence_criterion()
         return self._convergence_criterion
 
-    def get_linear_solver(self):
+    def _GetLinearSolver(self):
         if not hasattr(self, '_linear_solver'):
             self._linear_solver = self._create_linear_solver()
         return self._linear_solver
@@ -599,7 +599,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         return linear_solver
 
     def _create_builder_and_solver(self):
-        linear_solver = self.get_linear_solver()
+        linear_solver = self._GetLinearSolver()
         if not self.main_model_part.IsDistributed():
             # Set the serial builder and solver
             if self.settings["block_builder"].GetBool():

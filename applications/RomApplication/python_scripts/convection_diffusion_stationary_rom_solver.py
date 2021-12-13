@@ -27,7 +27,7 @@ class ROMSolver(ConvectionDiffusionStationarySolver):
     @classmethod
     def GetDefaultParameters(cls):
         default_settings = KratosMultiphysics.Parameters("""
-        {            
+        {
             "rom_settings": {
             "nodal_unknowns": [ "TEMPERATURE" ],
             "number_of_rom_dofs": 3
@@ -42,7 +42,7 @@ class ROMSolver(ConvectionDiffusionStationarySolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
     def _create_builder_and_solver(self):
-        linear_solver = self.get_linear_solver()
+        linear_solver = self._GetLinearSolver()
         rom_parameters=self.settings["rom_settings"]
         builder_and_solver = romapp.ROMBuilderAndSolver(linear_solver, rom_parameters)
         return builder_and_solver
