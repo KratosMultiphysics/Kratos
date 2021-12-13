@@ -68,7 +68,7 @@ namespace Kratos
 		  , mSize(SizeInBytes)
 		  , mBlockSizeInBytes(BlockSizeInBytes)
 		  , mNumberOfAvailableBlocks(0) // to be initialized in initialize
-		  , mFirstAvailableBlockIndex(0){}
+		  , mFirstAvailableBlockOffset(0){}
 
       /// Destructor is not virtual. This class can not be drived.
 	  ~Chunk() noexcept {
@@ -88,35 +88,37 @@ namespace Kratos
 	  void Initialize() {
 		  const std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
 		  mpData = new BlockType[DataSize()];
-  		  mFirstAvailableBlockIndex = 0;
+  		  mFirstAvailableBlockOffset = 0;
 		  mNumberOfAvailableBlocks = AllocatableDataSize() / block_size_after_alignment;
 
-		  *mpData = -1; // The first entry of the link list to the next one
+		  *mpData = -block_size_after_alignment; // The first entry of the link list to the next one
 	  }
 
 	  /// This function does not throw and returns zero if cannot allocate
 	  void* Allocate() {
 		  KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
 
-		  if (GetNumberOfAvailableBlocks() == 0)
+		  if (mNumberOfAvailableBlocks == 0)
 			  return nullptr;
 
-		    lock();
+		    const std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
+
+		    // lock();
 			  
-			BlockType * p_result = mpData + (mFirstAvailableBlockIndex * GetBlockSize(mBlockSizeInBytes));
+			BlockType * p_result = mpData + (mFirstAvailableBlockOffset);
 			if(*p_result < 0) {
 				*p_result = -(*p_result);
-				if(GetNumberOfAvailableBlocks() > 1) {
-					*(p_result + GetBlockSize(mBlockSizeInBytes)) = -(*p_result + 1);
+				if(mNumberOfAvailableBlocks > 1) {
+					*(p_result + block_size_after_alignment) = -(*p_result + block_size_after_alignment);
 				}
 			}
 				
 			KRATOS_DEBUG_CHECK(Has(p_result));
-			mFirstAvailableBlockIndex = *p_result;
+			mFirstAvailableBlockOffset = *p_result;
 
 			mNumberOfAvailableBlocks--;
 	
-			unlock();
+			// unlock();
 
 		  return p_result;
 	  }
@@ -132,14 +134,12 @@ namespace Kratos
 
 		  // Alignment check
 		  KRATOS_DEBUG_CHECK_EQUAL((p_to_release - mpData) % GetBlockSize(mBlockSizeInBytes), 0);
-		  lock();
-		  *p_to_release = mFirstAvailableBlockIndex;
-		  mFirstAvailableBlockIndex = static_cast<SizeType>((p_to_release - mpData) / GetBlockSize(mBlockSizeInBytes));
+		//   lock();
+		  *p_to_release = mFirstAvailableBlockOffset;
+		  mFirstAvailableBlockOffset = static_cast<SizeType>((p_to_release - mpData));
 
-		  // Check if there is no truncation error
-		  KRATOS_DEBUG_CHECK_EQUAL(mFirstAvailableBlockIndex, double(p_to_release - mpData) / GetBlockSize(mBlockSizeInBytes));
 		  mNumberOfAvailableBlocks++;
-		  unlock();
+		//   unlock();
 		  pPointrerToRelease = nullptr;
 
 	  }
@@ -165,7 +165,7 @@ namespace Kratos
 	  std::size_t MemoryOverhead() const {
 		  if (mpData == nullptr)
 			  return sizeof(Chunk);
-		  return MemoryUsed() - (mBlockSizeInBytes*(GetNumberOfBlocks() - GetNumberOfAvailableBlocks()));
+		  return MemoryUsed() - (mBlockSizeInBytes*(GetNumberOfBlocks() - mNumberOfAvailableBlocks));
 	  }
 
 	  ///@}
@@ -208,11 +208,11 @@ namespace Kratos
 	  }
 
 	  bool IsEmpty() const {
-		  return (GetNumberOfAvailableBlocks() == GetNumberOfBlocks());
+		  return (mNumberOfAvailableBlocks == GetNumberOfBlocks());
 	  }
 
 	  bool IsFull() {
-		  return (GetNumberOfAvailableBlocks() == 0);
+		  return (mNumberOfAvailableBlocks == 0);
 	  }
 
 	  bool IsInitialized() const {
@@ -253,7 +253,7 @@ namespace Kratos
 		SizeType mSize;
 		SizeType mBlockSizeInBytes;
 		SizeType mNumberOfAvailableBlocks;
-		SizeType mFirstAvailableBlockIndex;
+		SizeType mFirstAvailableBlockOffset;
 
       ///@}
       ///@name Operations
