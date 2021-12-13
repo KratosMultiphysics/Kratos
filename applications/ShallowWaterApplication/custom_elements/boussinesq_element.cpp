@@ -181,8 +181,8 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
             MathUtils<double>::AddMatrix(shape_functions,  shape_functions_k,  3*i, 3*j);
 
             // Stabilization terms for the field E
-            MathUtils<double>::AddMatrix(gradients_matrix, l * rDN_DX(j,0)*prod(rData.A1, gradients_matrix_k), 3*i, 3*j);
-            MathUtils<double>::AddMatrix(gradients_matrix, l * rDN_DX(j,1)*prod(rData.A2, gradients_matrix_k), 3*i, 3*j);
+            MathUtils<double>::AddMatrix(gradients_matrix, -l * rDN_DX(j,0)*prod(rData.A1, gradients_matrix_k), 3*i, 3*j);
+            MathUtils<double>::AddMatrix(gradients_matrix, -l * rDN_DX(j,1)*prod(rData.A2, gradients_matrix_k), 3*i, 3*j);
             MathUtils<double>::AddMatrix(shape_functions,  l * rDN_DX(i,0)*prod(rData.A1, shape_functions_k),  3*i, 3*j);
             MathUtils<double>::AddMatrix(shape_functions,  l * rDN_DX(i,1)*prod(rData.A2, shape_functions_k),  3*i, 3*j);
         }
