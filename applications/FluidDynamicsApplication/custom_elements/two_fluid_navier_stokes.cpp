@@ -178,8 +178,8 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 if (rCurrentProcessInfo[MOMENTUM_CORRECTION]){
                     BoundedMatrix<double, LocalSize, LocalSize> lhs_acc_correction = ZeroMatrix(LocalSize,LocalSize);
 
-                    double positive_density = 0.0;
-                    double negative_density = 0.0;
+                    double positive_density;
+                    double negative_density;
 
                     const auto& r_geom = this->GetGeometry();
 
@@ -1978,7 +1978,7 @@ ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokes
     const GeometryType::Pointer pGeometry,
     const Vector& rDistances)
 {
-   return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
+    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
 }
 
 template <>
