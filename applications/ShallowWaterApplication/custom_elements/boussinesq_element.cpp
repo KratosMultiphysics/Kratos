@@ -110,12 +110,12 @@ void BoussinesqElement<TNumNodes>::CalculateGaussPointData(ElementData& rData, c
     /// b_1
     rData.b1[0] = 0;
     rData.b1[1] = 0;
-    rData.b1[2] = v[0];
+    rData.b1[2] = -v[0];
 
     /// b_2
     rData.b2[0] = 0;
     rData.b2[1] = 0;
-    rData.b2[2] = v[1];
+    rData.b2[2] = -v[1];
 }
 
 template<std::size_t TNumNodes>
