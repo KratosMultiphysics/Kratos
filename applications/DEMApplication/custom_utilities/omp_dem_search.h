@@ -336,7 +336,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
       {
           KRATOS_TRY
 
-          int MaxNumberOfNodes = rStructureNodes.size();
+          int MaxNumberOfNodes = rNodes.size();
 
           NodesContainerType::ContainerType& nodes_ModelPart = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
           NodesContainerType::ContainerType& nodes_array = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
@@ -348,7 +348,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
 
         //   NodeBinsType bins(nodes_ModelPart.begin(), nodes_ModelPart.end());
           NodeBinsUniquePointerType p_bins = GetBins(nodes_ModelPart);
-        KRATOS_WATCH("afterrrrrrrrrrr")
+          KRATOS_WATCH("afterrrrrrrrrrr")
 
 
           #pragma omp parallel

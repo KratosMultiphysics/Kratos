@@ -63,7 +63,7 @@ public:
     virtual ~NodeConfigure(){}
 
  static void SetDomain(const double domain_min_x, const double domain_min_y, const double domain_min_z,
-                          const double domain_max_x, const double domain_max_y, const double domain_max_z)
+                       const double domain_max_x, const double domain_max_y, const double domain_max_z)
     {
         mDomainMin[0] = domain_min_x;
         mDomainMin[1] = domain_min_y;
@@ -160,7 +160,7 @@ public:
         noalias(rHighPoint) = *rObject;
         noalias(rLowPoint)  = *rObject;
 
-        const double& radius = rObject->FastGetSolutionStepValue(RADIUS);
+        double& radius = rObject->FastGetSolutionStepValue(RADIUS);
         KRATOS_WATCH(radius)
 
         for(std::size_t i = 0; i < 3; ++i)
@@ -172,8 +172,16 @@ public:
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double& Radius)
     {
-        (void) Radius;
-        CalculateBoundingBox(rObject, rLowPoint, rHighPoint);
+        for(std::size_t i = 0; i < 3; i++)
+        {
+            rHighPoint[i] = rLowPoint[i] = (*rObject)[i];
+        }
+
+        for(std::size_t i = 0; i < 3; i++)
+        {
+            rLowPoint[i]  += -Radius;
+            rHighPoint[i] += Radius;
+        }
     }
 
     static inline void CalculateCenter(const PointerType& rObject, PointType& rCenter)
@@ -188,8 +196,9 @@ public:
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
     {
-        const double& radius = rObj_1->FastGetSolutionStepValue(RADIUS);
-        return Intersection(rObj_1, rObj_2, radius);
+        const double& radiussss = rObj_2->FastGetSolutionStepValue(RADIUS);
+        KRATOS_WATCH(radiussss)
+        return Intersection(rObj_1, rObj_2, radiussss);
     }
 
 
@@ -202,7 +211,9 @@ public:
         const double coors_2[3] = {point_2[0], point_2[1], point_2[2]};
 
         PeriodicSubstract(coors_1, coors_2, rObj_2_to_rObj_1);
-
+        double R=Radius;
+        KRATOS_WATCH(R)
+        KRATOS_WATCH(rObj_2)
         const double distance_2 = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
         const bool intersect = floatle(distance_2, std::pow(Radius, 2));
         return intersect;
@@ -217,8 +228,6 @@ public:
     static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double& Radius)
     {
         const array_1d<double, 3>& center_of_particle = *rObject;
-
-        KRATOS_WATCH(center_of_particle)
 
         bool intersect;
 
@@ -238,7 +247,11 @@ public:
                                                            center_of_particle[1],
                                                            center_of_particle[2]};
             TransformToClosestPeriodicCoordinates(box_center, representative_center_of_particle);
-
+            KRATOS_WATCH(Radius)
+            KRATOS_WATCH(representative_center_of_particle[0])
+            KRATOS_WATCH(box_center[0])
+            KRATOS_WATCH(expanded_box_min[0])
+            KRATOS_WATCH(expanded_box_max[0])
             for (unsigned int i = 0; i < 3; ++i){
                 const bool is_broken = rLowPoint[i] > rHighPoint[i];
 
@@ -260,7 +273,6 @@ public:
                          && floatge(rHighPoint[i] + Radius, center_of_particle[i]);
             }
         }
-        KRATOS_WATCH(intersect)
         return  intersect;
     }
 
