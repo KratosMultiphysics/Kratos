@@ -19,6 +19,8 @@
 #include <list>
 #include <algorithm>
 
+#include "concurrentqueue/concurrentqueue.h"
+
 #include "includes/chunk.h"
 
 namespace Kratos
@@ -48,7 +50,8 @@ namespace Kratos
 
 	  ///@}
 
-		static constexpr SizeType MaximumEmptyChunksToKeep = 100000000;
+		static constexpr SizeType MaximumEmptyChunksToKeep = 4;
+		static constexpr SizeType MaximumPointersToKeep = 1024;
 
 	  ///@name Life Cycle
       ///@{
@@ -90,32 +93,46 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-	  /// This function does not throw and returns zero if cannot allocate
-	  void* Allocate() {
-		  if (mAvailableChunks.empty())
-			  AddChunk();
+	/// This function does not throw and returns zero if cannot allocate
+	void* Allocate() {
+		void* p_result = nullptr;
+		if(mAvailablePointers.try_dequeue(p_result))
+			return p_result;
 
-		  void* p_result = nullptr;
-		  Chunk& r_available_chunk = *(GetAvailableChunks().front());
-		  if (r_available_chunk.IsReleased())
-			  r_available_chunk.Initialize();
-		  KRATOS_CHECK_IS_FALSE(r_available_chunk.IsFull());
-		  p_result = r_available_chunk.Allocate();
-		  KRATOS_DEBUG_CHECK_NOT_EQUAL(p_result, nullptr);
-		  if (r_available_chunk.IsFull())
-			  mAvailableChunks.pop_front();
+		if (mAvailableChunks.empty())
+			AddChunk();
+
+		lock();
+
+		Chunk& r_available_chunk = *(GetAvailableChunks().front());
+		if (r_available_chunk.IsReleased())
+			r_available_chunk.Initialize();
+		KRATOS_CHECK_IS_FALSE(r_available_chunk.IsFull());
+		p_result = r_available_chunk.Allocate();
+		KRATOS_DEBUG_CHECK_NOT_EQUAL(p_result, nullptr);
+		if (r_available_chunk.IsFull())
+			mAvailableChunks.pop_front();
+
+		unlock();
 
 		// KRATOS_DEBUG_CHECK_EQUAL((std::size_t(p_result) - std::size_t(r_available_chunk.GetData())) % r_available_chunk.GetBlockSize(mBlockSizeInBytes), 0);
 		//   std::cout << "Creating pointer " << p_result << " in " << r_available_chunk << std::endl;
-		  return p_result;
-	  }
+		return p_result;
+	}
 
 	  bool Deallocate(void* pPointerToRelease) {
+		  if(mAvailablePointers.size_approx() < MaximumPointersToKeep){
+			  mAvailablePointers.enqueue(pPointerToRelease);
+			  return true;
+		  }
+
+		  lock();
 		  if (!mAvailableChunks.empty()) {
 			  auto i_chunk = mAvailableChunks.begin();
 			  if ((*i_chunk)->Has(pPointerToRelease)) {
 				//   std::cout << "deleting pointer " << pPointerToRelease << " from " << **i_chunk << std::endl;
 				  DeallocateFromAvailableChunk(pPointerToRelease, i_chunk);
+				  unlock();
 				  return true;
 			  }
 		  }
@@ -131,9 +148,12 @@ namespace Kratos
 					  KRATOS_DEBUG_CHECK_NOT_EQUAL(i_available_chunk, mAvailableChunks.end()); // Un explicable!
 					  DeallocateFromAvailableChunk(pPointerToRelease, i_available_chunk);
 				  }
+				  unlock();
 				  return true;
 			  }
 		  }
+
+		  unlock();
 
 		  return false;
 	  }
@@ -231,6 +251,7 @@ namespace Kratos
 		std::list<Chunk> mChunks;
 		std::list<Chunk*> mAvailableChunks;
 		std::size_t mNumberOfReleasedChunks;
+		moodycamel::ConcurrentQueue<void*> mAvailablePointers;
 
 
 
