@@ -292,7 +292,7 @@ class MechanicalSolver(PythonSolver):
             self._solution_scheme = self._create_solution_scheme()
         return self._solution_scheme
 
-    def get_convergence_criterion(self):
+    def _GetConvergenceCriterion(self):
         if not hasattr(self, '_convergence_criterion'):
             self._convergence_criterion = self._create_convergence_criterion()
         return self._convergence_criterion
@@ -475,7 +475,7 @@ class MechanicalSolver(PythonSolver):
     def _create_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._GetScheme()
-        mechanical_convergence_criterion = self.get_convergence_criterion()
+        mechanical_convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self.get_builder_and_solver()
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
                                                                      mechanical_scheme,
@@ -492,7 +492,7 @@ class MechanicalSolver(PythonSolver):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._GetScheme()
         linear_solver = self.get_linear_solver()
-        mechanical_convergence_criterion = self.get_convergence_criterion()
+        mechanical_convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self.get_builder_and_solver()
         strategy = KratosMultiphysics.LineSearchStrategy(computing_model_part,
                                                      mechanical_scheme,

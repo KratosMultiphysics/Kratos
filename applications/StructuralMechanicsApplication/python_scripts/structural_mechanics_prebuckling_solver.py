@@ -105,7 +105,7 @@ class PrebucklingSolver(MechanicalSolver):
         solution_scheme = self._GetScheme()
         eigen_solver = self.get_builder_and_solver_eigen() # The eigensolver is created here.
         builder_and_solver = self.get_builder_and_solver() # The linear solver is created here.
-        convergence_criteria = self.get_convergence_criterion()
+        convergence_criteria = self._GetConvergenceCriterion()
         computing_model_part = self.GetComputingModelPart()
         buckling_settings = self.settings["buckling_settings"]
 

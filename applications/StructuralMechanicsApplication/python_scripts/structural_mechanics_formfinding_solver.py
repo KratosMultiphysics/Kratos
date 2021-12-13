@@ -58,7 +58,7 @@ class FormfindingMechanicalSolver(MechanicalSolver):
     def _create_mechanical_solution_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._GetScheme()
-        mechanical_convergence_criterion = self.get_convergence_criterion()
+        mechanical_convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self.get_builder_and_solver()
 
 
