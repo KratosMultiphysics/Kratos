@@ -135,7 +135,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // For a possible damping of nodal variables
     // ================================================================
     py::class_<DampingUtilities >(m, "DampingUtilities")
-        .def(py::init<ModelPart&, pybind11::dict, Parameters>())
+        .def(py::init<ModelPart&, Parameters>())
         .def("DampNodalVariable", &DampingUtilities::DampNodalVariable)
         ;
 
