@@ -51,11 +51,11 @@ class ProjectionModule:
         if "PeriodicDomainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PeriodicDomainOption"].GetBool():
                 self.search_strategy = DEM.OMP_DEMSearch(self.DEM_parameters["BoundingBoxMinX"].GetDouble(),
-                                                     self.DEM_parameters["BoundingBoxMinY"].GetDouble(),
-                                                     self.DEM_parameters["BoundingBoxMinZ"].GetDouble(),
-                                                     self.DEM_parameters["BoundingBoxMaxX"].GetDouble(),
-                                                     self.DEM_parameters["BoundingBoxMaxY"].GetDouble(),
-                                                     self.DEM_parameters["BoundingBoxMaxZ"].GetDouble())
+                                                         self.DEM_parameters["BoundingBoxMinY"].GetDouble(),
+                                                         self.DEM_parameters["BoundingBoxMinZ"].GetDouble(),
+                                                         self.DEM_parameters["BoundingBoxMaxX"].GetDouble(),
+                                                         self.DEM_parameters["BoundingBoxMaxY"].GetDouble(),
+                                                         self.DEM_parameters["BoundingBoxMaxZ"].GetDouble())
 
 
         if self.dimension == 3:
