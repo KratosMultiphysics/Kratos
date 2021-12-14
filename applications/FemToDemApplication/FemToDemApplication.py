@@ -3,6 +3,7 @@ import KratosMultiphysics.MeshingApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication
 import KratosMultiphysics.DEMApplication
 import KratosMultiphysics.StructuralMechanicsApplication
+import KratosMultiphysics.ConstitutiveLawsApplication
 
 # Application dependent names and paths
 from KratosMultiphysics import _ImportApplication
