@@ -23,6 +23,8 @@ import numpy as np
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 from KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis import SwimmingDEMAnalysis
+import tests_python_scripts.fluid_convergence_scripts.modified_solver_non_periodic_projection as NonPeriodicProjectionSolver
+
 # This utility will control the execution scope
 
 debug_mode=True
@@ -58,10 +60,8 @@ class PeriodicBackwardCouplingTestFactory(KratosUnittest.TestCase):
         model_harsh = Kratos.Model()
         model_gentle = Kratos.Model()
 
-        self.test_harsh_injection = GentleAnalysis(model_harsh, self.parameters_harsh)
+        self.test_harsh_injection = HarshAnalysis(model_harsh, self.parameters_harsh)
         self.test_gentle_injection = GentleAnalysis(model_gentle, self.parameters_gentle)
-        self.test_harsh_injection.name = 'harsh'
-        self.test_gentle_injection.name = 'gentle'
 
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -101,3 +101,15 @@ class GentleAnalysis(SwimmingDEMAnalysis):
         self.times.append(time)
         self.n_iterations.append(n_iterations)
         super(GentleAnalysis, self).FinalizeSolutionStep()
+
+class HarshAnalysis(GentleAnalysis):
+    def __init__(self, model, parameters=Kratos.Parameters("{}")):
+        super().__init__(model, parameters)
+
+    def _CreateSolver(self):
+        return NonPeriodicProjectionSolver.ModifiedSwimmingDEMSolver(self.model,
+                                                                    self.project_parameters,
+                                                                    self.GetFieldUtility(),
+                                                                    self._GetFluidAnalysis()._GetSolver(),
+                                                                    self._GetDEMAnalysis()._GetSolver(),
+                                                                    self.vars_man)
