@@ -688,13 +688,11 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::SearchPa
 
     NodesArrayType& p_dem_nodes = r_dem_model_part.GetCommunicator().LocalMesh().Nodes();
     NodesArrayType& p_fluid_nodes = r_fluid_model_part.GetCommunicator().LocalMesh().Nodes();
-    KRATOS_WATCH(mSearchRadii)
     mpSpSearch->SearchNodesInRadiusExclusive(p_dem_nodes, p_fluid_nodes, mSearchRadii, mVectorsOfNeighNodes, mVectorsOfDistances);
     // mpPointPointSearch->SearchPointsImplementation(p_dem_nodes, p_fluid_nodes, mSearchRadii, mVectorsOfNeighNodes, mVectorsOfDistances);
 
     for (unsigned int i = 0; i < mVectorsOfNeighNodes.size(); ++i){
         unsigned int n_neigh = mVectorsOfNeighNodes[i].size();
-        KRATOS_WATCH(n_neigh)
         mVectorsOfRadii[i].resize(n_neigh);
 
         for (unsigned int j = 0; j < n_neigh; ++j){
