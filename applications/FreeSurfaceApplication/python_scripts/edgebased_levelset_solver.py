@@ -430,10 +430,10 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
 
 def CreateSolver(model: KratosMultiphysics.Model, parameters: KratosMultiphysics.Parameters) -> EdgeBasedLevelSetSolver:
-    if not issubclass(type(model), KratosMultiphysics.Model):
+    if not isinstance(model, KratosMultiphysics.Model):
         raise TypeError("Expecting a KratosMultiphysics.Model object, but got {}".format(type(model)))
 
-    if not issubclass(type(parameters), KratosMultiphysics.Parameters):
+    if not isinstance(parameters, KratosMultiphysics.Parameters):
         raise TypeError("Expecting a KratosMultiphysics.Parameters object, but got {}".format(type(parameters)))
 
     return EdgeBasedLevelSetSolver(model, parameters)
