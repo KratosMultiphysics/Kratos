@@ -236,6 +236,7 @@ private:
     const UpdatedLagrangian mUpdatedLagrangian;
     const UpdatedLagrangianUP mUpdatedLagrangianUP;
     const UpdatedLagrangianPQ mUpdatedLagrangianPQ;
+    const UpdatedLagrangianUP mUpdatedLagrangianUPVMS;
 
     // Deprecated Elements
     const UpdatedLagrangian mUpdatedLagrangian2D3N;
