@@ -20,7 +20,6 @@ class gentle_injection_test(GentleTF.GentleInjectionAndErasureTestFactory):
      def GetGentleParameterValueAndName(self, parameters):
          parameter_name = 'initiation_interval'
          return parameters['coupling']['gentle_coupling_initiation'][parameter_name].GetDouble(), parameter_name
-
 class gentle_erasure_test(GentleTF.GentleInjectionAndErasureTestFactory):
      file_name = "fluid_convergence_tests/cube_cavity"
      file_parameters_harsh = "fluid_convergence_tests/ProjectParametersErasureHarsh.json"

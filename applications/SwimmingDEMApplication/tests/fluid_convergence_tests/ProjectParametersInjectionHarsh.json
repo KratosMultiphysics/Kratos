@@ -180,7 +180,7 @@
     },
     "dem_parameters"          : {
         "Dimension"                      : 3,
-        "PeriodicDomainOption"           : true,
+        "PeriodicDomainOption"           : false,
         "BoundingBoxOption"              : false,
         "AutomaticBoundingBoxOption"     : false,
         "BoundingBoxEnlargementFactor"   : 1.1,
