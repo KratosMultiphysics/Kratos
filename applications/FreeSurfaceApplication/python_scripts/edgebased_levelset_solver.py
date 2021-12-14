@@ -155,11 +155,11 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
 
     def AddDofs(self) -> None:
-        for node in self.model_part.Nodes:
-            node.AddDof(KratosMultiphysics.PRESSURE)
-            node.AddDof(KratosMultiphysics.VELOCITY_X)
-            node.AddDof(KratosMultiphysics.VELOCITY_Y)
-            node.AddDof(KratosMultiphysics.VELOCITY_Z)
+        variable_utils = KratosMultiphysics.VariableUtils()
+        variable_utils.AddDof(KratosMultiphysics.PRESSURE, self.model_part)
+        variable_utils.AddDof(KratosMultiphysics.VELOCITY_X, self.model_part)
+        variable_utils.AddDof(KratosMultiphysics.VELOCITY_Y, self.model_part)
+        variable_utils.AddDof(KratosMultiphysics.VELOCITY_Z, self.model_part)
 
 
     def ImportModelPart(self) -> None:
