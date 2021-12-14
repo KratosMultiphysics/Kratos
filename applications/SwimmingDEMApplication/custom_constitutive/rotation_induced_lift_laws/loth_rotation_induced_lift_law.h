@@ -19,7 +19,7 @@ namespace Kratos {
         // TODO: make mDoApplyFaxenCorrections an option
         LothRotationInducedLiftLaw(){}
 
-        LothRotationInducedLiftLaw(Parameters& r_parameters);
+        LothRotationInducedLiftLaw(Parameters r_parameters);
 
         ~LothRotationInducedLiftLaw(){}
 

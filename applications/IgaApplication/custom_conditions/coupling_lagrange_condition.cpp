@@ -100,7 +100,7 @@ namespace Kratos
             }
 
             // Differential area
-            const double lagrange_integration = integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
+            const double integration = integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
 
             // loop over Lagrange Multipliers
             for (IndexType i = 0; i < number_of_nodes_master; ++i)
@@ -133,11 +133,11 @@ namespace Kratos
                         }
                     }
                 counter_n++;
-                }            
+                }
             }
-            
+
             if (CalculateStiffnessMatrixFlag) {
-                noalias(rLeftHandSideMatrix) += LHS * lagrange_integration;
+                noalias(rLeftHandSideMatrix) += LHS * integration;
             }
 
             if (CalculateResidualVectorFlag) {
@@ -149,11 +149,11 @@ namespace Kratos
                     {
                         if (N_master(n, i) > shape_function_tolerance) 
                         {
-                            const array_1d<double, 3> disp = r_geometry_master[i].FastGetSolutionStepValue(DISPLACEMENT);
+                            const array_1d<double, 3> r_disp = r_geometry_master[i].FastGetSolutionStepValue(DISPLACEMENT);
                             IndexType index = 3 * counter;
-                            u[index]     = disp[0];
-                            u[index + 1] = disp[1];
-                            u[index + 2] = disp[2];
+                            u[index]     = r_disp[0];
+                            u[index + 1] = r_disp[1];
+                            u[index + 2] = r_disp[2];
                             counter++;
                         }
                     }
@@ -164,11 +164,11 @@ namespace Kratos
                     {
                         if (N_slave(n, i) > shape_function_tolerance) 
                         {
-                            const array_1d<double, 3> disp = r_geometry_slave[i].FastGetSolutionStepValue(DISPLACEMENT);
+                            const array_1d<double, 3> r_disp = r_geometry_slave[i].FastGetSolutionStepValue(DISPLACEMENT);
                             IndexType index = 3 * (counter);
-                            u[index]     = disp[0];
-                            u[index + 1] = disp[1];
-                            u[index + 2] = disp[2];
+                            u[index]     = r_disp[0];
+                            u[index + 1] = r_disp[1];
+                            u[index + 2] = r_disp[2];
                             counter++;
                         }
                     }
@@ -179,17 +179,17 @@ namespace Kratos
                     {
                         if (N_master(n, i) > shape_function_tolerance) 
                         {
-                            const array_1d<double, 3> disp = r_geometry_master[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                            const array_1d<double, 3> r_l_m = r_geometry_master[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
                             IndexType index = 3 * (counter);
-                            u[index]     = disp[0];
-                            u[index + 1] = disp[1];
-                            u[index + 2] = disp[2];
+                            u[index]     = r_l_m[0];
+                            u[index + 1] = r_l_m[1];
+                            u[index + 2] = r_l_m[2];
                             counter++;
                         }
                     }
                 }
 
-                noalias(rRightHandSideVector) -= prod(LHS, u) * lagrange_integration;
+                noalias(rRightHandSideVector) -= prod(LHS, u) * integration;
             }
         }
 

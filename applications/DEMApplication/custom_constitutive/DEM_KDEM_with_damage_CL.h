@@ -15,9 +15,6 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_with_damage);
 
         DEM_KDEM_with_damage() {}
-
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
         ~DEM_KDEM_with_damage() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;

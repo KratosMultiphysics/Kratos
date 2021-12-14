@@ -142,6 +142,10 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
             response_function = KCPFApp.AdjointLiftJumpCoordinatesResponseFunction(
                 computing_model_part,
                 self.response_function_settings)
+        elif self.response_function_settings["response_type"].GetString() == "adjoint_lift_far_field":
+            response_function = KCPFApp.AdjointLiftFarFieldResponseFunction(
+                computing_model_part,
+                self.response_function_settings)
         else:
             raise Exception("Invalid response_type: " + self.response_function_settings["response_type"].GetString())
         return response_function

@@ -23,7 +23,7 @@
     "output_processes" : {
         "output_process_list" : [{
             "python_module"   : "nodes_output_process",
-            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication.output",
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication.postprocess",
             "Parameters"      : {
                 "model_part_name"         : "main_model_part",
                 "file_name"               : "output_file",

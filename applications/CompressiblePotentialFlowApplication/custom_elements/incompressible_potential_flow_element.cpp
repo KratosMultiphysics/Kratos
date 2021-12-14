@@ -141,17 +141,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVectorTyp
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    bool active = true;
-    if ((this)->IsDefined(ACTIVE))
-        active = (this)->Is(ACTIVE);
-
-    const IncompressiblePotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake != 0 && active == true)
-    {
-        ComputePotentialJump(rCurrentProcessInfo);
-    }
     ComputeElementInternalEnergy();
 }
 
@@ -610,35 +599,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemWakeNod
             // Applying wake condition in AUXILIARY_VELOCITY_POTENTIAL dofs
             rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = rLhs_wake_condition(row, column);
             rLeftHandSideMatrix(row + NumNodes, column) = -rLhs_wake_condition(row, column); // Side 2
-        }
-    }
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo)
-{
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    const double free_stream_velocity_norm = sqrt(inner_prod(free_stream_velocity, free_stream_velocity));
-    const double reference_chord = rCurrentProcessInfo[REFERENCE_CHORD];
-
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
-
-    auto r_geometry = GetGeometry();
-    for (unsigned int i = 0; i < NumNodes; i++){
-        double aux_potential = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-        double potential = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-        double potential_jump = aux_potential - potential;
-
-        if (distances[i] > 0){
-            r_geometry[i].SetLock();
-            r_geometry[i].SetValue(POTENTIAL_JUMP, - (2.0 * potential_jump) / (free_stream_velocity_norm * reference_chord));
-            r_geometry[i].UnSetLock();
-        }
-        else{
-            r_geometry[i].SetLock();
-            r_geometry[i].SetValue(POTENTIAL_JUMP, (2.0 * potential_jump) / (free_stream_velocity_norm * reference_chord));
-            r_geometry[i].UnSetLock();
         }
     }
 }

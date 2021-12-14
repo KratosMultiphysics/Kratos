@@ -431,7 +431,7 @@ private:
         MatrixType& rEnrInterfaceShapeFunctionNeg,
         GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
         Vector& rInterfaceWeightsNeg,
-        std::vector<Vector>& rInterfaceNormalsNeg,
+        std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
         ModifiedShapeFunctions::Pointer pModifiedShapeFunctions);
 
     /**
@@ -466,7 +466,7 @@ private:
         const Vector& rCurvature,
         const Vector& rInterfaceWeights,
         const Matrix& rInterfaceShapeFunctions,
-        const std::vector<Vector>& rInterfaceNormalsNeg,
+        const std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
         VectorType& rRHS);
 
     /**
@@ -531,7 +531,12 @@ private:
 
     void AddSurfaceTensionContribution(
         const TElementData& rData,
-        ModifiedShapeFunctions::Pointer pModifiedShapeFunctions,
+        MatrixType& rInterfaceShapeFunction,
+        MatrixType& rEnrInterfaceShapeFunctionPos,
+        MatrixType& rEnrInterfaceShapeFunctionNeg,
+        GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
+        Vector& rInterfaceWeights,
+        std::vector<array_1d<double, 3>>& rInterfaceNormalsNeg,
         Matrix &rLeftHandSideMatrix,
         VectorType &rRightHandSideVector,
         const MatrixType &rHtot,

@@ -28,7 +28,7 @@
             "restart_load_file_label" : "0.03001"
         },
         "material_import_settings"           : {
-            "materials_filename" : "MaterialsDEM.json"
+            "materials_filename" : "ball_and_wall_MaterialsDEM.json"
         }
     },
     "VirtualMassCoefficient"         : 1.0,

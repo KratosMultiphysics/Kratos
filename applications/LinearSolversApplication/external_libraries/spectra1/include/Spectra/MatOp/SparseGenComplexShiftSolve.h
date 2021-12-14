@@ -22,6 +22,12 @@ namespace Spectra {
 /// \f$\sigma\f$ and real-valued vector \f$x\f$. It is mainly used in the
 /// GenEigsComplexShiftSolver eigen solver.
 ///
+/// \tparam Scalar_      The element type of the matrix, for example,
+///                      `float`, `double`, and `long double`.
+/// \tparam Flags        Either `Eigen::ColMajor` or `Eigen::RowMajor`, indicating
+///                      the storage format of the input matrix.
+/// \tparam StorageIndex The type of the indices for the sparse matrix.
+///
 template <typename Scalar_, int Flags = Eigen::ColMajor, typename StorageIndex = int>
 class SparseGenComplexShiftSolve
 {
@@ -58,9 +64,14 @@ public:
     /// `Eigen::SparseMatrix<Scalar, ...>` or its mapped version
     /// `Eigen::Map<Eigen::SparseMatrix<Scalar, ...> >`.
     ///
-    SparseGenComplexShiftSolve(ConstGenericSparseMatrix& mat) :
+    template <typename Derived>
+    SparseGenComplexShiftSolve(const Eigen::SparseMatrixBase<Derived>& mat) :
         m_mat(mat), m_n(mat.rows())
     {
+        static_assert(
+            static_cast<int>(Derived::PlainObject::IsRowMajor) == static_cast<int>(SparseMatrix::IsRowMajor),
+            "SparseGenComplexShiftSolve: the \"Flags\" template parameter does not match the input matrix (Eigen::ColMajor/Eigen::RowMajor)");
+
         if (mat.rows() != mat.cols())
             throw std::invalid_argument("SparseGenComplexShiftSolve: matrix must be square");
     }
