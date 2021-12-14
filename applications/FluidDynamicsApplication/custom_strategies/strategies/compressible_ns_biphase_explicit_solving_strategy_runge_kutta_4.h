@@ -137,6 +137,7 @@ public:
         int RebuildLevel = 0)
         : BaseType(rModelPart, MoveMeshFlag, RebuildLevel)
     {
+        
     }
 
     /** Copy constructor.
