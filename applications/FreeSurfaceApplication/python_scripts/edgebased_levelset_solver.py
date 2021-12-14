@@ -11,9 +11,9 @@ import pathlib
 class EdgeBasedLevelSetSolver(PythonSolver):
 
     class PorousResistanceComputation(enum.IntEnum):
-        none   = 0
-        ergun  = 1
-        custom = 2
+        NONE   = 0
+        ERGUN  = 1
+        CUSTOM = 2
 
 
     def __init__(self,
@@ -42,7 +42,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             "reduction_on_failure"                  : 0.3,
             "assume_constant_pressure"              : true,
             "use_parallel_distance_calculation"     : false,
-            "compute_porous_resistance_law"         : "none",    ["none", "ergun", "custom"]
+            "compute_porous_resistance_law"         : "NONE",    ["NONE", "ERGUN", "CUSTOM"]
             "echo_level"                            : 0,
             "model_import_settings"                 : { }
         }
@@ -127,7 +127,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             "reduction_on_failure"                  : 0.3,
             "assume_constant_pressure"              : true,
             "use_parallel_distance_calculation"     : false,
-            "compute_porous_resistance_law"         : "none",
+            "compute_porous_resistance_law"         : "NONE",
             "echo_level"                            : 0,
             "model_import_settings"                 : { }
         }""")

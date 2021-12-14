@@ -27,7 +27,7 @@
         "tau2_factor"                   : 1e0,
         "edge_detection_angle"          : 4.5e1,
         "assume_constant_pressure"      : false,
-        "compute_porous_resistance_law" : "none",
+        "compute_porous_resistance_law" : "NONE",
         "echo_level"                    : 0,
         "model_import_settings"         : {
             "input_type"        : "mdpa",
