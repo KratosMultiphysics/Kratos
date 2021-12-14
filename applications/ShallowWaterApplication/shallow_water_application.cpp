@@ -42,14 +42,15 @@ namespace Kratos
         mWaveElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
         mWaveElement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
         mWaveElement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3>>(Element::GeometryType::PointsArrayType(9)))),
-    
         mCrankNicolsonWaveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-    
+        mBoussinesqElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
         mConservativeElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
 
         mShallowWater2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
 
         mWaveCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
+        mWaveCondition2D3N(0, Element::GeometryType::Pointer(new Line2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+        mBoussinesqCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
         mConservativeCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2))))
     {}
 
@@ -77,6 +78,10 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(PERMEABILITY)
         KRATOS_REGISTER_VARIABLE(ATMOSPHERIC_PRESSURE)
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(WIND)
+
+        // Domain characteristic variables
+        KRATOS_REGISTER_VARIABLE(AMPLITUDE)
+        KRATOS_REGISTER_VARIABLE(WAVELENGTH)
 
         // Auxiliary variables
         KRATOS_REGISTER_VARIABLE(INTEGRATE_BY_PARTS)
@@ -120,25 +125,26 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MOMENTUM_ERROR)
 
         // Registering elements and conditions here
-        KRATOS_REGISTER_ELEMENT("SWE2D3N", mSWE2D3N)
-        KRATOS_REGISTER_ELEMENT("SWE2D4N", mSWE2D4N)
+        KRATOS_REGISTER_ELEMENT("SWE2D3N", mSWE2D3N) // TODO: remove
+        KRATOS_REGISTER_ELEMENT("SWE2D4N", mSWE2D4N) // TODO: remove
 
-        KRATOS_REGISTER_ELEMENT("LagrangianSWE2D3N", mLagrangianSWE2D3N)
-        KRATOS_REGISTER_ELEMENT("LagrangianSWE2D4N", mLagrangianSWE2D4N)
+        KRATOS_REGISTER_ELEMENT("LagrangianSWE2D3N", mLagrangianSWE2D3N) // TODO: remove
+        KRATOS_REGISTER_ELEMENT("LagrangianSWE2D4N", mLagrangianSWE2D4N) // TODO: remove
 
         KRATOS_REGISTER_ELEMENT("WaveElement2D3N", mWaveElement2D3N)
         KRATOS_REGISTER_ELEMENT("WaveElement2D6N", mWaveElement2D6N)
         KRATOS_REGISTER_ELEMENT("WaveElement2D4N", mWaveElement2D4N)
         KRATOS_REGISTER_ELEMENT("WaveElement2D8N", mWaveElement2D8N)
         KRATOS_REGISTER_ELEMENT("WaveElement2D9N", mWaveElement2D9N)
-
         KRATOS_REGISTER_ELEMENT("CrankNicolsonWaveElement2D3N", mCrankNicolsonWaveElement2D3N)
-
+        KRATOS_REGISTER_ELEMENT("BoussinesqElement2D3N", mBoussinesqElement2D3N)
         KRATOS_REGISTER_ELEMENT("ConservativeElement2D3N", mConservativeElement2D3N)
 
-        KRATOS_REGISTER_ELEMENT("ShallowWater2D3N", mShallowWater2D3N)
+        KRATOS_REGISTER_ELEMENT("ShallowWater2D3N", mShallowWater2D3N) // TODO: move to ConservativeElement
 
         KRATOS_REGISTER_CONDITION("WaveCondition2D2N", mWaveCondition2D2N)
+        KRATOS_REGISTER_CONDITION("WaveCondition2D3N", mWaveCondition2D3N)
+        KRATOS_REGISTER_CONDITION("BoussinesqCondition2D2N", mBoussinesqCondition2D2N)
         KRATOS_REGISTER_CONDITION("ConservativeCondition2D2N", mConservativeCondition2D2N)
 
         // Register modelers

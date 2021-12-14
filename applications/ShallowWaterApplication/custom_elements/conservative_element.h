@@ -177,7 +177,7 @@ protected:
 
     const Variable<double>& GetUnknownComponent(int Index) const override;
 
-    LocalVectorType GetUnknownVector(ElementData& rData) override;
+    LocalVectorType GetUnknownVector(const ElementData& rData) const override;
 
     void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
 

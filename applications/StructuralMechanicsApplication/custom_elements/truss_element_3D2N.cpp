@@ -418,6 +418,7 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
     if (rOutput.size() != integration_points.size()) {
         rOutput.resize(integration_points.size());
     }
+
     if (rVariable == TRUSS_PRESTRESS_PK2) {
         rOutput[0] = 0.00;
         if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
@@ -442,6 +443,7 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
     if (rOutput.size() != integration_points.size()) {
         rOutput.resize(integration_points.size());
     }
+
     if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
         Vector strain = ZeroVector(msDimension);
         strain[0] = CalculateGreenLagrangeStrain();
