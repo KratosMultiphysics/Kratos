@@ -1,6 +1,6 @@
 # Kratos imports
 import KratosMultiphysics
-from KratosMultiphysics.FreeSurfaceApplication.edge_based_level_set_solver import EdgeBasedLevelSetSolver
+from KratosMultiphysics.FreeSurfaceApplication.edgebased_levelset_solver import EdgeBasedLevelSetSolver
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
 
