@@ -3,7 +3,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
 
 ## Import base class file
-from KratosMultiphysics.ShallowWaterApplication.free_surface_shallow_water_solver import FreeSurfaceShallowWaterSolver
+from KratosMultiphysics.ShallowWaterApplication.legacy.free_surface_shallow_water_solver import FreeSurfaceShallowWaterSolver
 
 def CreateSolver(model, custom_settings):
     return SemiLagrangianShallowWaterSolver(model, custom_settings)
