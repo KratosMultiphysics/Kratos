@@ -374,8 +374,6 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialHardeningImplicitFu
 
         const double sign = (Dissipation < diss_indicator) ? -1.0 : 1.0; // In hardening should be negative
         const double gamma = (0.5*factor - g) / (g * (3.0 * chi + 1.0) * (chi - 1.0));
-        const double alpha = std::sqrt(chi_square * (1.0 - Threshold / K0) + Threshold / K0);
-        const double beta = (1.0 - chi_square) / (2.0 * alpha*K0);
 
         const double ey = K0/E;
         return (ey * K0 * (xi / K0 - (2.0 * Threshold * ((K0 * xi) / Threshold - xi + 1.0)) / (K0 * K0))) / (2.0 * g) + ((g - (ey * K0) / 2.0) * ((-sign *
@@ -445,6 +443,9 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
                 rPDParameters.Threshold = CalculateThresholdImplicitExpression(implicit_function, function_derivative, rValues, rPDParameters, max_threshold*limit_factor);
                 rPDParameters.Slope     = CalculateSlopeFiniteDifferences(implicit_function, function_derivative, rValues, rPDParameters, max_threshold*limit_factor);
                 break;
+            }
+            default: {
+                KRATOS_ERROR << "Invalid HARDENING_CURVE defined..." << std::endl;
             }
         }
     }
