@@ -424,8 +424,6 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
                                                                            compute_reactions,
                                                                            reform_step_dofs,
                                                                            move_mesh_flag)
-
-            solving_strategy =SetKeepSystemConstantDuringIterations(self.settings["keep_system_constant_during_iterations"])
         elif strategy_type.lower() == "line_search":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("max_iteration",              self.settings["max_iterations"])
@@ -446,8 +444,6 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
                                                                      self.linear_solver,
                                                                      self.convergence_criterion,
                                                                      self.strategy_params)
-            solving_strategy =SetKeepSystemConstantDuringIterations(self.settings["keep_system_constant_during_iterations"])
-
         elif strategy_type.lower() == "arc_length":
             # Arc-Length strategy
             self.main_model_part.ProcessInfo.SetValue(KratosGeo.ARC_LENGTH_LAMBDA,        1.0)
@@ -468,11 +464,10 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
                                                                            compute_reactions,
                                                                            reform_step_dofs,
                                                                            move_mesh_flag)
-            solving_strategy =SetKeepSystemConstantDuringIterations(self.settings["keep_system_constant_during_iterations"])
         else:
             raise Exception("Undefined strategy type", strategy_type)
             
-
+            solving_strategy =SetKeepSystemConstantDuringIterations(self.settings["keep_system_constant_during_iterations"])
         return solving_strategy
 
     def _CheckConvergence(self):
