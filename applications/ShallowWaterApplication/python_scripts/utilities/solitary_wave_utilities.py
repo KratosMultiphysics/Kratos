@@ -28,6 +28,18 @@ class SolitaryWaveSolution:
     def phase_speed(self):
         return np.sqrt(self.gravity * (self.amplitude + self.depth))
 
+    @property
+    def frequency(self):
+        return self.wavenumber * self.phase_speed
+
+    @property
+    def wavelength(self):
+        return 2 * np.pi / self.wavenumber
+
+    @property
+    def period(self):
+        return 2 * np.pi / self.frequency
+
 
 class GoringSolution(SolitaryWaveSolution):
     """Goring analytical solution.
