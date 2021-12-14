@@ -31,8 +31,6 @@
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
-#include "includes/node.h"
-//#include "includes/element.h"
 #include "includes/global_pointer_variables.h"
 
 #include "spatial_containers/spatial_containers.h"
@@ -156,8 +154,6 @@ public:
             array_3d &nodal_variable = node_i->FastGetSolutionStepValue(rNodalVariable);
             array_3d &node_normal = node_i->FastGetSolutionStepValue(rPlaneNormalVariable);
 
-            //KRATOS_INFO("node_normal") << "Current node_normal  :: " << node_normal << "of node :: " << node_i->Id() << std::endl;
-
             const double magnitude = inner_prod(nodal_variable, node_normal);
             nodal_variable -= magnitude * node_normal;
         }
@@ -237,19 +233,18 @@ public:
         KRATOS_ERROR_IF(r_edge_model_part.Nodes().size() != 0) << "ExtractEdgeNodes: The edge model part already has nodes!" << std::endl;
 
         for (auto& r_node_i : mrModelPart.Nodes()) {
-            Node<3>* p_node_i = &r_node_i;
-            GlobalPointersVector< Node<3 > >& r_node_i_neighbours = p_node_i->GetValue(NEIGHBOUR_NODES);
-            for( GlobalPointersVector< Node<3> >::iterator j =	r_node_i_neighbours.begin(); j != r_node_i_neighbours.end(); j++) {
-                GlobalPointersVector<Element>& r_element_neighbours = p_node_i->GetValue(NEIGHBOUR_ELEMENTS);
+            auto& r_node_i_neighbours = r_node_i.GetValue(NEIGHBOUR_NODES);
+            for(auto j = r_node_i_neighbours.begin(); j != r_node_i_neighbours.end(); j++) {
+                auto& r_element_neighbours = r_node_i.GetValue(NEIGHBOUR_ELEMENTS);
                 int count = 0;
-                for( GlobalPointersVector<Element>::iterator k = r_element_neighbours.begin(); k != r_element_neighbours.end(); k++) {
-                    Geometry<Node<3> >& nGeometry = k->GetGeometry();
-                    for(unsigned int node_l = 0; node_l < nGeometry.size(); ++node_l) {
-                        if ((nGeometry[node_l].Id()) == (j->Id())) count ++;
+                for(auto k = r_element_neighbours.begin(); k != r_element_neighbours.end(); k++) {
+                    auto& r_element_geometry = k->GetGeometry();
+                    for(unsigned int node_l = 0; node_l < r_element_geometry.size(); ++node_l) {
+                        if ((r_element_geometry[node_l].Id()) == (j->Id())) count ++;
                     }
                 }
                 if (count < 2){
-                    r_edge_model_part.AddNode(p_node_i);
+                    r_edge_model_part.AddNode(&r_node_i);
                     break;
                 }
             }

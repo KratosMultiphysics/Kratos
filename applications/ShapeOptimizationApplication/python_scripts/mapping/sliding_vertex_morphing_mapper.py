@@ -19,9 +19,9 @@ from ..custom_ios.wrl_io import WrlIO
 class SlidingVertexMorphingMapper():
     """
     The SlidingVertexMorphingMapper extends the standard Vertex Morphing approach
-    by restricting the nodal shape update of a specified model part. The nodes of this model 
+    by restricting the nodal shape update of a specified model part. The nodes of this model
     part have to lie on a predefined background mesh and are only allowed to float/slide on it.
-    SlidingVertexMorphingMapper uses similar techniques as directional damping and
+    SlidingVertexMorphingMapper uses similar techniques as direction damping and
     InPlaneVertexMorphingMapper.
 
     Limitations:
@@ -75,7 +75,7 @@ class SlidingVertexMorphingMapper():
             }
         }""")
 
-    def GetStructuralSimilaritySetttings(self):
+    def GetStructuralSimilaritySettings(self):
         return KM.Parameters(
         """{
             "problem_data"    : {
@@ -87,7 +87,6 @@ class SlidingVertexMorphingMapper():
             },
             "solver_settings" : {
                 "solver_type"     : "static",
-                "echo_level"      : 0,
                 "analysis_type"   : "linear",
                 "model_part_name" : "main",
                 "domain_size"     : 3,
@@ -96,18 +95,6 @@ class SlidingVertexMorphingMapper():
                 },
                 "model_import_settings"              : {
                     "input_type"     : "use_input_model_part"
-                },
-                "line_search"                        : false,
-                "convergence_criterion"              : "residual_criterion",
-                "displacement_relative_tolerance"    : 0.0001,
-                "displacement_absolute_tolerance"    : 1e-9,
-                "residual_relative_tolerance"        : 0.0001,
-                "residual_absolute_tolerance"        : 1e-9,
-                "max_iteration"                      : 10,
-                "linear_solver_settings"             : {
-                    "solver_type" : "LinearSolversApplication.sparse_lu",
-                    "scaling"     : false,
-                    "verbosity"   : 0
                 },
                 "rotation_dofs"                      : true
             },
@@ -125,8 +112,7 @@ class SlidingVertexMorphingMapper():
                         "value"           : [0.0,0.0,0.0]
                     }
                 }
-                ],
-                "loads_process_list"       : []
+                ]
             }
         }""")
 
@@ -172,10 +158,13 @@ class SlidingVertexMorphingMapper():
         self._structural_model_correction = KM.Model()
         self._CreateStructuralModel(self._structural_model_correction)
 
-        structural_mechanics_analysis_setings = self.GetStructuralSimilaritySetttings()
+        structural_mechanics_analysis_setings = self.GetStructuralSimilaritySettings()
         # two structural similarity analysis for damping vectors and non-linear correction
         self._structural_mechanics_analysis = StructuralMechanicsAnalysis(self._structural_model, structural_mechanics_analysis_setings)
         self._structural_mechanics_analysis_correction = StructuralMechanicsAnalysis(self._structural_model_correction, structural_mechanics_analysis_setings)
+
+        # propagate background normal field from sliding mesh to destination
+        self._PerformStructuralSimilarityAnalysis(self._structural_mechanics_analysis, self._structural_model, KSO.BACKGROUND_NORMAL)
 
     def Map(self, origin_variable, destination_variable):
         self.vm_mapper.Map(origin_variable, destination_variable)
@@ -219,9 +208,6 @@ class SlidingVertexMorphingMapper():
     def InverseMap(self, destination_variable, origin_variable):
         geometry_utilities = KSO.GeometryUtilities(self.destination_model_part)
 
-        # propagate background normal field from sliding mesh to destination
-        self._PerformStructuralSimilarityAnalysis(self._structural_mechanics_analysis, self._structural_model, KSO.BACKGROUND_NORMAL)
-
         geometry_utilities.ProjectNodalVariableOnTangentPlane(
             destination_variable, KSO.BACKGROUND_NORMAL)
 
@@ -247,7 +233,7 @@ class SlidingVertexMorphingMapper():
         mesh_utilities = KSO.MeshControllerUtilities(structural_model.GetModelPart("main"))
         mesh_prescribed_part = structural_model.GetModelPart("main.prescribed_bc")
 
-        # nearest element mapping from destination to sliding mesh 
+        # nearest element mapping from destination to sliding mesh
         ne_mapper_settings = KM.Parameters("""{
                                 "mapper_type": "nearest_element",
                                 "echo_level" : 0
@@ -255,23 +241,17 @@ class SlidingVertexMorphingMapper():
         prescribed_mapper = SpacialMapperFactory.CreateMapper(
             self.destination_model_part, mesh_prescribed_part,
             ne_mapper_settings)
-       
+
         prescribed_mapper.Map(input_variable, KM.DISPLACEMENT)
 
         # fix dbc on sliding mesh
-        for node in mesh_prescribed_part.Nodes:
-            node.Fix(KM.DISPLACEMENT_X)
-            node.Fix(KM.DISPLACEMENT_Y)
-            node.Fix(KM.DISPLACEMENT_Z)
+        KM.VariableUtils().ApplyFixity(KM.DISPLACEMENT_X, True, mesh_prescribed_part.Nodes)
+        KM.VariableUtils().ApplyFixity(KM.DISPLACEMENT_Y, True, mesh_prescribed_part.Nodes)
+        KM.VariableUtils().ApplyFixity(KM.DISPLACEMENT_Z, True, mesh_prescribed_part.Nodes)
 
         structural_analysis.Initialize()
         structural_analysis.RunSolutionLoop()
         structural_analysis.Finalize()
-
-        for node in mesh_prescribed_part.Nodes:
-            node.Free(KM.DISPLACEMENT_X)
-            node.Free(KM.DISPLACEMENT_Y)
-            node.Free(KM.DISPLACEMENT_Z)
 
         # nearest element mapping from structural model to destination
         mesh_utilities.RevertMeshUpdateAccordingInputVariable(KM.DISPLACEMENT)
@@ -289,8 +269,8 @@ class SlidingVertexMorphingMapper():
     def _CreateStructuralModel(self, structural_model):
 
         main_part = structural_model.CreateModelPart("main")
-        mesh_motion_conditions = main_part.CreateSubModelPart("prescribed_bc")
-        fixed_nodes = main_part.CreateSubModelPart("fixed_bc")
+        prescribed_part = main_part.CreateSubModelPart("prescribed_bc")
+        fixed_part = main_part.CreateSubModelPart("fixed_bc")
 
         # add solution variables necessary for structural mechanics analysis
         main_part.AddNodalSolutionStepVariable(KSO.SHAPE_UPDATE)
@@ -312,19 +292,24 @@ class SlidingVertexMorphingMapper():
         self._ApplyMaterialProperties(material_properties)
 
         # create nodes of prescribed bc
+        prescribed_nodes_added = set()
         for node in self.sliding_mesh.Nodes:
-            mesh_motion_conditions.CreateNewNode(node.Id, node.X, node.Y, node.Z)
+            prescribed_part.CreateNewNode(node.Id, node.X, node.Y, node.Z)
+            prescribed_nodes_added.add(node.Id)
 
         # Identify mesh motion area / nodes to be damped
         KM.VariableUtils().SetFlag(KM.STRUCTURE, False, main_part.Nodes)
         radius = self.settings["filter_radius"].GetDouble()
         search_based_functions = KSO.SearchBasedFunctions(self.destination_model_part)
-        search_based_functions.FlagNodesInRadius(mesh_motion_conditions.Nodes, KM.STRUCTURE, 2*radius)
+        search_based_functions.FlagNodesInRadius(prescribed_part.Nodes, KM.STRUCTURE, 2*radius)
 
         # create nodes for main_part
+        main_nodes_added = set()
         for node in self.destination_model_part.Nodes:
             if node.Is(KM.STRUCTURE):
                 main_part.CreateNewNode(node.Id, node.X, node.Y, node.Z)
+                main_nodes_added.add(node.Id)
+
         # create elements for main_part
         ele_id = 0
         node_ids_to_remove = []
@@ -333,33 +318,41 @@ class SlidingVertexMorphingMapper():
             number_of_nodes = len(surface_condition.GetNodes())
             ele_node_ids = []
             for node in surface_condition.GetNodes():
-                if main_part.HasNode(node.Id):
+                if node.Id in main_nodes_added:
                     ele_node_ids.append(node.Id)
                     node_counter += 1
                 else:
                     break
             if node_counter == number_of_nodes:
-                    ele_id += 1
-                    condition_dim = surface_condition.GetGeometry().LocalSpaceDimension()
-                    if condition_dim != 2:
-                        raise Exception("SlidingVertexMorphingMapper: Design model part can only be a surface!")
-                    if number_of_nodes == 3:
-                        main_part.CreateNewElement("ShellThinElement3D3N", ele_id, ele_node_ids, material_properties)
-                    elif number_of_nodes == 4:
-                        main_part.CreateNewElement("ShellThinElement3D4N", ele_id, ele_node_ids, material_properties)
-                    elif number_of_nodes == 6:
-                        edge_nodes = ele_node_ids[:3]
-                        node_ids_to_remove.extend(ele_node_ids[3:])
-                        main_part.CreateNewElement("ShellThinElement3D3N", ele_id, edge_nodes, material_properties)
-                    elif number_of_nodes == 8 or number_of_nodes == 9:
-                        edge_nodes = ele_node_ids[:4]
-                        node_ids_to_remove.extend(ele_node_ids[4:])
-                        main_part.CreateNewElement("ShellThinElement3D4N", ele_id, edge_nodes, material_properties)
+                ele_id += 1
+                condition_dim = surface_condition.GetGeometry().LocalSpaceDimension()
+                if condition_dim != 2:
+                    raise Exception("SlidingVertexMorphingMapper: Design model part can only be a surface!")
+                if number_of_nodes == 3:
+                    main_part.CreateNewElement("ShellThinElement3D3N", ele_id, ele_node_ids, material_properties)
+                elif number_of_nodes == 4:
+                    main_part.CreateNewElement("ShellThinElement3D4N", ele_id, ele_node_ids, material_properties)
+                elif number_of_nodes == 6:
+                    edge_nodes = ele_node_ids[:3]
+                    node_ids_to_remove.extend(ele_node_ids[3:])
+                    main_part.CreateNewElement("ShellThinElement3D3N", ele_id, edge_nodes, material_properties)
+                elif number_of_nodes == 8 or number_of_nodes == 9:
+                    edge_nodes = ele_node_ids[:4]
+                    node_ids_to_remove.extend(ele_node_ids[4:])
+                    main_part.CreateNewElement("ShellThinElement3D4N", ele_id, edge_nodes, material_properties)
 
         # remove nodes from prescribed bc again if higher order surface conditions have been used
-        for node_id in node_ids_to_remove:
-            mesh_motion_conditions.RemoveNode(node_id)
-            main_part.RemoveNode(node_id)
+        node_ids_to_remove = list(set(node_ids_to_remove))
+        nodes_to_remove = main_part.CreateSubModelPart("nodes_to_remove")
+        nodes_to_remove.AddNodes(node_ids_to_remove)
+
+        KM.VariableUtils().SetFlag(KM.TO_ERASE, True, nodes_to_remove.Nodes)
+        main_part.RemoveNodes(KM.TO_ERASE)
+
+        # add dofs
+        KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, main_part)
+        KM.VariableUtils().AddDof(KM.DISPLACEMENT_Y, KM.REACTION_Y, main_part)
+        KM.VariableUtils().AddDof(KM.DISPLACEMENT_Z, KM.REACTION_Z, main_part)
 
         # find edges
         neighbor_node_search = KM.FindGlobalNodalNeighboursProcess(main_part)
@@ -373,11 +366,13 @@ class SlidingVertexMorphingMapper():
 
         # remove nodes of prescribed bc from the fixed bc
         node_ids_to_remove = []
-        for node in fixed_nodes.Nodes:
-            if mesh_motion_conditions.HasNode(node.Id):
+        for node in fixed_part.Nodes:
+            if node.Id in prescribed_nodes_added:
                 node_ids_to_remove.append(node.Id)
-        for node_id in node_ids_to_remove:
-            fixed_nodes.RemoveNode(node_id)
+        fixed_nodes_to_remove = fixed_part.CreateSubModelPart("fixed_nodes_to_remove")
+        fixed_nodes_to_remove.AddNodes(node_ids_to_remove)
+        KM.VariableUtils().SetFlag(KM.TO_ERASE, True, fixed_nodes_to_remove.Nodes)
+        fixed_part.RemoveNodes(KM.TO_ERASE)
 
     def _ApplyMaterialProperties(self, material_properties):
         # define properties
