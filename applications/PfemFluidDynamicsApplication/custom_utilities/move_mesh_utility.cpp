@@ -23,7 +23,7 @@
 
 namespace  Kratos {
 
-void MoveMeshUtility::ResetPfemKinematicValues(ModelPart& rFluidModelPart)
+void PFEMMoveMeshUtility::ResetPfemKinematicValues(ModelPart& rFluidModelPart)
 {
     block_for_each(rFluidModelPart.Nodes(), [&](NodeType& rNode){
         if (rNode.IsNot(RIGID) && rNode.IsNot(SOLID)) { // We update only the fluid part
