@@ -597,14 +597,15 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     BoundedMatrixType constitutive_matrix_increment;
     CalculateConstitutiveMatrix(rValues, rPDParameters);
     noalias(rPDParameters.TangentTensor) = rPDParameters.ConstitutiveMatrix;
+    const auto& r_material_properties = rValues.GetMaterialProperties();
 
     bool is_converged = false;
-    IndexType iteration = 0, max_iter = 1000;
+    IndexType iteration = 0, max_iter = r_material_properties.Has(MAX_NUMBER_NL_CL_ITERATIONS) ? r_material_properties.GetValue(MAX_NUMBER_NL_CL_ITERATIONS) : 1000;
 
-    const double splits = 500;
+    const double splits = 1;
     noalias(rPDParameters.StressVector) = prod(rPDParameters.ConstitutiveMatrix, mOldStrain - rPDParameters.PlasticStrain);
-    // BoundedVectorType delta_stress = prod(rPDParameters.ConstitutiveMatrix, rPDParameters.StrainVector - mOldStrain) / splits;
-    for (int i = 0; i < splits; i++) {
+
+    for (SizeType i = 0; i < splits; i++) {
         // rPDParameters.StressVector += delta_stress;
         rPDParameters.StressVector += prod(rPDParameters.ConstitutiveMatrix, rPDParameters.StrainVector - mOldStrain) / splits;
         is_converged = false;
@@ -651,8 +652,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
             }
         }
     }
-    KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
-    //KRATOS_ERROR_IF(iteration >= max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+    KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticDamage", iteration > max_iter) << "Maximum number of iterations in plastic-damage loop reached..." << std::endl;
     KRATOS_CATCH("");
 }
 
