@@ -46,7 +46,7 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
             "relative_dry_height"        : 0.1,
             "stabilization_factor"       : 0.01,
             "wavelength"                 : 10,
-            "amplitude"                  : 0.2
+            "amplitude"                  : 0.0
         }""")
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings

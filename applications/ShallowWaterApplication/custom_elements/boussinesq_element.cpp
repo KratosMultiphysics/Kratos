@@ -70,8 +70,14 @@ void BoussinesqElement<TNumNodes>::CalculateGaussPointData(ElementData& rData, c
     const double eta = inner_prod(rData.nodal_f, rN);
     const double H = -inner_prod(rData.nodal_z, rN);
     const double g = rData.gravity;
-    const double e = rData.amplitude / H;  // the non linearity ratio
     const array_1d<double,3> v = WaveElementType::VectorProduct(rData.nodal_v, rN);
+
+    double e; // the non linearity ratio
+    if (rData.amplitude) {
+        e = rData.amplitude / H;
+    } else {
+        e = std::abs(eta) / H;
+    }
 
     rData.depth = H;
     rData.height = H + e * eta;
