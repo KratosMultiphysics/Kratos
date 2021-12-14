@@ -45,8 +45,8 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
                       WriteDeformedMeshFlag,
                       WriteConditionsFlag>());
 
-    py::class_<MoveMeshUtility, MoveMeshUtility::Pointer>(m, "MoveMeshUtility")
-        .def_static("ResetPfemKinematicValues", &MoveMeshUtility::ResetPfemKinematicValues);
+    py::class_<PFEMMoveMeshUtility, PFEMMoveMeshUtility::Pointer>(m, "PFEMMoveMeshUtility")
+        .def_static("ResetPfemKinematicValues", &PFEMMoveMeshUtility::ResetPfemKinematicValues);
 
     py::class_<CalculateWaveHeightUtility, CalculateWaveHeightUtility::Pointer>(m, "CalculateWaveHeightUtility")
         .def(py::init<ModelPart&, Parameters>())
