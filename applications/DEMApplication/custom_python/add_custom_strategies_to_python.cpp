@@ -135,8 +135,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
                 lists_of_neighbors.append(neighbors);
             }
-
-            KRATOS_WATCH(d);
         })
         ;
 
