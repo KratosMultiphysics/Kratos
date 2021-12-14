@@ -593,7 +593,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     )
 {
     KRATOS_TRY;
-    const auto& r_mat_properties = rValues.GetMaterialProperties();
     BoundedMatrixType constitutive_matrix_increment;
     CalculateConstitutiveMatrix(rValues, rPDParameters);
     noalias(rPDParameters.TangentTensor) = rPDParameters.ConstitutiveMatrix;
@@ -635,8 +634,8 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
                 CalculateConstitutiveMatrix(rValues, rPDParameters);
 
                 // Compute the non-linear dissipation performed
-                CalculatePlasticDissipationIncrement(r_mat_properties, rPDParameters);
-                CalculateDamageDissipationIncrement(r_mat_properties, rPDParameters);
+                CalculatePlasticDissipationIncrement(r_material_properties, rPDParameters);
+                CalculateDamageDissipationIncrement(r_material_properties, rPDParameters);
                 AddNonLinearDissipation(rPDParameters);
 
                 // updated uniaxial and threshold stress check
