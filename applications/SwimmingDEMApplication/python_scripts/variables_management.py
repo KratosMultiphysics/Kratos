@@ -165,6 +165,7 @@ class VariablesManager:
         # fluid variables
         self.fluid_vars = []
         self.fluid_vars += [Kratos.TORQUE]
+        self.fluid_vars += [Kratos.RADIUS]
         self.fluid_vars += self.fluid_printing_vars
         self.fluid_vars += self.coupling_fluid_vars
 
