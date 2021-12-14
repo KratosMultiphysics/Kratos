@@ -202,6 +202,8 @@ protected:
 
     LocalVectorType GetUnknownVector(const ElementData& rData) const override;
 
+    LocalVectorType ConservativeVector(const LocalVectorType& rVector, const ElementData& rData) const;
+
     void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
 
     double StabilizationParameter(const ElementData& rData) const override;
