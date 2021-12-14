@@ -806,6 +806,7 @@ Vector& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
     Vector& rValue
     )
 {
+    rValue.resize(VoigtSize);
     rValue.clear();
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         noalias(rValue) = mPlasticStrain;
