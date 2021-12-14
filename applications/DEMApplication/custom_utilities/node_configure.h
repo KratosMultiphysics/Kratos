@@ -73,7 +73,6 @@ public:
         mDomainMax[2] = domain_max_z;
         SetPeriods(domain_max_x - domain_min_x, domain_max_y - domain_min_y, domain_max_z - domain_min_z);
         mDomainIsPeriodic = (mDomainPeriods[0] >= 0 && mDomainPeriods[1] >= 0 && mDomainPeriods[2] >= 0);
-        KRATOS_WATCH(mDomainIsPeriodic)
     }
 
     static void SetPeriods(double domain_period_x, double domain_period_y, double domain_period_z)
@@ -118,25 +117,23 @@ public:
     static inline void TransformToClosestPeriodicCoordinates(const double target[3], double base_coordinates[3], const double periods[3])
     {
         for (unsigned int i = 0; i < 3; ++i){
-            double incr_i = target[i] - base_coordinates[i];
+            const double incr_i = target[i] - base_coordinates[i];
 
-            if (fabs(incr_i) > 0.5 * periods[i]){
+            if (std::abs(incr_i) > 0.5 * periods[i]){
                 base_coordinates[i] += GetSign(incr_i) * periods[i];
             }
         }
-
     }
 
     static inline void TransformToClosestPeriodicCoordinates(const array_1d<double,3>& target, array_1d<double,3>& base_coordinates, const double periods[3])
     {
         for (unsigned int i = 0; i < 3; ++i){
-            double incr_i = target[i] - base_coordinates[i];
+            const double incr_i = target[i] - base_coordinates[i];
 
-            if (fabs(incr_i) > 0.5 * periods[i]){
+            if (std::abs(incr_i) > 0.5 * periods[i]){
                 base_coordinates[i] += GetSign(incr_i) * periods[i];
             }
         }
-
     }
 
     static inline void GetBoxCenter(double box_center[3], const double min_point[3], const double max_point[3])
@@ -159,48 +156,28 @@ public:
     {
         noalias(rHighPoint) = *rObject;
         noalias(rLowPoint)  = *rObject;
-
-        double& radius = rObject->FastGetSolutionStepValue(RADIUS);
-        KRATOS_WATCH(radius)
-
-        for(std::size_t i = 0; i < 3; ++i)
-        {
-            rLowPoint[i]  += -radius;
-            rHighPoint[i] += radius;
-        }
     }
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double& Radius)
     {
-        for(std::size_t i = 0; i < 3; i++)
-        {
-            rHighPoint[i] = rLowPoint[i] = (*rObject)[i];
-        }
-
-        for(std::size_t i = 0; i < 3; i++)
-        {
-            rLowPoint[i]  += -Radius;
-            rHighPoint[i] += Radius;
+        for(std::size_t i = 0; i < 3; ++i){
+            rLowPoint[i]  = (*rObject)[i] - Radius;
+            rHighPoint[i] = (*rObject)[i] + Radius;
         }
     }
 
     static inline void CalculateCenter(const PointerType& rObject, PointType& rCenter)
     {
-        for(std::size_t i = 0; i < 3; i++)
-        {
-            rCenter[i]  = (*rObject)[i];
-        }
+        noalias(rCenter) = *rObject;
     }
 
     //******************************************************************************************************************
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
     {
-        const double& radiussss = rObj_2->FastGetSolutionStepValue(RADIUS);
-        KRATOS_WATCH(radiussss)
-        return Intersection(rObj_1, rObj_2, radiussss);
+        const double& radius = rObj_1->FastGetSolutionStepValue(RADIUS);
+        return Intersection(rObj_1, rObj_2, radius);
     }
-
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& Radius)
     {
@@ -211,9 +188,7 @@ public:
         const double coors_2[3] = {point_2[0], point_2[1], point_2[2]};
 
         PeriodicSubstract(coors_1, coors_2, rObj_2_to_rObj_1);
-        double R=Radius;
-        KRATOS_WATCH(R)
-        KRATOS_WATCH(rObj_2)
+
         const double distance_2 = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
         const bool intersect = floatle(distance_2, std::pow(Radius, 2));
         return intersect;
@@ -222,7 +197,7 @@ public:
     static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
     {
         const double& radius = rObject->FastGetSolutionStepValue(RADIUS);
-        return  IntersectionBox(rObject, rLowPoint, rHighPoint, radius);
+        return IntersectionBox(rObject, rLowPoint, rHighPoint, radius);
     }
 
     static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double& Radius)
@@ -247,11 +222,7 @@ public:
                                                            center_of_particle[1],
                                                            center_of_particle[2]};
             TransformToClosestPeriodicCoordinates(box_center, representative_center_of_particle);
-            KRATOS_WATCH(Radius)
-            KRATOS_WATCH(representative_center_of_particle[0])
-            KRATOS_WATCH(box_center[0])
-            KRATOS_WATCH(expanded_box_min[0])
-            KRATOS_WATCH(expanded_box_max[0])
+
             for (unsigned int i = 0; i < 3; ++i){
                 const bool is_broken = rLowPoint[i] > rHighPoint[i];
 
@@ -280,7 +251,7 @@ public:
     {
         distance = 0.0;
 
-        for(std::size_t i = 0; i < 3; i++){
+        for(std::size_t i = 0; i < 3; ++i){
             distance += std::pow((*rObj_1)[i] - (*rObj_2)[i], 2);
         }
 
@@ -315,7 +286,7 @@ private:
     static inline void PeriodicSubstract(const double a[3], const double b[3], double c[3])
     {
         for (unsigned int i = 0; i < 3; ++i){
-                c[i] = a[i] - b[i];
+            c[i] = a[i] - b[i];
         }
 
         if (mDomainIsPeriodic){ // Periods have been set (the domain is periodic)

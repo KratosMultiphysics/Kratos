@@ -104,16 +104,10 @@ BinsObjectDynamicPeriodic (IteratorType const& ObjectsBegin, IteratorType const&
     this->mObjectsBegin = ObjectsBegin;
     this->mObjectsEnd = ObjectsEnd;
     this->mObjectsSize = SearchUtils::PointerDistance(this->mObjectsBegin, this->mObjectsEnd);
-    KRATOS_WATCH(this->mObjectsSize)
     SetDomainLimits(domain_min, domain_max);
-    KRATOS_WATCH(domain_min)
-    KRATOS_WATCH(domain_max)
     this->CalculateCellSize(this->mObjectsSize);
- KRATOS_WATCH("1")
     this->AllocateContainer();
-     KRATOS_WATCH("2")
     GenerateBins();
-     KRATOS_WATCH("3")
 }
 
 /// Destructor.
@@ -146,7 +140,7 @@ SizeType SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& R
   SizeType NumberOfResults = 0;
 
   TConfigure::CalculateBoundingBox(ThisObject, Low, High, Radius);
-  //
+
   Box.Set(this->CalculateCell(Low), this->CalculateCell(High), this->mN );
 
   SearchInRadiusExclusivePeriodic(ThisObject, Radius, Results, NumberOfResults, MaxNumberOfResults, Box);
@@ -166,10 +160,8 @@ void GenerateBins() override
     PointType Low, High;
     SearchStructureType Box;
     /// Fill container with objects
-    int i = 0;
-    for(IteratorType i_object = this->mObjectsBegin ; i_object != this->mObjectsEnd ; i_object++)
-    {
-        ++i;
+
+    for (IteratorType i_object = this->mObjectsBegin ; i_object != this->mObjectsEnd ; i_object++){
         TConfigure::CalculateBoundingBox(*i_object, Low, High);
         Box.Set( this->CalculateCell(Low), this->CalculateCell(High), this->mN );
         FillObjectPeriodic(Box, *i_object);
@@ -183,14 +175,11 @@ void SearchInRadiusExclusivePeriodic(PointerType& ThisObject, CoordinateType con
   PointType  MinCell, MaxCell;
   PointType  MinBox, MaxBox;
 
-  for(SizeType i = 0; i < 3; i++)
-  {
+  for (SizeType i = 0; i < 3; ++i){
       MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];
-      MaxBox[i] = MinBox[i] + this->mCellSize[i];
+      // MaxBox[i] = MinBox[i] + this->mCellSize[i];
+      MaxBox[i] = static_cast<CoordinateType>(Box.Axis[i].Max) * this->mCellSize[i] + this->mMinPoint[i];
   }
-
-  KRATOS_WATCH(MinBox)
-  KRATOS_WATCH(MaxBox)
 
   MinCell[2] = MinBox[2];
   MaxCell[2] = MaxBox[2];
@@ -200,35 +189,23 @@ void SearchInRadiusExclusivePeriodic(PointerType& ThisObject, CoordinateType con
 
   int III_size = int(Box.Axis[2].Size()) + 1;
 
-  for (IndexType III = III_begin; III_size > 0; NextIndex(III, III_size, MinCell, MaxCell, Box.Axis, 2))
-  {
-      KRATOS_WATCH(*ThisObject)
-
+  for (IndexType III = III_begin; III_size > 0; NextIndex(III, III_size, MinCell, MaxCell, Box.Axis, 2)){
       MinCell[1] = MinBox[1];
       MaxCell[1] = MaxBox[1];
-      KRATOS_WATCH(MinCell)
-      KRATOS_WATCH(MaxCell)
+
       int II_size = int(Box.Axis[1].Size()) + 1;
 
-      for (IndexType II = II_begin; II_size > 0; NextIndex(II, II_size, MinCell, MaxCell, Box.Axis, 1))
-      {
+      for (IndexType II = II_begin; II_size > 0; NextIndex(II, II_size, MinCell, MaxCell, Box.Axis, 1)){
           MinCell[0] = MinBox[0];
           MaxCell[0] = MaxBox[0];
           int I_size = int(Box.Axis[0].Size()) + 1;
-          KRATOS_WATCH(MinCell)
-          KRATOS_WATCH(MaxCell)
+
           for (IndexType I = I_begin; I_size > 0; NextIndex(I, I_size, MinCell, MaxCell, Box.Axis, 0))
           {
               IndexType GlobalIndex = III * Box.Axis[2].Block + II * Box.Axis[1].Block + I * Box.Axis[0].Block;
               //this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, NumberOfResults, MaxNumberOfResults);
-                KRATOS_WATCH(MinCell)
-                KRATOS_WATCH(MaxCell)
-              if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius))
-              {
-                  KRATOS_WATCH(*ThisObject)
-                  KRATOS_WATCH(GlobalIndex)
+              if (TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius)){
                   this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, NumberOfResults, MaxNumberOfResults);
-                  KRATOS_WATCH(NumberOfResults)
               }
           }
       }
@@ -238,18 +215,8 @@ void SearchInRadiusExclusivePeriodic(PointerType& ThisObject, CoordinateType con
 void SearchInRadiusExclusivePeriodic(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
                     SearchStructureType& Box )
 {
-
-
     PointType  MinCell, MaxCell;
     PointType  MinBox, MaxBox;
-    KRATOS_WATCH(this->mMinPoint)
-
-    for(SizeType i = 0; i < 3; i++)
-    {
-        KRATOS_WACH(Box.Axis[i].Min)
-        MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];
-        MaxBox[i] = MinBox[i] + this->mCellSize[i];
-    }
 
     MinCell[2] = MinBox[2];
     MaxCell[2] = MaxBox[2];
@@ -275,8 +242,7 @@ void SearchInRadiusExclusivePeriodic(PointerType& ThisObject, CoordinateType con
             {
                 IndexType GlobalIndex = III * Box.Axis[2].Block + II * Box.Axis[1].Block + I * Box.Axis[0].Block;
                 //this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, ResultDistances, NumberOfResults, MaxNumberOfResults);
-                if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius))
-                {
+                if (TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius)){
                     this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, ResultDistances, NumberOfResults, MaxNumberOfResults);
                 }
             }
@@ -288,13 +254,11 @@ void FillObjectPeriodic(SearchStructureType& Box, const PointerType& i_object)
 {
     PointType  MinCell, MaxCell;
     PointType  MinBox, MaxBox;
-    KRATOS_WATCH(this->mMinPoint)
 
-    for(SizeType i = 0; i < 3; i++)
-    {
-        KRATOS_WACH(Box.Axis[i].Min)
+    for(SizeType i = 0; i < 3; ++i){
         MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];
-        MaxBox[i] = MinBox[i] + this->mCellSize[i];
+        // MaxBox[i] = MinBox[i] + this->mCellSize[i];
+        MaxBox[i] = static_cast<CoordinateType>(Box.Axis[i].Max) * this->mCellSize[i] + this->mMinPoint[i];
     }
 
     MinCell[2] = MinBox[2];
@@ -304,33 +268,23 @@ void FillObjectPeriodic(SearchStructureType& Box, const PointerType& i_object)
     IndexType III_begin = Box.Axis[2].BeginIndex();
 
     int III_size = int(Box.Axis[2].Size()) + 1;
-    KRATOS_WATCH(III_begin)
-    KRATOS_WATCH(III_size)
 
-    for (IndexType III = III_begin; III_size > 0; NextIndex(III, III_size, MinCell, MaxCell, Box.Axis, 2))
-    {
+    for (IndexType III = III_begin; III_size > 0; NextIndex(III, III_size, MinCell, MaxCell, Box.Axis, 2)){
         MinCell[1] = MinBox[1];
         MaxCell[1] = MaxBox[1];
         int II_size = int(Box.Axis[1].Size()) + 1;
-        KRATOS_WATCH(II_begin)
-        KRATOS_WATCH(II_size)
 
-        for (IndexType II = II_begin; II_size > 0; NextIndex(II, II_size, MinCell, MaxCell, Box.Axis, 1))
-        {
+        for (IndexType II = II_begin; II_size > 0; NextIndex(II, II_size, MinCell, MaxCell, Box.Axis, 1)){
             MinCell[0] = MinBox[0];
             MaxCell[0] = MaxBox[0];
             int I_size = int(Box.Axis[0].Size()) + 1;
-            KRATOS_WATCH(I_begin)
-            KRATOS_WATCH(I_size)
-            for (IndexType I = I_begin; I_size > 0; NextIndex(I, I_size, MinCell, MaxCell, Box.Axis, 0))
-            {
+
+            for (IndexType I = I_begin; I_size > 0; NextIndex(I, I_size, MinCell, MaxCell, Box.Axis, 0)){
                 IndexType GlobalIndex = III * Box.Axis[2].Block + II * Box.Axis[1].Block + I * Box.Axis[0].Block;
                 this->mCells[GlobalIndex].Add(i_object);
-                KRATOS_WATCH(GlobalIndex)
-                KRATOS_WATCH(*i_object)
-//                if(TConfigure::IntersectionBox(i_object,MinCell,MaxCell)){
-//                    this->mCells[GlobalIndex].Add(i_object);
-//                }
+                // if (TConfigure::IntersectionBox(i_object, MinCell,MaxCell)){
+                //     this->mCells[GlobalIndex].Add(i_object);
+                // }
             }
         }
     }
@@ -351,12 +305,12 @@ void SetDomainLimits(const array_1d<double, 3> domain_min, const array_1d<double
     mDomainMax[1] = domain_max[1];
     mDomainMax[2] = domain_max[2];
 
-//    for (SizeType i = 0 ; i < Dimension ; i++){
+//    for (SizeType i = 0 ; i < Dimension ; ++i){
 //        this->mMaxPoint[i] = std::min(this->mMaxPoint[i], mDomainMax[i]);
 //        this->mMinPoint[i] = std::max(this->mMinPoint[i], mDomainMin[i]);
 //    }
 
-    for (SizeType i = 0 ; i < Dimension ; i++){
+    for (SizeType i = 0 ; i < Dimension ; ++i){
         this->mMaxPoint[i] = mDomainMax[i];
         this->mMinPoint[i] = mDomainMin[i];
     }
@@ -371,8 +325,8 @@ inline void NextIndex(IndexType& Index, int& box_size_counter, PointType& MinCel
     }
     else {
         Index = 0;
-        MinCell[dimension] += - MinCell[dimension]; //TODO: simplify to 0
-        MaxCell[dimension] += - MaxCell[dimension] + this->mCellSize[dimension];
+        MinCell[dimension] = 0;
+        MaxCell[dimension] = this->mCellSize[dimension];
     }
 
     --box_size_counter;
