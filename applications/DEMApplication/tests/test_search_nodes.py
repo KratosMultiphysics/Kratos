@@ -8,38 +8,48 @@ class TestSearchNodes(KratosUnittest.TestCase):
         self.model = Kratos.Model()
         self.base_model_part = self.model.CreateModelPart('Base')
         self.target_model_part = self.model.CreateModelPart('Target')
-        self.base_model_part.AddNodalSolutionStepVariable(Kratos.RADIUS)
-        self.target_model_part.AddNodalSolutionStepVariable(Kratos.RADIUS)
-
         # creating a search tool with a periodic bounding box
         dx = self.unit_length = 0.1
         self.epsilon = 0.0001
         self.search_strategy = DEM.OMP_DEMSearch(0, 0, 0, 10*dx, 10*dx, 10*dx)
-        self.search_radius = 2*dx + self.epsilon
         self.CreateNodes()
 
     def test_SearchNodesInTargetModelPart(self):
-        radii = [self.search_radius for node in self.base_model_part.Nodes]
-        results = DEM.VectorResultNodesContainer()
-        distances = DEM.VectorDistances()
+        dx = self.unit_length
+        epsilon = self.epsilon
+
         neighbours = []
+        # setting search radius just about large enough to catch some of the neighbours
+        radii = [2*dx + epsilon for node in self.base_model_part.Nodes]
         self.search_strategy.SearchNodesInRadiusExclusive(self.base_model_part.Nodes,
                                                           self.target_model_part.Nodes,
                                                           radii,
-                                                          results,
-                                                          distances,
+                                                          DEM.VectorResultNodesContainer(),
+                                                          DEM.VectorDistances(),
                                                           neighbours)
 
-        print('neighbours', neighbours)
         self.assertEqual(set(neighbours[0]), {3, 4})
-        # self.assertEqual(set(neighbours[1]), {4})
+        self.assertEqual(set(neighbours[1]), {4})
+
+        neighbours = []
+        # setting search radius a tad too short to catch some of the neighbours
+        radii = [2*dx - epsilon for node in self.base_model_part.Nodes]
+        self.search_strategy.SearchNodesInRadiusExclusive(self.base_model_part.Nodes,
+                                                          self.target_model_part.Nodes,
+                                                          radii,
+                                                          DEM.VectorResultNodesContainer(),
+                                                          DEM.VectorDistances(),
+                                                          neighbours)
+
+        self.assertEqual(set(neighbours[0]), set())
+        self.assertEqual(set(neighbours[1]), {4})
 
     def CreateNodes(self):
         dx = self.unit_length
         # Base nodes, for which neighbours must be searched for
         # ------------------------------------------
         self.CreateNode('Base', 1, [dx, dx, dx])
-        # self.CreateNode('Base', 2, [0.9*dx, 0.9*dx, 0.9*dx])
+        self.CreateNode('Base', 2, [0.9*dx, 0.9*dx, 0.9*dx])
 
         # Target nodes, which are search candidates
         # ------------------------------------------
@@ -55,12 +65,6 @@ class TestSearchNodes(KratosUnittest.TestCase):
         # the fourth candidate is also displaced 3 units in the y direction, but in the opposite
         # direction (through the boundary)
         self.CreateNode('Target', 6, [1 - 2*dx, dx, dx])
-
-        for node in self.base_model_part.Nodes:
-            node.SetSolutionStepValue(Kratos.RADIUS, self.search_radius)
-
-        # for node in self.target_model_part.Nodes:
-        #     node.SetSolutionStepValue(Kratos.RADIUS, self.search_radius)
 
     def CreateNode(self, model_part_name, id, coordinates):
         node = self.model.GetModelPart(model_part_name).CreateNewNode(id, coordinates[0], coordinates[1], coordinates[2])
