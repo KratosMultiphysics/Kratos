@@ -110,8 +110,8 @@ array_1d<double,3> CompressibleNavierStokesExplicit<2,4>::CalculateMidPointVeloc
         midpoint_rho_dx += r_rho * node_dNdX[0];
         midpoint_rho_dy += r_rho * node_dNdX[1];
     }
-    midpoint_rho /= NumNodes;
-    midpoint_mom /= NumNodes;
+    midpoint_rho /= static_cast<double>(NumNodes);
+    midpoint_mom /= static_cast<double>(NumNodes);
 
     // Calculate velocity rotational
     // Note that the formulation is written in conservative variables. Hence we do rot(mom/rho).
@@ -158,8 +158,8 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<2, 4>::CalculateMid
         midpoint_rho_dx += r_rho * node_dNdX[0];
         midpoint_rho_dy += r_rho * node_dNdX[1];
     }
-    midpoint_rho /= NumNodes;
-    midpoint_mom /= NumNodes;
+    midpoint_rho /= static_cast<double>(NumNodes);
+    midpoint_mom /= static_cast<double>(NumNodes);
 
     // Calculate velocity gradient
     // Note that the formulation is written in conservative variables. Hence we do grad(mom/rho).
@@ -200,7 +200,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMomentumProjection(const Pr
         r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
 
         DN_DX = prod(Jinv, DN_DX);
-        
+
 const double cmom_proj0 =             data.gamma - 1;
 const double cmom_proj1 =             N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
 const double cmom_proj2 =             DN_DX(0,1)*data.U(0,1) + DN_DX(1,1)*data.U(1,1) + DN_DX(2,1)*data.U(2,1) + DN_DX(3,1)*data.U(3,1);
@@ -236,7 +236,7 @@ const double cmom_proj21 =             N(0)*data.dUdt(0,2) + N(1)*data.dUdt(1,2)
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
     mom_proj *= data.volume / NumNodes;
-    
+
     // Assembly the projection contributions
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
         const IndexType aux = i_node * Dim;
@@ -275,7 +275,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateDensityProjection(const Pro
         r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
 
         DN_DX = prod(Jinv, DN_DX);
-        
+
 const double crho_proj0 =             DN_DX(0,0)*data.U(0,1) + DN_DX(0,1)*data.U(0,2) + DN_DX(1,0)*data.U(1,1) + DN_DX(1,1)*data.U(1,2) + DN_DX(2,0)*data.U(2,1) + DN_DX(2,1)*data.U(2,2) + DN_DX(3,0)*data.U(3,1) + DN_DX(3,1)*data.U(3,2) + N(0)*data.dUdt(0,0) - N(0)*data.m_ext(0) + N(1)*data.dUdt(1,0) - N(1)*data.m_ext(1) + N(2)*data.dUdt(2,0) - N(2)*data.m_ext(2) + N(3)*data.dUdt(3,0) - N(3)*data.m_ext(3);
             rho_proj[0] += -N(0)*crho_proj0;
             rho_proj[1] += -N(1)*crho_proj0;
@@ -283,7 +283,7 @@ const double crho_proj0 =             DN_DX(0,0)*data.U(0,1) + DN_DX(0,1)*data.U
             rho_proj[3] += -N(3)*crho_proj0;
 
     }
-    
+
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
     rho_proj *= data.volume / NumNodes;
 
@@ -321,7 +321,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateTotalEnergyProjection(const
         r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
 
         DN_DX = prod(Jinv, DN_DX);
-        
+
 const double ctot_ener_proj0 =             N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
 const double ctot_ener_proj1 =             N(0)*data.U(0,1) + N(1)*data.U(1,1) + N(2)*data.U(2,1) + N(3)*data.U(3,1);
 const double ctot_ener_proj2 =             N(0)*data.U(0,2) + N(1)*data.U(1,2) + N(2)*data.U(2,2) + N(3)*data.U(3,2);
@@ -394,7 +394,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
             r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
 
             DN_DX = prod(Jinv, DN_DX);
-            
+
 const double crRightHandSideBoundedVector0 =             N(0)*data.m_ext(0);
 const double crRightHandSideBoundedVector1 =             N(1)*data.m_ext(1);
 const double crRightHandSideBoundedVector2 =             N(2)*data.m_ext(2);
@@ -676,7 +676,7 @@ const double crRightHandSideBoundedVector252 =             crRightHandSideBounde
             r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
 
             DN_DX = prod(Jinv, DN_DX);
-            
+
 const double crRightHandSideBoundedVector0 =             N(0)*data.m_ext(0);
 const double crRightHandSideBoundedVector1 =             N(1)*data.m_ext(1);
 const double crRightHandSideBoundedVector2 =             N(2)*data.m_ext(2);
