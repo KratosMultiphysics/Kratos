@@ -96,7 +96,7 @@ class TestLineOutputProcess(UnitTest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT_X)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
 
-        ReadModelPart("/home/mate/build/kratos/Debug/install/kratos/tests/auxiliar_files_for_python_unittest/mdpa_files/test_processes", model_part)
+        ReadModelPart(str(TestLineOutputProcess.GetInputMDPAPath()), model_part)
 
         for node in model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, node.X)

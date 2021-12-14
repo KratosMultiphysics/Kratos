@@ -11,7 +11,6 @@ from KratosMultiphysics.HDF5Application.point_set_output_process import Factory 
 # STL imports
 import math
 import pathlib
-from unittest import mock
 
 
 class TestPointSetOutputProcess(UnitTest.TestCase):
