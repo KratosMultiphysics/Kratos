@@ -11,6 +11,7 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 file( GLOB_RECURSE KRATOS_SHAPE_OPTIMIZATION_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/shape_optimization_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/shape_optimization_application_variables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
 )

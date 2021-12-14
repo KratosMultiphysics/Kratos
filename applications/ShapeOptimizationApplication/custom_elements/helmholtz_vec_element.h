@@ -5,235 +5,221 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 Kratos default license:
-// kratos/license.txt
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Reza Najian Asl
 //
 
-#if !defined(KRATOS_HELMHOLTZ_VEC_ELEMENT_H_INCLUDED)
-#define KRATOS_HELMHOLTZ_VEC_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_HELMHOLTZ_VEC_ELEMENT_H_INCLUDED )
+#define  KRATOS_HELMHOLTZ_VEC_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
+#include "includes/define.h"
 #include "includes/element.h"
+#include "utilities/integration_utilities.h"
+#include "utilities/geometry_utilities.h"
+#include "includes/ublas_interface.h"
+#include "includes/variables.h"
+#include "shape_optimization_application_variables.h"
 
-namespace Kratos {
+
+namespace Kratos
+{
+
 ///@name Kratos Globals
 ///@{
+
 ///@}
 ///@name Type Definitions
 ///@{
+
 ///@}
 ///@name  Enum's
 ///@{
+
 ///@}
 ///@name  Functions
 ///@{
+
 ///@}
 ///@name Kratos Classes
 ///@{
-/// This class implements 3D Helmholtz PDE
-/**
- * This mesh-updating scheme treats the mesh as a solid and therefore
- * solves the equations of solid mechanics using a modified linear elastic
- * consitutive law. The implementation is based on:
- * K. Stein, et al. Mesh moving techniques for fluid-structure interactions
- * with large displacements, ASME J. Appl. Mech. 70 (2003) 58-63.
- */
 
-class HelmholtzVecElement : public Element {
+/// Short class definition.
+/** Detail class definition.
+*/
+class HelmholtzVecElement
+    : public Element
+{
 public:
-  ///@name Type Definitions
-  ///@{
-  /// Pointer definition of HelmholtzVecElement
-  KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(HelmholtzVecElement);
+    ///@name Type Definitions
+    ///@{
 
-  typedef Element BaseType;
-  typedef BaseType::GeometryType GeometryType;
-  typedef BaseType::NodesArrayType NodesArrayType;
-  typedef BaseType::PropertiesType PropertiesType;
-  typedef BaseType::IndexType IndexType;
-  typedef BaseType::SizeType SizeType;
-  typedef BaseType::MatrixType MatrixType;
-  typedef BaseType::VectorType VectorType;
-  typedef BaseType::EquationIdVectorType EquationIdVectorType;
-  typedef BaseType::DofsVectorType DofsVectorType;
-  typedef GeometryData::IntegrationMethod IntegrationMethod;
+    /// Counted pointer of HelmholtzVecElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(HelmholtzVecElement);
 
-  ///@}
-  ///@name Life Cycle
-  ///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-  HelmholtzVecElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    /// Default constructor.
+    HelmholtzVecElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    HelmholtzVecElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
-  HelmholtzVecElement(IndexType NewId, GeometryType::Pointer pGeometry,
-                              PropertiesType::Pointer pProperties);
+    /// Destructor.
+    virtual ~HelmholtzVecElement();
 
-  virtual ~HelmholtzVecElement() {}
 
-  ///@}
-  ///@name Operators
-  ///@{
-  /// Assignment operator.
-  ///@}
+    ///@}
+    ///@name Operators
+    ///@{
 
-  ///@name Operations
-  ///@{
-  /**
-  * Returns the currently selected integration method
-  * @return current integration method selected
-  */
-  /**
-   * creates a new total lagrangian updated element pointer
-   * @param NewId: the ID of the new element
-   * @param ThisNodes: the nodes of the new element
-   * @param pProperties: the properties assigned to the new element
-   * @return a Pointer to the new element
-   */
-  BaseType::Pointer Create(IndexType NewId, NodesArrayType const &rThisNodes,
-                           PropertiesType::Pointer pProperties) const override;
 
-  BaseType::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,
-                           PropertiesType::Pointer pProperties) const override;
+    ///@}
+    ///@name Operations
+    ///@{
 
-  void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
-                            VectorType &rRightHandSideVector,
-                            const ProcessInfo &rCurrentProcessInfo) override;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-  /**
-  * Sets on rResult the ID's of the element degrees of freedom
-  */
-  void EquationIdVector(EquationIdVectorType &rResult,
-                        const ProcessInfo &rCurrentProcessInfo) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const override;
 
-  /**
-  * Sets on rElementalDofList the degrees of freedom of the considered element
-  * geometry
-  */
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetDofList(DofsVectorType &rElementalDofList,
-                  const ProcessInfo &rCurrentProcessInfo) const override;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void CalculateRightHandSide(VectorType &rRightHandSideVector,
-                              const ProcessInfo &rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValuesVector(VectorType &rValues, int Step = 0) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-  int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
-  ///@}
-  ///@name Access
-  ///@{
-  ///@}
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-  ///@name Inquiry
-  ///@{
-  ///@}
+    ///@}
+    ///@name Access
+    ///@{
 
-  ///@name Input and output
-  ///@{
-  ///@}
-  ///@name Friends
-  ///@{
-  ///@}
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
 
 protected:
-  ///@name Protected static Member Variables
-  ///@{
-  ///@}
+    ///@name Protected static Member Variables
+    ///@{
 
-  ///@name Protected member Variables
-  ///@{
-  ///@}
 
-  ///@name Protected Operators
-  ///@{
-  ///@}
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-  ///@name Protected Operations
-  ///@{
 
-  /**
-   * Gets displacement values at nodes
-   * @param rValues: reference to vector of nodal displacements
-   */
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-  ///@}
-  ///@name Protected  Access
-  ///@{
-  ///@}
 
-  ///@name Protected Inquiry
-  ///@{
-  ///@}
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-  ///@name Protected LifeCycle
-  ///@{
-  ///@}
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    // Protected default constructor necessary for serialization
+    HelmholtzVecElement() : Element()
+    {
+    }
+
+    ///@}
 
 private:
-  ///@name Static Member Variables
-  ///@{
+    ///@name Static Member Variables
+    ///@{
 
-  ///@}
-  ///@name Member Variables
-  ///@{
 
-  ///@}
-  ///@name Private Operators
-  ///@{
-  ///@}
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-  ///@name Private Operations
-  ///@{
-  ///@}
 
-  // A private default constructor necessary for serialization
-  HelmholtzVecElement() {}
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
 
-  MatrixType SetAndModifyConstitutiveLaw(const int Dimension,
-                                         const int PointNumber) const;
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+    }
 
-  MatrixType CalculateBMatrix(const int Dimension, const int PointNumber) const;
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+    }
 
-  void CalculateMMatrix(MatrixType& rMassMatrix,const ProcessInfo& rCurrentProcessInfo) const;
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-  void CheckElementMatrixDimension(MatrixType &rLeftHandSideMatrix,
-                                   VectorType &rRightHandSideVector) const;
-  ///@}
 
-  ///@name Private  Access
-  ///@{
-  ///@}
+    ///@}
+    ///@name Private Operations
+    ///@{
+    MatrixType SetAndModifyConstitutiveLaw(const int Dimension, const int PointNumber) const;
+    MatrixType CalculateBMatrix(const int Dimension, const int PointNumber) const;
+    void CalculateBulkMassMatrix(MatrixType& rMassMatrix,const ProcessInfo& rCurrentProcessInfo) const;
+    void CalculateBulkStiffnessMatrix(MatrixType& rStiffnessMatrix,const ProcessInfo& rCurrentProcessInfo) const;
 
-  ///@name Private Inquiry
-  ///@{
-  ///@}
+    ///@}
+    ///@name Private  Access
+    ///@{
 
-  ///@name Un accessible methods
-  ///@{
-  ///@}
 
-  ///@name Serialization
-  ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-  friend class Serializer;
 
-  void save(Serializer& rSerializer) const override
-  {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
-  }
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-  void load(Serializer& rSerializer) override
-  {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
-  }
+    /// Assignment operator.
+    //HelmholtzVecElement& operator=(const HelmholtzVecElement& rOther);
 
-  ///@}
+    /// Copy constructor.
+    //HelmholtzVecElement(const HelmholtzVecElement& rOther);
+
+
+    ///@}
 
 }; // Class HelmholtzVecElement
 
@@ -241,8 +227,31 @@ private:
 
 ///@name Type Definitions
 ///@{
-///@}
-}
-// namespace Kratos.
 
-#endif // KRATOS_HELMHOLTZ_VEC_ELEMENT_H_INCLUDED
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+/*  inline std::istream& operator >> (std::istream& rIStream,
+				    HelmholtzVecElement& rThis);
+*/
+/// output stream function
+/*  inline std::ostream& operator << (std::ostream& rOStream,
+				    const HelmholtzVecElement& rThis)
+    {
+      rThis.PrintInfo(rOStream);
+      rOStream << std::endl;
+      rThis.PrintData(rOStream);
+
+      return rOStream;
+    }*/
+///@}
+
+}  // namespace Kratos.
+
+#endif // KRATOS_HELMHOLTZ_VEC_ELEMENT_H_INCLUDED  defined
+
+

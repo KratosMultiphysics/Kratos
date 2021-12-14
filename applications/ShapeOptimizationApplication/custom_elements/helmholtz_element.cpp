@@ -63,88 +63,61 @@ void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 {
     KRATOS_TRY
 
-    const auto& r_prop = GetProperties();
+    auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
-    // Checking radius
-    KRATOS_ERROR_IF_NOT(r_prop.Has(HELMHOLTZ_RADIUS)) << "HELMHOLTZ_RADIUS has to be provided for the calculations of the HelmholtzElement!" << std::endl;
+    // Resizing as needed the LHS
+    const SizeType mat_size = number_of_nodes * dimension;
 
-    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(HELMHOLTZ_DIRECTION))
-        << "HELMHOLTZ_DIRECTION not defined in the ProcessInfo!" << std::endl;   
+    if ( rLeftHandSideMatrix.size1() != mat_size )
+        rLeftHandSideMatrix.resize( mat_size, mat_size, false );
 
-    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(COMPUTE_CONTROL_POINTS))
-        << "COMPUTE_CONTROL_POINTS not defined in the ProcessInfo!" << std::endl;  
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size ); //resetting LHS
 
-    const unsigned int component_index = rCurrentProcessInfo[HELMHOLTZ_DIRECTION] - 1; 
+    // Resizing as needed the RHS 
+    if ( rRightHandSideVector.size() != mat_size )
+        rRightHandSideVector.resize( mat_size, false );
 
-    const auto& r_geometry = GetGeometry();
+    rRightHandSideVector = ZeroVector( mat_size ); //resetting RHS
+
+    MatrixType M;
+    CalculateBulkMassMatrix(M,rCurrentProcessInfo);
+    MatrixType A;
+    CalculateBulkStiffnessMatrix(A,rCurrentProcessInfo);
+
+    MatrixType K = A + M;
+
     const unsigned int number_of_points = r_geometry.size();
-    const unsigned int dim = r_geometry.WorkingSpaceDimension();
-
-    //resizing as needed the LHS
-    if(rLeftHandSideMatrix.size1() != number_of_points)
-        rLeftHandSideMatrix.resize(number_of_points,number_of_points,false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_points,number_of_points); //resetting LHS
-
-
-    //resizing as needed the RHS
-    if(rRightHandSideVector.size() != number_of_points)
-        rRightHandSideVector.resize(number_of_points,false);
-    noalias(rRightHandSideVector) = ZeroVector(number_of_points); //resetting RHS
-
-    //reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(r_geometry.GetDefaultIntegrationMethod());
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
-    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(r_geometry.GetDefaultIntegrationMethod());
-
-    Element::GeometryType::JacobiansType J0;
-    Matrix DN_DX(number_of_points,dim);
-    Matrix InvJ0(dim,dim);
-    
-
-    Vector nodal_vals(number_of_points);
+    Vector nodal_vals(number_of_points*3);
     for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
     {
         const VectorType &source = r_geometry[node_element].FastGetSolutionStepValue(HELMHOLTZ_SOURCE);
         auto node_weight = r_geometry[node_element].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
         if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS])
-            node_weight = 1.0;        
-        nodal_vals[node_element] = source[component_index]/node_weight;
+            node_weight = 1.0;
+        nodal_vals[3 * node_element + 0] = source[0]/node_weight;
+        nodal_vals[3 * node_element + 1] = source[1]/node_weight;
+        nodal_vals[3 * node_element + 2] = source[2]/node_weight;
     }
 
-    r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
-    double DetJ0;
-
-    for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
-    {
-        //calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(J0[i_point],InvJ0,DetJ0);
-
-        //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-        noalias(DN_DX) = prod(DN_De[i_point],InvJ0);
-
-        auto N = row(N_gausspoint,i_point); //these are the N which correspond to the gauss point "i_point"
-        const double IntToReferenceWeight = integration_points[i_point].Weight() * DetJ0;
-        const double r_helmholtz = r_prop[HELMHOLTZ_RADIUS];
-        MatrixType K = -1 * IntToReferenceWeight * r_helmholtz * r_helmholtz * prod(DN_DX, trans(DN_DX));
-        MatrixType M = IntToReferenceWeight * outer_prod(N, N);
-        MatrixType A = K + M;
-
-        if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS]){
-            noalias(rLeftHandSideMatrix) += M;
-            noalias(rRightHandSideVector) += prod(A,nodal_vals);
-            Vector temp(number_of_points);
-                for (SizeType iNode = 0; iNode < number_of_points; ++iNode) {
-                    const VectorType &vars = r_geometry[iNode].FastGetSolutionStepValue(HELMHOLTZ_VARS,0);
-                    temp[iNode] = vars[component_index];
-                }
-                noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);                    
-        }            
-        else{
-            noalias(rLeftHandSideMatrix) += A;
-            noalias(rRightHandSideVector) += nodal_vals;
+    if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS]){
+        noalias(rLeftHandSideMatrix) += M;
+        noalias(rRightHandSideVector) += prod(K,nodal_vals);
+        //apply drichlet BC
+        Vector temp(number_of_points*3);
+        for (SizeType iNode = 0; iNode < number_of_points; ++iNode) {
+            const VectorType &vars = r_geometry[iNode].FastGetSolutionStepValue(HELMHOLTZ_VARS,0);
+            temp[3*iNode] = vars[0];
+            temp[3*iNode+1] = vars[1];
+            temp[3*iNode+2] = vars[2];
         }
-            
-    }
+        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);     
+    }            
+    else{
+        noalias(rLeftHandSideMatrix) += K;
+        noalias(rRightHandSideVector) += nodal_vals;
+    } 
 
     KRATOS_CATCH("")
 }
@@ -171,42 +144,30 @@ void HelmholtzElement::EquationIdVector(EquationIdVectorType& rResult, const Pro
 {
     KRATOS_TRY;
 
-    KRATOS_DEBUG_ERROR_IF_NOT(rCurrentProcessInfo.Has(HELMHOLTZ_DIRECTION))
-        << "HELMHOLTZ_DIRECTION not defined in the ProcessInfo!" << std::endl;
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
-    const GeometryType &rgeom = this->GetGeometry();
-    const SizeType num_nodes = rgeom.size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    if (rResult.size() != dimension * number_of_nodes)
+        rResult.resize(dimension * number_of_nodes,false);
 
-    if (rResult.size() != num_nodes)
-        rResult.resize(num_nodes, false);
+    const SizeType pos = this->GetGeometry()[0].GetDofPosition(HELMHOLTZ_VARS_X);
 
-    unsigned int pos = this->GetGeometry()[0].GetDofPosition(HELMHOLTZ_VARS_X);
-
-    if (dimension == 2) {
-        for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-        if (rCurrentProcessInfo[HELMHOLTZ_DIRECTION] == 1)
-            rResult[i_node] =
-                rgeom[i_node].GetDof(HELMHOLTZ_VARS_X, pos).EquationId();
-
-        else if (rCurrentProcessInfo[HELMHOLTZ_DIRECTION] == 2)
-            rResult[i_node] =
-                rgeom[i_node].GetDof(HELMHOLTZ_VARS_Y, pos + 1).EquationId();
+    if(dimension == 2) {
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            const SizeType index = i * 2;
+            rResult[index] = GetGeometry()[i].GetDof(HELMHOLTZ_VARS_X,pos).EquationId();
+            rResult[index + 1] = GetGeometry()[i].GetDof(HELMHOLTZ_VARS_Y,pos+1).EquationId();
         }
     } else {
-        for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-        if (rCurrentProcessInfo[HELMHOLTZ_DIRECTION] == 1)
-            rResult[i_node] =
-                rgeom[i_node].GetDof(HELMHOLTZ_VARS_X, pos).EquationId();
-        else if (rCurrentProcessInfo[HELMHOLTZ_DIRECTION] == 2)
-            rResult[i_node] =
-                rgeom[i_node].GetDof(HELMHOLTZ_VARS_Y, pos + 1).EquationId();
-        else if (rCurrentProcessInfo[HELMHOLTZ_DIRECTION] == 3)
-            rResult[i_node] =
-                rgeom[i_node].GetDof(HELMHOLTZ_VARS_Z, pos + 2).EquationId();
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            const SizeType index = i * 3;
+            rResult[index] = GetGeometry()[i].GetDof(HELMHOLTZ_VARS_X,pos).EquationId();
+            rResult[index + 1] = GetGeometry()[i].GetDof(HELMHOLTZ_VARS_Y,pos+1).EquationId();
+            rResult[index + 2] = GetGeometry()[i].GetDof(HELMHOLTZ_VARS_Z,pos+2).EquationId();
         }
     }
-    KRATOS_CATCH("");
+
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -214,33 +175,27 @@ void HelmholtzElement::EquationIdVector(EquationIdVectorType& rResult, const Pro
 void HelmholtzElement::GetDofList(DofsVectorType& rElementalDofList,const ProcessInfo& rCurrentProcessInfo) const
 {
 
-    KRATOS_DEBUG_ERROR_IF_NOT(rCurrentProcessInfo.Has(HELMHOLTZ_DIRECTION))
-        << "HELMHOLTZ_DIRECTION not defined in the ProcessInfo!" << std::endl;
+    KRATOS_TRY;
 
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    rElementalDofList.resize(0);
+    rElementalDofList.reserve(dimension*number_of_nodes);
 
-    const GeometryType &rgeom = this->GetGeometry();
-    const SizeType num_nodes = rgeom.size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    if (rElementalDofList.size() != num_nodes)
-        rElementalDofList.resize(num_nodes);
-
-    if (dimension == 2)
-        for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-        if (rCurrentProcessInfo[HELMHOLTZ_DIRECTION] == 1)
-            rElementalDofList[i_node] = rgeom[i_node].pGetDof(HELMHOLTZ_VARS_X);
-        else if (rCurrentProcessInfo[HELMHOLTZ_DIRECTION] == 2)
-            rElementalDofList[i_node] = rgeom[i_node].pGetDof(HELMHOLTZ_VARS_Y);
+    if(dimension == 2) {
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            rElementalDofList.push_back(GetGeometry()[i].pGetDof(HELMHOLTZ_VARS_X));
+            rElementalDofList.push_back( GetGeometry()[i].pGetDof(HELMHOLTZ_VARS_Y));
         }
-    else
-        for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-        if (rCurrentProcessInfo[HELMHOLTZ_DIRECTION] == 1)
-            rElementalDofList[i_node] = rgeom[i_node].pGetDof(HELMHOLTZ_VARS_X);
-        if (rCurrentProcessInfo[HELMHOLTZ_DIRECTION] == 2)
-            rElementalDofList[i_node] = rgeom[i_node].pGetDof(HELMHOLTZ_VARS_Y);
-        if (rCurrentProcessInfo[HELMHOLTZ_DIRECTION] == 3)
-            rElementalDofList[i_node] = rgeom[i_node].pGetDof(HELMHOLTZ_VARS_Z);
+    } else {
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            rElementalDofList.push_back(GetGeometry()[i].pGetDof(HELMHOLTZ_VARS_X));
+            rElementalDofList.push_back( GetGeometry()[i].pGetDof(HELMHOLTZ_VARS_Y));
+            rElementalDofList.push_back( GetGeometry()[i].pGetDof(HELMHOLTZ_VARS_Z));
         }
+    }
+
+    KRATOS_CATCH("")
 
 }
 
@@ -250,21 +205,134 @@ int HelmholtzElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
-    Element::Check(rCurrentProcessInfo);
+    int check = Element::Check(rCurrentProcessInfo);
+
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for ( const auto& r_node : GetGeometry() ) {
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(HELMHOLTZ_VARS,r_node)
+    for ( IndexType i = 0; i < number_of_nodes; i++ ) {
+        const NodeType &rnode = r_geometry[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
 
-        KRATOS_CHECK_DOF_IN_NODE(HELMHOLTZ_VARS_X, r_node)
-        KRATOS_CHECK_DOF_IN_NODE(HELMHOLTZ_VARS_Y, r_node)
-        KRATOS_CHECK_DOF_IN_NODE(HELMHOLTZ_VARS_Z, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
     }
 
-    return 0;
+    return check;
 
     KRATOS_CATCH( "" );
 }
+/***********************************************************************************/
+/***********************************************************************************/
 
+void HelmholtzElement::CalculateBulkMassMatrix(
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    KRATOS_TRY;
+
+    const auto& r_geom = GetGeometry();
+    SizeType dimension = r_geom.WorkingSpaceDimension();
+    SizeType number_of_nodes = r_geom.size();
+    SizeType mat_size = dimension * number_of_nodes;
+
+    // Clear matrix
+    if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size)
+        rMassMatrix.resize( mat_size, mat_size, false );
+    rMassMatrix = ZeroMatrix( mat_size, mat_size );
+
+
+    Matrix J0(dimension, dimension);
+
+    IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints( integration_method );
+    const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
+
+    for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+        GeometryUtils::JacobianOnInitialConfiguration(
+            r_geom, integration_points[point_number], J0);
+        const double detJ0 = MathUtils<double>::Det(J0);
+        const double integration_weight = integration_points[point_number].Weight() * detJ0;
+        const Vector& rN = row(Ncontainer,point_number);
+
+        for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+            const SizeType index_i = i * dimension;
+
+            for ( IndexType j = 0; j < number_of_nodes; ++j ) {
+                const SizeType index_j = j * dimension;
+                const double NiNj_weight = rN[i] * rN[j] * integration_weight;
+
+                for ( IndexType k = 0; k < dimension; ++k )
+                    rMassMatrix( index_i + k, index_j + k ) += NiNj_weight;
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void HelmholtzElement::CalculateBulkStiffnessMatrix(
+    MatrixType& rStiffnessMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    KRATOS_TRY;
+
+    const auto& r_prop = GetProperties();
+
+    // Checking radius
+    KRATOS_ERROR_IF_NOT(r_prop.Has(HELMHOLTZ_RADIUS)) << "HELMHOLTZ_RADIUS has to be provided for the calculations of the HelmholtzElement!" << std::endl;
+
+    const auto& r_geom = GetGeometry();
+    SizeType dimension = r_geom.WorkingSpaceDimension();
+    SizeType number_of_nodes = r_geom.size();
+    SizeType mat_size = dimension * number_of_nodes;
+
+    // Clear matrix
+    if (rStiffnessMatrix.size1() != mat_size || rStiffnessMatrix.size2() != mat_size)
+        rStiffnessMatrix.resize( mat_size, mat_size, false );
+    rStiffnessMatrix = ZeroMatrix( mat_size, mat_size );
+
+    //reading integration points and local gradients
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(r_geom.GetDefaultIntegrationMethod());
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geom.ShapeFunctionsLocalGradients(r_geom.GetDefaultIntegrationMethod());
+
+    Element::GeometryType::JacobiansType J0;
+    Matrix DN_DX(number_of_nodes,dimension);
+    Matrix InvJ0(dimension,dimension);
+    r_geom.Jacobian(J0,r_geom.GetDefaultIntegrationMethod());
+    double DetJ0;
+
+    MatrixType A_dirc = ZeroMatrix(number_of_nodes,number_of_nodes);
+    for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
+    {
+        //calculating inverse jacobian and jacobian determinant
+        MathUtils<double>::InvertMatrix(J0[i_point],InvJ0,DetJ0);
+
+        //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+        noalias(DN_DX) = prod(DN_De[i_point],InvJ0);
+
+        const double IntToReferenceWeight = integration_points[i_point].Weight() * DetJ0;
+        const double r_helmholtz = r_prop[HELMHOLTZ_RADIUS];
+        noalias(A_dirc) += IntToReferenceWeight * r_helmholtz * r_helmholtz * prod(DN_DX, trans(DN_DX));
+        
+    }
+
+
+    //contruct the stifness matrix in all dims
+    for(IndexType i=0;i<number_of_nodes;i++)
+        for(IndexType j=0;j<dimension;j++)
+            for(IndexType k=0;k<number_of_nodes;k++)
+                rStiffnessMatrix(dimension*i+j,dimension*k+j) = A_dirc(i,k);
+
+
+    KRATOS_CATCH("");
+}
 
 } // Namespace Kratos

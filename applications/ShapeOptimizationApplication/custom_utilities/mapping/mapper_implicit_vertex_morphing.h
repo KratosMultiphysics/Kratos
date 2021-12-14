@@ -26,6 +26,7 @@
 #include "utilities/builtin_timer.h"
 #include "spaces/ublas_space.h"
 #include "mapper_base.h"
+#include "custom_conditions/surface_filter_condition.h"
 #include "custom_elements/helmholtz_element.h"
 #include "custom_elements/helmholtz_vec_element.h"
 #include "custom_strategies/strategies/helmholtz_strategy.h"
@@ -126,30 +127,45 @@ public:
 
         // creating vm elements
         ModelPart::ElementsContainerType &rmesh_elements =
-            mpVMModePart->Elements();
+            mpVMModePart->Elements();     
 
-        // create a new property for the vm
-        Properties::Pointer p_vm_property = mpVMModePart->CreateNewProperties(0);        
-        p_vm_property->SetValue(HELMHOLTZ_RADIUS,mMapperSettings["filter_radius"].GetDouble());
+        // create a new property for the vm elements       
+        Properties::Pointer p_vm_elem_property = mpVMModePart->CreateNewProperties(mpVMModePart->NumberOfProperties()+1);        
+        p_vm_elem_property->SetValue(HELMHOLTZ_RADIUS,mMapperSettings["filter_radius"].GetDouble());              
 
         for (int i = 0; i < (int)mrModelPart.Elements().size(); i++) {
             ModelPart::ElementsContainerType::iterator it = mrModelPart.ElementsBegin() + i;
             Element::Pointer p_element;
             if (element_type.compare("helmholtz_element") == 0)
-                p_element = new HelmholtzElement(it->Id(), it->pGetGeometry(), p_vm_property);
+                p_element = new HelmholtzElement(it->Id(), it->pGetGeometry(), p_vm_elem_property);
             else
-                p_element = new HelmholtzVecElement(it->Id(), it->pGetGeometry(), p_vm_property);                
+                p_element = new HelmholtzVecElement(it->Id(), it->pGetGeometry(), p_vm_elem_property);                
             rmesh_elements.push_back(p_element);
         }
+
+        // // creating vm conditions
+        // ModelPart::ConditionsContainerType &rmesh_conditions =
+        //     mpVMModePart->Conditions();  
+
+        // // create a new property for the vm condition       
+        // Properties::Pointer p_vm_cond_property = mpVMModePart->CreateNewProperties(mpVMModePart->NumberOfProperties()+1);        
+        // p_vm_cond_property->SetValue(HELMHOLTZ_RADIUS,mMapperSettings["filter_radius"].GetDouble());
+
+        // for (int i = 0; i < (int)mrModelPart.Conditions().size(); i++) {
+        //     ModelPart::ConditionsContainerType::iterator it = mrModelPart.ConditionsBegin() + i;
+        //     Condition::Pointer p_condition;
+        //     if (element_type.compare("helmholtz_element") == 0)
+        //         p_condition = new SurfaceFilterCondition(it->Id(), it->pGetGeometry(), p_vm_cond_property);
+        //     else
+        //         KRATOS_ERROR << "helmholtz_vec_element is not supported yet"<<std::endl;                 
+        //     rmesh_conditions.push_back(p_condition);
+        // }        
 
         // calculate number of neighbour elements for each node.
         CalculateNodeNeighbourCount();
 
 
-        if (element_type.compare("helmholtz_element") == 0)
-            mpHelmholtzStrategy = new HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> (*mpVMModePart,mpLinearSystemSolver);
-        else 
-            mpHelmholtzStrategy = new HelmholtzVecStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> (*mpVMModePart,mpLinearSystemSolver);            
+        mpHelmholtzStrategy = new HelmholtzVecStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> (*mpVMModePart,mpLinearSystemSolver);            
         
         mpHelmholtzStrategy->Initialize();
 
@@ -385,23 +401,18 @@ private:
             rMassMatrix.resize( mat_size, mat_size, false );
         rMassMatrix = ZeroMatrix( mat_size, mat_size );
 
-        // CONSISTENT MASS
 
-        Element::GeometryType::JacobiansType J0;
-        r_geom.Jacobian(J0,r_geom.GetDefaultIntegrationMethod());
-        Matrix InvJ0(dimension,dimension);
-        double detJ0;
+        Matrix J0(dimension, dimension);
 
-
-        const IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
-        const auto& integration_points = r_geom.IntegrationPoints(integration_method);
+        IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
+        const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints( integration_method );
         const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
 
         for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-            //calculating inverse jacobian and jacobian determinant
-            MathUtils<double>::InvertMatrix(J0[point_number],InvJ0,detJ0);;
+            GeometryUtils::JacobianOnInitialConfiguration(
+                r_geom, integration_points[point_number], J0);
+            const double detJ0 = MathUtils<double>::Det(J0);
             const double integration_weight = integration_points[point_number].Weight() * detJ0;
-            
             const Vector& rN = row(Ncontainer,point_number);
 
             for ( IndexType i = 0; i < number_of_nodes; ++i ) {

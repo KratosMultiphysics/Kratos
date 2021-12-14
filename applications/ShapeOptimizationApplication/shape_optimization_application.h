@@ -27,8 +27,13 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/kratos_application.h"
+
+/* ELEMENTS */
 #include "custom_elements/helmholtz_element.h"
 #include "custom_elements/helmholtz_vec_element.h"
+
+/* CONDITIONS */
+#include "custom_conditions/surface_filter_condition.h"
 
 // ==============================================================================
 
@@ -189,6 +194,9 @@ namespace Kratos
 		///@}
 		///@name Member Variables
 		///@{
+
+			/* ELEMENTS */
+
 			const HelmholtzElement mHelmholtz2D3N;
 			const HelmholtzElement mHelmholtz3D4N;
 			const HelmholtzElement mHelmholtz3D8N;
@@ -197,6 +205,16 @@ namespace Kratos
 			const HelmholtzVecElement mHelmholtzVec3D4N;
 			const HelmholtzVecElement mHelmholtzVec3D8N;
 			const HelmholtzVecElement mHelmholtzVec3D27N; 
+
+			/* CONDITIONS*/
+
+			// Surface conditions
+			const SurfaceFilterCondition mSurfaceFilterCondition3D3N;
+			const SurfaceFilterCondition mSurfaceFilterCondition3D4N;
+			const SurfaceFilterCondition mSurfaceFilterCondition3D6N;
+			const SurfaceFilterCondition mSurfaceFilterCondition3D8N;
+			const SurfaceFilterCondition mSurfaceFilterCondition3D9N;
+
 		///@}
 		///@name Private Operators
 		///@{

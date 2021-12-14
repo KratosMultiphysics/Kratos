@@ -35,6 +35,7 @@ namespace Kratos
 {
     KratosShapeOptimizationApplication::KratosShapeOptimizationApplication() :
         KratosApplication("ShapeOptimizationApplication"),
+            /* ELEMENTS */
             mHelmholtz2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
             mHelmholtz3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
             mHelmholtz3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
@@ -42,7 +43,14 @@ namespace Kratos
             mHelmholtzVec2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
             mHelmholtzVec3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
             mHelmholtzVec3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
-            mHelmholtzVec3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(Element::GeometryType::PointsArrayType(27))))
+            mHelmholtzVec3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(Element::GeometryType::PointsArrayType(27)))),
+
+            /* CONDITIONS */            
+            mSurfaceFilterCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+            mSurfaceFilterCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<NodeType >( Condition::GeometryType::PointsArrayType(4)))),
+            mSurfaceFilterCondition3D6N(0, Condition::GeometryType::Pointer(new Triangle3D6<NodeType >(Condition::GeometryType::PointsArrayType(6)))),
+            mSurfaceFilterCondition3D8N(0, Condition::GeometryType::Pointer(new Quadrilateral3D8<NodeType >(Condition::GeometryType::PointsArrayType(8)))),
+            mSurfaceFilterCondition3D9N(0, Condition::GeometryType::Pointer(new Quadrilateral3D9<NodeType >(Condition::GeometryType::PointsArrayType(9))))
     {}
 
  	void KratosShapeOptimizationApplication::Register()
@@ -137,6 +145,15 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("HelmholtzVecElement3D4N", mHelmholtzVec3D4N);
         KRATOS_REGISTER_ELEMENT("HelmholtzVecElement3D8N", mHelmholtzVec3D8N);
         KRATOS_REGISTER_ELEMENT("HelmholtzVecElement3D27N",mHelmholtzVec3D27N); 
+
+        // Shape optimization conditions
+        KRATOS_REGISTER_CONDITION("SurfaceFilterCondition3D3N", mSurfaceFilterCondition3D3N)
+        KRATOS_REGISTER_CONDITION("SurfaceFilterCondition3D4N", mSurfaceFilterCondition3D4N)
+        KRATOS_REGISTER_CONDITION("SurfaceFilterCondition3D6N", mSurfaceFilterCondition3D6N)
+        KRATOS_REGISTER_CONDITION("SurfaceFilterCondition3D8N", mSurfaceFilterCondition3D8N)
+        KRATOS_REGISTER_CONDITION("SurfaceFilterCondition3D9N", mSurfaceFilterCondition3D9N)
+
+
  	}
 
 }  // namespace Kratos.
