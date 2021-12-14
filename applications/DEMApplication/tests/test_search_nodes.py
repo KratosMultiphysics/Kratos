@@ -67,7 +67,8 @@ class TestSearchNodes(KratosUnittest.TestCase):
         self.CreateNode('Target', 6, [1 - 2*dx, dx, dx])
 
     def CreateNode(self, model_part_name, id, coordinates):
-        node = self.model.GetModelPart(model_part_name).CreateNewNode(id, coordinates[0], coordinates[1], coordinates[2])
+        model_part = self.model.GetModelPart(model_part_name)
+        node = model_part.CreateNewNode(id, coordinates[0], coordinates[1], coordinates[2])
 
 
 if __name__ == '__main__':

@@ -148,10 +148,10 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
 //           BinsElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_bins.size());
 //           SearElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_sear.size());
 //
-//           for(ElementsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
+//           for (ElementsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
 //               BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
 //
-//           for(ElementsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
+//           for (ElementsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
 //               SearElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
 //
 //           GeometricalBinsType bins(BinsElementPointerToGeometricalObjecPointerTemporalVector.begin(), BinsElementPointerToGeometricalObjecPointerTemporalVector.end());
@@ -163,7 +163,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
 //               std::size_t                           NumberOfResults = 0;
 //
 //               #pragma omp for
-//               for(std::size_t i = 0; i < elements_sear.size(); i++)
+//               for (std::size_t i = 0; i < elements_sear.size(); ++i)
 //               {
 //                   GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
 //                   DistanceType::iterator                                                        ResultsDistancesPointer = localResultsDistances.begin();
@@ -172,7 +172,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
 //
 //                   rResults[i].reserve(NumberOfResults);
 //
-//                   for(GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
+//                   for (GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
 //                   {
 //                       Element::Pointer elem = dynamic_pointer_cast<Element>(*it);
 //                       rResults[i].push_back(elem);
@@ -197,8 +197,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t                   NumberOfResults = 0;
 
               #pragma omp for schedule(dynamic, 100) //schedule(guided)
-              for(int i = 0; i < static_cast<int>(elements_array.size()); i++)
-              {
+              for (int i = 0; i < static_cast<int>(elements_array.size()); ++i){
                   ResultElementsContainerType::iterator ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
 
@@ -237,8 +236,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t                   NumberOfResults = 0;
 
               #pragma omp for
-              for(int i = 0; i < static_cast<int>(elements_array.size()); i++)
-              {
+              for (int i = 0; i < static_cast<int>(elements_array.size()); ++i){
                   ResultElementsContainerType::iterator ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
 
@@ -275,8 +273,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t                   NumberOfResults = 0;
 
               #pragma omp for
-              for(int i = 0; i < static_cast<int>(elements_array.size()); i++)
-              {
+              for (int i = 0; i < static_cast<int>(elements_array.size()); ++i){
                   ResultElementsContainerType::iterator ResultsPointer = localResults.begin();
 
                   SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*elements_array[i]);
@@ -311,8 +308,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t                   NumberOfResults = 0;
 
               #pragma omp for
-              for(int i = 0; i < static_cast<int>(elements_array.size()); i++)
-              {
+              for (int i = 0; i < static_cast<int>(elements_array.size()); ++i){
                   ResultElementsContainerType::iterator ResultsPointer = localResults.begin();
 
                   SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*elements_array[i]);
@@ -351,11 +347,10 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t               NumberOfResults = 0;
 
               #pragma omp for
-              for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
-              {
+              for (int i = 0; i < static_cast<int>(nodes_array.size()); ++i){
                   ResultNodesContainerType::iterator    ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
-                  NumberOfResults = p_bins->SearchObjectsInRadiusExclusive(nodes_array[i],Radius[i],ResultsPointer,MaxNumberOfNodes);
+                  NumberOfResults = p_bins->SearchObjectsInRadiusExclusive(nodes_array[i], Radius[i], ResultsPointer, MaxNumberOfNodes);
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
               }
@@ -387,8 +382,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t               NumberOfResults = 0;
 
               #pragma omp for
-              for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
-              {
+              for (int i = 0; i < static_cast<int>(nodes_array.size()); ++i){
                   ResultNodesContainerType::iterator    ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
 
@@ -423,8 +417,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t               NumberOfResults = 0;
 
               #pragma omp for
-              for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
-              {
+              for (int i = 0; i < static_cast<int>(nodes_array.size()); ++i){
                   ResultNodesContainerType::iterator ResultsPointer    = localResults.begin();
 
                   NumberOfResults = bins.SearchObjectsInRadiusExclusive(nodes_array[i],Radius[i],ResultsPointer,MaxNumberOfNodes);
@@ -457,8 +450,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t               NumberOfResults = 0;
 
               #pragma omp for
-              for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
-              {
+              for (int i = 0; i < static_cast<int>(nodes_array.size()); ++i){
                   ResultNodesContainerType::iterator ResultsPointer    = localResults.begin();
 
                   NumberOfResults = bins.SearchObjectsInRadius(nodes_array[i],Radius[i],ResultsPointer,MaxNumberOfNodes);
@@ -490,10 +482,10 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           SearElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_sear.size());
           BinsElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_bins.size());
 
-          for(ElementsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
+          for (ElementsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
               BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
 
-          for(ConditionsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
+          for (ConditionsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
               SearElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
 
           GeometricalBinsType bins(BinsElementPointerToGeometricalObjecPointerTemporalVector.begin(), BinsElementPointerToGeometricalObjecPointerTemporalVector.end());
@@ -505,8 +497,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t                           NumberOfResults = 0;
 
               #pragma omp for
-              for(int i = 0; i < static_cast<int>(elements_sear.size()); i++)
-              {
+              for (int i = 0; i < static_cast<int>(elements_sear.size()); ++i){
                   GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
                   DistanceType::iterator                                                        ResultsDistancesPointer = localResultsDistances.begin();
 
@@ -514,7 +505,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
 
                   rResults[i].reserve(NumberOfResults);
 
-                  for(GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
+                  for (GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
                   {
                       Condition::Pointer elem = dynamic_pointer_cast<Condition>(*it);
                       rResults[i].push_back(elem);
@@ -546,10 +537,10 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           SearElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_sear.size());
           BinsElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_bins.size());
 
-          for(ElementsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
+          for (ElementsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
               BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
 
-          for(ConditionsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
+          for (ConditionsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
               SearElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
 
           GeometricalBinsType bins(BinsElementPointerToGeometricalObjecPointerTemporalVector.begin(), BinsElementPointerToGeometricalObjecPointerTemporalVector.end());
@@ -561,8 +552,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t                           NumberOfResults = 0;
 
               #pragma omp for
-              for(int i = 0; i < static_cast<int>(elements_sear.size()); i++)
-              {
+              for (int i = 0; i < static_cast<int>(elements_sear.size()); ++i){
                   GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
                   DistanceType::iterator                                                        ResultsDistancesPointer = localResultsDistances.begin();
 
@@ -570,7 +560,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
 
                   rResults[i].reserve(NumberOfResults);
 
-                  for(GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
+                  for (GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
                   {
                       Condition::Pointer elem = dynamic_pointer_cast<Condition>(*it);
                       rResults[i].push_back(elem);
@@ -602,10 +592,10 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           SearElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_sear.size());
           BinsElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_bins.size());
 
-          for(ElementsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
+          for (ElementsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
               SearElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
 
-          for(ConditionsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
+          for (ConditionsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
               BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
 
           GeometricalBinsType bins(BinsElementPointerToGeometricalObjecPointerTemporalVector.begin(), BinsElementPointerToGeometricalObjecPointerTemporalVector.end());
@@ -617,8 +607,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t                           NumberOfResults = 0;
 
               #pragma omp for
-              for(int i = 0; i < static_cast<int>(elements_sear.size()); i++)
-              {
+              for (int i = 0; i < static_cast<int>(elements_sear.size()); ++i){
                   GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
                   DistanceType::iterator                                                        ResultsDistancesPointer = localResultsDistances.begin();
 
@@ -626,7 +615,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
 
                   rResults[i].reserve(NumberOfResults);
 
-                  for(GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
+                  for (GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
                   {
                       Element::Pointer elem = dynamic_pointer_cast<Element>(*it);
                       rResults[i].push_back(elem);
@@ -658,10 +647,10 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           SearElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_sear.size());
           BinsElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_bins.size());
 
-          for(ElementsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
+          for (ElementsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
               SearElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
 
-          for(ConditionsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
+          for (ConditionsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
               BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
 
           GeometricalBinsType bins(BinsElementPointerToGeometricalObjecPointerTemporalVector.begin(), BinsElementPointerToGeometricalObjecPointerTemporalVector.end());
@@ -673,8 +662,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t                           NumberOfResults = 0;
 
               #pragma omp for
-              for(int i = 0; i < static_cast<int>(elements_sear.size()); i++)
-              {
+              for (int i = 0; i < static_cast<int>(elements_sear.size()); ++i){
                   GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
                   DistanceType::iterator                                                        ResultsDistancesPointer = localResultsDistances.begin();
 
@@ -682,7 +670,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
 
                   rResults[i].reserve(NumberOfResults);
 
-                  for(GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
+                  for (GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
                   {
                       Element::Pointer elem = dynamic_pointer_cast<Element>(*it);
                       rResults[i].push_back(elem);
