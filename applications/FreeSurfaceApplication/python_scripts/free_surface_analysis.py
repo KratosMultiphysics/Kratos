@@ -9,7 +9,6 @@ class FreeSurfaceAnalysis(AnalysisStage):
     def __init__(self,
                  model: KratosMultiphysics.Model,
                  parameters: KratosMultiphysics.Parameters):
-        """"""
         # Base class constructor defines:
         # - self.model
         # - self.project_parameters

@@ -27,7 +27,6 @@ class KratosFreeSurfaceGeneralTests(KratosUnittest.TestCase):
     def __RunFreeSurfaceAnalysis(self, test_name: str, reference_name: str):
         with KratosUnittest.WorkFolderScope(test_name, __file__):
             parameters_path = pathlib.Path("ProjectParameters.json")
-            model_part_path = pathlib.Path(test_name + ".mdpa")
             with open(parameters_path, 'r') as file:
                 parameters = KratosMultiphysics.Parameters(file.read())
 
@@ -45,7 +44,6 @@ class KratosFreeSurfaceGeneralTests(KratosUnittest.TestCase):
 
     def checkResults(self, reference_file_name: str):
         """Write results to a temporary file and compare its contents to the reference file."""
-
         output_file_name = "free_surface_general_tests_tmp.csv"
         with open(output_file_name, 'w') as output_file:
             output_file.write("#ID, DISTANCE\n")

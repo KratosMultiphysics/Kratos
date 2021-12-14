@@ -105,7 +105,8 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.timer                 = KratosMultiphysics.Timer()
 
 
-    def GetDefaultParameters(self) -> KratosMultiphysics.Parameters:
+    @staticmethod
+    def GetDefaultParameters() -> KratosMultiphysics.Parameters:
         return KratosMultiphysics.Parameters("""{
             "model_part_name"                       : "",
             "domain_size"                           : 3,
@@ -252,7 +253,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
     def SolveSolutionStep(self) -> bool:
         """Perform a local solution loop until the time step size shrinks to the target bounds."""
-
         # Note:
         # To stick to the original implementation, 3 initial steps are taken
         # without solving the system, though I'd assume we only need 2.
