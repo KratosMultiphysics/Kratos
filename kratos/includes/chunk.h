@@ -71,7 +71,8 @@ namespace Kratos
 		  , mSize(SizeInBytes)
 		  , mBlockSizeInBytes(BlockSizeInBytes)
 		  , mNumberOfAvailableBlocks(0) // to be initialized in initialize
-		  , mFirstAvailableBlock(mpData){}
+		  , mFirstAvailableBlock(mpData)
+		  , mBlockSizeAfterAlignment((BlockSizeInBytes + sizeof(BlockType) - 1) / sizeof(BlockType)){}
 
       /// Destructor is not virtual. This class can not be drived.
 	  ~Chunk() noexcept {
@@ -89,12 +90,11 @@ namespace Kratos
       ///@name Operations
       ///@{
 	  void Initialize() {
-		  const std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
 		  const std::size_t data_size = DataSize();
 		  mpData = new BlockType[data_size];
 		  mpEnd = mpData + data_size;
   		  mFirstAvailableBlock = mpData;
-		  mNumberOfAvailableBlocks = AllocatableDataSize() / block_size_after_alignment;
+		  mNumberOfAvailableBlocks = AllocatableDataSize() / mBlockSizeAfterAlignment;
 		  mpUninitializedMemory = mpData;
 		  
 
@@ -108,13 +108,12 @@ namespace Kratos
 		  if (mNumberOfAvailableBlocks == 0)
 			  return nullptr;
 
-		    const std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
 			lock();  
 			BlockType * p_result = mFirstAvailableBlock;
 			if(p_result >= mpUninitializedMemory) {
-				mFirstAvailableBlock += block_size_after_alignment;
+				mFirstAvailableBlock += mBlockSizeAfterAlignment;
 				if(mpUninitializedMemory < mpEnd) {
-					mpUninitializedMemory += block_size_after_alignment;
+					mpUninitializedMemory += mBlockSizeAfterAlignment;
 				}
 			}
 				
@@ -136,7 +135,7 @@ namespace Kratos
 		  BlockType* p_to_release = static_cast<BlockType*>(pPointrerToRelease);
 
 		  // Alignment check
-		  KRATOS_DEBUG_CHECK_EQUAL((p_to_release - mpData) % GetBlockSize(mBlockSizeInBytes), 0);
+		  KRATOS_DEBUG_CHECK_EQUAL((p_to_release - mpData) % mBlockSizeAfterAlignment, 0);
 		  
 		  lock();
 		  *p_to_release = (BlockType)mFirstAvailableBlock.exchange(p_to_release);
@@ -156,7 +155,7 @@ namespace Kratos
 	  }
 
 	  std::size_t Size() const {
-		  return mSize; // GetBlockSize(BlockSizeInBytes) * NumberOfBlocks * sizeof(BlockType);
+		  return mSize; 
 	  }
 
 	  std::size_t MemoryUsed() const {
@@ -176,7 +175,7 @@ namespace Kratos
       ///@{
 
 	  SizeType GetNumberOfBlocks() const {
-		  return AllocatableDataSize() / GetBlockSize(mBlockSizeInBytes);
+		  return AllocatableDataSize() / mBlockSizeAfterAlignment;
 	  }
 
 	  SizeType GetNumberOfAvailableBlocks() const {
@@ -207,7 +206,7 @@ namespace Kratos
 	  }
 
 	  bool Has(const void* pThePointer) const {
-		  return ((pThePointer >= mpData) && (pThePointer <= (mpData + DataSize() - GetBlockSize(mBlockSizeInBytes))));
+		  return ((pThePointer >= mpData) && (pThePointer < mpEnd));
 	  }
 
 	  bool IsEmpty() const {
@@ -269,6 +268,7 @@ namespace Kratos
 		std::atomic_uint mNumberOfAvailableBlocks;
 		std::atomic<BlockType*> mFirstAvailableBlock;
 		std::atomic_flag mLocked = ATOMIC_FLAG_INIT;
+		const SizeType mBlockSizeAfterAlignment;
 
       ///@}
       ///@name Operations
