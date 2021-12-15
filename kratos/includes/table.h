@@ -528,12 +528,12 @@ public:
             return mData.begin()->second[0];
         }
         if(X <=  mData.begin()->first) {
-            return Interpolate(X,  mData.begin()->first, mData.begin()->second[0], mData[1].first, mData[1].second[0]);
+            return ExtrapolateBelowLowest(X,  mData.begin()->first, mData.begin()->second[0], mData[1].first, mData[1].second[0]);
         }
 
         if(X >= mData[u].first) {
             // now the x is outside the table and we hae to extrapolate it using last two records of table.
-            return Interpolate(X, mData[u-1].first, mData[u-1].second[0], mData[u].first, mData[u].second[0]);
+            return ExtrapolateAboveHighest(X, mData[u-1].first, mData[u-1].second[0], mData[u].first, mData[u].second[0]);
         }
 
 
@@ -621,7 +621,19 @@ public:
         return Y1 + (X2 - X1 > 1.0e-12) * (Y2 - Y1)*(X - X1)/(X2 - X1);
 
     }
+    result_type ExtrapolateBelowLowest(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2) const
+    {
+        // const double epsilon = 1e-12;
+        return Y1 - (X2 - X1 > 1.0e-12) * (Y2 - Y1)*(X1 - X)/(X2 - X1 + std::numeric_limits<double>::min());
 
+    }
+
+    result_type ExtrapolateAboveHighest(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2) const
+    {
+        // const double epsilon = 1e-12;
+        return Y2 + (X2 - X1 > 1.0e-12) * (Y2 - Y1)*(X - X2)/(X2 - X1 + std::numeric_limits<double>::min());
+
+    }
     // inserts a row in a sorted position where Xi-1 < X < Xi+1 and fills the first column with Y
     void insert(argument_type const& X, result_type const& Y)
     {
