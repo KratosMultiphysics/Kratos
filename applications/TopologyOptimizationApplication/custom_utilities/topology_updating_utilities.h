@@ -4,7 +4,10 @@
 //  License:         BSD License
 //                   license: TopologyOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Philipp Hofer, https://github.com/PhiHo-eng
+//                   Erich Wehrle, https://github.com/e-dub
+//  based on original file from
+//                   Baumgärtner Daniel, https://github.com/dbaumgaertner
 //                   Octaviano Malfavón Farías
 //                   Eric Gonzales
 //
@@ -305,7 +308,7 @@ public:
 
 			double Xminn = 0;
 			double Xmaxx= 1;
-			double movlim = 0.2;
+			double movlim = 0.5;
 	
 
 			for (int iEl = 0; iEl < nn; iEl++) 
@@ -447,7 +450,7 @@ public:
 
 			double Xminn = 0;
 			double Xmaxx= 1;
-			double movlim = 0.2;
+			double movlim = 0.5;
 	
 
 			for (int iEl = 0; iEl < nn; iEl++) 
@@ -589,7 +592,7 @@ public:
 
 			double Xminn = 0;
 			double Xmaxx= 1;
-			double movlim = 0.2;
+			double movlim = 0.5;
 	
 
 			for (int iEl = 0; iEl < nn; iEl++) 
