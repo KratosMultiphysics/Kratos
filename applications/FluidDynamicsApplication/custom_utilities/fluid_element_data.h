@@ -187,6 +187,12 @@ protected:
         const Variable<array_1d<double,3>>& rVariable,
         const ProcessInfo& rProcessInfo);
 
+    void FillFromPreviousProcessInfo(
+        array_1d<double,3>& rData,
+        const Variable<array_1d<double,3>>& rVariable,
+        const ProcessInfo& rProcessInfo,
+        const std::size_t StepsBefore = 1);
+
     void FillFromElementData(double& rData, const Variable<double>& rVariable, const Element& rElement);
 
     void FillFromElementData(Vector& rData, const Variable<Vector>& rVariable, const Element& rElement);

@@ -67,6 +67,7 @@ double bdf1;
 double bdf2;
 
 array_1d<double,3> AngularVelocity;
+array_1d<double,3> AngularVelocityOld;
 
 // Auxiliary containers for the symbolically-generated matrices
 BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
@@ -99,6 +100,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
     this->FillFromProcessInfo(AngularVelocity,ANGULAR_VELOCITY,rProcessInfo);
+    this->FillFromPreviousProcessInfo(AngularVelocityOld,ANGULAR_VELOCITY,rProcessInfo);
 
     const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
     bdf0 = BDFVector[0];

@@ -1,3 +1,4 @@
+from random import gauss
 from sympy import *
 from KratosMultiphysics import *
 from KratosMultiphysics.sympy_fe_utilities import *
@@ -23,6 +24,16 @@ def CalculateCentrifugalForce(w,r):
     centrifugal_force[2] = w[0]*aux_b-w[1]*aux_a
 
     return centrifugal_force
+
+def CalculateEulerForce(w, w_old, r, dt):
+    euler_force = Matrix(zeros(1,3))
+
+    w_acc = (w-w_old)/dt
+    euler_force[0] = w_acc[1]*r[2]-w_acc[2]*r[1]
+    euler_force[1] = w_acc[2]*r[0]-w_acc[0]*r[2]
+    euler_force[2] = w_acc[0]*r[1]-w_acc[1]*r[0]
+
+    return euler_force
 
 ## Settings explanation
 # DIMENSION TO COMPUTE:
@@ -140,6 +151,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     ## Non-inertial frame of reference definitions
     if non_inertial_frame_of_reference_terms:
         omega = DefineVector('omega',3) # Frame of reference angular velocity
+        omega_old = DefineVector('omega_old',3) # Previous step frame of reference angular velocity
         gauss_pt_coord = DefineVector('gauss_pt_coord',3) # Gauss pt. coordinates vector to compute the centrifugal force
 
     ## Test functions definition
@@ -257,13 +269,16 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         # Calculate the non-inertial frame of reference force terms
         aux_coriollis_force = CalculateCoriollisForce(omega, v_gauss_aux)
         aux_centrifugal_force = CalculateCentrifugalForce(omega, gauss_pt_coord)
+        aux_euler_force = CalculateEulerForce(omega, omega_old, gauss_pt_coord, dt)
 
         # Keep only the relevant components according to the current dimension (note that w_{0} and w_{1} must be zero in 2D)
         coriollis_force = Matrix(zeros(dim,1))
         centrifugal_force = Matrix(zeros(dim,1))
+        euler_force = Matrix(zeros(dim,1))
         for i in range(dim):
             coriollis_force[i] = aux_coriollis_force[i]
             centrifugal_force[i] = aux_centrifugal_force[i]
+            euler_force[i] = aux_euler_force[i]
 
     ## Compute galerkin functional
     # Navier-Stokes functional
@@ -287,6 +302,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     if non_inertial_frame_of_reference_terms:
         rv_galerkin -= 2.0*rho*w_gauss.transpose()*coriollis_force # Coriollis force term
         rv_galerkin -= rho*w_gauss.transpose()*centrifugal_force # Centrifugal force term
+        rv_galerkin -= rho*w_gauss.transpose()*euler_force # Euler force term
 
     ##  Stabilization functional terms
     # Momentum conservation residual
@@ -297,6 +313,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     if non_inertial_frame_of_reference_terms:
         vel_residual -= 2.0*rho*coriollis_force
         vel_residual -= rho*centrifugal_force
+        vel_residual -= rho*euler_force
 
     # Mass conservation residual
     if (divide_by_rho):

@@ -200,6 +200,7 @@ void WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> >::
 
     // Non-inertial frame or reference data
     const array_1d<double,3>& omega = rData.AngularVelocity;
+    const array_1d<double,3>& omega_old = rData.AngularVelocityOld;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
@@ -242,6 +243,7 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
 
     // Non-inertial frame or reference data
     const array_1d<double,3>& omega = rData.AngularVelocity;
+    const array_1d<double,3>& omega_old = rData.AngularVelocityOld;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
@@ -292,6 +294,7 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<2,3>>::Co
 
     // Non-inertial frame or reference data
     const array_1d<double,3>& omega = rData.AngularVelocity;
+    const array_1d<double,3>& omega_old = rData.AngularVelocityOld;
     const auto& r_geom = this->GetGeometry();
     array_1d<double,3> gauss_pt_coord = ZeroVector(3);
     for (IndexType i = 0; i < 3; ++i) {
@@ -349,6 +352,7 @@ void WeaklyCompressibleNavierStokes<WeaklyCompressibleNavierStokesData<3,4>>::Co
 
     // Non-inertial frame or reference data
     const array_1d<double,3>& omega = rData.AngularVelocity;
+    const array_1d<double,3>& omega_old = rData.AngularVelocityOld;
     const auto& r_geom = this->GetGeometry();
     array_1d<double,3> gauss_pt_coord = ZeroVector(3);
     for (IndexType i = 0; i < 4; ++i) {

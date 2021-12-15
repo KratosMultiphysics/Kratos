@@ -176,6 +176,17 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromProces
 }
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromPreviousProcessInfo(
+    array_1d<double,3>& rData,
+    const Variable<array_1d<double,3>>& rVariable,
+    const ProcessInfo& rProcessInfo,
+    const std::size_t StepsBefore)
+{
+    const auto& r_prev_process_info = rProcessInfo.GetPreviousTimeStepInfo(StepsBefore);
+    rData = r_prev_process_info.GetValue(rVariable);
+}
+
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromElementData(double& rData,
     const Variable<double>& rVariable, const Element& rElement)
 {
