@@ -69,7 +69,7 @@ namespace Kratos
 		  , mSize(SizeInBytes)
 		  , mBlockSizeInBytes(BlockSizeInBytes)
 		  , mNumberOfAvailableBlocks(0) // to be initialized in initialize
-		  , mFirstAvailableBlockOffset(0){}
+		  , mFirstAvailableBlock(mpData){}
 
       /// Destructor is not virtual. This class can not be drived.
 	  ~Chunk() noexcept {
@@ -89,10 +89,10 @@ namespace Kratos
 	  void Initialize() {
 		  const std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
 		  mpData = new BlockType[DataSize()];
-  		  mFirstAvailableBlockOffset = 0;
+  		  mFirstAvailableBlock = mpData;
 		  mNumberOfAvailableBlocks = AllocatableDataSize() / block_size_after_alignment;
 
-		  *mpData = -block_size_after_alignment; // The first entry of the link list to the next one
+		  *mpData = -(BlockType)(mpData + block_size_after_alignment); // The first entry of the link list to the next one
 	  }
 
 	  /// This function does not throw and returns zero if cannot allocate
@@ -104,19 +104,19 @@ namespace Kratos
 
 		    const std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
 			lock();  
-			BlockType * p_result = mpData + (mFirstAvailableBlockOffset);
+			BlockType * p_result = mFirstAvailableBlock;
 			if(*p_result < 0) {
 				*p_result = -(*p_result);
 				if(mNumberOfAvailableBlocks > 1) {
-					*(p_result + block_size_after_alignment) = -(*p_result + block_size_after_alignment);
+					*(p_result + block_size_after_alignment) = -(BlockType)((BlockType*)(*p_result) + block_size_after_alignment);
 				}
 			}
 				
 			KRATOS_DEBUG_CHECK(Has(p_result));
-			mFirstAvailableBlockOffset = *p_result;
+			mFirstAvailableBlock = (BlockType*)(*p_result);
+			unlock();
 
 			mNumberOfAvailableBlocks--;
-			unlock();
 	
 		  return p_result;
 	  }
@@ -132,12 +132,12 @@ namespace Kratos
 
 		  // Alignment check
 		  KRATOS_DEBUG_CHECK_EQUAL((p_to_release - mpData) % GetBlockSize(mBlockSizeInBytes), 0);
+		  
 		  lock();
-		  *p_to_release = mFirstAvailableBlockOffset;
-		  mFirstAvailableBlockOffset = static_cast<SizeType>((p_to_release - mpData));
+		  *p_to_release = (BlockType)mFirstAvailableBlock.exchange(p_to_release);
+		  unlock();
 
 		  mNumberOfAvailableBlocks++;
-		  unlock();
 		  pPointrerToRelease = nullptr;
 
 	  }
@@ -259,8 +259,8 @@ namespace Kratos
 		BlockType * mpData;
 		SizeType mSize;
 		SizeType mBlockSizeInBytes;
-		SizeType mNumberOfAvailableBlocks;
-		SizeType mFirstAvailableBlockOffset;
+		std::atomic_uint mNumberOfAvailableBlocks;
+		std::atomic<BlockType*> mFirstAvailableBlock;
 		std::atomic_flag mLocked = ATOMIC_FLAG_INIT;
 
       ///@}
