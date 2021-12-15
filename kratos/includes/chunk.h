@@ -158,6 +158,8 @@ namespace Kratos
 			  return;
 		  delete[] mpData;
 		  mpData = nullptr;
+		  mpEnd = nullptr;
+		  mpUninitializedMemory = nullptr;
 
 	  }
 
