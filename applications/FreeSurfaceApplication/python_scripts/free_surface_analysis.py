@@ -18,7 +18,7 @@ class FreeSurfaceAnalysis(AnalysisStage):
 
 
     def _CreateSolver(self) -> EdgeBasedLevelSetSolver:
-        return EdgeBasedLevelSetSolver(self.model, self.project_parameters["solver_settings"].Clone())
+        return EdgeBasedLevelSetSolver(self.model, self.project_parameters["solver_settings"])
 
 
     def _GetSimulationName(self) -> str:
