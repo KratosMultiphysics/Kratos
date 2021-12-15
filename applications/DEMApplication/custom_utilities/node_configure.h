@@ -175,8 +175,7 @@ public:
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
     {
-        const double& radius = rObj_1->FastGetSolutionStepValue(RADIUS);
-        return Intersection(rObj_1, rObj_2, radius);
+        return false;
     }
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& Radius)
@@ -196,11 +195,10 @@ public:
 
     static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
     {
-        const double& radius = rObject->FastGetSolutionStepValue(RADIUS);
-        return IntersectionBox(rObject, rLowPoint, rHighPoint, radius);
+        return IntersectionBox(rObject, rLowPoint, rHighPoint, 0);
     }
 
-    static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double& Radius)
+    static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double Radius)
     {
         const array_1d<double, 3>& center_of_particle = *rObject;
 
