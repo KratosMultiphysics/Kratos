@@ -171,9 +171,9 @@ void AddCustomProcessesToPython(pybind11::module &m)
         ;
 
     //**********FIX AND FREE NODES VELOCITY PROCESS*********
-    py::class_<FixFreeVelocityOnNodesProcess, FixFreeVelocityOnNodesProcess::Pointer, Process>(m, "FixFreeVelocityOnNodesProcess")
+    py::class_<PFEMFixFreeVelocityOnNodesProcess, PFEMFixFreeVelocityOnNodesProcess::Pointer, Process>(m, "PFEMFixFreeVelocityOnNodesProcess")
         .def(py::init<ModelPart &, const bool>())
-        .def("Execute", &FixFreeVelocityOnNodesProcess::Execute)
+        .def("Execute", &PFEMFixFreeVelocityOnNodesProcess::Execute)
     
         ;//*/
 

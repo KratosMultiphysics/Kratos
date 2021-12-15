@@ -11,8 +11,8 @@
 //                   Carlos Eulogio Flores
 //
 
-#if !defined(KRATOS_FIX_FREE_VELOCITY_ON_NODES_PROCESS)
-#define KRATOS_FIX_FREE_VELOCITY_ON_NODES_PROCESS
+#if !defined(KRATOS_PFEM_FIX_FREE_VELOCITY_ON_NODES_PROCESS)
+#define KRATOS_PFEM_FIX_FREE_VELOCITY_ON_NODES_PROCESS
 
 // System includes
 
@@ -25,15 +25,15 @@
 
 namespace Kratos {
 
-class FixFreeVelocityOnNodesProcess : public Process
+class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) PFEMFixFreeVelocityOnNodesProcess : public Process
 {
 public:
 
-  /// Pointer definition of FixFreeVelocityOnNodesProcess
-  KRATOS_CLASS_POINTER_DEFINITION(FixFreeVelocityOnNodesProcess);
+  /// Pointer definition of PFEMFixFreeVelocityOnNodesProcess
+  KRATOS_CLASS_POINTER_DEFINITION(PFEMFixFreeVelocityOnNodesProcess);
 
   // Constructor
-  FixFreeVelocityOnNodesProcess(ModelPart& rModelPart, const bool rFreeOrFix);
+  PFEMFixFreeVelocityOnNodesProcess(ModelPart& rModelPart, const bool rFreeOrFix);
 
   void operator()() { Execute(); }
 
