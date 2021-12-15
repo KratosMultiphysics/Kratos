@@ -348,8 +348,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
 
               #pragma omp for
               for (int i = 0; i < static_cast<int>(nodes_array.size()); ++i){
-                  ResultNodesContainerType::iterator    ResultsPointer          = localResults.begin();
-                  DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
+                  ResultNodesContainerType::iterator ResultsPointer = localResults.begin();
                   NumberOfResults = p_bins->SearchObjectsInRadiusExclusive(nodes_array[i], Radius[i], ResultsPointer, MaxNumberOfNodes);
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
