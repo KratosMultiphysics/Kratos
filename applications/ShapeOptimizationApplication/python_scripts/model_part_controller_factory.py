@@ -63,7 +63,6 @@ class ModelPartController:
             self.mesh_controller = MeshControllerBasicUpdating(self.optimization_model_part)
 
         self.design_surface = None
-        self.damping_regions = {}
         self.damping_utility = None
 
     # --------------------------------------------------------------------------
@@ -74,9 +73,8 @@ class ModelPartController:
         self.mesh_controller.Initialize()
 
         if self.model_settings["damping"]["apply_damping"].GetBool():
-            self.__IdentifyDampingRegions()
             self.damping_utility = KSO.DampingUtilities(
-                self.design_surface, self.damping_regions, self.model_settings["damping"]
+                self.design_surface, self.model_settings["damping"]
             )
 
     # --------------------------------------------------------------------------
@@ -95,7 +93,7 @@ class ModelPartController:
 
         if self.model_settings["damping"]["recalculate_damping"].GetBool():
             self.damping_utility = KSO.DampingUtilities(
-                self.design_surface, self.damping_regions, self.model_settings["damping"]
+                self.design_surface, self.model_settings["damping"]
             )
 
     # --------------------------------------------------------------------------
@@ -156,22 +154,5 @@ class ModelPartController:
             KM.Logger.PrintInfo("ShapeOpt", "The following design surface was defined:\n\n",self.design_surface)
         else:
             raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesignSurface)
-
-    # --------------------------------------------------------------------------
-    def __IdentifyDampingRegions(self):
-        KM.Logger.Print("")
-        KM.Logger.PrintInfo("ShapeOpt", "The following damping regions are defined: \n")
-        if self.model_settings["damping"]["apply_damping"].GetBool():
-            if self.model_settings["damping"].Has("damping_regions"):
-                for regionNumber in range(self.model_settings["damping"]["damping_regions"].size()):
-                    regionName = self.model_settings["damping"]["damping_regions"][regionNumber]["sub_model_part_name"].GetString()
-                    if self.optimization_model_part.HasSubModelPart(regionName):
-                        KM.Logger.Print(regionName)
-                        self.damping_regions[regionName] = self.optimization_model_part.GetSubModelPart(regionName)
-                    else:
-                        raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)
-            else:
-                raise ValueError("Definition of damping regions required but not availabe!")
-        KM.Logger.Print("")
 
 # ==============================================================================

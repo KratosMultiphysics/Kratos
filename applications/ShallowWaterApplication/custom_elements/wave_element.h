@@ -284,6 +284,10 @@ protected:
         double gravity;
         double length;
 
+        double amplitude;
+        double wavelength;
+        double depth;
+
         double height;
         array_1d<double,3> velocity;
 
@@ -292,10 +296,13 @@ protected:
         array_1d<double,3> b1;
         array_1d<double,3> b2;
 
+        array_1d<double,TNumNodes> nodal_f;
         array_1d<double,TNumNodes> nodal_h;
         array_1d<double,TNumNodes> nodal_z;
+        array_1d<double,TNumNodes> nodal_w;
         array_1d<array_1d<double,3>,TNumNodes> nodal_v;
         array_1d<array_1d<double,3>,TNumNodes> nodal_q;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_a;
 
         FrictionLaw::Pointer p_bottom_friction;
     };
@@ -306,7 +313,9 @@ protected:
 
     virtual const Variable<double>& GetUnknownComponent(int Index) const;
 
-    virtual LocalVectorType GetUnknownVector(ElementData& rData);
+    virtual LocalVectorType GetUnknownVector(const ElementData& rData) const;
+
+    LocalVectorType GetAccelerationsVector(const ElementData& rData) const;
 
     void InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo);
 
@@ -339,6 +348,13 @@ protected:
 
     void AddFrictionTerms(
         LocalMatrixType& rMatrix,
+        LocalVectorType& rVector,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0);
+
+    virtual void AddDispersiveTerms(
         LocalVectorType& rVector,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,

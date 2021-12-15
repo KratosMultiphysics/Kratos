@@ -1073,7 +1073,7 @@ void SmallStrainUPwDiffOrderElement::
         }
     } else if (rVariable == DEGREE_OF_SATURATION ||
              rVariable == EFFECTIVE_SATURATION ||
-             rVariable == BISHOP_COEFICIENT ||
+             rVariable == BISHOP_COEFFICIENT ||
              rVariable == DERIVATIVE_OF_SATURATION ||
              rVariable == RELATIVE_PERMEABILITY )
     {
@@ -1095,7 +1095,7 @@ void SmallStrainUPwDiffOrderElement::
 
             if (rVariable == DEGREE_OF_SATURATION)     rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
             if (rVariable == EFFECTIVE_SATURATION)     rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateEffectiveSaturation(RetentionParameters);
-            if (rVariable == BISHOP_COEFICIENT)        rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
+            if (rVariable == BISHOP_COEFFICIENT)        rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
             if (rVariable == DERIVATIVE_OF_SATURATION) rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(RetentionParameters);
             if (rVariable == RELATIVE_PERMEABILITY )   rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
         }
@@ -2510,25 +2510,13 @@ void SmallStrainUPwDiffOrderElement::
                                                   InvJ,
                                                   GPoint);
 
-#ifdef KRATOS_COMPILED_IN_WINDOWS
-    if (detJ < 0.0) {
-        KRATOS_INFO("negative detJ")
-        << "ERROR:: ELEMENT ID: "
-        << this->Id()
-        << " INVERTED. DETJ: "
-        << detJ
-        << " nodes:" << this->GetGeometry()
-        << std::endl;
-    }
-#endif
-
     KRATOS_ERROR_IF(detJ < 0.0)
-     << "ERROR:: ELEMENT ID: "
-     << this->Id()
-     << " INVERTED. DETJ: "
-     << detJ
-     << std::endl;
-
+        << "ERROR:: Element "
+        << this->Id()
+        << " is inverted. DetJ: "
+        << detJ
+        << std::endl
+        << "This usually indicates that the deformations are too large for the mesh size." << std::endl;
 
     // Deformation gradient
     noalias(rVariables.F) = prod( J, InvJ0 );

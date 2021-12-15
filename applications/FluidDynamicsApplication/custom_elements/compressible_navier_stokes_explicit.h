@@ -86,7 +86,7 @@ public:
         array_1d<double, TNumNodes> m_ext;
         array_1d<double, TNumNodes> r_ext;
         array_1d<double, TNumNodes> nu_sc_node;
-        array_1d<double, TNumNodes> alpha_sc_node;
+        array_1d<double, TNumNodes> alpha_sc_nodes;
         array_1d<double, TNumNodes> mu_sc_nodes;
         array_1d<double, TNumNodes> beta_sc_nodes;
         array_1d<double, TNumNodes> lamb_sc_nodes;
