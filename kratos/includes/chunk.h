@@ -105,7 +105,7 @@ namespace Kratos
 	  void* Allocate() {
 		  KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
 
-		  if (mFirstAvailableBlock == mpEnd)
+		  if (IsFull())
 			  return nullptr;
 
 			lock();  
@@ -115,9 +115,9 @@ namespace Kratos
 				if(mpUninitializedMemory < mpEnd) {
 					mpUninitializedMemory += mBlockSizeAfterAlignment;
 				}
-				else{
-					mFirstAvailableBlock = mpEnd;
-				}
+			}
+			else{
+				mFirstAvailableBlock = (BlockType*)*p_result;
 			}
 				
 			KRATOS_DEBUG_CHECK(Has(p_result));
@@ -217,7 +217,7 @@ namespace Kratos
 	  }
 
 	  bool IsFull() {
-		  return (mFirstAvailableBlock == mpEnd);
+		  return (mNumberOfAvailableBlocks == 0);
 	  }
 
 	  bool IsInitialized() const {
