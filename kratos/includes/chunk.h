@@ -142,9 +142,9 @@ namespace Kratos
 		  
 		  lock();
 		  *p_to_release = (BlockType)mFirstAvailableBlock.exchange(p_to_release);
-		  unlock();
 
 		  mNumberOfAvailableBlocks++;
+		  unlock();
 		  pPointrerToRelease = nullptr;
 
 	  }
