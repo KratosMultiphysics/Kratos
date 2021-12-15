@@ -57,11 +57,11 @@ double BrooksCoreyLaw::
     {
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
-        const double &pa     = rMaterialProperties[BROOKS_COREY_AIR_ENTRY_PRESSURE];
-        const double &Landa     = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
+        const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
+        const double &Lambda     = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
         
 
-        double sat = satMin + (satMax - satMin) *  pow(pa/p, Landa);
+        double sat = satMin + (satMax - satMin) *  pow(pb/p, Lambda);
         return sat;
     }
     else
@@ -103,11 +103,11 @@ double BrooksCoreyLaw::
         const auto &rMaterialProperties = rParameters.GetMaterialProperties();
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
-        const double &pa     = rMaterialProperties[BROOKS_COREY_AIR_ENTRY_PRESSURE];
-        const double &Landa  = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
+        const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
+        const double &Lambda  = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
         
 
-        double dSdp = (satMax - satMin) * (-Landa) * pow(pa,Landa)*pow(p, -Landa-1.0);
+        double dSdp = (satMax - satMin) * (-Lambda) * pow(pb,Lambda)*pow(p, -Lambda-1.0);
     
         return dSdp;
     }
@@ -129,9 +129,9 @@ double BrooksCoreyLaw::
 
     const auto &rMaterialProperties = rParameters.GetMaterialProperties();
     const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
-    const double &Landa  = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
+    const double &Lambda  = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
 
-    double relPerm = pow(effSat, ((2+3*Landa)/Landa)); 
+    double relPerm = pow(effSat, ((2+3*Lambda)/Lambda)); 
 
     const double &minRelPerm = rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY];
 
@@ -154,11 +154,11 @@ if (p > 0.0)
         const auto &rMaterialProperties = rParameters.GetMaterialProperties();
         const double &Porosity = rMaterialProperties[POROSITY];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
-        const double &pa     = rMaterialProperties[BROOKS_COREY_AIR_ENTRY_PRESSURE];
-        const double &Landa  = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
+        const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
+        const double &Lambda  = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
         const double &Beta  = rMaterialProperties[BROOKS_COREY_FITTING_PARAMETER];// which is considered between 0.4 to 0.7
 
-        double BishopCo = pow(pa/p, Beta)+pow(pa/p, 1+Beta)*Porosity*(Landa/(Landa-1))*(1-satMin)*(1-pow(pa/p, Landa-1)); 
+        double BishopCo = pow(pb/p, Beta)+pow(pb/p, 1+Beta)*Porosity*(Lambda/(Lambda-1))*(1-satMin)*(1-pow(pb/p, Lambda-1)); 
    
         return BishopCo;        
 
@@ -274,10 +274,21 @@ int BrooksCoreyLaw::Check(const Properties& rMaterialProperties,
     KRATOS_ERROR_IF(rMaterialProperties[SATURATED_SATURATION] < rMaterialProperties[RESIDUAL_SATURATION])
                     << "RESIDUAL_SATURATION cannot be greater than SATURATED_SATURATION " << std::endl;
 
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(BROOKS_COREY_AIR_ENTRY_PRESSURE))
-                    << "BROOKS_COREY_AIR_ENTRY_PRESSURE is not availabe in material parameters" << std::endl;
-    KRATOS_ERROR_IF(!(rMaterialProperties[BROOKS_COREY_AIR_ENTRY_PRESSURE] > 0.0))
-                    << "BROOKS_COREY_AIR_ENTRY_PRESSURE must be greater than 0 " << std::endl;
+    KRATOS_ERROR_IF(!rMaterialProperties.Has(AIR_ENTRY_PRESSURE))
+                    << "AIR_ENTRY_PRESSURE is not availabe in material parameters" << std::endl;
+    KRATOS_ERROR_IF(!(rMaterialProperties[AIR_ENTRY_PRESSURE] > 0.0))
+                    << "AIR_ENTRY_PRESSURE must be greater than 0 " << std::endl;
+
+    KRATOS_ERROR_IF(!rMaterialProperties.Has(Lambda))
+                    << "Lambda is not availabe in material parameters" << std::endl;
+
+    KRATOS_ERROR_IF(!rMaterialProperties.Has(BROOKS_COREY_FITTING_PARAMETER))
+                    << "BROOKS_COREY_FITTING_PARAMETER is not availabe in material parameters" << std::endl;
+    KRATOS_ERROR_IF(!(rMaterialProperties[BROOKS_COREY_FITTING_PARAMETER] > 0.4))
+                    << "BROOKS_COREY_FITTING_PARAMETER must be greater than 0.4 " << std::endl;
+    KRATOS_ERROR_IF(!(rMaterialProperties[BROOKS_COREY_FITTING_PARAMETER] < 0.7))
+                    << "BROOKS_COREY_FITTING_PARAMETER must be smaller than 0.7 " << std::endl;
+
 
     KRATOS_ERROR_IF(!rMaterialProperties.Has(MINIMUM_RELATIVE_PERMEABILITY))
                     << "MINIMUM_RELATIVE_PERMEABILITY is not availabe in material parameters" << std::endl;
