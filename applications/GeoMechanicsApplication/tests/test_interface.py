@@ -1,9 +1,6 @@
 import sys
 import os
 
-sys.path.append(os.path.join('..', '..', '..'))
-sys.path.append(os.path.join('..', 'python_scripts'))
-
 import KratosMultiphysics as Kratos
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -24,7 +21,7 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
         pass
 
 
-    def test_interface_fixed_line_soil(self):
+    def test_interface_side_cohesive(self):
         """
         Tests an interface between a fixed line-element with and a non-fixed surface.
 
@@ -128,9 +125,4 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
         self.assertGreater(max_x_disp_beam, 1e8 * max_x_disp_soil)
 
 if __name__ == '__main__':
-    suites = KratosUnittest.KratosSuites
-    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsInterfaceTests]))
-    allSuite = suites['all']
-    allSuite.addTests(smallSuite)
-    KratosUnittest.runTests(suites)
+    KratosUnittest.main()
