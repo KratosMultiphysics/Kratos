@@ -55,6 +55,11 @@ class ModelPartController:
         self.model_settings["damping"].ValidateAndAssignDefaults(default_settings["damping"])
         self.model_settings["direction_damping"].ValidateAndAssignDefaults(default_settings["direction_damping"])
 
+        for direction_damping_settings in self.model_settings["direction_damping"]["damping_regions"]:
+            if not direction_damping_settings.Has("max_neighbor_nodes"):
+                max_neighbors = self.model_settings["direction_damping"]["max_neighbor_nodes"].GetInt()
+                direction_damping_settings.AddEmptyValue("max_neighbor_nodes").SetInt(max_neighbors)
+
         self.model = model
 
         model_part_name = self.model_settings["model_part_name"].GetString()
@@ -89,7 +94,7 @@ class ModelPartController:
         for direction_damping_settings in self.model_settings["direction_damping"]["damping_regions"]:
             self.direction_dampings.append(
                 KSO.DirectionDampingUtilities(
-                    self.design_surface, direction_damping_settings, self.model_settings["direction_damping"]["max_neighbor_nodes"].GetInt()
+                    self.design_surface, direction_damping_settings
                 )
             )
 
@@ -117,7 +122,7 @@ class ModelPartController:
             for direction_damping_settings in self.model_settings["direction_damping"]["damping_regions"]:
                 self.direction_dampings.append(
                     KSO.DirectionDampingUtilities(
-                        self.design_surface, direction_damping_settings, self.model_settings["direction_damping"]["max_neighbor_nodes"].GetInt()
+                        self.design_surface, direction_damping_settings
                     )
                 )
 

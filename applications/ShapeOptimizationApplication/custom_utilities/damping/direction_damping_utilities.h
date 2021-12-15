@@ -71,10 +71,9 @@ public:
     ///@{
 
     /// Default constructor.
-    DirectionDampingUtilities( ModelPart& modelPartToDamp, Parameters DampingSettings, int MaxNeighborNodes )
+    DirectionDampingUtilities( ModelPart& modelPartToDamp, Parameters DampingSettings )
         : mrModelPartToDamp( modelPartToDamp ),
-          mDampingSettings( DampingSettings ),
-          mMaxNeighborNodes( MaxNeighborNodes )
+          mDampingSettings( DampingSettings )
     {
         BuiltinTimer timer;
         KRATOS_INFO("") << std::endl;
@@ -84,7 +83,8 @@ public:
                 "sub_model_part_name": "MODEL_PART_NAME",
                 "damping_function_type": "cosine",
                 "damping_radius": -1.0,
-                "direction" : [0.0, 0.0, 0.0]
+                "direction" : [0.0, 0.0, 0.0],
+                "max_neighbor_nodes": 10000
             }  )" );
 
         KRATOS_ERROR_IF(!mDampingSettings.Has("direction")) << "DirectionDampingUtilities: 'direction' vector is missing!" << std::endl;
@@ -95,6 +95,8 @@ public:
         mDirection = mDampingSettings["direction"].GetVector();
         KRATOS_ERROR_IF(norm_2(mDirection) < std::numeric_limits<double>::epsilon()) << "DirectionDampingUtilities: 'direction' vector norm is 0!" << std::endl;
         mDirection /= norm_2(mDirection);
+
+        mMaxNeighborNodes = mDampingSettings["max_neighbor_nodes"].GetInt();
 
         KRATOS_INFO("ShapeOpt") << "Creating search tree to perform direction damping..." << std::endl;
         CreateListOfNodesOfModelPart();
@@ -121,23 +123,22 @@ public:
 
     void CreateListOfNodesOfModelPart()
     {
-        mListOfNodesOfModelPart.resize(mrModelPartToDamp.Nodes().size());
+        mListOfNodesOfModelPart.resize(mrModelPartToDamp.NumberOfNodes());
         int counter = 0;
-        for (ModelPart::NodesContainerType::iterator node_it = mrModelPartToDamp.NodesBegin(); node_it != mrModelPartToDamp.NodesEnd(); ++node_it)
+        for (auto& node_it : mrModelPartToDamp.Nodes())
         {
-            NodeTypePointer p_node = *(node_it.base());
-            mListOfNodesOfModelPart[counter++] = p_node;
+            mListOfNodesOfModelPart[counter++] = &node_it;
         }
     }
 
     void CreateSearchTreeWithAllNodesOfModelPart()
     {
-        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesOfModelPart.begin(), mListOfNodesOfModelPart.end(), mBucketSize));
+        mpSearchTree = Kratos::make_shared<KDTree>(mListOfNodesOfModelPart.begin(), mListOfNodesOfModelPart.end(), mBucketSize);
     }
 
     void InitalizeDampingFactorsToHaveNoInfluence()
     {
-        mDampingFactors = std::vector<double>(mrModelPartToDamp.Nodes().size(), 1.0);
+        mDampingFactors = std::vector<double>(mrModelPartToDamp.NumberOfNodes(), 1.0);
     }
 
     void SetDampingFactors()
@@ -201,7 +202,7 @@ public:
 
             if (damping_factor < 1.0)
             {
-                auto& nodal_value = rNode.FastGetSolutionStepValue(rNodalVariable);
+                array_3d& nodal_value = rNode.FastGetSolutionStepValue(rNodalVariable);
 
                 // mDirection is already normalized
                 const double projected_length = inner_prod(nodal_value, mDirection);

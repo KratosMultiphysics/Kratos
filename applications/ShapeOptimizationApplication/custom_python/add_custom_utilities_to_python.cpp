@@ -141,7 +141,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<DirectionDampingUtilities >(m, "DirectionDampingUtilities")
-        .def(py::init<ModelPart&, Parameters, int>())
+        .def(py::init<ModelPart&, Parameters>())
         .def("DampNodalVariable", &DirectionDampingUtilities::DampNodalVariable)
         ;
 
