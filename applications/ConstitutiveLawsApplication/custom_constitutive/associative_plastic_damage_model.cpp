@@ -373,7 +373,6 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialHardeningImplicitFu
             (0.5 * factor - g) / (g * (3.0 * chi + 1.0) * (chi - 1.0)) * ((2.0 * chi + 1) - max_threshold*xi / K0 * (std::pow(chi, 2) - 1.0) * std::log(chi / (chi - 1.0)));
 
         const double sign = (Dissipation < diss_indicator) ? -1.0 : 1.0; // In hardening should be negative
-        const double gamma = (0.5*factor - g) / (g * (3.0 * chi + 1.0) * (chi - 1.0));
 
         const double ey = K0/E;
         return (ey * K0 * (xi / K0 - (2.0 * Threshold * ((K0 * xi) / Threshold - xi + 1.0)) / (K0 * K0))) / (2.0 * g) + ((g - (ey * K0) / 2.0) * ((-sign *
