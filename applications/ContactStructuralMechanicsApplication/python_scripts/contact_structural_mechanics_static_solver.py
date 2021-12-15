@@ -137,7 +137,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
 
     def _create_builder_and_solver(self):
         if self.contact_settings["mortar_type"].GetString() != "":
-            linear_solver = self.get_linear_solver()
+            linear_solver = self._GetLinearSolver()
             if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
                 builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
@@ -169,16 +169,16 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
     def _create_contact_line_search_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         self.mechanical_scheme = self._GetScheme()
-        self.linear_solver = self.get_linear_solver()
-        self.mechanical_convergence_criterion = self.get_convergence_criterion()
-        self.builder_and_solver = self.get_builder_and_solver()
+        self.linear_solver = self._GetLinearSolver()
+        self.mechanical_convergence_criterion = self._GetConvergenceCriterion()
+        self.builder_and_solver = self._GetBuilderAndSolver()
         return auxiliar_methods_solvers.AuxiliarLineSearch(computing_model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
 
     def _create_contact_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         self.mechanical_scheme = self._GetScheme()
-        self.mechanical_convergence_criterion = self.get_convergence_criterion()
-        self.builder_and_solver = self.get_builder_and_solver()
+        self.mechanical_convergence_criterion = self._GetConvergenceCriterion()
+        self.builder_and_solver = self._GetBuilderAndSolver()
         return auxiliar_methods_solvers.AuxiliarNewton(computing_model_part, self.mechanical_scheme, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
 
     @classmethod
