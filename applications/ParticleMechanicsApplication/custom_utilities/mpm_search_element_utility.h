@@ -506,7 +506,7 @@ namespace MPMSearchElementUtility
                         r_geometry[i].Y() =new_position[0][1];
                         r_geometry[i].Z() =new_position[0][2];  
                     }
-                    IndexType number_of_points_per_span = round(r_geometry.Length()/0.005)*2;
+                    IndexType number_of_points_per_span = round(r_geometry.Length()/0.02)*2;
                     
 
                     
