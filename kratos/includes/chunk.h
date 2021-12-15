@@ -105,7 +105,7 @@ namespace Kratos
 	  void* Allocate() {
 		  KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
 
-		  if (mNumberOfAvailableBlocks == 0)
+		  if (mFirstAvailableBlock == mpEnd)
 			  return nullptr;
 
 			lock();  
@@ -115,12 +115,15 @@ namespace Kratos
 				if(mpUninitializedMemory < mpEnd) {
 					mpUninitializedMemory += mBlockSizeAfterAlignment;
 				}
+				else{
+					mFirstAvailableBlock = mpEnd;
+				}
 			}
 				
 			KRATOS_DEBUG_CHECK(Has(p_result));
-			unlock();
 
 			mNumberOfAvailableBlocks--;
+			unlock();
 	
 		  return p_result;
 	  }
@@ -214,7 +217,7 @@ namespace Kratos
 	  }
 
 	  bool IsFull() {
-		  return (mNumberOfAvailableBlocks == 0);
+		  return (mFirstAvailableBlock == mpEnd);
 	  }
 
 	  bool IsInitialized() const {
@@ -265,7 +268,7 @@ namespace Kratos
 		BlockType* mpUninitializedMemory;
 		SizeType mSize;
 		SizeType mBlockSizeInBytes;
-		std::atomic_uint mNumberOfAvailableBlocks;
+		SizeType mNumberOfAvailableBlocks;
 		std::atomic<BlockType*> mFirstAvailableBlock;
 		std::atomic_flag mLocked = ATOMIC_FLAG_INIT;
 		const SizeType mBlockSizeAfterAlignment;
