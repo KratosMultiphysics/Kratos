@@ -110,15 +110,17 @@ namespace Kratos
 
 			lock();  
 			BlockType * p_result = mFirstAvailableBlock;
-			if(p_result >= mpUninitializedMemory) {
-				mFirstAvailableBlock += mBlockSizeAfterAlignment;
-				if(mpUninitializedMemory < mpEnd) {
-					mpUninitializedMemory += mBlockSizeAfterAlignment;
-				}
-			}
-			else{
-				mFirstAvailableBlock = (BlockType*)*p_result;
-			}
+			mFirstAvailableBlock = (p_result >= mpUninitializedMemory) ? mFirstAvailableBlock + mBlockSizeAfterAlignment : (BlockType*)*p_result;
+			mpUninitializedMemory += mBlockSizeAfterAlignment * ((p_result >= mpUninitializedMemory) && (mpUninitializedMemory < mpEnd));
+			// if(p_result >= mpUninitializedMemory) {
+			// 	mFirstAvailableBlock += mBlockSizeAfterAlignment;
+			// 	if(mpUninitializedMemory < mpEnd) {
+			// 		mpUninitializedMemory += mBlockSizeAfterAlignment;
+			// 	}
+			// }
+			// else{
+			// 	mFirstAvailableBlock = (BlockType*)*p_result;
+			// }
 				
 			KRATOS_DEBUG_CHECK(Has(p_result));
 
