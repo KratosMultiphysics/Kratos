@@ -142,6 +142,6 @@ class remeshing_opt_process_test(ShapeOptimizationTestFactory):
     execution_file = "run_test"
 
 class direction_damping_test(ShapeOptimizationTestFactory):
-    execution_directory = "dierction_damping_test"
+    execution_directory = "direction_damping_test"
     execution_file = "run_test"
 # ==============================================================================
