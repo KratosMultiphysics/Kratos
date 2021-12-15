@@ -143,7 +143,8 @@ namespace Kratos
 		  KRATOS_DEBUG_CHECK_EQUAL((p_to_release - mpData) % mBlockSizeAfterAlignment, 0);
 		  
 		  lock();
-		  *p_to_release = (BlockType)mFirstAvailableBlock.exchange(p_to_release);
+		  *p_to_release = (BlockType)mFirstAvailableBlock;
+		  mFirstAvailableBlock = p_to_release;
 
 		  mNumberOfAvailableBlocks++;
 		  unlock();
@@ -271,7 +272,7 @@ namespace Kratos
 		SizeType mSize;
 		SizeType mBlockSizeInBytes;
 		SizeType mNumberOfAvailableBlocks;
-		std::atomic<BlockType*> mFirstAvailableBlock;
+		BlockType* mFirstAvailableBlock;
 		std::atomic_flag mLocked = ATOMIC_FLAG_INIT;
 		const SizeType mBlockSizeAfterAlignment;
 
