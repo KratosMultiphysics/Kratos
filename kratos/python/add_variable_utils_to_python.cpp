@@ -51,6 +51,7 @@ void AddCopyModelPartFlaggedInterface(pybind11::class_<VariableUtils>& rPythonVa
     rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar));
     rPythonVariableUtils.def("CopyModelPartFlaggedElementVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedElementVar));
     rPythonVariableUtils.def("CopyModelPartFlaggedConditionVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedConditionVar));
+    rPythonVariableUtils.def("SetHistoricalVariableToPreviousInfo", (void(VariableUtils::*)(const Variable< TDataType >& , ModelPart::NodesContainerType& , const int ))(&VariableUtils::SetHistoricalVariableToPreviousInfo));
 }
 
 void VariableUtilsUpdateCurrentPosition(
