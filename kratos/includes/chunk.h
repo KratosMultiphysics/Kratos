@@ -91,8 +91,9 @@ namespace Kratos
 		  mpData = new BlockType[DataSize()];
   		  mFirstAvailableBlock = mpData;
 		  mNumberOfAvailableBlocks = AllocatableDataSize() / block_size_after_alignment;
+		  
 
-		  *mpData = -(BlockType)(mpData + block_size_after_alignment); // The first entry of the link list to the next one
+		  *mpData = 0; // The first entry of the link list to the next one
 	  }
 
 	  /// This function does not throw and returns zero if cannot allocate
@@ -105,10 +106,10 @@ namespace Kratos
 		    const std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
 			lock();  
 			BlockType * p_result = mFirstAvailableBlock;
-			if(*p_result < 0) {
-				*p_result = -(*p_result);
+			if(*p_result == 0) {
+				*p_result = (BlockType)(p_result + block_size_after_alignment);
 				if(mNumberOfAvailableBlocks > 1) {
-					*(p_result + block_size_after_alignment) = -(BlockType)((BlockType*)(*p_result) + block_size_after_alignment);
+					*(p_result + block_size_after_alignment) = 0;
 				}
 			}
 				
