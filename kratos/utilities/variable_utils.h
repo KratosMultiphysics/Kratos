@@ -722,6 +722,24 @@ public:
     }
 
     /**
+     * @brief Sets the nodal value of any variable to zero
+     * @param rVariable reference to the scalar variable to be set
+     * @param rNodes reference to the objective node set
+     */
+    template< class TType >
+    void SetHistoricalVariableToPreviousInfo(
+        const Variable< TType >& rVariable,
+        NodesContainerType& rNodes,
+        const int PreviousStep = 1)
+    {
+        KRATOS_TRY
+        block_for_each(rNodes, [&](Node<3> &rNode) {
+            rNode.FastGetSolutionStepValue(rVariable) = rNode.FastGetSolutionStepValue(rVariable, PreviousStep);
+        });
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Sets the container value of any type of non historical variable
      * @param rVariable reference to the scalar variable to be set
      * @param Value Value to be set
