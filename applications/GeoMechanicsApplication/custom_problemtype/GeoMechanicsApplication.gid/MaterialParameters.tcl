@@ -390,19 +390,19 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
 
             }
         }
-        if {[lindex [lindex $Groups $i] 150] eq true} {
-            puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 151],"
+        if {[lindex [lindex $Groups $i] 149] eq true} {
+            puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 150],"
         }
         puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 140]\","
         puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 141],"
         puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 142],"
-        puts $FileVar "              \"VAN_GENUCHTEN_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 143],"
+        puts $FileVar "              \"AIR_ENTRY_PRESSURE\"               :  [lindex [lindex $Groups $i] 143],"
         puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 144],"
         puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 145],"
-        puts $FileVar "              \"BROOKS_COREY_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 146],"
-        puts $FileVar "              \"PORE_SIZE_INDEX\"                 :  [lindex [lindex $Groups $i] 147],"
-        puts $FileVar "              \"FITTING_PARAMETER\"                 :  [lindex [lindex $Groups $i] 148],"
-        puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 149]"
+        puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 146],"
+        puts $FileVar "              \"BROOKS_COREY_PORE_SIZE_INDEX\"     :  [lindex [lindex $Groups $i] 147],"
+        puts $FileVar "              \"BROOKS_COREY_FITTING_PARAMETER\"   :  [lindex [lindex $Groups $i] 148]"
+        
 
         puts $FileVar "         \},"
         puts $FileVar "         \"Tables\": \{\}"
@@ -785,19 +785,18 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
 
             }
         }
-        if {[lindex [lindex $Groups $i] 150] eq true} {
-            puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 151],"
+           if {[lindex [lindex $Groups $i] 149] eq true} {
+            puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 150],"
         }
         puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 140]\","
         puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 141],"
         puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 142],"
-        puts $FileVar "              \"VAN_GENUCHTEN_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 143],"
+        puts $FileVar "              \"AIR_ENTRY_PRESSURE\"               :  [lindex [lindex $Groups $i] 143],"
         puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 144],"
         puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 145],"
-        puts $FileVar "              \"BROOKS_COREY_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 146],"
-        puts $FileVar "              \"PORE_SIZE_INDEX\"                 :  [lindex [lindex $Groups $i] 147],"
-        puts $FileVar "              \"FITTING_PARAMETER\"                 :  [lindex [lindex $Groups $i] 148],"
-        puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 149]"
+        puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 146],"
+        puts $FileVar "              \"BROOKS_COREY_PORE_SIZE_INDEX\"     :  [lindex [lindex $Groups $i] 147],"
+        puts $FileVar "              \"BROOKS_COREY_FITTING_PARAMETER\"   :  [lindex [lindex $Groups $i] 148]"
 
         puts $FileVar "         \},"
         puts $FileVar "         \"Tables\": \{\}"
@@ -1179,19 +1178,18 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
 
             }
         }
-        if {[lindex [lindex $Groups $i] 150] eq true} {
-            puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 151],"
+         if {[lindex [lindex $Groups $i] 149] eq true} {
+            puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 150],"
         }
         puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 140]\","
         puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 141],"
         puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 142],"
-        puts $FileVar "              \"VAN_GENUCHTEN_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 143],"
+        puts $FileVar "              \"AIR_ENTRY_PRESSURE\"               :  [lindex [lindex $Groups $i] 143],"
         puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 144],"
         puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 145],"
-        puts $FileVar "              \"BROOKS_COREY_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 146],"
-        puts $FileVar "              \"PORE_SIZE_INDEX\"                 :  [lindex [lindex $Groups $i] 147],"
-        puts $FileVar "              \"FITTING_PARAMETER\"                 :  [lindex [lindex $Groups $i] 148],"
-        puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 149]"
+        puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 146],"
+        puts $FileVar "              \"BROOKS_COREY_PORE_SIZE_INDEX\"     :  [lindex [lindex $Groups $i] 147],"
+        puts $FileVar "              \"BROOKS_COREY_FITTING_PARAMETER\"   :  [lindex [lindex $Groups $i] 148]"
 
         puts $FileVar "         \},"
         puts $FileVar "         \"Tables\": \{\}"
@@ -1578,19 +1576,19 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
             puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 17],"
             puts $FileVar "              \"THICKNESS\"                :  1.0,"
         }
-        if {[lindex [lindex $Groups $i] 28] eq true} {
-            puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 29],"
+   if {[lindex [lindex $Groups $i] 27] eq true} {
+            puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 28],"
         }
         puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 18]\","
         puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 19],"
         puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 20],"
-        puts $FileVar "              \"VAN_GENUCHTEN_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 21],"
+        puts $FileVar "              \"AIR_ENTRY_PRESSURE\" :                [lindex [lindex $Groups $i] 21],"
         puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 22],"
         puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 23],"
-        puts $FileVar "              \"BROOKS_COREY_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 24],"
-        puts $FileVar "              \"BROOKS_COREY_PORE_SIZE_INDEX\"                 :  [lindex [lindex $Groups $i] 25],"
-        puts $FileVar "              \"BROOKS_COREY_FITTING_PARAMETER\"                 :  [lindex [lindex $Groups $i] 26],"
-        puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 27]"
+        puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 24],"
+        puts $FileVar "              \"BROOKS_COREY_PORE_SIZE_INDEX\"     :  [lindex [lindex $Groups $i] 25],"
+        puts $FileVar "              \"BROOKS_COREY_FITTING_PARAMETER\"   :  [lindex [lindex $Groups $i] 26]"
+
 
         puts $FileVar "         \},"
         puts $FileVar "         \"Tables\": \{\}"
@@ -1760,7 +1758,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"DAMAGE_THRESHOLD\"         :  [lindex [lindex $Groups $i] 15],"
                 puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
                 puts $FileVar "              \"CRITICAL_DISPLACEMENT\"    :  [lindex [lindex $Groups $i] 17],"
-                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 137],"
                 puts $FileVar "              \"YIELD_STRESS\"             :  [lindex [lindex $Groups $i] 18],"
                 puts $FileVar "              \"FRICTION_COEFFICIENT\"     :  [lindex [lindex $Groups $i] 19],"
             } else {
@@ -1789,7 +1787,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"DAMAGE_THRESHOLD\"         :  [lindex [lindex $Groups $i] 15],"
                 puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
                 puts $FileVar "              \"CRITICAL_DISPLACEMENT\"    :  [lindex [lindex $Groups $i] 17],"
-                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 137],"
                 puts $FileVar "              \"YIELD_STRESS\"             :  [lindex [lindex $Groups $i] 18],"
                 puts $FileVar "              \"FRICTION_COEFFICIENT\"     :  [lindex [lindex $Groups $i] 19],"
             }
@@ -1820,7 +1818,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"DAMAGE_THRESHOLD\"         :  [lindex [lindex $Groups $i] 15],"
                 puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
                 puts $FileVar "              \"CRITICAL_DISPLACEMENT\"    :  [lindex [lindex $Groups $i] 17],"
-                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 137],"
                 puts $FileVar "              \"YIELD_STRESS\"             :  [lindex [lindex $Groups $i] 18],"
                 puts $FileVar "              \"FRICTION_COEFFICIENT\"     :  [lindex [lindex $Groups $i] 19],"
             } elseif {[lindex [lindex $Groups $i] 4] eq "BilinearCohesivePlaneStrain2DLaw" || [lindex [lindex $Groups $i] 4] eq "BilinearCohesivePlaneStress2DLaw"} {
@@ -1850,7 +1848,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"DAMAGE_THRESHOLD\"         :  [lindex [lindex $Groups $i] 15],"
                 puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
                 puts $FileVar "              \"CRITICAL_DISPLACEMENT\"    :  [lindex [lindex $Groups $i] 17],"
-                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 137],"
                 puts $FileVar "              \"YIELD_STRESS\"             :  [lindex [lindex $Groups $i] 18],"
                 puts $FileVar "              \"FRICTION_COEFFICIENT\"     :  [lindex [lindex $Groups $i] 19],"
             } elseif {[lindex [lindex $Groups $i] 4] eq "SmallStrainUDSM2DInterfaceLaw" || [lindex [lindex $Groups $i] 4] eq "SmallStrainUDSM3DInterfaceLaw"} {
@@ -1867,7 +1865,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "          \},"
                 puts $FileVar "          \"Variables\": \{"
                 puts $FileVar "              \"IGNORE_UNDRAINED\"         :  true,"
-                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 137],"
 
                 puts $FileVar "              \"UDSM_NAME\"                :  \"[lindex [lindex $Groups $i] 20]\","
                 puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 21],"
@@ -1909,7 +1907,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "          \},"
                 puts $FileVar "          \"Variables\": \{"
                 puts $FileVar "              \"IGNORE_UNDRAINED\"         :  true,"
-                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 137],"
 
                 puts $FileVar "              \"UDSM_NAME\"                :  \"[lindex [lindex $Groups $i] 20]\","
                 puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 21],"
@@ -1975,7 +1973,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
                 puts $FileVar "              \"THICKNESS\"                :  [lindex [lindex $Groups $i] 14],"
                 puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
-                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 137],"
             } elseif {[lindex [lindex $Groups $i] 4] eq "LinearElastic3DInterfaceLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -2000,22 +1998,21 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"TRANSVERSAL_PERMEABILITY\" :  [lindex [lindex $Groups $i] 12],"
                 puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
                 puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
-                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 138],"
+                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 137],"
             }
 
-            if {[lindex [lindex $Groups $i] 139] eq true} {
-                puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 140],"
+            if {[lindex [lindex $Groups $i] 138] eq true} {
+                puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 139],"
             }
             puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 128]\","
             puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 129],"
             puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 130],"
-            puts $FileVar "              \"VAN_GENUCHTEN_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 131],"
+            puts $FileVar "              \"AIR_ENTRY_PRESSURE\"               :  [lindex [lindex $Groups $i] 131],"
             puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 132],"
             puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 133],"
-            puts $FileVar "              \"BROOKS_COREY_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 134],"
-            puts $FileVar "              \"BROOKS_COREY_PORE_SIZE_INDEX\"                 :  [lindex [lindex $Groups $i] 135],"
-            puts $FileVar "              \"BROOKS_COREY_FITTING_PARAMETER\"                 :  [lindex [lindex $Groups $i] 136],"
-            puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 137]"
+            puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 134],"
+            puts $FileVar "              \"BROOKS_COREY_PORE_SIZE_INDEX\"     :  [lindex [lindex $Groups $i] 135],"
+            puts $FileVar "              \"BROOKS_COREY_FITTING_PARAMETER\"   :  [lindex [lindex $Groups $i] 136]"
 
             puts $FileVar "         \},"
             puts $FileVar "         \"Tables\": \{\}"
@@ -2055,7 +2052,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     puts $FileVar "              \"DAMAGE_THRESHOLD\"         :  [lindex [lindex $Groups $i] 15],"
                     puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
                     puts $FileVar "              \"CRITICAL_DISPLACEMENT\"    :  [lindex [lindex $Groups $i] 17],"
-                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 137],"
                     puts $FileVar "              \"YIELD_STRESS\"             :  [lindex [lindex $Groups $i] 18],"
                     puts $FileVar "              \"FRICTION_COEFFICIENT\"     :  [lindex [lindex $Groups $i] 19],"
                 } else {
@@ -2084,7 +2081,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     puts $FileVar "              \"DAMAGE_THRESHOLD\"         :  [lindex [lindex $Groups $i] 15],"
                     puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
                     puts $FileVar "              \"CRITICAL_DISPLACEMENT\"    :  [lindex [lindex $Groups $i] 17],"
-                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 137],"
                     puts $FileVar "              \"YIELD_STRESS\"             :  [lindex [lindex $Groups $i] 18],"
                     puts $FileVar "              \"FRICTION_COEFFICIENT\"     :  [lindex [lindex $Groups $i] 19],"
                 }
@@ -2114,7 +2111,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     puts $FileVar "              \"DAMAGE_THRESHOLD\"         :  [lindex [lindex $Groups $i] 15],"
                     puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
                     puts $FileVar "              \"CRITICAL_DISPLACEMENT\"    :  [lindex [lindex $Groups $i] 17],"
-                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 137],"
                     puts $FileVar "              \"YIELD_STRESS\"             :  [lindex [lindex $Groups $i] 18],"
                     puts $FileVar "              \"FRICTION_COEFFICIENT\"     :  [lindex [lindex $Groups $i] 19],"
                 } elseif {[lindex [lindex $Groups $i] 4] eq "BilinearCohesivePlaneStrain2DLaw" || [lindex [lindex $Groups $i] 4] eq "BilinearCohesivePlaneStress2DLaw"} {
@@ -2143,7 +2140,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     puts $FileVar "              \"DAMAGE_THRESHOLD\"         :  [lindex [lindex $Groups $i] 15],"
                     puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
                     puts $FileVar "              \"CRITICAL_DISPLACEMENT\"    :  [lindex [lindex $Groups $i] 17],"
-                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 137],"
                     puts $FileVar "              \"YIELD_STRESS\"             :  [lindex [lindex $Groups $i] 18],"
                     puts $FileVar "              \"FRICTION_COEFFICIENT\"     :  [lindex [lindex $Groups $i] 19],"
                 } elseif {[lindex [lindex $Groups $i] 4] eq "SmallStrainUDSM2DInterfaceLaw" || [lindex [lindex $Groups $i] 4] eq "SmallStrainUDSM3DInterfaceLaw"} {
@@ -2177,7 +2174,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                         }
                     }
 
-                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 137],"
                     puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
                     puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
                     puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
@@ -2230,7 +2227,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                         }
                     }
 
-                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 137],"
                     puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
                     puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
                     puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
@@ -2262,7 +2259,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     puts $FileVar "              \"TRANSVERSAL_PERMEABILITY\" :  [lindex [lindex $Groups $i] 12],"
                     puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
                     puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
-                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 137],"
                 } elseif {[lindex [lindex $Groups $i] 4] eq "LinearElastic2DInterfaceLaw"} {
                     incr PropertyId
                     dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -2287,21 +2284,20 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
                     puts $FileVar "              \"THICKNESS\"                :  [lindex [lindex $Groups $i] 14],"
                     puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
-                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 138],"
+                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 137],"
                 }
-                if {[lindex [lindex $Groups $i] 139] eq true} {
-                    puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 140],"
-                }
+                  if {[lindex [lindex $Groups $i] 138] eq true} {
+                    puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 139],"
+            }
                 puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 128]\","
                 puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 129],"
                 puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 130],"
-                puts $FileVar "              \"VAN_GENUCHTEN_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 131],"
+                puts $FileVar "              \"AIR_ENTRY_PRESSURE\"               :  [lindex [lindex $Groups $i] 131],"
                 puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 132],"
                 puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 133],"
-                puts $FileVar "              \"BROOKS_COREY_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 134],"
-                puts $FileVar "              \"BROOKS_COREY_PORE_SIZE_INDEX\"                 :  [lindex [lindex $Groups $i] 135],"
-                puts $FileVar "              \"BROOKS_COREY_FITTING_PARAMETER\"                 :  [lindex [lindex $Groups $i] 136],"   
-                puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 137]"
+                puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 134],"
+                puts $FileVar "              \"BROOKS_COREY_PORE_SIZE_INDEX\"     :  [lindex [lindex $Groups $i] 135],"
+                puts $FileVar "              \"BROOKS_COREY_FITTING_PARAMETER\"   :  [lindex [lindex $Groups $i] 136]"
 
                 puts $FileVar "         \},"
                 puts $FileVar "         \"Tables\": \{\}"
@@ -2361,19 +2357,18 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
             puts $FileVar "              \"THICKNESS\"                :  [lindex [lindex $Groups $i] 14],"
             puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 15],"
         }
-        if {[lindex [lindex $Groups $i] 26] eq true} {
-            puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 27],"
+        if {[lindex [lindex $Groups $i] 25] eq true} {
+            puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 26],"
         }
         puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 16]\","
         puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 17],"
         puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 18],"
-        puts $FileVar "              \"VAN_GENUCHTEN_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 19],"
+        puts $FileVar "              \"AIR_ENTRY_PRESSURE\"               :  [lindex [lindex $Groups $i] 19],"
         puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 20],"
         puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 21],"
-        puts $FileVar "              \"BROOKS_COREY_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 22],"
-        puts $FileVar "              \"BROOKS_COREY_PORE_SIZE_INDEX\"                 :  [lindex [lindex $Groups $i] 23],"
-        puts $FileVar "              \"BROOKS_COREY_FITTING_PARAMETER\"                 :  [lindex [lindex $Groups $i] 24],"
-        puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 25]"
+        puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 22],"
+        puts $FileVar "              \"BROOKS_COREY_PORE_SIZE_INDEX\"     :  [lindex [lindex $Groups $i] 23],"
+        puts $FileVar "              \"BROOKS_COREY_FITTING_PARAMETER\"   :  [lindex [lindex $Groups $i] 24]"
 
         puts $FileVar "         \},"
         puts $FileVar "         \"Tables\": \{\}"
