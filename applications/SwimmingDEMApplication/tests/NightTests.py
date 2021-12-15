@@ -60,7 +60,7 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    debug_mode = True
+    debug_mode = False
     if debug_mode:
         severity = Logger.Severity.DETAIL
     else:

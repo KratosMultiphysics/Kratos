@@ -27,7 +27,7 @@ import tests_python_scripts.fluid_convergence_scripts.modified_solver_non_period
 
 # This utility will control the execution scope
 
-debug_mode=True
+debug_mode=False
 class controlledExecutionScope:
     def __init__(self, scope):
         self.currentPath = os.getcwd()
