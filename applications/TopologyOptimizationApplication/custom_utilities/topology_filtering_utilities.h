@@ -4,7 +4,10 @@
 //  License:         BSD License
 //                   license: TopologyOptimizationApplication/license.txt
 //
-//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Philipp Hofer, https://github.com/PhiHo-eng
+//                   Erich Wehrle, https://github.com/e-dub
+//  based on original file from
+//                   Baumgärtner Daniel, https://github.com/dbaumgaertner
 //                   Octaviano Malfavón Farías
 //                   Eric Gonzales
 //

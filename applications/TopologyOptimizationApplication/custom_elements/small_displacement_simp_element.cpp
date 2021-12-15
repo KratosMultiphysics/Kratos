@@ -7,13 +7,15 @@
 //  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
 //                   Octaviano Malfavón Farías
 //                   Eric Gonzales
+//					 Philipp Hofer
+//					 Erich Wehrle
 //
 // ==============================================================================
 
 // Application includes
 
 #include "small_displacement_simp_element.h"
-#include "comparison_utilities.h" ///nicht mehr vorhanden auf momentanem Stand von Kratos --> muss neue Verknüpfung gefunden werden, vorerst wird diese verwendet. Auch soli_mechanics_math_utilities
+#include "comparison_utilities.h" 
 #include "topology_optimization_application.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"

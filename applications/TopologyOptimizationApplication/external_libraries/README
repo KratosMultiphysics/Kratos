@@ -26,7 +26,7 @@ Repository: https://github.com/jdumas/mma
 
 MMA and GCMMA
 
-This repository contains single-file C++ implementations of MMA and GCMMA, as described in [1,2,3]. The code in this repository is based on an original code by Niels Aage, using the subproblem solver described in [4]. I made some modifications to the original code to be more C++-like (e.g. using std::vector<>), and slightly changed the way bounds are computed in the subproblem approximation. I have also extended the solver to use the GCMMA method [2,3]. Both the MMA and GCMMA solvers can be found in their respective folder in src/.
+This repository contains single-file C++ implementations of MMA and GCMMA, as described in [1,2,3]. The code in this repository is based on an original code by Niels Aage, using the subproblem solver described in [4]. I made some modifications to the original code to be more C++-like (e.g. using std::vector<>), and slightly changed the way bounds are computed in the subproblem approximation. I have also extended the solver to use the GCMMA method [2,3]. Both the MMA and GCMMA solvers can be found in this folder.
 
 The goal of this project is to provide a minimal, self-contained implementation of MMA and GCMMA which are easy to use and easy to integrate in an existing C++ project. The code is still in beta, meaning it hasn't been tested extensively, so use at your own risks.
 

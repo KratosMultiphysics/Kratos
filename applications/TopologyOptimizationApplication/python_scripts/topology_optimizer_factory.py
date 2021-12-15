@@ -1,11 +1,15 @@
 # ==============================================================================
-#  TopologyOptimizationApplication
+#  KratosTopologyOptimizationApplication
 #
 #  License:         BSD License
 #                   license: TopologyOptimizationApplication/license.txt
 #
-#  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+#  Main authors:    Philipp Hofer, https://github.com/PhiHo-eng
+#                   Erich Wehrle, https://github.com/e-dub
+#  based on original file from
+#                   Baumgärtner Daniel, https://github.com/dbaumgaertner
 #                   Octaviano Malfavón Farías
+#                   Eric Gonzales
 #
 # ==============================================================================
 
@@ -473,8 +477,18 @@ class SIMPMethod:
                     break
 
                 # Check for relative tolerance
-                elif(abs(Obj_Function_relative_change)<self.config.relative_tolerance):
+                if(abs(Obj_Function_relative_change)<self.config.relative_tolerance):
                     end_time = time.time()
+                    print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
+                    print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
+                    print("\n  Optimization problem converged within a relative objective tolerance of",self.config.relative_tolerance)
+                    #==========================  Check the displacements in the last iteration ===============================================================
+                    #opt_itr = 101
+                    #self.analyzer(self.controller.get_controls(), response, opt_itr)
+                    #==================================================================================================================================
+                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
+                    
+                    break
 
 
 
@@ -610,13 +624,16 @@ class SIMPMethod:
                 Con = self.design_update_utils.ConCheck( self.config.optimization_algorithm,
                                             self.config.initial_volume_fraction,
                                             opt_itr, Obj_Function_optimization_outer, Obj_Function_optimization_inner, f0app)
-                #print("\n::[Update Densities with GCMMA, f0 ist bei INNER]::", Con)
-                
+
+                if (inneriter == 0):
+                    Obj_Function_old = Obj_Function_optimization_outer
+                else:
+                    Obj_Function_old = Obj_Function_optimization_inner
+                    
                 # RUN FEM: Call analyzer with current X to compute response (global_strain_energy, dcdx)
                 self.analyzer(self.controller.get_controls(), response, opt_itr)
                 Obj_Function = response[only_F_id]["func"]
                 Obj_Function_optimization_inner = Obj_Function
-
                 inneriter+=1
 
 

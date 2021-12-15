@@ -1,3 +1,13 @@
+// ==============================================================================
+//  KratosTopologyOptimizationApplication
+//
+//  License:         BSD License
+//                   license: TopologyOptimizationApplication/license.txt
+//
+//  Main authors:    Philipp Hofer, https://github.com/PhiHo-eng
+//                   Erich Wehrle, https://github.com/e-dub
+//
+// ==============================================================================
 ////////////////////////////////////////////////////////////////////////////////
 // Copyright © 2018 Jérémie Dumas
 //
