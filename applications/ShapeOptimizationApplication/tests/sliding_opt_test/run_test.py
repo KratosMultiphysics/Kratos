@@ -63,8 +63,8 @@ with open(os.path.join(output_directory, optimization_log_filename), 'r') as csv
     resulting_constraint = float(last_line[4].strip())
 
     # Check against specifications
-    TestCase().assertEqual(resulting_iteration, 5)
-    TestCase().assertAlmostEqual(resulting_abs_improvement, -7.56722E+01, 3)
+    TestCase().assertEqual(resulting_iteration, 2)
+    TestCase().assertAlmostEqual(resulting_abs_improvement, -1.40083E+01, 3)
 
 # # write json output
 # output_process = JsonOutputProcess(model, KM.Parameters(

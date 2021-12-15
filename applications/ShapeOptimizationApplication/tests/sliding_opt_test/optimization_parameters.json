@@ -5,7 +5,7 @@
             "model_part_name"       : "3D_Shell",
             "model_import_settings" : {
                 "input_type"        : "mdpa",
-                "input_filename"    : "3D_shell_209n"
+                "input_filename"    : "3D_shell_51n"
             },
             "design_surface_sub_model_part_name" : "design_surface",
             "damping" : {},
@@ -24,34 +24,46 @@
             "type"   : "vertex_morphing",
             "filter" : {
                 "filter_function_type"       : "linear",
-                "filter_radius"              : 50.0,
+                "filter_radius"              : 25.0,
                 "max_nodes_in_filter_radius" : 10000,
                 "sliding_morphing" : true,
                 "sliding_morphing_settings" : {
                     "model_import_settings" : {
                         "input_type"     : "mdpa",
-                        "input_filename" : "half_sphere_200n"
+                        "input_filename" : "boundary_surface_35n"
                     },
                     "background_sub_model_part_name" : "boundary",
-                    "sliding_sub_model_part_name" : "intersection_edge"
+                    "sliding_sub_model_part_name" : "sliding_edge"
                 }
             }
         },
         "optimization_algorithm" : {
             "name"               : "steepest_descent",
-            "max_iterations"     : 5,
+            "max_iterations"     : 2,
             "relative_tolerance" : 1e-10,
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
-                "step_size"                  : 10.0
+                "step_size"                  : 2.0
             }
         },
         "output" : {
-            "design_output_mode" : "none",
-            "nodal_results"      : [ "SHAPE_CHANGE" ],
+            "design_output_mode"      : "WriteOptimizationModelPart",
+            "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
+                                          "BACKGROUND_NORMAL",
+                                          "BACKGROUND_COORDINATE",
+                                          "DF1DX",
+                                          "DF1DX_MAPPED",
+                                          "CONTROL_POINT_UPDATE",
+                                          "CONTROL_POINT_CHANGE",
+                                          "SHAPE_UPDATE",
+                                          "SHAPE_CHANGE",
+                                          "STRUCTURE",
+                                          "EDGE_DELTA",
+                                          "OUT_OF_PLANE_DELTA"
+                                          ],
             "output_format" : {
-                "name" : "gid"
+                "name": "vtk"
             }
         }
     }

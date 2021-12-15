@@ -234,10 +234,10 @@ public:
 
         for (auto& r_node_i : mrModelPart.Nodes()) {
             auto& r_node_i_neighbours = r_node_i.GetValue(NEIGHBOUR_NODES);
-            for(auto j = r_node_i_neighbours.begin(); j != r_node_i_neighbours.end(); j++) {
+            for(auto j = r_node_i_neighbours.begin(); j != r_node_i_neighbours.end(); ++j) {
                 auto& r_element_neighbours = r_node_i.GetValue(NEIGHBOUR_ELEMENTS);
                 int count = 0;
-                for(auto k = r_element_neighbours.begin(); k != r_element_neighbours.end(); k++) {
+                for(auto k = r_element_neighbours.begin(); k != r_element_neighbours.end(); ++k) {
                     auto& r_element_geometry = k->GetGeometry();
                     for(unsigned int node_l = 0; node_l < r_element_geometry.size(); ++node_l) {
                         if ((r_element_geometry[node_l].Id()) == (j->Id())) count ++;
