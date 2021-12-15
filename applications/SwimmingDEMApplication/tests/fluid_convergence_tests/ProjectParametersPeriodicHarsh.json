@@ -1,11 +1,11 @@
 {
     "gravity_parameters"      : {
-        "modulus"   : 9.81,
+        "modulus"   : 1000,
         "direction" : [0.0,0.0,-1.0]
     },
     "time_stepping"           : {
         "automatic_time_step" : false,
-        "time_step"           : 5e-3
+        "time_step"           : 1e-2
     },
     "output_interval"         : 1e-2,
     "non_newtonian_fluid"     : {
@@ -21,7 +21,7 @@
         "parallel_type" : "OpenMP",
         "echo_level"    : 0,
         "start_time"    : 0.0,
-        "end_time"      : 0.2,
+        "end_time"      : 0.1,
         "number_of_threads": 1
     },
     "do_print_results_option" : true,
@@ -36,7 +36,7 @@
             "initiation_interval": 0.1
         },
         "backward_coupling"      : {
-            "meso_scale_length"                          : 0.2,
+            "meso_scale_length"                          : 0.12,
             "shape_factor"                               : 0.5,
             "filter_velocity_option"                     : false,
             "apply_time_filter_to_fluid_fraction_option" : false,
@@ -180,18 +180,18 @@
     },
     "dem_parameters"          : {
         "Dimension"                      : 3,
-        "PeriodicDomainOption"           : false,
+        "PeriodicDomainOption"           : true,
         "BoundingBoxOption"              : true,
         "AutomaticBoundingBoxOption"     : false,
-        "BoundingBoxEnlargementFactor"   : 1.1,
+        "BoundingBoxEnlargementFactor"   : 1.0,
         "BoundingBoxStartTime"           : 0.0,
         "BoundingBoxStopTime"            : 1000.0,
         "BoundingBoxMaxX"                : 0.6,
         "BoundingBoxMaxY"                : 10,
-        "BoundingBoxMaxZ"                : 10,
+        "BoundingBoxMaxZ"                : 1.0,
         "BoundingBoxMinX"                : -10,
         "BoundingBoxMinY"                : -10,
-        "BoundingBoxMinZ"                : 0.35,
+        "BoundingBoxMinZ"                : 0.38,
         "dem_inlet_option"               : false,
         "GravityX"                       : 0.0,
         "GravityY"                       : 0.0,
@@ -201,14 +201,14 @@
 
         "creator_destructor_settings" : {
             "apply_delayed_destruction" : true,
-            "destruction_delay_interval" : 0.15
+            "destruction_delay_interval" : 0.0
         },
 
         "solver_settings"                : {
             "RemoveBallsInitiallyTouchingWalls" : false,
             "strategy"                          : "swimming_sphere_strategy",
             "material_import_settings"          : {
-                "materials_filename" : "gentle_injection_tests/MaterialsDEMErasure.json"
+                "materials_filename" : "fluid_convergence_tests/MaterialsDEMErasure.json"
             }
         },
         "VirtualMassCoefficient"         : 1.0,
@@ -223,7 +223,7 @@
         "MaxTimeStep"                    : 2e-3,
         "FinalTime"                      : 1.0,
         "NeighbourSearchFrequency"       : 1,
-        "SearchTolerance"                : 0.001,
+        "SearchTolerance"                : 0.00,
         "GraphExportFreq"                : 0.001,
         "VelTrapGraphExportFreq"         : 0.001,
         "OutputTimeStep"                 : 0.01,
@@ -316,10 +316,10 @@
             "solver_type"                 : "MonolithicDEM",
             "model_import_settings"       : {
                 "input_type"     : "mdpa",
-                "input_filename" : "gentle_injection_tests/cube_cavityFluid"
+                "input_filename" : "fluid_convergence_tests/cube_cavityFluid"
             },
             "material_import_settings"    : {
-                "materials_filename" : "gentle_injection_tests/FluidMaterials.json"
+                "materials_filename" : "fluid_convergence_tests/FluidMaterials.json"
             },
             "time_scheme" : "bdf2",
             "echo_level"                  : 1,
@@ -327,7 +327,7 @@
             "maximum_iterations"          : 10,
             "relative_velocity_tolerance" : 0.001,
             "absolute_velocity_tolerance" : 1e-5,
-            "relative_pressure_tolerance" : 0.001,
+            "relative_pressure_tolerance" : 0.0001,
             "absolute_pressure_tolerance" : 1e-5,
             "linear_solver_settings"      : {
                 "solver_type" : "amgcl"
