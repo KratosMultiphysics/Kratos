@@ -111,7 +111,6 @@ namespace Kratos
 			lock();  
 			BlockType * p_result = mFirstAvailableBlock;
 			mFirstAvailableBlock = (p_result >= mpUninitializedMemory) ? mFirstAvailableBlock + mBlockSizeAfterAlignment : (BlockType*)*p_result;
-			mpUninitializedMemory += mBlockSizeAfterAlignment * ((p_result >= mpUninitializedMemory) && (mpUninitializedMemory < mpEnd));
 			// if(p_result >= mpUninitializedMemory) {
 			// 	mFirstAvailableBlock += mBlockSizeAfterAlignment;
 			// 	if(mpUninitializedMemory < mpEnd) {
@@ -126,6 +125,8 @@ namespace Kratos
 
 			mNumberOfAvailableBlocks--;
 			unlock();
+
+			mpUninitializedMemory += mBlockSizeAfterAlignment * ((p_result >= mpUninitializedMemory) && (mpUninitializedMemory < mpEnd));
 	
 		  return p_result;
 	  }
