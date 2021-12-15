@@ -66,6 +66,8 @@ namespace Kratos
 	  /// The constructor to be called
 	  Chunk(std::size_t BlockSizeInBytes, SizeType SizeInBytes) noexcept
 		  : mpData(nullptr)
+		  , mpEnd(nullptr)
+		  , mpUninitializedMemory(nullptr)
 		  , mSize(SizeInBytes)
 		  , mBlockSizeInBytes(BlockSizeInBytes)
 		  , mNumberOfAvailableBlocks(0) // to be initialized in initialize
@@ -88,9 +90,12 @@ namespace Kratos
       ///@{
 	  void Initialize() {
 		  const std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
-		  mpData = new BlockType[DataSize()];
+		  const std::size_t data_size = DataSize();
+		  mpData = new BlockType[data_size];
+		  mpEnd = mpData + data_size;
   		  mFirstAvailableBlock = mpData;
 		  mNumberOfAvailableBlocks = AllocatableDataSize() / block_size_after_alignment;
+		  mpUninitializedMemory = mpData;
 		  
 
 		  *mpData = 0; // The first entry of the link list to the next one
@@ -106,15 +111,14 @@ namespace Kratos
 		    const std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
 			lock();  
 			BlockType * p_result = mFirstAvailableBlock;
-			if(*p_result == 0) {
-				*p_result = (BlockType)(p_result + block_size_after_alignment);
-				if(mNumberOfAvailableBlocks > 1) {
-					*(p_result + block_size_after_alignment) = 0;
+			if(p_result >= mpUninitializedMemory) {
+				mFirstAvailableBlock += block_size_after_alignment;
+				if(mpUninitializedMemory < mpEnd) {
+					mpUninitializedMemory += block_size_after_alignment;
 				}
 			}
 				
 			KRATOS_DEBUG_CHECK(Has(p_result));
-			mFirstAvailableBlock = (BlockType*)(*p_result);
 			unlock();
 
 			mNumberOfAvailableBlocks--;
@@ -258,6 +262,8 @@ namespace Kratos
       ///@{
 
 		BlockType * mpData;
+		BlockType* mpEnd;
+		BlockType* mpUninitializedMemory;
 		SizeType mSize;
 		SizeType mBlockSizeInBytes;
 		std::atomic_uint mNumberOfAvailableBlocks;
