@@ -57,9 +57,9 @@ class FormfindingMechanicalSolver(MechanicalSolver):
 
     def _create_mechanical_solution_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
-        mechanical_convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = self.get_builder_and_solver()
+        mechanical_scheme = self._GetScheme()
+        mechanical_convergence_criterion = self._GetConvergenceCriterion()
+        builder_and_solver = self._GetBuilderAndSolver()
 
 
         # in some cases not all elements need to be reset by the formfinding strategy
@@ -79,4 +79,3 @@ class FormfindingMechanicalSolver(MechanicalSolver):
                                                                 self.settings["compute_reactions"].GetBool(),
                                                                 self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                 self.settings["move_mesh_flag"].GetBool())
-
