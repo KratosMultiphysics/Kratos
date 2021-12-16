@@ -110,8 +110,8 @@ array_1d<double,3> CompressibleNavierStokesExplicit<2,4>::CalculateMidPointVeloc
         midpoint_rho_dx += r_rho * node_dNdX[0];
         midpoint_rho_dy += r_rho * node_dNdX[1];
     }
-    midpoint_rho /= static_cast<double>(NumNodes);
-    midpoint_mom /= static_cast<double>(NumNodes);
+    midpoint_rho /= NumNodes;
+    midpoint_mom /= NumNodes;
 
     // Calculate velocity rotational
     // Note that the formulation is written in conservative variables. Hence we do rot(mom/rho).
@@ -158,8 +158,8 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<2, 4>::CalculateMid
         midpoint_rho_dx += r_rho * node_dNdX[0];
         midpoint_rho_dy += r_rho * node_dNdX[1];
     }
-    midpoint_rho /= static_cast<double>(NumNodes);
-    midpoint_mom /= static_cast<double>(NumNodes);
+    midpoint_rho /= NumNodes;
+    midpoint_mom /= NumNodes;
 
     // Calculate velocity gradient
     // Note that the formulation is written in conservative variables. Hence we do grad(mom/rho).
