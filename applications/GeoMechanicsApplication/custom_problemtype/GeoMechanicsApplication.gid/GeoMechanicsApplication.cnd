@@ -1930,7 +1930,7 @@ VALUE: 8.90e-7
 HELP: Units in kN/m2·s
 
 QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
-VALUE: VanGenuchtenLaw
+VALUE: BrooksCoreyLaw
 HELP: Retention model for flow
 DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#)
 DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#)
@@ -3496,7 +3496,7 @@ VALUE: 1.0e-3
 HELP: Small number for avoiding division by zero in zero-thickness cases. Units in m
 
 QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw,SaturatedBelowPhreaticLevelLaw,BrooksCoreyLaw)
-VALUE: VanGenuchtenLaw
+VALUE: BrooksCoreyLaw
 HELP: Retention model for flow
 DEPENDENCIES: (SaturatedLaw,                   RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#)
 DEPENDENCIES: (VanGenuchtenLaw,                RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#, HIDE, Lambda,#CURRENT#, HIDE, Beta,#CURRENT#)
