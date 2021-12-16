@@ -86,7 +86,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
         if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
             KratosMultiphysics.Logger.PrintWarning("Constraints are not yet implemented in MPI and will therefore not be considered!")
 
-        linear_solver = self.get_linear_solver()
+        linear_solver = self._GetLinearSolver()
         epetra_communicator = self._GetEpetraCommunicator()
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             guess_row_size = 15
@@ -105,8 +105,8 @@ class TrilinosMechanicalSolver(MechanicalSolver):
     def _create_linear_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._GetScheme()
-        linear_solver = self.get_linear_solver()
-        builder_and_solver = self.get_builder_and_solver()
+        linear_solver = self._GetLinearSolver()
+        builder_and_solver = self._GetBuilderAndSolver()
         return TrilinosApplication.TrilinosLinearStrategy(computing_model_part,
                                                           mechanical_scheme,
                                                           builder_and_solver,
@@ -118,9 +118,9 @@ class TrilinosMechanicalSolver(MechanicalSolver):
     def _create_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         solution_scheme = self._GetScheme()
-        linear_solver = self.get_linear_solver()
-        convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = self.get_builder_and_solver()
+        linear_solver = self._GetLinearSolver()
+        convergence_criterion = self._GetConvergenceCriterion()
+        builder_and_solver = self._GetBuilderAndSolver()
         return TrilinosApplication.TrilinosNewtonRaphsonStrategy(computing_model_part,
                                                                  solution_scheme,
                                                                  convergence_criterion,
