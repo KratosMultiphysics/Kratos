@@ -624,11 +624,6 @@ class SIMPMethod:
                 Con = self.design_update_utils.ConCheck( self.config.optimization_algorithm,
                                             self.config.initial_volume_fraction,
                                             opt_itr, Obj_Function_optimization_outer, Obj_Function_optimization_inner, f0app)
-
-                if (inneriter == 0):
-                    Obj_Function_old = Obj_Function_optimization_outer
-                else:
-                    Obj_Function_old = Obj_Function_optimization_inner
                     
                 # RUN FEM: Call analyzer with current X to compute response (global_strain_energy, dcdx)
                 self.analyzer(self.controller.get_controls(), response, opt_itr)

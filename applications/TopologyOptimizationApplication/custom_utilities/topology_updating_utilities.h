@@ -266,16 +266,12 @@ public:
 				double dfdx = (element_i->GetValue(DCDX));
 
 				// Value of the constraint function sensitivity
-				double dgdx = (element_i->GetValue(DVDX));   /// DVDX=1, gilt nur für regelmäßige Vernetzung!!!
 
 				//Value of the upper bound of the previous iteration
 				double upper_boundary = element_i->GetValue(UPP);
 
 				//Value of the lower bound of the previous iteration
 				double lower_boundary = element_i->GetValue(LOW);
-
-				//double volume = element_i->GetValue(VOLUMETRIC_STRAIN);
-				//std::cout << "Volume strain: "<< volume << std::endl;
 
 				double youngs_modulus = element_i->GetValue(E_0);
 
@@ -317,7 +313,6 @@ public:
 				xmin[iEl] = std::max(Xminn, x[iEl] - movlim); 
 			}
 
-			
 			mma->Update(x,df,g,dg,xmin,xmax,xold1,xold2, iter, low, upp);
 
 
@@ -407,17 +402,13 @@ public:
 				double dfdx = (element_i->GetValue(DCDX));
 
 				// Value of the constraint function sensitivity
-				double dgdx = (element_i->GetValue(DVDX));   /// DVDX=1, gilt nur für regelmäßige Vernetzung!!!
+
 
 				//Value of the upper bound of the previous iteration
 				double upper_boundary = element_i->GetValue(UPP);
 
 				//Value of the lower bound of the previous iteration
 				double lower_boundary = element_i->GetValue(LOW);
-
-				//double volume = element_i->GetValue(VOLUMETRIC_STRAIN);
-				//std::cout << "Volume strain: "<< volume << std::endl;
-
 				double youngs_modulus = element_i->GetValue(E_0);
 
 				
@@ -458,7 +449,7 @@ public:
 				xmax[iEl] = std::min(Xmaxx, x[iEl] + movlim);
 				xmin[iEl] = std::max(Xminn, x[iEl] - movlim); 
 			}
-		
+
 			f0app = gcmma->OuterUpdate(xmma,x,f,df,g,dg,xmin,xmax,xold1,xold2, iter, low, upp, f0app);
 
 			int jiter = 0;
@@ -549,7 +540,6 @@ public:
 				double dfdx = (element_i->GetValue(DCDX));
 
 				// Value of the constraint function sensitivity
-				double dgdx = (element_i->GetValue(DVDX));   /// DVDX=1, gilt nur für regelmäßige Vernetzung!!!
 
 				//Value of the upper bound of the previous iteration
 				double upper_boundary = element_i->GetValue(UPP);
@@ -557,8 +547,6 @@ public:
 				//Value of the lower bound of the previous iteration
 				double lower_boundary = element_i->GetValue(LOW);
 
-				//double volume = element_i->GetValue(VOLUMETRIC_STRAIN);
-				//std::cout << "Volume strain: "<< volume << std::endl;
 
 				double youngs_modulus = element_i->GetValue(E_0);
 
@@ -663,8 +651,6 @@ public:
 			g[0] = 0;
 			vol_frac_iteration = vol_summ;
 			g[0] = (vol_frac_iteration - volfrac*nn);
-			// Initialize MMA
-			GCMMASolver *gcmma = new GCMMASolver(nn,mm);
 
 			bool ConCheck = gcmma->ConCheck(f_new,g,f0app );
 			int l = 0;

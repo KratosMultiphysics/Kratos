@@ -47,7 +47,6 @@ namespace Kratos
 
 		: nano(nn)
 		, m(mm)
-		//, outeriter(0)
 		, raa0eps(1e-6)
 		, raaeps(raa0eps)
 		, xmamieps(1e-5)
@@ -67,8 +66,6 @@ namespace Kratos
 		, lam(m)
 		, mu(m)
 		, s(2 * m)
-		//, low(nano)
-		//, upp(nano)
 		, alpha(nano)
 		, beta(nano)
 		, p0(nano)
@@ -80,8 +77,6 @@ namespace Kratos
 		, hess(m * m)
 		, r(m)
 		, fapp(m)
-		//, xold1(nano)
-		//, xold2(nano)
 	{ }
 
 	void GCMMASolver::SetAsymptotes(double init, double decrease, double increase) {
@@ -116,9 +111,6 @@ namespace Kratos
 		// SolveDSA(xmma);
 
 		// Compute approximation values
-		//std::cout << "f0 bei OuterUpdate vor ComputeAprox: " << f0app << std::endl;
-		f0app = ComputeApprox(xmma, low, upp, f0app);
-		//std::cout << "f0 bei OuterUpdate nach ComputeAprox: " << f0app << std::endl;
 		return f0app;
 	}
 
@@ -128,9 +120,6 @@ namespace Kratos
 								const int iter, double *low, double *upp, double f0app)
 	{
 		// Update approximation factors
-		//std::cout << "f0 bei InnerUpdate Anfang: " << f0app << std::endl;
-		RaaUpdate(xmma, xval, f0xnew, fxnew, xmin, xmax, low, upp, f0app);
-		//std::cout << "f0 bei InnerUpdate nach RaaUpdate: " << f0app << std::endl;
 
 		// Generate the subproblem
 		GenSub(xval, f0x, df0dx, fx, dfdx, xmin, xmax, xold1, xold2, iter, low, upp);
@@ -144,7 +133,6 @@ namespace Kratos
 
 		// Compute approximation values
 		f0app = ComputeApprox(xmma, low, upp, f0app);
-		//std::cout << "f0 bei Inner Update Ende: " << f0app << std::endl;
 		return f0app;
 	}
 
@@ -480,7 +468,6 @@ namespace Kratos
 		}
 		raacof = std::max(raacofmin, raacof);
 		// std::cout << "raacof: " << raacof << std::endl;
-		//std::cout << "f0 bei RaUpdate: " << f0app << std::endl;
 		if (f0xnew > f0app + 0.5 * epsimin) {
 			double deltaraa0 = (1.0 / raacof) * (f0xnew - f0app);
 			raa0 = std::min(1.1 * (raa0 + deltaraa0), 10.0 * raa0);
@@ -557,13 +544,11 @@ namespace Kratos
 			}
 		}
 		f0app += r0;
-		//std::cout << "f0 bei ComputeAprox: " << f0app << std::endl;
 		for (int j = 0; j < m; ++j) {
 			fapp[j] += r[j];
 			// std::cout << "fj: " << fapp[j] << ' ';
 		}
 		// std::cout << std::endl;
-		//std::cout << "f0 bei ComputeAprox am Ende: " << f0app << std::endl;
 		return f0app;
 	}
 
