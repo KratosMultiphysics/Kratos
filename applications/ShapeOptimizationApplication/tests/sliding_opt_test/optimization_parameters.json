@@ -39,7 +39,7 @@
         },
         "optimization_algorithm" : {
             "name"               : "steepest_descent",
-            "max_iterations"     : 2,
+            "max_iterations"     : 1,
             "relative_tolerance" : 1e-10,
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
@@ -48,23 +48,7 @@
             }
         },
         "output" : {
-            "design_output_mode"      : "WriteOptimizationModelPart",
-            "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
-                                          "BACKGROUND_NORMAL",
-                                          "BACKGROUND_COORDINATE",
-                                          "DF1DX",
-                                          "DF1DX_MAPPED",
-                                          "CONTROL_POINT_UPDATE",
-                                          "CONTROL_POINT_CHANGE",
-                                          "SHAPE_UPDATE",
-                                          "SHAPE_CHANGE",
-                                          "STRUCTURE",
-                                          "EDGE_DELTA",
-                                          "OUT_OF_PLANE_DELTA"
-                                          ],
-            "output_format" : {
-                "name": "vtk"
-            }
+            "design_output_mode"      : "none"
         }
     }
 }

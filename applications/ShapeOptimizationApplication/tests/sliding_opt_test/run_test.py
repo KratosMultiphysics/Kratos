@@ -63,14 +63,13 @@ with open(os.path.join(output_directory, optimization_log_filename), 'r') as csv
     resulting_constraint = float(last_line[4].strip())
 
     # Check against specifications
-    TestCase().assertEqual(resulting_iteration, 2)
-    TestCase().assertAlmostEqual(resulting_abs_improvement, -1.40083E+01, 3)
+    TestCase().assertEqual(resulting_iteration, 1)
 
 # # write json output
 # output_process = JsonOutputProcess(model, KM.Parameters(
 #     """{
-#         "output_variables" : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
-#         "output_file_name" : "shape_change_results.json",
+#         "output_variables" : ["SHAPE_UPDATE_X","SHAPE_UPDATE_Y","SHAPE_UPDATE_Z"],
+#         "output_file_name" : "shape_update_results.json",
 #         "model_part_name"  : \""""+optimization_model_part_name+"""\",
 #         "time_frequency"   : 0.0
 #     }"""))
@@ -83,8 +82,8 @@ with open(os.path.join(output_directory, optimization_log_filename), 'r') as csv
 
 check_process = FromJsonCheckResultProcess(model, KM.Parameters(
     """{
-        "check_variables"  : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
-        "input_file_name"  : "shape_change_results.json",
+        "check_variables"  : ["SHAPE_UPDATE_X","SHAPE_UPDATE_Y","SHAPE_UPDATE_Z"],
+        "input_file_name"  : "shape_update_results.json",
         "model_part_name"  : \""""+optimization_model_part_name+"""\",
         "time_frequency"   : 0.0
     }"""))
