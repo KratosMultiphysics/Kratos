@@ -85,7 +85,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
 
         # No verbosity from strategy
         if self.contact_settings["silent_strategy"].GetBool():
-            mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+            mechanical_solution_strategy = self._GetSolutionStrategy()
             mechanical_solution_strategy.SetEchoLevel(0)
 
         # We set the flag INTERACTION
@@ -99,11 +99,11 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         if self.settings["clear_storage"].GetBool():
             self.Clear()
 
-        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+        mechanical_solution_strategy = self._GetSolutionStrategy()
         auxiliar_methods_solvers.AuxiliarSolve(mechanical_solution_strategy)
 
     def SolveSolutionStep(self):
-        is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        is_converged = self._GetSolutionStrategy().SolveSolutionStep()
         return is_converged
 
     def ExecuteFinalizeSolutionStep(self):

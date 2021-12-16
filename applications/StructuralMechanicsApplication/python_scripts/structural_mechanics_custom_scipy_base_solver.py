@@ -79,9 +79,9 @@ class CustomScipyBaseSolver(MechanicalSolver):
     def _MassMatrixComputation(self):
         space = KratosMultiphysics.UblasSparseSpace()
         self.GetComputingModelPart().ProcessInfo.SetValue(StructuralMechanicsApplication.BUILD_LEVEL,1) #Mass Matrix
-        scheme = self.get_mechanical_solution_strategy().GetScheme()
+        scheme = self._GetSolutionStrategy().GetScheme()
 
-        aux = self.get_mechanical_solution_strategy().GetSystemMatrix()
+        aux = self._GetSolutionStrategy().GetSystemMatrix()
         space.SetToZeroMatrix(aux)
 
         # Create dummy vectors
@@ -108,9 +108,9 @@ class CustomScipyBaseSolver(MechanicalSolver):
     def _StiffnessMatrixComputation(self):
         space = KratosMultiphysics.UblasSparseSpace()
         self.GetComputingModelPart().ProcessInfo.SetValue(StructuralMechanicsApplication.BUILD_LEVEL,2) #Stiffness Matrix
-        scheme = self.get_mechanical_solution_strategy().GetScheme()
+        scheme = self._GetSolutionStrategy().GetScheme()
 
-        aux = self.get_mechanical_solution_strategy().GetSystemMatrix()
+        aux = self._GetSolutionStrategy().GetSystemMatrix()
         space.SetToZeroMatrix(aux)
 
         # Create dummy vectors

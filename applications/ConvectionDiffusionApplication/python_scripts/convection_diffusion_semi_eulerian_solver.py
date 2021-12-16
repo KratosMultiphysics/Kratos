@@ -67,7 +67,7 @@ class ConvectionDiffusionSemiImplicitSolver(convection_diffusion_solver.Convecti
         is_converged = True
         pure_convection = self.settings["pure_convection"].GetBool()
         if not pure_convection:
-            is_converged = self.get_convection_diffusion_solution_strategy().SolveSolutionStep()
+            is_converged = self._GetSolutionStrategy().SolveSolutionStep()
 
         return is_converged
 

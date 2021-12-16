@@ -33,7 +33,7 @@ class MechanicalSolver(PythonSolver):
     _create_mechanical_solution_strategy
 
     The mechanical_solution_strategy, builder_and_solver, etc. should alway be retrieved
-    using the getter functions get_mechanical_solution_strategy, get_builder_and_solver,
+    using the getter functions _GetSolutionStrategy, get_builder_and_solver,
     etc. from this base class.
 
     Only the member variables listed below should be accessed directly.
@@ -215,7 +215,7 @@ class MechanicalSolver(PythonSolver):
         # The mechanical solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+        mechanical_solution_strategy = self._GetSolutionStrategy()
         mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         mechanical_solution_strategy.Initialize()
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished initialization.")
@@ -224,13 +224,13 @@ class MechanicalSolver(PythonSolver):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
             self.Initialize() #required after clearing
-        self.get_mechanical_solution_strategy().InitializeSolutionStep()
+        self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
-        self.get_mechanical_solution_strategy().Predict()
+        self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):
-        is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        is_converged = self._GetSolutionStrategy().SolveSolutionStep()
         if not is_converged:
             msg  = "Solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
             msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
@@ -238,7 +238,7 @@ class MechanicalSolver(PythonSolver):
         return is_converged
 
     def FinalizeSolutionStep(self):
-        self.get_mechanical_solution_strategy().FinalizeSolutionStep()
+        self._GetSolutionStrategy().FinalizeSolutionStep()
 
     def AdvanceInTime(self, current_time):
         dt = self.ComputeDeltaTime()
@@ -277,13 +277,13 @@ class MechanicalSolver(PythonSolver):
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def SetEchoLevel(self, level):
-        self.get_mechanical_solution_strategy().SetEchoLevel(level)
+        self._GetSolutionStrategy().SetEchoLevel(level)
 
     def Clear(self):
-        self.get_mechanical_solution_strategy().Clear()
+        self._GetSolutionStrategy().Clear()
 
     def Check(self):
-        self.get_mechanical_solution_strategy().Check()
+        self._GetSolutionStrategy().Check()
 
     #### Specific internal functions ####
 
@@ -311,7 +311,7 @@ class MechanicalSolver(PythonSolver):
             self._builder_and_solver = self._CreateBuilderAndSolver()
         return self._builder_and_solver
 
-    def get_mechanical_solution_strategy(self):
+    def _GetSolutionStrategy(self):
         if (self.settings["multi_point_constraints_used"].GetBool() is False and
             self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
             self._mechanical_solution_strategy = self._create_mechanical_solution_strategy()

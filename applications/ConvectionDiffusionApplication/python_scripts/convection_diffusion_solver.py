@@ -52,7 +52,7 @@ class ConvectionDiffusionSolver(PythonSolver):
     _create_convection_diffusion_solution_strategy
 
     The convection_diffusion_solution_strategy, builder_and_solver, etc. should alway be retrieved
-    using the getter functions get_convection_diffusion_solution_strategy, get_builder_and_solver,
+    using the getter functions _GetSolutionStrategy, get_builder_and_solver,
     etc. from this base class.
 
     Only the member variables listed below should be accessed directly.
@@ -334,7 +334,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         # The convection_diffusion solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        convection_diffusion_solution_strategy = self.get_convection_diffusion_solution_strategy()
+        convection_diffusion_solution_strategy = self._GetSolutionStrategy()
         convection_diffusion_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         if not self.is_restarted():
             convection_diffusion_solution_strategy.Initialize()
@@ -354,21 +354,21 @@ class ConvectionDiffusionSolver(PythonSolver):
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        convection_diffusion_solution_strategy = self.get_convection_diffusion_solution_strategy()
+        convection_diffusion_solution_strategy = self._GetSolutionStrategy()
         convection_diffusion_solution_strategy.Solve()
 
     def InitializeSolutionStep(self):
-        self.get_convection_diffusion_solution_strategy().InitializeSolutionStep()
+        self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
-        self.get_convection_diffusion_solution_strategy().Predict()
+        self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):
-        is_converged = self.get_convection_diffusion_solution_strategy().SolveSolutionStep()
+        is_converged = self._GetSolutionStrategy().SolveSolutionStep()
         return is_converged
 
     def FinalizeSolutionStep(self):
-        self.get_convection_diffusion_solution_strategy().FinalizeSolutionStep()
+        self._GetSolutionStrategy().FinalizeSolutionStep()
 
     def AdvanceInTime(self, current_time):
         dt = self.ComputeDeltaTime()
@@ -391,13 +391,13 @@ class ConvectionDiffusionSolver(PythonSolver):
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def SetEchoLevel(self, level):
-        self.get_convection_diffusion_solution_strategy().SetEchoLevel(level)
+        self._GetSolutionStrategy().SetEchoLevel(level)
 
     def Clear(self):
-        self.get_convection_diffusion_solution_strategy().Clear()
+        self._GetSolutionStrategy().Clear()
 
     def Check(self):
-        self.get_convection_diffusion_solution_strategy().Check()
+        self._GetSolutionStrategy().Check()
 
     #### Specific internal functions ####
 
@@ -421,7 +421,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             self._builder_and_solver = self._CreateBuilderAndSolver()
         return self._builder_and_solver
 
-    def get_convection_diffusion_solution_strategy(self):
+    def _GetSolutionStrategy(self):
         if not hasattr(self, '_convection_diffusion_solution_strategy'):
             self._convection_diffusion_solution_strategy = self._create_convection_diffusion_solution_strategy()
         return self._convection_diffusion_solution_strategy

@@ -58,7 +58,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
 
     def Finalize(self):
         super().Finalize()
-        self.get_mechanical_solution_strategy().Clear() # needed for proper finalization of MPI
+        self._GetSolutionStrategy().Clear() # needed for proper finalization of MPI
 
     #### Specific internal functions ####
 
