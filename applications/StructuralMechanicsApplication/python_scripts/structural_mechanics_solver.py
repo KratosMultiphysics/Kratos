@@ -29,7 +29,7 @@ class MechanicalSolver(PythonSolver):
     _create_solution_scheme
     _create_convergence_criterion
     _create_linear_solver
-    _create_builder_and_solver
+    _CreateBuilderAndSolver
     _create_mechanical_solution_strategy
 
     The mechanical_solution_strategy, builder_and_solver, etc. should alway be retrieved
@@ -306,9 +306,9 @@ class MechanicalSolver(PythonSolver):
         if (self.settings["multi_point_constraints_used"].GetBool() is False and
             self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
             self.settings["multi_point_constraints_used"].SetBool(True)
-            self._builder_and_solver = self._create_builder_and_solver()
+            self._builder_and_solver = self._CreateBuilderAndSolver()
         if not hasattr(self, '_builder_and_solver'):
-            self._builder_and_solver = self._create_builder_and_solver()
+            self._builder_and_solver = self._CreateBuilderAndSolver()
         return self._builder_and_solver
 
     def get_mechanical_solution_strategy(self):
@@ -425,7 +425,7 @@ class MechanicalSolver(PythonSolver):
             KratosMultiphysics.Logger.PrintInfo('::[MechanicalSolver]:: No linear solver was specified, using fastest available solver')
             return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         linear_solver = self._GetLinearSolver()
         if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             bs_params = self.settings["builder_and_solver_settings"]["advanced_settings"]

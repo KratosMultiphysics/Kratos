@@ -135,7 +135,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         linear_solver = super()._create_linear_solver()
         return auxiliar_methods_solvers.AuxiliarCreateLinearSolver(self.main_model_part, self.settings, self.contact_settings, self.linear_solver_settings, linear_solver)
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         if self.contact_settings["mortar_type"].GetString() != "":
             linear_solver = self._GetLinearSolver()
             if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
@@ -149,7 +149,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
                     else:
                         builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolver(linear_solver)
         else:
-            builder_and_solver = super()._create_builder_and_solver()
+            builder_and_solver = super()._CreateBuilderAndSolver()
 
         return builder_and_solver
 

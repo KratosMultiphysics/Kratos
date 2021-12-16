@@ -60,10 +60,10 @@ class PrebucklingSolver(MechanicalSolver):
     # Builder and Solver Eigen
     def _GetBuilderAndSolverEigen(self):
         if not hasattr(self, '_builder_and_solver_eigen'):
-            self._builder_and_solver_eigen = self._create_builder_and_solver_eigen()
+            self._builder_and_solver_eigen = self._CreateBuilderAndSolverEigen()
         return self._builder_and_solver_eigen
 
-    def _create_builder_and_solver_eigen(self):
+    def _CreateBuilderAndSolverEigen(self):
         linear_solver = self._GetLinearSolverEigen()
         builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver
@@ -78,7 +78,7 @@ class PrebucklingSolver(MechanicalSolver):
         return eigen_solver_factory.ConstructSolver(self.settings["eigensolver_settings"])
 
     # Builder and Solver Static
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         """This method is overridden to make sure it always uses ResidualBasedEliminationBuilderAndSolver"""
         if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             warn_msg = '"Elimination Builder is required. \n'

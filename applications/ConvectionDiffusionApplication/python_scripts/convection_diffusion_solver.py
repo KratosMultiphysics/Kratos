@@ -48,7 +48,7 @@ class ConvectionDiffusionSolver(PythonSolver):
     _create_solution_scheme
     _create_convergence_criterion
     _create_linear_solver
-    _create_builder_and_solver
+    _CreateBuilderAndSolver
     _create_convection_diffusion_solution_strategy
 
     The convection_diffusion_solution_strategy, builder_and_solver, etc. should alway be retrieved
@@ -418,7 +418,7 @@ class ConvectionDiffusionSolver(PythonSolver):
 
     def _GetBuilderAndSolver(self):
         if not hasattr(self, '_builder_and_solver'):
-            self._builder_and_solver = self._create_builder_and_solver()
+            self._builder_and_solver = self._CreateBuilderAndSolver()
         return self._builder_and_solver
 
     def get_convection_diffusion_solution_strategy(self):
@@ -598,7 +598,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         return linear_solver
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         linear_solver = self._GetLinearSolver()
         if not self.main_model_part.IsDistributed():
             # Set the serial builder and solver

@@ -71,7 +71,7 @@ class ConvectionDiffusionExplicitSolver(convection_diffusion_solver.ConvectionDi
 
     #### Private functions ####
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         builder_and_solver = KratosMultiphysics.ExplicitBuilder()
         return builder_and_solver
 

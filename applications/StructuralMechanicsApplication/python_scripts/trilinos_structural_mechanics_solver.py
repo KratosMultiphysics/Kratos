@@ -79,7 +79,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
     def _create_linear_solver(self):
         return trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         if self.settings["multi_point_constraints_used"].GetBool():
             raise Exception("MPCs not yet implemented in MPI")
 
