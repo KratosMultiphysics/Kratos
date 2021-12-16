@@ -12,9 +12,6 @@
 //
 // ==============================================================================
 
-#if !defined(KRATOS_TOPOLOGYOPTIMIZATION_APPLICATION_H_INCLUDED )
-#define  KRATOS_TOPOLOGYOPTIMIZATION_APPLICATION_H_INCLUDED
-
 // System includes
 
 
@@ -38,7 +35,7 @@
 #include "topology_optimization_application.h"
 
 
-// Geometries that must be added when more elements are added into the application
+// Geometries that must be added when more elements are added into the application (SOLID MECHANICS APPLICATION)
 //#include "geometries/tetrahedra_3d_10.h"
 //#include "geometries/hexahedra_3d_20.h"
 //#include "geometries/hexahedra_3d_27.h"
