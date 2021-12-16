@@ -279,8 +279,8 @@ int BrooksCoreyLaw::Check(const Properties& rMaterialProperties,
     KRATOS_ERROR_IF(!(rMaterialProperties[AIR_ENTRY_PRESSURE] > 0.0))
                     << "AIR_ENTRY_PRESSURE must be greater than 0 " << std::endl;
 
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(Lambda))
-                    << "Lambda is not availabe in material parameters" << std::endl;
+    KRATOS_ERROR_IF(!rMaterialProperties.Has(BROOKS_COREY_PORE_SIZE_INDEX))
+                    << "BROOKS_COREY_PORE_SIZE_INDEX is not availabe in material parameters" << std::endl;
 
     KRATOS_ERROR_IF(!rMaterialProperties.Has(BROOKS_COREY_FITTING_PARAMETER))
                     << "BROOKS_COREY_FITTING_PARAMETER is not availabe in material parameters" << std::endl;
