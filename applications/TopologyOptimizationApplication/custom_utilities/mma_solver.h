@@ -41,6 +41,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <iomanip>
 
 // External includes
 #include <pybind11/pybind11.h>
@@ -101,6 +102,7 @@ class MMASolver
 
         ///void Reset() { iter = 0; };
 
+        int nano, m;
 
         const double xmamieps;
         const double epsimin;
@@ -114,6 +116,8 @@ class MMASolver
         double z;
 
         std::vector<double> lam, mu, s;
+        std::vector<double>  alpha, beta, p0, q0, pij, qij, b, grad, hess;
+
 
         void GenSub(const double *xval, const double *dfdx, const double *gx, const double *dgdx, const double *xmin,
                     const double *xmax, double *xold1,  double *xold2, const int iter, double *low, double *upp);

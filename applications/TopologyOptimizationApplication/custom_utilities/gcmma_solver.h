@@ -70,6 +70,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <iomanip>
 
 // External includes
 #include <pybind11/pybind11.h>
@@ -138,6 +139,10 @@ namespace Kratos
 		// Check whether the new solution is conservative
 		bool ConCheck(double f0xnew, const double *fxnew, double f0app) const;
 
+
+	private:
+		int nano, m;
+
 		const double raa0eps;
 		const double raaeps;
 		const double xmamieps;
@@ -154,6 +159,10 @@ namespace Kratos
 		double z;
 
 		std::vector<double> lam, mu, s;
+		std::vector<double> alpha, beta, p0, q0, pij, qij, b, grad, hess; 
+
+		double r0;
+		std::vector<double> r, fapp;
 
 	private:
 		// Compute [low, upp, raa0, raa]
