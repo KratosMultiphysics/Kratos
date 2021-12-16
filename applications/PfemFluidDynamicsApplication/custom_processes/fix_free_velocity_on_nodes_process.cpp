@@ -22,7 +22,7 @@
 
 namespace Kratos {
 
-FixFreeVelocityOnNodesProcess::FixFreeVelocityOnNodesProcess(
+PFEMFixFreeVelocityOnNodesProcess::PFEMFixFreeVelocityOnNodesProcess(
     ModelPart& rModelPart,
     const bool rFreeOrFix)
     : mrModelPart(rModelPart),
@@ -33,7 +33,7 @@ FixFreeVelocityOnNodesProcess::FixFreeVelocityOnNodesProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void FixFreeVelocityOnNodesProcess::Execute()
+void PFEMFixFreeVelocityOnNodesProcess::Execute()
 {
     VariableUtils().ApplyFixity(VELOCITY_X, mFreeOrFix, mrModelPart.Nodes());
     VariableUtils().ApplyFixity(VELOCITY_Y, mFreeOrFix, mrModelPart.Nodes());

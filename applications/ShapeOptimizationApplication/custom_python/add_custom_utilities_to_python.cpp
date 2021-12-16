@@ -30,6 +30,7 @@
 #include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_symmetric.h"
 #include "custom_utilities/damping/damping_utilities.h"
+#include "custom_utilities/damping/direction_damping_utilities.h"
 #include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/search_based_functions.h"
@@ -137,6 +138,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<DampingUtilities >(m, "DampingUtilities")
         .def(py::init<ModelPart&, Parameters>())
         .def("DampNodalVariable", &DampingUtilities::DampNodalVariable)
+        ;
+
+    py::class_<DirectionDampingUtilities >(m, "DirectionDampingUtilities")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("DampNodalVariable", &DirectionDampingUtilities::DampNodalVariable)
         ;
 
     // ========================================================================

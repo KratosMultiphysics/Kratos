@@ -26,7 +26,7 @@
 
 namespace  Kratos {
 /**
- * @class MoveMeshUtility
+ * @class PFEMMoveMeshUtility
  *
  * @brief This utility resets the nodes of a PFEM fluid
  *        ModelPart, used especially in the PFEM-FEM coupling
@@ -34,12 +34,12 @@ namespace  Kratos {
  * @author Klaus B Sautter
  */
 
-class  KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) MoveMeshUtility
+class  KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) PFEMMoveMeshUtility
 {
 public:
     typedef Node<3> NodeType;
 
-    KRATOS_CLASS_POINTER_DEFINITION(MoveMeshUtility);
+    KRATOS_CLASS_POINTER_DEFINITION(PFEMMoveMeshUtility);
 
     /**
      * @brief This function resets the previous kinematic
@@ -47,7 +47,7 @@ public:
      * @param rFluidModelPart The fluid ModelPart
      */
     static void ResetPfemKinematicValues(ModelPart& rFluidModelPart);
-}; // MoveMeshUtility
+}; // PFEMMoveMeshUtility
 
 } //  Kratos
 

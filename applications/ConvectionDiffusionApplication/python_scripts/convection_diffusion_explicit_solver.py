@@ -81,7 +81,7 @@ class ConvectionDiffusionExplicitSolver(convection_diffusion_solver.ConvectionDi
 
     def _create_runge_kutta_4_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        explicit_builder_and_solver = self.get_builder_and_solver()
+        explicit_builder_and_solver = self._GetBuilderAndSolver()
         rebuild_level = 0
         return ConvectionDiffusionApplication.ExplicitSolvingStrategyRungeKutta4ConvectionDiffusion(
             computing_model_part,

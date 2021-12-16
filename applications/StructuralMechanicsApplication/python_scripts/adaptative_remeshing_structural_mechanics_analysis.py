@@ -46,7 +46,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         super().Initialize()
         computing_model_part = self._GetSolver().GetComputingModelPart()
         if not self.process_remesh:
-            convergence_criteria = self._GetSolver().get_convergence_criterion()
+            convergence_criteria = self._GetSolver()._GetConvergenceCriterion()
             convergence_criteria.Initialize(computing_model_part)
 
         # Ensuring to have conditions on the BC before remesh
@@ -106,8 +106,8 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         else: # Remeshing adaptively
             metric_process = self._GetSolver().get_metric_process()
             remeshing_process = self._GetSolver().get_remeshing_process()
-            convergence_criteria = self._GetSolver().get_convergence_criterion()
-            builder_and_solver = self._GetSolver().get_builder_and_solver()
+            convergence_criteria = self._GetSolver()._GetConvergenceCriterion()
+            builder_and_solver = self._GetSolver()._GetBuilderAndSolver()
             mechanical_solution_strategy = self._GetSolver().get_mechanical_solution_strategy()
 
             while self.time < self.end_time:
