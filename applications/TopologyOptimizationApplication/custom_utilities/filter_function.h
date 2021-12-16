@@ -19,7 +19,6 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <iomanip> 
 
 // External includes
 #include <pybind11/pybind11.h>

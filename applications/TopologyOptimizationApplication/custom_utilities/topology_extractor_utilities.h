@@ -37,11 +37,7 @@
 
 // Application includes
 #include "topology_optimization_application.h"
-#include "processes/find_global_nodal_neighbours_process.h"
-#include "processes/find_conditions_neighbours_process.h"
-#include "processes/node_erase_process.h"
-#include "utilities/normal_calculation_utils.h"
-#include "geometries/triangle_3d_3.h"
+
 namespace Kratos
 {
 

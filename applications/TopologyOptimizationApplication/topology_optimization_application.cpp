@@ -7,8 +7,6 @@
 //  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
 //                   Octaviano Malfavón Farías
 //                   Eric Gonzales
-//                   Philipp Hofer
-//                   Erich Wehrle
 //
 // ==============================================================================
 

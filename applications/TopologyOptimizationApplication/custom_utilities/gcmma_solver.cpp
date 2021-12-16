@@ -111,7 +111,6 @@ namespace Kratos
 		// SolveDSA(xmma);
 
 		// Compute approximation values
-		f0app = ComputeApprox(xmma, low, upp, f0app);
 		return f0app;
 	}
 
@@ -121,7 +120,6 @@ namespace Kratos
 								const int iter, double *low, double *upp, double f0app)
 	{
 		// Update approximation factors
-		RaaUpdate(xmma, xval, f0xnew, fxnew, xmin, xmax, low, upp, f0app);
 
 		// Generate the subproblem
 		GenSub(xval, f0x, df0dx, fx, dfdx, xmin, xmax, xold1, xold2, iter, low, upp);
