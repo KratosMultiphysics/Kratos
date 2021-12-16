@@ -61,7 +61,7 @@ class ConvectionDiffusionStationaryMatrixSolver(convection_diffusion_stationary_
         space.SetToZeroVector(xD)
 
         # Build matrix
-        builder_and_solver = self.get_builder_and_solver()
+        builder_and_solver = self._GetBuilderAndSolver()
         builder_and_solver.Build(scheme, self.GetComputingModelPart(), A, b)
         # Apply constraints
         builder_and_solver.ApplyConstraints(scheme, self.GetComputingModelPart(), A, b)

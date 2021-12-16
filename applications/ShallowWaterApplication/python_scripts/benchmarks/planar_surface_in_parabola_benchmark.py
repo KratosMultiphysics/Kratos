@@ -27,8 +27,8 @@ class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
 
         super().__init__(model, settings)
 
-        self.h0 = self.benchmark_settings["depth"].GetDouble()
-        self.a = self.benchmark_settings["amplitude"].GetDouble()
+        self.h0 = self.settings["benchmark_settings"]["depth"].GetDouble()
+        self.a = self.settings["benchmark_settings"]["amplitude"].GetDouble()
     
     def ExecuteInitialize(self):
         self.g = self.model_part.ProcessInfo[KM.GRAVITY_Z]

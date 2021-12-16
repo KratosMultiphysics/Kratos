@@ -33,7 +33,7 @@
             "time_averaging_type" : 0
         },
         "gentle_coupling_initiation": {
-            "initiation_interval": 0
+            "initiation_interval": 0.1
         },
         "backward_coupling"      : {
             "meso_scale_length"                          : 0.2,
@@ -206,7 +206,7 @@
             "RemoveBallsInitiallyTouchingWalls" : false,
             "strategy"                          : "swimming_sphere_strategy",
             "material_import_settings"          : {
-                "materials_filename" : "gentle_injection_tests/MaterialsDEMInjection.json"
+                "materials_filename" : "fluid_convergence_tests/MaterialsDEMInjection.json"
             }
         },
         "VirtualMassCoefficient"         : 1.0,
@@ -314,10 +314,10 @@
             "solver_type"                 : "MonolithicDEM",
             "model_import_settings"       : {
                 "input_type"     : "mdpa",
-                "input_filename" : "gentle_injection_tests/cube_cavity_with_inletFluid"
+                "input_filename" : "fluid_convergence_tests/cube_cavity_with_inletFluid"
             },
             "material_import_settings"    : {
-                "materials_filename" : "gentle_injection_tests/FluidMaterials.json"
+                "materials_filename" : "fluid_convergence_tests/FluidMaterials.json"
             },
             "time_scheme" : "bdf2",
             "echo_level"                  : 1,

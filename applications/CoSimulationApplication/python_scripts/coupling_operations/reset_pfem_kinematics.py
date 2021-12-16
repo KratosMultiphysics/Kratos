@@ -34,7 +34,7 @@ class ResetPfemKinematics(CoSimulationCouplingOperation):
                 cs_tools.cs_print_info(self._ClassName(), "PFEM KINEMATICS RESET IN MODEL PART: " + self.model_part_name)
 
     def _ResetPfemKinematicValues(self):
-        KM.PfemFluidDynamicsApplication.MoveMeshUtility.ResetPfemKinematicValues(self.model_part)
+        KM.PfemFluidDynamicsApplication.PFEMMoveMeshUtility.ResetPfemKinematicValues(self.model_part)
 
     @classmethod
     def _GetDefaultParameters(cls):
