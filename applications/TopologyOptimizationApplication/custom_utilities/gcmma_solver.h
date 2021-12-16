@@ -139,7 +139,6 @@ namespace Kratos
 		// Check whether the new solution is conservative
 		bool ConCheck(double f0xnew, const double *fxnew, double f0app) const;
 
-		void Reset() { outeriter = 0; };
 
 	private:
 		int nano, m;
