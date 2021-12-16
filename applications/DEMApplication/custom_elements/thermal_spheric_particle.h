@@ -38,6 +38,8 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   typedef Properties PropertiesType;
 
   using TBaseElement::mNeighbourElements;
+  using TBaseElement::mNeighbourRigidFaces;
+  using TBaseElement::mNeighbourNonContactRigidFaces;
   using TBaseElement::GetProperties;
   using TBaseElement::GetGeometry;
   using TBaseElement::GetRadius;
