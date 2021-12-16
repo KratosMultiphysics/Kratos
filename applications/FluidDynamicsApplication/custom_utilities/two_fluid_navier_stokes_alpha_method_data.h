@@ -1,4 +1,4 @@
-//    |  /           |
+    //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_TWO_FLUID_NAVIER_STOKES_DATA_CN_H)
-#define KRATOS_TWO_FLUID_NAVIER_STOKES_DATA_CN_H
+#if !defined(KRATOS_TWO_FLUID_NAVIER_STOKES_DATA_ALPHA_METHOD_H)
+#define KRATOS_TWO_FLUID_NAVIER_STOKES_DATA_ALPHA_METHOD_H
 
 #include "includes/constitutive_law.h"
 
@@ -30,7 +30,7 @@ namespace Kratos {
 ///@{
 
 template< size_t TDim, size_t TNumNodes >
-class TwoFluidNavierStokesCNData : public FluidElementData<TDim,TNumNodes, true>
+class TwoFluidNavierStokesAlphaMethodData : public FluidElementData<TDim,TNumNodes, true>
 {
 public:
 
@@ -53,6 +53,7 @@ NodalVectorData Velocity;
 NodalVectorData Velocity_OldStep1;
 NodalScalarData Pressure;
 NodalScalarData Pressure_OldStep1;
+NodalVectorData AccelerationAlphaMethod;
 
 NodalVectorData MeshVelocity;
 NodalVectorData MeshVelocityOldStep;
@@ -74,7 +75,7 @@ double DynamicViscosity;
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
 double VolumeError; //TODO: RENAME TO VolumeErrorTimeRatio
-double theta;
+double MaxSprectraRadius;
 
 // Auxiliary containers for the symbolically-generated matrices
 BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
@@ -133,10 +134,11 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromHistoricalNodalData(NodalDensityOldStep, DENSITY, r_geometry, 1);
     this->FillFromHistoricalNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
     this->FillFromHistoricalNodalData(NodalDynamicViscosityOldStep, DYNAMIC_VISCOSITY, r_geometry, 1);
-
+    this->FillFromNonHistoricalNodalData(AccelerationAlphaMethod,ACCELERATION,r_geometry);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
-    this->FillFromProcessInfo(theta,TIME_INTEGRATION_THETA,rProcessInfo);
+    this->FillFromProcessInfo(MaxSprectraRadius,SPECTRAL_RADIUS_LIMIT,rProcessInfo);
+
 
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
     noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));
@@ -159,10 +161,10 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     // Also note that we do consider time varying time step but a constant theta (we incur in a small error when switching from BE to CN)
     // Note as well that there is a minus sign (this comes from the divergence sign)
     if (IsCut()) {
-        const double previous_dt = rProcessInfo.GetPreviousTimeStepInfo(1).GetValue(DELTA_TIME);
+        double previous_dt = rProcessInfo.GetPreviousTimeStepInfo()[DELTA_TIME];
         this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
-        double ratio_dt = (1.0-theta)*previous_dt + theta*DeltaTime;
-        VolumeError /= -ratio_dt;
+        // double ratio_dt = (1.0-theta)*previous_dt + theta*DeltaTime;
+        VolumeError /= -previous_dt;
     } else {
         VolumeError = 0.0;
     }
@@ -268,7 +270,10 @@ void CalculateAirMaterialResponse() {
 
 void ComputeStrain()
 {
-    const BoundedMatrix<double, TNumNodes, TDim>& v = theta*Velocity + (1.0-theta)*Velocity_OldStep1;
+    const double rho_inf=this->MaxSprectraRadius;
+    const double alpha_f= 1/(rho_inf+1);
+    const double alpha_m=0.5*((3-rho_inf/(1+rho_inf)));
+    const BoundedMatrix<double, TNumNodes, TDim>& v = Velocity_OldStep1+alpha_f*(Velocity-Velocity_OldStep1);
     const BoundedMatrix<double, TNumNodes, TDim>& DN = this->DN_DX;
 
     // Compute strain (B*v)

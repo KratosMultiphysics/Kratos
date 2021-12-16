@@ -2045,14 +2045,14 @@ void TwoFluidNavierStokesCN<TElementData>::ComputeSplitting(
         rShapeFunctionsPos,
         rShapeDerivativesPos,
         rData.w_gauss_pos_side,
-         GeometryData::IntegrationMethod::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Call the negative side modified shape functions calculator
     pModifiedShapeFunctions->ComputeNegativeSideShapeFunctionsAndGradientsValues(
         rShapeFunctionsNeg,
         rShapeDerivativesNeg,
         rData.w_gauss_neg_side,
-         GeometryData::IntegrationMethod::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Compute the enrichment shape function values using the enrichment interpolation matrices
     rEnrichedShapeFunctionsPos = prod(rShapeFunctionsPos, enr_pos_interp);
@@ -2100,12 +2100,12 @@ void TwoFluidNavierStokesCN<TElementData>::ComputeSplitInterface(
         rInterfaceShapeFunctionNeg,
         rInterfaceShapeDerivativesNeg,
         rInterfaceWeightsNeg,
-         GeometryData::IntegrationMethod::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Call the Interface negative side normal functions calculator
     pModifiedShapeFunctions->ComputeNegativeSideInterfaceAreaNormals(
         rInterfaceNormalsNeg,
-         GeometryData::IntegrationMethod::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     for (unsigned int gp = 0; gp < rInterfaceNormalsNeg.size(); ++gp){
         const double normal_norm = norm_2(rInterfaceNormalsNeg[gp]);
