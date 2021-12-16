@@ -313,6 +313,7 @@ class SlidingVertexMorphingMapper():
         # create elements for main_part
         ele_id = 0
         node_ids_to_remove = []
+        fixed_node_ids = []
         for surface_condition in self.destination_model_part.Conditions:
             node_counter = 0
             number_of_nodes = len(surface_condition.GetNodes())
@@ -321,8 +322,6 @@ class SlidingVertexMorphingMapper():
                 if node.Id in main_nodes_added:
                     ele_node_ids.append(node.Id)
                     node_counter += 1
-                else:
-                    break
             if node_counter == number_of_nodes:
                 ele_id += 1
                 condition_dim = surface_condition.GetGeometry().LocalSpaceDimension()
@@ -340,8 +339,10 @@ class SlidingVertexMorphingMapper():
                     edge_nodes = ele_node_ids[:4]
                     node_ids_to_remove.extend(ele_node_ids[4:])
                     main_part.CreateNewElement("ShellThinElement3D4N", ele_id, edge_nodes, material_properties)
+            else:
+                fixed_node_ids.extend(ele_node_ids)
 
-        # remove nodes from prescribed bc again if higher order surface conditions have been used
+        # remove nodes if higher order surface conditions have been used
         node_ids_to_remove = list(set(node_ids_to_remove))
         nodes_to_remove = main_part.CreateSubModelPart("nodes_to_remove")
         nodes_to_remove.AddNodes(node_ids_to_remove)
@@ -354,23 +355,9 @@ class SlidingVertexMorphingMapper():
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Y, KM.REACTION_Y, main_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Z, KM.REACTION_Z, main_part)
 
-        # find edges
-        neighbor_node_search = KM.FindGlobalNodalNeighboursProcess(main_part)
-        neighbor_node_search.Execute()
-        neighbour_element_search = KM.FindGlobalNodalElementalNeighboursProcess(main_part)
-        neighbour_element_search.Execute()
-
-        KSO.GeometryUtilities(main_part).ExtractEdgeNodes("fixed_bc")
-
-        # remove nodes of prescribed bc from the fixed bc
-        node_ids_to_remove = []
-        for node in fixed_part.Nodes:
-            if node.Id in prescribed_nodes_added:
-                node_ids_to_remove.append(node.Id)
-        fixed_nodes_to_remove = fixed_part.CreateSubModelPart("fixed_nodes_to_remove")
-        fixed_nodes_to_remove.AddNodes(node_ids_to_remove)
-        KM.VariableUtils().SetFlag(KM.TO_ERASE, True, fixed_nodes_to_remove.Nodes)
-        fixed_part.RemoveNodes(KM.TO_ERASE)
+        # add fixed nodes to fixed_part
+        fixed_node_ids = list(set(fixed_node_ids) - set(node_ids_to_remove))
+        fixed_part.AddNodes(fixed_node_ids)
 
     def _ApplyMaterialProperties(self, material_properties):
         # define properties
