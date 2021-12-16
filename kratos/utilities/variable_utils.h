@@ -722,7 +722,7 @@ public:
     }
 
     /**
-     * @brief Sets the nodal value of any variable to zero
+     * @brief Sets the nodal value of any variable to the previous stored data
      * @param rVariable reference to the scalar variable to be set
      * @param rNodes reference to the objective node set
      */
