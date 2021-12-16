@@ -1339,11 +1339,14 @@ namespace Kratos
     // PS2: An indication that a neighbor must be removed from the map is when the updated_step parameter is not the current.
 
     if (mContactParamsParticle.size() != mNumberOfContactParticleNeighbor)
-      for (std::map<SphericParticle*, ContactParams>::const_iterator it = mContactParamsParticle.cbegin(); it != mContactParamsParticle.cend(); ) {
+      for (auto it : mContactParamsParticle)
+        int a = 0;
+
+      /*for (std::map<SphericParticle*, ContactParams>::const_iterator it = mContactParamsParticle.cbegin(); it != mContactParamsParticle.cend(); ) {
         if (it->second.updated_step != r_process_info[TIME_STEPS]) {
           mContactParamsParticle.erase(it);
         }
-      }
+      }*/
         //it = (it->second.updated_step != r_process_info[TIME_STEPS]) ? mContactParamsParticle.erase(it) : std::next(it);
 
     //if (mContactParamsWall.size() != mNeighbourRigidFaces.size()) {
