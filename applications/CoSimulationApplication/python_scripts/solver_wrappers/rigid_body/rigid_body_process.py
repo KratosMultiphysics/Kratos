@@ -105,12 +105,16 @@ class _PrescrivedValueProcess(_RigidBodyProcess):
 class PrescribedForceProcess(_PrescrivedValueProcess):
     
     def _ApplyValue(self, prescribed_value):
-        self.solver.prescribed_load += prescribed_value
+        for index, dof_available in enumerate(self.solver.available_dofs):
+            if self.dof == dof_available:
+                self.solver.prescribed_load[index] += prescribed_value
 
 class PrescribedRootPointDisplacementProcess(_PrescrivedValueProcess):
     
     def _ApplyValue(self, prescribed_value):
-        self.solver.prescribed_root_point_displ += prescribed_value
+        for index, dof_available in enumerate(self.solver.available_dofs):
+            if self.dof == dof_available:
+                self.solver.prescribed_root_point_displ[index] += prescribed_value
 
 
     
