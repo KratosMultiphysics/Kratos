@@ -233,14 +233,14 @@ public:
         KRATOS_ERROR_IF(r_edge_model_part.Nodes().size() != 0) << "ExtractEdgeNodes: The edge model part already has nodes!" << std::endl;
 
         for (auto& r_node_i : mrModelPart.Nodes()) {
-            auto& r_node_i_neighbours = r_node_i.GetValue(NEIGHBOUR_NODES);
-            for(auto j = r_node_i_neighbours.begin(); j != r_node_i_neighbours.end(); ++j) {
-                auto& r_element_neighbours = r_node_i.GetValue(NEIGHBOUR_ELEMENTS);
+            auto& r_node_i_neighbours = r_node_i.GetValue(NEIGHBOUR_NODES);  // does not work with const
+            for(const auto& r_node_j : r_node_i_neighbours) {
+                auto& r_element_neighbours = r_node_i.GetValue(NEIGHBOUR_ELEMENTS);  // does not work with const
                 int count = 0;
-                for(auto k = r_element_neighbours.begin(); k != r_element_neighbours.end(); ++k) {
-                    auto& r_element_geometry = k->GetGeometry();
-                    for(unsigned int node_l = 0; node_l < r_element_geometry.size(); ++node_l) {
-                        if ((r_element_geometry[node_l].Id()) == (j->Id())) count ++;
+                for(const auto& r_elem_k : r_element_neighbours) {
+                    const auto& r_element_geometry = r_elem_k.GetGeometry();
+                    for(const auto& r_node_l : r_element_geometry) {
+                        if (r_node_l.Id() == r_node_j.Id()) count ++;
                     }
                 }
                 if (count < 2){
