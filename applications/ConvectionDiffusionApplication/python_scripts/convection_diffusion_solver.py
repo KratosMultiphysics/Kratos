@@ -41,11 +41,11 @@ class ConvectionDiffusionSolver(PythonSolver):
     This class provides functions for importing and exporting models,
     adding nodal variables and dofs and solving each solution step.
 
-    Derived classes must override the function _create_solution_scheme which
+    Derived classes must override the function _CreateScheme which
     constructs and returns a solution scheme. Depending on the type of
     solver, derived classes may also need to override the following functions:
 
-    _create_solution_scheme
+    _CreateScheme
     _create_convergence_criterion
     _CreateLinearSolver
     _CreateBuilderAndSolver
@@ -403,7 +403,7 @@ class ConvectionDiffusionSolver(PythonSolver):
 
     def _GetScheme(self):
         if not hasattr(self, '_solution_scheme'):
-            self._solution_scheme = self._create_solution_scheme()
+            self._solution_scheme = self._CreateScheme()
         return self._solution_scheme
 
     def _GetConvergenceCriterion(self):
@@ -632,7 +632,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         return builder_and_solver
 
     @classmethod
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         """Create the solution scheme for the convection-diffusion problem."""
         raise Exception("Solution Scheme creation must be implemented in the derived class.")
 

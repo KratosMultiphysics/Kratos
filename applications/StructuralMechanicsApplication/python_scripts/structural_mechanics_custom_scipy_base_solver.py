@@ -39,7 +39,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
         return this_defaults
 
     #### Private functions ####
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         """Create the scheme for the scipy solver.
 
         The scheme determines the mass and stiffness matrices

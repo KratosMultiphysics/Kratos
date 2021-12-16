@@ -160,5 +160,5 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
             raise Exception(err_msg)
         return mechanical_solution_strategy
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         return KratosMultiphysics.ResidualBasedAdjointStaticScheme(self.response_function)

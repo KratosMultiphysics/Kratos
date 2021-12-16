@@ -54,7 +54,7 @@ class PrebucklingSolver(MechanicalSolver):
 
         return new_time
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
     # Builder and Solver Eigen

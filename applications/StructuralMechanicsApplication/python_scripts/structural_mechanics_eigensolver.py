@@ -49,7 +49,7 @@ class EigenSolver(MechanicalSolver):
 
     #### Private functions ####
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         """Create the scheme for the eigenvalue problem.
 
         The scheme determines the left- and right-hand side matrices in the

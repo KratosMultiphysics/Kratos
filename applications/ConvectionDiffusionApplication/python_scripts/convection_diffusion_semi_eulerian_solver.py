@@ -130,7 +130,7 @@ class ConvectionDiffusionSemiImplicitSolver(convection_diffusion_solver.Convecti
             self._bfecc_convection = self._CreateBFECCConvection()
         return self._bfecc_convection
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         # Create a "fake" time scheme to perform the solution update
         convection_diffusion_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         return convection_diffusion_scheme
@@ -156,4 +156,3 @@ class ConvectionDiffusionSemiImplicitSolver(convection_diffusion_solver.Convecti
             bfecc_utility = ConvectionDiffusionApplication.BFECCConvection3D(point_locator)
 
         return bfecc_utility
-

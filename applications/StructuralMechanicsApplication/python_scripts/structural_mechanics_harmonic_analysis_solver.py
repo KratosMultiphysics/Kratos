@@ -35,7 +35,7 @@ class HarmonicAnalysisSolver(MechanicalSolver):
 
     #### Private functions ####
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         """Create the scheme to construct the global force vector.
 
         The scheme determines the initial force vector on all system dofs.
