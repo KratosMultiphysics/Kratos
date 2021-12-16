@@ -146,4 +146,7 @@ class sliding_opt_test(ShapeOptimizationTestFactory):
     execution_directory = "sliding_opt_test"
     execution_file = "run_test"
 
+class direction_damping_test(ShapeOptimizationTestFactory):
+    execution_directory = "direction_damping_test"
+    execution_file = "run_test"
 # ==============================================================================
