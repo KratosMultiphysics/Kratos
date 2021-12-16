@@ -1339,24 +1339,13 @@ namespace Kratos
     // PS2: An indication that a neighbor must be removed from the map is when the updated_step parameter is not the current.
 
     if (mContactParamsParticle.size() != mNumberOfContactParticleNeighbor)
-      for (auto it = mContactParamsParticle.cbegin(); it != mContactParamsParticle.cend(); it++)
-        if (it->second.updated_step != r_process_info[TIME_STEPS]) {
-          mContactParamsParticle.erase(it);
-          it--;
-        }
+      for (auto it = mContactParamsParticle.cbegin(); it != mContactParamsParticle.cend(); )
+        it = (it->second.updated_step != r_process_info[TIME_STEPS]) ? mContactParamsParticle.erase(it) : std::next(it);
 
-      /*for (std::map<SphericParticle*, ContactParams>::const_iterator it = mContactParamsParticle.cbegin(); it != mContactParamsParticle.cend(); ) {
-        if (it->second.updated_step != r_process_info[TIME_STEPS]) {
-          mContactParamsParticle.erase(it);
-        }
-      }*/
-        //it = (it->second.updated_step != r_process_info[TIME_STEPS]) ? mContactParamsParticle.erase(it) : std::next(it);
-
-    //if (mContactParamsWall.size() != mNeighbourRigidFaces.size()) {
-    //  for (std::map<DEMWall*, ContactParams>::const_iterator it = mContactParamsWall.cbegin(); it != mContactParamsWall.cend(); )
-    //    it = (it->second.updated_step != r_process_info[TIME_STEPS]) ? mContactParamsWall.erase(it) : std::next(it);
-    //}
-
+    if (mContactParamsWall.size() != mNeighbourRigidFaces.size())
+      for (auto it = mContactParamsWall.cbegin(); it != mContactParamsWall.cend(); )
+        it = (it->second.updated_step != r_process_info[TIME_STEPS]) ? mContactParamsWall.erase(it) : std::next(it);
+    
     KRATOS_CATCH("")
   }
 
