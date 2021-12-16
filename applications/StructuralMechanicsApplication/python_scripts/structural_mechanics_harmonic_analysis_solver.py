@@ -58,8 +58,8 @@ class HarmonicAnalysisSolver(MechanicalSolver):
         return KratosMultiphysics.LinearSolver()
 
     def _create_mechanical_solution_strategy(self):
-        eigen_scheme = self.get_solution_scheme()
-        builder_and_solver = self.get_builder_and_solver()
+        eigen_scheme = self._GetScheme()
+        builder_and_solver = self._GetBuilderAndSolver()
         computing_model_part = self.GetComputingModelPart()
 
         return StructuralMechanicsApplication.HarmonicAnalysisStrategy(computing_model_part,

@@ -17,6 +17,8 @@
 
 
 // Project includes
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "shallow_water_utilities.h"
 #include "phase_function.h"
 
@@ -193,7 +195,7 @@ void ShallowWaterUtilities::ExtrapolateElementalFlagToNodes(ModelPart& rModelPar
     });
 }
 
-void ShallowWaterUtilities::NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable)
+void ShallowWaterUtilities::NormalizeVector(ModelPart& rModelPart, const Variable<array_1d<double,3>>& rVariable)
 {
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
         auto& vector = rNode.FastGetSolutionStepValue(rVariable);
@@ -381,7 +383,7 @@ bool ShallowWaterUtilities::IsWet(const GeometryType& rGeometry, const double He
 bool ShallowWaterUtilities::IsWet(const double Height, const double DryHeight)
 {
     const double wet_fraction = PhaseFunction::WetFraction(Height, DryHeight);
-    const double threshold = 1.0 - 1e-16;
+    const double threshold = 1.0 - 1e-6;
     return (wet_fraction >= threshold);
 }
 
