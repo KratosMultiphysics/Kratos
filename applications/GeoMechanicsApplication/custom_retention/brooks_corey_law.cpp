@@ -170,7 +170,8 @@ if (p > 0.0 & p > pb)
     }
     else
     {
-        return 1.0;
+        double BishopCo =1
+        return BishopCo;
     }
 
 
