@@ -4,14 +4,14 @@
         "parallel_type"        : "OpenMP",
         "echo_level"           : 0,
         "start_time"           : 0.0,
-        "end_time"             : 10,
+        "end_time"             : 100,
         "domain_size"          : 3,
         "material_settings"    : {
             "material_filename" : "materials.json"
         },
         "environment_settings" : {
             "gravity"             : [0.0,0.0,-9.81],
-            "ambient_temperature" : 293.16
+            "ambient_temperature" : 298.0
         },
         "mesh_element_size"    : 1.0
     },
@@ -34,7 +34,7 @@
                         },
                         "file_label"                  : "step",
                         "output_control_type"         : "step",
-                        "output_interval"             : 1,
+                        "output_interval"             : 100.0,
                         "body_output"                 : true,
                         "node_output"                 : false,
                         "skin_output"                 : false,
@@ -102,7 +102,7 @@
             "formulation"                 : {
                 "element_type"             : "vms",
                 "use_orthogonal_subscales" : false,
-                "dynamic_tau"              : 1.0
+                "dynamic_tau"              : 0.0
             }
         },
         "thermal_solver_settings" : {
@@ -148,6 +148,13 @@
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0]
             }
+            },{
+            "python_module" : "apply_laser_process",
+            "kratos_module" : "KratosMultiphysics.PfemMeltingApplication",
+            "Parameters"    : {
+                "model_part_name" : "ModelPart",
+                "filename"        : "LaserSettings.json"
+		}
             }]
     }
 }

@@ -82,32 +82,12 @@ public:
 
 
         // Now validate agains defaults -- this also ensures no type mismatch
-        rParameters.ValidateAndAssignDefaults(default_parameters);
+        //rParameters.ValidateAndAssignDefaults(default_parameters);
 
         //mLaserProfile.clear();
         //mDirection.clear();
-        mPositionLaserTable.clear();
+        //mPositionLaserTable.clear();
 
-
-	if(rParameters["laser_profile"]["radius"].IsNumber()) {
-        	mradius=  rParameters["laser_profile"]["radius"].GetDouble();
-	}
-
-	if(rParameters["laser_profile"]["power"].IsNumber()) {
-        	mpower=  rParameters["laser_profile"]["power"].GetDouble();
-	}
-
-	/*for(int i=0; i<3; i++) {
-	if(rParameters["path"]["table"][i].IsNull()) {
-                mPositionLaserTableId[i] = 0;
-            }
-            else {
-                mPositionLaserTableId[i] = rParameters["path"]["table"][i].GetInt();
-
-		KRATOS_WATCH(mPositionLaserTableId[i])
-            }
-            mPositionLaserTable.push_back(rModelPart.pGetTable(mPositionLaserTableId[i]));
-        }*/
 
         KRATOS_CATCH("");
     }
@@ -134,14 +114,14 @@ public:
     }
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    void ExecuteInitializeSolutionStep() override {
-        KRATOS_TRY;
-
-        double x= 0.57102;
-	double y= 0.99997;
-        double z= 0.5299;
-        double radius= mradius;
+	void laserapplication(double mradius, double mpower, double mx, double my, double mz)  {
+	KRATOS_TRY;
+	double radius= mradius;
         double face_heat_flux =mpower;
+        
+	double x= mx;
+	double y= my;
+        double z= mz;
         const int TDim=3;
 
 	//defintions for spatial search
@@ -225,6 +205,12 @@ public:
 			}
 		}
 	  }
+	KRATOS_CATCH("");
+	}
+    void ExecuteInitializeSolutionStep() override {
+        KRATOS_TRY;
+
+
         KRATOS_CATCH("")
 
     }
@@ -270,7 +256,7 @@ private:
     //mDirection.clear();
     std::vector<TableType::Pointer> mPositionLaserTable;
 
-
+    double mRadious;
     /// Assignment operator.
     ApplyLaserProcess& operator=(ApplyLaserProcess const& rOther);
 

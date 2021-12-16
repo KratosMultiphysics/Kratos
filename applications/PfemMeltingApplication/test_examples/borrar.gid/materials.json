@@ -4,14 +4,14 @@
         "properties_id"   : 1,
         "Material"        : {
             "Variables" : {
-                "DENSITY"                : 1.225,
-                "CONDUCTIVITY"           : 0.024,
-                "SPECIFIC_HEAT"          : 1012.0,
+                "DENSITY"                : 1130.0,
+                "CONDUCTIVITY"           : 0.15,
+                "SPECIFIC_HEAT"          : 1740.0,
                 "ARRHENIUS_COEFFICIENT"  : 0.0,
                 "ACTIVATION_ENERGY"      : 0.0,
                 "HEAT_OF_VAPORIZATION"   : 0.0,
                 "EMISSIVITY"             : 1.0,
-                "CONVECTION_COEFFICIENT" : 4.0,
+                "CONVECTION_COEFFICIENT" : 0.0,
                 "DYNAMIC_VISCOSITY" : 1000000.0
             },
             "Tables": {

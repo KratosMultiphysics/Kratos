@@ -205,13 +205,18 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         read_materials_utility = KratosMultiphysics.ReadMaterialsUtility(self.model)
 
         read_materials_utility.AssignVariablesToProperty(mat, self.fluid_solver.main_model_part.GetProperties()[0])
-
+        read_materials_utility.AssignVariablesToProperty(mat, self.fluid_solver.main_model_part.GetProperties()[1])
 
         '''self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.DYNAMIC_VISCOSITY]=self.values_aux[6].GetDouble()
         self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.DENSITY]=self.values_aux[5].GetDouble()
         self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.EMISSIVITY]=self.values_aux[7].GetDouble()
         self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.AMBIENT_TEMPERATURE]=self.values_aux[1].GetDouble() #298.0
         self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.CONVECTION_COEFFICIENT]=self.values_aux[4].GetDouble()'''
+
+
+        self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.AMBIENT_TEMPERATURE]=self.ambient_temperature.GetDouble()
+        self.fluid_solver.main_model_part.GetProperties()[1][KratosMultiphysics.AMBIENT_TEMPERATURE]=self.ambient_temperature.GetDouble()
+
         self.new_table_aux = KratosMultiphysics.PiecewiseLinearTable()
 
         for i in range(table1["data"].size()):
@@ -316,55 +321,6 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
                     node.Fix(KratosMultiphysics.VELOCITY_Y)
                     node.Fix(KratosMultiphysics.VELOCITY_Z)
 
-
-
-        #for node in self.fluid_solver.main_model_part.Nodes:
-        #    if(node.Y<0.00001): #if(node.Y>0.99999 or node.Y<0.00001):
-        #        node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0,1.0);
-
-
-
-        #for node in self.fluid_solver.main_model_part.Nodes:
-        #    node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0, 0.0)
-        #    if(node.Y<0.0001):
-        #        node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0, 1.0)
-                #node.Fix(KratosMultiphysics.VELOCITY_X)
-                #node.Fix(KratosMultiphysics.VELOCITY_Y)
-                #node.Fix(KratosMultiphysics.VELOCITY_Z)
-
-
-            #aux=node.X * node.X + node.Z * node.Z
-            #radious=aux**.5
-            #if (radious <=0.0018):
-            #    node.SetSolutionStepValue(KratosMultiphysics.IS_INTERFACE,0, 1.0)
-            #    node.Fix(KratosMultiphysics.VELOCITY_X)
-            #    node.Fix(KratosMultiphysics.VELOCITY_Y)
-            #    node.Fix(KratosMultiphysics.VELOCITY_Z)
-
-            #if (radious <=0.0017):
-            #    node.SetSolutionStepValue(KratosMultiphysics.CONDUCTIVITY,0,386.4)
-            #    node.SetSolutionStepValue(KratosMultiphysics.SPECIFIC_HEAT,0,390.0)
-            #    node.SetSolutionStepValue(KratosMultiphysics.DENSITY,0,8920)
-            #    #node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0, 1.0)
-
-            #aux=node.X * node.X + node.Z * node.Z
-            #radious=aux**.5
-            #if(node.X>0.0032931):
-            #    XP=0.013-node.X
-            #    ZP=0-node.Z
-            #    r=(XP * XP + ZP * ZP)**.5
-            #    if (r < 0.00177):
-            #        node.SetSolutionStepValue(KratosMultiphysics.IS_INTERFACE,0, 1.0)
-            #        node.Fix(KratosMultiphysics.VELOCITY_X)
-            #        node.Fix(KratosMultiphysics.VELOCITY_Y)
-            #        node.Fix(KratosMultiphysics.VELOCITY_Z)
-            #    if (r < 0.0016):
-            #        node.SetSolutionStepValue(KratosMultiphysics.CONDUCTIVITY,0,386.4)
-            #        node.SetSolutionStepValue(KratosMultiphysics.SPECIFIC_HEAT,0,390.0)
-            #        node.SetSolutionStepValue(KratosMultiphysics.DENSITY,0,8920)
-            #        #node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0, 1.0)
-
-            #    #node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
 
 
 
