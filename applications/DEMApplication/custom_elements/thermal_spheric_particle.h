@@ -37,6 +37,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   typedef Geometry<Node<3>> GeometryType;
   typedef Properties PropertiesType;
 
+  using TBaseElement::CalculateMomentOfInertia;
   using TBaseElement::mNeighbourElements;
   using TBaseElement::mNeighbourRigidFaces;
   using TBaseElement::mNeighbourNonContactRigidFaces;
