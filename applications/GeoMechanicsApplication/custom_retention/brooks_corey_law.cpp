@@ -52,6 +52,8 @@ double BrooksCoreyLaw::
 
     const double &p = rParameters.GetFluidPressure();
     const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
+    const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
+   
     if (p > 0.0 & p <= pb )
     {
         double sat =1;
@@ -152,6 +154,8 @@ double BrooksCoreyLaw::
 {
     KRATOS_TRY;
      const double &p = rParameters.GetFluidPressure();
+     const auto &rMaterialProperties = rParameters.GetMaterialProperties();
+     const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
      
 if (p > 0.0 & p > pb)
     {
@@ -170,7 +174,7 @@ if (p > 0.0 & p > pb)
     }
     else
     {
-        double BishopCo =1
+        double BishopCo =1;
         return BishopCo;
     }
 
