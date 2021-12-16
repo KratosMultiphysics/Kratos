@@ -582,7 +582,7 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
                     consistent = 2 * alpha_stabilization / 36.0;
 
 
-                rRightHandSideVector[index_p] += consistent * pressure * rIntegrationWeight / rVariables.detFT; //2D
+                rRightHandSideVector[index_p] += consistent * pressure * rIntegrationWeight ; //2D
             }
             else
             {
@@ -590,7 +590,7 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
                 if (i == j)
                     consistent = 3 * alpha_stabilization / 80.0;
 
-                rRightHandSideVector[index_p] += consistent * pressure * rIntegrationWeight / rVariables.detFT; //3D
+                rRightHandSideVector[index_p] += consistent * pressure * rIntegrationWeight ; //3D
             }
         }
         index_p += (dimension + 1);
@@ -893,7 +893,7 @@ void UpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatri
                 if (indexpi == indexpj)
                     consistent = 2 * alpha_stabilization / 36.0;
 
-                rLeftHandSideMatrix(indexpi, indexpj) -= consistent * rIntegrationWeight / rVariables.detFT; //2D
+                rLeftHandSideMatrix(indexpi, indexpj) -= consistent * rIntegrationWeight ; //2D
             }
             else
             {
@@ -901,7 +901,7 @@ void UpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatri
                 if (indexpi == indexpj)
                     consistent = 3 * alpha_stabilization / 80.0;
 
-                rLeftHandSideMatrix(indexpi, indexpj) -= consistent * rIntegrationWeight / rVariables.detFT; //3D
+                rLeftHandSideMatrix(indexpi, indexpj) -= consistent * rIntegrationWeight ; //3D
             }
             indexpj += (dimension + 1);
         }
