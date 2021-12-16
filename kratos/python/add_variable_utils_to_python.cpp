@@ -51,7 +51,6 @@ void AddCopyModelPartFlaggedInterface(pybind11::class_<VariableUtils>& rPythonVa
     rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar));
     rPythonVariableUtils.def("CopyModelPartFlaggedElementVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedElementVar));
     rPythonVariableUtils.def("CopyModelPartFlaggedConditionVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedConditionVar));
-    rPythonVariableUtils.def("SetHistoricalVariableToPreviousInfo", (void(VariableUtils::*)(const Variable< TDataType >& , ModelPart::NodesContainerType& , const int ))(&VariableUtils::SetHistoricalVariableToPreviousInfo));
 }
 
 void VariableUtilsUpdateCurrentPosition(
@@ -468,7 +467,17 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("UpdateInitialToCurrentConfiguration", &VariableUtils::UpdateInitialToCurrentConfiguration)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
-        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition);
+        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition)
+        .def("SetHistoricalVariableToPreviousInfo", &VariableUtils::SetHistoricalVariableToPreviousInfo<bool>)
+        .def("SetHistoricalVariableToPreviousInfo", &VariableUtils::SetHistoricalVariableToPreviousInfo<int>)
+        .def("SetHistoricalVariableToPreviousInfo", &VariableUtils::SetHistoricalVariableToPreviousInfo<double>)
+        .def("SetHistoricalVariableToPreviousInfo", &VariableUtils::SetHistoricalVariableToPreviousInfo<Vector>)
+        .def("SetHistoricalVariableToPreviousInfo", &VariableUtils::SetHistoricalVariableToPreviousInfo<Matrix>)
+        .def("SetHistoricalVariableToPreviousInfo", &VariableUtils::SetHistoricalVariableToPreviousInfo<array_1d<double, 3>>)
+        .def("SetHistoricalVariableToPreviousInfo", &VariableUtils::SetHistoricalVariableToPreviousInfo<array_1d<double, 3>>)
+        .def("SetHistoricalVariableToPreviousInfo", &VariableUtils::SetHistoricalVariableToPreviousInfo<array_1d<double, 4>>)
+        .def("SetHistoricalVariableToPreviousInfo", &VariableUtils::SetHistoricalVariableToPreviousInfo<array_1d<double, 6>>)
+        .def("SetHistoricalVariableToPreviousInfo", &VariableUtils::SetHistoricalVariableToPreviousInfo<array_1d<double, 9>>);
 
     AddCopyModelPartFlaggedInterface<bool>(python_variable_utils);
     AddCopyModelPartFlaggedInterface<double>(python_variable_utils);
