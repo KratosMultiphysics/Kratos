@@ -10,7 +10,7 @@ class NeuralNetworkProcessFactory(object):
     def __init__(self):
         pass
 
-    def ConstructListOfProcesses( self, process_list ):
+    def ConstructListOfProcesses( self, process_list, model = None ):
         constructed_processes = []
         if process_list.IsArray():
             processes = process_list
@@ -39,8 +39,10 @@ class NeuralNetworkProcessFactory(object):
 
                 full_module_name = kratos_module_name + "." + python_module_name
                 python_module = import_module(full_module_name)
-
-                p = python_module.Factory(item)
+                if kratos_module_name == "KratosMultiphysics.NeuralNetworkApplication":
+                    p = python_module.Factory(item)
+                else:
+                    p = python_module.Factory(item, model)
                 constructed_processes.append( p )
 
             else: # for user-defined processes

@@ -14,6 +14,9 @@ class NeuralNetworkData:
     
     def ExportAsArray(self):
         return self.data
+    
+    def ExportElementAsArray(self, id):
+        return self.ExportAsArray()
 
     def ExportDataOnly(self):
         return self.ExportAsArray()
@@ -39,6 +42,8 @@ class DataWithLookback(NeuralNetworkData):
     lookback_data: np.ndarray = field(init=False)
     lookback_state: bool = False
     only_lookback: bool = False
+    timesteps_as_features: bool = False
+    features_as_timesteps: bool = False
     record_data: bool = False
     reorder_partitions: int = 1
 
@@ -58,7 +63,10 @@ class DataWithLookback(NeuralNetworkData):
                 try:
                     new_array = np.reshape(new_array, (1, new_array.shape[0], new_array.shape[1]))
                 except IndexError:
-                    new_array = np.reshape(new_array, (1, new_array.shape[0], 1))
+                    # if self.lookback_index == 1:
+                    #     new_array = np.reshape(new_array, (1, 1, new_array.shape[0]))
+                    # else:
+                        new_array = np.reshape(new_array, (1, new_array.shape[0], 1))
                 if self.reorder_partitions > 1:
                     new_array = self.Reorder(new_array, self.reorder_partitions)
                 return new_array
@@ -116,7 +124,11 @@ class DataWithLookback(NeuralNetworkData):
 
     def UpdateLookbackAll(self, new_array):
         self.lookback_data = new_array
-        self.lookback_index = new_array.shape[0]
+        try:
+            if len(new_array.shape)>1:
+                self.lookback_index = new_array.shape[0]
+        except AttributeError:
+            pass
         self.lookback_state = True
 
     def CheckLookbackAndUpdate(self, new_data):
@@ -161,10 +173,47 @@ class DataWithLookback(NeuralNetworkData):
         return self.lookback_index
     
     def GetLookbackShape(self):
+        if self.lookback_index == 1:
+                return tuple((1, len(self.lookback_data)))
+        else:
+            try:
+                return self.lookback_data.shape
+            except AttributeError:
+                
+                    return tuple((self.lookback_index,0))
+        
+    def ExportElementAsArray(self, id):
+
+        array = self.ExportAsArray()
+
         try:
-            return self.lookback_data.shape
-        except AttributeError:
-            return tuple((self.lookback_index,0))
+            if self.only_lookback and (self.timesteps_as_features or self.features_as_timesteps):
+                feature_length = self.GetLookbackShape()[1] * self.lookback_index
+            elif self.only_lookback:
+                feature_length = self.GetLookbackShape()[1]
+            elif self.timesteps_as_features or self.features_as_timesteps:
+                feature_length = self.GetDataShape()[1]+self.GetLookbackShape()[1] * self.lookback_index
+            else:
+                feature_length = self.GetDataShape()[1]+self.GetLookbackShape()[1]
+        except IndexError:
+            if self.timesteps_as_features or self.features_as_timesteps:
+                feature_length = self.GetDataShape()[0]+self.GetLookbackShape()[1] * self.lookback_index
+            else:
+                feature_length = self.GetDataShape()[0]+self.GetLookbackShape()[1]
+
+        if self.timesteps_as_features:
+            array = np.reshape(array, (1,1, feature_length))
+        elif self.features_as_timesteps:
+            array = np.reshape(array, (1, feature_length,1))
+        else:
+            array = np.reshape(array, (1,self.lookback_index, feature_length))
+        return array
+
+    def SetTimestepsAsFeatures(self, switch_to = True):
+        self.timesteps_as_features = switch_to
+    
+    def SetFeaturesAsTimesteps(self, switch_to = True):
+        self.features_as_timesteps = switch_to
 
 @dataclass
 class ListNeuralNetworkData:
@@ -198,6 +247,9 @@ class ListNeuralNetworkData:
             except IndexError:
                 pass
         return array
+
+    def ExportElementAsArray(self, element_id):
+        return self.data_array[element_id].ExportElementAsArray(element_id)
 
     def ExportDataOnly(self):
         return self.ExportAsArray()
@@ -276,29 +328,29 @@ class ListDataWithLookback(ListNeuralNetworkData):
     
     def ExportElementAsArray(self, element_id):
 
-        array = self.data_array[element_id].ExportAsArray()
+        array = self.data_array[element_id].ExportElementAsArray(element_id)
 
-        try:
-            if self.only_lookback and (self.timesteps_as_features or self.features_as_timesteps):
-                feature_length = self.data_array[0].GetLookbackShape()[1] * self.lookback_index
-            elif self.only_lookback:
-                feature_length = self.data_array[0].GetLookbackShape()[1]
-            elif self.timesteps_as_features or self.features_as_timesteps:
-                feature_length = self.data_array[0].GetDataShape()[1]+self.data_array[0].GetLookbackShape()[1] * self.lookback_index
-            else:
-                feature_length = self.data_array[0].GetDataShape()[1]+self.data_array[0].GetLookbackShape()[1]
-        except IndexError:
-            if self.timesteps_as_features or self.features_as_timesteps:
-                feature_length = self.data_array[0].GetDataShape()[0]+self.data_array[0].GetLookbackShape()[1] * self.lookback_index
-            else:
-                feature_length = self.data_array[0].GetDataShape()[0]+self.data_array[0].GetLookbackShape()[1]
+        # try:
+        #     if self.only_lookback and (self.timesteps_as_features or self.features_as_timesteps):
+        #         feature_length = self.data_array[0].GetLookbackShape()[1] * self.lookback_index
+        #     elif self.only_lookback:
+        #         feature_length = self.data_array[0].GetLookbackShape()[1]
+        #     elif self.timesteps_as_features or self.features_as_timesteps:
+        #         feature_length = self.data_array[0].GetDataShape()[1]+self.data_array[0].GetLookbackShape()[1] * self.lookback_index
+        #     else:
+        #         feature_length = self.data_array[0].GetDataShape()[1]+self.data_array[0].GetLookbackShape()[1]
+        # except IndexError:
+        #     if self.timesteps_as_features or self.features_as_timesteps:
+        #         feature_length = self.data_array[0].GetDataShape()[0]+self.data_array[0].GetLookbackShape()[1] * self.lookback_index
+        #     else:
+        #         feature_length = self.data_array[0].GetDataShape()[0]+self.data_array[0].GetLookbackShape()[1]
 
-        if self.timesteps_as_features:
-            array = np.reshape(array, (1,1, feature_length))
-        elif self.features_as_timesteps:
-            array = np.reshape(array, (1, feature_length,1))
-        else:
-            array = np.reshape(array, (1,self.lookback_index, feature_length))
+        # if self.timesteps_as_features:
+        #     array = np.reshape(array, (1,1, feature_length))
+        # elif self.features_as_timesteps:
+        #     array = np.reshape(array, (1, feature_length,1))
+        # else:
+        #     array = np.reshape(array, (1,self.lookback_index, feature_length))
         return array
 
 
@@ -350,9 +402,13 @@ class ListDataWithLookback(ListNeuralNetworkData):
     
     def SetTimestepsAsFeatures(self, switch_to = True):
         self.timesteps_as_features = switch_to
+        for entry in self.data_array:
+            entry.SetTimestepsAsFeatures(switch_to)
     
     def SetFeaturesAsTimesteps(self, switch_to = True):
         self.features_as_timesteps = switch_to
+        for entry in self.data_array:
+            entry.SetFeaturesAsTimesteps(switch_to)
 
     def SetReorder(self, number_of_partitions):
         for entry in self.data_array:
@@ -388,7 +444,10 @@ class ListDataWithLookback(ListNeuralNetworkData):
                 else:
                     data_length = self.data_array[0].GetDataShape()[0]
         else:
-            lookback_length = self.data_array[0].GetLookbackShape()[1]
+            if self.lookback_index == 1:
+                lookback_length = self.data_array[0].GetLookbackShape()[0]
+            else:
+                lookback_length = self.data_array[0].GetLookbackShape()[1]
             try:
                 data_length = self.data_array[0].GetDataShape()[1]
             except IndexError:

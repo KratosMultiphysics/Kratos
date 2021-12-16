@@ -92,7 +92,7 @@ class DataGeneratorProcess(KM.Process):
             raise Exception('No "model_part_name" was specified!')
         self.model_part = model[model_part_name]
 
-         # getting the input ModelPart from the Model
+        # getting the input ModelPart from the Model
         input_model_part_name = settings["input_model_part"].GetString()
         if input_model_part_name == "":
             raise Exception('No "input_model_part" was specified!')
