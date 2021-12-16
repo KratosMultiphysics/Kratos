@@ -356,10 +356,8 @@ class SlidingVertexMorphingMapper():
 
         # find edges
         neighbor_node_search = KM.FindGlobalNodalNeighboursProcess(main_part)
-        neighbor_node_search.ClearNeighbours()
         neighbor_node_search.Execute()
         neighbour_element_search = KM.FindGlobalNodalElementalNeighboursProcess(main_part)
-        neighbour_element_search.ClearNeighbours()
         neighbour_element_search.Execute()
 
         KSO.GeometryUtilities(main_part).ExtractEdgeNodes("fixed_bc")
