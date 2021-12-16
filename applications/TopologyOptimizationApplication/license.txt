@@ -1,6 +1,9 @@
 Kratos Topology Optimization Application
 A library based on: Kratos Multi-Physics
 
+Copyright (c) 2021, Philipp Hofer, Technical University of Munich
+					Dr.-Ing Erich Wehrle, Faculty of Science and Technology, Free University of Bozen-Bolzano
+All rights reserved.
 Copyright (c) 2016, Daniel Baumgärtner, Lehrstuhl für Statik, Prof. Dr.-Ing. K.-U. Bletzinger, Technische Universität München
 All rights reserved.
 

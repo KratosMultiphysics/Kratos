@@ -70,6 +70,7 @@ MMASolver::MMASolver(int nn, int mm, double ai, double ci, double di)
     
     {
     }
+
     
     ///@name Operators
 	///@{
@@ -106,7 +107,6 @@ void MMASolver::Update(double *xval, const double *dfdx, const double *gx, const
             xold2[i]=xold1[i];
             xold1[i]=xval[i];
         }
-
 
         // Solve the dual with an interior point method
         SolveDIP(xval, low, upp);
@@ -397,7 +397,6 @@ void MMASolver::GenSub(const double *xval, const double *dfdx, const double *gx,
         KRATOS_TRY
 
         // Forward the iterator
-
         // Set asymptotes
         if (iter < 3) 
         {
