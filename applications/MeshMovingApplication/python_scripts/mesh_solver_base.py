@@ -195,7 +195,7 @@ class MeshSolverBase(PythonSolver):
 
     def _GetLinearSolver(self):
         if not hasattr(self, '_linear_solver'):
-            self._linear_solver = self._create_linear_solver()
+            self._linear_solver = self._CreateLinearSolver()
         return self._linear_solver
 
     def get_mesh_motion_solving_strategy(self):
@@ -205,7 +205,7 @@ class MeshSolverBase(PythonSolver):
 
     #### Private functions ####
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
         return ConstructSolver(self.settings["linear_solver_settings"])
 

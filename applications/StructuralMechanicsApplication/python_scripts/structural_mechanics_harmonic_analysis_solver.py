@@ -49,7 +49,7 @@ class HarmonicAnalysisSolver(MechanicalSolver):
 
         return solution_scheme
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         """Create a dummy linear solver.
 
         This overrides the base class method and returns an empty linear solver as the harmonic

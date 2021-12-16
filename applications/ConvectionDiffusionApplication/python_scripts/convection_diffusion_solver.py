@@ -47,7 +47,7 @@ class ConvectionDiffusionSolver(PythonSolver):
 
     _create_solution_scheme
     _create_convergence_criterion
-    _create_linear_solver
+    _CreateLinearSolver
     _CreateBuilderAndSolver
     _create_convection_diffusion_solution_strategy
 
@@ -413,7 +413,7 @@ class ConvectionDiffusionSolver(PythonSolver):
 
     def _GetLinearSolver(self):
         if not hasattr(self, '_linear_solver'):
-            self._linear_solver = self._create_linear_solver()
+            self._linear_solver = self._CreateLinearSolver()
         return self._linear_solver
 
     def _GetBuilderAndSolver(self):
@@ -594,7 +594,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             convergence_criterion = self.__base_convergence_criteria_factory_mpi(self._get_convergence_criterion_settings())
             return convergence_criterion
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         return linear_solver
 

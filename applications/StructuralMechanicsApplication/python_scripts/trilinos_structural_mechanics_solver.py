@@ -76,7 +76,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         return trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
     def _CreateBuilderAndSolver(self):

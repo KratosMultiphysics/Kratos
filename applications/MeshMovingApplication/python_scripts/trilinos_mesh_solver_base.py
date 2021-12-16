@@ -71,7 +71,7 @@ class TrilinosMeshSolverBase(MeshSolverBase):
 
     #### Private functions ####
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         return trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
     def _create_mesh_motion_solving_strategy(self):

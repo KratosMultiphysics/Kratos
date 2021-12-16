@@ -28,7 +28,7 @@ class MechanicalSolver(PythonSolver):
 
     _create_solution_scheme
     _create_convergence_criterion
-    _create_linear_solver
+    _CreateLinearSolver
     _CreateBuilderAndSolver
     _create_mechanical_solution_strategy
 
@@ -299,7 +299,7 @@ class MechanicalSolver(PythonSolver):
 
     def _GetLinearSolver(self):
         if not hasattr(self, '_linear_solver'):
-            self._linear_solver = self._create_linear_solver()
+            self._linear_solver = self._CreateLinearSolver()
         return self._linear_solver
 
     def _GetBuilderAndSolver(self):
@@ -417,7 +417,7 @@ class MechanicalSolver(PythonSolver):
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
         if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
             return linear_solver_factory.ConstructSolver(linear_solver_configuration)

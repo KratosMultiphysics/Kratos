@@ -65,7 +65,7 @@ class EigenSolver(MechanicalSolver):
 
         return solution_scheme
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         """Create the eigensolver.
 
         This overrides the base class method and replaces the usual linear solver

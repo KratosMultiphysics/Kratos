@@ -131,8 +131,8 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         convergence_criterion = ContactConvergenceCriteriaFactory(self.main_model_part, self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
-    def _create_linear_solver(self):
-        linear_solver = super()._create_linear_solver()
+    def _CreateLinearSolver(self):
+        linear_solver = super()._CreateLinearSolver()
         return auxiliar_methods_solvers.AuxiliarCreateLinearSolver(self.main_model_part, self.settings, self.contact_settings, self.linear_solver_settings, linear_solver)
 
     def _CreateBuilderAndSolver(self):

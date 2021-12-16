@@ -70,10 +70,10 @@ class PrebucklingSolver(MechanicalSolver):
 
     def _GetLinearSolverEigen(self):
         if not hasattr(self, '_linear_solver_eigen'):
-            self._linear_solver_eigen = self._create_linear_solver_eigen()
+            self._linear_solver_eigen = self._CreateLinearSolverEigen()
         return self._linear_solver_eigen
 
-    def _create_linear_solver_eigen(self):
+    def _CreateLinearSolverEigen(self):
         """Create the eigensolver"""
         return eigen_solver_factory.ConstructSolver(self.settings["eigensolver_settings"])
 

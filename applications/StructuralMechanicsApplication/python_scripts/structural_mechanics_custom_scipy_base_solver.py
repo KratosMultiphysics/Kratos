@@ -54,7 +54,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
 
         return solution_scheme
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         ''' Linear solver will not be used. But eventually the solution strategy calls the solver's clear function.
         To avoid crashing linear solver is provided here'''
         return KratosMultiphysics.LinearSolver()
