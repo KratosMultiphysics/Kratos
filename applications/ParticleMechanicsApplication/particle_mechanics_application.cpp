@@ -10,8 +10,6 @@
 //  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 //
-
-
 // System includes
 
 // External includes
