@@ -34,6 +34,7 @@ namespace Kratos
     // Domain characteristic variables
     KRATOS_CREATE_VARIABLE(double, AMPLITUDE)
     KRATOS_CREATE_VARIABLE(double, WAVELENGTH)
+    KRATOS_CREATE_VARIABLE(double, PERIOD)
 
     // Auxiliary variables
     KRATOS_CREATE_VARIABLE(bool, INTEGRATE_BY_PARTS)
