@@ -114,7 +114,7 @@ class ExplicitMechanicalSolver(MechanicalSolver):
             raise Exception(err_msg)
         return mechanical_scheme
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._GetScheme()
 

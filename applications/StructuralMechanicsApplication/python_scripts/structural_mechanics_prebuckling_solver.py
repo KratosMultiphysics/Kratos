@@ -101,7 +101,7 @@ class PrebucklingSolver(MechanicalSolver):
         convergence_criterion = convergence_criteria_factory.convergence_criterion(convergence_criterion_setting)
         return convergence_criterion.mechanical_convergence_criterion
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         solution_scheme = self._GetScheme()
         eigen_solver = self._GetBuilderAndSolverEigen() # The eigensolver is created here.
         builder_and_solver = self._GetBuilderAndSolver() # The linear solver is created here.

@@ -152,7 +152,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
 
         return builder_and_solver
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         if self.contact_settings["mortar_type"].GetString() != "":
             if self.settings["analysis_type"].GetString() == "linear":
                 mechanical_solution_strategy = self._create_linear_strategy()
@@ -162,7 +162,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                 else:
                     mechanical_solution_strategy = self._create_contact_newton_raphson_strategy()
         else:
-            mechanical_solution_strategy = super()._create_mechanical_solution_strategy()
+            mechanical_solution_strategy = super()._CreateSolutionStrategy()
 
         return mechanical_solution_strategy
 

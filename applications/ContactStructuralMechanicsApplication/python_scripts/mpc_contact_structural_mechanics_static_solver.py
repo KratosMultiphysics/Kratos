@@ -83,7 +83,7 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
         contact_criteria = ContactStructuralMechanicsApplication.MPCContactCriteria()
         return KratosMultiphysics.AndCriteria(conv_criteria, contact_criteria)
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         mechanical_solution_strategy = self._create_contact_newton_raphson_strategy()
         return mechanical_solution_strategy
 

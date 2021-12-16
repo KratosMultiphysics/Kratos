@@ -55,7 +55,7 @@ class FormfindingMechanicalSolver(MechanicalSolver):
     def _CreateScheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._GetScheme()
         mechanical_convergence_criterion = self._GetConvergenceCriterion()

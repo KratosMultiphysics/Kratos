@@ -59,7 +59,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
         To avoid crashing linear solver is provided here'''
         return KratosMultiphysics.LinearSolver()
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             warn_msg = "In case an eigenvalue problem is computed an elimantion builder shall be used to ensure boundary conditions are applied correctly!"
             KratosMultiphysics.Logger.PrintWarning("CustomScipyBaseSolver", warn_msg)

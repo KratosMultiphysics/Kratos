@@ -30,7 +30,7 @@ class MechanicalSolver(PythonSolver):
     _create_convergence_criterion
     _CreateLinearSolver
     _CreateBuilderAndSolver
-    _create_mechanical_solution_strategy
+    _CreateSolutionStrategy
 
     The mechanical_solution_strategy, builder_and_solver, etc. should alway be retrieved
     using the getter functions _GetSolutionStrategy, get_builder_and_solver,
@@ -314,9 +314,9 @@ class MechanicalSolver(PythonSolver):
     def _GetSolutionStrategy(self):
         if (self.settings["multi_point_constraints_used"].GetBool() is False and
             self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
-            self._mechanical_solution_strategy = self._create_mechanical_solution_strategy()
+            self._mechanical_solution_strategy = self._CreateSolutionStrategy()
         if not hasattr(self, '_mechanical_solution_strategy'):
-            self._mechanical_solution_strategy = self._create_mechanical_solution_strategy()
+            self._mechanical_solution_strategy = self._CreateSolutionStrategy()
         return self._mechanical_solution_strategy
 
     def import_constitutive_laws(self):
@@ -445,7 +445,7 @@ class MechanicalSolver(PythonSolver):
         """
         raise Exception("Solution Scheme creation must be implemented in the derived class.")
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
             mechanical_solution_strategy = self._create_linear_strategy()

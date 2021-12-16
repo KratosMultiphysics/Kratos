@@ -49,7 +49,7 @@ class ConvectionDiffusionSolver(PythonSolver):
     _create_convergence_criterion
     _CreateLinearSolver
     _CreateBuilderAndSolver
-    _create_convection_diffusion_solution_strategy
+    _CreateSolutionStrategy
 
     The convection_diffusion_solution_strategy, builder_and_solver, etc. should alway be retrieved
     using the getter functions _GetSolutionStrategy, get_builder_and_solver,
@@ -423,7 +423,7 @@ class ConvectionDiffusionSolver(PythonSolver):
 
     def _GetSolutionStrategy(self):
         if not hasattr(self, '_convection_diffusion_solution_strategy'):
-            self._convection_diffusion_solution_strategy = self._create_convection_diffusion_solution_strategy()
+            self._convection_diffusion_solution_strategy = self._CreateSolutionStrategy()
         return self._convection_diffusion_solution_strategy
 
     def import_materials(self):
@@ -636,7 +636,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         """Create the solution scheme for the convection-diffusion problem."""
         raise Exception("Solution Scheme creation must be implemented in the derived class.")
 
-    def _create_convection_diffusion_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
             convection_diffusion_solution_strategy = self._create_linear_strategy()
