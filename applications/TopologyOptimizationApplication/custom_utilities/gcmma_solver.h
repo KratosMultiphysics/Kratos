@@ -70,7 +70,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <iomanip>      // for std::setprecision
+#include <iomanip>
 
 // External includes
 #include <pybind11/pybind11.h>
@@ -142,7 +142,7 @@ namespace Kratos
 		void Reset() { outeriter = 0; };
 
 	private:
-		int nano, m, outeriter;
+		int nano, m;
 
 		const double raa0eps;
 		const double raaeps;
@@ -160,12 +160,10 @@ namespace Kratos
 		double z;
 
 		std::vector<double> lam, mu, s;
-		std::vector<double> alpha, beta, p0, q0, pij, qij, b, grad, hess; //low, upp, 
+		std::vector<double> alpha, beta, p0, q0, pij, qij, b, grad, hess; 
 
-		double r0;// f0app;
+		double r0;
 		std::vector<double> r, fapp;
-
-		//std::vector<double> xold1, xold2;
 
 	private:
 		// Compute [low, upp, raa0, raa]

@@ -37,11 +37,11 @@
 
 // Application includes
 #include "topology_optimization_application.h"
-#include "processes/find_global_nodal_neighbours_process.h" // To find node neighbours
-#include "processes/find_conditions_neighbours_process.h" // To find condition neighbours
-#include "processes/node_erase_process.h" // To delete empty nodes
-#include "utilities/normal_calculation_utils.h" // To calculate element's normal
-#include "geometries/triangle_3d_3.h" // Skin face geometry template
+#include "processes/find_global_nodal_neighbours_process.h"
+#include "processes/find_conditions_neighbours_process.h"
+#include "processes/node_erase_process.h"
+#include "utilities/normal_calculation_utils.h"
+#include "geometries/triangle_3d_3.h"
 namespace Kratos
 {
 

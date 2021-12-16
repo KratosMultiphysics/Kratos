@@ -26,8 +26,6 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
 
-//#include "solid_mechanics_application.h"
-///#include "structural_mechanics_application.h"
 #include "topology_optimization_application.h"
 
 // Application includes

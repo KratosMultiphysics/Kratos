@@ -20,7 +20,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <iomanip>      // for std::setprecision
+#include <iomanip>
 
 // External includes
 #include <pybind11/pybind11.h>
@@ -39,7 +39,7 @@
 
 // Application includes
 #include "topology_optimization_application.h"
-#include "spatial_containers/spatial_containers.h" // For kd-tree
+#include "spatial_containers/spatial_containers.h"
 #include "custom_utilities/filter_function.h"
 
 

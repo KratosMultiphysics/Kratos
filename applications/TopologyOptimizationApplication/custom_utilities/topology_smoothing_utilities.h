@@ -34,7 +34,7 @@
 
 // Application includes
 #include "topology_optimization_application.h"
-#include "processes/find_global_nodal_neighbours_process.h" // To find node neighbours using conditions
+#include "processes/find_global_nodal_neighbours_process.h"
 
 
 namespace Kratos
