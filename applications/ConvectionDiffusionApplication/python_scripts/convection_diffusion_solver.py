@@ -46,7 +46,7 @@ class ConvectionDiffusionSolver(PythonSolver):
     solver, derived classes may also need to override the following functions:
 
     _CreateScheme
-    _create_convergence_criterion
+    _CreateConvergenceCriterion
     _CreateLinearSolver
     _CreateBuilderAndSolver
     _CreateSolutionStrategy
@@ -408,7 +408,7 @@ class ConvectionDiffusionSolver(PythonSolver):
 
     def _GetConvergenceCriterion(self):
         if not hasattr(self, '_convergence_criterion'):
-            self._convergence_criterion = self._create_convergence_criterion()
+            self._convergence_criterion = self._CreateConvergenceCriterion()
         return self._convergence_criterion
 
     def _GetLinearSolver(self):
@@ -586,7 +586,7 @@ class ConvectionDiffusionSolver(PythonSolver):
 
         return conv_params
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         if not self.main_model_part.IsDistributed():
             convergence_criterion = convergence_criteria_factory.ConvergenceCriteriaFactory(self._get_convergence_criterion_settings())
             return convergence_criterion.convergence_criterion

@@ -89,7 +89,7 @@ class PrebucklingSolver(MechanicalSolver):
         return builder_and_solver
 
     # Convergence Criterion
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         """This method is overridden to make sure it always uses "displacement_criterion" """
         convergence_criterion_setting = self._get_convergence_criterion_settings()
         if convergence_criterion_setting["convergence_criterion"].GetString() != "displacement_criterion":

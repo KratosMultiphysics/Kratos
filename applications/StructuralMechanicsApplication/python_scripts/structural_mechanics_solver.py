@@ -27,7 +27,7 @@ class MechanicalSolver(PythonSolver):
     solver, derived classes may also need to override the following functions:
 
     _CreateScheme
-    _create_convergence_criterion
+    _CreateConvergenceCriterion
     _CreateLinearSolver
     _CreateBuilderAndSolver
     _CreateSolutionStrategy
@@ -294,7 +294,7 @@ class MechanicalSolver(PythonSolver):
 
     def _GetConvergenceCriterion(self):
         if not hasattr(self, '_convergence_criterion'):
-            self._convergence_criterion = self._create_convergence_criterion()
+            self._convergence_criterion = self._CreateConvergenceCriterion()
         return self._convergence_criterion
 
     def _GetLinearSolver(self):
@@ -413,7 +413,7 @@ class MechanicalSolver(PythonSolver):
 
         return conv_params
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 

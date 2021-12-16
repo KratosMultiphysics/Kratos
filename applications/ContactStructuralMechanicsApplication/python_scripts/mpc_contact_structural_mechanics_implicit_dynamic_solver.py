@@ -77,7 +77,7 @@ class MPCContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
 
     #### Private functions ####
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         conv_criteria = convergence_criterion.mechanical_convergence_criterion
         contact_criteria = ContactStructuralMechanicsApplication.MPCContactCriteria()

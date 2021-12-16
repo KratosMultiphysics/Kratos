@@ -127,7 +127,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         # Create an auxiliary Kratos parameters object to store the convergence settings.
         return auxiliar_methods_solvers.AuxiliarCreateConvergenceParameters(self.main_model_part, self.settings, self.contact_settings)
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         convergence_criterion = ContactConvergenceCriteriaFactory(self.main_model_part, self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
