@@ -92,6 +92,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
         self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.mapper_settings)
         self.mapper.Initialize()
+        self.model_part_controller.InitializeDamping()
 
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
@@ -168,7 +169,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
             self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DF1DX)
 
-        self.model_part_controller.DampNodalVariableIfSpecified(KSO.DF1DX)
+        self.model_part_controller.DampNodalSensitivityVariableIfSpecified(KSO.DF1DX)
 
         # project and damp constraint gradients
         for constraint in self.constraints:
@@ -180,7 +181,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             if constraint["project_gradient_on_surface_normals"].GetBool():
                 self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(gradient_variable)
 
-            self.model_part_controller.DampNodalVariableIfSpecified(gradient_variable)
+            self.model_part_controller.DampNodalSensitivityVariableIfSpecified(gradient_variable)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
@@ -196,7 +197,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.__computeControlPointUpdate()
 
         self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
-        self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
+        self.model_part_controller.DampNodalUpdateVariableIfSpecified(KSO.SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __computeControlPointUpdate(self):
