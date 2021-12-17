@@ -96,21 +96,20 @@ class DataDifferenceResidual(ConvergenceAcceleratorResidual):
 class DifferentDataDifferenceResidual(ConvergenceAcceleratorResidual):
     def __init__(self, settings, solver_wrapper):
         self.interface_data = solver_wrapper.GetInterfaceData(settings["data_name"].GetString())
-        self.interface_data1 = solver_wrapper.GetInterfaceData(settings["data_name1"].GetString())
-        self.interface_data2 = solver_wrapper.GetInterfaceData(settings["data_name2"].GetString())
+        self.interface_data1 = solver_wrapper.GetInterfaceData(settings["residual_computation"]["data_name1"].GetString())
+        self.interface_data2 = solver_wrapper.GetInterfaceData(settings["residual_computation"]["data_name2"].GetString())
 
     def ComputeResidual(self, input_data):
         return self.interface_data1.GetData() - self.interface_data2.GetData()
 
-
 def CreateResidualComputation(settings, solver_wrapper):
-    if "residual_computation" not in settings:
-        # default
-        return DataDifferenceResidual(settings, solver_wrapper)
+    residual_computation_type = "data_difference"
+    if settings.Has("residual_computation"):
+        residual_computation_type = settings["residual_computation"]["type"].GetString()
 
-    res_computation_settings = settings["residual_computation"]
-    residual_computation_type = res_computation_settings["type"]
     if residual_computation_type == "data_difference":
-        return DifferentDataDifferenceResidual(res_computation_settings, solver_wrapper)
+        return DataDifferenceResidual(settings, solver_wrapper)
+    elif residual_computation_type == "different_data_difference":
+        return DifferentDataDifferenceResidual(settings, solver_wrapper)
     else:
-        raise Exception("The specified residual computation is not available!")
+        raise Exception('The specified residual computation "{}" is not available!'.format(residual_computation_type))
