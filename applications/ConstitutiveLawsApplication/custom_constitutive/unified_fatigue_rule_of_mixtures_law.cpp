@@ -106,7 +106,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
     double previous_min_stress = mPreviousMinStress;
     double wohler_stress = mWohlerStress;
     bool new_cycle = false;
-    double s_th = mThresholdStress;
+    double s_th = mFatigueLimit;
     double cycles_to_failure = mCyclesToFailure;
     bool adnvance_strategy_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
     bool damage_activation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
@@ -205,7 +205,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
     mFatigueReductionFactor = fatigue_reduction_factor;
     mWohlerStress = wohler_stress;
     mNewCycleIndicator = new_cycle;
-    mThresholdStress = s_th;
+    mFatigueLimit = s_th;
 }
 
 /***********************************************************************************/
@@ -348,14 +348,14 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::IntegrateStresses
     this->CalculateMaterialResponseHCFModel(values_HCF);
     // mpHCFConstitutiveLaw->CalculateMaterialResponseCauchy(values_HCF);
     rHCFStressVector = values_HCF.GetStressVector();
-    KRATOS_WATCH(rHCFStressVector)
+    // KRATOS_WATCH(rHCFStressVector)
 
     // Integrate Stress of the UÑCF part
     values_ULCF.SetMaterialProperties(r_props_ULCF_cl);
     this->CalculateMaterialResponseULCFModel(values_ULCF);
     // mpULCFConstitutiveLaw->CalculateMaterialResponseCauchy(values_ULCF);
     rULCFStressVector = values_ULCF.GetStressVector();
-    KRATOS_WATCH(rULCFStressVector)
+    // KRATOS_WATCH(rULCFStressVector)
 }
 
 /***********************************************************************************/
@@ -675,7 +675,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
 
     // Elastic Matrix
     Matrix& r_constitutive_matrix = values_HCF.GetConstitutiveMatrix();
-    this->CalculateValue(values_HCF, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+    mpHCFConstitutiveLaw->CalculateValue(values_HCF, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
 
     if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         BaseType::CalculateCauchyGreenStrain( values_HCF, r_strain_vector);
@@ -791,16 +791,117 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
+bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
+{
+    if (rThisVariable == WOHLER_STRESS) {
+        return true;
+    } else if (rThisVariable == CYCLES_TO_FAILURE) {
+        return true;
+    } else if (rThisVariable == REVERSION_FACTOR_RELATIVE_ERROR) {
+        return true;
+    } else if (rThisVariable == MAX_STRESS_RELATIVE_ERROR) {
+        return true;
+    } else if (rThisVariable == MAX_STRESS) {
+        return true;
+    } else if (rThisVariable == THRESHOLD_STRESS) {
+        return true;
+    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
+        return true;
+    } else if (rThisVariable == DAMAGE) {
+        return true;
+    } else if (rThisVariable == PLASTIC_DISSIPATION) {
+        return true;
+    } else {
+        return BaseType::Has(rThisVariable);
+    }
+
+    return false;
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variable<Vector>& rThisVariable)
+{
+    if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
+        return true;
+    } else {
+        return BaseType::Has(rThisVariable);
+    }
+
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variable<Matrix>& rThisVariable)
+{
+    return BaseType::Has(rThisVariable);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::SetValue(
+    const Variable<double>& rThisVariable,
+    const double& rValue,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
+        mFatigueReductionFactor = rValue;
+    } else if (rThisVariable == WOHLER_STRESS) {
+        mWohlerStress = rValue;
+    } else if (rThisVariable == CYCLES_TO_FAILURE) {
+        mCyclesToFailure = rValue;
+    } else if (rThisVariable == REVERSION_FACTOR_RELATIVE_ERROR) {
+        mReversionFactorRelativeError = rValue;
+    } else if (rThisVariable == MAX_STRESS_RELATIVE_ERROR) {
+        mMaxStressRelativeError = rValue;
+    } else if (rThisVariable == MAX_STRESS) {
+        mMaxStress = rValue;
+    } else if (rThisVariable == THRESHOLD_STRESS) {
+        mFatigueLimit = rValue;
+    } else if (rThisVariable == PLASTIC_DISSIPATION) {
+        mPlasticDissipation = rValue;
+    } else if (rThisVariable == DAMAGE) {
+        mDamage = rValue;
+    } else {
+        BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::SetValue(
+    const Variable<Vector>& rThisVariable,
+    const Vector& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
+        mPlasticStrain = rValue;
+    } else {
+        BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
 double& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
     )
 {
-    if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
-        return mpHCFConstitutiveLaw->GetValue(rThisVariable, rValue);
-    } else if (mpULCFConstitutiveLaw->Has(rThisVariable)) {
-        return mpULCFConstitutiveLaw->GetValue(rThisVariable, rValue);
-    } else if (rThisVariable == WOHLER_STRESS) {
+    if (rThisVariable == WOHLER_STRESS) {
         rValue = mWohlerStress;
     } else if (rThisVariable == CYCLES_TO_FAILURE) {
         rValue = mCyclesToFailure;
@@ -811,14 +912,18 @@ double& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::GetValue(
     } else if (rThisVariable == MAX_STRESS) {
         rValue = mMaxStress;
     } else if (rThisVariable == THRESHOLD_STRESS) {
-        rValue = mThresholdStress;
+        rValue = mFatigueLimit;
     } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
         rValue = mFatigueReductionFactor;
+    } else if (rThisVariable == DAMAGE) {
+        rValue = mDamage;
+    } else if (rThisVariable == PLASTIC_DISSIPATION) {
+        rValue = mPlasticDissipation;
     } else {
         return rValue;
     }
-    return rValue;
 
+    return rValue;
 }
 
 /***********************************************************************************/
@@ -830,10 +935,8 @@ Vector& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::GetValue(
     Vector& rValue
     )
 {
-    if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
-        return mpHCFConstitutiveLaw->GetValue(rThisVariable, rValue);
-    } else if (mpULCFConstitutiveLaw->Has(rThisVariable)) {
-        return mpULCFConstitutiveLaw->GetValue(rThisVariable, rValue);
+    if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
+        rValue = mPlasticStrain;
     } else {
         return rValue;
     }
@@ -848,75 +951,12 @@ Matrix& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::GetValue(
     Matrix& rValue
     )
 {
-    if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
-        return mpHCFConstitutiveLaw->GetValue(rThisVariable, rValue);
-    } else if (mpULCFConstitutiveLaw->Has(rThisVariable)) {
-        return mpULCFConstitutiveLaw->GetValue(rThisVariable, rValue);
+    if (rThisVariable == PLASTIC_STRAIN_TENSOR) {
+        rValue = MathUtils<double>::StrainVectorToTensor(mPlasticStrain);
     } else {
-        return rValue;
+        return BaseType::GetValue(rThisVariable, rValue);
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variable<bool>& rThisVariable)
-{
-    if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
-        return true;
-    } else if (mpULCFConstitutiveLaw->Has(rThisVariable)) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
-{
-    if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
-        return true;
-    } else if (mpULCFConstitutiveLaw->Has(rThisVariable)) {
-        return true;
-    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variable<Vector>& rThisVariable)
-{
-    if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
-        return true;
-    } else if (mpULCFConstitutiveLaw->Has(rThisVariable)) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variable<Matrix>& rThisVariable)
-{
-    if (mpHCFConstitutiveLaw->Has(rThisVariable)) {
-        return true;
-    } else if (mpULCFConstitutiveLaw->Has(rThisVariable)) {
-        return true;
-    } else {
-        return false;
-    }
+    return rValue;
 }
 
 /***********************************************************************************/
@@ -987,6 +1027,30 @@ double& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateValue
         Vector& r_integrated_stress_vector = values_ULCF.GetStressVector();
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress( r_integrated_stress_vector, r_strain_vector, rValue, values_ULCF);
         return rValue;
+    // } else if (rThisVariable == EQUIVALENT_PLASTIC_STRAIN) {
+        // // Get Values to compute the constitutive law:
+        // Flags& r_flags = rParameterValues.GetOptions();
+
+        // // Previous flags saved
+        // const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        // const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+        // r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        // r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+
+        // // Calculate the stress vector
+        // CalculateMaterialResponseCauchy(rParameterValues);
+        // const Vector& r_stress_vector = rParameterValues.GetStressVector();
+
+        // // Previous flags restored
+        // r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        // r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+
+        // // Compute the equivalent plastic strain
+        // double uniaxial_stress;
+        // this->CalculateValue(rParameterValues, UNIAXIAL_STRESS, uniaxial_stress);
+        // TConstLawIntegratorType::CalculateEquivalentPlasticStrain(r_stress_vector, uniaxial_stress, mPlasticStrain, 0.0, rParameterValues, rValue);
+        // return rValue;
     } else {
         return this->GetValue(rThisVariable, rValue);
     }
@@ -1002,28 +1066,6 @@ Vector& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateValue
     Vector& rValue)
 {
     return this->GetValue(rThisVariable, rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMaterial(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues)
-{
-    const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
-    const auto r_props_HCF_cl = *(it_cl_begin);
-    const auto r_props_ULCF_cl  = *(it_cl_begin + 1);
-
-    KRATOS_ERROR_IF_NOT(r_props_HCF_cl.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
-    KRATOS_ERROR_IF_NOT(r_props_ULCF_cl.Has(CONSTITUTIVE_LAW))  << "No constitutive law set" << std::endl;
-
-    mpHCFConstitutiveLaw = r_props_HCF_cl[CONSTITUTIVE_LAW]->Clone();
-    mpULCFConstitutiveLaw  = r_props_ULCF_cl[CONSTITUTIVE_LAW]->Clone();
-    mpHCFConstitutiveLaw->InitializeMaterial(r_props_HCF_cl, rElementGeometry, rShapeFunctionsValues);
-    mpULCFConstitutiveLaw ->InitializeMaterial(r_props_ULCF_cl, rElementGeometry, rShapeFunctionsValues);
 }
 
 /***********************************************************************************/
@@ -1096,17 +1138,39 @@ Matrix& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateValue
         rValue.clear();
         rParameterValues.SetMaterialProperties(r_prop);
         mpHCFConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
-        noalias(rValue) += (1.0 - mHCFVolumetricParticipation) * aux_value;
+        noalias(rValue) += mHCFVolumetricParticipation * aux_value;
 
         r_prop = material_properties.GetSubProperties(1);
         rParameterValues.SetMaterialProperties(r_prop);
-        mpHCFConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
+        mpULCFConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
         noalias(rValue) += (1.0 - mHCFVolumetricParticipation) * aux_value;
 
         // Reset properties
         rParameterValues.SetMaterialProperties(material_properties);
     }
     return(rValue);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMaterial(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const Vector& rShapeFunctionsValues)
+{
+    const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
+    const auto r_props_HCF_cl = *(it_cl_begin);
+    const auto r_props_ULCF_cl  = *(it_cl_begin + 1);
+
+    KRATOS_ERROR_IF_NOT(r_props_HCF_cl.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
+    KRATOS_ERROR_IF_NOT(r_props_ULCF_cl.Has(CONSTITUTIVE_LAW))  << "No constitutive law set" << std::endl;
+
+    mpHCFConstitutiveLaw = r_props_HCF_cl[CONSTITUTIVE_LAW]->Clone();
+    mpULCFConstitutiveLaw  = r_props_ULCF_cl[CONSTITUTIVE_LAW]->Clone();
+    mpHCFConstitutiveLaw->InitializeMaterial(r_props_HCF_cl, rElementGeometry, rShapeFunctionsValues);
+    mpULCFConstitutiveLaw ->InitializeMaterial(r_props_ULCF_cl, rElementGeometry, rShapeFunctionsValues);
 }
 
 /***********************************************************************************/
