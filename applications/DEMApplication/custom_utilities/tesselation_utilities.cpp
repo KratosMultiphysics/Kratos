@@ -109,7 +109,7 @@ namespace Kratos {
     // Perform triangulation
     int fail = 0;
     try {
-      triangulate(mSwitches, &in, &out, &vorout);
+      triangulate(&mSwitches[0], &in, &out, &vorout);
     }
     catch (int error_code) {
       fail = error_code;
@@ -181,7 +181,7 @@ namespace Kratos {
     // Perform tetrahedralization
     int fail = 0;
     try {
-      tetrahedralize(mSwitches, &in, &out);
+      tetrahedralize(&mSwitches[0], &in, &out);
     }
     catch (int error_code) {
       fail = error_code;

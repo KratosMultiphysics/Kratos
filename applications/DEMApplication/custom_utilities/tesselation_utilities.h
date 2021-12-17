@@ -68,10 +68,10 @@ namespace Kratos {
     void FreeTriangle          (struct triangulateio& tr);
 
     // Protected attributes
-    bool   mUpdateVoronoi;
-    bool   mUpdatePorosiy;
-    double mAlphaRadius;
-    char*  mSwitches;
+    bool        mUpdateVoronoi;
+    bool        mUpdatePorosiy;
+    double      mAlphaRadius;
+    std::string mSwitches;
 
   private:
     // Assignment operator
