@@ -137,22 +137,26 @@ void MPMParticleLagrangeDirichletCondition::MPMShapeFunctionPointValues( Vector&
     const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     
-    double denominator = 1.0;
+    // double denominator = 1.0;
     int counter = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
-            denominator -= rResult[i];
-            rResult[i] = 0;
+            // denominator -= rResult[i];
+            // rResult[i] = 0;
             counter +=1;
         }
     }
 
-    // all nodes are not connected to body
-    if (counter == number_of_nodes)
+    // avoid singular matrices if BC is in an empty background element
+    // at least 2 nodes have to be connected to a node with mass to ensure that BC is not imposed twice in the same node
+    if (counter > 1)
         rResult *=0;
-    else
-        rResult = rResult/denominator;
+    // else
+    //     rResult = rResult/denominator;
+        
+
+    
 
     KRATOS_CATCH( "" )
 }
