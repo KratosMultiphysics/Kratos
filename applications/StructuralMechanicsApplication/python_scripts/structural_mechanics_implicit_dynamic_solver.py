@@ -69,7 +69,7 @@ class ImplicitMechanicalSolver(MechanicalSolver):
 
     #### Private functions ####
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         scheme_type = self.settings["scheme_type"].GetString()
 
         # Setting the Rayleigh damping parameters

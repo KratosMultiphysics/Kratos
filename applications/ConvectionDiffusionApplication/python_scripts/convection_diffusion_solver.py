@@ -41,18 +41,18 @@ class ConvectionDiffusionSolver(PythonSolver):
     This class provides functions for importing and exporting models,
     adding nodal variables and dofs and solving each solution step.
 
-    Derived classes must override the function _create_solution_scheme which
+    Derived classes must override the function _CreateScheme which
     constructs and returns a solution scheme. Depending on the type of
     solver, derived classes may also need to override the following functions:
 
-    _create_solution_scheme
-    _create_convergence_criterion
-    _create_linear_solver
-    _create_builder_and_solver
-    _create_convection_diffusion_solution_strategy
+    _CreateScheme
+    _CreateConvergenceCriterion
+    _CreateLinearSolver
+    _CreateBuilderAndSolver
+    _CreateSolutionStrategy
 
     The convection_diffusion_solution_strategy, builder_and_solver, etc. should alway be retrieved
-    using the getter functions get_convection_diffusion_solution_strategy, get_builder_and_solver,
+    using the getter functions _GetSolutionStrategy, get_builder_and_solver,
     etc. from this base class.
 
     Only the member variables listed below should be accessed directly.
@@ -334,7 +334,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         # The convection_diffusion solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        convection_diffusion_solution_strategy = self.get_convection_diffusion_solution_strategy()
+        convection_diffusion_solution_strategy = self._GetSolutionStrategy()
         convection_diffusion_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         if not self.is_restarted():
             convection_diffusion_solution_strategy.Initialize()
@@ -354,21 +354,21 @@ class ConvectionDiffusionSolver(PythonSolver):
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        convection_diffusion_solution_strategy = self.get_convection_diffusion_solution_strategy()
+        convection_diffusion_solution_strategy = self._GetSolutionStrategy()
         convection_diffusion_solution_strategy.Solve()
 
     def InitializeSolutionStep(self):
-        self.get_convection_diffusion_solution_strategy().InitializeSolutionStep()
+        self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
-        self.get_convection_diffusion_solution_strategy().Predict()
+        self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):
-        is_converged = self.get_convection_diffusion_solution_strategy().SolveSolutionStep()
+        is_converged = self._GetSolutionStrategy().SolveSolutionStep()
         return is_converged
 
     def FinalizeSolutionStep(self):
-        self.get_convection_diffusion_solution_strategy().FinalizeSolutionStep()
+        self._GetSolutionStrategy().FinalizeSolutionStep()
 
     def AdvanceInTime(self, current_time):
         dt = self.ComputeDeltaTime()
@@ -391,39 +391,39 @@ class ConvectionDiffusionSolver(PythonSolver):
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def SetEchoLevel(self, level):
-        self.get_convection_diffusion_solution_strategy().SetEchoLevel(level)
+        self._GetSolutionStrategy().SetEchoLevel(level)
 
     def Clear(self):
-        self.get_convection_diffusion_solution_strategy().Clear()
+        self._GetSolutionStrategy().Clear()
 
     def Check(self):
-        self.get_convection_diffusion_solution_strategy().Check()
+        self._GetSolutionStrategy().Check()
 
     #### Specific internal functions ####
 
     def _GetScheme(self):
         if not hasattr(self, '_solution_scheme'):
-            self._solution_scheme = self._create_solution_scheme()
+            self._solution_scheme = self._CreateScheme()
         return self._solution_scheme
 
     def _GetConvergenceCriterion(self):
         if not hasattr(self, '_convergence_criterion'):
-            self._convergence_criterion = self._create_convergence_criterion()
+            self._convergence_criterion = self._CreateConvergenceCriterion()
         return self._convergence_criterion
 
     def _GetLinearSolver(self):
         if not hasattr(self, '_linear_solver'):
-            self._linear_solver = self._create_linear_solver()
+            self._linear_solver = self._CreateLinearSolver()
         return self._linear_solver
 
     def _GetBuilderAndSolver(self):
         if not hasattr(self, '_builder_and_solver'):
-            self._builder_and_solver = self._create_builder_and_solver()
+            self._builder_and_solver = self._CreateBuilderAndSolver()
         return self._builder_and_solver
 
-    def get_convection_diffusion_solution_strategy(self):
+    def _GetSolutionStrategy(self):
         if not hasattr(self, '_convection_diffusion_solution_strategy'):
-            self._convection_diffusion_solution_strategy = self._create_convection_diffusion_solution_strategy()
+            self._convection_diffusion_solution_strategy = self._CreateSolutionStrategy()
         return self._convection_diffusion_solution_strategy
 
     def import_materials(self):
@@ -586,7 +586,7 @@ class ConvectionDiffusionSolver(PythonSolver):
 
         return conv_params
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         if not self.main_model_part.IsDistributed():
             convergence_criterion = convergence_criteria_factory.ConvergenceCriteriaFactory(self._get_convergence_criterion_settings())
             return convergence_criterion.convergence_criterion
@@ -594,11 +594,11 @@ class ConvectionDiffusionSolver(PythonSolver):
             convergence_criterion = self.__base_convergence_criteria_factory_mpi(self._get_convergence_criterion_settings())
             return convergence_criterion
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         return linear_solver
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         linear_solver = self._GetLinearSolver()
         if not self.main_model_part.IsDistributed():
             # Set the serial builder and solver
@@ -632,11 +632,11 @@ class ConvectionDiffusionSolver(PythonSolver):
         return builder_and_solver
 
     @classmethod
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         """Create the solution scheme for the convection-diffusion problem."""
         raise Exception("Solution Scheme creation must be implemented in the derived class.")
 
-    def _create_convection_diffusion_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
             convection_diffusion_solution_strategy = self._create_linear_strategy()
