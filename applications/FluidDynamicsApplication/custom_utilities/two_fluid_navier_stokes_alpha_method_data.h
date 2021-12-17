@@ -272,7 +272,6 @@ void ComputeStrain()
 {
     const double rho_inf=this->MaxSprectraRadius;
     const double alpha_f= 1/(rho_inf+1);
-    const double alpha_m=0.5*((3-rho_inf/(1+rho_inf)));
     const BoundedMatrix<double, TNumNodes, TDim>& v = Velocity_OldStep1+alpha_f*(Velocity-Velocity_OldStep1);
     const BoundedMatrix<double, TNumNodes, TDim>& DN = this->DN_DX;
 

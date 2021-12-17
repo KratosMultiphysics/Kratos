@@ -319,7 +319,6 @@ template <>
 void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::CalculateStrainRate(TwoFluidNavierStokesAlphaMethodData<2, 3>& rData) const
 {
     const double alpha_f=1/(1+rData.MaxSprectraRadius);
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
     const BoundedMatrix<double,3,2> velocity_alpha = rData.Velocity_OldStep1+ alpha_f*(rData.Velocity-rData.Velocity_OldStep1);
     auto& rDNDX = rData.DN_DX;
     auto& r_strain_rate = rData.StrainRate;
@@ -335,7 +334,6 @@ template <>
 void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>::CalculateStrainRate(TwoFluidNavierStokesAlphaMethodData<3, 4>& rData) const
 {
     const double alpha_f=1/(1+rData.MaxSprectraRadius);
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
     const BoundedMatrix<double,4,3> velocity_alpha = rData.Velocity_OldStep1+ alpha_f*(rData.Velocity-rData.Velocity_OldStep1);
     auto& rDNDX = rData.DN_DX;
     auto& r_strain_rate = rData.StrainRate;
@@ -363,13 +361,11 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const double dt = rData.DeltaTime;
 
     const double dyn_tau = rData.DynamicTau;
-    const auto &acceleration_alpha_method=rData.AccelerationAlphaMethod;
     const double max_spectral_radius=rData.MaxSprectraRadius;
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vmeshn = rData.MeshVelocityOldStep;
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
     const double alpha_f=1/(1+rData.MaxSprectraRadius);
     const BoundedMatrix<double,3,2> vconv =(vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
@@ -399,12 +395,9 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
 {
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-
     const double h = rData.ElementSize;
-    const auto &acceleration_alpha_method=rData.AccelerationAlphaMethod;
     const double max_spectral_radius=rData.MaxSprectraRadius;
     const double dt = rData.DeltaTime;
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
     const double alpha_f=1/(1+max_spectral_radius);
 
     const double dyn_tau = rData.DynamicTau;
@@ -449,7 +442,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const double dt = rData.DeltaTime;
     const auto &acceleration_alpha_method=rData.AccelerationAlphaMethod;
     const double max_spectral_radius=rData.MaxSprectraRadius;
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
     const double alpha_f=1/(1+max_spectral_radius);
 
     const double dyn_tau = rData.DynamicTau;
@@ -461,8 +453,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const auto &f = rData.BodyForce;
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p = rData.Pressure;
-    const auto &pn = rData.Pressure_OldStep1;
-
     const auto &stress = rData.ShearStress;
 
     const BoundedMatrix<double,3,2> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
@@ -498,7 +488,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const double max_spectral_radius=rData.MaxSprectraRadius;
     const double dt = rData.DeltaTime;
     const double alpha_f=1/(1+max_spectral_radius);
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
     const double dyn_tau = rData.DynamicTau;
 
     const auto &v = rData.Velocity;
@@ -508,8 +497,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const auto &f = rData.BodyForce;
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p = rData.Pressure;
-    const auto &pn = rData.Pressure_OldStep1;
-
     const auto &stress = rData.ShearStress;
 
     const BoundedMatrix<double,4,3> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
@@ -547,7 +534,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const auto &acceleration_alpha_method=rData.AccelerationAlphaMethod;
     const double max_spectral_radius=rData.MaxSprectraRadius;
     const double dt = rData.DeltaTime;
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
     const double alpha_f=1/(1+max_spectral_radius);
 
     const double dyn_tau = rData.DynamicTau;
@@ -559,7 +545,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const auto &f = rData.BodyForce;
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p=rData.Pressure;
-    const auto &pn=rData.Pressure_OldStep1;
 
     const BoundedMatrix<double,3,2> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
@@ -613,7 +598,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const auto &acceleration_alpha_method=rData.AccelerationAlphaMethod;
     const double max_spectral_radius=rData.MaxSprectraRadius;
     const double dt = rData.DeltaTime;
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
     const double alpha_f=1/(1-max_spectral_radius);
 
     const double dyn_tau = rData.DynamicTau;
@@ -625,7 +609,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const auto &f = rData.BodyForce;
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p = rData.Pressure;
-    const auto &pn = rData.Pressure_OldStep1;
 
     const BoundedMatrix<double,4,3> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
@@ -904,8 +887,6 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::PressureGradientStabilizatio
     const double dt = rData.DeltaTime;
     const auto &v=rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
-    const auto &acceleration_alpha_method=rData.AccelerationAlphaMethod;
-    const double max_spectral_radius=rData.MaxSprectraRadius;
     const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
 
     const auto vmesh=rData.MeshVelocity;
