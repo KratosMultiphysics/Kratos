@@ -1336,6 +1336,14 @@ public:
         KRATOS_CATCH("")
     }
 
+    static void AddDofsList(
+        const std::vector<std::string>& rDofsVarNamesList,
+        ModelPart& rModelPart);
+
+    static void AddDofsWithReactionsList(
+        const std::vector<std::array<std::string,2>>& rDofsAndReactionsNamesList,
+        ModelPart& rModelPart);
+
     /**
      * @brief This method checks the variable keys
      * @return True if all the keys are correct
