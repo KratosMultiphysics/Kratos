@@ -175,8 +175,9 @@ public:
 
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
             const double nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
-            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) /= nodal_area;
-            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) /= nodal_area;
+            const double inv_mass = 1.0 / nodal_area;
+            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) *= inv_mass;
+            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) *= inv_mass;
         });
     }
 
