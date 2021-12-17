@@ -358,6 +358,34 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
         Vector& rULCFStressVector);
 
     /**
+     * This method computes the stresses of the matrix/fiber according to its own CL
+     * @param values_HCF the needed parameters for the CL calculation
+     */
+    void CalculateMaterialResponseHCFModel(
+        ConstitutiveLaw::Parameters& values_HCF);
+
+    /**
+     * This method computes the stresses of the matrix/fiber according to its own CL
+     * @param values_ULCF the needed parameters for the CL calculation
+     */
+    void CalculateMaterialResponseULCFModel(
+        ConstitutiveLaw::Parameters& values_ULCF);
+
+    /**
+     * This method computes the stresses of the matrix/fiber according to its own CL
+     * @param values_HCF the needed parameters for the CL calculation
+     */
+    void FinalizeMaterialResponseHCFModel(
+        ConstitutiveLaw::Parameters& values_HCF);
+
+    /**
+     * This method computes the stresses of the matrix/fiber according to its own CL
+     * @param values_ULCF the needed parameters for the CL calculation
+     */
+    void FinalizeMaterialResponseULCFModel(
+        ConstitutiveLaw::Parameters& values_ULCF);
+
+    /**
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
      */
@@ -413,6 +441,18 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     ///@name Protected Operations
     ///@{
 
+    double& GetHCFThreshold() { return mHCFThreshold; }
+    double& GetULCFThreshold() { return mULCFThreshold; }
+    double& GetDamage() { return mDamage; }
+    double& GetPlasticDissipation() { return mPlasticDissipation; }
+    Vector& GetPlasticStrain() { return mPlasticStrain; }
+
+    void SetHCFThreshold(const double toHCFThreshold) { mHCFThreshold = toHCFThreshold; }
+    void SetULCFThreshold(const double toULCFThreshold) { mULCFThreshold = toULCFThreshold; }
+    void SetDamage(const double toDamage) { mDamage = toDamage; }
+    void SetPlasticDissipation(const double toPlasticDissipation) { mPlasticDissipation = toPlasticDissipation; }
+    void SetPlasticStrain(const array_1d<double, VoigtSize>& rPlasticStrain) { mPlasticStrain = rPlasticStrain; }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -457,6 +497,11 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     double mMaxStressRelativeError = 0.0; // Relative error of Smax between cycles inducing recalculation of Nlocal and advanciing process.
     double mCyclesToFailure = 0.0; // Nf. Required for the advanciing process.
     double mWohlerStress = 1.0; // Normalised Wohler stress required for building the life prediction curves (SN curves)
+    double mHCFThreshold = 0.0;
+    double mULCFThreshold = 0.0;
+    double mPlasticDissipation = 0.0;
+    double mDamage = 0.0;
+    Vector mPlasticStrain = ZeroVector(VoigtSize);
 
 
     ///@}
