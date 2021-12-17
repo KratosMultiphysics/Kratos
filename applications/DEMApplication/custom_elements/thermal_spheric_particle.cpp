@@ -423,6 +423,7 @@ namespace Kratos
       std::string model = r_process_info[ADJUSTED_CONTACT_MODEL];
       if      (model.compare("zhou")   == 0) mContactRadiusAdjusted = AdjustedContactRadiusZhou(r_process_info);
       else if (model.compare("lu")     == 0) mContactRadiusAdjusted = AdjustedContactRadiusLu(r_process_info);
+      else if (model.compare("Morris") == 0) mContactRadiusAdjusted = AdjustedContactRadiusMorris(r_process_info);
 
       // Compute adjusted distance/separation from adjusted contact radius
       mNeighborDistanceAdjusted   = ComputeDistanceToNeighborAdjusted();
@@ -1072,6 +1073,37 @@ namespace Kratos
 
     // Adjusted value of contact radius
     return pow(mContactRadius * stiff / stiff_real, 2.0/3.0);
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::AdjustedContactRadiusMorris(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // Parameters
+    double eff_young      = ComputeEffectiveYoung();
+    double eff_young_real = ComputeEffectiveYoungReal();
+    double eff_radius     = ComputeEffectiveRadius();
+    double identation     = std::max(mNeighborSeparation, 0.0);
+
+    // Contact force with simulation parameters (using Hertz theory)
+    double hertz_force = 4.0 * eff_young * sqrt(eff_radius) * pow(identation, 3.0 / 2.0) / 3.0;
+
+    // Area correction
+    double correction_area = pow(hertz_force * eff_radius / eff_young_real, 1.0 / 3.0);
+
+    // Time correction
+    double correction_time = 1.0;
+
+    if (this->Is(DEMFlags::HAS_MOTION)) {
+      // TODO: Compute time correction from collision time
+      correction_time = 1.0;
+    }
+
+    // Adjusted value of contact radius
+    return correction_area * correction_time;
 
     KRATOS_CATCH("")
   }

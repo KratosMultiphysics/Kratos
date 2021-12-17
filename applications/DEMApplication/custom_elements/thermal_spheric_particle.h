@@ -133,6 +133,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double FrictionGenerationSlidingVelocity(const ProcessInfo& r_process_info);
   double AdjustedContactRadiusZhou(const ProcessInfo& r_process_info);
   double AdjustedContactRadiusLu(const ProcessInfo& r_process_info);
+  double AdjustedContactRadiusMorris(const ProcessInfo& r_process_info);
 
   // Auxiliary computations
   void   ComputeAddedSearchDistance(const ProcessInfo& r_process_info, double& added_search_distance) override;

@@ -154,7 +154,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
             raise Exception('DEM', 'Thermal radiation model \'' + self.radiation_model + '\' is not implemented.')
 
         if (self.adjusted_contact_model != "zhou" and
-            self.adjusted_contact_model != "lu"):
+            self.adjusted_contact_model != "lu"   and
+            self.adjusted_contact_model != "morris"):
             raise Exception('DEM', 'Adjusted contact model \'' + self.adjusted_contact_model + '\' is not implemented.')
 
         if (self.voronoi_method != "tesselation" and
