@@ -20,6 +20,7 @@
 
 /* Project includes */
 #include "solving_strategies/schemes/scheme.h"
+#include "processes/calculate_nodal_area_process.h"
 #include "utilities/entities_utilities.h"
 
 namespace Kratos
@@ -142,6 +143,16 @@ public:
     ///@{
 
     /**
+     * @brief Calculate the nodal area.
+     * @param rModelPart The model part of the problem to solve
+     */
+    void Initialize(ModelPart& rModelPart) override
+    {
+        BaseType::Initialize(rModelPart);
+        CalculateNodalAreaProcess<true>(rModelPart).Execute();
+    }
+
+    /**
      * @brief Perform the prediction using the explicit Adams-Bashforth scheme
      * @param rModelPart The model of the problem to solve
      * @param rDofSet set of all primary variables
@@ -159,15 +170,45 @@ public:
     {
         KRATOS_TRY;
 
-        const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
+        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        const double delta_time = r_process_info[DELTA_TIME];
         KRATOS_ERROR_IF(delta_time < 1.0e-24) << "ERROR:: Detected delta_time near to zero" << std::endl;
 
+        // Prediction of the derivatives
         PredictDerivatives(rModelPart, rDofSet, rA, rDx, rb);
 
-        // const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        // block_for_each(rModelPart.Elements(), [&](Element& rElement){
-        //     rElement.AddExplicitContribution(r_process_info);
-        // });
+        // Prediction of the laplacian field
+        block_for_each(rModelPart.Elements(), [&](Element& rElement){
+            rElement.InitializeNonLinearIteration(r_process_info);
+        });
+
+        // Setting to zero the contributions to the prediction
+        block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+            rNode.FastGetSolutionStepValue(RESIDUAL_VECTOR) = ZeroVector(3);
+        });
+
+        // Calculate the prediction
+        block_for_each(rModelPart.Elements(), [&](Element& rElement){
+            rElement.AddExplicitContribution(r_process_info);
+        });
+
+        // Apply the prediction
+        block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+            array_1d<double,3>& velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+            double& free_surface = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
+            const array_1d<double,3>& prediction = rNode.FastGetSolutionStepValue(RESIDUAL_VECTOR);
+            const double nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
+            const double inv_mass = 1.0 / nodal_area;
+            if (rNode.IsFixed(VELOCITY_X) == false) {
+                velocity[0] += delta_time * inv_mass * prediction[0];
+            }
+            if (rNode.IsFixed(VELOCITY_Y) == false) {
+                velocity[1] += delta_time * inv_mass * prediction[1];
+            }
+            if (rNode.IsFixed(FREE_SURFACE_ELEVATION) == false) {
+                free_surface += delta_time * inv_mass * prediction[2];
+            }
+        });
 
         KRATOS_CATCH( "" );
     }

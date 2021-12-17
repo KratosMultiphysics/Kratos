@@ -25,6 +25,8 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
         super().AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.RESIDUAL_VECTOR) # This is used by the predictor. TODO: replace with reaction
+        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()

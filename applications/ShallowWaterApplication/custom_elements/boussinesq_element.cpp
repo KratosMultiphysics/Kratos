@@ -268,6 +268,8 @@ void BoussinesqElement<3>::CalculateRightHandSide(VectorType& rRightHandSideVect
 template<>
 void BoussinesqElement<3>::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
 {
+    auto& r_geom = this->GetGeometry();
+
     LocalVectorType f1 = ZeroVector(mLocalSize);
     LocalVectorType f2 = ZeroVector(mLocalSize);
     LocalVectorType f3 = ZeroVector(mLocalSize);
@@ -279,45 +281,44 @@ void BoussinesqElement<3>::AddExplicitContribution(const ProcessInfo& rCurrentPr
     BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
     array_1d<double,3> N;            // Position of the gauss point
     double area;
-    GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, area);
+    GeometryUtils::CalculateGeometryData(r_geom, DN_DX, N, area);
 
-    GetNodalData(data, this->GetGeometry(), 1);
+    GetNodalData(data, r_geom, 1);
     AddRightHandSide(f1, data, N, DN_DX);
 
-    GetNodalData(data, this->GetGeometry(), 2);
+    GetNodalData(data, r_geom, 2);
     AddRightHandSide(f2, data, N, DN_DX);
 
-    GetNodalData(data, this->GetGeometry(), 3);
+    GetNodalData(data, r_geom, 3);
     AddRightHandSide(f3, data, N, DN_DX);
 
-    const double delta_time = rCurrentProcessInfo[DELTA_TIME];
-    const double inv_lumped_mass = 3.0;
-
-    LocalVectorType increment = delta_time * inv_lumped_mass / 12.0 * (23*f1 - 16*f2 + 5*f3);
-    std::size_t counter = 0;
-    for (auto& r_node : this->GetGeometry())
+    LocalVectorType increment = area / 12.0 * (23*f1 - 16*f2 + 5*f3);
+    array_1d<double,3> nodal_increment;
+    for (std::size_t i = 0; i < r_geom.size(); ++i)
     {
-        r_node.SetLock();
-        double& u = r_node.FastGetSolutionStepValue(VELOCITY_X);
-        double& v = r_node.FastGetSolutionStepValue(VELOCITY_Y);
-        double& f = r_node.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
-        if (r_node.IsFixed(VELOCITY_X)) {
-            counter++;
-        } else {
-            u += increment[counter++];
-        }
-        if (r_node.IsFixed(VELOCITY_Y)) {
-            counter++;
-        } else {
-            v += increment[counter++];
-        }
-        if (r_node.IsFixed(FREE_SURFACE_ELEVATION)) {
-            counter++;
-        } else {
-            f += increment[counter++];
-        }
-        r_node.UnSetLock();
+        std::size_t block = 3*i;
+        nodal_increment[0] = increment[block];
+        nodal_increment[1] = increment[block + 1];
+        nodal_increment[2] = increment[block + 2];
+
+        r_geom[i].SetLock();
+        r_geom[i].FastGetSolutionStepValue(RESIDUAL_VECTOR) += nodal_increment;
+        r_geom[i].UnSetLock();
     }
+}
+
+
+template<std::size_t TNumNodes>
+void BoussinesqElement<TNumNodes>::CalculateLumpedMassVector(
+    VectorType& rLumpedMassVector,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    if(rLumpedMassVector.size() != mLocalSize)
+        rLumpedMassVector.resize(mLocalSize, false);
+
+    const double area = this->GetGeometry().Area();
+    const double lump_factor = 1.0 / static_cast<double>(TNumNodes);
+    rLumpedMassVector = Vector(mLocalSize, area * lump_factor);
 }
 
 
