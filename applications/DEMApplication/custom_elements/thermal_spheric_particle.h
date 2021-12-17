@@ -271,7 +271,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double mNeighborDistanceAdjusted;  // adjusted neighbor distance from adjusted contact radius
 
   // Radiation environment-related
-  int    mEnvironmentCount;
+  int    mRadiativeNeighbors;
   double mEnvironmentTemperature;
   double mEnvironmentTempAux;
 

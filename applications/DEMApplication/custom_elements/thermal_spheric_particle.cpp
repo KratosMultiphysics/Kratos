@@ -99,7 +99,7 @@ namespace Kratos
 
     // Initialize environment-related variables for radiation
     if (this->Is(DEMFlags::HAS_RADIATION)) {
-      mEnvironmentCount       = 0;
+      mRadiativeNeighbors     = 0;
       mEnvironmentTemperature = 0.0;
       mEnvironmentTempAux     = 0.0;
     }
@@ -478,7 +478,7 @@ namespace Kratos
       return;
 
     // Update number of radiative neighbors
-    mEnvironmentCount++;
+    mRadiativeNeighbors++;
 
     // Accumulate environment temperature (in continuum methods) or compute heat flux (in discrete methods) according to selected model
     std::string model = r_process_info[RADIATION_MODEL];
@@ -503,7 +503,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Check if radiation neighbors exist
-    if (mEnvironmentCount == 0)
+    if (mRadiativeNeighbors == 0)
       return;
 
     // compute heat flux of continuous methods according to selected model
@@ -986,7 +986,7 @@ namespace Kratos
     double f_temperature        = r_process_info[FLUID_TEMPERATURE];
 
     // Compute final value of environment temperature
-    double env_temperature = porosity * f_temperature + (1.0 - porosity) * mEnvironmentTemperature / mEnvironmentCount;
+    double env_temperature = porosity * f_temperature + (1.0 - porosity) * mEnvironmentTemperature / mRadiativeNeighbors;
 
     // Compute heat flux
     return STEFAN_BOLTZMANN * particle_emissivity * particle_surface * (pow(env_temperature,4.0) - pow(particle_temperature,4.0));
