@@ -34,7 +34,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
             "voronoi_tesselation_frequency"  : 1000,
 	        "porosity_update_frequency"      : 1000,
             "compute_motion"                 : true,
-            "compute_direct_conduction"      : false,
+            "compute_direct_conduction"      : true,
             "compute_indirect_conduction"    : false,
             "compute_convection"             : false,
             "compute_radiation"              : false,

@@ -88,7 +88,7 @@ namespace Kratos {
 
     // Initialize results
     int    num_of_particles                    =  r_modelpart.NumberOfElements();
-    int    num_ratio_particles                 = 0;
+    int    num_ratio_particles                 =  0;
     int    time_step                           =  r_process_info[TIME_STEPS];
     double time                                =  r_process_info[TIME];
     double total_vol                           =  0.0;
@@ -110,7 +110,7 @@ namespace Kratos {
       ModelPart::ElementsContainerType::iterator it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
       ThermalSphericParticle<SphericParticle>& particle = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*it);
 
-      // Accumulate total volume
+      // Accumulate values
       double vol  = particle.CalculateVolume();
       double temp = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
       #pragma omp critical
@@ -157,7 +157,7 @@ namespace Kratos {
     particle_temp_dev  = std::max(0.0, particle_temp_dev / num_of_particles - particle_temp_avg * particle_temp_avg);
 
     // Compute average of relative contribution of each heat transfer mechanism
-    if (mGraph_ParticleHeatFluxContributions) {
+    if (mGraph_ParticleHeatFluxContributions && num_ratio_particles > 0) {
       particle_flux_conducdir_ratio_avg   /= num_ratio_particles;
       particle_flux_conducindir_ratio_avg /= num_ratio_particles;
       particle_flux_rad_ratio_avg         /= num_ratio_particles;

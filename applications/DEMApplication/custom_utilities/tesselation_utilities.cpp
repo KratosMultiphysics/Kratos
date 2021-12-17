@@ -37,13 +37,14 @@ namespace Kratos {
     if (update_porosity)
       r_process_info[AVERAGE_POROSITY] = 1.0;
 
+    // Set switches
     if (r_process_info[DOMAIN_SIZE] == 2) {
-      // Set switches for Triangle
+      // Switches for Triangle
       if      (update_voronoi)  mSwitches = "PQev";
       else if (update_porosity) mSwitches = "PQ";
     }
     else if (r_process_info[DOMAIN_SIZE] == 3) {
-      // Set switches for TetGen
+      // Switches for TetGen
       if      (update_voronoi)  mSwitches = "JQv";
       else if (update_porosity) mSwitches = "JQ";
     }
