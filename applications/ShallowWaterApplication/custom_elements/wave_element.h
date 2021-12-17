@@ -323,6 +323,11 @@ protected:
 
     virtual void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
 
+    double ShapeFunctionProduct(
+        const array_1d<double,TNumNodes>& rN,
+        const std::size_t I,
+        const std::size_t J);
+
     virtual void CalculateArtificialViscosity(
         BoundedMatrix<double,3,3>& rViscosity,
         BoundedMatrix<double,2,2>& rDiffusion,
