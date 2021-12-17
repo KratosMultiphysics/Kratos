@@ -7,8 +7,8 @@
 //  Main authors:    Reza Najian Asl
 //
 // ==============================================================================
-#if !defined(KRATOS_SURFACE_FILTER_CONDITION_3D_H_INCLUDED )
-#define  KRATOS_SURFACE_FILTER_CONDITION_3D_H_INCLUDED
+#if !defined(KRATOS_HELMHOLTZ_CONDITION_3D_H_INCLUDED )
+#define  KRATOS_HELMHOLTZ_CONDITION_3D_H_INCLUDED
 
 // System includes
 
@@ -16,6 +16,9 @@
 
 // Project includes
 #include "includes/condition.h"
+#include "includes/model_part.h"
+#include "utilities/integration_utilities.h"
+#include "utilities/geometry_utilities.h"
 #include "shape_optimization_application_variables.h"
 
 namespace Kratos
@@ -41,12 +44,12 @@ namespace Kratos
 ///@{
 
 /**
- * @class SurfaceFilterCondition
+ * @class HelmholtzCondition
  * @ingroup ShapeOptimizationApplication
  * @brief This is the class of surface PDE/Helmholtz-based surface filtering
  * @author Reza Najian Asl
  */
-class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION)  SurfaceFilterCondition
+class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION)  HelmholtzCondition
     : public Condition
 {
 public:
@@ -75,30 +78,30 @@ public:
     /// Definition of nodes container type, redefined from GeometryType
     typedef BaseType::NodesArrayType NodesArrayType;
 
-    // Counted pointer of SurfaceFilterCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SurfaceFilterCondition );
+    // Counted pointer of HelmholtzCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( HelmholtzCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    SurfaceFilterCondition()
+    HelmholtzCondition()
     {};
 
     // Constructor using an array of nodes
-    SurfaceFilterCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
+    HelmholtzCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
     {};
 
     // Constructor using an array of nodes with properties
-    SurfaceFilterCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
+    HelmholtzCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
     {};
 
     ///Copy constructor
-    SurfaceFilterCondition(SurfaceFilterCondition const& rOther);
+    HelmholtzCondition(HelmholtzCondition const& rOther);
 
     // Destructor
-    ~SurfaceFilterCondition() override
+    ~HelmholtzCondition() override
     {};
 
     ///@}
@@ -106,7 +109,7 @@ public:
     ///@{
 
     /// Assignment operator.
-    SurfaceFilterCondition& operator=(SurfaceFilterCondition const& rOther);
+    HelmholtzCondition& operator=(HelmholtzCondition const& rOther);
 
     ///@}
     ///@name Operations
@@ -178,6 +181,9 @@ public:
         Vector& rValues,
         int Step = 0
         ) const override;
+
+    void Calculate(const Variable<Matrix>& rVariable,
+      Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function provides a more general interface to the element.
@@ -296,6 +302,12 @@ private:
     ///@name Private Operations
     ///@{
 
+    void CalculateNormal(VectorType & r_n) const;    
+    void GetParentElementShapeFunctionsValues(MatrixType& rNMatrix,const IntegrationMethod& rIntegrationMethod, const ProcessInfo& rCurrentProcessInfo) const;
+    void GetParentElementShapeFunctionsGlobalGradients(MatrixType& rDN_DX,const IndexType PointNumber,const IntegrationMethod& rIntegrationMethod, const ProcessInfo& rCurrentProcessInfo) const;
+    void CalculateSurfaceMassMatrix(MatrixType& rMassMatrix,const ProcessInfo& rCurrentProcessInfo) const;
+    void CalculateSurfaceStiffnessMatrix(MatrixType& rStiffnessMatrix,const ProcessInfo& rCurrentProcessInfo) const;
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -315,7 +327,7 @@ private:
 
     void load( Serializer& rSerializer ) override;
 
-}; // class SurfaceFilterCondition.
+}; // class HelmholtzCondition.
 
 ///@}
 ///@name Type Definitions
@@ -328,4 +340,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_SURFACE_FILTER_CONDITION_3D_H_INCLUDED  defined
+#endif // KRATOS_HELMHOLTZ_CONDITION_3D_H_INCLUDED  defined

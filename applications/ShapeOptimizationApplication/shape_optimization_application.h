@@ -33,7 +33,7 @@
 #include "custom_elements/helmholtz_vec_element.h"
 
 /* CONDITIONS */
-#include "custom_conditions/surface_filter_condition.h"
+#include "custom_conditions/helmholtz_condition.h"
 
 // ==============================================================================
 
@@ -209,11 +209,11 @@ namespace Kratos
 			/* CONDITIONS*/
 
 			// Surface conditions
-			const SurfaceFilterCondition mSurfaceFilterCondition3D3N;
-			const SurfaceFilterCondition mSurfaceFilterCondition3D4N;
-			const SurfaceFilterCondition mSurfaceFilterCondition3D6N;
-			const SurfaceFilterCondition mSurfaceFilterCondition3D8N;
-			const SurfaceFilterCondition mSurfaceFilterCondition3D9N;
+			const HelmholtzCondition mHelmholtzCondition3D3N;
+			const HelmholtzCondition mHelmholtzCondition3D4N;
+			const HelmholtzCondition mHelmholtzCondition3D6N;
+			const HelmholtzCondition mHelmholtzCondition3D8N;
+			const HelmholtzCondition mHelmholtzCondition3D9N;
 
 		///@}
 		///@name Private Operators

@@ -54,7 +54,15 @@ Element::Pointer HelmholtzElement::Create(IndexType NewId, GeometryType::Pointer
 HelmholtzElement::~HelmholtzElement()
 {
 }
+/***********************************************************************************/
+/***********************************************************************************/
 
+void HelmholtzElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == HELMHOLTZ_MASS_MATRIX)
+        CalculateBulkMassMatrix(rOutput,rCurrentProcessInfo);
+
+}
 //************************************************************************************
 //************************************************************************************
 void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
@@ -89,7 +97,7 @@ void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     MatrixType K = A + M;
 
     const unsigned int number_of_points = r_geometry.size();
-    Vector nodal_vals(number_of_points*3);
+    Vector nodal_vals(number_of_points*dimension);
     for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
     {
         const VectorType &source = r_geometry[node_element].FastGetSolutionStepValue(HELMHOLTZ_SOURCE);
@@ -198,7 +206,38 @@ void HelmholtzElement::GetDofList(DofsVectorType& rElementalDofList,const Proces
     KRATOS_CATCH("")
 
 }
+//******************************************************************************
+//******************************************************************************
+void HelmholtzElement::GetValuesVector(VectorType &rValues,
+                                            int Step) const {
+  const GeometryType &rgeom = this->GetGeometry();
+  const SizeType num_nodes = rgeom.PointsNumber();
+  const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+  const unsigned int local_size = num_nodes * dimension;
 
+  if (rValues.size() != local_size)
+    rValues.resize(local_size, false);
+
+  if (dimension == 2) {
+    SizeType index = 0;
+    for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+      rValues[index++] =
+          rgeom[i_node].FastGetSolutionStepValue(HELMHOLTZ_VARS_X, Step);
+      rValues[index++] =
+          rgeom[i_node].FastGetSolutionStepValue(HELMHOLTZ_VARS_Y, Step);
+    }
+  } else if (dimension == 3) {
+    SizeType index = 0;
+    for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+      rValues[index++] =
+          rgeom[i_node].FastGetSolutionStepValue(HELMHOLTZ_VARS_X, Step);
+      rValues[index++] =
+          rgeom[i_node].FastGetSolutionStepValue(HELMHOLTZ_VARS_Y, Step);
+      rValues[index++] =
+          rgeom[i_node].FastGetSolutionStepValue(HELMHOLTZ_VARS_Z, Step);
+    }
+  }
+}
 //************************************************************************************
 //************************************************************************************
 int HelmholtzElement::Check(const ProcessInfo& rCurrentProcessInfo) const
@@ -213,11 +252,11 @@ int HelmholtzElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < number_of_nodes; i++ ) {
         const NodeType &rnode = r_geometry[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(HELMHOLTZ_VARS,rnode)
 
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(HELMHOLTZ_VARS_X, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(HELMHOLTZ_VARS_Y, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(HELMHOLTZ_VARS_Z, rnode)
     }
 
     return check;
@@ -247,7 +286,7 @@ void HelmholtzElement::CalculateBulkMassMatrix(
 
     Matrix J0(dimension, dimension);
 
-    IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
+    IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_4;
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints( integration_method );
     const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
 
@@ -300,13 +339,13 @@ void HelmholtzElement::CalculateBulkStiffnessMatrix(
     rStiffnessMatrix = ZeroMatrix( mat_size, mat_size );
 
     //reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(r_geom.GetDefaultIntegrationMethod());
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geom.ShapeFunctionsLocalGradients(r_geom.GetDefaultIntegrationMethod());
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_4);
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geom.ShapeFunctionsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_4);
 
     Element::GeometryType::JacobiansType J0;
     Matrix DN_DX(number_of_nodes,dimension);
     Matrix InvJ0(dimension,dimension);
-    r_geom.Jacobian(J0,r_geom.GetDefaultIntegrationMethod());
+    r_geom.Jacobian(J0,GeometryData::IntegrationMethod::GI_GAUSS_4);
     double DetJ0;
 
     MatrixType A_dirc = ZeroMatrix(number_of_nodes,number_of_nodes);

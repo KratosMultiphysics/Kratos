@@ -23,10 +23,11 @@
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "processes/tetrahedral_mesh_orientation_check.h"
 #include "utilities/builtin_timer.h"
 #include "spaces/ublas_space.h"
 #include "mapper_base.h"
-#include "custom_conditions/surface_filter_condition.h"
+#include "custom_conditions/helmholtz_condition.h"
 #include "custom_elements/helmholtz_element.h"
 #include "custom_elements/helmholtz_vec_element.h"
 #include "custom_strategies/strategies/helmholtz_strategy.h"
@@ -131,7 +132,7 @@ public:
 
         // create a new property for the vm elements       
         Properties::Pointer p_vm_elem_property = mpVMModePart->CreateNewProperties(mpVMModePart->NumberOfProperties()+1);        
-        p_vm_elem_property->SetValue(HELMHOLTZ_RADIUS,mMapperSettings["filter_radius"].GetDouble());              
+        p_vm_elem_property->SetValue(HELMHOLTZ_RADIUS,mMapperSettings["bulk_filter_radius"].GetDouble());              
 
         for (int i = 0; i < (int)mrModelPart.Elements().size(); i++) {
             ModelPart::ElementsContainerType::iterator it = mrModelPart.ElementsBegin() + i;
@@ -143,23 +144,25 @@ public:
             rmesh_elements.push_back(p_element);
         }
 
-        // // creating vm conditions
-        // ModelPart::ConditionsContainerType &rmesh_conditions =
-        //     mpVMModePart->Conditions();  
+        // creating vm conditions
+        ModelPart::ConditionsContainerType &rmesh_conditions =
+            mpVMModePart->Conditions();  
 
-        // // create a new property for the vm condition       
-        // Properties::Pointer p_vm_cond_property = mpVMModePart->CreateNewProperties(mpVMModePart->NumberOfProperties()+1);        
-        // p_vm_cond_property->SetValue(HELMHOLTZ_RADIUS,mMapperSettings["filter_radius"].GetDouble());
+        ModelPart& design_surface_sub_model_part = mrModelPart.GetSubModelPart(mMapperSettings["design_surface_sub_model_part_name"].GetString());
 
-        // for (int i = 0; i < (int)mrModelPart.Conditions().size(); i++) {
-        //     ModelPart::ConditionsContainerType::iterator it = mrModelPart.ConditionsBegin() + i;
-        //     Condition::Pointer p_condition;
-        //     if (element_type.compare("helmholtz_element") == 0)
-        //         p_condition = new SurfaceFilterCondition(it->Id(), it->pGetGeometry(), p_vm_cond_property);
-        //     else
-        //         KRATOS_ERROR << "helmholtz_vec_element is not supported yet"<<std::endl;                 
-        //     rmesh_conditions.push_back(p_condition);
-        // }        
+        // create a new property for the vm condition       
+        Properties::Pointer p_vm_cond_property = mpVMModePart->CreateNewProperties(mpVMModePart->NumberOfProperties()+1);        
+        p_vm_cond_property->SetValue(HELMHOLTZ_RADIUS,mMapperSettings["surface_filter_radius"].GetDouble());
+
+        for (int i = 0; i < (int)design_surface_sub_model_part.Conditions().size(); i++) {
+            ModelPart::ConditionsContainerType::iterator it = design_surface_sub_model_part.ConditionsBegin() + i;
+            Condition::Pointer p_condition;
+            p_condition = new HelmholtzCondition(it->Id(), it->pGetGeometry(), p_vm_cond_property);               
+            rmesh_conditions.push_back(p_condition);
+        }        
+
+        TetrahedralMeshOrientationCheck tetrahedralMeshOrientationCheck(*mpVMModePart,false,TetrahedralMeshOrientationCheck::ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS);
+        tetrahedralMeshOrientationCheck.Execute();        
 
         // calculate number of neighbour elements for each node.
         CalculateNodeNeighbourCount();
@@ -214,11 +217,21 @@ public:
         for(auto& elem_i : mpVMModePart->Elements())
         {
             VectorType origin_values;
-            MatrixType mass_matrix;
-            CalculateMassMatrix(elem_i,mass_matrix);
             GetElementVariableValuesVector(elem_i,rOriginVariable,origin_values);
+            MatrixType mass_matrix;
+            elem_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModePart->GetProcessInfo());            
             VectorType int_vals = prod(mass_matrix,origin_values);
             AddElementVariableValuesVector(elem_i,HELMHOLTZ_SOURCE,int_vals);
+        }
+
+        for(auto& cond_i : mpVMModePart->Conditions())
+        {
+            VectorType origin_values;
+            GetConditionVariableValuesVector(cond_i,rOriginVariable,origin_values);
+            MatrixType mass_matrix;
+            cond_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModePart->GetProcessInfo());            
+            VectorType int_vals = prod(mass_matrix,origin_values);
+            AddConditionVariableValuesVector(cond_i,HELMHOLTZ_SOURCE,int_vals);
         }
 
         mpHelmholtzStrategy->Solve();
@@ -258,11 +271,21 @@ public:
         for(auto& elem_i : mpVMModePart->Elements())
         {
             VectorType helmholtz_values;
+            elem_i.GetValuesVector(helmholtz_values);
             MatrixType mass_matrix;
-            CalculateMassMatrix(elem_i,mass_matrix);
-            GetElementVariableValuesVector(elem_i,HELMHOLTZ_VARS,helmholtz_values);
+            elem_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModePart->GetProcessInfo());
             VectorType int_vals = prod(mass_matrix,helmholtz_values);
             AddElementVariableValuesVector(elem_i,rOriginVariable,int_vals);
+        }
+
+        for(auto& cond_i : mpVMModePart->Conditions())
+        {
+            VectorType helmholtz_values;
+            cond_i.GetValuesVector(helmholtz_values);
+            MatrixType mass_matrix;
+            cond_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModePart->GetProcessInfo());
+            VectorType int_vals = prod(mass_matrix,helmholtz_values);
+            AddConditionVariableValuesVector(cond_i,rOriginVariable,int_vals);
         }
 
     
@@ -384,53 +407,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateMassMatrix(
-        const Element& rElement,
-        MatrixType& rMassMatrix
-        )
-    {
-        KRATOS_TRY;
-
-        const auto& r_geom = rElement.GetGeometry();
-        SizeType dimension = r_geom.WorkingSpaceDimension();
-        SizeType number_of_nodes = r_geom.size();
-        SizeType mat_size = dimension * number_of_nodes;
-
-        // Clear matrix
-        if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size)
-            rMassMatrix.resize( mat_size, mat_size, false );
-        rMassMatrix = ZeroMatrix( mat_size, mat_size );
-
-
-        Matrix J0(dimension, dimension);
-
-        IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
-        const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints( integration_method );
-        const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
-
-        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-            GeometryUtils::JacobianOnInitialConfiguration(
-                r_geom, integration_points[point_number], J0);
-            const double detJ0 = MathUtils<double>::Det(J0);
-            const double integration_weight = integration_points[point_number].Weight() * detJ0;
-            const Vector& rN = row(Ncontainer,point_number);
-
-            for ( IndexType i = 0; i < number_of_nodes; ++i ) {
-                const SizeType index_i = i * dimension;
-
-                for ( IndexType j = 0; j < number_of_nodes; ++j ) {
-                    const SizeType index_j = j * dimension;
-                    const double NiNj_weight = rN[i] * rN[j] * integration_weight;
-
-                    for ( IndexType k = 0; k < dimension; ++k )
-                        rMassMatrix( index_i + k, index_j + k ) += NiNj_weight;
-                }
-            }
-        }
-
-        KRATOS_CATCH("");
-    }
-
     void GetElementVariableValuesVector(const Element& rElement,
                                         const Variable<array_3d> &rVariable,
                                         VectorType &rValues) const
@@ -460,6 +436,35 @@ private:
             }
         }
     }
+    void GetConditionVariableValuesVector(const Condition& rCondition,
+                                        const Variable<array_3d> &rVariable,
+                                        VectorType &rValues) const
+    {
+        const GeometryType &rgeom = rCondition.GetGeometry();
+        const SizeType num_nodes = rgeom.PointsNumber();
+        const unsigned int dimension = rCondition.GetGeometry().WorkingSpaceDimension();
+        const unsigned int local_size = num_nodes * dimension;
+
+        if (rValues.size() != local_size)
+            rValues.resize(local_size, false);
+
+        if (dimension == 2) {
+            SizeType index = 0;
+            for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+                const array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);    
+                rValues[index++] = r_nodal_variable[0];
+                rValues[index++] = r_nodal_variable[1];
+            }
+        } else if (dimension == 3) {
+            SizeType index = 0;
+            for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+                const array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);    
+                rValues[index++] = r_nodal_variable[0];
+                rValues[index++] = r_nodal_variable[1];
+                rValues[index++] = r_nodal_variable[2];
+            }
+        }
+    }    
     void AddElementVariableValuesVector(Element& rElement,
                                         const Variable<array_3d> &rVariable,
                                         const VectorType &rValues
@@ -486,6 +491,33 @@ private:
             }
         }
     }
+
+    void AddConditionVariableValuesVector(Condition& rCondition,
+                                        const Variable<array_3d> &rVariable,
+                                        const VectorType &rValues
+                                        ) 
+    {
+        GeometryType &rgeom = rCondition.GetGeometry();
+        const SizeType num_nodes = rgeom.PointsNumber();
+        const unsigned int dimension = rCondition.GetGeometry().WorkingSpaceDimension();
+
+        if (dimension == 2) {
+            SizeType index = 0;
+            for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+                array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable); 
+                r_nodal_variable[0] += rValues[index++];
+                r_nodal_variable[1] += rValues[index++];
+            }
+        } else if (dimension == 3) {
+            SizeType index = 0;
+            for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+                array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);
+                r_nodal_variable[0] += rValues[index++];
+                r_nodal_variable[1] += rValues[index++];
+                r_nodal_variable[2] += rValues[index++];
+            }
+        }
+    }    
     
     void SetVariableZero(const Variable<array_3d> &rVariable) 
     {

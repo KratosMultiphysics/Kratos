@@ -46,11 +46,11 @@ namespace Kratos
             mHelmholtzVec3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(Element::GeometryType::PointsArrayType(27)))),
 
             /* CONDITIONS */            
-            mSurfaceFilterCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
-            mSurfaceFilterCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<NodeType >( Condition::GeometryType::PointsArrayType(4)))),
-            mSurfaceFilterCondition3D6N(0, Condition::GeometryType::Pointer(new Triangle3D6<NodeType >(Condition::GeometryType::PointsArrayType(6)))),
-            mSurfaceFilterCondition3D8N(0, Condition::GeometryType::Pointer(new Quadrilateral3D8<NodeType >(Condition::GeometryType::PointsArrayType(8)))),
-            mSurfaceFilterCondition3D9N(0, Condition::GeometryType::Pointer(new Quadrilateral3D9<NodeType >(Condition::GeometryType::PointsArrayType(9))))
+            mHelmholtzCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+            mHelmholtzCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<NodeType >( Condition::GeometryType::PointsArrayType(4)))),
+            mHelmholtzCondition3D6N(0, Condition::GeometryType::Pointer(new Triangle3D6<NodeType >(Condition::GeometryType::PointsArrayType(6)))),
+            mHelmholtzCondition3D8N(0, Condition::GeometryType::Pointer(new Quadrilateral3D8<NodeType >(Condition::GeometryType::PointsArrayType(8)))),
+            mHelmholtzCondition3D9N(0, Condition::GeometryType::Pointer(new Quadrilateral3D9<NodeType >(Condition::GeometryType::PointsArrayType(9))))
     {}
 
  	void KratosShapeOptimizationApplication::Register()
@@ -126,6 +126,7 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(OUT_OF_PLANE_DELTA);
 
         // For implicit vertex-morphing with Helmholtz PDE
+        KRATOS_REGISTER_VARIABLE(HELMHOLTZ_MASS_MATRIX);
         KRATOS_REGISTER_VARIABLE(HELMHOLTZ_DIRECTION);
         KRATOS_REGISTER_VARIABLE(HELMHOLTZ_RADIUS);
         KRATOS_REGISTER_VARIABLE(COMPUTE_CONTROL_POINTS);
@@ -147,11 +148,11 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("HelmholtzVecElement3D27N",mHelmholtzVec3D27N); 
 
         // Shape optimization conditions
-        KRATOS_REGISTER_CONDITION("SurfaceFilterCondition3D3N", mSurfaceFilterCondition3D3N)
-        KRATOS_REGISTER_CONDITION("SurfaceFilterCondition3D4N", mSurfaceFilterCondition3D4N)
-        KRATOS_REGISTER_CONDITION("SurfaceFilterCondition3D6N", mSurfaceFilterCondition3D6N)
-        KRATOS_REGISTER_CONDITION("SurfaceFilterCondition3D8N", mSurfaceFilterCondition3D8N)
-        KRATOS_REGISTER_CONDITION("SurfaceFilterCondition3D9N", mSurfaceFilterCondition3D9N)
+        KRATOS_REGISTER_CONDITION("HelmholtzCondition3D3N", mHelmholtzCondition3D3N)
+        KRATOS_REGISTER_CONDITION("HelmholtzCondition3D4N", mHelmholtzCondition3D4N)
+        KRATOS_REGISTER_CONDITION("HelmholtzCondition3D6N", mHelmholtzCondition3D6N)
+        KRATOS_REGISTER_CONDITION("HelmholtzCondition3D8N", mHelmholtzCondition3D8N)
+        KRATOS_REGISTER_CONDITION("HelmholtzCondition3D9N", mHelmholtzCondition3D9N)
 
 
  	}

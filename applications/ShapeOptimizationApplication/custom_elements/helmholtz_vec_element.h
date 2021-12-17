@@ -97,6 +97,10 @@ public:
 
     void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
+    void GetValuesVector(VectorType &rValues, int Step = 0) const override;
+
+    void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}

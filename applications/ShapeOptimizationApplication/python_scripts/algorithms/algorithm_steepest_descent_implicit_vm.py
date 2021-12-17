@@ -110,7 +110,7 @@ class AlgorithmSteepestDescentImplicitVM(OptimizationAlgorithm):
 
         self.analyzer.InitializeBeforeOptimizationLoop()
 
-        self.mapper = mapper_factory.CreateMapper(self.optimization_model_part, self.optimization_model_part, self.mapper_settings)
+        self.mapper = mapper_factory.CreateMapper(self.optimization_model_part, self.design_surface, self.mapper_settings)
         self.mapper.Initialize()
 
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)

@@ -123,6 +123,48 @@ void HelmholtzVecElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     KRATOS_CATCH("")
 }
 
+//******************************************************************************
+//******************************************************************************
+void HelmholtzVecElement::GetValuesVector(VectorType &rValues,
+                                            int Step) const {
+  const GeometryType &rgeom = this->GetGeometry();
+  const SizeType num_nodes = rgeom.PointsNumber();
+  const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+  const unsigned int local_size = num_nodes * dimension;
+
+  if (rValues.size() != local_size)
+    rValues.resize(local_size, false);
+
+  if (dimension == 2) {
+    SizeType index = 0;
+    for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+      rValues[index++] =
+          rgeom[i_node].FastGetSolutionStepValue(HELMHOLTZ_VARS_X, Step);
+      rValues[index++] =
+          rgeom[i_node].FastGetSolutionStepValue(HELMHOLTZ_VARS_Y, Step);
+    }
+  } else if (dimension == 3) {
+    SizeType index = 0;
+    for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+      rValues[index++] =
+          rgeom[i_node].FastGetSolutionStepValue(HELMHOLTZ_VARS_X, Step);
+      rValues[index++] =
+          rgeom[i_node].FastGetSolutionStepValue(HELMHOLTZ_VARS_Y, Step);
+      rValues[index++] =
+          rgeom[i_node].FastGetSolutionStepValue(HELMHOLTZ_VARS_Z, Step);
+    }
+  }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void HelmholtzVecElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == HELMHOLTZ_MASS_MATRIX)
+        CalculateBulkMassMatrix(rOutput,rCurrentProcessInfo);
+
+}
 //************************************************************************************
 //************************************************************************************
 void HelmholtzVecElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
@@ -214,11 +256,11 @@ int HelmholtzVecElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < number_of_nodes; i++ ) {
         const NodeType &rnode = r_geometry[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(HELMHOLTZ_VARS,rnode)
 
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(HELMHOLTZ_VARS_X, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(HELMHOLTZ_VARS_Y, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(HELMHOLTZ_VARS_Z, rnode)
     }
 
     return check;
@@ -358,7 +400,7 @@ HelmholtzVecElement::SetAndModifyConstitutiveLaw(
   // Stiffening of elements using Jacobian determinants and exponent between
   // 0.0 and 2.0
   const double factor =
-      100;               // Factor influences how far the displacement spreads
+      100;               // Factor influences how far the HELMHOLTZ_VARS spreads
                          // into the fluid mesh
   const double xi = 1.5; // 1.5 Exponent influences stiffening of smaller
                          // elements; 0 = no stiffening
