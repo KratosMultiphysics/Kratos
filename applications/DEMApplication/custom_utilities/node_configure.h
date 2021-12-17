@@ -181,7 +181,7 @@ public:
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& Radius)
     {
         double distance_squared;
-        Distance(rObj_1, rObj_2, distance_squared);
+        SquaredDistance(rObj_1, rObj_2, distance_squared);
         const bool intersect = floatle(distance_squared, std::pow(Radius, 2));
         return intersect;
     }
@@ -240,6 +240,13 @@ public:
 
     static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance)
     {
+        SquaredDistance(rObj_1, rObj_2, distance);
+
+        distance = std::sqrt(distance);
+    }
+
+    static inline void SquaredDistance(const PointerType& rObj_1, const PointerType& rObj_2, double& squared_distance)
+    {
         double rObj_2_to_rObj_1[3];
         PointType& point_1 = *rObj_1;
         const double coors_1[3] = {point_1[0], point_1[1], point_1[2]};
@@ -248,7 +255,7 @@ public:
 
         PeriodicSubstract(coors_1, coors_2, rObj_2_to_rObj_1);
 
-        distance = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
+        squared_distance = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
     }
 
     static double mDomainPeriods[3];
@@ -257,7 +264,7 @@ public:
     static bool mDomainIsPeriodic;
 
     /// Turn back information as a string.
-    virtual std::string Info() const {return " Spatial Containers Configure for Particles"; }
+    virtual std::string Info() const {return " Spatial Containers Configure for Nodes"; }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const {}
