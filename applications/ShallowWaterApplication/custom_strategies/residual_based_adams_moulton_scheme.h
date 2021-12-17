@@ -153,6 +153,34 @@ public:
     }
 
     /**
+     * @brief Calculate the global projection of the auxiliary fields.
+     * @param rModelPart The model part of the problem to solve
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void InitializeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+    ) override
+    {
+        block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = ZeroVector(3);
+            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) = ZeroVector(3);
+        });
+
+        BaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
+
+        block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+            const double nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
+            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) /= nodal_area;
+            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) /= nodal_area;
+        });
+    }
+
+    /**
      * @brief Perform the prediction using the explicit Adams-Bashforth scheme
      * @param rModelPart The model of the problem to solve
      * @param rDofSet set of all primary variables
@@ -177,14 +205,24 @@ public:
         // Prediction of the derivatives
         PredictDerivatives(rModelPart, rDofSet, rA, rDx, rb);
 
-        // Prediction of the laplacian field
+        // Setting to zero the projections
+        block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = ZeroVector(3);
+            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) = ZeroVector(3);
+            rNode.FastGetSolutionStepValue(RESIDUAL_VECTOR) = ZeroVector(3);
+        });
+
+        // Project the laplacian fields
         block_for_each(rModelPart.Elements(), [&](Element& rElement){
             rElement.InitializeNonLinearIteration(r_process_info);
         });
 
-        // Setting to zero the contributions to the prediction
+        // Recover the laplacian field
         block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
-            rNode.FastGetSolutionStepValue(RESIDUAL_VECTOR) = ZeroVector(3);
+            const double nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
+            const double inv_mass = 1.0 / nodal_area;
+            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) *= inv_mass;
+            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) *= inv_mass;
         });
 
         // Calculate the prediction
@@ -231,7 +269,6 @@ public:
     {
         KRATOS_TRY;
 
-        // Update of displacement (by DOF)
         mpDofUpdater->UpdateDofs(rDofSet, rDx);
 
         UpdateDerivatives(rModelPart, rDofSet, rA, rDx, rb);

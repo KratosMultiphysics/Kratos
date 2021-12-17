@@ -154,6 +154,12 @@ public:
     }
 
     /**
+     * @brief Calculate the velocity laplacian projection
+     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the elements
+     */
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief Calculate the rhs according to the Adams-Moulton scheme
      * @param rRightHandSideVector Elemental right hand side vector
      * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the element
@@ -201,6 +207,13 @@ protected:
     void AddRightHandSide(
         LocalVectorType& rRHS,
         ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0);
+
+    void AddAuxiliaryLaplacian(
+        LocalMatrixType& rLaplacian,
+        const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);

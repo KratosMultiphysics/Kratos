@@ -209,6 +209,84 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
 
 
 template<std::size_t TNumNodes>
+void BoussinesqElement<TNumNodes>::AddAuxiliaryLaplacian(
+    LocalMatrixType& rLaplacian,
+    const ElementData& rData,
+    const array_1d<double,TNumNodes>& rN,
+    const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+    const double Weight)
+{
+    array_1d<double,3> gradients_vector_i;
+    array_1d<double,3> gradients_vector_j;
+
+    for (IndexType i = 0; i < TNumNodes; ++i)
+    {
+        gradients_vector_i[0] = rDN_DX(i,0);
+        gradients_vector_i[1] = rDN_DX(i,1);
+        gradients_vector_i[2] = 0.0;
+
+        for (IndexType j = 0; j < TNumNodes; ++j)
+        {
+            gradients_vector_j[0] = rDN_DX(j,0);
+            gradients_vector_j[1] = rDN_DX(j,1);
+            gradients_vector_j[2] = 0.0;
+
+            // Projector for the auxiliary field
+            rLaplacian(3*i,     3*j    ) -= Weight * rDN_DX(i,0) * rDN_DX(j,0); // This is temporary, the full laplacian must be added.
+            rLaplacian(3*i + 1, 3*j + 1) -= Weight * rDN_DX(i,1) * rDN_DX(j,1); // This is temporary, the full laplacian must be added.
+            // MathUtils<double>::AddMatrix(rLaplacian, -Weight*outer_prod(gradients_vector_i, gradients_vector_j), 3*i, 3*j);
+        }
+    }
+}
+
+
+template<>
+void BoussinesqElement<3>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    auto& r_geom = this->GetGeometry();
+
+    // Struct to pass around the data
+    ElementData data;
+    InitializeData(data, rCurrentProcessInfo);
+    GetNodalData(data, r_geom);
+
+    // Geometrical data
+    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
+    array_1d<double,3> N;            // Position of the gauss point
+    double area;
+    GeometryUtils::CalculateGeometryData(r_geom, DN_DX, N, area);
+
+    // Auxiliary fields
+    LocalMatrixType laplacian = ZeroMatrix(mLocalSize, mLocalSize);
+
+    // Gauss point contribution
+    CalculateGaussPointData(data, N);
+    AddAuxiliaryLaplacian(laplacian, data, N, DN_DX, area);
+
+    const LocalVectorType& acc_vector = this->GetAccelerationsVector(data);
+    const LocalVectorType& vel_vector = this->GetUnknownVector(data);
+
+    LocalVectorType acc_laplacian_vector = prod(laplacian, acc_vector);
+    LocalVectorType vel_laplacian_vector = prod(laplacian, vel_vector);
+
+    array_1d<double,3> vel_laplacian = ZeroVector(3);
+    array_1d<double,3> acc_laplacian = ZeroVector(3);
+    for (std::size_t i = 0; i < 3; ++i)
+    {
+        std::size_t block = 3 * i;
+        vel_laplacian[0] = vel_laplacian_vector[block];
+        vel_laplacian[1] = vel_laplacian_vector[block + 1];
+        acc_laplacian[0] = acc_laplacian_vector[block];
+        acc_laplacian[1] = acc_laplacian_vector[block + 1];
+        r_geom[i].SetLock();
+        r_geom[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) += vel_laplacian;
+        r_geom[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) += acc_laplacian;
+        r_geom[i].UnSetLock();
+    }
+}
+
+
+template<std::size_t TNumNodes>
 void BoussinesqElement<TNumNodes>::AddRightHandSide(
     LocalVectorType& rRHS,
     ElementData& rData,
