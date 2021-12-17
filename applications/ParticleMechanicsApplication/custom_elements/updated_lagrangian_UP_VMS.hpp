@@ -241,18 +241,32 @@ protected:
         return GetGeometry().WorkingSpaceDimension() + 1;
     }
 
-    /**
+       /**
      * Calculates the elemental contributions
      * \f$ K^e = w\,B^T\,D\,B \f$ and
      * \f$ r^e \f$
      */
-    //virtual void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
-    //ProcessInfo& rCurrentProcessInfo);
+    void CalculateElementalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag) override;
+
+
     ///@}
     ///@name Protected Operations
     ///@{
     void FinalizeStepVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
+    /*
+     * Calculation of stabilization parameters 
+     */
+
+    void CalculateTaus(GeneralVariables& rVariables);
+    
+    
+    
     /**
      * Calculation and addition of the matrices of the LHS
      */
@@ -312,6 +326,37 @@ protected:
                                     const double& rIntegrationWeight
                                    );
 
+
+    /**
+     * Calculation of the Kuu Stabilization Term matrix
+     */
+
+
+    virtual void CalculateAndAddKuuStab(MatrixType& rK,
+                                        GeneralVariables & rVariables,
+                                        const double& rIntegrationWeight
+                                       );
+
+    /**
+     * Calculation of the Kup Stabilization Term matrix
+     */
+
+
+    virtual void CalculateAndAddKupStab(MatrixType& rK,
+                                        GeneralVariables & rVariables,
+                                        const double& rIntegrationWeight
+                                       );
+
+    /**
+     * Calculation of the Kup Stabilization Term matrix
+     */
+
+
+    virtual void CalculateAndAddKpuStab(MatrixType& rK,
+                                        GeneralVariables & rVariables,
+                                        const double& rIntegrationWeight
+                                       );                                     
+
     /**
      * Calculation of the Kpp Stabilization Term matrix
      */
@@ -349,6 +394,16 @@ protected:
             GeneralVariables & rVariables,
             const double& rIntegrationWeight
                                                   );
+
+
+    /**
+     * Calculation stabilization terms for the momentum equation
+     */
+    virtual void CalculateAndAddStabilizedDisplacement(VectorType& rRightHandSideVector,
+            GeneralVariables & rVariables,
+            const double& rIntegrationWeight
+                                                  );
+
 
     /**
      * Calculate Element Kinematics

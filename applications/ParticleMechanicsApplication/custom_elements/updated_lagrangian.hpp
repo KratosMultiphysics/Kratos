@@ -224,6 +224,10 @@ protected:
 
         // Variables including all integration points
         Matrix CurrentDisp;
+
+        // Stabilization parameters
+        double tau1;
+        double tau2;
     };
 
 public:

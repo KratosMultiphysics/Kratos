@@ -153,8 +153,96 @@ void UpdatedLagrangianUPVMS::InitializeGeneralVariables (GeneralVariables& rVari
 
     UpdatedLagrangian::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
 
+    // Initialize stabilization parameters
+    rVariables.tau1  = 1;
+    rVariables.tau2  = 1;
+
     KRATOS_CATCH( "" )
 
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+
+void UpdatedLagrangianUPVMS::CalculateElementalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag)
+{
+    KRATOS_TRY
+
+    // Create and initialize element variables:
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+    const Vector& r_N = row(GetGeometry().ShapeFunctionsValues(), 0);
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+        : false;
+
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+    // Set constitutive law flags:
+    Flags &ConstitutiveLawOptions=Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+    if (!is_explicit)
+    {
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+
+        // Compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematics(Variables, rCurrentProcessInfo);
+
+        // Set general variables to constitutivelaw parameters
+        this->SetGeneralVariables(Variables, Values, r_N);
+
+        // Calculate Material Response
+        /* NOTE:
+        The function below will call CalculateMaterialResponseCauchy() by default and then (may)
+        call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
+        mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
+
+        // Compute stabilization parameters
+        CalculateTaus(Variables);
+
+        /* NOTE:
+        The material points will have constant mass as defined at the beginning.
+        However, the density and volume (integration weight) are changing every time step.*/
+        // Update MP_Density
+        mMP.density = (GetProperties()[DENSITY]) / Variables.detFT;
+    }
+
+    // The MP_Volume (integration weight) is evaluated
+    mMP.volume = mMP.mass / mMP.density;
+
+    if (CalculateStiffnessMatrixFlag && !is_explicit) // if calculation of the matrix is required
+    {
+        // Contributions to stiffness matrix calculated on the reference configuration
+        this->CalculateAndAddLHS(
+            rLeftHandSideMatrix,
+            Variables,
+            mMP.volume,
+            rCurrentProcessInfo);
+    }
+
+    if (CalculateResidualVectorFlag) // if calculation of the vector is required
+    {
+        // Contribution to forces (in residual term) are calculated
+        Vector volume_force = mMP.volume_acceleration * mMP.mass;
+        this->CalculateAndAddRHS(
+            rRightHandSideVector,
+            Variables,
+            volume_force,
+            mMP.volume,
+            rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -235,7 +323,6 @@ void UpdatedLagrangianUPVMS::UpdateGaussPoint( GeneralVariables & rVariables, co
 
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
-
 
 void UpdatedLagrangianUPVMS::CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
@@ -409,6 +496,26 @@ void UpdatedLagrangianUPVMS::InitializeSolutionStep(const ProcessInfo& rCurrentP
 //************************************************************************************
 //************************************************************************************
 
+// Calculate stabilization parameters
+
+void UpdatedLagrangianUPVMS::CalculateTaus(
+    GeneralVariables& rVariables)
+{
+    KRATOS_TRY
+
+    // Add computations for the tau stabilization
+    rVariables.tau1=0.5;
+    rVariables.tau2=0.5;
+
+
+    KRATOS_CATCH( "" )
+}
+
+
+
+//************************************************************************************
+//************************************************************************************
+
 void UpdatedLagrangianUPVMS::CalculateAndAddRHS(
     VectorType& rRightHandSideVector,
     GeneralVariables& rVariables,
@@ -428,6 +535,9 @@ void UpdatedLagrangianUPVMS::CalculateAndAddRHS(
 
     // Operation performed: rRightHandSideVector -= PressureForceBalance*IntegrationWeight
     CalculateAndAddPressureForces( rRightHandSideVector, rVariables, rIntegrationWeight);
+
+    // Operation performed: rRightHandSideVector -= Stabilized terms of the momentum equation
+    CalculateAndAddStabilizedDisplacement( rRightHandSideVector, rVariables, rIntegrationWeight);
 
     // Operation performed: rRightHandSideVector -= Stabilized Pressure Forces
     CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, rIntegrationWeight);
@@ -518,6 +628,21 @@ void UpdatedLagrangianUPVMS::CalculateAndAddPressureForces(VectorType& rRightHan
 //************************************************************************************
 //************************************************************************************
 
+void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType& rRightHandSideVector,
+        GeneralVariables & rVariables,
+        const double& rIntegrationWeight)
+{
+    KRATOS_TRY
+
+   
+
+    KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
 void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
         GeneralVariables & rVariables,
         const double& rIntegrationWeight)
@@ -542,7 +667,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rRigh
         const double& poisson_ratio = GetProperties()[POISSON_RATIO];
         shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
 
-        double consistent = 1;
+        //double consistent = 1;
         double factor_value = 8.0; //JMR deffault value
         if (dimension == 3)
             factor_value = 10.0; //JMC deffault value
@@ -824,14 +949,54 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
 
     KRATOS_CATCH( "" )
 }
+
+
+
 //************************************************************************************
 //************************************************************************************
-// I changed the constant matrix in the stabilized term:
-// as in MPM the position of the integration points does not coincide with the
-// position of the Gauss points the first matrix is substitute with the product of the
-// shape function values of each integration point
-//************************************************************************************
-//************************************************************************************
+
+void UpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSideMatrix,
+        GeneralVariables& rVariables,
+        const double& rIntegrationWeight)
+
+{
+    KRATOS_TRY
+
+    KRATOS_CATCH( "" )
+}
+
+
+
+//***********************************************************************************
+//***********************************************************************************
+void UpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSideMatrix,
+        GeneralVariables& rVariables,
+        const double& rIntegrationWeight)
+
+{
+    KRATOS_TRY
+
+    KRATOS_CATCH( "" )
+}
+
+
+
+//***********************************************************************************
+//***********************************************************************************
+void UpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSideMatrix,
+        GeneralVariables& rVariables,
+        const double& rIntegrationWeight)
+
+{
+    KRATOS_TRY
+
+    KRATOS_CATCH( "" )
+}
+
+
+
+//***********************************************************************************
+//***********************************************************************************
 
 void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
         GeneralVariables & rVariables,
@@ -856,7 +1021,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
         const double& poisson_ratio = GetProperties()[POISSON_RATIO];
         shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
 
-        double consistent = 1;
+        //double consistent = 1;
         double factor_value = 8.0; //JMR deffault value
         if (dimension == 3)
             factor_value = 10.0; //JMC deffault value
@@ -910,7 +1075,6 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
 
     KRATOS_CATCH( "" )
 }
-
 
 //************************************CALCULATE VOLUME CHANGE*************************
 //************************************************************************************

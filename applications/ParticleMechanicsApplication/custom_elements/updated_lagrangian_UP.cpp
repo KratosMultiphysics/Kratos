@@ -542,7 +542,6 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
         const double& poisson_ratio = GetProperties()[POISSON_RATIO];
         shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
 
-        double consistent = 1;
         double factor_value = 8.0; //JMR deffault value
         if (dimension == 3)
             factor_value = 10.0; //JMC deffault value
@@ -856,7 +855,6 @@ void UpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatri
         const double& poisson_ratio = GetProperties()[POISSON_RATIO];
         shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
 
-        double consistent = 1;
         double factor_value = 8.0; //JMR deffault value
         if (dimension == 3)
             factor_value = 10.0; //JMC deffault value
