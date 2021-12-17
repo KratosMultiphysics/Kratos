@@ -916,7 +916,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             //TODO: make different AddUpForces for continuum and discontinuum (different arguments, different operations!)
 
             // Store contact information needed for other processes
-            StoreBallToBallContactInfo(r_process_info, data_buffer.mpOtherParticle, data_buffer, GlobalContactForce, sliding);
+            StoreBallToBallContactInfo(r_process_info, data_buffer, GlobalContactForce, sliding);
 
             // ROTATION FORCES
             if (this->Is(DEMFlags::HAS_ROTATION) && !data_buffer.mMultiStageRHS) {
@@ -1932,7 +1932,7 @@ std::unique_ptr<DEMDiscontinuumConstitutiveLaw> SphericParticle::pCloneDiscontin
 
 void SphericParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {}
 
-void SphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {}
+void SphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {}
 
 void SphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, DEMWall* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {}
 

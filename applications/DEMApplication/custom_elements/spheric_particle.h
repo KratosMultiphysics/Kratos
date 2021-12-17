@@ -360,7 +360,7 @@ virtual double GetInitialDeltaWithFEM(int index);
 
 virtual void ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces);
 
-virtual void StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding);
+virtual void StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding);
 
 virtual void StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, DEMWall* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding);
 

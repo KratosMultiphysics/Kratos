@@ -180,13 +180,14 @@ namespace Kratos
 
   //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle* neighbor, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {
+  void ThermalSphericParticle<TBaseElement>::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {
     KRATOS_TRY
 
     if (!store_contact_param)
       return;
 
     // Increment number of contact particle neighbors
+    SphericParticle* neighbor = data_buffer.mpOtherParticle;
     mNumberOfContactParticleNeighbor++;
 
     // Local relavive velocity components (normal and tangential)
