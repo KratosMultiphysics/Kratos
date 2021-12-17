@@ -1,5 +1,5 @@
 # import KratosMultiphysics
-from sympy import var, Symbol, Matrix, zeros, diff
+from sympy import Symbol, Matrix, zeros, diff
 
 from KratosMultiphysics.sympy_fe_utilities import                  \
     DfjDxi, Compute_RHS, Compute_LHS,  \
@@ -317,7 +317,7 @@ for dim in dim_vector:
 
     # Shape functions and Gauss pts. settings
     (n_nodes, n_gauss) = {
-        1: (1, 2),  # Line
+        1: (2, 2),  # Line
         2: (4, 4),  # Quad
         3: (8, 8)   # Hexa
     }[dim]
