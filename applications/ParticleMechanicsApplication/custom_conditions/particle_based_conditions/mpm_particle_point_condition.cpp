@@ -163,9 +163,7 @@ namespace Kratos
 
         array_1d<double,3> delta_xg = ZeroVector(3);
         array_1d<double, 3 > MPC_velocity = ZeroVector(3);
-        array_1d<double, 3 > mpc_force = ZeroVector(3);
         
-
         Variables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -181,6 +179,31 @@ namespace Kratos
                     delta_xg[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
                     MPC_velocity[j] += Variables.N[i] * nodal_velocity[j];
                 }
+                
+            }
+        }
+        
+        // Update the Material Point Condition Position
+        m_xg += delta_xg ;
+        m_velocity = MPC_velocity;
+    }
+
+    
+    void MPMParticlePointCondition::CalculateContactForce( const ProcessInfo& rCurrentProcessInfo )
+    {
+        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+
+        GeneralVariables Variables;
+        Variables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
+
+        array_1d<double, 3 > mpc_force = ZeroVector(3);
+    
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
+            {
+                auto r_geometry = GetGeometry();
+              
                 const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
                 const double nodal_area  = r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
                 const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
@@ -192,10 +215,7 @@ namespace Kratos
             }
         }
         
-        // Update the Material Point Condition Position
-        m_xg += delta_xg ;
-        m_velocity = MPC_velocity;
-        m_contact_force = mpc_force;
+        m_contact_force = -mpc_force;
     }
 
     void MPMParticlePointCondition::CalculateOnIntegrationPoints(
@@ -245,6 +265,7 @@ namespace Kratos
             rValues[0] = m_normal;
         }
         else if (rVariable == MPC_CONTACT_FORCE) {
+            this->CalculateContactForce(rCurrentProcessInfo);
             rValues[0] = m_contact_force;
         }
         else if (rVariable == MPC_DISPLACEMENT) {

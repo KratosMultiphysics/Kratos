@@ -298,7 +298,6 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
         KRATOS_WATCH("NO CONDITIONS APPLIED")
         
     }
-    m_rhs = rRightHandSideVector;
 
     KRATOS_CATCH( "" )
 }
@@ -311,24 +310,27 @@ void MPMParticleLagrangeDirichletCondition::FinalizeNonLinearIteration(const Pro
     MPMParticleBaseDirichletCondition::FinalizeNonLinearIteration(rCurrentProcessInfo);
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
     GeneralVariables Variables;
+    array_1d<double, 3 > mpc_force = ZeroVector(3);
+    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
+
+    mpc_force = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+
+    // Calculating shape function
+    MPMShapeFunctionPointValues(Variables.N);
 
     // Calculate nodal forces
     Vector nodal_force = ZeroVector(3);
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        for (unsigned int j = 0; j < dimension; j++)
-        {
-            nodal_force[j] = m_rhs[dimension * i + j];
-        }
-
+        
         // Check whether there nodes are active and associated to material point elements
         const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
         if (nodal_mass > std::numeric_limits<double>::epsilon())
         {
             r_geometry[i].SetLock();
-            r_geometry[i].FastGetSolutionStepValue(REACTION) += nodal_force;
+            r_geometry[i].FastGetSolutionStepValue(REACTION) += mpc_force * Variables.N[i] * this->GetIntegrationWeight();
             r_geometry[i].UnSetLock();
         }
 
@@ -364,6 +366,23 @@ void MPMParticleLagrangeDirichletCondition::FinalizeSolutionStep( const ProcessI
 
     // Set Contact Force
     m_contact_force = mpc_force;
+
+    // Additional treatment for slip conditions
+    if (Is(SLIP))
+    {
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
+
+        // Here MPC normal vector and IS_STRUCTURE are reset
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            r_geometry[i].SetLock();
+            r_geometry[i].Reset(SLIP);
+            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 0.0;
+            r_geometry[i].FastGetSolutionStepValue(NORMAL).clear();
+            r_geometry[i].UnSetLock();
+        }
+    }
 
     KRATOS_CATCH( "" )
 }

@@ -206,6 +206,8 @@ protected:
      */
     Matrix& CalculateCurrentDisp(Matrix & rCurrentDisp, const ProcessInfo& rCurrentProcessInfo);
 
+    virtual void CalculateContactForce( const ProcessInfo& rCurrentProcessInfo );
+
 
     ///@}
     ///@name Protected  Access
