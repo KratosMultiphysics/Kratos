@@ -181,8 +181,26 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
     #             id_lagrange_cond = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_CORRESPONDING_CONDITION_ID, self.model_part.ProcessInfo)[0] 
     #             contact_force = lagrange_model_part.GetCondition(id_lagrange_cond).CalculateOnIntegrationPoints(KratosParticle.MPC_CONTACT_FORCE, self.model_part.ProcessInfo)[0]
     #             counter = lagrange_model_part.GetCondition(id_lagrange_cond).CalculateOnIntegrationPoints(KratosParticle.MPC_COUNTER, self.model_part.ProcessInfo)[0]
+    #             print(id_lagrange_cond)
+    #             print(contact_force)
+    #             print(counter)
     #             for i in range(3):
     #                 contact_force[i] = contact_force[i]/counter
 
     #             mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_CONTACT_FORCE, [contact_force], self.model_part.ProcessInfo)
+
+    # def ExecuteFinalizeSolutionStep(self):
+    #     horizontal_force=0.0
+    #     vertical_force=0.0
+    #     momentum=0.0
+        
+    #     for mpc in self.model_part.Conditions:
+    #         force = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_CONTACT_FORCE, self.model_part.ProcessInfo)[0]
+    #         coord =  mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.model_part.ProcessInfo)[0]
+    #         horizontal_force += force[0]
+    #         vertical_force += force[1]
+    #         momentum += (-force[0])*(coord[1]-0.5)
+    #     print(horizontal_force)
+    #     print(vertical_force)
+    #     print(momentum)
 
