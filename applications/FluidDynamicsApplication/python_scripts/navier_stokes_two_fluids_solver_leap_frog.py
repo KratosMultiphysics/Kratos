@@ -99,6 +99,14 @@ class NavierStokesTwoFluidsSolverLeapFrog(NavierStokesTwoFluidsSolver):
     def Initialize(self):
         super().Initialize()
 
+        self.shock_capturing_settings=KratosMultiphysics.Parameters("""{
+            "model_part_name" : "",
+            "calculate_nodal_area_at_each_step" : false,
+            "shock_sensor" : false,
+            "shear_sensor" : true,
+            "thermal_sensor" : false,
+            "thermally_coupled_formulation" : false
+        }""")
         # Non historical variable is initilized in order to avoid memory problems
         if self.time_scheme == "generalised_alpha":
             for node in self.GetComputingModelPart().Nodes:
@@ -117,6 +125,8 @@ class NavierStokesTwoFluidsSolverLeapFrog(NavierStokesTwoFluidsSolver):
                 self.theta = 0.55
             self.leapfrog_coef=self.theta
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_INTEGRATION_THETA, self.theta)
+
+        self._GetShockCapturingProcess().Execute()
 
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
@@ -284,3 +294,14 @@ class NavierStokesTwoFluidsSolverLeapFrog(NavierStokesTwoFluidsSolver):
         highscore = open(filename,append_write)
         highscore.write(str(Time)+"\t" +str(new_error) +"\t" +str(water_volume_after_correction)+"\t" +str(inlet) +'\t\t'+ str(outlet) +'\t\t'+str(new_error) +'\t\t'+str(system_volume) +'\t\t'+'\n')
         highscore.close()
+
+
+    def __CreateShockCapturingProcess(self):
+        shock_capturing_process=KratosCFD.ShockCapturingProcess(self.main_model_part,self.shock_capturing_settings)
+        return shock_capturing_process
+
+
+    def _GetShockCapturingProcess(self):
+        if not hasattr(self,'_shock_capturing_process'):
+            self._shock_capturing_process=self.__CreateShockCapturingProcess()
+        return self._shock_capturing_process

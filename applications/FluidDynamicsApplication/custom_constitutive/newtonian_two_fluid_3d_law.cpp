@@ -19,6 +19,7 @@
 #include "includes/checks.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 #include "utilities/element_size_calculator.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -76,9 +77,10 @@ int NewtonianTwoFluid3DLaw::Check(
 double NewtonianTwoFluid3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const
 {
     double viscosity;
+    double artificial_viscosity;
     EvaluateInPoint(viscosity, DYNAMIC_VISCOSITY, rParameters);
     const Properties& prop = rParameters.GetMaterialProperties();
-
+    EvaluateInPointShockCapturing(artificial_viscosity,rParameters);
     if (prop.Has(C_SMAGORINSKY)) {
         const double csmag = prop[C_SMAGORINSKY];
         if (csmag > 0.0) {
@@ -92,8 +94,33 @@ double NewtonianTwoFluid3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters
             viscosity += 2.0*length_scale * strain_rate * density;
         }
     }
-    return viscosity;
+    double added_shock_capturing_viscosity=artificial_viscosity+viscosity;
+    return added_shock_capturing_viscosity;
 }
+
+
+void NewtonianTwoFluid3DLaw::EvaluateInPointShockCapturing(double& rResult,
+    ConstitutiveLaw::Parameters& rParameters) const {
+
+    const SizeType nnodes = 4;
+    const GeometryType& geom = rParameters.GetElementGeometry();
+    const array_1d<double,nnodes>& N = rParameters.GetShapeFunctionsValues();
+
+    //compute sign of distance on gauss point
+
+    double aritficial_viscosity_shockcapturing=0;
+    SizeType navg = 0; //number of nodes on the same side as the gauss point
+
+    for (unsigned int i = 0; i < nnodes; i++){
+
+
+        navg += 1;
+        aritficial_viscosity_shockcapturing += N[i] * geom[i].GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
+    }
+    rResult = aritficial_viscosity_shockcapturing/navg;
+    }
+
+
 
 
 void NewtonianTwoFluid3DLaw::EvaluateInPoint(double& rResult,

@@ -67,6 +67,8 @@ NodalScalarData NodalDensity;
 NodalScalarData NodalDensityOldStep;
 NodalScalarData NodalDynamicViscosity;
 NodalScalarData NodalDynamicViscosityOldStep;
+NodalScalarData NodalArtificialViscosity;
+NodalScalarData NodalEffectiveDynamicViscosity;
 
 Vector ShearStressOldStep;
 
@@ -76,7 +78,8 @@ double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
 double VolumeError; //TODO: RENAME TO VolumeErrorTimeRatio
 double MaxSprectraRadius;
-
+double ArtificialViscosity;
+double EffectiveViscosity;
 // Auxiliary containers for the symbolically-generated matrices
 BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
 array_1d<double,TNumNodes*(TDim+1)> rhs;
@@ -138,7 +141,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
     this->FillFromProcessInfo(MaxSprectraRadius,SPECTRAL_RADIUS_LIMIT,rProcessInfo);
-
+    this->FillFromNonHistoricalNodalData(NodalArtificialViscosity,ARTIFICIAL_DYNAMIC_VISCOSITY,r_geometry);
 
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
     noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));
@@ -232,7 +235,7 @@ void CalculateAirMaterialResponse() {
     ComputeStrain();
 
     CalculateEffectiveViscosityAtGaussPoint();
-
+    CalculateArtificialViscosityAtGaussPoint();
     const double mu = this->EffectiveViscosity;
     const double c1 = 2.0*mu;
     const double c2 = mu;
@@ -349,13 +352,36 @@ void CalculateEffectiveViscosityAtGaussPoint()
             dynamic_viscosity += NodalDynamicViscosity[i];
         }
     }
-
     DynamicViscosity = dynamic_viscosity / navg;
+    NodalEffectiveDynamicViscosity=NodalDynamicViscosity+NodalArtificialViscosity;
+
     this->EffectiveViscosity = DynamicViscosity;
+    CalculateArtificialViscosityAtGaussPoint();
+    this->EffectiveViscosity=DynamicViscosity+this->ArtificialViscosity;
 }
 
 ///@}
 
+void CalculateArtificialViscosityAtGaussPoint()
+{
+    double dist = 0.0;
+    for (unsigned int i = 0; i < TNumNodes; i++)
+        dist += this->N[i] * Distance[i];
+
+    int navg = 0;
+    double artificial_viscosity = 0.0;
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        if (dist * Distance[i] > 0.0)
+        {
+            navg += 1;
+            artificial_viscosity += this->N[i]*NodalArtificialViscosity[i];
+        }
+    }
+    this->ArtificialViscosity = artificial_viscosity / navg;
+
+
+}
 };
 
 ///@}
