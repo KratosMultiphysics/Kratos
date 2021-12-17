@@ -220,10 +220,10 @@ void BoussinesqElement<TNumNodes>::AddRightHandSide(
 
     CalculateGaussPointData(rData, rN);
 
-    this->AddWaveTerms(lhs, rRHS, rData, rN, rDN_DX);
-    this->AddFrictionTerms(lhs, rRHS, rData, rN, rDN_DX);
-    this->AddDispersiveTerms(rRHS, rData, rN, rDN_DX);
-    this->AddArtificialViscosityTerms(lhs, rData, rDN_DX);
+    this->AddWaveTerms(lhs, rRHS, rData, rN, rDN_DX, Weight);
+    this->AddFrictionTerms(lhs, rRHS, rData, rN, rDN_DX, Weight);
+    this->AddDispersiveTerms(rRHS, rData, rN, rDN_DX, Weight);
+    this->AddArtificialViscosityTerms(lhs, rData, rDN_DX, Weight);
 
     noalias(rRHS) -= prod(lhs, this->GetUnknownVector(rData));
 }
@@ -234,6 +234,8 @@ void BoussinesqElement<3>::CalculateRightHandSide(VectorType& rRightHandSideVect
 {
     if(rRightHandSideVector.size() != mLocalSize)
         rRightHandSideVector.resize(mLocalSize, false);
+
+    auto& r_geom = this->GetGeometry();
 
     LocalVectorType f0 = ZeroVector(mLocalSize);
     LocalVectorType f1 = ZeroVector(mLocalSize);
@@ -247,21 +249,21 @@ void BoussinesqElement<3>::CalculateRightHandSide(VectorType& rRightHandSideVect
     BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
     array_1d<double,3> N;            // Position of the gauss point
     double area;
-    GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, area);
+    GeometryUtils::CalculateGeometryData(r_geom, DN_DX, N, area);
 
-    GetNodalData(data, this->GetGeometry(), 0);
-    AddRightHandSide(f0, data, N, DN_DX);
+    GetNodalData(data, r_geom, 0);
+    AddRightHandSide(f0, data, N, DN_DX, area);
 
-    GetNodalData(data, this->GetGeometry(), 1);
-    AddRightHandSide(f1, data, N, DN_DX);
+    GetNodalData(data, r_geom, 1);
+    AddRightHandSide(f1, data, N, DN_DX, area);
 
-    GetNodalData(data, this->GetGeometry(), 2);
-    AddRightHandSide(f2, data, N, DN_DX);
+    GetNodalData(data, r_geom, 2);
+    AddRightHandSide(f2, data, N, DN_DX, area);
 
-    GetNodalData(data, this->GetGeometry(), 3);
-    AddRightHandSide(f3, data, N, DN_DX);
+    GetNodalData(data, r_geom, 3);
+    AddRightHandSide(f3, data, N, DN_DX, area);
 
-    noalias(rRightHandSideVector) = area * (9*f0 + 19*f1 - 5*f2 + f3);
+    noalias(rRightHandSideVector) = 9*f0 + 19*f1 - 5*f2 + f3;
 }
 
 
@@ -284,15 +286,15 @@ void BoussinesqElement<3>::AddExplicitContribution(const ProcessInfo& rCurrentPr
     GeometryUtils::CalculateGeometryData(r_geom, DN_DX, N, area);
 
     GetNodalData(data, r_geom, 1);
-    AddRightHandSide(f1, data, N, DN_DX);
+    AddRightHandSide(f1, data, N, DN_DX, area);
 
     GetNodalData(data, r_geom, 2);
-    AddRightHandSide(f2, data, N, DN_DX);
+    AddRightHandSide(f2, data, N, DN_DX, area);
 
     GetNodalData(data, r_geom, 3);
-    AddRightHandSide(f3, data, N, DN_DX);
+    AddRightHandSide(f3, data, N, DN_DX, area);
 
-    LocalVectorType increment = area / 12.0 * (23*f1 - 16*f2 + 5*f3);
+    LocalVectorType increment = (23*f1 - 16*f2 + 5*f3) / 12.0;
     array_1d<double,3> nodal_increment;
     for (std::size_t i = 0; i < r_geom.size(); ++i)
     {
