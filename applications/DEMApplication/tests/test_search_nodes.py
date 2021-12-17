@@ -2,6 +2,17 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication as DEM
 
+# This test consists in applying OMP_DEMSearch to assign, to each node in
+# a 'Base' model part, the corresponding neighbors from a 'Target' model part.
+
+# The results calculated by Kratos are compared to the expected results. We
+# assume the domain to be a periodic parallepiped, so that the closest neighbors
+# are to be found accross the boundaries in some cases.
+
+# In particular, it is checked that the search is sharp, in the sense that if we
+# vary the search radius by a small amount (epsilon), neighbors placed strategically
+# at a distance equal to the base search radius are either found or not.
+
 class TestSearchNodes(KratosUnittest.TestCase):
 
     def setUp(self):
