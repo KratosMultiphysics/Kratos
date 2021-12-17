@@ -66,12 +66,29 @@ class FluidSolver(PythonSolver):
         raise Exception("Trying to call FluidSolver.AddVariables(). Implement the AddVariables() method in the specific derived solver.")
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
+        KratosMultiphysics.VariableUtils.AddDofsList(self.GetDofsWithReactionsList(), self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver DOFs added correctly.")
+
+    def GetDofsList(self):
+        dofs_list = []
+        dofs_list.append("VELOCITY_X")
+        dofs_list.append("VELOCITY_Y")
+        if self.settings["domain_size"].GetInt() == 3:
+            dofs_list.append("VELOCITY_Z")
+        dofs_list.append("PRESSURE")
+
+        return dofs_list
+
+    def GetDofsWithReactionsList(self):
+        dofs_with_reactions_list = []
+        dofs_with_reactions_list.append(["VELOCITY_X","REACTION_X"])
+        dofs_with_reactions_list.append(["VELOCITY_Y","REACTION_Y"])
+        if self.settings["domain_size"].GetInt() == 3:
+            dofs_with_reactions_list.append(["VELOCITY_Z","REACTION_Z"])
+        dofs_with_reactions_list.append(["PRESSURE","REACTION_WATER_PRESSURE"])
+
+        return dofs_with_reactions_list
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
