@@ -142,16 +142,7 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
     const double Weight)
 {
-    array_1d<double,3> gradients_vector_i;
-    array_1d<double,3> gradients_vector_j;
-    BoundedMatrix<double,3,3> gradients_matrix_k = ZeroMatrix(3,3);
-    BoundedMatrix<double,3,3> shape_functions_k = ZeroMatrix(3,3);
-    LocalMatrixType laplacian = ZeroMatrix(mLocalSize, mLocalSize);
-    LocalMatrixType gradients_matrix = ZeroMatrix(mLocalSize, mLocalSize);
-    LocalMatrixType shape_functions = ZeroMatrix(mLocalSize, mLocalSize);
-    LocalMatrixType height_dispersion;
-    LocalMatrixType velocity_dispersion;
-
+    // Constants
     const double dispersive_ratio = rData.depth / rData.wavelength;
     const double m2 = std::pow(dispersive_ratio, 2);
     const double beta = -0.531;
@@ -160,51 +151,66 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
     const double C3 = beta + 0.5;
     const double C4 = beta;
     const double H = rData.depth;
-    const double inv_lumped_mass = double(TNumNodes);
-    const double l = StabilizationParameter(rData);
 
+    // Projected auxiliary field
+    array_1d<array_1d<double,3>,TNumNodes> nodal_Jf;
+    array_1d<array_1d<double,3>,TNumNodes> nodal_Ju;
+    array_1d<double,3> vel_laplacian;
+    array_1d<double,3> acc_laplacian;
+    auto& r_geom = this->GetGeometry();
+    for (std::size_t i = 0; i < TNumNodes; ++i)
+    {
+        vel_laplacian = r_geom[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN);
+        acc_laplacian = r_geom[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE);
+        nodal_Jf[i] = (C1 + C3) * std::pow(H, 3) * vel_laplacian;
+        nodal_Ju[i] = (C2 + C4) * std::pow(H, 2) * acc_laplacian;
+    }
+
+    // Stabilization constants
+    const double l = StabilizationParameter(rData);
+    const array_1d<double,3> a1 = column(rData.A1, 2);
+    const array_1d<double,3> a2 = column(rData.A2, 2);
+
+    // Adding the contribution of the dispersive fields
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
-        gradients_vector_i[0] = rDN_DX(i,0);
-        gradients_vector_i[1] = rDN_DX(i,1);
-        gradients_vector_i[2] = 0.0;
-
         for (IndexType j = 0; j < TNumNodes; ++j)
         {
-            gradients_vector_j[0] = rDN_DX(j,0);
-            gradients_vector_j[1] = rDN_DX(j,1);
-            gradients_vector_j[2] = 0.0;
+            double g1_ij;
+            double g2_ij;
+            double d_ij;
+            double n_ij = WaveElementType::ShapeFunctionProduct(rN, i, j);
+            if (rData.integrate_by_parts) {
+                g1_ij = -rDN_DX(i,0) * rN[j];
+                g2_ij = -rDN_DX(i,1) * rN[j];
+            } else {
+                g1_ij = rN[i] * rDN_DX(j,0);
+                g2_ij = rN[i] * rDN_DX(j,1);
+            }
 
-            // Projector for the field E
-            MathUtils<double>::AddMatrix(laplacian, -outer_prod(gradients_vector_i, gradients_vector_j), 3*i, 3*j);
+            /// Gradient contribution
+            // rVector[3*i]     -= Weight*m2*n_ij*nodal_Ju[j][0];
+            // rVector[3*i + 1] -= Weight*m2*n_ij*nodal_Ju[j][1];
+            rVector[3*i + 2] -= Weight*m2*g1_ij*nodal_Jf[j][0];
+            rVector[3*i + 2] -= Weight*m2*g2_ij*nodal_Jf[j][1];
 
-            // Shape functions of the field E
-            gradients_matrix_k(2,0) = -rDN_DX(i,0);
-            gradients_matrix_k(2,1) = -rDN_DX(i,1);
-            shape_functions_k(0,0) = rN[j];
-            shape_functions_k(1,1) = rN[j];
-            MathUtils<double>::AddMatrix(gradients_matrix, gradients_matrix_k, 3*i, 3*j);
-            MathUtils<double>::AddMatrix(shape_functions,  shape_functions_k,  3*i, 3*j);
+            /// Stabilization x-x
+            d_ij = rDN_DX(i,0) * rDN_DX(j,0);
+            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*a1*nodal_Jf[j][0], 3*i);
 
-            // Stabilization terms for the field E
-            MathUtils<double>::AddMatrix(gradients_matrix, -l * rDN_DX(j,0)*prod(rData.A1, gradients_matrix_k), 3*i, 3*j);
-            MathUtils<double>::AddMatrix(gradients_matrix, -l * rDN_DX(j,1)*prod(rData.A2, gradients_matrix_k), 3*i, 3*j);
-            MathUtils<double>::AddMatrix(shape_functions,  l * rDN_DX(i,0)*prod(rData.A1, shape_functions_k),  3*i, 3*j);
-            MathUtils<double>::AddMatrix(shape_functions,  l * rDN_DX(i,1)*prod(rData.A2, shape_functions_k),  3*i, 3*j);
+            /// Stabilization y-y
+            d_ij = rDN_DX(i,1) * rDN_DX(j,1);
+            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*a2*nodal_Jf[j][1], 3*i);
+
+            /// Stabilization x-y
+            d_ij = rDN_DX(i,0) * rDN_DX(j,1);
+            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*a1*nodal_Jf[j][1], 3*i);
+
+            /// Stabilization y-x
+            d_ij = rDN_DX(i,1) * rDN_DX(j,0);
+            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*a2*nodal_Jf[j][0], 3*i);
         }
     }
-    LocalVectorType acceleration = this->GetAccelerationsVector(rData);
-    LocalVectorType velocity = this->GetUnknownVector(rData);
-    LocalVectorType acceleration_H = ConservativeVector(acceleration, rData);
-    LocalVectorType velocity_H = ConservativeVector(velocity, rData);
-
-    noalias(height_dispersion)  = m2 * Weight * inv_lumped_mass * prod(gradients_matrix, laplacian);
-    noalias(velocity_dispersion) = m2 * Weight * inv_lumped_mass * prod(shape_functions, laplacian);
-
-    noalias(rVector) -= C1 * std::pow(H,3) * prod(height_dispersion, velocity);
-    noalias(rVector) -= C3 * std::pow(H,2) * prod(height_dispersion, velocity_H);
-    noalias(rVector) -= C2 * std::pow(H,2) * prod(velocity_dispersion, acceleration);
-    noalias(rVector) -= C4 *          H    * prod(velocity_dispersion, acceleration_H);
 }
 
 
