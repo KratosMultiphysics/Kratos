@@ -34,7 +34,7 @@ class TestSearchNodes(KratosUnittest.TestCase):
         dx = self.unit_length
         epsilon = self.epsilon
 
-        neighbors, distances = [], []
+        neighbors, squared_distances = [], []
         # setting search radius just about large enough to catch some of the potential neighbors
         search_radius = 2*dx + epsilon
         radii = [search_radius for node in self.base_model_part.Nodes]
@@ -44,12 +44,12 @@ class TestSearchNodes(KratosUnittest.TestCase):
                                                           DEM.VectorResultNodesContainer(),
                                                           DEM.VectorDistances(),
                                                           neighbors,
-                                                          distances)
+                                                          squared_distances)
 
         self.AssertCorrectnessOfNeighbors(neighbors, search_radius)
-        self.AssertCorrectnessOfDistances(distances, neighbors)
+        self.AssertCorrectnessOfDistances(squared_distances, neighbors)
 
-        neighbors, distances = [], []
+        neighbors, squared_distances = [], []
         search_radius = 2*dx - epsilon
         # setting search radius a tad too short to catch some of the potential neighbors
         radii = [search_radius for node in self.base_model_part.Nodes]
@@ -59,22 +59,22 @@ class TestSearchNodes(KratosUnittest.TestCase):
                                                           DEM.VectorResultNodesContainer(),
                                                           DEM.VectorDistances(),
                                                           neighbors,
-                                                          distances)
+                                                          squared_distances)
 
         self.AssertCorrectnessOfNeighbors(neighbors, search_radius)
-        self.AssertCorrectnessOfDistances(distances, neighbors)
+        self.AssertCorrectnessOfDistances(squared_distances, neighbors)
 
     def AssertCorrectnessOfNeighbors(self, neighbors, search_radius):
         obtained_neighbors = [frozenset(l) for l in neighbors]
         expected_neighbors = self.GetExpectedListsOfNeighbors(search_radius)
         self.assertEqual(obtained_neighbors, expected_neighbors)
 
-    def AssertCorrectnessOfDistances(self, distances, neighbor_lists):
+    def AssertCorrectnessOfDistances(self, squared_distances, neighbor_lists):
         for i, i_neighbors in enumerate(neighbor_lists):
             for j, neigh_id in enumerate(i_neighbors):
                 expected_distance = self.GetDistanceById(self.base_ids[i], neigh_id)
-                obtained_distance = distances[i][j]
-                self.assertAlmostEqual(expected_distance, obtained_distance)
+                obtained_squared_distance = squared_distances[i][j]
+                self.assertAlmostEqual(expected_distance ** 2, obtained_squared_distance)
 
     def CreateNodes(self):
         dx = self.unit_length
