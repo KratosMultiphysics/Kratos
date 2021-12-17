@@ -5,24 +5,36 @@ import KratosMultiphysics.DEMApplication as DEM
 class TestSearchNodes(KratosUnittest.TestCase):
 
     def setUp(self):
-        self.model = Kratos.Model()
-        self.base_model_part = self.model.CreateModelPart('Base')
-        self.target_model_part = self.model.CreateModelPart('Target')
-        # creating a search tool with a periodic bounding box
+        # input parameters:
         dx = self.unit_length = 0.1
-        self.epsilon = 0.0001
+        self.epsilon = 0.0001 # small distance by which we modify the sensitivity to search radius
         self.domain_box = [0, 0, 0, 10*dx, 10*dx, 10*dx]
+
+        # creating a search tool with a periodic bounding box
         dimension = int(len(self.domain_box) / 2)
         self.domain_box_periods = [self.domain_box[i + dimension] - self.domain_box[i] for i in range(dimension)]
         self.search_strategy = DEM.OMP_DEMSearch(*self.domain_box)
+
+        # creating data containers and initializing global variables
+        self.next_node_id = 1
+        self.all_points_db = dict()
+        self.expected_distances_db = dict()
+        self.base_ids = []
+        self.target_ids = []
+
+        # creating model parts
+        self.model = Kratos.Model()
+        self.base_model_part = self.model.CreateModelPart('Base')
+        self.target_model_part = self.model.CreateModelPart('Target')
+
+        # creating nodes
         self.CreateNodes()
 
     def test_SearchNodesInTargetModelPart(self):
         dx = self.unit_length
         epsilon = self.epsilon
 
-        neighbours = []
-        distances = []
+        neighbours, distances = [], []
         # setting search radius just about large enough to catch some of the neighbours
         search_radius = 2*dx + epsilon
         radii = [search_radius for node in self.base_model_part.Nodes]
@@ -34,25 +46,17 @@ class TestSearchNodes(KratosUnittest.TestCase):
                                                           neighbours,
                                                           distances)
 
+        # translating results to standard lists:
         neighbours = [[n for n in l] for l in neighbours]
         distances = [[d for d in l] for l in distances]
         print('neighbours', neighbours)
         print('distances', distances)
 
-        obtained_distances_dictionary = dict()
-        for i, l in enumerate(neighbours):
-            for j, n in enumerate(l):
-                obtained_distances_dictionary[frozenset([self.base_ids[i], self.target_ids[j]])] = distances[i][j]
-
-        for k in obtained_distances_dictionary.keys():
-            print('obtained pair', obtained_distances_dictionary[k], self.expected_distances[k])
-
         self.AssertCorrectnessOfNeighbours(neighbours, search_radius)
         self.AssertCorrectnessOfDistances(distances, neighbours)
 
-        neighbours = []
+        neighbours, distances = [], []
         search_radius = 2*dx - epsilon
-
         # setting search radius a tad too short to catch some of the neighbours
         radii = [search_radius for node in self.base_model_part.Nodes]
         self.search_strategy.SearchNodesInRadiusExclusive(self.base_model_part.Nodes,
@@ -66,13 +70,6 @@ class TestSearchNodes(KratosUnittest.TestCase):
         self.AssertCorrectnessOfNeighbours(neighbours, search_radius)
         self.AssertCorrectnessOfDistances(distances, neighbours)
 
-    def GetNeighborPairs(self, neighbours):
-        pairs = []
-        for i, l in enumerate(neighbours):
-            for j, n in enumerate(l):
-                pairs.append([self.base_ids[i], n])
-        return pairs
-
     def AssertCorrectnessOfNeighbours(self, neighbours, search_radius):
         neighbours_sets = [frozenset(l) for l in neighbours]
         self.assertEqual(neighbours_sets, self.GetExpectedListsOfNeighbors(search_radius))
@@ -84,7 +81,7 @@ class TestSearchNodes(KratosUnittest.TestCase):
                 obtained_distances_dictionary[frozenset([self.base_ids[i], self.target_ids[j]])] = distances[i][j]
 
         for k in obtained_distances_dictionary.keys():
-            self.assertAlmostEqual(obtained_distances_dictionary[k], self.expected_distances[k])
+            self.assertAlmostEqual(obtained_distances_dictionary[k], self.expected_distances_db[k])
 
 
     def CreateNodes(self):
@@ -94,6 +91,7 @@ class TestSearchNodes(KratosUnittest.TestCase):
         B1 = [dx, dx, dx]
         B2 = [0.9*dx, 0.9*dx, 0.9*dx]
         base_points = [B1, B2]
+
         # Target nodes, which are search candidates
         # ------------------------------------------
         # the first one is simply displaced two length units in the x-direction with respect to
@@ -107,54 +105,64 @@ class TestSearchNodes(KratosUnittest.TestCase):
         # the fourth candidate is also displaced 3 units in the y direction, but in the opposite
         # direction (through the boundary)
         T4 = [1 - 2*dx, dx, dx]
-
-        disp = self.GetPeriodicDisplacement(B1, T2)
-
         target_points = [T1, T2, T3, T4]
 
-        self.base_ids = [i + 1 for i in range(len(base_points))]
-        base_points = dict(zip(self.base_ids, base_points))
+        for point in base_points:
+             self.CreateNode('Base', point)
 
-        for id in base_points.keys():
-             self.CreateNode('Base', id, base_points[id])
+        for point in target_points:
+             self.CreateNode('Target', point)
 
-        self.target_ids = [i + len(self.base_ids) + 1 for i in range(len(target_points))]
-        target_points = dict(zip(self.target_ids, target_points))
+        self.CalculateExpectedDistances()
 
-        for id in target_points.keys():
-             self.CreateNode('Target', id, target_points[id])
+    @staticmethod
+    def Norm(V):
+        return sum(v**2 for v in V)**0.5
 
-        self.expected_distances = dict()
+    def CreateNode(self, model_part_name, coordinates):
+        model_part = self.model.GetModelPart(model_part_name)
+        id = self.next_node_id
+        model_part.CreateNewNode(id, *coordinates)
+        self.all_points_db[id] = coordinates
+
+        if model_part_name == 'Base':
+            self.base_ids.append(id)
+        else:
+            self.target_ids.append(id)
+
+        self.next_node_id += 1
+
+    def GetExpectedListsOfNeighbors(self, search_radius):
+        expected_neighbours = [None for __ in self.base_ids]
+
+        for i, base_id in enumerate(self.base_ids):
+            neighs = set()
+            for target_id in self.target_ids:
+                if self.GetDistanceById(base_id, target_id) < search_radius:
+                    neighs.add(target_id)
+            expected_neighbours[i] = frozenset(neighs)
+
+        return expected_neighbours
+
+    def CalculateExpectedDistances(self):
         for base_id in self.base_ids:
             for target_id in self.target_ids:
-                self.expected_distances[frozenset([base_id, target_id])] = sum(d**2 for d in self.GetPeriodicDisplacement(base_points[base_id], target_points[target_id]))**0.5
+                self.expected_distances_db[frozenset([base_id, target_id])] = self.GetDistanceById(base_id, target_id)
 
-
-    def CreateNode(self, model_part_name, id, coordinates):
-        model_part = self.model.GetModelPart(model_part_name)
-        node = model_part.CreateNewNode(id, coordinates[0], coordinates[1], coordinates[2])
+    def GetDistanceById(self, id1, id2):
+        X = self.all_points_db[id1]
+        Y = self.all_points_db[id2]
+        distance = type(self).Norm(self.GetPeriodicDisplacement(X, Y))
+        return distance
 
     def GetPeriodicDisplacement(self, X, Y):
-        difference = [x - y for (x, y) in zip(X, Y)]
         sign = lambda x: -1 if x < 0 else 1
+        difference = [x - y for (x, y) in zip(X, Y)]
         for i, d in enumerate(difference):
             thorugh_boundary_difference = d - sign(d) * self.domain_box_periods[i]
             if abs(d) > abs(thorugh_boundary_difference):
                 difference[i] = thorugh_boundary_difference
         return difference
-
-    def GetExpectedListsOfNeighbors(self, search_radius):
-        expected_neighbours = [frozenset() for id in self.base_ids]
-
-        for i, base_id in enumerate(self.base_ids):
-            neighs = set()
-            for target_id in self.target_ids:
-                expected_distance = self.expected_distances[frozenset([base_id, target_id])]
-                if expected_distance < search_radius:
-                    neighs.add(target_id)
-                expected_neighbours[i] = frozenset(neighs)
-
-        return expected_neighbours
 
 if __name__ == '__main__':
     KratosUnittest.main()
