@@ -1108,7 +1108,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
                                      r_contact_force, mNeighbourRigidFacesElasticContactForce[i], mNeighbourRigidFacesTotalContactForce[i]);
 
             // Store contact information needed for other processes
-            StoreBallToRigidFaceContactInfo(r_process_info, wall, data_buffer, GlobalContactForce, sliding);
+            StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, wall, GlobalContactForce, sliding);
 
             rigid_element_force[0] -= GlobalContactForce[0];
             rigid_element_force[1] -= GlobalContactForce[1];
@@ -1934,7 +1934,7 @@ void SphericParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ba
 
 void SphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {}
 
-void SphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, DEMWall* other_element, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForce[3], bool sliding) {}
+void SphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, DEMWall* other_element, double GlobalContactForce[3], bool sliding) {}
 
 double SphericParticle::GetInitialDeltaWithFEM(int index) {//only available in continuum_particle
     return 0.0;
