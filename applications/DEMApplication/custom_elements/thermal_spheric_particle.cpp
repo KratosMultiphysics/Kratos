@@ -407,23 +407,26 @@ namespace Kratos
     KRATOS_TRY
 
     // Set simulated properties
-    mNeighborDistance  = ComputeDistanceToNeighbor();
-    mNeighborInContact = CheckSurfaceDistance(0.0);
-    mContactRadius     = ComputeContactRadius();
+    mNeighborDistance   = ComputeDistanceToNeighbor();
+    mNeighborSeparation = ComputeSeparationToNeighbor();
+    mNeighborInContact  = CheckSurfaceDistance(0.0);
+    mContactRadius      = ComputeContactRadius();
 
     // Set adjusted contact properties
     if (!mNeighborInContact || !this->Is(DEMFlags::HAS_ADJUSTED_CONTACT)) {
-      mNeighborDistanceAdjusted = mNeighborDistance;
-      mContactRadiusAdjusted    = mContactRadius;
+      mNeighborDistanceAdjusted   = mNeighborDistance;
+      mNeighborSeparationAdjusted = mNeighborSeparation;
+      mContactRadiusAdjusted      = mContactRadius;
     }
     else {
       // Compute adjusted contact radius according to selected model
       std::string model = r_process_info[ADJUSTED_CONTACT_MODEL];
-      if (model.compare("zhou") == 0) mContactRadiusAdjusted = AdjustedContactRadiusZhou(r_process_info);
-      if (model.compare("lu")   == 0) mContactRadiusAdjusted = AdjustedContactRadiusLu(r_process_info);
+      if      (model.compare("zhou")   == 0) mContactRadiusAdjusted = AdjustedContactRadiusZhou(r_process_info);
+      else if (model.compare("lu")     == 0) mContactRadiusAdjusted = AdjustedContactRadiusLu(r_process_info);
 
-      // Compute adjusted distance from adjusted contact radius
-      mNeighborDistanceAdjusted = ComputeDistanceToNeighborAdjusted();
+      // Compute adjusted distance/separation from adjusted contact radius
+      mNeighborDistanceAdjusted   = ComputeDistanceToNeighborAdjusted();
+      mNeighborSeparationAdjusted = ComputeSeparationToNeighborAdjusted();
     }
 
     KRATOS_CATCH("")
@@ -1365,12 +1368,10 @@ namespace Kratos
   bool ThermalSphericParticle<TBaseElement>::CheckSurfaceDistance(const double radius_factor) {
     KRATOS_TRY
 
+    // Assumption: radius_factor applies to the larger radius
     double particle_radius = GetParticleRadius();
     double neighbor_radius = GetNeighborRadius(); // must be zero for walls
-    double separation      = mNeighborDistance - particle_radius - neighbor_radius;
-
-    // Assumption: radius_factor applies to the larger radius
-    return (separation < radius_factor * std::max(particle_radius, neighbor_radius));
+    return (mNeighborSeparation < radius_factor * std::max(particle_radius, neighbor_radius));
 
     KRATOS_CATCH("")
   }
@@ -1454,6 +1455,30 @@ namespace Kratos
     else {
       return 0.0;
     }
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ComputeSeparationToNeighbor() {
+    KRATOS_TRY
+
+    double particle_radius = GetParticleRadius();
+    double neighbor_radius = GetNeighborRadius(); // must be zero for walls
+    return mNeighborDistance - particle_radius - neighbor_radius;
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ComputeSeparationToNeighborAdjusted() {
+    KRATOS_TRY
+
+    double particle_radius = GetParticleRadius();
+    double neighbor_radius = GetNeighborRadius(); // must be zero for walls
+    return mNeighborDistanceAdjusted - particle_radius - neighbor_radius;
 
     KRATOS_CATCH("")
   }

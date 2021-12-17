@@ -156,6 +156,8 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   bool   CheckSurfaceDistance(const double radius_factor);
   double ComputeDistanceToNeighbor();
   double ComputeDistanceToNeighborAdjusted();
+  double ComputeSeparationToNeighbor();
+  double ComputeSeparationToNeighborAdjusted();
   double ComputeFourierNumber();
   double ComputeMaxCollisionTime();
   double ComputeMaxContactRadius();
@@ -263,12 +265,14 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   std::map<DEMWall*, ContactParams>         mContactParamsWall;
 
   // Interaction properties
-  bool   mNeighborInContact;         // flag for contact interaction
-  double mRealYoungRatio;            // real value of Young modulus
-  double mContactRadius;             // simulation contact radius
-  double mNeighborDistance;          // simulation neighbor distance
-  double mContactRadiusAdjusted;     // adjusted contact radius from real Young modulus
-  double mNeighborDistanceAdjusted;  // adjusted neighbor distance from adjusted contact radius
+  bool   mNeighborInContact;          // flag for contact interaction
+  double mRealYoungRatio;             // real value of Young modulus
+  double mContactRadius;              // simulation contact radius
+  double mNeighborDistance;           // simulation neighbor distance
+  double mNeighborSeparation;         // simulation neighbor separation (negative value indicates an indentation)
+  double mContactRadiusAdjusted;      // adjusted contact radius from real Young modulus
+  double mNeighborDistanceAdjusted;   // adjusted neighbor distance from adjusted contact radius
+  double mNeighborSeparationAdjusted; // adjusted neighbor separation (negative value indicates an indentation)
 
   // Radiation environment-related
   int    mRadiativeNeighbors;
