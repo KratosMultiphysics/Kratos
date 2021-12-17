@@ -54,12 +54,12 @@ double BrooksCoreyLaw::
     const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
     const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
    
-    if (p > 0.0 & p <= pb )
+    /*if (p > 0.0 & p <= pb )
     {
         double sat =1;
         return sat;
-    }
-    else if (p > 0.0 & p > pb )
+   }
+    else*/ if (p > 0.0 & p > pb )
     {
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
         const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
