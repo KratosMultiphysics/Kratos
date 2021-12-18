@@ -37,7 +37,7 @@ class ValueLoggerRelaxedGradientProjection( ValueLogger ):
                 row.append("{:>13s}".format("c"+str(itr+1)+"_ref"))
 
             row.append("{:>13s}".format("step_size"))
-            row.append("{:>13s}".format("inf_norm_s"))
+            row.append("{:>13s}".format("inf_norm_p"))
             row.append("{:>13s}".format("inf_norm_c"))
             row.append("{:>13s}".format("projection_norm"))
             
@@ -83,7 +83,7 @@ class ValueLoggerRelaxedGradientProjection( ValueLogger ):
                 row.append(" {:> .5E}".format(self.communicator.getReferenceValue(constraint_id)))
 
             row.append(" {:> .5E}".format(self.history["step_size"][self.current_index]))
-            row.append(" {:> .5E}".format(self.history["inf_norm_s"][self.current_index]))
+            row.append(" {:> .5E}".format(self.history["inf_norm_p"][self.current_index]))
             row.append(" {:> .5E}".format(self.history["inf_norm_c"][self.current_index]))
             row.append(" {:> .5E}".format(self.history["projection_norm"][self.current_index]))
             

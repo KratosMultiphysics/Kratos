@@ -90,7 +90,6 @@ class AlgorithmSequentialQuadraticProgramming(OptimizationAlgorithm):
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
-        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.CORRECTION)
         
         
 
@@ -557,7 +556,6 @@ class AlgorithmSequentialQuadraticProgramming(OptimizationAlgorithm):
         if S_norm > self.step_size:
             S *= self.step_size/S_norm
             self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S, KSO.SEARCH_DIRECTION)
-        self.optimization_utilities.AssignVectorToVariable(self.design_surface, [0.0]*S.Size1(), KSO.CORRECTION)
         self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S, KSO.CONTROL_POINT_UPDATE)
 
     # --------------------------------------------------------------------------
@@ -593,7 +591,6 @@ class AlgorithmSequentialQuadraticProgramming(OptimizationAlgorithm):
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.step_size
         additional_values_to_log["inf_norm_s"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SEARCH_DIRECTION)
-        additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.CORRECTION)
         additional_values_to_log["iteration_count"] = self.last_iteration_count
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)

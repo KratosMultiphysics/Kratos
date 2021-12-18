@@ -94,7 +94,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         self.relative_tolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
-        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.PROJECTION)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.CORRECTION)
         
 
@@ -274,7 +274,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         #print("DEBUG: =========================================== ", correction_coefficients)
         KM.Logger.PrintInfo("ShapeOpt", "Assemble vector of objective gradient.")
         nabla_f = KM.Vector()
-        s = KM.Vector()
+        p = KM.Vector()
         self.optimization_utilities.AssembleVector(self.design_surface, nabla_f, KSO.DF1DX_MAPPED)
         f_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.DF1DX_MAPPED)
         if abs(f_norm) > 1e-10:
@@ -282,11 +282,11 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
         if len(g_a) == 0:
             KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
-            s = nabla_f * (-1.0)
-            s *= self.step_size / f_norm
-            self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.SEARCH_DIRECTION)
-            self.optimization_utilities.AssignVectorToVariable(self.design_surface, [0.0]*len(s), KSO.CORRECTION)
-            self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.CONTROL_POINT_UPDATE)
+            p = nabla_f * (-1.0)
+            p *= self.step_size / f_norm
+            self.optimization_utilities.AssignVectorToVariable(self.design_surface, p, KSO.PROJECTION)
+            self.optimization_utilities.AssignVectorToVariable(self.design_surface, [0.0]*len(p), KSO.CORRECTION)
+            self.optimization_utilities.AssignVectorToVariable(self.design_surface, p, KSO.CONTROL_POINT_UPDATE)
             return
 
         omega_r = KM.Matrix()
@@ -311,15 +311,15 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             omega_r,
             omega_c,
             solver,
-            s,
+            p,
             c)
         
         # additional normalization step
         
-        self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.SEARCH_DIRECTION)
-        self.s_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SEARCH_DIRECTION)
-        s *= 1.0 / self.s_norm
-        self.optimization_utilities.AssignVectorToVariable(self.design_surface, s+c, KSO.CONTROL_POINT_UPDATE)
+        self.optimization_utilities.AssignVectorToVariable(self.design_surface, p, KSO.PROJECTION)
+        self.p_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.PROJECTION)
+        p *= 1.0 / self.p_norm
+        self.optimization_utilities.AssignVectorToVariable(self.design_surface, p+c, KSO.CONTROL_POINT_UPDATE)
         step_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.CONTROL_POINT_UPDATE)
         
         if abs(step_norm) > 1e-10:
@@ -328,7 +328,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             step *= self.step_size / step_norm
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, step, KSO.CONTROL_POINT_UPDATE)
         
-        self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.SEARCH_DIRECTION)
+        self.optimization_utilities.AssignVectorToVariable(self.design_surface, p, KSO.PROJECTION)
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, c, KSO.CORRECTION)
         
 
@@ -436,7 +436,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
     def __logCurrentOptimizationStep(self):
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.step_size
-        additional_values_to_log["inf_norm_s"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SEARCH_DIRECTION)
+        additional_values_to_log["inf_norm_p"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.PROJECTION)
         additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.CORRECTION)
         additional_values_to_log["projection_norm"] = self.s_norm
         itr = 0
