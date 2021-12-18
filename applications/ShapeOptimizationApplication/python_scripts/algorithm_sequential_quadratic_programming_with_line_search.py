@@ -61,7 +61,7 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
         self.objectives = optimization_settings["objectives"]
         self.constraints = optimization_settings["constraints"]
         self.constraint_gradient_variables = {}
-        self.constraint_laplace_multipliers = {}
+        self.constraint_lagrange_multipliers = {}
         self.constraint_penalty_multipliers = {}
         for itr, constraint in enumerate(self.constraints):
             self.constraint_gradient_variables.update({
@@ -70,7 +70,7 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
                     "mapped_gradient": KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
                 }
             })
-            self.constraint_laplace_multipliers.update({
+            self.constraint_lagrange_multipliers.update({
                 constraint["identifier"].GetString() : {
                     "0": 0.0,
                     "-1": 0.0
@@ -81,7 +81,7 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
             })
         self.quadratic_approximation = []
         self.initial_curvature = 1.0
-        self.previous_laplace_gradient = KM.Matrix()
+        self.previous_lagrange_gradient = KM.Matrix()
         self.last_iteration_count = 0
         self.n_penalty_evaluations = 0
         self.max_correction_share = self.algorithm_settings["max_correction_share"].GetDouble()
@@ -210,6 +210,7 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
             self.model_part_controller.DampNodalVariableIfSpecified(gradient_variable)
     # --------------------------------------------------------------------------
     def __analyzeShapeWithoutGradients(self):
+    # only compute function values not gradient for the line search
         self.communicator.initializeCommunication()
         self.communicator.requestValueOf(self.objectives[0]["identifier"].GetString())
 
@@ -222,15 +223,15 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
     # --------------------------------------------------------------------------
     def __updateQuadraticApproximation(self):
         if self.optimization_iteration == 1:
+        #define the inital curvature of the approximation
             objective_id = self.objectives[0]["identifier"].GetString()
             objective_value = self.communicator.getStandardizedValue(objective_id)
             
             self.initial_curvature = objective_value / (self.step_size)**2
             
-        if self.optimization_iteration == 2:
-            
-            laplace_gradient = KM.Matrix()
-            self.optimization_utilities.AssembleVectorMatrix(self.design_surface, laplace_gradient, KSO.DF1DX_MAPPED)
+        if self.optimization_iteration == 2:#compute lagrange gradient and penalty multipliers
+            lagrange_gradient = KM.Matrix()
+            self.optimization_utilities.AssembleVectorMatrix(self.design_surface, lagrange_gradient, KSO.DF1DX_MAPPED)
             
             g_gradient = KM.Matrix()
             
@@ -239,25 +240,26 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
                 
                 self.optimization_utilities.AssembleVectorMatrix(self.design_surface, g_gradient, self.constraint_gradient_variables[identifier]["mapped_gradient"])
                 
-                lap = self.constraint_laplace_multipliers[identifier]["0"]
-                self.constraint_penalty_multipliers[identifier] = max(abs(lap),0.5*(abs(lap)+self.constraint_penalty_multipliers[identifier]))
+                lag = self.constraint_lagrange_multipliers[identifier]["0"]
+                self.constraint_penalty_multipliers[identifier] = max(abs(lag),0.5*(abs(lag)+self.constraint_penalty_multipliers[identifier]))
                 
+                # use this for penalty gradient
                 #if self.communicator.getStandardizedValue(identifier) > 0 :
-                #   laplace_gradient += g_gradient * self.constraint_penalty_multipliers[identifier]
+                #   lagrange_gradient += g_gradient * self.constraint_penalty_multipliers[identifier]
                 
-                laplace_gradient += g_gradient*self.constraint_laplace_multipliers[identifier]["0"]
+                lagrange_gradient += g_gradient*self.constraint_lagrange_multipliers[identifier]["0"]
                 
-            self.previous_laplace_gradient = laplace_gradient
+            self.previous_lagrange_gradient = lagrange_gradient
             
         elif self.optimization_iteration > 2:
-            
+        # compute the lagrange gradient, penalty multipliers and the quadratic approximation
             p = KM.Matrix()
             self.optimization_utilities.AssembleVectorMatrix(self.design_surface, p, KSO.SEARCH_DIRECTION)
             p_vec = KM.Vector()
             self.optimization_utilities.AssembleVector(self.design_surface, p_vec, KSO.SEARCH_DIRECTION)
             
-            laplace_gradient = KM.Matrix()
-            self.optimization_utilities.AssembleVectorMatrix(self.design_surface, laplace_gradient, KSO.DF1DX_MAPPED)
+            lagrange_gradient = KM.Matrix()
+            self.optimization_utilities.AssembleVectorMatrix(self.design_surface, lagrange_gradient, KSO.DF1DX_MAPPED)
             
             g_gradient = KM.Matrix()
             
@@ -266,17 +268,18 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
                 
                 self.optimization_utilities.AssembleVectorMatrix(self.design_surface, g_gradient, self.constraint_gradient_variables[identifier]["mapped_gradient"])
                 
-                lap = self.constraint_laplace_multipliers[identifier]["0"]
-                self.constraint_penalty_multipliers[identifier] = max(abs(lap),0.5*(abs(lap)+self.constraint_penalty_multipliers[identifier]))
+                lag = self.constraint_lagrange_multipliers[identifier]["0"]
+                self.constraint_penalty_multipliers[identifier] = max(abs(lag),0.5*(abs(lag)+self.constraint_penalty_multipliers[identifier]))
                 
+                #use this for penalty gradient
                 #if self.communicator.getStandardizedValue(identifier) > 0 :
-                #    laplace_gradient += g_gradient * self.constraint_penalty_multipliers[identifier]
+                #    lagrange_gradient += g_gradient * self.constraint_penalty_multipliers[identifier]
                 
-                laplace_gradient += g_gradient*self.constraint_laplace_multipliers[identifier]["0"]
+                lagrange_gradient += g_gradient*self.constraint_lagrange_multipliers[identifier]["0"]
             
-            y = laplace_gradient - self.previous_laplace_gradient
+            y = lagrange_gradient - self.previous_lagrange_gradient
             
-            self.previous_laplace_gradient = laplace_gradient
+            self.previous_lagrange_gradient = lagrange_gradient
             
             
             pBp_mat = KM.Matrix()
@@ -301,19 +304,21 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
             self.optimization_utilities.MatrixScalarProduct(peta_mat, p, eta)
             peta = peta_mat[0,0]
             
+            # The approximation of the Hessian is not saved directly. Instead, the vectors used to build it are saved, to reduce memory consumption
             eta *= 1.0/math.sqrt(peta)
             self.quadratic_approximation.append(eta)
                       
             Bp *= 1.0/math.sqrt(pBp)
             self.quadratic_approximation.append(Bp)
-            
     # --------------------------------------------------------------------------
     def __multiplyQuadraticApproximation(self, rightVector):
-        
+        # The approximation of the Hessian is not saved directly. Instead, the vectors used to build it are saved, to reduce memory consumption.
+        # The multiplication has therfore be done separatly.
         result = KM.Matrix()
         result.Resize(rightVector.Size1(),1)
         result.fill(0.0) 
         
+        # B starts at initialCurvature*I
         result += rightVector * self.initial_curvature
         
         for i in range(len(self.quadratic_approximation)):
@@ -331,7 +336,6 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
                 result -= currentVector * factor
             
         return result
-        
         
     # --------------------------------------------------------------------------    
     def __computeShapeUpdate(self):
@@ -365,14 +369,16 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
         settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
         solver = dense_linear_solver_factory.ConstructSolver(settings)
 
-        KM.Logger.PrintInfo("ShapeOpt", "Calculate projected search direction and correction.")
+        KM.Logger.PrintInfo("ShapeOpt", "Start the optimization of the internal problem")
         
         # ---------------------------------------------------------------------------------
+        # solve the internal optimization problem using gradient projection
         
         S = KM.Matrix()
         S.Resize(nabla_f.Size1(),1)
         S.fill(0.0)
         
+        # search direction of the internal problem
         S_int = KM.Matrix()
         S_int.Resize(nabla_f.Size1(),1)
         S_int.fill(0.0)
@@ -390,13 +396,14 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
         
         self.last_iteration_count = 10000
         for it in range(10000):
-            print("Iteration: ", it)
+            #print("Iteration: ", it)
             activeConstraintValues = []
             activeConstraintGradient = []
             
             S = S +  S_int * alpha_opt
             
             g_int = []
+            # compute internal constraints
             for i in range(len(nabla_g)):
                 current_nabla_g = nabla_g[i]
                 
@@ -424,6 +431,7 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
             S_int = KM.Matrix()
             C_int = KM.Vector()
             
+            # compute internal objective
             BS = KM.Matrix()
             BS = self.__multiplyQuadraticApproximation(S)
 
@@ -435,7 +443,7 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
             f_int += 0.5 * SBS_mat[0,0]
             objective_history.append(f_int)
             
-            
+            # calculate internal search direction
             if len(activeConstraintMap) > 0:
                 nabla_f_int = KM.Matrix()
                 nabla_f_int = nabla_f + BS
@@ -459,6 +467,7 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
             else:
                 S_int = nabla_f*(-1.0) - BS
             
+            # start quadratic line search
             S_int_vec = KM.Vector()
             self.optimization_utilities.AssembleVectorMatrixtoVector(S_int_vec,S_int)
             s_norm = S_int_vec.norm_inf()
@@ -486,11 +495,13 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
                 self.last_iteration_count = it
                 print("error negative curvature")
                 break
-	    	
+	    
+	    # unconstained optimum
             alpha_opt = (-1)*(FdS + dSBS)/dSBdS
             if alpha_opt < 0:
                 alpha_opt = 0.0
-	    	
+	    
+	    # compute maximum step, until a constraint is reached
             allConstraintsFullfilled = True
             for i in range(len(nabla_g)):
                 current_nabla_g = nabla_g[i]
@@ -509,6 +520,7 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
                     if current_alpha > 0 and (current_alpha < alpha_opt or alpha_opt == 0.0):
                         alpha_opt = current_alpha
 
+            # break off conditions
             if allConstraintsFullfilled and FdS + dSBS > -1e-12:
                 self.last_iteration_count = it
                 break
@@ -527,34 +539,36 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
                 #plt.figure()
                 #plt.plot(constraint_history[i])
                 #plt.show()
-        
+                
+        # compute the lagrange multipliers of the internal problem and assign them to their respective constraints
+        KM.Logger.PrintInfo("ShapeOpt", "Compute Lagrange Multipliers")
         lambda_mat = KM.Matrix()
-        
         if len(activeConstraintMap) > 0:
-            self.optimization_utilities.CalculateLaplaceMultipliers(lambda_mat, N, nabla_f+BS, solver)
+            self.optimization_utilities.CalculateLagrangeMultipliers(lambda_mat, N, nabla_f+BS, solver)
             
             j = 0
             for i, constraint in enumerate(self.constraints):
                 identifier = constraint["identifier"].GetString()
                 
                 if i == activeConstraintMap[j]:
-                    self.constraint_laplace_multipliers[identifier]["-1"] = self.constraint_laplace_multipliers[identifier]["0"]
-                    self.constraint_laplace_multipliers[identifier]["0"] = lambda_mat[j,0]
+                    self.constraint_lagrange_multipliers[identifier]["-1"] = self.constraint_lagrange_multipliers[identifier]["0"]
+                    self.constraint_lagrange_multipliers[identifier]["0"] = lambda_mat[j,0]
                     
                     j += 1
                     if j >= len(activeConstraintMap):
                         break
                 else:
-                    self.constraint_laplace_multipliers[identifier]["-1"] = self.constraint_laplace_multipliers[identifier]["0"]
-                    self.constraint_laplace_multipliers[identifier]["0"] = 0.0
+                    self.constraint_lagrange_multipliers[identifier]["-1"] = self.constraint_lagrange_multipliers[identifier]["0"]
+                    self.constraint_lagrange_multipliers[identifier]["0"] = 0.0
 
         else:
             for constraint in self.constraints:
                 identifier = constraint["identifier"].GetString()
                 
-                self.constraint_laplace_multipliers[identifier]["-1"] = self.constraint_laplace_multipliers[identifier]["0"]
-                self.constraint_laplace_multipliers[identifier]["0"] = 0.0
-        
+                self.constraint_lagrange_multipliers[identifier]["-1"] = self.constraint_lagrange_multipliers[identifier]["0"]
+                self.constraint_lagrange_multipliers[identifier]["0"] = 0.0
+                
+        # limit the step size, if it exceeds the maximum
 
         self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S, KSO.SEARCH_DIRECTION)
         S_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SEARCH_DIRECTION)
@@ -594,28 +608,35 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
 
     # --------------------------------------------------------------------------
     def __performLineSearch(self):
+    # quadratic line search
+    	
         S = KM.Matrix()
         self.optimization_utilities.AssembleVectorMatrix(self.design_surface, S, KSO.SEARCH_DIRECTION)
         
         S_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SEARCH_DIRECTION)
         
+        # compute initial penalty function value
         initialValue = self.__computePenaltyFunction()
         
         self.n_penalty_evaluations = 1
         alpha_upper = 1.0
         
+        # first guess to an upper limit is the initial shape plus the search direction
+        # calculate the function values but not the gradients
         self.__initializeNewShape()
         self.__analyzeShapeWithoutGradients()
         
+        # compute the penalty function value of the first guess to the upper limit
         upperValue = self.__computePenaltyFunction()
         noUpperBound = False
         
         if upperValue < initialValue:
+        # if the value at the upper limit is smaller thatn at the initial Value, continue to search for an upper limit
             oneStep = False
             
             middleValue = upperValue + 1.0
             while middleValue > upperValue:
-                
+                # increase the upper limit by the golden ratio rule until the penalty function increases
                 alpha_mid = alpha_upper
                 alpha_upper = 1.61803 * alpha_upper
                 
@@ -624,7 +645,7 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
                 
                 self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*(alpha_upper - alpha_mid), KSO.CONTROL_POINT_UPDATE)
                 
-                # ensure that the incremental update is equalto the complete update
+                # keep track of the total update per iteration
                 C = KM.Matrix()
                 self.optimization_utilities.AssembleVectorMatrix(self.design_surface, C, KSO.CORRECTION)
                 C = C + S*(alpha_upper - alpha_mid)
@@ -639,11 +660,12 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
                 middleValue = upperValue
                 upperValue = self.__computePenaltyFunction()
                 
+                # break if the maximum step size is reached
                 if alpha_upper*S_norm >= self.step_size:
                     noUpperBound = True
                     break
         else:
-
+	# if the uppar bound is reached in one step, use a middle value using the gorlden ratio
             oneStep = True
             self.n_penalty_evaluations += 1
             
@@ -651,7 +673,7 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
             
             self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*(alpha_mid - alpha_upper), KSO.CONTROL_POINT_UPDATE)
             
-            # ensure that the incremental update is equalto the complete update
+            # keep track of the total update per iteration
             C = KM.Matrix()
             self.optimization_utilities.AssembleVectorMatrix(self.design_surface, C, KSO.CORRECTION)
             C = C + S*(alpha_mid - alpha_upper)
@@ -666,13 +688,14 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
             middleValue = self.__computePenaltyFunction()
             
         if not noUpperBound:   
-            
+            # use a quadratic approximation to find the optimum
             a2 = (((upperValue - initialValue)/alpha_upper)-((middleValue-initialValue)/alpha_mid))/(alpha_upper-alpha_mid)
             a1 = (middleValue - initialValue)/alpha_mid - a2 * alpha_mid
             
             alpha_opt = - a1/(2*a2)
             
             if oneStep:
+            # keep track of the total update per iteration
                 self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*(alpha_opt - alpha_mid), KSO.CONTROL_POINT_UPDATE)
                 self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*alpha_opt, KSO.SEARCH_DIRECTION)
                 
@@ -681,10 +704,12 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
                 C = C + S*(alpha_opt - alpha_mid)
                 self.optimization_utilities.AssignMatrixToVariable(self.design_surface, C, KSO.CORRECTION)
                 
+                # set final update for this iteration, without starting the computations (which will be done at the start of the next iteration)
                 self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
                 self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
                 self.__determineAbsoluteChanges()
             else:
+            # keep track of the total update per iteration
                 self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*(alpha_opt - alpha_upper), KSO.CONTROL_POINT_UPDATE)
                 self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*alpha_opt, KSO.SEARCH_DIRECTION)
                 
@@ -693,18 +718,22 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
                 C = C + S*(alpha_opt - alpha_upper)
                 self.optimization_utilities.AssignMatrixToVariable(self.design_surface, C, KSO.CORRECTION)
                 
+                # set final update for this iteration, without starting the computations (which will be done at the start of the next iteration)
                 self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
                 self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
                 self.__determineAbsoluteChanges()
         else:
+        # if the maximum stepsize was reached, before an upper bound was found, use the last guess as the final update
             self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*0.0, KSO.CONTROL_POINT_UPDATE)
             self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*alpha_upper, KSO.SEARCH_DIRECTION)
             
+            # keep track of the total update per iteration
             C = KM.Matrix()
             self.optimization_utilities.AssembleVectorMatrix(self.design_surface, C, KSO.CORRECTION)
             C = C + S*0.0
             self.optimization_utilities.AssignMatrixToVariable(self.design_surface, C, KSO.CORRECTION)
             
+            # set final update for this iteration, without starting the computations (which will be done at the start of the next iteration)
             self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
             self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
             self.__determineAbsoluteChanges()
@@ -712,18 +741,17 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
         
     # --------------------------------------------------------------------------
     def __computePenaltyFunction(self):
+    # compute the value of the Penalty function with the current design
         objective_id = self.objectives[0]["identifier"].GetString()
         penaltyValue = self.communicator.getStandardizedValue(objective_id)
-        #print("Starting penalty value computation:")
-        #print("objective value: ",penaltyValue)
+
         for constraint in self.constraints:
                 identifier = constraint["identifier"].GetString()
                 constraint_value = self.communicator.getStandardizedValue(identifier)
-                #print("constraint value: ", constraint_value)
+
                 if constraint_value > 0 :
                     penaltyValue += constraint_value * self.constraint_penalty_multipliers[identifier]
-                    #print("penalty value: ", penaltyValue)
-        #print("Finished penalty value computation:")
+
         return penaltyValue
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):

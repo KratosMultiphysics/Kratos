@@ -583,7 +583,7 @@ public:
     /**
      * Calculate the Laplace Multipliers for given Gradients
      */
-    static void CalculateLaplaceMultipliers(Matrix& LapMult, Matrix& N, Matrix& rObjectiveGradient, LinearSolver<DenseSpace, DenseSpace>& rSolver)
+    static void CalculateLagrangeMultipliers(Matrix& LagMult, Matrix& N, Matrix& rObjectiveGradient, LinearSolver<DenseSpace, DenseSpace>& rSolver)
     {
     	Matrix NTN = prod(trans(N), N);
         Matrix I = IdentityMatrix(N.size2());
@@ -591,7 +591,7 @@ public:
 
         rSolver.Solve(NTN, NTN_inv, I);
     
-        LapMult = -1*prod(NTN_inv,Matrix(prod(trans(N),rObjectiveGradient)));
+        LagMult = -1*prod(NTN_inv,Matrix(prod(trans(N),rObjectiveGradient)));
     }
     /**
      * Assemble a list of pseudo Vector Matrices into a single Matrix

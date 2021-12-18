@@ -5,6 +5,7 @@
 #                   license: ShapeOptimizationApplication/license.txt
 #
 #  Main authors:    Geiser Armin, https://github.com/armingeiser
+#                   Florian Traub
 #
 # ==============================================================================
 
@@ -38,6 +39,7 @@ class ValueLoggerRelaxedGradientProjection( ValueLogger ):
             row.append("{:>13s}".format("step_size"))
             row.append("{:>13s}".format("inf_norm_s"))
             row.append("{:>13s}".format("inf_norm_c"))
+            row.append("{:>13s}".format("projection_norm"))
             
             for itr in range(self.constraints.size()):
                 row.append("{:>13s}".format("c"+str(itr+1)+"_buffer_value"))
@@ -46,7 +48,6 @@ class ValueLoggerRelaxedGradientProjection( ValueLogger ):
                 row.append("{:>13s}".format("c"+str(itr+1)+"_central_buffer_value"))
                 row.append("{:>13s}".format("c"+str(itr+1)+"_lower_buffer_value"))
                 row.append("{:>13s}".format("c"+str(itr+1)+"_upper_buffer_value"))
-                row.append("{:>13s}".format("c"+str(itr+1)+"_laplace_multiplier"))
             
             row.append("{:>25s}".format("time_stamp"))
             historyWriter.writerow(row)
@@ -84,6 +85,7 @@ class ValueLoggerRelaxedGradientProjection( ValueLogger ):
             row.append(" {:> .5E}".format(self.history["step_size"][self.current_index]))
             row.append(" {:> .5E}".format(self.history["inf_norm_s"][self.current_index]))
             row.append(" {:> .5E}".format(self.history["inf_norm_c"][self.current_index]))
+            row.append(" {:> .5E}".format(self.history["projection_norm"][self.current_index]))
             
             for itr in range(self.constraints.size()):
                 constraint_id = self.constraints[itr]["identifier"].GetString()
@@ -93,7 +95,6 @@ class ValueLoggerRelaxedGradientProjection( ValueLogger ):
                 row.append(" {:> .5E}".format(self.history["c"+str(itr+1)+"_central_buffer_value"][self.current_index] + self.communicator.getReferenceValue(constraint_id)))
                 row.append(" {:> .5E}".format(self.history["c"+str(itr+1)+"_lower_buffer_value"][self.current_index] + self.communicator.getReferenceValue(constraint_id)))
                 row.append(" {:> .5E}".format(self.history["c"+str(itr+1)+"_upper_buffer_value"][self.current_index] + self.communicator.getReferenceValue(constraint_id)))
-                row.append(" {:> .5E}".format(self.history["c"+str(itr+1)+"_laplace_multiplier"][self.current_index]))
                 
             row.append("{:>25}".format(Timer().GetTimeStamp()))
             historyWriter.writerow(row)

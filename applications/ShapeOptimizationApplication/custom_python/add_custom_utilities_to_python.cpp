@@ -197,7 +197,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("AssembleVectorMatrix", &OptimizationUtilities::AssembleVectorMatrix)
         .def_static("MatrixScalarProduct", &OptimizationUtilities::MatrixScalarProduct)
         .def_static("CalculateProjectedSearchDirectionAndCorrectionMatrix", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrectionMatrix)
-        .def_static("CalculateLaplaceMultipliers", &OptimizationUtilities::CalculateLaplaceMultipliers)
+        .def_static("CalculateLagrangeMultipliers", &OptimizationUtilities::CalculateLagrangeMultipliers)
         .def_static("AssembleVectorMatrixtoMatrix", [](ModelPart& rModelPart, Matrix& rMatrix, pybind11::list& rVariables){
                                             std::size_t list_length = pybind11::len(rVariables);
                                             std::vector<Matrix*> variables_vector(list_length);
