@@ -1,4 +1,4 @@
-from math import *
+from math import pi
 import numpy as np
 import scipy.fftpack as fft
 
