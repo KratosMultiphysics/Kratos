@@ -99,13 +99,29 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("::[NavierStokesCompressibleExplicitSolver]:: ","Explicit compressible fluid solver variables added correctly")
 
     def AddDofs(self):
-        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DENSITY, KratosFluid.REACTION_DENSITY, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_X, KratosMultiphysics.REACTION_X, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Y, KratosMultiphysics.REACTION_Y, self.main_model_part)
-        if domain_size == 3:
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Z, KratosMultiphysics.REACTION_Z, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TOTAL_ENERGY, KratosFluid.REACTION_ENERGY, self.main_model_part)
+        KratosMultiphysics.VariableUtils.AddDofsList(self.GetDofsWithReactionList(), self.main_model_part)
+
+    def GetDofsList(self):
+        dofs_list = []
+        dofs_list.append("DENSITY")
+        dofs_list.append("MOMENTUM_X")
+        dofs_list.append("MOMENTUM_Y")
+        if self.settings["domain_size"].GetInt() == 3:
+            dofs_list.append("MOMENTUM_Z")
+        dofs_list.append("TOTAL_ENERGY")
+
+        return dofs_list
+
+    def GetDofsWithReactionsList(self):
+        dofs_with_reactions_list = []
+        dofs_with_reactions_list.append(["DENSITY","REACTION_DENSITY"])
+        dofs_with_reactions_list.append(["MOMENTUM_X","REACTION_X"])
+        dofs_with_reactions_list.append(["MOMENTUM_Y","REACTION_Y"])
+        if self.settings["domain_size"].GetInt() == 3:
+            dofs_with_reactions_list.append(["MOMENTUM_Z","REACTION_Z"])
+        dofs_with_reactions_list.append(["TOTAL_ENERGY","REACTION_ENERGY"])
+
+        return dofs_with_reactions_list
 
     def Initialize(self):
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.OSS_SWITCH] = int(self.settings["use_oss"].GetBool())

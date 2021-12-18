@@ -357,12 +357,33 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
 
     def AddDofs(self):
+        # TODO: Remove this to call the base solver one once the GUI fixity issue is solved
         super(NavierStokesEmbeddedMonolithicSolver, self).AddDofs()
         if self._FmAleIsActive():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_X, KratosMultiphysics.MESH_REACTION_X, self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Y, KratosMultiphysics.MESH_REACTION_Y, self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Z, KratosMultiphysics.MESH_REACTION_Z, self.main_model_part)
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-ALE DOFs added correctly.")
+
+    def GetDofsList(self):
+        dofs_list = super().GetDofsList()
+        if self._FmAleIsActive():
+            dofs_list.append("MESH_DISPLACEMENT_X")
+            dofs_list.append("MESH_DISPLACEMENT_Y")
+            if self.settings["domain_size"].GetInt() == 3:
+                dofs_list.append("MESH_DISPLACEMENT_Z")
+
+        return dofs_list
+
+    def GetDofsWithReactionsList(self):
+        dofs_with_reactions_list = super().GetDofsWithReactionList()
+        if self._FmAleIsActive():
+            dofs_with_reactions_list.append(["MESH_DISPLACEMENT_X","MESH_REACTION_X"])
+            dofs_with_reactions_list.append(["MESH_DISPLACEMENT_Y","MESH_REACTION_Y"])
+            if self.settings["domain_size"].GetInt() == 3:
+                dofs_with_reactions_list.append(["MESH_DISPLACEMENT_Z","MESH_REACTION_Z"])
+
+        return dofs_with_reactions_list
 
     def PrepareModelPart(self):
         # Call the base solver PrepareModelPart()

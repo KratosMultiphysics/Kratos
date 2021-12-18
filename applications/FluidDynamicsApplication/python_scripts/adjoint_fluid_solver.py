@@ -18,12 +18,29 @@ class AdjointFluidSolver(FluidSolver):
         self.min_buffer_size = 2
 
     def AddDofs(self):
+        #TODO: Use this when the fixity issue is solved in the GUI
+        # KratosMultiphysics.VariableUtils.AddDofsList(self.GetDofsList(), self.main_model_part)
+
         KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_X, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_Y, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_Z, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_SCALAR_1, self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver DOFs added correctly.")
+
+    def GetDofsList(self):
+        dofs_list = []
+        dofs_list.append("ADJOINT_FLUID_VECTOR_1_X")
+        dofs_list.append("ADJOINT_FLUID_VECTOR_1_Y")
+        if self.settings["domain_size"].GetInt() == 3:
+            dofs_list.append("ADJOINT_FLUID_VECTOR_1_Z")
+        dofs_list.append("ADJOINT_FLUID_SCALAR_1")
+
+        return dofs_list
+
+    def GetDofsWithReactionsList(self):
+        err_msg = "DOFs reactions are not required in {}. Please call \'GetDofsList\' instead.".format(self.__class__.__name__)
+        raise Exception(err_msg)
 
     def InitializeSolutionStep(self):
         self._GetSolutionStrategy().InitializeSolutionStep()
