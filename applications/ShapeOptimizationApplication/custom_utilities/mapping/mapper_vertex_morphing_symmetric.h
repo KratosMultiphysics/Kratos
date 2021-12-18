@@ -71,7 +71,8 @@ public:
     MapperVertexMorphingSymmetric( ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Parameters MapperSettings )
         : mrOriginModelPart(rOriginModelPart),
           mrDestinationModelPart(rDestinationModelPart),
-          mMapperSettings(MapperSettings)
+          mMapperSettings(MapperSettings),
+          mFilterRadius(MapperSettings["filter_radius"].GetDouble())
     {
     }
 
@@ -149,6 +150,7 @@ private:
 
     // Variables for mapping
     SparseMatrixType mMappingMatrix;
+    double mFilterRadius;
 
     Kratos::unique_ptr<SymmetryBase> mpSymmetry;
 
@@ -180,6 +182,8 @@ private:
                                         const std::vector<double>& list_of_weights,
                                         const std::vector<bool>& transform,
                                         const double& sum_of_weights );
+
+    double GetVertexMorphingRadius(const NodeType& rNode) const  override;
 
 }; // Class MapperVertexMorphingSymmetric
 

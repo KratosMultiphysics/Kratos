@@ -77,8 +77,7 @@ class FilterFunction
     ///@{
 
     /// Default constructor.
-    FilterFunction(std::string filter_function_type, double filter_size)
-        : m_filter_size(filter_size)
+    FilterFunction(std::string filter_function_type)
     {
         // Set type of weighting function
 
@@ -114,7 +113,7 @@ class FilterFunction
 
     // ==============================================================================
 
-    double compute_weight(array_3d i_coord, array_3d j_coord)
+    double compute_weight(array_3d i_coord, array_3d j_coord, const double filter_size)
     {
         KRATOS_TRY;
 
@@ -132,7 +131,7 @@ class FilterFunction
             double squared_scalar_distance = dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2];
             // Compute weight
             // Note that we do not compute the square root of the distances to save this expensive computation (it is not needed here)
-            weight_ij = std::max(0.0, exp(-squared_scalar_distance / (2 * m_filter_size * m_filter_size / 9.0)));
+            weight_ij = std::max(0.0, exp(-squared_scalar_distance / (2 * filter_size * filter_size / 9.0)));
             break;
         }
         // Linear filter
@@ -141,7 +140,7 @@ class FilterFunction
             // Compute distance
             double distance = sqrt(dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2]);
             // Compute weight
-            weight_ij = std::max(0.0, (m_filter_size - distance) / m_filter_size);
+            weight_ij = std::max(0.0, (filter_size - distance) / filter_size);
             break;
         }
         // Constant filter
@@ -233,7 +232,6 @@ class FilterFunction
     ///@name Member Variables
     ///@{
 
-    double m_filter_size;
     unsigned int m_filter_function_type;
 
     ///@}

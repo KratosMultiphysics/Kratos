@@ -20,6 +20,7 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
+#include "includes/node.h"
 #include "shape_optimization_application.h"
 
 // ==============================================================================
@@ -59,6 +60,8 @@ public:
 
     // Type definitions for better reading later
     typedef array_1d<double,3> array_3d;
+
+    typedef Node<3> NodeType;
 
   /// Pointer definition of Mapper
   KRATOS_CLASS_POINTER_DEFINITION(Mapper);
@@ -155,6 +158,8 @@ protected:
   ///@}
   ///@name Protected Operations
   ///@{
+
+  virtual double GetVertexMorphingRadius(const NodeType& rNode) const  = 0;
 
   ///@}
   ///@name Protected  Access
