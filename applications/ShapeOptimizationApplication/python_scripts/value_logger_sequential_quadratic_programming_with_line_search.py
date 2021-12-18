@@ -37,7 +37,7 @@ class ValueLoggerSequentialQuadraticProgrammingWithLineSearch( ValueLogger ):
 
             row.append("{:>13s}".format("step_size"))
             row.append("{:>13s}".format("inf_norm_s"))
-            row.append("{:>13s}".format("inf_norm_c"))
+            row.append("{:>13s}".format("inf_norm_step"))
             row.append("{:>13s}".format("iteration_count"))
             row.append("{:>13s}".format("line_search_function_calls"))
             row.append("{:>25s}".format("time_stamp"))
@@ -75,7 +75,7 @@ class ValueLoggerSequentialQuadraticProgrammingWithLineSearch( ValueLogger ):
 
             row.append(" {:> .5E}".format(self.history["step_size"][self.current_index]))
             row.append(" {:> .5E}".format(self.history["inf_norm_s"][self.current_index]))
-            row.append(" {:> .5E}".format(self.history["inf_norm_c"][self.current_index]))
+            row.append(" {:> .5E}".format(self.history["inf_norm_step"][self.current_index]))
             row.append(" {:> .5E}".format(self.history["iteration_count"][self.current_index]))
             row.append(" {:> .5E}".format(self.history["line_search_function_calls"][self.current_index]))
             row.append("{:>25}".format(Timer().GetTimeStamp()))

@@ -92,7 +92,8 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
-        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.CORRECTION)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.TOTAL_CONTROL_POINT_UPDATE)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SUMMED_CONTROL_POINT_UPDATE)
         
         
 
@@ -254,9 +255,9 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
         elif self.optimization_iteration > 2:
         # compute the lagrange gradient, penalty multipliers and the quadratic approximation
             p = KM.Matrix()
-            self.optimization_utilities.AssembleVectorMatrix(self.design_surface, p, KSO.SEARCH_DIRECTION)
+            self.optimization_utilities.AssembleVectorMatrix(self.design_surface, p, KSO.TOTAL_CONTROL_POINT_UPDATE)
             p_vec = KM.Vector()
-            self.optimization_utilities.AssembleVector(self.design_surface, p_vec, KSO.SEARCH_DIRECTION)
+            self.optimization_utilities.AssembleVector(self.design_surface, p_vec, KSO.TOTAL_CONTROL_POINT_UPDATE)
             
             lagrange_gradient = KM.Matrix()
             self.optimization_utilities.AssembleVectorMatrix(self.design_surface, lagrange_gradient, KSO.DF1DX_MAPPED)
@@ -575,7 +576,7 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
         if S_norm > self.step_size:
             S *= self.step_size/S_norm
             self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S, KSO.SEARCH_DIRECTION)
-        self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S, KSO.CORRECTION)
+        self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S, KSO.SUMMED_CONTROL_POINT_UPDATE)
         self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S, KSO.CONTROL_POINT_UPDATE)
 
     # --------------------------------------------------------------------------
@@ -647,9 +648,9 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
                 
                 # keep track of the total update per iteration
                 C = KM.Matrix()
-                self.optimization_utilities.AssembleVectorMatrix(self.design_surface, C, KSO.CORRECTION)
+                self.optimization_utilities.AssembleVectorMatrix(self.design_surface, C, KSO.SUMMED_CONTROL_POINT_UPDATE)
                 C = C + S*(alpha_upper - alpha_mid)
-                self.optimization_utilities.AssignMatrixToVariable(self.design_surface, C, KSO.CORRECTION)
+                self.optimization_utilities.AssignMatrixToVariable(self.design_surface, C, KSO.SUMMED_CONTROL_POINT_UPDATE)
                 
                 self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
                 self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
@@ -675,9 +676,9 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
             
             # keep track of the total update per iteration
             C = KM.Matrix()
-            self.optimization_utilities.AssembleVectorMatrix(self.design_surface, C, KSO.CORRECTION)
+            self.optimization_utilities.AssembleVectorMatrix(self.design_surface, C, KSO.SUMMED_CONTROL_POINT_UPDATE)
             C = C + S*(alpha_mid - alpha_upper)
-            self.optimization_utilities.AssignMatrixToVariable(self.design_surface, C, KSO.CORRECTION)
+            self.optimization_utilities.AssignMatrixToVariable(self.design_surface, C, KSO.SUMMED_CONTROL_POINT_UPDATE)
             
             self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
             self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
@@ -697,12 +698,12 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
             if oneStep:
             # keep track of the total update per iteration
                 self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*(alpha_opt - alpha_mid), KSO.CONTROL_POINT_UPDATE)
-                self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*alpha_opt, KSO.SEARCH_DIRECTION)
+                self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*alpha_opt, KSO.TOTAL_CONTROL_POINT_UPDATE)
                 
                 C = KM.Matrix()
-                self.optimization_utilities.AssembleVectorMatrix(self.design_surface, C, KSO.CORRECTION)
+                self.optimization_utilities.AssembleVectorMatrix(self.design_surface, C, KSO.SUMMED_CONTROL_POINT_UPDATE)
                 C = C + S*(alpha_opt - alpha_mid)
-                self.optimization_utilities.AssignMatrixToVariable(self.design_surface, C, KSO.CORRECTION)
+                self.optimization_utilities.AssignMatrixToVariable(self.design_surface, C, KSO.SUMMED_CONTROL_POINT_UPDATE)
                 
                 # set final update for this iteration, without starting the computations (which will be done at the start of the next iteration)
                 self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
@@ -711,12 +712,12 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
             else:
             # keep track of the total update per iteration
                 self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*(alpha_opt - alpha_upper), KSO.CONTROL_POINT_UPDATE)
-                self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*alpha_opt, KSO.SEARCH_DIRECTION)
+                self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*alpha_opt, KSO.TOTAL_CONTROL_POINT_UPDATE)
                 
                 C = KM.Matrix()
-                self.optimization_utilities.AssembleVectorMatrix(self.design_surface, C, KSO.CORRECTION)
+                self.optimization_utilities.AssembleVectorMatrix(self.design_surface, C, KSO.SUMMED_CONTROL_POINT_UPDATE)
                 C = C + S*(alpha_opt - alpha_upper)
-                self.optimization_utilities.AssignMatrixToVariable(self.design_surface, C, KSO.CORRECTION)
+                self.optimization_utilities.AssignMatrixToVariable(self.design_surface, C, KSO.SUMMED_CONTROL_POINT_UPDATE)
                 
                 # set final update for this iteration, without starting the computations (which will be done at the start of the next iteration)
                 self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
@@ -725,13 +726,13 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
         else:
         # if the maximum stepsize was reached, before an upper bound was found, use the last guess as the final update
             self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*0.0, KSO.CONTROL_POINT_UPDATE)
-            self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*alpha_upper, KSO.SEARCH_DIRECTION)
+            self.optimization_utilities.AssignMatrixToVariable(self.design_surface, S*alpha_upper, KSO.TOTAL_CONTROL_POINT_UPDATE)
             
             # keep track of the total update per iteration
             C = KM.Matrix()
-            self.optimization_utilities.AssembleVectorMatrix(self.design_surface, C, KSO.CORRECTION)
+            self.optimization_utilities.AssembleVectorMatrix(self.design_surface, C, KSO.SUMMED_CONTROL_POINT_UPDATE)
             C = C + S*0.0
-            self.optimization_utilities.AssignMatrixToVariable(self.design_surface, C, KSO.CORRECTION)
+            self.optimization_utilities.AssignMatrixToVariable(self.design_surface, C, KSO.SUMMED_CONTROL_POINT_UPDATE)
             
             # set final update for this iteration, without starting the computations (which will be done at the start of the next iteration)
             self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
@@ -758,7 +759,7 @@ class AlgorithmSequentialQuadraticProgrammingWithLineSearch(OptimizationAlgorith
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.step_size
         additional_values_to_log["inf_norm_s"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SEARCH_DIRECTION)
-        additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.CORRECTION)
+        additional_values_to_log["inf_norm_step"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.TOTAL_CONTROL_POINT_UPDATE)
         additional_values_to_log["iteration_count"] = self.last_iteration_count
         additional_values_to_log["line_search_function_calls"] = self.n_penalty_evaluations
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
