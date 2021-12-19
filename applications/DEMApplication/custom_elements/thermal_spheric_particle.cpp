@@ -1,7 +1,7 @@
 //
 //   Project Name:                     ThermalDEM $
-//   Last Modified by:    $Author: Ferran Arrufat $
-//   Date:                $Date:    February 2015 $
+//   Last Modified by:    $Author:  Rafael Rangel $
+//   Date:                $Date:    December 2021 $
 //   Revision:            $Revision:      1.0.0.0 $
 //
 
@@ -51,9 +51,9 @@ namespace Kratos
     this->Set(DEMFlags::HAS_ADJUSTED_CONTACT,             r_process_info[ADJUSTED_CONTACT_OPTION]);
     this->Set(DEMFlags::HAS_TEMPERATURE_DEPENDENT_RADIUS, r_process_info[TEMPERATURE_DEPENDENT_RADIUS_OPTION]);
 
-    store_contact_param = this->Is(DEMFlags::HAS_MOTION) &&
-                         (this->Is(DEMFlags::HAS_FRICTION_HEAT) ||
-                         (this->Is(DEMFlags::HAS_DIRECT_CONDUCTION) && r_process_info[DIRECT_CONDUCTION_MODEL].compare("collisional") == 0));    
+    mStoreContactParam = this->Is(DEMFlags::HAS_MOTION) &&
+                        (this->Is(DEMFlags::HAS_FRICTION_HEAT) ||
+                        (this->Is(DEMFlags::HAS_DIRECT_CONDUCTION) && r_process_info[DIRECT_CONDUCTION_MODEL].compare("collisional") == 0));    
 
     // Initialize prescribed heat flux/source (currently a constant value)
     SetParticlePrescribedHeatFluxSurface(0.0);
@@ -76,7 +76,7 @@ namespace Kratos
     // Check if it is time to compute heat transfer
     int step = r_process_info[TIME_STEPS];
     int freq = r_process_info[THERMAL_FREQUENCY];
-    is_time_to_solve = (step > 0) && (freq != 0) && (step - 1) % freq == 0;
+    mIsTimeToSolve = (step > 0) && (freq != 0) && (step - 1) % freq == 0;
 
     // Initialize number of contact particle neighbors
     // (currently used only for cleaning contact parameters map)
@@ -118,7 +118,7 @@ namespace Kratos
       TBaseElement::CalculateRightHandSide(r_process_info, dt, gravity);
     
     // Heat flux components
-    if (is_time_to_solve)
+    if (mIsTimeToSolve)
       ComputeHeatFluxes(r_process_info);
   }
 
@@ -183,7 +183,7 @@ namespace Kratos
   void ThermalSphericParticle<TBaseElement>::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, SphericParticle* neighbor, double GlobalContactForce[3], bool sliding) {
     KRATOS_TRY
 
-    if (!store_contact_param)
+    if (!mStoreContactParam)
       return;
 
     // Increment number of contact particle neighbors
@@ -232,7 +232,7 @@ namespace Kratos
   void ThermalSphericParticle<TBaseElement>::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, DEMWall* neighbor, double GlobalContactForce[3], bool sliding) {
     KRATOS_TRY
 
-    if (!store_contact_param)
+    if (!mStoreContactParam)
       return;
 
     // Local relavive velocity components (normal and tangential)
@@ -283,11 +283,11 @@ namespace Kratos
       TBaseElement::FinalizeSolutionStep(r_process_info);
 
     // Remove non-contacting neighbors from maps of contact parameters
-    if (store_contact_param)
+    if (mStoreContactParam)
       CleanContactParameters(r_process_info);
 
     // Update temperature/heat flux
-    if (is_time_to_solve) {
+    if (mIsTimeToSolve) {
       mPreviousTemperature = GetParticleTemperature();
       UpdateTemperature(r_process_info);
       UpdateTemperatureDependentRadius(r_process_info);
@@ -341,23 +341,7 @@ namespace Kratos
   void ThermalSphericParticle<TBaseElement>::UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(const ProcessInfo& r_process_info,
                                                                                                               double& thermalDeltDisp,
                                                                                                               double& thermalRelVel,
-                                                                                                              ThermalSphericParticle<TBaseElement>* element2) {
-    //thermalRelVel                      = 0;
-    //double temperature                 = GetParticleTemperature();
-    //double other_temperature           = element2->GetParticleTemperature();
-    //double previous_temperature        = mPreviousTemperature;
-    //double previous_other_temperature  = element2->mPreviousTemperature;
-    //double thermal_alpha               = GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
-    //double updated_radius              = GetRadius();
-    //double updated_other_radius        = element2->GetRadius();
-    //double dt                          = r_process_info[DELTA_TIME];
-    //double temperature_increment_elem1 = temperature - previous_temperature;
-    //double temperature_increment_elem2 = other_temperature - previous_other_temperature;
-    //thermalDeltDisp                    = updated_radius * thermal_alpha * temperature_increment_elem1;
-    //thermalDeltDisp                    = thermalDeltDisp + updated_other_radius * thermal_alpha * temperature_increment_elem2;
-    //thermalRelVel                      = updated_radius * thermal_alpha * temperature_increment_elem1 / dt;
-    //thermalRelVel                      = thermalRelVel + updated_other_radius * thermal_alpha * temperature_increment_elem2 / dt;
-  }
+                                                                                                              ThermalSphericParticle<TBaseElement>* element2) {}
 
   //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
@@ -366,16 +350,7 @@ namespace Kratos
                                                                                                             double RelVel[3],   //IN GLOBAL AXES
                                                                                                             double OldLocalCoordSystem[3][3],
                                                                                                             double LocalCoordSystem[3][3],
-                                                                                                            SphericParticle* neighbor_iterator) {
-    //double thermalDeltDisp = 0;
-    //double thermalRelVel   = 0;
-    //ThermalSphericParticle<TBaseElement>* thermal_neighbor_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(neighbor_iterator);
-    //UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(r_process_info, thermalDeltDisp, thermalRelVel, thermal_neighbor_iterator);
-    //double LocalRelVel[3] = {0.0};
-    //GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel); //TODO: can we do this in global axes directly?
-    ////LocalRelVel[2] -= thermalRelVel;
-    //GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRelVel, RelVel);
-  }
+                                                                                                            SphericParticle* neighbor_iterator) {}
 
   //=====================================================================================================================================================================================
   // Heat fluxes computation
@@ -635,7 +610,7 @@ namespace Kratos
       double C2 =  8.169 * c * c - 33.770 * c + 24.885;
       double C3 = -5.758 * c * c + 24.464 * c - 20.511;
 
-      double C_coeff = 0.435 * (sqrt(C2 * C2 - 4 * C1 * (C3 - Fo)) - C2) / C1;
+      double C_coeff = 0.435 * (sqrt(C2 * C2 - 4.0 * C1 * (C3 - Fo)) - C2) / C1;
 
       return C_coeff * Globals::Pi * Rc_max * Rc_max * pow(col_time_max,-0.5) * temp_grad / (pow(b1,-0.5) + pow(b2,-0.5));
     }
@@ -860,25 +835,25 @@ namespace Kratos
       h = Globals::Pi * ln / b;
     }
     else {
-      double An = Globals::Pi * rij * rij; // area of neighboring voronoi cells
+      const double An = Globals::Pi * rij * rij; // area of neighboring voronoi cells
 
-      double gamma1 = particle_radius / mNeighborDistanceAdjusted;
-      double gamma2 = neighbor_radius / mNeighborDistanceAdjusted;
-      double dgamma = gamma2 - gamma1;
+      const double gamma1 = particle_radius / mNeighborDistanceAdjusted;
+      const double gamma2 = neighbor_radius / mNeighborDistanceAdjusted;
+      const double dgamma = gamma2 - gamma1;
 
-      double A = (particle_conductivity + fluid_conductivity * (1.0 / core - 1.0)) / (particle_conductivity * gamma1);
-      double B = (neighbor_conductivity + fluid_conductivity * (1.0 / core - 1.0)) / (neighbor_conductivity * gamma2);
+      const double A = (particle_conductivity + fluid_conductivity * (1.0 / core - 1.0)) / (particle_conductivity * gamma1);
+      const double B = (neighbor_conductivity + fluid_conductivity * (1.0 / core - 1.0)) / (neighbor_conductivity * gamma2);
 
-      double lambda = (1.0 + dgamma * A) * (1.0 - dgamma * B);
+      const double lambda = (1.0 + dgamma * A) * (1.0 - dgamma * B);
 
-      double delmax = 0.5 * (sqrt((4.0 * An) / (Globals::Pi * mNeighborDistanceAdjusted * mNeighborDistanceAdjusted * (1.0 - dgamma * dgamma)) + 1.0) - dgamma);
-      double delmin = 0.5 * (sqrt((4.0 * mContactRadiusAdjusted * mContactRadiusAdjusted) / (mNeighborDistanceAdjusted * mNeighborDistanceAdjusted * (1.0 - dgamma * dgamma)) + 1.0) - dgamma);
+      const double delmax = 0.5 * (sqrt((4.0 * An) / (Globals::Pi * mNeighborDistanceAdjusted * mNeighborDistanceAdjusted * (1.0 - dgamma * dgamma)) + 1.0) - dgamma);
+      const double delmin = 0.5 * (sqrt((4.0 * mContactRadiusAdjusted * mContactRadiusAdjusted) / (mNeighborDistanceAdjusted * mNeighborDistanceAdjusted * (1.0 - dgamma * dgamma)) + 1.0) - dgamma);
 
-      double Xmax = ((A + B) * delmax + dgamma * B - 1.0) / sqrt(fabs(lambda));
-      double Xmin = ((A + B) * delmin + dgamma * B - 1.0) / sqrt(fabs(lambda));
+      const double Xmax = ((A + B) * delmax + dgamma * B - 1.0) / sqrt(fabs(lambda));
+      const double Xmin = ((A + B) * delmin + dgamma * B - 1.0) / sqrt(fabs(lambda));
 
-      double Y1 = (Xmax - Xmin) / (1.0 - Xmax * Xmin);
-      double Y2 = (Xmax - Xmin) / (1.0 + Xmax * Xmin);
+      const double Y1 = (Xmax - Xmin) / (1.0 - Xmax * Xmin);
+      const double Y2 = (Xmax - Xmin) / (1.0 + Xmax * Xmin);
 
       // Heat transfer coefficient
       if (lambda > 0.0)
@@ -905,13 +880,13 @@ namespace Kratos
       return 0.0;
 
     // Assumption 1: Formulation for a liquid (not gas) as the interstitial fluid is being used
-    double fluid_conductivity = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
-    double temp_grad          = GetNeighborTemperature() - GetParticleTemperature();
+    const double fluid_conductivity = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
+    const double temp_grad          = GetNeighborTemperature() - GetParticleTemperature();
 
     // Assumption 2 : Model developed for mono-sized particles, but the average radius is being used (if neighbor is a wall, it is assumed as a particle with the same radius)
-    double particle_radius = GetParticleRadius();
-    double neighbor_radius = (mNeighborType & PARTICLE_NEIGHBOR) ? GetNeighborRadius() : particle_radius;
-    double avg_radius      = (particle_radius + neighbor_radius) / 2.0;
+    const double particle_radius = GetParticleRadius();
+    const double neighbor_radius = (mNeighborType & PARTICLE_NEIGHBOR) ? GetNeighborRadius() : particle_radius;
+    const double avg_radius      = (particle_radius + neighbor_radius) / 2.0;
 
     // Compute heat flux
     return 4.0 * Globals::Pi * fluid_conductivity * (1.0 - 0.5 * pow(mContactRadiusAdjusted / avg_radius, 2.0) * (avg_radius - mContactRadiusAdjusted)) * temp_grad / (1.0 - Globals::Pi / 4.0);
@@ -924,8 +899,8 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::NusseltHanzMarshall(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    double Pr = ComputePrandtlNumber(r_process_info);
-    double Re = ComputeReynoldNumber(r_process_info);
+    const double Pr = ComputePrandtlNumber(r_process_info);
+    const double Re = ComputeReynoldNumber(r_process_info);
 
     return 2.0 + 0.6 * pow(Re,0.5) * pow(Pr,1.0/3.0);
 
@@ -937,8 +912,8 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::NusseltWhitaker(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    double Pr = ComputePrandtlNumber(r_process_info);
-    double Re = ComputeReynoldNumber(r_process_info);
+    const double Pr = ComputePrandtlNumber(r_process_info);
+    const double Re = ComputeReynoldNumber(r_process_info);
 
     // Assumption: temperature-dependent viscosity at particle surface is negleted
     return 2.0 + (0.4 * pow(Re,0.5) + 0.06 * pow(Re,2.0/3.0)) * pow(Pr,0.4);
@@ -951,9 +926,9 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::NusseltGunn(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    double Pr  = ComputePrandtlNumber(r_process_info);
-    double Re  = ComputeReynoldNumber(r_process_info);
-    double por = r_process_info[AVERAGE_POROSITY];
+    const double Pr  = ComputePrandtlNumber(r_process_info);
+    const double Re  = ComputeReynoldNumber(r_process_info);
+    const double por = r_process_info[AVERAGE_POROSITY];
     
     return (7.0 - 10.0 * por + 5.0 * por * por) * (1.0 + 0.7 * pow(Re,0.2) * pow(Pr,1.0/3.0)) + (1.33 - 2.4 * por + 1.2 * por * por) * pow(Re,0.7) * pow(Pr,1.0/3.0);
 
@@ -965,10 +940,10 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::NusseltLiMason(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    double Pr  = ComputePrandtlNumber(r_process_info);
-    double Re  = ComputeReynoldNumber(r_process_info);
-    double por = r_process_info[AVERAGE_POROSITY];
-    double m   = 4.75; // Assumption: exponent "m = 4.75" recommended for dense systems (3.50 is recommended for dilute systems)
+    const double Pr  = ComputePrandtlNumber(r_process_info);
+    const double Re  = ComputeReynoldNumber(r_process_info);
+    const double por = r_process_info[AVERAGE_POROSITY];
+    const double m   = 4.75; // Assumption: exponent "m = 4.75" recommended for dense systems (3.50 is recommended for dilute systems)
 
     if      (Re < 200.0)  return 2.0 + 0.6 * pow(por,m) * pow(Re,0.5) * pow(Pr,1.0/3.0);
     else if (Re < 1500.0) return 2.0 + pow(por,m) * (0.5 * pow(Re,0.5) + 0.02 * pow(Re,0.8)) * pow(Pr,1.0/3.0);
@@ -983,14 +958,14 @@ namespace Kratos
     KRATOS_TRY
 
     // Get parameters
-    double particle_emissivity  = GetParticleEmissivity();
-    double particle_surface     = GetParticleSurfaceArea();
-    double particle_temperature = GetParticleTemperature();
-    double porosity             = r_process_info[AVERAGE_POROSITY];
-    double f_temperature        = r_process_info[FLUID_TEMPERATURE];
+    const double particle_emissivity  = GetParticleEmissivity();
+    const double particle_surface     = GetParticleSurfaceArea();
+    const double particle_temperature = GetParticleTemperature();
+    const double porosity             = r_process_info[AVERAGE_POROSITY];
+    const double f_temperature        = r_process_info[FLUID_TEMPERATURE];
 
     // Compute final value of environment temperature
-    double env_temperature = porosity * f_temperature + (1.0 - porosity) * mEnvironmentTemperature / mRadiativeNeighbors;
+    const double env_temperature = porosity * f_temperature + (1.0 - porosity) * mEnvironmentTemperature / mRadiativeNeighbors;
 
     // Compute heat flux
     return STEFAN_BOLTZMANN * particle_emissivity * particle_surface * (pow(env_temperature,4.0) - pow(particle_temperature,4.0));
@@ -1004,12 +979,12 @@ namespace Kratos
     KRATOS_TRY
 
     // Get parameters
-    double particle_emissivity  = GetParticleEmissivity();
-    double particle_surface     = GetParticleSurfaceArea();
-    double particle_temperature = GetParticleTemperature();
+    const double particle_emissivity  = GetParticleEmissivity();
+    const double particle_surface     = GetParticleSurfaceArea();
+    const double particle_temperature = GetParticleTemperature();
 
     // Compute final value of environment temperature
-    double env_temperature = pow(mEnvironmentTemperature / mEnvironmentTempAux, 0.25);
+    const double env_temperature = pow(mEnvironmentTemperature / mEnvironmentTempAux, 0.25);
 
     // Compute heat flux
     return STEFAN_BOLTZMANN * particle_emissivity * particle_surface * (pow(env_temperature,4.0) - pow(particle_temperature,4.0));
@@ -1770,13 +1745,13 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleSurfaceArea() {
-    return 4 * Globals::Pi * GetRadius() * GetRadius();
+    return 4.0 * Globals::Pi * GetRadius() * GetRadius();
   }
 
   //------------------------------------------------------------------------------------------------------------
   template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::GetParticleCharacteristicLength() {
-    return 2 * GetRadius();
+    return 2.0 * GetRadius();
   }
 
   //------------------------------------------------------------------------------------------------------------

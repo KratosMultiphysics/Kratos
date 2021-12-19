@@ -171,7 +171,7 @@ def GetDefaultInputParameters():
             "PostControlModule"                : false,
             "PostDeltaDisplacement"            : false,
             "PostTemperature"                  : false,
-			"PostHeatFlux"                     : false,
+            "PostHeatFlux"                     : false,
             "PostGraphParticleTempMin"         : false,
             "PostGraphParticleTempMax"         : false,
             "PostGraphParticleTempAvg"         : false,

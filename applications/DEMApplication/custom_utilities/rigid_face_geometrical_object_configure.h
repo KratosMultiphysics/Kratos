@@ -475,7 +475,7 @@ public:
 
        //The check should avoid the edges which yielded a OUTSIDE value in the inside-outside check. i.e. we will check from the current edge to the last.
 
-       if (ContactExists == false) {
+       if (!ContactExists) {
 
          ///Particle-edge contact and Particle-point
          if (distance_point_to_plane < Radius) {

@@ -1,7 +1,7 @@
 //
 //   Project Name:                     ThermalDEM $
-//   Last Modified by:    $Author: Ferran Arrufat $
-//   Date:                $Date:    February 2015 $
+//   Last Modified by:    $Author:  Rafael Rangel $
+//   Date:                $Date:    December 2021 $
 //   Revision:            $Revision:      1.0.0.0 $
 //
 
@@ -253,8 +253,8 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   protected:
 
   // General flags
-  bool is_time_to_solve;      // solve thermal problem in current step
-  bool store_contact_param;   // store contact parameters with neighbors when solving the mechanical problem
+  bool mIsTimeToSolve;        // solve thermal problem in current step
+  bool mStoreContactParam;    // store contact parameters with neighbors when solving the mechanical problem
 
   // Neighboring data
   ThermalSphericParticle<TBaseElement>*     mNeighbor_p;
