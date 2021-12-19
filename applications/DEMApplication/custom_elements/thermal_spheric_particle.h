@@ -237,7 +237,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
 
   // Delaunay/Voronoi data
   std::map<int, double> mNeighborVoronoiRadius;
-  int mDelaunayPointListIndex;
+  unsigned int mDelaunayPointListIndex;
 
   // Turn back information as a string.
   virtual std::string Info() const override {
@@ -276,9 +276,9 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double mNeighborSeparationAdjusted; // adjusted neighbor separation (negative value indicates an indentation)
 
   // Radiation environment-related
-  int    mRadiativeNeighbors;
-  double mEnvironmentTemperature;
-  double mEnvironmentTempAux;
+  unsigned int mRadiativeNeighbors;
+  double       mEnvironmentTemperature;
+  double       mEnvironmentTempAux;
 
   // History-dependent properties
   double mPreviousTemperature;
