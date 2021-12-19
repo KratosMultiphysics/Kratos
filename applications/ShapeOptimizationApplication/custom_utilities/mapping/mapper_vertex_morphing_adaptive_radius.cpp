@@ -146,9 +146,7 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateNei
         for (const auto& r_neighbour : r_neighbours) {
             const auto& r_coordinates_neighbour_node = coordinates_proxy.Get(r_neighbour);
             const double distance = norm_2(r_coordinates_origin_node - r_coordinates_neighbour_node);
-            if (max_distance < distance) {
-                max_distance = distance;
-            }
+            max_distance = std::max(max_distance, distance);
         }
 
         rNode.SetValue(VERTEX_MORPHING_RADIUS, max_distance * mFilterRadiusFactor);
