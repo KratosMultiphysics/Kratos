@@ -25,10 +25,12 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/optimization_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
+#include "custom_utilities/mapping/mapper_base.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_symmetric.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_adaptive_radius.h"
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/input_output/universal_file_io.h"
@@ -114,41 +116,38 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
-    py::class_<MapperVertexMorphing >(m, "MapperVertexMorphing")
-        .def(py::init<ModelPart&, ModelPart&, Parameters>())
-        .def("Initialize", &MapperVertexMorphing::Initialize)
-        .def("Update", &MapperVertexMorphing::Update)
-        .def("Map", MapScalar<MapperVertexMorphing>)
-        .def("Map", MapVector<MapperVertexMorphing>)
-        .def("InverseMap", InverseMapScalar<MapperVertexMorphing>)
-        .def("InverseMap", InverseMapVector<MapperVertexMorphing>)
+    py::class_<Mapper, Mapper::Pointer>(m, "Mapper")
+        .def(py::init<>())
+        .def("Initialize", &Mapper::Initialize)
+        .def("Update", &Mapper::Update)
+        .def("Map", MapScalar<Mapper>)
+        .def("Map", MapVector<Mapper>)
+        .def("InverseMap", InverseMapScalar<Mapper>)
+        .def("InverseMap", InverseMapVector<Mapper>)
         ;
-    py::class_<MapperVertexMorphingMatrixFree >(m, "MapperVertexMorphingMatrixFree")
+    py::class_<MapperVertexMorphing, MapperVertexMorphing::Pointer, Mapper>(m, "MapperVertexMorphing")
         .def(py::init<ModelPart&, ModelPart&, Parameters>())
-        .def("Initialize", &MapperVertexMorphingMatrixFree::Initialize)
-        .def("Update", &MapperVertexMorphingMatrixFree::Update)
-        .def("Map", MapScalar<MapperVertexMorphingMatrixFree>)
-        .def("Map", MapVector<MapperVertexMorphingMatrixFree>)
-        .def("InverseMap", InverseMapScalar<MapperVertexMorphingMatrixFree>)
-        .def("InverseMap", InverseMapVector<MapperVertexMorphingMatrixFree>)
         ;
-    py::class_<MapperVertexMorphingImprovedIntegration >(m, "MapperVertexMorphingImprovedIntegration")
+    py::class_<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing>, MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing>::Pointer, Mapper>(m, "MapperVertexMorphingAdaptiveRadius")
         .def(py::init<ModelPart&, ModelPart&, Parameters>())
-        .def("Initialize", &MapperVertexMorphingImprovedIntegration::Initialize)
-        .def("Update", &MapperVertexMorphingImprovedIntegration::Update)
-        .def("Map", MapScalar<MapperVertexMorphingImprovedIntegration>)
-        .def("Map", MapVector<MapperVertexMorphingImprovedIntegration>)
-        .def("InverseMap", InverseMapScalar<MapperVertexMorphingImprovedIntegration>)
-        .def("InverseMap", InverseMapVector<MapperVertexMorphingImprovedIntegration>)
         ;
-    py::class_<MapperVertexMorphingSymmetric >(m, "MapperVertexMorphingSymmetric")
+    py::class_<MapperVertexMorphingMatrixFree, MapperVertexMorphingMatrixFree::Pointer, Mapper>(m, "MapperVertexMorphingMatrixFree")
         .def(py::init<ModelPart&, ModelPart&, Parameters>())
-        .def("Initialize", &MapperVertexMorphingSymmetric::Initialize)
-        .def("Update", &MapperVertexMorphingSymmetric::Update)
-        .def("Map", MapScalar<MapperVertexMorphingSymmetric>) // TODO
-        .def("Map", MapVector<MapperVertexMorphingSymmetric>)
-        .def("InverseMap", InverseMapScalar<MapperVertexMorphingSymmetric>) // TODO
-        .def("InverseMap", InverseMapVector<MapperVertexMorphingSymmetric>)
+        ;
+    py::class_<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingMatrixFree>, MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingMatrixFree>::Pointer, Mapper>(m, "MapperVertexMorphingMatrixFreeAdaptiveRadius")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        ;
+    py::class_<MapperVertexMorphingImprovedIntegration, MapperVertexMorphingImprovedIntegration::Pointer, Mapper>(m, "MapperVertexMorphingImprovedIntegration")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        ;
+    py::class_<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingImprovedIntegration>, MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingImprovedIntegration>::Pointer, Mapper>(m, "MapperVertexMorphingImprovedIntegrationAdaptiveRadius")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        ;
+    py::class_<MapperVertexMorphingSymmetric, MapperVertexMorphingSymmetric::Pointer, Mapper>(m, "MapperVertexMorphingSymmetric")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        ;
+    py::class_<MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingSymmetric>, MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingSymmetric>::Pointer, Mapper>(m, "MapperVertexMorphingSymmetricAdaptiveRadius")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
         ;
 
     // ================================================================
