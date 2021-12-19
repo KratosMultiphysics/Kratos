@@ -78,41 +78,39 @@ namespace Kratos {
   }
 
   //-----------------------------------------------------------------------------------------------------------------------
-  void GraphUtilities::ExecuteFinalizeSolutionStep(ModelPart& r_modelpart)
+  void GraphUtilities::ExecuteFinalizeSolutionStep(ModelPart& rModelPart)
   {
     KRATOS_TRY
 
-    const ProcessInfo& r_process_info = r_modelpart.GetProcessInfo();
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
     if (!r_process_info[IS_TIME_TO_PRINT])
       return;
 
     // Initialize results
-    int    num_of_particles                    =  r_modelpart.NumberOfElements();
-    int    num_ratio_particles                 =  0;
-    int    time_step                           =  r_process_info[TIME_STEPS];
-    double time                                =  r_process_info[TIME];
-    double total_vol                           =  0.0;
-    double particle_temp_min                   =  DBL_MAX;
-    double particle_temp_max                   = -DBL_MAX;
-    double particle_temp_avg                   =  0.0;
-    double particle_temp_dev                   =  0.0;
-    double model_temp_avg                      =  0.0;
-    double particle_flux_conducdir_ratio_avg   =  0.0;
-    double particle_flux_conducindir_ratio_avg =  0.0;
-    double particle_flux_rad_ratio_avg         =  0.0;
-    double particle_flux_fric_ratio_avg        =  0.0;
-    double particle_flux_conv_ratio_avg        =  0.0;
-    double particle_flux_prescsurf_ratio_avg   =  0.0;
-    double particle_flux_prescvol_ratio_avg    =  0.0;
+    const int num_of_particles                    =  rModelPart.NumberOfElements();
+    int       num_ratio_particles                 =  0;
+    double    total_vol                           =  0.0;
+    double    particle_temp_min                   =  DBL_MAX;
+    double    particle_temp_max                   = -DBL_MAX;
+    double    particle_temp_avg                   =  0.0;
+    double    particle_temp_dev                   =  0.0;
+    double    model_temp_avg                      =  0.0;
+    double    particle_flux_conducdir_ratio_avg   =  0.0;
+    double    particle_flux_conducindir_ratio_avg =  0.0;
+    double    particle_flux_rad_ratio_avg         =  0.0;
+    double    particle_flux_fric_ratio_avg        =  0.0;
+    double    particle_flux_conv_ratio_avg        =  0.0;
+    double    particle_flux_prescsurf_ratio_avg   =  0.0;
+    double    particle_flux_prescvol_ratio_avg    =  0.0;
 
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < num_of_particles; i++) {
-      ModelPart::ElementsContainerType::iterator it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
+      ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
       ThermalSphericParticle<SphericParticle>& particle = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*it);
 
       // Accumulate values
-      double vol  = particle.CalculateVolume();
-      double temp = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
+      const double vol  = particle.CalculateVolume();
+      const double temp = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
       #pragma omp critical
       {
         total_vol += vol;
@@ -125,14 +123,14 @@ namespace Kratos {
 
       if (mGraph_ParticleHeatFluxContributions) {
         // Get absolute value of particle heat transfer mechanisms
-        double flux_conducdir   = fabs(particle.mConductionDirectHeatFlux);
-        double flux_conducindir = fabs(particle.mConductionIndirectHeatFlux);
-        double flux_rad         = fabs(particle.mRadiationHeatFlux);
-        double flux_fric        = fabs(particle.mFrictionHeatFlux);
-        double flux_conv        = fabs(particle.mConvectionHeatFlux);
-        double flux_prescsurf   = fabs(particle.mPrescribedHeatFluxSurface);
-        double flux_prescvol    = fabs(particle.mPrescribedHeatFluxVolume);
-        double flux_total       = flux_conducdir + flux_conducindir + flux_rad + flux_fric + flux_conv + flux_prescsurf + flux_prescvol;
+        const double flux_conducdir   = fabs(particle.mConductionDirectHeatFlux);
+        const double flux_conducindir = fabs(particle.mConductionIndirectHeatFlux);
+        const double flux_rad         = fabs(particle.mRadiationHeatFlux);
+        const double flux_fric        = fabs(particle.mFrictionHeatFlux);
+        const double flux_conv        = fabs(particle.mConvectionHeatFlux);
+        const double flux_prescsurf   = fabs(particle.mPrescribedHeatFluxSurface);
+        const double flux_prescvol    = fabs(particle.mPrescribedHeatFluxVolume);
+        const double flux_total       = flux_conducdir + flux_conducindir + flux_rad + flux_fric + flux_conv + flux_prescsurf + flux_prescvol;
 
         // Compute relative contribution of each heat transfer mechanism for current particle
         if (flux_total != 0.0) {
@@ -168,6 +166,9 @@ namespace Kratos {
     }
 
     // Write results to files
+    const int    time_step = r_process_info[TIME_STEPS];
+    const double time      = r_process_info[TIME];
+
     if (mFile_ParticleTempMin.is_open())
       mFile_ParticleTempMin << time_step << " " << time << " " << particle_temp_min << std::endl;
     if (mFile_ParticleTempMax.is_open())

@@ -60,7 +60,7 @@ namespace Kratos {
   {
     KRATOS_TRY
 
-    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
     if (r_process_info[DOMAIN_SIZE] == 2)
       Triangulation(rModelPart);
@@ -77,7 +77,7 @@ namespace Kratos {
   {
     KRATOS_TRY
 
-    int num_particles = rModelPart.NumberOfElements();
+    const int num_particles = rModelPart.NumberOfElements();
     if (num_particles < 3)
       return;
 
@@ -151,7 +151,7 @@ namespace Kratos {
   {
     KRATOS_TRY
 
-    int num_particles = rModelPart.NumberOfElements();
+    const int num_particles = rModelPart.NumberOfElements();
     if (num_particles < 4)
       return;
 
@@ -223,8 +223,8 @@ namespace Kratos {
 
       for (unsigned int j = 0; j < rOut.numberofedges; j++) {
         // Vertices of delaunay edge
-        int vd1 = rOut.edgelist[2 * j + 0] - 1;
-        int vd2 = rOut.edgelist[2 * j + 1] - 1;
+        const int vd1 = rOut.edgelist[2 * j + 0] - 1;
+        const int vd2 = rOut.edgelist[2 * j + 1] - 1;
 
         // Check if delaunay edge contains current point:
         // Only look at one vertex to avoid repeating the process for both vetices of the same edge
@@ -234,8 +234,8 @@ namespace Kratos {
           ThermalSphericParticle<SphericParticle>& neighbor = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*itn);
 
           // Vertices of voronoi edge dual to delaunay edge
-          int vv1 = rVorOut.edgelist[2 * j + 0] - 1;
-          int vv2 = rVorOut.edgelist[2 * j + 1] - 1;
+          const int vv1 = rVorOut.edgelist[2 * j + 0] - 1;
+          const int vv2 = rVorOut.edgelist[2 * j + 1] - 1;
 
           // Check for bounded or unbounded voronoi cell to compute radius of voronoi edge
           // (unbounded voronoi edge has a negative vertice ID)
@@ -246,29 +246,29 @@ namespace Kratos {
 
           if (vv1 >= 0 && vv2 >= 0) { // bounded
             // Coordinates of bounded voronoi edge vertices
-            double xv1 = rVorOut.pointlist[2 * vv1 + 0];
-            double yv1 = rVorOut.pointlist[2 * vv1 + 1];
-            double xv2 = rVorOut.pointlist[2 * vv2 + 0];
-            double yv2 = rVorOut.pointlist[2 * vv2 + 1];
+            const double xv1 = rVorOut.pointlist[2 * vv1 + 0];
+            const double yv1 = rVorOut.pointlist[2 * vv1 + 1];
+            const double xv2 = rVorOut.pointlist[2 * vv2 + 0];
+            const double yv2 = rVorOut.pointlist[2 * vv2 + 1];
             radius = sqrt(pow(xv2 - xv1, 2) + pow(yv2 - yv1, 2)) / 2.0;
           }
           else { // unbounded
             // Coordiantes of any delaunay edge vertex
-            double xd = rOut.pointlist[2 * vd1 + 0];
-            double yd = rOut.pointlist[2 * vd1 + 1];
+            const double xd = rOut.pointlist[2 * vd1 + 0];
+            const double yd = rOut.pointlist[2 * vd1 + 1];
 
             // Coordinates of bounded voronoi vertex
             int vv = vv1;
             if (vv1 < 0) vv = vv2;
-            double xv = rVorOut.pointlist[2 * vv + 0];
-            double yv = rVorOut.pointlist[2 * vv + 1];
+            const double xv = rVorOut.pointlist[2 * vv + 0];
+            const double yv = rVorOut.pointlist[2 * vv + 1];
 
             // Direction of unbounded voronoi edge
-            double dirx = rVorOut.normlist[2 * j + 0];
-            double diry = rVorOut.normlist[2 * j + 1];
+            const double dirx = rVorOut.normlist[2 * j + 0];
+            const double diry = rVorOut.normlist[2 * j + 1];
 
             // Check if delaunay edge intersects the unbounded voronoi edge
-            double dotProd = dirx * (xd - xv) + diry * (yd - yv);
+            const double dotProd = dirx * (xd - xv) + diry * (yd - yv);
 
             if (dotProd > 0.0)
               radius = dotProd / sqrt(dirx * dirx + diry * diry);
@@ -295,8 +295,8 @@ namespace Kratos {
     for (int i = 0; i < rOut.numberofvfacets; i++) {
       // Compute area of voronoi face by irradiation of triangles
       tetgenio::vorofacet face = rOut.vfacetlist[i];
+      const int num_face_edges = face.elist[0];
       double face_area         = 0.0;
-      int num_face_edges       = face.elist[0];
 
       // Vertices of 1st edge of voronoi face
       tetgenio::voroedge edge = rOut.vedgelist[face.elist[1] - 1];
@@ -308,9 +308,9 @@ namespace Kratos {
 
       if (bounded_face) {
         // Irradiating coordinates from a vertex of 1st edge
-        double x0 = rOut.vpointlist[3 * ev1 + 0];
-        double y0 = rOut.vpointlist[3 * ev1 + 1];
-        double z0 = rOut.vpointlist[3 * ev1 + 2];
+        const double x0 = rOut.vpointlist[3 * ev1 + 0];
+        const double y0 = rOut.vpointlist[3 * ev1 + 1];
+        const double z0 = rOut.vpointlist[3 * ev1 + 2];
 
         // Triangle area irradiation
         for (unsigned int j = 2; j <= num_face_edges; j++) {
@@ -326,12 +326,12 @@ namespace Kratos {
           }
 
           // Edge vertices coordinates
-          double x1 = rOut.vpointlist[3 * ev1 + 0];
-          double y1 = rOut.vpointlist[3 * ev1 + 1];
-          double z1 = rOut.vpointlist[3 * ev1 + 2];
-          double x2 = rOut.vpointlist[3 * ev2 + 0];
-          double y2 = rOut.vpointlist[3 * ev2 + 1];
-          double z2 = rOut.vpointlist[3 * ev2 + 2];
+          const double x1 = rOut.vpointlist[3 * ev1 + 0];
+          const double y1 = rOut.vpointlist[3 * ev1 + 1];
+          const double z1 = rOut.vpointlist[3 * ev1 + 2];
+          const double x2 = rOut.vpointlist[3 * ev2 + 0];
+          const double y2 = rOut.vpointlist[3 * ev2 + 1];
+          const double z2 = rOut.vpointlist[3 * ev2 + 2];
 
           // Area of triangle in space
           array_1d<double, 3> AB;
@@ -349,8 +349,8 @@ namespace Kratos {
       }
 
       // Delaunay vertices adjacent to voronoi face
-      int vd1 = face.c1 - 1;
-      int vd2 = face.c2 - 1;
+      const int vd1 = face.c1 - 1;
+      const int vd2 = face.c2 - 1;
 
       // Particles corresponding to delaunay vertices
       ModelPart::ElementsContainerType::iterator it1 = rElements.ptr_begin() + vd1;
@@ -393,17 +393,17 @@ namespace Kratos {
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < rOut.numberoftriangles; i++) {
       // Get vertices IDs
-      int v1 = rOut.trianglelist[3 * i + 0] - 1;
-      int v2 = rOut.trianglelist[3 * i + 1] - 1;
-      int v3 = rOut.trianglelist[3 * i + 2] - 1;
+      const int v1 = rOut.trianglelist[3 * i + 0] - 1;
+      const int v2 = rOut.trianglelist[3 * i + 1] - 1;
+      const int v3 = rOut.trianglelist[3 * i + 2] - 1;
 
       // Get vertices coordinates
-      double x1 = rOut.pointlist[2 * v1 + 0];
-      double y1 = rOut.pointlist[2 * v1 + 1];
-      double x2 = rOut.pointlist[2 * v2 + 0];
-      double y2 = rOut.pointlist[2 * v2 + 1];
-      double x3 = rOut.pointlist[2 * v3 + 0];
-      double y3 = rOut.pointlist[2 * v3 + 1];
+      const double x1 = rOut.pointlist[2 * v1 + 0];
+      const double y1 = rOut.pointlist[2 * v1 + 1];
+      const double x2 = rOut.pointlist[2 * v2 + 0];
+      const double y2 = rOut.pointlist[2 * v2 + 1];
+      const double x3 = rOut.pointlist[2 * v3 + 0];
+      const double y3 = rOut.pointlist[2 * v3 + 1];
 
       // Perform alpha-shape
       if (r_process_info[POSORITY_METHOD].compare("average_alpha_shape") == 0) {
@@ -446,24 +446,24 @@ namespace Kratos {
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < rOut.numberoftetrahedra; i++) {
       // Get vertices IDs
-      int v1 = rOut.tetrahedronlist[4 * i + 0] - 1;
-      int v2 = rOut.tetrahedronlist[4 * i + 1] - 1;
-      int v3 = rOut.tetrahedronlist[4 * i + 2] - 1;
-      int v4 = rOut.tetrahedronlist[4 * i + 3] - 1;
+      const int v1 = rOut.tetrahedronlist[4 * i + 0] - 1;
+      const int v2 = rOut.tetrahedronlist[4 * i + 1] - 1;
+      const int v3 = rOut.tetrahedronlist[4 * i + 2] - 1;
+      const int v4 = rOut.tetrahedronlist[4 * i + 3] - 1;
 
       // Get vertices coordinates
-      double x1 = rOut.pointlist[3 * v1 + 0];
-      double y1 = rOut.pointlist[3 * v1 + 1];
-      double z1 = rOut.pointlist[3 * v1 + 2];
-      double x2 = rOut.pointlist[3 * v2 + 0];
-      double y2 = rOut.pointlist[3 * v2 + 1];
-      double z2 = rOut.pointlist[3 * v2 + 2];
-      double x3 = rOut.pointlist[3 * v3 + 0];
-      double y3 = rOut.pointlist[3 * v3 + 1];
-      double z3 = rOut.pointlist[3 * v3 + 2];
-      double x4 = rOut.pointlist[3 * v4 + 0];
-      double y4 = rOut.pointlist[3 * v4 + 1];
-      double z4 = rOut.pointlist[3 * v4 + 2];
+      const double x1 = rOut.pointlist[3 * v1 + 0];
+      const double y1 = rOut.pointlist[3 * v1 + 1];
+      const double z1 = rOut.pointlist[3 * v1 + 2];
+      const double x2 = rOut.pointlist[3 * v2 + 0];
+      const double y2 = rOut.pointlist[3 * v2 + 1];
+      const double z2 = rOut.pointlist[3 * v2 + 2];
+      const double x3 = rOut.pointlist[3 * v3 + 0];
+      const double y3 = rOut.pointlist[3 * v3 + 1];
+      const double z3 = rOut.pointlist[3 * v3 + 2];
+      const double x4 = rOut.pointlist[3 * v4 + 0];
+      const double y4 = rOut.pointlist[3 * v4 + 1];
+      const double z4 = rOut.pointlist[3 * v4 + 2];
 
       // Perform alpha-shape
       if (r_process_info[POSORITY_METHOD].compare("average_alpha_shape") == 0) {
@@ -507,15 +507,15 @@ namespace Kratos {
   * The mean mesh size is taken as the average of the smallest side of each triangle.
   */
   void TesselationUtilities::ComputeAlphaRadius2D(ModelPart& rModelPart, struct triangulateio& rOut) {
-    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
     double MeanMeshSize = 0.0;
 
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < rOut.numberoftriangles; i++) {
       // Get vertices IDs
-      int v1 = rOut.trianglelist[3 * i + 0] - 1;
-      int v2 = rOut.trianglelist[3 * i + 1] - 1;
-      int v3 = rOut.trianglelist[3 * i + 2] - 1;
+      const int v1 = rOut.trianglelist[3 * i + 0] - 1;
+      const int v2 = rOut.trianglelist[3 * i + 1] - 1;
+      const int v3 = rOut.trianglelist[3 * i + 2] - 1;
 
       // Get vertices coordinates
       const double x1 = rOut.pointlist[2 * v1 + 0];
@@ -547,29 +547,29 @@ namespace Kratos {
   * The mean mesh size is taken as the average of the smallest edge of each tetahedron.
   */
   void TesselationUtilities::ComputeAlphaRadius3D(ModelPart& rModelPart, struct tetgenio& rOut) {
-    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
     double MeanMeshSize = 0.0;
 
     for (unsigned int i = 0; i < rOut.numberoftetrahedra; i++) {
       // Get vertices IDs
-      int v1 = rOut.tetrahedronlist[4 * i + 0] - 1;
-      int v2 = rOut.tetrahedronlist[4 * i + 1] - 1;
-      int v3 = rOut.tetrahedronlist[4 * i + 2] - 1;
-      int v4 = rOut.tetrahedronlist[4 * i + 3] - 1;
+      const int v1 = rOut.tetrahedronlist[4 * i + 0] - 1;
+      const int v2 = rOut.tetrahedronlist[4 * i + 1] - 1;
+      const int v3 = rOut.tetrahedronlist[4 * i + 2] - 1;
+      const int v4 = rOut.tetrahedronlist[4 * i + 3] - 1;
       
       // Get vertices coordinates
-      double x1 = rOut.pointlist[3 * v1 + 0];
-      double y1 = rOut.pointlist[3 * v1 + 1];
-      double z1 = rOut.pointlist[3 * v1 + 2];
-      double x2 = rOut.pointlist[3 * v2 + 0];
-      double y2 = rOut.pointlist[3 * v2 + 1];
-      double z2 = rOut.pointlist[3 * v2 + 2];
-      double x3 = rOut.pointlist[3 * v3 + 0];
-      double y3 = rOut.pointlist[3 * v3 + 1];
-      double z3 = rOut.pointlist[3 * v3 + 2];
-      double x4 = rOut.pointlist[3 * v4 + 0];
-      double y4 = rOut.pointlist[3 * v4 + 1];
-      double z4 = rOut.pointlist[3 * v4 + 2];
+      const double x1 = rOut.pointlist[3 * v1 + 0];
+      const double y1 = rOut.pointlist[3 * v1 + 1];
+      const double z1 = rOut.pointlist[3 * v1 + 2];
+      const double x2 = rOut.pointlist[3 * v2 + 0];
+      const double y2 = rOut.pointlist[3 * v2 + 1];
+      const double z2 = rOut.pointlist[3 * v2 + 2];
+      const double x3 = rOut.pointlist[3 * v3 + 0];
+      const double y3 = rOut.pointlist[3 * v3 + 1];
+      const double z3 = rOut.pointlist[3 * v3 + 2];
+      const double x4 = rOut.pointlist[3 * v4 + 0];
+      const double y4 = rOut.pointlist[3 * v4 + 1];
+      const double z4 = rOut.pointlist[3 * v4 + 2];
       
       // Get minimum edge length
       std::vector<double>len;
@@ -595,12 +595,12 @@ namespace Kratos {
   * Perform alpha-shape verification on a delaunay triangle to remove distorted shapes.
   */
   bool TesselationUtilities::AlphaShape2D(std::vector<double>& coords) {
-    double x1 = coords[0];
-    double y1 = coords[1];
-    double x2 = coords[2];
-    double y2 = coords[3];
-    double x3 = coords[4];
-    double y3 = coords[5];
+    const double x1 = coords[0];
+    const double y1 = coords[1];
+    const double x2 = coords[2];
+    const double y2 = coords[3];
+    const double x3 = coords[4];
+    const double y3 = coords[5];
 
     // Calculate Jacobian
     BoundedMatrix<double, 2, 2> J;
@@ -611,7 +611,7 @@ namespace Kratos {
     J *= 2.0;
 
     // Calculate the determinant (volume/2)
-    double vol = J(0, 0) * J(1, 1) - J(0, 1) * J(1, 0);
+    const double vol = J(0, 0) * J(1, 1) - J(0, 1) * J(1, 0);
 
     // Calculate the inverse of the Jacobian
     BoundedMatrix<double, 2, 2> Jinv;
@@ -636,7 +636,7 @@ namespace Kratos {
     // Calculate circle radius
     Center[0] -= x1;
     Center[1] -= y1;
-    double radius = norm_2(Center);
+    const double radius = norm_2(Center);
 
     // Accept or reject triangle
     return (radius >= 0 && radius < mAlphaRadius);
@@ -647,18 +647,18 @@ namespace Kratos {
   * Perform alpha-shape verification on a delaunay tetahedron to remove distorted shapes.
   */
   bool TesselationUtilities::AlphaShape3D(std::vector<double>& coords) {
-    double x1 = coords[0];
-    double y1 = coords[1];
-    double z1 = coords[2];
-    double x2 = coords[3];
-    double y2 = coords[4];
-    double z2 = coords[5];
-    double x3 = coords[6];
-    double y3 = coords[7];
-    double z3 = coords[8];
-    double x4 = coords[9];
-    double y4 = coords[10];
-    double z4 = coords[11];
+    const double x1 = coords[0];
+    const double y1 = coords[1];
+    const double z1 = coords[2];
+    const double x2 = coords[3];
+    const double y2 = coords[4];
+    const double z2 = coords[5];
+    const double x3 = coords[6];
+    const double y3 = coords[7];
+    const double z3 = coords[8];
+    const double x4 = coords[9];
+    const double y4 = coords[10];
+    const double z4 = coords[11];
 
     // Calculate Jacobian
     BoundedMatrix<double, 3, 3> J;
@@ -685,7 +685,7 @@ namespace Kratos {
     Jinv(2, 2) =  J(0, 0) * J(1, 1) - J(0, 1) * J(1, 0);
 
     // Calculate the determinant (volume/6)
-    double vol = J(0, 0) * Jinv(0, 0) + J(0, 1) * Jinv(1, 0) + J(0, 2) * Jinv(2, 0);
+    const double vol = J(0, 0) * Jinv(0, 0) + J(0, 1) * Jinv(1, 0) + J(0, 2) * Jinv(2, 0);
 
     // Calculate sphere center
     BoundedVector<double, 3> RHS;
@@ -705,25 +705,25 @@ namespace Kratos {
     Center /= (2.0 * vol);
 
     // Calculate sphere radius
-    double radius = norm_2(Center);
+    const double radius = norm_2(Center);
 
     // Accept or reject tetahedron
     return (radius >= 0 && radius < mAlphaRadius);
   }
 
   //-----------------------------------------------------------------------------------------------------------------------
-  void TesselationUtilities::AddParticleArea(ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_area, int id) {
+  void TesselationUtilities::AddParticleArea(ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_area, const int id) {
     if (!addedParticle[id]) {
       ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin() + id;
       ThermalSphericParticle<SphericParticle>& particle = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*it);
       addedParticle[id] = 1;
-      double r = particle.GetRadius();
+      const double r = particle.GetRadius();
       particle_area += Globals::Pi * r * r;
     }
   }
 
   //-----------------------------------------------------------------------------------------------------------------------
-  void TesselationUtilities::AddParticleVolume(ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_volume, int id) {
+  void TesselationUtilities::AddParticleVolume(ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_volume, const int id) {
     if (!addedParticle[id]) {
       ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin() + id;
       ThermalSphericParticle<SphericParticle>& particle = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*it);

@@ -33,7 +33,7 @@ namespace Kratos {
                            bool ParticleTempDev,
                            bool ModelTempAvg,
                            bool ParticleHeatFluxContributions);
-    void ExecuteFinalizeSolutionStep(ModelPart& r_modelpart);
+    void ExecuteFinalizeSolutionStep(ModelPart& rModelPart);
     void ExecuteFinalize();
 
   protected:

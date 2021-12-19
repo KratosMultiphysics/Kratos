@@ -62,10 +62,10 @@ namespace Kratos {
     void ComputeAlphaRadius3D  (ModelPart& rModelPart, struct tetgenio& rOut);
     bool AlphaShape2D          (std::vector<double>& coords);
     bool AlphaShape3D          (std::vector<double>& coords);
-    void AddParticleArea       (ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_area,   int id);
-    void AddParticleVolume     (ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_volume, int id);
-    void ClearTriangle         (struct triangulateio& tr);
-    void FreeTriangle          (struct triangulateio& tr);
+    void AddParticleArea       (ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_area,   const int id);
+    void AddParticleVolume     (ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_volume, const int id);
+    void ClearTriangle         (struct triangulateio& rTr);
+    void FreeTriangle          (struct triangulateio& rTr);
 
     // Protected attributes
     bool        mUpdateVoronoi;
