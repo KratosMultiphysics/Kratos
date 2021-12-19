@@ -29,8 +29,8 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         "improved_integration"       : false,
         "integration_method"         : "gauss_integration",
         "number_of_gauss_points"     : 5,
-        "in_plane_morphing"                   : false,
-        "in_plane_morphing_settings"          : {},
+        "in_plane_morphing"          : false,
+        "in_plane_morphing_settings" : {},
         "plane_symmetry"             : false,
         "plane_symmetry_settings"    : {
             "point" : [0.0, 0.0, 0.0],
