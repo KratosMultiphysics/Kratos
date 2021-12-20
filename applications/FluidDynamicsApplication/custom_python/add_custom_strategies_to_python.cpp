@@ -38,7 +38,7 @@
 #include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/strategies/compressible_navier_stokes_explicit_solving_strategy_runge_kutta.h"
-#include "custom_strategies/strategies/compressible_ns_biphase_explicit_solving_strategy_runge_kutta_4.h"
+#include "custom_strategies/strategies/compressible_ns_biphase_explicit_solving_strategy_runge_kutta.h"
 
 // adjoint schemes
 #include "custom_strategies/schemes/simple_steady_adjoint_scheme.h"
@@ -73,7 +73,7 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     //********************************************************************
 
 
-    
+ /*   
     typedef RungeKuttaStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> RungeKuttaStrategyType;
     py::class_<
         RungeKuttaStrategyType,
@@ -106,7 +106,7 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         typename ResidualBasedBlockBuilderAndSolverPeriodic<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
         ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(m, "ResidualBasedBlockBuilderAndSolverPeriodic")
     .def(py::init<LinearSolverType::Pointer, const Variable<int> &>());
-
+*/
     py::class_<
         CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>,
         typename CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>::Pointer,

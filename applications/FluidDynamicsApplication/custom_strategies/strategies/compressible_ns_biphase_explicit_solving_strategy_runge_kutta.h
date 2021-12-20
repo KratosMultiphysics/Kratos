@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_COMPRESSIBLE_NS_BIPHASE_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA_4)
-#define KRATOS_COMPRESSIBLE_NS_BIPHASE_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA_4
+#if !defined(KRATOS_COMPRESSIBLE_NS_BIPHASE_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA)
+#define KRATOS_COMPRESSIBLE_NS_BIPHASE_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA
 
 // System includes
 #include <functional>
@@ -23,14 +23,15 @@
 #include "includes/define.h"
 #include "includes/global_variables.h"
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "custom_processes/shock_capturing_process.h"
+#include "custom_processes/shock_capturing_physics_based_process.h"
+#include "custom_processes/shock_capturing_entropy_viscosity_process.h"
 
 namespace Kratos
 {
@@ -57,15 +58,16 @@ namespace Kratos
 /** @brief Explicit solving strategy base class
  * @details This is the base class from which we will derive all the explicit strategies (FE, RK4, ...)
  */
-template <class TSparseSpace, class TDenseSpace>
-class CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4 : public ExplicitSolvingStrategyRungeKutta4<TSparseSpace, TDenseSpace>
+template <class TSparseSpace, class TDenseSpace, class TButcherTableau>
+class CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta
+: public ExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, TButcherTableau>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// The base class definition
-    typedef ExplicitSolvingStrategyRungeKutta4<TSparseSpace, TDenseSpace> BaseType;
+    typedef ExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, TButcherTableau> BaseType;
 
     /// The explicit builder and solver definition
     typedef typename BaseType::ExplicitBuilderType ExplicitBuilderType;
@@ -73,8 +75,8 @@ public:
     /// The local vector definition
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
-    /// Pointer definition of CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4
-    KRATOS_CLASS_POINTER_DEFINITION(CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4);
+    /// Pointer definition of CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta
+    KRATOS_CLASS_POINTER_DEFINITION(CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta);
 
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG(SHOCK_CAPTURING);
@@ -88,27 +90,18 @@ public:
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
-    explicit CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4(
+    explicit CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta(
         ModelPart &rModelPart,
         Parameters ThisParameters)
         : BaseType(rModelPart)
     {
+        KRATOS_TRY
+
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
 
-        // Create the shock capturing process pointer
-        if (mShockCapturing) {
-            Parameters sc_settings(R"(
-            {
-                "calculate_nodal_area_at_each_step" : false,
-                "shock_sensor" : true,
-                "shear_sensor" : true,
-                "thermal_sensor" : true,
-                "thermally_coupled_formulation" : true
-            })");
-            mpShockCapturingProcess = Kratos::make_unique<ShockCapturingProcess>(rModelPart, sc_settings);
-        }
+        KRATOS_CATCH("")
     }
 
     /**
@@ -117,7 +110,7 @@ public:
      * @param pExplicitBuilder The pointer to the explicit builder and solver
      * @param MoveMeshFlag The flag to set if the mesh is moved or not
      */
-    explicit CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4(
+    explicit CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta(
         ModelPart &rModelPart,
         typename ExplicitBuilderType::Pointer pExplicitBuilder,
         bool MoveMeshFlag = false,
@@ -131,7 +124,7 @@ public:
      * @param rModelPart The model part to be computed
      * @param MoveMeshFlag The flag to set if the mesh is moved or not
      */
-    explicit CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4(
+    explicit CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta(
         ModelPart &rModelPart,
         bool MoveMeshFlag = false,
         int RebuildLevel = 0)
@@ -141,11 +134,11 @@ public:
 
     /** Copy constructor.
      */
-    CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4(const CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4 &Other) = delete;
+    CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta(const CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta &Other) = delete;
 
     /** Destructor.
      */
-    virtual ~CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4() = default;
+    virtual ~CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta() = default;
 
     ///@}
     ///@name Operators
@@ -156,19 +149,19 @@ public:
     ///@name Operations
     ///@{
 
-    int Check() const override
+    int Check() override
     {
         int err_code = BaseType::Check();
-      
+
         // Check that the process info already contains the OSS activation variable
         const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
         KRATOS_ERROR_IF_NOT(r_process_info.Has(OSS_SWITCH)) << "OSS_SWITCH variable has not been set in the ProcessInfo container. Please set it in the strategy \'Initialize\'." << std::endl;
 
         // Shock capturing process check
-        if (mShockCapturing) {
+        if (mpShockCapturingProcess) {
             mpShockCapturingProcess->Check();
         }
-      
+
         return err_code;
     }
 
@@ -178,19 +171,23 @@ public:
      */
     Parameters GetDefaultParameters() const override
     {
+        KRATOS_TRY
+
         Parameters default_parameters = Parameters(R"(
         {
-            "name" : "compressible_navier_stokes_explicit_explicit_solving_strategy_runge_kutta_4",
+            "name" : "compressible_ns_biphase_explicit_solving_strategy_runge_kutta_4",
             "rebuild_level" : 0,
             "move_mesh_flag": false,
-            "shock_capturing" : true,
-            "calculate_non_conservative_magnitudes" : true
+            "calculate_non_conservative_magnitudes" : true,
+            "shock_capturing_settings" : { }
         })");
 
         // Getting base class default parameters
         const Parameters base_default_parameters = BaseType::GetDefaultParameters();
         default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
         return default_parameters;
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -199,7 +196,7 @@ public:
      */
     static std::string Name()
     {
-        return "compressible_ns_biphase_explicit_solving_strategy_runge_kutta_4";
+        return "compressible_navier_stokes_explicit_solving_strategy_runge_kutta_4";  // CheckAndreaMontanino
     }
 
     /**
@@ -210,16 +207,65 @@ public:
     {
         // Base class assign settings call
         BaseType::AssignSettings(ThisParameters);
-
-      
-        // Set the specific compressible NS settings
-        mShockCapturing = ThisParameters["shock_capturing"].GetBool();
         mCalculateNonConservativeMagnitudes = ThisParameters["calculate_non_conservative_magnitudes"].GetBool();
-        if (mShockCapturing && !mCalculateNonConservativeMagnitudes) {
-            KRATOS_WARNING("CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4") << "\'shock_capturing\' requires \'calculate_non_conservative_magnitudes\' to be active. Activating it." << std::endl;
+
+        SetUpShockCapturing(ThisParameters["shock_capturing_settings"]);
+
+        if (mpShockCapturingProcess && !mCalculateNonConservativeMagnitudes) {
+            KRATOS_WARNING("CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4")
+                << "\'shock_capturing\' requires \'calculate_non_conservative_magnitudes\' to be active. Activating it." << std::endl;
             mCalculateNonConservativeMagnitudes = true;
         }
-      
+    }
+
+    void SetUpShockCapturing(Parameters ShockCapturingParameters)
+    {
+        KRATOS_TRY
+
+        auto defaults = Parameters(R"(
+            {
+                "type" : "physics_based",
+                "Parameters" : {
+                    "model_part_name" : ""
+                }
+            }
+        )");
+        defaults["Parameters"]["model_part_name"].SetString(BaseType::GetModelPart().Name());
+
+        ShockCapturingParameters.ValidateAndAssignDefaults(defaults);
+        ShockCapturingParameters.RecursivelyAddMissingParameters(defaults);
+
+        using ShockCapturingFactoryType = Process::UniquePointer (*)(ModelPart&, Parameters);
+
+        const std::map<const std::string, ShockCapturingFactoryType> shock_capturing_factory_map
+        {
+            {"none"         , [](ModelPart& m, Parameters p) -> Process::UniquePointer {return nullptr;}},
+            {"physics_based", [](ModelPart& m, Parameters p) -> Process::UniquePointer {return Kratos::make_unique<ShockCapturingPhysicsBasedProcess>(m, p);}},
+            {"entropy_based", [](ModelPart& m, Parameters p) -> Process::UniquePointer {return Kratos::make_unique<ShockCapturingEntropyViscosityProcess>(m, p);}}
+        };
+
+        const auto sc_type = ShockCapturingParameters["type"].GetString();
+
+        const auto it = shock_capturing_factory_map.find(sc_type);
+        if(it != shock_capturing_factory_map.end())
+        {
+            mpShockCapturingProcess = it->second(BaseType::GetModelPart(), ShockCapturingParameters["Parameters"]);
+        }
+        else
+        {
+            std::stringstream msg;
+            msg << "Provided shock capturing type \""<< sc_type <<"\" does not match any of the available ones.\n";
+            msg << "Please choose one from the following list:\n";
+            for(const auto& keyvaluepair: shock_capturing_factory_map)
+            {
+                msg <<" - " << keyvaluepair.first << "\n";
+            }
+            msg << std::endl;
+
+            KRATOS_ERROR << msg.str();
+        }
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -238,12 +284,10 @@ public:
         // Initialize the postprocess non-historical variables
         block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
             rNode.SetValue(MACH, 0.0);
-            rNode.SetValue(SOUND_VELOCITY, 0.0);
-            rNode.SetValue(DYNAMIC_PRESSURE, 0.0);
+            rNode.SetValue(SOUND_VELOCITY, 0.0);            rNode.SetValue(DYNAMIC_PRESSURE, 0.0);
             rNode.SetValue(SOLID_CONCENTRATION, 0.0);
             rNode.SetValue(GAS_PRESSURE, 0.0);
         });
-
         // If required, initialize the OSS projection variables
         if (r_process_info[OSS_SWITCH]) {
             block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
@@ -253,10 +297,22 @@ public:
                 rNode.SetValue(MOMENTUM_PROJECTION, ZeroVector(3));
             });
         }
-
         // If required, initialize the physics-based shock capturing variables
-        if (mShockCapturing) {
+        if (mpShockCapturingProcess) {
             mpShockCapturingProcess->ExecuteInitialize();
+        }
+    }
+
+    void InitializeSolutionStep() override
+    {
+        BaseType::InitializeSolutionStep();
+
+        if (mCalculateNonConservativeMagnitudes) {
+            CalculateNonConservativeMagnitudes();
+        }
+
+        if (mpShockCapturingProcess) {
+            mpShockCapturingProcess->ExecuteInitializeSolutionStep();
         }
     }
 
@@ -266,8 +322,7 @@ public:
      * These will be the time derivatives employed in the first RK4 sub step of the next time step
      */
     void FinalizeSolutionStep() override
-    {   
-
+    {
         // Call the base RK4 finalize substep method
         BaseType::FinalizeSolutionStep();
 
@@ -285,19 +340,15 @@ public:
         // Perform the shock capturing detection and artificial values calculation
         // This needs to be done at the end of the step in order to include the future shock
         // capturing magnitudes in the next automatic dt calculation
-        /*
-        if (mShockCapturing) {
+        if (mpShockCapturingProcess) {
             mpShockCapturingProcess->ExecuteFinalizeSolutionStep();
         }
-        */
-
-        
     }
 
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4";
+        return "CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta";
     }
 
     /// Print information about this object.
@@ -342,7 +393,6 @@ protected:
         // These will be used in the next RK substep residual calculation to compute the subscales
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
-        r_process_info[TIME_INTEGRATION_THETA] = r_process_info[RUNGE_KUTTA_STEP] == 1 ? 0.0 : 0.5;
 
         // Calculate the Orthogonal SubsScales projections
         /*
@@ -360,7 +410,6 @@ protected:
         // Calculate the Orthogonal SubsScales projections
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
-        r_process_info[TIME_INTEGRATION_THETA] = 1.0;
 
         // Calculate the Orthogonal SubsScales projections
         /*
@@ -422,11 +471,10 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mShockCapturing = true;    // Attentio here!
     bool mApplySlipCondition = true;
     bool mCalculateNonConservativeMagnitudes = true;
 
-    ShockCapturingProcess::UniquePointer mpShockCapturingProcess = nullptr;
+    Process::UniquePointer mpShockCapturingProcess = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -470,14 +518,13 @@ private:
             rElement.Calculate(MOMENTUM_PROJECTION, mom_proj, r_process_info);
             rElement.Calculate(TOTAL_ENERGY_PROJECTION, tot_ener_proj, r_process_info);
         });
-
+        
         // Do thhe nodal weighting
         // Note that to avoid calculating the NODAL_AREA we took from the first DOF of the lumped mass vector
         IndexPartition<>(n_nodes).for_each([&](const ModelPart::SizeType iNode){
             auto it_node = r_model_part.NodesBegin() + iNode;
             const double nodal_area = r_lumped_mass_vector[iNode * block_size];
             it_node->GetValue(DENSITY_PROJECTION) /= nodal_area;
-            //it_node->GetValue(DENSITY_SOLID_PROJECTION) /= nodal_area;
             it_node->GetValue(MOMENTUM_PROJECTION) /= nodal_area;
             it_node->GetValue(TOTAL_ENERGY_PROJECTION) /= nodal_area;
         });
@@ -502,7 +549,6 @@ private:
         const double R = (gamma - 1.0) * c_v; // Ideal gas constant
         const double rho_s = r_prop.GetValue(SOLID_MATERIAL_DENSITY); // Density of the solid part
         const double c_s = r_prop.GetValue(SOLID_MATERIAL_SPECIFIC_HEAT); // Specific heat of the solid part
-
         // Loop the nodes to calculate the non-conservative magnitudes
         array_1d<double,3> aux_vel;
         block_for_each(r_model_part.Nodes(), aux_vel,[&] (Node<3> &rNode, array_1d<double,3>&rVelocity) {
@@ -513,11 +559,9 @@ private:
             const double& r_tot_ener = rNode.FastGetSolutionStepValue(TOTAL_ENERGY);
             
             rVelocity = r_mom / r_rho;
-
             double c_mixed = c_v*(r_rho - r_rho_solid) + c_s*r_rho_solid;
             double Cp_mixed = (c_v + R)*(r_rho - r_rho_solid) + c_s*r_rho_solid;
             double sol_conc = r_rho_solid/rho_s;
-
             const double temp = (r_tot_ener - 0.5 * inner_prod(rVelocity, rVelocity)) / c_mixed;   // Modify for biphase flow
             const double pressure = (r_rho - r_rho_solid) * R * temp;
             const double sound_velocity = std::sqrt(r_rho - r_rho_solid)*R*Cp_mixed*(2*r_tot_ener - r_rho*inner_prod(rVelocity, rVelocity))/(2*r_rho*c_mixed*c_mixed); 
@@ -569,7 +613,7 @@ private:
 
 
     ///@}
-}; /* Class CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4 */
+}; /* Class CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta */
 
 ///@}
 
@@ -578,6 +622,12 @@ private:
 
 ///@}
 
+template<class TSparseSpace, class TDenseSpace>
+using CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4 = CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, ButcherTableauRK4>;
+
+template<class TSparseSpace, class TDenseSpace>
+using CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta3TVD = CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, ButcherTableauRK3TVD>;
+
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_COMPRESSIBLE_NS_BIPHASE_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA_4  defined */
+#endif /* KRATOS_COMPRESSIBLE_NS_BIPHASE_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA  defined */
