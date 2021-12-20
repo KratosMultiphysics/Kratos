@@ -273,11 +273,11 @@ namespace Kratos
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic3DLaw", mJohnsonCookThermalPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DPlaneStrainLaw", mJohnsonCookThermalPlastic2DPlaneStrainLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DAxisymLaw", mJohnsonCookThermalPlastic2DAxisymLaw);
-	// CL: Displacement-based Newtonian Fluid
-	KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluid3DLaw", mDispNewtonianFluid3DLaw);
-	KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidPlaneStrain2DLaw", mDispNewtonianFluidPlaneStrain2DLaw);
-	KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidUP3DLaw", mDispNewtonianFluidUP3DLaw);
-	KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidPlaneStrainUP2DLaw", mDispNewtonianFluidPlaneStrainUP2DLaw);
+        // CL: Displacement-based Newtonian Fluid
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluid3DLaw", mDispNewtonianFluid3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidPlaneStrain2DLaw", mDispNewtonianFluidPlaneStrain2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidUP3DLaw", mDispNewtonianFluidUP3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidPlaneStrainUP2DLaw", mDispNewtonianFluidPlaneStrainUP2DLaw);
 
 
         //Register Flow Rules
@@ -307,9 +307,12 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(IS_FIX_EXPLICIT_MP_ON_GRID_EDGE)
 
         // Partitioned Quadrature MPM variables
-        KRATOS_REGISTER_VARIABLE (IS_PQMPM)
+        KRATOS_REGISTER_VARIABLE(IS_PQMPM)
         KRATOS_REGISTER_VARIABLE(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS)
         KRATOS_REGISTER_VARIABLE(PQMPM_SUBPOINT_MIN_VOLUME_FRACTION)
+
+        // Stabilization variables
+        KRATOS_REGISTER_VARIABLE(STABILIZATION_OPTION)
     }
 
 }  // namespace Kratos.

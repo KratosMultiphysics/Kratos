@@ -51,6 +51,7 @@ class MPMSolver(PythonSolver):
                 "materials_filename" : ""
             },
             "compute_reactions"                  : false,
+            "stabilization"                      : "Off",
             "convergence_criterion"              : "Residual_criteria",
             "displacement_relative_tolerance"    : 1.0E-4,
             "displacement_absolute_tolerance"    : 1.0E-9,
@@ -207,10 +208,24 @@ class MPMSolver(PythonSolver):
     def _GenerateMaterialPoint(self):
         pressure_dofs          = self.settings["pressure_dofs"].GetBool()
         axis_symmetric_flag    = self.settings["axis_symmetric_flag"].GetBool()
+        stabilization_type     = self.settings["stabilization"].GetString()
+
         if axis_symmetric_flag:
             self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_AXISYMMETRIC, True)
         else:
             self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_AXISYMMETRIC, False)
+
+        stabilization_option = 0
+        if pressure_dofs:
+            if stabilization_type == "PPP":
+                stabilization_option = 0 ## To redefine in the future
+            elif stabilization_type == "ASGS":
+                stabilization_option = 2
+            elif stabilization_type == "OSGS":
+                stabilization_option = 3  
+
+
+        self.grid_model_part.ProcessInfo.SetValue(KratosParticle.STABILIZATION_OPTION, stabilization_option)
 
         # Assigning extra information to the main model part
         self.material_point_model_part.SetNodes(self.grid_model_part.GetNodes())
