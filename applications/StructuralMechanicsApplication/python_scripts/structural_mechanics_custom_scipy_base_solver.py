@@ -39,7 +39,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
         return this_defaults
 
     #### Private functions ####
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         """Create the scheme for the scipy solver.
 
         The scheme determines the mass and stiffness matrices
@@ -54,12 +54,12 @@ class CustomScipyBaseSolver(MechanicalSolver):
 
         return solution_scheme
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         ''' Linear solver will not be used. But eventually the solution strategy calls the solver's clear function.
         To avoid crashing linear solver is provided here'''
         return KratosMultiphysics.LinearSolver()
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             warn_msg = "In case an eigenvalue problem is computed an elimantion builder shall be used to ensure boundary conditions are applied correctly!"
             KratosMultiphysics.Logger.PrintWarning("CustomScipyBaseSolver", warn_msg)
@@ -79,9 +79,9 @@ class CustomScipyBaseSolver(MechanicalSolver):
     def _MassMatrixComputation(self):
         space = KratosMultiphysics.UblasSparseSpace()
         self.GetComputingModelPart().ProcessInfo.SetValue(StructuralMechanicsApplication.BUILD_LEVEL,1) #Mass Matrix
-        scheme = self.get_mechanical_solution_strategy().GetScheme()
+        scheme = self._GetSolutionStrategy().GetScheme()
 
-        aux = self.get_mechanical_solution_strategy().GetSystemMatrix()
+        aux = self._GetSolutionStrategy().GetSystemMatrix()
         space.SetToZeroMatrix(aux)
 
         # Create dummy vectors
@@ -108,9 +108,9 @@ class CustomScipyBaseSolver(MechanicalSolver):
     def _StiffnessMatrixComputation(self):
         space = KratosMultiphysics.UblasSparseSpace()
         self.GetComputingModelPart().ProcessInfo.SetValue(StructuralMechanicsApplication.BUILD_LEVEL,2) #Stiffness Matrix
-        scheme = self.get_mechanical_solution_strategy().GetScheme()
+        scheme = self._GetSolutionStrategy().GetScheme()
 
-        aux = self.get_mechanical_solution_strategy().GetSystemMatrix()
+        aux = self._GetSolutionStrategy().GetSystemMatrix()
         space.SetToZeroMatrix(aux)
 
         # Create dummy vectors
