@@ -260,36 +260,6 @@ class ConvectionDiffusionSolver(PythonSolver):
         return self.min_buffer_size
 
     def AddDofs(self):
-        # settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]
-
-        # # Add standard scalar DOF
-        # if settings.IsDefinedReactionVariable():
-        #     KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), settings.GetReactionVariable(),self.main_model_part)
-        # else:
-        #     KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), self.main_model_part)
-
-        # # Add gradient of the unknown DOF for mixed problems
-        # if self.settings["gradient_dofs"].GetBool():
-        #     gradient_variable = settings.GetGradientVariable()
-        #     gradient_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_X")
-        #     gradient_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_Y")
-        #     if settings.IsDefinedReactionGradientVariable():
-        #         reaction_gradient_variable = settings.GetReactionGradientVariable()
-        #         reaction_gradient_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable.Name() + "_X")
-        #         reaction_gradient_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable.Name() + "_Y")
-        #         KratosMultiphysics.VariableUtils().AddDof(gradient_variable_x, reaction_gradient_variable_x, self.main_model_part)
-        #         KratosMultiphysics.VariableUtils().AddDof(gradient_variable_y, reaction_gradient_variable_y, self.main_model_part)
-        #         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
-        #             gradient_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_Z")
-        #             reaction_gradient_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable.Name() + "_Z")
-        #             KratosMultiphysics.VariableUtils().AddDof(gradient_variable_z, reaction_gradient_variable_z, self.main_model_part)
-        #     else:
-        #         KratosMultiphysics.VariableUtils().AddDof(gradient_variable_x, self.main_model_part)
-        #         KratosMultiphysics.VariableUtils().AddDof(gradient_variable_y, self.main_model_part)
-        #         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
-        #             gradient_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_Z")
-        #             KratosMultiphysics.VariableUtils().AddDof(gradient_variable_z, self.main_model_part)
-
         KratosMultiphysics.VariableUtils.AddDofsList(self.GetDofsWithReactionsList(), self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "DOF's ADDED")

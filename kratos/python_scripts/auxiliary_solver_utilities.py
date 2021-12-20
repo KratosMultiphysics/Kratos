@@ -30,38 +30,20 @@ def AddDofs(model_part, aux_dofs_list, aux_reaction_list):
             err_msg+= "(" + KratosMultiphysics.KratosGlobals.GetVariableType(dof_variable_name) + ")"
             raise Exception(err_msg)
 
-def AddAuxiliaryDofsToDofsList(settings, dofs_list):
-    auxiliary_dofs_list = settings["auxiliary_dofs_list"]
-    for dof_variable_name in  auxiliary_dofs_list.GetStringArray():
-        dof_variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(dof_variable_name)
-        if dof_variable_type == "Double":
-            dofs_list.append(dof_variable_name)
-        elif dof_variable_type == "Array":
-            comp_list = ["_X", "_Y"] if settings["domain_size"].GetInt() == 2 else ["_X", "_Y", "_Z"] #TODO: Discuss this
-            for comp in comp_list:
-                dofs_list.append(dof_variable_name + comp)
-        else:
-            raise Exception("The variable \'{}\' is incompatible in type.".format(dof_variable_name))
-
-def AddAuxiliaryDofsToDofsWithReactionsList(settings, dofs_with_reactions_list):
-    auxiliary_dofs_list = settings["auxiliary_dofs_list"]
-    auxiliary_reactions_list = settings["auxiliary_reaction_list"]
-    if not auxiliary_dofs_list.size() == auxiliary_reactions_list.size():
+def AddAuxiliaryDofsToDofsWithReactionsList(aux_dofs_list, aux_reaction_list, dofs_with_reactions_list):
+    if not aux_dofs_list.size() == aux_reaction_list.size():
         raise Exception("DOFs list and reaction list should be the same size")
-    for dof_variable_name, reaction_variable_name in  zip(auxiliary_dofs_list.GetStringArray(), auxiliary_reactions_list.GetStringArray()):
+    for dof_variable_name, reaction_variable_name in  zip(aux_dofs_list.GetStringArray(), aux_reaction_list.GetStringArray()):
         dof_variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(dof_variable_name)
         reaction_variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(reaction_variable_name)
         if dof_variable_type == reaction_variable_type:
             if dof_variable_type == "Double":
                 dofs_with_reactions_list.append([dof_variable_name, reaction_variable_name])
             elif dof_variable_type == "Array":
-                comp_list = ["_X", "_Y"] if settings["domain_size"].GetInt() == 2 else ["_X", "_Y", "_Z"] #TODO: Discuss this
-                for comp in comp_list:
+                for comp in ["_X", "_Y", "_Z"]:
                     dofs_with_reactions_list.append([dof_variable_name + comp, reaction_variable_name + comp])
             else:
                 raise Exception("The variable " + dof_variable_name + " is incompatible in type")
         else:
             err_msg = "The added reaction variable \'{}\' (\'{}\') is not the same type as the pair DOF \'{}\' (\'{}\').".format(reaction_variable_name, reaction_variable_type, dof_variable_name, dof_variable_type)
             raise Exception(err_msg)
-
-

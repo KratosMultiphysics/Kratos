@@ -66,13 +66,12 @@ class FluidSolver(PythonSolver):
         raise Exception("Trying to call FluidSolver.AddVariables(). Implement the AddVariables() method in the specific derived solver.")
 
     def AddDofs(self):
-        #TODO: Use this when the fixity issue is solved in the GUI
-        # KratosMultiphysics.VariableUtils.AddDofsList(self.GetDofsWithReactionsList(), self.main_model_part)
-
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
+        dofs_and_reactions_to_add = []
+        dofs_and_reactions_to_add.append(["VELOCITY_X", "REACTION_X"])
+        dofs_and_reactions_to_add.append(["VELOCITY_Y", "REACTION_Y"])
+        dofs_and_reactions_to_add.append(["VELOCITY_Z", "REACTION_Z"])
+        dofs_and_reactions_to_add.append(["PRESSURE", "REACTION_WATER_PRESSURE"])
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver DOFs added correctly.")
 

@@ -115,7 +115,15 @@ class NavierStokesCompressibleSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Monolithic compressible fluid solver variables added correctly")
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils.AddDofsList(self.GetDofsWithReactionList(), self.main_model_part)
+        dofs_and_reactions_to_add = []
+        dofs_and_reactions_to_add.append(["DENSITY", "REACTION_DENSITY"])
+        dofs_and_reactions_to_add.append(["MOMENTUM_X", "REACTION_X"])
+        dofs_and_reactions_to_add.append(["MOMENTUM_Y", "REACTION_Y"])
+        dofs_and_reactions_to_add.append(["MOMENTUM_Z", "REACTION_Z"])
+        dofs_and_reactions_to_add.append(["TOTAL_ENERGY", "REACTION_ENERGY"])
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
+
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver DOFs added correctly.")
 
     def GetDofsList(self):
         dofs_list = []
