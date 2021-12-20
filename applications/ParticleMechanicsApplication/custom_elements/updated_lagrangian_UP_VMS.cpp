@@ -25,6 +25,7 @@
 #include "particle_mechanics_application_variables.h"
 #include "includes/checks.h"
 #include "includes/cfd_variables.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -496,6 +497,28 @@ void UpdatedLagrangianUPVMS::InitializeSolutionStep(const ProcessInfo& rCurrentP
 //************************************************************************************
 //************************************************************************************
 
+// Calulate element size depending on the dimension of worspace
+
+void UpdatedLagrangianUPVMS::ComputeElementSize(double& ElemSize){
+
+    KRATOS_TRY
+
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    double Area = r_geometry.GetGeometryParent(0).Area(); 
+   
+    if (dimension == 2)
+    {
+        ElemSize = 1.128379167 * sqrt(Area); 
+    }
+    else if (dimension== 3)
+    {
+        ElemSize = 0.60046878 * pow(Area,0.333333333333333333333);
+    }
+        
+        KRATOS_CATCH("")
+}
+
 // Calculate stabilization parameters
 
 void UpdatedLagrangianUPVMS::CalculateTaus(
@@ -504,8 +527,50 @@ void UpdatedLagrangianUPVMS::CalculateTaus(
     KRATOS_TRY
 
     // Add computations for the tau stabilization
-    rVariables.tau1=0.5;
-    rVariables.tau2=0.5;
+
+    const double constant1=4.0; 
+    const double constant2=2.0;
+    double characteristic_element_size;
+
+    ComputeElementSize(characteristic_element_size);
+
+    // Stabilization alpha parameters
+    /*double alpha_stabilization  = 1.0;
+    if( GetProperties().Has(STABILIZATION_FACTOR) ){
+        alpha_stabilization = GetProperties()[STABILIZATION_FACTOR];
+    } */
+
+    double shear_modulus = 0;
+    if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
+    {
+        const double& young_modulus = GetProperties()[YOUNG_MODULUS];
+        const double& poisson_ratio = GetProperties()[POISSON_RATIO];
+        shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
+        
+       rVariables.tau1 = constant1 *  pow(characteristic_element_size,2) / (2 * shear_modulus);
+       rVariables.tau2 = 2 * constant2 * shear_modulus;
+
+    }
+    else if (GetProperties().Has(DYNAMIC_VISCOSITY))
+    {
+        /*
+        Stabilization parameter for shallow water: 
+        alpha stabilization = c_tau/sqrt(h)
+        h: characteristic water depth
+        c_tau : [0.1, 1]
+        */
+        /*double characteristic_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
+        alpha_stabilization = pow(alpha_stabilization * characteristic_size / (2.0 * sqrt(9.81)), 2);
+        */
+       const double& viscosity = GetProperties()[DYNAMIC_VISCOSITY];
+       rVariables.tau1 = constant1 *  pow(characteristic_element_size,2) / (2 * viscosity);
+       rVariables.tau2 = 2 * constant2 * viscosity;
+
+    }
+    else
+    {
+        KRATOS_ERROR << "No pressure stabilization existing if YOUNG_MODULUS and POISSON_RATIO or DYNAMIC_VISCOSITY is specified" << std::endl;
+    }
 
 
     KRATOS_CATCH( "" )

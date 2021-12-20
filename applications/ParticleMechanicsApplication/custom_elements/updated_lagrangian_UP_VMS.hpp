@@ -241,6 +241,12 @@ protected:
         return GetGeometry().WorkingSpaceDimension() + 1;
     }
 
+    /*
+        Compute Element Size
+    */
+
+   void ComputeElementSize(double& ElementSize);
+
        /**
      * Calculates the elemental contributions
      * \f$ K^e = w\,B^T\,D\,B \f$ and
@@ -264,9 +270,8 @@ protected:
      */
 
     void CalculateTaus(GeneralVariables& rVariables);
-    
-    
-    
+
+
     /**
      * Calculation and addition of the matrices of the LHS
      */
