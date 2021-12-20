@@ -179,22 +179,62 @@ class MechanicalSolver(PythonSolver):
         return 2
 
     def AddDofs(self):
-        # this can safely be called also for restarts, it is internally checked if the dofs exist already
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
-        if self.settings["rotation_dofs"].GetBool():
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,self.main_model_part)
-        if self.settings["volumetric_strain_dofs"].GetBool():
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VOLUMETRIC_STRAIN, StructuralMechanicsApplication.REACTION_STRAIN,self.main_model_part)
-        if self.settings["displacement_control"].GetBool():
-            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.LOAD_FACTOR, StructuralMechanicsApplication.PRESCRIBED_DISPLACEMENT,self.main_model_part)
+        # # this can safely be called also for restarts, it is internally checked if the dofs exist already
+        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
+        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
+        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
+        # if self.settings["rotation_dofs"].GetBool():
+        #     KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,self.main_model_part)
+        #     KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,self.main_model_part)
+        #     KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,self.main_model_part)
+        # if self.settings["volumetric_strain_dofs"].GetBool():
+        #     KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VOLUMETRIC_STRAIN, StructuralMechanicsApplication.REACTION_STRAIN,self.main_model_part)
+        # if self.settings["displacement_control"].GetBool():
+        #     KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.LOAD_FACTOR, StructuralMechanicsApplication.PRESCRIBED_DISPLACEMENT,self.main_model_part)
 
-        # Add dofs that the user defined in the ProjectParameters
-        auxiliary_solver_utilities.AddDofs(self.main_model_part, self.settings["auxiliary_dofs_list"], self.settings["auxiliary_reaction_list"])
+        # # Add dofs that the user defined in the ProjectParameters
+        # auxiliary_solver_utilities.AddDofs(self.main_model_part, self.settings["auxiliary_dofs_list"], self.settings["auxiliary_reaction_list"])
+
+        KratosMultiphysics.VariableUtils.AddDofsList(self.GetDofsWithReactionsList(), self.main_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "DOF's ADDED")
+
+    def GetDofsList(self):
+        dofs_list = []
+        dofs_list.append("DISPLACEMENT_X")
+        dofs_list.append("DISPLACEMENT_Y")
+        if self.settings["domain_size"].GetInt() == 3: #TODO: Discuss this
+            dofs_list.append("DISPLACEMENT_Z")
+        if self.settings["rotation_dofs"].GetBool():
+            dofs_list.append("ROTATION_Z")
+            if self.settings["domain_size"].GetInt() == 3: #TODO: Discuss this
+                dofs_list.append("ROTATION_X")
+                dofs_list.append("ROTATION_Y")
+        if self.settings["volumetric_strain_dofs"].GetBool():
+            dofs_list.append("VOLUMETRIC_STRAIN")
+        if self.settings["displacement_control"].GetBool():
+            dofs_list.append("LOAD_FACTOR")
+        auxiliary_solver_utilities.AddAuxiliaryDofsToDofsList(self.settings, dofs_list)
+
+        return dofs_list
+
+    def GetDofsWithReactionsList(self):
+        dofs_with_reactions_list = []
+        dofs_with_reactions_list.append(["DISPLACEMENT_X","REACTION_X"])
+        dofs_with_reactions_list.append(["DISPLACEMENT_Y","REACTION_Y"])
+        if self.settings["domain_size"].GetInt() == 3: #TODO: Discuss this
+            dofs_with_reactions_list.append(["DISPLACEMENT_Z","REACTION_Z"])
+        if self.settings["rotation_dofs"].GetBool():
+            dofs_with_reactions_list.append(["ROTATION_Z","REACTION_MOMENT_Z"])
+            if self.settings["domain_size"].GetInt() == 3: #TODO: Discuss this
+                dofs_with_reactions_list.append(["ROTATION_X","REACTION_MOMENT_X"])
+                dofs_with_reactions_list.append(["ROTATION_Y","REACTION_MOMENT_Y"])
+        if self.settings["volumetric_strain_dofs"].GetBool():
+            dofs_with_reactions_list.append(["VOLUMETRIC_STRAIN","REACTION_STRAIN"])
+        if self.settings["displacement_control"].GetBool():
+            dofs_with_reactions_list.append(["LOAD_FACTOR","PRESCRIBED_DISPLACEMENT"])
+        auxiliary_solver_utilities.AddAuxiliaryDofsToDofsWithReactionsList(self.settings, dofs_with_reactions_list)
+
+        return dofs_with_reactions_list
 
     def ImportModelPart(self):
         """This function imports the ModelPart
