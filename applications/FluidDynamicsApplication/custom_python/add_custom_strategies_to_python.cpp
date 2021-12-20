@@ -73,40 +73,12 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     //********************************************************************
 
 
- /*   
-    typedef RungeKuttaStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> RungeKuttaStrategyType;
-    py::class_<
-        RungeKuttaStrategyType,
-        typename RungeKuttaStrategyType::Pointer,
-        BaseSolvingStrategyType>
-        (m, "RungeKuttaStrategy")
-        .def(py::init<ModelPart&, int, bool, bool, bool>())
-        ;
-
-    typedef ExplicitEulerStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitEulerStrategyType;
-    py::class_<
-        ExplicitEulerStrategyType,
-        typename ExplicitEulerStrategyType::Pointer,
-        BaseSolvingStrategyType>
-        (m, "ExplicitEulerStrategy")
-        .def(py::init<ModelPart&, int, bool, bool, bool>())
-        ;
-
-    typedef ExplicitEulerDGStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitEulerDGStrategyType;
-    py::class_<
-        ExplicitEulerDGStrategyType,
-        typename ExplicitEulerDGStrategyType::Pointer,
-        BaseSolvingStrategyType>
-        (m, "ExplicitEulerDGStrategy")
-        .def(py::init<ModelPart&, int, bool, bool, bool>())
-        ;
-
     py::class_<
         ResidualBasedBlockBuilderAndSolverPeriodic<SparseSpaceType, LocalSpaceType, LinearSolverType>,
         typename ResidualBasedBlockBuilderAndSolverPeriodic<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
         ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(m, "ResidualBasedBlockBuilderAndSolverPeriodic")
     .def(py::init<LinearSolverType::Pointer, const Variable<int> &>());
-*/
+
     py::class_<
         CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>,
         typename CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>::Pointer,
@@ -127,6 +99,14 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>,
         typename CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>::Pointer,
         ExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4")
+    .def(py::init<ModelPart&, bool, int>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
+
+    py::class_<
+        CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta3TVD<SparseSpaceType, LocalSpaceType>,
+        typename CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta3TVD<SparseSpaceType, LocalSpaceType>::Pointer,
+        ExplicitSolvingStrategyRungeKutta3TVD<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta3TVD")
     .def(py::init<ModelPart&, bool, int>())
     .def(py::init<ModelPart&, Parameters>())
     .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
