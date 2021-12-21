@@ -219,6 +219,20 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
+     * returns whether this constitutive Law has specified variable
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<bool>& rThisVariable) override;
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (integer)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<int>& rThisVariable) override;
+
+    /**
      * @brief Returns whether this constitutive Law has specified variable (double)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
@@ -238,6 +252,28 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<Matrix>& rThisVariable) override;
+
+    /**
+     * @brief Sets the value of a specified variable (bool)
+     * @param rThisVariable the variable to be returned
+     * @param Value new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    void SetValue(
+        const Variable<bool>& rThisVariable,
+        const bool& Value,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Sets the value of a specified variable (integer)
+     * @param rThisVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    void SetValue(
+        const Variable<int>& rThisVariable,
+        const int& rValue,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Sets the value of a specified variable (double)
@@ -264,12 +300,20 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
         ) override;
 
     /**
-     * @brief Returns the value of a specified variable (Vector)
+     * returns the value of a specified variable
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
+
+    /**
+     * @brief Returns the value of a specified variable (integer)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    int& GetValue(const Variable<int>& rThisVariable, int& rValue) override;
 
     /**
      * @brief Returns the value of a specified variable (double)
@@ -278,6 +322,14 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
      * @return rValue output: the value of the specified variable
      */
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
+
+    /**
+     * @brief Returns the value of a specified variable (Vector)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
     /**
      * @brief Returns the value of a specified variable (Matrix)
@@ -393,6 +445,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
      * @param values_HCF the needed parameters for the CL calculation
      */
     void FinalizeMaterialResponseHCFModel(
+        Vector& rHighCycleFatigueStressVector,
         ConstitutiveLaw::Parameters& values_HCF);
 
     /**
@@ -400,6 +453,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
      * @param values_ULCF the needed parameters for the CL calculation
      */
     void FinalizeMaterialResponseULCFModel(
+        Vector& rUltraLowCycleFatigueStressVector,
         ConstitutiveLaw::Parameters& values_ULCF);
 
     /**

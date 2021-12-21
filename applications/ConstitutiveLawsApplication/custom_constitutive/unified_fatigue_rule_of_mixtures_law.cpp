@@ -385,9 +385,11 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateMaterial
     this->template AddInitialStressVectorContribution<array_1d<double, VoigtSize>>(predictive_stress_vector);
 
     // Initialize Plastic Parameters
+    double fatigue_reduction_factor = mFatigueReductionFactor;
     double uniaxial_stress;
     TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, values_HCF);
 
+    uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
     const double F = uniaxial_stress - hcf_threshold;
 
     if (F <= 0.0) { // Elastic case
@@ -493,6 +495,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateMaterial
             // Elastic Matrix
             BaseType::CalculateElasticMatrix(r_constitutive_matrix, values_ULCF);
 
+            double fatigue_reduction_factor = mFatigueReductionFactor;
             // Compute the plastic parameters
             const double F = GenericConstitutiveLawIntegratorPlasticity<TConstLawIntegratorType::YieldSurfaceType>::CalculatePlasticParameters(
                 predictive_stress_vector, r_strain_vector, uniaxial_stress,
@@ -501,7 +504,10 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateMaterial
                 r_constitutive_matrix, values_ULCF, characteristic_length,
                 plastic_strain);
 
-            if (F <= std::abs(1.0e-4 * ulcf_threshold)) { // Elastic case
+            uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
+            const double yield_criteria = uniaxial_stress - ulcf_threshold;
+
+            if (yield_criteria <= std::abs(1.0e-4 * ulcf_threshold)) { // Elastic case
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
             } else { // Plastic case
                 // While loop backward euler
@@ -613,20 +619,12 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
         values_HCF.SetStrainVector(r_strain_vector);
         values_ULCF.SetStrainVector(r_strain_vector);
 
-        this->FinalizeMaterialResponseHCFModel(values_HCF);
-        this->FinalizeMaterialResponseULCFModel(values_ULCF);
-        // mpHCFConstitutiveLaw->FinalizeMaterialResponseCauchy(values_HCF);
-        // mpULCFConstitutiveLaw->FinalizeMaterialResponseCauchy(values_ULCF);
-
-        // mpULCFConstitutiveLaw::ConstLawIntegratorType::YieldSurfaceTypePlas;
-
         Vector high_cycle_fatigue_stress_vector, ultra_low_cycle_fatigue_stress_vector;
 
-        high_cycle_fatigue_stress_vector = values_HCF.GetStressVector();
-        ultra_low_cycle_fatigue_stress_vector = values_ULCF.GetStressVector();
-
-        Vector& r_integrated_stress_vector = rValues.GetStressVector();
-        noalias(r_integrated_stress_vector) = mHCFVolumetricParticipation * high_cycle_fatigue_stress_vector
+        this->FinalizeMaterialResponseHCFModel(high_cycle_fatigue_stress_vector, values_HCF);
+        this->FinalizeMaterialResponseULCFModel(ultra_low_cycle_fatigue_stress_vector, values_ULCF);
+        Vector r_integrated_stress_vector;
+        r_integrated_stress_vector = mHCFVolumetricParticipation * high_cycle_fatigue_stress_vector
                                      + (1.0 - mHCFVolumetricParticipation) * ultra_low_cycle_fatigue_stress_vector;
 
         double uniaxial_stress;
@@ -646,11 +644,11 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
             mPreviousStresses,
             max_indicator,
             min_indicator);
+
         mMaxStress = max_stress;
         mMinStress = min_stress;
         mMaxDetected = max_indicator;
         mMinDetected = min_indicator;
-
         Vector previous_stresses = ZeroVector(2);
         const Vector& r_aux_stresses = mPreviousStresses;
         previous_stresses[1] = uniaxial_stress;
@@ -664,6 +662,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
 
 template <class TConstLawIntegratorType>
 void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialResponseHCFModel(
+        Vector& rHighCycleFatigueStressVector,
         ConstitutiveLaw::Parameters& values_HCF
 )
 {
@@ -695,6 +694,9 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
     double uniaxial_stress;
     TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, values_HCF);
 
+    double fatigue_reduction_factor = mFatigueReductionFactor;
+    uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
+
     const double F = uniaxial_stress - hcf_threshold;
 
     if (F >= 0.0) { // Plastic case
@@ -711,6 +713,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
     } else {
         predictive_stress_vector *= (1.0 - mDamage);
     }
+    rHighCycleFatigueStressVector = predictive_stress_vector;
 }
 
 /***********************************************************************************/
@@ -718,6 +721,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
 
 template <class TConstLawIntegratorType>
 void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialResponseULCFModel(
+        Vector& rUltraLowCycleFatigueStressVector,
         ConstitutiveLaw::Parameters& values_ULCF
 )
 {
@@ -770,7 +774,12 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
         r_constitutive_matrix, values_ULCF, characteristic_length,
         plastic_strain);
 
-    if (F > std::abs(1.0e-4 * ulcf_threshold)) { // Plastic case
+    double fatigue_reduction_factor = mFatigueReductionFactor;
+    uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
+
+    const double yield_criteria = uniaxial_stress - ulcf_threshold;
+
+    if (yield_criteria > std::abs(1.0e-4 * ulcf_threshold)) { // Plastic case
         // While loop backward euler
         /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
         GenericConstitutiveLawIntegratorPlasticity<TConstLawIntegratorType::YieldSurfaceType>::IntegrateStressVector(
@@ -785,6 +794,32 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
     mPlasticDissipation = plastic_dissipation;
     mPlasticStrain = plastic_strain;
     mULCFThreshold = ulcf_threshold;
+    rUltraLowCycleFatigueStressVector = predictive_stress_vector;
+}
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variable<bool>& rThisVariable)
+{
+    if (rThisVariable == CYCLE_INDICATOR) {
+        return true;
+    }
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variable<int>& rThisVariable)
+{
+    if (rThisVariable == NUMBER_OF_CYCLES) {
+        return true;
+    } else if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
+        return true;
+    }
+    return false;
 }
 
 /***********************************************************************************/
@@ -848,6 +883,37 @@ bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variabl
 
 template <class TConstLawIntegratorType>
 void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::SetValue(
+    const Variable<bool>& rThisVariable,
+    const bool& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rThisVariable == CYCLE_INDICATOR) {
+        mNewCycleIndicator = rValue;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::SetValue(
+    const Variable<int>& rThisVariable,
+    const int& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rThisVariable == NUMBER_OF_CYCLES) {
+        mNumberOfCyclesGlobal = rValue;
+    } else if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
+        mNumberOfCyclesLocal = rValue;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::SetValue(
     const Variable<double>& rThisVariable,
     const double& rValue,
     const ProcessInfo& rCurrentProcessInfo)
@@ -896,6 +962,38 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::SetValue(
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
+bool& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::GetValue(
+    const Variable<bool>& rThisVariable,
+    bool& rValue
+    )
+{
+    if (rThisVariable == CYCLE_INDICATOR) {
+        rValue = mNewCycleIndicator;
+    }
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+int& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::GetValue(
+    const Variable<int>& rThisVariable,
+    int& rValue
+    )
+{
+    if (rThisVariable == NUMBER_OF_CYCLES) {
+        rValue = mNumberOfCyclesGlobal;
+    } else if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
+        rValue = mNumberOfCyclesLocal;
+    }
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
 double& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
@@ -937,6 +1035,7 @@ Vector& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::GetValue(
 {
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         rValue = mPlasticStrain;
+        return rValue;
     } else {
         return rValue;
     }
