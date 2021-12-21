@@ -2,9 +2,9 @@
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_transfer_operator import CoSimulationDataTransferOperator
 
 def Create(settings):
-    return CopySingleToMultiple(settings)
+    return CopyOneToMany(settings)
 
-class CopySingleToMultiple(CoSimulationDataTransferOperator):
+class CopyOneToMany(CoSimulationDataTransferOperator):
     """DataTransferOperator to take one single value and set it to all values on another interface.
     Used e.g. for FSI with SDof, where the SDof has one value and the fluid interface has many
     """
