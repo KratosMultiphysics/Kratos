@@ -244,7 +244,6 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         # Test Mapping with transpose
         self._execute_non_constant_value_test(results_conservative, True)
 
-
     def test_nearest_element_mapper(self):
         mapper_name = "nearest_element"
 
@@ -270,7 +269,35 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
 
         self._execute_non_constant_value_test(results)
 
-        # # Test conservative Mapping
+        # Test Mapping with transpose
+        self._execute_non_constant_value_test(results_conservative, True)
+
+    def test_barycentric_mapper(self):
+        mapper_name = "barycentric"
+
+        map_results_scalar = [0.2, 0.6, 1.0, 1.8, 7.6/3]
+        map_results_vector     = [[0.0,0.1,-0.3], [0.4,0.5,0.1], [0.8,0.9,0.5], [1.6,1.7,1.3], [7/3,7.3/3,6.1/3]]
+        inverse_map_results_scalar     = [-0.3, 1.95, 10.1/3, 3.7]
+        inverse_map_results_vector     = [[0.0,-0.1,0.4], [2.25,2.15,2.65], [11/3,10.7/3,12.2/3], [4.0,3.9,4.4]]
+
+        map_results_scalar_conservative = [0.2, 0.0, 0.9, 1.033333333333337, 14/3]
+        map_results_vector_conservative     = [[0.0,0.1,-0.3], [0.0,0.0,0.0], [0.75,0.825,0.525], [11/12,0.975,0.741666666667], [13/3,4.5,23/6]]
+        inverse_map_results_scalar_conservative     = [0.46, 2.72, 4.0866666666666, 37/30]
+        inverse_map_results_vector_conservative     = [[1.0,0.82,1.72], [3.2,3.04,3.84], [67/15,4.34,373/75], [4/3,1.3,22/15]]
+
+        results = [map_results_scalar, map_results_vector]
+        results.extend([inverse_map_results_scalar, inverse_map_results_vector])
+
+        results_conservative = [map_results_scalar_conservative, map_results_vector_conservative]
+        results_conservative.extend([inverse_map_results_scalar_conservative, inverse_map_results_vector_conservative])
+
+        self._create_mapper(mapper_name)
+
+        self._execute_constant_value_test()
+
+        self._execute_non_constant_value_test(results)
+
+        # Test Mapping with transpose
         self._execute_non_constant_value_test(results_conservative, True)
 
     def __CheckValuesSum(self, mp1, mp2, var1, var2, value_is_historical=True):
