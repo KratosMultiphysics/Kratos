@@ -42,6 +42,7 @@ class CopySingleToDistributed(CoSimulationDataTransferOperator):
             if not from_solver_data.is_scalar_variable:
                 raise Exception('Variable of interface data "{}" of solver "{}" has to be a scalar!'.format(from_solver_data.name, from_solver_data.solver_name))
 
+        # make sure there is only one value
         if from_solver_data.IsDefinedOnThisRank():
             data_size = from_solver_data.Size()
             if from_solver_data.IsDistributed():
@@ -54,9 +55,6 @@ class CopySingleToDistributed(CoSimulationDataTransferOperator):
         if to_solver_data.IsDefinedOnThisRank():
             if not to_solver_data.is_scalar_variable:
                 raise Exception('Variable of interface data "{}" of solver "{}" has to be a scalar!'.format(to_solver_data.name, to_solver_data.solver_name))
-
-
-
 
     @classmethod
     def _GetListAvailableTransferOptions(cls):
