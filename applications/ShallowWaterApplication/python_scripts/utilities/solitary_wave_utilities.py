@@ -112,3 +112,10 @@ class BoussinesqSolution(SolitaryWaveSolution):
         horizontal_velocity = (c2 - gh) / self.phase_speed
         phase = self.wavenumber * (self.phase_speed * t - x)
         return horizontal_velocity * sech(phase)**2
+
+    def a(self, x, t):
+        gh = self.gravity * self.depth
+        c2 = self.phase_speed**2
+        horizontal_velocity = (c2 - gh) / self.phase_speed
+        phase = self.wavenumber * (self.phase_speed * t - x)
+        return -2 * self.frequency * horizontal_velocity * np.tanh(phase) * sech(phase)**2
