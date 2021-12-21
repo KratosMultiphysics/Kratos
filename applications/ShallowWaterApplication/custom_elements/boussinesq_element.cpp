@@ -168,8 +168,8 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
 
     // Stabilization constants
     const double l = StabilizationParameter(rData);
-    const array_1d<double,3> a1 = column(rData.A1, 2);
-    const array_1d<double,3> a2 = column(rData.A2, 2);
+    const array_1d<double,3> A1i3 = column(rData.A1, 2);
+    const array_1d<double,3> A2i3 = column(rData.A2, 2);
 
     // Adding the contribution of the dispersive fields
     for (IndexType i = 0; i < TNumNodes; ++i)
@@ -189,26 +189,32 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
             }
 
             /// Gradient contribution
-            // rVector[3*i]     -= Weight*m2*n_ij*nodal_Ju[j][0];
-            // rVector[3*i + 1] -= Weight*m2*n_ij*nodal_Ju[j][1];
+            rVector[3*i]     -= Weight*m2*n_ij*nodal_Ju[j][0];
+            rVector[3*i + 1] -= Weight*m2*n_ij*nodal_Ju[j][1];
             rVector[3*i + 2] -= Weight*m2*g1_ij*nodal_Jf[j][0];
             rVector[3*i + 2] -= Weight*m2*g2_ij*nodal_Jf[j][1];
 
             /// Stabilization x-x
             d_ij = rDN_DX(i,0) * rDN_DX(j,0);
-            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*a1*nodal_Jf[j][0], 3*i);
+            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*A1i3*nodal_Jf[j][0], 3*i);
 
             /// Stabilization y-y
             d_ij = rDN_DX(i,1) * rDN_DX(j,1);
-            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*a2*nodal_Jf[j][1], 3*i);
+            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*A2i3*nodal_Jf[j][1], 3*i);
 
             /// Stabilization x-y
             d_ij = rDN_DX(i,0) * rDN_DX(j,1);
-            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*a1*nodal_Jf[j][1], 3*i);
+            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*A1i3*nodal_Jf[j][1], 3*i);
 
             /// Stabilization y-x
             d_ij = rDN_DX(i,1) * rDN_DX(j,0);
-            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*a2*nodal_Jf[j][0], 3*i);
+            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*A2i3*nodal_Jf[j][0], 3*i);
+
+            /// Ju stabilization terms
+            array_1d<double,3> A1Ju = prod(rData.A1, nodal_Ju[j]);
+            array_1d<double,3> A2Ju = prod(rData.A2, nodal_Ju[j]);
+            MathUtils<double>::AddVector(rVector, Weight*m2*l*g1_ij*A1Ju, 3*i);
+            MathUtils<double>::AddVector(rVector, Weight*m2*l*g2_ij*A2Ju, 3*i);
         }
     }
 }
