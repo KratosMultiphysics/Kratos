@@ -29,85 +29,41 @@ namespace Kratos
 class KRATOS_API(MAPPING_APPLICATION) BarycentricInterfaceInfo : public MapperInterfaceInfo
 {
 public:
-
-    /// Default constructor.
-    explicit BarycentricInterfaceInfo(const std::size_t NumInterpolationNodes)
-    {
-        Initialize(NumInterpolationNodes);
-    }
+    explicit BarycentricInterfaceInfo(const std::size_t NumInterpolationNodes);
 
     explicit BarycentricInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                                       const IndexType SourceLocalSystemIndex,
                                       const IndexType SourceRank,
-                                      const std::size_t NumInterpolationNodes)
-        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank)
-    {
-        Initialize(NumInterpolationNodes);
-    }
+                                      const std::size_t NumInterpolationNodes);
 
-    MapperInterfaceInfo::Pointer Create() const override
-    {
-        return Kratos::make_shared<BarycentricInterfaceInfo>(mNodeIds.size());
-    }
+    MapperInterfaceInfo::Pointer Create() const override;
 
     MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
                                         const IndexType SourceLocalSystemIndex,
-                                        const IndexType SourceRank) const override
-    {
-        return Kratos::make_shared<BarycentricInterfaceInfo>(
-            rCoordinates,
-            SourceLocalSystemIndex,
-            SourceRank,
-            mNodeIds.size());
-    }
+                                        const IndexType SourceRank) const override;
 
-    InterfaceObject::ConstructionType GetInterfaceObjectType() const override
-    {
-        return InterfaceObject::ConstructionType::Node_Coords;
-    }
+    InterfaceObject::ConstructionType GetInterfaceObjectType() const override;
 
     void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
 
     void GetValue(std::vector<int>& rValue,
-                  const InfoType ValueType) const override
-    {
-        rValue = mNodeIds;
-    }
+                  const InfoType ValueType) const override;
 
     void GetValue(std::vector<double>& rValue,
-                  const InfoType ValueType) const override
-    {
-        rValue = mNeighborCoordinates;
-    }
+                  const InfoType ValueType) const override;
 
 private:
 
     std::vector<int> mNodeIds;
     std::vector<double> mNeighborCoordinates;
 
-    void Initialize(const std::size_t NumInterpolationNodes)
-    {
-        mNodeIds.resize(NumInterpolationNodes);
-        mNeighborCoordinates.resize(3*NumInterpolationNodes);
-        std::fill(mNodeIds.begin(), mNodeIds.end(), -1);
-        std::fill(mNeighborCoordinates.begin(), mNeighborCoordinates.end(), std::numeric_limits<double>::max());
-    }
+    void Initialize(const std::size_t NumInterpolationNodes);
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MapperInterfaceInfo );
-        rSerializer.save("NodeIds", mNodeIds);
-        rSerializer.save("NeighborCoords", mNeighborCoordinates);
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MapperInterfaceInfo );
-        rSerializer.load("NodeIds", mNodeIds);
-        rSerializer.load("NeighborCoords", mNeighborCoordinates);
-    }
+    void load(Serializer& rSerializer) override;
 };
 
 class KRATOS_API(MAPPING_APPLICATION) BarycentricLocalSystem : public MapperLocalSystem

@@ -20,16 +20,85 @@
 
 namespace Kratos {
 
+BarycentricInterfaceInfo::BarycentricInterfaceInfo(const std::size_t NumInterpolationNodes)
+{
+    Initialize(NumInterpolationNodes);
+}
+
+BarycentricInterfaceInfo::BarycentricInterfaceInfo(const CoordinatesArrayType& rCoordinates,
+                                    const IndexType SourceLocalSystemIndex,
+                                    const IndexType SourceRank,
+                                    const std::size_t NumInterpolationNodes)
+    : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank)
+{
+    Initialize(NumInterpolationNodes);
+}
+
+MapperInterfaceInfo::Pointer BarycentricInterfaceInfo::Create() const
+{
+    return Kratos::make_shared<BarycentricInterfaceInfo>(mNodeIds.size());
+}
+
+MapperInterfaceInfo::Pointer BarycentricInterfaceInfo::Create(const CoordinatesArrayType& rCoordinates,
+                                    const IndexType SourceLocalSystemIndex,
+                                    const IndexType SourceRank) const
+{
+    return Kratos::make_shared<BarycentricInterfaceInfo>(
+        rCoordinates,
+        SourceLocalSystemIndex,
+        SourceRank,
+        mNodeIds.size());
+}
+
+InterfaceObject::ConstructionType BarycentricInterfaceInfo::GetInterfaceObjectType() const
+{
+    return InterfaceObject::ConstructionType::Node_Coords;
+}
+
+void BarycentricInterfaceInfo::GetValue(std::vector<int>& rValue,
+                const InfoType ValueType) const
+{
+    rValue = mNodeIds;
+}
+
+void BarycentricInterfaceInfo::GetValue(std::vector<double>& rValue,
+                const InfoType ValueType) const
+{
+    rValue = mNeighborCoordinates;
+}
+
 void BarycentricInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject)
 {
     SetLocalSearchWasSuccessful();
 
     const double neighbor_distance = MapperUtilities::ComputeDistance(this->Coordinates(), rInterfaceObject.Coordinates());
 
-    if (neighbor_distance < mNearestNeighborDistance) {
-        mNearestNeighborDistance = neighbor_distance;
-        mNearestNeighborId = rInterfaceObject.pGetBaseNode()->GetValue(INTERFACE_EQUATION_ID);
-    }
+    // if (neighbor_distance < mNearestNeighborDistance) {
+    //     mNearestNeighborDistance = neighbor_distance;
+    //     mNearestNeighborId = rInterfaceObject.pGetBaseNode()->GetValue(INTERFACE_EQUATION_ID);
+    // }
+}
+
+void BarycentricInterfaceInfo::Initialize(const std::size_t NumInterpolationNodes)
+{
+    mNodeIds.resize(NumInterpolationNodes);
+    mNeighborCoordinates.resize(3*NumInterpolationNodes);
+    std::fill(mNodeIds.begin(), mNodeIds.end(), -1);
+    std::fill(mNeighborCoordinates.begin(), mNeighborCoordinates.end(), std::numeric_limits<double>::max());
+}
+
+void BarycentricInterfaceInfo::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MapperInterfaceInfo );
+    rSerializer.save("NodeIds", mNodeIds);
+    rSerializer.save("NeighborCoords", mNeighborCoordinates);
+}
+
+void BarycentricInterfaceInfo::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MapperInterfaceInfo );
+    rSerializer.load("NodeIds", mNodeIds);
+    rSerializer.load("NeighborCoords", mNeighborCoordinates);
 }
 
 void BarycentricLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
@@ -83,11 +152,11 @@ void BarycentricLocalSystem::PairingInfo(std::ostream& rOStream, const int EchoL
 
 void BarycentricLocalSystem::SetPairingStatusForPrinting()
 {
-        if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
-            mpNode->SetValue(PAIRING_STATUS, 0);
-        } else {
-            mpNode->SetValue(PAIRING_STATUS, -1);
-        }
+    if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
+        mpNode->SetValue(PAIRING_STATUS, 0);
+    } else {
+        mpNode->SetValue(PAIRING_STATUS, -1);
+    }
 }
 
 }  // namespace Kratos.
