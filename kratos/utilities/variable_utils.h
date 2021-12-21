@@ -1344,6 +1344,12 @@ public:
         const std::vector<std::array<std::string,2>>& rDofsAndReactionsNamesList,
         ModelPart& rModelPart);
 
+    static std::vector<std::string> GetDofsListFromSpecifications(const ModelPart& rModelPart);
+
+    static std::vector<std::string> GetDofsListFromElementsSpecifications(const ModelPart& rModelPart);
+
+    static std::vector<std::string> GetDofsListFromConditionsSpecifications(const ModelPart& rModelPart);
+
     /**
      * @brief This method checks the variable keys
      * @return True if all the keys are correct
@@ -1472,6 +1478,8 @@ private:
         KRATOS_CATCH("");
     }
 
+    template< class TContainerType>
+    static std::vector<std::string> GetDofsListFromGenericEntitiesSpecifications(const TContainerType& rContainer);
 
     ///@}
     ///@name Private  Acces
