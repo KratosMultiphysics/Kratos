@@ -298,10 +298,10 @@ const Parameters EmbeddedFluidElementDiscontinuous<TBaseElement>::GetSpecificati
     })");
 
     if (TDim == 2) {
-        std::vector<std::string> dofs_2d({"DENSITY","MOMENTUM_X","MOMENTUM_Y","TOTAL_ENERGY"});
+        std::vector<std::string> dofs_2d({"VELOCITY_X","VELOCITY_Y","PRESSURE"});
         specifications["required_dofs"].SetStringArray(dofs_2d);
     } else {
-        std::vector<std::string> dofs_3d({"DENSITY","MOMENTUM_X","MOMENTUM_Y","MOMENTUM_Z","TOTAL_ENERGY"});
+        std::vector<std::string> dofs_3d({"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"});
         specifications["required_dofs"].SetStringArray(dofs_3d);
     }
 
