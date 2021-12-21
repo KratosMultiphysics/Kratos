@@ -1335,7 +1335,7 @@ const Parameters MembraneElement::GetSpecifications() const
         "element_integrates_in_time" : false,
         "compatible_constitutive_laws": {
             "type"        : ["PlaneStress"],
-            "dimension"   : ["2D"],
+            "dimension"   : ["3D"],
             "strain_size" : [3]
         },
         "required_polynomial_degree_of_geometry" : 1,

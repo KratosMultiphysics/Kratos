@@ -1003,7 +1003,7 @@ const Parameters TrussElement3D2N::GetSpecifications() const
         "element_integrates_in_time" : false,
         "compatible_constitutive_laws": {
             "type"        : ["TrussConstitutiveLaw"],
-            "dimension"   : ["3D"],
+            "dimension"   : ["1D"],
             "strain_size" : [1]
         },
         "required_polynomial_degree_of_geometry" : 1,
