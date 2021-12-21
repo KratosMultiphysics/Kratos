@@ -348,7 +348,7 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     // KRATOS_WATCH(UNIAXIAL_STRESS)
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        this->VolumetricParticipationTransition(rThisVariable, i_layer, p_law);
+        // this->VolumetricParticipationTransition(rThisVariable, i_layer, p_law);
         const double factor = mCombinationFactors[i_layer];
 
         // KRATOS_WATCH(p_law)
@@ -1177,6 +1177,12 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK1(Parameters& 
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
         p_law->InitializeMaterialResponsePK1(rValues);
+        if (i_layer == 0){
+            // Variable<double>& current_damage;
+            // double DAMAGE;
+            // p_law->GetValue(DAMAGE,current_damage);
+            this->VolumetricParticipationTransition(DAMAGE, i_layer, p_law);
+        }
     }
     rValues.SetMaterialProperties(r_material_properties);
 }
@@ -1196,6 +1202,12 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK2(Parameters& 
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
         p_law->InitializeMaterialResponsePK2(rValues);
+        if (i_layer == 0){
+            // Variable<double>& current_damage;
+            // double DAMAGE;
+            // p_law->GetValue(DAMAGE,current_damage);
+            this->VolumetricParticipationTransition(DAMAGE, i_layer, p_law);
+        }
     }
     rValues.SetMaterialProperties(r_material_properties);
 }
@@ -1215,6 +1227,12 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseKirchhoff(Parame
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
         p_law->InitializeMaterialResponseKirchhoff(rValues);
+        if (i_layer == 0){
+            // Variable<double>& current_damage;
+            // double DAMAGE;
+            // p_law->GetValue(DAMAGE,current_damage);
+            this->VolumetricParticipationTransition(DAMAGE, i_layer, p_law);
+        }
     }
     rValues.SetMaterialProperties(r_material_properties);
 }
@@ -1234,6 +1252,12 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseCauchy(Parameter
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
         p_law->InitializeMaterialResponseCauchy(rValues);
+        if (i_layer == 0){
+            // Variable<double>& current_damage;
+            // double DAMAGE;
+            // p_law->GetValue(DAMAGE,current_damage);
+            this->VolumetricParticipationTransition(DAMAGE, i_layer, p_law);
+        }
     }
     rValues.SetMaterialProperties(r_material_properties);
 }
@@ -1446,86 +1470,115 @@ void ParallelRuleOfMixturesLaw<TDim>::VolumetricParticipationTransition
         const ConstitutiveLaw::Pointer PLaw
 )
 {
-    // KRATOS_WATCH(Layer)
-    double damage_saved;
-    double initial_combination_factor = mInitialCombinationFactor;
-    double final_combination_factor = 1.0;
+    // // KRATOS_WATCH(Layer)
+    // double damage_saved;
+    // double initial_combination_factor = mInitialCombinationFactor;
+    // double final_combination_factor = 1.0;
 
-    double previous_damage = mPreviousDamage;
-    double previous_plastic_dissipation = mPreviousPlasticDissipation;
+    // double previous_damage = mPreviousDamage;
+    // double previous_plastic_dissipation = mPreviousPlasticDissipation;
 
-    double plastic_dissipation_now;
-    double damage_now;
-    if (rThisVariable == DAMAGE) {
-        PLaw->GetValue(rThisVariable, damage_now);
-    }
-    if (rThisVariable == PLASTIC_DISSIPATION) {
-        PLaw->GetValue(rThisVariable, plastic_dissipation_now);
-    }
+    // double plastic_dissipation_now;
+    // double damage_now;
 
-    if (Layer == 0){
-        if (rThisVariable == DAMAGE) {
-            KRATOS_WATCH("HERE")
-            PLaw->GetValue(rThisVariable, damage_saved);
-        // if (rThisVariable == DAMAGE_DISSIPATION) {
-        //     PLaw->GetValue(rThisVariable, damage_saved);
-            // KRATOS_WATCH(damage_saved)
-            // //exp transition
-            // mCombinationFactors[0] = initial_combination_factor * std::exp(damage_saved * std::log(final_combination_factor/initial_combination_factor));
-            // mCombinationFactors[1] = 1.0 - mCombinationFactors[0];
-            // //linear transition
-            // mCombinationFactors[0] = initial_combination_factor * (1.0 - damage_saved) + final_combination_factor * damage_saved;
-            // mCombinationFactors[1] = 1.0 - mCombinationFactors[0];
-            // mCombinationFactors[1] = (1.0 - initial_combination_factor) * (1.0 - damage_saved) + (1.0 - final_combination_factor) * damage_saved;
-            // //Potencial transition
-            // const double order = 5.0;
-            // mCombinationFactors[0] = (final_combination_factor - initial_combination_factor) * std::pow(damage_saved, order) + initial_combination_factor;
-            // mCombinationFactors[1] = (initial_combination_factor - final_combination_factor) * std::pow(damage_saved, order) + (1.0 - initial_combination_factor);
-            // INVERSE Potencial transition
-            // const double order = 11.0;
-            // mCombinationFactors[0] = (final_combination_factor - initial_combination_factor) * std::pow(damage_saved - 1.0, order) + final_combination_factor;
-            // mCombinationFactors[1] = (initial_combination_factor - final_combination_factor)  * std::pow(damage_saved - 1.0, order) + (1.0 - final_combination_factor);
+    // ConstitutiveLaw::Pointer p_law_plas = mConstitutiveLaws[1];
+    // p_law_plas->GetValue(PLASTIC_DISSIPATION, plastic_dissipation_now);
 
-            // if (damage_now > 0.55){
-            //     mCombinationFactors[0] = 0.5;
-            //     mCombinationFactors[1] = 0.5;
-            // }
-            KRATOS_WATCH("FIRST")
-            KRATOS_WATCH(plastic_dissipation_now)
-            double plastic_dissipation_now_NEW = 2.0 * 0.43 / (3.48e6) * (1.0 - std::sqrt(1.0 - plastic_dissipation_now));
-            KRATOS_WATCH("SECOND")
-            KRATOS_WATCH(plastic_dissipation_now_NEW)
-            if (damage_now > 0.55){
-                mCombinationFactors[0] = 0.5;
-                mCombinationFactors[1] = 0.5;
-                if(mCombinationFactors[0] * damage_now <= mPreviousDamage){
-                    mCombinationFactors[0] = mPreviousDamage / damage_now;
-                    mCombinationFactors[1] = 1.0 - mCombinationFactors[0];
-                } else if(mCombinationFactors[1] * plastic_dissipation_now_NEW <= mPreviousPlasticDissipation){
-                    mCombinationFactors[1] = mPreviousPlasticDissipation / plastic_dissipation_now_NEW;
-                    mCombinationFactors[0] = 1.0 - mCombinationFactors[1];
-                }
-            }
+    // if (rThisVariable == DAMAGE) {
+    //     PLaw->GetValue(rThisVariable, damage_now);
+    // }
+    // // if (rThisVariable == PLASTIC_DISSIPATION) {
+    // //     PLaw->GetValue(rThisVariable, plastic_dissipation_now);
+    // // }
 
-            KRATOS_WATCH(mCombinationFactors[0])
-            KRATOS_WATCH(mCombinationFactors[1])
-            KRATOS_WATCH(damage_now)
-            KRATOS_WATCH(plastic_dissipation_now)
-            KRATOS_WATCH(mCombinationFactors[0] * damage_now)
-            KRATOS_WATCH(mCombinationFactors[1] * plastic_dissipation_now_NEW)
+    // if (Layer == 0){
+    //     if (rThisVariable == DAMAGE) {
+    //         // KRATOS_WATCH("HERE")
+    //         PLaw->GetValue(rThisVariable, damage_saved);
+    //     // if (rThisVariable == DAMAGE_DISSIPATION) {
+    //     //     PLaw->GetValue(rThisVariable, damage_saved);
+    //         // KRATOS_WATCH(damage_saved)
+    //         // //exp transition
+    //         // mCombinationFactors[0] = initial_combination_factor * std::exp(damage_saved * std::log(final_combination_factor/initial_combination_factor));
+    //         // mCombinationFactors[1] = 1.0 - mCombinationFactors[0];
+    //         // //linear transition
+    //         // mCombinationFactors[0] = initial_combination_factor * (1.0 - damage_saved) + final_combination_factor * damage_saved;
+    //         // mCombinationFactors[1] = 1.0 - mCombinationFactors[0];
+    //         // mCombinationFactors[1] = (1.0 - initial_combination_factor) * (1.0 - damage_saved) + (1.0 - final_combination_factor) * damage_saved;
+    //         // //Potencial transition
+    //         // const double order = 5.0;
+    //         // mCombinationFactors[0] = (final_combination_factor - initial_combination_factor) * std::pow(damage_saved, order) + initial_combination_factor;
+    //         // mCombinationFactors[1] = (initial_combination_factor - final_combination_factor) * std::pow(damage_saved, order) + (1.0 - initial_combination_factor);
+    //         // INVERSE Potencial transition
+    //         // const double order = 11.0; //los casos del paper se hacen con orden 3
+    //         // mCombinationFactors[0] = (final_combination_factor - initial_combination_factor) * std::pow(damage_saved - 1.0, order) + final_combination_factor;
+    //         // mCombinationFactors[1] = (initial_combination_factor - final_combination_factor)  * std::pow(damage_saved - 1.0, order) + (1.0 - final_combination_factor);
 
-            // KRATOS_WATCH(previous_damage)
-            // KRATOS_WATCH(previous_plastic_dissipation)
+    //         // if (damage_now > 0.55){
+    //         //     mCombinationFactors[0] = 0.5;
+    //         //     mCombinationFactors[1] = 0.5;
+    //         // }
 
-            mPreviousDamage = mCombinationFactors[0] * damage_now ;
-            mPreviousPlasticDissipation = mCombinationFactors[1] * plastic_dissipation_now_NEW;
+    //         // //Esta parte corresponde a una prueba que se hizo combrobando si se podía conseguir el no volver hacia atrás mirando la evolución en las variables energeticas de dam y plas
+    //         // KRATOS_WATCH("FIRST")
+    //         // KRATOS_WATCH(plastic_dissipation_now)
+    //         // double plastic_dissipation_now_NEW = 2.0 * 0.43 / (3.48e6) * (1.0 - std::sqrt(1.0 - plastic_dissipation_now));
+    //         // KRATOS_WATCH("SECOND")
+    //         // KRATOS_WATCH(plastic_dissipation_now_NEW)
+    //         // if (damage_now > 0.55){
+    //         //     mCombinationFactors[0] = 0.5;
+    //         //     mCombinationFactors[1] = 0.5;
+    //         //     if(mCombinationFactors[0] * damage_now <= mPreviousDamage){
+    //         //         mCombinationFactors[0] = mPreviousDamage / damage_now;
+    //         //         mCombinationFactors[1] = 1.0 - mCombinationFactors[0];
+    //         //     } else if(mCombinationFactors[1] * plastic_dissipation_now_NEW <= mPreviousPlasticDissipation){
+    //         //         mCombinationFactors[1] = mPreviousPlasticDissipation / plastic_dissipation_now_NEW;
+    //         //         mCombinationFactors[0] = 1.0 - mCombinationFactors[1];
+    //         //     }
+    //         // }
+    //         // KRATOS_WATCH(mCombinationFactors[0])
+    //         // KRATOS_WATCH(mCombinationFactors[1])
+    //         KRATOS_WATCH(damage_now)
+    //         // KRATOS_WATCH(plastic_dissipation_now)
+    //         // KRATOS_WATCH(mCombinationFactors[0] * damage_now)
+    //         // KRATOS_WATCH(mCombinationFactors[1] * plastic_dissipation_now_NEW)
+    //         // KRATOS_WATCH(previous_damage)
+    //         // KRATOS_WATCH(previous_plastic_dissipation)
+    //         // KRATOS_WATCH(mPreviousDamage)
+    //         // KRATOS_WATCH(mPreviousPlasticDissipation)
+    //         // KRATOS_WATCH(mCombinationFactors[0])
+    //         // KRATOS_WATCH(mCombinationFactors[1])
 
-            // KRATOS_WATCH(mPreviousDamage)
-            // KRATOS_WATCH(mPreviousPlasticDissipation)
-            // KRATOS_WATCH(mCombinationFactors[0])
-            // KRATOS_WATCH(mCombinationFactors[1])
-        }
-    }
+    //         // mPreviousDamage = mCombinationFactors[0] * damage_now ;
+    //         // mPreviousPlasticDissipation = mCombinationFactors[1] * plastic
+
+    //         //CONDICION PARA NO MORE DAM OR NO MORE PLAS
+    //         double damage_threshold = 0.4;
+
+    //         if (damage_now < damage_threshold){
+    //             mInitialPlasticDissipation = plastic_dissipation_now;
+    //             KRATOS_WATCH("update Initial kp")
+    //             KRATOS_WATCH(plastic_dissipation_now)
+    //         }
+    //         if (damage_now > damage_threshold){
+    //             //const damage
+    //             // mCombinationFactors[0] = damage_threshold / damage_now * mInitialCombinationFactor;
+    //             // mCombinationFactors[1] = 1.0 - damage_threshold / damage_now * mInitialCombinationFactor;
+    //             //const plast
+    //             //estos valores son la conversion a kp de la ep pero sin eu porque se tacha
+    //             double ep_1 = 1.0 - std::sqrt(1.0 - mInitialPlasticDissipation);
+    //             double ep_2 = 1.0 - std::sqrt(1.0 - plastic_dissipation_now);
+    //             mCombinationFactors[0] = ((1.0 - mInitialCombinationFactor) * ep_1 - (1.0 - mInitialCombinationFactor * damage_threshold) * ep_2) / (damage_now * (1.0 - mInitialCombinationFactor) * ep_1 - (1.0 - mInitialCombinationFactor * damage_threshold) * ep_2);
+    //             mCombinationFactors[1] = 1.0 - (((1.0 - mInitialCombinationFactor) * ep_1 - (1.0 - mInitialCombinationFactor * damage_threshold) * ep_2) / (damage_now * (1.0 - mInitialCombinationFactor) * ep_1 - (1.0 - mInitialCombinationFactor * damage_threshold) * ep_2));
+    //             KRATOS_WATCH(plastic_dissipation_now)
+    //             KRATOS_WATCH(mCombinationFactors[0])
+    //             KRATOS_WATCH(mCombinationFactors[1])
+    //             //CASO LINEAL ep = (1-sqrt(1-kp))*ef
+    //         }
+
+
+    //     }
+    // }
 }
 /***********************************************************************************/
 /***********************************************************************************/
