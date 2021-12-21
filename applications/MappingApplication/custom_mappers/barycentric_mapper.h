@@ -19,6 +19,7 @@
 
 // Project includes
 #include "interpolative_mapper_base.h"
+#include "custom_utilities/projection_utilities.h"
 
 
 namespace Kratos
@@ -94,6 +95,7 @@ public:
 
 private:
     NodePointerType mpNode;
+    mutable ProjectionUtilities::PairingIndex mPairingIndex = ProjectionUtilities::PairingIndex::Unspecified;
 
 };
 
