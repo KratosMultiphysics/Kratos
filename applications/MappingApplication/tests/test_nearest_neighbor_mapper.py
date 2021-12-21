@@ -1,5 +1,4 @@
 import KratosMultiphysics as KM
-import KratosMultiphysics.MappingApplication as KratosMapping
 import basic_mapper_tests
 import blade_mapping_test
 data_comm = KM.Testing.GetDefaultDataCommunicator()

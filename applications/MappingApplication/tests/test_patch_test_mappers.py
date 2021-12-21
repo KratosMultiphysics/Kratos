@@ -1,6 +1,4 @@
 import KratosMultiphysics as KM
-
-import KratosMultiphysics.MappingApplication as KratosMapping
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 '''
