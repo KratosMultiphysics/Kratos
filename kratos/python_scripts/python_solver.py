@@ -66,12 +66,6 @@ class PythonSolver:
         """
         raise Exception("This function has to be implemented in the derived class")
 
-    def GetDofsWithReactionList(self):
-        """This function returns a list of tuples containing the DOFs and their reactions required by this PythonSolver
-        In needs to be reimplemented in the derived solvers according to the physics to be solved
-        """
-        raise Exception("This function has to be implemented in the derived class")
-
     def ImportModelPart(self):
         """This function reads the ModelPart
         """

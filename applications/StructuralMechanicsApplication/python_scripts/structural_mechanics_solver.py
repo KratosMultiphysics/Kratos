@@ -203,42 +203,9 @@ class MechanicalSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "DOF's ADDED")
 
     def GetDofsList(self):
-        dofs_list = []
-        dofs_list.append("DISPLACEMENT_X")
-        dofs_list.append("DISPLACEMENT_Y")
-        if self.settings["domain_size"].GetInt() == 3: #TODO: Discuss this
-            dofs_list.append("DISPLACEMENT_Z")
-        if self.settings["rotation_dofs"].GetBool():
-            dofs_list.append("ROTATION_Z")
-            if self.settings["domain_size"].GetInt() == 3: #TODO: Discuss this
-                dofs_list.append("ROTATION_X")
-                dofs_list.append("ROTATION_Y")
-        if self.settings["volumetric_strain_dofs"].GetBool():
-            dofs_list.append("VOLUMETRIC_STRAIN")
-        if self.settings["displacement_control"].GetBool():
-            dofs_list.append("LOAD_FACTOR")
-        auxiliary_solver_utilities.AddAuxiliaryDofsToDofsList(self.settings, dofs_list)
-
-        return dofs_list
-
-    def GetDofsWithReactionsList(self):
-        dofs_with_reactions_list = []
-        dofs_with_reactions_list.append(["DISPLACEMENT_X","REACTION_X"])
-        dofs_with_reactions_list.append(["DISPLACEMENT_Y","REACTION_Y"])
-        if self.settings["domain_size"].GetInt() == 3: #TODO: Discuss this
-            dofs_with_reactions_list.append(["DISPLACEMENT_Z","REACTION_Z"])
-        if self.settings["rotation_dofs"].GetBool():
-            dofs_with_reactions_list.append(["ROTATION_Z","REACTION_MOMENT_Z"])
-            if self.settings["domain_size"].GetInt() == 3: #TODO: Discuss this
-                dofs_with_reactions_list.append(["ROTATION_X","REACTION_MOMENT_X"])
-                dofs_with_reactions_list.append(["ROTATION_Y","REACTION_MOMENT_Y"])
-        if self.settings["volumetric_strain_dofs"].GetBool():
-            dofs_with_reactions_list.append(["VOLUMETRIC_STRAIN","REACTION_STRAIN"])
-        if self.settings["displacement_control"].GetBool():
-            dofs_with_reactions_list.append(["LOAD_FACTOR","PRESCRIBED_DISPLACEMENT"])
-        auxiliary_solver_utilities.AddAuxiliaryDofsToDofsWithReactionsList(self.settings, dofs_with_reactions_list)
-
-        return dofs_with_reactions_list
+        """This function creates and returns a list with the DOFs defined in the conditions and elements specifications
+        """
+        return KratosMultiphysics.VariableUtils.GetDofsListFromSpecifications(self.main_model_part)
 
     def ImportModelPart(self):
         """This function imports the ModelPart

@@ -260,27 +260,9 @@ class ConvectionDiffusionSolver(PythonSolver):
         return self.min_buffer_size
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils.AddDofsList(self.GetDofsWithReactionsList(), self.main_model_part)
-
-        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "DOF's ADDED")
-
-    def GetDofsList(self):
-        conv_diff_vars = self.settings["convection_diffusion_variables"]
-
-        dofs_list = []
-        dofs_list.append(conv_diff_vars["unknown_variable"].GetString())
-        if self.settings["gradient_dofs"].GetBool():
-            grad_dof_var_name = conv_diff_vars["gradient_variable"].GetString()
-            comp_list = ["_X","_Y"] if self.settings["domain_size"].GetInt() == 2 else ["_X","_Y","_Z"]
-            for comp in comp_list:
-                dofs_list.append(grad_dof_var_name + comp)
-
-        return dofs_list
-
-    def GetDofsWithReactionsList(self):
-        conv_diff_vars = self.settings["convection_diffusion_variables"]
-
+        # Set DOFs and reaction variables list from Kratos parameters settings
         dofs_with_reactions_list = []
+        conv_diff_vars = self.settings["convection_diffusion_variables"]
         dof_var_name = conv_diff_vars["unknown_variable"].GetString()
         reaction_var_name = conv_diff_vars["reaction_variable"].GetString()
         dofs_with_reactions_list.append([dof_var_name,reaction_var_name])
@@ -291,7 +273,26 @@ class ConvectionDiffusionSolver(PythonSolver):
             for comp in comp_list:
                 dofs_with_reactions_list.append([grad_dof_var_name+comp,grad_react_var_name+comp])
 
-        return dofs_with_reactions_list
+        # Add the DOFs and reaction list to each node
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_with_reactions_list, self.main_model_part)
+
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "DOF's ADDED")
+
+    def GetDofsList(self):
+        """This function creates and returns a list with the DOFs defined in the Kratos parameters settings
+        Note that element GetSpecifications method cannot be used in this case as DOF variables are a priori unknown
+        """
+
+        dofs_list = []
+        conv_diff_vars = self.settings["convection_diffusion_variables"]
+        dofs_list.append(conv_diff_vars["unknown_variable"].GetString())
+        if self.settings["gradient_dofs"].GetBool():
+            grad_dof_var_name = conv_diff_vars["gradient_variable"].GetString()
+            comp_list = ["_X","_Y"] if self.settings["domain_size"].GetInt() == 2 else ["_X","_Y","_Z"]
+            for comp in comp_list:
+                dofs_list.append(grad_dof_var_name + comp)
+
+        return dofs_list
 
     def ImportModelPart(self):
         """This function imports the ModelPart"""

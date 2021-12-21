@@ -76,24 +76,10 @@ class FluidSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver DOFs added correctly.")
 
     def GetDofsList(self):
-        dofs_list = []
-        dofs_list.append("VELOCITY_X")
-        dofs_list.append("VELOCITY_Y")
-        if self.settings["domain_size"].GetInt() == 3:
-            dofs_list.append("VELOCITY_Z")
-        dofs_list.append("PRESSURE")
-
-        return dofs_list
-
-    def GetDofsWithReactionsList(self):
-        dofs_with_reactions_list = []
-        dofs_with_reactions_list.append(["VELOCITY_X","REACTION_X"])
-        dofs_with_reactions_list.append(["VELOCITY_Y","REACTION_Y"])
-        if self.settings["domain_size"].GetInt() == 3:
-            dofs_with_reactions_list.append(["VELOCITY_Z","REACTION_Z"])
-        dofs_with_reactions_list.append(["PRESSURE","REACTION_WATER_PRESSURE"])
-
-        return dofs_with_reactions_list
+        """This function creates and returns a list with the DOFs defined in the conditions and elements specifications
+        Note that this requires the main_model_part to be already set, that is to say to have already performed the element substitution (see PrepareModelPart).
+        """
+        return KratosMultiphysics.VariableUtils.GetDofsListFromSpecifications(self.main_model_part)
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
