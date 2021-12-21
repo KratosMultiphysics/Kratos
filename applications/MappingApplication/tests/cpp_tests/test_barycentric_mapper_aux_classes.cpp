@@ -45,8 +45,10 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_BasicTests, KratosMappingAppl
     const auto barycentric_info_2(barycentric_info.Create(coords, source_local_sys_idx, dummy_rank));
 
     // Test if the "Create" function returns the correct object
-    KRATOS_CHECK_EQUAL(typeid(barycentric_info), typeid(*barycentric_info_1));
-    KRATOS_CHECK_EQUAL(typeid(barycentric_info), typeid(*barycentric_info_2));
+    const auto& r_arg_1 = *barycentric_info_1;
+    const auto& r_arg_2 = *barycentric_info_2;
+    KRATOS_CHECK_EQUAL(typeid(barycentric_info), typeid(r_arg_1));
+    KRATOS_CHECK_EQUAL(typeid(barycentric_info), typeid(r_arg_2));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_line_interpolation, KratosMappingApplicationSerialTestSuite)
@@ -70,9 +72,9 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_line_interpolation, Kr
     node_3->SetValue(INTERFACE_EQUATION_ID, 108);
 
     // distances are not used internally!
-    barycentric_info.ProcessSearchResult(*interface_node_1, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_2, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_3, 0.0);
+    barycentric_info.ProcessSearchResult(*interface_node_1);
+    barycentric_info.ProcessSearchResult(*interface_node_2);
+    barycentric_info.ProcessSearchResult(*interface_node_3);
 
     KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
     KRATOS_CHECK_IS_FALSE(barycentric_info.GetIsApproximation());
@@ -107,7 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_only_one_point, KratosMa
     node_1->SetValue(INTERFACE_EQUATION_ID, 13);
 
     // distances are not used internally!
-    barycentric_info.ProcessSearchResult(*interface_node_1, 0.0);
+    barycentric_info.ProcessSearchResult(*interface_node_1);
 
     KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
     KRATOS_CHECK_IS_FALSE(barycentric_info.GetIsApproximation());
@@ -153,10 +155,10 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_duplicated_point, Kratos
     node_4->SetValue(INTERFACE_EQUATION_ID, 32);
 
     // distances are not used internally!
-    barycentric_info.ProcessSearchResult(*interface_node_1, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_2, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_3, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_4, 0.0);
+    barycentric_info.ProcessSearchResult(*interface_node_1);
+    barycentric_info.ProcessSearchResult(*interface_node_2);
+    barycentric_info.ProcessSearchResult(*interface_node_3);
+    barycentric_info.ProcessSearchResult(*interface_node_4);
 
     KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
     KRATOS_CHECK_IS_FALSE(barycentric_info.GetIsApproximation());
@@ -197,9 +199,9 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_Serialization, KratosMappingA
     node_3->SetValue(INTERFACE_EQUATION_ID, 108);
 
     // distances are not used internally!
-    barycentric_info.ProcessSearchResult(*interface_node_1, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_2, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_3, 0.0);
+    barycentric_info.ProcessSearchResult(*interface_node_1);
+    barycentric_info.ProcessSearchResult(*interface_node_2);
+    barycentric_info.ProcessSearchResult(*interface_node_3);
 
     KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
     KRATOS_CHECK_IS_FALSE(barycentric_info.GetIsApproximation());
@@ -263,10 +265,10 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_triangle_interpolation
     node_4->SetValue(INTERFACE_EQUATION_ID, 41);
 
     // distances are not used internally!
-    barycentric_info.ProcessSearchResult(*interface_node_1, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_2, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_3, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_4, 0.0);
+    barycentric_info.ProcessSearchResult(*interface_node_1);
+    barycentric_info.ProcessSearchResult(*interface_node_2);
+    barycentric_info.ProcessSearchResult(*interface_node_3);
+    barycentric_info.ProcessSearchResult(*interface_node_4);
 
     KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
     KRATOS_CHECK_IS_FALSE(barycentric_info.GetIsApproximation());
@@ -321,13 +323,13 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_triangle_collinear_nodes_inte
     node_7->SetValue(INTERFACE_EQUATION_ID, 65);
 
     // distances are not used internally!
-    barycentric_info.ProcessSearchResult(*interface_node_1, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_2, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_3, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_4, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_5, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_6, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_7, 0.0);
+    barycentric_info.ProcessSearchResult(*interface_node_1);
+    barycentric_info.ProcessSearchResult(*interface_node_2);
+    barycentric_info.ProcessSearchResult(*interface_node_3);
+    barycentric_info.ProcessSearchResult(*interface_node_4);
+    barycentric_info.ProcessSearchResult(*interface_node_5);
+    barycentric_info.ProcessSearchResult(*interface_node_6);
+    barycentric_info.ProcessSearchResult(*interface_node_7);
 
     KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
     KRATOS_CHECK_IS_FALSE(barycentric_info.GetIsApproximation());
@@ -370,9 +372,9 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_triangle_only_collinear_nodes
     node_3->SetValue(INTERFACE_EQUATION_ID, 108);
 
     // distances are not used internally!
-    barycentric_info.ProcessSearchResult(*interface_node_1, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_2, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_3, 0.0);
+    barycentric_info.ProcessSearchResult(*interface_node_1);
+    barycentric_info.ProcessSearchResult(*interface_node_2);
+    barycentric_info.ProcessSearchResult(*interface_node_3);
 
     KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
     KRATOS_CHECK_IS_FALSE(barycentric_info.GetIsApproximation());
@@ -418,10 +420,10 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_tetra_interpolation, K
     node_4->SetValue(INTERFACE_EQUATION_ID, 41);
 
     // distances are not used internally!
-    barycentric_info.ProcessSearchResult(*interface_node_1, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_2, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_3, 0.0);
-    barycentric_info.ProcessSearchResult(*interface_node_4, 0.0);
+    barycentric_info.ProcessSearchResult(*interface_node_1);
+    barycentric_info.ProcessSearchResult(*interface_node_2);
+    barycentric_info.ProcessSearchResult(*interface_node_3);
+    barycentric_info.ProcessSearchResult(*interface_node_4);
 
     KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
     KRATOS_CHECK_IS_FALSE(barycentric_info.GetIsApproximation());
