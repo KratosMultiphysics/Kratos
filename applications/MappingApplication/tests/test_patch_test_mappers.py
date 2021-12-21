@@ -1,4 +1,5 @@
 import KratosMultiphysics as KM
+import KratosMultiphysics.MappingApplication # registering the mappers
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 '''
@@ -25,14 +26,12 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         self._create_nodes()
         self._create_elements()
 
-
     def _add_variables(self):
         self.mp_origin.AddNodalSolutionStepVariable(KM.PRESSURE)
         self.mp_origin.AddNodalSolutionStepVariable(KM.FORCE)
 
         self.mp_destination.AddNodalSolutionStepVariable(KM.TEMPERATURE)
         self.mp_destination.AddNodalSolutionStepVariable(KM.VELOCITY)
-
 
     def _create_nodes(self):
         self.mp_origin.CreateNewNode(1, -5.0,  0.0,  0.0)
@@ -45,7 +44,6 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         self.mp_destination.CreateNewNode(3, -1.0,  0.0,  0.0)
         self.mp_destination.CreateNewNode(4,  3.0,  0.0,  0.0)
         self.mp_destination.CreateNewNode(5,  6.0,  0.0,  0.0)
-
 
     def _create_elements(self):
         element_name = "Element2D2N"
@@ -61,14 +59,12 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         self.mp_destination.CreateNewElement(element_name, 3, [3,4], props)
         self.mp_destination.CreateNewElement(element_name, 4, [4,5], props)
 
-
     def _set_values_origin(self):
         value = 0
         for node in self.mp_origin.Nodes:
             node.SetSolutionStepValue(KM.PRESSURE, value+0.2)
             node.SetSolutionStepValue(KM.FORCE, [value, value+0.1, value-0.3])
             value += 1
-
 
     def _set_values_destination(self):
         value = 0
@@ -77,11 +73,9 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KM.VELOCITY, [value, value-0.1, value+0.4])
             value += 1
 
-
     def _set_values_mp_const(self, mp, variable, value):
         for node in mp.Nodes:
             node.SetSolutionStepValue(variable, value)
-
 
     def _create_mapper(self, mapper_name):
         mapper_settings = KM.Parameters("""{
@@ -89,8 +83,8 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
          }""")
 
         self.mapper = KM.MapperFactory.CreateMapper(self.mp_origin,
-                                                               self.mp_destination,
-                                                               mapper_settings)
+                                                    self.mp_destination,
+                                                    mapper_settings)
 
     def _check_results_scalar(self, mp, results, variable):
         if len(results) != mp.NumberOfNodes():
@@ -98,15 +92,11 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         for index, node in enumerate(mp.Nodes):
             self.assertAlmostEqual(node.GetSolutionStepValue(variable), results[index], 10)
 
-
     def _check_results_vector(self, mp, results, variable):
         if len(results) != mp.NumberOfNodes():
             raise RuntimeError("Number of results does not match number of Nodes!")
         for index, node in enumerate(mp.Nodes):
-            self.assertAlmostEqual(node.GetSolutionStepValue(variable)[0], results[index][0], 10)
-            self.assertAlmostEqual(node.GetSolutionStepValue(variable)[1], results[index][1], 10)
-            self.assertAlmostEqual(node.GetSolutionStepValue(variable)[2], results[index][2], 10)
-
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(variable), results[index], 10)
 
     def _check_results_scalar_const(self, mp, value, variable):
         for node in mp.Nodes:
@@ -114,9 +104,7 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
 
     def _check_results_vector_const(self, mp, value, variable):
         for node in mp.Nodes:
-            self.assertAlmostEqual(node.GetSolutionStepValue(variable)[0], value[0])
-            self.assertAlmostEqual(node.GetSolutionStepValue(variable)[1], value[1])
-            self.assertAlmostEqual(node.GetSolutionStepValue(variable)[2], value[2])
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(variable), value)
 
     def _execute_constant_value_test(self):
         # Check mapping of a constant field and the basic functionalities
@@ -177,7 +165,6 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
 
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KM.Mapper.ADD_VALUES | KM.Mapper.SWAP_SIGN)
         self._check_results_vector_const(self.mp_origin, mapping_value, KM.FORCE)
-
 
     def _execute_non_constant_value_test(self, results, use_transpose=False):
         # Check mapping of a non-constant field
@@ -313,9 +300,7 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
             else:
                 val_1 = KM.VariableUtils().SumHistoricalNodeVectorVariable(var1, mp1, 0)
                 val_2 = KM.VariableUtils().SumHistoricalNodeVectorVariable(var2, mp2, 0)
-                self.assertAlmostEqual(val_1[0], val_2[0])
-                self.assertAlmostEqual(val_1[1], val_2[1])
-                self.assertAlmostEqual(val_1[2], val_2[2])
+                self.assertVectorAlmostEqual(val_1, val_2)
         else:
             if var_type == "Double":
                 val_1 = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(var1, mp1)
@@ -324,9 +309,7 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
             else:
                 val_1 = KM.VariableUtils().SumNonHistoricalNodeVectorVariable(var1, mp1)
                 val_2 = KM.VariableUtils().SumNonHistoricalNodeVectorVariable(var2, mp2)
-                self.assertAlmostEqual(val_1[0], val_2[0])
-                self.assertAlmostEqual(val_1[1], val_2[1])
-                self.assertAlmostEqual(val_1[2], val_2[2])
+                self.assertVectorAlmostEqual(val_1, val_2)
 
 
 if __name__ == '__main__':
