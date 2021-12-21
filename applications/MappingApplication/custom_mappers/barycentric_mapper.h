@@ -31,16 +31,23 @@ class KRATOS_API(MAPPING_APPLICATION) BarycentricInterfaceInfo : public MapperIn
 public:
 
     /// Default constructor.
-    BarycentricInterfaceInfo() {}
+    explicit BarycentricInterfaceInfo(const std::size_t NumInterpolationNodes)
+    {
+        Initialize(NumInterpolationNodes);
+    }
 
     explicit BarycentricInterfaceInfo(const CoordinatesArrayType& rCoordinates,
-                                 const IndexType SourceLocalSystemIndex,
-                                 const IndexType SourceRank)
-        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank) {}
+                                      const IndexType SourceLocalSystemIndex,
+                                      const IndexType SourceRank,
+                                      const std::size_t NumInterpolationNodes)
+        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank)
+    {
+        Initialize(NumInterpolationNodes);
+    }
 
     MapperInterfaceInfo::Pointer Create() const override
     {
-        return Kratos::make_shared<BarycentricInterfaceInfo>();
+        return Kratos::make_shared<BarycentricInterfaceInfo>(mNodeIds.size());
     }
 
     MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
@@ -50,7 +57,8 @@ public:
         return Kratos::make_shared<BarycentricInterfaceInfo>(
             rCoordinates,
             SourceLocalSystemIndex,
-            SourceRank);
+            SourceRank,
+            mNodeIds.size());
     }
 
     InterfaceObject::ConstructionType GetInterfaceObjectType() const override
@@ -60,37 +68,45 @@ public:
 
     void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
 
-    void GetValue(int& rValue,
+    void GetValue(std::vector<int>& rValue,
                   const InfoType ValueType) const override
     {
-        rValue = mNearestNeighborId;
+        rValue = mNodeIds;
     }
 
-    void GetValue(double& rValue,
+    void GetValue(std::vector<double>& rValue,
                   const InfoType ValueType) const override
     {
-        rValue = mNearestNeighborDistance;
+        rValue = mNeighborCoordinates;
     }
 
 private:
 
-    int mNearestNeighborId = -1;
-    double mNearestNeighborDistance = std::numeric_limits<double>::max();
+    std::vector<int> mNodeIds;
+    std::vector<double> mNeighborCoordinates;
+
+    void Initialize(const std::size_t NumInterpolationNodes)
+    {
+        mNodeIds.resize(NumInterpolationNodes);
+        mNeighborCoordinates.resize(3*NumInterpolationNodes);
+        std::fill(mNodeIds.begin(), mNodeIds.end(), -1);
+        std::fill(mNeighborCoordinates.begin(), mNeighborCoordinates.end(), std::numeric_limits<double>::max());
+    }
 
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MapperInterfaceInfo );
-        rSerializer.save("NearestNeighborId", mNearestNeighborId);
-        rSerializer.save("NearestNeighborDistance", mNearestNeighborDistance);
+        rSerializer.save("NodeIds", mNodeIds);
+        rSerializer.save("NeighborCoords", mNeighborCoordinates);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MapperInterfaceInfo );
-        rSerializer.load("NearestNeighborId", mNearestNeighborId);
-        rSerializer.load("NearestNeighborDistance", mNearestNeighborDistance);
+        rSerializer.load("NodeIds", mNodeIds);
+        rSerializer.load("NeighborCoords", mNeighborCoordinates);
     }
 };
 
@@ -163,6 +179,18 @@ public:
         KRATOS_TRY;
 
         this->ValidateInput();
+
+        const std::string interpolation_type = JsonParameters["interpolation_type"].GetString();
+        if (interpolation_type == "line") {
+            mNumInterpolationNodes = 2;
+        } else if (interpolation_type == "triangle") {
+            mNumInterpolationNodes = 3;
+        } else if (interpolation_type == "tetrahedra") {
+            mNumInterpolationNodes = 4;
+        } else {
+            KRATOS_ERROR << "BarycentricMapper: No \"interpolation_type\" was specified, please select \"line\", \"triangle\" or \"tetrahedra\"" << std::endl;
+        }
+
         this->Initialize();
 
         KRATOS_CATCH("");
@@ -212,6 +240,12 @@ public:
     }
 
 private:
+    ///@name Member Variables
+    ///@{
+
+    std::size_t mNumInterpolationNodes;
+
+    ///@}
 
     ///@name Private Operations
     ///@{
@@ -228,13 +262,15 @@ private:
 
     MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
     {
-        return Kratos::make_unique<BarycentricInterfaceInfo>();
+        return Kratos::make_unique<BarycentricInterfaceInfo>(mNumInterpolationNodes);
     }
 
     Parameters GetMapperDefaultSettings() const override
     {
         return Parameters( R"({
             "search_settings"              : {},
+            "interpolation_type"           : "unspecified",
+            "local_coord_tolerance"        : 0.25,
             "use_initial_configuration"    : false,
             "echo_level"                   : 0,
             "print_pairing_status_to_file" : false,
