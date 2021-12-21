@@ -43,50 +43,52 @@
 namespace Kratos
 {
 
-template<class TBaseVertexMorphingMapper>
+template <class TBaseVertexMorphingMapper>
 MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::MapperVertexMorphingAdaptiveRadius(
-    ModelPart& rOriginModelPart,
-    ModelPart& rDestinationModelPart,
+    ModelPart &rOriginModelPart,
+    ModelPart &rDestinationModelPart,
     Parameters MapperSettings)
     : BaseType(rOriginModelPart, rDestinationModelPart, MapperSettings),
         mrOriginModelPart(rOriginModelPart),
         mrDestinationModelPart(rDestinationModelPart),
-        mFilterRadiusFactor(MapperSettings["filter_radius_factor"].GetDouble())
+        mFilterRadiusFactor(MapperSettings["filter_radius_factor"].GetDouble()),
+        mNumberOfSmoothingIterations(MapperSettings["filter_radius_smoothing_iterations"].GetInt()),
+        mMaxNumberOfNeighbors(MapperSettings["max_nodes_in_filter_radius"].GetInt())
 {
 }
 
-template<class TBaseVertexMorphingMapper>
+template <class TBaseVertexMorphingMapper>
 void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::Initialize()
 {
     CalculateAdaptiveVertexMorphingRadius();
     BaseType::Initialize();
 }
 
-template<class TBaseVertexMorphingMapper>
+template <class TBaseVertexMorphingMapper>
 void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::Update()
 {
     CalculateAdaptiveVertexMorphingRadius();
     BaseType::Update();
 }
 
-template<class TBaseVertexMorphingMapper>
+template <class TBaseVertexMorphingMapper>
 std::string MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::Info() const
 {
     return BaseType::Info() + "AdaptiveRadius";
 }
 
-template<class TBaseVertexMorphingMapper>
-void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::PrintInfo(std::ostream& rOStream) const
+template <class TBaseVertexMorphingMapper>
+void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::PrintInfo(std::ostream &rOStream) const
 {
     rOStream << BaseType::Info() << "AdaptiveRadius";
 }
 
-template<class TBaseVertexMorphingMapper>
-void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::PrintData(std::ostream& rOStream) const
+template <class TBaseVertexMorphingMapper>
+void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::PrintData(std::ostream &rOStream) const
 {
 }
 
-template<class TBaseVertexMorphingMapper>
+template <class TBaseVertexMorphingMapper>
 void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateNeighbourBasedFilterRadius()
 {
     KRATOS_TRY
@@ -104,24 +106,26 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateNei
             return gp_vector;
         }
 
-        void LocalReduce(const value_type& rGPVector)
+        void LocalReduce(const value_type &rGPVector)
         {
-            for (auto& r_gp : rGPVector.GetContainer()) {
+            for (auto &r_gp : rGPVector.GetContainer())
+            {
                 this->gp_vector.push_back(r_gp);
             }
         }
-        void ThreadSafeReduce(GlobalPointerAdder& rOther)
+        void ThreadSafeReduce(GlobalPointerAdder &rOther)
         {
 #pragma omp critical
             {
-                for (auto& r_gp : rOther.gp_vector.GetContainer()) {
+                for (auto &r_gp : rOther.gp_vector.GetContainer())
+                {
                     this->gp_vector.push_back(r_gp);
                 }
             }
         }
     };
 
-    const auto& r_data_communicator = mrDestinationModelPart.GetCommunicator().GetDataCommunicator();
+    const auto &r_data_communicator = mrDestinationModelPart.GetCommunicator().GetDataCommunicator();
 
     FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType> find_neighbours_process(
         r_data_communicator,
@@ -130,60 +134,144 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateNei
     find_neighbours_process.Execute();
 
     GlobalPointersVector<NodeType> all_global_pointers =
-        block_for_each<GlobalPointerAdder>(mrDestinationModelPart.Nodes(), [&](NodeType& rNode) {
-            return rNode.GetValue(NEIGHBOUR_NODES);
-        });
+        block_for_each<GlobalPointerAdder>(mrDestinationModelPart.Nodes(), [&](NodeType &rNode)
+                                            { return rNode.GetValue(NEIGHBOUR_NODES); });
 
     GlobalPointerCommunicator<NodeType> pointer_comm(r_data_communicator, all_global_pointers);
 
     auto coordinates_proxy = pointer_comm.Apply(
-        [](const GlobalPointer<NodeType>& rGP) { return rGP->Coordinates(); });
+        [](const GlobalPointer<NodeType> &rGP)
+        { return rGP->Coordinates(); });
 
-    block_for_each(mrDestinationModelPart.Nodes(), [&](NodeType& rNode) {
-        double max_distance = -1.0;
-        const auto& r_coordinates_origin_node = rNode.Coordinates();
-        const auto& r_neighbours = rNode.GetValue(NEIGHBOUR_NODES).GetContainer();
-        for (const auto& r_neighbour : r_neighbours) {
-            const auto& r_coordinates_neighbour_node = coordinates_proxy.Get(r_neighbour);
-            const double distance = norm_2(r_coordinates_origin_node - r_coordinates_neighbour_node);
-            max_distance = std::max(max_distance, distance);
-        }
+    block_for_each(mrDestinationModelPart.Nodes(), [&](NodeType &rNode)
+                    {
+    double max_distance = -1.0;
+    const auto& r_coordinates_origin_node = rNode.Coordinates();
+    const auto& r_neighbours = rNode.GetValue(NEIGHBOUR_NODES).GetContainer();
+    for (const auto& r_neighbour : r_neighbours) {
+        const auto& r_coordinates_neighbour_node = coordinates_proxy.Get(r_neighbour);
+        const double distance = norm_2(r_coordinates_origin_node - r_coordinates_neighbour_node);
+        max_distance = std::max(max_distance, distance);
+    }
 
-        rNode.SetValue(VERTEX_MORPHING_RADIUS, max_distance * mFilterRadiusFactor);
-    });
+    rNode.SetValue(VERTEX_MORPHING_RADIUS, max_distance * mFilterRadiusFactor); });
 
     KRATOS_CATCH("");
 }
 
-template<class TBaseVertexMorphingMapper>
+template <class TBaseVertexMorphingMapper>
 void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::SmoothenNeighbourBasedFilterRadius()
 {
+    KRATOS_TRY
 
+    std::unordered_map<IndexType, double> raw_radius;
+    std::unordered_map<IndexType, double> temp_radius;
+    block_for_each(mrDestinationModelPart.Nodes(), [&](const NodeType& rNode) {
+        raw_radius[rNode.Id()] = rNode.GetValue(VERTEX_MORPHING_RADIUS);
+    });
+
+    for (IndexType iter = 0; iter < mNumberOfSmoothingIterations; ++iter) {
+        block_for_each(mrDestinationModelPart.Nodes(), [&](const NodeType& rNode) {
+            double current_radius = rNode.GetValue(VERTEX_MORPHING_RADIUS);
+            const double current_raw_radius = raw_radius[rNode.Id()];
+            if (current_raw_radius > current_radius) {
+                temp_radius[rNode.Id()] = current_raw_radius;
+            } else {
+                temp_radius[rNode.Id()] = current_radius;
+            }
+        });
+
+        block_for_each(mrDestinationModelPart.Nodes(), [&](NodeType& r_node_i) {
+            double& radius = r_node_i.GetValue(VERTEX_MORPHING_RADIUS);
+
+            NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
+            std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
+
+            const IndexType number_of_neighbors = mpSearchTree->SearchInRadius(
+                                                    r_node_i,
+                                                    radius,
+                                                    neighbor_nodes.begin(),
+                                                    resulting_squared_distances.begin(),
+                                                    mMaxNumberOfNeighbors);
+
+            radius = 0.0;
+            std::vector<double> list_of_weights(number_of_neighbors, 0.0);
+            double sum_of_weights = 0.0;
+            this->ComputeWeightForAllNeighbors(r_node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+
+            for(IndexType neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; ++neighbor_itr) {
+                const NodeType& r_node_j = *neighbor_nodes[neighbor_itr];
+                const double radius_j = temp_radius[r_node_j.Id()];
+                radius += radius_j* list_of_weights[neighbor_itr] / sum_of_weights;
+            }
+        });
+    }
+
+    KRATOS_CATCH("");
 }
 
-template<class TBaseVertexMorphingMapper>
-double MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::GetVertexMorphingRadius(const NodeType& rNode) const
+template <class TBaseVertexMorphingMapper>
+double MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::GetVertexMorphingRadius(const NodeType &rNode) const
 {
     return rNode.GetValue(VERTEX_MORPHING_RADIUS);
 }
 
-template<class TBaseVertexMorphingMapper>
+template <class TBaseVertexMorphingMapper>
 void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CalculateAdaptiveVertexMorphingRadius()
 {
     BuiltinTimer timer;
     KRATOS_INFO("") << std::endl;
     KRATOS_INFO("ShapeOpt") << "Starting calculation of adaptive vertext morphing radius for  " << mrDestinationModelPart.FullName() << "..." << std::endl;
 
+    CreateListOfNodesInOriginModelPart();
     CalculateNeighbourBasedFilterRadius();
     SmoothenNeighbourBasedFilterRadius();
 
     KRATOS_INFO("ShapeOpt") << "Finished calculation of adaptive vertext morphing radius in " << timer.ElapsedSeconds() << " s." << std::endl;
 }
 
-// template instantiations
-template class MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing>;
-template class MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingMatrixFree>;
-template class MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingImprovedIntegration>;
-template class MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingSymmetric>;
+template <class TBaseVertexMorphingMapper>
+void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CreateSearchTreeWithAllNodesInOriginModelPart()
+{
+    BuiltinTimer timer;
+    KRATOS_INFO("ShapeOpt") << "Creating search tree to perform mapping..." << std::endl;
+    mpSearchTree = Kratos::make_unique<KDTree>(mListOfNodesInOriginModelPart.begin(), mListOfNodesInOriginModelPart.end(), mBucketSize);
+    KRATOS_INFO("ShapeOpt") << "Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
+}
 
-}  // namespace Kratos.
+template <class TBaseVertexMorphingMapper>
+void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CreateListOfNodesInOriginModelPart()
+{
+    mListOfNodesInOriginModelPart.resize(mrOriginModelPart.Nodes().size());
+    int counter = 0;
+    for (ModelPart::NodesContainerType::iterator node_it = mrOriginModelPart.NodesBegin(); node_it != mrOriginModelPart.NodesEnd(); ++node_it)
+    {
+        NodeTypePointer pnode = *(node_it.base());
+        mListOfNodesInOriginModelPart[counter++] = pnode;
+    }
+}
+
+template <class TBaseVertexMorphingMapper>
+void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::ComputeWeightForAllNeighbors(
+    const ModelPart::NodeType& destination_node,
+    const NodeVector& neighbor_nodes,
+    const unsigned int number_of_neighbors,
+    std::vector<double>& list_of_weights,
+    double& sum_of_weights)
+{
+    for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++) {
+        const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+        const double weight = this->mpFilterFunction->compute_weight( destination_node.Coordinates(), neighbor_node.Coordinates(), GetVertexMorphingRadius(destination_node) );
+
+        list_of_weights[neighbor_itr] = weight;
+        sum_of_weights += weight;
+    }
+}
+
+    // template instantiations
+    template class MapperVertexMorphingAdaptiveRadius<MapperVertexMorphing>;
+    template class MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingMatrixFree>;
+    template class MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingImprovedIntegration>;
+    template class MapperVertexMorphingAdaptiveRadius<MapperVertexMorphingSymmetric>;
+
+} // namespace Kratos.

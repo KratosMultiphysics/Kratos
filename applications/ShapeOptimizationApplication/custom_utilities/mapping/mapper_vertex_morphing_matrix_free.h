@@ -459,6 +459,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    FilterFunction::Pointer mpFilterFunction;
+
 
     ///@}
     ///@name Protected Operators
@@ -502,7 +504,6 @@ private:
     Parameters mMapperSettings;
     double mFilterRadius;
     unsigned int mMaxNumberOfNeighbors;
-    FilterFunction::Pointer mpFilterFunction;
 
     // Variables for spatial search
     unsigned int mBucketSize = 100;

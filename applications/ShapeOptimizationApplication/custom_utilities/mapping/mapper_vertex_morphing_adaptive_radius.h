@@ -21,6 +21,7 @@
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "spatial_containers/spatial_containers.h"
 
 // ==============================================================================
 
@@ -46,6 +47,20 @@ public:
 
     // Type definitions for better reading later
     using NodeType = Node <3>;
+
+    using IndexType = std::size_t;
+
+    using NodeTypePointer = NodeType::Pointer;
+
+    using NodeVector = std::vector<NodeTypePointer>;
+
+    using DoubleVectorIterator = std::vector<double>::iterator ;
+
+    using NodeIterator = std::vector<NodeType::Pointer>::iterator;
+
+    // Type definitions for tree-search
+    using BucketType = Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator >;
+    using KDTree = Tree< KDTreePartition<BucketType> >;
 
     /// Pointer definition of MapperVertexMorphingAdaptiveRadius
     KRATOS_CLASS_POINTER_DEFINITION(MapperVertexMorphingAdaptiveRadius);
@@ -94,6 +109,12 @@ private:
     ModelPart& mrOriginModelPart;
     ModelPart& mrDestinationModelPart;
     double mFilterRadiusFactor;
+    IndexType mNumberOfSmoothingIterations;
+    IndexType mMaxNumberOfNeighbors;
+
+    IndexType mBucketSize = 100;
+    Kratos::unique_ptr<KDTree> mpSearchTree;
+    NodeVector mListOfNodesInOriginModelPart;
 
     ///@}
     ///@name Private Operations
@@ -106,6 +127,17 @@ private:
     void CalculateAdaptiveVertexMorphingRadius();
 
     double GetVertexMorphingRadius(const NodeType& rNode) const override;
+
+    void CreateSearchTreeWithAllNodesInOriginModelPart();
+
+    void CreateListOfNodesInOriginModelPart();
+
+    void ComputeWeightForAllNeighbors(
+        const ModelPart::NodeType& destination_node,
+        const NodeVector& neighbor_nodes,
+        const unsigned int number_of_neighbors,
+        std::vector<double>& list_of_weights,
+        double& sum_of_weights);
 
     ///@}
 
