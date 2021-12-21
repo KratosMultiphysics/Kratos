@@ -105,7 +105,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("SearchNodesInRadiusExclusive", [&](DemSearchType &self,
                                                  NodesContainerType & a,
                                                  NodesContainerType & b,
-                                                 const py::list & radii,
+                                                 const pybind11::list & radii,
                                                  VectorResultNodesContainerType& d,
                                                  VectorDistanceType& e,
                                                  pybind11::list & lists_of_neighbors,
