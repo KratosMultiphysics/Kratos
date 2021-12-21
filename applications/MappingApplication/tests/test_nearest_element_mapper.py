@@ -1,4 +1,5 @@
 import KratosMultiphysics as KM
+import KratosMultiphysics.MappingApplication # registering the mappers
 import basic_mapper_tests
 import blade_mapping_test
 
