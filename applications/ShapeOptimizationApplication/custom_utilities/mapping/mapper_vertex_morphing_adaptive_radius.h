@@ -139,6 +139,8 @@ private:
         std::vector<double>& list_of_weights,
         double& sum_of_weights);
 
+    void AssignMappingIds();
+
     ///@}
 
 }; // Class MapperVertexMorphingAdaptiveRadius
