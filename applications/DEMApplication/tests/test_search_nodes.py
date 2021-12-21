@@ -24,7 +24,7 @@ class TestSearchNodes(KratosUnittest.TestCase):
         # creating a search tool with a periodic bounding box
         dimension = int(len(self.domain_box) / 2)
         self.domain_box_periods = [self.domain_box[i + dimension] - self.domain_box[i] for i in range(dimension)]
-        self.search_strategy = DEM.OMP_DEMSearch(0, 0, 0, 10*dx, 10*dx, 10*dx)
+        self.search_strategy = DEM.OMP_DEMSearch(*self.domain_box)
 
         # creating data containers and initializing global variables
         self.next_node_id = 1
