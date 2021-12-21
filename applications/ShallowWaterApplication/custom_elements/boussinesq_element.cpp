@@ -347,7 +347,7 @@ void BoussinesqElement<3>::CalculateRightHandSide(VectorType& rRightHandSideVect
     GetNodalData(data, r_geom, 3);
     AddRightHandSide(f3, data, N, DN_DX, area);
 
-    noalias(rRightHandSideVector) = 9*f0 + 19*f1 - 5*f2 + f3;
+    noalias(rRightHandSideVector) = (9*f0 + 19*f1 - 5*f2 + f3) / 24.0;
 }
 
 

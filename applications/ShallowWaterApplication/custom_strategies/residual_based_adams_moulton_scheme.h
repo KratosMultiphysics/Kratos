@@ -561,7 +561,7 @@ protected:
 
         // Adding inertia contribution
         if (rM.size1() != 0) {
-            rLHSContribution = 24.0 / delta_time * rM;
+            rLHSContribution = 1.0 / delta_time * rM;
         }
     }
 
@@ -588,7 +588,7 @@ protected:
             rCurrentElement.GetValuesVector(mU0[this_thread], 0);
             rCurrentElement.GetValuesVector(mU1[this_thread], 1);
             mDU[this_thread] = mU0[this_thread] - mU1[this_thread];
-            noalias(rRHSContribution) -= 24 / delta_time * prod(rM, mDU[this_thread]);
+            noalias(rRHSContribution) -= 1.0 / delta_time * prod(rM, mDU[this_thread]);
         }
     }
 
@@ -615,7 +615,7 @@ protected:
             rCurrentCondition.GetValuesVector(mU0[this_thread], 0);
             rCurrentCondition.GetValuesVector(mU1[this_thread], 1);
             mDU[this_thread] = mU0[this_thread] - mU1[this_thread];
-            noalias(rRHSContribution) -= 24 / delta_time * prod(rM, mDU[this_thread]);
+            noalias(rRHSContribution) -= 1.0 / delta_time * prod(rM, mDU[this_thread]);
         }
     }
 
