@@ -946,27 +946,6 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertTrue(node.HasDofFor(KratosMultiphysics.VELOCITY_Y))
             self.assertTrue(node.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z))
 
-
-    def testGetDofsListFromSpecifications(self):
-        # Set the test model part
-        current_model = KratosMultiphysics.Model()
-        model_part = current_model.CreateModelPart("Main")
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        model_part.CreateNewNode(1,0.0,0.0,0.0)
-        model_part.CreateNewNode(2,1.0,0.0,0.0)
-        model_part.CreateNewNode(3,0.0,1.0,0.0)
-        model_part.CreateNewNode(4,1.0,1.0,0.0)
-        prop_1 = model_part.CreateNewProperties(1)
-        model_part.CreateNewElement("DistanceCalculationElementSimplex2D3N",1,[1,2,3],prop_1)
-        model_part.CreateNewElement("DistanceCalculationElementSimplex2D3N",2,[2,4,3],prop_1)
-
-        # Get the DOFs list from the elements specifications
-        dofs_list = KratosMultiphysics.VariableUtils.GetDofsListFromSpecifications(model_part)
-
-        # Check the obtained DOFs list
-        expected_dofs_list = ["DISTANCE"]
-        self.assertEqual(dofs_list, expected_dofs_list)
-
     def test_distribute_condition_variable(self):
         current_model = KratosMultiphysics.Model()
 

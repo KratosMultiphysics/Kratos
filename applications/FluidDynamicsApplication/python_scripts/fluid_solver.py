@@ -79,7 +79,7 @@ class FluidSolver(PythonSolver):
         """This function creates and returns a list with the DOFs defined in the conditions and elements specifications
         Note that this requires the main_model_part to be already set, that is to say to have already performed the element substitution (see PrepareModelPart).
         """
-        return KratosMultiphysics.VariableUtils.GetDofsListFromSpecifications(self.main_model_part)
+        return KratosMultiphysics.SpecificationsUtilities.GetDofsListFromSpecifications(self.main_model_part)
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
