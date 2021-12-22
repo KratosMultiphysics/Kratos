@@ -287,7 +287,7 @@ const Parameters EmbeddedFluidElement<TBaseElement>::GetSpecifications() const
             The element is able to account for the relative velocity of moving objects by defining the EMBEDDED_VELOCITY variable (this would require switching on the FM-ALE algorithm)."
     })");
 
-    if (TDim == 2) {
+    if (Dim == 2) {
         std::vector<std::string> dofs_2d({"VELOCITY_X","VELOCITY_Y","PRESSURE"});
         specifications["required_dofs"].SetStringArray(dofs_2d);
     } else {
