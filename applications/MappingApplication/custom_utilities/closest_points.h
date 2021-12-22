@@ -41,8 +41,6 @@ public:
 
     double GetDistance() const { return mDistance; }
 
-    bool operator==(const PointWithId& rOther) const;
-
     bool operator<(const PointWithId& rOther) const;
 
 private:

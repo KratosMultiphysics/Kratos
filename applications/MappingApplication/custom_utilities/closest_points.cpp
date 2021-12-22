@@ -22,16 +22,14 @@
 namespace Kratos {
 
 PointWithId::PointWithId(const IndexType NewId, const CoordinatesArrayType& rCoords, const double Distance)
-    : IndexedObject(NewId), Point(rCoords), mDistance(Distance) { }
-
-bool PointWithId::operator==(const PointWithId& rOther) const
+    : IndexedObject(NewId), Point(rCoords), mDistance(Distance)
 {
-    return std::equal(this->begin(), this->end(), rOther.begin());
+    KRATOS_ERROR_IF(mDistance<0.0) << "Distance cannot be negative!" << std::endl;
 }
 
 bool PointWithId::operator<(const PointWithId& rOther) const
 {
-    return true;
+    return mDistance < rOther.mDistance;
 }
 
 void PointWithId::save(Serializer &rSerializer) const
