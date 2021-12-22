@@ -310,7 +310,7 @@ const Parameters TwoFluidNavierStokes<TElementData>::GetSpecifications() const
         "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
         "element_integrates_in_time" : true,
         "compatible_constitutive_laws": {
-            "type"        : ["Newtonian2DLaw","Newtonian3DLaw","NewtonianTemperatureDependent2DLaw","NewtonianTemperatureDependent3DLaw","Euler2DLaw","Euler3DLaw"],
+            "type"        : ["NewtonianTwoFluid2DLaw","NewtonianTwoFluid3DLaw"],
             "dimension"   : ["2D","3D"],
             "strain_size" : [3,6]
         },
