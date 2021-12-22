@@ -1,42 +1,75 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// ==============================================================================
+//  KratosTopologyOptimizationApplication
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//                   license: TopologyOptimizationApplication/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
+//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//                   Octaviano Malfavón Farías
+//                   Eric Gonzales
+//					 Philipp Hofer
+//					 Erich Wehrle
 //
+// ==============================================================================
 
-
-// System includes
-
-// External includes
+// External includes 
 #include <pybind11/pybind11.h>
-
 
 // Project includes
 #include "includes/define.h"
+#include "processes/process.h"
+
+// Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
 
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
+// Utilities
+#include "custom_utilities/structure_response_function_utilities.h"
+#include "custom_utilities/topology_filtering_utilities.h"
+#include "custom_utilities/topology_updating_utilities.h"
+#include "custom_utilities/io_utilities.h"
 
 
-namespace Kratos {
-namespace Python {
+namespace Kratos
+{
+
+namespace Python
+{
 
 void AddCustomUtilitiesToPython(pybind11::module& m)
+
 {
-    namespace py = pybind11;
+	namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
+
+	// =============================================================================================================================================
+	// Utility Classes
+	// =============================================================================================================================================
+
+	py::class_<StructureResponseFunctionUtilities>(m, "StructureResponseFunctionUtilities")
+    .def(py::init<ModelPart& >())
+	.def("ComputeStrainEnergy", &StructureResponseFunctionUtilities::ComputeStrainEnergy)
+	.def("ComputeVolumeFraction", &StructureResponseFunctionUtilities::ComputeVolumeFraction)
+	;
+
+	py::class_<TopologyFilteringUtilities >(m, "TopologyFilteringUtilities")
+    .def(py::init<ModelPart&, const double, const int>())
+	.def("ApplyFilterSensitivity", &TopologyFilteringUtilities::ApplyFilterSensitivity)
+	.def("ApplyFilterDensity", &TopologyFilteringUtilities::ApplyFilterDensity)
+	;
+
+	py::class_<TopologyUpdatingUtilities >(m, "TopologyUpdatingUtilities")
+	.def(py::init<ModelPart&>())
+    .def("UpdateDensitiesUsingOCMethod", &TopologyUpdatingUtilities::UpdateDensitiesUsingOCMethod)
+	;
+
+	py::class_<IOUtilities >(m, "IOUtilities" )
+	.def(py::init<>())
+    .def("SaveOptimizationResults", &IOUtilities::SaveOptimizationResults)
+	.def("WriteSurfaceAsSTLFile", &IOUtilities::WriteSurfaceAsSTLFile)
+	;
 }
 
-} // namespace Python.
+}  // namespace Python.
+
 } // Namespace Kratos

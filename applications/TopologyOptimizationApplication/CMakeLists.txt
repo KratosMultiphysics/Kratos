@@ -5,15 +5,18 @@ message("**** configuring KratosTopologyOptimizationApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/TopologyOptimizationApplication )
 
 ## TopologyOptimization Core sources
 file(GLOB_RECURSE KRATOS_TOPOLOGY_OPTIMIZATION_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/topology_optimization_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/topology_optimization_application_variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
