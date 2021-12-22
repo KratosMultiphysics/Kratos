@@ -220,7 +220,9 @@ void ModelPartIO::WriteProperties(PropertiesContainerType const& rThisProperties
     }
 }
 
-void ModelPartIO::ReadGeometry(NodesContainerType& rThisNodes, GeometryType::Pointer& pThisGeometries)
+void ModelPartIO::ReadGeometry(
+    NodesContainerType& rThisNodes,
+    GeometryType::Pointer& pThisGeometries)
 {
     KRATOS_ERROR << "Calling base class member. Please check the definition of derived class" << std::endl;
 }
