@@ -13,6 +13,7 @@ The CoSimulation Application contains the core developments in coupling black-bo
 - [Developer Guide](#developer-guide)
   - [Structure of the Application](#structure-of-the-application)
   - [How to couple a new solver / software-tool?](#how-to-couple-a-new-solver--software-tool)
+  - [Using a solver in MPI](#using-a-solver-in-mpi)
 - [References](#references)
 
 ## List of features
@@ -229,8 +230,6 @@ This example is the Wall FSI benchmark, see [1], chapter 7.5.3. The Kratos solve
 
 ## Developer Guide
 
-
-
 ### Structure of the Application
 
 The _CoSimulationApplication_ consists of the following main components (taken from [2]):
@@ -398,6 +397,15 @@ A full example for this can be found [here](tests/structural_mechanics_analysis_
 If it is possible for an external solver to implement this approach, it is recommended to use it as it is the most robust and flexible.
 
 Nevertheless both approaches are possible with the _CoSimulationApplication_.
+
+### Using a solver in MPI
+By default, each _SolverWrapper_ makes use of all ranks in MPI. This can be changed if e.g. the solver that is wrapped by the _SolverWrapper_ does not support MPI or to specify to use less rank.
+
+The base _SolverWrapper_ provides the `_GetDataCommunicator` funciton for this purpose. In the baseclass, the default _DataCommunicator_ (which contains all ranks in MPI) is returned. The _SolverWrapper_ will be instantiated on all the ranks on which this _DataCommunicator_ is defined (i.e. on the ranks where `data_communicator.IsDefinedOnThisRank() == True`).
+
+If a solver does not support MPI-parallelism then it can only run on one rank. In such cases it should return a _DataCommunicator_ which contains only one rank. For this purpose the function `KratosMultiphysics.CoSimulationApplication.utilities.data_communicator_utilities.GetRankZeroDataCommunicator` cam be used. Other custom solutions are also possible, see for example the [structural_solver_wrapper](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/CoSimulationApplication/python_scripts/solver_wrappers/kratos/structural_mechanics_wrapper.py).
+
+
 ## References
 
 - [1] Wall, Wolfgang A., _Fluid structure interaction with stabilized finite elements_, PhD Thesis, University of Stuttgart, 1999, http://dx.doi.org/10.18419/opus-127

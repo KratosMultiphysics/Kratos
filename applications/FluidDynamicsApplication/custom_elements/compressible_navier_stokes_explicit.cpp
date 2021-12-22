@@ -315,6 +315,48 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+const Parameters CompressibleNavierStokesExplicit<TDim, TNumNodes>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["explicit"],
+        "framework"                  : "eulerian",
+        "symmetric_lhs"              : false,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : ["SHOCK_SENSOR","SHEAR_SENSOR","THERMAL_SENSOR","ARTIFICIAL_CONDUCTIVITY","ARTIFICIAL_BULK_VISCOSITY","VELOCITY_DIVERGENCE"],
+            "nodal_historical"       : ["DENSITY","MOMENTUM","TOTAL_ENERGY"],
+            "nodal_non_historical"   : ["ARTIFICIAL_MASS_DIFFUSIVITY","ARTIFICIAL_DYNAMIC_VISCOSITY","ARTIFICIAL_BULK_VISCOSITY","ARTIFICIAL_CONDUCTIVITY","DENSITY_PROJECTION","MOMENTUM_PROJECTION","TOTAL_ENERGY_PROJECTION"],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DENSITY","MOMENTUM","TOTAL_ENERGY","BODY_FORCE","HEAT_SOURCE"],
+        "required_dofs"              : [],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : [],
+            "dimension"   : [],
+            "strain_size" : []
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   :
+            "This element implements a compressible Navier-Stokes formulation written in conservative variables.
+            A Variational MultiScales (VMS) stabilization technique, both with Algebraic SubGrid Scales (ASGS) and Orthogonal Subgrid Scales (OSS), is used.
+            This element is compatible with both entropy-based and physics-based shock capturing techniques."
+    })");
+
+    if (TDim == 2) {
+        std::vector<std::string> dofs_2d({"DENSITY","MOMENTUM_X","MOMENTUM_Y","TOTAL_ENERGY"});
+        specifications["required_dofs"].SetStringArray(dofs_2d);
+    } else {
+        std::vector<std::string> dofs_3d({"DENSITY","MOMENTUM_X","MOMENTUM_Y","MOMENTUM_Z","TOTAL_ENERGY"});
+        specifications["required_dofs"].SetStringArray(dofs_3d);
+    }
+
+    return specifications;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 void CompressibleNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
     ElementDataStruct &rData,
     const ProcessInfo &rCurrentProcessInfo)

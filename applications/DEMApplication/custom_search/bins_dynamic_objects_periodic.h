@@ -209,8 +209,7 @@ void SearchInRadiusExclusivePeriodic(PointerType& ThisObject,
 
   for (SizeType i = 0; i < 3; ++i){
       MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];
-      // MaxBox[i] = MinBox[i] + this->mCellSize[i];
-      MaxBox[i] = static_cast<CoordinateType>(Box.Axis[i].Max) * this->mCellSize[i] + this->mMinPoint[i];
+      MaxBox[i] = MinBox[i] + this->mCellSize[i];
   }
 
   IndexType I_begin = Box.Axis[0].BeginIndex();
@@ -256,6 +255,11 @@ void SearchInRadiusExclusivePeriodic(PointerType& ThisObject,
     PointType  MinCell, MaxCell;
     PointType  MinBox, MaxBox;
 
+    for (SizeType i = 0; i < 3; ++i){
+        MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];
+        MaxBox[i] = MinBox[i] + this->mCellSize[i];
+    }
+
     IndexType I_begin = Box.Axis[0].BeginIndex();
     IndexType II_begin = Box.Axis[1].BeginIndex();
     IndexType III_begin = Box.Axis[2].BeginIndex();
@@ -297,8 +301,7 @@ void FillObjectPeriodic(SearchStructureType& Box, const PointerType& i_object)
 
     for(SizeType i = 0; i < 3; ++i){
         MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];
-        // MaxBox[i] = MinBox[i] + this->mCellSize[i];
-        MaxBox[i] = static_cast<CoordinateType>(Box.Axis[i].Max) * this->mCellSize[i] + this->mMinPoint[i];
+        MaxBox[i] = MinBox[i] + this->mCellSize[i];
     }
 
     MinCell[2] = MinBox[2];
