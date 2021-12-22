@@ -106,9 +106,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
                                                  NodesContainerType & a,
                                                  NodesContainerType & b,
                                                  const py::list & radii,
-                                                 VectorResultNodesContainerType& d,
-                                                 VectorDistanceType& e,
-                                                 pybind11::list & lists_of_neighbors)
+                                                 VectorResultNodesContainerType & d,
+                                                 VectorDistanceType & e,
+                                                 pybind11::list & lists_of_neighbors,
+                                                 py::list & lists_of_distances)
         {
             std::vector<double> c;
             for (std::size_t i=0; i<radii.size(); ++i){
@@ -129,11 +130,14 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
             for (std::size_t i=0; i<d.size(); ++i){
                 pybind11::list neighbors;
+                pybind11::list distances;
                 for (std::size_t j=0; j<d[i].size(); ++j){
                     neighbors.append(d[i][j]->Id());
+                    distances.append(e[i][j]);
                 }
 
                 lists_of_neighbors.append(neighbors);
+                lists_of_distances.append(distances);
             }
         })
         ;

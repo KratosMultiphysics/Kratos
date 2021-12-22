@@ -31,6 +31,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "includes/global_pointer_variables.h"
 
 #include "spatial_containers/spatial_containers.h"
 
@@ -219,6 +220,36 @@ public:
     	r_boundary_model_part.AddNodes(temp_boundary_node_ids);
 
     	KRATOS_CATCH("");
+    }
+
+    // --------------------------------------------------------------------------
+    void ExtractEdgeNodes( std::string const& rEdgeSubModelPartName ) {
+        KRATOS_TRY;
+
+        KRATOS_ERROR_IF(mrModelPart.Elements().size() == 0) << "ExtractEdgeNodes: No elements defined. Automatic edge detection will not find any edge nodes!" << std::endl;
+
+        ModelPart& r_edge_model_part = mrModelPart.GetSubModelPart(rEdgeSubModelPartName);
+
+        KRATOS_ERROR_IF(r_edge_model_part.Nodes().size() != 0) << "ExtractEdgeNodes: The edge model part already has nodes!" << std::endl;
+
+        for (auto& r_node_i : mrModelPart.Nodes()) {
+            auto& r_node_i_neighbours = r_node_i.GetValue(NEIGHBOUR_NODES);  // does not work with const
+            for(const auto& r_node_j : r_node_i_neighbours) {
+                auto& r_element_neighbours = r_node_i.GetValue(NEIGHBOUR_ELEMENTS);  // does not work with const
+                int count = 0;
+                for(const auto& r_elem_k : r_element_neighbours) {
+                    const auto& r_element_geometry = r_elem_k.GetGeometry();
+                    for(const auto& r_node_l : r_element_geometry) {
+                        if (r_node_l.Id() == r_node_j.Id()) count ++;
+                    }
+                }
+                if (count < 2){
+                    r_edge_model_part.AddNode(&r_node_i);
+                    break;
+                }
+            }
+        }
+        KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------

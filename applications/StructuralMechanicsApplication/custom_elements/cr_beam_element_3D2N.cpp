@@ -1747,7 +1747,7 @@ const Parameters CrBeamElement3D2N::GetSpecifications() const
         "compatible_constitutive_laws": {
             "type"        : ["BeamConstitutiveLaw"],
             "dimension"   : ["3D"],
-            "strain_size" : [1]
+            "strain_size" : [6]
         },
         "required_polynomial_degree_of_geometry" : 1,
         "documentation"   : "This elements implements a 3D non-linear beam formulation."
