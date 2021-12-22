@@ -244,9 +244,7 @@ void BoussinesqElement<TNumNodes>::AddAuxiliaryLaplacian(
             gradients_vector_j[2] = 0.0;
 
             // Projector for the auxiliary field
-            rLaplacian(3*i,     3*j    ) -= Weight * rDN_DX(i,0) * rDN_DX(j,0); // This is temporary, the full laplacian must be added.
-            rLaplacian(3*i + 1, 3*j + 1) -= Weight * rDN_DX(i,1) * rDN_DX(j,1); // This is temporary, the full laplacian must be added.
-            // MathUtils<double>::AddMatrix(rLaplacian, -Weight*outer_prod(gradients_vector_i, gradients_vector_j), 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rLaplacian, -Weight*outer_prod(gradients_vector_i, gradients_vector_j), 3*i, 3*j);
         }
     }
 }
