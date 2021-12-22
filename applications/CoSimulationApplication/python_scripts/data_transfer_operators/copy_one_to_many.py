@@ -15,9 +15,9 @@ class CopyOneToMany(CoSimulationDataTransferOperator):
         data_value = 0.0
         rank_for_broadcast = 0
         if from_solver_data.IsDefinedOnThisRank():
-            data_value = from_solver_data.GetData()
-            if data_value.size == 1: # this is the rank that actually contains the value
-                data_value = data_value[0]
+            data_values = from_solver_data.GetData()
+            if data_values.size == 1: # this is the rank that actually contains the value
+                data_value = data_values[0]
                 rank_for_broadcast = from_solver_data.GetModelPart().GetCommunicator().MyPID()
 
         data_comm = to_solver_data.model_part.GetCommunicator().GetDataCommunicator()
