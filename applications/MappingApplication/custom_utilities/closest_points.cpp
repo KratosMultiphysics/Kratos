@@ -29,6 +29,7 @@ PointWithId::PointWithId(const IndexType NewId, const CoordinatesArrayType& rCoo
 
 bool PointWithId::operator<(const PointWithId& rOther) const
 {
+    if (Point::operator==(rOther)) return false;
     return mDistance < rOther.mDistance;
 }
 
@@ -63,7 +64,6 @@ void ClosestPointsContainer::Add(const PointWithId& rPoint)
     LimitToMaxSize();
 }
 
-
 void ClosestPointsContainer::Merge(const ClosestPointsContainer& rOther)
 {
     KRATOS_ERROR_IF(std::abs(mMaxDistance - rOther.mMaxDistance) > 1E-12) << "Maximum allowed distanced don't match!" << std::endl;
@@ -72,7 +72,6 @@ void ClosestPointsContainer::Merge(const ClosestPointsContainer& rOther)
 
     LimitToMaxSize();
 }
-
 
 void ClosestPointsContainer::LimitToMaxSize()
 {
