@@ -40,7 +40,10 @@ public:
 
     static void KRATOS_API(KRATOS_CORE) GetRegisteredName(const Geometry<Node<3>>& rGeometry, std::string& rName);
 
-    static void GetRegisteredName(const Geometry<Node<3>>* pGeometry, std::string& rName) {
+    static void GetRegisteredName(
+        const Geometry<Node<3>>* pGeometry,
+        std::string& rName)
+    {
         CompareElementsAndConditionsUtility::GetRegisteredName(*pGeometry, rName);
     }
 
