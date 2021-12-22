@@ -205,7 +205,7 @@ class MechanicalSolver(PythonSolver):
     def GetDofsList(self):
         """This function creates and returns a list with the DOFs defined in the conditions and elements specifications
         """
-        return KratosMultiphysics.VariableUtils.GetDofsListFromSpecifications(self.main_model_part)
+        return KratosMultiphysics.SpecificationsUtilities.GetDofsListFromSpecifications(self.main_model_part)
 
     def ImportModelPart(self):
         """This function imports the ModelPart

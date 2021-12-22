@@ -15,7 +15,6 @@
 
 /* System includes */
 #include <functional>
-#include <unordered_set>
 
 /* External includes */
 
@@ -172,75 +171,6 @@ void VariableUtils::AddDofsWithReactionsList(
             rNode.AddDof(*(r_dof_data[0]), *(r_dof_data[1]));
         }
     });
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-std::vector<std::string> VariableUtils::GetDofsListFromSpecifications(const ModelPart& rModelPart)
-{
-    // Get DOFs variable names list from elements and conditions
-    const auto elem_dofs_list = GetDofsListFromElementsSpecifications(rModelPart);
-    const auto cond_dofs_list = GetDofsListFromConditionsSpecifications(rModelPart);
-
-    // Remove duplicates
-    std::vector<std::string> all_dofs;
-    std::merge(elem_dofs_list.begin(), elem_dofs_list.end(), cond_dofs_list.begin(), cond_dofs_list.end(), std::back_inserter(all_dofs));
-    std::sort(all_dofs.begin(),all_dofs.end());
-    all_dofs.erase(std::unique(all_dofs.begin(),all_dofs.end()), all_dofs.end());
-
-    return all_dofs;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-std::vector<std::string> VariableUtils::GetDofsListFromElementsSpecifications(const ModelPart& rModelPart)
-{
-    KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "This method is not MPI-compatible yet." << std::endl;
-    return GetDofsListFromGenericEntitiesSpecifications(rModelPart.Elements());
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-std::vector<std::string> VariableUtils::GetDofsListFromConditionsSpecifications(const ModelPart& rModelPart)
-{
-    KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "This method is not MPI-compatible yet." << std::endl;
-    return GetDofsListFromGenericEntitiesSpecifications(rModelPart.Conditions());
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< class TContainerType>
-std::vector<std::string> VariableUtils::GetDofsListFromGenericEntitiesSpecifications(const TContainerType& rContainer)
-{
-    // Create a set with the DOFs variables in the container entities specifications
-    std::unordered_set<std::string> dofs_var_names_set;
-    const std::size_t n_entities = rContainer.size();
-    for (std::size_t i = 0; i < n_entities; ++i) {
-        const auto it_entity = rContainer.begin() + i;
-        const auto specifications = it_entity->GetSpecifications();
-        const auto required_dofs = specifications["required_dofs"].GetStringArray();
-        for (std::size_t i_dof = 0; i_dof < required_dofs.size(); ++i_dof) {
-            dofs_var_names_set.insert(required_dofs[i_dof]);
-        }
-    }
-    KRATOS_WARNING_IF("GetDofsListFromGenericEntitiesSpecifications", n_entities > 0 && dofs_var_names_set.empty())
-        << "DOFs variables set is empty. Check and complete your element/condition GetSpecifications() implementation." << std::endl;
-
-    // Check that all the DOFs variables exist
-    for (auto& r_var_name : dofs_var_names_set) {
-        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_var_name))
-            << "DOF \'" << r_var_name << "\' is not in KratosComponents. Check your element/condition GetSpecifications() implementation." << std::endl;
-    }
-
-    // Return a list with the DOFs variables
-    std::vector<std::string> dofs_var_names_list;
-    dofs_var_names_list.insert(dofs_var_names_list.end(), dofs_var_names_set.begin(), dofs_var_names_set.end());
-
-    return dofs_var_names_list;
 }
 
 /***********************************************************************************/
@@ -417,9 +347,5 @@ template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableO
     ModelPart&, const Variable<double>&, const Variable<double>&, const bool);
 template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ElementsContainerType, double>(
     ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<double>&, const bool);
-
-template KRATOS_API(KRATOS_CORE) std::vector<std::string> VariableUtils::GetDofsListFromGenericEntitiesSpecifications<ModelPart::ElementsContainerType>(const ModelPart::ElementsContainerType&);
-
-template KRATOS_API(KRATOS_CORE) std::vector<std::string> VariableUtils::GetDofsListFromGenericEntitiesSpecifications<ModelPart::ConditionsContainerType>(const ModelPart::ConditionsContainerType&);
 
 } /* namespace Kratos.*/
