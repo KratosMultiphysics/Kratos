@@ -39,7 +39,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_BasicTests, KratosMappingAppl
     const std::size_t source_local_sys_idx = 123;
     const std::size_t dummy_rank = 78;
 
-    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, 2);
+    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::LINE);
 
     const auto barycentric_info_1(barycentric_info.Create());
     const auto barycentric_info_2(barycentric_info.Create(coords, source_local_sys_idx, dummy_rank));
@@ -57,7 +57,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_line_interpolation, Kr
 
     std::size_t source_local_sys_idx = 123;
 
-    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, 2);
+    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::LINE);
 
     auto node_1(Kratos::make_intrusive<NodeType>(1,  3.3, 0.0, 0.0)); // third closest (not used)
     auto node_2(Kratos::make_intrusive<NodeType>(3,  1.0, 0.1, -0.2)); // second closest
@@ -71,7 +71,6 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_line_interpolation, Kr
     node_2->SetValue(INTERFACE_EQUATION_ID, 5);
     node_3->SetValue(INTERFACE_EQUATION_ID, 108);
 
-    // distances are not used internally!
     barycentric_info.ProcessSearchResult(*interface_node_1);
     barycentric_info.ProcessSearchResult(*interface_node_2);
     barycentric_info.ProcessSearchResult(*interface_node_3);
@@ -100,7 +99,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_only_one_point, KratosMa
 
     std::size_t source_local_sys_idx = 123;
 
-    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, 2);
+    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::LINE);
 
     auto node_1(Kratos::make_intrusive<NodeType>(1,  3.3, 0.0, 0.0));
 
@@ -108,7 +107,6 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_only_one_point, KratosMa
 
     node_1->SetValue(INTERFACE_EQUATION_ID, 13);
 
-    // distances are not used internally!
     barycentric_info.ProcessSearchResult(*interface_node_1);
 
     KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
@@ -137,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_duplicated_point, Kratos
 
     std::size_t source_local_sys_idx = 123;
 
-    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, 2);
+    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::LINE);
 
     auto node_1(Kratos::make_intrusive<NodeType>(1,  3.3, 0.0, 0.0)); // third closest (not used)
     auto node_2(Kratos::make_intrusive<NodeType>(3,  1.0, 0.1, -0.2)); // second closest
@@ -154,7 +152,6 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_duplicated_point, Kratos
     node_3->SetValue(INTERFACE_EQUATION_ID, 108);
     node_4->SetValue(INTERFACE_EQUATION_ID, 32);
 
-    // distances are not used internally!
     barycentric_info.ProcessSearchResult(*interface_node_1);
     barycentric_info.ProcessSearchResult(*interface_node_2);
     barycentric_info.ProcessSearchResult(*interface_node_3);
@@ -184,7 +181,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_Serialization, KratosMappingA
 
     std::size_t source_local_sys_idx = 123;
 
-    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, 2);
+    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::LINE);
 
     auto node_1(Kratos::make_intrusive<NodeType>(1,  3.3, 0.0, 0.0)); // third closest (not used)
     auto node_2(Kratos::make_intrusive<NodeType>(3,  1.0, 0.1, -0.2)); // second closest
@@ -198,7 +195,6 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_Serialization, KratosMappingA
     node_2->SetValue(INTERFACE_EQUATION_ID, 5);
     node_3->SetValue(INTERFACE_EQUATION_ID, 108);
 
-    // distances are not used internally!
     barycentric_info.ProcessSearchResult(*interface_node_1);
     barycentric_info.ProcessSearchResult(*interface_node_2);
     barycentric_info.ProcessSearchResult(*interface_node_3);
@@ -225,7 +221,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_Serialization, KratosMappingA
     serializer.save("barycentric_interface_info", barycentric_info);
     // deserializing the object => this happens if the remote search was successful and
     // sending back of the object to the partition where it came from is required
-    BarycentricInterfaceInfo barycentric_info_new(2);
+    BarycentricInterfaceInfo barycentric_info_new(BarycentricInterpolationType::LINE);
     serializer.load("barycentric_interface_info", barycentric_info_new);
 
     KRATOS_CHECK_EQUAL(barycentric_info_new.GetLocalSystemIndex(), source_local_sys_idx);
@@ -247,7 +243,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_triangle_interpolation
 
     std::size_t source_local_sys_idx = 123;
 
-    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, 3);
+    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::TRIANGLE);
 
     auto node_1(Kratos::make_intrusive<NodeType>(1,  0.0, 0.0, 0.0));
     auto node_2(Kratos::make_intrusive<NodeType>(3,  1.0, 0.0, 0.0));
@@ -264,7 +260,6 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_triangle_interpolation
     node_3->SetValue(INTERFACE_EQUATION_ID, 108);
     node_4->SetValue(INTERFACE_EQUATION_ID, 41);
 
-    // distances are not used internally!
     barycentric_info.ProcessSearchResult(*interface_node_1);
     barycentric_info.ProcessSearchResult(*interface_node_2);
     barycentric_info.ProcessSearchResult(*interface_node_3);
@@ -296,7 +291,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_triangle_collinear_nodes_inte
 
     std::size_t source_local_sys_idx = 123;
 
-    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, 3);
+    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::TRIANGLE);
 
     auto node_1(Kratos::make_intrusive<NodeType>(1,  0.0, 0.0, 0.0));
     auto node_2(Kratos::make_intrusive<NodeType>(3,  1.0, 0.0, 0.0)); // this is closer than the next one but collinear and hence forbidden
@@ -322,7 +317,6 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_triangle_collinear_nodes_inte
     node_6->SetValue(INTERFACE_EQUATION_ID, 64);
     node_7->SetValue(INTERFACE_EQUATION_ID, 65);
 
-    // distances are not used internally!
     barycentric_info.ProcessSearchResult(*interface_node_1);
     barycentric_info.ProcessSearchResult(*interface_node_2);
     barycentric_info.ProcessSearchResult(*interface_node_3);
@@ -357,7 +351,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_triangle_only_collinear_nodes
 
     std::size_t source_local_sys_idx = 123;
 
-    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, 3);
+    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::TRIANGLE);
 
     auto node_1(Kratos::make_intrusive<NodeType>(1,  0.0, 0.0, 0.0));
     auto node_2(Kratos::make_intrusive<NodeType>(3,  1.0, 0.0, 0.0)); // this should NOT be saved since it is collinear!
@@ -371,7 +365,6 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_triangle_only_collinear_nodes
     node_2->SetValue(INTERFACE_EQUATION_ID, 5);
     node_3->SetValue(INTERFACE_EQUATION_ID, 108);
 
-    // distances are not used internally!
     barycentric_info.ProcessSearchResult(*interface_node_1);
     barycentric_info.ProcessSearchResult(*interface_node_2);
     barycentric_info.ProcessSearchResult(*interface_node_3);
@@ -402,7 +395,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_tetra_interpolation, K
 
     std::size_t source_local_sys_idx = 123;
 
-    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, 4);
+    BarycentricInterfaceInfo barycentric_info(coords, source_local_sys_idx, 0, BarycentricInterpolationType::TETRAHEDRA);
 
     auto node_1(Kratos::make_intrusive<NodeType>(1,  0.0, 0.0, 0.0));
     auto node_2(Kratos::make_intrusive<NodeType>(3,  1.0, 0.0, 0.0));
@@ -419,7 +412,6 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_tetra_interpolation, K
     node_3->SetValue(INTERFACE_EQUATION_ID, 108);
     node_4->SetValue(INTERFACE_EQUATION_ID, 41);
 
-    // distances are not used internally!
     barycentric_info.ProcessSearchResult(*interface_node_1);
     barycentric_info.ProcessSearchResult(*interface_node_2);
     barycentric_info.ProcessSearchResult(*interface_node_3);
