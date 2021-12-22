@@ -555,6 +555,37 @@ void BaseShellElement<TCoordinateTransformation>::SetCrossSectionsOnIntegrationP
 }
 
 template <class TCoordinateTransformation>
+const Parameters BaseShellElement<TCoordinateTransformation>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit","explicit"],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : [],
+            "nodal_historical"       : ["DISPLACEMENT","ROTATION","VELOCITY","ACCELERATION"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT","ROTATION"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z","ROTATION_X","ROTATION_Y","ROTATION_Z"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Triangle3D3", "Quadrilateral3D4"],
+        "element_integrates_in_time" : false,
+        "compatible_constitutive_laws": {
+            "type"        : ["PlaneStress"],
+            "dimension"   : ["3D"],
+            "strain_size" : [3]
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   : "Base element for thin/thick shell formulations."
+    })");
+
+    return specifications;
+}
+
+template <class TCoordinateTransformation>
 std::string BaseShellElement<TCoordinateTransformation>::Info() const
 {
     std::stringstream buffer;
