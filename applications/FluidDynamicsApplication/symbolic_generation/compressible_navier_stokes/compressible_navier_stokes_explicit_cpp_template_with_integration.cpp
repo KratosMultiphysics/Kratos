@@ -340,9 +340,7 @@ const Parameters CompressibleNavierStokesExplicit<TDim, TNumNodes>::GetSpecifica
         },
         "required_polynomial_degree_of_geometry" : 1,
         "documentation"   :
-            "This element implements a compressible Navier-Stokes formulation written in conservative variables.
-            A Variational MultiScales (VMS) stabilization technique, both with Algebraic SubGrid Scales (ASGS) and Orthogonal Subgrid Scales (OSS), is used.
-            This element is compatible with both entropy-based and physics-based shock capturing techniques."
+            "This element implements a compressible Navier-Stokes formulation written in conservative variables. A Variational MultiScales (VMS) stabilization technique, both with Algebraic SubGrid Scales (ASGS) and Orthogonal Subgrid Scales (OSS), is used. This element is compatible with both entropy-based and physics-based shock capturing techniques."
     })");
 
     if (TDim == 2) {
