@@ -41,7 +41,9 @@ void CompareElementsAndConditionsUtility::GetRegisteredName(const Geometry<Node<
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CompareElementsAndConditionsUtility::GetRegisteredName(const Element& rElement, std::string& rName) {
+void CompareElementsAndConditionsUtility::GetRegisteredName(
+    const Element& rElement,
+    std::string& rName) {
     KRATOS_TRY;
 
     for(auto const& component: KratosComponents<Element>::GetComponents()) {
