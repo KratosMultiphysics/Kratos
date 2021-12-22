@@ -267,7 +267,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
 
         import filecmp
         value = filecmp.cmp(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
-        self.assertEqual(value, True)
+        self.assertTrue(value)
 
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
     def test_model_part_io_write_model_part_mesh_only(self):
@@ -282,7 +282,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
 
         import filecmp
         value = filecmp.cmp(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write_mesh_only.mdpa"), GetFilePath("test_model_part_io_write_mesh_only.out.mdpa"))
-        self.assertEqual(value, True)
+        self.assertTrue(value)
 
     @KratosUnittest.expectedFailure
     def test_error_on_wrong_input(self):
