@@ -23,7 +23,10 @@
 
 namespace Kratos
 {
-void CompareElementsAndConditionsUtility::GetRegisteredName(const Geometry<Node<3>>& rGeometry, std::string& rName) {
+void CompareElementsAndConditionsUtility::GetRegisteredName(
+    const Geometry<Node<3>>& rGeometry, 
+    std::string& rName)
+{
     KRATOS_TRY;
 
     for(auto const& component: KratosComponents<Geometry<Node<3>>>::GetComponents()) {
