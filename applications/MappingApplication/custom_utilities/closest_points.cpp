@@ -85,14 +85,27 @@ void ClosestPointsContainer::LimitToMaxSize()
 
 void ClosestPointsContainer::save(Serializer &rSerializer) const
 {
-    // rSerializer.save("closest_points", mClosestPoints);
+    // rSerializer.save("closest_points", mClosestPoints); // serializer does not yet support std::set
+
+    rSerializer.save("size", mClosestPoints.size());
+    for (const auto& r_point : mClosestPoints) {
+        rSerializer.save("p", r_point);
+    }
     rSerializer.save("max_size", mMaxSize);
     rSerializer.save("max_distance", mMaxDistance);
 }
 
 void ClosestPointsContainer::load(Serializer &rSerializer)
 {
-    // rSerializer.load("closest_points", mClosestPoints);
+    // rSerializer.load("closest_points", mClosestPoints); // serializer does not yet support std::set
+
+    std::size_t num_points;
+    rSerializer.load("size", num_points);
+    PointWithId temp_point(0,Point(0),0);
+    for (std::size_t i=0; i<num_points; ++i) {
+        rSerializer.load("p", temp_point);
+        mClosestPoints.insert(temp_point);
+    }
     rSerializer.load("max_size", mMaxSize);
     rSerializer.load("max_distance", mMaxDistance);
 }
