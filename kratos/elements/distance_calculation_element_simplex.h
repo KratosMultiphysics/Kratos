@@ -397,7 +397,7 @@ public:
     ///@name Input and output
     ///@{
 
-    virtual const Parameters GetSpecifications() const
+    const Parameters GetSpecifications() const override
     {
         const Parameters specifications = Parameters(R"({
             "time_integration"           : ["static"],
@@ -422,8 +422,7 @@ public:
             },
             "required_polynomial_degree_of_geometry" : 1,
             "documentation"   :
-                "This element is intended to be used in combination with the VariationalDistanceCalculationProcess.
-                It implements a two-step resolution of an Eikonal equation in order to obtain a distance field with unit gradient norm."
+                "This element is intended to be used in combination with the VariationalDistanceCalculationProcess. It implements a two-step resolution of an Eikonal equation in order to obtain a distance field with unit gradient norm."
         })");
         return specifications;
     }

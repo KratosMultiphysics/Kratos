@@ -227,7 +227,7 @@ std::vector<std::string> VariableUtils::GetDofsListFromGenericEntitiesSpecificat
             dofs_var_names_set.insert(required_dofs[i_dof]);
         }
     }
-    KRATOS_WARNING_IF("GetDofsListFromGenericEntitiesSpecifications", dofs_var_names_set.empty())
+    KRATOS_WARNING_IF("GetDofsListFromGenericEntitiesSpecifications", n_entities > 0 && dofs_var_names_set.empty())
         << "DOFs variables set is empty. Check and complete your element/condition GetSpecifications() implementation." << std::endl;
 
     // Check that all the DOFs variables exist
