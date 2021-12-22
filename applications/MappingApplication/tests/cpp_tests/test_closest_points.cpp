@@ -154,7 +154,7 @@ KRATOS_TEST_CASE_IN_SUITE(ClosestPointsContainerAddMultiplePoints, KratosMapping
     cont.Add(point_1);
     cont.Add(point_4);
 
-    KRATOS_CHECK_EQUAL(cont.GetPoints().size(), max_size); // max two points are allowed!
+    KRATOS_CHECK_EQUAL(cont.GetPoints().size(), max_size);
 
     // check if are points are ordered by distance
     int counter = 1;
@@ -192,15 +192,57 @@ KRATOS_TEST_CASE_IN_SUITE(ClosestPointsContainerMerge, KratosMappingApplicationS
     cont2.Add(point_15);
     cont2.Add(point_45);
 
-    KRATOS_CHECK_EQUAL(cont.GetPoints().size(), max_size); // max two points are allowed!
-    KRATOS_CHECK_EQUAL(cont2.GetPoints().size(), max_size); // max two points are allowed!
+    KRATOS_CHECK_EQUAL(cont.GetPoints().size(), max_size);
+    KRATOS_CHECK_EQUAL(cont2.GetPoints().size(), max_size);
 
     cont.Merge(cont2);
+    KRATOS_CHECK_EQUAL(cont.GetPoints().size(), max_size);
 
     // check if are points are ordered by distance
     int counter = 2;
     for (const auto& r_point : cont.GetPoints()) {
         KRATOS_CHECK_DOUBLE_EQUAL(counter*0.5, r_point.GetDistance());
+        counter++;
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ClosestPointsContainerSerialization, KratosMappingApplicationSerialTestSuite)
+{
+    constexpr int max_size = 3;
+    ClosestPointsContainer cont(max_size);
+
+    const std::size_t id=36;
+
+    PointWithId point_1(id, Point(1), 1);
+    PointWithId point_2(id, Point(2), 2);
+    PointWithId point_3(id, Point(3), 3);
+    PointWithId point_4(id, Point(4), 4);
+
+    cont.Add(point_3);
+    cont.Add(point_2);
+    cont.Add(point_1);
+    cont.Add(point_4);
+
+    KRATOS_CHECK_EQUAL(cont.GetPoints().size(), max_size);
+
+    // check if are points are ordered by distance
+    int counter = 1;
+    for (const auto& r_point : cont.GetPoints()) {
+        KRATOS_CHECK_DOUBLE_EQUAL(counter*1.0, r_point.GetDistance());
+        counter++;
+    }
+
+    // serializing the object
+    StreamSerializer serializer;
+    serializer.save("obj", cont);
+    ClosestPointsContainer cont_new(0);
+    serializer.load("obj", cont_new);
+
+    KRATOS_CHECK_EQUAL(cont.GetPoints().size(), cont_new.GetPoints().size());
+    // check if are points are ordered by distance
+    counter = 1;
+    for (const auto& r_point : cont.GetPoints()) {
+        KRATOS_CHECK_DOUBLE_EQUAL(counter*1.0, r_point.GetDistance());
         counter++;
     }
 }
