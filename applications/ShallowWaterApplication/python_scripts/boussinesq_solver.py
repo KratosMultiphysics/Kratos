@@ -30,6 +30,15 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KM.RESIDUAL_VECTOR) # This is used by the predictor. TODO: replace with reaction
         self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)
 
+    def AdvanceInTime(self, current_time):
+        current_time = super().AdvanceInTime(current_time)
+        if self._TimeBufferIsInitialized():
+            current_time_step = self.GetComputingModelPart().ProcessInfo.GetValue(KM.DELTA_TIME)
+            previous_time_step = self.GetComputingModelPart().ProcessInfo.GetPreviousTimeStepInfo().GetValue(KM.DELTA_TIME)
+            if current_time_step - previous_time_step > 1e-10:
+                KM.Logger.PrintWarning(self.__class__.__name__, "The Adams Moulton scheme requires a constant time step.")
+        return current_time
+
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.main_model_part)
