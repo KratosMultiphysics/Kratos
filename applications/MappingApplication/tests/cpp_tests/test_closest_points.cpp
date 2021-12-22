@@ -14,6 +14,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "includes/stream_serializer.h"
 #include "custom_utilities/closest_points.h"
 
 namespace Kratos {
@@ -72,6 +73,27 @@ KRATOS_TEST_CASE_IN_SUITE(PointWithIdLessComparison, KratosMappingApplicationSer
     KRATOS_CHECK_LESS(point_1, point_2);
     KRATOS_CHECK(point_1 < point_2);
     KRATOS_CHECK_IS_FALSE(point_1 < point_3);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PointWithIdSerialization, KratosMappingApplicationSerialTestSuite)
+{
+    const std::size_t id=36;
+    const double dist=1.236;
+    const Point::CoordinatesArrayType coords{1.1,-2.5,31.09};
+
+    PointWithId point_1(id, coords, dist);
+    PointWithId point_new(0, Point(), 0);
+
+    // serializing the object
+    StreamSerializer serializer;
+    serializer.save("obj", point_1);
+    serializer.load("obj", point_new);
+
+    KRATOS_CHECK_EQUAL(point_1.GetId(), point_new.GetId());
+    KRATOS_CHECK_VECTOR_EQUAL(point_1.Coordinates(), point_new.Coordinates());
+    KRATOS_CHECK_DOUBLE_EQUAL(point_1.GetDistance(), point_new.GetDistance());
+
+    KRATOS_CHECK_EQUAL(point_1, point_new);
 }
 
 }  // namespace Testing
