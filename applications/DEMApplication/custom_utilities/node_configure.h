@@ -180,16 +180,9 @@ public:
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& Radius)
     {
-        double rObj_2_to_rObj_1[3];
-        PointType& point_1 = *rObj_1;
-        const double coors_1[3] = {point_1[0], point_1[1], point_1[2]};
-        PointType& point_2 = *rObj_2;
-        const double coors_2[3] = {point_2[0], point_2[1], point_2[2]};
-
-        PeriodicSubstract(coors_1, coors_2, rObj_2_to_rObj_1);
-
-        const double distance_2 = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
-        const bool intersect = floatle(distance_2, std::pow(Radius, 2));
+        double distance_squared;
+        SquaredDistance(rObj_1, rObj_2, distance_squared);
+        const bool intersect = floatle(distance_squared, std::pow(Radius, 2));
         return intersect;
     }
 
@@ -247,13 +240,22 @@ public:
 
     static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance)
     {
-        distance = 0.0;
-
-        for(std::size_t i = 0; i < 3; ++i){
-            distance += std::pow((*rObj_1)[i] - (*rObj_2)[i], 2);
-        }
+        SquaredDistance(rObj_1, rObj_2, distance);
 
         distance = std::sqrt(distance);
+    }
+
+    static inline void SquaredDistance(const PointerType& rObj_1, const PointerType& rObj_2, double& squared_distance)
+    {
+        double rObj_2_to_rObj_1[3];
+        PointType& point_1 = *rObj_1;
+        const double coors_1[3] = {point_1[0], point_1[1], point_1[2]};
+        PointType& point_2 = *rObj_2;
+        const double coors_2[3] = {point_2[0], point_2[1], point_2[2]};
+
+        PeriodicSubstract(coors_1, coors_2, rObj_2_to_rObj_1);
+
+        squared_distance = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
     }
 
     static double mDomainPeriods[3];
@@ -262,7 +264,7 @@ public:
     static bool mDomainIsPeriodic;
 
     /// Turn back information as a string.
-    virtual std::string Info() const {return " Spatial Containers Configure for Particles"; }
+    virtual std::string Info() const {return " Spatial Containers Configure for Nodes"; }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const {}

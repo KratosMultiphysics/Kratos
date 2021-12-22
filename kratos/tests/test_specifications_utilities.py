@@ -107,7 +107,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         KratosMultiphysics.SpecificationsUtilities.AddMissingDofs(model_part)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_X), True)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), True)
-        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), True)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), False)
 
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineTimeIntegration(model_part).sort(), ['explicit', 'static', 'implicit'].sort())
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineFramework(model_part), "lagrangian")
