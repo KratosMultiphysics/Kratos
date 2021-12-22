@@ -197,7 +197,7 @@ public:
 
     /**
      * @brief This method reads one geometry
-     * @param rThisNodes The nodes constituying the geometry
+     * @param rThisNodes The nodes constituting the geometry
      * @param pThisGeometries The pointer to the geometry
      */
     virtual void ReadGeometry(
