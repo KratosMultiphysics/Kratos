@@ -29,6 +29,7 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY_LAPLACIAN_RATE)
         self.main_model_part.AddNodalSolutionStepVariable(KM.RESIDUAL_VECTOR) # This is used by the predictor. TODO: replace with reaction
         self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.AUX_MESH_VAR)
 
     def AdvanceInTime(self, current_time):
         current_time = super().AdvanceInTime(current_time)
