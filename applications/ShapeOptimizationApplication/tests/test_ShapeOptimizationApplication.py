@@ -42,6 +42,7 @@ from surface_normal_shape_change_response_test.test_surface_normal_shape_change_
 from face_angle_response_test.test_face_angle_response import FaceAngleTest
 from mapper_plane_symmetry_test.plane_symmetry_test import PlaneSymmetryMapperTest
 from mapper_revolution_test.revolution_test import RevolutionMapperTest
+from shape_optimization_test_factory import direction_damping_test
 
 # Nightly tests
 
@@ -75,6 +76,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([RevolutionMapperTest]))
     smallSuite.addTest(algorithm_gradient_projection_test('test_execution'))
     smallSuite.addTest(remeshing_opt_process_test('test_execution'))
+    smallSuite.addTest(direction_damping_test('test_execution'))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']

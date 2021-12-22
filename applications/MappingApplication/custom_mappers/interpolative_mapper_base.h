@@ -30,6 +30,8 @@
 #include "custom_searching/interface_communicator.h"
 #include "custom_utilities/interface_vector_container.h"
 #include "mappers/mapper_flags.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "custom_utilities/mapper_local_system.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_utilities.h"

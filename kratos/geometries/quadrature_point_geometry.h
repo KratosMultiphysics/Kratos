@@ -87,7 +87,7 @@ public:
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             rIntegrationPoints,
             rShapeFunctionValues,
             rShapeFunctionsDerivativesVector)
@@ -104,7 +104,7 @@ public:
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             rIntegrationPoints,
             rShapeFunctionValues,
             rShapeFunctionsDerivativesVector)
@@ -146,7 +146,7 @@ public:
         , mGeometryData(
             &msGeometryDimension,
             GeometryShapeFunctionContainerType(
-                GeometryData::GI_GAUSS_1,
+                GeometryData::IntegrationMethod::GI_GAUSS_1,
                 ThisIntegrationPoint,
                 ThisShapeFunctionsValues,
                 ThisShapeFunctionsDerivatives))
@@ -164,7 +164,7 @@ public:
         , mGeometryData(
             &msGeometryDimension,
             GeometryShapeFunctionContainerType(
-                GeometryData::GI_GAUSS_1,
+                GeometryData::IntegrationMethod::GI_GAUSS_1,
                 ThisIntegrationPoint,
                 ThisShapeFunctionsValues,
                 ThisShapeFunctionsDerivatives))
@@ -173,36 +173,29 @@ public:
     }
 
     /// Constructor.
-    explicit QuadraturePointGeometry(
-        const PointsArrayType& ThisPoints)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
-            {}, {}, {})
-    {
-    }
+    QuadraturePointGeometry(
+        const PointsArrayType& ThisPoints) = delete;
 
     /// Constructor with Geometry Id
-    explicit QuadraturePointGeometry(
+    QuadraturePointGeometry(
         const IndexType GeometryId,
         const PointsArrayType& ThisPoints
     ) : BaseType( GeometryId, ThisPoints, &mGeometryData )
         , mGeometryData(
             &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             {}, {}, {})
     {
     }
 
     /// Constructor with Geometry Name
-    explicit QuadraturePointGeometry(
+    QuadraturePointGeometry(
         const std::string& GeometryName,
         const PointsArrayType& ThisPoints
     ) : BaseType( GeometryName, ThisPoints, &mGeometryData )
         , mGeometryData(
             &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             {}, {}, {})
     {
     }
@@ -581,7 +574,7 @@ protected:
             &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             {}, {}, {})
     {
     }
@@ -627,12 +620,12 @@ private:
         ShapeFunctionsValuesContainerType shape_functions_values;
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients;
 
-        rSerializer.load("IntegrationPoints", integration_points[GeometryData::GI_GAUSS_1]);
-        rSerializer.load("ShapeFunctionsValues", shape_functions_values[GeometryData::GI_GAUSS_1]);
-        rSerializer.load("ShapeFunctionsLocalGradients", shape_functions_local_gradients[GeometryData::GI_GAUSS_1]);
+        rSerializer.load("IntegrationPoints", integration_points[static_cast<int>(GeometryData::IntegrationMethod::GI_GAUSS_1)]);
+        rSerializer.load("ShapeFunctionsValues", shape_functions_values[static_cast<int>(GeometryData::IntegrationMethod::GI_GAUSS_1)]);
+        rSerializer.load("ShapeFunctionsLocalGradients", shape_functions_local_gradients[static_cast<int>(GeometryData::IntegrationMethod::GI_GAUSS_1)]);
 
         mGeometryData.SetGeometryShapeFunctionContainer(GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             integration_points,
             shape_functions_values,
             shape_functions_local_gradients));

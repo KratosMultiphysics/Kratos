@@ -37,7 +37,7 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
-            "value"                : [10.0, "3*t", "x+y"],
+            "value"                : [0.0, 0.0, 0.0],
             "local_axes"           : {},
             "entities"             : []
         }
@@ -51,6 +51,10 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
                     settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
                 else:
                     raise Exception("the second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
+
+        if not settings.Has("value"):
+            raise RuntimeError("Please specify the value to set the vector to. Example:\n" \
+                               + '{\n\t"value" : [10.0, "3*t", "x+y"]\n}\n')
 
         settings.ValidateAndAssignDefaults(default_settings)
 

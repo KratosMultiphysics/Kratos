@@ -1,4 +1,4 @@
-$RELEASE_BRANCH="ci/updating-whell-app-descriptors"
+$RELEASE_BRANCH="wheels/updating_triangle"
 
 $HOST_SWAP="C:/data_swap_host"
 $GUEST_SWAP="/data_swap_guest"

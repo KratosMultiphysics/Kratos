@@ -18,7 +18,6 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <pybind11/pybind11.h>
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -27,6 +26,7 @@
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/parallel_utilities.h"
 #include "custom_utilities/filter_function.h"
 #include "shape_optimization_application.h"
 
@@ -73,7 +73,6 @@ public:
     typedef std::vector<NodeTypePointer>::iterator NodeVectorIterator;
     typedef std::vector<double> DoubleVector;
     typedef std::vector<double>::iterator DoubleVectorIterator;
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
     // Type definitions for tree-search
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeVectorIterator, DoubleVectorIterator > BucketType;
@@ -87,19 +86,34 @@ public:
     ///@{
 
     /// Default constructor.
-    DampingUtilities( ModelPart& modelPartToDamp, pybind11::dict subModelPartsForDamping, Parameters DampingSettings )
+    DampingUtilities( ModelPart& modelPartToDamp, Parameters DampingSettings )
         : mrModelPartToDamp( modelPartToDamp ),
-          mrDampingRegions( subModelPartsForDamping ),
           mDampingSettings( DampingSettings ),
           mMaxNeighborNodes( DampingSettings["max_neighbor_nodes"].GetInt() )
     {
+        Parameters default_parameters( R"(
+            {
+                "sub_model_part_name"   : "MODEL_PART_NAME",
+                "damp_X"                : true,
+                "damp_Y"                : true,
+                "damp_Z"                : true,
+                "damping_function_type" : "cosine",
+                "damping_radius"        : -1.0
+            }  )" );
+
+        // Loop over all regions for which damping is to be applied
+        for (auto& r_region_parameters : mDampingSettings["damping_regions"])
+        {
+            r_region_parameters.ValidateAndAssignDefaults(default_parameters);
+            KRATOS_ERROR_IF(r_region_parameters["damping_radius"].GetDouble() < 0.0) << "DampingUtilities: 'damping_radius' is a mandatory setting and has to be > 0.0!" << std::endl;
+        }
+
         BuiltinTimer timer;
         KRATOS_INFO("") << std::endl;
         KRATOS_INFO("ShapeOpt") << "Creating search tree to perform damping..." << std::endl;
         CreateListOfNodesOfModelPart();
         CreateSearchTreeWithAllNodesOfModelPart();
         KRATOS_INFO("ShapeOpt") << "Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
-
         InitalizeDampingFactorsToHaveNoInfluence();
         SetDampingFactorsForAllDampingRegions();
     }
@@ -152,66 +166,66 @@ public:
     void SetDampingFactorsForAllDampingRegions()
     {
         KRATOS_INFO("") << std::endl;
+
+        BuiltinTimer timer;
         KRATOS_INFO("ShapeOpt") << "Starting to prepare damping..." << std::endl;
 
         // Loop over all regions for which damping is to be applied
-        for (unsigned int regionNumber = 0; regionNumber < len(mrDampingRegions); regionNumber++)
+        for (const auto& r_region_parameters : mDampingSettings["damping_regions"])
         {
-            std::string dampingRegionSubModelPartName = mDampingSettings["damping_regions"][regionNumber]["sub_model_part_name"].GetString();
-            ModelPart& dampingRegion = pybind11::cast<ModelPart&>( mrDampingRegions[pybind11::str(dampingRegionSubModelPartName)] );
+            const std::string& sub_model_part_name = r_region_parameters["sub_model_part_name"].GetString();
+            ModelPart& dampingRegion = mrModelPartToDamp.GetRootModelPart().GetSubModelPart(sub_model_part_name);
 
-            bool dampX = mDampingSettings["damping_regions"][regionNumber]["damp_X"].GetBool();
-            bool dampY = mDampingSettings["damping_regions"][regionNumber]["damp_Y"].GetBool();
-            bool dampZ = mDampingSettings["damping_regions"][regionNumber]["damp_Z"].GetBool();
-            std::string dampingFunctionType = mDampingSettings["damping_regions"][regionNumber]["damping_function_type"].GetString();
-            double dampingRadius = mDampingSettings["damping_regions"][regionNumber]["damping_radius"].GetDouble();
+            const bool dampX = r_region_parameters["damp_X"].GetBool();
+            const bool dampY = r_region_parameters["damp_Y"].GetBool();
+            const bool dampZ = r_region_parameters["damp_Z"].GetBool();
+            const auto& dampingFunctionType = r_region_parameters["damping_function_type"].GetString();
+            const double dampingRadius = r_region_parameters["damping_radius"].GetDouble();
 
-            auto p_damping_function = CreateDampingFunction( dampingFunctionType, dampingRadius );
+            const auto p_damping_function = CreateDampingFunction(dampingFunctionType, dampingRadius );
 
             // Loop over all nodes in specified damping sub-model part
-            for(auto& node_i : dampingRegion.Nodes())
-            {
-                ModelPart::NodeType& currentDampingNode = node_i;
+            block_for_each(dampingRegion.Nodes(), [&](const ModelPart::NodeType& rNode) {
                 NodeVector neighbor_nodes( mMaxNeighborNodes );
-                DoubleVector resulting_squared_distances( mMaxNeighborNodes,0.0 );
-                unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( currentDampingNode,
+                const unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( rNode,
                                                                                  dampingRadius,
                                                                                  neighbor_nodes.begin(),
-                                                                                 resulting_squared_distances.begin(),
                                                                                  mMaxNeighborNodes );
 
-                ThrowWarningIfNodeNeighborsExceedLimit( currentDampingNode, number_of_neighbors );
+                ThrowWarningIfNodeNeighborsExceedLimit( rNode, number_of_neighbors );
 
                 // Loop over all nodes in radius (including node on damping region itself)
                 for(unsigned int j_itr = 0 ; j_itr<number_of_neighbors ; j_itr++)
                 {
                     ModelPart::NodeType& neighbor_node = *neighbor_nodes[j_itr];
-                    const double dampingFactor = 1-p_damping_function->ComputeWeight( currentDampingNode.Coordinates(), neighbor_node.Coordinates());
+                    const double dampingFactor = 1.0 - p_damping_function->ComputeWeight( rNode.Coordinates(), neighbor_node.Coordinates());
 
                     // For every specified damping direction we check if new damping factor is smaller than the assigned one for current node.
                     // In case yes, we overwrite the value. This ensures that the damping factor of a node is computed by its closest distance to the damping region
-                    auto& damping_factor_variable = neighbor_node.GetValue(DAMPING_FACTOR);
+                    array_3d& damping_factor_variable = neighbor_node.GetValue(DAMPING_FACTOR);
+                    neighbor_node.SetLock();
                     if(dampX && dampingFactor < damping_factor_variable[0])
                         damping_factor_variable[0] = dampingFactor;
                     if(dampY && dampingFactor < damping_factor_variable[1])
                         damping_factor_variable[1] = dampingFactor;
                     if(dampZ && dampingFactor < damping_factor_variable[2])
                         damping_factor_variable[2] = dampingFactor;
+                    neighbor_node.UnSetLock();
                 }
-            }
+            });
         }
 
-        KRATOS_INFO("ShapeOpt") << "Finished preparation of damping." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Finished preparation of damping in: " << timer.ElapsedSeconds() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
-    FilterFunction::Pointer CreateDampingFunction( std::string damping_type, double damping_radius )
+    FilterFunction::Pointer CreateDampingFunction( std::string damping_type, double damping_radius ) const
     {
         return Kratos::make_unique<FilterFunction>(damping_type, damping_radius);
     }
 
     // --------------------------------------------------------------------------
-    void ThrowWarningIfNodeNeighborsExceedLimit( ModelPart::NodeType& given_node, unsigned int number_of_neighbors )
+    void ThrowWarningIfNodeNeighborsExceedLimit( const ModelPart::NodeType& given_node, const unsigned int number_of_neighbors ) const
     {
         if(number_of_neighbors >= mMaxNeighborNodes)
             KRATOS_WARNING("ShapeOpt::DampingUtilities") << "For node " << given_node.Id() << " and specified damping radius, maximum number of neighbor nodes (=" << mMaxNeighborNodes << " nodes) reached!" << std::endl;
@@ -220,15 +234,14 @@ public:
     // --------------------------------------------------------------------------
     void DampNodalVariable( const Variable<array_3d> &rNodalVariable )
     {
-        for(auto& node_i : mrModelPartToDamp.Nodes())
-        {
-            auto& damping_factor = node_i.GetValue(DAMPING_FACTOR);
-            auto& nodalVariable = node_i.FastGetSolutionStepValue(rNodalVariable);
+        block_for_each(mrModelPartToDamp.Nodes(), [&](ModelPart::NodeType& rNode) {
+            const array_3d& damping_factor = rNode.GetValue(DAMPING_FACTOR);
+            array_3d& nodalVariable = rNode.FastGetSolutionStepValue(rNodalVariable);
 
             nodalVariable[0] *= damping_factor[0];
             nodalVariable[1] *= damping_factor[1];
             nodalVariable[2] *= damping_factor[2];
-        }
+        });
     }
 
     // ==============================================================================
@@ -322,7 +335,6 @@ private:
     // Initialized by class constructor
     // ==============================================================================
     ModelPart& mrModelPartToDamp;
-    pybind11::dict mrDampingRegions;
     Parameters mDampingSettings;
 
     // ==============================================================================
