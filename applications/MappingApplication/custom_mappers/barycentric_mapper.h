@@ -19,6 +19,7 @@
 
 // Project includes
 #include "interpolative_mapper_base.h"
+#include "custom_utilities/closest_points.h"
 #include "custom_utilities/projection_utilities.h"
 
 
@@ -27,15 +28,21 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+enum class BarycentricInterpolationType {
+    LINE,
+    TRIANGLE,
+    TETRAHEDRA
+};
+
 class KRATOS_API(MAPPING_APPLICATION) BarycentricInterfaceInfo : public MapperInterfaceInfo
 {
 public:
-    explicit BarycentricInterfaceInfo(const std::size_t NumInterpolationNodes);
+    explicit BarycentricInterfaceInfo(const BarycentricInterpolationType InterpolationType);
 
     explicit BarycentricInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                                       const IndexType SourceLocalSystemIndex,
                                       const IndexType SourceRank,
-                                      const std::size_t NumInterpolationNodes);
+                                      const BarycentricInterpolationType InterpolationType);
 
     MapperInterfaceInfo::Pointer Create() const override;
 
@@ -47,18 +54,13 @@ public:
 
     void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
 
-    void GetValue(std::vector<int>& rValue,
-                  const InfoType ValueType) const override;
+    BarycentricInterpolationType GetInterpolationType() const { return mInterpolationType; }
 
-    void GetValue(std::vector<double>& rValue,
-                  const InfoType ValueType) const override;
+    const ClosestPointsContainer& GetClosestPoints() const { return mClosestPoints; }
 
 private:
-
-    std::vector<int> mNodeIds;
-    std::vector<double> mNeighborCoordinates;
-
-    void Initialize(const std::size_t NumInterpolationNodes);
+    BarycentricInterpolationType mInterpolationType;
+    ClosestPointsContainer mClosestPoints;
 
     friend class Serializer;
 
@@ -140,11 +142,11 @@ public:
 
         const std::string interpolation_type = JsonParameters["interpolation_type"].GetString();
         if (interpolation_type == "line") {
-            mNumInterpolationNodes = 2;
+            mInterpolationType = BarycentricInterpolationType::LINE;
         } else if (interpolation_type == "triangle") {
-            mNumInterpolationNodes = 3;
+            mInterpolationType = BarycentricInterpolationType::TRIANGLE;
         } else if (interpolation_type == "tetrahedra") {
-            mNumInterpolationNodes = 4;
+            mInterpolationType = BarycentricInterpolationType::TETRAHEDRA;
         } else {
             KRATOS_ERROR << "BarycentricMapper: No \"interpolation_type\" was specified, please select \"line\", \"triangle\" or \"tetrahedra\"" << std::endl;
         }
@@ -201,7 +203,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::size_t mNumInterpolationNodes;
+    BarycentricInterpolationType mInterpolationType;
 
     ///@}
 
@@ -220,7 +222,7 @@ private:
 
     MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
     {
-        return Kratos::make_unique<BarycentricInterfaceInfo>(mNumInterpolationNodes);
+        return Kratos::make_unique<BarycentricInterfaceInfo>(mInterpolationType);
     }
 
     Parameters GetMapperDefaultSettings() const override
