@@ -225,7 +225,9 @@ void ModelPartIO::ReadGeometry(NodesContainerType& rThisNodes, GeometryType::Poi
     KRATOS_ERROR << "Calling base class member. Please check the definition of derived class" << std::endl;
 }
 
-void ModelPartIO::ReadGeometries(NodesContainerType& rThisNodes, GeometryContainerType& rThisGeometries)
+void ModelPartIO::ReadGeometries(
+    NodesContainerType& rThisNodes,
+    GeometryContainerType& rThisGeometries)
 {
     KRATOS_TRY
     ResetInput();
