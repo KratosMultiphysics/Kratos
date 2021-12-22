@@ -768,7 +768,10 @@ public:
      * @brief Checks if two GeometryType have the same geometry type (pointer version)
      * @return True if the geometries are the same type, false otherwise
      */
-    inline static bool HasSameGeometryType(const GeometryType* rLHS, const GeometryType* rRHS) {
+    inline static bool HasSameGeometryType(
+        const GeometryType* rLHS,
+        const GeometryType* rRHS)
+    {
         return GeometryType::HasSameGeometryType(*rLHS, *rRHS);
     }
 
