@@ -33,8 +33,8 @@ class periodic_backward_coupling(PeriodicBackwardTF.PeriodicBackwardCouplingTest
      file_parameters_harsh = "fluid_convergence_tests/ProjectParametersPeriodicHarsh.json"
      file_parameters_gentle = "fluid_convergence_tests/ProjectParametersPeriodicHarsh.json"
      def GetGentleParameterValueAndName(self, parameters):
-         parameter_name = 'destruction_delay_interval'
-         return parameters['dem_parameters']['creator_destructor_settings'][parameter_name].GetDouble(), parameter_name
+         parameter_name = 'initiation_interval'
+         return parameters['coupling']['gentle_coupling_initiation'][parameter_name].GetDouble(), parameter_name
 
 
 
