@@ -210,7 +210,7 @@ public:
 
     /**
      * @brief This method reads an array of geometries
-     * @param rThisNodes The nodes constituying the geometry
+     * @param rThisNodes The nodes constituting the geometry
      * @param rThisGeometry The array of geometries
      */
     virtual void ReadGeometries(
