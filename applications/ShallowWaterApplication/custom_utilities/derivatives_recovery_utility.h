@@ -108,6 +108,10 @@ public:
         const Variable<double>& rIntermediateVariable,
         const std::size_t BufferStep = 0);
 
+    static void ExtendRequiredNeighbors(ModelPart& rModelPart);
+
+    static void CalculatePolynomialWeights(ModelPart& rModelPart);
+
     ///@}
     ///@name Access
     ///@{
@@ -157,6 +161,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    static double CalculateMaximumDistance(NodeType& rNode, GlobalPointersVector<NodeType>& rNeighbors);
 
     ///@}
     ///@name Protected  Access

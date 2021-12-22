@@ -185,4 +185,66 @@ void DerivativesRecoveryUtility::CalculateSuperconvergentLaplacian(
     CalculateSuperconvergentGradient(rModelPart, rIntermediateVariable, rDestinationVariable, BufferStep);
 }
 
+void DerivativesRecoveryUtility::ExtendRequiredNeighbors(ModelPart& rModelPart)
+{
+    std::size_t space_degree = 1;
+    std::size_t required_n_neighbors = (space_degree + 2) * (space_degree * 3) / 2;
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
+        auto n_neigh = neigh_nodes.size();
+        if (n_neigh < required_n_neighbors)
+        {
+            auto initial_neigh = neigh_nodes;
+            for (auto& r_neigh : initial_neigh)
+            {
+                auto& extended_neighbors = r_neigh.GetValue(NEIGHBOUR_NODES);
+                for (auto& second_neigh : extended_neighbors) // check if it is a new neighbour
+                {
+                    if (second_neigh.Id() != rNode.Id())
+                    {
+                        bool second_neigh_included = false;
+                        for (auto& first_neigh : neigh_nodes)
+                        {
+                            if (second_neigh.Id() == first_neigh.Id())
+                            {
+                                second_neigh_included = true;
+                                break;
+                            }
+                        }
+                        if (!second_neigh_included){
+                            neigh_nodes.push_back(&second_neigh);
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+void DerivativesRecoveryUtility::CalculatePolynomialWeights(ModelPart& rModelPart)
+{
+    const std::size_t n_poly_terms = 6;
+
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
+        auto n_neigh = neigh_nodes.size();
+        const double h_inv = 1.0 / DerivativesRecoveryUtility::CalculateMaximumDistance(rNode, neigh_nodes); // we use it as a scaling parameter to improve stability
+
+        Vector nodal_values(n_neigh);
+        Matrix A(n_neigh, n_poly_terms);
+    });
+}
+
+double DerivativesRecoveryUtility::CalculateMaximumDistance(
+    NodeType& rNode, GlobalPointersVector<NodeType>& rNeighbors)
+{
+    double max_distance = 0.0;
+
+    for (auto& r_neigh : rNeighbors) {
+        double distance = norm_2(rNode - r_neigh);
+        max_distance = std::max(max_distance, distance);
+    }
+    return max_distance;
+}
+
 }  // namespace Kratos.
