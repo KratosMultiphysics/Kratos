@@ -14,29 +14,19 @@
 #ifndef KRATOS_RESIDUAL_BASED_ADAMS_MOULTON_SCHEME_H_INCLUDED
 #define KRATOS_RESIDUAL_BASED_ADAMS_MOULTON_SCHEME_H_INCLUDED
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
+#include "utilities/entities_utilities.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "processes/calculate_nodal_area_process.h"
-#include "utilities/entities_utilities.h"
+#include "custom_utilities/derivatives_recovery_utility.h"
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-///@}
-///@name Type Definitions
-///@{
-///@}
-///@name  Enum's
-///@{
-///@}
-///@name  Functions
-///@{
-///@}
+
 ///@name Kratos Classes
 ///@{
 
@@ -166,19 +156,29 @@ public:
         TSystemVectorType& rb
     ) override
     {
-        block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = ZeroVector(3);
-            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) = ZeroVector(3);
-        });
+        // block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        //     rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = ZeroVector(3);
+        //     rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) = ZeroVector(3);
+        // });
 
-        BaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
+        // BaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
 
-        block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-            const double nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
-            const double inv_mass = 1.0 / nodal_area;
-            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) *= inv_mass;
-            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) *= inv_mass;
-        });
+        // block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        //     const double nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
+        //     const double inv_mass = 1.0 / nodal_area;
+        //     rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) *= inv_mass;
+        //     rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) *= inv_mass;
+        // });
+    }
+
+    void FinalizeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+    ) override
+    {
+        // InitializeNonLinIteration(rModelPart, rA, rDx, rb);
     }
 
     /**
@@ -208,23 +208,33 @@ public:
 
         // Setting to zero the projections
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = ZeroVector(3);
-            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) = ZeroVector(3);
+            // rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = ZeroVector(3);
+            // rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) = ZeroVector(3);
             rNode.FastGetSolutionStepValue(RESIDUAL_VECTOR) = ZeroVector(3);
         });
 
-        // Project the laplacian fields
-        block_for_each(rModelPart.Elements(), [&](Element& rElement){
-            rElement.InitializeNonLinearIteration(r_process_info);
-        });
+        // // Project the laplacian fields
+        // block_for_each(rModelPart.Elements(), [&](Element& rElement){
+        //     rElement.InitializeNonLinearIteration(r_process_info);
+        // });
 
-        // Recover the laplacian field
-        block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
-            const double nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
-            const double inv_mass = 1.0 / nodal_area;
-            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) *= inv_mass;
-            rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) *= inv_mass;
-        });
+        // block_for_each(rModelPart.Conditions(), [&](Condition& rCondition){
+        //     rCondition.InitializeNonLinearIteration(r_process_info);
+        // });
+
+        // // Recover the laplacian field
+        // block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+        //     const double nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
+        //     const double inv_mass = 1.0 / nodal_area;
+        //     rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) *= inv_mass;
+        //     rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) *= inv_mass;
+        // });
+
+        DerivativesRecoveryUtility::CalculateLaplacian(
+            rModelPart,
+            VELOCITY,
+            VELOCITY_LAPLACIAN,
+            AUX_MESH_VAR);
 
         // Calculate the prediction
         block_for_each(rModelPart.Elements(), [&](Element& rElement){
@@ -270,9 +280,9 @@ public:
     {
         KRATOS_TRY;
 
-        mpDofUpdater->UpdateDofs(rDofSet, rDx);
+        // mpDofUpdater->UpdateDofs(rDofSet, rDx);
 
-        UpdateDerivatives(rModelPart, rDofSet, rA, rDx, rb);
+        // UpdateDerivatives(rModelPart, rDofSet, rA, rDx, rb);
 
         KRATOS_CATCH( "" );
     }
