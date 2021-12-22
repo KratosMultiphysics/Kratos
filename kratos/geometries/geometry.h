@@ -738,7 +738,10 @@ public:
      * @brief Checks if two GeometryType have the same type
      * @return True if the objects are the same type, false otherwise
      */
-    inline static bool HasSameType(const GeometryType& rLHS, const GeometryType& rRHS) {
+    inline static bool HasSameType(
+        const GeometryType& rLHS,
+        const GeometryType& rRHS)
+    {
         return (typeid(rLHS) == typeid(rRHS));
     }
 
