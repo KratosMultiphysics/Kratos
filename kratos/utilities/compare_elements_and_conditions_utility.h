@@ -50,7 +50,9 @@ public:
         CompareElementsAndConditionsUtility::GetRegisteredName(*pElement, rName);
     }
 
-    static void KRATOS_API(KRATOS_CORE) GetRegisteredName(const Condition& rCondition, std::string& rName);
+    static void KRATOS_API(KRATOS_CORE) GetRegisteredName(
+        const Condition& rCondition,
+        std::string& rName);
 
     static void GetRegisteredName(const Condition* pCondition, std::string& rName) {
         CompareElementsAndConditionsUtility::GetRegisteredName(*pCondition, rName);
