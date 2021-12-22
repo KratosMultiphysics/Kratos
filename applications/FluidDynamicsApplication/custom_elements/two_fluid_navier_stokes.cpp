@@ -321,7 +321,7 @@ const Parameters TwoFluidNavierStokes<TElementData>::GetSpecifications() const
             Surface tension contribution can be accounted for by setting the SURFACE_TENSION variable to true in the ProcessInfo container.
     })");
 
-    if (TDim == 2) {
+    if (Dim == 2) {
         std::vector<std::string> dofs_2d({"VELOCITY_X","VELOCITY_Y","PRESSURE"});
         specifications["required_dofs"].SetStringArray(dofs_2d);
     } else {
