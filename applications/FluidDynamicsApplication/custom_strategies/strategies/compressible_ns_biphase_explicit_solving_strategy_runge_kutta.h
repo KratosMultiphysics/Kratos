@@ -628,6 +628,9 @@ using CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4 = CompressibleNSBi
 template<class TSparseSpace, class TDenseSpace>
 using CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta3TVD = CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, ButcherTableauRK3TVD>;
 
+template<class TSparseSpace, class TDenseSpace>
+using CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta1 = CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, ButcherTableauForwardEuler>;
+
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_COMPRESSIBLE_NS_BIPHASE_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA  defined */

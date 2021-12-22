@@ -14,18 +14,21 @@ def CreateSolver(model, custom_settings):
 
 class NSBiphaseCompressibleExplicitSolver(FluidSolver):
     def __init__(self, model, custom_settings):
+        # Deprecated shock capturing
+        self._CheckDeprecatedSettings(custom_settings)
+
         # Call base fluid solver constructor
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(NSBiphaseCompressibleExplicitSolver,self).__init__(model,custom_settings)
 
         # Define the formulation settings
-        self.element_name = "CompressibleNSBiphaseExplicit"
+        self.element_name = "CompressibleNavierStokesExplicit"
         if custom_settings["domain_size"].GetInt() == 2:
             self.condition_name = "LineCondition" # TODO: We need to create a Compressible NS condition (now using the base ones)
         elif custom_settings["domain_size"].GetInt() == 3:
             self.condition_name = "SurfaceCondition" # TODO: We need to create a Compressible NS condition (now using the base ones)
         else:
-            err_mgs = "Wrong domain size "
+            err_msg = "Wrong domain size "
             raise Exception(err_msg)
         self.min_buffer_size = 2
         self.element_has_nodal_properties = False # Note that DENSITY is nodally stored but considered as a DOF
@@ -50,8 +53,9 @@ class NSBiphaseCompressibleExplicitSolver(FluidSolver):
             },
             "echo_level": 1,
             "time_order": 2,
+            "time_scheme" : "RK4",
             "move_mesh_flag": false,
-            "shock_capturing": true,
+            "shock_capturing_settings" : { },
             "compute_reactions": false,
             "reform_dofs_at_each_step" : false,
             "assign_neighbour_elements_to_conditions": true,
@@ -96,7 +100,7 @@ class NSBiphaseCompressibleExplicitSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.GAS_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DYNAMIC_PRESSURE)
 
-        KratosMultiphysics.Logger.PrintInfo("::[NSBiphaseCompressibleExplicitSolver]:: ","Explicit biphase compressible fluid solver variables added correctly")
+        KratosMultiphysics.Logger.PrintInfo("::[NSBiphaseCompressibleExplicitSolver]:: ","Explicit compressible biphase fluid solver variables added correctly")
 
     def AddDofs(self):
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
@@ -109,16 +113,14 @@ class NSBiphaseCompressibleExplicitSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TOTAL_ENERGY, KratosFluid.REACTION_ENERGY, self.main_model_part)
 
     def Initialize(self):
-        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.OSS_SWITCH] = int(self.settings["use_oss"].GetBool())  #AM: Is it possible to implement the stabilization direcctly in the element? 
-        self.GetComputingModelPart().ProcessInfo[KratosFluid.SHOCK_CAPTURING_SWITCH] = int(self.settings["shock_capturing"].GetBool())
-        #AM: Is it possible to implement the Shock Capturing direcctly in the element?
-
+        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.OSS_SWITCH] = int(self.settings["use_oss"].GetBool())
+        self._ReadShockCapturingSettings()
 
         self.solver = self._get_solution_strategy()
         self.solver.SetEchoLevel(self.settings["echo_level"].GetInt())
         self.solver.Initialize()
 
-        KratosMultiphysics.Logger.PrintInfo("::[NSBiphaseCompressibleExplicitSolver]:: ","Biphase Explicit compressible fluid solver initialization finished.")
+        KratosMultiphysics.Logger.PrintInfo("::[NSBiphaseCompressibleExplicitSolver]:: ","Explicit compressible fluid solver initialization finished.")
 
     def _get_solution_strategy(self):
         if not hasattr(self, '_solution_strategy'):
@@ -130,14 +132,71 @@ class NSBiphaseCompressibleExplicitSolver(FluidSolver):
         strategy_settings = KratosMultiphysics.Parameters('''{}''')
         strategy_settings.AddEmptyValue("rebuild_level").SetInt(0 if self.settings["reform_dofs_at_each_step"].GetBool() else 1)
         strategy_settings.AddEmptyValue("move_mesh_flag").SetBool(self.settings["move_mesh_flag"].GetBool())
-        strategy_settings.AddEmptyValue("shock_capturing").SetBool(self.settings["shock_capturing"].GetBool())
+        strategy_settings.AddEmptyValue("shock_capturing_settings").RecursivelyAddMissingParameters(self.settings["shock_capturing_settings"])
 
-#        strategy = KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4(
-#            self.computing_model_part,
-#           strategy_settings)
+        rk_parameter = self.settings["time_scheme"].GetString()
 
-        strategy = KratosFluid.CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4(
-            self.computing_model_part,
-            strategy_settings)
+        rk_startegies = {
+            
+            "RK3-TVD": KratosFluid.CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta3TVD,
+            "RK4"    : KratosFluid.CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4,
+            "RK1"    : KratosFluid.CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta1
+        }
 
-        return strategy
+        if rk_parameter in rk_startegies:
+            return rk_startegies[rk_parameter](self.computing_model_part, strategy_settings)
+
+        err_msg = "Runge-Kutta method of type '{}' not available. Try any of\n".format(rk_parameter)
+        for key in rk_startegies:
+            err_msg = err_msg + " - {}\n".format(key)
+        raise RuntimeError(err_msg)
+
+    def _CreateEstimateDtUtility(self):
+        """This method overloads FluidSolver in order to enforce:
+        ```
+        self.settings["time_stepping"]["consider_compressibility_in_CFL"] == True
+        ```
+        """
+        if self.settings["time_stepping"].Has("consider_compressibility_in_CFL"):
+            KratosMultiphysics.Logger.PrintWarning("", "User-specifed consider_compressibility_in_CFL will be overriden with TRUE")
+        else:
+            self.settings["time_stepping"].AddEmptyValue("consider_compressibility_in_CFL")
+
+        self.settings["time_stepping"]["consider_compressibility_in_CFL"].SetBool(True)
+
+        estimate_dt_utility = KratosFluid.EstimateDtUtility(
+                self.GetComputingModelPart(),
+                self.settings["time_stepping"])
+
+        return estimate_dt_utility
+
+    def _CheckDeprecatedSettings(self, custom_settings):
+        if custom_settings.Has("shock_capturing"):
+            KratosMultiphysics.Logger.PrintInfo(
+                '::[NSBiphaseCompressibleExplicitSolver]:: "',
+                "\n".join(['Setting "shock_capturing" is deprecated. Please use:',
+                           '   {',
+                           '       "shock_capturing_settings" : {',
+                           '            "type" : "physics_based"',
+                           '       }',
+                           '   }',
+                           'to maintain the same functionality with the newer syntax.'
+                ]))
+
+            custom_settings.RemoveValue("shock_capturing")
+            # Not adding new syntax -> Using defauts
+
+
+    def _ReadShockCapturingSettings(self):
+        "Determines if shock capturing will be enabled and sets up SHOCK_CAPTURING_SWITCH"
+        default_parameters = KratosMultiphysics.Parameters("""
+            {
+                    "type" : "physics_based",
+                    "Parameters" : { }
+            }
+        """)
+
+        self.settings["shock_capturing_settings"].ValidateAndAssignDefaults(default_parameters)
+        enable_shock_capturing = self.settings["shock_capturing_settings"]["type"].GetString() != "none"
+
+        self.GetComputingModelPart().ProcessInfo[KratosFluid.SHOCK_CAPTURING_SWITCH] = int(enable_shock_capturing)
