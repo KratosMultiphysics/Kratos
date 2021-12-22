@@ -770,7 +770,10 @@ public:
      * @brief Checks if two GeometryType are the same
      * @return True if the object is the same, false otherwise
      */
-    inline static bool IsSame(const GeometryType& rLHS, const GeometryType& rRHS) {
+    inline static bool IsSame(
+        const GeometryType& rLHS,
+        const GeometryType& rRHS)
+    {
         return GeometryType::HasSameType(rLHS, rRHS) && GeometryType::HasSameGeometryType(rLHS, rRHS);
     }
 
