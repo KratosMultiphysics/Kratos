@@ -27,11 +27,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
-#include "includes/variables.h"
 
-
-#include "includes/element.h"
-#include "includes/condition.h"
 
 #include "includes/constitutive_law.h"
 

@@ -16,12 +16,9 @@
 // ==============================================================================
 
 // External includes
-
 #include "boost/numeric/ublas/vector.hpp"
 
 // Project includes
-#include "includes/define.h"
-#include "containers/flags.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "spaces/ublas_space.h"
 

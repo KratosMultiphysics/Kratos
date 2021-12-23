@@ -21,16 +21,12 @@
 
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Core applications
 #include "topology_optimization_application.h"
-
 #include "custom_elements/small_displacement_simp_element.h"
-#include "includes/variables.h"
 
 // Project includes
 #include "includes/define.h"

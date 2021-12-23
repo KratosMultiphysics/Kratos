@@ -16,14 +16,12 @@
 // ==============================================================================
 
 // External includes 
-#include <pybind11/pybind11.h>
 
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
 
 // Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "spaces/ublas_space.h"
 
 // Utilities
 #include "custom_utilities/structure_response_function_utilities.h"

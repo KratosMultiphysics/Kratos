@@ -19,23 +19,13 @@
 #define  KRATOS_STRUCTURE_ADJOINT_SENSITIVITY_STRATEGY_H_INCLUDED
 
 // System includes
-#include <iostream>
-#include <string>
-#include <algorithm>
 
 // External includes
-#include <pybind11/pybind11.h> 
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
-
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_elements/small_displacement_simp_element.h"
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 // Application includes
 #include "topology_optimization_application.h"

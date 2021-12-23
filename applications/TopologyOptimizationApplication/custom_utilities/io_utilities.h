@@ -19,22 +19,10 @@
 #define  KRATOS_IO_UTILITIES_H_INCLUDED
 
 // System includes
-#include <iostream>
-#include <string>
-#include <algorithm>
-#include <iomanip>
 
 // External includes
-#include <pybind11/pybind11.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
 
 // Project includes
-#include "includes/define.h"
-#include "includes/element.h"
-#include "includes/model_part.h"
-#include "includes/process_info.h"
 
 
 namespace Kratos
