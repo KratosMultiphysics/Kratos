@@ -42,7 +42,7 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         self.mp_destination.CreateNewNode(1, -5.0,  0.0,  0.0)
         self.mp_destination.CreateNewNode(2, -3.0,  0.0,  0.0)
         self.mp_destination.CreateNewNode(3, -1.0,  0.0,  0.0)
-        self.mp_destination.CreateNewNode(4,  3.0,  0.0,  0.0)
+        self.mp_destination.CreateNewNode(4,  2.75,  0.0,  0.0)
         self.mp_destination.CreateNewNode(5,  6.0,  0.0,  0.0)
 
     def _create_elements(self):
@@ -234,15 +234,15 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
             "mapper_type" : "nearest_element"
          }""")
 
-        map_results_scalar = [0.2, 0.6, 1.0, 1.8, 7.6/3]
-        map_results_vector     = [[0.0,0.1,-0.3], [0.4,0.5,0.1], [0.8,0.9,0.5], [1.6,1.7,1.3], [7/3,7.3/3,6.1/3]]
-        inverse_map_results_scalar     = [-0.3, 1.95, 10.1/3, 3.7]
-        inverse_map_results_vector     = [[0.0,-0.1,0.4], [2.25,2.15,2.65], [11/3,10.7/3,12.2/3], [4.0,3.9,4.4]]
+        map_results_scalar = [0.2, 0.6, 1.0, 1.75, 7.6/3]
+        map_results_vector     = [[0.0,0.1,-0.3], [0.4,0.5,0.1], [0.8,0.9,0.5], [1.55,1.65,1.25], [7/3,7.3/3,6.1/3]]
+        inverse_map_results_scalar     = [-0.3, 1.966666666666666, 3.3923076923076905, 3.7]
+        inverse_map_results_vector     = [[0.0,-0.1,0.4], [8/3-0.4,8/3-0.5,8/3], [3.6923076923076903,3.59230769230769,4.09230769230769], [4.0,3.9,4.4]]
 
-        map_results_scalar_conservative = [0.2, 0.0, 0.9, 1.033333333333337, 14/3]
-        map_results_vector_conservative     = [[0.0,0.1,-0.3], [0.0,0.0,0.0], [0.75,0.825,0.525], [11/12,0.975,0.741666666667], [13/3,4.5,23/6]]
-        inverse_map_results_scalar_conservative     = [0.46, 2.72, 4.0866666666666, 37/30]
-        inverse_map_results_vector_conservative     = [[1.0,0.82,1.72], [3.2,3.04,3.84], [67/15,4.34,373/75], [4/3,1.3,22/15]]
+        map_results_scalar_conservative = [0.2, 0.0, 0.88, 0.9969230769230808, 4.723076923076919]
+        map_results_vector_conservative     = [[0.0,0.1,-0.3], [0.0,0.0,0.0], [0.73333333333333,0.80666666666666,0.513333333333333], [0.8820512820512856,0.9394871794871832,0.7097435897435929], [4.384615384615381,4.553846153846149,3.8769230769230734]]
+        inverse_map_results_scalar_conservative     = [0.46, 2.855, 3.9516666666666684, 37/30]
+        inverse_map_results_vector_conservative     = [[1.0,0.82,1.72], [3.35,3.185,4.01], [4.31666666666666,4.195,4.8033333333333], [4/3,1.3,22/15]]
 
         results = [map_results_scalar, map_results_vector]
         results.extend([inverse_map_results_scalar, inverse_map_results_vector])
@@ -265,15 +265,15 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
             "interpolation_type" : "line"
          }""")
 
-        map_results_scalar = [0.2, 0.6, 1.0, 1.8, 7.6/3]
-        map_results_vector     = [[0.0,0.1,-0.3], [0.4,0.5,0.1], [0.8,0.9,0.5], [1.6,1.7,1.3], [7/3,7.3/3,6.1/3]]
-        inverse_map_results_scalar     = [-0.3, 1.95, 10.1/3, 3.7]
-        inverse_map_results_vector     = [[0.0,-0.1,0.4], [2.25,2.15,2.65], [11/3,10.7/3,12.2/3], [4.0,3.9,4.4]]
+        map_results_scalar = [0.2, 0.6, 1.0, 1.75, 7.6/3]
+        map_results_vector     = [[0.0,0.1,-0.3], [0.4,0.5,0.1], [0.8,0.9,0.5], [1.55,1.65,1.25], [7/3,7.3/3,6.1/3]]
+        inverse_map_results_scalar     = [-0.3, 1.966666666666666, 3.3923076923076905, 3.7]
+        inverse_map_results_vector     = [[0.0,-0.1,0.4], [8/3-0.4,8/3-0.5,8/3], [3.6923076923076903,3.59230769230769,4.09230769230769], [4.0,3.9,4.4]]
 
-        map_results_scalar_conservative = [0.2, 0.0, 0.9, 1.033333333333337, 14/3]
-        map_results_vector_conservative     = [[0.0,0.1,-0.3], [0.0,0.0,0.0], [0.75,0.825,0.525], [11/12,0.975,0.741666666667], [13/3,4.5,23/6]]
-        inverse_map_results_scalar_conservative     = [0.46, 2.72, 4.0866666666666, 37/30]
-        inverse_map_results_vector_conservative     = [[1.0,0.82,1.72], [3.2,3.04,3.84], [67/15,4.34,373/75], [4/3,1.3,22/15]]
+        map_results_scalar_conservative = [0.2, 0.0, 0.88, 0.9969230769230808, 4.723076923076919]
+        map_results_vector_conservative     = [[0.0,0.1,-0.3], [0.0,0.0,0.0], [0.73333333333333,0.80666666666666,0.513333333333333], [0.8820512820512856,0.9394871794871832,0.7097435897435929], [4.384615384615381,4.553846153846149,3.8769230769230734]]
+        inverse_map_results_scalar_conservative     = [0.46, 2.855, 3.9516666666666684, 37/30]
+        inverse_map_results_vector_conservative     = [[1.0,0.82,1.72], [3.35,3.185,4.01], [4.31666666666666,4.195,4.8033333333333], [4/3,1.3,22/15]]
 
         results = [map_results_scalar, map_results_vector]
         results.extend([inverse_map_results_scalar, inverse_map_results_vector])
