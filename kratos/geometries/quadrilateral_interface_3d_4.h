@@ -449,7 +449,8 @@ public:
 
     double Volume() const override
     {
-		return Area();
+        KRATOS_WARNING("QuadrilateralInterface3D4") << "Method not well defined. Replace with DomainSize() instead" << std::endl;
+		return 0.0;
     }
 
     /**

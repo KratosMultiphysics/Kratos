@@ -450,7 +450,8 @@ public:
      */
     double Volume() const override
     {
-        return Area();
+        KRATOS_WARNING("Quadrilateral2D9") << "Method not well defined. Replace with DomainSize() instead" << std::endl;
+        return 0.0;
     }
 
     /** This method calculates and returns length, area or volume of
