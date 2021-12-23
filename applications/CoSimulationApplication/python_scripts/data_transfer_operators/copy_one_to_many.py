@@ -18,7 +18,7 @@ class CopyOneToMany(CoSimulationDataTransferOperator):
             if data_values.size == 1: # this is the rank that actually contains the value
                 data_value = data_values[0]
 
-        data_comm = to_solver_data.model_part.GetCommunicator().GetDataCommunicator()
+        data_comm = from_solver_data.model_part.GetCommunicator().GetDataCommunicator()
         data_value = data_comm.SumAll(data_value)
 
         to_solver_values = to_solver_data.GetData()
