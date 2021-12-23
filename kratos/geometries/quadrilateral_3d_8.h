@@ -426,18 +426,11 @@ public:
     }
 
     /**
-     * This method calculates and returns the volume of this geometry.
-     * This method calculates and returns the volume of this geometry.
-     *
-     * This method uses the V = (A x B) * C / 6 formula.
-     *
-     * @return double value contains length, area or volume.
-     *
+     * @brief This method calculates and returns the volume of this geometry.
+     * @return Zero, the volume of a 2D geometry is 0
      * @see Length()
      * @see Area()
      * @see Volume()
-     *
-     * @todo might be necessary to reimplement
      */
     double Volume() const override
     {
