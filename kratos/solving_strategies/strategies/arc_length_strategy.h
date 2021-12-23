@@ -186,17 +186,18 @@ class ArcLengthStrategy
         KRATOS_TRY;
 
         if (!mInitializeArcLengthWasPerformed) {
+            ModelPart& r_model_part = BaseType::GetModelPart();
             //set up the system
             if (!mpBuilderAndSolver->GetDofSetIsInitializedFlag()) {
                 //setting up the list of the DOFs to be solved
-                mpBuilderAndSolver->SetUpDofSet(mpScheme, BaseType::GetModelPart());
+                mpBuilderAndSolver->SetUpDofSet(mpScheme, r_model_part);
 
                 //shaping correctly the system
-                mpBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
+                mpBuilderAndSolver->SetUpSystem(r_model_part);
             }
 
             // Compute initial radius (mRadius_0)
-            mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, mpA, mpDx, mpb, BaseType::GetModelPart());
+            mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, mpA, mpDx, mpb, r_model_part);
             TSystemMatrixType& mA = *mpA;
             TSystemVectorType& mDx = *mpDx;
             TSystemVectorType& mb = *mpb;
@@ -204,7 +205,7 @@ class ArcLengthStrategy
             TSparseSpace::SetToZero(mDx);
             TSparseSpace::SetToZero(mb);
 
-            mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
+            mpBuilderAndSolver->BuildAndSolve(mpScheme, r_model_part, mA, mDx, mb);
 
             mRadius_0 = TSparseSpace::TwoNorm(mDx);
             mRadius = mRadius_0;
@@ -215,7 +216,7 @@ class ArcLengthStrategy
             TSparseSpace::SetToZero(mf);
 
             // We build it now to only include external loads
-            mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mf);
+            mpBuilderAndSolver->BuildRHS(mpScheme, r_model_part, mf);
 
             //Initialize the loading factor Lambda
             mLambda = 0.0;
@@ -231,11 +232,11 @@ class ArcLengthStrategy
 
 		if (!BaseType::mSolutionStepIsInitialized) {
             BaseType::InitializeSolutionStep();
-            this->SaveInitializeSystemVector(mpf);
-            this->InitializeSystemVector(mpDxf);
-            this->InitializeSystemVector(mpDxb);
-            this->InitializeSystemVector(mpDxPred);
-            this->InitializeSystemVector(mpDxStep);
+            SaveInitializeSystemVector(mpf);
+            InitializeSystemVector(mpDxf);
+            InitializeSystemVector(mpDxb);
+            InitializeSystemVector(mpDxPred);
+            InitializeSystemVector(mpDxStep);
         }
 
         KRATOS_CATCH("");
@@ -249,6 +250,35 @@ class ArcLengthStrategy
     {
         KRATOS_TRY;
 
+        DofsArrayType& r_dof_set = mpBuilderAndSolver->GetDofSet();
+        ModelPart& r_model_part  = BaseType::GetModelPart();
+        TSystemMatrixType& r_A   = *mpA;
+        TSystemVectorType& r_Dx  = *mpDx;
+        TSystemVectorType& r_b   = *mpb;
+
+        unsigned int iteration_number = r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER];
+        // Update the radius
+        mRadius = mRadius*std::sqrt(double(mDesiredIterations)/double(iteration_number));
+        if (mRadius > mMaxRadiusFactor*mRadius_0)
+            mRadius = mMaxRadiusFactor*mRadius_0;
+        else if (mRadius < mMinRadiusFactor*mRadius_0)
+            mRadius = mMinRadiusFactor*mRadius_0;
+
+        r_model_part.GetProcessInfo()[LAMBDA] = mLambda;
+        r_model_part.GetProcessInfo()[SEARCH_RADIUS] = mRadius/mRadius_0;
+
+        mpScheme->FinalizeSolutionStep(r_model_part, r_A, r_Dx, r_b);
+        mpBuilderAndSolver->FinalizeSolutionStep(r_model_part, r_A, r_Dx, r_b);
+        mpConvergenceCriteria->FinalizeSolutionStep(r_model_part, mpBuilderAndSolver->GetDofSet(), r_A, r_Dx, r_b);
+        //Cleaning memory after the solution
+        mpScheme->Clean();
+
+        //reset flags for next step
+        BaseType::mSolutionStepIsInitialized = false;
+
+        if (BaseType::mReformDofSetAtEachStep) {
+            this->Clear();
+        }
 
         KRATOS_CATCH("");
     }
@@ -277,9 +307,9 @@ class ArcLengthStrategy
 
         // Initialize iterations info
         unsigned int iteration_number = 1;
-        BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+        r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
-        mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), r_A, r_Dx, r_b);
+        mpScheme->InitializeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
         mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
         bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, r_A, r_Dx, r_b);
 
@@ -289,7 +319,7 @@ class ArcLengthStrategy
 
         // Now we compute Dxf
         mpBuilderAndSolver->Build(mpScheme, r_model_part, r_A, r_b);
-        mpBuilderAndSolver->ApplyDirichletConditions(mpScheme, BaseType::GetModelPart(), r_A, r_Dx, r_b);
+        mpBuilderAndSolver->ApplyDirichletConditions(mpScheme, r_model_part, r_A, r_Dx, r_b);
         noalias(r_b) = r_f;
         mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
         const double lambda_increment = mRadius / TSparseSpace::TwoNorm(r_Dxf);
@@ -313,13 +343,22 @@ class ArcLengthStrategy
             is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_Dxf, r_b);
         }
 
+        // while (!is_converged && iteration_number++ < BaseType::mMaxIterationNumber) {
+        //     //setting the number of iteration
+        //     r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
+        //     mpScheme->InitializeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
 
+        // }
         return is_converged;
     }
 
     void UpdateExternalLoads()
     {
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        mLambda = r_model_part.GetProcessInfo()[LAMBDA];
+        mRadius = (r_model_part.GetProcessInfo()[SEARCH_RADIUS])*mRadius_0;
+
         // Update External Loads
         for (unsigned int i = 0; i < mVariableNames.size(); i++) {
             ModelPart& r_sub_model_part = *(mSubModelPartList[i]);
