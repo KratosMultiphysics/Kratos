@@ -41,36 +41,36 @@ namespace Python
 void AddCustomUtilitiesToPython(pybind11::module& m)
 
 {
-	namespace py = pybind11;
+    namespace py = pybind11;
 
 
 
-	// =============================================================================================================================================
-	// Utility Classes
-	// =============================================================================================================================================
+    // =============================================================================================================================================
+    // Utility Classes
+    // =============================================================================================================================================
 
-	py::class_<StructureResponseFunctionUtilities>(m, "StructureResponseFunctionUtilities")
+    py::class_<StructureResponseFunctionUtilities>(m, "StructureResponseFunctionUtilities")
     .def(py::init<ModelPart& >())
-	.def("ComputeStrainEnergy", &StructureResponseFunctionUtilities::ComputeStrainEnergy)
-	.def("ComputeVolumeFraction", &StructureResponseFunctionUtilities::ComputeVolumeFraction)
-	;
+    .def("ComputeStrainEnergy", &StructureResponseFunctionUtilities::ComputeStrainEnergy)
+    .def("ComputeVolumeFraction", &StructureResponseFunctionUtilities::ComputeVolumeFraction)
+    ;
 
-	py::class_<TopologyFilteringUtilities >(m, "TopologyFilteringUtilities")
+    py::class_<TopologyFilteringUtilities >(m, "TopologyFilteringUtilities")
     .def(py::init<ModelPart&, const double, const int>())
-	.def("ApplyFilterSensitivity", &TopologyFilteringUtilities::ApplyFilterSensitivity)
-	.def("ApplyFilterDensity", &TopologyFilteringUtilities::ApplyFilterDensity)
-	;
+    .def("ApplyFilterSensitivity", &TopologyFilteringUtilities::ApplyFilterSensitivity)
+    .def("ApplyFilterDensity", &TopologyFilteringUtilities::ApplyFilterDensity)
+    ;
 
-	py::class_<TopologyUpdatingUtilities >(m, "TopologyUpdatingUtilities")
-	.def(py::init<ModelPart&>())
+    py::class_<TopologyUpdatingUtilities >(m, "TopologyUpdatingUtilities")
+    .def(py::init<ModelPart&>())
     .def("UpdateDensitiesUsingOCMethod", &TopologyUpdatingUtilities::UpdateDensitiesUsingOCMethod)
-	;
+    ;
 
-	py::class_<IOUtilities >(m, "IOUtilities" )
-	.def(py::init<>())
+    py::class_<IOUtilities >(m, "IOUtilities" )
+    .def(py::init<>())
     .def("SaveOptimizationResults", &IOUtilities::SaveOptimizationResults)
-	.def("WriteSurfaceAsSTLFile", &IOUtilities::WriteSurfaceAsSTLFile)
-	;
+    .def("WriteSurfaceAsSTLFile", &IOUtilities::WriteSurfaceAsSTLFile)
+    ;
 }
 
 }  // namespace Python.

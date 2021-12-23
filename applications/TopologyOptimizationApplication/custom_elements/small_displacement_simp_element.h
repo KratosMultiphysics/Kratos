@@ -79,7 +79,7 @@ public:
 
     /// Counted pointer of SmallDisplacementSIMPElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallDisplacementSIMPElement );
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -91,7 +91,7 @@ public:
 
     ///Copy constructor
     SmallDisplacementSIMPElement(SmallDisplacementSIMPElement const& rOther)
-       :BaseType(rOther)
+        :BaseType(rOther)
     {};
 
     /// Destructor.
@@ -107,7 +107,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-       /**
+        /**
      * @brief Called to initialize the element.
      * @warning Must be called before any calculation is done
      */  
@@ -156,22 +156,22 @@ public:
     // =============================================================================================================================================
     // STARTING / ENDING METHODS
     // =============================================================================================================================================
-    
+
     /// Function that gets the value on the Integration Point (For printing purposes in the output GiD)
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Function to calculate the sensitivities and the objective function
-     void Calculate(
+        void Calculate(
     const Variable<double>& rVariable,
     double &rOutput,
     const ProcessInfo& rCurrentProcessInfo
     ) override;  
 
-    
+
 
     /// Function that overwrites the CalculateOnIntegrationPoints, to insert the X_PHYS into all Gauss Points of the given element
     /// That allows printing X_PHYS as elemental value in GiD
-    
+
     //void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void SetElementData(const KinematicVariables& rThisKinematicVariables, ConstitutiveLaw::Parameters& rValues, const int & rPointNumber);
@@ -229,13 +229,13 @@ protected:
     SmallDisplacementSIMPElement() : SmallDisplacement()
     {
     }
-    
+
 
 
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -247,7 +247,7 @@ protected:
     ///@{
     ///@}
 
-private:
+    private:
 
     ///@name Static Member Variables
     ///@{

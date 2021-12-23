@@ -41,15 +41,15 @@ namespace Python
 
 
   
-  PYBIND11_MODULE(KratosTopologyOptimizationApplication,m)
-  {
+    PYBIND11_MODULE(KratosTopologyOptimizationApplication,m)
+    {
     namespace py = pybind11;
 
-	  py::class_<KratosTopologyOptimizationApplication, 
-                          KratosTopologyOptimizationApplication::Pointer, 
-                          KratosApplication >(m, "KratosTopologyOptimizationApplication")
-                          .def(py::init<>())
-                         ;
+        py::class_<KratosTopologyOptimizationApplication, 
+                            KratosTopologyOptimizationApplication::Pointer, 
+                            KratosApplication >(m, "KratosTopologyOptimizationApplication")
+                            .def(py::init<>())
+                            ;
 
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
@@ -66,7 +66,7 @@ namespace Python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOCAL_STRAIN_ENERGY )
 
 
-  }
+    }
   
   
 }  // namespace Python.

@@ -43,8 +43,8 @@
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{
+    ///@name Kratos Globals
+    ///@{
 
     // Variables definition with Python connection
     KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, E_MIN )
@@ -58,163 +58,163 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, LOCAL_STRAIN_ENERGY )
 
 
-	///@}
-	///@name Type Definitions
-	///@{
+    ///@}
+    ///@name Type Definitions
+    ///@{
 
-	///@}
-	///@name  Enum's
-	///@{
+    ///@}
+    ///@name  Enum's
+    ///@{
 
-	///@}
-	///@name  Functions
-	///@{
+    ///@}
+    ///@name  Functions
+    ///@{
 
-	///@}
-	///@name Kratos Classes
-	///@{
+    ///@}
+    ///@name Kratos Classes
+    ///@{
 
-	/// Short class definition.
-	/** Detail class definition.
-	*/
-	//class KratosTopologyOptimizationApplication : public KratosApplication
-	class KRATOS_API(TOPOLOGY_OPTIMIZATION_APPLICATION) KratosTopologyOptimizationApplication : public KratosApplication
-	{
-	public:
-		///@name Type Definitions
-		///@{
-
-
-		/// Pointer definition of KratosTopologyOptimizationApplication
-		KRATOS_CLASS_POINTER_DEFINITION(KratosTopologyOptimizationApplication);
+    /// Short class definition.
+    /** Detail class definition.
+    */
+    //class KratosTopologyOptimizationApplication : public KratosApplication
+    class KRATOS_API(TOPOLOGY_OPTIMIZATION_APPLICATION) KratosTopologyOptimizationApplication : public KratosApplication
+    {
+    public:
+        ///@name Type Definitions
+        ///@{
 
 
-		///@}
-		///@name Life Cycle
-		///@{
-
-		/// Default constructor.
-		KratosTopologyOptimizationApplication();
-
-		/// Destructor.
-		~KratosTopologyOptimizationApplication() override {}
+        /// Pointer definition of KratosTopologyOptimizationApplication
+        KRATOS_CLASS_POINTER_DEFINITION(KratosTopologyOptimizationApplication);
 
 
-		///@}
-		///@name Operators
-		///@{
+        ///@}
+        ///@name Life Cycle
+        ///@{
+
+        /// Default constructor.
+        KratosTopologyOptimizationApplication();
+
+        /// Destructor.
+        ~KratosTopologyOptimizationApplication() override {}
 
 
-		///@}
-		///@name Operations
-		///@{
-
-	    void Register() override;
+        ///@}
+        ///@name Operators
+        ///@{
 
 
+        ///@}
+        ///@name Operations
+        ///@{
 
-		///@}
-		///@name Access
-		///@{
-
-
-		///@}
-		///@name Inquiry
-		///@{
+        void Register() override;
 
 
-		///@}
-		///@name Input and output
-		///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "KratosTopologyOptimizationApplication";
-		}
-
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << Info();
-			PrintData(rOStream);
-		}
-
-		///// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-      {
-      	KRATOS_WATCH("in my application");
-      	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-		rOStream << "Variables:" << std::endl;
-		KratosComponents<VariableData>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Elements:" << std::endl;
-		KratosComponents<Element>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Conditions:" << std::endl;
-		KratosComponents<Condition>().PrintData(rOStream);
-      }
+        ///@}
+        ///@name Access
+        ///@{
 
 
-		///@}
-		///@name Friends
-		///@{
+        ///@}
+        ///@name Inquiry
+        ///@{
 
 
-		///@}
+        ///@}
+        ///@name Input and output
+        ///@{
 
-	protected:
-		///@name Protected static Member Variables
-		///@{
+        /// Turn back information as a string.
+        virtual std::string Info() const
+        {
+            return "KratosTopologyOptimizationApplication";
+        }
 
+        /// Print information about this object.
+        virtual void PrintInfo(std::ostream& rOStream) const
+        {
+            rOStream << Info();
+            PrintData(rOStream);
+        }
 
-		///@}
-		///@name Protected member Variables
-		///@{
-
-
-		///@}
-		///@name Protected Operators
-		///@{
-
-
-		///@}
-		///@name Protected Operations
-		///@{
-
-
-		///@}
-		///@name Protected  Access
-		///@{
-
-
-		///@}
-		///@name Protected Inquiry
-		///@{
-
-
-		///@}
-		///@name Protected LifeCycle
-		///@{
+        ///// Print object's data.
+        virtual void PrintData(std::ostream& rOStream) const
+        {
+        KRATOS_WATCH("in my application");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        rOStream << "Variables:" << std::endl;
+        KratosComponents<VariableData>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Elements:" << std::endl;
+        KratosComponents<Element>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Conditions:" << std::endl;
+        KratosComponents<Condition>().PrintData(rOStream);
+        }
 
 
-		///@}
+        ///@}
+        ///@name Friends
+        ///@{
 
-	private:
-		///@name Static Member Variables
-		///@{
 
-		///@}
-		///@name Member Variables
-		///@{
+        ///@}
+
+    protected:
+        ///@name Protected static Member Variables
+        ///@{
+
+
+        ///@}
+        ///@name Protected member Variables
+        ///@{
+
+
+        ///@}
+        ///@name Protected Operators
+        ///@{
+
+
+        ///@}
+        ///@name Protected Operations
+        ///@{
+
+
+        ///@}
+        ///@name Protected  Access
+        ///@{
+
+
+        ///@}
+        ///@name Protected Inquiry
+        ///@{
+
+
+        ///@}
+        ///@name Protected LifeCycle
+        ///@{
+
+
+        ///@}
+
+    private:
+        ///@name Static Member Variables
+        ///@{
+
+        ///@}
+        ///@name Member Variables
+        ///@{
 
         //small_displacement
-      	const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D3N; // dummy element for surface representation
-		///const SmallDisplacement mSmallDisplacement3D3N;
+        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D3N; // dummy element for surface representation
+        ///const SmallDisplacement mSmallDisplacement3D3N;
         const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D4N;
-		///const SmallDisplacement mSmallDisplacement3D4N;
+        ///const SmallDisplacement mSmallDisplacement3D4N;
         const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D8N;
-		///const SmallDisplacement mSmallDisplacement3D8N;
+        ///const SmallDisplacement mSmallDisplacement3D8N;
 
 //        Extra elements to be added in the future
 //        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D6N;
@@ -224,53 +224,53 @@ namespace Kratos
 //        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D27N;
 
 
-		///@}
-		///@name Private Operators
-		///@{
+        ///@}
+        ///@name Private Operators
+        ///@{
 
 
-		///@}
-		///@name Private Operations
-		///@{
+        ///@}
+        ///@name Private Operations
+        ///@{
 
 
-		///@}
-		///@name Private  Access
-		///@{
+        ///@}
+        ///@name Private  Access
+        ///@{
 
 
-		///@}
-		///@name Private Inquiry
-		///@{
+        ///@}
+        ///@name Private Inquiry
+        ///@{
 
 
-		///@}
-		///@name Un accessible methods
-		///@{
+        ///@}
+        ///@name Un accessible methods
+        ///@{
 
-		/// Assignment operator.
-		KratosTopologyOptimizationApplication& operator=(KratosTopologyOptimizationApplication const& rOther);
+        /// Assignment operator.
+        KratosTopologyOptimizationApplication& operator=(KratosTopologyOptimizationApplication const& rOther);
 
-		/// Copy constructor.
-		KratosTopologyOptimizationApplication(KratosTopologyOptimizationApplication const& rOther);
-
-
-		///@}
-
-	}; // Class KratosTopologyOptimizationApplication
-
-	///@}
+        /// Copy constructor.
+        KratosTopologyOptimizationApplication(KratosTopologyOptimizationApplication const& rOther);
 
 
-	///@name Type Definitions
-	///@{
+        ///@}
+
+    }; // Class KratosTopologyOptimizationApplication
+
+    ///@}
 
 
-	///@}
-	///@name Input and output
-	///@{
+    ///@name Type Definitions
+    ///@{
 
-	///@}
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
 
 
 }  // namespace Kratos.

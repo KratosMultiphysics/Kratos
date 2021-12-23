@@ -118,7 +118,7 @@ public:
 
     /// This function calculates a new Youngs Modulus based on the densities and multiplies it into the
     /// LHS and RHS contributions of the complete system
-  
+
 
 
     void CalculateSystemContributions(
@@ -129,35 +129,35 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
-    	KRATOS_TRY
-		//Initializing the non linear iteration for the current element
-		rCurrentElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+        KRATOS_TRY
+        //Initializing the non linear iteration for the current element
+        rCurrentElement.InitializeNonLinearIteration(rCurrentProcessInfo);
 
-    	//basic operations for the element considered
-    	rCurrentElement.CalculateLocalSystem(rLHSContribution,rRHSContribution,rCurrentProcessInfo);
+        //basic operations for the element considered
+        rCurrentElement.CalculateLocalSystem(rLHSContribution,rRHSContribution,rCurrentProcessInfo);
         
 
-    	//Determine the new Youngs Modulus based on the assigned new density (X_PHYS)
-    	double E_min     = rCurrentElement.GetValue(E_MIN);
-    	double E_initial = rCurrentElement.GetValue(E_0);
-    	double E_current = rCurrentElement.GetValue(YOUNG_MODULUS);
-    	double penalty   = rCurrentElement.GetValue(PENAL);
-    	double x_phys    = rCurrentElement.GetValue(X_PHYS);
+        //Determine the new Youngs Modulus based on the assigned new density (X_PHYS)
+        double E_min     = rCurrentElement.GetValue(E_MIN);
+        double E_initial = rCurrentElement.GetValue(E_0);
+        double E_current = rCurrentElement.GetValue(YOUNG_MODULUS);
+        double penalty   = rCurrentElement.GetValue(PENAL);
+        double x_phys    = rCurrentElement.GetValue(X_PHYS);
 
-    	double E_new     = (E_min + pow(x_phys, penalty) * (E_initial - E_min));
+        double E_new     = (E_min + pow(x_phys, penalty) * (E_initial - E_min));
 
-    	//Calculate the factor that needs to be multiplied on the RHS and LHS
-    	double factor    = (1/E_current)*E_new;
+        //Calculate the factor that needs to be multiplied on the RHS and LHS
+        double factor    = (1/E_current)*E_new;
 
-    	// Factorize LHS and RHS according SIMP approach
-    	// Note that when this function is called, all the contributions from the force conditions are missing.
-    	// I.e. RHS = -K*u_init. Hence we can directly factorize LHS and RHS to obtained the modified stiffnesses
-    	rLHSContribution *= factor;
-    	rRHSContribution *= factor;
-    	//Continuation of the basic operations
-    	rCurrentElement.EquationIdVector(rEquationId,rCurrentProcessInfo);
+        // Factorize LHS and RHS according SIMP approach
+        // Note that when this function is called, all the contributions from the force conditions are missing.
+        // I.e. RHS = -K*u_init. Hence we can directly factorize LHS and RHS to obtained the modified stiffnesses
+        rLHSContribution *= factor;
+        rRHSContribution *= factor;
+        //Continuation of the basic operations
+        rCurrentElement.EquationIdVector(rEquationId,rCurrentProcessInfo);
 
-    	KRATOS_CATCH( "" )
+        KRATOS_CATCH( "" )
     }
 
   

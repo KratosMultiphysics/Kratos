@@ -61,12 +61,12 @@ namespace Kratos
 
     ///we define the node type
 
-     typedef Node<3> NodeType;
+        typedef Node<3> NodeType;
 
     KratosTopologyOptimizationApplication::KratosTopologyOptimizationApplication() 
         : KratosApplication("TopologyOptimizationApplication"),
 
-		    mSmallDisplacementSIMPElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <NodeType>( Element::GeometryType::PointsArrayType( 3 ) ) ) ), // dummy element for surface representation
+            mSmallDisplacementSIMPElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <NodeType>( Element::GeometryType::PointsArrayType( 3 ) ) ) ), // dummy element for surface representation
         ///mSmallDisplacement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
             mSmallDisplacementSIMPElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <NodeType >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         ///mSmallDisplacement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
@@ -80,12 +80,12 @@ namespace Kratos
 //        mSmallDisplacementSIMPElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20 ) ) ) ),
 //        mSmallDisplacementSIMPElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27 ) ) ) )
 
- 	
- 	
- 	void KratosTopologyOptimizationApplication::Register()
- 	{
- 		// calling base class register to register Kratos components
- 		KratosApplication::Register();
+
+
+    void KratosTopologyOptimizationApplication::Register()
+    {
+        // calling base class register to register Kratos components
+        KratosApplication::Register();
 
         std::cout << "     KRATOS|_   _/_ \\| _ \\ _ \\| |  / _ \\/ __\\ \\ / /         " << std::endl;
         std::cout << "             | | (_) |  _/(_) | |_| (_) |(_ |\\ V /               " << std::endl;
@@ -115,8 +115,8 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( SOLID_VOID )
         KRATOS_REGISTER_VARIABLE( LOCAL_STRAIN_ENERGY )
 
- 
- 	}
+
+    }
 
 }  // namespace Kratos.
 

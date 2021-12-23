@@ -69,187 +69,187 @@ class FilterFunction
 {
 public:
 
-	///@name Type Definitions
-	///@{
+    ///@name Type Definitions
+    ///@{
 
-	/// Pointer definition of FilterFunction
-	KRATOS_CLASS_POINTER_DEFINITION(FilterFunction);
+    /// Pointer definition of FilterFunction
+    KRATOS_CLASS_POINTER_DEFINITION(FilterFunction);
 
-	///@}
-	///@name Life Cycle
-	///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-	/// Default constructor.
-	FilterFunction( std::string FilterFunctionType, const double SearchRadius )
-	:mSearchRadius(SearchRadius)
-	{
-		// Set precision for output
-		std::cout.precision(12);
+    /// Default constructor.
+    FilterFunction( std::string FilterFunctionType, const double SearchRadius )
+    :mSearchRadius(SearchRadius)
+    {
+        // Set precision for output
+        std::cout.precision(12);
 
-		// Set type of weighting function
+        // Set type of weighting function
 
-		// Type 1: Gaussian function
-		std::string linear("linear");
-		if(FilterFunctionType.compare(linear)==0)
-			mFilterFunctionType = 1;
-	}
-	/// Destructor.
-	virtual ~FilterFunction()
-	{
-	}
-
-
-	///@}
-	///@name Operators
-	///@{
+        // Type 1: Gaussian function
+        std::string linear("linear");
+        if(FilterFunctionType.compare(linear)==0)
+            mFilterFunctionType = 1;
+    }
+    /// Destructor.
+    virtual ~FilterFunction()
+    {
+    }
 
 
-	///@}
-	///@name Operations
-	///@{
-
-	double ComputeWeight( const double distance )
-	{
-		KRATOS_TRY;
-
-		// Depending on which weighting function is chosen, compute weight
-		double weight = 0.0;
-		switch(mFilterFunctionType)
-		{
-		// Compute weight for linear filter function
-		case 1:
-		{
-			weight = std::max(0.0,mSearchRadius - distance);
-			break;
-		}
-
-		}
-
-		return weight;
-
-		KRATOS_CATCH("");
-	}
-
-	///@}
-	///@name Access
-	///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-	///@}
-	///@name Inquiry
-	///@{
+    ///@}
+    ///@name Operations
+    ///@{
+
+    double ComputeWeight( const double distance )
+    {
+        KRATOS_TRY;
+
+        // Depending on which weighting function is chosen, compute weight
+        double weight = 0.0;
+        switch(mFilterFunctionType)
+        {
+        // Compute weight for linear filter function
+        case 1:
+        {
+            weight = std::max(0.0,mSearchRadius - distance);
+            break;
+        }
+
+        }
+
+        return weight;
+
+        KRATOS_CATCH("");
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
 
 
-	///@}
-	///@name Input and output
-	///@{
-
-	/// Turn back information as a string.
-	virtual std::string Info() const
-	{
-		return "FilterFunction";
-	}
-
-	/// Print information about this object.
-	virtual void PrintInfo(std::ostream& rOStream) const
-	{
-		rOStream << "FilterFunction";
-	}
-
-	/// Print object's data.
-	virtual void PrintData(std::ostream& rOStream) const
-	{
-	}
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-	///@}
-	///@name Friends
-	///@{
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "FilterFunction";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "FilterFunction";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
 
 
-	///@}
-
-	protected:
-	///@name Protected static Member Variables
-	///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-	///@}
-	///@name Protected member Variables
-	///@{
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-	///@}
-	///@name Protected Operators
-	///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-	///@}
-	///@name Protected Operations
-	///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-	///@}
-	///@name Protected  Access
-	///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-	///@}
-	///@name Protected Inquiry
-	///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-	///@}
-	///@name Protected LifeCycle
-	///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-	///@}
-
-	private:
-	///@name Static Member Variables
-	///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-	///@}
-	///@name Member Variables
-	///@{
+    ///@}
 
-	const double mSearchRadius;
-	unsigned int mFilterFunctionType;
-
-	///@}
-	///@name Private Operators
-	///@{
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-	///@}
-	///@name Private Operations
-	///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    const double mSearchRadius;
+    unsigned int mFilterFunctionType;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-	///@}
-	///@name Private  Access
-	///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-	///@}
-	///@name Private Inquiry
-	///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-	///@}
-	///@name Un accessible methods
-	///@{
-
-	/// Assignment operator.
-	//FilterFunction& operator=(FilterFunction const& rOther);
-
-	/// Copy constructor.
-	//FilterFunction(FilterFunction const& rOther);
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-	///@}
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    //FilterFunction& operator=(FilterFunction const& rOther);
+
+    /// Copy constructor.
+    //FilterFunction(FilterFunction const& rOther);
+
+
+    ///@}
 
 }; // Class FilterFunction
 
@@ -266,6 +266,6 @@ public:
 ///@}
 
 
-}  // namespace Kratos.
+}   // namespace Kratos.
 
 #endif	/* KRATOS_FILTER_FUNCTION_H_INCLUDED */

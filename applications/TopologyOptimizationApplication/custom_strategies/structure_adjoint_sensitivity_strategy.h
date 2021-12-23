@@ -29,11 +29,12 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
-#include "../custom_elements/small_displacement_simp_element.h"
+
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_elements/small_displacement_simp_element.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 // Application includes
@@ -51,113 +52,113 @@ namespace Kratos {
 /// Solution strategy to calculate the sensitivities.
 /// Derives from the previously defined Solving Strategy
 
-template	<class TSparseSpace, 
-			class TDenseSpace, 
-			class TLinearSolver
-			>
+template    <class TSparseSpace, 
+            class TDenseSpace, 
+            class TLinearSolver
+            >
 class StructureAdjointSensitivityStrategy
-	: public SolvingStrategy<TSparseSpace, TDenseSpace>
+    : public SolvingStrategy<TSparseSpace, TDenseSpace>
 {
 public:
 
-	///@name Type Definitions
-	///@{
+    ///@name Type Definitions
+    ///@{
 
-	KRATOS_CLASS_POINTER_DEFINITION(StructureAdjointSensitivityStrategy);
+    KRATOS_CLASS_POINTER_DEFINITION(StructureAdjointSensitivityStrategy);
 
-	typedef SolvingStrategy<TSparseSpace,TDenseSpace> BaseType;
+    typedef SolvingStrategy<TSparseSpace,TDenseSpace> BaseType;
 
-	typedef typename Scheme<TSparseSpace,TDenseSpace>::Pointer SchemePointerType;
-	typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderAndSolverPointerType;
+    typedef typename Scheme<TSparseSpace,TDenseSpace>::Pointer SchemePointerType;
+    typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderAndSolverPointerType;
 
-	///@}
-	///@name Life Cycle
-	///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-	StructureAdjointSensitivityStrategy( ModelPart& rStructureModelPart,
-			typename TLinearSolver::Pointer pNewLinearSolver,
-			const int dimension = 3)
-	: BaseType(rStructureModelPart),
-	  mr_structure_model_part(rStructureModelPart),
-	  m_dimension(dimension)
-	{}
-
-
-	///virtual ~StructureAdjointSensitivityStrategy()
-	~StructureAdjointSensitivityStrategy()	override
-	{}
-
-	///@}
-	///@name Operations
-	///@{
-
-	// ---------------------------------------------------------------------------------------------------------------------------------------------
-	// --------------------------------- COMPUTE SENSITIVITIES  ------------------------------------------------------------------------------------
-	// ---------------------------------------------------------------------------------------------------------------------------------------------
-
-	/// Computes DCDX sensitivities from the adjoint solution
-	void ComputeStrainEnergySensitivities()
-	{
-		KRATOS_TRY;
-
-		double Out = 0.0;
-		int i= 0;
-
-		clock_t begin = clock();
-
-		for ( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
-				element_i++ )
-		{
-			const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
-			element_i->Calculate(DCDX, Out, ConstProcessInfo);
-			i++;
-		}
-		clock_t end = clock();
-		std::cout << "  Objective Function sensitivities computed  [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
-
-		KRATOS_CATCH("");
-	}
+    StructureAdjointSensitivityStrategy( ModelPart& rStructureModelPart,
+            typename TLinearSolver::Pointer pNewLinearSolver,
+            const int dimension = 3)
+    : BaseType(rStructureModelPart),
+        mr_structure_model_part(rStructureModelPart),
+        m_dimension(dimension)
+    {}
 
 
-	/// Computes DVDX sensitivities from the adjoint solution
-	void ComputeVolumeFractionSensitivities()
-	{
-		KRATOS_TRY;
+    ///virtual ~StructureAdjointSensitivityStrategy()
+    ~StructureAdjointSensitivityStrategy()	override
+    {}
 
-		double Out = 0.0;
+    ///@}
+    ///@name Operations
+    ///@{
 
-		clock_t begin = clock();
+    // ---------------------------------------------------------------------------------------------------------------------------------------------
+    // --------------------------------- COMPUTE SENSITIVITIES  ------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------------------------------------------------------
 
-		for ( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
-				element_i++ )
-		{
-			const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
-			element_i->Calculate(DVDX, Out, ConstProcessInfo);
-		}
+    /// Computes DCDX sensitivities from the adjoint solution
+    void ComputeStrainEnergySensitivities()
+    {
+        KRATOS_TRY;
 
-		clock_t end = clock();
-		std::cout << "  Volume fraction sensitivities computed     [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+        double Out = 0.0;
+        int i= 0;
 
-		KRATOS_CATCH("");
-	}
+        clock_t begin = clock();
 
-	///@}
+        for ( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
+                element_i++ )
+        {
+            const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
+            element_i->Calculate(DCDX, Out, ConstProcessInfo);
+            i++;
+        }
+        clock_t end = clock();
+        std::cout << "  Objective Function sensitivities computed  [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+
+    /// Computes DVDX sensitivities from the adjoint solution
+    void ComputeVolumeFractionSensitivities()
+    {
+        KRATOS_TRY;
+
+        double Out = 0.0;
+
+        clock_t begin = clock();
+
+        for ( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
+                element_i++ )
+        {
+            const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
+            element_i->Calculate(DVDX, Out, ConstProcessInfo);
+        }
+
+        clock_t end = clock();
+        std::cout << "  Volume fraction sensitivities computed     [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    ///@}
 
 private:
 
-	///@name Member Variables
-	///@{
+    ///@name Member Variables
+    ///@{
 
-	ModelPart& mr_structure_model_part;
-	ModelPart* mpAdjointModelPart;
-	typename BaseType::Pointer mpStrategy;
-	int m_dimension;
+    ModelPart& mr_structure_model_part;
+    ModelPart* mpAdjointModelPart;
+    typename BaseType::Pointer mpStrategy;
+    int m_dimension;
 
-	///@}
-	///@name Private Operations
-	///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-	///@}
+    ///@}
 }; // class StructureAdjointSensitivityStrategy
 
 ///@} // Kratos classes
