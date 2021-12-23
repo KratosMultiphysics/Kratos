@@ -75,6 +75,8 @@ public:
     explicit ClosestPointsContainer(const std::size_t MaxSize);
     ClosestPointsContainer(const std::size_t MaxSize, const double MaxDistance);
 
+    bool operator==(const ClosestPointsContainer& rOther) const;
+
     void Add(const PointWithId& rPoint);
 
     void Merge(const ClosestPointsContainer& rOther);

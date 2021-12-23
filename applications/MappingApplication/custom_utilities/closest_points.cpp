@@ -53,6 +53,30 @@ ClosestPointsContainer::ClosestPointsContainer(const std::size_t MaxSize) : mMax
 ClosestPointsContainer::ClosestPointsContainer(const std::size_t MaxSize, const double MaxDistance)
     : mMaxSize(MaxSize), mMaxDistance(MaxDistance) { }
 
+bool ClosestPointsContainer::operator==(const ClosestPointsContainer& rOther) const
+{
+    // basic checks
+    if (this->mClosestPoints.size() != rOther.mClosestPoints.size()) return false;
+    if (this->mMaxSize != rOther.mMaxSize) return false;
+    if (this->mMaxDistance != rOther.mMaxDistance) return false;
+
+    // check points
+    auto it_point = this->mClosestPoints.begin();
+    auto it_ref_point = rOther.mClosestPoints.begin();
+
+    for (std::size_t i=0; i<mClosestPoints.size(); ++i) {
+        const PointWithId& r_point = *it_point;
+        const PointWithId& r_ref_point = *it_ref_point;
+        if (!(r_point == r_ref_point)) return false; // calls Point::operator==
+        if (r_point.GetId() != r_ref_point.GetId()) return false;
+        if (std::abs(r_point.GetDistance()-r_ref_point.GetDistance()) > 1E-12) return false;
+
+        std::advance(it_point, 1);
+        std::advance(it_ref_point, 1);
+    }
+
+    return true;
+}
 
 void ClosestPointsContainer::Add(const PointWithId& rPoint)
 {
