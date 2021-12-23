@@ -325,13 +325,6 @@ void ShockCapturingEntropyViscosityProcess::DistributeVariablesToNodes(
 }
 
 
-double ShockCapturingEntropyViscosityProcess::ComputeEntropy(
-    const double Density,
-    const double Pressure,
-    const double Gamma)
-{
-    return Density / (Gamma - 1.0) * std::log(Pressure / std::pow(Density, Gamma));
-}
 ShockCapturingEntropyViscosityProcess::InfNormData ShockCapturingEntropyViscosityProcess::ComputeElementalInfNormData(
     const Element& rElement,
     const double DeltaTime,
