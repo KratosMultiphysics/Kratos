@@ -1,0 +1,2 @@
+import KratosMultiphysics.TrilinosApplication
+from KratosMappingMPIExtension import *

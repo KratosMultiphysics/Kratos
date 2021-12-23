@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import time as timer
 import os
 import sys
@@ -54,8 +53,7 @@ class Solution(main_script.Solution):
         elif benchmark_number in listGeneric:
             file_name = "ProjectParametersDEMGeneric.json"
         else:
-            Logger.PrintInfo("DEM",'Benchmark number does not exist')
-            sys.exit()
+            raise Exception("Benchmark number does not exist")
 
         with open(file_name, 'r') as parameters_file:
             parameters = Parameters(parameters_file.read())

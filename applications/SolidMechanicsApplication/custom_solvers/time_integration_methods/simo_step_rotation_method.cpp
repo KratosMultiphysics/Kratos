@@ -87,10 +87,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    template class SimoStepRotationMethod< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, double >;
     template class SimoStepRotationMethod< Variable<array_1d<double, 3> >, array_1d<double,3> >;
     template class SimoStepRotationMethod< Variable<double>, double >;
 
 }  // namespace Kratos.
-
-

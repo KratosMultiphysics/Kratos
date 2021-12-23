@@ -1,23 +1,33 @@
 # Import XMC methods
-from xmc.tools import dynamicImport
-from xmc.tools import instantiateObject
+from xmc.tools import dynamicImport, instantiateObject
+from xmc.methodDefs_sampleGenerator import qoiProcessor
 
 
-class SampleGenerator():
+class SampleGenerator:
     """
     Class used for sample generation. Interacts with a sample generator and solvers to generate a set of correlated samples.
     """
 
     def __init__(self, **keywordArgs):
         # Attributes
-        self.randomGenerator = instantiateObject(keywordArgs.get('randomGenerator'),**keywordArgs.get('randomGeneratorInputDictionary'))
-        self.qoiProcessor = dynamicImport(keywordArgs.get('qoiProcessor', 'xmc.tools.returnInput'))
+        self.randomGenerator = instantiateObject(
+            keywordArgs.get("randomGenerator"),
+            **keywordArgs.get("randomGeneratorInputDictionary"),
+        )
+        self.qoiProcessor = dynamicImport(
+            keywordArgs.get("qoiProcessor", "xmc.tools.returnInput")
+        )
 
-        solver_wrapper_indices = keywordArgs.get('solverWrapperIndices')
+        solver_wrapper_indices = keywordArgs.get("solverWrapperIndices")
         self.solvers = []
         for sw_index in solver_wrapper_indices:
-            keywordArgs['solverWrapperInputDictionary']['index'] = sw_index
-            self.solvers.append(instantiateObject(keywordArgs.get('solverWrapper'),**keywordArgs.get('solverWrapperInputDictionary')))
+            keywordArgs["solverWrapperInputDictionary"]["index"] = sw_index
+            self.solvers.append(
+                instantiateObject(
+                    keywordArgs.get("solverWrapper"),
+                    **keywordArgs.get("solverWrapperInputDictionary"),
+                )
+            )
 
     def qoiFromRaw(self, rawSolutions):
         """
@@ -25,7 +35,7 @@ class SampleGenerator():
         if one wished to study the statisics of the product or sum or difference
         of two or more QoI
         """
-        
+
         return rawSolutions
 
     def randomEvent(self):
@@ -45,24 +55,24 @@ class SampleGenerator():
         See the documentation of SampleGenerator.generate for more details on the different possible
         data structures of solutions.
         """
-        
+
         solutions = []
         times = []
         for solver in self.solvers:
-            solution,resolution_time = solver.solve(randomEvent)
+            solution, resolution_time = solver.solve(randomEvent)
             solutions.append(solution)
             times.append(resolution_time)
 
         return solutions, times
 
-    def generate(self, randomEvent = None):
+    def generate(self, randomEvent=None):
         """
         Generate new single sample.
         Calls randomEvent (if no evaluation point is provided),
         then rawSolutions, then pass the outputs to qoiFromRaw and return its output.
 
         Input arguments:
-        - randomEvent (optional): random event to be passed to solvers. 
+        - randomEvent (optional): random event to be passed to solvers.
         By default, the solvers receive a random event generated internally by the method SampleGenerator.randomEvent.
 
         Output arguments:
@@ -80,13 +90,13 @@ class SampleGenerator():
         Example. If len(SampleGenerator.solvers) = 2 and SampleGenerator.sampleDimension() = 3:
         S_1 = [s1_o1, s1_o2, s1_o3]   (s: solver, o: output); idem for S_2.
 
-        If solver outputs are split, (i.e. SampleGenerator.areSamplesSplit()), S_j is of length len(SampleGenerator.sampleSplitSizes()) 
+        If solver outputs are split, (i.e. SampleGenerator.areSamplesSplit()), S_j is of length len(SampleGenerator.sampleSplitSizes())
         and S_jk is of length SampleGenerator.sampleSplitSizes()[k].
         Example. If len(SampleGenerator.solvers) = 2 and SampleGenerator.sampleSplitSizes() = [3, 2]:
-        S_1 = [ S_(1,1), S_(1,2) ] = [ [s1_o1, s1_o2, s1_o3], [s1_o4, s1_o5] ]   
-        (s: solver, o: output); idem for solver S_2.       
+        S_1 = [ S_(1,1), S_(1,2) ] = [ [s1_o1, s1_o2, s1_o3], [s1_o4, s1_o5] ]
+        (s: solver, o: output); idem for solver S_2.
         """
-        
+
         # Generate the random input necessary for the solver
         if randomEvent is None:
             randomEvent = self.randomEvent()
@@ -104,7 +114,7 @@ class SampleGenerator():
         This gives no information on whether the samples are split into
         future (sub-lists). Use SampleGenerator.areSamplesSplit for this.
         """
-        
+
         sampleDim = self._solverOutputDimension(*args)
         # Ensure that sampleDim is iterable
         if isinstance(sampleDim, int):
@@ -122,7 +132,7 @@ class SampleGenerator():
         Output arguments:
         - splitSizes: list of integers if SampleGenerator.areSamplesSplit(); None otherwise.
         """
-        
+
         if self.areSamplesSplit(*args):
             return self._solverOutputDimension(*args)
         else:
@@ -133,11 +143,11 @@ class SampleGenerator():
         Returns True if samples are split into future (sub-)lists, False otherwise.
         Accepts the same input arguments as _solverOutputDimensions.
         """
-        
-        sampleDim = self._solverOutputDimension(*args)
-        return isinstance(sampleDim, (list,tuple))
 
-    def _solverOutputDimension(self, solverChoice : int = 0):
+        sampleDim = self._solverOutputDimension(*args)
+        return isinstance(sampleDim, (list, tuple))
+
+    def _solverOutputDimension(self, solverChoice: int = 0):
         """
         Returns the dimension of the output of a solver.
         See SolverWrapper documentation for details.
@@ -146,5 +156,5 @@ class SampleGenerator():
         - solverChoice (optional): index of solver from which to fetch.
         Default is 0.
         """
-        
+
         return self.solvers[solverChoice].outputDimension

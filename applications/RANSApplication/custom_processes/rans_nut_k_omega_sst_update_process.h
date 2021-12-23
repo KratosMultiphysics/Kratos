@@ -67,8 +67,6 @@ public:
     RansNutKOmegaSSTUpdateProcess(
         Model& rModel,
         const std::string& rModelPartName,
-        const double A1,
-        const double BetaStar,
         const double MinValue,
         const int EchoLevel);
 
@@ -116,8 +114,6 @@ private:
 
     Model& mrModel;
     std::string mModelPartName;
-    double mA1;
-    double mBetaStar;
     double mMinValue;
     int mEchoLevel;
     bool mIsInitialized = false;
@@ -137,7 +133,9 @@ private:
      * @return double
      */
     template <unsigned int TDim>
-    double CalculateElementNuT(const Element& rElement) const;
+    double CalculateElementNuT(
+        const Element& rElement,
+        const ProcessInfo& rProcessInfo) const;
 
     ///@}
 

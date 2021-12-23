@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/dof.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 
 namespace Kratos
 {

@@ -25,6 +25,9 @@ class NavierStokesCompressibleSolver(FluidSolver):
                 "input_filename": "two_element_test",
                 "reorder": false
             },
+            "material_import_settings": {
+                "materials_filename": "FluidMaterials.json"
+            },
             "maximum_iterations": 10,
             "echo_level": 1,
             "time_order": 2,
@@ -32,6 +35,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
             "compute_reactions": false,
             "analysis_type": "non_linear",
             "reform_dofs_at_each_step" : true,
+            "consider_periodic_conditions" : false,
             "relative_tolerance" : 1e-3,
             "absolute_tolerance" : 1e-5,
             "linear_solver_settings"       : {
@@ -69,8 +73,9 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
         self.min_buffer_size = 3
         self.element_name = "CompressibleNavierStokes"
-        self.condition_name = "Condition"
+        self.condition_name = "LineCondition"
         self.element_integrates_in_time = True
+        self.element_has_nodal_properties = False
 
         ## Set the element replace settings
         #self._SetCompressibleElementReplaceSettings()
@@ -104,6 +109,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
         # Post-process
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MACH)  #for momentum
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Monolithic compressible fluid solver variables added correctly")
@@ -132,21 +138,21 @@ class NavierStokesCompressibleSolver(FluidSolver):
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
         self._GetSolutionStrategy().Solve()
 
-    def PrepareModelPart(self):
-        super(NavierStokesCompressibleSolver,self).PrepareModelPart()
-        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            self._ExecuteAfterReading()
+    # def PrepareModelPart(self):
+    #     super(NavierStokesCompressibleSolver,self).PrepareModelPart()
+    #     if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+    #         self._ExecuteAfterReading()
 
-    def _ExecuteAfterReading(self):
-        ## Replace element and conditions
-        KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
+    # def _ExecuteAfterReading(self):
+    #     ## Replace element and conditions
+    #     KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
 
-        ## Check that the input read has the shape we like
-        prepare_model_part_settings = KratosMultiphysics.Parameters("{}")
-        prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
-        prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
+    #     ## Check that the input read has the shape we like
+    #     prepare_model_part_settings = KratosMultiphysics.Parameters("{}")
+    #     prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
+    #     prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
 
-        check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
+    #     check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
 
     def _CreateScheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]

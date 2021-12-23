@@ -65,7 +65,6 @@ class RestartProcess(KratosMultiphysics.Process):
         self.restart_path = os.path.join(self.problem_path, self.settings["restart_file_name"].GetString() )
 
         self.step_count         = 0
-        self.counter            = 1
         self.printed_step_count = 0
         self.next_output        = 0
 
@@ -94,19 +93,23 @@ class RestartProcess(KratosMultiphysics.Process):
             self.printed_step_count = self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_RESTART_STEP]
 
             if self.output_control_is_time:
-                self.next_output = self.model_part.ProcessInfo[KratosMultiphysics.TIME] + self.output_frequency
+                self.next_output = self._get_pretty_time(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
             else:
-                self.next_output = self.model_part.ProcessInfo[KratosMultiphysics.STEP] + self.output_frequency
+                self.next_output = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
+
+            self._ScheduleNextOutput() #loaded condides with the saved
         else:
             self.next_output = self.output_frequency
 
         # Copy to a restart folder the posterior files, delete from problem folder
         if( self.save_restart ):
             if self.output_label_is_time:
-                restart_input_label = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+                restart_input_label = self._get_pretty_time(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
                 self.CleanPosteriorFiles(restart_input_label)
             else:
                 restart_input_label = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
+                if self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_STEP] > restart_input_label:
+                    restart_input_label = self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_STEP]
                 self.CleanPosteriorFiles(restart_input_label)
         else:
             self.CleanPreviousFiles()
@@ -137,7 +140,7 @@ class RestartProcess(KratosMultiphysics.Process):
     def SaveRestart(self):
 
         # Print the output
-        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        time = self._get_pretty_time(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
         step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
         self.printed_step_count += 1
         self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_RESTART_STEP] = self.printed_step_count
@@ -157,32 +160,30 @@ class RestartProcess(KratosMultiphysics.Process):
         # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
 
         serializer = KratosMultiphysics.FileSerializer(current_restart_path, self.serializer_flag)
-
+        serializer.Set(KratosMultiphysics.Serializer.SHALLOW_GLOBAL_POINTERS_SERIALIZATION)
         serializer.Save(self.model_part.Name, self.model_part)
 
-        self.counter += 1
-
         # schedule next output
+        self._ScheduleNextOutput()
+
+
+    #
+    def _ScheduleNextOutput(self):
         if(self.output_frequency > 0.0): # note: if == 0 always active
             if(self.output_control_is_time):
-                while(self.next_output <= time):
+                time = self._get_pretty_time(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
+                while(self._get_pretty_time(self.next_output) <= time):
                     self.next_output += self.output_frequency
             else:
                 while(self.next_output <= self.step_count):
                     self.next_output += self.output_frequency
 
-
-
-    #
-    def GetRestartStep(self):
-        return self.counter
-
     #
     def IsRestartStep(self):
 
-        if(self.output_control_is_time):
+        if self.output_control_is_time :
             #print( str(self.model_part.ProcessInfo[KratosMultiphysics.TIME])+">"+ str(self.next_output) )
-            return ( self.model_part.ProcessInfo[KratosMultiphysics.TIME] >= self.next_output )
+            return ( self._get_pretty_time(self.model_part.ProcessInfo[KratosMultiphysics.TIME]) >= self._get_pretty_time(self.next_output) )
         else:
             return ( self.step_count >= self.next_output )
 
@@ -290,6 +291,12 @@ class RestartProcess(KratosMultiphysics.Process):
                     os.remove(f)
                 except OSError:
                     pass
+
+    #
+    def _get_pretty_time(self,time):
+        pretty_time = "{0:.12g}".format(time)
+        pretty_time = float(pretty_time)
+        return pretty_time
     #
     @classmethod
     def _class_prefix(self):

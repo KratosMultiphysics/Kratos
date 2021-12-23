@@ -23,7 +23,7 @@
 #include "containers/flags.h"
 #include "containers/variable.h"
 #include "includes/process_info.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 
 namespace Kratos
 {

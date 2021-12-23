@@ -60,6 +60,9 @@ class ALMHertzSimpleTestContact(TestFactory):
 class ALMHertzSphereTestContact(TestFactory):
     file_name = "ALM_frictionless_contact_test_2D/hertz_sphere_plate_test"
 
+class ALMBeamsTestContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/beams"
+
 class ALMHertzCompleteTestContact(TestFactory):
     file_name = "ALM_frictionless_contact_test_2D/hertz_complete_test"
 
@@ -130,6 +133,10 @@ class ComponentsALMHertzSimpleTestContact(TestFactory):
 class ComponentsALMHertzSphereTestContact(TestFactory):
     frictionless_by_components = True
     file_name = "ALM_frictionless_contact_test_2D/hertz_sphere_plate_test"
+
+class ComponentsALMBeamsTestContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/beams"
 
 class ComponentsALMHertzCompleteTestContact(TestFactory):
     frictionless_by_components = True

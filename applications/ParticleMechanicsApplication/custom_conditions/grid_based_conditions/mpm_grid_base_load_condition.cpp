@@ -26,11 +26,11 @@ namespace Kratos
 
     void MPMGridBaseLoadCondition::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
-        GeometryType& r_geometry = GetGeometry();
+        const GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.size();
         const unsigned int dimension = r_geometry.WorkingSpaceDimension();
         if (rResult.size() != dimension * number_of_nodes)
@@ -66,12 +66,12 @@ namespace Kratos
     //***********************************************************************
     void MPMGridBaseLoadCondition::GetDofList(
         DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        )
+        const ProcessInfo& rCurrentProcessInfo
+        ) const
     {
         KRATOS_TRY
 
-        GeometryType& r_geometry = GetGeometry();
+        const GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.size();
         const unsigned int dimension =  r_geometry.WorkingSpaceDimension();
         ElementalDofList.resize(0);
@@ -103,9 +103,9 @@ namespace Kratos
     void MPMGridBaseLoadCondition::GetValuesVector(
         Vector& rValues,
         int Step
-        )
+        ) const
     {
-        GeometryType& r_geometry = GetGeometry();
+        const GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.size();
         const unsigned int dimension = r_geometry.WorkingSpaceDimension();
         const unsigned int matrix_size = number_of_nodes * dimension;
@@ -132,9 +132,9 @@ namespace Kratos
     void MPMGridBaseLoadCondition::GetFirstDerivativesVector(
         Vector& rValues,
         int Step
-        )
+        ) const
     {
-        GeometryType& r_geometry = GetGeometry();
+        const GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.size();
         const unsigned int dimension = r_geometry.WorkingSpaceDimension();
         const unsigned int matrix_size = number_of_nodes * dimension;
@@ -161,9 +161,9 @@ namespace Kratos
     void MPMGridBaseLoadCondition::GetSecondDerivativesVector(
         Vector& rValues,
         int Step
-        )
+        ) const
     {
-        GeometryType& r_geometry = GetGeometry();
+        const GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.size();
         const unsigned int dimension = r_geometry.WorkingSpaceDimension();
         const unsigned int matrix_size = number_of_nodes * dimension;
@@ -187,7 +187,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void MPMGridBaseLoadCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+    void MPMGridBaseLoadCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
     {
         // Calculation flags
         const bool CalculateStiffnessMatrixFlag = false;
@@ -199,7 +199,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    void MPMGridBaseLoadCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+    void MPMGridBaseLoadCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
     {
         //calculation flags
         const bool CalculateStiffnessMatrixFlag = true;
@@ -213,7 +213,7 @@ namespace Kratos
 
     void MPMGridBaseLoadCondition::CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
         if(rMassMatrix.size1() != 0)
@@ -227,7 +227,7 @@ namespace Kratos
 
     void MPMGridBaseLoadCondition::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
         if(rDampingMatrix.size1() != 0)
@@ -241,7 +241,7 @@ namespace Kratos
 
     void MPMGridBaseLoadCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag
         )
@@ -252,13 +252,10 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
 
-    int MPMGridBaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+    int MPMGridBaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
     {
         // Base check
         Condition::Check(rCurrentProcessInfo);
-
-        // Verify variable exists
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
 
         // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
         for (const auto& r_node : this->GetGeometry().Points()) {
@@ -289,7 +286,7 @@ namespace Kratos
 
     void MPMGridBaseLoadCondition::AddExplicitContribution(const VectorType& rRHS,
         const Variable<VectorType>& rRHSVariable,
-        Variable<array_1d<double,3> >& rDestinationVariable,
+        const Variable<array_1d<double,3> >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY

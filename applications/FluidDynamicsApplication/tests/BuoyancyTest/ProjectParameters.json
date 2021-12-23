@@ -1,0 +1,90 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "buoyancy_test",
+        "domain_size"   : 2,
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.5
+    },
+    "solver_settings" : {
+        "solver_type"             : "ThermallyCoupled",
+        "domain_size"             : 2,
+        "echo_level"              : 0,
+        "fluid_solver_settings"   : {
+            "solver_type"                   : "Monolithic",
+            "model_part_name"               : "FluidModelPart",
+            "domain_size"                   : 2,
+            "model_import_settings"       : {
+                "input_type"     : "mdpa",
+                "input_filename" : "cavity10"
+            },
+            "material_import_settings": {
+                "materials_filename": "buoyancy_test_materials.json"
+            },
+            "echo_level"                  : 0,
+            "compute_reactions"           : false,
+            "relative_velocity_tolerance" : 1e-5,
+            "absolute_velocity_tolerance" : 1e-7,
+            "relative_pressure_tolerance" : 1e-5,
+            "absolute_pressure_tolerance" : 1e-7,
+            "linear_solver_settings"      : {
+                "solver_type"         : "amgcl"
+            },
+            "maximum_iterations"          : 50,
+            "formulation"               : {
+                "element_type"            : "vms",
+                "use_orthogonal_subscales": false,
+                "dynamic_tau"             : 1.0
+            },
+            "volume_model_part_name"      : "Fluid",
+            "skin_parts"                  : [],
+            "no_skin_parts"               : [],
+            "time_stepping"               : {
+                "automatic_time_step" : false,
+                "time_step"           : 0.5
+            }
+        },
+        "thermal_solver_settings" : {
+            "solver_type"                        : "transient",
+            "time_integration_method"            : "TO_BE_DEFINED",
+            "analysis_type"                      : "non_linear",
+            "model_part_name"                    : "ThermalModelPart",
+            "domain_size"                        : 2,
+            "model_import_settings"              : {
+                "input_type"     : "mdpa",
+                "input_filename" : "cavity10"
+            },
+            "material_import_settings"           : {
+                "materials_filename" : "buoyancy_test_materials.json"
+            },
+            "line_search"                        : false,
+            "echo_level"                         : 0,
+            "compute_reactions"                  : false,
+            "max_iteration"                      : 10,
+            "convergence_criterion"              : "residual_criterion",
+            "solution_relative_tolerance"        : 1e-5,
+            "solution_absolute_tolerance"        : 1e-7,
+            "residual_relative_tolerance"        : 1e-5,
+            "residual_absolute_tolerance"        : 1e-7,
+            "problem_domain_sub_model_part_list" : ["Fluid"],
+            "processes_sub_model_part_list"      : [],
+            "time_stepping"                      : {
+                "time_step" : 0.5
+            }
+        }
+    },
+    "processes" : {
+        "boussinesq_process_list" : [{
+            "python_module" : "apply_boussinesq_force_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplyBoussinesqForceProcess",
+            "Parameters"    : {
+                "model_part_name"     : "ThermalModelPart.Fluid"
+            }
+        }]
+    },
+    "output_processes" : {
+        "gid_output" : []
+    }
+}

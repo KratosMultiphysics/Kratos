@@ -70,8 +70,13 @@ class BasicConvectionDiffusionTransientTest(ConvectionDiffusionTestFactory):
     file_name = "basic_conv_diffusion_test/basic_conv_diffusion_test_transient"
 
 @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
+class BasicConvectionDiffusionTransientSemiImplicitTest(ConvectionDiffusionTestFactory):
+    file_name = "basic_conv_diffusion_test/basic_conv_diffusion_test_transient_semi_implicit"
+
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class BasicDiffusionStationaryTest(ConvectionDiffusionTestFactory):
     file_name = "basic_conv_diffusion_test/basic_diffusion_test_stationary"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class SimpleThermoMechanicalTest(ConvectionDiffusionTestFactory):
     file_name = "thermo_mechanical_tests/coupled_problem_test"

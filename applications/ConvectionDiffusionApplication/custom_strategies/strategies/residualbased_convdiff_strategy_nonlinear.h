@@ -19,7 +19,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "convection_diffusion_application.h"
@@ -88,7 +88,7 @@ template<class TSparseSpace,
          class TLinearSolver
          >
 class ResidualBasedConvectionDiffusionStrategyNonLinear
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     /**@name Type Definitions */
@@ -97,7 +97,7 @@ public:
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedConvectionDiffusionStrategyNonLinear);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -141,7 +141,7 @@ public:
         int max_iter = 30,
         double toll = 1e-6
     )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, false)
+        : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, false)
     {
         KRATOS_TRY
 
@@ -334,6 +334,7 @@ public:
         KRATOS_TRY;
 
         ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+        const ProcessInfo& rConstCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
@@ -362,7 +363,7 @@ public:
         for (ModelPart::ElementIterator i = BaseType::GetModelPart().ElementsBegin();
                 i != BaseType::GetModelPart().ElementsEnd(); ++i)
         {
-            (i)->InitializeSolutionStep(rCurrentProcessInfo);
+            (i)->InitializeSolutionStep(rConstCurrentProcessInfo);
         }
 
         //solve nodally for the velocity

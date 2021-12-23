@@ -310,8 +310,8 @@ namespace Kratos
             if (solidEquationId.size() != localSize)
               solidEquationId.resize(localSize, false);
 
-            solidLHS_Contribution = ZeroMatrix(localSize, localSize);
-            solidRHS_Contribution = ZeroVector(localSize);
+            noalias(solidLHS_Contribution) = ZeroMatrix(localSize, localSize);
+            noalias(solidRHS_Contribution) = ZeroVector(localSize);
 
             this->SetMaterialPropertiesToSolid(itNode, density, deviatoricCoeff, volumetricCoeff, timeInterval, nodalVolume);
 
@@ -635,8 +635,8 @@ namespace Kratos
             if (EquationId.size() != localSize)
               EquationId.resize(localSize, false);
 
-            LHS_Contribution = ZeroMatrix(localSize, localSize);
-            RHS_Contribution = ZeroVector(localSize);
+            noalias(LHS_Contribution) = ZeroMatrix(localSize, localSize);
+            noalias(RHS_Contribution) = ZeroVector(localSize);
 
             this->SetMaterialPropertiesToFluid(itNode, density, deviatoricCoeff, volumetricCoeff, timeInterval, nodalVolume);
             // if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
@@ -996,16 +996,16 @@ namespace Kratos
       KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "Before the solution of the system"
                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-      const double start_solve = OpenMPUtils::GetCurrentTime();
-      Timer::Start("Solve");
+      // const double start_solve = OpenMPUtils::GetCurrentTime();
+      // Timer::Start("Solve");
 
       /* boost::timer m_solve_time; */
       SystemSolveWithPhysics(A, Dx, b, rModelPart);
       /* std::cout << "MOMENTUM EQ: solve_time : " << m_solve_time.elapsed() << std::endl; */
 
-      Timer::Stop("Solve");
-      const double stop_solve = OpenMPUtils::GetCurrentTime();
-      KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+      // Timer::Stop("Solve");
+      // const double stop_solve = OpenMPUtils::GetCurrentTime();
+      // KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
       KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "After the solution of the system"
                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
@@ -1040,7 +1040,7 @@ namespace Kratos
       //vector containing the localization in the system of the different
       //terms
       Element::EquationIdVectorType EquationId;
-      const double start_build = OpenMPUtils::GetCurrentTime();
+      // const double start_build = OpenMPUtils::GetCurrentTime();
 
 // assemble all elements
 #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId)
@@ -1067,8 +1067,6 @@ namespace Kratos
 #else
             AssembleElementally(rA, rb, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
-            // clean local elemental memory
-            pScheme->CleanMemory(*it);
           }
         }
 
@@ -1093,14 +1091,11 @@ namespace Kratos
 #else
             AssembleElementally(rA, rb, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
-
-            // clean local elemental memory
-            pScheme->CleanMemory(*it);
           }
         }
       }
-      const double stop_build = OpenMPUtils::GetCurrentTime();
-      KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System build time: " << stop_build - start_build << std::endl;
+      // const double stop_build = OpenMPUtils::GetCurrentTime();
+      // KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System build time: " << stop_build - start_build << std::endl;
 
       KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished building" << std::endl;
 
@@ -1170,7 +1165,7 @@ namespace Kratos
 
       ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-      unsigned int nthreads = OpenMPUtils::GetNumThreads();
+      unsigned int nthreads = ParallelUtilities::GetNumThreads();
 
       //         typedef boost::fast_pool_allocator< NodeType::DofType::Pointer > allocator_type;
       //         typedef std::unordered_set < NodeType::DofType::Pointer,
@@ -1199,13 +1194,13 @@ namespace Kratos
       }
 
       // #pragma omp parallel for firstprivate(nelements, ElementalDofList)
-      for (int i = 0; i < static_cast<int>(nelements); i++)
+      for (int i = 0; i < static_cast<int>(nelements); ++i)
       {
-        typename ElementsArrayType::iterator it = pElements.begin() + i;
-        const unsigned int this_thread_id = OpenMPUtils::ThisThread();
+        auto it_elem = pElements.begin() + i;
+        const IndexType this_thread_id = OpenMPUtils::ThisThread();
 
-        // gets list of Dof involved on every element
-        pScheme->GetElementalDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
+        // Gets list of Dof involved on every element
+        pScheme->GetDofList(*it_elem, ElementalDofList, CurrentProcessInfo);
 
         dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
       }
@@ -1213,15 +1208,16 @@ namespace Kratos
       ConditionsArrayType &pConditions = rModelPart.Conditions();
       const int nconditions = static_cast<int>(pConditions.size());
 #pragma omp parallel for firstprivate(nconditions, ElementalDofList)
-      for (int i = 0; i < nconditions; i++)
+      for (int i = 0; i < nconditions; ++i)
       {
-        typename ConditionsArrayType::iterator it = pConditions.begin() + i;
-        const unsigned int this_thread_id = OpenMPUtils::ThisThread();
+        auto it_cond = pConditions.begin() + i;
+        const IndexType this_thread_id = OpenMPUtils::ThisThread();
 
-        // gets list of Dof involved on every element
-        pScheme->GetConditionDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
+        // Gets list of Dof involved on every element
+        pScheme->GetDofList(*it_cond, ElementalDofList, CurrentProcessInfo);
         dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
       }
+
 
       //here we do a reduction in a tree so to have everything on thread 0
       unsigned int old_max = nthreads;
@@ -1817,7 +1813,7 @@ namespace Kratos
       for (int iii = 0; iii < nconditions; iii++)
       {
         typename ConditionsArrayType::iterator i_condition = cond_begin + iii;
-        pScheme->Condition_EquationId(*(i_condition.base()), ids, CurrentProcessInfo);
+        pScheme->EquationId(*i_condition, ids, CurrentProcessInfo);
         for (std::size_t i = 0; i < ids.size(); i++)
         {
           if (ids[i] < BaseType::mEquationSystemSize)
@@ -1837,7 +1833,7 @@ namespace Kratos
           }
         }
       }
-
+      
       //count the row sizes
       unsigned int nnz = 0;
       for (unsigned int i = 0; i < indices.size(); i++)

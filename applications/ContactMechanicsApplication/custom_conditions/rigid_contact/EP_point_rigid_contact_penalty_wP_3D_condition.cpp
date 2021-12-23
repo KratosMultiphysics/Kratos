@@ -79,7 +79,7 @@ namespace Kratos
 
    // ADD A NEW DOF DUE TO THE WATER
    void EPPointRigidContactPenaltywP3DCondition::GetDofList(DofsVectorType& rConditionDofList,
-         ProcessInfo& rCurrentProcessInfo)
+         const ProcessInfo& rCurrentProcessInfo) const
    {
       KRATOS_TRY
 
@@ -104,7 +104,7 @@ namespace Kratos
    //***********************************************************************************
 
    void EPPointRigidContactPenaltywP3DCondition::EquationIdVector(EquationIdVectorType& rResult,
-         ProcessInfo& rCurrentProcessInfo)
+         const ProcessInfo& rCurrentProcessInfo) const
    {
       KRATOS_TRY
 
@@ -137,7 +137,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void EPPointRigidContactPenaltywP3DCondition::GetValuesVector(Vector& rValues, int Step)
+   void EPPointRigidContactPenaltywP3DCondition::GetValuesVector(Vector& rValues, int Step) const
    {
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -163,7 +163,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void EPPointRigidContactPenaltywP3DCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+   void EPPointRigidContactPenaltywP3DCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -190,7 +190,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void EPPointRigidContactPenaltywP3DCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+   void EPPointRigidContactPenaltywP3DCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();

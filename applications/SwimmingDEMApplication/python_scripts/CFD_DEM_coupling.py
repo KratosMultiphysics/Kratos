@@ -1,8 +1,9 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Parameters
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
+import KratosMultiphysics.DEMApplication as DEM
 import sys
+import numpy as np
 
 class ProjectionModule:
 
@@ -14,6 +15,7 @@ class ProjectionModule:
                 coupling_dem_vars,
                 coupling_fluid_vars,
                 time_filtered_vars,
+                fluid_model_type,
                 flow_field=None,
                 domain_size=3):
 
@@ -21,6 +23,7 @@ class ProjectionModule:
         self.particles_model_part = balls_model_part
         self.FEM_DEM_model_part = FEM_DEM_model_part
         self.project_parameters = project_parameters
+        self.DEM_parameters = self.project_parameters["dem_parameters"]
         self.dimension = domain_size
         self.coupling_type = project_parameters["coupling"]["coupling_weighing_type"].GetInt()
         self.backward_coupling_parameters = project_parameters["coupling"]["backward_coupling"]
@@ -28,8 +31,14 @@ class ProjectionModule:
         self.shape_factor = self.backward_coupling_parameters["shape_factor"].GetDouble()
         self.do_impose_flow_from_field = project_parameters["custom_fluid"]["do_impose_flow_from_field_option"].GetBool()
         self.flow_field = flow_field
+        self.use_drew_model = False
+        if fluid_model_type == "advmsDEM" or fluid_model_type == "aqsvmsDEM":
+            self.use_drew_model = True
 
-        # Create projector_parameters
+        if self.backward_coupling_parameters.Has("averaging_time_interval"):
+            self.averaging_time_interval = self.backward_coupling_parameters["averaging_time_interval"].GetDouble()
+
+         # Create projector_parameters
         self.projector_parameters = Parameters("{}")
         self.projector_parameters.AddValue("backward_coupling", project_parameters["coupling"]["backward_coupling"])
         self.projector_parameters.AddValue("coupling_type", project_parameters["coupling"]["coupling_weighing_type"])
@@ -37,14 +46,25 @@ class ProjectionModule:
         self.projector_parameters.AddValue("viscosity_modification_type", project_parameters["coupling"]["backward_coupling"]["viscosity_modification_type"])
         self.projector_parameters.AddValue("n_particles_per_depth_distance", project_parameters["n_particles_in_depth"])
         self.projector_parameters.AddValue("body_force_per_unit_mass_variable_name", project_parameters["body_force_per_unit_mass_variable_name"])
+        self.projector_parameters.AddValue("gentle_coupling_initiation", project_parameters["coupling"]["gentle_coupling_initiation"])
+        self.search_strategy = DEM.OMP_DEMSearch()
+        if "PeriodicDomainOption" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PeriodicDomainOption"].GetBool():
+                self.search_strategy = DEM.OMP_DEMSearch(self.DEM_parameters["BoundingBoxMinX"].GetDouble(),
+                                                         self.DEM_parameters["BoundingBoxMinY"].GetDouble(),
+                                                         self.DEM_parameters["BoundingBoxMinZ"].GetDouble(),
+                                                         self.DEM_parameters["BoundingBoxMaxX"].GetDouble(),
+                                                         self.DEM_parameters["BoundingBoxMaxY"].GetDouble(),
+                                                         self.DEM_parameters["BoundingBoxMaxZ"].GetDouble())
+
 
         if self.dimension == 3:
 
             if project_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
-                self.projector = SDEM.BinBasedNanoDEMFluidCoupledMapping3D(self.projector_parameters)
+                self.projector = SDEM.BinBasedNanoDEMFluidCoupledMapping3D(self.projector_parameters, self.search_strategy)
 
             else:
-                self.projector = SDEM.BinBasedDEMFluidCoupledMapping3D(self.projector_parameters)
+                self.projector = SDEM.BinBasedDEMFluidCoupledMapping3D(self.projector_parameters, self.search_strategy)
             self.bin_of_objects_fluid = Kratos.BinBasedFastPointLocator3D(fluid_model_part)
 
         else:
@@ -70,7 +90,13 @@ class ProjectionModule:
             self.projector.AddDEMVariablesToImpose(Kratos.AUX_VEL)
 
         for var in time_filtered_vars:
-            self.projector.AddFluidVariableToBeTimeFiltered(var, 0.004)
+            averaging_time_interval = self.averaging_time_interval
+            if self.averaging_time_interval < 15:
+                alpha = 1 - np.exp(- averaging_time_interval)
+            else:
+                alpha = 1.0 / averaging_time_interval
+            print('A'*100, alpha)
+            self.projector.AddFluidVariableToBeTimeFiltered(var, alpha)
 
     def UpdateDatabase(self, HMin):
 
@@ -113,17 +139,12 @@ class ProjectionModule:
         self.projector.ImposeVelocityOnDEMFromFieldToAuxVelocity(self.flow_field, self.particles_model_part)
 
     def ProjectFromParticles(self, recalculate_neigh = True):
-        #print("\nProjecting from particles to the fluid...")
-        #sys.stdout.flush()
 
         if self.coupling_type != 3:
             self.projector.InterpolateFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.bin_of_objects_fluid)
 
         else:
-            self.projector.HomogenizeFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.meso_scale_length, self.shape_factor, recalculate_neigh)
-
-        #print("\nFinished projecting from particles to the fluid...")
-        #sys.stdout.flush()
+            self.projector.HomogenizeFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.meso_scale_length, self.shape_factor, recalculate_neigh, self.use_drew_model)
 
     def ComputePostProcessResults(self, particles_process_info):
         self.projector.ComputePostProcessResults(self.particles_model_part, self.fluid_model_part, self.FEM_DEM_model_part, self.bin_of_objects_fluid, particles_process_info)

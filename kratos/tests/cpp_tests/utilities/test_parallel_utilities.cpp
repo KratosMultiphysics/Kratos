@@ -8,14 +8,20 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                   Philipp Bucher
+//                   Philipp Bucher (https://github.com/philbucher)
 
+// System includes
 #include <utility>
 #include <numeric>
 #include <iostream>
+
+// External includes
+
+// Project includes
 #include "testing/testing.h"
 #include "utilities/parallel_utilities.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/reduction_utilities.h"
+#include "utilities/builtin_timer.h"
 
 namespace Kratos {
 namespace Testing {
@@ -47,9 +53,7 @@ class RHSElement
 KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
 {
     int nsize = 1e3;
-    std::vector<double> data_vector(nsize);
-    for(auto& it : data_vector)
-        it = 5.0;
+    std::vector<double> data_vector(nsize, 5.0);
 
     //here we raise every entry of a vector to the power 0.1
     BlockPartition<std::vector<double>>(data_vector).for_each(
@@ -88,12 +92,37 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
 }
 
 // Basic Type
+KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerConstContainer, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    const std::vector<double> data_vector(nsize, 5.0);
+
+    //here we check for a reduction (computing the sum of all the entries)
+    auto final_sum = BlockPartition<decltype(data_vector)>(data_vector).for_each<SumReduction<double>>(
+        [](const double item)
+        {
+            return item;
+        }
+    );
+
+    //here we check for a reduction (computing the sum of all the entries)
+    auto final_sum_short = block_for_each<SumReduction<double>>(data_vector,
+        [](const double item)
+        {
+            return item;
+        }
+    );
+
+    const double expected_value = 5.0*nsize;
+    KRATOS_CHECK_DOUBLE_EQUAL(final_sum, expected_value);
+    KRATOS_CHECK_DOUBLE_EQUAL(final_sum_short, expected_value);
+}
+
+// Basic Type
 KRATOS_TEST_CASE_IN_SUITE(IndexPartitioner, KratosCoreFastSuite)
 {
     int nsize = 1e3;
-    std::vector<double> data_vector(nsize), output(nsize);
-    for(auto& it : data_vector)
-        it = -1.0;
+    std::vector<double> data_vector(nsize, -1.0), output(nsize);
 
     //output = 2*data_vector (in parallel, and accessing by index)
     IndexPartition<unsigned int>(data_vector.size()).for_each(
@@ -243,6 +272,46 @@ KRATOS_TEST_CASE_IN_SUITE(IndexPartitionerThreadLocalStorage, KratosCoreFastSuit
     KRATOS_CHECK_NEAR(final_sum, exp_sum, tol);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ParallelUtilsContinue, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    std::vector<double> data_vector(nsize, -1.0), output(nsize, 3.3);
+
+    IndexPartition<unsigned int>(data_vector.size()).for_each(
+        [&](unsigned int i){
+            if (i%4 == 0) return; // this is the equivalent of "continue" in a regular loop
+
+            output[i] = 2.0*data_vector[i];
+            }
+        );
+
+    for(unsigned int i=0; i<output.size(); ++i) {
+        if (i%4 == 0) {
+            KRATOS_CHECK_DOUBLE_EQUAL(output[i], 3.3);
+        } else {
+            KRATOS_CHECK_DOUBLE_EQUAL(output[i], -2.0);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AccumReductionVector, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    std::vector<int> input_data_vector(nsize);
+    std::vector<int> expct_data_vector(nsize);
+
+    std::iota(input_data_vector.begin(), input_data_vector.end(), 0);
+    std::iota(expct_data_vector.begin(), expct_data_vector.end(), 1);
+
+    auto assembled_vector = block_for_each<AccumReduction<int>>(input_data_vector, [](int& rValue) {
+        return rValue+1;
+    });
+
+    std::sort(assembled_vector.begin(), assembled_vector.end());
+
+    KRATOS_CHECK_VECTOR_EQUAL(assembled_vector, expct_data_vector);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
 {
     int nsize = 1e3;
@@ -263,19 +332,21 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     }
     class CustomReducer{
         public:
-            typedef std::tuple<double,double> value_type;
-            double max_value = -std::numeric_limits<double>::max();
-            double max_abs = 0.0;
+            typedef double value_type;
+            typedef std::tuple<double,double> return_type;
 
-            value_type GetValue()
+            value_type max_value = -std::numeric_limits<double>::max();
+            value_type max_abs = 0.0;
+
+            return_type GetValue()
             {
-                value_type values;
+                return_type values;
                 std::get<0>(values) = max_value;
                 std::get<1>(values) = max_abs;
                 return values;
             }
 
-            void LocalReduce(double function_return_value){
+            void LocalReduce(value_type function_return_value){
                 this->max_value = std::max(this->max_value,function_return_value);
                 this->max_abs   = std::max(this->max_abs,std::abs(function_return_value));
             }
@@ -334,6 +405,102 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(sub, reference_sub );
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ParUtilsBlockPartitionExceptions, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    std::vector<double> data_vector(nsize, 5.0);
+
+    // basic version
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        block_for_each(data_vector, [](double& item){
+            KRATOS_ERROR << "Inside parallel region" << std::endl;
+        });
+        ,
+        "caught exception: Error: Inside parallel region"
+    );
+
+    // version with reductions
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        block_for_each<SumReduction<double>>(data_vector, [](double& item){
+            KRATOS_ERROR << "Inside parallel region" << std::endl;
+            return 0.0;
+        });
+        ,
+        "caught exception: Error: Inside parallel region"
+    );
+
+    // version with TLS
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        block_for_each(data_vector, std::vector<double>(), [](double& item, std::vector<double>& rTLS){
+            KRATOS_ERROR << "Inside parallel region" << std::endl;
+        });
+        ,
+        "caught exception: Error: Inside parallel region"
+    );
+
+    // version with reduction and TLS
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        block_for_each<SumReduction<double>>(data_vector, std::vector<double>(), [](double& item, std::vector<double>& rTLS){
+            KRATOS_ERROR << "Inside parallel region" << std::endl;
+            return 0.0;
+        });
+        ,
+        "caught exception: Error: Inside parallel region"
+    );
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ParUtilsIndexPartitionExceptions, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    std::vector<double> data_vector(nsize, 5.0);
+
+    // basic version
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        IndexPartition<unsigned int>(data_vector.size()).for_each(
+        [&](unsigned int i){
+            KRATOS_ERROR << "Inside parallel region" << std::endl;
+            }
+        );
+        ,
+        "caught exception: Error: Inside parallel region"
+    );
+
+    // version with reductions
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        IndexPartition<unsigned int>(data_vector.size()).for_each<SumReduction<double>>(
+        [&](unsigned int i){
+            KRATOS_ERROR << "Inside parallel region" << std::endl;
+            return 0.0;
+            }
+        );
+        ,
+        "caught exception: Error: Inside parallel region"
+    );
+
+    // version with TLS
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        IndexPartition<unsigned int>(data_vector.size()).for_each(std::vector<double>(),
+        [&](unsigned int i, std::vector<double>& rTLS){
+            KRATOS_ERROR << "Inside parallel region" << std::endl;
+            }
+        );
+        ,
+        "caught exception: Error: Inside parallel region"
+    );
+
+    // version with reduction and TLS
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        IndexPartition<unsigned int>(data_vector.size()).for_each<SumReduction<double>>(std::vector<double>(),
+        [&](unsigned int i, std::vector<double>& rTLS){
+            KRATOS_ERROR << "Inside parallel region" << std::endl;
+            return 0.0;
+            }
+        );
+        ,
+        "caught exception: Error: Inside parallel region"
+    );
+}
+
 KRATOS_TEST_CASE_IN_SUITE(OmpVsPureC11, KratosCoreFastSuite)
 {
     int nsize = 1e7;
@@ -353,23 +520,21 @@ KRATOS_TEST_CASE_IN_SUITE(OmpVsPureC11, KratosCoreFastSuite)
         );
 
     //benchmark openmp vs pure c++11 impementation in a simple loop
-    double start_omp = OpenMPUtils::GetCurrentTime();
+    const auto timer_omp = BuiltinTimer();
     IndexPartition<unsigned int>(nsize).for_each(
             [&](unsigned int i){
                     output[i] = std::pow(data_vector[i],0.01);
                 }
             );
-    double stop_omp = OpenMPUtils::GetCurrentTime();
-    std::cout << "omp time = " << stop_omp-start_omp << std::endl;
+    std::cout << "OMP time = " << timer_omp.ElapsedSeconds() << std::endl;
 
-    double start_pure= OpenMPUtils::GetCurrentTime();
+    const auto timer_pure = BuiltinTimer();
     IndexPartition<unsigned int>(nsize).for_pure_c11(
             [&](unsigned int i){
                     output[i] = std::pow(data_vector[i],0.01);
                 }
             );
-    double stop_pure = OpenMPUtils::GetCurrentTime();
-    std::cout << "pure c++11 time = " << stop_pure-start_pure << std::endl;
+    std::cout << "Pure c++11 time = " << timer_pure.ElapsedSeconds() << std::endl;
 
 
 

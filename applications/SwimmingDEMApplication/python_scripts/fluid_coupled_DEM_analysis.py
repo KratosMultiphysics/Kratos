@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage as DEM_analysis_stage
@@ -10,7 +9,7 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
 
     def __init__(self, model, project_parameters):
         self.sdem_parameters = project_parameters
-        super(FluidCoupledDEMAnalysisStage, self).__init__(model, project_parameters['dem_parameters'])
+        super().__init__(model, project_parameters['dem_parameters'])
 
     def SetSolverStrategy(self):
         import KratosMultiphysics.SwimmingDEMApplication.swimming_sphere_strategy as SolverStrategy
@@ -63,7 +62,7 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
             return rotational_scheme
 
     def BaseReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
-        super(FluidCoupledDEMAnalysisStage, self).ReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)
+        super().ReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)
 
     def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
         self.coupling_analysis.ReadDispersePhaseModelParts()

@@ -24,9 +24,10 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/flags.h"
-#include "utilities/quaternion.h"
 #include "includes/data_communicator.h"
+#include "containers/flags.h"
+#include "containers/variable.h"
+#include "utilities/quaternion.h"
 
 namespace Kratos
 {

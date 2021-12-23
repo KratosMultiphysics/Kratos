@@ -71,7 +71,7 @@
             "time_step"           : 0.01
         },
         "formulation": {
-            "element_type": "embedded_symbolic_navier_stokes",
+            "element_type": "embedded_weakly_compressible_navier_stokes",
             "is_slip": true,
             "dynamic_tau": 1.0,
             "slip_length": 0.0,

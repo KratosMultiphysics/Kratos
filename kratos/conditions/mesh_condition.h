@@ -224,6 +224,13 @@ public:
     ///@name Input and output
     ///@{
 
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @details This can be used to enhance solvers and analysis
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
+        
     /// Turn back information as a string.
     std::string Info() const override
     {

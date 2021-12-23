@@ -124,47 +124,47 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(
         DofsVectorType& ConditionalDofList,
-        ProcessInfo& CurrentProcessInfo) override;
+        const ProcessInfo& CurrentProcessInfo) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() override;
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
         std::vector<array_1d<double, 3 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 6 > >& rVariable,
         std::vector<array_1d<double, 6 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;

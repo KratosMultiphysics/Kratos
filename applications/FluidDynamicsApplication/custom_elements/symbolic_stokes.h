@@ -187,11 +187,13 @@ public:
     ///@name Inquiry
     ///@{
 
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output
     ///@{
+
+    const Parameters GetSpecifications() const override;
 
     /// Turn back information as a string.
     std::string Info() const override;
@@ -233,6 +235,11 @@ protected:
         const Vector& rUnitNormal,
         MatrixType& rLHS,
         VectorType& rRHS) override;
+
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void ComputeGaussPointLHSContribution(
         TElementData& rData,

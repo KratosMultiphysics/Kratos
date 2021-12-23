@@ -29,7 +29,7 @@
 namespace Kratos
 {
 template <unsigned int TDim, unsigned int TNumNodes>
-void IncompressiblePotentialFlowVelocityElement<TDim, TNumNodes>::GetValueOnIntegrationPoints(
+void IncompressiblePotentialFlowVelocityElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -58,7 +58,7 @@ void IncompressiblePotentialFlowVelocityElement<TDim, TNumNodes>::GetValueOnInte
             rValues[g] = velocity;
         }
     } else {
-        KRATOS_ERROR << "GetValueOnIntegrationPoints for variable "
+        KRATOS_ERROR << "CalculateOnIntegrationPoints for variable "
                      << rVariable.Name() << " not defined for " << this->Info();
     }
 

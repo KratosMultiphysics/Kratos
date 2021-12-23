@@ -43,8 +43,9 @@ class DEMWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
 
     def SolveSolutionStep(self):
-        super().SolveSolutionStep()
-
         # move the rigid wall object in the dem mp w.r.t. the current displacement and velocities
         for model_part_nodes in self.list_of_nodes_in_move_mesh_model_parts:
             DEMApplication.MoveMeshUtility().MoveDemMesh(model_part_nodes,True)
+        # solve DEM
+        super().SolveSolutionStep()
+

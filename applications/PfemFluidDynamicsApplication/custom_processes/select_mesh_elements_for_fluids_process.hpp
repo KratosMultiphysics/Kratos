@@ -28,7 +28,6 @@
 
 ///VARIABLES used:
 //Data:
-//StepData: NODAL_H, CONTACT_FORCE
 //Flags:    (checked) TO_ERASE, BOUNDARY, NEW_ENTITY
 //          (set)
 //          (modified)
@@ -107,7 +106,7 @@ namespace Kratos
             }
             const int &OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
             mrRemesh.PreservedElements.clear();
-            mrRemesh.PreservedElements.resize(OutNumberOfElements);
+            mrRemesh.PreservedElements.resize(OutNumberOfElements, false);
             std::fill(mrRemesh.PreservedElements.begin(), mrRemesh.PreservedElements.end(), 0);
             mrRemesh.MeshElementsSelectedFlag = true;
 
@@ -171,7 +170,7 @@ namespace Kratos
                     unsigned int numisolated = 0;
                     bool noremesh = false;
                     std::vector<double> normVelocityP;
-                    normVelocityP.resize(nds);
+                    normVelocityP.resize(nds, false);
                     unsigned int checkedNodes = 0;
                     box_side_element = false;
                     unsigned int countIsolatedWallNodes = 0;
