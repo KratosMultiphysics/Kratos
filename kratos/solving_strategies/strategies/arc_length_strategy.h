@@ -171,11 +171,9 @@ class ArcLengthStrategy
     {
         KRATOS_TRY;
 
-        if (mInitializeArcLengthWasPerformed == false)
-        {
+        if (!mInitializeArcLengthWasPerformed) {
             //set up the system
-            if (mpBuilderAndSolver->GetDofSetIsInitializedFlag() == false)
-            {
+            if (!mpBuilderAndSolver->GetDofSetIsInitializedFlag()) {
                 //setting up the list of the DOFs to be solved
                 mpBuilderAndSolver->SetUpDofSet(mpScheme, BaseType::GetModelPart());
 
@@ -202,6 +200,7 @@ class ArcLengthStrategy
             TSystemVectorType& mf = *mpf;
             TSparseSpace::SetToZero(mf);
 
+            // We build it now to only include external loads
             mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mf);
 
             //Initialize the loading factor Lambda
@@ -239,6 +238,65 @@ class ArcLengthStrategy
     bool SolveSolutionStep() override
     {
         return true;
+    }
+
+    void UpdateExternalLoads()
+    {
+        // // Update External Loads
+        // for(unsigned int i = 0; i < mVariableNames.size(); i++)
+        // {
+        //     ModelPart& rSubModelPart = *(mSubModelPartList[i]);
+        //     const std::string& VariableName = mVariableNames[i];
+
+        //     if( KratosComponents< Variable<double> >::Has( VariableName ) )
+        //     {
+        //         const Variable<double>& var = KratosComponents< Variable<double> >::Get( VariableName );
+
+        //         #pragma omp parallel
+        //         {
+        //             ModelPart::NodeIterator NodesBegin;
+        //             ModelPart::NodeIterator NodesEnd;
+        //             OpenMPUtils::PartitionedIterators(rSubModelPart.Nodes(),NodesBegin,NodesEnd);
+
+        //             for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+        //             {
+        //                 double& rvalue = itNode->FastGetSolutionStepValue(var);
+        //                 rvalue *= (mLambda/mLambda_old);
+        //             }
+        //         }
+        //     }
+        //     else if( KratosComponents< Variable<array_1d<double,3> > >::Has(VariableName) )
+        //     {
+        //         typedef Variable<double> component_type;
+        //         const component_type& varx = KratosComponents< component_type >::Get(VariableName+std::string("_X"));
+        //         const component_type& vary = KratosComponents< component_type >::Get(VariableName+std::string("_Y"));
+        //         const component_type& varz = KratosComponents< component_type >::Get(VariableName+std::string("_Z"));
+
+        //         #pragma omp parallel
+        //         {
+        //             ModelPart::NodeIterator NodesBegin;
+        //             ModelPart::NodeIterator NodesEnd;
+        //             OpenMPUtils::PartitionedIterators(rSubModelPart.Nodes(),NodesBegin,NodesEnd);
+
+        //             for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+        //             {
+        //                 double& rvaluex = itNode->FastGetSolutionStepValue(varx);
+        //                 rvaluex *= (mLambda/mLambda_old);
+        //                 double& rvaluey = itNode->FastGetSolutionStepValue(vary);
+        //                 rvaluey *= (mLambda/mLambda_old);
+        //                 double& rvaluez = itNode->FastGetSolutionStepValue(varz);
+        //                 rvaluez *= (mLambda/mLambda_old);
+        //             }
+        //         }
+        //     }
+        //     else
+        //     {
+        //         KRATOS_THROW_ERROR( std::logic_error, "One variable of the applied loads has a non supported type. Variable: ", VariableName )
+        //     }
+        //}
+
+        // Save the applied Lambda factor
+        //mLambda_old = mLambda;
     }
 
     /**
@@ -395,21 +453,25 @@ class ArcLengthStrategy
     ///@name Member Variables
     ///@{
 
-    TSystemVectorPointerType mpf; /// Vector of reference external forces
-    TSystemVectorPointerType mpDxf; /// Delta x of A*Dxf=f
-    TSystemVectorPointerType mpDxb; /// Delta x of A*Dxb=b
+    TSystemVectorPointerType mpf;      /// Vector of reference external forces
+    TSystemVectorPointerType mpDxf;    /// Delta x of A*Dxf=f
+    TSystemVectorPointerType mpDxb;    /// Delta x of A*Dxb=b
     TSystemVectorPointerType mpDxPred; /// Delta x of prediction phase
     TSystemVectorPointerType mpDxStep; /// Delta x of the current step
 
-    unsigned int mDesiredIterations; /// This is used to calculate the radius of the next step
+    unsigned int mDesiredIterations;   /// This is used to calculate the radius of the next step
 
     bool mInitializeArcLengthWasPerformed;
 
     double mMaxRadiusFactor, mMinRadiusFactor; /// Used to limit the radius of the arc length strategy
-    double mRadius, mRadius_0; /// Radius of the arc length strategy
-    double mLambda, mLambda_old; /// current and old loading factor
-    double mNormxEquilibrium; /// Norm of the solution vector in equilibrium
-    double mDLambdaStep; /// Delta lambda of the current step
+    double mRadius, mRadius_0;                 /// Radius of the arc length strategy
+    double mLambda, mLambda_old;               /// current and old loading factor
+    double mNormxEquilibrium;                  /// Norm of the solution vector in equilibrium
+    double mDLambdaStep;                       /// Delta lambda of the current step
+
+    std::vector<ModelPart*> mSubModelPartList; /// List of  SubModelParts associated to an external load
+    std::vector<std::string> mVariableNames;   /// Name of the nodal variable associated to each SubModelPart
+
 
     ///@}
     ///@name Private Operators
