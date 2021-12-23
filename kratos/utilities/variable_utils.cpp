@@ -120,7 +120,7 @@ void VariableUtils::AddDofsList(
     ModelPart& rModelPart)
 {
     // Create a set with the variables to be added as DOFs
-    std::set<const Variable<double>*> dofs_vars_set;
+    std::unordered_set<const Variable<double>*> dofs_vars_set;
     const IndexType n_dofs = rDofsVarNamesList.size();
     for (IndexType i = 0; i < n_dofs; ++i) {
         const std::string r_var_name = rDofsVarNamesList[i];
