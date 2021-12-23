@@ -316,9 +316,7 @@ const Parameters TwoFluidNavierStokes<TElementData>::GetSpecifications() const
         },
         "required_polynomial_degree_of_geometry" : 1,
         "documentation"   :
-            "This element implements Navier-Stokes biphasic fluid-air formulation with a levelset-based interface representation with Variational MultiScales (VMS) stabilization.
-            Note that any viscous behavior can be used for the fluid phase through a constitutive law. The air phase is assumed to be Newtonian.
-            Surface tension contribution can be accounted for by setting the SURFACE_TENSION variable to true in the ProcessInfo container.
+            "This element implements Navier-Stokes biphasic fluid-air formulation with a levelset-based interface representation with Variational MultiScales (VMS) stabilization. Note that any viscous behavior can be used for the fluid phase through a constitutive law. The air phase is assumed to be Newtonian. Surface tension contribution can be accounted for by setting the SURFACE_TENSION variable to true in the ProcessInfo container.
     })");
 
     if (Dim == 2) {
