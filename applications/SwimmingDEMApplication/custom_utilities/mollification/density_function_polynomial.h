@@ -51,6 +51,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iostream>
 #include <stdlib.h>
 #include "density_function.h"
+#include <cmath>
 
 namespace Kratos
 {
@@ -68,7 +69,7 @@ DensityFunctionPolynomial(const double range, const double shape_factor)
     m6 = fm6(mR);
     m4 = fm4(mR);
     m2 = fm2(mR);
-    m0 = mR;
+    m0 = fm0(mR);
 }
 
 virtual ~DensityFunctionPolynomial(){}
@@ -87,7 +88,7 @@ void ComputeWeights(std::vector<double> & distances, std::vector<double> & nodal
 
     for (unsigned int i = 0; i != distances.size(); ++i){
         double radius_2 = distances[i] * distances[i];
-        double weight = nodal_areas[i] * (m6 * radius_2 * radius_2 * radius_2 + m4 * radius_2 * radius_2 + m2 * radius_2 + m0);
+        double weight = nodal_areas[i] * (m6 * std::pow(radius_2, 3) + m6 * m2 * radius_2 + m0);
         weights[i] = weight;
         sum_of_weights_inv += weight;
     }
@@ -117,7 +118,7 @@ void ComputeWeights(std::vector<double> & distances, std::vector<double> & nodal
         double r = mR;// * pow(nodal_areas[i] * max_nodal_area_inv, 0.3333333333333333333333333333333);
         double weight;
 
-        weight = nodal_areas[i] * ((radius_2 > r * r) ? 0.0 : fm6(r) * radius_2 * radius_2 * radius_2 + fm4(r) * radius_2 * radius_2 + fm2(r) * radius_2 + r);
+        weight = nodal_areas[i] * ((radius_2 > r * r) ? 0.0 : m6 * std::pow(radius_2, 3) + m6 * m2 * radius_2 + m0);
         weights[i] = weight;
         sum_of_weights_inv += weight;
     }
@@ -143,20 +144,23 @@ double m0;
 
 double fm6(double r)
 {
-    return  315 / (32 * Globals::Pi * pow(r, 9)) - 3 / pow(r, 5);
+    return 7/(16*std::pow(mR, 7));
 }
 
 double fm4(double r)
 {
-    return  7 / pow(r, 3) - 315 / (16 * Globals::Pi * pow(r, 7));
+    return -15*(std::pow(mR, 2) + 2)*std::exp(std::pow(mR, 2)/2)/(2*std::pow(mR, 4)*(2*std::pow(mR, 3)*std::exp(std::pow(mR, 2)/2) + 14*mR*std::exp(std::pow(mR, 2)/2) - 15*std::sqrt(2)*std::sqrt(Globals::Pi)*std::exp(std::pow(mR, 2))*erf(std::sqrt(2)*mR/2)));
 }
 
 double fm2(double r)
 {
-    return  315 / (32 * Globals::Pi * pow(r, 5)) - 5 / r;
+    return -3*std::pow(mR, 4);
 }
 
-
+double fm0(double r)
+{
+    return 7/(8*mR);
+}
 
 }; // class DensityFunctionPolynomial
 

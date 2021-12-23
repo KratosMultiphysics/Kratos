@@ -67,7 +67,7 @@ void SolidFace3D::Initialize(const ProcessInfo& rCurrentProcessInfo) {
 //***********************************************************************************
 
 void SolidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                         ProcessInfo& r_process_info)
+                                         const ProcessInfo& r_process_info)
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
@@ -131,14 +131,17 @@ void SolidFace3D::GetDeltaDisplacement( array_1d<double, 3> & delta_displacement
 void SolidFace3D::CalculateNormal(array_1d<double, 3>& rnormal){
 
     array_1d<double, 3> v1, v2;
+    const auto& n0 = GetGeometry()[0];
+    const auto& n1 = GetGeometry()[1];
+    const auto& n2 = GetGeometry()[2];
 
-    v1[0] = GetGeometry()[1].X() - GetGeometry()[0].X();
-    v1[1] = GetGeometry()[1].Y() - GetGeometry()[0].Y();
-    v1[2] = GetGeometry()[1].Z() - GetGeometry()[0].Z();
+    v1[0] = n1.X() - n0.X();
+    v1[1] = n1.Y() - n0.Y();
+    v1[2] = n1.Z() - n0.Z();
 
-    v2[0] = GetGeometry()[2].X() - GetGeometry()[0].X();
-    v2[1] = GetGeometry()[2].Y() - GetGeometry()[0].Y();
-    v2[2] = GetGeometry()[2].Z() - GetGeometry()[0].Z();
+    v2[0] = n2.X() - n0.X();
+    v2[1] = n2.Y() - n0.Y();
+    v2[2] = n2.Z() - n0.Z();
 
     MathUtils<double>::CrossProduct(rnormal, v1, v2);
 

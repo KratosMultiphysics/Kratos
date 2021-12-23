@@ -200,7 +200,6 @@ namespace Kratos
       ErrorCode  = BaseType::Check(rModelPart);
 
       // Check that all required variables have been registered
-      // KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
 
       // Check that variables are correctly allocated
       // for(ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); ++it)

@@ -1,0 +1,553 @@
+{
+    "TIME": [0.1],
+    "NODE_1": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_2": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.0012499999999998363]
+    },
+    "NODE_3": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.003749999999999538]
+    },
+    "NODE_4": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.0037499999999996573]
+    },
+    "NODE_5": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.0012499999999998639]
+    },
+    "NODE_6": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_7": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_8": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.0012499999999998337]
+    },
+    "NODE_9": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.003749999999999544]
+    },
+    "NODE_10": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.003749999999999653]
+    },
+    "NODE_11": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.0012499999999998727]
+    },
+    "NODE_12": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_13": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_14": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.0012499999999998387]
+    },
+    "NODE_15": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.003749999999999531]
+    },
+    "NODE_16": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.00374999999999967]
+    },
+    "NODE_17": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.001249999999999869]
+    },
+    "NODE_18": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_19": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_20": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.0012499999999998402]
+    },
+    "NODE_21": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.0037499999999995306]
+    },
+    "NODE_22": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.003749999999999677]
+    },
+    "NODE_23": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.001249999999999871]
+    },
+    "NODE_24": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_25": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_26": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.0012499999999998463]
+    },
+    "NODE_27": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.003749999999999515]
+    },
+    "NODE_28": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.003749999999999703]
+    },
+    "NODE_29": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [-0.0012499999999998656]
+    },
+    "NODE_30": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "ELEMENT_1": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-2.290489968356877]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-9.530889823388046]
+        }
+    },
+    "ELEMENT_2": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-2.2904899683568667]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-9.530889823388526]
+        }
+    },
+    "ELEMENT_3": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-2.2904899683570603]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-9.53088982338863]
+        }
+    },
+    "ELEMENT_4": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-2.2904899683573743]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-9.530889823388227]
+        }
+    },
+    "ELEMENT_5": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-2.2904899683576767]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-9.530889823387568]
+        }
+    },
+    "ELEMENT_6": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-10.206951136641424]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-7.692341108746958]
+        }
+    },
+    "ELEMENT_7": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-10.206951136641413]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-7.692341108746843]
+        }
+    },
+    "ELEMENT_8": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-10.206951136641477]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-7.692341108746707]
+        }
+    },
+    "ELEMENT_9": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-10.206951136641568]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-7.692341108746535]
+        }
+    },
+    "ELEMENT_10": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-10.206951136641662]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-7.692341108746414]
+        }
+    },
+    "ELEMENT_11": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-18.749999999997158]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-5.00000053710783]
+        }
+    },
+    "ELEMENT_12": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-18.749999999997133]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-5.000000537107509]
+        }
+    },
+    "ELEMENT_13": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-18.74999999999709]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-5.000000537107294]
+        }
+    },
+    "ELEMENT_14": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-18.749999999997012]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-5.000000537107437]
+        }
+    },
+    "ELEMENT_15": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-18.74999999999694]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-5.000000537107733]
+        }
+    },
+    "ELEMENT_16": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-23.668683889282466]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-2.3076554683680928]
+        }
+    },
+    "ELEMENT_17": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-23.668683889282466]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-2.30765546836783]
+        }
+    },
+    "ELEMENT_18": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-23.66868388928239]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-2.3076554683677744]
+        }
+    },
+    "ELEMENT_19": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-23.66868388928232]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-2.3076554683679236]
+        }
+    },
+    "ELEMENT_20": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-23.668683889282224]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-2.3076554683682464]
+        }
+    },
+    "ELEMENT_21": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-24.944986116821763]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-0.4691012930202687]
+        }
+    },
+    "ELEMENT_22": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-24.94498611682174]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-0.4691012930206385]
+        }
+    },
+    "ELEMENT_23": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-24.944986116821713]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-0.4691012930207728]
+        }
+    },
+    "ELEMENT_24": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-24.944986116821713]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-0.46910129302083153]
+        }
+    },
+    "ELEMENT_25": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-24.944986116821706]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [-0.4691012930211187]
+        }
+    },
+    "ELEMENT_26": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-24.94498611682204]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [0.4691012930203349]
+        }
+    },
+    "ELEMENT_27": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-24.944986116822037]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [0.4691012930200912]
+        }
+    },
+    "ELEMENT_28": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-24.944986116822047]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [0.46910129301964665]
+        }
+    },
+    "ELEMENT_29": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-24.944986116822108]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [0.4691012930197596]
+        }
+    },
+    "ELEMENT_30": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-24.944986116822175]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [0.46910129301977954]
+        }
+    },
+    "ELEMENT_31": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-23.668683889283574]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [2.307655468368179]
+        }
+    },
+    "ELEMENT_32": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-23.668683889283585]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [2.307655468367222]
+        }
+    },
+    "ELEMENT_33": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-23.668683889283656]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [2.307655468367153]
+        }
+    },
+    "ELEMENT_34": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-23.6686838892838]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [2.3076554683670367]
+        }
+    },
+    "ELEMENT_35": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-23.668683889283912]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [2.307655468367108]
+        }
+    },
+    "ELEMENT_36": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-18.749999999998654]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [5.000000537107384]
+        }
+    },
+    "ELEMENT_37": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-18.74999999999868]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [5.000000537107105]
+        }
+    },
+    "ELEMENT_38": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-18.749999999998778]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [5.00000053710705]
+        }
+    },
+    "ELEMENT_39": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-18.749999999998874]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [5.000000537107176]
+        }
+    },
+    "ELEMENT_40": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-18.749999999998977]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [5.000000537106739]
+        }
+    },
+    "ELEMENT_41": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-10.206951136642358]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [7.69234110874704]
+        }
+    },
+    "ELEMENT_42": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-10.20695113664242]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [7.692341108747543]
+        }
+    },
+    "ELEMENT_43": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-10.206951136642466]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [7.692341108747636]
+        }
+    },
+    "ELEMENT_44": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-10.20695113664236]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [7.692341108747449]
+        }
+    },
+    "ELEMENT_45": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-10.206951136642266]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [7.692341108746559]
+        }
+    },
+    "ELEMENT_46": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-2.2904899683569693]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [9.53088982339098]
+        }
+    },
+    "ELEMENT_47": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-2.290489968357066]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [9.530889823391123]
+        }
+    },
+    "ELEMENT_48": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-2.2904899683569333]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [9.53088982339102]
+        }
+    },
+    "ELEMENT_49": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-2.29048996835658]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [9.530889823390874]
+        }
+    },
+    "ELEMENT_50": {
+        "INTERNAL_MOMENT_XX": {
+            "0": [-2.2904899683563325]
+        },
+        "SHEAR_FORCE_1": {
+            "0": [9.530889823389916]
+        }
+    }
+}

@@ -50,7 +50,7 @@ Condition::Pointer GeneralUPwDiffOrderCondition::Create(IndexType NewId,NodesArr
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::Initialize()
+void GeneralUPwDiffOrderCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

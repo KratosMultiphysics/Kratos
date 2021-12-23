@@ -128,7 +128,7 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
         for f in glob.glob(GetFilePath('*.time')):
             os.remove(f)
 
-    def test_accelerator(self,force1,force2,solution,accelerator_settings):
+    def _test_accelerator(self,force1,force2,solution,accelerator_settings):
 
         print("")
         print("Testing accelerator: ",accelerator_settings["solver_type"].GetString())
@@ -170,7 +170,7 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
             self.assertAlmostEqual(expected_x[i],x_guess[i],delta=self.assert_delta)
 
     # MVQN recursive accelerator test
-    def test_mvqn_recursive_accelerator(self,force1,force2,solution):
+    def _test_mvqn_recursive_accelerator(self,force1,force2,solution):
 
         mvqn_recursive_settings = KratosMultiphysics.Parameters("""
         {
@@ -179,7 +179,7 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
             "buffer_size": 5
         }""")
 
-        self.test_accelerator(force1,force2,solution,mvqn_recursive_settings)
+        self._test_accelerator(force1,force2,solution,mvqn_recursive_settings)
 
     def test_mvqn_recursive_accelerator_constant_forces(self):
 
@@ -209,7 +209,7 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
         def solution(model_part):
             return analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2)
 
-        self.test_mvqn_recursive_accelerator(force1,force2,solution)
+        self._test_mvqn_recursive_accelerator(force1,force2,solution)
 
     def test_mvqn_recursive_accelerator_variable_stiffness(self):
 
@@ -240,10 +240,10 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
         def solution(model_part):
             return analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2)
 
-        self.test_mvqn_recursive_accelerator(forceA,forceB,solution)
+        self._test_mvqn_recursive_accelerator(forceA,forceB,solution)
 
     # Aitken accelerator test
-    def test_aitken_accelerator(self,force1,force2,solution):
+    def _test_aitken_accelerator(self,force1,force2,solution):
 
         aitken_settings = KratosMultiphysics.Parameters("""{
                                                             "solver_type"        : "Relaxation",
@@ -251,7 +251,7 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
                                                             "w_0"                : 0.825
                                                            }""")
 
-        self.test_accelerator(force1,force2,solution,aitken_settings)
+        self._test_accelerator(force1,force2,solution,aitken_settings)
 
     def test_aitken_accelerator_constant_forces(self):
 
@@ -281,7 +281,7 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
         def solution(model_part):
             return analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2)
 
-        self.test_aitken_accelerator(force1,force2,solution)
+        self._test_aitken_accelerator(force1,force2,solution)
 
     def test_aitken_accelerator_variable_stiffness(self):
 
@@ -312,7 +312,7 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
         def solution(model_part):
             return analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2)
 
-        self.test_aitken_accelerator(forceA,forceB,solution)
+        self._test_aitken_accelerator(forceA,forceB,solution)
 
 if __name__ == '__main__':
     test = ConvergenceAcceleratorSpringTest()

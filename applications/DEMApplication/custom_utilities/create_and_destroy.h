@@ -14,15 +14,17 @@
 
 // Project includes
 #include "includes/define.h"
-#include "../DEM_application_variables.h"
+#include "DEM_application_variables.h"
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/quaternion.h"
-#include "../custom_elements/discrete_element.h"
-#include "../custom_elements/spheric_particle.h"
-#include "../custom_utilities/discrete_particle_configure.h"
+#include "custom_elements/discrete_element.h"
+#include "custom_elements/spheric_particle.h"
+#include "custom_utilities/discrete_particle_configure.h"
+#include "custom_utilities/piecewise_linear_random_variable.h"
+#include "custom_utilities/discrete_random_variable.h"
 #include "analytic_tools/analytic_watcher.h"
 
 
@@ -40,6 +42,7 @@ public:
         typedef Configure::IteratorType                     ParticleIterator;
         typedef PointerVectorSet<Element, IndexedObject>    ElementsContainerType;
         typedef ModelPart::ElementsContainerType            ElementsArrayType;
+        typedef ModelPart::NodesContainerType               NodesArrayType;
         unsigned int mMaxNodeId;
 
     KRATOS_CLASS_POINTER_DEFINITION(ParticleCreatorDestructor);
@@ -47,7 +50,11 @@ public:
     /// Default constructor
     ParticleCreatorDestructor();
 
+    ParticleCreatorDestructor(Parameters settings);
+
     ParticleCreatorDestructor(AnalyticWatcher::Pointer p_watcher);
+
+    ParticleCreatorDestructor(AnalyticWatcher::Pointer p_watcher, Parameters settings);
 
     /// Destructor
     virtual ~ParticleCreatorDestructor();
@@ -57,6 +64,10 @@ public:
     int FindMaxElementIdInModelPart(ModelPart& r_modelpart);
     int FindMaxConditionIdInModelPart(ModelPart& r_modelpart);
     void RenumberElementIdsFromGivenValue(ModelPart& r_modelpart, const int initial_id);
+    void DestroyMarkedParticles(ModelPart& r_model_part);
+    virtual double SelectRadius(bool initial,
+                                ModelPart& r_sub_model_part_with_parameters,
+                                std::map<std::string, std::unique_ptr<RandomVariable>>& r_random_variables_map);
 
     void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                            Node < 3 > ::Pointer& pnew_node,
@@ -85,6 +96,7 @@ public:
                                                           Element::Pointer injector_element,
                                                           Properties::Pointer r_params,
                                                           ModelPart& r_sub_model_part_with_parameters,
+                                                          std::map<std::string, std::unique_ptr<RandomVariable>>& r_random_variables_map,
                                                           const Element& r_reference_element,
                                                           PropertiesProxy* p_fast_properties,
                                                           bool has_sphericity,
@@ -236,9 +248,10 @@ public:
                                          double scale_factor,
                                          bool automatic);
 
+    bool CheckParticlePreservationCriteria(const Element::Pointer p_element, const double current_time);
     void DestroyParticles(ModelPart& r_model_part);
     void DestroyParticleElements(ModelPart& r_model_part, Flags flag_for_destruction);
-    void DestroyParticles(ModelPart::MeshType& rMesh);
+    void DestroyParticles(ModelPart::MeshType& rMesh, const double current_time);
     void DestroyContactElements(ModelPart& r_model_part);
     void MarkInitialNeighboursThatAreBeingRemoved(ModelPart& r_model_part);
     void RemoveUnusedNodesOfTheClustersModelPart(ModelPart& r_clusters_modelpart);
@@ -290,9 +303,10 @@ private:
     array_1d<double, 3 > mStrictLowPoint;
     double mDiameter;
     double mStrictDiameter;
-    double mScaleFactor;
+    double mScaleFactor=1.0;
     bool mDoSearchNeighbourElements;
     AnalyticWatcher::Pointer mpAnalyticWatcher;
+    Parameters mSettings;
     void Clear(ModelPart::NodesContainerType::iterator node_it, int step_data_size);
     inline void ClearVariables(ModelPart::NodesContainerType::iterator node_it, Variable<array_1d<double, 3 > >& rVariable);
     inline void ClearVariables(ParticleIterator particle_it, Variable<double>& rVariable);

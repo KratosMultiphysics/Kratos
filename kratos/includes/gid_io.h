@@ -220,74 +220,76 @@ public:
     void SetUpMeshContainers()
     {
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Hexahedra3D20,
-                                            GiD_Hexahedra, "Kratos_Hexahedra3D20_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Hexahedra3D20,
+                                          GiD_Hexahedra, "Kratos_Hexahedra3D20_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Hexahedra3D27,
-                                            GiD_Hexahedra, "Kratos_Hexahedra3D27_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Hexahedra3D27,
+                                          GiD_Hexahedra, "Kratos_Hexahedra3D27_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Hexahedra3D8,
-                                            GiD_Hexahedra, "Kratos_Hexahedra3D8_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,
+                                          GiD_Hexahedra, "Kratos_Hexahedra3D8_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Prism3D15,
-                                            GiD_Prism, "Kratos_Prism3D15_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Prism3D15,
+                                          GiD_Prism, "Kratos_Prism3D15_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Prism3D6,
-                                            GiD_Prism, "Kratos_Prism3D6_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Prism3D6,
+                                          GiD_Prism, "Kratos_Prism3D6_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Quadrilateral2D4,
-                                            GiD_Quadrilateral, "Kratos_Quadrilateral2D4_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4,
+                                          GiD_Quadrilateral, "Kratos_Quadrilateral2D4_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Quadrilateral2D8,
-                                            GiD_Quadrilateral, "Kratos_Quadrilateral2D8_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8,
+                                          GiD_Quadrilateral, "Kratos_Quadrilateral2D8_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Quadrilateral2D9,
-                                            GiD_Quadrilateral, "Kratos_Quadrilateral2D9_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9,
+                                          GiD_Quadrilateral, "Kratos_Quadrilateral2D9_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Quadrilateral3D4,
-                                            GiD_Quadrilateral, "Kratos_Quadrilateral3D4_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4,
+                                          GiD_Quadrilateral, "Kratos_Quadrilateral3D4_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Quadrilateral3D8,
-                                            GiD_Quadrilateral, "Kratos_Quadrilateral3D8_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8,
+                                          GiD_Quadrilateral, "Kratos_Quadrilateral3D8_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Quadrilateral3D9,
-                                            GiD_Quadrilateral, "Kratos_Quadrilateral3D9_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9,
+                                          GiD_Quadrilateral, "Kratos_Quadrilateral3D9_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Tetrahedra3D10,
-                                            GiD_Tetrahedra, "Kratos_Tetrahedra3D10_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10,
+                                          GiD_Tetrahedra, "Kratos_Tetrahedra3D10_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Tetrahedra3D4,
-                                            GiD_Tetrahedra, "Kratos_Tetrahedra3D4_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,
+                                          GiD_Tetrahedra, "Kratos_Tetrahedra3D4_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Triangle2D3,
-                                            GiD_Triangle, "Kratos_Triangle2D3_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Triangle2D3,
+                                          GiD_Triangle, "Kratos_Triangle2D3_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Triangle2D6,
-                                            GiD_Triangle, "Kratos_Triangle2D6_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Triangle2D6,
+                                          GiD_Triangle, "Kratos_Triangle2D6_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Triangle3D3,
-                                            GiD_Triangle, "Kratos_Triangle3D3_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Triangle3D3,
+                                          GiD_Triangle, "Kratos_Triangle3D3_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Triangle3D6,
-                                            GiD_Triangle, "Kratos_Triangle3D6_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Triangle3D6,
+                                          GiD_Triangle, "Kratos_Triangle3D6_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Line2D2,
-                                            GiD_Linear, "Kratos_Line2D2_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Line2D2,
+                                          GiD_Linear, "Kratos_Line2D2_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Line3D2,
-                                            GiD_Linear, "Kratos_Line3D2_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Line3D2,
+                                          GiD_Linear, "Kratos_Line3D2_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Line2D3,
-                                            GiD_Linear, "Kratos_Line2D3_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Line2D3,
+                                          GiD_Linear, "Kratos_Line2D3_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Line3D3,
-                                            GiD_Linear, "Kratos_Line3D3_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Line3D3,
+                                          GiD_Linear, "Kratos_Line3D3_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Point2D,
-                                            GiD_Point, "Kratos_Point2D_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Point2D,
+                                          GiD_Point, "Kratos_Point2D_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
-                                            GeometryData::Kratos_Point3D,
-                                            GiD_Point, "Kratos_Point3D_Mesh" ) );
+                                          GeometryData::KratosGeometryType::Kratos_Point3D,
+                                          GiD_Point, "Kratos_Point3D_Mesh" ) );
+
+
     }//SetUpMeshContainers
 
     /**
@@ -301,29 +303,29 @@ public:
         gp_indices[0] ;
         //case Triangle with 1 gauss point
         mGidGaussPointContainers.push_back( TGaussPointContainer( "tri1_element_gp",
-                                            GeometryData::Kratos_Triangle, GiD_Triangle, 1, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Triangle, GiD_Triangle, 1, gp_indices ) );
         //case Quadrilateral with 1 gauss point
         mGidGaussPointContainers.push_back( TGaussPointContainer( "quad1_element_gp",
-                                            GeometryData::Kratos_Quadrilateral, GiD_Quadrilateral, 1, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Quadrilateral, GiD_Quadrilateral, 1, gp_indices ) );
         //case Tetrahedra with 1 gauss point
         mGidGaussPointContainers.push_back( TGaussPointContainer( "tet1_element_gp",
-                                            GeometryData::Kratos_Tetrahedra, GiD_Tetrahedra, 1, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Tetrahedra, GiD_Tetrahedra, 1, gp_indices ) );
         //case Hexahedra with 1 gauss point
         mGidGaussPointContainers.push_back( TGaussPointContainer( "hex1_element_gp",
-                                            GeometryData::Kratos_Hexahedra, GiD_Hexahedra, 1, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Hexahedra, GiD_Hexahedra, 1, gp_indices ) );
         //case Prism with 1 gauss point
         mGidGaussPointContainers.push_back( TGaussPointContainer( "prism1_element_gp",
-                                            GeometryData::Kratos_Prism, GiD_Prism, 1, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Prism, GiD_Prism, 1, gp_indices ) );
         //case Linear with 1 gauss point
         mGidGaussPointContainers.push_back( TGaussPointContainer( "lin1_element_gp",
-                                            GeometryData::Kratos_Linear, GiD_Linear, 1, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Linear, GiD_Linear, 1, gp_indices ) );
 
         //elements with 2 gauss points
         gp_indices.resize(2);
         gp_indices[0] ;
         gp_indices[1] = 1;
         mGidGaussPointContainers.push_back( TGaussPointContainer( "lin2_element_gp",
-                                            GeometryData::Kratos_Linear, GiD_Linear, 2, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Linear, GiD_Linear, 2, gp_indices ) );
 
 
         //elements with 3 gauss points
@@ -333,10 +335,10 @@ public:
         gp_indices[1] = 1;
         gp_indices[2] = 2;
         mGidGaussPointContainers.push_back( TGaussPointContainer( "tri3_element_gp",
-                                            GeometryData::Kratos_Triangle, GiD_Triangle, 3, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Triangle, GiD_Triangle, 3, gp_indices ) );
         //case Linear with 3 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "lin3_element_gp",
-                                            GeometryData::Kratos_Linear, GiD_Linear, 3, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Linear, GiD_Linear, 3, gp_indices ) );
 
         //elements with 4 gauss points
         gp_indices.resize(4);
@@ -347,26 +349,26 @@ public:
 
         //case Linear with 4 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "lin3_element_gp",
-                                            GeometryData::Kratos_Linear, GiD_Linear, 4, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Linear, GiD_Linear, 4, gp_indices ) );
         //case Quadrilateral with 4 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "quad4_element_gp",
-                                            GeometryData::Kratos_Quadrilateral, GiD_Quadrilateral, 4, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Quadrilateral, GiD_Quadrilateral, 4, gp_indices ) );
         //case Tetrahedra with 4 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "tet4_element_gp",
-                                            GeometryData::Kratos_Tetrahedra, GiD_Tetrahedra, 4, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Tetrahedra, GiD_Tetrahedra, 4, gp_indices ) );
         //case Triangle with 4 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "tri4_element_gp",
-                                            GeometryData::Kratos_Triangle, GiD_Triangle, 4, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Triangle, GiD_Triangle, 4, gp_indices ) );
         gp_indices[0] = 1;
         gp_indices[1] = 2;
         gp_indices[2] = 3;
         gp_indices[3] = 4;
         //case Tetrahedra with 5 gauss points (4 gauss points will be created for GiD)
         mGidGaussPointContainers.push_back( TGaussPointContainer( "tet5_element_gp",
-                                            GeometryData::Kratos_Tetrahedra, GiD_Tetrahedra, 5, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Tetrahedra, GiD_Tetrahedra, 5, gp_indices ) );
         //case Tetrahedra with 11 gauss points (4 gauss points will be created for GiD)
         mGidGaussPointContainers.push_back( TGaussPointContainer( "tet11_element_gp",
-                                            GeometryData::Kratos_Tetrahedra, GiD_Tetrahedra, 11, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Tetrahedra, GiD_Tetrahedra, 11, gp_indices ) );
 
 
         //elements with 5 gauss points
@@ -378,7 +380,7 @@ public:
         gp_indices[4] = 4;
         //case Linear with 5 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "lin5_element_gp",
-                                            GeometryData::Kratos_Linear, GiD_Linear, 5, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Linear, GiD_Linear, 5, gp_indices ) );
 
         //case Tetrahedra with 10 gauss points (4 gauss points will be created for GiD)
         gp_indices.resize(10);
@@ -393,7 +395,7 @@ public:
         gp_indices[8] = 8;
         gp_indices[9] = 9;
         mGidGaussPointContainers.push_back( TGaussPointContainer( "tet10_element_gp",
-                                            GeometryData::Kratos_Tetrahedra, GiD_Tetrahedra, 10, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Tetrahedra, GiD_Tetrahedra, 10, gp_indices ) );
 
         //elements with 6 gauss points
         gp_indices.resize(6);
@@ -405,27 +407,27 @@ public:
         gp_indices[5] = 5;
         //case Triangle with 6 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "tri6_element_gp",
-                                            GeometryData::Kratos_Triangle, GiD_Triangle, 6, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Triangle, GiD_Triangle, 6, gp_indices ) );
         //case Prism with 6 Gauss Points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "prism6_element_gp",
-                                            GeometryData::Kratos_Prism, GiD_Prism, 6, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Prism, GiD_Prism, 6, gp_indices ) );
 
         /* START: Adding manually the custom prism */
         //case Prism with 2 Gauss Points (6 gauss points will be created for GiD)
         mGidGaussPointContainers.push_back( TGaussPointContainer( "prism2_element_gp",
-                                            GeometryData::Kratos_Prism, GiD_Prism, 2, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Prism, GiD_Prism, 2, gp_indices ) );
         //case Prism with 3 Gauss Points (6 gauss points will be created for GiD)
         mGidGaussPointContainers.push_back( TGaussPointContainer( "prism3_element_gp",
-                                                                    GeometryData::Kratos_Prism, GiD_Prism, 3, gp_indices ) );
+                                                                  GeometryData::KratosGeometryFamily::Kratos_Prism, GiD_Prism, 3, gp_indices ) );
         //case Prism with 5 Gauss Points (6 gauss points will be created for GiD)
         mGidGaussPointContainers.push_back( TGaussPointContainer( "prism5_element_gp",
-                                                                    GeometryData::Kratos_Prism, GiD_Prism, 5, gp_indices ) );
+                                                                  GeometryData::KratosGeometryFamily::Kratos_Prism, GiD_Prism, 5, gp_indices ) );
         //case Prism with 7 Gauss Points (6 gauss points will be created for GiD)
         mGidGaussPointContainers.push_back( TGaussPointContainer( "prism7_element_gp",
-                                                                    GeometryData::Kratos_Prism, GiD_Prism, 7, gp_indices ) );
+                                                                  GeometryData::KratosGeometryFamily::Kratos_Prism, GiD_Prism, 7, gp_indices ) );
         //case Prism with 11 Gauss Points (6 gauss points will be created for GiD)
         mGidGaussPointContainers.push_back( TGaussPointContainer( "prism11_element_gp",
-                                                                    GeometryData::Kratos_Prism, GiD_Prism, 11, gp_indices ) );
+                                                                  GeometryData::KratosGeometryFamily::Kratos_Prism, GiD_Prism, 11, gp_indices ) );
         /* END: Adding manually the custom prism */
 
         //elements with 7 gauss points
@@ -439,7 +441,7 @@ public:
         gp_indices[6] = 6;
         //case Linear with 7 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "lin7_element_gp",
-                                            GeometryData::Kratos_Linear, GiD_Linear, 7, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Linear, GiD_Linear, 7, gp_indices ) );
         //elements with 8 gauss points
         gp_indices.resize(8);
         gp_indices[0] ;
@@ -452,7 +454,7 @@ public:
         gp_indices[7] = 7;
         //case Hexahedra with 8 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "hex8_element_gp",
-                                                                    GeometryData::Kratos_Hexahedra, GiD_Hexahedra, 8, gp_indices ) );
+                                                                  GeometryData::KratosGeometryFamily::Kratos_Hexahedra, GiD_Hexahedra, 8, gp_indices ) );
 
         //elements with 9 gauss points
         gp_indices.resize(9);
@@ -467,13 +469,13 @@ public:
         gp_indices[8] = 8;
         //case Linear with 9 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "lin9_element_gp",
-                                            GeometryData::Kratos_Linear, GiD_Linear, 9, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Linear, GiD_Linear, 9, gp_indices ) );
         //case Prism with 9 Gauss Points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "prism9_element_gp",
-                                            GeometryData::Kratos_Prism, GiD_Prism, 9, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Prism, GiD_Prism, 9, gp_indices ) );
         // case quadrilateral with 9 Gauss Points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "quad9_element_gp",
-                                            GeometryData::Kratos_Quadrilateral, GiD_Quadrilateral, 9, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Quadrilateral, GiD_Quadrilateral, 9, gp_indices ) );
 
         //elements with 11 gauss points
         gp_indices.resize(11);
@@ -490,7 +492,7 @@ public:
         gp_indices[10] = 10;
         //case Linear with 11 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "lin11_element_gp",
-                                            GeometryData::Kratos_Linear, GiD_Linear, 11, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Linear, GiD_Linear, 11, gp_indices ) );
 
         //elements with 27 gauss points
         gp_indices.resize(27);
@@ -523,7 +525,7 @@ public:
         gp_indices[6] = 26;
         //case Hexahedra with 27 Gauss Points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "hex27_element_gp",
-                                            GeometryData::Kratos_Hexahedra, GiD_Hexahedra, 27, gp_indices ) );
+                                            GeometryData::KratosGeometryFamily::Kratos_Hexahedra, GiD_Hexahedra, 27, gp_indices ) );
 
     }//SetUpGaussPointContainers
 

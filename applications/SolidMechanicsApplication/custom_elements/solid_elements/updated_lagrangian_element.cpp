@@ -144,8 +144,8 @@ UpdatedLagrangianElement::~UpdatedLagrangianElement()
 //************************************************************************************
 
 void UpdatedLagrangianElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo )
+                                                             const std::vector<double>& rValues,
+                                                             const ProcessInfo& rCurrentProcessInfo )
 {
 
   if (rVariable == DETERMINANT_F){
@@ -178,7 +178,7 @@ void UpdatedLagrangianElement::SetValuesOnIntegrationPoints( const Variable<doub
 //************************************************************************************
 
 
-void UpdatedLagrangianElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void UpdatedLagrangianElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -198,7 +198,7 @@ void UpdatedLagrangianElement::GetValueOnIntegrationPoints( const Variable<doubl
   }
   else{
 
-    LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 
@@ -210,11 +210,11 @@ void UpdatedLagrangianElement::GetValueOnIntegrationPoints( const Variable<doubl
 //************************************************************************************
 
 
-void UpdatedLagrangianElement::Initialize()
+void UpdatedLagrangianElement::Initialize( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    LargeDisplacementElement::Initialize();
+    LargeDisplacementElement::Initialize(rCurrentProcessInfo);
 
     SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
@@ -456,7 +456,7 @@ double& UpdatedLagrangianElement::CalculateVolumeChange( double& rVolumeChange, 
 //************************************************************************************
 //************************************************************************************
 
-int UpdatedLagrangianElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int UpdatedLagrangianElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -483,7 +483,7 @@ int UpdatedLagrangianElement::Check( const ProcessInfo& rCurrentProcessInfo )
     for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
-	Node<3> &rNode = this->GetGeometry()[i];
+	const Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
 	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
 

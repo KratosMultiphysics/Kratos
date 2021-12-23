@@ -148,7 +148,8 @@ class SPAlgorithm(Algorithm):
                 max_prop_id = prop.Id
         props = Kratos.Properties(max_prop_id + 1)
         # NOTE: this should be more general
-        props[Dem.FRICTION] = 0.2
+        props[Dem.STATIC_FRICTION] = 0.2
+        props[Dem.DYNAMIC_FRICTION] = 0.2
         props[Dem.WALL_COHESION] = 0.0
         props[Dem.COMPUTE_WEAR] = False
         props[Dem.SEVERITY_OF_WEAR] = 0.001

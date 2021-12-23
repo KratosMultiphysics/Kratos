@@ -1,15 +1,14 @@
-# XMC imports
-from xmc.tools import instantiateObject, summation_Task
-
 # Import external libraries
 import itertools as it
 from math import ceil
 import numpy as np
 import warnings
 
+# XMC imports
+from xmc.tools import instantiateObject, summation_Task
+from xmc.methodDefs_monteCarloIndex import updateEstimators
+from exaqute import get_value_from_remote, delete_object
 import xmc.methodDefs_monteCarloIndex.updateEstimators as mdu
-
-from xmc.distributedEnvironmentFramework import *
 
 
 class MonteCarloIndex:
@@ -31,30 +30,8 @@ class MonteCarloIndex:
         # qoi estimators
         qoi_estimator_module = keywordArgs.get("qoiEstimator")
         qoi_estimator_module_args = keywordArgs.get("qoiEstimatorInputDictionary")
-        for i in range(len(qoi_estimator_module)):
-            self.qoiEstimator.append(
-                instantiateObject(qoi_estimator_module[i], **qoi_estimator_module_args[i])
-            )
-
-        # combined estimators
-        # TODO to be removed (see issue #23)
-        combined_estimator_module = keywordArgs.get("combinedEstimator", None)
-        combined_estimator_module_args = keywordArgs.get("combinedEstimatorInputDictionary")
-        if combined_estimator_module is not None:
-            warnings.warn(
-                (
-                    "combinedEstimator and combinedEstimatorInputDictionary are "
-                    "deprecated. Use qoiEstimator and qoiEstimatorInputDictionary "
-                    "instead. Retro-compatibility is ensured only until 2021-06."
-                ),
-                FutureWarning,
-            )
-            for i in range(len(combined_estimator_module)):
-                self.qoiEstimator.append(
-                    instantiateObject(
-                        combined_estimator_module[i], **combined_estimator_module_args[i]
-                    )
-                )
+        for i, d in enumerate(qoi_estimator_module_args):
+            self.qoiEstimator.append(instantiateObject(qoi_estimator_module[i], **d))
 
         sampler_input_dict = keywordArgs.get("samplerInputDictionary")
         sampler_input_dict["solverWrapperIndices"] = self.solverIndices()
@@ -106,6 +83,8 @@ class MonteCarloIndex:
         """
         Compute list of indices of correlated solvers.
         """
+
+        # TODO What follows must be reviewed and probably revised.
 
         diff_tuple = []
         hypercube_vertices = 2 ** self.indexSetDimension()

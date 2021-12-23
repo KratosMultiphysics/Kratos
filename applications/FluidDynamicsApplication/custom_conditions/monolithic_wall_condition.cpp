@@ -23,7 +23,7 @@ namespace Kratos
  */
 template <>
 void MonolithicWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
-    const ProcessInfo& rCurrentProcessInfo) const 
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     const unsigned int NumNodes = 2;
     const unsigned int LocalSize = 6;
@@ -45,7 +45,7 @@ void MonolithicWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResul
  */
 template <>
 void MonolithicWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
-    const ProcessInfo& rCurrentProcessInfo) const 
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -68,7 +68,7 @@ void MonolithicWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResul
  */
 template <>
 void MonolithicWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
-       const ProcessInfo& rCurrentProcessInfo) const 
+       const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType NumNodes = 2;
     const SizeType LocalSize = 6;
@@ -91,7 +91,7 @@ void MonolithicWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
  */
 template <>
 void MonolithicWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
-    const ProcessInfo& rCurrentProcessInfo) const 
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -154,9 +154,10 @@ void MonolithicWallCondition<TDim,TNumNodes>::CalculateLocalVelocityContribution
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> > &rVariable,
-                                                                          std::vector<array_1d<double,3> > &rValues,
-                                                                          const ProcessInfo &rCurrentProcessInfo)
+void MonolithicWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double,3> > &rVariable,
+    std::vector<array_1d<double,3> > &rValues,
+    const ProcessInfo &rCurrentProcessInfo)
 {
     rValues.resize(1);
     if (rVariable == NORMAL)
@@ -176,9 +177,10 @@ void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const 
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                                                          std::vector<double>& rValues,
-                                                                          const ProcessInfo& rCurrentProcessInfo)
+void MonolithicWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     rValues.resize(1);
     /*
@@ -193,9 +195,10 @@ void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const 
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                                                                          std::vector<array_1d<double, 6 > >& rValues,
-                                                                          const ProcessInfo& rCurrentProcessInfo)
+void MonolithicWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 6 > >& rVariable,
+    std::vector<array_1d<double, 6 > >& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     rValues.resize(1);
     const MonolithicWallCondition* const_this = static_cast< const MonolithicWallCondition* >(this);
@@ -204,9 +207,10 @@ void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const 
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                                                          std::vector<Vector>& rValues,
-                                                                          const ProcessInfo& rCurrentProcessInfo)
+void MonolithicWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     rValues.resize(1);
     const MonolithicWallCondition* const_this = static_cast< const MonolithicWallCondition* >(this);
@@ -215,9 +219,10 @@ void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const 
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                                                          std::vector<Matrix>& rValues,
-                                                                          const ProcessInfo& rCurrentProcessInfo)
+void MonolithicWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
+    const Variable<Matrix>& rVariable,
+    std::vector<Matrix>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     rValues.resize(1);
     const MonolithicWallCondition* const_this = static_cast< const MonolithicWallCondition* >(this);
@@ -265,10 +270,10 @@ void MonolithicWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &
     {
         const unsigned int LocalSize = TDim+1;
         const GeometryType& rGeom = this->GetGeometry();
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
         const unsigned int NumGauss = IntegrationPoints.size();
 
-        MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+        MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
         array_1d<double,3> Normal;
         this->CalculateNormal(Normal); //this already contains the area

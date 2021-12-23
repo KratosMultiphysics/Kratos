@@ -1,0 +1,134 @@
+{
+    "optimization_settings" : {
+        "model_settings" : {
+            "domain_size"           : 2,
+            "model_part_name"       : "MainModelPart",
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : "../naca0012_small_mdpa/naca0012_small"
+            },
+            "design_surface_sub_model_part_name" : "Body2D_Body",
+            "mesh_motion" : {
+                "apply_mesh_solver" : true,
+                "solver_settings" : {
+                    "solver_type": "structural_similarity",
+                    "model_part_name"    : "MainModelPart",
+                    "model_import_settings"              : {
+                        "input_type"     : "use_input_model_part"
+                    },
+                    "time_stepping" : {
+                        "time_step"       : 1.0
+                    },
+                    "domain_size"     : 2,
+                    "compute_reactions"     : false
+                },
+                "processes":{
+                    "boundary_conditions_process_list" : [ {
+                        "python_module" : "fix_vector_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "help"          : "This process fixes the selected components of a given vector variable without modifying the value of the variable.",
+                        "process_name"  : "FixVectorVariableProcess",
+                        "Parameters"    : {
+                            "model_part_name"      : "MainModelPart.Body2D_Body",
+                            "variable_name"        : "MESH_DISPLACEMENT",
+                            "constrained"          : [true,true,true]
+                        }
+                    },{
+                        "python_module" : "assign_vector_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "help"          : "This process fixes the selected components of a given vector variable",
+                        "process_name"  : "AssignVectorVariableProcess",
+                        "Parameters"    : {
+                            "mesh_id"         : 0,
+                            "model_part_name" : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                            "variable_name"   : "MESH_DISPLACEMENT",
+                            "value"           : [0.0,0.0,0.0]
+                        }
+                    }]
+                }
+            }
+        },
+        "objectives" : [{
+            "identifier" : "lift_coefficient",
+            "response_settings":{
+                "response_type"          : "stochastic_adjoint_lift_potential_jump",
+                "primal_settings"        : "primal_parameters.json",
+                "adjoint_settings"       : "adjoint_parameters.json",
+                "xmc_settings"       : "xmc_mlmc_parameters.json",
+                "design_surface_sub_model_part_name" : "Body2D_Body",
+                "auxiliary_mdpa_path" : "current_design",
+                "primal_data_transfer_with_python"       : true
+            },
+            "type"       : "maximization",
+            "analyzer" : "kratos",
+            "project_gradient_on_surface_normals" : false
+        }],
+        "constraints" : [{
+            "identifier" : "angle_of_attack",
+            "type"       : "=",
+            "reference"  : "initial_value",
+            "analyzer" : "kratos",
+            "response_settings":{
+                "response_type"          : "airfoil_angle_of_attack",
+                "trailing_edge_model_part" : "MainModelPart.TrailingEdgeNode",
+                "leading_edge_model_part" : "MainModelPart.LeadingEdgeNode"
+            },
+            "project_gradient_on_surface_normals" : false
+        },{
+            "identifier" : "chord_length",
+            "type"       : "=",
+            "reference"  : "initial_value",
+            "analyzer" : "kratos",
+            "response_settings":{
+                "response_type"          : "airfoil_chord_length",
+                "trailing_edge_model_part" : "MainModelPart.TrailingEdgeNode",
+                "leading_edge_model_part" : "MainModelPart.LeadingEdgeNode"
+            },
+            "project_gradient_on_surface_normals" : false
+        },{
+            "identifier" : "perimeter",
+            "type"       : "=",
+            "reference"  : "initial_value",
+            "analyzer" : "kratos",
+            "response_settings":{
+                "response_type"          : "airfoil_perimeter",
+                "model_part_name"        : "MainModelPart.Body2D_Body"
+            },
+            "project_gradient_on_surface_normals" : false
+        }],
+        "design_variables" : {
+            "type"                : "vertex_morphing",
+            "filter" : {
+                "filter_function_type"        : "gaussian",
+                "filter_radius"               : 0.3,
+                "max_nodes_in_filter_radius"  : 3000,
+                "matrix_free_filtering" : true
+            }
+        },
+        "optimization_algorithm" : {
+            "name": "trust_region",
+            "max_iterations": 2,
+            "bisectioning_max_itr": 30,
+            "bisectioning_tolerance": 0.01,
+            "far_away_length": 2.0,
+            "max_step_length": 0.01,
+            "obj_share_during_correction": 1,
+            "step_length_reduction_factor": 0.8,
+            "relative_tolerance"  : 1e-3
+
+        },
+        "output" : {
+            "design_output_mode" : "none",
+            "nodal_results"      : [ "NORMALIZED_SURFACE_NORMAL",
+                                     "DF1DX",
+                                     "DF1DX_MAPPED",
+                                     "MESH_CHANGE",
+                                     "SHAPE_UPDATE",
+                                     "SHAPE_CHANGE",
+                                     "CONTROL_POINT_CHANGE" ],
+            "output_format" : {
+                "name": "gid"
+            }
+        }
+    }
+}

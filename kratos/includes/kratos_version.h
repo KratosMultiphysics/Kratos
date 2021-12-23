@@ -55,9 +55,9 @@ constexpr int GetMinorVersion() {
     return KRATOS_MINOR_VERSION;
 }
 
-KRATOS_API(KRATOS_VERSION) std::string GetPatchVersion();
-KRATOS_API(KRATOS_VERSION) std::string GetCommit();
-KRATOS_API(KRATOS_VERSION) std::string GetBuildType();
-KRATOS_API(KRATOS_VERSION) std::string GetVersionString();
+KRATOS_API_EXPORT std::string GetPatchVersion();
+KRATOS_API_EXPORT std::string GetCommit();
+KRATOS_API_EXPORT std::string GetBuildType();
+KRATOS_API_EXPORT std::string GetVersionString();
 
 } // namespace Kratos

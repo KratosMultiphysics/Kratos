@@ -9,7 +9,7 @@
     "solver_settings"          : {
         "model_part_name"                    : "Thermic",
         "domain_size"                        : 2,
-        "solver_type"                        : "Stationary",
+        "solver_type"                        : "stationary",
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
@@ -96,7 +96,7 @@
                         },
                         "file_label"          : "step",
                         "output_control_type" : "step",
-                        "output_frequency"    : 1,
+                        "output_interval"    : 1,
                         "body_output"         : true,
                         "node_output"         : false,
                         "skin_output"         : false,

@@ -187,7 +187,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void MPMGridBaseLoadCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+    void MPMGridBaseLoadCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
     {
         // Calculation flags
         const bool CalculateStiffnessMatrixFlag = false;
@@ -199,7 +199,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    void MPMGridBaseLoadCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+    void MPMGridBaseLoadCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
     {
         //calculation flags
         const bool CalculateStiffnessMatrixFlag = true;
@@ -213,7 +213,7 @@ namespace Kratos
 
     void MPMGridBaseLoadCondition::CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
         if(rMassMatrix.size1() != 0)
@@ -227,7 +227,7 @@ namespace Kratos
 
     void MPMGridBaseLoadCondition::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
         if(rDampingMatrix.size1() != 0)
@@ -241,7 +241,7 @@ namespace Kratos
 
     void MPMGridBaseLoadCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag
         )
@@ -256,9 +256,6 @@ namespace Kratos
     {
         // Base check
         Condition::Check(rCurrentProcessInfo);
-
-        // Verify variable exists
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
 
         // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
         for (const auto& r_node : this->GetGeometry().Points()) {

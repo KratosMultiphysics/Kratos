@@ -109,7 +109,7 @@ namespace Kratos {
         noalias(this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
     }
 
-    void SingleSphereCluster3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) {}
+    void SingleSphereCluster3D::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& r_process_info) {}
 
     double SingleSphereCluster3D::SlowGetDensity()                                      { return GetProperties()[PARTICLE_DENSITY];}
     int SingleSphereCluster3D::SlowGetParticleMaterial()                                { return GetProperties()[PARTICLE_MATERIAL];}

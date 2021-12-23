@@ -6,8 +6,8 @@
 
 namespace Kratos {
 
-DEM_Force_Based_Inlet::DEM_Force_Based_Inlet(ModelPart& inlet_modelpart, array_1d<double, 3> injection_force):
-               DEM_Inlet(inlet_modelpart), mInjectionForce(injection_force)
+DEM_Force_Based_Inlet::DEM_Force_Based_Inlet(ModelPart& inlet_modelpart, array_1d<double, 3> injection_force, const int seed):
+               DEM_Inlet(inlet_modelpart, seed), mInjectionForce(injection_force)
 {}
 
 void DEM_Force_Based_Inlet::RemoveInjectionConditions(Element &element, int dimension)
