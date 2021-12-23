@@ -128,29 +128,25 @@ class ArcLengthStrategy
     {
         KRATOS_TRY;
 
-        // Setting to zero the internal flag to ensure that the dof sets are recalculated. Also clear the linear solver stored in the B&S
-        auto p_builder_and_solver = GetBuilderAndSolver();
-        if (p_builder_and_solver != nullptr) {
-            p_builder_and_solver->SetDofSetIsInitializedFlag(false);
-            p_builder_and_solver->Clear();
-        }
+        SparseSpaceType::Clear(mpf);
+        SparseSpaceType::Clear(mpDxf);
+        SparseSpaceType::Clear(mpDxb);
+        SparseSpaceType::Clear(mpDxPred);
+        SparseSpaceType::Clear(mpDxStep);
 
-        // Clearing the system of equations
-        if (mpA != nullptr)
-            SparseSpaceType::Clear(mpA);
-        if (mpDx != nullptr)
-            SparseSpaceType::Clear(mpDx);
-        if (mpb != nullptr)
-            SparseSpaceType::Clear(mpb);
+        TSystemVectorType& mf = *mpf;
+        TSystemVectorType& mDxf = *mpDxf;
+        TSystemVectorType& mDxb = *mpDxb;
+        TSystemVectorType& mDxPred = *mpDxPred;
+        TSystemVectorType& mDxStep = *mpDxStep;
 
-        // Clearing scheme
-        auto p_scheme = GetScheme();
-        if (p_scheme != nullptr) {
-            GetScheme()->Clear();
-        }
+        SparseSpaceType::Resize(mf, 0);
+        SparseSpaceType::Resize(mDxf, 0);
+        SparseSpaceType::Resize(mDxb, 0);
+        SparseSpaceType::Resize(mDxPred, 0);
+        SparseSpaceType::Resize(mDxStep, 0);
 
-        mInitializeWasPerformed = false;
-        mSolutionStepIsInitialized = false;
+        GrandMotherType::Clear();
 
         KRATOS_CATCH("");
     }
