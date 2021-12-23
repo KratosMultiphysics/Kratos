@@ -52,7 +52,7 @@ class Pouliot2012LaplacianRecoverer(L2_projection_recoverer.L2ProjectionDerivati
         self.recovery_strategy.Solve()
 
     def Solve(self):
-        print("\nSolving for the fluid acceleration...")
+        Kratos.Logger.PrintInfo("SwimmingDEM", "\nSolving for the fluid acceleration...")
         sys.stdout.flush()
         self.SetToZero(Kratos.VELOCITY_COMPONENT_GRADIENT)
         if self.do_pre_recovery:

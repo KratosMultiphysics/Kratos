@@ -157,7 +157,7 @@ public:
     ///@name Inquiry
     ///@{
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output
@@ -208,22 +208,28 @@ private:
                                           BoundedMatrix<double, NumNodes, NumNodes>& lhs,
                                           const ElementalData<NumNodes, Dim>& data) const;
 
+    void CalculateBlockLeftHandSideWakeElement(BoundedMatrix<double, NumNodes, NumNodes>& rLhs_total,
+                                            BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
+                                            const ElementalData<NumNodes, Dim>& rData,
+                                            const ProcessInfo& rCurrentProcessInfo);
+
     void AssignLocalSystemSubdividedElement(MatrixType& rLeftHandSideMatrix,
                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+                                            BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
                                             const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
                                       BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+                                      BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
                                       const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLocalSystemWakeNode(MatrixType& rLeftHandSideMatrix,
                                    BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+                                    BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
                                    const ElementalData<NumNodes, Dim>& data,
                                    unsigned int& row) const;
-
-    void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
     void ComputeElementInternalEnergy();
 

@@ -42,7 +42,7 @@ std::string ParticleContactElement::Info() const
     return buffer.str();
 }
 
-void ParticleContactElement::Initialize() {
+void ParticleContactElement::Initialize(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
     mFailureCriterionState = 0.0;
@@ -80,7 +80,7 @@ void ParticleContactElement::PrepareForPrinting() {
     KRATOS_CATCH( "" )
 }
 
-void ParticleContactElement::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& r_process_info)
+void ParticleContactElement::CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& r_process_info)
 {
     //if(rVariable == LOCAL_CONTACT_FORCE) {  //3D VARIABLE WITH COMPONENTS
     rOutput.resize(1);
@@ -91,7 +91,7 @@ void ParticleContactElement::GetValueOnIntegrationPoints( const Variable<array_1
     //}
 }
 
-void ParticleContactElement::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& r_process_info) {
+void ParticleContactElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& r_process_info) {
     Output.resize(1);
     const ParticleContactElement* const_this = dynamic_cast< const ParticleContactElement* >(this); //To ensure we don't set the value here
     Output[0] = double(const_this->GetValue(rVariable));

@@ -17,7 +17,7 @@ namespace Kratos {
         // TODO: make mDoApplyFaxenCorrections an option
         AutonHuntPrudhommeInviscidForceLaw(){}
 
-        AutonHuntPrudhommeInviscidForceLaw(Parameters& r_parameters);
+        AutonHuntPrudhommeInviscidForceLaw(Parameters r_parameters);
 
         ~AutonHuntPrudhommeInviscidForceLaw(){}
 

@@ -15,6 +15,8 @@
 
 // Project includes
 #include "custom_conditions/displacement_control_condition.h"
+#include "structural_mechanics_application_variables.h"
+#include "includes/variables.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -240,7 +242,7 @@ void DisplacementControlCondition::GetValuesVector(
 
 void DisplacementControlCondition::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Calculation flags
@@ -256,7 +258,7 @@ void DisplacementControlCondition::CalculateRightHandSide(
 void DisplacementControlCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     //calculation flags
@@ -271,7 +273,7 @@ void DisplacementControlCondition::CalculateLocalSystem(
 
 void DisplacementControlCondition::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if(rMassMatrix.size1() != 0) {
@@ -284,7 +286,7 @@ void DisplacementControlCondition::CalculateMassMatrix(
 
 void DisplacementControlCondition::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if(rDampingMatrix.size1() != 0) {
@@ -342,15 +344,46 @@ int DisplacementControlCondition::Check( const ProcessInfo& rCurrentProcessInfo 
     // Base check
     Condition::Check(rCurrentProcessInfo);
 
-    // Verify variable exists
-    KRATOS_CHECK_VARIABLE_KEY(LOAD_FACTOR)
-
     // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
     for (const auto& r_node : GetGeometry().Points()) {
         KRATOS_CHECK_DOF_IN_NODE(LOAD_FACTOR, r_node)
     }
 
     return 0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Parameters DisplacementControlCondition::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit"],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : [],
+            "nodal_historical"       : ["DISPLACEMENT","LOAD_FACTOR"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT","LOAD_FACTOR"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z","LOAD_FACTOR"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Point3D"],
+        "element_integrates_in_time" : false,
+        "compatible_constitutive_laws": {
+            "type"        : [],
+            "dimension"   : [],
+            "strain_size" : []
+        },
+        "required_polynomial_degree_of_geometry" : -1,
+        "documentation"   : "Displacement control load condition."
+
+    })");
+
+    return specifications;
 }
 
 /***********************************************************************************/

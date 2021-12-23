@@ -38,7 +38,7 @@ public:
 
     typedef Variable<array_1d<double, 3> >                                    VectorVariableType;
     typedef Variable<double>                                                  ScalarVariableType;
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > >      ComponentType;
+    typedef Variable<double>                                                       ComponentType;
 
     /// Pointer definition of AddDofsProcess
     KRATOS_CLASS_POINTER_DEFINITION(AddDofsProcess);

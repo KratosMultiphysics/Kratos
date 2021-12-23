@@ -70,11 +70,10 @@ RigidEdge2D::~RigidEdge2D()
 void RigidEdge2D::Initialize(const ProcessInfo& rCurrentProcessInfo) {
 
     if (! rCurrentProcessInfo[IS_RESTARTED]){
-        this->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
-        this->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
-
-        this->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
-        this->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+        for (SizeType i=0;i<this->GetGeometry().size();++i){
+            this->GetGeometry()[i].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
+            this->GetGeometry()[i].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+        }
     }
 }
 
@@ -147,17 +146,20 @@ void RigidEdge2D::ComputeConditionRelativeData(int rigid_neighbour_index,
 
 void RigidEdge2D::CalculateNormal(array_1d<double, 3>& rnormal){
 
-    double delta_x = GetGeometry()[1].X() - GetGeometry()[0].X();
-    double delta_y = GetGeometry()[1].Y() - GetGeometry()[0].Y();
+    if (GetGeometry().size()>1){
+        const auto& n0 = GetGeometry()[0];
+        const auto& n1 = GetGeometry()[1];
 
-    rnormal[0] = - delta_y;
-    rnormal[1] = delta_x;
-    rnormal[2] = 0.0;
+        double delta_x = n1.X() - n0.X();
+        double delta_y = n1.Y() - n0.Y();
 
-    rnormal /= MathUtils<double>::Norm3(rnormal);
+        rnormal[0] = - delta_y;
+        rnormal[1] = delta_x;
+        rnormal[2] = 0.0;
+
+        rnormal /= MathUtils<double>::Norm3(rnormal);
+    }
 }
-
-
 
 void RigidEdge2D::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info)
 {

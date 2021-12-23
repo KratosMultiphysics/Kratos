@@ -88,7 +88,10 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
                 "RemoveBallsInEmbeddedOption"      : false,
                 "solver_settings" :{
                     "strategy"                 : "sphere_strategy",
-                    "RemoveBallsInitiallyTouchingWalls": false
+                    "RemoveBallsInitiallyTouchingWalls": false,
+                    "material_import_settings"           : {
+                        "materials_filename" : "MaterialsDEM.json"
+                    }
                 },
 
                 "DeltaOption"                      : "Absolute",
@@ -267,8 +270,6 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         super().FinalizeSolutionStep()
 
         current_test_energy = self.ComputeEnergy()
-        #if not self.step%200:
-        #    print("Energy: "+str(current_test_energy))
 
         if current_test_energy/self.initial_test_energy > 1.5:
             print("GAINING ENERGY!!")

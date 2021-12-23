@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ THE SOFTWARE.
  * \brief  Static matrix support for the VexCL backend.
  */
 
+#include <amgcl/backend/detail/mixing.hpp>
 #include <amgcl/backend/vexcl.hpp>
 #include <amgcl/value_type/static_matrix.hpp>
 
@@ -68,7 +69,7 @@ struct spmv_ops_impl<amgcl::static_matrix<TA,N,N>, amgcl::static_matrix<TX,N,1>>
 
     static void decl_accum_var(backend::source_generator &src, const std::string &name)
     {
-        src.new_line() << type_name<vector_value>() << " " << name << ";";
+        src.new_line() << type_name<amgcl::static_matrix<TA,N,1>>() << " " << name << ";";
         for(int i = 0; i < N; ++i) {
             src.new_line() << name << ".data[" << i << "][0] = 0;";
         }
@@ -650,8 +651,12 @@ struct vex_scale {
     } const apply;
 };
 
+template <typename TS, typename TD, int N, class Enable = void> struct vex_convert;
+
 template <typename TS, typename TD, int N>
-struct vex_convert {
+struct vex_convert<TS, TD, N,
+    typename std::enable_if<!std::is_same<TS, TD>::value>::type>
+{
     typedef static_matrix<TS,N,1> src_vector;
     typedef static_matrix<TD,N,1> dst_vector;
 
@@ -674,6 +679,14 @@ struct vex_convert {
             src.end_function();
         }
     } const apply;
+};
+
+template <typename TS, typename TD, int N>
+struct vex_convert<TS, TD, N,
+    typename std::enable_if<std::is_same<TS, TD>::value>::type>
+{
+    template <class X>
+    static const X& apply(const X &x) { return x; }
 };
 
 template <typename TA, typename TB, int N>
@@ -954,6 +967,26 @@ struct inner_product_impl<
     }
 };
 
+namespace detail {
+
+template <class V1, class V2>
+struct common_scalar_backend< backend::vexcl<V1>, backend::vexcl<V2>,
+    typename std::enable_if<
+        math::static_rows<V1>::value != 1 ||
+        math::static_rows<V2>::value != 1
+        >::type>
+{
+    typedef typename math::scalar_of<V1>::type S1;
+    typedef typename math::scalar_of<V2>::type S2;
+
+    typedef
+        typename std::conditional<
+            (sizeof(S1) > sizeof(S2)), backend::vexcl<S1>, backend::vexcl<S2>
+            >::type
+        type;
+};
+
+} // namespace detail
 } // namespace backend
 } // namespace amgcl
 

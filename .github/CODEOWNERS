@@ -1,4 +1,5 @@
 # see https://help.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
+# IMPORTANT: the teams have to have at least write permission in Kratos, otherwise codeowners doesn't work!
 
 /*                    @KratosMultiphysics/technical-committee
 /kratos/              @KratosMultiphysics/technical-committee
@@ -6,11 +7,14 @@
 /cmake_modules/       @KratosMultiphysics/technical-committee
 /external_libraries/  @KratosMultiphysics/technical-committee
 /scripts/             @KratosMultiphysics/technical-committee
+/kratos/mpi           @KratosMultiphysics/technical-committee @KratosMultiphysics/mpi
 
 # Applications
-/applications/TrilinosApplication/                     @KratosMultiphysics/technical-committee
-/applications/MetisApplication/                        @KratosMultiphysics/technical-committee
+/applications/TrilinosApplication/                     @KratosMultiphysics/technical-committee @KratosMultiphysics/mpi
+/applications/MetisApplication/                        @KratosMultiphysics/technical-committee @KratosMultiphysics/mpi
+/applications/LinearSolversApplication/                @KratosMultiphysics/technical-committee @KratosMultiphysics/linearsolvers
 /applications/StructuralMechanicsApplication/          @KratosMultiphysics/structural-mechanics
+/applications/ConstitutiveLawsApplication/             @KratosMultiphysics/structural-mechanics
 /applications/ContactStructuralMechanicsApplication/   @KratosMultiphysics/structural-mechanics
 /applications/FluidDynamicsApplication/                @KratosMultiphysics/fluid-maintainers
 /applications/ConvectionDiffusionApplication           @KratosMultiphysics/fluid-maintainers
@@ -23,3 +27,6 @@
 /applications/CompressiblePotentialFlowApplication/    @KratosMultiphysics/potential-flow-team
 /applications/ChimeraApplication/                      @KratosMultiphysics/chimera
 /applications/IgaApplication/                          @KratosMultiphysics/nurbs-breps
+/applications/HDF5Application/                         @KratosMultiphysics/hdf5-application
+/applications/MultilevelMonteCarloApplication/         @KratosMultiphysics/uncertainty-quantification 
+/applications/ParticleMechanicsApplication/            @KratosMultiphysics/mpm

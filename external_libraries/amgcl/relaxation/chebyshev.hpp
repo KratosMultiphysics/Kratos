@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2019 Peter Gamnitzer, UIBK (University of Innsbruck)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

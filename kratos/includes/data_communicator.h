@@ -637,6 +637,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     /// Convenience function to retireve the current default DataCommunicator.
     /** @return A reference to the DataCommunicator instance registered as default in ParallelEnvironment.
      */
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator through the ModelPart (or by name in special cases)")
     static DataCommunicator& GetDefault();
 
     ///@}

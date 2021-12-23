@@ -63,6 +63,7 @@ namespace Kratos
  * $ f $ the forcing term.
  * Quasi-static algebraic subgrid scale and quasi-static orthogonal subgrid scale methods are exploited for stabilization.
  * The element is designed to use an explicit integration method.
+ * The formulation is described in https://github.com/KratosMultiphysics/Documentation/blob/master/Resources_files/convection_diffusion_explicit_elements/Eulerian_convection_diffusion_explicit_element.pdf
  * @author Riccardo Tosi
  */
 template< unsigned int TDim, unsigned int TNumNodes>
@@ -139,6 +140,11 @@ public:
     void CalculateMassMatrix(
         MatrixType &rMassMatrix,
         const ProcessInfo &rCurrentProcessInfo) override;
+
+    void CalculateLumpedMassVector(
+        VectorType& rLumpedMassVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     void Calculate(
         const Variable<double>& rVariable,

@@ -1,6 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics
-
+import KratosMultiphysics.SwimmingDEMApplication
+from importlib import import_module
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -17,7 +18,7 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
             {
                 "model_part_name"          : "please_specify_model_part_name",
                 "variable_name"            : "BODY_FORCE",
-                "benchmark_name"           : "vortex",
+                "benchmark_name"           : "custom_body_force.vortex",
                 "benchmark_parameters"     : {},
                 "compute_nodal_error"      : true,
                 "print_convergence_output" : false,
@@ -32,7 +33,7 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
         self.model_part = model[self.settings["model_part_name"].GetString()]
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
 
-        benchmark_module = __import__(self.settings["benchmark_name"].GetString(), fromlist=[None])
+        benchmark_module = import_module(self.settings["benchmark_name"].GetString())
         self.benchmark = benchmark_module.CreateManufacturedSolution(self.settings["benchmark_parameters"])
 
         self.compute_error = self.settings["compute_nodal_error"].GetBool()
@@ -44,6 +45,7 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
 
     def ExecuteBeforeSolutionLoop(self):
         current_time = 0.0
+
         for node in self.model_part.Nodes:
             value = self.benchmark.Velocity(node.X, node.Y, node.Z, current_time)
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, value)
@@ -101,5 +103,5 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
         for node in self.model_part.Nodes:
             err_sum = err_sum + node.GetValue(KratosMultiphysics.NODAL_ERROR)
         rel_err = err_sum / self.model_part.Nodes.__len__()
-        KratosMultiphysics.Logger.PrintInfo("Benchmark", "The nodal error average is : ", rel_err)
+        KratosMultiphysics.Logger.PrintInfo("SwimmingDEM", "Benchmark", "The nodal error average is : ", rel_err)
         return rel_err

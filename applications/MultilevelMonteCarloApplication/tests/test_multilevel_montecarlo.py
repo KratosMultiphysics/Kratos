@@ -6,13 +6,13 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 import os
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
+@KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication","MeshingApplication")
 class KratosMultilevelMonteCarloGeneralTestsAuxiliary(KratosUnittest.TestCase):
 
     def MonteCarloTest(self):
         with KratosUnittest.WorkFolderScope(os.path.join(self.folder_name),__file__,add_to_path=True):
             import KratosMultiphysics.MultilevelMonteCarloApplication.mc_utilities as mc_utilities
-            from poisson_square_2d.simulation_definition import SimulationScenario
+            from poisson_square_2d_kratos.simulation_definition import SimulationScenario
 
             # set the ProjectParameters.json path
             project_parameters_path = "problem_settings/parameters_poisson_square_2d_coarse.json"
@@ -29,7 +29,7 @@ class KratosMultilevelMonteCarloGeneralTestsAuxiliary(KratosUnittest.TestCase):
     def MultilevelMonteCarloTest(self):
         with KratosUnittest.WorkFolderScope(os.path.join(self.folder_name),__file__,add_to_path=True):
             import KratosMultiphysics.MultilevelMonteCarloApplication.mlmc_utilities as mlmc_utilities
-            from poisson_square_2d.simulation_definition import SimulationScenario
+            from poisson_square_2d_kratos.simulation_definition import SimulationScenario
 
             # set the ProjectParameters.json path
             project_parameters_path = "problem_settings/parameters_poisson_square_2d_coarse.json"
@@ -52,8 +52,8 @@ class KratosMultilevelMonteCarloGeneralTestsAuxiliary(KratosUnittest.TestCase):
 class KratosMultilevelMonteCarloGeneralTests(KratosMultilevelMonteCarloGeneralTestsAuxiliary):
 
     def setUp(self):
-        self.folder_name_case_MC = "poisson_square_2d"
-        self.folder_name_case_MLMC = "poisson_square_2d"
+        self.folder_name_case_MC = "poisson_square_2d_kratos"
+        self.folder_name_case_MLMC = "poisson_square_2d_kratos"
         pass
 
     def testMonteCarlo(self):

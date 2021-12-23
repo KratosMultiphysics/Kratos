@@ -64,7 +64,7 @@ public:
     ///@{
 
     /// Counted pointer of Fluid2DGLS_expl
-    KRATOS_CLASS_POINTER_DEFINITION(Fluid2DGLS_expl);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Fluid2DGLS_expl);
 
     ///@}
     ///@name Life Cycle

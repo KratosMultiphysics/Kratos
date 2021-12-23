@@ -463,7 +463,7 @@ namespace Kratos
 
         // Check that the moved virtual mesh has no negative Jacobian elements
 #ifdef KRATOS_DEBUG
-        for (const auto it_elem : mrVirtualModelPart.ElementsArray()) {
+        for (const auto& it_elem : mrVirtualModelPart.ElementsArray()) {
             KRATOS_ERROR_IF((it_elem->GetGeometry()).Area() < 0.0) << "Element " << it_elem->Id() << " in virtual model part has negative jacobian." << std::endl;
         }
 #endif
@@ -497,6 +497,6 @@ namespace Kratos
         return rOStream;
     }
 
-    template void FixedMeshALEUtilities::ProjectVirtualValues<2>(ModelPart &rOriginModelPart, const unsigned int BufferSize);
-    template void FixedMeshALEUtilities::ProjectVirtualValues<3>(ModelPart &rOriginModelPart, const unsigned int BufferSize);
+    template void KRATOS_API(MESH_MOVING_APPLICATION) FixedMeshALEUtilities::ProjectVirtualValues<2>(ModelPart &rOriginModelPart, const unsigned int BufferSize);
+    template void KRATOS_API(MESH_MOVING_APPLICATION) FixedMeshALEUtilities::ProjectVirtualValues<3>(ModelPart &rOriginModelPart, const unsigned int BufferSize);
 }

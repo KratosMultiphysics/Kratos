@@ -64,11 +64,7 @@ namespace Kratos
 		const double char_length = this->CalculateCharacteristicLength();
 
 		// Initialize the nodal distance values to a maximum positive value
-		#pragma omp parallel for firstprivate(char_length)
-		for (int i_node = 0; i_node < static_cast<int>(ModelPart1.NumberOfNodes()); ++i_node) {
-			auto it_node = ModelPart1.NodesBegin() + i_node;
-			it_node->GetSolutionStepValue(DISTANCE) = char_length;
-		}
+		VariableUtils().SetVariable(DISTANCE, char_length, ModelPart1.Nodes());
 	}
 
 	template<std::size_t TDim>

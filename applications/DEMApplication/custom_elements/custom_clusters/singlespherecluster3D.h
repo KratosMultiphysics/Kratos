@@ -21,7 +21,7 @@
 #include "includes/node.h"
 #include "geometries/geometry.h"
 #include "includes/properties.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "containers/global_pointers_vector.h"
 #include "includes/constitutive_law.h"
 #include "custom_utilities/create_and_destroy.h"
@@ -51,7 +51,7 @@ namespace Kratos
         virtual ~SingleSphereCluster3D();
 
         void Initialize(const ProcessInfo& r_process_info) override;
-        virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) override;
+        virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& r_process_info) override;
 
         double SlowGetDensity() override;
         int SlowGetParticleMaterial() override;
