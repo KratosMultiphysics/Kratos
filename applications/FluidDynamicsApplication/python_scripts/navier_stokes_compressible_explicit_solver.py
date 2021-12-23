@@ -133,7 +133,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
 
         rk_startegies = {
             "RK3-TVD"       : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD,
-            "RK4"           : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4
+            "RK4"           : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4,
             "forward_euler" : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyForwardEuler
         }
 
