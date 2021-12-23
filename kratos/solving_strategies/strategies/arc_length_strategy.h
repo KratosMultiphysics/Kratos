@@ -251,66 +251,50 @@ class ArcLengthStrategy
      */
     bool SolveSolutionStep() override
     {
+
+
+
+
+
+
+
+
+
+
+
         return true;
     }
 
     void UpdateExternalLoads()
     {
-        // // Update External Loads
-        // for(unsigned int i = 0; i < mVariableNames.size(); i++)
-        // {
-        //     ModelPart& rSubModelPart = *(mSubModelPartList[i]);
-        //     const std::string& VariableName = mVariableNames[i];
+        // Update External Loads
+        for (unsigned int i = 0; i < mVariableNames.size(); i++) {
+            ModelPart& r_sub_model_part = *(mSubModelPartList[i]);
+            const std::string& r_variable_name = mVariableNames[i];
 
-        //     if( KratosComponents< Variable<double> >::Has( VariableName ) )
-        //     {
-        //         const Variable<double>& var = KratosComponents< Variable<double> >::Get( VariableName );
+            if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
+                const Variable<double>& var = KratosComponents< Variable<double> >::Get( r_variable_name );
+                block_for_each(model_part.Nodes(), [&](auto& r_node){
+                    r_node.FastGetSolutionStepValue(var) *= (mLambda/mLambda_old);
+                });
+            }
+            else if (KratosComponents<Variable<array_1d<double,3>>>::Has(r_variable_name)) {
+                typedef Variable<array_1d<double,3>> array_type;
+                const array_type& r_var = KratosComponents<array_type>::Get(r_variable_name);
 
-        //         #pragma omp parallel
-        //         {
-        //             ModelPart::NodeIterator NodesBegin;
-        //             ModelPart::NodeIterator NodesEnd;
-        //             OpenMPUtils::PartitionedIterators(rSubModelPart.Nodes(),NodesBegin,NodesEnd);
+                block_for_each(model_part.Conditions(), [&](auto& r_condition){
+                    r_condition.GetValue(r_var) *= (mLambda/mLambda_old);
+                });
 
-        //             for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-        //             {
-        //                 double& rvalue = itNode->FastGetSolutionStepValue(var);
-        //                 rvalue *= (mLambda/mLambda_old);
-        //             }
-        //         }
-        //     }
-        //     else if( KratosComponents< Variable<array_1d<double,3> > >::Has(VariableName) )
-        //     {
-        //         typedef Variable<double> component_type;
-        //         const component_type& varx = KratosComponents< component_type >::Get(VariableName+std::string("_X"));
-        //         const component_type& vary = KratosComponents< component_type >::Get(VariableName+std::string("_Y"));
-        //         const component_type& varz = KratosComponents< component_type >::Get(VariableName+std::string("_Z"));
+                // TODO-> add for node loads
 
-        //         #pragma omp parallel
-        //         {
-        //             ModelPart::NodeIterator NodesBegin;
-        //             ModelPart::NodeIterator NodesEnd;
-        //             OpenMPUtils::PartitionedIterators(rSubModelPart.Nodes(),NodesBegin,NodesEnd);
-
-        //             for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-        //             {
-        //                 double& rvaluex = itNode->FastGetSolutionStepValue(varx);
-        //                 rvaluex *= (mLambda/mLambda_old);
-        //                 double& rvaluey = itNode->FastGetSolutionStepValue(vary);
-        //                 rvaluey *= (mLambda/mLambda_old);
-        //                 double& rvaluez = itNode->FastGetSolutionStepValue(varz);
-        //                 rvaluez *= (mLambda/mLambda_old);
-        //             }
-        //         }
-        //     }
-        //     else
-        //     {
-        //         KRATOS_THROW_ERROR( std::logic_error, "One variable of the applied loads has a non supported type. Variable: ", VariableName )
-        //     }
-        //}
+            } else {
+                KRATOS_THROW_ERROR( std::logic_error, "One variable of the applied loads has a non supported type. Variable: ", r_variable_name )
+            }
+        }
 
         // Save the applied Lambda factor
-        //mLambda_old = mLambda;
+        mLambda_old = mLambda;
     }
 
     /**
