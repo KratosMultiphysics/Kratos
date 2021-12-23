@@ -1,3 +1,0 @@
-Finally add proper errors for empty ModelParts (or when no elements/conditions exist)
-
-Check what happens when only point conditions exist. => also how is the search radius computed??
