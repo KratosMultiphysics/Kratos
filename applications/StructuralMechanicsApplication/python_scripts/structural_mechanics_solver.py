@@ -454,8 +454,11 @@ class MechanicalSolver(PythonSolver):
         if analysis_type == "linear":
             mechanical_solution_strategy = self._create_linear_strategy()
         elif analysis_type == "non_linear":
-            if(self.settings["line_search"].GetBool() == False):
-                mechanical_solution_strategy = self._create_newton_raphson_strategy()
+            if not self.settings["line_search"].GetBool():
+                if not self.settings["arc_length"].GetBool():
+                    mechanical_solution_strategy = self._create_newton_raphson_strategy()
+                else:
+                    mechanical_solution_strategy = self._create_arc_length_strategy()
             else:
                 mechanical_solution_strategy = self._create_line_search_strategy()
         else:
@@ -509,3 +512,29 @@ class MechanicalSolver(PythonSolver):
                                                      self.settings["move_mesh_flag"].GetBool())
         strategy.SetUseOldStiffnessInFirstIterationFlag(self.settings["use_old_stiffness_in_first_iteration"].GetBool())
         return strategy
+
+    def _create_arc_length_strategy(self):
+        import json
+        # Arc-Length strategy
+        self.strategy_params = KratosMultiphysics.Parameters("{}")
+        
+        # TO BE IMPROVED-> PROVISIONAL
+        self.strategy_params.AddValue("loads_sub_model_part_list",KratosMultiphysics.Parameters(json.dumps(["PointLoad2D_Load_on_points_Auto1"])))
+        self.strategy_params.AddValue("loads_variable_list",KratosMultiphysics.Parameters(json.dumps(["POINT_LOAD"])))
+
+        self.main_model_part.ProcessInfo.SetValue(KratosPoro.ARC_LENGTH_LAMBDA, 1.0)
+        self.main_model_part.ProcessInfo.SetValue(KratosPoro.ARC_LENGTH_RADIUS_FACTOR, 1.0)
+        
+        self.strategy_params.AddValue("desired_iterations",self.settings["desired_iterations"])
+        self.strategy_params.AddValue("max_radius_factor",self.settings["max_radius_factor"])
+        self.strategy_params.AddValue("min_radius_factor",self.settings["min_radius_factor"])
+        
+        solving_strategy = KratosPoro.PoromechanicsRammArcLengthStrategy(self.GetComputingModelPart(),
+                                                                        self._GetScheme(),
+                                                                        self._GetConvergenceCriterion(),
+                                                                        self._GetBuilderAndSolver(),
+                                                                        self.strategy_params,
+                                                                        self.settings["max_iteration"].GetInt(),
+                                                                        self.settings["compute_reactions"].GetBool(),
+                                                                        self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                                        self.settings["move_mesh_flag"].GetBool())
