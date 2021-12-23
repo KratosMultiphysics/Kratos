@@ -419,6 +419,13 @@ public:
     virtual void InitVerbosityParameter(const IndexType VerbosityMMG);
 
     /**
+     * @brief This sets the optimization mode using the API
+     * where edge lengths are preserved, ignoring the metric values.
+     * @param[in] EnableMeshOptimization Boolean to set the mesh optimization mode
+     */
+    virtual void SetMeshOptimizationModeParameter(const bool EnableMeshOptimization);
+
+    /**
      * @brief This sets the size of the mesh
      * @param[in,out] rMMGMeshInfo The number of nodes, conditions and elements
      */
@@ -659,6 +666,13 @@ public:
      * @param[in,out] rModelPart The model part of interest to study
      */
     virtual void GenerateSolDataFromModelPart(ModelPart& rModelPart);
+
+    /**
+     * @brief This method generates solution (metric) data from an existing model part
+     * for the isosurface algorithm
+     * @param[in,out] rModelPart The model part of interest to study
+     */
+    virtual void GenerateIsosurfaceMetricDataFromModelPart(ModelPart& rModelPart);
 
     /**
      * @brief This method generates displacement data from an existing model part

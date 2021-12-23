@@ -27,23 +27,23 @@ set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ShapeOptimizationA
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ConstitutiveLawsApplication;
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\RANSApplication;
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\CompressiblePotentialFlowApplication;
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\RomApplication;
 
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
-cmake                                                ^
-  -G"Visual Studio 16 2019"                          ^
-  -H"%KRATOS_SOURCE%"                                ^
-  -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"             ^
-  -DBOOST_ROOT="%BOOST_ROOT_1_72_0%"                 ^
-  -DINSTALL_RUNKRATOS=OFF                            ^
-  -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804 /WX"        ^
-  -DFORCE_LOCAL_ZLIB_COMPILATION=ON                  ^
-  -DUSE_COTIRE=ON                                    || goto :error
+cmake                                                 ^
+  -G"Visual Studio 16 2019"                           ^
+  -H"%KRATOS_SOURCE%"                                 ^
+  -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"              ^
+  -DBOOST_ROOT="%TEMP%\boost"                         ^
+  -DINSTALL_RUNKRATOS=OFF                             ^
+  -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804 /WX /wd4996" ^
+  -DFORCE_LOCAL_ZLIB_COMPILATION=ON                   ^
+  -DCMAKE_UNITY_BUILD=ON                                    || goto :error
 
-cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
-cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target zlibstatic -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
+cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_build -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
 cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
 
 goto :EOF

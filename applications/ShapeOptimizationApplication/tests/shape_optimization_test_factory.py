@@ -9,6 +9,12 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 # Other imports
 import os
 
+try:
+    import KratosMultiphysics.MeshingApplication
+    has_mmg = hasattr(KratosMultiphysics.MeshingApplication, "MmgProcess2D")
+except ImportError:
+    has_mmg = False
+
 # ==============================================================================
 class ShapeOptimizationTestFactory(kratos_unittest.TestCase):
     # --------------------------------------------------------------------------
@@ -130,5 +136,17 @@ class packaging_plane_based_test(ShapeOptimizationTestFactory):
     execution_directory = "packaging_plane_based_test"
     execution_file = "run_test"
 
+@kratos_unittest.skipUnless(has_mmg, "Test requires mmg library")
+class remeshing_opt_process_test(ShapeOptimizationTestFactory):
+    execution_directory = "remeshing_opt_process_test"
+    execution_file = "run_test"
 
+@kratos_unittest.skipIfApplicationsNotAvailable("MappingApplication")
+class sliding_opt_test(ShapeOptimizationTestFactory):
+    execution_directory = "sliding_opt_test"
+    execution_file = "run_test"
+
+class direction_damping_test(ShapeOptimizationTestFactory):
+    execution_directory = "direction_damping_test"
+    execution_file = "run_test"
 # ==============================================================================

@@ -47,40 +47,10 @@ namespace MPMSearchElementUtility
 
     inline bool CheckIsInside(const GeometryType& rGeom, array_1d<double, 3>& LocalCoords, const array_1d<double, 3>& Coords, const double Tolerance, const bool IsCalcLocalCoords = true)
     {
-        bool is_inside = true;
-        if (rGeom.Dimension() == 2)
-        {
-            is_inside = true;
-            // Do walk around method
-            Vector cross_products(rGeom.PointsNumber());
-            for (size_t i = 0; i < rGeom.PointsNumber(); ++i)
-            {
-                if (rGeom.Points()[i].Coordinates()[2] != 0.0) {
-                    return rGeom.IsInside(Coords, LocalCoords, Tolerance);
-                    break;
-                }
-                cross_products[i] = CrossProductDet2D(Coords - rGeom.Points()[i].Coordinates(),
-                    rGeom.Points()[(i + 1) % rGeom.PointsNumber()].Coordinates() - rGeom.Points()[i].Coordinates());
-            }
-            for (size_t i = 1; i < cross_products.size(); ++i)
-            {
-                if (cross_products[i] * cross_products[0] < -std::abs(Tolerance))
-                {
-                    is_inside = false;
-                    break;
-                }
-            }
 
-        }
-        else return rGeom.IsInside(Coords, LocalCoords, Tolerance);
+        // TODO some optimisation for simple 2D shapes.
 
-        if (is_inside) {
-            if (IsCalcLocalCoords) return rGeom.IsInside(Coords, LocalCoords, Tolerance);
-            else return true;
-        }
-
-
-        return false;
+        return rGeom.IsInside(Coords, LocalCoords, Tolerance);
     }
 
     inline void ConstructNeighbourRelations(GeometryType& rGeom, const ModelPart& rBackgroundGridModelPart)
@@ -259,13 +229,16 @@ namespace MPMSearchElementUtility
                 array_1d<double, 3> local_coordinates;
                 bool is_found = false;
 
-                GeometryType& r_found_geom = FindGridGeom(condition_itr->GetGeometry(),
+                GeometryType& r_found_geom = FindGridGeom(condition_itr->GetGeometry().GetGeometryParent(0),
                     rBackgroundGridModelPart, Tolerance, xg[0], local_coordinates,
                     rMPMModelPart.GetProcessInfo(), is_found);
 
                 if (is_found)
                 {
-                    condition_itr->GetGeometry() = r_found_geom;
+                    CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                        condition_itr->pGetGeometry(), local_coordinates,
+                        condition_itr->GetGeometry().IntegrationPoints()[0].Weight(), r_found_geom);
+                        
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j)
                         r_found_geom[j].Set(ACTIVE);
                 }
@@ -398,7 +371,13 @@ namespace MPMSearchElementUtility
                     bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
                     if (is_found == true) {
-                        condition_itr->GetGeometry() = pelem->GetGeometry();
+                        auto p_quadrature_point_geometry = condition_itr->pGetGeometry();
+                        array_1d<double, 3> local_coordinates;
+                        p_quadrature_point_geometry->PointLocalCoordinates(local_coordinates, xg[0]);
+                        CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                            p_quadrature_point_geometry, local_coordinates,
+                            p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
+                        
                         auto& r_geometry = condition_itr->GetGeometry();
 
                         for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)

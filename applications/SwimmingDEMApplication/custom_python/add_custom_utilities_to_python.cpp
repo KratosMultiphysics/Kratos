@@ -299,7 +299,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("CheckIfRuleIsMet", &MoreThanRule::CheckIfRuleIsMet)
         ;
 
-    py::class_<SpaceTimeSet> (m, "SpaceTimeSet")
+    py::class_<SpaceTimeSet, SpaceTimeSet::Pointer> (m, "SpaceTimeSet")
         .def(py::init<>())
         .def("AddAndRule", &SpaceTimeSet::AddAndRule)
         .def("AddOrRule", &SpaceTimeSet::AddOrRule)
@@ -334,7 +334,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     ImposeVelocityFieldOnNodes ImposeVelocityField = &FieldUtility::ImposeFieldOnNodes;
     ImposeFieldOnNodes ImposeField = &FieldUtility::ImposeFieldOnNodes;
 
-    py::class_<FieldUtility> (m, "FieldUtility")
+
+    py::class_<FieldUtility, FieldUtility::Pointer> (m, "FieldUtility")
         .def(py::init<SpaceTimeSet::Pointer, VectorField<3>::Pointer >())
         .def("EvaluateFieldAtPoint", EvaluateDoubleField)
         .def("EvaluateFieldAtPoint", EvaluateVectorField)
@@ -344,10 +345,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("ImposeFieldOnNodes", ImposeField)
         ;
 
-    // and the same for 'FluidFieldUtility' ...
-    py::class_<FluidFieldUtility> (m, "FluidFieldUtility")
+    py::class_<FluidFieldUtility, FluidFieldUtility::Pointer, FieldUtility> (m, "FluidFieldUtility")
         .def(py::init<SpaceTimeSet::Pointer, VelocityField::Pointer, const double, const double >())
         ;
+
 
     typedef void (CustomFunctionsCalculator<3>::*CopyValuesScalar)(ModelPart&, const Variable<double>&, const Variable<double>&);
     typedef void (CustomFunctionsCalculator<3>::*CopyValuesVector)(ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&);
@@ -434,6 +435,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
     py::class_<BinBasedDEMFluidCoupledMapping <2, SphericParticle> > (m, "BinBasedDEMFluidCoupledMapping2D")
         .def(py::init<Parameters&>())
+        .def(py::init<Parameters&, SpatialSearch::Pointer>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::InterpolateFromFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeFlowOnDEMFromField)
         .def("ImposeVelocityOnDEMFromFieldToAuxVelocity", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeVelocityOnDEMFromFieldToAuxVelocity)
@@ -450,6 +452,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
     py::class_<BinBasedDEMFluidCoupledMapping <2, NanoParticle> > (m, "BinBasedNanoDEMFluidCoupledMapping2D")
         .def(py::init<Parameters&>())
+        .def(py::init<Parameters&, SpatialSearch::Pointer>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::InterpolateFromFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::ImposeFlowOnDEMFromField)
         .def("ImposeVelocityOnDEMFromFieldToAuxVelocity", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::ImposeVelocityOnDEMFromFieldToAuxVelocity)
@@ -466,6 +469,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
 	py::class_<BinBasedDEMFluidCoupledMapping <3, SphericParticle> > (m, "BinBasedDEMFluidCoupledMapping3D")
 	    .def(py::init<Parameters&>())
+        .def(py::init<Parameters&, SpatialSearch::Pointer>())
 	    .def("InterpolateVelocityOnAuxVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateVelocityOnAuxVelocity)
 	    .def("ImposeVelocityOnDEMFromFieldToAuxVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ImposeVelocityOnDEMFromFieldToAuxVelocity)
 	    .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromFluidMesh)
@@ -485,6 +489,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
     py::class_<BinBasedDEMFluidCoupledMapping <3, NanoParticle> > (m, "BinBasedNanoDEMFluidCoupledMapping3D")
         .def(py::init<Parameters&>())
+        .def(py::init<Parameters&, SpatialSearch::Pointer>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ImposeFlowOnDEMFromField)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromDEMMesh)
@@ -515,7 +520,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     py::class_<Bentonite_Force_Based_Inlet, Bentonite_Force_Based_Inlet::Pointer, DEM_Force_Based_Inlet > (m, "Bentonite_Force_Based_Inlet")
-        .def(py::init<ModelPart&, array_1d<double, 3> >())
+        .def(py::init<ModelPart&, array_1d<double, 3>, const int >())
+        .def(py::init<ModelPart&, array_1d<double, 3>>())
         ;
 
     py::class_<SwimmingDemInPfemUtils> (m, "SwimmingDemInPfemUtils")

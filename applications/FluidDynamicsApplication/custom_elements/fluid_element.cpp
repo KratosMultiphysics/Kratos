@@ -92,7 +92,7 @@ void FluidElement<TElementData>::Initialize(const ProcessInfo& rCurrentProcessIn
         mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
 
         const GeometryType& r_geometry = this->GetGeometry();
-        const auto& r_shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+        const auto& r_shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
         mpConstitutiveLaw->InitializeMaterial(r_properties,r_geometry,row(r_shape_functions,0));
     }
 
@@ -363,7 +363,7 @@ void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int
 template< class TElementData >
 GeometryData::IntegrationMethod FluidElement<TElementData>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -589,20 +589,31 @@ void FluidElement<TElementData>::UpdateIntegrationPointData(
 }
 
 template <class TElementData>
-void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) const {
-
-    Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(rData.StrainRate,rData.Velocity,rData.DN_DX);
+void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) const
+{
+    this->CalculateStrainRate(rData);
 
     auto& Values = rData.ConstitutiveLawValues;
 
-    const Vector shape_functions_vector(rData.N);
+    const Vector& shape_functions_vector = rData.N;
+    const Matrix& shape_functions_derivative_matrix = rData.DN_DX;
     Values.SetShapeFunctionsValues(shape_functions_vector);
+    Values.SetShapeFunctionsDerivatives(shape_functions_derivative_matrix);
 
     //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
     //this is ok under the hypothesis that no history dependent behavior is employed
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
 
     mpConstitutiveLaw->CalculateValue(Values,EFFECTIVE_VISCOSITY,rData.EffectiveViscosity);
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::CalculateStrainRate(TElementData& rData) const
+{
+    Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(
+        rData.StrainRate,
+        rData.Velocity,
+        rData.DN_DX);
 }
 
 template< class TElementData >

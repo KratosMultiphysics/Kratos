@@ -7,6 +7,8 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 # Import base class file
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
+from KratosMultiphysics.StructuralMechanicsApplication import auxiliar_methods_solvers
+
 def CreateSolver(model, custom_settings):
     return ImplicitMechanicalSolver(model, custom_settings)
 
@@ -20,7 +22,7 @@ class ImplicitMechanicalSolver(MechanicalSolver):
     """
     def __init__(self, model, custom_settings):
         # Construct the base solver.
-        super(ImplicitMechanicalSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[ImplicitMechanicalSolver]:: ", "Construction finished")
 
     @classmethod
@@ -33,41 +35,41 @@ class ImplicitMechanicalSolver(MechanicalSolver):
             "rayleigh_alpha"          : 0.0,
             "rayleigh_beta"           : 0.0
         }""")
-        this_defaults.AddMissingParameters(super(ImplicitMechanicalSolver, cls).GetDefaultParameters())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def GetMinimumBufferSize(self):
-        base_min_buffer_size = super(ImplicitMechanicalSolver, self).GetMinimumBufferSize()
+        base_min_buffer_size = super().GetMinimumBufferSize()
 
         scheme_type = self.settings["scheme_type"].GetString()
         if "bdf" in scheme_type or scheme_type == "backward_euler":
-            return max(base_min_buffer_size, self._bdf_integration_order()+1)
+            return max(base_min_buffer_size, auxiliar_methods_solvers.GetBDFIntegrationOrder(scheme_type)+1)
         else:
             return base_min_buffer_size
 
     def AddVariables(self):
-        super(ImplicitMechanicalSolver, self).AddVariables()
+        super().AddVariables()
         self._add_dynamic_variables()
         KratosMultiphysics.Logger.PrintInfo("::[ImplicitMechanicalSolver]:: ", "Variables ADDED")
 
     def AddDofs(self):
-        super(ImplicitMechanicalSolver, self).AddDofs()
+        super().AddDofs()
         self._add_dynamic_dofs()
         KratosMultiphysics.Logger.PrintInfo("::[ImplicitMechanicalSolver]:: ", "DOF's ADDED")
 
     def InitializeSolutionStep(self):
         # Using the base InitializeSolutionStep
-        super(ImplicitMechanicalSolver, self).InitializeSolutionStep()
+        super().InitializeSolutionStep()
 
         # Some pre-processes may affect the system of equations, we rebuild the equation ids
         process_info = self.main_model_part.ProcessInfo
         if process_info[KratosMultiphysics.STEP] == 1 and process_info[StructuralMechanicsApplication.RESET_EQUATION_IDS]:
             # Resetting the global equations ids
-            self.get_builder_and_solver().SetUpSystem(self.GetComputingModelPart())
+            self._GetBuilderAndSolver().SetUpSystem(self.GetComputingModelPart())
 
     #### Private functions ####
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         scheme_type = self.settings["scheme_type"].GetString()
 
         # Setting the Rayleigh damping parameters
@@ -87,7 +89,7 @@ class ImplicitMechanicalSolver(MechanicalSolver):
         elif(scheme_type == "pseudo_static"):
             mechanical_scheme = KratosMultiphysics.ResidualBasedPseudoStaticDisplacementScheme(StructuralMechanicsApplication.RAYLEIGH_BETA)
         elif(scheme_type.startswith("bdf") or scheme_type == "backward_euler"):
-            order = self._bdf_integration_order()
+            order = auxiliar_methods_solvers.GetBDFIntegrationOrder(scheme_type)
             # In case of rotation dof we declare the dynamic variables
             if self.settings["rotation_dofs"].GetBool():
                 bdf_parameters = KratosMultiphysics.Parameters(""" {
@@ -108,19 +110,3 @@ class ImplicitMechanicalSolver(MechanicalSolver):
             err_msg += "Available options are: \"newmark\", \"bossak\", \"pseudo_static\", \"backward_euler\", \"bdf1\", \"bdf2\", \"bdf3\", \"bdf4\", \"bdf5\", \"relaxation\""
             raise Exception(err_msg)
         return mechanical_scheme
-
-    def _bdf_integration_order(self):
-        scheme_type = self.settings["scheme_type"].GetString()
-        if scheme_type == "backward_euler":
-            order = 1
-        else:
-            if scheme_type == "bdf":
-                raise Exception('Wrong input for scheme type: "bdf"! Please append the order to the bdf-scheme, e.g. "bdf2"')
-            # BDF schemes can be from 1 to 5 order, so in order to detect the integration order from the scheme_type we remove the "bdf" string, that is, if the user tells bdf3 only 3 will remain when we remove bdf which corresponds to the method of choice
-            order = int(scheme_type.replace("bdf", ""))
-
-        # Warning
-        if (order > 2):
-            KratosMultiphysics.Logger.PrintWarning("WARNING:: BDF Order: ", str(order) + " constant time step must be considered")
-
-        return order

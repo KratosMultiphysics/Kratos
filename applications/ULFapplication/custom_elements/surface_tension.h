@@ -94,7 +94,7 @@ public:
     ///@{
 
     /// Pointer definition of SurfaceTension
-    KRATOS_CLASS_POINTER_DEFINITION(SurfaceTension);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SurfaceTension);
 
     ///base type: an IndexedObject that automatically has a unique number
     typedef IndexedObject BaseType;

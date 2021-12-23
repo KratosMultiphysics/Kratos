@@ -109,8 +109,8 @@ protected:
     ///@{
 
     // Arrays to get edge and node IDs of geometry from edge ID of splitting utility
-    const std::array<size_t, 6> edge_id_for_geometry = {{0, 2, 3, 1, 4, 5}};
-    const std::array<std::array<size_t,2>, 6> node_ids_for_geometry = {{{0,1}, {2,0}, {0,3}, {1,2}, {1,3}, {2,3}}};
+    const std::array<size_t, 6> edge_id_for_geometry {{0, 2, 3, 1, 4, 5}};
+    const std::array<std::array<size_t,2>, 6> node_ids_for_geometry {{{{0,1}}, {{2,0}}, {{0,3}}, {{1,2}}, {{1,3}}, {{2,3}}}};
 
     ///@}
     ///@name Protected Operators
@@ -119,6 +119,10 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void SetPositiveSideCondensationMatrix(Matrix& rPosSideCondMatrix) override;
+
+    void SetNegativeSideCondensationMatrix(Matrix& rNegSideCondMatrix) override;
 
     /**
     * Returns the intersection points and extrapolated intersection points condensation matrix for
@@ -134,7 +138,7 @@ protected:
         Matrix& rPosSideCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,
-        const std::vector<int>& rSplitEdges) override;
+        const std::vector<int>& rSplitEdges);
 
     /**
     * Returns the intersection points and extrapolated intersection points condensation matrix for
@@ -150,7 +154,7 @@ protected:
         Matrix& rNegSideCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,
-        const std::vector<int>& rSplitEdges) override;
+        const std::vector<int>& rSplitEdges);
 
     ///@}
     ///@name Protected  Access

@@ -128,15 +128,19 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping_TDim_TBaseTypeOfS
 // 3:   Linear         Filtered            Filtered
 //----------------------------------------------------------------
 
-BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
+BinBasedDEMFluidCoupledMapping(Parameters& rParameters, SpatialSearch::Pointer pSpSearch=NULL)
                              : mMustCalculateMaxNodalArea(true),
                                mFluidDeltaTime(0.0),
                                mFluidLastCouplingFromDEMTime(0.0),
                                mMaxNodalAreaInv(0.0),
-                               mNumberOfDEMSamplesSoFarInTheCurrentFluidStep(0)
+                               mGentleCouplingInitiationInterval(mFluidDeltaTime),
+                               mNumberOfDEMSamplesSoFarInTheCurrentFluidStep(0),
+                               mpSpSearch(pSpSearch)
 {
     Parameters default_parameters( R"(
         {
+            "gentle_coupling_initiation": {
+            },
             "backward_coupling": {},
             "forward_coupling" : {},
             "coupling_type": 1,
@@ -150,9 +154,9 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
     mCouplingType = rParameters["coupling_type"].GetInt();
     mTimeAveragingType = rParameters["forward_coupling"]["time_averaging_type"].GetInt();
     mViscosityModificationType = rParameters["viscosity_modification_type"].GetInt();
+    mGentleCouplingInitiationInterval = rParameters["gentle_coupling_initiation"]["initiation_interval"].GetDouble();
     mParticlesPerDepthDistance = rParameters["n_particles_per_depth_distance"].GetInt();
     mpBodyForcePerUnitMassVariable = &( KratosComponents< Variable<array_1d<double,3>> >::Get(rParameters["body_force_per_unit_mass_variable_name"].GetString()) );
-
     if (TDim == 3){
         mParticlesPerDepthDistance = 1;
     }
@@ -227,8 +231,8 @@ void InterpolateVelocityOnAuxVelocity(ModelPart& r_fluid_model_part, ModelPart& 
 void UpdateOldVelocity(ModelPart& r_dem_model_part);
 void UpdateOldAdditionalForce(ModelPart& r_dem_model_part);
 void InterpolateFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid); // this is a bin of objects which contains the FLUID model part
-void VariingRadiusHomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, const double& search_radius, const double& shape_factor, bool must_search = true);
-void HomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, const double& search_radius, const double& shape_factor, bool must_search = true);
+void VariingRadiusHomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, const double& search_radius, const double& shape_factor, bool must_search = true, bool use_drew_model = false);
+void HomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, const double& search_radius, const double& shape_factor, bool must_search = true, bool use_drew_model = false);
 void ComputePostProcessResults(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, ModelPart& rfem_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const ProcessInfo& r_current_process_info);
 
 ///@}
@@ -339,6 +343,7 @@ double mFluidDeltaTime;
 double mFluidLastCouplingFromDEMTime;
 double mMinFluidFraction;
 double mMaxNodalAreaInv;
+double mGentleCouplingInitiationInterval;
 int mCouplingType;
 int mTimeAveragingType;
 int mViscosityModificationType;
@@ -350,6 +355,7 @@ VariablesContainer mVariables;
 std::map<VariableData, double> mAlphas;
 std::map<VariableData, bool> mIsFirstTimeFiltering;
 PointPointSearch::Pointer mpPointPointSearch;
+SpatialSearch::Pointer mpSpSearch;
 
 FluidFieldUtility mFlowField;
 
@@ -376,13 +382,14 @@ void InterpolateOtherFluidVariables(ModelPart& r_dem_model_part, ModelPart& r_fl
 void SearchParticleNodalNeighbours(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, const double& search_radius);
 void SearchParticleNodalNeighboursFixedRadius(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, const double& search_radius);
 void RecalculateDistances(ModelPart& r_dem_model_part);
+void UpdateGentleCouplingInitiationCoefficients(ModelPart& r_dem_model_part);
 array_1d<double, 3> CalculateAcceleration(const Geometry<Node<3> >& geom, const Vector& N);
 double CalculateNormOfSymmetricGradient(const Geometry<Node<3> >& geom, const int index);
 array_1d<double, 3> CalculateVorticity(const Geometry<Node<3> >& geom, const int index);
 void Project(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const VariableData *r_destination_variable, double alpha);
 void DistributeDimensionalContributionToFluidFraction(Element::Pointer p_elem, const Vector& N, ParticleType& particle);
 void Distribute(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node,const VariableData *r_destination_variable);
-void ComputeHomogenizedNodalVariable(const ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights, const VariableData *r_destination_variable);
+void ComputeHomogenizedNodalVariable(const ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights, const VariableData *r_destination_variable, bool use_drew_model);
 void CalculateFluidFraction(ModelPart& r_fluid_model_part);
 void CalculateFluidMassFraction(ModelPart& r_fluid_model_part);
 void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_origin_variable, const Variable<array_1d<double, 3> >& r_destination_variable, double alpha);
@@ -399,7 +406,7 @@ void CalculateNodalFluidFractionWithConstantWeighing(Element::Pointer p_elem, co
 void CalculateNodalFluidFractionWithLinearWeighing(Element::Pointer p_elem, const Vector& N, ParticleType& particle);
 void CalculateNodalFluidFractionByLumpedL2Projection(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node);
 //void CalculateFluidFractionGradient(ModelPart& r_model_part);
-void TransferByAveraging(const ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights, const Variable<array_1d<double, 3> >& r_destination_variable, const Variable<array_1d<double, 3> >& r_origin_variable);
+void TransferByAveraging(const ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights, const Variable<array_1d<double, 3> >& r_destination_variable, const Variable<array_1d<double, 3> >& r_origin_variable, bool use_drew_model);
 void CalculateNodalFluidFractionByAveraging(ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights);
 void CalculateNodalSolidFractionByAveraging(const Node<3>::Pointer p_node, const ResultNodesContainerType& neighbours, const DistanceType& weights, const double averaging_volume_inv);
 void MultiplyNodalVariableBy(ModelPart& r_model_part, const Variable<double>& r_variable, const double& factor);

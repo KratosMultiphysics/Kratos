@@ -65,8 +65,16 @@ endif(NOT DEFINED CMAKE_INSTALL_MESSAGE)
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
 
+# Generate and copy configuration for language servers
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+EXECUTE_PROCESS(
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+    "${CMAKE_BINARY_DIR}/compile_commands.json"
+    "${CMAKE_SOURCE_DIR}/compile_commands.json")
+
 # Include cmake modules
 include(DownloadLib)
+include(ExternalProject)
 
 # Define custom compiler build types
 SET( CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug FullDebug Custom)
@@ -105,15 +113,27 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 
-
-if(USE_COTIRE MATCHES ON)
-  include(cotire)
-  set(CMAKE_SKIP_RPATH ON)
-
-  if(${MSVC})
-    set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY True)
-  endif(${MSVC})
-endif(USE_COTIRE MATCHES ON)
+# Unitary builds with version is lower than 3.16 deactivate
+IF(CMAKE_VERSION VERSION_LESS "3.16.0")
+    IF(CMAKE_UNITY_BUILD MATCHES ON)
+        SET(CMAKE_UNITY_BUILD OFF)
+    ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+ELSE(CMAKE_VERSION VERSION_LESS "3.16.0")
+    IF(USE_COTIRE MATCHES ON)
+        # Legacy Unitary build
+        MESSAGE(STATUS "Using USE_COTIRE is deprecated and was replaced by CMAKE_UNITY_BUILD.")
+        SET(CMAKE_UNITY_BUILD ON)
+    ENDIF(USE_COTIRE MATCHES ON)
+    # Some checks
+    IF(CMAKE_UNITY_BUILD MATCHES ON)
+        IF(NOT DEFINED KRATOS_UNITY_BUILD_BATCH_SIZE)
+            SET(KRATOS_UNITY_BUILD_BATCH_SIZE 32)
+        ENDIF(NOT DEFINED KRATOS_UNITY_BUILD_BATCH_SIZE)
+        IF(${MSVC})
+          SET(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY True)
+        ENDIF(${MSVC})
+    ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+ENDIF(CMAKE_VERSION VERSION_LESS "3.16.0")
 
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
@@ -145,11 +165,11 @@ endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11 -Wl,--no-as-needed -ldl")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
   endif()
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
   message(STATUS "additional default options were set for gcc")
   message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
@@ -169,8 +189,8 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	  endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	  if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
-		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -Wall -Wno-unknown-pragmas  ")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas ")
+		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -Wall -Wno-unknown-pragmas ")
 		set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
 		message("additional default options were set for clang compiler")
 		message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
@@ -270,8 +290,11 @@ set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
 
 # check version of Python, needs to be done after including pybind
 if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 5))
-    message( FATAL_ERROR "Kratos only supports Python version 3.5 and above")
+message( FATAL_ERROR "Kratos only supports Python version 3.5 and above")
 endif()
+set(PYTHON_INTERFACE_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
+
+message("Python version used for the interface will be ${PYTHON_INTERFACE_VERSION}")
 
 # Set installation directory. TODO: Delete this and use CMAKE_INSTALL_PREFIX
 if(DEFINED KRATOS_INSTALL_PREFIX)
@@ -369,10 +392,76 @@ if(${INSTALL_RUNKRATOS} MATCHES ON )
 endif(${INSTALL_RUNKRATOS} MATCHES ON )
 
 ##*****************************
+# Compiling the triangle library
+if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
+    add_definitions(-DUSE_TRIANGLE_NONFREE_TPL)
+endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
-if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
-  find_package(Tetgen REQUIRED)
-endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
+# Compiling the tetgen library
+if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
+    set(TETGEN_ZIP_FILE "tetgen")
+    
+    if(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
+        # Use TetGen from local source
+        set(TETGEN_EXT_PATH ${CMAKE_CURRENT_BINARY_DIR}/external_libraries/tetgen)
+
+        find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
+        message("TETGEN_ROOT: ${TETGEN_ROOT}")
+        if(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
+            file(COPY ${USE_TETGEN_NONFREE_TPL_PATH} DESTINATION ${TETGEN_EXT_PATH})
+            find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
+            message("Copying tetgen dir to ${TETGEN_EXT_PATH}")
+        endif(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
+        
+        # Prepare tetgen
+        add_definitions(-DTETLIBRARY)
+        add_definitions(${USE_TETGEN_NONFREE_TPL_FLAGS})
+
+        set(Tetgen_FOUND True)
+
+        # This is for backwards compatibility
+        if(NOT DEFINED TETGEN_INCLUDE)
+            set(TETGEN_INCLUDE ${TETGEN_ROOT})
+        endif(NOT DEFINED TETGEN_INCLUDE)
+        if(NOT DEFINED TETGEN_LIBRARIES)
+            set(TETGEN_LIBRARIES tetgen)
+        endif(NOT DEFINED TETGEN_LIBRARIES)
+    elseif(DEFINED USE_TETGEN_NONFREE_TPL_URL)
+        # Use TetGen from external source (download)
+        set(TETGEN_EXT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/tetgen)
+
+        find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
+        if(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
+            DownloadLibAt(${TETGEN_ZIP_FILE} ${USE_TETGEN_NONFREE_TPL_URL} ${TETGEN_EXT_PATH})
+            find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
+        else(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
+            # Touch the url variable so it does no trigger a unused warning.
+            set(ignoreMe "${USE_TETGEN_NONFREE_TPL_URL}")
+            message("-- Found tetgen at ${TETGEN_EXT_PATH}, skipping...")
+        endif(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
+
+        # Prepare tetgen
+        add_definitions(-DTETLIBRARY)
+        add_definitions(${USE_TETGEN_NONFREE_TPL_FLAGS})
+
+        set(Tetgen_FOUND True)
+
+        # This is for backwards compatibility
+        if(NOT DEFINED TETGEN_INCLUDE)
+            set(TETGEN_INCLUDE ${TETGEN_ROOT})
+        endif(NOT DEFINED TETGEN_INCLUDE)
+        if(NOT DEFINED TETGEN_LIBRARIES)
+            set(TETGEN_LIBRARIES tetgen)
+        endif(NOT DEFINED TETGEN_LIBRARIES)
+    else(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
+        # Try to find tetgen installed in the system
+        find_package(Tetgen REQUIRED)
+    endif(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
+
+    if(tetgen_FOUND)
+        message(FATAL_ERROR "TetGen could not be found. Please use -DUSE_TETGEN_NONFREE_TPL_PATH=[path] or -DUSE_TETGEN_NONFREE_TPL_URL=[url] to indicate the correct TetGen location.")
+    endif(tetgen_FOUND)
+endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 
 if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
@@ -459,6 +548,10 @@ if(DEFINED ENV{KRATOS_APPLICATIONS})
     endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
 endif(DEFINED ENV{KRATOS_APPLICATIONS})
 
+# Create custom targets. Not the cleanest solution, but minimizes the changes
+add_custom_target(KratosKernel DEPENDS ${KRATOS_KERNEL})
+add_custom_target(KratosPythonInterface DEPENDS ${KRATOS_PYTHON_INTERFACE})
+
 message("")
 message("***********************************************************************")
 message("")
@@ -481,16 +574,18 @@ message("***********************************************************************
 message("")
 
 message("List of upcoming api-breaking changes:")
-message("\t Making variables non-copiable: https://github.com/KratosMultiphysics/Kratos/pull/6339")
-message("\t Deprecation of NOT_FLAGS : https://github.com/KratosMultiphysics/Kratos/pull/6233")
-message("\t Removing long deprecated conditions : https://github.com/KratosMultiphysics/Kratos/pull/6475")
-message("\t Changing 'FindNodalNeighboursProcess' constructor signature: https://github.com/KratosMultiphysics/Kratos/pull/4947")
-message("\t Minor update of import mechanism for applications: https://github.com/KratosMultiphysics/Kratos/pull/6556")
 message("\t Update of Element, Condition and Scheme Interface: https://github.com/KratosMultiphysics/Kratos/issues/7381")
-message("\t VariableComponent and VectorComponentAdaptor are no longer used: https://github.com/KratosMultiphysics/Kratos/pull/6686")
+message("\t Make Check() method of ConstitutiveLaw const: https://github.com/KratosMultiphysics/Kratos/pull/7948")
+message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
+message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
 
-#compiling the triangle library
-add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
+# Compiling the triangle library
+if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
+    add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
+endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
+
+# Compiling the tinyexpr library
+add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr)
 
 # runkratos - compiles "runkratos and packages the python lib needed"
 if(${INSTALL_RUNKRATOS} MATCHES ON )
@@ -504,8 +599,8 @@ install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
 install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
 
 # Install core files for the KratosMultiphysics python module
-install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
-install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" "KratosMultiphysics/__init__.py" )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" "KratosMultiphysics/kratos_globals.py" )
 
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)

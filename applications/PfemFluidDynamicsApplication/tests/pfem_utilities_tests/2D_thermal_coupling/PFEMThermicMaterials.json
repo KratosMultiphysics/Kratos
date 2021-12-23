@@ -1,0 +1,25 @@
+{
+    "properties" : [{
+        "model_part_name" : "PfemFluidModelPart.Parts_Fluid",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "NewtonianTemperatureDependent2DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"           : 1000.0,
+                "DYNAMIC_VISCOSITY" : 0.01,
+                "BULK_MODULUS"      : 1000000000.0,
+                "CONDUCTIVITY"      : 5000.0,
+                "SPECIFIC_HEAT"     : 1000.0
+            },
+            "Tables"           : {
+                "TEMPERATURE_vs_DENSITY" : {
+                    "input_variable"  : "TEMPERATURE",
+                    "output_variable" : "DENSITY",
+                    "data"            : [[250.0,1500.0],[300.0,1000.0],[350.0,500.0]]
+                }
+            }
+        }
+    }]
+}

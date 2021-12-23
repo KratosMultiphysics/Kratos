@@ -1,0 +1,20 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Parts_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+                "constitutive_law" : {
+                    "name" : "SmallStrainIsotropicDamage3DVonMisesVonMises"
+                },
+                "Variables"        : {
+                    "DENSITY"         : 2400.0,
+                    "YOUNG_MODULUS"   : 40E9,
+                    "POISSON_RATIO"   : 0.3,
+					"FRACTURE_ENERGY" : 1E6,
+					"YIELD_STRESS" :  1E6,
+					"SOFTENING_TYPE" : 0
+                },
+            "Tables"           : {}
+        }
+    }]
+}

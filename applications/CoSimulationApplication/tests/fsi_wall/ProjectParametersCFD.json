@@ -172,7 +172,7 @@
                 "model_part_name"  : "FluidModelPart",
                 "output_file_settings": {
                     "file_name"  : "fsi_wall_cfd_results_disp.dat",
-                    "folder_name": "fsi_wall"
+                    "output_path": "fsi_wall"
                 },
                 "output_variables" : [
                     "MESH_DISPLACEMENT_X",
@@ -201,7 +201,7 @@
                     "model_part_name"  : "FluidModelPart",
                     "output_file_settings": {
                         "file_name"  : "fsi_wall_cfd_results_fluid.dat",
-                        "folder_name": "fsi_wall"
+                        "output_path": "fsi_wall"
                     },
                     "output_variables" : [
                         "VELOCITY_X",
@@ -238,7 +238,7 @@
                 "file_format"                        : "binary",
                 "output_precision"                   : 7,
                 "output_sub_model_parts"             : false,
-                "folder_name"                        : "fsi_wall/vtk_output_fsi_wall",
+                "output_path"                        : "fsi_wall/vtk_output_fsi_wall",
                 "save_output_files_in_folder"        : true,
                 "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE","MESH_DISPLACEMENT","MESH_VELOCITY"],
                 "nodal_data_value_variables"         : [],

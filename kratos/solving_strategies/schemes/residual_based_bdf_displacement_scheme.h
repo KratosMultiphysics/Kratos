@@ -183,8 +183,8 @@ public:
         const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
 
         // Getting position
-        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
-        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
+        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_X)) : -1;
+        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? static_cast<int>(it_node_begin->GetDofPosition(ACCELERATION_X)) : -1;
 
         std::array<bool, 3> fixed = {false, false, false};
         const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
@@ -246,8 +246,8 @@ public:
         // Getting position
         KRATOS_ERROR_IF_NOT(it_node_begin->HasDofFor(DISPLACEMENT_X)) << "ResidualBasedBDFDisplacementScheme:: DISPLACEMENT is not added" << std::endl;
         const int disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
-        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
-        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
+        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_X)) : -1;
+        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? static_cast<int>(it_node_begin->GetDofPosition(ACCELERATION_X)) : -1;
 
         // Getting dimension
         KRATOS_WARNING_IF("ResidualBasedBDFDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
@@ -277,14 +277,14 @@ public:
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
                     if (it_node->GetDof(*accel_components[i_dim], accelpos + i_dim).IsFixed()) {
                         dotun0[i_dim] = dot2un0[i_dim];
-                        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                            dotun0[i_dim] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(*vel_components[i_dim], i_order);
-                        dotun0[i_dim] /= BDFBaseType::mBDF[i_dim];
+                        for (std::size_t i_order = 1; i_order < this->mOrder + 1; ++i_order)
+                            dotun0[i_dim] -= this->mBDF[i_order] * it_node->FastGetSolutionStepValue(*vel_components[i_dim], i_order);
+                        dotun0[i_dim] /= this->mBDF[i_dim];
 
                         un0[i_dim] = dotun0[i_dim];
-                        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                            un0[i_dim] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(*disp_components[i_dim], i_order);
-                        un0[i_dim] /= BDFBaseType::mBDF[i_dim];
+                        for (std::size_t i_order = 1; i_order < this->mOrder + 1; ++i_order)
+                            un0[i_dim] -= this->mBDF[i_order] * it_node->FastGetSolutionStepValue(*disp_components[i_dim], i_order);
+                        un0[i_dim] /= this->mBDF[i_dim];
                         rPredictedTLS[i_dim] = true;
                     }
                 }
@@ -293,9 +293,9 @@ public:
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
                     if (it_node->GetDof(*vel_components[i_dim], velpos + i_dim).IsFixed() && !rPredictedTLS[i_dim]) {
                         un0[i_dim] = dotun0[i_dim];
-                        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                            un0[i_dim] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(*disp_components[i_dim], i_order);
-                        un0[i_dim] /= BDFBaseType::mBDF[i_dim];
+                        for (std::size_t i_order = 1; i_order < this->mOrder + 1; ++i_order)
+                            un0[i_dim] -= this->mBDF[i_order] * it_node->FastGetSolutionStepValue(*disp_components[i_dim], i_order);
+                        un0[i_dim] /= this->mBDF[i_dim];
                         rPredictedTLS[i_dim] = true;
                     }
                 }
@@ -430,9 +430,9 @@ protected:
     inline void UpdateFirstDerivative(NodesArrayType::iterator itNode) override
     {
         array_1d<double, 3>& dotun0 = itNode->FastGetSolutionStepValue(VELOCITY);
-        noalias(dotun0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(DISPLACEMENT);
-        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-            noalias(dotun0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(DISPLACEMENT, i_order);
+        noalias(dotun0) = this->mBDF[0] * itNode->FastGetSolutionStepValue(DISPLACEMENT);
+        for (std::size_t i_order = 1; i_order < this->mOrder + 1; ++i_order)
+            noalias(dotun0) += this->mBDF[i_order] * itNode->FastGetSolutionStepValue(DISPLACEMENT, i_order);
     }
 
     /**
@@ -442,9 +442,9 @@ protected:
     inline void UpdateSecondDerivative(NodesArrayType::iterator itNode) override
     {
         array_1d<double, 3>& dot2un0 = itNode->FastGetSolutionStepValue(ACCELERATION);
-        noalias(dot2un0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(VELOCITY);
-        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-            noalias(dot2un0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(VELOCITY, i_order);
+        noalias(dot2un0) = this->mBDF[0] * itNode->FastGetSolutionStepValue(VELOCITY);
+        for (std::size_t i_order = 1; i_order < this->mOrder + 1; ++i_order)
+            noalias(dot2un0) += this->mBDF[i_order] * itNode->FastGetSolutionStepValue(VELOCITY, i_order);
     }
 
     ///@}

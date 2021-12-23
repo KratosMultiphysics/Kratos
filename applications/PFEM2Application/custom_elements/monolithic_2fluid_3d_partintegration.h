@@ -31,7 +31,7 @@ namespace Kratos
    public:
 
      /// Counted pointer of MonolithicAutoSlipPFEM23D
-    KRATOS_CLASS_POINTER_DEFINITION(MonolithicAutoSlipPFEM23D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MonolithicAutoSlipPFEM23D);
     ///base type: an IndexedObject that automatically has a unique number
     ///typedef IndexedObject BaseType;
     ///Element from which it is derived

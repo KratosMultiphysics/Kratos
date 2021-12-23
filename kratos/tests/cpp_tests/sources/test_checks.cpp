@@ -152,5 +152,97 @@ namespace Kratos {
                 "Mismatch found in component (0,1):"
             );
         }
+
+        KRATOS_TEST_CASE_IN_SUITE(NaNValuesCheck, KratosCoreFastSuite)
+		{
+            double a = std::numeric_limits<double>::quiet_NaN();
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_NEAR(1.0, a, 1e-7),
+                "Check failed because 1.0 = 1 is not near to a = nan within the tolerance 1e-07"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_NEAR(a, 1.0, 1e-7),
+                "Check failed because a = nan is not near to 1.0 = 1 within the tolerance 1e-07"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_LESS_EQUAL(a,1.0),
+                "Check failed because a is greater than 1.0"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_LESS_EQUAL(1.0,a),
+                "Check failed because 1.0 is greater than a"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_GREATER_EQUAL(a,1.0),
+                "Check failed because a is less than 1.0"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_GREATER_EQUAL(1.0,a),
+                "Check failed because 1.0 is less than a"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_RELATIVE_NEAR(1.0,a,1e-3),
+                "Check failed because 1.0 = 1 is not near to a = nan within the relative tolerance 0.001"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_RELATIVE_NEAR(a,1.0,1e-3),
+                "Check failed because a = nan is not near to 1.0 = 1 within the relative tolerance 0.001"
+            );
+
+            std::vector<double> v1{1.0, 2.0};
+            std::vector<double> v2{1.0, a};
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_VECTOR_NEAR(v1,v2,1e-3),
+                "Check failed because vector v1 with values\n[1, 2]\n"
+                "Is not near vector v2 with values\n[1, nan]"
+                "\nMismatch found in component 1:\n2 not near nan within tolerance 0.001."
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_VECTOR_NEAR(v2,v1,1e-3),
+                "Check failed because vector v2 with values\n[1, nan]\n"
+                "Is not near vector v1 with values\n[1, 2]"
+                "\nMismatch found in component 1:\nnan not near 2 within tolerance 0.001."
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_VECTOR_RELATIVE_NEAR(v1,v2,1e-3),
+                "Check failed because vector v1 with values\n[1, 2]\n"
+                "Is not near vector v2 with values\n[1, nan]"
+                "\nMismatch found in component 1:\n2 not near nan within tolerance 0.001."
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_VECTOR_RELATIVE_NEAR(v2,v1,1e-3),
+                "Check failed because vector v2 with values\n[1, nan]\n"
+                "Is not near vector v1 with values\n[1, 2]"
+                "\nMismatch found in component 1:\nnan not near 2 within relative tolerance 0.001."
+            );
+
+            Matrix m1 = IdentityMatrix(2);
+            Matrix m2 = IdentityMatrix(2);
+            m2(0,1) = a;
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_MATRIX_NEAR(m1,m2,1e-3),
+                "Check failed because matrix m1 with values\n[2,2]((1,0),(0,1))\n"
+                "Is not near matrix m2 with values\n[2,2]((1,nan),(0,1))"
+                "\nMismatch found in component (0,1): \n0 not near nan within tolerance 0.001.\n"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_MATRIX_NEAR(m2,m1,1e-3),
+                "Check failed because matrix m2 with values\n[2,2]((1,nan),(0,1))\n"
+                "Is not near matrix m1 with values\n[2,2]((1,0),(0,1))\n"
+                "Mismatch found in component (0,1): \nnan not near 0 within tolerance 0.001.\n"
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_MATRIX_RELATIVE_NEAR(m1,m2,1e-3),
+                "Check failed because matrix m1 with values\n[2,2]((1,0),(0,1))\n"
+                "Is not near matrix m2 with values\n[2,2]((1,nan),(0,1))\n"
+                "Mismatch found in component (0,1): \n0 not near nan within tolerance 0.001."
+            );
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                KRATOS_CHECK_MATRIX_RELATIVE_NEAR(m2,m1,1e-3),
+                "Check failed because matrix m2 with values\n[2,2]((1,nan),(0,1))\n"
+                "Is not near matrix m1 with values\n[2,2]((1,0),(0,1))\n"
+                "Mismatch found in component (0,1): \nnan not near 0 within tolerance 0.001."
+            );
+		}
     }
 }  // namespace Kratos.

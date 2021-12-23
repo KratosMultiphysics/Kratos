@@ -141,23 +141,44 @@ void TrussElement3D2N::CalculateMassMatrix(
 )
 {
     KRATOS_TRY
-
-    // Compute lumped mass matrix
-    VectorType temp_vector(msLocalSize);
-    CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
-
     // Clear matrix
     if (rMassMatrix.size1() != msLocalSize || rMassMatrix.size2() != msLocalSize) {
         rMassMatrix.resize(msLocalSize, msLocalSize, false);
     }
     rMassMatrix = ZeroMatrix(msLocalSize, msLocalSize);
 
-    // Fill the matrix
-    for (IndexType i = 0; i < msLocalSize; ++i) {
-        rMassMatrix(i, i) = temp_vector[i];
+    if (StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo)){
+        // Compute lumped mass matrix
+        VectorType temp_vector(msLocalSize);
+        CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
+
+        // Fill the matrix
+        for (IndexType i = 0; i < msLocalSize; ++i) {
+            rMassMatrix(i, i) = temp_vector[i];
+        }
+    }
+    else {
+        CalculateConsistentMassMatrix(rMassMatrix,rCurrentProcessInfo);
     }
 
     KRATOS_CATCH("")
+}
+
+void TrussElement3D2N::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+    const double A = GetProperties()[CROSS_AREA];
+    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double rho = GetProperties()[DENSITY];
+    const BoundedMatrix<double, 3, 3> fill_matrix = A * L * rho* (IdentityMatrix(3)/6.0);
+
+    project(rMassMatrix, range(0,3),range(0,3)) += fill_matrix*2.0;
+    project(rMassMatrix, range(0,3),range(3,6)) += fill_matrix;
+    project(rMassMatrix, range(3,6),range(0,3)) += fill_matrix;
+    project(rMassMatrix, range(3,6),range(3,6)) += fill_matrix*2.0;
+
+    KRATOS_CATCH("");
 }
 
 BoundedVector<double, TrussElement3D2N::msLocalSize>
@@ -167,7 +188,7 @@ TrussElement3D2N::CalculateBodyForces()
     KRATOS_TRY
     // getting shapefunctionvalues
     const Matrix& Ncontainer =
-        GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+        GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
     // creating necessary values
     const double A = GetProperties()[CROSS_AREA];
@@ -275,7 +296,7 @@ void TrussElement3D2N::CalculateRightHandSide(
     rRightHandSideVector = ZeroVector(msLocalSize);
 
     BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
-    UpdateInternalForces(internal_forces);
+    UpdateInternalForces(internal_forces, rCurrentProcessInfo);
 
     noalias(rRightHandSideVector) -= internal_forces;
 
@@ -335,7 +356,54 @@ void TrussElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOut
     }
 }
 
+void TrussElement3D2N::Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == STRAIN_ENERGY) {
+        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double A = GetProperties()[CROSS_AREA];
 
+        // material strain energy
+        double strain_energy(0.00);
+        Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
+        strain_vector[0] = CalculateGreenLagrangeStrain();
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        Values.SetStrainVector(strain_vector);
+        mpConstitutiveLaw->CalculateValue(Values,STRAIN_ENERGY,strain_energy);
+
+        // constant pre_stress strain energy
+        if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+            const double pre_stress = GetProperties()[TRUSS_PRESTRESS_PK2];
+            strain_energy += pre_stress * strain_vector[0];
+        }
+
+        // integration over reference domain
+        strain_energy *= A * L0;
+
+        rOutput = strain_energy;
+    }
+    else if (rVariable == KINETIC_ENERGY) {
+        Matrix mass_matrix = ZeroMatrix(msLocalSize,msLocalSize);
+        CalculateMassMatrix(mass_matrix,rCurrentProcessInfo);
+        Vector current_nodal_velocities = ZeroVector(msLocalSize);
+        GetFirstDerivativesVector(current_nodal_velocities);
+        rOutput = 0.50 * inner_prod(current_nodal_velocities,prod(mass_matrix,current_nodal_velocities));
+    }
+    else if (rVariable == ENERGY_DAMPING_DISSIPATION) {
+        // Attention! this is only the current state and must be integrated over time (*dt)
+        Matrix damping_matrix = ZeroMatrix(msLocalSize,msLocalSize);
+        CalculateDampingMatrix(damping_matrix,rCurrentProcessInfo);
+        Vector current_nodal_velocities = ZeroVector(msLocalSize);
+        GetFirstDerivativesVector(current_nodal_velocities);
+        rOutput = inner_prod(current_nodal_velocities,prod(damping_matrix,current_nodal_velocities));
+    }
+    else if (rVariable == EXTERNAL_ENERGY) {
+        // Dead Load contribution to external energy
+        Vector dead_load_rhs = CalculateBodyForces();
+        Vector current_nodal_displacements = ZeroVector(msLocalSize);
+        GetValuesVector(current_nodal_displacements, 0);
+        rOutput = inner_prod(dead_load_rhs,current_nodal_displacements);
+    }
+}
 
 
 
@@ -350,6 +418,7 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
     if (rOutput.size() != integration_points.size()) {
         rOutput.resize(integration_points.size());
     }
+
     if (rVariable == TRUSS_PRESTRESS_PK2) {
         rOutput[0] = 0.00;
         if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
@@ -374,6 +443,7 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
     if (rOutput.size() != integration_points.size()) {
         rOutput.resize(integration_points.size());
     }
+
     if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
         Vector strain = ZeroVector(msDimension);
         strain[0] = CalculateGreenLagrangeStrain();
@@ -386,14 +456,13 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
 
         array_1d<double, 3 > truss_stresses;
         array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
-        ProcessInfo temp_process_information;
 
         double prestress = 0.00;
         if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
             prestress = GetProperties()[TRUSS_PRESTRESS_PK2];
         }
 
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
         Vector temp_strain = ZeroVector(1);
         Vector temp_stress = ZeroVector(1);
         temp_strain[0] = CalculateGreenLagrangeStrain();
@@ -497,7 +566,8 @@ double TrussElement3D2N::CalculateGreenLagrangeStrain() const
 }
 
 void TrussElement3D2N::UpdateInternalForces(
-    BoundedVector<double, TrussElement3D2N::msLocalSize>& rInternalForces)
+    BoundedVector<double, TrussElement3D2N::msLocalSize>& rInternalForces,
+    const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -515,8 +585,7 @@ void TrussElement3D2N::UpdateInternalForces(
         prestress = GetProperties()[TRUSS_PRESTRESS_PK2];
     }
 
-    ProcessInfo temp_process_information;
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     Vector temp_strain = ZeroVector(1);
     Vector temp_stress = ZeroVector(1);
     temp_strain[0] = CalculateGreenLagrangeStrain();
@@ -671,8 +740,7 @@ void TrussElement3D2N::AddExplicitContribution(
         Vector current_nodal_velocities = ZeroVector(msLocalSize);
         GetFirstDerivativesVector(current_nodal_velocities);
         Matrix damping_matrix;
-        ProcessInfo temp_process_information; // cant pass const ProcessInfo
-        CalculateDampingMatrix(damping_matrix, temp_process_information);
+        CalculateDampingMatrix(damping_matrix, rCurrentProcessInfo);
         // current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
 
@@ -877,8 +945,7 @@ void TrussElement3D2N::CalculateElasticStiffnessMatrix(
 void TrussElement3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    ProcessInfo temp_process_information;
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     Vector temp_strain = ZeroVector(1);
     Vector temp_stress = ZeroVector(1);
     temp_strain[0] = CalculateGreenLagrangeStrain();
@@ -914,6 +981,36 @@ bool TrussElement3D2N::HasSelfWeight() const
     } else {
         return true;
     }
+}
+
+const Parameters TrussElement3D2N::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit","explicit"],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : [],
+            "nodal_historical"       : ["DISPLACEMENT","VELOCITY","ACCELERATION"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Line3D2"],
+        "element_integrates_in_time" : false,
+        "compatible_constitutive_laws": {
+            "type"        : ["TrussConstitutiveLaw"],
+            "dimension"   : ["3D"],
+            "strain_size" : [1]
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   : "This elements implements a non-linear truss formulation."
+    })");
+
+    return specifications;
 }
 
 void TrussElement3D2N::CalculateLumpedMassVector(

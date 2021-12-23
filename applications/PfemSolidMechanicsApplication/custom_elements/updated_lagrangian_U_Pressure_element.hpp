@@ -77,7 +77,7 @@ namespace Kratos
          typedef UpdatedLagrangianUPElement::ElementDataType ElementDataType;
 
          /// Counted pointer of LargeDisplacementUPElement
-         KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUPressureElement );
+         KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianUPressureElement );
          ///@}
 
          ///@name Life Cycle

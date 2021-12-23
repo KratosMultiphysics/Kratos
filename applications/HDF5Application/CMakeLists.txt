@@ -6,23 +6,24 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 # generate variables with the sources
 set( KRATOS_HDF5_APPLICATION_CORE
-	${CMAKE_CURRENT_SOURCE_DIR}/hdf5_application.cpp
-  	${CMAKE_CURRENT_SOURCE_DIR}/hdf5_application_variables.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file_serial.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_model_part_io.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_properties_io.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_data_value_container_io.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_variables_io.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_data_io.cpp
-  	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_bossak_io.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_points_data.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_connectivities_data.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_container_component_io.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/hdf5_xdmf_connectivities_writer_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/hdf5_data_set_partition_utility.cpp
-  	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/factor_elements_and_conditions_utility.cpp
-  	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_ghost_splitting_utility.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/hdf5_application.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/hdf5_application_variables.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file_serial.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_model_part_io.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_properties_io.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_data_value_container_io.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_variables_io.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_data_io.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_bossak_io.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_points_data.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_connectivities_data.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_container_component_io.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_container_gauss_point_output.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/hdf5_xdmf_connectivities_writer_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/hdf5_data_set_partition_utility.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/factor_elements_and_conditions_utility.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_ghost_splitting_utility.cpp
 )
 
 ## HDF5Application python interface sources
@@ -100,6 +101,12 @@ pybind11_add_module(KratosHDF5Application MODULE THIN_LTO ${KRATOS_HDF5_APPLICAT
 target_link_libraries(KratosHDF5Application PRIVATE KratosHDF5Core)
 set_target_properties(KratosHDF5Application PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosHDF5Core PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosHDF5Application PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosHDF5Application PROPERTIES SUFFIX .pyd)
@@ -109,12 +116,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosHDF5Application PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosHDF5Core)
-    cotire(KratosHDF5Application)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/HDF5Application.py KratosMultiphysics/HDF5Application/__init__.py )
@@ -138,3 +139,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosHDF5Core DESTINATION libs )
 install(TARGETS KratosHDF5Application DESTINATION libs)
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosHDF5Core" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosHDF5Application" PARENT_SCOPE)
