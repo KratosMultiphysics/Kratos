@@ -3890,7 +3890,7 @@ public:
      * @param rPoint the given local coordinates the gradients will be evaluated for
      * @return a matrix of gradients for each shape function
      */
-    virtual Matrix& ShapeFunctionsLocalGradients(
+    Matrix& ShapeFunctionsLocalGradients(
         Matrix& rResult,
         IndexType IntegrationPointIndex,
         const IntegrationPointsArrayType& rIntegrationPointsArray
