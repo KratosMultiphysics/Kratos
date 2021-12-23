@@ -20,6 +20,8 @@
 #include "utilities/binbased_fast_point_locator_conditions.h"
 #include "utilities/geometrical_transformation_utilities.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {

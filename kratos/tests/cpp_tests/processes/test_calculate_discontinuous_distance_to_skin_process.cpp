@@ -860,7 +860,7 @@ namespace Testing {
 
         // Check edge distances
         const auto &r_elem_dist_edge = (volume_part.ElementsBegin())->GetValue(ELEMENTAL_EDGE_DISTANCES);
-        const std::vector<double> expected_values_edge = {-1,-1,-1,0.961531,-1,-1};
+        const std::vector<double> expected_values_edge = {-1,-1,-1,0.959824,-1,-1};
         KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_edge, expected_values_edge, 1.0e-6);
     }
 
@@ -1804,6 +1804,38 @@ namespace Testing {
             }
         }
         KRATOS_CHECK_EQUAL(n_cut_edges, 1);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessCloseToVertexIntersection3D, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        // Generate the element
+        ModelPart &fluid_part = current_model.CreateModelPart("Surface");
+        fluid_part.CreateNewNode(1, 0.498262,	0.296646,	-0.0435666);
+        fluid_part.CreateNewNode(2, 0.494408,	0.298003,	-0.0436762);
+        fluid_part.CreateNewNode(3, 0.497984,	0.301717,	-0.046839);
+        fluid_part.CreateNewNode(4, 0.496292,	0.295241,	-0.0478173);
+
+        Properties::Pointer p_properties_0(new Properties(0));
+        fluid_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_0);
+
+		// Generate the skin
+		ModelPart &skin_part = current_model.CreateModelPart("Skin");
+		skin_part.CreateNewNode(901, 0.2490485, -0.01, -0.02178895);
+		skin_part.CreateNewNode(903, 0.498097, 2.0, -0.0435779);
+		skin_part.CreateNewNode(904, 0.498097, -0.01, -0.0435779);
+		skin_part.CreateNewNode(905, 2.0, 2.0, 0.0);
+
+		Properties::Pointer p_properties = skin_part.CreateNewProperties(0);
+		skin_part.CreateNewElement("Element3D3N", 901, { 901,904,903}, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 902, { 904,905,903}, p_properties);
+
+        // Compute the discontinuous distance function
+        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(fluid_part, skin_part);
+        disc_dist_proc.Execute();
+        auto p_elem = fluid_part.ElementsBegin();
+        KRATOS_CHECK(p_elem->Is(TO_SPLIT));
     }
 
 }  // namespace Testing.

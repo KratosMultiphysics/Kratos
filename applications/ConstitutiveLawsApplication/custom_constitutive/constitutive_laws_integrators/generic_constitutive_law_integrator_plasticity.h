@@ -331,7 +331,7 @@ class GenericConstitutiveLawIntegratorPlasticity
     {
         // We do an initial check
         if (norm_2(rPredictiveStressVector) < 1.0e-8) {
-            rTensileIndicatorFactor = 0.0;
+            rTensileIndicatorFactor = 1.0;
             rCompressionIndicatorFactor = 0.0;
             return;
         }

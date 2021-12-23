@@ -437,6 +437,8 @@ class VariablesManager:
             self.coupling_dem_vars += [Kratos.REYNOLDS_NUMBER]
 
         if self.do_backward_coupling:
+            self.coupling_dem_vars += [SDEM.GENTLE_INITIATION_COUPLING_COEFFICIENT]
+
             if parameters["coupling"]["backward_coupling"]["apply_time_filter_to_fluid_fraction_option"].GetBool():
                 self.time_filtered_vars += [Kratos.FLUID_FRACTION]
 

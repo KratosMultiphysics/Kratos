@@ -41,8 +41,8 @@ class ROMSolver(StaticMechanicalSolver):
         super(ROMSolver, self).AddVariables() #Adding nodal area variable
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
-    def _create_builder_and_solver(self):
-        linear_solver = self.get_linear_solver()
+    def _CreateBuilderAndSolver(self):
+        linear_solver = self._GetLinearSolver()
         rom_parameters=self.settings["rom_settings"]
         builder_and_solver = romapp.ROMBuilderAndSolver(linear_solver, rom_parameters)
         return builder_and_solver
