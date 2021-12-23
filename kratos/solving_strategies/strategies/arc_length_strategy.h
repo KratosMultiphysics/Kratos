@@ -287,6 +287,7 @@ class ArcLengthStrategy
     {
         KRATOS_INFO("Arc-Length Strategy") << "INITIAL ARC-LENGTH RADIUS: " << mRadius_0 << std::endl;
         KRATOS_INFO("Arc-Length Strategy") << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
+        mInsideIterationLoop = false;
 
         ModelPart& r_model_part = BaseType::GetModelPart();
 
@@ -344,6 +345,7 @@ class ArcLengthStrategy
         }
 
         while (!is_converged && iteration_number++ < BaseType::mMaxIterationNumber) {
+            mInsideIterationLoop = true;
             //setting the number of iteration
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
@@ -421,9 +423,13 @@ class ArcLengthStrategy
                 const array_type& r_var = KratosComponents<array_type>::Get(r_variable_name);
 
                 block_for_each(r_sub_model_part.Conditions(), [&](auto& r_condition) {
-                    // we are multipying by Lambda instead of Lambda/Lambda_old because
-                    // the load processes reset the loads to its initial values...
-                    r_condition.GetValue(r_var) *= mLambda;
+                    /* we are multipying by Lambda instead of Lambda/Lambda_old because
+                    the load processes reset the loads to its initial values
+                    when the InitSolStep is called */
+                    if (mInsideIterationLoop)
+                        r_condition.GetValue(r_var) *= mLambda/mLambda_old;
+                    else
+                        r_condition.GetValue(r_var) *= mLambda;
                 });
 
                 // TODO-> add for node loads
@@ -600,6 +606,7 @@ class ArcLengthStrategy
     unsigned int mDesiredIterations;   /// This is used to calculate the radius of the next step
 
     bool mInitializeArcLengthWasPerformed;
+    bool mInsideIterationLoop;
 
     double mMaxRadiusFactor, mMinRadiusFactor; /// Used to limit the radius of the arc length strategy
     double mRadius, mRadius_0;                 /// Radius of the arc length strategy
