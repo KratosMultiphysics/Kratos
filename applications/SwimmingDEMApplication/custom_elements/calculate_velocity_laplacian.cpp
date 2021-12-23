@@ -5,9 +5,7 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                              ProcessInfo& rCurrentProcessInfo)
-{
+void ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
 
     const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
     unsigned int LocalIndex = 0;
@@ -25,9 +23,7 @@ void ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::EquationIdVector(Equation
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                        ProcessInfo& rCurrentProcessInfo)
-{
+void ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
     const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
 
     if (rElementalDofList.size() != LocalSize)
@@ -44,7 +40,7 @@ void ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int ComputeVelocityLaplacianSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

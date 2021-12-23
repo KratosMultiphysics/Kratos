@@ -60,6 +60,8 @@ void  AddIOToPython(pybind11::module& m)
     .def("ReadProperties",[](IO& self, Properties& rThisProperties){self.ReadProperties(rThisProperties);})
     .def("ReadProperties",[](IO& self,IO::PropertiesContainerType& rThisProperties){self.ReadProperties(rThisProperties);})
 //     .def("ReadProperties",pointer_to_io_read_properties)
+    .def("ReadGeometries",&IO::ReadGeometries)
+    .def("WriteGeometries",&IO::WriteGeometries)
     .def("ReadElements",&IO::ReadElements)
     .def("WriteElements",&IO::WriteElements)
     .def("ReadConditions",&IO::ReadConditions)
@@ -76,6 +78,7 @@ void  AddIOToPython(pybind11::module& m)
     io_python_interface.attr("IGNORE_VARIABLES_ERROR" ) = IO::IGNORE_VARIABLES_ERROR;
     io_python_interface.attr("SKIP_TIMER" ) = IO::SKIP_TIMER;
     io_python_interface.attr("MESH_ONLY" ) = IO::MESH_ONLY;
+    io_python_interface.attr("SCIENTIFIC_PRECISION" ) = IO::SCIENTIFIC_PRECISION;
 
     py::class_<ModelPartIO, ModelPartIO::Pointer, IO>(
        m, "ModelPartIO")

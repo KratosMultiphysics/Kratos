@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <cctype>
 
 // External includes
 
@@ -484,7 +485,7 @@ bool FileNameDataCollector::PatternFlag::RetrieveFloatingPointValue(
 
     for (; rCurrentPosition < rData.length(); ++rCurrentPosition) {
         const auto c = rData[rCurrentPosition];
-        if (isdigit(c)) {
+        if (std::isdigit(c)) {
             found_digit = true;
             s_value += c;
         } else if (c == '.' && !found_point && found_digit && !found_e) {
@@ -493,7 +494,7 @@ bool FileNameDataCollector::PatternFlag::RetrieveFloatingPointValue(
         } else if ((c == 'e' || c == 'E') && !found_e && found_digit && (rCurrentPosition + 2 < rData.length())) {
             const auto n_c = rData[rCurrentPosition + 1];
             const auto nn_c = rData[rCurrentPosition + 2];
-            if ((n_c == '-' || n_c == '+') && (isdigit(nn_c))) {
+            if ((n_c == '-' || n_c == '+') && (std::isdigit(nn_c))) {
                 found_e = true;
                 s_value += c;
                 s_value += n_c;

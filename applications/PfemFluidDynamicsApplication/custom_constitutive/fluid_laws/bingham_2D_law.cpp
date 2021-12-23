@@ -49,7 +49,7 @@ namespace Kratos
 
     ConstitutiveLaw::SizeType Bingham2DLaw::WorkingSpaceDimension() { return 2; }
 
-    ConstitutiveLaw::SizeType Bingham2DLaw::GetStrainSize() { return 3; }
+    ConstitutiveLaw::SizeType Bingham2DLaw::GetStrainSize() const { return 3; }
 
     void Bingham2DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {
@@ -101,13 +101,8 @@ namespace Kratos
     //*****************************************************************************
 
     int Bingham2DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                            const ProcessInfo &rCurrentProcessInfo)
+                            const ProcessInfo &rCurrentProcessInfo) const
     {
-
-        KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
-        KRATOS_CHECK_VARIABLE_KEY(YIELD_SHEAR);
-        KRATOS_CHECK_VARIABLE_KEY(ADAPTIVE_EXPONENT);
-        KRATOS_CHECK_VARIABLE_KEY(BULK_MODULUS);
 
         if (rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
         {

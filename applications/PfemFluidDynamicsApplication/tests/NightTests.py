@@ -27,12 +27,16 @@ class Thermal_Coupling_2D_Test(TF.TestFactory):
     file_name = "pfem_utilities_tests/2D_thermal_coupling/Test_2D_Thermal_Coupling_Refining"
     file_parameters = "pfem_utilities_tests/2D_thermal_coupling/ProjectParameters.json"
 
+class Nodal_Integration_2D_Test(TF.TestFactory):
+    file_name = "pfem_utilities_tests/Test_2D_Nodal_Integration/Test_2D_Nodal_Integration"
+    file_parameters = "pfem_utilities_tests/Test_2D_Nodal_Integration/ProjectParameters.json"
+
 def SetTestSuite(suites):
     night_suite = suites['nightly']
 
     night_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            Water_Sloshing_3D_Test, Inlet_3D_Test, Thermal_Coupling_2D_Test
+            Thermal_Coupling_2D_Test,Nodal_Integration_2D_Test#,Inlet_3D_Test, Water_Sloshing_3D_Test
         ])
     )
 

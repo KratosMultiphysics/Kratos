@@ -27,6 +27,7 @@
 #include "custom_elements/data_containers/k_omega/omega_element_data.h"
 #include "custom_elements/data_containers/k_omega_sst/k_element_data.h"
 #include "custom_elements/data_containers/k_omega_sst/omega_element_data.h"
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 
 // Include base h
@@ -167,7 +168,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
     const IndexType num_gauss_points = gauss_weights.size();
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData r_current_data(r_geometry);
+    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -244,7 +245,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
     const IndexType num_gauss_points = gauss_weights.size();
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData r_current_data(r_geometry);
+    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -273,8 +274,6 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
             velocity_convective_terms, gauss_weights[g], r_shape_functions, dNa_dNb);
     }
 
-    r_current_data.UpdateElementDataValueContainer(*this);
-
     KRATOS_CATCH("");
 }
 
@@ -295,7 +294,7 @@ int ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReac
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 GeometryData::IntegrationMethod ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>

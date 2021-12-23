@@ -42,7 +42,6 @@ RansEpsilonTurbulentMixingLengthInletProcess::RansEpsilonTurbulentMixingLengthIn
     mIsConstrained = rParameters["is_fixed"].GetBool();
     mEchoLevel = rParameters["echo_level"].GetInt();
     mModelPartName = rParameters["model_part_name"].GetString();
-    mCmu_75 = std::pow(rParameters["c_mu"].GetDouble(), 0.75);
     mMinValue = rParameters["min_value"].GetDouble();
 
     KRATOS_ERROR_IF(mTurbulentMixingLength < std::numeric_limits<double>::epsilon())
@@ -74,12 +73,15 @@ void RansEpsilonTurbulentMixingLengthInletProcess::ExecuteInitializeSolutionStep
 {
     KRATOS_TRY
 
-    auto& r_nodes = mrModel.GetModelPart(mModelPartName).Nodes();
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+
+    const double c_mu_75 = std::pow(r_model_part.GetProcessInfo()[TURBULENCE_RANS_C_MU], 0.75);
+    auto& r_nodes = r_model_part.Nodes();
 
     block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
         const double tke = rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
         rNode.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE) = std::max(
-            mCmu_75 * std::pow(std::max(tke, 0.0), 1.5) / mTurbulentMixingLength, mMinValue);
+            c_mu_75 * std::pow(std::max(tke, 0.0), 1.5) / mTurbulentMixingLength, mMinValue);
     });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
@@ -123,7 +125,6 @@ const Parameters RansEpsilonTurbulentMixingLengthInletProcess::GetDefaultParamet
         {
             "model_part_name"         : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "turbulent_mixing_length" : 0.005,
-            "c_mu"                    : 0.09,
             "echo_level"              : 0,
             "is_fixed"                : true,
             "min_value"               : 1e-14

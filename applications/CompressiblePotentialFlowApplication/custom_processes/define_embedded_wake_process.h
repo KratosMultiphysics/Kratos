@@ -13,7 +13,6 @@
 #ifndef KRATOS_DEFINE_EMBEDDED_WAKE_PROCESS_H
 #define KRATOS_DEFINE_EMBEDDED_WAKE_PROCESS_H
 
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 
@@ -47,6 +46,8 @@ public:
         Execute();
     }
 
+    void ExecuteInitialize() override;
+
     void Execute() override;
 
     /// Turn back information as a string.
@@ -78,7 +79,6 @@ private:
 
     ModelPart& mrModelPart;
     ModelPart& mrWakeModelPart;
-    GlobalPointersVector<Element> mKuttaWakeElementCandidates;
 
     void ComputeDistanceToWake();
 
@@ -86,7 +86,7 @@ private:
 
     void ComputeTrailingEdgeNode();
 
-    void MarkKuttaWakeElements();
+    ModelPart::NodeType::Pointer pGetTrailingEdgeNode();
 
 }; // Class Process
 } // namespace Kratos

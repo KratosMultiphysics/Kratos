@@ -61,7 +61,7 @@ namespace Kratos {
 				for (auto i_pointer = pointer_set.begin(); i_pointer != pointer_set.end(); i_pointer++) {
 					fixed_size_memory_pool.Deallocate(*i_pointer);
 				}
-				std::size_t number_of_chunks = i_repeat;// ((i_repeat / OpenMPUtils::GetNumThreads()) + 1) *  OpenMPUtils::GetNumThreads();
+				std::size_t number_of_chunks = i_repeat;// ((i_repeat / ParallelUtilities::GetNumThreads()) + 1) *  ParallelUtilities::GetNumThreads();
 				KRATOS_CHECK_EQUAL(fixed_size_memory_pool.GetNumberOfAllocatedChunks(), number_of_chunks) << " (number_of_chunks = " << number_of_chunks << ")";
 				KRATOS_CHECK_EQUAL(fixed_size_memory_pool.ChunkSize(), default_chunk_size);
 			}
@@ -69,7 +69,7 @@ namespace Kratos {
 
 		//KRATOS_TEST_CASE_IN_SUITE(FixedSizeMemoryPoolStressTest, KratosCoreStressSuite)
 		//{
-		//	int max_threads = OpenMPUtils::GetCurrentNumberOfThreads();
+		//	int max_threads = ParallelUtilities::GetNumThreads();
 		//	std::size_t block_size = 64;
 		//	std::size_t default_chunk_size = 1024 * 1024;// 1M
 		//	std::size_t number_of_blocks = (default_chunk_size - 2 * max_threads * sizeof(Chunk::SizeType)) / 64;

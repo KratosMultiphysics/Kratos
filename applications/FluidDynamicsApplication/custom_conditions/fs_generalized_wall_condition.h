@@ -289,8 +289,9 @@ public:
 		KRATOS_CATCH("");
 	}
 
-	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-			ProcessInfo& rCurrentProcessInfo) override
+	void CalculateLeftHandSide(
+		MatrixType& rLeftHandSideMatrix,
+		const ProcessInfo& rCurrentProcessInfo) override
 	{
 		VectorType RHS;
 		this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
@@ -382,20 +383,6 @@ public:
 		}
 		else
 		{
-			// Check that all required variables have been registered
-			if(VELOCITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-			if(PRESSURE.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
-			if(MESH_VELOCITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
-			if(DENSITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
-			if(VISCOSITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
-			if(NORMAL.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"NORMAL Key is 0. Check if the application was correctly registered.","");
-
 			// Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
 			for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
 			{
@@ -542,7 +529,7 @@ protected:
 	  ShapeFunctionDerivativesArrayType DN_DX;
 	  Vector DetJ;
 	  rElemGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, DetJ,
-		          GeometryData::GI_GAUSS_1);
+		          GeometryData::IntegrationMethod::GI_GAUSS_1);
 	  ShapeFunctionDerivativesType& rDN_DX = DN_DX[0];
 
 	  const double& pres = rElemGeom[0].FastGetSolutionStepValue(PRESSURE,1);
@@ -579,7 +566,7 @@ protected:
 	 */
 	double EvaluateWallFunctionResidual(const double& rWallHeight, const double& rWallVel, const double& rWallStress, const double& rWallGradP)
 	{
-		const ShapeFunctionsType& N = row(this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1),0);
+		const ShapeFunctionsType& N = row(this->GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1),0);
 		double rho, nu, func1, func2, Vel1, Vel2, Vel12, YPlus1, YPlus2, sign1, sign2;
 		EvaluateInPoint(rho, DENSITY, N);
 		EvaluateInPoint(nu, VISCOSITY, N);

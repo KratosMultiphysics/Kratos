@@ -9,19 +9,15 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 # Use Metis 5 by default
 OPTION ( USE_METIS_5 "Using Metis 5 (and not 4)" ON )
 
-if(${USE_METIS_5} MATCHES ON)
-    message("using metis (and not Parmetis) version 5")
-    add_definitions(-DKRATOS_USE_METIS_5)
-    find_package(METIS REQUIRED)
-    include_directories(${METIS_INCLUDE_DIR})
-    link_directories(${METIS_LIBRARIES})
-    install(FILES ${METIS_LIBRARIES} DESTINATION libs)
-else(${USE_METIS_5} MATCHES ON)
-    message("using PARMETIS < 4 as default. Set USE_METIS_5=ON to compile with METIS v5 instead- note that current compile option is deprecated and will be removed soon")
-    find_package(PARMETIS REQUIRED)
-    include_directories(${PARMETIS_INCLUDE_DIR})
-    link_directories(${PARMETIS_LIBRARIES})
-endif(${USE_METIS_5} MATCHES ON)
+if(${USE_METIS_5} MATCHES OFF)
+    message( FATAL_ERROR "Support for Metis version < 5 has been dropped")
+endif(${USE_METIS_5} MATCHES OFF)
+
+add_definitions(-DKRATOS_USE_METIS_5)
+find_package(METIS REQUIRED)
+include_directories(${METIS_INCLUDE_DIR})
+link_directories(${METIS_LIBRARIES})
+install(FILES ${METIS_LIBRARIES} DESTINATION libs)
 
 ## Metis Core sources
 file( GLOB KRATOS_METIS_APPLICATION_CORE
@@ -39,7 +35,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 
 add_library(KratosMetisCore SHARED ${KRATOS_METIS_APPLICATION_CORE} ${KRATOS_METIS_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosMetisCore PUBLIC KratosCore ${METIS_LIBRARY} ${MPI_LIBRARIES}) # todo refactor to use DataCommunicator then MPI can be removed
+target_link_libraries(KratosMetisCore PUBLIC KratosCore KratosMPICore ${METIS_LIBRARY})
 set_target_properties(KratosMetisCore PROPERTIES COMPILE_DEFINITIONS "METIS_APPLICATION=EXPORT,API")
 
 ###############################################################
@@ -47,6 +43,12 @@ set_target_properties(KratosMetisCore PROPERTIES COMPILE_DEFINITIONS "METIS_APPL
 pybind11_add_module(KratosMetisApplication MODULE THIN_LTO ${KRATOS_METIS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosMetisApplication PRIVATE KratosMetisCore)
 set_target_properties(KratosMetisApplication PROPERTIES PREFIX "")
+
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosMetisCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosMetisApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -57,12 +59,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMetisApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosMetisCore)
-    cotire(KratosMetisApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/MetisApplication.py KratosMultiphysics/MetisApplication/__init__.py )
@@ -86,3 +82,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosMetisCore DESTINATION libs )
 install(TARGETS KratosMetisApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMetisCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosMetisApplication" PARENT_SCOPE)

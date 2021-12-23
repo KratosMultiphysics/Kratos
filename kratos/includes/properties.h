@@ -200,6 +200,12 @@ public:
     ///@{
 
     template<class TVariableType>
+    void Erase(const TVariableType& rV)
+    {
+        mData.Erase(rV);
+    }
+
+    template<class TVariableType>
     typename TVariableType::Type& GetValue(const TVariableType& rV)
     {
         return mData.GetValue(rV);

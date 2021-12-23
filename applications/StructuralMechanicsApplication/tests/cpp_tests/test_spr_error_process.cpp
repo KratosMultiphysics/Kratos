@@ -76,7 +76,7 @@ namespace Kratos
             spr_process.Execute();
 
             KRATOS_CHECK_RELATIVE_NEAR(0.0229129, process_info[ERROR_OVERALL], 1.0e-5);
-            KRATOS_CHECK_RELATIVE_NEAR(0.148492, process_info[ENERGY_NORM_OVERALL], 1.0e-5);
+            KRATOS_CHECK_RELATIVE_NEAR(0.141421, process_info[ENERGY_NORM_OVERALL], 1.0e-5);
         }
 
         /**
@@ -126,7 +126,7 @@ namespace Kratos
             spr_process.Execute();
 
             KRATOS_CHECK_RELATIVE_NEAR(0.0494477, process_info[ERROR_OVERALL], 1.0e-5);
-            KRATOS_CHECK_RELATIVE_NEAR(0.257196, process_info[ENERGY_NORM_OVERALL], 1.0e-5);
+            KRATOS_CHECK_RELATIVE_NEAR(0.244949, process_info[ENERGY_NORM_OVERALL], 1.0e-5);
         }
     } // namespace Testing
 }  // namespace Kratos.

@@ -16,72 +16,11 @@ def CreateSolver(model, custom_settings):
 
 class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep):
 
-    @classmethod
-    def GetDefaultParameters(cls):
-        ## Default settings string in Json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "solver_type": "FractionalStep",
-            "model_part_name": "",
-            "domain_size": -1,
-            "model_import_settings": {
-                    "input_type": "mdpa",
-                    "input_filename": "unknown_name"
-            },
-            "material_import_settings": {
-                "materials_filename": ""
-            },
-            "predictor_corrector": false,
-            "maximum_velocity_iterations": 3,
-            "maximum_pressure_iterations": 3,
-            "velocity_tolerance": 1e-3,
-            "pressure_tolerance": 1e-2,
-            "dynamic_tau": 0.01,
-            "oss_switch": 0,
-            "echo_level": 0,
-            "consider_periodic_conditions": false,
-            "time_order": 2,
-            "compute_reactions": false,
-            "reform_dofs_at_each_step": false,
-            "pressure_linear_solver_settings": {
-                "solver_type": "amgcl"
-            },
-            "velocity_linear_solver_settings": {
-                "solver_type": "amgcl"
-            },
-            "volume_model_part_name" : "volume_model_part",
-            "skin_parts":[""],
-            "no_skin_parts":[""],
-            "time_stepping": {
-                "automatic_time_step" : false,
-                "CFL_number"          : 1,
-                "minimum_delta_time"  : 1e-4,
-                "maximum_delta_time"  : 0.01
-            },
-            "move_mesh_flag": false,
-            "use_slip_conditions": true
-        }""")
-
-        default_settings.AddMissingParameters(super(TrilinosNavierStokesSolverFractionalStep, cls).GetDefaultParameters())
-        return default_settings
-
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
-        # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
-        super(NavierStokesSolverFractionalStep,self).__init__(model,custom_settings)
-
-        self.element_name = "FractionalStep"
-        self.condition_name = "WallCondition"
-        self.min_buffer_size = 3
-        self.element_has_nodal_properties = True
-
-        self.compute_reactions = self.settings["compute_reactions"].GetBool()
-
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
+        # Call the serial base class constructor
+        super().__init__(model,custom_settings)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Construction of TrilinosNavierStokesSolverFractionalStep solver finished.")
-
 
     def AddVariables(self):
         ## Add variables from the base class
@@ -125,7 +64,7 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
 
     def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
-            self._epetra_communicator = KratosTrilinos.CreateCommunicator()
+            self._epetra_communicator = KratosTrilinos.CreateEpetraCommunicator(self.main_model_part.GetCommunicator().GetDataCommunicator())
         return self._epetra_communicator
 
     def _CreateScheme(self):

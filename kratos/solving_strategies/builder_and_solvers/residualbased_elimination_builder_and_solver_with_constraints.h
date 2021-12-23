@@ -24,6 +24,8 @@
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/constraint_utilities.h"
 #include "input_output/logger.h"
+#include "utilities/builtin_timer.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -309,70 +311,6 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     }
 
     /**
-     * @brief It applies certain operations at the system of equations at the begining of the solution step
-     * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
-     * @param rb The RHS vector of the system of equations
-     */
-    void InitializeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        ) override
-    {
-        KRATOS_TRY
-
-        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
-
-        // Getting process info
-        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-
-        // Computing constraints
-        const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
-        #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
-        for (int k = 0; k < n_constraints; ++k) {
-            auto it = constraints_begin + k;
-            it->InitializeSolutionStep(r_process_info); // Here each constraint constructs and stores its T and C matrices. Also its equation slave_ids.
-        }
-
-        KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints failed to initialize solution step.")
-    }
-
-    /**
-     * @brief It applies certain operations at the system of equations at the end of the solution step
-     * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
-     * @param rb The RHS vector of the system of equations
-     */
-    void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        ) override
-    {
-        KRATOS_TRY
-        BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-
-        // Getting process info
-        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-
-        // Computing constraints
-        const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        const auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
-        #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
-        for (int k = 0; k < n_constraints; ++k) {
-            auto it = constraints_begin + k;
-            it->FinalizeSolutionStep(r_process_info);
-        }
-        KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints failed to finalize solution step.")
-    }
-
-    /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      * @return The default parameters
      */
@@ -550,21 +488,22 @@ protected:
         "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         // We solve the system of equations
-        const double start_solve = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
+        const double start_solve = timer.ElapsedSeconds();
         Timer::Start("Solve");
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
-        const double stop_solve = OpenMPUtils::GetCurrentTime();
+        const double stop_solve = timer.ElapsedSeconds();
 
         // We compute the effective constant vector
         ComputeEffectiveConstant(pScheme, rModelPart, rDx);
 
         // We reconstruct the Unknowns vector and the residual
-        const double start_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
+        const double start_reconstruct_slaves = timer.ElapsedSeconds();
         ReconstructSlaveSolutionAfterSolve(pScheme, rModelPart, rA, rDx, rb);
 
-        const double stop_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
+        const double stop_reconstruct_slaves = timer.ElapsedSeconds();
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Reconstruct slaves time: " << stop_reconstruct_slaves - start_reconstruct_slaves << std::endl;
 
         // Some verbosity
@@ -851,9 +790,9 @@ protected:
         std::vector<IndexSetType> indices(equation_size);
 
         // We reserve some indexes on each row
-        #pragma omp parallel for firstprivate(equation_size)
-        for (int index = 0; index < static_cast<int>(equation_size); ++index)
-            indices[index].reserve(40);
+        block_for_each(indices, [](IndexSetType& rIndices){
+            rIndices.reserve(40);
+        });
 
         /// Definition of the eqautio id vector type
         EquationIdVectorType ids(3, 0);
@@ -988,21 +927,20 @@ protected:
         for (int i = 0; i < static_cast<int>(rA.size1()); i++)
             Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rA.size1()); ++i) {
-            const IndexType row_begin = Arow_indices[i];
-            const IndexType row_end = Arow_indices[i + 1];
+        IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t Index){
+            const IndexType row_begin = Arow_indices[Index];
+            const IndexType row_end = Arow_indices[Index + 1];
             IndexType k = row_begin;
-            for (auto it = indices[i].begin(); it != indices[i].end(); ++it) {
+            for (auto it = indices[Index].begin(); it != indices[Index].end(); ++it) {
                 Acol_indices[k] = *it;
                 Avalues[k] = 0.0;
                 k++;
             }
 
-            indices[i].clear(); //deallocating the memory
+            indices[Index].clear(); //deallocating the memory
 
             std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
-        }
+        });
 
         rA.set_filled(indices.size() + 1, nnz);
 
@@ -1104,22 +1042,20 @@ protected:
 
         KRATOS_DEBUG_ERROR_IF_NOT(Trow_indices[BaseType::mEquationSystemSize] == nnz) << "Nonzero values does not coincide with the row index definition: " << Trow_indices[BaseType::mEquationSystemSize] << " vs " << nnz << std::endl;
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rT.size1()); ++i) {
-            const IndexType row_begin = Trow_indices[i];
-            const IndexType row_end = Trow_indices[i + 1];
+        IndexPartition<std::size_t>(rT.size1()).for_each([&](std::size_t Index){
+            const IndexType row_begin = Trow_indices[Index];
+            const IndexType row_end = Trow_indices[Index + 1];
             IndexType k = row_begin;
-            for (auto it = master_indices[i].begin(); it != master_indices[i].end(); ++it) {
+            for (auto it = master_indices[Index].begin(); it != master_indices[Index].end(); ++it) {
                 Tcol_indices[k] = *it;
                 Tvalues[k] = 0.0;
                 k++;
             }
 
-            master_indices[i].clear(); //deallocating the memory
+            master_indices[Index].clear(); //deallocating the memory
 
             std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
-        }
-
+        });
         rT.set_filled(BaseType::mEquationSystemSize + 1, nnz);
 
         // Setting ones
@@ -1156,7 +1092,7 @@ protected:
             BuildWithoutConstraints(pScheme, rModelPart, rA, rb);
 
         // Assemble the constraints
-        const double start_build = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
 
         // We get the global T matrix
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
@@ -1206,10 +1142,9 @@ protected:
         auxiliar_A_matrix.resize(0, 0, false);
         T_transpose_matrix.resize(0, 0, false);
 
-        const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraint relation build time and multiplication: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() >= 1) << "Constraint relation build time and multiplication: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building with constraints" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 2) << "Finished parallel building with constraints" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -1230,7 +1165,7 @@ protected:
         KRATOS_TRY
 
         // Assemble the constraints
-        const double start_build = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
 
         // We get the global T matrix
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
@@ -1273,10 +1208,9 @@ protected:
         // Final multiplication
         TSparseSpace::Mult(T_transpose_matrix, rb_copy, rb);
 
-        const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraint relation build time and multiplication: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() >= 1) << "Constraint relation build time and multiplication: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building with constraints" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 2) << "Finished parallel building with constraints" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -1470,19 +1404,18 @@ protected:
                 }
             }
 
-            #pragma omp parallel for
-            for (int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
-                const IndexType col_begin = Arow_indices[k];
-                const IndexType col_end = Arow_indices[k+1];
-                const double k_factor = scaling_factors[k];
+            IndexPartition<std::size_t>(mDoFToSolveSystemSize).for_each([&](std::size_t Index){
+                const IndexType col_begin = Arow_indices[Index];
+                const IndexType col_end = Arow_indices[Index+1];
+                const double k_factor = scaling_factors[Index];
                 if (k_factor == 0) {
                     // Zero out the whole row, except the diagonal
                     for (IndexType j = col_begin; j < col_end; ++j)
-                        if (static_cast<int>(Acol_indices[j]) != k )
+                        if (Acol_indices[j] != Index )
                             Avalues[j] = 0.0;
 
                     // Zero out the RHS
-                    rb[k] = 0.0;
+                    rb[Index] = 0.0;
                 } else {
                     // Zero out the column which is associated with the zero'ed row
                     for (IndexType j = col_begin; j < col_end; ++j) {
@@ -1491,7 +1424,7 @@ protected:
                         }
                     }
                 }
-            }
+            });
         }
 
         KRATOS_CATCH("");
@@ -1749,14 +1682,12 @@ private:
             }
         }
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
-            auto it_dof = it_dof_begin + i;
-            const IndexType equation_id = it_dof->EquationId();
-            if (equation_id < BaseType::mEquationSystemSize ) {
-                residual_solution[equation_id] = it_dof->GetSolutionStepValue() + rDx[equation_id];
+        block_for_each(BaseType::mDofSet, [&, this](Dof<double>& rDof){
+            const IndexType equation_id = rDof.EquationId();
+            if (equation_id < this->mEquationSystemSize ) {
+                residual_solution[equation_id] = rDof.GetSolutionStepValue() + rDx[equation_id];
             }
-        }
+        });
 
         // Apply master slave constraints
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
@@ -2026,8 +1957,7 @@ private:
                     double& r_b_value = rb[i_global];
                     const double rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    r_b_value += rhs_value;
+                    AtomicAdd(r_b_value, rhs_value);
                 }
             }
         } else {
@@ -2042,15 +1972,13 @@ private:
                     double& r_b_value = r_reactions_vector[mReactionEquationIdMap[i_global]];
                     const double rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    r_b_value += rhs_value;
+                    AtomicAdd(r_b_value, rhs_value);
                 } else if (it_dof->IsFree()) {  // Free dof not in the MPC
                     // ASSEMBLING THE SYSTEM VECTOR
                     double& r_b_value = rb[i_global];
                     const double& rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    r_b_value += rhs_value;
+                    AtomicAdd(r_b_value, rhs_value);
                 }
             }
         }
@@ -2063,10 +1991,10 @@ private:
     {
         TSystemMatrixType& rTMatrix = *mpTMatrix;
         double *Tvalues = rTMatrix.value_data().begin();
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rTMatrix.nnz()); ++i) {
-            Tvalues[i] = 0.0;
-        }
+
+        IndexPartition<std::size_t>(rTMatrix.nnz()).for_each([&Tvalues](std::size_t Index){
+            Tvalues[Index] = 0.0;
+        });
 
         IndexMapType solvable_dof_reorder;
 
@@ -2112,18 +2040,18 @@ private:
         if (mDoFMasterFixedSet.size() > 0) {
             // NOTE: dofs are assumed to be numbered consecutively
             const auto it_dof_begin = BaseType::mDofSet.begin();
-            #pragma omp parallel for
-            for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
-                auto it_dof = it_dof_begin + k;
-                if (k < static_cast<int>(BaseType::mEquationSystemSize)) {
+
+            IndexPartition<std::size_t>(mDoFToSolveSystemSize).for_each([&, this](std::size_t Index){
+                auto it_dof = it_dof_begin + Index;
+                if (Index < this->mEquationSystemSize) {
                     auto it = mDoFSlaveSet.find(*it_dof);
                     if (it == mDoFSlaveSet.end()) {
                         if(mDoFMasterFixedSet.find(*it_dof) != mDoFMasterFixedSet.end()) {
-                            rb[k] = 0.0;
+                            rb[Index] = 0.0;
                         }
                     }
                 }
-            }
+            });
         }
 
         KRATOS_CATCH("");
@@ -2152,10 +2080,9 @@ private:
 
         // Filling constant vector
         if (ComputeConstantVector) {
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                rConstantVector[i] = 0.0;
-            }
+            IndexPartition<std::size_t>(this->mEquationSystemSize).for_each([&rConstantVector](std::size_t Index){
+                rConstantVector[Index] = 0.0;
+            });
         }
 
         // Auxiliar set to reorder master DoFs
@@ -2224,8 +2151,7 @@ private:
                                 if (std::abs(constant_value) > 0.0) {
                                     auxiliar_temp_constant_equations_ids.insert(i_global);
                                     double& r_value = rConstantVector[i_global];
-                                    #pragma omp atomic
-                                    r_value += constant_value;
+                                    AtomicAdd(r_value, constant_value);
                                 }
                             }
                         }
@@ -2234,8 +2160,7 @@ private:
                             const IndexType i_global = slave_equation_id[i];
                             if (i_global < BaseType::mEquationSystemSize) {
                                 const double constant_value = constant_vector[i];
-                                #pragma omp atomic
-                                aux_constant_value += std::abs(constant_value);
+                                AtomicAdd(aux_constant_value, std::abs(constant_value));
                             }
                         }
                     }
@@ -2288,14 +2213,13 @@ private:
 
             TSystemVectorType u(BaseType::mEquationSystemSize);
 
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
-                auto it_dof = it_dof_begin + i;
-                const IndexType equation_id = it_dof->EquationId();
-                if (equation_id < BaseType::mEquationSystemSize ) {
-                    u[equation_id] = it_dof->GetSolutionStepValue() + Dx[equation_id];
+            block_for_each(BaseType::mDofSet, [&, this](Dof<double>& rDof){
+                const IndexType equation_id = rDof.EquationId();
+                if (equation_id < this->mEquationSystemSize ) {
+                    u[equation_id] = rDof.GetSolutionStepValue() + Dx[equation_id];
                 }
-            }
+            });
+
             TSystemVectorType u_bar(mDoFToSolveSystemSize);
             IndexType counter = 0;
             for (IndexType i = 0; i < BaseType::mDofSet.size(); ++i) {

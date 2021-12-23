@@ -365,10 +365,6 @@ public:
         if(this->GetGeometry().size() != TDim+1)
             KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes for element",this->Id());
 
-        // Check that all required variables have been registered
-        if(DISTANCE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DISTANCE Key is 0. Check if the application was correctly registered.","");
-
         // Checks on nodes
 
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # this class is designed as the base class to add "custom operations"
 # it is designed so that only the constructor can be modified and all of the other
 # functions should retain the same interface
