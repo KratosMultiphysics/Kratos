@@ -492,6 +492,7 @@ public:
      */
     double Volume() const override
     {
+        KRATOS_WARNING("Triangle2D6") << "Method not well defined. Replace with DomainSize() instead" << std::endl;
         return 0.0;
     }
 

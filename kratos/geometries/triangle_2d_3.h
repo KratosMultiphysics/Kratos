@@ -496,6 +496,19 @@ public:
     }
 
     /**
+     * @brief This method calculates and returns the volume of this geometry.
+     * @return Zero, the volume of a 2D geometry is 0
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     */
+    double Volume() const override
+    {
+        KRATOS_WARNING("Triangle2D3") << "Method not well defined. Replace with DomainSize() instead" << std::endl;
+        return 0.0;
+    }
+
+    /**
      * @brief Detect if this triangle is intersected with another geometry
      * @param  ThisGeometry Geometry to intersect with
      * @return True if the geometries intersect, False in any other case
