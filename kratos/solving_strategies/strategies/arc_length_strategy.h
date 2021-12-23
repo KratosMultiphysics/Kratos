@@ -357,7 +357,7 @@ class ArcLengthStrategy
 
             // We compute r_Dxf 
             mpBuilderAndSolver->Build(mpScheme, r_model_part, r_A, r_b);
-            mpBuilderAndSolver->ApplyDirichletConditions(mpScheme, r_model_part, r_A, r_Dx, r_b);
+            mpBuilderAndSolver->ApplyDirichletConditions(mpScheme, r_model_part, r_A, r_Dxf, r_b);
             noalias(r_b) = r_f;
             mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
 
