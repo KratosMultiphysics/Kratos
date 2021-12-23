@@ -106,15 +106,15 @@ Element::Pointer SmallDisplacementSIMPElement::Clone (
 		const ProcessInfo& rCurrentProcessInfo ) */
 	
 void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues,
-		const ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-	// Additional part for post-processing of the topology optimized model part
+    // Additional part for post-processing of the topology optimized model part
     if (rVariable == X_PHYS)
 		//CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
         ;
-	// From original SmallDisplacementElement
+    // From original SmallDisplacementElement
     else if (rVariable == VON_MISES_STRESS)
 		//CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
         ;
@@ -172,7 +172,7 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
         }
 	} 
 
-	// Additional part for post-processing of the topology optimized model part
+    // Additional part for post-processing of the topology optimized model part
     else if (rVariable == X_PHYS)
     {
         for (SizeType PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++)
