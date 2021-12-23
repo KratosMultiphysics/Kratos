@@ -287,7 +287,6 @@ class ArcLengthStrategy
     {
         KRATOS_INFO("Arc-Length Strategy") << "INITIAL ARC-LENGTH RADIUS: " << mRadius_0 << std::endl;
         KRATOS_INFO("Arc-Length Strategy") << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
-        KRATOS_INFO("Arc-Length Strategy") << "ARC-LENGTH LAMBDA: " << mLambda << std::endl;
 
         ModelPart& r_model_part = BaseType::GetModelPart();
 
@@ -322,6 +321,8 @@ class ArcLengthStrategy
         const double lambda_increment = mRadius / TSparseSpace::TwoNorm(r_Dxf);
         mLambda += lambda_increment;
 
+        KRATOS_INFO("Arc-Length Strategy") << "ARC-LENGTH LAMBDA: " << mLambda << std::endl;
+
         TSparseSpace::InplaceMult(r_Dxf, lambda_increment);
         noalias(r_DxPred) = r_Dxf;
         TSparseSpace::InplaceMult(r_Dxf, 1.0 / lambda_increment);
@@ -333,9 +334,7 @@ class ArcLengthStrategy
         if (is_converged) {
             if (mpConvergenceCriteria->GetActualizeRHSflag()) {
                 TSparseSpace::SetToZero(r_b);
-
                 mpBuilderAndSolver->BuildRHS(mpScheme, r_model_part, r_b);
-                KRATOS_WATCH(r_b)
             }
 
             is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_Dxf, r_b);
@@ -363,7 +362,7 @@ class ArcLengthStrategy
             const std::string& r_variable_name = mVariableNames[i];
 
             if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
-                const Variable<double>& var = KratosComponents< Variable<double> >::Get( r_variable_name );
+                const Variable<double>& var = KratosComponents<Variable<double>>::Get(r_variable_name);
                 block_for_each(r_sub_model_part.Nodes(), [&](auto& r_node){
                     r_node.FastGetSolutionStepValue(var) *= (mLambda/mLambda_old);
                 });
@@ -372,8 +371,10 @@ class ArcLengthStrategy
                 typedef Variable<array_1d<double,3>> array_type;
                 const array_type& r_var = KratosComponents<array_type>::Get(r_variable_name);
 
-                block_for_each(r_sub_model_part.Conditions(), [&](auto& r_condition){
-                    r_condition.GetValue(r_var) *= (mLambda/mLambda_old);
+                block_for_each(r_sub_model_part.Conditions(), [&](auto& r_condition) {
+                    // we are multipying by Lambda instead of Lambda/Lambda_old because
+                    // the load processes reset the loads to its initial values...
+                    r_condition.GetValue(r_var) *= mLambda;
                 });
 
                 // TODO-> add for node loads
@@ -580,9 +581,8 @@ class ArcLengthStrategy
         const bool MoveMesh)
     {
         typename TSchemeType::Pointer p_scheme = GetScheme();
-        typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
-        p_scheme->Update(BaseType::GetModelPart(), p_builder_and_solver->GetDofSet(), rA, rDx, rb);
+        p_scheme->Update(BaseType::GetModelPart(), mpBuilderAndSolver->GetDofSet(), rA, rDx, rb);
 
         // Move the mesh if needed
         if (MoveMesh == true)
