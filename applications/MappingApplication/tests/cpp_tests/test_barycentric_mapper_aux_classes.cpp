@@ -26,9 +26,9 @@
 namespace Kratos {
 namespace Testing {
 
-
 typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
+typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
 
 typedef Node<3> NodeType;
 
@@ -194,6 +194,73 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_Serialization, KratosMappingA
     KRATOS_CHECK_EQUAL(barycentric_info_new.GetLocalSystemIndex(), source_local_sys_idx);
 
     KRATOS_CHECK_EQUAL(barycentric_info_new.GetClosestPoints(), exp_closest_points);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(BarycentricLocalSystem_simple_line_interpolation, KratosMappingApplicationSerialTestSuite)
+{
+    Point coords(0.4, 0.0, 0.0);
+    auto node_orig(Kratos::make_intrusive<NodeType>(1, coords[0], coords[1], coords[2]));
+    node_orig->SetValue(INTERFACE_EQUATION_ID, 8);
+
+    std::size_t source_local_sys_idx = 123;
+
+    MapperInterfaceInfoPointerType p_interface_info(Kratos::make_shared<BarycentricInterfaceInfo>(coords, source_local_sys_idx, 0, BarycentricInterpolationType::LINE));
+
+    auto node_1(Kratos::make_intrusive<NodeType>(3,  1.0, 0.0, 0.0)); // second closest
+    auto node_2(Kratos::make_intrusive<NodeType>(15, 0.0, 0.0, 0.0)); // closest
+
+    InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
+    InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
+
+    node_1->SetValue(INTERFACE_EQUATION_ID, 5);
+    node_2->SetValue(INTERFACE_EQUATION_ID, 13);
+
+    p_interface_info->ProcessSearchResult(*interface_node_1);
+    p_interface_info->ProcessSearchResult(*interface_node_2);
+
+    KRATOS_CHECK(p_interface_info->GetLocalSearchWasSuccessful());
+    KRATOS_CHECK_IS_FALSE(p_interface_info->GetIsApproximation());
+
+    BarycentricLocalSystem local_sys(node_orig.get());
+    local_sys.AddInterfaceInfo(p_interface_info);
+
+    MatrixType exp_matrix;
+    exp_matrix.resize(1,2);
+    exp_matrix(0,0) = 0.6;
+    exp_matrix(0,1) = 0.4;
+
+    const EquationIdVectorType exp_origin_ids{13, 5};
+    const int exp_destination_id = 8;
+
+    // Computing the local system
+    MatrixType local_mapping_matrix;
+    EquationIdVectorType origin_ids;
+    EquationIdVectorType origin_ids2;
+    EquationIdVectorType destination_ids;
+    EquationIdVectorType destination_ids2;
+
+    local_sys.EquationIdVectors(origin_ids, destination_ids);
+
+    KRATOS_CHECK_EQUAL(origin_ids.size(), exp_origin_ids.size());
+    for (std::size_t i=0; i<exp_origin_ids.size(); ++i) {
+        KRATOS_CHECK_EQUAL(origin_ids[i], exp_origin_ids[i]);
+    }
+    KRATOS_CHECK_EQUAL(destination_ids.size(), 1);
+    KRATOS_CHECK_EQUAL(destination_ids[0], exp_destination_id);
+
+    local_sys.CalculateLocalSystem(local_mapping_matrix, origin_ids2, destination_ids2);
+
+    KRATOS_CHECK_EQUAL(local_mapping_matrix.size1(), 1);
+    KRATOS_CHECK_EQUAL(local_mapping_matrix.size2(), exp_origin_ids.size());
+    KRATOS_CHECK_EQUAL(origin_ids2.size(), exp_origin_ids.size());
+    KRATOS_CHECK_EQUAL(destination_ids2.size(), 1);
+
+    KRATOS_CHECK_MATRIX_NEAR(local_mapping_matrix, exp_matrix, 1e-14)
+
+    for (std::size_t i=0; i<exp_origin_ids.size(); ++i) {
+        KRATOS_CHECK_EQUAL(origin_ids[i], exp_origin_ids[i]);
+    }
+    KRATOS_CHECK_EQUAL(destination_ids2[0], exp_destination_id);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_triangle_interpolation, KratosMappingApplicationSerialTestSuite)
