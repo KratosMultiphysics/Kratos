@@ -38,8 +38,8 @@
 #include "utilities/iso_printer.h"
 #include "utilities/interval_utility.h"
 #include "utilities/convect_particles_utilities.h"
-#include "utilities/tessellation_utilities/delaunator_utilities.h"
 #include "utilities/mls_shape_functions_utility.h"
+#include "utilities/tessellation_utilities/delaunator_utilities.h"
 
 namespace Kratos {
 namespace Python {

@@ -21,6 +21,7 @@
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
 #include "fluid_auxiliary_utilities.h"
@@ -399,8 +400,8 @@ void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<true>(
 {
     //TODO: Use a method without gradients when we implement it
     ModifiedShapeFunctions::ShapeFunctionsGradientsType n_pos_DN_DX;
-    rpModShapeFunc->ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(rShapeFunctions, n_pos_DN_DX, rWeights, FaceId, GeometryData::GI_GAUSS_2);
-    rpModShapeFunc->ComputePositiveExteriorFaceAreaNormals(rNormals, FaceId, GeometryData::GI_GAUSS_2);
+    rpModShapeFunc->ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(rShapeFunctions, n_pos_DN_DX, rWeights, FaceId, GeometryData::IntegrationMethod::GI_GAUSS_2);
+    rpModShapeFunc->ComputePositiveExteriorFaceAreaNormals(rNormals, FaceId, GeometryData::IntegrationMethod::GI_GAUSS_2);
 }
 
 template<>
@@ -413,8 +414,8 @@ void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<false>(
 {
     //TODO: Use a method without gradients when we implement it
     ModifiedShapeFunctions::ShapeFunctionsGradientsType n_pos_DN_DX;
-    rpModShapeFunc->ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(rShapeFunctions, n_pos_DN_DX, rWeights, FaceId, GeometryData::GI_GAUSS_2);
-    rpModShapeFunc->ComputeNegativeExteriorFaceAreaNormals(rNormals, FaceId, GeometryData::GI_GAUSS_2);
+    rpModShapeFunc->ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(rShapeFunctions, n_pos_DN_DX, rWeights, FaceId, GeometryData::IntegrationMethod::GI_GAUSS_2);
+    rpModShapeFunc->ComputeNegativeExteriorFaceAreaNormals(rNormals, FaceId, GeometryData::IntegrationMethod::GI_GAUSS_2);
 }
 
 } // namespace Kratos

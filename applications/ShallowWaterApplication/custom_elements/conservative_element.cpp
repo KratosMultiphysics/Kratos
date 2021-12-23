@@ -20,8 +20,8 @@
 #include "includes/checks.h"
 #include "conservative_element.h"
 #include "utilities/geometry_utilities.h"
+#include "custom_utilities/phase_function.h"
 #include "shallow_water_application_variables.h"
-#include "custom_utilities/shallow_water_utilities.h"
 
 namespace Kratos
 {
@@ -33,12 +33,12 @@ const Variable<double>& ConservativeElement<TNumNodes>::GetUnknownComponent(int 
         case 0: return MOMENTUM_X;
         case 1: return MOMENTUM_Y;
         case 2: return HEIGHT;
-        default: KRATOS_ERROR << "WaveElement::GetUnknownComponent index out of bounds." << std::endl;
+        default: KRATOS_ERROR << "ConservativeElement::GetUnknownComponent index out of bounds." << std::endl;
     }
 }
 
 template<std::size_t TNumNodes>
-typename ConservativeElement<TNumNodes>::LocalVectorType ConservativeElement<TNumNodes>::GetUnknownVector(ElementData& rData)
+typename ConservativeElement<TNumNodes>::LocalVectorType ConservativeElement<TNumNodes>::GetUnknownVector(const ElementData& rData) const
 {
     std::size_t index = 0;
     array_1d<double,mLocalSize> unknown;
@@ -107,7 +107,7 @@ double ConservativeElement<TNumNodes>::StabilizationParameter(const ElementData&
     const double lambda = std::sqrt(rData.gravity * std::abs(rData.height)) + norm_2(rData.velocity);
     const double epsilon = 1e-6;
     const double threshold = rData.relative_dry_height * rData.length;
-    const double w = ShallowWaterUtilities().WetFraction(rData.height, threshold);
+    const double w = PhaseFunction::WetFraction(rData.height, threshold);
     return w * rData.length * rData.stab_factor / (lambda + epsilon);
 }
 
@@ -145,7 +145,7 @@ void ConservativeElement<TNumNodes>::CalculateArtificialDamping(
 {
     double factor = 1e3 / rData.length;
     double threshold = rData.relative_dry_height * rData.length;
-    factor *= 1.0 - ShallowWaterUtilities().WetFraction(rData.height, threshold);
+    factor *= 1.0 - PhaseFunction::WetFraction(rData.height, threshold);
     rDamping(0,0) = factor;
     rDamping(1,1) = factor;
 }

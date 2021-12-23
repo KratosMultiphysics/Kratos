@@ -23,6 +23,7 @@
 #include "includes/kratos_filesystem.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -400,6 +401,7 @@ void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& r
         { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,    10 },
         { GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,     12 },
         { GeometryData::KratosGeometryType::Kratos_Prism3D6,         13 },
+        { GeometryData::KratosGeometryType::Kratos_Pyramid3D5,       14 },
         { GeometryData::KratosGeometryType::Kratos_Line2D3,          21 },
         { GeometryData::KratosGeometryType::Kratos_Line3D3,          21 },
         { GeometryData::KratosGeometryType::Kratos_Triangle2D6,      22 },

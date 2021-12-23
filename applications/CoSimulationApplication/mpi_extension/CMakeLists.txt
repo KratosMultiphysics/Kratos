@@ -12,7 +12,7 @@ file(
 ## Python module
 pybind11_add_module( KratosCoSimulationMPIExtension MODULE THIN_LTO ${KRATOS_CO_SIMULATION_MPI_EXTENSION_PYTHON_INTERFACE_SOURCES} )
 
-target_link_libraries( KratosCoSimulationMPIExtension PRIVATE KratosCoSimulationCore KratosMPICore )
+target_link_libraries( KratosCoSimulationMPIExtension PRIVATE KratosCoSimulationCore KratosMPICore co_sim_io_mpi )
 set_target_properties( KratosCoSimulationMPIExtension PROPERTIES PREFIX "")
 
 # Set batch size in the unity build
