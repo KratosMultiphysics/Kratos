@@ -204,7 +204,7 @@ class ArcLengthStrategy
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name"                                : "newton_raphson_strategy",
+            "name"                                : "arc_length_strategy",
             "use_old_stiffness_in_first_iteration": false,
             "max_iteration"                       : 10,
             "reform_dofs_at_each_step"            : false,

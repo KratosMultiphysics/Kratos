@@ -522,8 +522,8 @@ class MechanicalSolver(PythonSolver):
         self.strategy_params.AddValue("loads_sub_model_part_list",KratosMultiphysics.Parameters(json.dumps(["PointLoad2D_Load_on_points_Auto1"])))
         self.strategy_params.AddValue("loads_variable_list",KratosMultiphysics.Parameters(json.dumps(["POINT_LOAD"])))
 
-        self.main_model_part.ProcessInfo.SetValue(KratosPoro.ARC_LENGTH_LAMBDA, 1.0)
-        self.main_model_part.ProcessInfo.SetValue(KratosPoro.ARC_LENGTH_RADIUS_FACTOR, 1.0)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.0) # was ARC_LENGTH_LAMBDA
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SEARCH_RADIUS, 1.0) # was ARC_LENGTH_RADIUS_FACTOR
         
         self.strategy_params.AddValue("desired_iterations",self.settings["desired_iterations"])
         self.strategy_params.AddValue("max_radius_factor",self.settings["max_radius_factor"])
