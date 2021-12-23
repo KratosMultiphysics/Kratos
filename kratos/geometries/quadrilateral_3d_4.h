@@ -454,8 +454,8 @@ public:
     double Area() const override
     {
         Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
+        this->DeterminantOfJacobian( temp, GeometryData::IntegrationMethod::GI_GAUSS_3 );
+        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( GeometryData::IntegrationMethod::GI_GAUSS_3 );
         double area = 0.0;
 
         for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
