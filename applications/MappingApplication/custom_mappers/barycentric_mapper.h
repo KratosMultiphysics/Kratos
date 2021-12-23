@@ -138,6 +138,14 @@ public:
     {
         KRATOS_TRY;
 
+        auto check_has_nodes = [](const ModelPart& rModelPart){
+            if (rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
+                KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfNodes() == 0) << "No nodes exist in ModelPart \"" << rModelPart.FullName() << "\"" << std::endl;
+            }
+        };
+        check_has_nodes(rModelPartOrigin);
+        check_has_nodes(rModelPartDestination);
+
         this->ValidateInput();
 
         const std::string interpolation_type = JsonParameters["interpolation_type"].GetString();
