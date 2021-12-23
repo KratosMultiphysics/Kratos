@@ -28,30 +28,21 @@ std::size_t NumberOfActiveConstraints(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
-    std::size_t number_of_active_constraints = 0;
-
-    // The number of constraints
-    const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-    const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
-
-    // Setting to zero the slave dofs
-    #pragma omp parallel
-    {
-        #pragma omp for schedule(guided, 512) reduction(+:number_of_active_constraints)
-        for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-            auto it_const = it_const_begin + i_const;
-
-            // Detect if the constraint is active or not. If the user did not make any choice the constraint
-            // It is active by default
-            bool constraint_is_active = true;
-            if (it_const->IsDefined(ACTIVE))
-                constraint_is_active = it_const->Is(ACTIVE);
-
-            if (constraint_is_active) {
-                ++number_of_active_constraints;
-            }
+    const std::size_t number_of_active_constraints = block_for_each<SumReduction<std::size_t>>(
+        rModelPart.MasterSlaveConstraints(), [&](MasterSlaveConstraint& rConstraint) {
+        // Detect if the constraint is active or not. If the user did not make any choice the constraint
+        // It is active by default
+        bool constraint_is_active = true;
+        if (it_const->IsDefined(ACTIVE)) {
+            constraint_is_active = it_const->Is(ACTIVE);
         }
-    }
+
+        if (constraint_is_active) {
+            return 1;
+        } else {
+            return 0;
+        }
+    });
     
     return number_of_active_constraints;
   
