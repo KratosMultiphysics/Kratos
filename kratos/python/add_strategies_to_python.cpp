@@ -646,7 +646,7 @@ namespace Kratos
             // ARC-LENGTH
             typedef ArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ArcLengthStrategyStrategyType;
             py::class_< ArcLengthStrategyStrategyType, typename ArcLengthStrategyStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >
-                (m,"ArcLengthStrategyStrategy")
+                (m,"ArcLengthStrategy")
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters, int, bool, bool, bool >())
                 .def("SetMaxIterationNumber", &ArcLengthStrategyStrategyType::SetMaxIterationNumber)
                 .def("GetMaxIterationNumber", &ArcLengthStrategyStrategyType::GetMaxIterationNumber)
