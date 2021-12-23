@@ -276,10 +276,22 @@ class ArcLengthStrategy
         mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
         bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, r_A, r_Dx, r_b);
 
+        TSparseSpace::SetToZero(r_A);
+        TSparseSpace::SetToZero(r_b);
+        TSparseSpace::SetToZero(r_Dxf);
 
+        // Now we compute Dxf
+        mpBuilderAndSolver->Build(mpScheme, r_model_part, r_A, r_b);
+        mpBuilderAndSolver->ApplyDirichletConditions(mpScheme, BaseType::GetModelPart(), r_A, r_Dx, r_b);
+        noalias(r_b) = r_f;
+        mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
+        const double lambda_increment = mRadius / TSparseSpace::TwoNorm(r_Dxf);
+        mLambda += lambda_increment;
 
-
-
+        TSparseSpace::InplaceMult(r_Dxf, lambda_increment);
+        noalias(r_DxPred) = r_Dxf;
+        TSparseSpace::InplaceMult(r_Dxf, 1.0 / lambda_increment);
+        UpdateDatabase(r_A, r_DxPred, r_b, BaseType::MoveMeshFlag());
 
         return true;
     }
@@ -293,7 +305,7 @@ class ArcLengthStrategy
 
             if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
                 const Variable<double>& var = KratosComponents< Variable<double> >::Get( r_variable_name );
-                block_for_each(model_part.Nodes(), [&](auto& r_node){
+                block_for_each(r_sub_model_part.Nodes(), [&](auto& r_node){
                     r_node.FastGetSolutionStepValue(var) *= (mLambda/mLambda_old);
                 });
             }
@@ -301,7 +313,7 @@ class ArcLengthStrategy
                 typedef Variable<array_1d<double,3>> array_type;
                 const array_type& r_var = KratosComponents<array_type>::Get(r_variable_name);
 
-                block_for_each(model_part.Conditions(), [&](auto& r_condition){
+                block_for_each(r_sub_model_part.Conditions(), [&](auto& r_condition){
                     r_condition.GetValue(r_var) *= (mLambda/mLambda_old);
                 });
 
@@ -516,9 +528,8 @@ class ArcLengthStrategy
         // Move the mesh if needed
         if (MoveMesh == true)
             BaseType::MoveMesh();
-        
 
-        // TODO
+        UpdateExternalLoads();
     }
 
 
