@@ -10,6 +10,8 @@ namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEM_CamClay : public DEM_KDEM_Rankine {
 
+        typedef DEM_KDEM_Rankine BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_CamClay);
@@ -19,8 +21,6 @@ namespace Kratos {
         ~DEM_KDEM_CamClay() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
-
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 

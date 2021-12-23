@@ -343,13 +343,47 @@ int DisplacementControlCondition::Check( const ProcessInfo& rCurrentProcessInfo 
 {
     // Base check
     Condition::Check(rCurrentProcessInfo);
-    
+
     // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
     for (const auto& r_node : GetGeometry().Points()) {
         KRATOS_CHECK_DOF_IN_NODE(LOAD_FACTOR, r_node)
     }
 
     return 0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Parameters DisplacementControlCondition::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit"],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : [],
+            "nodal_historical"       : ["DISPLACEMENT","LOAD_FACTOR"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT","LOAD_FACTOR"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z","LOAD_FACTOR"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Point3D"],
+        "element_integrates_in_time" : false,
+        "compatible_constitutive_laws": {
+            "type"        : [],
+            "dimension"   : [],
+            "strain_size" : []
+        },
+        "required_polynomial_degree_of_geometry" : -1,
+        "documentation"   : "Displacement control load condition."
+
+    })");
+
+    return specifications;
 }
 
 /***********************************************************************************/

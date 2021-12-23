@@ -159,10 +159,8 @@ private:
 ///@{
 
 #define KRATOS_ERROR throw Kratos::Exception("Error: ", KRATOS_CODE_LOCATION)
-
-#define KRATOS_ERROR_IF(conditional) if(conditional) throw Kratos::Exception("Error: ", KRATOS_CODE_LOCATION)
-
-#define KRATOS_ERROR_IF_NOT(conditional) if(!(conditional)) throw Kratos::Exception("Error: ", KRATOS_CODE_LOCATION)
+#define KRATOS_ERROR_IF(conditional) if(conditional) KRATOS_ERROR
+#define KRATOS_ERROR_IF_NOT(conditional) if(!(conditional)) KRATOS_ERROR
 
 #ifdef KRATOS_DEBUG
 #define KRATOS_DEBUG_ERROR KRATOS_ERROR
@@ -170,8 +168,8 @@ private:
 #define KRATOS_DEBUG_ERROR_IF_NOT(conditional)  KRATOS_ERROR_IF_NOT(conditional)
 #else
 #define KRATOS_DEBUG_ERROR if(false) KRATOS_ERROR
-#define KRATOS_DEBUG_ERROR_IF(conditional)  if(false) KRATOS_ERROR_IF(conditional)
-#define KRATOS_DEBUG_ERROR_IF_NOT(conditional)   if(false) KRATOS_ERROR_IF_NOT(conditional)
+#define KRATOS_DEBUG_ERROR_IF(conditional) if(false) KRATOS_ERROR_IF(conditional)
+#define KRATOS_DEBUG_ERROR_IF_NOT(conditional) if(false) KRATOS_ERROR_IF_NOT(conditional)
 #endif
 ///@}
 ///@name Input and output

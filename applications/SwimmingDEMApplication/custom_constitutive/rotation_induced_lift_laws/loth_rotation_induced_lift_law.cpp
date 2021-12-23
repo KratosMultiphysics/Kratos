@@ -11,7 +11,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    LothRotationInducedLiftLaw::LothRotationInducedLiftLaw(Parameters& r_parameters)
+    LothRotationInducedLiftLaw::LothRotationInducedLiftLaw(Parameters r_parameters)
     {
 
     }

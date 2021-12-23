@@ -7,7 +7,7 @@ import warnings
 # XMC imports
 from xmc.tools import instantiateObject, summation_Task
 from xmc.methodDefs_monteCarloIndex import updateEstimators
-from xmc.distributedEnvironmentFramework import *
+from exaqute import get_value_from_remote, delete_object
 import xmc.methodDefs_monteCarloIndex.updateEstimators as mdu
 
 
@@ -30,10 +30,8 @@ class MonteCarloIndex:
         # qoi estimators
         qoi_estimator_module = keywordArgs.get("qoiEstimator")
         qoi_estimator_module_args = keywordArgs.get("qoiEstimatorInputDictionary")
-        for i in range(len(qoi_estimator_module)):
-            self.qoiEstimator.append(
-                instantiateObject(qoi_estimator_module[i], **qoi_estimator_module_args[i])
-            )
+        for i, d in enumerate(qoi_estimator_module_args):
+            self.qoiEstimator.append(instantiateObject(qoi_estimator_module[i], **d))
 
         sampler_input_dict = keywordArgs.get("samplerInputDictionary")
         sampler_input_dict["solverWrapperIndices"] = self.solverIndices()
@@ -85,6 +83,8 @@ class MonteCarloIndex:
         """
         Compute list of indices of correlated solvers.
         """
+
+        # TODO What follows must be reviewed and probably revised.
 
         diff_tuple = []
         hypercube_vertices = 2 ** self.indexSetDimension()

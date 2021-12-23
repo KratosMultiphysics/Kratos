@@ -122,7 +122,7 @@ public:
 
             // Find nodal neighbors for conditions
             FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType> neighbor_process(
-                rModelPart.GetCommunicator().GetDataCommunicator(), rModelPart,
+                rModelPart,
                 NEIGHBOUR_CONDITION_NODES);
             neighbor_process.Execute();
             mNodalNeighboursMap = neighbor_process.GetNeighbourIds(rModelPart.Nodes());

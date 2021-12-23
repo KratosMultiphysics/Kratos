@@ -8,7 +8,7 @@
 //                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo
-//                   
+//
 // System includes
 
 // External includes
@@ -16,6 +16,7 @@
 // Project includes
 #include "custom_elements/generic_total_lagrangian_mixtures_femdem_element.hpp"
 #include "fem_to_dem_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {
@@ -43,7 +44,7 @@ GenericTotalLagrangianMixturesFemDemElement<TDim, TyieldSurf>::GenericTotalLagra
         mPlasticStrains[i].resize(VoigtSize);
         noalias(mPlasticStrains[i]) = ZeroVector(VoigtSize);
     }
-        
+
 }
 
 //******************************CONSTRUCTOR*******************************************
@@ -163,14 +164,14 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSm
                 this->IntegrateStressDamageMechanics(threshold, damages_edges[edge], average_strain_edge,
                                                      average_stress_edge, edge, CharacteristicLength, rValues,
                                                      rIsDamaging);
-                rDamageElement = this->CalculateElementalDamage(damages_edges); 
+                rDamageElement = this->CalculateElementalDamage(damages_edges);
 
                 // Fibre plasticity constitutive model
                 Vector plastic_strain            = this->mPlasticStrains[edge];
                 double acumulated_plastic_strain = this->mAcumulatedPlasticStrains[edge];
                 double plasticity_threshold      = this->mPlasticityThresholds[edge];
 
-                
+
                 Vector r_fiber_stress = this->IntegrateStressPlasticity(rValues, average_strain_edge,
                                                                         plastic_strain, acumulated_plastic_strain,
                                                                         plasticity_threshold, plastic_uniaxial_stress,
@@ -348,7 +349,7 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegratePert
     } // Loop over edges
 
     plastic_strain_edges_sum /= NumberOfEdges;
-    const double damage_element = this->CalculateElementalDamage(damages_edges); 
+    const double damage_element = this->CalculateElementalDamage(damages_edges);
 
     Matrix fiber_constitutive_matrix(VoigtSize, VoigtSize);
     noalias(fiber_constitutive_matrix) = ZeroMatrix(VoigtSize, VoigtSize);
@@ -361,7 +362,7 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegratePert
 
     const double fiber_vol_part = r_mat_props[FIBER_VOLUMETRIC_PART];
 
-    rPerturbedStressVector = (1.0 - fiber_vol_part)*(1.0 - damage_element) * r_perturbed_predictive_stress + 
+    rPerturbedStressVector = (1.0 - fiber_vol_part)*(1.0 - damage_element) * r_perturbed_predictive_stress +
         fiber_vol_part * r_stress_vector_fiber;
 }
 
@@ -562,7 +563,7 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateAll(
         bool is_damaging = false;
         const Vector &r_integrated_stress_vector = this->IntegrateSmoothedConstitutiveLaw(
                                                         yield_surface, cl_values, this_constitutive_variables,
-                                                        this_kinematic_variables, r_strain_vector, damage_element, 
+                                                        this_kinematic_variables, r_strain_vector, damage_element,
                                                         is_damaging, characteristic_length, false);
 
         if (CalculateStiffnessMatrixFlag == true) { // Calculation of the matrix is required
@@ -579,7 +580,7 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateAll(
                 } else if (rCurrentProcessInfo[TANGENT_CONSTITUTIVE_TENSOR] == 3) {
                     this->CalculateTangentTensorSecondOrder(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_kinematic_variables.F, this_constitutive_variables.D, cl_values);
                 }
-                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, tangent_tensor, int_to_reference_weight);                
+                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, tangent_tensor, int_to_reference_weight);
             } else {
                 Matrix tangent_tensor(VoigtSize, VoigtSize);
                 const double kf = this->GetProperties()[FIBER_VOLUMETRIC_PART];

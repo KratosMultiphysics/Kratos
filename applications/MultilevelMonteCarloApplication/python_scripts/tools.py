@@ -68,7 +68,10 @@ class ParametersWrapper(object):
         Output:
         - materials_filename: the materials filename
         """
-        return self.project_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+        if self.project_parameters["solver_settings"].Has("material_import_settings"):
+            return self.project_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+        else:
+            return None
 
 
     def SetMaterialsFilename(self,string):
@@ -79,4 +82,5 @@ class ParametersWrapper(object):
         - self: an instance of the class
         - string: string to be set as input type
         """
-        self.project_parameters["solver_settings"]["material_import_settings"]["materials_filename"].SetString(string)
+        if self.project_parameters["solver_settings"].Has("material_import_settings"):
+            self.project_parameters["solver_settings"]["material_import_settings"]["materials_filename"].SetString(string)

@@ -37,7 +37,7 @@ void AddCustomStrategiesToPython(pybind11::module& m) {
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-    typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
+    typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
 
     py::class_<LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>,
         LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>::Pointer,

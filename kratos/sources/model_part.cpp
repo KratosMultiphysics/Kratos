@@ -20,6 +20,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/exception.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -58,14 +59,55 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
 /// Destructor.
 ModelPart::~ModelPart()
 {
+    Clear();
+}
+
+void ModelPart::Clear()
+{
+    KRATOS_TRY
+
+    // Call recursively clear of all submodel parts
+    for (auto& r_sub_model_part : mSubModelParts) {
+        r_sub_model_part.Clear();
+    }
+
+    // Clear sub model parts list
+    mSubModelParts.clear();
+
+    // Clear meshes
+    for(auto& r_mesh : mMeshes) {
+        r_mesh.Clear();
+    }
+
+    // Clear meshes list
+    mMeshes.clear();
+
+    // Clear geometries
+    mGeometries.Clear();
+
+    mTables.clear();
+
     mpCommunicator->Clear();
 
-    for(auto i_mesh = mMeshes.begin() ; i_mesh != mMeshes.end() ; i_mesh++)
-      i_mesh->Clear();
+    this->AssignFlags(Flags());
 
+    KRATOS_CATCH("");
+}
 
-//     if (!IsSubModelPart())
-//       delete mpVariablesList;
+void ModelPart::Reset()
+{
+    KRATOS_TRY
+
+    // Clears the model part
+    Clear();
+
+    // construct a new variable list and process info. Old data ptrs is not destroyed
+    // since, same data may be shared with some other model parts as well.
+    mpVariablesList = Kratos::make_intrusive<VariablesList>();
+    mpProcessInfo = Kratos::make_shared<ProcessInfo>();
+    mBufferSize = 0;
+
+    KRATOS_CATCH("");
 }
 
 ModelPart::IndexType ModelPart::CreateSolutionStep()
@@ -485,8 +527,11 @@ void ModelPart::SetNodalSolutionStepVariablesList()
         << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
-    for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); ++i_node)
-        i_node->SetSolutionStepVariablesList(mpVariablesList);
+    // Iterate over nodes
+    auto& r_nodes_array = this->Nodes();
+    block_for_each(r_nodes_array,[&](NodeType& rNode) {
+        rNode.SetSolutionStepVariablesList(mpVariablesList);
+    });
 }
 
 /** Inserts a Table
@@ -1729,7 +1774,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     )
 {
     KRATOS_TRY
-    
+
     if (IsSubModelPart()) {
         GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, GeometryId, pGeometryNodes);
         this->AddGeometry(p_new_geometry);
@@ -1746,7 +1791,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     this->AddGeometry(p_geometry);
 
     return p_geometry;
-    
+
     KRATOS_CATCH("")
 }
 
@@ -1757,7 +1802,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     )
 {
     KRATOS_TRY
-    
+
     if (IsSubModelPart()) {
         GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, GeometryId, pGeometry);
         this->AddGeometry(p_new_geometry);
@@ -1774,7 +1819,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     this->AddGeometry(p_geometry);
 
     return p_geometry;
-    
+
     KRATOS_CATCH("")
 }
 
@@ -1858,14 +1903,45 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 void ModelPart::AddGeometry(
     typename GeometryType::Pointer pNewGeometry)
 {
-    if (IsSubModelPart())
-    {
-        mpParentModelPart->AddGeometry(pNewGeometry);
+    if (IsSubModelPart()) {
+        if (!mpParentModelPart->HasGeometry(pNewGeometry->Id())) {
+            mpParentModelPart->AddGeometry(pNewGeometry);
+        }
     }
     /// Check if geometry id already used, is done within the geometry container.
     mGeometries.AddGeometry(pNewGeometry);
 }
 
+/** Inserts a list of geometries to a submodelpart provided their Id. Does nothing if applied to the top model part
+ */
+void ModelPart::AddGeometries(std::vector<IndexType> const& GeometriesIds)
+{
+    KRATOS_TRY
+    if(IsSubModelPart()) { // Does nothing if we are on the top model part
+        // Obtain from the root model part the corresponding list of geomnetries
+        ModelPart* p_root_model_part = &this->GetRootModelPart();
+        std::vector<GeometryType::Pointer> aux;
+        aux.reserve(GeometriesIds.size());
+        for(auto& r_id : GeometriesIds) {
+            auto it_found = p_root_model_part->Geometries().find(r_id);
+            if(it_found != p_root_model_part->GeometriesEnd()) {
+                aux.push_back( it_found.operator->() );
+            } else {
+                KRATOS_ERROR << "The geometry with Id " << r_id << " does not exist in the root model part" << std::endl;
+            }
+        }
+
+        ModelPart* p_current_part = this;
+        while(p_current_part->IsSubModelPart()) {
+            for(auto& p_geom : aux) {
+                p_current_part->AddGeometry(p_geom);
+            }
+
+            p_current_part = &(p_current_part->GetParentModelPart());
+        }
+    }
+    KRATOS_CATCH("");
+}
 
 /// Removes a geometry by id.
 void ModelPart::RemoveGeometry(

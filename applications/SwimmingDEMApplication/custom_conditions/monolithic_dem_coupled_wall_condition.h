@@ -28,13 +28,13 @@
 #include "includes/process_info.h"
 
 // Application includes
-#include "../FluidDynamicsApplication/fluid_dynamics_application_variables.h"
+#include "fluid_dynamics_application_variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
 
 //Other Applications includes
-#include "../../applications/FluidDynamicsApplication/fluid_dynamics_application.h"
-#include "../../applications/FluidDynamicsApplication/custom_conditions/monolithic_wall_condition.h"
+#include "fluid_dynamics_application.h"
+#include "custom_conditions/monolithic_wall_condition.h"
 
 namespace Kratos
 {
@@ -258,10 +258,10 @@ public:
 //            const unsigned int LocalSize = TDim;
 
 //            const GeometryType& rGeom = this->GetGeometry();
-//            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+//            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
 //            const unsigned int NumGauss = IntegrationPoints.size();
 
-//            MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+//            MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
 //            array_1d<double,3> Normal;
 //            this->CalculateNormal(Normal); //this already contains the area

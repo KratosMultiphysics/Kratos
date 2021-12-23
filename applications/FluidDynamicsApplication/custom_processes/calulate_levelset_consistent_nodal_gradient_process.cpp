@@ -74,6 +74,9 @@ void CalulateLevelsetConsistentNodalGradientProcess::Execute(){
         KRATOS_ERROR << "Asking for a non-implemented geometry type." << std::endl;
     }
 
+    mrModelPart.GetCommunicator().AssembleNonHistoricalData(PRESSURE_GRADIENT);
+    mrModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
+
     block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
         if (rNode.GetValue(NODAL_AREA) > 1.0e-12){
             rNode.GetValue(PRESSURE_GRADIENT) /= rNode.GetValue(NODAL_AREA);}

@@ -5,7 +5,6 @@ Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
-import KratosMultiphysics.kratos_utilities as kratos_utils
 import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
@@ -30,7 +29,7 @@ class ForcesAndMomentsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
                 velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
                 angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
                 if node.Id == 1:
-                    expected_value =  0.000955
+                    expected_value = 0.000955
                     self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
                     expected_value = -0.980986
                     self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
@@ -38,12 +37,12 @@ class ForcesAndMomentsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
                     self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
                     expected_value = -0.001194
                     self.CheckValueOfVelocity(angular_velocity, 0, expected_value, tolerance)
-                    expected_value =  0.000716
+                    expected_value = 0.000716
                     self.CheckValueOfVelocity(angular_velocity, 1, expected_value, tolerance)
-                    expected_value =  0.000718
+                    expected_value = 0.000718
                     self.CheckValueOfVelocity(angular_velocity, 2, expected_value, tolerance)
                 if node.Id == 2:
-                    expected_value =  0.048
+                    expected_value = 0.048
                     self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
                     expected_value = -0.986
                     self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
@@ -51,9 +50,9 @@ class ForcesAndMomentsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
                     self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
                     expected_value = 0.587
                     self.CheckValueOfVelocity(angular_velocity, 0, expected_value, tolerance)
-                    expected_value =  0.006
+                    expected_value = 0.006
                     self.CheckValueOfVelocity(angular_velocity, 1, expected_value, tolerance)
-                    expected_value =  0.084
+                    expected_value = 0.084
                     self.CheckValueOfVelocity(angular_velocity, 2, expected_value, tolerance)
 
         if self.time > 0.299999 and self.time < 0.300001:
@@ -65,14 +64,14 @@ class ForcesAndMomentsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
                     self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
                     expected_value = 157.177
                     self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
-                    expected_value =  32.412
+                    expected_value = 32.412
                     self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
                 if node.Id == 13:
                     expected_value = 6309.350
                     self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
                     expected_value = 37395.854
                     self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
-                    expected_value =  -13433.566
+                    expected_value = -13433.566
                     self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
 
     def CheckValueOfVelocity(self, velocity, component, expected_value, tolerance):
@@ -80,6 +79,10 @@ class ForcesAndMomentsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
 
     def CheckValueOfAngularVelocity(self, angular_velocity, component, expected_value, tolerance):
         self.assertAlmostEqual(angular_velocity[component], expected_value, delta=tolerance)
+
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
 
 class TestExternalForcesAndMoments(KratosUnittest.TestCase):
 
@@ -91,14 +94,7 @@ class TestExternalForcesAndMoments(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "forces_and_moments_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ForcesAndMomentsTestSolution, model, parameters_file_name, 1)
-
-    def tearDown(self):
-        file_to_remove = os.path.join("forces_and_moments_tests_files", "TimesPartialRelease")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        file_to_remove = os.path.join("forces_and_moments_tests_files", "flux_data_new.hdf5")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        os.chdir(this_working_dir_backup)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ForcesAndMomentsTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
 
 if __name__ == "__main__":

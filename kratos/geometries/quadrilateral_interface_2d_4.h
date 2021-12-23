@@ -291,12 +291,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Quadrilateral;
+        return GeometryData::KratosGeometryFamily::Kratos_Quadrilateral;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Quadrilateral2D4;
+        return GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4;
     }
 
     ///@}
@@ -916,7 +916,7 @@ public:
      * KLUDGE: method call only works with explicit JacobiansType rather than creating
      * JacobiansType within argument list
     */
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    void ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod ) const override
     {
@@ -959,8 +959,6 @@ public:
                 }
             }
         }//end of loop over integration points
-
-        return rResult;
     }
 
     ///@}
@@ -1202,8 +1200,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -1247,8 +1244,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -1300,9 +1296,9 @@ private:
         {
             {
                 QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Matrix(),
                 Matrix()
             }
@@ -1319,8 +1315,8 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
-                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
+                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_1 ),
+                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 ShapeFunctionsGradientsType(),
                 ShapeFunctionsGradientsType(),
             }
@@ -1384,7 +1380,7 @@ template<class TPointType> inline std::ostream& operator << (
 template<class TPointType> const
 GeometryData QuadrilateralInterface2D4<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_2,
+    GeometryData::IntegrationMethod::GI_GAUSS_2,
     QuadrilateralInterface2D4<TPointType>::AllIntegrationPoints(),
     QuadrilateralInterface2D4<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
@@ -1392,7 +1388,7 @@ GeometryData QuadrilateralInterface2D4<TPointType>::msGeometryData(
 
 template<class TPointType>
 const GeometryDimension QuadrilateralInterface2D4<TPointType>::msGeometryDimension(
-    2, 2, 1);
+    2, 2, 2);
 
 }// namespace Kratos.
 

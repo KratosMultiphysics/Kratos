@@ -34,7 +34,7 @@ def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers
 
     return convergence_accelerators
 
-def CreateConvergenceCriteria(convergence_criterion_settings_list, solvers, parent_echo_level):
+def CreateConvergenceCriteria(convergence_criterion_settings_list, solvers, parent_data_communicator, parent_echo_level):
     convergence_criteria = []
     for conv_crit_settings in convergence_criterion_settings_list:
         AddEchoLevelToSettings(conv_crit_settings, parent_echo_level)
@@ -42,7 +42,7 @@ def CreateConvergenceCriteria(convergence_criterion_settings_list, solvers, pare
             convergence_criteria.append(CreateConvergenceCriterion(conv_crit_settings, solvers))
         else:
             solver = solvers[conv_crit_settings["solver"].GetString()]
-            convergence_criteria.append(ConvergenceCriteriaWrapper(conv_crit_settings, solver))
+            convergence_criteria.append(ConvergenceCriteriaWrapper(conv_crit_settings, solver, parent_data_communicator))
 
     return convergence_criteria
 
