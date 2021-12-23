@@ -294,23 +294,66 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
     }
 
     if (rVariable == DENSITY_GRADIENT) {
-        const auto& rho_grad = CalculateMidPointDensityGradient();
+        const array_1d<double,3> rho_grad = CalculateMidPointDensityGradient();
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = rho_grad;
         }
     } else if (rVariable == TEMPERATURE_GRADIENT) {
-        const auto& rho_grad = CalculateMidPointTemperatureGradient();
+        const array_1d<double,3> temp_grad = CalculateMidPointTemperatureGradient();
+
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
-            rOutput[i_gauss] = rho_grad;
+            rOutput[i_gauss] = temp_grad;
         }
     } else if (rVariable == VELOCITY_ROTATIONAL) {
-        const auto rot_v = CalculateMidPointVelocityRotational();
+        const array_1d<double,3> rot_v = CalculateMidPointVelocityRotational();
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = rot_v;
         }
     } else {
         KRATOS_ERROR << "Variable not implemented." << std::endl;
     }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+const Parameters CompressibleNavierStokesExplicit<TDim, TNumNodes>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["explicit"],
+        "framework"                  : "eulerian",
+        "symmetric_lhs"              : false,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : ["SHOCK_SENSOR","SHEAR_SENSOR","THERMAL_SENSOR","ARTIFICIAL_CONDUCTIVITY","ARTIFICIAL_BULK_VISCOSITY","VELOCITY_DIVERGENCE"],
+            "nodal_historical"       : ["DENSITY","MOMENTUM","TOTAL_ENERGY"],
+            "nodal_non_historical"   : ["ARTIFICIAL_MASS_DIFFUSIVITY","ARTIFICIAL_DYNAMIC_VISCOSITY","ARTIFICIAL_BULK_VISCOSITY","ARTIFICIAL_CONDUCTIVITY","DENSITY_PROJECTION","MOMENTUM_PROJECTION","TOTAL_ENERGY_PROJECTION"],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DENSITY","MOMENTUM","TOTAL_ENERGY","BODY_FORCE","HEAT_SOURCE"],
+        "required_dofs"              : [],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : [],
+            "dimension"   : [],
+            "strain_size" : []
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   :
+            "This element implements a compressible Navier-Stokes formulation written in conservative variables.
+            A Variational MultiScales (VMS) stabilization technique, both with Algebraic SubGrid Scales (ASGS) and Orthogonal Subgrid Scales (OSS), is used.
+            This element is compatible with both entropy-based and physics-based shock capturing techniques."
+    })");
+
+    if (TDim == 2) {
+        std::vector<std::string> dofs_2d({"DENSITY","MOMENTUM_X","MOMENTUM_Y","TOTAL_ENERGY"});
+        specifications["required_dofs"].SetStringArray(dofs_2d);
+    } else {
+        std::vector<std::string> dofs_3d({"DENSITY","MOMENTUM_X","MOMENTUM_Y","MOMENTUM_Z","TOTAL_ENERGY"});
+        specifications["required_dofs"].SetStringArray(dofs_3d);
+    }
+
+    return specifications;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -374,6 +417,7 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
             rData.r_ext(i) = r_node.FastGetSolutionStepValue(HEAT_SOURCE);
             rData.m_ext(i) = r_node.FastGetSolutionStepValue(MASS_SOURCE);
             // Shock capturing data
+            rData.alpha_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_MASS_DIFFUSIVITY);
             rData.mu_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
             rData.beta_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY);
             rData.lamb_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_CONDUCTIVITY);
@@ -405,6 +449,7 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
             rData.r_ext(i) = r_node.FastGetSolutionStepValue(HEAT_SOURCE);
             rData.m_ext(i) = r_node.FastGetSolutionStepValue(MASS_SOURCE);
             // Shock capturing data
+            rData.alpha_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_MASS_DIFFUSIVITY);
             rData.mu_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
             rData.beta_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY);
             rData.lamb_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_CONDUCTIVITY);
@@ -419,7 +464,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateM
     const auto& r_geom = GetGeometry();
     const unsigned int n_nodes = r_geom.PointsNumber();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
@@ -450,7 +495,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateM
     const auto& r_geom = GetGeometry();
     const unsigned int n_nodes = r_geom.PointsNumber();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
@@ -463,7 +508,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateM
         const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
         const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
         const array_1d<double, 3> vel = r_mom / r_rho;
-        const double temp = (r_tot_ener / r_rho + 0.5 * inner_prod(vel, vel)) / c_v;
+        const double temp = (r_tot_ener / r_rho - 0.5 * inner_prod(vel, vel)) / c_v;
         for (unsigned int d1 = 0; d1 < TDim; ++d1) {
             midpoint_grad_temp[d1] += node_dNdX(d1) * temp;
         }
@@ -514,7 +559,7 @@ double CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointVeloc
     const auto& r_geom = GetGeometry();
     const unsigned int n_nodes = r_geom.PointsNumber();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
@@ -550,7 +595,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<2,3>::CalculateMidPointVeloc
     const auto& r_geom = GetGeometry();
     const unsigned int n_nodes = r_geom.PointsNumber();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
@@ -593,7 +638,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<3,4>::CalculateMidPointVeloc
     const auto& r_geom = GetGeometry();
     const unsigned int n_nodes = r_geom.PointsNumber();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
@@ -653,7 +698,7 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<2, 3>::CalculateMid
     const auto& r_geom = GetGeometry();
     const unsigned int n_nodes = r_geom.PointsNumber();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
@@ -705,7 +750,7 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<3, 4>::CalculateMid
     const auto& r_geom = GetGeometry();
     const unsigned int n_nodes = r_geom.PointsNumber();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
@@ -1206,6 +1251,7 @@ void CompressibleNavierStokesExplicit<2,3>::CalculateRightHandSideInternal(
     const double h = data.h;
     const array_1d<double, n_nodes>& r_ext = data.r_ext;
     const array_1d<double, n_nodes>& m_ext = data.m_ext;
+    const array_1d<double, n_nodes>& alpha_sc_nodes = data.alpha_sc_nodes;
     const array_1d<double, n_nodes>& mu_sc_nodes = data.mu_sc_nodes;
     const array_1d<double, n_nodes>& beta_sc_nodes = data.beta_sc_nodes;
     const array_1d<double, n_nodes>& lamb_sc_nodes = data.lamb_sc_nodes;
@@ -1302,6 +1348,7 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateRightHandSideInternal(
     const double h = data.h;
     const array_1d<double, n_nodes>& r_ext = data.r_ext;
     const array_1d<double, n_nodes>& m_ext = data.m_ext;
+    const array_1d<double, n_nodes>& alpha_sc_nodes = data.alpha_sc_nodes;
     const array_1d<double, n_nodes>& mu_sc_nodes = data.mu_sc_nodes;
     const array_1d<double, n_nodes>& beta_sc_nodes = data.beta_sc_nodes;
     const array_1d<double, n_nodes>& lamb_sc_nodes = data.lamb_sc_nodes;

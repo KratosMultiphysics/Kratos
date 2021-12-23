@@ -183,32 +183,25 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.PRESTRESS_VECTOR,prestress)
 
     def _solve_static(self,mp):
-        settings = KratosMultiphysics.Parameters("""
-        {
-            "name"                     : "newton_raphson_strategy",
-            "max_iteration"            : 1000,
-            "compute_reactions"        : false,
-            "reform_dofs_at_each_step" : false,
-            "move_mesh_flag"           : true,
-            "echo_level"               : 0,
-            "linear_solver_settings" : {
-                "solver_type" : "skyline_lu_factorization"
-            },
-            "scheme_settings" : {
-                "name"          : "static_scheme"
-            },
-            "convergence_criteria_settings" : {
-                "name"                        : "residual_criteria",
-                "residual_absolute_tolerance" : 1.0e-6,
-                "residual_relative_tolerance" : 1.0e-6,
-                "echo_level"                  : 0
-            },
-            "builder_and_solver_settings" : {
-                "name" : "block_builder_and_solver"
-            }
-        }
-        """)
-        strategy = KratosMultiphysics.StrategyFactory().Create(mp, settings)
+        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-6,1e-6)
+        convergence_criterion.SetEchoLevel(0)
+
+        max_iters = 1000
+        compute_reactions = False
+        reform_step_dofs = False
+        move_mesh_flag = True
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                        scheme,
+                                                                        convergence_criterion,
+                                                                        builder_and_solver,
+                                                                        max_iters,
+                                                                        compute_reactions,
+                                                                        reform_step_dofs,
+                                                                        move_mesh_flag)
+        strategy.SetEchoLevel(0)
         strategy.Check()
         strategy.Solve()
 
@@ -366,6 +359,155 @@ class StaticPatchTestMembrane(BasePatchTestMembrane):
         # check results
         self.assertAlmostEqual(mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 0.58054148514004470,4)
         self.assertAlmostEqual(mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 0.15072065295319598,4)
+
+
+    def test_membrane_cauchy_stress_and_local_axis(self):
+
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("Structure")
+        mp.SetBufferSize(2)
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+        self._add_variables(mp)
+
+        # add properties and subproperties
+        thickness = 1.3
+        height = 1.2
+        length = 10.0
+
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,500.0)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.00)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,thickness)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,7850.0)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw())
+
+        # create nodes
+        mp.CreateNewNode(1,   -0.668004, 0.9192533, 0.3856725)
+        mp.CreateNewNode(2,   0.0, 0.0, 0.0)
+        mp.CreateNewNode(3,   5.966131, 7.3471293, -3.4445475)
+        mp.CreateNewNode(4,   6.634135, 6.427876, -3.83022)
+
+
+        # add dofs
+        self._add_dofs(mp)
+
+        # create element
+        element_name = "MembraneElement3D4N"
+        mp.CreateNewElement(element_name, 1, [4, 3, 1, 2], mp.GetProperties()[1])
+
+        # create & apply dirichlet bcs
+        bcs_dirichlet_all = mp.CreateSubModelPart("BoundaryCondtionsDirichletAll")
+        bcs_dirichlet_all.AddNodes([1,2])
+
+
+        self._apply_dirichlet_BCs(bcs_dirichlet_all)
+
+        # create & apply neumann bcs
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[3],mp.GetProperties()[1])
+        mp.CreateNewCondition("PointLoadCondition3D1N",2,[4],mp.GetProperties()[1])
+
+        bcs_neumann = mp.CreateSubModelPart("BoundaryCondtionsNeumann")
+        bcs_neumann.AddNodes([3,4])
+        bcs_neumann.AddConditions([1,2])
+        point_load = 5.0
+
+        KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.POINT_LOAD_X, point_load*0.6634135, bcs_neumann.Nodes)
+        KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.POINT_LOAD_Y, point_load*0.6427876, bcs_neumann.Nodes)
+        KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.POINT_LOAD_Z, point_load*(-0.383022), bcs_neumann.Nodes)
+
+        ## 1.) with local axis calculated from element (dependent on node numbering)
+        cauchy_stress_analytical = point_load * len(bcs_neumann.Nodes) / (thickness*height)
+
+        # solve
+        self._solve_static(mp)
+
+
+        disp_x_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        disp_y_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+        disp_z_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
+        disp_i = (disp_x_i**2 + disp_y_i**2 + disp_z_i**2)**0.5
+        det_F_inv = length / (length+disp_i)
+
+        for element_i in mp.Elements:
+            pk2 = element_i.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR,mp.ProcessInfo)
+            cauchy = element_i.CalculateOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_VECTOR,mp.ProcessInfo)
+
+            # check results
+            for i in range(4):
+                self.assertAlmostEqual(cauchy[i][0], 0.0,5)
+                self.assertAlmostEqual(cauchy[i][1], cauchy_stress_analytical,5)
+                self.assertAlmostEqual(cauchy[i][2], 0.0,5)
+
+                self.assertAlmostEqual(pk2[i][0], 0.0,5)
+                self.assertAlmostEqual(pk2[i][1], cauchy_stress_analytical*det_F_inv,5)
+                self.assertAlmostEqual(pk2[i][2], 0.0,5)
+
+
+        ## 2.) with local mat_axis = 0.6634135,0.6427876,-0.383022 : along forces
+
+        projection_settings = KratosMultiphysics.Parameters("""
+        {
+            "model_part_name"  : "Structure",
+            "projection_type"  : "planar",
+            "global_direction" : [0.6634135,0.6427876,-0.383022],
+            "variable_name"    : "LOCAL_MATERIAL_AXIS_1"
+        }
+        """)
+        StructuralMechanicsApplication.ProjectVectorOnSurfaceUtility.Execute(mp, projection_settings)
+
+        # solve
+        self._solve_static(mp)
+
+
+        disp_x_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        disp_y_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+        disp_z_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
+        disp_i = (disp_x_i**2 + disp_y_i**2 + disp_z_i**2)**0.5
+        det_F_inv = length / (length+disp_i)
+
+        for element_i in mp.Elements:
+            pk2 = element_i.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR,mp.ProcessInfo)
+            cauchy = element_i.CalculateOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_VECTOR,mp.ProcessInfo)
+
+            # check results
+            for i in range(4):
+                self.assertAlmostEqual(cauchy[i][0], cauchy_stress_analytical,5)
+                self.assertAlmostEqual(cauchy[i][1], 0.0,5)
+                self.assertAlmostEqual(cauchy[i][2], 0.0,5)
+
+                self.assertAlmostEqual(pk2[i][0], cauchy_stress_analytical*det_F_inv,5)
+                self.assertAlmostEqual(pk2[i][1], 0.0,5)
+                self.assertAlmostEqual(pk2[i][2], 0.0,5)
+
+
+
+        ## 3.) with local mat_axis = 0.07537005, 0.9961943, -0.0437662 -> rotate stress state by 45°
+        cauchy_stress_analytical /= 2.0
+
+        projection_settings = KratosMultiphysics.Parameters("""
+        {
+            "model_part_name"  : "Structure",
+            "projection_type"  : "planar",
+            "global_direction" : [0.07537005, 0.9961943, -0.0437662],
+            "variable_name"    : "LOCAL_MATERIAL_AXIS_1"
+        }
+        """)
+        StructuralMechanicsApplication.ProjectVectorOnSurfaceUtility.Execute(mp, projection_settings)
+
+        # solve
+        self._solve_static(mp)
+
+
+        disp_x_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        det_F_inv = length / (length+disp_x_i)
+
+        for element_i in mp.Elements:
+            cauchy = element_i.CalculateOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_VECTOR,mp.ProcessInfo)
+
+            # check results
+            for i in range(4):
+                self.assertAlmostEqual(cauchy[i][0], cauchy_stress_analytical,5)
+                self.assertAlmostEqual(cauchy[i][1], cauchy_stress_analytical,5)
+                self.assertAlmostEqual(abs(cauchy[i][2]), cauchy_stress_analytical,5)
 
 
 class DynamicPatchTestMembrane(BasePatchTestMembrane):
@@ -639,38 +781,31 @@ def _create_dynamic_explicit_strategy(mp,scheme_name):
     strategy.SetEchoLevel(0)
     return strategy
 
-def _set_up_dynamic_solver(mp):    
-    # Define a minimal newton raphson solver
-    settings = KratosMultiphysics.Parameters("""
-    {
-        "name"                     : "newton_raphson_strategy",
-        "max_iteration"            : 500,
-        "compute_reactions"        : true,
-        "reform_dofs_at_each_step" : false,
-        "move_mesh_flag"           : true,
-        "echo_level"               : 0,
-        "linear_solver_settings" : {
-            "solver_type" : "skyline_lu_factorization"
-        },
-        "scheme_settings" : {
-            "name"          : "bossak_scheme",
-            "damp_factor_m" : -0.3
-        },
-        "convergence_criteria_settings" : {
-            "name"                        : "residual_criteria",
-            "residual_absolute_tolerance" : 1.0e-9,
-            "residual_relative_tolerance" : 1.0e-6,
-            "echo_level"                  : 0
-        },
-        "builder_and_solver_settings" : {
-            "name" : "block_builder_and_solver"
-        }
-    }
-    """)
-    strategy = KratosMultiphysics.StrategyFactory().Create(mp, settings)
-    strategy.Initialize()
+def _set_up_dynamic_solver(mp):
+
+    #define a minimal newton raphson dynamic solver
+    damp_factor_m = -0.30
+    linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+    builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+    scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
+    convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-6,1e-9)
+    convergence_criterion.SetEchoLevel(0)
+
+    max_iters = 500
+    compute_reactions = True
+    reform_step_dofs = False
+    move_mesh_flag = True
+    strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                    scheme,
+                                                                    convergence_criterion,
+                                                                    builder_and_solver,
+                                                                    max_iters,
+                                                                    compute_reactions,
+                                                                    reform_step_dofs,
+                                                                    move_mesh_flag)
+    strategy.SetEchoLevel(0)
+
     strategy.Check()
-    
     return strategy
 
 

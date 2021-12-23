@@ -27,7 +27,7 @@
 #include "utilities/builtin_timer.h"
 #include "spaces/ublas_space.h"
 #include "mapper_base.h"
-#include "filter_function.h"
+#include "custom_utilities/filter_function.h"
 
 // ==============================================================================
 
@@ -117,16 +117,9 @@ public:
         KRATOS_INFO("ShapeOpt") << "Starting initialization of mapper..." << std::endl;
 
         CreateFilterFunction();
-
-        CreateListOfNodesInOriginModelPart();
-        InitializeMappingVariables();
-        AssignMappingIds();
-
-        InitializeComputationOfMappingMatrix();
-        CreateSearchTreeWithAllNodesInOriginModelPart();
-        ComputeMappingMatrix();
-
         mIsMappingInitialized = true;
+
+        Update();
 
         KRATOS_INFO("ShapeOpt") << "Finished initialization of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
@@ -319,8 +312,6 @@ public:
         InitializeMappingVariables();
         AssignMappingIds();
 
-        InitializeComputationOfMappingMatrix();
-        CreateSearchTreeWithAllNodesInOriginModelPart();
         ComputeMappingMatrix();
 
         KRATOS_INFO("ShapeOpt") << "Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
@@ -380,7 +371,7 @@ protected:
     ModelPart& mrOriginModelPart;
     ModelPart& mrDestinationModelPart;
     Parameters mMapperSettings;
-    FilterFunction::Pointer mpFilterFunction;
+    FilterFunction::UniquePointer mpFilterFunction;
     bool mIsMappingInitialized = false;
 
     ///@}
@@ -461,7 +452,7 @@ private:
         std::string filter_type = mMapperSettings["filter_function_type"].GetString();
         double filter_radius = mMapperSettings["filter_radius"].GetDouble();
 
-        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type, filter_radius));
+        mpFilterFunction = Kratos::make_unique<FilterFunction>(filter_type, filter_radius);
     }
 
     // --------------------------------------------------------------------------
@@ -478,7 +469,7 @@ private:
         mValuesDestination[0] = ZeroVector(destination_node_number);
         mValuesDestination[1] = ZeroVector(destination_node_number);
         mValuesDestination[2] = ZeroVector(destination_node_number);
-        
+
         mMappingMatrix.resize(destination_node_number,origin_node_number,false);
     }
 
@@ -503,6 +494,9 @@ private:
     // --------------------------------------------------------------------------
     void ComputeMappingMatrix()
     {
+        InitializeComputationOfMappingMatrix();
+        CreateSearchTreeWithAllNodesInOriginModelPart();
+
         double filter_radius = mMapperSettings["filter_radius"].GetDouble();
         unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 
@@ -539,7 +533,7 @@ private:
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            double weight = mpFilterFunction->compute_weight( origin_node.Coordinates(), neighbor_node.Coordinates() );
+            double weight = mpFilterFunction->ComputeWeight( origin_node.Coordinates(), neighbor_node.Coordinates() );
 
             list_of_weights[neighbor_itr] = weight;
             sum_of_weights += weight;

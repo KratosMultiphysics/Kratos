@@ -1,5 +1,5 @@
 ---
-name: Feature
+name: 🚀 Feature
 about: New applications, new features or wider changes, 
 
 ---

@@ -22,7 +22,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "factories/factory.h"
 
 namespace Kratos
 {
@@ -81,9 +80,7 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    typedef typename BaseType::Pointer ConvergenceCriteriaPointerType;
-
-    typedef Factory< BaseType > ConvergenceCriteriaFactoryType;
+    typedef typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -107,8 +104,7 @@ public:
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
 
-        mpFirstCriterion = ConvergenceCriteriaFactoryType().Create(ThisParameters["first_criterion_settings"]);
-        mpSecondCriterion = ConvergenceCriteriaFactoryType().Create(ThisParameters["second_criterion_settings"]);
+        KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
     }
 
     /**
@@ -116,7 +112,7 @@ public:
      * @details It takes two different convergence criteria in order to work
      * @param pFirstCriterion The first convergence criteria
      * @param pSecondCriterion The second convergence criteria
-     */
+    */
     explicit And_Criteria(
         ConvergenceCriteriaPointerType pFirstCriterion,
         ConvergenceCriteriaPointerType pSecondCriterion
@@ -132,7 +128,7 @@ public:
     /**
      * @brief Copy constructor.
      * @param rOther The other And_Criteria to be copied
-     */
+    */
     explicit And_Criteria(And_Criteria const& rOther)
         :BaseType(rOther),
          mpFirstCriterion(rOther.mpFirstCriterion),
@@ -440,7 +436,6 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
 
     ///@}
     ///@name Member Variables
@@ -483,3 +478,4 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_AND_CRITERIA_H  defined */
+

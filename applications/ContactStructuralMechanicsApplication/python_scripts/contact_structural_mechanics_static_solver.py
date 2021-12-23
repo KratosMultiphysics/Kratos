@@ -85,7 +85,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
 
         # No verbosity from strategy
         if self.contact_settings["silent_strategy"].GetBool():
-            mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+            mechanical_solution_strategy = self._GetSolutionStrategy()
             mechanical_solution_strategy.SetEchoLevel(0)
 
         # We set the flag INTERACTION
@@ -99,11 +99,11 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         if self.settings["clear_storage"].GetBool():
             self.Clear()
 
-        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+        mechanical_solution_strategy = self._GetSolutionStrategy()
         auxiliar_methods_solvers.AuxiliarSolve(mechanical_solution_strategy)
 
     def SolveSolutionStep(self):
-        is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        is_converged = self._GetSolutionStrategy().SolveSolutionStep()
         return is_converged
 
     def ExecuteFinalizeSolutionStep(self):
@@ -127,17 +127,17 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         # Create an auxiliary Kratos parameters object to store the convergence settings.
         return auxiliar_methods_solvers.AuxiliarCreateConvergenceParameters(self.main_model_part, self.settings, self.contact_settings)
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         convergence_criterion = ContactConvergenceCriteriaFactory(self.main_model_part, self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
-    def _create_linear_solver(self):
-        linear_solver = super()._create_linear_solver()
+    def _CreateLinearSolver(self):
+        linear_solver = super()._CreateLinearSolver()
         return auxiliar_methods_solvers.AuxiliarCreateLinearSolver(self.main_model_part, self.settings, self.contact_settings, self.linear_solver_settings, linear_solver)
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         if self.contact_settings["mortar_type"].GetString() != "":
-            linear_solver = self.get_linear_solver()
+            linear_solver = self._GetLinearSolver()
             if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
                 builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
@@ -149,11 +149,11 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
                     else:
                         builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolver(linear_solver)
         else:
-            builder_and_solver = super()._create_builder_and_solver()
+            builder_and_solver = super()._CreateBuilderAndSolver()
 
         return builder_and_solver
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         if self.contact_settings["mortar_type"].GetString() != "":
             if self.settings["analysis_type"].GetString() == "linear":
                 mechanical_solution_strategy = self._create_linear_strategy()
@@ -163,22 +163,22 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
                 else:
                     mechanical_solution_strategy = self._create_contact_newton_raphson_strategy()
         else:
-            mechanical_solution_strategy = super()._create_mechanical_solution_strategy()
+            mechanical_solution_strategy = super()._CreateSolutionStrategy()
 
         return mechanical_solution_strategy
     def _create_contact_line_search_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        self.mechanical_scheme = self.get_solution_scheme()
-        self.linear_solver = self.get_linear_solver()
-        self.mechanical_convergence_criterion = self.get_convergence_criterion()
-        self.builder_and_solver = self.get_builder_and_solver()
+        self.mechanical_scheme = self._GetScheme()
+        self.linear_solver = self._GetLinearSolver()
+        self.mechanical_convergence_criterion = self._GetConvergenceCriterion()
+        self.builder_and_solver = self._GetBuilderAndSolver()
         return auxiliar_methods_solvers.AuxiliarLineSearch(computing_model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
 
     def _create_contact_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        self.mechanical_scheme = self.get_solution_scheme()
-        self.mechanical_convergence_criterion = self.get_convergence_criterion()
-        self.builder_and_solver = self.get_builder_and_solver()
+        self.mechanical_scheme = self._GetScheme()
+        self.mechanical_convergence_criterion = self._GetConvergenceCriterion()
+        self.builder_and_solver = self._GetBuilderAndSolver()
         return auxiliar_methods_solvers.AuxiliarNewton(computing_model_part, self.mechanical_scheme, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
 
     @classmethod

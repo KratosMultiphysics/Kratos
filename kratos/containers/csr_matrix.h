@@ -23,7 +23,9 @@
 #include "containers/system_vector.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "includes/key_hash.h"
+#include "includes/parallel_environment.h"
 
 // Project includes
 #include "includes/define.h"
@@ -54,7 +56,7 @@ namespace Kratos
 
 /// This class implements "serial" CSR matrix, including capabilities for FEM assembly
 template< class TDataType=double, class TIndexType=std::size_t>
-class CsrMatrix
+class CsrMatrix final
 {
 public:
     ///@name Type Definitions
@@ -74,12 +76,23 @@ public:
     ///@{
     CsrMatrix() //needs to be public, since one could use the low level API to construc the CSR matrix
     {
+        mpComm = &ParallelEnvironment::GetDataCommunicator("Serial");
     }
+
+    CsrMatrix(const DataCommunicator& rComm) //needs to be public, since one could use the low level API to construc the CSR matrix
+    {
+        if(rComm.IsDistributed())
+            KRATOS_ERROR << "Attempting to construct a serial CsrMatrix with a distributed communicator" << std::endl;
+
+        mpComm = &rComm;
+    }
+
 
     /// constructor.
     template<class TGraphType>
     CsrMatrix(const TGraphType& rSparseGraph)
     {
+        mpComm = rSparseGraph.pGetComm();
         TIndexType row_data_size=0;
         TIndexType col_data_size=0;
         rSparseGraph.ExportCSRArrays(mpRowIndicesData,row_data_size,mpColIndicesData, col_data_size);
@@ -97,6 +110,7 @@ public:
 
     explicit CsrMatrix(const CsrMatrix<TDataType,TIndexType>& rOtherMatrix)
     {
+        mpComm = rOtherMatrix.mpComm;
         ResizeIndex1Data(rOtherMatrix.mRowIndices.size());
         ResizeIndex2Data(rOtherMatrix.mColIndices.size());
         ResizeValueData(rOtherMatrix.mValuesVector.size());
@@ -132,25 +146,26 @@ public:
         mRowIndices = rOtherMatrix.mRowIndices;
         mColIndices = rOtherMatrix.mColIndices;
         mValuesVector = rOtherMatrix.mValuesVector;
-        
+
         mNrows = rOtherMatrix.mNrows;
         mNcols = rOtherMatrix.mNcols;
 
     }
 
     /// Destructor.
-    virtual ~CsrMatrix(){
+    ~CsrMatrix(){
         AssignIndex1Data(nullptr,0);
         AssignIndex2Data(nullptr,0);
-        AssignValueData(nullptr,0);        
+        AssignValueData(nullptr,0);
     }
 
-    /// Assignment operator. 
+    /// Assignment operator.
     CsrMatrix& operator=(CsrMatrix const& rOtherMatrix) = delete; //i really think this should not be allowed, too risky
- 
+
     //move assignement operator
     CsrMatrix& operator=(CsrMatrix&& rOtherMatrix)
     {
+        mpComm = rOtherMatrix.mpComm;
         mIsOwnerOfData=rOtherMatrix.mIsOwnerOfData;
         rOtherMatrix.mIsOwnerOfData=false;
 
@@ -163,7 +178,7 @@ public:
         mRowIndices = rOtherMatrix.mRowIndices;
         mColIndices = rOtherMatrix.mColIndices;
         mValuesVector = rOtherMatrix.mValuesVector;
-        
+
         mNrows = rOtherMatrix.mNrows;
         mNcols = rOtherMatrix.mNcols;
         return *this;
@@ -178,6 +193,16 @@ public:
         AssignValueData(nullptr,0);
         mNrows=0;
         mNcols=0;
+    }
+
+    const DataCommunicator& GetComm() const
+    {
+        return *mpComm;
+    }
+
+    const DataCommunicator* pGetComm() const
+    {
+        return mpComm;
     }
 
     void SetValue(const TDataType value)
@@ -239,7 +264,7 @@ public:
 
     void ComputeColSize()
     {
-        //compute the max id 
+        //compute the max id
         IndexType max_col = IndexPartition<IndexType>(mColIndices.size()).template for_each< MaxReduction<double> >([&](IndexType i){
                 return mColIndices[i];
             });
@@ -349,7 +374,7 @@ public:
                 for(IndexType k = row_begin; k < row_end; ++k){
                     IndexType col = index2_data()[k];
                     y(i) += value_data()[k] * x(col);
-                }  
+                }
             });
         }
     }
@@ -357,7 +382,7 @@ public:
     //y = alpha*y + beta*A*x
     template<class TInputVectorType, class TOutputVectorType>
     void SpMV(const TDataType alpha,
-              const TInputVectorType& x, 
+              const TInputVectorType& x,
               const TDataType beta,
               TOutputVectorType& y) const
     {
@@ -370,12 +395,12 @@ public:
             for(IndexType k = row_begin; k < row_end; ++k){
                 IndexType col = index2_data()[k];
                 aux += value_data()[k] * x(col);
-            }  
+            }
             y(i) = beta*y(i) + alpha*aux;
         });
     }
 
-    // y += A^t*x  -- where A is *this    
+    // y += A^t*x  -- where A is *this
     template<class TInputVectorType, class TOutputVectorType>
     void TransposeSpMV(const TInputVectorType& x, TOutputVectorType& y) const
     {
@@ -387,14 +412,14 @@ public:
             for(IndexType k = row_begin; k < row_end; ++k){
                 IndexType j = index2_data()[k];
                 AtomicAdd(y(j), value_data()[k] * x(i) );
-            }  
+            }
         });
     }
 
     //y = alpha*y + beta*A^t*x
     template<class TInputVectorType, class TOutputVectorType>
     void TransposeSpMV(const TDataType alpha,
-              const TInputVectorType& x, 
+              const TInputVectorType& x,
               const TDataType beta,
               TOutputVectorType& y) const
     {
@@ -409,7 +434,7 @@ public:
             for(IndexType k = row_begin; k < row_end; ++k){
                 IndexType j = index2_data()[k];
                 AtomicAdd(y(j), value_data()[k] * x(i) );
-            }  
+            }
         });
     }
 
@@ -453,7 +478,7 @@ public:
                 IndexType j = index2_data()[k];
                 TDataType v = value_data()[k];
                 value_map[{i,j}] = v;
-            }  
+            }
         }
         return value_map;
     }
@@ -589,7 +614,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "CsrMatrix" ;
@@ -597,13 +622,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "CsrMatrix";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "CsrMatrix";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const {
         rOStream << "size1 : " << size1() <<std::endl;
         rOStream << "size2 : " << size2() <<std::endl;
-        rOStream << "nnz : " << nnz() <<std::endl; 
+        rOStream << "nnz : " << nnz() <<std::endl;
         rOStream << "index1_data : " << std::endl;
         for(auto item : index1_data())
             rOStream << item << ",";
@@ -611,7 +636,7 @@ public:
         rOStream << "index2_data : " << std::endl;
         for(auto item : index2_data())
             rOStream << item << ",";
-        rOStream << std::endl;        
+        rOStream << std::endl;
         rOStream << "value_data  : " << std::endl;
         for(auto item : value_data())
             rOStream << item << ",";
@@ -638,32 +663,32 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    // A non-recursive binary search function. It returns 
-    // location of x in given array arr[l..r] is present, 
+    // A non-recursive binary search function. It returns
+    // location of x in given array arr[l..r] is present,
     // otherwise std::dec << std::numeric_limits<IndexType>::max()
-    template< class TVectorType > 
-    inline IndexType BinarySearch(const TVectorType& arr, 
+    template< class TVectorType >
+    inline IndexType BinarySearch(const TVectorType& arr,
                         IndexType l, IndexType r, IndexType x) const
-    { 
-        while (l <= r) { 
-            int m = l + (r - l) / 2; 
-    
-            // Check if x is present at mid 
-            if (arr[m] == x) 
-                return m; 
-    
-            // If x greater, ignore left half 
-            if (arr[m] < x) 
-                l = m + 1; 
-    
-            // If x is smaller, ignore right half 
+    {
+        while (l <= r) {
+            int m = l + (r - l) / 2;
+
+            // Check if x is present at mid
+            if (arr[m] == x)
+                return m;
+
+            // If x greater, ignore left half
+            if (arr[m] < x)
+                l = m + 1;
+
+            // If x is smaller, ignore right half
             else
-                r = m - 1; 
-        } 
-    
-        // if we reach here, then element was not present 
-        return std::numeric_limits<IndexType>::max(); 
-    } 
+                r = m - 1;
+        }
+
+        // if we reach here, then element was not present
+        return std::numeric_limits<IndexType>::max();
+    }
 
     ///@}
     ///@name Protected Operations
@@ -695,6 +720,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    const DataCommunicator* mpComm;
     bool mIsOwnerOfData = true;
     IndexType* mpRowIndicesData = nullptr;
     IndexType* mpColIndicesData = nullptr;
@@ -725,7 +751,7 @@ private:
         rSerializer.save("val_size",mValuesVector.size());
         for(IndexType i=0; i<mValuesVector.size(); ++i)
             rSerializer.save("d",mValuesVector[i]);
-        
+
         rSerializer.save("Nrow",mNrows);
         rSerializer.save("Ncol",mNcols);
     }
@@ -759,7 +785,7 @@ private:
         mValuesVector = Kratos::span<TDataType>(mpValuesVectorData, vals_size);
         for(IndexType i=0; i<mValuesVector.size(); ++i)
             rSerializer.load("d",mValuesVector[i]);
-        
+
         rSerializer.load("Nrow",mNrows);
         rSerializer.load("Ncol",mNcols);
     }
