@@ -105,6 +105,20 @@ class ArcLengthStrategy
             mMaxRadiusFactor   = rParameters["max_radius_factor"].GetDouble();
             mMinRadiusFactor   = rParameters["min_radius_factor"].GetDouble();
             mInitializeArcLengthWasPerformed = false;
+
+            // we initialize the list of load processes to be taken into account
+            if (rParameters["loads_sub_model_part_list"].size() > 0) {
+                mSubModelPartList.resize(rParameters["loads_sub_model_part_list"].size());
+                mVariableNames.resize(rParameters["loads_variable_list"].size());
+
+                if (mSubModelPartList.size() != mVariableNames.size())
+                    KRATOS_THROW_ERROR( std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "" )
+
+                for (unsigned int i = 0; i < mVariableNames.size(); i++) {
+                    mSubModelPartList[i] = &( model_part.GetSubModelPart(rParameters["loads_sub_model_part_list"][i].GetString()) );
+                    mVariableNames[i] = rParameters["loads_variable_list"][i].GetString();
+                }
+            }
         }
 
     /**
