@@ -299,8 +299,8 @@ public:
     virtual void SetUpGaussPointContainers()
     {
         //elements with 1 gauss point
-        std::vector<int> gp_indices(1);
-        gp_indices[0] ;
+        std::vector<int> gp_indices(1, 0);
+        
         //case Triangle with 1 gauss point
         mGidGaussPointContainers.push_back( TGaussPointContainer( "tri1_element_gp",
                                             GeometryData::KratosGeometryFamily::Kratos_Triangle, GiD_Triangle, 1, gp_indices ) );
@@ -322,7 +322,6 @@ public:
 
         //elements with 2 gauss points
         gp_indices.resize(2);
-        gp_indices[0] ;
         gp_indices[1] = 1;
         mGidGaussPointContainers.push_back( TGaussPointContainer( "lin2_element_gp",
                                             GeometryData::KratosGeometryFamily::Kratos_Linear, GiD_Linear, 2, gp_indices ) );
@@ -331,8 +330,6 @@ public:
         //elements with 3 gauss points
         gp_indices.resize(3);
         //case Triangle with 3 gauss points
-        gp_indices[0] ;
-        gp_indices[1] = 1;
         gp_indices[2] = 2;
         mGidGaussPointContainers.push_back( TGaussPointContainer( "tri3_element_gp",
                                             GeometryData::KratosGeometryFamily::Kratos_Triangle, GiD_Triangle, 3, gp_indices ) );
@@ -342,9 +339,6 @@ public:
 
         //elements with 4 gauss points
         gp_indices.resize(4);
-        gp_indices[0] ;
-        gp_indices[1] = 1;
-        gp_indices[2] = 2;
         gp_indices[3] = 3;
 
         //case Linear with 4 gauss points
@@ -373,7 +367,7 @@ public:
 
         //elements with 5 gauss points
         gp_indices.resize(5);
-        gp_indices[0] ;
+        gp_indices[0] = 0;
         gp_indices[1] = 1;
         gp_indices[2] = 2;
         gp_indices[3] = 3;
@@ -384,11 +378,6 @@ public:
 
         //case Tetrahedra with 10 gauss points (4 gauss points will be created for GiD)
         gp_indices.resize(10);
-        gp_indices[0] ;
-        gp_indices[1] = 1;
-        gp_indices[2] = 2;
-        gp_indices[3] = 3;
-        gp_indices[4] = 4;
         gp_indices[5] = 5;
         gp_indices[6] = 6;
         gp_indices[7] = 7;
@@ -399,7 +388,7 @@ public:
 
         //elements with 6 gauss points
         gp_indices.resize(6);
-        gp_indices[0] ;
+        gp_indices[0] = 0;
         gp_indices[1] = 1;
         gp_indices[2] = 2;
         gp_indices[3] = 3;
@@ -431,26 +420,13 @@ public:
         /* END: Adding manually the custom prism */
 
         //elements with 7 gauss points
-        gp_indices.resize(8);
-        gp_indices[0] ;
-        gp_indices[1] = 1;
-        gp_indices[2] = 2;
-        gp_indices[3] = 3;
-        gp_indices[4] = 4;
-        gp_indices[5] = 5;
+        gp_indices.resize(7);
         gp_indices[6] = 6;
         //case Linear with 7 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "lin7_element_gp",
                                             GeometryData::KratosGeometryFamily::Kratos_Linear, GiD_Linear, 7, gp_indices ) );
         //elements with 8 gauss points
         gp_indices.resize(8);
-        gp_indices[0] ;
-        gp_indices[1] = 1;
-        gp_indices[2] = 2;
-        gp_indices[3] = 3;
-        gp_indices[4] = 4;
-        gp_indices[5] = 5;
-        gp_indices[6] = 6;
         gp_indices[7] = 7;
         //case Hexahedra with 8 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "hex8_element_gp",
@@ -458,14 +434,6 @@ public:
 
         //elements with 9 gauss points
         gp_indices.resize(9);
-        gp_indices[0] ;
-        gp_indices[1] = 1;
-        gp_indices[2] = 2;
-        gp_indices[3] = 3;
-        gp_indices[4] = 4;
-        gp_indices[5] = 5;
-        gp_indices[6] = 6;
-        gp_indices[7] = 7;
         gp_indices[8] = 8;
         //case Linear with 9 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "lin9_element_gp",
@@ -479,16 +447,6 @@ public:
 
         //elements with 11 gauss points
         gp_indices.resize(11);
-        gp_indices[0] ;
-        gp_indices[1] = 1;
-        gp_indices[2] = 2;
-        gp_indices[3] = 3;
-        gp_indices[4] = 4;
-        gp_indices[5] = 5;
-        gp_indices[6] = 6;
-        gp_indices[7] = 7;
-        gp_indices[8] = 8;
-        gp_indices[9] = 9;
         gp_indices[10] = 10;
         //case Linear with 11 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "lin11_element_gp",
@@ -496,7 +454,7 @@ public:
 
         //elements with 27 gauss points
         gp_indices.resize(27);
-        gp_indices[0] ;
+        gp_indices[0] = 0;
         gp_indices[8] = 1;
         gp_indices[1] = 2;
         gp_indices[11] = 3;
