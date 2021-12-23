@@ -251,11 +251,30 @@ class ArcLengthStrategy
      */
     bool SolveSolutionStep() override
     {
+        KRATOS_INFO("Arc-Length Strategy") << "INITIAL ARC-LENGTH RADIUS: " << mRadius_0 << std::endl;
+        KRATOS_INFO("Arc-Length Strategy") << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
+        KRATOS_INFO("Arc-Length Strategy") << "ARC-LENGTH LAMBDA: " << mLambda << std::endl;
 
+        ModelPart& r_model_part = BaseType::GetModelPart();
 
+        // Initialize variables
+		DofsArrayType& r_dof_set    = mpBuilderAndSolver->GetDofSet();
+        TSystemMatrixType& r_A      = *mpA;
+        TSystemVectorType& r_Dx     = *mpDx;
+        TSystemVectorType& r_b      = *mpb;
+        TSystemVectorType& r_f      = *mpf;
+        TSystemVectorType& r_Dxb    = *mpDxb;
+        TSystemVectorType& r_Dxf    = *mpDxf;
+        TSystemVectorType& r_DxPred = *mpDxPred;
+        TSystemVectorType& r_DxStep = *mpDxStep;
 
+        // Initialize iterations info
+        unsigned int iteration_number = 1;
+        BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
-
+        mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), r_A, r_Dx, r_b);
+        mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
+        bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, r_A, r_Dx, r_b);
 
 
 
