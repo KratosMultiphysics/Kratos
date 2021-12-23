@@ -1,8 +1,11 @@
-// ==============================================================================
-//  KratosTopologyOptimizationApplication
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:         BSD License
-//                   license: TopologyOptimizationApplication/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
 //                   Octaviano Malfavón Farías
@@ -15,10 +18,11 @@
 // Application includes
 
 #include "small_displacement_simp_element.h"
-#include "comparison_utilities.h" 
+//#include "comparison_utilities.h" 
 #include "topology_optimization_application.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 
 namespace Kratos
@@ -164,8 +168,7 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 			//call the constitutive law to update material variables
 			mConstitutiveLawVector[PointNumber]->InitializeMaterialResponse(
 					Values, GetStressMeasure());
-			ComparisonUtilities EquivalentStress;
-			rValues[PointNumber] = EquivalentStress.CalculateVonMises(
+			rValues[PointNumber] = ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(
 					this_constitutive_variables.StressVector);
 		}
 	} 

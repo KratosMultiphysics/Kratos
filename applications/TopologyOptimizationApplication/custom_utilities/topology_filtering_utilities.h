@@ -1,8 +1,11 @@
-// ==============================================================================
-//  KratosTopologyOptimizationApplication
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:         BSD License
-//                   license: TopologyOptimizationApplication/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Hofer, https://github.com/PhiHo-eng
 //                   Erich Wehrle, https://github.com/e-dub
