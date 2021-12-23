@@ -35,29 +35,28 @@ void UPwNormalFaceLoadCondition<TDim,TNumNodes>::
                  const ProcessInfo& CurrentProcessInfo)
 {
     //Previous definitions
-    const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
     const unsigned int NumGPoints = integration_points.size();
-    const unsigned int LocalDim = Geom.LocalSpaceDimension();
+    const unsigned int LocalDim = rGeom.LocalSpaceDimension();
 
     //Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    const Matrix& NContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
     GeometryType::JacobiansType JContainer(NumGPoints);
-    for (unsigned int i = 0; i<NumGPoints; i++)
+    for (unsigned int i = 0; i<NumGPoints; ++i)
         (JContainer[i]).resize(TDim,LocalDim,false);
-    Geom.Jacobian( JContainer, mThisIntegrationMethod );
+    rGeom.Jacobian( JContainer, mThisIntegrationMethod );
 
     //Condition variables
     NormalFaceLoadVariables Variables;
-    this->InitializeConditionVariables(Variables,Geom);
+    this->InitializeConditionVariables(Variables, rGeom);
     array_1d<double,TDim> TractionVector;
     BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     double IntegrationCoefficient;
     array_1d<double,TNumNodes*TDim> UVector;
 
     //Loop over integration points
-    for(unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
-    {
+    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         //Compute traction vector
         this->CalculateTractionVector(TractionVector, JContainer[GPoint], NContainer, Variables, GPoint);
 
@@ -77,12 +76,11 @@ void UPwNormalFaceLoadCondition<TDim,TNumNodes>::
 template< >
 void UPwNormalFaceLoadCondition<2,2>::
     InitializeConditionVariables(NormalFaceLoadVariables& rVariables,
-                                 const GeometryType& Geom)
+                                 const GeometryType& rGeom)
 {
-    for(unsigned int i=0; i<2; i++)
-    {
-        rVariables.NormalStressVector[i]     = Geom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
-        rVariables.TangentialStressVector[i] = Geom[i].FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS);
+    for (unsigned int i=0; i<2; ++i) {
+        rVariables.NormalStressVector[i]     = rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+        rVariables.TangentialStressVector[i] = rGeom[i].FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS);
     }
 }
 
@@ -90,11 +88,10 @@ void UPwNormalFaceLoadCondition<2,2>::
 template< >
 void UPwNormalFaceLoadCondition<3,3>::
     InitializeConditionVariables(NormalFaceLoadVariables& rVariables,
-                                 const GeometryType& Geom)
+                                 const GeometryType& rGeom)
 {
-    for(unsigned int i=0; i<3; i++)
-    {
-        rVariables.NormalStressVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+    for (unsigned int i=0; i<3; ++i) {
+        rVariables.NormalStressVector[i] = rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
     }
 }
 
@@ -102,11 +99,10 @@ void UPwNormalFaceLoadCondition<3,3>::
 template< >
 void UPwNormalFaceLoadCondition<3,4>::
     InitializeConditionVariables(NormalFaceLoadVariables& rVariables,
-                                 const GeometryType& Geom)
+                                 const GeometryType& rGeom)
 {
-    for(unsigned int i=0; i<4; i++)
-    {
-        rVariables.NormalStressVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+    for (unsigned int i=0; i<4; ++i) {
+        rVariables.NormalStressVector[i] = rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
     }
 }
 
@@ -122,8 +118,7 @@ void UPwNormalFaceLoadCondition<2,2>::
     double NormalStress = 0.0;
     double TangentialStress = 0.0;
 
-    for (unsigned int i=0; i<2; i++)
-    {
+    for (unsigned int i=0; i<2; ++i) {
         NormalStress     += NContainer(GPoint,i)*Variables.NormalStressVector[i];
         TangentialStress += NContainer(GPoint,i)*Variables.TangentialStressVector[i];
     }
@@ -146,8 +141,7 @@ void UPwNormalFaceLoadCondition<3,3>::
 {
     double NormalStress = 0.0;
 
-    for(unsigned int i=0; i<3; i++)
-    {
+    for(unsigned int i=0; i<3; ++i) {
         NormalStress += NContainer(GPoint,i)*Variables.NormalStressVector[i];
     }
 
@@ -176,8 +170,7 @@ void UPwNormalFaceLoadCondition<3,4>::
 {
     double NormalStress = 0.0;
 
-    for(unsigned int i=0; i<4; i++)
-    {
+    for (unsigned int i=0; i<4; ++i) {
         NormalStress += NContainer(GPoint,i)*Variables.NormalStressVector[i];
     }
 

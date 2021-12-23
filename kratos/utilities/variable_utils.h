@@ -26,6 +26,7 @@
 #include "includes/checks.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -650,13 +651,13 @@ public:
     void SetVariable(
         const TVarType& rVariable,
         const TDataType& rValue,
-        NodesContainerType& rNodes
-        )
+        NodesContainerType& rNodes,
+        const unsigned int Step = 0)
     {
         KRATOS_TRY
 
         block_for_each(rNodes, [&](Node<3>& rNode) {
-            rNode.FastGetSolutionStepValue(rVariable) = rValue;
+            rNode.FastGetSolutionStepValue(rVariable, Step) = rValue;
         });
 
         KRATOS_CATCH("")

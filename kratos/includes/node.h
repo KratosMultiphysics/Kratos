@@ -722,6 +722,11 @@ public:
     {
         return mDofs;
     }
+    
+    const DofsContainerType& GetDofs() const
+    {
+        return mDofs;
+    }    
 
     /**
      * @brief Get DoF counted pointer for a given variable

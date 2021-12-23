@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "shallow_water_application_variables.h"
 
 
