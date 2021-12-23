@@ -212,7 +212,7 @@ class ArcLengthStrategy
 
             mInitializeArcLengthWasPerformed = true;
 
-            KRATOS_INFO("Ramm's Arc Length Strategy") << "Strategy Initialized" << std::endl;
+            KRATOS_INFO("Arc Length Strategy") << "Strategy Initialized" << std::endl;
         }
 
 
