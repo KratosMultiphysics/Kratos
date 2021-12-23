@@ -46,6 +46,12 @@ pybind11_add_module(KratosContactStructuralMechanicsApplication MODULE THIN_LTO 
 target_link_libraries(KratosContactStructuralMechanicsApplication PRIVATE KratosContactStructuralMechanicsCore)
 set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosContactStructuralMechanicsCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
@@ -59,17 +65,15 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    ## The interface_preprocess is not compatible with cotire (solve problem with explicit instantations)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+# Unity
+if(CMAKE_UNITY_BUILD MATCHES ON)
+    ## The interface_preprocess is not compatible with unity build (solve problem with explicit instantations)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     file(GLOB condition_files ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp)
     foreach(condition_file ${condition_files})
-        set_source_files_properties (${condition_file} PROPERTIES COTIRE_EXCLUDED TRUE)
+        set_source_files_properties (${condition_file} PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     endforeach(condition_file)
-    cotire(KratosContactStructuralMechanicsCore)
-    cotire(KratosContactStructuralMechanicsApplication)
-endif(USE_COTIRE MATCHES ON)
+endif(CMAKE_UNITY_BUILD MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/ContactStructuralMechanicsApplication.py KratosMultiphysics/ContactStructuralMechanicsApplication/__init__.py )
@@ -93,3 +97,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosContactStructuralMechanicsCore DESTINATION libs )
 install(TARGETS KratosContactStructuralMechanicsApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosContactStructuralMechanicsCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosContactStructuralMechanicsApplication" PARENT_SCOPE)

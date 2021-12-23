@@ -32,7 +32,7 @@ class MonolithicPFEM22D : public Element
 public:
 
      /// Counted pointer of PFEM22D
-    KRATOS_CLASS_POINTER_DEFINITION(MonolithicPFEM22D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MonolithicPFEM22D);
     ///base type: an IndexedObject that automatically has a unique number
     ///typedef IndexedObject BaseType;
     ///Element from which it is derived
@@ -80,20 +80,20 @@ public:
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void AddExplicitContribution(ProcessInfo& CurrentProcessInfo) override;
+    void AddExplicitContribution(const ProcessInfo& CurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo& CurrentProcessInfo) const override;
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
 
 protected:
 
-    void CalculatePressureProjection(ProcessInfo& CurrentProcessInfo);
+    void CalculatePressureProjection(const ProcessInfo& CurrentProcessInfo);
 
     virtual void AddViscousTerm(MatrixType& rDampMatrix,
         const BoundedMatrix<double, 3, 2>& rShapeDeriv,

@@ -603,9 +603,11 @@ protected:
                 if (b > 0) q = -0.5 * (b + sqrt_det);
                 else q = -0.5 * (b - sqrt_det);
                 root1 = q / a;
-                root2 = c / q;
-                if (root1 > root2) distance = root1;
-                else distance = root2;
+                distance = root1;
+                if(std::abs(q) > 0.0) {
+                    root2 = c / q;
+                    if (root2 > root1) distance = root2;
+                }
             }
             else   //in this case we have a linear equation
             {

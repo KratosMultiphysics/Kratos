@@ -237,6 +237,29 @@ public:
         return SearchNearestInRadius(ThePoint, max_radius);
     }
 
+    /** This method takes a point and search if it's inside an geometrical object of the domain.
+     * If it is inside an object, it returns it, and search distance is set to zero.
+     * If there is no object, the result will be set to not found.
+     * Result contains a flag is the object has been found or not. 
+     * This method is a simplified and faster method of SearchNearest.
+    */
+     template<typename TPointType>
+    ResultType SearchIsInside(TPointType const& ThePoint) {
+        ResultType current_result;
+        current_result.SetDistance(std::numeric_limits<double>::max());
+
+        array_1d< std::size_t, 3 > position;
+
+        for(int i = 0; i < 3; i++ ) {
+            position[i] = CalculatePosition(ThePoint[i], i);
+        }
+
+        auto& cell = GetCell(position[0],position[1],position[2]);
+        SearchIsInsideInCell(cell, ThePoint, current_result);
+
+        return current_result;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -413,6 +436,21 @@ private:
             if ((distance < rResult.GetDistance()) && (distance < MaxRadius)) {
                 rResult.Set(p_geometrical_object);
                 rResult.SetDistance(distance);
+            }
+        }
+    }
+
+   /// Searchs in objects in the given cell for the one inside only.
+    template<typename TPointType>
+    void SearchIsInsideInCell(CellType const& TheCell, TPointType const& ThePoint, ResultType& rResult) {
+        for(auto p_geometrical_object : TheCell){  
+            auto& geometry = p_geometrical_object->GetGeometry();
+            array_1d<double, 3> point_local_coordinates;
+            bool is_inside = geometry.IsInside(ThePoint,point_local_coordinates,Tolerance);
+            if (is_inside) {
+                rResult.Set(p_geometrical_object);
+                rResult.SetDistance(0.0);
+                return;
             }
         }
     }

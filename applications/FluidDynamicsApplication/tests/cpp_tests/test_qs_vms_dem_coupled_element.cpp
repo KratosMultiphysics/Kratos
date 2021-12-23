@@ -29,6 +29,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite
 {
     Model model;
     unsigned int buffer_size = 2;
+    unsigned int Dim = 2;
     ModelPart& model_part = model.CreateModelPart("Main",buffer_size);
 
     // Variables addition
@@ -46,6 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite
     model_part.AddNodalSolutionStepVariable(FLUID_FRACTION);
     model_part.AddNodalSolutionStepVariable(FLUID_FRACTION_RATE);
     model_part.AddNodalSolutionStepVariable(FLUID_FRACTION_GRADIENT);
+    model_part.AddNodalSolutionStepVariable(PERMEABILITY);
 
     // Process info creation
     double delta_time = 0.1;
@@ -72,6 +74,11 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite
         it_node->AddDof(PRESSURE,REACTION_WATER_PRESSURE);
         double& r_fluid_fraction = it_node->FastGetSolutionStepValue(FLUID_FRACTION);
         r_fluid_fraction = 1.0;
+        Matrix& r_permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
+        r_permeability = ZeroMatrix(Dim, Dim);
+        for (unsigned int d = 0; d < Dim; ++d){
+            r_permeability(d,d) = 1.0e+30;
+        }
     }
 
     std::vector<ModelPart::IndexType> element_nodes {1, 2, 4, 3};

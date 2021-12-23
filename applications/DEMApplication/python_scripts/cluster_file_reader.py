@@ -51,6 +51,8 @@ def ReadClusterFile(filename):
             IZ = float(data[0])
             inertias = [IX, IY, IZ]
 
+    f.close()
+
     try:
         center
     except NameError:

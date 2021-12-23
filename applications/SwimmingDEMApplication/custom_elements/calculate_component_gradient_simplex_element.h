@@ -66,7 +66,7 @@ public:
     ///@{
 
     /// Pointer definition of ComputeComponentGradientSimplex
-    KRATOS_CLASS_POINTER_DEFINITION(ComputeComponentGradientSimplex);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ComputeComponentGradientSimplex);
 
     typedef ComputeMaterialDerivativeSimplex<TDim, TNumNodes> BaseType;
 

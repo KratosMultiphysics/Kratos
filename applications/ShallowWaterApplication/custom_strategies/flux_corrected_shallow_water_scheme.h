@@ -148,8 +148,7 @@ public:
         });
 
         // Initialization and execution of nodal neighbours search
-        const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
-        FindGlobalNodalNeighboursProcess(r_data_communicator, rModelPart).Execute();
+        FindGlobalNodalNeighboursProcess(rModelPart).Execute();
 
         // Finalization of initialize
         SWBaseType::Initialize(rModelPart);

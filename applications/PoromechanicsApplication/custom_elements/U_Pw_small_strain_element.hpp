@@ -31,7 +31,7 @@ class KRATOS_API(POROMECHANICS_APPLICATION) UPwSmallStrainElement : public UPwEl
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( UPwSmallStrainElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwSmallStrainElement );
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -42,6 +42,8 @@ public:
     typedef Matrix MatrixType;
     using UPwElement<TDim,TNumNodes>::mThisIntegrationMethod;
     using UPwElement<TDim,TNumNodes>::mConstitutiveLawVector;
+    using UPwElement<TDim,TNumNodes>::mIntrinsicPermeability;
+    using UPwElement<TDim,TNumNodes>::mImposedZStrainVector;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -96,7 +98,6 @@ protected:
         double Density;
         double BiotCoefficient;
         double BiotModulusInverse;
-        BoundedMatrix<double,TDim, TDim> PermeabilityMatrix;
 
         ///ProcessInfo variables
         double VelocityCoefficient;
@@ -140,9 +141,11 @@ protected:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    void SaveGPGradPressure(Matrix& rGradPressureContainer, const array_1d<double,TDim>& GradPressure, const unsigned int& GPoint);
+
     void SaveGPStress(Matrix& rStressContainer, const Vector& StressVector, const unsigned int& VoigtSize, const unsigned int& GPoint);
 
-    void ExtrapolateGPValues(const Matrix& StressContainer, const unsigned int& VoigtSize);
+    void ExtrapolateGPValues(const Matrix& GradPressureContainer, const Matrix& StressContainer, const unsigned int& VoigtSize);
 
 
     void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo ) override;
@@ -157,6 +160,12 @@ protected:
 
     void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT);
 
+    void CalculateKinematics(Matrix& rGradNpT,
+                                Matrix& rB,
+                                Vector& rStrainVector,
+                                const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer,
+                                const array_1d<double,TNumNodes*TDim>& DisplacementVector,
+                                const unsigned int& GPoint);
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
@@ -182,6 +191,15 @@ protected:
     void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+
+
+    void CalculateFluxResidual (VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateMixBodyForce (VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateNegInternalForce (VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateExplicitContributions (VectorType& rFluxResidual, VectorType& rBodyForce, VectorType& rNegInternalForces, const ProcessInfo& rCurrentProcessInfo) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

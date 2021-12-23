@@ -22,7 +22,7 @@ template <typename TVariable>
 class WriteNodalBossakVariableFunctor;
 }
 
-void NodalSolutionStepBossakIO::WriteNodalResults(NodesContainerType const& rNodes)
+void NodalSolutionStepBossakIO::WriteNodalResults(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
@@ -30,7 +30,7 @@ void NodalSolutionStepBossakIO::WriteNodalResults(NodesContainerType const& rNod
         return;
 
     std::vector<NodeType*> local_nodes;
-    GetLocalNodes(rNodes, local_nodes);
+    GetLocalNodes(rModelPart.Nodes(), local_nodes);
 
     // Write each variable.
     const std::string& prefix = GetPrefix();
@@ -96,10 +96,10 @@ void SetDataBuffer(TVariableType const& rVariable,
 }
 }
 
-void NodalSolutionStepBossakIO::ReadNodalResults(NodesContainerType& rNodes, Communicator& rComm)
+void NodalSolutionStepBossakIO::ReadNodalResults(ModelPart& rModelPart)
 {
     KRATOS_TRY;
-    NodalSolutionStepDataIO::ReadNodalResults(rNodes, rComm);
+    NodalSolutionStepDataIO::ReadNodalResults(rModelPart);
     KRATOS_CATCH("");
 }
 

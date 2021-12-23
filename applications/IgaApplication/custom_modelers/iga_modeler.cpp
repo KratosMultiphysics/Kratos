@@ -84,7 +84,7 @@ namespace Kratos
 
         if (!rParameters.Has("geometry_type")) {
             CreateQuadraturePointGeometries(
-                geometry_list, sub_model_part, rParameters["parameters"]);
+                geometry_list, sub_model_part, rParameters["parameters"], std::string{});
         }
         else {
             std::string geometry_type = rParameters["geometry_type"].GetString();
@@ -96,7 +96,7 @@ namespace Kratos
             }
             else {
                 CreateQuadraturePointGeometries(
-                    geometry_list, sub_model_part, rParameters["parameters"]);
+                    geometry_list, sub_model_part, rParameters["parameters"], geometry_type);
             }
         }
         KRATOS_INFO_IF("CreateIntegrationDomainElementCondition", mEchoLevel > 3)
@@ -106,7 +106,8 @@ namespace Kratos
     void IgaModeler::CreateQuadraturePointGeometries(
         GeometriesArrayType& rGeometryList,
         ModelPart& rModelPart,
-        const Parameters rParameters) const
+        const Parameters rParameters,
+        std::string GeometryType) const
     {
         KRATOS_ERROR_IF_NOT(rParameters.Has("type"))
             << "\"type\" need to be specified." << std::endl;
@@ -124,6 +125,10 @@ namespace Kratos
                 << "shape_function_derivatives_order is not provided and thus being considered as 1. " << std::endl;
         }
 
+        std::string quadrature_method = rParameters.Has("quadrature_method")
+            ? rParameters["integration_rule"].GetString()
+            : "GAUSS";
+
         KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 0)
             << "Creating " << name << "s of type: " << type
             << " for " << rGeometryList.size() << " geometries"
@@ -132,8 +137,37 @@ namespace Kratos
         for (SizeType i = 0; i < rGeometryList.size(); ++i)
         {
             GeometriesArrayType geometries;
-            rGeometryList[i].CreateQuadraturePointGeometries(
-                geometries, shape_function_derivatives_order);
+            IntegrationInfo integration_info = rGeometryList[i].GetDefaultIntegrationInfo();
+            for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
+                if (quadrature_method == "GAUSS") {
+                    integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GAUSS);
+                }
+                else if (quadrature_method == "GRID") {
+                    integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GRID);
+                }
+                else {
+                    KRATOS_INFO("CreateQuadraturePointGeometries") << "Quadrature method: " << quadrature_method
+                        << " is not available. Available options are \"GAUSS\" and \"GRID\". Default quadrature method is being considered." << std::endl;
+                }
+            }
+
+            if (rParameters.Has("number_of_integration_points_per_span")) {
+                for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
+                    integration_info.SetNumberOfIntegrationPointsPerSpan(i, rParameters["number_of_integration_points_per_span"].GetInt());
+                }
+            }
+
+            if (GeometryType == "SurfaceEdge"
+                && rGeometryList[i].GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Coupling_Geometry)
+            {
+                rGeometryList[i].GetGeometryPart(0).CreateQuadraturePointGeometries(
+                    geometries, shape_function_derivatives_order, integration_info);
+            }
+            else
+            {
+                rGeometryList[i].CreateQuadraturePointGeometries(
+                    geometries, shape_function_derivatives_order, integration_info);
+            }
 
             KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 1)
                 << geometries.size() << " quadrature point geometries have been created." << std::endl;
@@ -205,6 +239,9 @@ namespace Kratos
         SizeType& rIdCounter,
         PropertiesPointerType pProperties) const
     {
+        KRATOS_ERROR_IF(!KratosComponents<Element>::Has(rElementName))
+            << rElementName << " not registered." << std::endl;
+
         const Element& rReferenceElement = KratosComponents<Element>::Get(rElementName);
 
         ElementsContainerType new_element_list;
@@ -294,12 +331,14 @@ namespace Kratos
             //                  -1->All nodes in this dimension
             Vector local_coordinates = rParameters["local_parameters"].GetVector();
 
+            auto p_background_geometry = geom.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
+
             if (rGeometryType == "GeometryCurveNodes") {
                 KRATOS_DEBUG_ERROR_IF(geom.Dimension() != 1) << "Geometry #" << geom.Id()
                     << " needs to have a dimension of 1 for type GeometryCurveNodes. Dimension: " << geom.Dimension()
                     << ". Geometry" << geom << std::endl;
 
-                SizeType number_of_cps = geom.size();
+                SizeType number_of_cps = p_background_geometry->size();
 
                 IndexType t_start = 0;
                 IndexType t_end = number_of_cps;
@@ -310,7 +349,7 @@ namespace Kratos
                 }
 
                 for (IndexType i = t_start; i < t_end; ++i) {
-                    rModelPart.AddNode(geom.pGetPoint(i));
+                    rModelPart.AddNode(p_background_geometry->pGetPoint(i));
                 }
             }
             else if (rGeometryType == "GeometryCurveVariationNodes") {
@@ -318,17 +357,17 @@ namespace Kratos
                     << " needs to have a dimension of 1 for type GeometryCurveVariationNodes. Dimension: " << geom.Dimension()
                     << ". Geometry" << geom << std::endl;
 
-                SizeType number_of_cps = geom.size();
+                SizeType number_of_cps = p_background_geometry->size();
 
                 KRATOS_ERROR_IF(number_of_cps < 3)
                     << "GetPointsAt: Not enough control points to get second row of nodes."
                     << std::endl;
 
                 if (local_coordinates[0] == 0) {
-                    rModelPart.AddNode(geom.pGetPoint(1));
+                    rModelPart.AddNode(p_background_geometry->pGetPoint(1));
                 }
                 else if (local_coordinates[0] == 1) {
-                    rModelPart.AddNode(geom.pGetPoint(number_of_cps - 1));
+                    rModelPart.AddNode(p_background_geometry->pGetPoint(number_of_cps - 1));
                 }
                 else {
                     KRATOS_ERROR << "GetPointsAt: GeometrySurfaceVariationNodes and local coordinates: " << local_coordinates[0]
@@ -380,7 +419,7 @@ namespace Kratos
 
                 for (IndexType i = u_start; i < u_end; ++i) {
                     for (IndexType j = v_start; j < v_end; ++j) {
-                        rModelPart.AddNode(geom(i + j * number_of_cps_u));
+                        rModelPart.AddNode(p_background_geometry->pGetPoint(i + j * number_of_cps_u));
                     }
                 }
             }

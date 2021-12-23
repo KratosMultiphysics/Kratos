@@ -5,8 +5,6 @@ Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
-import KratosMultiphysics.kratos_utilities as kratos_utils
-
 import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
@@ -30,13 +28,18 @@ class DEM2DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEM
             normal_impact_vel = node.GetSolutionStepValue(Kratos.VELOCITY_X)
             if node.Id == 1:
                 if self.time > 0.2:
-                    self.assertAlmostEqual(normal_impact_vel, 6.076801447242313, delta=tolerance)
+                    self.assertAlmostEqual(normal_impact_vel, 6.135616337653889, delta=tolerance)
             if node.Id == 2:
                 if self.time > 0.2:
-                    self.assertAlmostEqual(normal_impact_vel, 8.604163136887411, delta=tolerance)
+                    self.assertAlmostEqual(normal_impact_vel, 3.532381836682557, delta=tolerance)
             if node.Id == 3:
                 if self.time > 0.2:
-                    self.assertAlmostEqual(normal_impact_vel, 10.016439272775422, delta=tolerance)
+                    self.assertAlmostEqual(normal_impact_vel, 9.828777134668575, delta=tolerance)
+
+
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
 
 class TestDEM2D(KratosUnittest.TestCase):
 
@@ -48,14 +51,7 @@ class TestDEM2D(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2DTestSolution, model, parameters_file_name, 1)
-
-
-    def tearDown(self):
-        file_to_remove = os.path.join("DEM2D_tests_files", "TimesPartialRelease")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-
-        os.chdir(this_working_dir_backup)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2DTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
 
 if __name__ == "__main__":

@@ -4,8 +4,6 @@
 //   Date:                $Date:            January 2016 $
 //   Revision:            $Revision:                 0.0 $
 //
-//   Implementation of the Gauss-Seidel two step Updated Lagrangian Velocity-Pressure element
-//     ( There is a ScalingConstant to multiply the mass balance equation for a number because i read it somewhere)
 //
 
 // System includes
@@ -80,7 +78,7 @@ namespace Kratos
     noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
     if (rRightHandSideVector.size() != LocalSize)
-      rRightHandSideVector.resize(LocalSize);
+      rRightHandSideVector.resize(LocalSize, false);
 
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
@@ -152,7 +150,7 @@ namespace Kratos
       {
         // VolumetricCoeff*=BulkReductionCoefficient;
         VolumetricCoeff *= MeanValueMass * 2.0 / (TimeStep * MeanValueStiffness);
-        StiffnessMatrix = ZeroMatrix(LocalSize, LocalSize);
+        noalias(StiffnessMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
         for (unsigned int g = 0; g < NumGauss; ++g)
         {
@@ -213,7 +211,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::GetValueOnIntegrationPoints(const Variable<bool> &rVariable,
+  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<bool> &rVariable,
                                                                                     std::vector<bool> &rOutput,
                                                                                     const ProcessInfo &rCurrentProcessInfo)
   {
@@ -224,7 +222,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::GetValueOnIntegrationPoints(const Variable<double> &rVariable,
+  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<double> &rVariable,
                                                                                     std::vector<double> &rOutput,
                                                                                     const ProcessInfo &rCurrentProcessInfo)
   {
@@ -235,7 +233,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::GetValueOnIntegrationPoints(const Variable<Vector> &rVariable,
+  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<Vector> &rVariable,
                                                                                     std::vector<Vector> &rOutput,
                                                                                     const ProcessInfo &rCurrentProcessInfo)
   {
