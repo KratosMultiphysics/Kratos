@@ -14,8 +14,6 @@ namespace Kratos {
 
         DEM_D_DMT_Cohesive_Law();
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
         virtual ~DEM_D_DMT_Cohesive_Law();
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;

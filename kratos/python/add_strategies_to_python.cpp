@@ -25,12 +25,13 @@
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "includes/ublas_complex_interface.h"
+#include "utilities/variable_utils.h"
 
 // Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
-#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta_4.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/adaptive_residualbased_newton_raphson_strategy.h"
@@ -180,16 +181,7 @@ namespace Kratos
 
         void MoveMesh(Scheme< SparseSpaceType, LocalSpaceType >& dummy, ModelPart::NodesContainerType& rNodes)
         {
-            int numNodes = static_cast<int>(rNodes.size());
-
-            #pragma omp parallel for
-            for(int i = 0; i < numNodes; i++)
-            {
-                auto itNode = rNodes.begin() + i;
-
-                noalias(itNode->Coordinates()) = itNode->GetInitialPosition().Coordinates();
-                noalias(itNode->Coordinates()) += itNode->FastGetSolutionStepValue(DISPLACEMENT);
-            }
+            VariableUtils().UpdateCurrentPosition(rNodes, DISPLACEMENT);
         }
 
         template< typename TSpaceType >
@@ -596,6 +588,13 @@ namespace Kratos
 
             typedef ExplicitSolvingStrategyRungeKutta4< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta4Type;
             py::class_<ExplicitSolvingStrategyRungeKutta4Type, typename ExplicitSolvingStrategyRungeKutta4Type::Pointer, BaseExplicitSolvingStrategyType>(m, "ExplicitSolvingStrategyRungeKutta4")
+                .def(py::init<ModelPart&, bool, int>())
+                .def(py::init<ModelPart&, Parameters>())
+                .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
+                ;
+
+            typedef ExplicitSolvingStrategyRungeKutta3TVD< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta3TVDType;
+            py::class_<ExplicitSolvingStrategyRungeKutta3TVDType, typename ExplicitSolvingStrategyRungeKutta3TVDType::Pointer, BaseExplicitSolvingStrategyType>(m, "ExplicitSolvingStrategyRungeKutta3TVD")
                 .def(py::init<ModelPart&, bool, int>())
                 .def(py::init<ModelPart&, Parameters>())
                 .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())

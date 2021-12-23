@@ -16,6 +16,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include "utilities/parallel_utilities.h"
 
 #include "geo_mechanics_application_variables.h"
 
@@ -61,11 +62,11 @@ public:
 
         mVariableName = rParameters["variable_name"].GetString();
         mIsFixed = rParameters["is_fixed"].GetBool();
-        mgravity_direction = rParameters["gravity_direction"].GetInt();
-        mreference_coordinate = rParameters["reference_coordinate"].GetDouble();
+        mGravityDirection = rParameters["gravity_direction"].GetInt();
+        mReferenceCoordinate = rParameters["reference_coordinate"].GetDouble();
         mSpecificWeight = rParameters["specific_weight"].GetDouble();
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------
@@ -84,42 +85,26 @@ public:
     /// right after reading the model and the groups
     void ExecuteInitialize() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        if (mrModelPart.NumberOfNodes() > 0) {
+            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
-        const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
+            block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+                if (mIsFixed) rNode.Fix(var);
+                else         rNode.Free(var);
 
-        if (nNodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
+                const double pressure = mSpecificWeight * (mReferenceCoordinate - rNode.Coordinates()[mGravityDirection]);
 
-            Vector3 Coordinates;
-
-            #pragma omp parallel for private(Coordinates)
-            for (int i = 0; i<nNodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                if (mIsFixed) it->Fix(var);
-                else          it->Free(var);
-
-                noalias(Coordinates) = it->Coordinates();
-
-                const double pressure = mSpecificWeight*( mreference_coordinate - Coordinates[mgravity_direction] );
-
-                if (pressure > 0.0)
-                {
-                    it->FastGetSolutionStepValue(var) = pressure;
+                if (pressure > 0.0) {
+                    rNode.FastGetSolutionStepValue(var) = pressure;
+                } else {
+                    rNode.FastGetSolutionStepValue(var) = 0.0;
                 }
-                else
-                {
-                    it->FastGetSolutionStepValue(var) = 0.0;
-                }
-            }
+            });
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.
@@ -148,8 +133,8 @@ protected:
     ModelPart& mrModelPart;
     std::string mVariableName;
     bool mIsFixed;
-    unsigned int mgravity_direction;
-    double mreference_coordinate;
+    unsigned int mGravityDirection;
+    double mReferenceCoordinate;
     double mSpecificWeight;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -158,9 +143,6 @@ private:
 
     /// Assignment operator.
     ApplyConstantBoundaryHydrostaticPressureProcess& operator=(ApplyConstantBoundaryHydrostaticPressureProcess const& rOther);
-
-    /// Copy constructor.
-    //ApplyConstantHydrostaticPressureProcess(ApplyConstantBoundaryHydrostaticPressureProcess const& rOther);
 
 }; // Class ApplyConstantBoundaryHydrostaticPressureProcess
 

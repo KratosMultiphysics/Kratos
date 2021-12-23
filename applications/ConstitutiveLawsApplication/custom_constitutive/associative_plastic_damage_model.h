@@ -84,6 +84,8 @@ public:
     /// Definition of the machine precision tolerance
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
+    static constexpr double tolerance = 1.0e-8;
+
     /// The node definition
     typedef Node<3> NodeType;
 
@@ -100,15 +102,15 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(AssociativePlasticDamageModel);
 
     struct PlasticDamageParameters {
-        BoundedMatrixType ComplianceMatrixIncrement { ZeroMatrix(VoigtSize,VoigtSize) } ;
-        BoundedMatrixType ComplianceMatrix       { ZeroMatrix(VoigtSize,VoigtSize) };
-        BoundedMatrixType ConstitutiveMatrix     {  ZeroMatrix(VoigtSize,VoigtSize) };
-        BoundedMatrixType TangentTensor          {  ZeroMatrix(VoigtSize,VoigtSize) };
-        BoundedVectorType PlasticFlow            {  ZeroVector(VoigtSize) };
-        BoundedVectorType PlasticStrain          {  ZeroVector(VoigtSize)};
-        BoundedVectorType PlasticStrainIncrement {  ZeroVector(VoigtSize)};
-        BoundedVectorType StrainVector           {  ZeroVector(VoigtSize)};
-        BoundedVectorType StressVector           {  ZeroVector(VoigtSize)};
+        BoundedMatrixType ComplianceMatrixIncrement{ZeroMatrix(VoigtSize, VoigtSize)};
+        BoundedMatrixType ComplianceMatrix{ZeroMatrix(VoigtSize, VoigtSize)};
+        BoundedMatrixType ConstitutiveMatrix{ZeroMatrix(VoigtSize, VoigtSize)};
+        BoundedMatrixType TangentTensor{ZeroMatrix(VoigtSize, VoigtSize)};
+        BoundedVectorType PlasticFlow{ZeroVector(VoigtSize)};
+        BoundedVectorType PlasticStrain{ZeroVector(VoigtSize)};
+        BoundedVectorType PlasticStrainIncrement{ZeroVector(VoigtSize)};
+        BoundedVectorType StrainVector{ZeroVector(VoigtSize)};
+        BoundedVectorType StressVector{ZeroVector(VoigtSize)};
         double NonLinearIndicator          = 0.0; // F
         double PlasticConsistencyIncrement = 0.0; // Lambda dot
         double UniaxialStress              = 0.0;
@@ -122,6 +124,9 @@ public:
         double Slope                       = 0.0; // d(Threshold)/d(dissipation)
         double PlasticDamageProportion     = 0.5; // 0-> Plastic    1->Damage
     };
+
+    /// The definition of the lambdas to compute implicitly the threshold
+    typedef std::function<double(const double, const double, ConstitutiveLaw::Parameters& , PlasticDamageParameters &)> ResidualFunctionType;
 
     ///@name Lyfe Cycle
     ///@{
@@ -160,6 +165,7 @@ public:
           mDamageDissipation(rOther.mDamageDissipation),
           mThreshold(rOther.mThreshold),
           mPlasticStrain(rOther.mPlasticStrain),
+          mOldStrain(rOther.mOldStrain),
           mComplianceMatrix(rOther.mComplianceMatrix)
     {
     }
@@ -181,20 +187,6 @@ public:
     }
 
     /**
-     * @brief Returns whether this constitutive Law has specified variable (boolean)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<bool>& rThisVariable) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (integer)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<int>& rThisVariable) override;
-
-    /**
      * @brief Returns whether this constitutive Law has specified variable (double)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
@@ -207,51 +199,6 @@ public:
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<Vector>& rThisVariable) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (Matrix)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<Matrix>& rThisVariable) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (array of 3 components)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     * @note Fixed size array of 3 doubles (e.g. for 2D stresses, plastic strains, ...)
-     */
-    bool Has(const Variable<array_1d<double, 3 > >& rThisVariable) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (array of 6 components)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     * @note Fixed size array of 6 doubles (e.g. for stresses, plastic strains, ...)
-     */
-    bool Has(const Variable<array_1d<double, 6 > >& rThisVariable) override;
-
-    /**
-     * @brief Returns the value of a specified variable (boolean)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    bool& GetValue(
-        const Variable<bool>& rThisVariable,
-        bool& rValue
-        ) override;
-
-    /**
-     * @briefReturns the value of a specified variable (integer)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    int& GetValue(
-        const Variable<int>& rThisVariable,
-        int& rValue
-        ) override;
 
     /**
      * @brief Returns the value of a specified variable (double)
@@ -273,62 +220,6 @@ public:
     Vector& GetValue(
         const Variable<Vector>& rThisVariable,
         Vector& rValue
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (Matrix)
-     * @param rThisVariable the variable to be returned
-     * @return rValue output: the value of the specified variable
-     */
-    Matrix& GetValue(
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (array of 3 components)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    array_1d<double, 3 > & GetValue(
-        const Variable<array_1d<double, 3 > >& rThisVariable,
-        array_1d<double, 3 > & rValue
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (array of 6 components)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return the value of the specified variable
-     */
-    array_1d<double, 6 > & GetValue(
-        const Variable<array_1d<double, 6 > >& rThisVariable,
-        array_1d<double, 6 > & rValue
-        ) override;
-
-    /**
-     * @brief Sets the value of a specified variable (boolean)
-     * @param rThisVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<bool>& rThisVariable,
-        const bool& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Sets the value of a specified variable (integer)
-     * @param rThisVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<int>& rThisVariable,
-        const int& rValue,
-        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -356,42 +247,6 @@ public:
         ) override;
 
     /**
-     * @brief Sets the value of a specified variable (Matrix)
-     * @param rThisVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<Matrix >& rThisVariable,
-        const Matrix& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Sets the value of a specified variable (array of 3 components)
-     * @param rThisVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<array_1d<double, 3 > >& rThisVariable,
-        const array_1d<double, 3 > & rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Sets the value of a specified variable (array of 6 components)
-     * @param rThisVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<array_1d<double, 6 > >& rThisVariable,
-        const array_1d<double, 6 > & rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
      * @brief Calculates the value of a specified variable (double)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
@@ -402,57 +257,6 @@ public:
         ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<double>& rThisVariable,
         double& rValue
-        ) override;
-
-    /**
-     * @brief Calculates the value of a specified variable (Vector)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    Vector& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Vector>& rThisVariable,
-        Vector& rValue
-        ) override;
-
-    /**
-     * @brief Calculates the value of a specified variable (Matrix)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-     Matrix& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue
-        ) override;
-
-    /**
-     * @brief Calculates the value of a specified variable (array of 3 components)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-     array_1d<double, 3 > & CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<array_1d<double, 3 > >& rVariable,
-        array_1d<double, 3 > & rValue
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (array of 6 components)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return The value of the specified variable
-     */
-    array_1d<double, 6 > & CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<array_1d<double, 6 > >& rVariable,
-        array_1d<double, 6 > & rValue
         ) override;
 
     /**
@@ -675,6 +479,10 @@ public:
         PlasticDamageParameters &rPDParameters
     );
 
+    /**
+     * @brief This method initializes all the values
+     * in the PlasticDamageParameters
+     */
     void InitializePlasticDamageParameters(
         const BoundedVectorType& rStrainVector,
         const Properties& rMaterialProperties,
@@ -693,17 +501,30 @@ public:
         rPlasticDamageParameters.PlasticDamageProportion = rMaterialProperties[PLASTIC_DAMAGE_PROPORTION];
     }
 
+    /**
+     * @brief This method computes the continuum
+     * analytical tangent tensor
+     */
     void CalculateAnalyticalTangentTensor(
         ConstitutiveLaw::Parameters& rValues,
         PlasticDamageParameters &rParam
         );
 
+    /**
+     * @brief This method increases the damage and plastic
+     * dissipation with the increment
+     */
     void AddNonLinearDissipation(
         PlasticDamageParameters &rPDParameters
         )
     {
         rPDParameters.DamageDissipation  += rPDParameters.DamageDissipationIncrement;
+        rPDParameters.DamageDissipation = (rPDParameters.DamageDissipation > 0.99999) ?
+            0.99999 : rPDParameters.DamageDissipation;
+
         rPDParameters.PlasticDissipation += rPDParameters.PlasticDissipationIncrement;
+        rPDParameters.PlasticDissipation = (rPDParameters.PlasticDissipation > 0.99999) ?
+            0.99999 : rPDParameters.PlasticDissipation;
 
         rPDParameters.TotalDissipation = (rPDParameters.PlasticDissipation +
             rPDParameters.DamageDissipation);
@@ -711,15 +532,74 @@ public:
             0.99999 : rPDParameters.TotalDissipation;
     }
 
-    double CalculateVolumetricFractureEnergy( // g_F
+    /**
+     * @brief This method computes an averaged
+     * volumetric fracture energy depending
+     * if it is in tension or compression
+     */
+    static double CalculateVolumetricFractureEnergy( // g_F
         const Properties& rMaterialProperties,
         PlasticDamageParameters &rPDParameters
         );
 
+    /**
+     * @brief This method computes the denominator
+     * of the expression for computing the
+     * plastic multiplier
+     */
     double CalculatePlasticDenominator(
         ConstitutiveLaw::Parameters& rValues,
         PlasticDamageParameters &rParam);
 
+    /**
+     * @brief This method solves a non-linear
+     * equation that related the dissipation
+     * with the threshold
+     */
+    double CalculateThresholdImplicitExpression(
+        ResidualFunctionType &rF,
+        ResidualFunctionType &rdF_dk,
+        ConstitutiveLaw::Parameters &rValues,
+        PlasticDamageParameters &rPDParameters,
+        const double MaxThreshold = std::numeric_limits<double>::max());
+
+    /**
+     * @brief This method computes the slope or
+     * d(threshold)/d(dissipation) by finite
+     * differences
+     */
+    double CalculateSlopeFiniteDifferences(
+        ResidualFunctionType &rF,
+        ResidualFunctionType &rdF_dk,
+        ConstitutiveLaw::Parameters &rValues,
+        PlasticDamageParameters &rPDParameters,
+        const double MaxThreshold = std::numeric_limits<double>::max());
+
+    /**
+     * @brief Implicit function that relates the
+     * plastic-damage energy dissipation with the
+     * uniaxial stress threshold
+     */
+    ResidualFunctionType ExponentialSofteningImplicitFunction();
+
+    /**
+     * @brief Implicit function derivative to be used
+     * in the minimization of the implicit function
+     */
+    ResidualFunctionType ExponentialSofteningImplicitFunctionDerivative();
+
+    /**
+     * @brief Implicit function that relates the
+     * plastic-damage energy dissipation with the
+     * uniaxial stress threshold
+     */
+    ResidualFunctionType ExponentialHardeningImplicitFunction();
+
+    /**
+     * @brief Implicit function derivative to be used
+     * in the minimization of the implicit function
+     */
+    ResidualFunctionType ExponentialHardeningImplicitFunctionDerivative();
 protected:
 
     ///@name Protected static Member Variables
@@ -752,6 +632,7 @@ private:
     double mDamageDissipation  = 0.0;
     double mThreshold          = 0.0;
     BoundedVectorType mPlasticStrain    = ZeroVector(VoigtSize);
+    BoundedVectorType mOldStrain        = ZeroVector(VoigtSize);
     BoundedMatrixType mComplianceMatrix = ZeroMatrix(VoigtSize, VoigtSize);
 
     ///@}
@@ -780,6 +661,7 @@ private:
         rSerializer.save("DamageDissipation", mDamageDissipation);
         rSerializer.save("Threshold", mThreshold);
         rSerializer.save("PlasticStrain", mPlasticStrain);
+        rSerializer.save("OldStrain", mOldStrain);
         rSerializer.save("ComplianceMatrix", mComplianceMatrix);
     }
 
@@ -790,6 +672,7 @@ private:
         rSerializer.load("DamageDissipation", mDamageDissipation);
         rSerializer.load("Threshold", mThreshold);
         rSerializer.load("PlasticStrain", mPlasticStrain);
+        rSerializer.load("OldStrain", mOldStrain);
         rSerializer.load("ComplianceMatrix", mComplianceMatrix);
     }
 

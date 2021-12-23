@@ -6,6 +6,7 @@ import KratosMultiphysics.HDF5Application.single_mesh_primal_output_process as s
 import KratosMultiphysics.HDF5Application.initialization_from_hdf5_process as initialization_from_hdf5_process
 import KratosMultiphysics.HDF5Application.single_mesh_temporal_input_process as single_mesh_temporal_input_process
 import KratosMultiphysics.HDF5Application.single_mesh_xdmf_output_process as single_mesh_xdmf_output_process
+import KratosMultiphysics.HDF5Application.import_model_part_from_hdf5_process as import_model_part_from_hdf5_process
 from unittest.mock import patch
 
 
@@ -436,6 +437,56 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         patcher1.stop()
         patcher2.stop()
         patcher3.stop()
+
+    def test_ImportModelPartFromHDF5Process(self):
+        settings = KratosMultiphysics.Parameters('''
+            {
+                "Parameters": {
+                    "model_part_name": "test_model_part"
+                }
+            }
+            ''')
+        process = import_model_part_from_hdf5_process.Factory(
+            settings, self.model)
+        process.ExecuteInitialize()
+        self.assertEqual(self.HDF5FileSerial.call_count, 1)
+        self.assertEqual(
+            self.HDF5FileSerial.call_args[0][0]["file_name"].GetString(), "test_model_part.h5")
+        self.assertEqual(
+            self.HDF5FileSerial.call_args[0][0]["file_access_mode"].GetString(), "read_only")
+        self.assertEqual(self.HDF5NodalSolutionStepDataIO.call_count, 1)
+        self.assertEqual(
+            self.HDF5NodalSolutionStepDataIO.return_value.ReadNodalResults.call_count, 1)
+        self.HDF5NodalSolutionStepDataIO.return_value.ReadNodalResults.assert_called_with(
+            self.model_part, 0)
+        self.assertEqual(
+            self.HDF5NodalDataValueIO.return_value.ReadNodalResults.call_count, 1)
+        self.HDF5NodalDataValueIO.return_value.ReadNodalResults.assert_called_with(
+            self.model_part.Nodes, self.model_part.GetCommunicator())
+        self.assertEqual(
+            self.HDF5ElementDataValueIO.return_value.ReadElementResults.call_count, 1)
+        self.HDF5ElementDataValueIO.return_value.ReadElementResults.assert_called_with(
+            self.model_part.Elements, self.model_part.GetCommunicator())
+        self.assertEqual(
+            self.HDF5NodalFlagValueIO.return_value.ReadNodalFlags.call_count, 1)
+        self.HDF5NodalFlagValueIO.return_value.ReadNodalFlags.assert_called_with(
+            self.model_part.Nodes, self.model_part.GetCommunicator())
+        self.assertEqual(
+            self.HDF5ElementFlagValueIO.return_value.ReadElementFlags.call_count, 1)
+        self.HDF5ElementFlagValueIO.return_value.ReadElementFlags.assert_called_with(
+            self.model_part.Elements, self.model_part.GetCommunicator())
+        self.assertEqual(
+            self.HDF5ConditionDataValueIO.return_value.ReadConditionResults.call_count, 1)
+        self.HDF5ConditionDataValueIO.return_value.ReadConditionResults.assert_called_with(
+            self.model_part.Conditions, self.model_part.GetCommunicator())
+        self.assertEqual(
+            self.HDF5NodalFlagValueIO.return_value.ReadNodalFlags.call_count, 1)
+        self.HDF5NodalFlagValueIO.return_value.ReadNodalFlags.assert_called_with(
+            self.model_part.Nodes, self.model_part.GetCommunicator())
+        self.assertEqual(
+            self.HDF5ConditionFlagValueIO.return_value.ReadConditionFlags.call_count, 1)
+        self.HDF5ConditionFlagValueIO.return_value.ReadConditionFlags.assert_called_with(
+            self.model_part.Conditions, self.model_part.GetCommunicator())
 
 
 if __name__ == "__main__":

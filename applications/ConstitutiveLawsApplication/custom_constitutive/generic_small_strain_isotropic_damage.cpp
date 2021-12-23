@@ -118,7 +118,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
 
         const double F = uniaxial_stress - threshold;
 
-        if (F <= 0.0) { // Elastic case
+        if (F <= threshold_tolerance) { // Elastic case
             noalias(auxiliar_integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
 			noalias(integrated_stress_vector) = auxiliar_integrated_stress_vector;
 
@@ -276,7 +276,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::FinalizeMateria
 
         const double F = uniaxial_stress - threshold;
 
-        if (F >= 0.0) { // Plastic case
+        if (F >= threshold_tolerance) { // Plastic case
             const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
             // This routine updates the PredictiveStress to verify the yield surf
             TConstLawIntegratorType::IntegrateStressVector(

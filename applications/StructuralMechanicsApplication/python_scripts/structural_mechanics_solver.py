@@ -22,18 +22,18 @@ class MechanicalSolver(PythonSolver):
     This class provides functions for importing and exporting models,
     adding nodal variables and dofs and solving each solution step.
 
-    Derived classes must override the function _create_solution_scheme which
+    Derived classes must override the function _CreateScheme which
     constructs and returns a solution scheme. Depending on the type of
     solver, derived classes may also need to override the following functions:
 
-    _create_solution_scheme
-    _create_convergence_criterion
-    _create_linear_solver
-    _create_builder_and_solver
-    _create_mechanical_solution_strategy
+    _CreateScheme
+    _CreateConvergenceCriterion
+    _CreateLinearSolver
+    _CreateBuilderAndSolver
+    _CreateSolutionStrategy
 
     The mechanical_solution_strategy, builder_and_solver, etc. should alway be retrieved
-    using the getter functions get_mechanical_solution_strategy, get_builder_and_solver,
+    using the getter functions _GetSolutionStrategy, get_builder_and_solver,
     etc. from this base class.
 
     Only the member variables listed below should be accessed directly.
@@ -96,6 +96,7 @@ class MechanicalSolver(PythonSolver):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type" : "mechanical_solver",
             "model_part_name" : "",
+            "computing_sub_model_part_name" : "",
             "domain_size" : -1,
             "echo_level": 0,
             "buffer_size": 2,
@@ -214,7 +215,7 @@ class MechanicalSolver(PythonSolver):
         # The mechanical solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+        mechanical_solution_strategy = self._GetSolutionStrategy()
         mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         mechanical_solution_strategy.Initialize()
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished initialization.")
@@ -223,13 +224,13 @@ class MechanicalSolver(PythonSolver):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
             self.Initialize() #required after clearing
-        self.get_mechanical_solution_strategy().InitializeSolutionStep()
+        self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
-        self.get_mechanical_solution_strategy().Predict()
+        self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):
-        is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        is_converged = self._GetSolutionStrategy().SolveSolutionStep()
         if not is_converged:
             msg  = "Solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
             msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
@@ -237,7 +238,7 @@ class MechanicalSolver(PythonSolver):
         return is_converged
 
     def FinalizeSolutionStep(self):
-        self.get_mechanical_solution_strategy().FinalizeSolutionStep()
+        self._GetSolutionStrategy().FinalizeSolutionStep()
 
     def AdvanceInTime(self, current_time):
         dt = self.ComputeDeltaTime()
@@ -261,7 +262,13 @@ class MechanicalSolver(PythonSolver):
             raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
     def GetComputingModelPart(self):
-        return self.main_model_part
+        computing_sub_model_part_name = self.settings["computing_sub_model_part_name"].GetString()
+        if computing_sub_model_part_name == "":
+            # if the user didn't specify a SubModelPart, then use the MainModelPart
+            return self.main_model_part
+        else:
+            computing_model_part_name = self.main_model_part.Name + "." + computing_sub_model_part_name
+            return self.model[computing_model_part_name]
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -270,46 +277,46 @@ class MechanicalSolver(PythonSolver):
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def SetEchoLevel(self, level):
-        self.get_mechanical_solution_strategy().SetEchoLevel(level)
+        self._GetSolutionStrategy().SetEchoLevel(level)
 
     def Clear(self):
-        self.get_mechanical_solution_strategy().Clear()
+        self._GetSolutionStrategy().Clear()
 
     def Check(self):
-        self.get_mechanical_solution_strategy().Check()
+        self._GetSolutionStrategy().Check()
 
     #### Specific internal functions ####
 
-    def get_solution_scheme(self):
+    def _GetScheme(self):
         if not hasattr(self, '_solution_scheme'):
-            self._solution_scheme = self._create_solution_scheme()
+            self._solution_scheme = self._CreateScheme()
         return self._solution_scheme
 
-    def get_convergence_criterion(self):
+    def _GetConvergenceCriterion(self):
         if not hasattr(self, '_convergence_criterion'):
-            self._convergence_criterion = self._create_convergence_criterion()
+            self._convergence_criterion = self._CreateConvergenceCriterion()
         return self._convergence_criterion
 
-    def get_linear_solver(self):
+    def _GetLinearSolver(self):
         if not hasattr(self, '_linear_solver'):
-            self._linear_solver = self._create_linear_solver()
+            self._linear_solver = self._CreateLinearSolver()
         return self._linear_solver
 
-    def get_builder_and_solver(self):
+    def _GetBuilderAndSolver(self):
         if (self.settings["multi_point_constraints_used"].GetBool() is False and
             self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
             self.settings["multi_point_constraints_used"].SetBool(True)
-            self._builder_and_solver = self._create_builder_and_solver()
+            self._builder_and_solver = self._CreateBuilderAndSolver()
         if not hasattr(self, '_builder_and_solver'):
-            self._builder_and_solver = self._create_builder_and_solver()
+            self._builder_and_solver = self._CreateBuilderAndSolver()
         return self._builder_and_solver
 
-    def get_mechanical_solution_strategy(self):
+    def _GetSolutionStrategy(self):
         if (self.settings["multi_point_constraints_used"].GetBool() is False and
             self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
-            self._mechanical_solution_strategy = self._create_mechanical_solution_strategy()
+            self._mechanical_solution_strategy = self._CreateSolutionStrategy()
         if not hasattr(self, '_mechanical_solution_strategy'):
-            self._mechanical_solution_strategy = self._create_mechanical_solution_strategy()
+            self._mechanical_solution_strategy = self._CreateSolutionStrategy()
         return self._mechanical_solution_strategy
 
     def import_constitutive_laws(self):
@@ -406,11 +413,11 @@ class MechanicalSolver(PythonSolver):
 
         return conv_params
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
         if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
             return linear_solver_factory.ConstructSolver(linear_solver_configuration)
@@ -418,8 +425,8 @@ class MechanicalSolver(PythonSolver):
             KratosMultiphysics.Logger.PrintInfo('::[MechanicalSolver]:: No linear solver was specified, using fastest available solver')
             return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
-    def _create_builder_and_solver(self):
-        linear_solver = self.get_linear_solver()
+    def _CreateBuilderAndSolver(self):
+        linear_solver = self._GetLinearSolver()
         if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             bs_params = self.settings["builder_and_solver_settings"]["advanced_settings"]
             if not self.settings["builder_and_solver_settings"]["use_lagrange_BS"].GetBool():
@@ -433,12 +440,12 @@ class MechanicalSolver(PythonSolver):
                 builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         """Create the solution scheme for the structural problem.
         """
         raise Exception("Solution Scheme creation must be implemented in the derived class.")
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
             mechanical_solution_strategy = self._create_linear_strategy()
@@ -455,8 +462,8 @@ class MechanicalSolver(PythonSolver):
 
     def _create_linear_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
-        builder_and_solver = self.get_builder_and_solver()
+        mechanical_scheme = self._GetScheme()
+        builder_and_solver = self._GetBuilderAndSolver()
         return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
                                                               mechanical_scheme,
                                                               builder_and_solver,
@@ -467,9 +474,9 @@ class MechanicalSolver(PythonSolver):
 
     def _create_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
-        mechanical_convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = self.get_builder_and_solver()
+        mechanical_scheme = self._GetScheme()
+        mechanical_convergence_criterion = self._GetConvergenceCriterion()
+        builder_and_solver = self._GetBuilderAndSolver()
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
                                                                      mechanical_scheme,
                                                                      mechanical_convergence_criterion,
@@ -483,10 +490,10 @@ class MechanicalSolver(PythonSolver):
 
     def _create_line_search_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
-        mechanical_convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = self.get_builder_and_solver()
+        mechanical_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
+        mechanical_convergence_criterion = self._GetConvergenceCriterion()
+        builder_and_solver = self._GetBuilderAndSolver()
         strategy = KratosMultiphysics.LineSearchStrategy(computing_model_part,
                                                      mechanical_scheme,
                                                      linear_solver,
