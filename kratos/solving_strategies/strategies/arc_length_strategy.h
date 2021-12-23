@@ -303,6 +303,7 @@ class ArcLengthStrategy
 
         // Initialize iterations info
         unsigned int iteration_number = 1;
+        bool residual_is_updated = false;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
         mpScheme->InitializeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
@@ -318,13 +319,15 @@ class ArcLengthStrategy
         mpBuilderAndSolver->ApplyDirichletConditions(mpScheme, r_model_part, r_A, r_Dx, r_b);
         noalias(r_b) = r_f;
         mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
-        const double lambda_increment = mRadius / TSparseSpace::TwoNorm(r_Dxf);
+        double lambda_increment = mRadius / TSparseSpace::TwoNorm(r_Dxf);
+        mDLambdaStep = lambda_increment;
         mLambda += lambda_increment;
 
         KRATOS_INFO("Arc-Length Strategy") << "ARC-LENGTH LAMBDA: " << mLambda << std::endl;
 
         TSparseSpace::InplaceMult(r_Dxf, lambda_increment);
         noalias(r_DxPred) = r_Dxf;
+        noalias(r_DxStep)  = r_DxPred;
         TSparseSpace::InplaceMult(r_Dxf, 1.0 / lambda_increment);
         UpdateDatabase(r_A, r_DxPred, r_b, BaseType::MoveMeshFlag());
 
@@ -340,14 +343,60 @@ class ArcLengthStrategy
             is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_Dxf, r_b);
         }
 
-        // while (!is_converged && iteration_number++ < BaseType::mMaxIterationNumber) {
-        //     //setting the number of iteration
-        //     r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+        while (!is_converged && iteration_number++ < BaseType::mMaxIterationNumber) {
+            //setting the number of iteration
+            r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
-        //     mpScheme->InitializeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
+            mpScheme->InitializeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
+            mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
+            is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, r_A, r_Dx, r_b);
 
-        // }
+            TSparseSpace::SetToZero(r_A);
+            TSparseSpace::SetToZero(r_b);
+            TSparseSpace::SetToZero(r_Dxf);
 
+            // We compute r_Dxf 
+            mpBuilderAndSolver->Build(mpScheme, r_model_part, r_A, r_b);
+            mpBuilderAndSolver->ApplyDirichletConditions(mpScheme, r_model_part, r_A, r_Dx, r_b);
+            noalias(r_b) = r_f;
+            mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
+
+            TSparseSpace::SetToZero(r_A);
+            TSparseSpace::SetToZero(r_b);
+            TSparseSpace::SetToZero(r_Dxb);
+
+            mpBuilderAndSolver->BuildAndSolve(mpScheme, r_model_part, r_A, r_Dxb, r_b);
+            lambda_increment = -TSparseSpace::Dot(r_DxPred, r_Dxb) / TSparseSpace::Dot(r_DxPred, r_Dxf);
+            noalias(r_Dx) = r_Dxb + lambda_increment*r_Dxf;
+
+            // Update results
+            mDLambdaStep += lambda_increment;
+            mLambda += lambda_increment;
+            noalias(r_DxStep) += r_Dx;
+            UpdateDatabase(r_A, r_Dx, r_b, BaseType::MoveMeshFlag());
+
+            mpScheme->FinalizeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
+            mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
+
+            residual_is_updated = false;
+
+            if (is_converged) {
+                if (mpConvergenceCriteria->GetActualizeRHSflag()) {
+                    TSparseSpace::SetToZero(r_b);
+                    mpBuilderAndSolver->BuildRHS(mpScheme, r_model_part, r_b);
+                    residual_is_updated = true;
+                }
+                is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_Dx, r_b);
+            }
+        }
+        // Prints a warning if the maximum number of iterations is exceeded
+        if (iteration_number >= BaseType::mMaxIterationNumber) {
+            MaxIterationsExceeded();
+        } else {
+            KRATOS_INFO_IF("Arc-Length Strategy", GetEchoLevel() > 0)
+                << "Convergence achieved after " << iteration_number << " / "
+                << BaseType::mMaxIterationNumber << " iterations" << std::endl;
+        }
         //calculate reactions if required
         if (BaseType::mCalculateReactionsFlag)
             mpBuilderAndSolver->CalculateReactions(mpScheme, r_model_part, r_A, r_Dx, r_b);
