@@ -264,12 +264,9 @@ class ArcLengthStrategy
         else if (mRadius < mMinRadiusFactor*mRadius_0)
             mRadius = mMinRadiusFactor*mRadius_0;
 
-        r_model_part.GetProcessInfo()[LAMBDA] = mLambda;
-        r_model_part.GetProcessInfo()[SEARCH_RADIUS] = mRadius/mRadius_0;
-
         mpScheme->FinalizeSolutionStep(r_model_part, r_A, r_Dx, r_b);
         mpBuilderAndSolver->FinalizeSolutionStep(r_model_part, r_A, r_Dx, r_b);
-        mpConvergenceCriteria->FinalizeSolutionStep(r_model_part, mpBuilderAndSolver->GetDofSet(), r_A, r_Dx, r_b);
+        mpConvergenceCriteria->FinalizeSolutionStep(r_model_part, r_dof_set, r_A, r_Dx, r_b);
         //Cleaning memory after the solution
         mpScheme->Clean();
 
@@ -338,6 +335,7 @@ class ArcLengthStrategy
                 TSparseSpace::SetToZero(r_b);
 
                 mpBuilderAndSolver->BuildRHS(mpScheme, r_model_part, r_b);
+                KRATOS_WATCH(r_b)
             }
 
             is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_Dxf, r_b);
@@ -350,15 +348,15 @@ class ArcLengthStrategy
         //     mpScheme->InitializeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
 
         // }
+
+        //calculate reactions if required
+        if (BaseType::mCalculateReactionsFlag)
+            mpBuilderAndSolver->CalculateReactions(mpScheme, r_model_part, r_A, r_Dx, r_b);
         return is_converged;
     }
 
     void UpdateExternalLoads()
     {
-        ModelPart& r_model_part = BaseType::GetModelPart();
-        mLambda = r_model_part.GetProcessInfo()[LAMBDA];
-        mRadius = (r_model_part.GetProcessInfo()[SEARCH_RADIUS])*mRadius_0;
-
         // Update External Loads
         for (unsigned int i = 0; i < mVariableNames.size(); i++) {
             ModelPart& r_sub_model_part = *(mSubModelPartList[i]);
