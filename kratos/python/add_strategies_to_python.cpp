@@ -36,7 +36,7 @@
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/adaptive_residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/line_search_strategy.h"
-//#include "solving_strategies/strategies/residualbased_arc_lenght_strategy.h"
+#include "solving_strategies/strategies/arc_length_strategy.h"
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
@@ -642,6 +642,29 @@ namespace Kratos
                 .def("SetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::SetUseOldStiffnessInFirstIterationFlag)
                 .def("GetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
                 ;
+
+            // ARC-LENGTH
+            typedef ArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ArcLengthStrategyStrategyType;
+            py::class_< ArcLengthStrategyStrategyType, typename ArcLengthStrategyStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >
+                (m,"ArcLengthStrategyStrategy")
+                .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters, int, bool, bool, bool >())
+                .def("SetMaxIterationNumber", &ArcLengthStrategyStrategyType::SetMaxIterationNumber)
+                .def("GetMaxIterationNumber", &ArcLengthStrategyStrategyType::GetMaxIterationNumber)
+                .def("SetKeepSystemConstantDuringIterations", &ArcLengthStrategyStrategyType::SetKeepSystemConstantDuringIterations)
+                .def("GetKeepSystemConstantDuringIterations", &ArcLengthStrategyStrategyType::GetKeepSystemConstantDuringIterations)
+                .def("SetInitializePerformedFlag", &ArcLengthStrategyStrategyType::SetInitializePerformedFlag)
+                .def("GetInitializePerformedFlag", &ArcLengthStrategyStrategyType::GetInitializePerformedFlag)
+                .def("SetUseOldStiffnessInFirstIterationFlag", &ArcLengthStrategyStrategyType::SetUseOldStiffnessInFirstIterationFlag)
+                .def("GetUseOldStiffnessInFirstIterationFlag", &ArcLengthStrategyStrategyType::GetUseOldStiffnessInFirstIterationFlag)
+                ;
+
+
+
+
+
+
+
+
 
             py::class_< AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
                 typename AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,

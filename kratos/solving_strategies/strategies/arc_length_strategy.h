@@ -99,7 +99,7 @@ class ArcLengthStrategy
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
         ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
-                pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+                pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
         {
             mDesiredIterations = rParameters["desired_iterations"].GetInt();
             mMaxRadiusFactor   = rParameters["max_radius_factor"].GetDouble();
@@ -193,7 +193,7 @@ class ArcLengthStrategy
      */
     bool SolveSolutionStep() override
     {
-
+        return true;
     }
 
     /**
