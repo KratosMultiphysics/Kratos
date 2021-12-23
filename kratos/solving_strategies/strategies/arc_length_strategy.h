@@ -112,10 +112,10 @@ class ArcLengthStrategy
                 mVariableNames.resize(rParameters["loads_variable_list"].size());
 
                 if (mSubModelPartList.size() != mVariableNames.size())
-                    KRATOS_THROW_ERROR( std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "" )
+                    KRATOS_THROW_ERROR( std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "")
 
                 for (unsigned int i = 0; i < mVariableNames.size(); i++) {
-                    mSubModelPartList[i] = &( model_part.GetSubModelPart(rParameters["loads_sub_model_part_list"][i].GetString()) );
+                    mSubModelPartList[i] = &( model_part.GetSubModelPart(rParameters["loads_sub_model_part_list"][i].GetString()));
                     mVariableNames[i] = rParameters["loads_variable_list"][i].GetString();
                 }
             }
@@ -159,9 +159,9 @@ class ArcLengthStrategy
         SparseSpaceType::Clear(mpDxPred);
         SparseSpaceType::Clear(mpDxStep);
 
-        TSystemVectorType& mf = *mpf;
-        TSystemVectorType& mDxf = *mpDxf;
-        TSystemVectorType& mDxb = *mpDxb;
+        TSystemVectorType& mf      = *mpf;
+        TSystemVectorType& mDxf    = *mpDxf;
+        TSystemVectorType& mDxb    = *mpDxb;
         TSystemVectorType& mDxPred = *mpDxPred;
         TSystemVectorType& mDxStep = *mpDxStep;
 
@@ -229,7 +229,7 @@ class ArcLengthStrategy
             KRATOS_INFO("Arc Length Strategy") << "Strategy Initialized" << std::endl;
         }
 
-
+        BaseType::InitializeSolutionStep();
 
         KRATOS_CATCH("");
     }
