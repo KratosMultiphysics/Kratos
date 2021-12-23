@@ -104,19 +104,10 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_only_one_point, KratosMa
     KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
     KRATOS_CHECK_IS_FALSE(barycentric_info.GetIsApproximation());
 
-    std::vector<int> found_ids;
-    barycentric_info.GetValue(found_ids, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_ids.size(), 2);
-    KRATOS_CHECK_EQUAL(found_ids[0], 13);
-    KRATOS_CHECK_EQUAL(found_ids[1], -1);
+    ClosestPointsContainer exp_closest_points(2);
+    exp_closest_points.Add(PointWithId(13, Point(3.3, 0.0, 0.0), 2.9));
 
-    std::vector<double> neighbor_coords;
-    barycentric_info.GetValue(neighbor_coords, MapperInterfaceInfo::InfoType::Dummy);
-    const std::vector<double> exp_results {
-        3.3, 0.0, 0.0,
-        std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max()
-    };
-    KRATOS_CHECK_VECTOR_EQUAL(exp_results, neighbor_coords)
+    KRATOS_CHECK_EQUAL(barycentric_info.GetClosestPoints(), exp_closest_points);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_duplicated_point, KratosMappingApplicationSerialTestSuite)
@@ -152,19 +143,11 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_duplicated_point, Kratos
     KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
     KRATOS_CHECK_IS_FALSE(barycentric_info.GetIsApproximation());
 
-    std::vector<int> found_ids;
-    barycentric_info.GetValue(found_ids, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_ids.size(), 2);
-    KRATOS_CHECK_EQUAL(found_ids[0], 108);
-    KRATOS_CHECK_EQUAL(found_ids[1], 5);
+    ClosestPointsContainer exp_closest_points(2);
+    exp_closest_points.Add(PointWithId(108, Point(0.3, 0.0, 0.0), 0.1));
+    exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), MapperUtilities::ComputeDistance(coords, node_2->Coordinates())));
 
-    std::vector<double> neighbor_coords;
-    barycentric_info.GetValue(neighbor_coords, MapperInterfaceInfo::InfoType::Dummy);
-    const std::vector<double> exp_results {
-        0.3, 0.0, 0.0,
-        1.0, 0.1, -0.2
-    };
-    KRATOS_CHECK_VECTOR_EQUAL(exp_results, neighbor_coords)
+    KRATOS_CHECK_EQUAL(barycentric_info.GetClosestPoints(), exp_closest_points);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_Serialization, KratosMappingApplicationSerialTestSuite)
@@ -194,19 +177,11 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_Serialization, KratosMappingA
     KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
     KRATOS_CHECK_IS_FALSE(barycentric_info.GetIsApproximation());
 
-    std::vector<int> found_ids;
-    barycentric_info.GetValue(found_ids, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_ids.size(), 2);
-    KRATOS_CHECK_EQUAL(found_ids[0], 108);
-    KRATOS_CHECK_EQUAL(found_ids[1], 5);
+    ClosestPointsContainer exp_closest_points(2);
+    exp_closest_points.Add(PointWithId(108, Point(0.3, 0.0, 0.0), 0.1));
+    exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), MapperUtilities::ComputeDistance(coords, node_2->Coordinates())));
 
-    std::vector<double> neighbor_coords;
-    barycentric_info.GetValue(neighbor_coords, MapperInterfaceInfo::InfoType::Dummy);
-    const std::vector<double> exp_results {
-        0.3, 0.0, 0.0,
-        1.0, 0.1, -0.2
-    };
-    KRATOS_CHECK_VECTOR_EQUAL(exp_results, neighbor_coords)
+    KRATOS_CHECK_EQUAL(barycentric_info.GetClosestPoints(), exp_closest_points);
 
     // serializing the object
     StreamSerializer serializer;
@@ -218,15 +193,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_Serialization, KratosMappingA
 
     KRATOS_CHECK_EQUAL(barycentric_info_new.GetLocalSystemIndex(), source_local_sys_idx);
 
-    std::vector<int> found_ids_new;
-    barycentric_info_new.GetValue(found_ids_new, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_ids_new.size(), 2);
-    KRATOS_CHECK_EQUAL(found_ids_new[0], 108);
-    KRATOS_CHECK_EQUAL(found_ids_new[1], 5);
-
-    std::vector<double> neighbor_coords_new;
-    barycentric_info_new.GetValue(neighbor_coords_new, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_results, neighbor_coords_new)
+    KRATOS_CHECK_EQUAL(barycentric_info_new.GetClosestPoints(), exp_closest_points);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_triangle_interpolation, KratosMappingApplicationSerialTestSuite)
