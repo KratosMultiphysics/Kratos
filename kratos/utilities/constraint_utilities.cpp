@@ -33,8 +33,8 @@ std::size_t NumberOfActiveConstraints(ModelPart& rModelPart)
         // Detect if the constraint is active or not. If the user did not make any choice the constraint
         // It is active by default
         bool constraint_is_active = true;
-        if (it_const->IsDefined(ACTIVE)) {
-            constraint_is_active = it_const->Is(ACTIVE);
+        if (rConstraint.IsDefined(ACTIVE)) {
+            constraint_is_active = rConstraint.Is(ACTIVE);
         }
 
         if (constraint_is_active) {
