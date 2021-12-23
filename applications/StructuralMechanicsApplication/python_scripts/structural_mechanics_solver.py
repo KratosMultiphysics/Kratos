@@ -530,12 +530,12 @@ class MechanicalSolver(PythonSolver):
         self.strategy_params.AddValue("min_radius_factor",self.settings["min_radius_factor"])
         
         solving_strategy = KratosMultiphysics.ArcLengthStrategy(self.GetComputingModelPart(),
-                                                                        self._GetScheme(),
-                                                                        self._GetConvergenceCriterion(),
-                                                                        self._GetBuilderAndSolver(),
-                                                                        self.strategy_params,
-                                                                        self.settings["max_iteration"].GetInt(),
-                                                                        self.settings["compute_reactions"].GetBool(),
-                                                                        self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                        self.settings["move_mesh_flag"].GetBool())
+                                                                self._GetScheme(),
+                                                                self._GetConvergenceCriterion(),
+                                                                self._GetBuilderAndSolver(),
+                                                                self.strategy_params,
+                                                                self.settings["max_iteration"].GetInt(),
+                                                                self.settings["compute_reactions"].GetBool(),
+                                                                self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                                self.settings["move_mesh_flag"].GetBool())
         return strategy
