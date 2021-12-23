@@ -128,8 +128,9 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         rk_parameter = self.settings["time_scheme"].GetString()
 
         rk_startegies = {
-            "RK3-TVD": KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD,
-            "RK4"    : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4
+            "RK3-TVD"       : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD,
+            "RK4"           : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4
+            "forward_euler" : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyForwardEuler
         }
 
         if rk_parameter in rk_startegies:
