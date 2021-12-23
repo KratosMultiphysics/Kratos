@@ -121,36 +121,36 @@ namespace { // anonymous namespace
 //     }
 // }
 
-bool BarycentricInterpolateInEntity(const array_1d<double,3>& rRefCoords,
-                                    const std::vector<double>& rCoordinates,
-                                    Vector& rShapeFunctionValues,
-                                    std::vector<int>& rEquationIds,
-                                    ProjectionUtilities::PairingIndex& rPairingIndex)
-{
-    // Check how many "proper" results were found
-    const std::size_t num_interpolation_nodes = rEquationIds.size() - std::count(rEquationIds.begin(), rEquationIds.end(), -1);
+// bool BarycentricInterpolateInEntity(const array_1d<double,3>& rRefCoords,
+//                                     const std::vector<double>& rCoordinates,
+//                                     Vector& rShapeFunctionValues,
+//                                     std::vector<int>& rEquationIds,
+//                                     ProjectionUtilities::PairingIndex& rPairingIndex)
+// {
+//     // Check how many "proper" results were found
+//     const std::size_t num_interpolation_nodes = rEquationIds.size() - std::count(rEquationIds.begin(), rEquationIds.end(), -1);
 
-    const bool is_full_projection = num_interpolation_nodes == rEquationIds.size();
+//     const bool is_full_projection = num_interpolation_nodes == rEquationIds.size();
 
-    KRATOS_DEBUG_ERROR_IF(num_interpolation_nodes < 2 || num_interpolation_nodes > 4) << "Wrong number of interpolation nodes" << std::endl;
-    KRATOS_DEBUG_ERROR_IF(rCoordinates.size() < num_interpolation_nodes*3) << "Not enough coords" << std::endl;
-    KRATOS_DEBUG_ERROR_IF(rCoordinates.size()%3 != 0) << "Coords have wrong size" << std::endl;
+//     KRATOS_DEBUG_ERROR_IF(num_interpolation_nodes < 2 || num_interpolation_nodes > 4) << "Wrong number of interpolation nodes" << std::endl;
+//     KRATOS_DEBUG_ERROR_IF(rCoordinates.size() < num_interpolation_nodes*3) << "Not enough coords" << std::endl;
+//     KRATOS_DEBUG_ERROR_IF(rCoordinates.size()%3 != 0) << "Coords have wrong size" << std::endl;
 
-    GeometryType::PointsArrayType geom_points;
-    for (std::size_t i=0; i<num_interpolation_nodes; ++i) {
-        geom_points.push_back(Kratos::make_intrusive<NodeType>(0, rCoordinates[i*3], rCoordinates[i*3+1], rCoordinates[i*3+2]));
-        geom_points[i].SetValue(INTERFACE_EQUATION_ID, rEquationIds[i]);
-    }
+//     GeometryType::PointsArrayType geom_points;
+//     for (std::size_t i=0; i<num_interpolation_nodes; ++i) {
+//         geom_points.push_back(Kratos::make_intrusive<NodeType>(0, rCoordinates[i*3], rCoordinates[i*3+1], rCoordinates[i*3+2]));
+//         geom_points[i].SetValue(INTERFACE_EQUATION_ID, rEquationIds[i]);
+//     }
 
-    Kratos::unique_ptr<GeometryType> p_geom;
-    if      (num_interpolation_nodes == 2) p_geom = Kratos::make_unique<Line2D2<NodeType>>(geom_points);
-    else if (num_interpolation_nodes == 3) p_geom = Kratos::make_unique<Triangle3D3<NodeType>>(geom_points);
-    else if (num_interpolation_nodes == 4) p_geom = Kratos::make_unique<Tetrahedra3D4<NodeType>>(geom_points);
+//     Kratos::unique_ptr<GeometryType> p_geom;
+//     if      (num_interpolation_nodes == 2) p_geom = Kratos::make_unique<Line2D2<NodeType>>(geom_points);
+//     else if (num_interpolation_nodes == 3) p_geom = Kratos::make_unique<Triangle3D3<NodeType>>(geom_points);
+//     else if (num_interpolation_nodes == 4) p_geom = Kratos::make_unique<Tetrahedra3D4<NodeType>>(geom_points);
 
-    double dummy_dist;
+//     double dummy_dist;
 
-    return is_full_projection && ProjectionUtilities::ComputeProjection(*p_geom, Point(rRefCoords), 0.25, rShapeFunctionValues, rEquationIds, dummy_dist, rPairingIndex, true);
-}
+//     return is_full_projection && ProjectionUtilities::ComputeProjection(*p_geom, Point(rRefCoords), 0.25, rShapeFunctionValues, rEquationIds, dummy_dist, rPairingIndex, true);
+// }
 
 int GetNumPointsApprox(const BarycentricInterpolationType InterpolationType)
 {
@@ -165,6 +165,63 @@ int GetNumPointsApprox(const BarycentricInterpolationType InterpolationType)
     };
 }
 
+
+Kratos::unique_ptr<GeometryType> ReconstructLine(const ClosestPointsContainer& rClosestPoints)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rClosestPoints.GetPoints().size() != 2) << "Wrong size!" << std::endl;
+    GeometryType::PointsArrayType geom_points;
+    for (const auto& r_point : rClosestPoints.GetPoints()) {
+        auto new_node = Kratos::make_intrusive<NodeType>(0, r_point[0], r_point[1], r_point[2]);
+        new_node->SetValue(INTERFACE_EQUATION_ID, r_point.GetId());
+        geom_points.push_back(new_node);
+    }
+    return Kratos::make_unique<Line2D2<NodeType>>(geom_points);
+
+    KRATOS_CATCH("")
+}
+
+Kratos::unique_ptr<GeometryType> ReconstructTriangle(const ClosestPointsContainer& rClosestPoints)
+{
+    KRATOS_TRY
+
+    if (rClosestPoints.GetPoints().size() < 3) {
+        return ReconstructLine(rClosestPoints);
+    }
+
+    GeometryType::PointsArrayType geom_points;
+    for (const auto& r_point : rClosestPoints.GetPoints()) {
+        auto new_node = Kratos::make_intrusive<NodeType>(0, r_point[0], r_point[1], r_point[2]);
+        new_node->SetValue(INTERFACE_EQUATION_ID, r_point.GetId());
+        geom_points.push_back(new_node);
+        if (geom_points.size() == 3) break; // skip points that are farther away
+    }
+    return Kratos::make_unique<Triangle3D3<NodeType>>(geom_points);
+
+    KRATOS_CATCH("")
+}
+
+Kratos::unique_ptr<GeometryType> ReconstructTetrahedra(const ClosestPointsContainer& rClosestPoints)
+{
+    KRATOS_TRY
+
+    if (rClosestPoints.GetPoints().size() < 4) {
+        return ReconstructTriangle(rClosestPoints);
+    }
+
+    GeometryType::PointsArrayType geom_points;
+    for (const auto& r_point : rClosestPoints.GetPoints()) {
+        auto new_node = Kratos::make_intrusive<NodeType>(0, r_point[0], r_point[1], r_point[2]);
+        new_node->SetValue(INTERFACE_EQUATION_ID, r_point.GetId());
+        geom_points.push_back(new_node);
+        if (geom_points.size() == 4) break; // skip points that are farther away
+    }
+    return Kratos::make_unique<Tetrahedra3D4<NodeType>>(geom_points);
+
+    KRATOS_CATCH("")
+}
+
 Kratos::unique_ptr<GeometryType> ReconstructGeometry(
     const ClosestPointsContainer& rClosestPoints,
     const BarycentricInterpolationType InterpolationType)
@@ -174,20 +231,11 @@ Kratos::unique_ptr<GeometryType> ReconstructGeometry(
     switch(InterpolationType)
     {
     case BarycentricInterpolationType::LINE:
-        KRATOS_ERROR_IF(rClosestPoints.GetPoints().size() != 2) << "Wrong size!" << std::endl;
-        GeometryType::PointsArrayType geom_points;
-        for (const auto& r_point : rClosestPoints.GetPoints()) {
-            auto new_node = Kratos::make_intrusive<NodeType>(0, r_point[0], r_point[1], r_point[2]);
-            new_node->SetValue(INTERFACE_EQUATION_ID, r_point.GetId());
-            geom_points.push_back(new_node);
-        }
-        return Kratos::make_unique<Line2D2<NodeType>>(geom_points);
-
-    // case BarycentricInterpolationType::TRIANGLE:
-    //     return 10;
-
-    // case BarycentricInterpolationType::TETRAHEDRA:
-    //     return 15;
+        return ReconstructLine(rClosestPoints);
+    case BarycentricInterpolationType::TRIANGLE:
+        return ReconstructTriangle(rClosestPoints);
+    case BarycentricInterpolationType::TETRAHEDRA:
+        return ReconstructTetrahedra(rClosestPoints);
     };
 
     KRATOS_CATCH("")
