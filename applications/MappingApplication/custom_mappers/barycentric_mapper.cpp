@@ -232,8 +232,6 @@ void BarycentricInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInter
 {
     KRATOS_TRY
 
-    SetLocalSearchWasSuccessful();
-
     const Node<3>& r_node = *rInterfaceObject.pGetBaseNode();
 
     PointWithId point(
@@ -242,6 +240,13 @@ void BarycentricInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInter
         MapperUtilities::ComputeDistance(this->Coordinates(), r_node.Coordinates()));
 
     mClosestPoints.Add(point);
+
+    const std::size_t num_found_points = mClosestPoints.GetPoints().size();
+    if (num_found_points >= GetNumPointsApprox(mInterpolationType)) {
+        SetLocalSearchWasSuccessful();
+    } else if (num_found_points > 0) {
+        SetIsApproximation();
+    }
 
     KRATOS_CATCH("")
 }
@@ -316,15 +321,17 @@ void BarycentricLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     Vector sf_values;
     double proj_dist;
 
-    const bool is_approx = ProjectionUtilities::ComputeProjection(
+    const bool is_full_projection = ProjectionUtilities::ComputeProjection(
         *p_reconstr_geom,
         Point(Coordinates()),
-        0.1,
+        0.25,
         sf_values,
         rOriginIds,
         proj_dist,
         mPairingIndex,
         true);
+
+    rPairingStatus = is_full_projection ? MapperLocalSystem::PairingStatus::InterfaceInfoFound : MapperLocalSystem::PairingStatus::Approximation;
 
     if (rLocalMappingMatrix.size1() != 1 || rLocalMappingMatrix.size2() != sf_values.size()) {
         rLocalMappingMatrix.resize(1, sf_values.size(), false);

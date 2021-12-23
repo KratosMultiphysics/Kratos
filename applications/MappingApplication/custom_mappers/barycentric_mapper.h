@@ -126,15 +126,15 @@ public:
 
     // Default constructor, needed for registration
     BarycentricMapper(ModelPart& rModelPartOrigin,
-                          ModelPart& rModelPartDestination)
-                          : BaseType(rModelPartOrigin, rModelPartDestination) {}
+                      ModelPart& rModelPartDestination)
+                      : BaseType(rModelPartOrigin, rModelPartDestination) {}
 
     BarycentricMapper(ModelPart& rModelPartOrigin,
-                          ModelPart& rModelPartDestination,
-                          Parameters JsonParameters)
-                          : BaseType(rModelPartOrigin,
-                                     rModelPartDestination,
-                                     JsonParameters)
+                      ModelPart& rModelPartDestination,
+                      Parameters JsonParameters)
+                      : BaseType(rModelPartOrigin,
+                                 rModelPartDestination,
+                                 JsonParameters)
     {
         KRATOS_TRY;
 
