@@ -238,96 +238,62 @@ public:
     }
 
 	/// Find the condition's parent element.
-	void Initialize() override
+	void Initialize(const ProcessInfo &rCurrentProcessInfo) override
 	{
 		KRATOS_TRY;
 
-		const array_1d<double,3>& rNormal = this->GetValue(NORMAL);
-		if (norm_2(rNormal) == 0.0)
-		  {
-		    std::cout << "error on condition -> " << this->Id() << std::endl;
-		    KRATOS_THROW_ERROR(std::logic_error, "NORMAL must be calculated before using this condition","");
-		  }
+		if (this->Is(SLIP))
+		{
+			const array_1d<double, 3> &rNormal = this->GetValue(NORMAL);
+			KRATOS_ERROR_IF(norm_2(rNormal) == 0.0) << "NORMAL must be calculated before using this " << this->Info() << "\n";
+		}
 
 		if (mInitializeWasPerformed)
 		{
-		        return;
+			return;
 		}
 
 		mInitializeWasPerformed = true;
 
+		KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() == 0) << this->Info() << " cannot find parent element\n";
+
 		double EdgeLength;
-		array_1d<double,3> Edge;
-		GeometryType& rGeom = this->GetGeometry();
-		GlobalPointersVector<Element> ElementCandidates;
-		for (SizeType i = 0; i < TNumNodes; i++)
+		array_1d<double, 3> Edge;
+
+		mpElement = this->GetValue(NEIGHBOUR_ELEMENTS)(0);
+		GeometryType &rElemGeom = mpElement->GetGeometry();
+
+		Edge = rElemGeom[1].Coordinates() - rElemGeom[0].Coordinates();
+		mMinEdgeLength = Edge[0] * Edge[0];
+		for (SizeType d = 1; d < TDim; d++)
 		{
-			GlobalPointersVector<Element>& rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
-			for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
-			{
-				ElementCandidates.push_back(rNodeElementCandidates(j));
-			}
+			mMinEdgeLength += Edge[d] * Edge[d];
 		}
 
-		std::vector<IndexType> NodeIds(TNumNodes), ElementNodeIds;
-
-		for (SizeType i=0; i < TNumNodes; i++)
+		for (SizeType j = 2; j < rElemGeom.PointsNumber(); j++)
 		{
-			NodeIds[i] = rGeom[i].Id();
-		}
-
-		std::sort(NodeIds.begin(), NodeIds.end());
-
-		for (SizeType i=0; i < ElementCandidates.size(); i++)
-		{
-			GeometryType& rElemGeom = ElementCandidates[i].GetGeometry();
-			ElementNodeIds.resize(rElemGeom.PointsNumber());
-
-			for (SizeType j=0; j < rElemGeom.PointsNumber(); j++)
+			for (SizeType k = 0; k < j; k++)
 			{
-				ElementNodeIds[j] = rElemGeom[j].Id();
-			}
+				Edge = rElemGeom[j].Coordinates() - rElemGeom[k].Coordinates();
+				EdgeLength = Edge[0] * Edge[0];
 
-			std::sort(ElementNodeIds.begin(), ElementNodeIds.end());
-
-			if ( std::includes(ElementNodeIds.begin(), ElementNodeIds.end(), NodeIds.begin(), NodeIds.end()) )
-			{
-				mpElement = ElementCandidates(i);
-
-				Edge = rElemGeom[1].Coordinates() - rElemGeom[0].Coordinates();
-				mMinEdgeLength = Edge[0]*Edge[0];
-				for (SizeType d=1; d < TDim; d++)
+				for (SizeType d = 1; d < TDim; d++)
 				{
-					mMinEdgeLength += Edge[d]*Edge[d];
+					EdgeLength += Edge[d] * Edge[d];
 				}
 
-				for (SizeType j=2; j < rElemGeom.PointsNumber(); j++)
-				{
-					for(SizeType k=0; k < j; k++)
-					{
-						Edge = rElemGeom[j].Coordinates() - rElemGeom[k].Coordinates();
-						EdgeLength = Edge[0]*Edge[0];
-
-						for (SizeType d = 1; d < TDim; d++)
-						{
-							EdgeLength += Edge[d]*Edge[d];
-						}
-
-						mMinEdgeLength = (EdgeLength < mMinEdgeLength) ? EdgeLength : mMinEdgeLength;
-					}
-				}
-				mMinEdgeLength = sqrt(mMinEdgeLength);
-				return;
+				mMinEdgeLength = (EdgeLength < mMinEdgeLength) ? EdgeLength : mMinEdgeLength;
 			}
 		}
+		mMinEdgeLength = sqrt(mMinEdgeLength);
+		return;
 
-		std::cout << "error in condition -> " << this->Id() << std::endl;
-		KRATOS_THROW_ERROR(std::logic_error, "Condition cannot find parent element","");
 		KRATOS_CATCH("");
 	}
 
-	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-			ProcessInfo& rCurrentProcessInfo) override
+	void CalculateLeftHandSide(
+		MatrixType& rLeftHandSideMatrix,
+		const ProcessInfo& rCurrentProcessInfo) override
 	{
 		VectorType RHS;
 		this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
@@ -341,13 +307,13 @@ public:
 	 */
 	void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo) override
+			const ProcessInfo& rCurrentProcessInfo) override
 	{
 		KRATOS_TRY;
 
 		if (mInitializeWasPerformed == false)
 		{
-		        Initialize();
+		        Initialize(rCurrentProcessInfo);
 		}
 
 		if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
@@ -407,7 +373,7 @@ public:
 	}
 
 	/// Check that all data required by this condition is available and reasonable.
-	int Check(const ProcessInfo& rCurrentProcessInfo) override
+	int Check(const ProcessInfo& rCurrentProcessInfo) const override
 	{
 		KRATOS_TRY;
 
@@ -419,20 +385,6 @@ public:
 		}
 		else
 		{
-			// Check that all required variables have been registered
-			if(VELOCITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-			if(PRESSURE.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
-			if(MESH_VELOCITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
-			if(DENSITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
-			if(VISCOSITY.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
-			if(NORMAL.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"NORMAL Key is 0. Check if the application was correctly registered.","");
-
 			// Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
 			for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
 			{
@@ -466,7 +418,7 @@ public:
 	 * @param rCurrentProcessInfo the current process info object
 	 */
 	void EquationIdVector(EquationIdVectorType& rResult,
-			ProcessInfo& rCurrentProcessInfo) override;
+			const ProcessInfo& rCurrentProcessInfo) const override;
 
 	/// Returns a list of the condition's Dofs.
 	/**
@@ -474,14 +426,14 @@ public:
 	 * @param rCurrentProcessInfo the current process info instance
 	 */
 	void GetDofList(DofsVectorType& rConditionDofList,
-			ProcessInfo& rCurrentProcessInfo) override;
+			const ProcessInfo& rCurrentProcessInfo) const override;
 
 	/// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z) for each node.
 	/**
 	 * @param Values Vector of nodal unknowns
 	 * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
 	 */
-	void GetValuesVector(Vector& Values, int Step = 0) override
+	void GetValuesVector(Vector& Values, int Step = 0) const override
 	{
 		const SizeType LocalSize = TDim * TNumNodes;
 		unsigned int LocalIndex = 0;
@@ -493,7 +445,7 @@ public:
 
 		for (unsigned int i = 0; i < TNumNodes; ++i)
 		{
-			array_1d<double,3>& rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
+			const array_1d<double,3>& rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
 			for (unsigned int d = 0; d < TDim; ++d)
 			{
 				Values[LocalIndex++] = rVelocity[d];
@@ -505,28 +457,33 @@ public:
 	///@name Access
 	///@{
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-            std::vector<array_1d<double, 3 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+		const Variable<array_1d<double, 3 > >& rVariable,
+		std::vector<array_1d<double, 3 > >& rValues,
+		const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-            std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+		const Variable<double>& rVariable,
+		std::vector<double>& rValues,
+		const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-            std::vector<array_1d<double, 6 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+		const Variable<array_1d<double, 6 > >& rVariable,
+		std::vector<array_1d<double, 6 > >& rValues,
+		const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-            std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+		const Variable<Vector>& rVariable,
+		std::vector<Vector>& rValues,
+		const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-            std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+		const Variable<Matrix>& rVariable,
+		std::vector<Matrix>& rValues,
+		const ProcessInfo& rCurrentProcessInfo) override;
 
 	///@}
 	///@name Inquiry
@@ -623,7 +580,7 @@ protected:
 
 		if (WallVelMag > Small)
 		{
-			const ShapeFunctionsType& N = row(this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1),0);
+			const ShapeFunctionsType& N = row(this->GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1),0);
 			EvaluateInPoint(rho, DENSITY, N);
 			EvaluateInPoint(nu, VISCOSITY, N);
 
@@ -671,7 +628,7 @@ protected:
 	 */
 	void ApplyIACPenalty(MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo)
+			const ProcessInfo& rCurrentProcessInfo)
 	{
 		GeometryType& rGeometry = this->GetGeometry();
 		const array_1d<double,3>& rNormal = this->GetValue(NORMAL);

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -539,8 +539,7 @@ class schur_pressure_correction {
             AMGCL_TOC("Update U");
 
             AMGCL_TIC("merge variables");
-            backend::clear(x);
-            backend::spmv(1, *u2x, *u, 1, x);
+            backend::spmv(1, *u2x, *u, 0, x);
             backend::spmv(1, *p2x, *p, 1, x);
             AMGCL_TOC("merge variables");
         }

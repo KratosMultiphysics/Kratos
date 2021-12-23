@@ -12,6 +12,9 @@
         "domain_size"                     : 2,
         "echo_level"                      : 0,
         "analysis_type"                   : "non_linear",
+        "linear_solver_settings"          : {
+            "solver_type"   : "LinearSolversApplication.sparse_qr"
+        },
         "model_import_settings"           : {
             "input_type"     : "mdpa",
             "input_filename" : "mpm_fem_beam/structure"
@@ -51,6 +54,7 @@
             "Parameters"    : {
                 "model_part_name" : "Structure.SelfWeight2D_structure",
                 "variable_name"   : "VOLUME_ACCELERATION",
+                "constrained"     : false,
                 "modulus"         : 9.81,
                 "direction"       : [0.0,-1.0,0.0],
                 "interval"        : [0.0,"End"]
@@ -65,7 +69,8 @@
                 "check_variables"  : ["DISPLACEMENT"],
                 "input_file_name"  : "mpm_fem_beam/cosim_mpm_fem_beam_structure_results.json",
                 "model_part_name"  : "Structure",
-                "time_frequency"   : 1.0
+                "time_frequency"   : 1.0,
+                "tolerance"        : 5e-3
             }
         }]
     },

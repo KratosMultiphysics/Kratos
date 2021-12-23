@@ -174,7 +174,7 @@ public:
     /// Set up the element for solution.
     /** For EmbeddedFluidElement, this initializes the nodal imposed velocity (EMBEDDED_VELOCITY)
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Calculates both LHS and RHS contributions
     /**
@@ -186,7 +186,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Computes an elemental double value
     /**
@@ -245,10 +245,10 @@ public:
     ///@{
 
     /**
-     * @brief Base element GetValueOnIntegrationPoints
+     * @brief Base element CalculateOnIntegrationPoints
      * Called to avoid reimplementing the variable types specializations not required
      */
-    using TBaseElement::GetValueOnIntegrationPoints;
+    using TBaseElement::CalculateOnIntegrationPoints;
 
     /**
      * @brief Get the Value On Integration Points object
@@ -257,7 +257,7 @@ public:
      * @param rValues Computed gauss point values
      * @param rCurrentProcessInfo Current process info
      */
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3>> &rVariable,
         std::vector<array_1d<double, 3>> &rValues,
         const ProcessInfo &rCurrentProcessInfo) override;
@@ -266,11 +266,13 @@ public:
     ///@name Inquiry
     ///@{
 
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output
     ///@{
+
+    const Parameters GetSpecifications() const override;
 
     /// Turn back information as a string.
     std::string Info() const override;
@@ -357,9 +359,12 @@ protected:
     /**
      * This function computes the penalty coefficient for the Nitsche normal imposition
      * @param rData reference to element data structure
+     * @param rN the current Gauss pt. shape functions vector
+     * @return double The normal penalty coefficient value
      */
     double ComputeSlipNormalPenaltyCoefficient(
-        const EmbeddedElementData& rData) const;
+        const EmbeddedElementData& rData,
+        const Vector& rN) const;
 
     /**
      * This function computes the Nitsche coefficients for the Nitsche normal imposition
@@ -390,11 +395,13 @@ protected:
 
     /**
      * This function computes the penalty coefficient for the level set BC imposition
-     * @param rLeftHandSideMatrix reference to the LHS matrix
      * @param rData reference to element data structure
+     * @param rN shape function values for the current Gauss pt
+     * @return double the penalty coefficient value
      */
     double ComputePenaltyCoefficient(
-        const EmbeddedElementData& rData) const;
+        const EmbeddedElementData& rData,
+        const Vector& rN) const;
 
     /**
     * This drops the outer nodes velocity constributions in both LHS and RHS matrices.
@@ -467,6 +474,41 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Calculates the drag force
+     * For an intersected element, this method calculates the drag force.
+     * Note that the drag force includes both the shear and the pressure contributions.
+     * @param rData reference to the embedded elemental data
+     * @param rDragForce reference to the computed drag force
+     */
+    void CalculateDragForce(
+        EmbeddedElementData& rData,
+        array_1d<double,3>& rDragForce) const;
+
+    /**
+     * @brief Calculates the location of the drag force
+     * For an intersected element, this method calculates the drag force location.
+     * Note that the drag force includes both the shear and the pressure contributions.
+     * @param rData reference to the embedded elemental data
+     * @param rDragForce reference to the computed drag force
+     */
+    void CalculateDragForceCenter(
+        EmbeddedElementData& rData,
+        array_1d<double,3>& rDragForceLocation) const;
+
+    /**
+     * @brief Auxiliary method to get the density value
+     * This auxiliary method interfaces the density get in order to make possible the
+     * use of the embedded element with both property-based and nodal-based density formulations.
+     * For the standard case (property-based formulations) the method is not specialized.
+     * In case a nodal density base formulation is used, it needs to be specialized.
+     * @param rData Embedded element data container
+     * @param NodeIndex The local index node for which the density is retrieved (only used in nodal density formulations)
+     * @return double The density value
+     */
+    inline double AuxiliaryDensityGetter(
+        const EmbeddedElementData& rData,
+        const unsigned int NodeIndex) const;
 
     ///@}
     ///@name Private  Access

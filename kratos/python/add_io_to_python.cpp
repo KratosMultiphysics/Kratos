@@ -30,6 +30,7 @@
 // Outputs
 #include "input_output/vtk_output.h"
 #include "input_output/unv_output.h"
+#include "input_output/cad_json_input.h"
 
 #ifdef JSON_INCLUDED
 #include "includes/json_io.h"
@@ -186,6 +187,8 @@ void  AddIOToPython(pybind11::module& m)
     .def("ReadProperties",[](IO& self, Properties& rThisProperties){self.ReadProperties(rThisProperties);})
     .def("ReadProperties",[](IO& self,IO::PropertiesContainerType& rThisProperties){self.ReadProperties(rThisProperties);})
 //     .def("ReadProperties",pointer_to_io_read_properties)
+    .def("ReadGeometries",&IO::ReadGeometries)
+    .def("WriteGeometries",&IO::WriteGeometries)
     .def("ReadElements",&IO::ReadElements)
     .def("WriteElements",&IO::WriteElements)
     .def("ReadConditions",&IO::ReadConditions)
@@ -195,13 +198,14 @@ void  AddIOToPython(pybind11::module& m)
     .def("ReadMesh",&IO::ReadMesh)
     .def("ReadModelPart",&IO::ReadModelPart)
     .def("WriteModelPart",&IO::WriteModelPart)
-	;
-	io_python_interface.attr("READ") = IO::READ;
-	io_python_interface.attr("WRITE") =IO::WRITE;
-	io_python_interface.attr("APPEND") = IO::APPEND;
-	io_python_interface.attr("IGNORE_VARIABLES_ERROR" ) = IO::IGNORE_VARIABLES_ERROR;
-  io_python_interface.attr("SKIP_TIMER" ) = IO::SKIP_TIMER;
-  io_python_interface.attr("MESH_ONLY" ) = IO::MESH_ONLY;
+    ;
+    io_python_interface.attr("READ") = IO::READ;
+    io_python_interface.attr("WRITE") =IO::WRITE;
+    io_python_interface.attr("APPEND") = IO::APPEND;
+    io_python_interface.attr("IGNORE_VARIABLES_ERROR" ) = IO::IGNORE_VARIABLES_ERROR;
+    io_python_interface.attr("SKIP_TIMER" ) = IO::SKIP_TIMER;
+    io_python_interface.attr("MESH_ONLY" ) = IO::MESH_ONLY;
+    io_python_interface.attr("SCIENTIFIC_PRECISION" ) = IO::SCIENTIFIC_PRECISION;
 
     py::class_<ModelPartIO, ModelPartIO::Pointer, IO>(
        m, "ModelPartIO")
@@ -311,7 +315,7 @@ void  AddIOToPython(pybind11::module& m)
     py::class_<VtkOutput, VtkOutput::Pointer, IO>(m, "VtkOutput")
         .def(py::init< ModelPart&>())
         .def(py::init< ModelPart&, Parameters >())
-        .def("PrintOutput", &VtkOutput::PrintOutput)
+        .def("PrintOutput", &VtkOutput::PrintOutput, py::arg("output_filename")="")
         .def_static("GetDefaultParameters", &VtkOutput::GetDefaultParameters)
         ;
 
@@ -323,6 +327,15 @@ void  AddIOToPython(pybind11::module& m)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<int>&, const double)) &UnvOutput::WriteNodalResults)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<double>&, const double)) &UnvOutput::WriteNodalResults)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<array_1d<double,3>>&, const double)) &UnvOutput::WriteNodalResults)
+        ;
+
+    // Import of CAD models to the model part
+    py::class_<CadJsonInput<>, CadJsonInput<>::Pointer>(m, "CadJsonInput")
+        .def(py::init<const std::string &>())
+        .def(py::init<const std::string&, std::size_t>())
+        .def(py::init<Parameters>())
+        .def(py::init<Parameters, std::size_t>())
+        .def("ReadModelPart", &CadJsonInput<>::ReadModelPart)
         ;
 }
 }  // namespace Python.

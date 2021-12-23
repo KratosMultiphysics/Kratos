@@ -28,14 +28,14 @@ template <class TVarType>
 void EmbeddedNodalVariableCalculationElementSimplex<TVarType>::CalculateLocalSystem(
     MatrixType &rLeftHandSideMatrix,
     VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo)
 {
     this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
     this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template <>
-int EmbeddedNodalVariableCalculationElementSimplex<double>::Check(const ProcessInfo &rCurrentProcessInfo)
+int EmbeddedNodalVariableCalculationElementSimplex<double>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -56,7 +56,7 @@ int EmbeddedNodalVariableCalculationElementSimplex<double>::Check(const ProcessI
 }
 
 template <>
-int EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>::Check(const ProcessInfo &rCurrentProcessInfo)
+int EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -79,7 +79,7 @@ int EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>::Check(co
 template <>
 void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateLeftHandSide(
     MatrixType &rLeftHandSideMatrix,
-    ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo)
 {
     // Check size
     if (rLeftHandSideMatrix.size1() != 2 || rLeftHandSideMatrix.size2() != 2) {
@@ -102,7 +102,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateLeftHandSi
 template <>
 void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>::CalculateLeftHandSide(
     MatrixType &rLeftHandSideMatrix,
-    ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo)
 {
     // Check size
     if (rLeftHandSideMatrix.size1() != 6 || rLeftHandSideMatrix.size2() != 6) {
@@ -130,7 +130,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>::Calcula
 template <>
 void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateRightHandSide(
     VectorType &rRigthHandSideVector,
-    ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo)
 {
     // Check size
     if (rRigthHandSideVector.size() != 2) {
@@ -156,7 +156,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateRightHandS
 template <>
 void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::CalculateRightHandSide(
     VectorType &rRigthHandSideVector,
-    ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo)
 {
     // Check size
     if (rRigthHandSideVector.size() != 6) {
@@ -185,7 +185,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::Calcul
 template <>
 void EmbeddedNodalVariableCalculationElementSimplex<double>::EquationIdVector(
     EquationIdVectorType &rResult,
-    ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo) const
 {
     if (rResult.size() != 2) {
         rResult.resize(2, false);
@@ -200,7 +200,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::EquationIdVector(
 template <>
 void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::EquationIdVector(
     EquationIdVectorType &rResult,
-    ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo) const
 {
     if (rResult.size() != 6) {
         rResult.resize(6, false);
@@ -217,7 +217,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::Equati
 template <>
 void EmbeddedNodalVariableCalculationElementSimplex<double>::GetDofList(
     DofsVectorType &rElementalDofList,
-    ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo) const
 {
     if (rElementalDofList.size() != 2) {
         rElementalDofList.resize(2);
@@ -231,7 +231,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::GetDofList(
 template <>
 void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::GetDofList(
     DofsVectorType &rElementalDofList,
-    ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo) const
 {
     if (rElementalDofList.size() != 6) {
         rElementalDofList.resize(6);

@@ -134,6 +134,15 @@ public:
             rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient);
     }
 
+    void CalculateGradient(
+        const Condition& rAdjointCondition,
+        const Matrix& rResidualGradient,
+        Vector& rResponseGradient,
+        const ProcessInfo& rProcessInfo) override
+    {
+        rResponseGradient.clear();
+    }
+
     void CalculateFirstDerivativesGradient(const Element& rAdjointElement,
                                            const Matrix& rResidualGradient,
                                            Vector& rResponseGradient,
@@ -158,6 +167,14 @@ public:
     {
         CalculateDragContribution(
             rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient);
+    }
+
+    void CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
+                                            const Matrix& rResidualGradient,
+                                            Vector& rResponseGradient,
+                                            const ProcessInfo& rProcessInfo) override
+    {
+        rResponseGradient.clear();
     }
 
     void CalculatePartialSensitivity(Element& rAdjointElement,

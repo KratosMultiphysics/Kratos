@@ -18,7 +18,6 @@
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -31,9 +30,6 @@ namespace Kratos
 
     /// The size type definition
     typedef std::size_t SizeType;
-
-    /// Component variable type
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > >  ComponentType;
 
 ///@}
 ///@name  Enum's
@@ -94,7 +90,7 @@ namespace Kratos
  * @ingroup MeshingApplication
  * @brief This class is can be used to compute the metrics of the model part with an Hessian approach
  * @details References:
- *         [1] F. Alauzet, Metric-based anisotropic mesh adaptation, CEA-EDF-INRIA schools: Numerical Analysis Summer School. CEA, Cadarache, France
+ *         [1] P.J. Frey, F. Alauzet; Anisotropic mesh adaptation for CFD computations; Comput. Methods Appl. Mech. Engrg. 194 (2005) 5068–5082
  * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(MESHING_APPLICATION) ComputeHessianSolMetricProcess
@@ -128,6 +124,11 @@ public:
      */
     enum class Interpolation {CONSTANT = 0, LINEAR = 1, EXPONENTIAL = 2};
 
+    /**
+     * @brief This enums allows to differentiate the normalization types
+     */
+    enum class Normalization {CONSTANT = 0, VALUE = 1, NORM_GRADIENT = 2};
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -145,7 +146,7 @@ public:
         );
 
     /**
-     * @brief This is the default constructor (double)
+     * @brief This is the default constructor
      * @param rThisModelPart The model part to be computed
      * @param rVariable The variable to compute
      * @param ThisParameters The input parameters
@@ -153,18 +154,6 @@ public:
     ComputeHessianSolMetricProcess(
         ModelPart& rThisModelPart,
         Variable<double>& rVariable,
-        Parameters ThisParameters = Parameters(R"({})")
-        );
-
-    /**
-     * @brief This is the default constructor (component)
-     * @param rThisModelPart The model part to be computed
-     * @param rVariable The variable to compute
-     * @param ThisParameters The input parameters
-     */
-    ComputeHessianSolMetricProcess(
-        ModelPart& rThisModelPart,
-        ComponentType& rVariable,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
@@ -187,8 +176,12 @@ public:
     /**
      * @brief We initialize the metrics of the MMG sol using the Hessian metric matrix approach
      */
-
     void Execute() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -269,8 +262,7 @@ private:
     ModelPart& mrModelPart;                                           /// The model part to compute
 
     bool mNonHistoricalVariable = false;                              /// If the variable is non-historical
-    std::vector<const Variable<double>*> mrOriginVariableDoubleList;  /// The scalar variable list to compute
-    std::vector<const ComponentType*> mrOriginVariableComponentsList; /// The scalar variable list to compute (components)
+    const Variable<double>* mpOriginVariable;                         /// The scalar variable list to compute
     const Variable<double>* mpRatioReferenceVariable;                 /// Variable used to compute the anisotropic ratio
 
     Parameters mThisParameters;                                       /// Here configurations are stored
@@ -291,7 +283,7 @@ private:
      * @param rAuxiliarHessianComputationVariables Struct containing several variables
      */
     template<SizeType TDim>
-    array_1d<double, 3 * (TDim - 1)> ComputeHessianMetricTensor(
+    static array_1d<double, 3 * (TDim - 1)> ComputeHessianMetricTensor(
         const Vector& rHessian,
         const AuxiliarHessianComputationVariables& rAuxiliarHessianComputationVariables
         );
@@ -303,8 +295,8 @@ private:
 
     /**
      * @brief This converts the interpolation string to an enum
-     * @param Str The string that you want to comvert in the equivalent enum
-     * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
+     * @param Str The string that you want to convert in the equivalent enum
+     * @return Interpolation: The equivalent enum (this requires less memmory and is eassier to compare than a std::string)
      */
     Interpolation ConvertInter(const std::string& Str)
     {
@@ -319,13 +311,30 @@ private:
     }
 
     /**
+     * @brief This converts the normalization string to an enum
+     * @param Str The string that you want to convert in the equivalent enum
+     * @return Normalization: The equivalent enum (this requires less memmory and is eassier to compare than a std::string)
+     */
+    Normalization ConvertNormalization(const std::string& Str)
+    {
+        if(Str == "Constant" || Str == "CONSTANT" || Str == "constant")
+            return Normalization::CONSTANT;
+        else if(Str == "Value" || Str == "VALUE" || Str == "value")
+            return Normalization::VALUE;
+        else if(Str == "Norm_Gradient" || Str == "NORM_GRADIENT" || Str == "norm_gradient")
+            return Normalization::NORM_GRADIENT;
+        else
+            return Normalization::CONSTANT;
+    }
+
+    /**
      * @brief This calculates the anisotropic ratio
      * @param Distance Distance parameter
      * @param AnisotropicRatio The anisotropic ratio
      * @param BoundLayer The boundary layer limit
      * @param rInterpolation The type of interpolation
      */
-    double CalculateAnisotropicRatio(
+    static double CalculateAnisotropicRatio(
         const double Distance,
         const double AnisotropicRatio,
         const double BoundLayer,
@@ -337,11 +346,6 @@ private:
      */
     template<SizeType TDim>
     void CalculateMetric();
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters() const;
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors

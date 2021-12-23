@@ -59,7 +59,7 @@ fluid_model_part.SetBufferSize(2)
 # neighbour search
 number_of_avg_elems = 10
 number_of_avg_nodes = 10
-neighbour_search = FindNodalNeighboursProcess(fluid_model_part, number_of_avg_elems, number_of_avg_nodes)
+neighbour_search = FindNodalNeighboursProcess(fluid_model_part)
 (neighbour_search).Execute()
 
 # adding dofs

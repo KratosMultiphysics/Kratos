@@ -48,7 +48,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class CamClayHardeningLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CamClayHardeningLaw
         : public ParticleHardeningLaw
 {
 public:

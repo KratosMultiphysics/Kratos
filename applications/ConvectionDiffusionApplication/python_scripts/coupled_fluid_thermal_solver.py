@@ -16,9 +16,8 @@ def CreateSolver(main_model_part, custom_settings):
 
 class CoupledFluidThermalSolver(PythonSolver):
 
-    def __init__(self, model, custom_settings):
-
-        super(CoupledFluidThermalSolver, self).__init__(model, custom_settings)
+    @classmethod
+    def GetDefaultParameters(cls):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -45,8 +44,12 @@ class CoupledFluidThermalSolver(PythonSolver):
         }
         """)
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
+        return default_settings
+
+    def __init__(self, model, custom_settings):
+
+        super(CoupledFluidThermalSolver, self).__init__(model, custom_settings)
 
         ## Get domain size
         self.domain_size = self.settings["domain_size"].GetInt()

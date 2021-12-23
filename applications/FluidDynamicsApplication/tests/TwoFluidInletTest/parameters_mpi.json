@@ -14,6 +14,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "TwoFluidInletTest/test_inlet"
         },
+        "material_import_settings": {
+            "materials_filename": "TwoFluidInletTest/materials.json"
+        },
 		"maximum_iterations"			: 3,
     	"formulation": {
         	"dynamic_tau": 1.0
@@ -48,7 +51,10 @@
             "block_size" : 3,
             "use_block_matrices_if_possible" : true,
             "coarse_enough" : 500
-    	}
+    	},
+        "distance_modification_settings": {
+            "distance_threshold": 0.0000001
+        }
     },
 	"processes"	:	{
     	"initial_conditions_process_list"  : [],
@@ -63,16 +69,12 @@
                 "inlet_transition_radius": 0.5
             },
             "fluid_1_settings" : {
-                "model_part_name": "fluid_1_inlet",
-                "variable_name": "VELOCITY",
                 "modulus": "2.0*z",
                 "constrained": true,
                 "direction": [1.0,0.0,0.0],
                 "interval": [0.0,"End"]
             },
             "fluid_2_settings" : {
-                "model_part_name": "fluid_2_inlet",
-                "variable_name": "VELOCITY",
                 "modulus": 0.1,
                 "constrained": true,
                 "direction": [1.0,0.0,0.0],
@@ -103,26 +105,14 @@
         	"kratos_module" : "KratosMultiphysics",
         	"process_name"  : "AssignVectorByDirectionProcess",
         	"Parameters"    : {
-            	"model_part_name" : "Parts_Fluid",
+            	"model_part_name" : "FluidModelPart.Parts_Fluid",
             	"variable_name"   : "BODY_FORCE",
             	"modulus"         : 9.81,
             	"constrained"     : false,
             	"direction"       : [0.0,0.0,-1.0]
         	}
     	}],
-    	"auxiliar_process_list"            : [{
-        	"python_module" : "apply_distance_modification_process",
-        	"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        	"process_name"  : "ApplyDistanceModificationProcess",
-        	"Parameters"    : {
-            	"model_part_name"                        : "Parts_Fluid",
-            	"distance_threshold"                     : 0.0000001,
-            	"check_at_each_time_step"                : false,
-            	"avoid_almost_empty_elements"            : true,
-            	"deactivate_full_negative_elements"      : false,
-            	"recover_original_distance_at_each_step" : false
-        	}
-    	}]
+    	"auxiliar_process_list"            : []
 	},
 	"output_processes" 	:	{}
 }

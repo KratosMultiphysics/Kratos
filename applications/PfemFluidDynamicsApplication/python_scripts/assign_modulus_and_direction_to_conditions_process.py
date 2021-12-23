@@ -75,7 +75,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         elif( self.interval[0] < 0 ):
             self.interval_string = "start"
             self.interval[0] = 0.0
-            
+
         ##check normalized direction
         direction   = []
         scalar_prod = 0
@@ -108,11 +108,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         else:
 
             self.function_expression = self.settings["modulus"].GetString()
-
-            if (sys.version_info > (3, 0)):
-                self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval', optimize=2))
-            else:
-                self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval'))
+            self.compiled_function = compiled_time_spatial_function(compile(self.function_expression, '', 'eval', optimize=2))            
 
             self.value_is_spatial_function = True
 
@@ -129,8 +125,8 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
         # set model part
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
-        if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
+        
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
         # set processes
         params = KratosMultiphysics.Parameters("{}")

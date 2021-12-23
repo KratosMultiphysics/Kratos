@@ -60,7 +60,7 @@ namespace Kratos
          typedef LargeDisplacementElement::ElementDataType ElementDataType;
 
          /// Counted pointer of LargeDisplacementUPElement
-         KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUJElement );
+         KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianUJElement );
          ///@}
 
          ///@name Life Cycle
@@ -121,7 +121,7 @@ namespace Kratos
          /**
           * Set a double  Value on the Element Constitutive Law
           */
-         void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+         void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
          //GET:
@@ -162,17 +162,17 @@ namespace Kratos
          /**
           * Sets on rValues the nodal displacements
           */
-         void GetValuesVector(Vector& rValues, int Step = 0) override;
+         void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
          /**
           * Sets on rValues the nodal velocities
           */
-         void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+         void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
          /**
           * Sets on rValues the nodal accelerations
           */
-         void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+         void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
          /**
           * Called at the end of eahc solution step
@@ -276,7 +276,7 @@ namespace Kratos
          /**
           * Get element size from the dofs
           */
-         virtual SizeType GetDofsSize() override;
+         virtual SizeType GetDofsSize() const override;
 
          /**
           * Calculates the elemental contributions

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -126,6 +126,8 @@ struct ruge_stuben {
         std::vector<ptrdiff_t> cidx(n);
         for(size_t i = 0; i < n; ++i)
             if (cf[i] == 'C') cidx[i] = static_cast<ptrdiff_t>(nc++);
+
+        if (!nc) throw error::empty_level();
 
         auto P = std::make_shared<Matrix>();
         P->set_size(n, nc, true);

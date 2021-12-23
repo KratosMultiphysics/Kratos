@@ -126,7 +126,7 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<bool> rVariable, ModelPart& rModelPart,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<bool>& rVariable, ModelPart& rModelPart,
                                double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {
@@ -138,7 +138,7 @@ public:
             if( mMeshElements.size() != 0 ) {
                 for( auto it = mMeshElements.begin(); it != mMeshElements.end(); it++ ) {
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
                             int index = mIndexContainer[i];
@@ -151,7 +151,7 @@ public:
                 for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
                             int index = mIndexContainer[i];
@@ -164,7 +164,7 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& rModelPart,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<int>& rVariable, ModelPart& rModelPart,
                                double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {
@@ -175,7 +175,7 @@ public:
             if( mMeshElements.size() != 0 ) {
                 for( auto it = mMeshElements.begin(); it != mMeshElements.end(); it++ ) {
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
                             int index = mIndexContainer[i];
@@ -187,7 +187,7 @@ public:
             if( mMeshConditions.size() != 0 ) {
                 for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
                             int index = mIndexContainer[i];
@@ -200,7 +200,7 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& rModelPart,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<double>& rVariable, ModelPart& rModelPart,
                                double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
@@ -212,7 +212,7 @@ public:
             if( mMeshElements.size() != 0 ) {
                 for( auto it = mMeshElements.begin(); it != mMeshElements.end(); it++ ) {
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
                             int index = mIndexContainer[i];
@@ -224,7 +224,7 @@ public:
             if( mMeshConditions.size() != 0 ) {
                 for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
                             int index = mIndexContainer[i];
@@ -237,7 +237,7 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double,3> > rVariable, ModelPart& rModelPart,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<double,3> >& rVariable, ModelPart& rModelPart,
                                double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {
@@ -248,7 +248,7 @@ public:
             if( mMeshElements.size() != 0 ) {
                 for( auto it = mMeshElements.begin(); it != mMeshElements.end(); it++ ) {
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
                             int index = mIndexContainer[i];
@@ -262,7 +262,7 @@ public:
             if( mMeshConditions.size() != 0 ) {
                 for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
                             int index = mIndexContainer[i];
@@ -276,7 +276,7 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double,6> > rVariable, ModelPart& rModelPart,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<double,6> >& rVariable, ModelPart& rModelPart,
                                double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
@@ -289,7 +289,7 @@ public:
                 for( auto it = mMeshElements.begin(); it != mMeshElements.end(); ++it ) {
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
                             int index = mIndexContainer[i];
@@ -304,7 +304,7 @@ public:
             if( mMeshConditions.size() != 0 ) {
                 for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
                             int index = mIndexContainer[i];
@@ -321,7 +321,7 @@ public:
     }
 
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<Vector> rVariable, ModelPart& rModelPart,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<Vector>& rVariable, ModelPart& rModelPart,
                                double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
@@ -334,7 +334,7 @@ public:
             if( mMeshElements.size() != 0 ) {
                 for( auto it = mMeshElements.begin(); it != mMeshElements.end(); ++it ) {
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
                             int index = mIndexContainer[i];
@@ -351,7 +351,7 @@ public:
             if( mMeshConditions.size() != 0 ) {
                 for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
                             int index = mIndexContainer[i];
@@ -369,7 +369,7 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<Matrix> rVariable, ModelPart& rModelPart,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<Matrix>& rVariable, ModelPart& rModelPart,
                                double SolutionTag, int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {
@@ -380,7 +380,7 @@ public:
             if( mMeshElements.size() != 0 ) {
                 for( auto it = mMeshElements.begin(); it != mMeshElements.end(); ++it ) {
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++) {
                             int index = mIndexContainer[i];
@@ -427,7 +427,7 @@ public:
             if( mMeshConditions.size() != 0 ) {
                 for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
 
                         if (ValuesOnIntPoint[0].size1() == 0 && ValuesOnIntPoint[0].size2() == 0) {

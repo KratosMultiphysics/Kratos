@@ -12,14 +12,51 @@
 
 // Project includes
 #include "sub_model_part_skin_detection_process.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
 
 template<SizeType TDim>
+void SubModelPartSkinDetectionProcess<TDim>::SelectIfAllNodesOnSubModelPart::Prepare(ModelPart& rMainModelPart) const
+{
+    VariableUtils().SetFlag(SubModelPartSkinDetectionProcess::NODE_SELECTED, true, rMainModelPart.GetSubModelPart(mName).Nodes());
+}
+
+template<SizeType TDim>
+bool SubModelPartSkinDetectionProcess<TDim>::SelectIfAllNodesOnSubModelPart::IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const
+{
+    bool select = true;
+    for (auto i_node = rNodes.begin(); i_node != rNodes.end(); ++i_node) {
+        select &= i_node->Is(SubModelPartSkinDetectionProcess::NODE_SELECTED);
+    }
+    return select;
+}
+
+template<SizeType TDim>
+void SubModelPartSkinDetectionProcess<TDim>::SelectIfOneNodeNotOnSubModelPart::Prepare(ModelPart& rMainModelPart) const
+{
+    VariableUtils().SetFlag(SubModelPartSkinDetectionProcess::NODE_SELECTED, true, rMainModelPart.Nodes());
+    for (const auto& r_name : mNames) {
+        VariableUtils().SetFlag(SubModelPartSkinDetectionProcess::NODE_SELECTED, false, rMainModelPart.GetSubModelPart(r_name).Nodes());
+    }
+}
+
+template<SizeType TDim>
+bool SubModelPartSkinDetectionProcess<TDim>::SelectIfOneNodeNotOnSubModelPart::IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const
+{
+    for (const auto& r_node : rNodes) {
+        if (r_node.Is(SubModelPartSkinDetectionProcess::NODE_SELECTED)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template<SizeType TDim>
 SubModelPartSkinDetectionProcess<TDim>::SubModelPartSkinDetectionProcess(
     ModelPart& rModelPart, Parameters Settings)
-    : SkinDetectionProcess<TDim>(rModelPart, Settings, this->GetDefaultSettings())
+    : SkinDetectionProcess<TDim>(rModelPart, Settings, this->GetDefaultParameters())
 {
     KRATOS_TRY;
 
@@ -33,9 +70,15 @@ SubModelPartSkinDetectionProcess<TDim>::SubModelPartSkinDetectionProcess(
         mpFaceSelector = Kratos::make_shared<SelectIfAllNodesOnSubModelPart>(
             settings["selection_settings"]["sub_model_part_name"].GetString()
         );
-    }
-    else
-    {
+   } else if (settings["selection_criteria"].GetString() == "node_not_on_sub_model_part") {
+        KRATOS_ERROR_IF_NOT(settings["selection_settings"].Has("sub_model_part_names"))
+        << "When using \"selection_criteria\" == \"node_not_on_sub_model_part\","
+        << " SubModelPartSkinDetectionProcess requires the name of the target SubModelParts,"
+        << " given as the \"sub_model_part_names\" string array argument." << std::endl;
+        mpFaceSelector = Kratos::make_shared<SelectIfOneNodeNotOnSubModelPart>(
+            settings["selection_settings"]["sub_model_part_names"].GetStringArray()
+        );
+    } else {
         KRATOS_ERROR << "Unsupported \"selection_criteria\" \"" << settings["selection_criteria"].GetString() << "\"." << std::endl;
     }
 
@@ -59,6 +102,7 @@ void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
     const std::string& rConditionName) const
 {
     IndexType condition_id = rMainModelPart.GetRootModelPart().Conditions().size();
+    const auto& r_process_info = rMainModelPart.GetProcessInfo();
 
     // Create the auxiliar conditions
     for (auto& map : rInverseFaceMap) {
@@ -87,7 +131,7 @@ void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
             auto p_cond = rMainModelPart.CreateNewCondition(complete_name, condition_id, condition_nodes, p_prop);
             rSkinModelPart.AddCondition(p_cond);
             p_cond->Set(INTERFACE, true);
-            p_cond->Initialize();
+            p_cond->Initialize(r_process_info);
 
             for (auto& index : nodes_face)
                 rNodesInTheSkin.insert(index);
@@ -96,13 +140,14 @@ void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
 }
 
 template<SizeType TDim>
-Parameters SubModelPartSkinDetectionProcess<TDim>::GetDefaultSettings() const
+const Parameters SubModelPartSkinDetectionProcess<TDim>::GetDefaultParameters() const
 {
-    Parameters defaults = SkinDetectionProcess<TDim>::GetDefaultSettings();
+    Parameters defaults = SkinDetectionProcess<TDim>::GetDefaultParameters();
     defaults.AddEmptyValue("selection_criteria");
     defaults["selection_criteria"].SetString("");
     defaults.AddValue("selection_settings", Parameters("{}"));
-    return defaults;
+    const Parameters const_defaults(defaults);
+    return const_defaults;
 }
 
 // Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
@@ -114,5 +159,3 @@ template class SubModelPartSkinDetectionProcess<2>;
 template class SubModelPartSkinDetectionProcess<3>;
 
 }  // namespace Kratos.
-
-

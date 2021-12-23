@@ -177,7 +177,7 @@ namespace Kratos
 
       for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(); pElement != rModelPart.ElementsEnd() ; pElement++)
       {
-         pElement->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo); 
+         pElement->SetValuesOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo); 
       }
       // AND NOW SET THE WATER PRESSURE
 
@@ -286,7 +286,7 @@ namespace Kratos
       for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(); pElement != rModelPart.ElementsEnd(); pElement++)
       {
          //pElement->SetInitialMechanicalState( StressVector );  // to be ...
-         pElement->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
+         pElement->SetValuesOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
       }
 
    }
@@ -372,7 +372,7 @@ namespace Kratos
             StressVector.push_back(ThisVector);
          }
 
-         pElement->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
+         pElement->SetValuesOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
       }
 
 
@@ -417,7 +417,7 @@ namespace Kratos
             StressVector.push_back(ThisVector);
          }
          //pElement->SetInitialMechanicalState( StressVector ); to be ...
-         pElement->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
+         pElement->SetValuesOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
       }
 
       // THE PART TO PUT THE PRESSURE FOR THE NEW ELEMENTS.
@@ -517,7 +517,7 @@ namespace Kratos
             ThisVector(2) = HorizontalStress;
             StressVector.push_back(ThisVector);
          }
-         pElement->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
+         pElement->SetValuesOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo);
       }
 
 

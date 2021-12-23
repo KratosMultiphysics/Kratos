@@ -82,6 +82,8 @@ namespace Kratos {
             auto p_coupling_geometry = Kratos::make_shared<CouplingGeometry<NodeType>>(
                 p_triangle_master, p_triangle_slave);
 
+            p_coupling_geometry->SetId(1);
+
             KRATOS_CHECK_EQUAL(p_coupling_geometry->Dimension(), 2);
             KRATOS_CHECK_EQUAL(p_coupling_geometry->WorkingSpaceDimension(), 2);
             KRATOS_CHECK_EQUAL(p_coupling_geometry->LocalSpaceDimension(), 2);
@@ -94,12 +96,19 @@ namespace Kratos {
             // Check if geometry 2 can be found.
             KRATOS_CHECK_EQUAL(p_coupling_geometry->GetGeometryPart(CouplingGeometry<Node<3>>::Slave).Dimension(), 2);
 
-            KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(p_coupling_geometry->GetGeometryPart(2), "Index 2 out of range. Composite contains only of: 2 geometries.")
+            KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(
+                p_coupling_geometry->GetGeometryPart(2),
+                "Index 2 out of range. CouplingGeometry #1 has 2 geometries.")
 
             std::size_t index = p_coupling_geometry->AddGeometryPart(p_triangle_second_slave);
             p_coupling_geometry->SetGeometryPart(index, p_triangle_third_slave);
 
             KRATOS_CHECK_EQUAL(p_coupling_geometry->NumberOfGeometryParts(), 3);
+
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->HasGeometryPart(0), true);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->HasGeometryPart(1), true);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->HasGeometryPart(2), true);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->HasGeometryPart(3), false);
 
             // Check the nodes are preserved
             auto& r_geometry_master = *p_triangle_master;
@@ -114,8 +123,11 @@ namespace Kratos {
                 KRATOS_CHECK_EQUAL(r_geometry_1[i].Id(), r_geometry_slave[i].Id());
                 KRATOS_CHECK_LESS(norm_2(r_geometry_1[i].Coordinates() - r_geometry_slave[i].Coordinates()), 1.0e-6);
             }
+
+            p_coupling_geometry->RemoveGeometryPart(p_triangle_second_slave);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->NumberOfGeometryParts(), 2);
         }
-      
+
         /**
          * Test for checking using with elements
          * Test 2

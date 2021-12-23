@@ -29,8 +29,8 @@ AxisymmetricUpdatedLagrangianElement::AxisymmetricUpdatedLagrangianElement( Inde
     : LargeDisplacementElement( NewId, pGeometry, pProperties )
 {
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-    //mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
-    //mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+    //mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+    //mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 
@@ -134,8 +134,8 @@ AxisymmetricUpdatedLagrangianElement::~AxisymmetricUpdatedLagrangianElement()
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
-        std::vector<double>& rValues,
+void AxisymmetricUpdatedLagrangianElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
+        const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
 
@@ -153,7 +153,7 @@ void AxisymmetricUpdatedLagrangianElement::SetValueOnIntegrationPoints( const Va
   }
   else{
 
-    LargeDisplacementElement::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementElement::SetValuesOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 
@@ -168,7 +168,7 @@ void AxisymmetricUpdatedLagrangianElement::SetValueOnIntegrationPoints( const Va
 //************************************************************************************
 
 
-void AxisymmetricUpdatedLagrangianElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void AxisymmetricUpdatedLagrangianElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -188,7 +188,7 @@ void AxisymmetricUpdatedLagrangianElement::GetValueOnIntegrationPoints( const Va
   }
   else{
 
-    LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 
@@ -199,11 +199,11 @@ void AxisymmetricUpdatedLagrangianElement::GetValueOnIntegrationPoints( const Va
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianElement::Initialize()
+void AxisymmetricUpdatedLagrangianElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    LargeDisplacementElement::Initialize();
+    LargeDisplacementElement::Initialize(rCurrentProcessInfo);
 
     SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
@@ -734,7 +734,7 @@ double& AxisymmetricUpdatedLagrangianElement::CalculateVolumeChange( double& rVo
 //************************************************************************************
 //************************************************************************************
 
-int AxisymmetricUpdatedLagrangianElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int AxisymmetricUpdatedLagrangianElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -746,7 +746,7 @@ int AxisymmetricUpdatedLagrangianElement::Check( const ProcessInfo& rCurrentProc
     for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
-	Node<3> &rNode = this->GetGeometry()[i];
+	const Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
 	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
 

@@ -1,10 +1,11 @@
-// KRATOS  ___|  |       |       |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//           | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License: BSD License
-//   license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:  Vicente Mataix Ferrandiz
 //
@@ -95,7 +96,7 @@ namespace Kratos
             MortarKinematicVariablesWithDerivatives<TDim, TNumNodes> rVariables; // These are the kinematic variables for the current configuration
 
             // Create the initial contact data
-            DerivativeData<TDim, TNumNodes, true> rDerivativeData0;
+            DerivativeData<TDim, TNumNodes> rDerivativeData0;
             rDerivativeData0.Initialize(r_slave_geometry_0, rModelPart.GetProcessInfo());
 
             // We call the exact integration utility
@@ -146,7 +147,7 @@ namespace Kratos
                 }
 
                 // Create the current contact data
-                DerivativeData<TDim, TNumNodes, true> rDerivativeData;
+                DerivativeData<TDim, TNumNodes> rDerivativeData;
                 rDerivativeData.Initialize(r_slave_geometry_1, rModelPart.GetProcessInfo());
 
                 // We compute the normal derivatives
@@ -165,11 +166,9 @@ namespace Kratos
                 const bool is_inside0 = integration_utility.GetExactIntegration(r_slave_geometry_0, r_normal_slave_0, r_master_geometry_0, r_normal_master_0, conditions_points_slave0);
                 const bool is_inside = integration_utility.GetExactIntegration(r_slave_geometry_1, r_normal_slave_1, r_master_geometry_1, r_normal_master_1, conditions_points_slave);
 
-                IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_2;
+                IntegrationMethod this_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
                 if (is_inside && is_inside0) {
-                    // if (Check == CheckLevel::LEVEL_FULL_DEBUG) IntegrationUtility::MathematicaDebug(SlaveCondition1->Id(), r_slave_geometry_1, MasterCondition1->Id(), r_master_geometry_1, conditions_points_slave);
-
                     // Initialize general variables for the current master element
                     rVariables0.Initialize();
                     rVariables.Initialize();
@@ -480,9 +479,9 @@ namespace Kratos
                 rModelPart.CreateNewNode(8, rModelPart.pGetNode(4)->X(), rModelPart.pGetNode(4)->Y(), rModelPart.pGetNode(4)->Z());
 
                 // Now we create the "conditions"
-                Condition::Pointer p_cond_0 = rModelPart.CreateNewCondition("Condition2D2N", 1, {{1, 2}}, p_cond_prop);
+                Condition::Pointer p_cond_0 = rModelPart.CreateNewCondition("LineCondition2D2N", 1, {{1, 2}}, p_cond_prop);
                 const array_1d<double, 3>& normal_0 = p_cond_0->GetGeometry().UnitNormal(aux_point);
-                Condition::Pointer p_cond0_0 = rModelPart.CreateNewCondition("Condition2D2N", 3, {{5, 6}}, p_cond_prop);
+                Condition::Pointer p_cond0_0 = rModelPart.CreateNewCondition("LineCondition2D2N", 3, {{5, 6}}, p_cond_prop);
 
                 p_cond0_0->SetValue(NORMAL, normal_0);
                 p_cond_0->SetValue(NORMAL, normal_0);
@@ -494,9 +493,9 @@ namespace Kratos
                     p_cond_0->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
                 }
 
-                Condition::Pointer p_cond_1 = rModelPart.CreateNewCondition("Condition2D2N", 2, {{3, 4}}, p_cond_prop);
+                Condition::Pointer p_cond_1 = rModelPart.CreateNewCondition("LineCondition2D2N", 2, {{3, 4}}, p_cond_prop);
                 const array_1d<double, 3>& normal_1 = p_cond_1->GetGeometry().UnitNormal(aux_point);
-                Condition::Pointer p_cond0_1 = rModelPart.CreateNewCondition("Condition2D2N", 4, {{7, 8}}, p_cond_prop);
+                Condition::Pointer p_cond0_1 = rModelPart.CreateNewCondition("LineCondition2D2N", 4, {{7, 8}}, p_cond_prop);
 
                 p_cond0_1->SetValue(NORMAL, normal_1);
                 p_cond_1->SetValue(NORMAL, normal_1);

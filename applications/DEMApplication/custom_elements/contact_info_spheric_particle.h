@@ -60,31 +60,18 @@ void PrintInfo(std::ostream& rOStream) const override {rOStream << "ContactInfoS
 /// Print object's data.
 void PrintData(std::ostream& rOStream) const override {}
 
-virtual double GetAmountOfCohesionFromStress();
-void   SetAmountOfCohesionFromStressFromProperties(double* amount_of_cohesion_from_stress);
-virtual double GetParticleConicalDamageContactRadius();
-void   SetParticleConicalDamageContactRadiusFromProperties(double* particle_contact_radius);
-virtual double GetParticleConicalDamageMaxStress();
-void   SetParticleConicalDamageMaxStressFromProperties(double* particle_max_stress);
-virtual double GetParticleConicalDamageGamma();
-void   SetParticleConicalDamageGammaFromProperties(double* particle_gamma);
-virtual double GetLevelOfFouling();
-void   SetLevelOfFoulingFromProperties(double* level_of_fouling);
-
-double SlowGetAmountOfCohesionFromStress();
-double SlowGetParticleConicalDamageContactRadius();
-double SlowGetParticleConicalDamageMaxStress();
-double SlowGetParticleConicalDamageGamma();
-double SlowGetLevelOfFouling();
-
 std::vector<double> mNeighbourContactRadius;
 std::vector<double> mNeighbourRigidContactRadius;
 std::vector<double> mNeighbourIndentation;
 std::vector<double> mNeighbourRigidIndentation;
-std::vector<double> mNeighbourTgOfFriAng;
-std::vector<double> mNeighbourRigidTgOfFriAng;
+std::vector<double> mNeighbourTgOfStatFriAng;
+std::vector<double> mNeighbourTgOfDynFriAng;
+std::vector<double> mNeighbourRigidTgOfStatFriAng;
+std::vector<double> mNeighbourRigidTgOfDynFriAng;
 std::vector<double> mNeighbourContactStress;
 std::vector<double> mNeighbourRigidContactStress;
+std::vector<double> mNeighbourCohesion;
+std::vector<double> mNeighbourRigidCohesion;
 
 protected:
 

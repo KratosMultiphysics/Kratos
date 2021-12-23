@@ -101,6 +101,7 @@
                 "model_part_name"             : "Structure",
                 "assume_master_slave"         : { "0" : ["Parts_Parts_Auto2"]},
                 "contact_model_part"          : { "0" : ["Contact_Part"]},
+                "friction_coefficients"       : { "0" : 1.0e0},
                 "contact_type"                : "Frictional",
                 "advance_ALM_parameters" : {
                     "adapt_penalty"               : true
@@ -144,7 +145,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "hyper_simple_stick_patch_test",
                 "postprocess_parameters" : {
         "result_file_configuration" : {

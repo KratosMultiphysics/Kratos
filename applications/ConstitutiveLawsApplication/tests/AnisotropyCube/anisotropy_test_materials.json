@@ -1,0 +1,34 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Parts_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "GenericAnisotropic3DLaw"
+            },
+            "Variables"        : {
+				"ORTHOTROPIC_ELASTIC_CONSTANTS" : [40e9, 10e9, 10e9, 0.2, 0.2, 0.2],
+                "EULER_ANGLES"     : [45,0,0],
+                "ISOTROPIC_ANISOTROPIC_YIELD_RATIO"  : [2.0,0.667,0.667,1.0,1.0,1.0]
+            },
+            "Tables"           : {}
+        },
+        "sub_properties" : [{
+            "properties_id"   : 10,
+            "Material"        : {
+                "constitutive_law" : {
+                    "name" : "SmallStrainIsotropicDamage3DVonMisesVonMises"
+                },
+                "Variables"        : {
+                    "DENSITY"         : 2400.0,
+                    "YOUNG_MODULUS"   : 40E9,
+                    "POISSON_RATIO"   : 0.3,
+                    "YIELD_STRESS"    : 0.8e7,
+                    "FRACTURE_ENERGY" : 100000,
+                    "SOFTENING_TYPE"  : 1
+                },
+                "Tables"           : {}
+            }
+        }]
+    }]
+}

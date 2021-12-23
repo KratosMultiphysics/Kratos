@@ -29,61 +29,40 @@ public:
 
     virtual ~PostProcessUtilities(){};
 
-    void RebuildPostProcessModelPart(ModelPart &r_post_model_part, ModelPart &r_main_model_part)
-    {
+    void RebuildPostProcessModelPart(ModelPart &r_post_model_part, ModelPart &r_main_model_part) {
+
+        // Cleaning the Output Model Part
         r_post_model_part.Elements().clear();
         r_post_model_part.Nodes().clear();
-        for (size_t i = 0; i < r_main_model_part.NumberOfNodes(); i++)
-        {
+
+        // Adding nodes
+        for (size_t i = 0; i < r_main_model_part.NumberOfNodes(); i++) {
             auto node = r_main_model_part.NodesBegin() + i;
             r_post_model_part.AddNode(*(node.base()));
         }
 
-        PointerVector<Element> elements_to_be_added_first;
-        PointerVector<Element> elements_to_be_added_later;
+        // Adding elements
+        PointerVector<Element> elements_to_be_added;
+        for (ModelPart::SubModelPartsContainerType::iterator i_smp = r_main_model_part.SubModelPartsBegin();
+            i_smp != r_main_model_part.SubModelPartsEnd(); ++i_smp) {
 
-        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_main_model_part.SubModelPartsBegin();
-             sub_model_part != r_main_model_part.SubModelPartsEnd(); ++sub_model_part)
-        {
+            // Skipping the Computing Model Part
+            if (!((i_smp->Is(ACTIVE) && i_smp->Is(SOLID)) || (i_smp->Is(ACTIVE) && i_smp->Is(FLUID)))) {
+                if (i_smp->NumberOfElements()) {
+                    ModelPart &sub_model_part = *i_smp;
+                    for (size_t i = 0; i < sub_model_part.NumberOfElements(); i++) {
 
-            ModelPart &smp_k = *sub_model_part;
-            for (size_t i = 0; i < smp_k.NumberOfElements(); i++)
-            {
-                auto elem = smp_k.ElementsBegin() + i;
-                if (r_main_model_part.GetMesh(0).HasElement(elem->Id()))
-                {
-                    if (r_main_model_part.GetElement(elem->Id()).GetGeometry().GetGeometryType() == elem->GetGeometry().GetGeometryType())
-                    {
-                        elements_to_be_added_first.push_back(*(elem.base()));
+                        auto elem = sub_model_part.ElementsBegin() + i;
+                        elements_to_be_added.push_back(*(elem.base()));
                     }
-                    else
-                    {
-                        elements_to_be_added_later.push_back(*(elem.base()));
-                    }
-                }
-                else
-                {
-                    elements_to_be_added_later.push_back(*(elem.base()));
                 }
             }
         }
-        r_post_model_part.AddElements(elements_to_be_added_first.begin(), elements_to_be_added_first.end());
 
-        int max_id = 1;
-        for (size_t i = 0; i < r_post_model_part.NumberOfElements(); i++)
-        {
-            auto elem = r_post_model_part.ElementsBegin() + i;
-            if ((int)elem->Id() > max_id)
-                max_id = elem->Id();
-        }
-
-        for (auto &elem : elements_to_be_added_later)
-        {
-            max_id += 1;
-            elem.SetId(max_id);
+        for (auto &elem : elements_to_be_added) {
             elem.Set(ACTIVE, true);
         }
-        r_post_model_part.AddElements(elements_to_be_added_later.begin(), elements_to_be_added_later.end());
+        r_post_model_part.AddElements(elements_to_be_added.begin(), elements_to_be_added.end());
     }
 
 protected:

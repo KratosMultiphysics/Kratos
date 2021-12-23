@@ -1,14 +1,12 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics import kratos_utilities
 
-try:
-    import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
-    eigen_solvers_is_available = True
-except ImportError:
-    eigen_solvers_is_available = False
+
+if kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication"):
+    from KratosMultiphysics import LinearSolversApplication
 
 #Test of eigenvalue analysis and modal decomposition with beam elements according to:
 #C. Petersen, Dynamic der Baukonstruktionen, Viehweg Verlag, 2000, p. 252
@@ -83,24 +81,33 @@ class BaseTestDynamicEigenvalueAnalysis(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
         KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_Z, True, mp.Nodes)
 
-    def _solve_eigenvalue_problem(self,mp,echo=0):
+    def _solve_eigenvalue_problem(self, mp, use_block_builder, echo=0):
         eigensolver_settings = KratosMultiphysics.Parameters("""
         {
             "max_iteration"         : 1000,
             "tolerance"             : 1e-6,
             "number_of_eigenvalues" : 2,
-            "echo_level"            : 3,
+            "echo_level"            : 0,
             "normalize_eigenvectors": true
         }
         """)
 
-        eigen_solver = EigenSolversApplication.EigensystemSolver(eigensolver_settings)
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_solver)
+        eigen_solver = LinearSolversApplication.EigensystemSolver(eigensolver_settings)
+        if use_block_builder:
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_solver)
+        else:
+            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(eigen_solver)
+
         eigen_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
         compute_modal_decomposition = True
+        # see "structural_mechanics_eigensolver.py", values are for the "EigensystemSolver"
+        mass_matrix_diagonal_value = 0.0
+        stiffness_matrix_diagonal_value = 1.0
         eig_strategy = StructuralMechanicsApplication.EigensolverStrategy(mp,
                                                                           eigen_scheme,
                                                                           builder_and_solver,
+                                                                          mass_matrix_diagonal_value,
+                                                                          stiffness_matrix_diagonal_value,
                                                                           compute_modal_decomposition)
         eig_strategy.SetEchoLevel(echo)
         eig_strategy.Solve()
@@ -144,13 +151,20 @@ class BaseTestDynamicEigenvalueAnalysis(KratosUnittest.TestCase):
         self.assertAlmostEqual(modal_stiffness[0,1], 0.0, 4)
 
 
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class TestDynamicEigenvalueAnalysis(BaseTestDynamicEigenvalueAnalysis):
-    @KratosUnittest.skipUnless(eigen_solvers_is_available,"EigenSolversApplication not available")
-    def test_dynamic_eigenvalue_analysis(self):
+
+    def test_dynamic_eigenvalue_analysis_block_builder(self):
+        self.execute_test_dynamic_eigenvalue_analysis(use_block_builder=True)
+
+    def test_dynamic_eigenvalue_analysis_elimination_builder(self):
+        self.execute_test_dynamic_eigenvalue_analysis(use_block_builder=False)
+
+    def execute_test_dynamic_eigenvalue_analysis(self, use_block_builder):
         reference_eigenvalues = [115.1882,3056.9526]
         current_model = KratosMultiphysics.Model()
         mp = self._set_up_system(current_model)
-        self._solve_eigenvalue_problem(mp)
+        self._solve_eigenvalue_problem(mp, use_block_builder)
 
         self._check_eigenvalue_results(mp,reference_eigenvalues)
 

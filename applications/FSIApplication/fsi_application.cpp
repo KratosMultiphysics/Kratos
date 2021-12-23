@@ -25,10 +25,7 @@ namespace Kratos
 
 void KratosFSIApplication::Register()
 {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
     KRATOS_INFO("") << "Initializing KratosFSIApplication..." << std::endl;
-
 }
 
 }  // namespace Kratos.

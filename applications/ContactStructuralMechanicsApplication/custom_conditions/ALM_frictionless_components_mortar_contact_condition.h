@@ -1,10 +1,11 @@
-// KRATOS  ___|  |       |       |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//           | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License: BSD License
-//   license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:  Vicente Mataix Ferrandiz
 //
@@ -114,7 +115,7 @@ public:
 
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
 
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster>                   DerivativeDataType;
 
     static constexpr IndexType MatrixSize = TDim * (TNumNodesMaster + TNumNodes + TNumNodes);
 
@@ -213,6 +214,27 @@ public:
         GeometryPointerType pMasterGeom
         ) const override;
 
+    /********************************************************************************/
+    /**************** METHODS TO CALCULATE MORTAR CONDITION MATRICES ****************/
+    /********************************************************************************/
+
+    /**
+     * @brief Calculates the local contibution of the RHS
+     * @param pCondition The condition pointer
+     * @param rLocalRHS The local RHS to compute
+     * @param rMortarConditionMatrices The mortar operators to be considered
+     * @param rDerivativeData The class containing all the derivatives uses to compute the jacobian
+     * @param rActiveInactive The integer that is used to identify which case is the currectly computed
+     */
+    static void StaticCalculateLocalRHS(
+        PairedCondition* pCondition,
+        Vector& rLocalRHS,
+        const MortarConditionMatrices& rMortarConditionMatrices,
+        const DerivativeDataType& rDerivativeData,
+        const IndexType rActiveInactive,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
@@ -224,8 +246,8 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief Sets on ConditionalDofList the degrees of freedom of the considered element geometry
@@ -234,8 +256,8 @@ public:
      */
     void GetDofList(
         DofsVectorType& rConditionalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -244,7 +266,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo The current process information
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access

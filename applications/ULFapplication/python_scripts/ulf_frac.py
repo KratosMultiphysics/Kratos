@@ -121,18 +121,18 @@ class ULF_FSISolver:
         if(domain_size == 2):
             # self.Mesher = TriGenModeler()
             self.Mesher = TriGenPFEMModeler()
-            self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part, 9, 18)
-            self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part, 9, 18)
-            self.fluid_only_neigh_finder = FindNodalNeighboursProcess(fluid_only_model_part, 9, 18)
+            self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part)
+            self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part)
+            self.fluid_only_neigh_finder = FindNodalNeighboursProcess(fluid_only_model_part)
              # this is needed if we want to also store the conditions a node belongs to
             self.condition_neigh_finder = FindConditionsNeighboursProcess(fluid_model_part, 2, 10)
         elif (domain_size == 3):
             # improved mesher
             self.Mesher = TetGenPfemModeler()
             # self.Mesher = TetGenModeler()
-            self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part, 20, 30)
-            self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part, 20, 30)
-            self.fluid_only_neigh_finder = FindNodalNeighboursProcess(fluid_only_model_part, 20, 30)
+            self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part)
+            self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part)
+            self.fluid_only_neigh_finder = FindNodalNeighboursProcess(fluid_only_model_part)
             # this is needed if we want to also store the conditions a node belongs to
             self.condition_neigh_finder = FindConditionsNeighboursProcess(fluid_model_part, 3, 20)
 
@@ -282,9 +282,9 @@ class ULF_FSISolver:
         h_factor = 0.2
         if (self.domain_size == 2):
             h_factor = 0.25
-            (self.Mesher).ReGenerateMesh("UlfFrac2D", "Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("UlfFrac2D", "LineCondition2D2N", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
         elif (self.domain_size == 3):
-            (self.Mesher).ReGenerateMesh("UlfFrac3D", "Condition3D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("UlfFrac3D", "SurfaceCondition3D3N", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
 
         # calculating fluid neighbours before applying boundary conditions
         (self.fluid_neigh_finder).Execute();

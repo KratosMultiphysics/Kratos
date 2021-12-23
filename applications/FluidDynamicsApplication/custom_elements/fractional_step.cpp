@@ -11,17 +11,17 @@ namespace Kratos {
  */
 
 template< unsigned int TDim >
-void FractionalStep<TDim>::Initialize()
+void FractionalStep<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
 template< unsigned int TDim >
-void FractionalStep<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+void FractionalStep<TDim>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
 template< unsigned int TDim >
-void FractionalStep<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
+void FractionalStep<TDim>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
 
 }
@@ -29,7 +29,7 @@ void FractionalStep<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentPro
 template< unsigned int TDim >
 void FractionalStep<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                 VectorType& rRightHandSideVector,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -228,7 +228,7 @@ void FractionalStep<TDim>::Calculate(const Variable<array_1d<double,3> > &rVaria
 
 template< unsigned int TDim >
 void FractionalStep<TDim>::EquationIdVector(EquationIdVectorType& rResult,
-                                            ProcessInfo& rCurrentProcessInfo)
+                                            const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -260,7 +260,7 @@ void FractionalStep<TDim>::EquationIdVector(EquationIdVectorType& rResult,
 
 template< unsigned int TDim >
 void FractionalStep<TDim>::GetDofList(DofsVectorType& rElementalDofList,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -293,13 +293,14 @@ void FractionalStep<TDim>::GetDofList(DofsVectorType& rElementalDofList,
 template< unsigned int TDim >
 GeometryData::IntegrationMethod FractionalStep<TDim>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 template< unsigned int TDim >
-void FractionalStep<TDim>::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > >& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
+void FractionalStep<TDim>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == CONV_PROJ)
     {
@@ -397,9 +398,10 @@ void FractionalStep<TDim>::GetValueOnIntegrationPoints(const Variable<array_1d<d
 }
 
 template< unsigned int TDim >
-void FractionalStep<TDim>::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
+void FractionalStep<TDim>::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == DIVPROJ)
     {
@@ -531,6 +533,8 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
 
     MatrixType MassMatrix = ZeroMatrix(LocalSize,LocalSize);
 
+    const double eta = rCurrentProcessInfo[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR];
+
     // Stabilization parameters
     double ElemSize = this->ElementSize();
     double TauOne;
@@ -574,7 +578,7 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
         this->AddMomentumMassTerm(MassMatrix,N,GaussWeight*Density);
 
         // Add convection, stabilization and RHS contributions to the local system equation
-        this->AddMomentumSystemTerms(rLeftHandSideMatrix,rRightHandSideVector,Density,UGradN,BodyForce,OldPressure,
+        this->AddMomentumSystemTerms(rLeftHandSideMatrix,rRightHandSideVector,Density,UGradN,BodyForce,OldPressure*eta,
                                      TauOne,TauTwo,MomentumProjection,MassProjection,N,rDN_DX,GaussWeight);
 
         // Add viscous term
@@ -631,6 +635,8 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
     double ElemSize = this->ElementSize();
     double TauOne;
     double TauTwo;
+
+    const double eta = rCurrentProcessInfo[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR];
 
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; g++)
@@ -704,6 +710,7 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
 //                for (SizeType j = 1; j < NumNodes; ++j) Conv += UGradN[i] * rGeom[i].FastGetSolutionStepValue(VELOCITY)[d];
                 // Momentum stabilization
                 RHSi += rDN_DX(i,d) * TauOne * ( Density  * ( BodyForce[d]/* - Conv*/ ) - OldPressureGradient[d] - MomentumProjection[d] );
+                RHSi += (eta - 1.0) * LaplacianCoeff * rDN_DX(i, d) * OldPressureGradient[d];
             }
 
             rRightHandSideVector[i] += GaussWeight * RHSi;
@@ -786,7 +793,7 @@ void FractionalStep<TDim>::CalculateEndOfStepSystem(MatrixType& rLeftHandSideMat
 
 
 template< unsigned int TDim >
-int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -794,28 +801,10 @@ int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
     int ierr = Element::Check(rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
-    KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(VISCOSITY);
-    KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(FRACT_VEL);
-    KRATOS_CHECK_VARIABLE_KEY(PRESSURE_OLD_IT);
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
-    KRATOS_CHECK_VARIABLE_KEY(CONV_PROJ);
-    KRATOS_CHECK_VARIABLE_KEY(PRESS_PROJ);
-    KRATOS_CHECK_VARIABLE_KEY(DIVPROJ);
-    KRATOS_CHECK_VARIABLE_KEY(BDF_COEFFICIENTS);
-    KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU);
-    KRATOS_CHECK_VARIABLE_KEY(C_SMAGORINSKY);
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
     {
-        Node<3> &rNode = this->GetGeometry()[i];
+        const auto &rNode = this->GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,rNode);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE,rNode);
@@ -850,11 +839,45 @@ int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
     KRATOS_CATCH("");
 }
 
+template< unsigned int TDim >
+const Parameters FractionalStep<TDim>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["implicit"],
+        "framework"                  : "ale",
+        "symmetric_lhs"              : false,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : ["CONV_PROJ","PRES_PROJ","VORTICITY_MAGNITUDE","VORTICITY","MU","TAU","Q_VALUE","EQ_STRAIN_RATE"],
+            "nodal_historical"       : ["VELOCITY","PRESSURE"],
+            "nodal_non_historical"   : [],
+            "entity"                 : ["C_SMAGORINSKY"]
+        },
+        "required_variables"         : ["VELOCITY","MESH_VELOCITY","PRESSURE","BODY_FORCE","NODAL_AREA","FRACT_VEL","ADVPROJ","DIVPROJ","PRES_PROJ","CONV_PROJ"]
+        "required_dofs"              : [],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
+        "element_integrates_in_time" : false,
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   : "This implements a fractional-step Navier-Stokes formulation with quasi-static Variational MultiScales (VMS) stabilization."
+    })");
+
+    if (TDim == 2) {
+        std::vector<std::string> dofs_2d({"VELOCITY_X","VELOCITY_Y","PRESSURE"});
+        specifications["required_dofs"].SetStringArray(dofs_2d);
+    } else {
+        std::vector<std::string> dofs_3d({"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"});
+        specifications["required_dofs"].SetStringArray(dofs_3d);
+    }
+
+    return specifications;
+}
+
 template<>
 void FractionalStep<2>::VelocityEquationIdVector(EquationIdVectorType& rResult,
-                                                 ProcessInfo& rCurrentProcessInfo)
+                                                 const ProcessInfo& rCurrentProcessInfo) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = NumNodes*2;
 
@@ -874,9 +897,9 @@ void FractionalStep<2>::VelocityEquationIdVector(EquationIdVectorType& rResult,
 
 template<>
 void FractionalStep<3>::VelocityEquationIdVector(EquationIdVectorType& rResult,
-                                                 ProcessInfo& rCurrentProcessInfo)
+                                                 const ProcessInfo& rCurrentProcessInfo) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = 3*NumNodes;
 
@@ -897,9 +920,9 @@ void FractionalStep<3>::VelocityEquationIdVector(EquationIdVectorType& rResult,
 
 template< unsigned int TDim >
 void FractionalStep<TDim>::PressureEquationIdVector(EquationIdVectorType& rResult,
-                                                    ProcessInfo& rCurrentProcessInfo)
+                                                    const ProcessInfo& rCurrentProcessInfo) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
 
     if (rResult.size() != NumNodes)
@@ -913,9 +936,9 @@ void FractionalStep<TDim>::PressureEquationIdVector(EquationIdVectorType& rResul
 
 template<>
 void FractionalStep<2>::GetVelocityDofList(DofsVectorType& rElementalDofList,
-                                           ProcessInfo& rCurrentProcessInfo)
+                                           const ProcessInfo& rCurrentProcessInfo) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = 2*NumNodes;
 
@@ -933,9 +956,9 @@ void FractionalStep<2>::GetVelocityDofList(DofsVectorType& rElementalDofList,
 
 template<>
 void FractionalStep<3>::GetVelocityDofList(DofsVectorType& rElementalDofList,
-                                           ProcessInfo& rCurrentProcessInfo)
+                                           const ProcessInfo& rCurrentProcessInfo) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = 3*NumNodes;
 
@@ -954,9 +977,9 @@ void FractionalStep<3>::GetVelocityDofList(DofsVectorType& rElementalDofList,
 
 template< unsigned int TDim >
 void FractionalStep<TDim>::GetPressureDofList(DofsVectorType& rElementalDofList,
-                                              ProcessInfo& rCurrentProcessInfo)
+                                              const ProcessInfo& rCurrentProcessInfo) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
 
     if (rElementalDofList.size() != NumNodes)
@@ -972,9 +995,9 @@ void FractionalStep<TDim>::GetPressureDofList(DofsVectorType& rElementalDofList,
 
 template< unsigned int TDim >
 void FractionalStep<TDim>::GetPressureValues(Vector& rValues,
-                                            const int Step)
+                                            const int Step) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
 
     if (rValues.size() != NumNodes) rValues.resize(NumNodes);
@@ -985,9 +1008,9 @@ void FractionalStep<TDim>::GetPressureValues(Vector& rValues,
 
 template<>
 void FractionalStep<2>::GetVelocityValues(Vector& rValues,
-                                          const int Step)
+                                          const int Step) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = 2*NumNodes;
 
@@ -1004,9 +1027,9 @@ void FractionalStep<2>::GetVelocityValues(Vector& rValues,
 
 template<>
 void FractionalStep<3>::GetVelocityValues(Vector& rValues,
-                                          const int Step)
+                                          const int Step) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = 3*NumNodes;
 
@@ -1034,32 +1057,32 @@ void FractionalStep<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayTy
 {
     const GeometryType& rGeom = this->GetGeometry();
     Vector DetJ;
-    rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX,DetJ,GeometryData::GI_GAUSS_2);
-    NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+    rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX,DetJ,GeometryData::IntegrationMethod::GI_GAUSS_2);
+    NContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-    rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2),false);
+    rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2),false);
 
-    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
+    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2); g++)
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
 
 
     /*
     const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
-    const unsigned int NumGauss = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
+    const unsigned int NumGauss = rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Initialize arrays to proper size
     rDN_DX.resize(NumGauss);
     rDetJ.resize(NumGauss);
 
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients( GeometryData::GI_GAUSS_2 );
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 );
 
     // Temporary container for inverse of J
     Matrix InvJ;
 
     GeometryType::JacobiansType J;
-    rGeom.Jacobian( J, GeometryData::GI_GAUSS_2 );
+    rGeom.Jacobian( J, GeometryData::IntegrationMethod::GI_GAUSS_2 );
 
     for (unsigned int g = 0; g < NumGauss; g++)
     {

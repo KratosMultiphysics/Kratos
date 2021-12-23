@@ -22,13 +22,13 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "custom_includes/kratos_wrapper.h"
-#include "utilities/os_utilities.h"
+#include "includes/kratos_filesystem.h"
 
 namespace Kratos {
     namespace Testing {
         void CreateMDPAFile() {
             std::filebuf buffer;
-            buffer.open(OSUtilities::GetCurrentWorkingDir() + "/file.mdpa", std::ios::out);
+            buffer.open(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.mdpa"}), std::ios::out);
             std::ostream os(&buffer);
             os
                     << "Begin ModelPartData\nEnd ModelPartData\n\nBegin Properties  0\n    DENSITY 2700.000000\n    YOUNG_MODULUS 7000000.000000\n    POISSON_RATIO 0.300000\n    BODY_FORCE [3] (0.000000,0.000000,0.000000)\n    THICKNESS 1.000000\nEnd Properties\n\nBegin Nodes\n        1        0.0        0.0         0.0\n        2        0.0        0.0         1.0\n        3        1.0        0.0         0.0\n        4        1.0        1.0         0.0\nEnd Nodes\n\nBegin Elements SmallDisplacementElement3D4N\n    1 0 1 2 3 4\nEnd Elements\n\nBegin SubModelPart BasePart // Note that this would be a sub sub modelpart\n    Begin SubModelPartNodes\n        1\n        2\n    End SubModelPartNodes\n    Begin SubModelPart inner_part\n        Begin SubModelPartNodes\n            1\n        End SubModelPartNodes\n    End SubModelPart\nEnd SubModelPart";
@@ -86,7 +86,7 @@ namespace Kratos {
             })");
             const std::string &r_json_text = json_parameters.PrettyPrintJsonString();
             std::filebuf buffer;
-            buffer.open(OSUtilities::GetCurrentWorkingDir() + "/file.json", std::ios::out);
+            buffer.open(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.json"}), std::ios::out);
             std::ostream os(&buffer);
             os << r_json_text;
             buffer.close();
@@ -102,7 +102,7 @@ namespace Kratos {
 
             // Import mdpa
             CreateMDPAFile();
-            const std::string file_name = OSUtilities::GetCurrentWorkingDir() + "/file.mdpa";
+            const std::string file_name = FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.mdpa"});
             CSharpKratosWrapper::KratosWrapper *wrapperInstance = new CSharpKratosWrapper::KratosWrapper();
             wrapperInstance->init(file_name.c_str());
             CSharpKratosWrapper::ModelPartWrapper *mainModelPart = wrapperInstance->getRootModelPartWrapper();
@@ -191,7 +191,7 @@ namespace Kratos {
 //             KRATOS_CHECK_NEAR(y[3], 1.0, float_epsilon);
 //             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
 
-            remove((OSUtilities::GetCurrentWorkingDir() + "/file.mdpa").c_str());
+            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.mdpa"})).c_str());
         }
 
         /**
@@ -205,8 +205,8 @@ namespace Kratos {
             // Import mdpa
             CreateMDPAFile();
             CreateJSONFile();
-            const std::string file_name = OSUtilities::GetCurrentWorkingDir() + "/file.mdpa";
-            const std::string file_name_json = OSUtilities::GetCurrentWorkingDir() + "/file.json";
+            const std::string file_name = FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.mdpa"});
+            const std::string file_name_json = FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.json"});
             CSharpKratosWrapper::KratosWrapper *wrapperInstance = new CSharpKratosWrapper::KratosWrapper();
 
             wrapperInstance->init(file_name.c_str(), file_name_json.c_str());
@@ -297,8 +297,8 @@ namespace Kratos {
 //             KRATOS_CHECK_NEAR(y[3], 1.0, float_epsilon);
 //             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
 
-            remove((OSUtilities::GetCurrentWorkingDir() + "/file.mdpa").c_str());
-            remove((OSUtilities::GetCurrentWorkingDir() + "/file.json").c_str());
+            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.mdpa"})).c_str());
+            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.json"})).c_str());
         }
 
     } // namespace Testing

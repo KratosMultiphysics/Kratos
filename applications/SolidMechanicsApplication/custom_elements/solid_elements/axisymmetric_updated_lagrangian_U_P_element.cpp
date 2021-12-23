@@ -36,8 +36,8 @@ AxisymmetricUpdatedLagrangianUPElement::AxisymmetricUpdatedLagrangianUPElement( 
     : LargeDisplacementUPElement( NewId, pGeometry, pProperties )
 {
     //mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-    mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
-    //mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+    //mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 
@@ -141,8 +141,8 @@ AxisymmetricUpdatedLagrangianUPElement::~AxisymmetricUpdatedLagrangianUPElement(
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianUPElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
-        std::vector<double>& rValues,
+void AxisymmetricUpdatedLagrangianUPElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
+        const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
 
@@ -160,7 +160,7 @@ void AxisymmetricUpdatedLagrangianUPElement::SetValueOnIntegrationPoints( const 
   }
   else{
 
-    LargeDisplacementElement::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementElement::SetValuesOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 
@@ -175,7 +175,7 @@ void AxisymmetricUpdatedLagrangianUPElement::SetValueOnIntegrationPoints( const 
 //************************************************************************************
 
 
-void AxisymmetricUpdatedLagrangianUPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void AxisymmetricUpdatedLagrangianUPElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -195,7 +195,7 @@ void AxisymmetricUpdatedLagrangianUPElement::GetValueOnIntegrationPoints( const 
   }
   else{
 
-    LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 
@@ -205,11 +205,11 @@ void AxisymmetricUpdatedLagrangianUPElement::GetValueOnIntegrationPoints( const 
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianUPElement::Initialize()
+void AxisymmetricUpdatedLagrangianUPElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    LargeDisplacementElement::Initialize();
+    LargeDisplacementElement::Initialize(rCurrentProcessInfo);
 
     SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
@@ -1145,7 +1145,7 @@ double& AxisymmetricUpdatedLagrangianUPElement::CalculateTotalMass( double& rTot
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void AxisymmetricUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1162,7 +1162,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rM
     // Not Lumped Mass Matrix (numerical integration):
 
     //reading integration points
-    IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
+    IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::IntegrationMethod::GI_GAUSS_2; //GeometryData::IntegrationMethod::GI_GAUSS_1;
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
@@ -1263,7 +1263,7 @@ double& AxisymmetricUpdatedLagrangianUPElement::CalculateVolumeChange( double& r
 //************************************************************************************
 //************************************************************************************
 
-int AxisymmetricUpdatedLagrangianUPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int AxisymmetricUpdatedLagrangianUPElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

@@ -21,6 +21,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
 #include "containers/array_1d.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -122,11 +123,11 @@ public:
 
         mdamping_factor = damping_factor;
 
-        //Allocate auxiliary memory
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        mMass.resize(NumThreads);
-        mDamp.resize(NumThreads);
-        mvel.resize(NumThreads);
+        // Allocate auxiliary memory
+        const int num_threads = ParallelUtilities::GetNumThreads();
+        mMass.resize(num_threads);
+        mDamp.resize(num_threads);
+        mvel.resize(num_threads);
 
         //std::cout << "using the Relaxation Time Integration Scheme" << std::endl;
     }
@@ -287,23 +288,22 @@ public:
       of the system
      */
     void CalculateSystemContributions(
-        Element::Pointer rCurrentElement,
+        Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo
+        const ProcessInfo& CurrentProcessInfo
     ) override
     {
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
         //Initializing the non linear iteration for the current element
-        (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
         //KRATOS_WATCH( LHS_Contribution )
         //basic operations for the element considered
-        (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-        (rCurrentElement)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
-        (rCurrentElement)->CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
-        (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
         //KRATOS_WATCH( LHS_Contribution )
         //KRATOS_WATCH( RHS_Contribution )
         //KRATOS_WATCH( mMass )
@@ -319,21 +319,20 @@ public:
 
     }
 
-    void Calculate_RHS_Contribution(
-        Element::Pointer rCurrentElement,
+    void CalculateRHSContribution(
+        Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         int k = OpenMPUtils::ThisThread();
         //Initializing the non linear iteration for the current element
-        (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
         //basic operations for the element considered
-        (rCurrentElement)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-        (rCurrentElement)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
-        (rCurrentElement)->CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
-        (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
         //adding the dynamic contributions (static is already included)
 
@@ -344,20 +343,19 @@ public:
     /** functions totally analogous to the precedent but applied to
     the "condition" objects
      */
-    void Condition_CalculateSystemContributions(
-        Condition::Pointer rCurrentCondition,
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
-        (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
-        (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-        (rCurrentCondition)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
-        (rCurrentCondition)->CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
-        (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        rCurrentCondition.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
+        rCurrentCondition.CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
 
         AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
@@ -367,22 +365,21 @@ public:
         KRATOS_CATCH( "" )
     }
 
-    void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer rCurrentCondition,
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
         //Initializing the non linear iteration for the current condition
-        (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
         //basic operations for the element considered
-        (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-        (rCurrentCondition)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
-        (rCurrentCondition)->CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
-        (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentCondition.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+        rCurrentCondition.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
+        rCurrentCondition.CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
         //adding the dynamic contributions (static is already included)
 
@@ -424,44 +421,33 @@ public:
      * @param r_model_part
      * @return 0 all ok
      */
-    int Check(ModelPart& r_model_part) override
+    int Check(const ModelPart& r_model_part) const override
     {
         KRATOS_TRY
 
         int err = Scheme<TSparseSpace, TDenseSpace>::Check(r_model_part);
         if (err != 0) return err;
 
-        //check for variables keys
-        //verify that the variables are correctly initialized
-        if (DISPLACEMENT.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
-        if (VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
-        if (ACCELERATION.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" )
-
         //check that variables are correctly allocated
-        for (ModelPart::NodesContainerType::iterator it = r_model_part.NodesBegin();
-                it != r_model_part.NodesEnd(); it++)
+        for (const auto& r_node : r_model_part.Nodes())
         {
-            if (it->SolutionStepsDataHas(DISPLACEMENT) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
-            if (it->SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
-            if (it->SolutionStepsDataHas(ACCELERATION) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
+            if (r_node.SolutionStepsDataHas(DISPLACEMENT) == false)
+                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", r_node.Id() )
+            if (r_node.SolutionStepsDataHas(VELOCITY) == false)
+                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", r_node.Id() )
+            if (r_node.SolutionStepsDataHas(ACCELERATION) == false)
+                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", r_node.Id() )
         }
 
         //check that dofs exist
-        for (ModelPart::NodesContainerType::iterator it = r_model_part.NodesBegin();
-                it != r_model_part.NodesEnd(); it++)
+        for (const auto& r_node : r_model_part.Nodes())
         {
-            if (it->HasDofFor(DISPLACEMENT_X) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing DISPLACEMENT_X dof on node ", it->Id() )
-            if (it->HasDofFor(DISPLACEMENT_Y) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing DISPLACEMENT_Y dof on node ", it->Id() )
-            if (it->HasDofFor(DISPLACEMENT_Z) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing DISPLACEMENT_Z dof on node ", it->Id() )
+            if (r_node.HasDofFor(DISPLACEMENT_X) == false)
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing DISPLACEMENT_X dof on node ", r_node.Id() )
+            if (r_node.HasDofFor(DISPLACEMENT_Y) == false)
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing DISPLACEMENT_Y dof on node ", r_node.Id() )
+            if (r_node.HasDofFor(DISPLACEMENT_Z) == false)
+                KRATOS_THROW_ERROR( std::invalid_argument, "missing DISPLACEMENT_Z dof on node ", r_node.Id() )
         }
 
 
@@ -573,7 +559,7 @@ protected:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo)
     {
         // adding mass contribution to the dynamic stiffness
         if (M.size1() != 0) // if M matrix declared
@@ -599,16 +585,17 @@ protected:
 
      */
     void AddDynamicsToRHS(
-        Element::Pointer rCurrentElement,
+        Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo)
     {
         //adding inertia contribution
         if (M.size1() != 0)
         {
             int k = OpenMPUtils::ThisThread();
+            const auto& r_const_elem_ref = rCurrentElement;
             /*              rCurrentElement-
             >GetSecondDerivativesVector(RelaxationAuxiliaries::macc,0);
                             (RelaxationAuxiliaries::macc) *= (1.00-mAlphaBossak);
@@ -625,18 +612,18 @@ protected:
                         //damping contribution
                         if (D.size1() != 0)
                         {*/
-            rCurrentElement->GetFirstDerivativesVector(mvel[k], 0);
+            r_const_elem_ref.GetFirstDerivativesVector(mvel[k], 0);
             noalias(RHS_Contribution) -= mdamping_factor * prod(M, mvel[k]);
         }
 
     }
 
     void AddDynamicsToRHS(
-        Condition::Pointer rCurrentCondition,
+        Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo)
     {
         //adding inertia contribution - DO NOT ADD
         if (M.size1() != 0)
@@ -659,7 +646,8 @@ protected:
             MAtrix * mdamping_factor
                         if (D.size1() != 0)
                         {*/
-            rCurrentCondition->GetFirstDerivativesVector(mvel[k], 0);
+            const auto& r_const_cond_ref = rCurrentCondition;
+            r_const_cond_ref.GetFirstDerivativesVector(mvel[k], 0);
             noalias(RHS_Contribution) -= mdamping_factor * prod(M, mvel[k]);
         }
 
@@ -736,5 +724,4 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME  defined */
-
 

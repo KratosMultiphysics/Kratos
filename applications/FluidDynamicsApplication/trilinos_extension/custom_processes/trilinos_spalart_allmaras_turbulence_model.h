@@ -159,9 +159,9 @@ public:
 
         std::string ConditionName;
         if (BaseSpAlType::mdomain_size == 2)
-            ConditionName = std::string("Condition2D");
+            ConditionName = std::string("LineCondition2D2N");
         else
-            ConditionName = std::string("Condition3D");
+            ConditionName = std::string("SurfaceCondition3D3N");
         const Condition& rReferenceCondition = KratosComponents<Condition>::Get(ConditionName);
 
         for (ModelPart::ConditionsContainerType::iterator iii = BaseSpAlType::mr_model_part.ConditionsBegin(); iii != BaseSpAlType::mr_model_part.ConditionsEnd(); iii++)
@@ -180,7 +180,7 @@ public:
         typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
         typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
-        typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
+        typedef typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
         // Solution scheme: Aitken iterations
         const double DefaultAitkenOmega = 1.0;
@@ -202,7 +202,7 @@ public:
         bool CalculateReactions = false;
         bool MoveMesh = false;
 
-        BaseSpAlType::mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(BaseSpAlType::mrSpalartModelPart,pScheme,pLinearSolver,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
+        BaseSpAlType::mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(BaseSpAlType::mrSpalartModelPart,pScheme,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
         BaseSpAlType::mpSolutionStrategy->SetEchoLevel(0);
         BaseSpAlType::mpSolutionStrategy->Check();
 

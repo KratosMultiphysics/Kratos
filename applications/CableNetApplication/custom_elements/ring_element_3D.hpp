@@ -22,8 +22,6 @@
 // Project includes
 #include "includes/element.h"
 #include "includes/define.h"
-#include "includes/kratos_flags.h"
-#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -35,12 +33,12 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-    class RingElement3D : public Element
+    class KRATOS_API(CABLE_NET_APPLICATION) RingElement3D : public Element
     {
     protected:
 
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(RingElement3D);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RingElement3D);
 
 
         typedef Element BaseType;
@@ -93,28 +91,26 @@ namespace Kratos
 
         void EquationIdVector(
             EquationIdVectorType& rResult,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
         void GetDofList(
             DofsVectorType& rElementalDofList,
-            ProcessInfo& rCurrentProcessInfo) override;
-
-        void Initialize() override;
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
         void CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
             VectorType &rRightHandSideVector,
-            ProcessInfo &rCurrentProcessInfo) override;
+            const ProcessInfo &rCurrentProcessInfo) override;
 
         void CalculateRightHandSide(VectorType &rRightHandSideVector,
-            ProcessInfo &rCurrentProcessInfo) override;
+            const ProcessInfo &rCurrentProcessInfo) override;
 
-        void GetValuesVector(Vector& rValues,int Step = 0) override;
-        void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
-        void GetFirstDerivativesVector(Vector& rValues,int Step = 0) override;
+        void GetValuesVector(Vector& rValues,int Step = 0) const override;
+        void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
+        void GetFirstDerivativesVector(Vector& rValues,int Step = 0) const override;
 
         Matrix ElasticStiffnessMatrix() const;
         Matrix GeometricStiffnessMatrix() const;
@@ -125,31 +121,33 @@ namespace Kratos
         double CalculateGreenLagrangeStrain() const;
         double LinearStiffness() const;
 
-        void CalculateLumpedMassVector(VectorType &rMassVector);
+        void CalculateLumpedMassVector(
+            VectorType &rLumpedMassVector,
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
         void CalculateMassMatrix(
             MatrixType& rMassMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateDampingMatrix(
             MatrixType& rDampingMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
 
         void AddExplicitContribution(
             const VectorType& rRHSVector,
             const Variable<VectorType>& rRHSVariable,
-            Variable<double >& rDestinationVariable,
+            const Variable<double >& rDestinationVariable,
             const ProcessInfo& rCurrentProcessInfo
             ) override;
 
         void AddExplicitContribution(const VectorType& rRHSVector,
             const Variable<VectorType>& rRHSVariable,
-            Variable<array_1d<double, 3> >& rDestinationVariable,
+            const Variable<array_1d<double, 3> >& rDestinationVariable,
             const ProcessInfo& rCurrentProcessInfo
             ) override;
 
-        int Check(const ProcessInfo& rCurrentProcessInfo) override;
+        int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
         /**
          * @brief This function checks if self weight is present

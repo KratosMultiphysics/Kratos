@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import sys
 from math import * # without * the test cannot be run with mathematical functions
 
 # Import KratosUnittest
@@ -84,10 +83,7 @@ class CheckScalarBaseProcess(KratosMultiphysics.Process, KratosUnittest.TestCase
             self.value = self.settings["value"].GetDouble()
         else:
             self.function_string = self.settings["value"].GetString()
-            if (sys.version_info > (3, 0)):
-                self.aux_function = aux_object_cpp_callback(compile(self.function_string, '', 'eval', optimize=2))
-            else:
-                self.aux_function = aux_object_cpp_callback(compile(self.function_string, '', 'eval'))
+            self.aux_function = aux_object_cpp_callback(compile(self.function_string, '', 'eval', optimize=2))
 
             # Must depend on time alone!
             if self.function_string.find("x") == -1 and self.function_string.find("y") == -1 and self.function_string.find("z") == -1:

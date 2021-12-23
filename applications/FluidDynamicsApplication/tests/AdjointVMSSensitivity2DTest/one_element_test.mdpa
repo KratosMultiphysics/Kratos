@@ -15,7 +15,7 @@ Begin Nodes
 End Nodes
 
 Begin Elements Element2D3N// GUI group identifier: Fluid
-         1          1         1         2         3
+         1          0         1         2         3
 End Elements
 
 Begin SubModelPart Parts_Fluid // Group Fluid // Subtree Parts

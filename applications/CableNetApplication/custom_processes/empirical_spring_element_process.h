@@ -44,7 +44,7 @@ namespace Kratos
 {
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EmpiricalSpringElementProcess
+class EmpiricalSpringElementProcess
     : public Process
 {
   public:

@@ -18,9 +18,6 @@
 #include <iostream>
 #include <vector>
 
-// Project includes
-#include "includes/define.h"
-
 namespace Kratos {
 
 template<class T>

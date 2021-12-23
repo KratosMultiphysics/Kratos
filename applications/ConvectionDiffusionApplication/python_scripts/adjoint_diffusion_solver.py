@@ -9,8 +9,7 @@ def CreateSolver(model, settings):
 class AdjointDiffusionSolver(PythonSolver):
 
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # for backwards compatibility, to be removed eventually
-        super(AdjointDiffusionSolver,self).__init__(model,custom_settings)
+        super().__init__(model,custom_settings)
 
         self.min_buffer_size = 1
 
@@ -37,7 +36,8 @@ class AdjointDiffusionSolver(PythonSolver):
         if self.primal_model_part_name == "":
             raise Exception("No primal_model_part_name provided")
 
-    def GetDefaultSettings(self):
+    @classmethod
+    def GetDefaultParameters(cls):
 
         default_settings = kratos.Parameters(r'''{
             "solver_type" : "adjoint_stationary",
@@ -70,10 +70,11 @@ class AdjointDiffusionSolver(PythonSolver):
             },
             "time_stepping" : {
                 "time_step" : 0.0
-            }
+            },
+            "time_integration_method": "implicit"
         }''')
 
-        default_settings.AddMissingParameters(super(AdjointDiffusionSolver,self).GetDefaultSettings())
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
     def AddVariables(self):
@@ -177,7 +178,6 @@ class AdjointDiffusionSolver(PythonSolver):
 
         self.solver = kratos.ResidualBasedLinearStrategy(self.model_part,
                                                          self.time_scheme,
-                                                         self.linear_solver,
                                                          builder_and_solver,
                                                          False,
                                                          False,
@@ -253,7 +253,3 @@ class AdjointDiffusionSolver(PythonSolver):
 
         ## Call the replace elements and conditions process
         kratos.ReplaceElementsAndConditionsProcess(self.model_part, self.settings["element_replace_settings"]).Execute()
-
-
-
-

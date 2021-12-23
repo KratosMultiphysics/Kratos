@@ -50,7 +50,11 @@ public:
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name"      : "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "initial_value"      : 0.0,
-                "input_file_name"    : ""
+                "input_file_name"    : "",
+                "interval":[
+                0.0,
+                0.0
+                ]
             }  )" );
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -87,7 +91,7 @@ public:
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const Variable<double>& var = KratosComponents< Variable<double> >::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         if(nnodes != 0)
@@ -128,7 +132,7 @@ public:
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const Variable<double>& var = KratosComponents< Variable<double> >::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
 

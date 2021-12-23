@@ -114,7 +114,7 @@ private:
 
     void CheckIfTrailingEdgeElement(Element& rElement);
 
-    const bool CheckIfPotentiallyWakeElement(const Element& rElement) const;
+    bool CheckIfPotentiallyWakeElement(const Element& rElement) const;
 
     const BoundedVector<double, 3> ComputeNodalDistancesToWake(const Element& rElement) const;
 
@@ -124,7 +124,7 @@ private:
 
     void MarkWakeTrailingEdgeElement() const;
 
-    const bool CheckIfTrailingEdgeElementIsCutByWake(const Element& rElement) const;
+    bool CheckIfTrailingEdgeElementIsCutByWake(const Element& rElement) const;
 
     const BoundedVector<double, 3> ComputeDistanceFromTrailingEdgeToPoint(const Point& rInputPoint) const;
     ///@}

@@ -26,6 +26,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "poromechanics_application_variables.h"
@@ -55,7 +56,7 @@ protected:
         double Damage, Weight, TipDistance;
         Element::Pointer pElement;
     };
-    
+
     ///------------------------------------------------------------------------------------
 
     struct Propagation
@@ -98,7 +99,7 @@ protected:
         std::vector<FracturePoint*> TopFrontFracturePoints;
         std::vector<FracturePoint*> BotFrontFracturePoints;
     };
-    
+
 /// Structs for mapping model parts -------------------------------------------------------------------------------------------------------------------------------------------
 
     struct GaussPointOld
@@ -126,17 +127,17 @@ public:
         // Define necessary variables
         UtilityVariables AuxVariables;
         PropagationGlobalVariables PropagationData;
-        
+
         this->InitializeCheckFracture(PropagationData, AuxVariables, rParameters, rModelPart, move_mesh_flag);
-        
+
         //Loop for all pre-existing fractures
         for(unsigned int i = 0; i < rParameters["fractures_list"].size(); i++)
         {
             this->CheckFracture(i, PropagationData, AuxVariables, rParameters);
         }
-        
+
         this->FinalizeCheckFracture(PropagationData, rParameters, rModelPart, move_mesh_flag);
-        
+
         return PropagationData.PropagateFractures;
     }
 
@@ -152,7 +153,7 @@ public:
         this->NodalVariablesMapping(AuxVariables,rParameters,rModelPartOld,rModelPartNew);
 
         this->GaussPointStateVariableMapping(AuxVariables,rParameters,rModelPartOld,rModelPartNew);
-        
+
         if(move_mesh_flag==true)
             this->UpdateMeshPosition(rModelPartNew);
     }
@@ -236,9 +237,9 @@ protected:
                     if(rOtherPoint.TipDistance <= PropagationLength)
                     {
                         TipNeighbours.push_back(&rOtherPoint);
-                        
+
                         noalias(OtherLocalCoordinates) = prod(AuxPropagationVariables.RotationMatrix,rOtherPoint.Coordinates);
-                        
+
                         // FrontFracturePoints
                         if(OtherLocalCoordinates[0] >= AuxPropagationVariables.TipLocalCoordinates[0])
                         {
@@ -257,7 +258,7 @@ protected:
                 }
             }
         }
-        
+
         // Calculate Non-local damage around the tip
         double NonlocalDamage = 0.0;
         double WeightingFunctionDenominator = 0.0;
@@ -272,12 +273,12 @@ protected:
                                 (MyPoint.Damage);
             WeightingFunctionDenominator += (MyPoint.Weight)*exp(-4.0*(MyPoint.TipDistance)*(MyPoint.TipDistance)/(PropagationLength*PropagationLength));
         }
-        
+
         if(WeightingFunctionDenominator > 1.0e-20)
             NonlocalDamage = NonlocalDamage/WeightingFunctionDenominator;
         else
             NonlocalDamage = 0.0;
-        
+
         // Check fracture propagation
         if(NonlocalDamage >= rParameters["fracture_data"]["propagation_damage"].GetDouble())
             this->PropagateFracture(itFracture,rPropagationData,AuxPropagationVariables,rParameters);
@@ -489,7 +490,7 @@ protected:
         int PointsNumber;
 
         unsigned int NumBodySubModelParts = rParameters["fracture_data"]["body_domain_sub_model_part_list"].size();
-                
+
         // Loop through all BodySubModelParts
         for(unsigned int m = 0; m < NumBodySubModelParts; m++)
         {
@@ -736,7 +737,7 @@ protected:
         std::vector< std::vector< std::vector<GaussPointOld> > > BodyGaussPointOldCellMatrix;
         BodyGaussPointOldCellMatrix.resize(AuxVariables.NRows);
         for(int i = 0; i < AuxVariables.NRows; i++) BodyGaussPointOldCellMatrix[i].resize(AuxVariables.NColumns);
-        
+
         std::vector< std::vector< std::vector<GaussPointOld> > > InterfaceGaussPointOldCellMatrix;
         InterfaceGaussPointOldCellMatrix.resize(AuxVariables.NRows);
         for(int i = 0; i < AuxVariables.NRows; i++) InterfaceGaussPointOldCellMatrix[i].resize(AuxVariables.NColumns);
@@ -748,7 +749,7 @@ protected:
         array_1d<double,3> AuxLocalCoordinates;
 
         unsigned int NumBodySubModelParts = rParameters["fracture_data"]["body_domain_sub_model_part_list"].size();
-                
+
         // Loop through all OLD BodySubModelParts
         for(unsigned int i = 0; i < NumBodySubModelParts; i++)
         {
@@ -769,7 +770,7 @@ protected:
                 Vector detJContainer(NumGPoints);
                 rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
                 std::vector<double> StateVariableVector(NumGPoints);
-                itElem->GetValueOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoOld);
+                itElem->CalculateOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoOld);
                 int Row;
                 int Column;
 
@@ -815,13 +816,13 @@ protected:
                 ModelPart::ElementsContainerType::iterator itElem = el_begin + j;
 
                 Element::GeometryType& rGeom = itElem->GetGeometry();
-                MyIntegrationMethod = GeometryData::GI_GAUSS_1;
+                MyIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
                 const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
                 unsigned int NumGPoints = IntegrationPoints.size();
                 Vector detJContainer(NumGPoints);
                 rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
                 std::vector<double> StateVariableVector(NumGPoints);
-                itElem->GetValueOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoOld);
+                itElem->CalculateOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoOld);
                 int Row;
                 int Column;
 
@@ -938,7 +939,7 @@ protected:
                         StateVariableVector[GPoint] = DamageThreshold;
                 }
                 // Set stateVariable of new GaussPoints
-                itElem->SetValueOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoNew);
+                itElem->SetValuesOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoNew);
             }
         }
 
@@ -961,7 +962,7 @@ protected:
                 ModelPart::ElementsContainerType::iterator itElem = el_begin + j;
 
                 Element::GeometryType& rGeom = itElem->GetGeometry();
-                MyIntegrationMethod = GeometryData::GI_GAUSS_1;
+                MyIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
                 const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
                 unsigned int NumGPoints = IntegrationPoints.size();
                 std::vector<double> StateVariableVector(NumGPoints);
@@ -1033,7 +1034,7 @@ protected:
                         StateVariableVector[GPoint] = PropagationDamage;
                 }
                 // Set stateVariable of new GaussPoints
-                itElem->SetValueOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoNew);
+                itElem->SetValuesOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoNew);
             }
         }
     }
@@ -1085,15 +1086,15 @@ private:
         ModelPart& rModelPart)
     {
         // Compute X and Y limits of the current geometry
-        unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+        unsigned int NumThreads = ParallelUtilities::GetNumThreads();
         std::vector<double> X_max_partition(NumThreads);
         std::vector<double> X_min_partition(NumThreads);
         std::vector<double> Y_max_partition(NumThreads);
         std::vector<double> Y_min_partition(NumThreads);
-        
+
         const int NNodes = static_cast<int>(rModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator node_begin = rModelPart.NodesBegin();
-        
+
         #pragma omp parallel
         {
             int k = OpenMPUtils::ThisThread();
@@ -1190,7 +1191,7 @@ private:
 
             int NElems = static_cast<int>(BodySubModelPart.Elements().size());
             ModelPart::ElementsContainerType::iterator el_begin = BodySubModelPart.ElementsBegin();
-            
+
             // Loop through all body elements
             #pragma omp parallel for private(MyFracturePoint,MyIntegrationMethod,AuxLocalCoordinates,AuxGlobalCoordinates)
             for(int j = 0; j < NElems; j++)
@@ -1204,7 +1205,7 @@ private:
                 Vector detJContainer(NumGPoints);
                 rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
                 std::vector<double> DamageVector(NumGPoints);
-                itElem->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+                itElem->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
                 int Row;
                 int Column;
 
@@ -1218,7 +1219,7 @@ private:
                     rGeom.GlobalCoordinates(AuxGlobalCoordinates,AuxLocalCoordinates); //Note: these are the CURRENT global coordinates
                     MyFracturePoint.Coordinates[0] = AuxGlobalCoordinates[0];
                     MyFracturePoint.Coordinates[1] = AuxGlobalCoordinates[1];
-                    
+
                     // FracturePoint Weight
                     MyFracturePoint.Weight = detJContainer[GPoint]*IntegrationPoints[GPoint].Weight();
 
@@ -1228,7 +1229,7 @@ private:
                     // FracturePoint Row and Column
                     Row = int((rAuxVariables.Y_max-MyFracturePoint.Coordinates[1])/rAuxVariables.RowSize);
                     Column = int((MyFracturePoint.Coordinates[0]-rAuxVariables.X_min)/rAuxVariables.ColumnSize);
-                    
+
                     // Element containing the FracturePoint
                     MyFracturePoint.pElement = (*(itElem.base()));
 
@@ -1313,7 +1314,7 @@ private:
             MyPropagation.TipCoordinates[0] = AuxArray2[0];
             MyPropagation.TipCoordinates[1] = AuxArray2[1];
         }
-        
+
         // Check whether new tip falls inside a valid element
         array_1d<double,3> LocalCoordinates;
         Element::Pointer pElement;
@@ -1341,7 +1342,7 @@ private:
         if (IsInside == true)
         {
             std::vector<double> DamageVector;
-            pElement->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+            pElement->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
             unsigned int NumGPoints = DamageVector.size();
             double InvNumGPoints = 1.0/static_cast<double>(NumGPoints);
             double ElementDamage = 0.0;
@@ -1380,7 +1381,7 @@ private:
                 GlobalCoordinates[0] = TopEndX/TopEndDen;
                 GlobalCoordinates[1] = TopEndY/TopEndDen;
                 GlobalCoordinates[2] = 0.0;
-                
+
                 // Check whether new tip falls inside a valid element
                 IsInside = false;
                 for(unsigned int i = 0; i < rAuxPropagationVariables.TopFrontFracturePoints.size(); i++)
@@ -1393,7 +1394,7 @@ private:
                 if (IsInside == true)
                 {
                     std::vector<double> DamageVector;
-                    pElement->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+                    pElement->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
                     unsigned int NumGPoints = DamageVector.size();
                     double InvNumGPoints = 1.0/static_cast<double>(NumGPoints);
                     double ElementDamage = 0.0;
@@ -1428,7 +1429,7 @@ private:
                 if (IsInside == true)
                 {
                     std::vector<double> DamageVector;
-                    pElement->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+                    pElement->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
                     unsigned int NumGPoints = DamageVector.size();
                     double InvNumGPoints = 1.0/static_cast<double>(NumGPoints);
                     double ElementDamage = 0.0;
@@ -1451,11 +1452,11 @@ private:
             MyBifurcation.TopTipCoordinates[0] = TopEndX/TopEndDen;
             MyBifurcation.TopTipCoordinates[1] = TopEndY/TopEndDen;
             MyBifurcation.TopTipCoordinates[2] = 0.0;
-            
+
             MyBifurcation.BotTipCoordinates[0] = BotEndX/BotEndDen;
             MyBifurcation.BotTipCoordinates[1] = BotEndY/BotEndDen;
             MyBifurcation.BotTipCoordinates[2] = 0.0;
-            
+
             noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
             AuxArray1[0] -= PropagationWidth;
             AuxArray1[1] += 0.5*PropagationWidth;
@@ -1528,23 +1529,23 @@ private:
         rRotationMatrix(0,1) = Vx[1];
 
         // We need to determine the unitary vector in local y direction pointing towards the TOP face of the joint
-        
+
         //~ // Unitary vector in local x direction (3D)
         array_1d<double, 3> Vx3D;
         Vx3D[0] = Vx[0];
         Vx3D[1] = Vx[1];
         Vx3D[2] = 0.0;
-        
+
         // Unitary vector in local y direction (first option)
         array_1d<double, 3> Vy3D;
         Vy3D[0] = -Vx[1];
         Vy3D[1] = Vx[0];
         Vy3D[2] = 0.0;
-        
+
         // Vector in global z direction (first option)
         array_1d<double, 3> Vz;
         MathUtils<double>::CrossProduct(Vz, Vx3D, Vy3D);
-        
+
         // Vz must have the same sign as vector (0,0,1)
         if(Vz[2] > 0.0)
         {

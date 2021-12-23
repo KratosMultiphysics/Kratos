@@ -17,11 +17,11 @@
 /* System includes */
 #include <set>
 #include <unordered_set>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 /* External includes */
+#ifdef KRATOS_SMP_OPENMP
+#include <omp.h>
+#endif
 
 /* Project includes */
 #include "utilities/timer.h"
@@ -29,6 +29,8 @@
 #include "includes/key_hash.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
+#include "utilities/builtin_timer.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -55,12 +57,11 @@ namespace Kratos
 /**
  * @class ResidualBasedEliminationBuilderAndSolver
  * @ingroup KratosCore
- * @brief Current class provides an implementation for standard builder and solving operations.
+ * @brief Current class provides an implementation for standard  elimination builder and solving operations.
  * @details The RHS is constituted by the unbalanced loads (residual)
  * Degrees of freedom are reordered putting the restrained degrees of freedom at
  * the end of the system ordered in reverse order with respect to the DofSet.
- * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
- * this information.
+ * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains this information.
  * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
  * @author Riccardo Rossi
  */
@@ -74,38 +75,52 @@ class ResidualBasedEliminationBuilderAndSolver
 public:
     ///@name Type Definitions
     ///@{
+
+    /// Pointer definition of ResidualBasedEliminationBuilderAndSolverWithConstraints
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedEliminationBuilderAndSolver);
 
+    /// Definition of the base class
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    /// The definition of the current class
+    typedef ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
+    /// Definition of the classes from the base class
+    typedef typename BaseType::SizeType SizeType;
+    typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::TSchemeType TSchemeType;
-
     typedef typename BaseType::TDataType TDataType;
-
     typedef typename BaseType::DofsArrayType DofsArrayType;
-
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
+    /// Definition of the equation id vector
+    typedef Element::EquationIdVectorType EquationIdVectorType;
+    typedef Element::DofsVectorType DofsVectorType;
+
+    /// Node definition
     typedef Node<3> NodeType;
 
+    /// Containers definition
     typedef typename BaseType::NodesArrayType NodesArrayType;
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
-
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedEliminationBuilderAndSolver() : BaseType()
+    {
+    }
 
     /**
      * @brief Default constructor. (with parameters)
@@ -115,13 +130,9 @@ public:
         Parameters ThisParameters
         ) : BaseType(pNewLinearSystemSolver)
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name" : "ResidualBasedEliminationBuilderAndSolver"
-        })" );
-
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -131,13 +142,25 @@ public:
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BaseType(pNewLinearSystemSolver)
     {
-//         KRATOS_INFO("ResidualBasedEliminationBuilderAndSolver") << "Using the standard builder and solver " << std::endl;
     }
 
     /** Destructor.
      */
     ~ResidualBasedEliminationBuilderAndSolver() override
     {
+    }
+
+    /**
+     * @brief Create method
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(pNewLinearSystemSolver,ThisParameters);
     }
 
     ///@}
@@ -153,166 +176,182 @@ public:
      * of dofs or as the number of unrestrained ones
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
-     * @param A The LHS matrix
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rb The RHS vector
      */
     void Build(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY
 
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-        //getting the elements from the model
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
+        // Getting the elements from the model
+        ElementsArrayType& r_elements_array = rModelPart.Elements();
 
-        //getting the array of the conditions
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+        // Getting the array of the conditions
+        ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
-        ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
+        // Getting the elements from the model
+        const int nelements = static_cast<int>(r_elements_array.size());
+
+        // Getting the array of the conditions
+        const int nconditions = static_cast<int>(r_conditions_array.size());
+
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const auto it_elem_begin = r_elements_array.begin();
+        const auto it_cond_begin = r_conditions_array.begin();
 
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-        //vector containing the localization in the system of the different
-        //terms
-        Element::EquationIdVectorType EquationId;
-        const double start_build = OpenMPUtils::GetCurrentTime();
+        // Vector containing the localization in the system of the different terms
+        EquationIdVectorType equation_id;
 
-        // assemble all elements
-        #pragma omp parallel firstprivate(nelements, nconditions,  LHS_Contribution, RHS_Contribution, EquationId )
+        // Assemble all elements
+        const auto timer = BuiltinTimer();
+
+        #pragma omp parallel firstprivate(LHS_Contribution, RHS_Contribution, equation_id )
         {
             #pragma omp  for schedule(guided, 512) nowait
-            for (int k = 0; k < nelements; k++)
-            {
-                ModelPart::ElementsContainerType::iterator it = el_begin + k;
+            for (int k = 0; k < nelements; ++k) {
+                auto it_elem = it_elem_begin + k;
 
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
                 bool element_is_active = true;
-                if ((it)->IsDefined(ACTIVE))
-                    element_is_active = (it)->Is(ACTIVE);
+                if (it_elem->IsDefined(ACTIVE))
+                    element_is_active = it_elem->Is(ACTIVE);
 
-                if (element_is_active)
-                {
-                    //calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                if (element_is_active) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, equation_id, r_current_process_info);
 
-                    //assemble the elemental contribution
+                    // Assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
-                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mLockArray);
+                    Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id, mLockArray);
 #else
-                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+                    Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id);
 #endif
-                    // clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
-
                 }
-
             }
 
             #pragma omp  for schedule(guided, 512)
-            for (int k = 0; k < nconditions; k++)
-            {
-                ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+            for (int k = 0; k < nconditions; ++k) {
+                auto it_cond = it_cond_begin + k;
 
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
                 bool condition_is_active = true;
-                if ((it)->IsDefined(ACTIVE))
-                    condition_is_active = (it)->Is(ACTIVE);
+                if (it_cond->IsDefined(ACTIVE))
+                    condition_is_active = it_cond->Is(ACTIVE);
 
-                if (condition_is_active)
-                {
-                    //calculate elemental contribution
-                    pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                if (condition_is_active) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*it_cond, LHS_Contribution, RHS_Contribution, equation_id, r_current_process_info);
 
 #ifdef USE_LOCKS_IN_ASSEMBLY
-                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mLockArray);
+                    Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id, mLockArray);
 #else
-                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+                    Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id);
 #endif
-
-                    // clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
                 }
             }
         }
-        const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System build time: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() >=1) << "System build time: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished building" << std::endl;
+
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2) << "Finished building" << std::endl;
+
 
         KRATOS_CATCH("")
-
     }
 
     /**
      * @brief Function to perform the building of the LHS
-     * @details Depending on the implementation choosen the size of the matrix could
-     * be equal to the total number of Dofs or to the number of unrestrained dofs
+     * @details Depending on the implementation choosen the size of the matrix could be equal to the total number of Dofs or to the number of unrestrained dofs
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
-     * @param A The LHS matrix
+     * @param rA The LHS matrix
      */
     void BuildLHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A) override
+        TSystemMatrixType& rA
+        ) override
     {
         KRATOS_TRY
 
-        //getting the elements from the model
-        ElementsArrayType& rElements = rModelPart.Elements();
+        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-        //getting the array of the conditions
-        ConditionsArrayType& rConditions = rModelPart.Conditions();
+        // Getting the elements from the model
+        ElementsArrayType& r_elements_array = rModelPart.Elements();
 
-        //resetting to zero the vector of reactions
+        // Getting the array of the conditions
+        ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+
+        // Getting the elements from the model
+        const int nelements = static_cast<int>(r_elements_array.size());
+
+        // Getting the array of the conditions
+        const int nconditions = static_cast<int>(r_conditions_array.size());
+
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const auto it_elem_begin = r_elements_array.begin();
+        const auto it_cond_begin = r_conditions_array.begin();
+
+        // Resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
-        //contributions to the system
+        // Contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 
-        //vector containing the localization in the system of the different
-        //terms
-        Element::EquationIdVectorType EquationId;
+        // Vector containing the localization in the system of the different terms
+        EquationIdVectorType equation_id;
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-
-        // assemble all elements
-        for (typename ElementsArrayType::ptr_iterator it = rElements.ptr_begin(); it != rElements.ptr_end(); ++it)
+        #pragma omp parallel firstprivate(LHS_Contribution, equation_id )
         {
-            //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
+            #pragma omp  for schedule(guided, 512) nowait
+            for (int k = 0; k < nelements; ++k) {
+                auto it_elem = it_elem_begin + k;
 
-            //assemble the elemental contribution
-            AssembleLHS(A, LHS_Contribution, EquationId);
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool element_is_active = true;
+                if (it_elem->IsDefined(ACTIVE))
+                    element_is_active = it_elem->Is(ACTIVE);
 
-            // clean local elemental memory
-            pScheme->CleanMemory(*it);
-        }
+                if (element_is_active) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateLHSContribution(*it_elem, LHS_Contribution, equation_id, r_current_process_info);
 
-        LHS_Contribution.resize(0, 0, false);
+                    // Assemble the elemental contribution
+                    AssembleLHS(rA, LHS_Contribution, equation_id);
+                }
+            }
 
-        // assemble all conditions
-        for (typename ConditionsArrayType::ptr_iterator it = rConditions.ptr_begin(); it != rConditions.ptr_end(); ++it)
-        {
-            //calculate elemental contribution
-            pScheme->Condition_Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
+            #pragma omp  for schedule(guided, 512)
+            for (int k = 0; k < nconditions; ++k) {
+                auto it_cond = it_cond_begin + k;
 
-            //assemble the elemental contribution
-            AssembleLHS(A, LHS_Contribution, EquationId);
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool condition_is_active = true;
+                if (it_cond->IsDefined(ACTIVE))
+                    condition_is_active = it_cond->Is(ACTIVE);
+
+                if (condition_is_active) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateLHSContribution(*it_cond, LHS_Contribution, equation_id, r_current_process_info);
+
+                    // Assemble the elemental contribution
+                    AssembleLHS(rA, LHS_Contribution, equation_id);
+                }
+            }
         }
 
         KRATOS_CATCH("")
-
     }
 
     /**
@@ -327,84 +366,106 @@ public:
     void BuildLHS_CompleteOnFreeRows(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A) override
+        TSystemMatrixType& rA
+        ) override
     {
         KRATOS_TRY
 
-        //getting the elements from the model
-        ElementsArrayType& rElements = rModelPart.Elements();
+        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-        //getting the array of the conditions
-        ConditionsArrayType& rConditions = rModelPart.Conditions();
+        // Getting the elements from the model
+        ElementsArrayType& r_elements_array = rModelPart.Elements();
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        // Getting the array of the conditions
+        ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
 
-        //resetting to zero the vector of reactions
+        // Getting the elements from the model
+        const int nelements = static_cast<int>(r_elements_array.size());
+
+        // Getting the array of the conditions
+        const int nconditions = static_cast<int>(r_conditions_array.size());
+
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const auto it_elem_begin = r_elements_array.begin();
+        const auto it_cond_begin = r_conditions_array.begin();
+
+        // Resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
-        //contributions to the system
+        // Contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 
-        //vector containing the localization in the system of the different
-        //terms
-        Element::EquationIdVectorType EquationId;
+        // Vector containing the localization in the system of the different terms
+        EquationIdVectorType equation_id;
 
-        // assemble all elements
-        for (typename ElementsArrayType::ptr_iterator it = rElements.ptr_begin(); it != rElements.ptr_end(); ++it)
+        #pragma omp parallel firstprivate(LHS_Contribution, equation_id )
         {
-            //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
+            #pragma omp  for schedule(guided, 512) nowait
+            for (int k = 0; k < nelements; ++k) {
+                auto it_elem = it_elem_begin + k;
 
-            //assemble the elemental contribution
-            AssembleLHS_CompleteOnFreeRows(A, LHS_Contribution, EquationId);
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool element_is_active = true;
+                if (it_elem->IsDefined(ACTIVE))
+                    element_is_active = it_elem->Is(ACTIVE);
 
-            // clean local elemental memory
-            pScheme->CleanMemory(*it);
+                if (element_is_active) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateLHSContribution(*it_elem, LHS_Contribution, equation_id, r_current_process_info);
+
+                    // Assemble the elemental contribution
+                    AssembleLHSCompleteOnFreeRows(rA, LHS_Contribution, equation_id);
+                }
+            }
+
+            #pragma omp  for schedule(guided, 512)
+            for (int k = 0; k < nconditions; ++k) {
+                auto it_cond = it_cond_begin + k;
+
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool condition_is_active = true;
+                if (it_cond->IsDefined(ACTIVE))
+                    condition_is_active = it_cond->Is(ACTIVE);
+
+                if (condition_is_active) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateLHSContribution(*it_cond, LHS_Contribution, equation_id, r_current_process_info);
+
+                    // Assemble the elemental contribution
+                    AssembleLHSCompleteOnFreeRows(rA, LHS_Contribution, equation_id);
+                }
+            }
         }
-
-        LHS_Contribution.resize(0, 0, false);
-        // assemble all conditions
-        for (typename ConditionsArrayType::ptr_iterator it = rConditions.ptr_begin(); it != rConditions.ptr_end(); ++it)
-        {
-            //calculate elemental contribution
-            pScheme->Condition_Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
-
-            //assemble the elemental contribution
-            AssembleLHS_CompleteOnFreeRows(A, LHS_Contribution, EquationId);
-        }
-
 
         KRATOS_CATCH("")
-
     }
 
     /**
      * @brief This is a call to the linear system solver
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
      */
     void SystemSolve(
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
         ) override
     {
         KRATOS_TRY
 
         double norm_b;
-        if (TSparseSpace::Size(b) != 0)
-            norm_b = TSparseSpace::TwoNorm(b);
-        else
-            norm_b = 0.00;
-
-        if (norm_b != 0.00)
-        {
-            //do solve
-            BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
+        if (TSparseSpace::Size(rb) != 0) {
+            norm_b = TSparseSpace::TwoNorm(rb);
+        } else {
+            norm_b = 0.0;
         }
-        else
-            TSparseSpace::SetToZero(Dx);
+
+        if (norm_b != 0.0) {
+            // Do solve
+            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
+        } else
+            TSparseSpace::SetToZero(rDx);
 
         // Prints informations about the current time
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
@@ -415,38 +476,36 @@ public:
 
     /**
       *@brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
      * @param rModelPart The model part of the problem to solve
      */
     void SystemSolveWithPhysics(
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
         ModelPart& rModelPart
-    )
+        )
     {
         KRATOS_TRY
 
         double norm_b;
-        if (TSparseSpace::Size(b) != 0)
-            norm_b = TSparseSpace::TwoNorm(b);
-        else
-            norm_b = 0.00;
-
-        if (norm_b != 0.00)
-        {
-            //provide physical data as needed
-            if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
-                BaseType::mpLinearSystemSolver->ProvideAdditionalData(A, Dx, b, BaseType::mDofSet, rModelPart);
-
-            //do solve
-            BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
+        if (TSparseSpace::Size(rb) != 0) {
+            norm_b = TSparseSpace::TwoNorm(rb);
+        } else {
+            norm_b = 0.0;
         }
-        else
-        {
-            TSparseSpace::SetToZero(Dx);
+
+        if (norm_b != 0.0) {
+            // Provide physical data as needed
+            if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
+                BaseType::mpLinearSystemSolver->ProvideAdditionalData(rA, rDx, rb, BaseType::mDofSet, rModelPart);
+
+            // Do solve
+            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
+        } else {
+            TSparseSpace::SetToZero(rDx);
             KRATOS_WARNING_IF("ResidualBasedEliminationBuilderAndSolver", rModelPart.GetCommunicator().MyPID() == 0) << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
@@ -463,40 +522,41 @@ public:
      * just after building
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
      */
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY
 
         Timer::Start("Build");
 
-        Build(pScheme, rModelPart, A, b);
+        Build(pScheme, rModelPart, rA, rb);
 
         Timer::Stop("Build");
 
         // Does nothing...dirichlet conditions are naturally dealt with in defining the residual
-        ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
+        ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
-        const double start_solve = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
         Timer::Start("Solve");
 
-        SystemSolveWithPhysics(A, Dx, b, rModelPart);
+        SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
-        const double stop_solve = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -505,21 +565,22 @@ public:
      * @brief Corresponds to the previews, but the System's matrix is considered already built and only the RHS is built again
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
      */
     void BuildRHSAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY
 
-        BuildRHS(pScheme, rModelPart, b);
-        SystemSolve(A, Dx, b);
+        BuildRHS(pScheme, rModelPart, rb);
+        SystemSolve(rA, rDx, rb);
 
         KRATOS_CATCH("")
     }
@@ -533,75 +594,70 @@ public:
     void BuildRHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemVectorType& b) override
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY
 
-        //resetting to zero the vector of reactions
-
-        if(BaseType::mCalculateReactionsFlag)
-        {
+        // Resetting to zero the vector of reactions
+        if(BaseType::mCalculateReactionsFlag) {
             TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
         }
 
-        //Getting the Elements
-        ElementsArrayType& pElements = rModelPart.Elements();
+        // Getting the Elements
+        ElementsArrayType& r_elements_array = rModelPart.Elements();
 
-        //getting the array of the conditions
-        ConditionsArrayType& pConditions = rModelPart.Conditions();
+        // Getting the array of the conditions
+        ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        //contributions to the system
+        // Contributions to the system
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-        //vector containing the localization in the system of the different terms
-        Element::EquationIdVectorType EquationId;
+        // Vector containing the localization in the system of the different terms
+        EquationIdVectorType equation_id;
 
-        // assemble all elements
-
-        #pragma omp parallel firstprivate( RHS_Contribution, EquationId)
+        // Assemble all elements
+        #pragma omp parallel firstprivate( RHS_Contribution, equation_id)
         {
-            const int nelements = static_cast<int>(pElements.size());
+            const auto it_elem_begin = r_elements_array.begin();
+            const int nelements = static_cast<int>(r_elements_array.size());
             #pragma omp for schedule(guided, 512) nowait
-            for (int i = 0; i<nelements; i++)
-            {
-                typename ElementsArrayType::iterator it = pElements.begin() + i;
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool element_is_active = true;
-                if ((it)->IsDefined(ACTIVE))
-                    element_is_active = (it)->Is(ACTIVE);
+            for (int i = 0; i < nelements; ++i) {
+                auto it_elem = it_elem_begin + i;
 
-                if (element_is_active)
-                {
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool element_is_active = true;
+                if (it_elem->IsDefined(ACTIVE))
+                    element_is_active = it_elem->Is(ACTIVE);
+
+                if (element_is_active) {
                     // Calculate elemental Right Hand Side Contribution
-                    pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateRHSContribution(*it_elem, RHS_Contribution, equation_id, r_current_process_info);
 
                     // Assemble the elemental contribution
-                    AssembleRHS(b, RHS_Contribution, EquationId);
+                    AssembleRHS(rb, RHS_Contribution, equation_id);
                 }
             }
 
-            // assemble all conditions
-            const int nconditions = static_cast<int>(pConditions.size());
+            // Assemble all conditions
+            const auto it_cond_begin = r_conditions_array.begin();
+            const int nconditions = static_cast<int>(r_conditions_array.size());
             #pragma omp  for schedule(guided, 512)
-            for (int i = 0; i<nconditions; i++)
-            {
-                auto it = pConditions.begin() + i;
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
+            for (int i = 0; i < nconditions; ++i) {
+                auto it_cond = it_cond_begin + i;
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
                 bool condition_is_active = true;
-                if ((it)->IsDefined(ACTIVE))
-                    condition_is_active = (it)->Is(ACTIVE);
+                if (it_cond->IsDefined(ACTIVE))
+                    condition_is_active = it_cond->Is(ACTIVE);
 
-                if (condition_is_active)
-                {
-                    //calculate elemental contribution
-                    pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+                if (condition_is_active) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateRHSContribution(*it_cond, RHS_Contribution, equation_id, r_current_process_info);
 
-                    //assemble the elemental contribution
-                    AssembleRHS(b, RHS_Contribution, EquationId);
+                    // Assemble the elemental contribution
+                    AssembleRHS(rb, RHS_Contribution, equation_id);
                 }
             }
         }
@@ -626,100 +682,71 @@ public:
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << "Setting up the dofs" << std::endl;
 
-        //Gets the array of elements from the modeler
-        ElementsArrayType& pElements = rModelPart.Elements();
-        const int nelements = static_cast<int>(pElements.size());
+        // Gets the array of elements from the modeler
+        ElementsArrayType& r_elements_array = rModelPart.Elements();
+        const int nelements = static_cast<int>(r_elements_array.size());
 
-        Element::DofsVectorType ElementalDofList;
+        DofsVectorType elemental_dof_list;
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        unsigned int nthreads = OpenMPUtils::GetNumThreads();
-
-//         typedef boost::fast_pool_allocator< NodeType::DofType::Pointer > allocator_type;
-//         typedef std::unordered_set < NodeType::DofType::Pointer,
-//             DofPointerHasher,
-//             DofPointerComparor,
-//             allocator_type    >  set_type;
+        SizeType nthreads = ParallelUtilities::GetNumThreads();
 
         typedef std::unordered_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
 
-
         std::vector<set_type> dofs_aux_list(nthreads);
-//         std::vector<allocator_type> allocators(nthreads);
 
-        for (int i = 0; i < static_cast<int>(nthreads); i++)
-        {
-//             dofs_aux_list[i] = set_type( allocators[i]);
+        for (int i = 0; i < static_cast<int>(nthreads); ++i) {
             dofs_aux_list[i].reserve(nelements);
         }
 
-#pragma omp parallel for firstprivate(nelements, ElementalDofList)
-        for (int i = 0; i < static_cast<int>(nelements); i++)
-        {
-            typename ElementsArrayType::iterator it = pElements.begin() + i;
-            const unsigned int this_thread_id = OpenMPUtils::ThisThread();
+        IndexPartition<std::size_t>(nelements).for_each(elemental_dof_list, [&](std::size_t Index, DofsVectorType& tls_elemental_dof_list){
+            auto it_elem = r_elements_array.begin() + Index;
+            const IndexType this_thread_id = OpenMPUtils::ThisThread();
 
-            // gets list of Dof involved on every element
-            pScheme->GetElementalDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
+            // Gets list of Dof involved on every element
+            pScheme->GetDofList(*it_elem, tls_elemental_dof_list, r_current_process_info);
 
-            dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
-        }
+            dofs_aux_list[this_thread_id].insert(tls_elemental_dof_list.begin(), tls_elemental_dof_list.end());
+        });
 
-        ConditionsArrayType& pConditions = rModelPart.Conditions();
-        const int nconditions = static_cast<int>(pConditions.size());
-#pragma omp parallel for firstprivate(nconditions, ElementalDofList)
-        for (int i = 0; i < nconditions; i++)
-        {
-            typename ConditionsArrayType::iterator it = pConditions.begin() + i;
-            const unsigned int this_thread_id = OpenMPUtils::ThisThread();
+        ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+        const int nconditions = static_cast<int>(r_conditions_array.size());
 
-            // gets list of Dof involved on every element
-            pScheme->GetConditionDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
-            dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
-        }
+        IndexPartition<std::size_t>(nconditions).for_each(elemental_dof_list, [&](std::size_t Index, DofsVectorType& tls_elemental_dof_list){
+            auto it_cond = r_conditions_array.begin() + Index;
+            const IndexType this_thread_id = OpenMPUtils::ThisThread();
 
-        //here we do a reduction in a tree so to have everything on thread 0
-        unsigned int old_max = nthreads;
-        unsigned int new_max = ceil(0.5*static_cast<double>(old_max));
-        while (new_max >= 1 && new_max != old_max)
-        {
-//          //just for debugging
-//          std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
-//          for (int i = 0; i < new_max; i++)
-//          {
-//             if (i + new_max < old_max)
-//             {
-//                std::cout << i << " - " << i + new_max << std::endl;
-//             }
-//          }
-//          std::cout << "********************" << std::endl;
+            // Gets list of Dof involved on every element
+            pScheme->GetDofList(*it_cond, tls_elemental_dof_list, r_current_process_info);
+            dofs_aux_list[this_thread_id].insert(tls_elemental_dof_list.begin(), tls_elemental_dof_list.end());
+        });
 
-#pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(new_max); i++)
-            {
-                if (i + new_max < old_max)
-                {
-                    dofs_aux_list[i].insert(dofs_aux_list[i + new_max].begin(), dofs_aux_list[i + new_max].end());
-                    dofs_aux_list[i + new_max].clear();
+        // Here we do a reduction in a tree so to have everything on thread 0
+        SizeType old_max = nthreads;
+        SizeType new_max = ceil(0.5*static_cast<double>(old_max));
+        while (new_max >= 1 && new_max != old_max) {
+            IndexPartition<std::size_t>(new_max).for_each([&](std::size_t Index){
+                if (Index + new_max < old_max) {
+                    dofs_aux_list[Index].insert(dofs_aux_list[Index + new_max].begin(), dofs_aux_list[Index + new_max].end());
+                    dofs_aux_list[Index + new_max].clear();
                 }
-            }
+            });
 
             old_max = new_max;
             new_max = ceil(0.5*static_cast<double>(old_max));
         }
 
-        DofsArrayType Doftemp;
+        DofsArrayType dof_temp;
         BaseType::mDofSet = DofsArrayType();
 
-        Doftemp.reserve(dofs_aux_list[0].size());
-        for (auto it = dofs_aux_list[0].begin(); it != dofs_aux_list[0].end(); it++)
-        {
-            Doftemp.push_back(*it);
+        dof_temp.reserve(dofs_aux_list[0].size());
+        for (auto it = dofs_aux_list[0].begin(); it != dofs_aux_list[0].end(); ++it) {
+            dof_temp.push_back(*it);
         }
-        Doftemp.Sort();
+        dof_temp.Sort();
 
-        BaseType::mDofSet = Doftemp;
+        BaseType::mDofSet = dof_temp;
 
         // Throws an execption if there are no Degrees of freedom involved in the analysis
         KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
@@ -729,8 +756,7 @@ public:
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished setting up the dofs" << std::endl;
 
 #ifdef USE_LOCKS_IN_ASSEMBLY
-        if (mLockArray.size() != 0)
-        {
+        if (mLockArray.size() != 0) {
             for (int i = 0; i < static_cast<int>(mLockArray.size()); i++)
                 omp_destroy_lock(&mLockArray[i]);
         }
@@ -744,13 +770,11 @@ public:
         // If reactions are to be calculated, we check if all the dofs have reactions defined
         // This is tobe done only in debug mode
 #ifdef KRATOS_DEBUG
-        if(BaseType::GetCalculateReactionsFlag())
-        {
-            for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-            {
-                    KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
-                        << "Node : "<<dof_iterator->Id()<< std::endl
-                        << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
+        if(BaseType::GetCalculateReactionsFlag()) {
+            for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator) {
+                    KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " << std::endl
+                        << "Node : " << dof_iterator->Id() << std::endl
+                        << "Dof : " << (*dof_iterator) << std::endl << "Not possible to calculate reactions." << std::endl;
             }
         }
 #endif
@@ -762,9 +786,7 @@ public:
      * @brief Organises the dofset in order to speed up the building phase
      * @param rModelPart The model part of the problem to solve
      */
-    void SetUpSystem(
-        ModelPart& rModelPart
-        ) override
+    void SetUpSystem(ModelPart& rModelPart) override
     {
         // Set equation id for degrees of freedom
         // the free degrees of freedom are positioned at the beginning of the system,
@@ -776,7 +798,7 @@ public:
         int free_id = 0;
         int fix_id = BaseType::mDofSet.size();
 
-        for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
+        for (auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
             if (dof_iterator->IsFixed())
                 dof_iterator->SetEquationId(--fix_id);
             else
@@ -786,88 +808,97 @@ public:
 
     }
 
-    //**************************************************************************
-    //**************************************************************************
-
+    /**
+     * @brief This method resize and initializes the system of euqations
+     * @param pA The pointer to the LHS matrix
+     * @param pDx The pointer to the vector of Unknowns
+     * @param pb The pointer to the RHS vector
+     * @param rModelPart The model part to be computed
+     */
     void ResizeAndInitializeVectors(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
         ModelPart& rModelPart
-    ) override
+        ) override
     {
         KRATOS_TRY
-        if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
-        {
+
+        if (pA == nullptr) { // If the pointer is not initialized initialize it to an empty matrix
+
             TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
             pA.swap(pNewA);
         }
-        if (pDx == NULL) //if the pointer is not initialized initialize it to an empty matrix
-        {
+        if (pDx == nullptr) { // If the pointer is not initialized initialize it to an empty matrix
+
             TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(0));
             pDx.swap(pNewDx);
         }
-        if (pb == NULL) //if the pointer is not initialized initialize it to an empty matrix
-        {
+        if (pb == nullptr) { // If the pointer is not initialized initialize it to an empty matrix
+
             TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(0));
             pb.swap(pNewb);
         }
-        if (BaseType::mpReactionsVector == NULL) //if the pointer is not initialized initialize it to an empty matrix
-        {
+        if (BaseType::mpReactionsVector == nullptr) { // If the pointer is not initialized initialize it to an empty matrix
+
             TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(0));
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
         }
 
-        TSystemMatrixType& A = *pA;
-        TSystemVectorType& Dx = *pDx;
-        TSystemVectorType& b = *pb;
+        TSystemMatrixType& rA = *pA;
+        TSystemVectorType& rDx = *pDx;
+        TSystemVectorType& rb = *pb;
 
-        //resizing the system vectors and matrix
-        if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
-        {
-            A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-            ConstructMatrixStructure(pScheme, A, rModelPart);
-        }
-        else
-        {
-            if (A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
-            {
-                //KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
+        // Resizing the system vectors and matrix
+        if (rA.size1() == 0 || BaseType::GetReshapeMatrixFlag()) { // If the matrix is not initialized
+            rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
+            ConstructMatrixStructure(pScheme, rA, rModelPart);
+        } else {
+            if (rA.size1() != BaseType::mEquationSystemSize || rA.size2() != BaseType::mEquationSystemSize) {
                 KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
-                A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
-                ConstructMatrixStructure(pScheme, A, rModelPart);
+                rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
+                ConstructMatrixStructure(pScheme, rA, rModelPart);
             }
         }
-        if (Dx.size() != BaseType::mEquationSystemSize)
-            Dx.resize(BaseType::mEquationSystemSize, false);
-        if (b.size() != BaseType::mEquationSystemSize)
-            b.resize(BaseType::mEquationSystemSize, false);
+        if (rDx.size() != BaseType::mEquationSystemSize) {
+            rDx.resize(BaseType::mEquationSystemSize, false);
+        }
+        TSparseSpace::SetToZero(rDx);
+        if (rb.size() != BaseType::mEquationSystemSize) {
+            rb.resize(BaseType::mEquationSystemSize, false);
+        }
+        TSparseSpace::SetToZero(rb);
 
         //if needed resize the vector for the calculation of reactions
-        if (BaseType::mCalculateReactionsFlag == true)
-        {
+        if (BaseType::mCalculateReactionsFlag == true) {
             const std::size_t reactions_vector_size = BaseType::mDofSet.size() - BaseType::mEquationSystemSize;
             if (BaseType::mpReactionsVector->size() != reactions_vector_size)
                 BaseType::mpReactionsVector->resize(reactions_vector_size, false);
         }
 
         KRATOS_CATCH("")
-
     }
 
-    //**************************************************************************
-    //**************************************************************************
 
+    /**
+     * @brief This method computes the reactions
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part considered
+     * @param rA The LHS of the system
+     * @param rDx The vector of Unknowns
+     * @param rb The RHS vector
+     */
     void CalculateReactions(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
         //refresh RHS to have the correct reactions
-        BuildRHS(pScheme, rModelPart, b);
+        BuildRHS(pScheme, rModelPart, rb);
 
         // Updating variables
         std::size_t i;
@@ -889,16 +920,17 @@ public:
      * should refer to the particular Builder And Solver choosen
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
      */
     void ApplyDirichletConditions(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
     }
 
@@ -929,6 +961,32 @@ public:
 
         return 0;
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "elimination_builder_and_solver"
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "elimination_builder_and_solver";
     }
 
     ///@}
@@ -988,75 +1046,82 @@ protected:
     ///@{
 
    /**
-    * @brief This function does the assembling of the LHS and RHS
+    * @brief This method assembles the system
+    * @param rA The LHS of the system
+    * @param rb The RHS of the system
+    * @param rLHSContribution The LHS local contribution
+    * @param rRHSContribution The RHS local contribution
+    * @param rEquationId The equation id
+    * @param rLockArray The lock of the dof
     * @note The main difference respect the block builder and solver is the fact that the fixed DoFs are not considered on the assembling
     */
     void Assemble(
-        TSystemMatrixType& A,
-        TSystemVectorType& b,
-        const LocalSystemMatrixType& LHS_Contribution,
-        const LocalSystemVectorType& RHS_Contribution,
-        const Element::EquationIdVectorType& EquationId
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb,
+        const LocalSystemMatrixType& rLHSContribution,
+        const LocalSystemVectorType& rRHSContribution,
+        const Element::EquationIdVectorType& rEquationId
 #ifdef USE_LOCKS_IN_ASSEMBLY
-        ,std::vector< omp_lock_t >& lock_array
+        ,std::vector< omp_lock_t >& rLockArray
 #endif
         )
     {
-        unsigned int local_size = LHS_Contribution.size1();
+        const SizeType local_size = rLHSContribution.size1();
 
-        for (unsigned int i_local = 0; i_local < local_size; i_local++)
-        {
-            unsigned int i_global = EquationId[i_local];
+        for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+            const IndexType i_global = rEquationId[i_local];
 
-            if (i_global < BaseType::mEquationSystemSize)
-            {
+            if (i_global < BaseType::mEquationSystemSize) {
 #ifdef USE_LOCKS_IN_ASSEMBLY
-                omp_set_lock(&lock_array[i_global]);
-                b[i_global] += RHS_Contribution(i_local);
+                omp_set_lock(&rLockArray[i_global]);
+                rb[i_global] += rRHSContribution(i_local);
 #else
-                double& r_a = b[i_global];
-                const double& v_a = RHS_Contribution(i_local);
-                #pragma omp atomic
-                r_a += v_a;
+                double& r_a = rb[i_global];
+                const double& v_a = rRHSContribution(i_local);
+                AtomicAdd(r_a, v_a);
 #endif
-                AssembleRowContributionFreeDofs(A, LHS_Contribution, i_global, i_local, EquationId);
+                AssembleRowContributionFreeDofs(rA, rLHSContribution, i_global, i_local, rEquationId);
 
 #ifdef USE_LOCKS_IN_ASSEMBLY
-                omp_unset_lock(&lock_array[i_global]);
+                omp_unset_lock(&rLockArray[i_global]);
 #endif
             }
             //note that computation of reactions is not performed here!
         }
     }
 
-
-    //**************************************************************************
+    /**
+     * @brief This method construcs the relationship between the DoF
+     * @param pScheme The integration scheme
+     * @param rA The LHS of the system
+     * @param rModelPart The model part which defines the problem
+     */
     virtual void ConstructMatrixStructure(
         typename TSchemeType::Pointer pScheme,
-        TSystemMatrixType& A,
-        ModelPart& rModelPart)
+        TSystemMatrixType& rA,
+        ModelPart& rModelPart
+        )
     {
-        //filling with zero the matrix (creating the structure)
+        // Filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
 
-        const std::size_t equation_size = BaseType::mEquationSystemSize;
+        const SizeType equation_size = BaseType::mEquationSystemSize;
 
-        std::vector<std::unordered_set<std::size_t> > indices(equation_size);
+        std::vector<std::unordered_set<IndexType> > indices(equation_size);
 
-        #pragma omp parallel for firstprivate(equation_size)
-        for (int iii = 0; iii < static_cast<int>(equation_size); iii++) {
-            indices[iii].reserve(40);
-        }
+        block_for_each(indices, [](std::unordered_set<IndexType>& rIndices){
+            rIndices.reserve(40);
+        });
 
         Element::EquationIdVectorType ids(3, 0);
 
         #pragma omp parallel firstprivate(ids)
         {
             // The process info
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // We repeat the same declaration for each thead
-            std::vector<std::unordered_set<std::size_t> > temp_indexes(equation_size);
+            std::vector<std::unordered_set<IndexType> > temp_indexes(equation_size);
 
             #pragma omp for
             for (int index = 0; index < static_cast<int>(equation_size); ++index)
@@ -1066,13 +1131,13 @@ protected:
             const int number_of_elements = static_cast<int>(rModelPart.Elements().size());
 
             // Element initial iterator
-            const auto el_begin = rModelPart.ElementsBegin();
+            const auto it_elem_begin = rModelPart.ElementsBegin();
 
             // We iterate over the elements
             #pragma omp for schedule(guided, 512) nowait
             for (int i_elem = 0; i_elem<number_of_elements; ++i_elem) {
-                auto it_elem = el_begin + i_elem;
-                pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
+                auto it_elem = it_elem_begin + i_elem;
+                pScheme->EquationId( *it_elem, ids, r_current_process_info);
 
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
@@ -1088,13 +1153,14 @@ protected:
             const int number_of_conditions = static_cast<int>(rModelPart.Conditions().size());
 
             // Condition initial iterator
-            const auto cond_begin = rModelPart.ConditionsBegin();
+            const auto it_cond_begin = rModelPart.ConditionsBegin();
 
             // We iterate over the conditions
             #pragma omp for schedule(guided, 512) nowait
             for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
-                auto it_cond = cond_begin + i_cond;
-                pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
+                auto it_cond = it_cond_begin + i_cond;
+                pScheme->EquationId( *it_cond, ids, r_current_process_info);
+
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
                         auto& row_indices = temp_indexes[id_i];
@@ -1114,190 +1180,94 @@ protected:
             }
         }
 
-        //count the row sizes
-        unsigned int nnz = 0;
-        for (unsigned int i = 0; i < indices.size(); i++)
+        // Count the row sizes
+        SizeType nnz = 0;
+        for (IndexType i = 0; i < indices.size(); ++i)
             nnz += indices[i].size();
 
-        A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
+        rA = TSystemMatrixType(indices.size(), indices.size(), nnz);
 
-        double* Avalues = A.value_data().begin();
-        std::size_t* Arow_indices = A.index1_data().begin();
-        std::size_t* Acol_indices = A.index2_data().begin();
+        double* Avalues = rA.value_data().begin();
+        std::size_t* Arow_indices = rA.index1_data().begin();
+        std::size_t* Acol_indices = rA.index2_data().begin();
 
-        //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+        // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Arow_indices[0] = 0;
-        for (int i = 0; i < static_cast<int>(A.size1()); i++)
+        for (IndexType i = 0; i < rA.size1(); ++i)
             Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
 
-
-
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(A.size1()); i++)
-        {
-            const unsigned int row_begin = Arow_indices[i];
-            const unsigned int row_end = Arow_indices[i + 1];
-            unsigned int k = row_begin;
-            for (auto it = indices[i].begin(); it != indices[i].end(); it++)
-            {
-            Acol_indices[k] = *it;
-            Avalues[k] = 0.0;
-            k++;
+        IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t Index){
+            const IndexType row_begin = Arow_indices[Index];
+            const IndexType row_end = Arow_indices[Index + 1];
+            IndexType k = row_begin;
+            for (auto it = indices[Index].begin(); it != indices[Index].end(); ++it) {
+                Acol_indices[k] = *it;
+                Avalues[k] = 0.0;
+                ++k;
             }
 
             std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
+        });
 
-        }
-
-        A.set_filled(indices.size() + 1, nnz);
+        rA.set_filled(indices.size() + 1, nnz);
 
         Timer::Stop("MatrixStructure");
     }
 
-//    virtual void ConstructMatrixStructure(
-//        TSystemMatrixType& A,
-//        ElementsContainerType& rElements,
-//        ConditionsArrayType& rConditions,
-//        ProcessInfo& CurrentProcessInfo)
-//    {
-//
-//        std::size_t equation_size = A.size1();
-//        std::vector<std::vector<std::size_t> > indices(equation_size);
-//        //            std::vector<std::vector<std::size_t> > dirichlet_indices(TSystemSpaceType::Size1(mDirichletMatrix));
-//
-//        Element::EquationIdVectorType ids(3, 0);
-//        for (typename ElementsContainerType::iterator i_element = rElements.begin(); i_element != rElements.end(); i_element++)
-//        {
-//            (i_element)->EquationIdVector(ids, CurrentProcessInfo);
-//
-//            for (std::size_t i = 0; i < ids.size(); i++)
-//                if (ids[i] < equation_size)
-//                {
-//                    std::vector<std::size_t>& row_indices = indices[ids[i]];
-//                    for (std::size_t j = 0; j < ids.size(); j++)
-//                        if (ids[j] < equation_size)
-//                        {
-//                            AddUnique(row_indices, ids[j]);
-//                            //indices[ids[i]].push_back(ids[j]);
-//                        }
-//                }
-//
-//        }
-//
-//        for (typename ConditionsArrayType::iterator i_condition = rConditions.begin(); i_condition != rConditions.end(); i_condition++)
-//        {
-//            (i_condition)->EquationIdVector(ids, CurrentProcessInfo);
-//            for (std::size_t i = 0; i < ids.size(); i++)
-//                if (ids[i] < equation_size)
-//                {
-//                    std::vector<std::size_t>& row_indices = indices[ids[i]];
-//                    for (std::size_t j = 0; j < ids.size(); j++)
-//                        if (ids[j] < equation_size)
-//                        {
-//                            AddUnique(row_indices, ids[j]);
-//                            //   indices[ids[i]].push_back(ids[j]);
-//                        }
-//                }
-//        }
-//
-//        //allocating the memory needed
-//        int data_size = 0;
-//        for (std::size_t i = 0; i < indices.size(); i++)
-//        {
-//            data_size += indices[i].size();
-//        }
-//        A.reserve(data_size, false);
-//
-//        //filling with zero the matrix (creating the structure)
-//        Timer::Start("MatrixStructure");
-//#ifndef _OPENMP
-//        for (std::size_t i = 0; i < indices.size(); i++)
-//        {
-//            std::vector<std::size_t>& row_indices = indices[i];
-//            std::sort(row_indices.begin(), row_indices.end());
-//
-//            for (std::vector<std::size_t>::iterator it = row_indices.begin(); it != row_indices.end(); it++)
-//            {
-//                A.push_back(i, *it, 0.00);
-//            }
-//            row_indices.clear();
-//        }
-//#else
-//        int number_of_threads = omp_get_max_threads();
-//        vector<unsigned int> matrix_partition;
-//        CreatePartition(number_of_threads, indices.size(), matrix_partition);
-//        if (this->GetEchoLevel() > 2)
-//        {
-//            KRATOS_WATCH(matrix_partition);
-//        }
-//        for (int k = 0; k < number_of_threads; k++)
-//        {
-//            #pragma omp parallel
-//            if (omp_get_thread_num() == k)
-//            {
-//                for (std::size_t i = matrix_partition[k]; i < matrix_partition[k + 1]; i++)
-//                {
-//                    std::vector<std::size_t>& row_indices = indices[i];
-//                    std::sort(row_indices.begin(), row_indices.end());
-//
-//                    for (std::vector<std::size_t>::iterator it = row_indices.begin(); it != row_indices.end(); it++)
-//                    {
-//                        A.push_back(i, *it, 0.00);
-//                    }
-//                    row_indices.clear();
-//                }
-//            }
-//        }
-//#endif
-//        Timer::Stop("MatrixStructure");
-//    }
-
-    //**************************************************************************
-
+    /**
+     * @brief This method assembles the LHS of the system
+     * @param rA The LHS to assemble
+     * @param rLHSContribution The local LHS contribution
+     * @param rEquationId The equation id
+     */
     void AssembleLHS(
-        TSystemMatrixType& A,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId
-    )
+        TSystemMatrixType& rA,
+        LocalSystemMatrixType& rLHSContribution,
+        EquationIdVectorType& rEquationId
+        )
     {
-        unsigned int local_size = LHS_Contribution.size1();
+        const SizeType local_size = rLHSContribution.size1();
 
-        for (unsigned int i_local = 0; i_local < local_size; i_local++)
-        {
-            unsigned int i_global = EquationId[i_local];
-            if (i_global < BaseType::mEquationSystemSize)
-            {
-                for (unsigned int j_local = 0; j_local < local_size; j_local++)
-                {
-                    unsigned int j_global = EquationId[j_local];
-                    if (j_global < BaseType::mEquationSystemSize)
-                        A(i_global, j_global) += LHS_Contribution(i_local, j_local);
+        for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+            const IndexType i_global = rEquationId[i_local];
+            if (i_global < BaseType::mEquationSystemSize) {
+                for (IndexType j_local = 0; j_local < local_size; ++j_local) {
+                    const IndexType j_global = rEquationId[j_local];
+                    if (j_global < BaseType::mEquationSystemSize) {
+                        rA(i_global, j_global) += rLHSContribution(i_local, j_local);
+                    }
                 }
             }
         }
     }
 
     /**
-    * @brief This function is equivalent to the AssembleRowContribution of the block builder and solver
-    * @note The main difference respect the block builder and solver is the fact that the fixed DoFs are skipped
-    */
-    inline void AssembleRowContributionFreeDofs(TSystemMatrixType& A, const Matrix& Alocal, const std::size_t i, const std::size_t i_local, const Element::EquationIdVectorType& EquationId)
+     * @brief This function is equivalent to the AssembleRowContribution of the block builder and solver
+     * @note The main difference respect the block builder and solver is the fact that the fixed DoFs are skipped
+     */
+    inline void AssembleRowContributionFreeDofs(
+        TSystemMatrixType& rA,
+        const Matrix& rALocal,
+        const IndexType i,
+        const IndexType i_local,
+        const Element::EquationIdVectorType& EquationId
+        )
     {
-        double* values_vector = A.value_data().begin();
-        std::size_t* index1_vector = A.index1_data().begin();
-        std::size_t* index2_vector = A.index2_data().begin();
+        double* values_vector = rA.value_data().begin();
+        IndexType* index1_vector = rA.index1_data().begin();
+        IndexType* index2_vector = rA.index2_data().begin();
 
-        const std::size_t left_limit = index1_vector[i];
+        const IndexType left_limit = index1_vector[i];
 
         // Find the first entry
         // We iterate over the equation ids until we find the first equation id to be considered
         // We count in which component we find an ID
-        std::size_t last_pos = 0;
-        std::size_t last_found = 0;
-        std::size_t counter = 0;
-        for(std::size_t j=0; j < EquationId.size(); ++j) {
+        IndexType last_pos = 0;
+        IndexType last_found = 0;
+        IndexType counter = 0;
+        for(IndexType j=0; j < EquationId.size(); ++j) {
             ++counter;
-            const std::size_t j_global = EquationId[j];
+            const IndexType j_global = EquationId[j];
             if (j_global < BaseType::mEquationSystemSize) {
                 last_pos = ForwardFind(j_global,left_limit,index2_vector);
                 last_found = j_global;
@@ -1309,16 +1279,15 @@ protected:
         if (counter <= EquationId.size()) {
 #ifndef USE_LOCKS_IN_ASSEMBLY
             double& r_a = values_vector[last_pos];
-            const double& v_a = Alocal(i_local,counter - 1);
-            #pragma omp atomic
-            r_a +=  v_a;
+            const double& v_a = rALocal(i_local,counter - 1);
+            AtomicAdd(r_a,  v_a);
 #else
-            values_vector[last_pos] += Alocal(i_local,counter - 1);
+            values_vector[last_pos] += rALocal(i_local,counter - 1);
 #endif
             // Now find all of the other entries
-            std::size_t pos = 0;
-            for(std::size_t j = counter; j < EquationId.size(); ++j) {
-                std::size_t id_to_find = EquationId[j];
+            IndexType pos = 0;
+            for(IndexType j = counter; j < EquationId.size(); ++j) {
+                IndexType id_to_find = EquationId[j];
                 if (id_to_find < BaseType::mEquationSystemSize) {
                     if(id_to_find > last_found)
                         pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
@@ -1329,11 +1298,10 @@ protected:
 
 #ifndef USE_LOCKS_IN_ASSEMBLY
                     double& r = values_vector[pos];
-                    const double& v = Alocal(i_local,j);
-                    #pragma omp atomic
-                    r +=  v;
+                    const double& v = rALocal(i_local,j);
+                    AtomicAdd(r,  v);
 #else
-                    values_vector[pos] += Alocal(i_local,j);
+                    values_vector[pos] += rALocal(i_local,j);
 #endif
                     last_found = id_to_find;
                     last_pos = pos;
@@ -1342,20 +1310,20 @@ protected:
         }
     }
 
-    inline std::size_t ForwardFind(const std::size_t id_to_find,
-                                   const std::size_t start,
-                                   const std::size_t* index_vector)
+    inline IndexType ForwardFind(const IndexType id_to_find,
+                                   const IndexType start,
+                                   const IndexType* index_vector)
     {
-        std::size_t pos = start;
+        IndexType pos = start;
         while(id_to_find != index_vector[pos]) pos++;
         return pos;
     }
 
-    inline std::size_t BackwardFind(const std::size_t id_to_find,
-                                    const std::size_t start,
-                                    const std::size_t* index_vector)
+    inline IndexType BackwardFind(const IndexType id_to_find,
+                                    const IndexType start,
+                                    const IndexType* index_vector)
     {
-        std::size_t pos = start;
+        IndexType pos = start;
         while(id_to_find != index_vector[pos]) pos--;
         return pos;
     }
@@ -1390,92 +1358,88 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method ensures that the contribution is unique
+     */
     inline void AddUnique(std::vector<std::size_t>& v, const std::size_t& candidate)
     {
         std::vector<std::size_t>::iterator i = v.begin();
         std::vector<std::size_t>::iterator endit = v.end();
-        while (i != endit && (*i) != candidate)
-        {
+        while (i != endit && (*i) != candidate) {
             i++;
         }
-        if (i == endit)
-        {
+        if (i == endit) {
             v.push_back(candidate);
         }
 
     }
 
+    /**
+     * @brief This method assembles the RHS of the system
+     * @param rb The RHS to assemble
+     * @param rRHSContribution The local RHS contribution
+     * @param rEquationId The equation id
+     */
     void AssembleRHS(
-        TSystemVectorType& b,
-        const LocalSystemVectorType& RHS_Contribution,
-        const Element::EquationIdVectorType& EquationId
-    )
+        TSystemVectorType& rb,
+        const LocalSystemVectorType& rRHSContribution,
+        const EquationIdVectorType& rEquationId
+        )
     {
-        unsigned int local_size = RHS_Contribution.size();
+        SizeType local_size = rRHSContribution.size();
 
-        if (BaseType::mCalculateReactionsFlag == false)
-        {
-            for (unsigned int i_local = 0; i_local < local_size; i_local++)
-            {
-                const unsigned int i_global = EquationId[i_local];
+        if (BaseType::mCalculateReactionsFlag == false) {
+            for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+                const IndexType i_global = rEquationId[i_local];
 
-                if (i_global < BaseType::mEquationSystemSize) //free dof
-                {
+                if (i_global < BaseType::mEquationSystemSize) { // Free dof
                     // ASSEMBLING THE SYSTEM VECTOR
-                    double& b_value = b[i_global];
-                    const double& rhs_value = RHS_Contribution[i_local];
+                    double& b_value = rb[i_global];
+                    const double& rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    b_value += rhs_value;
+                    AtomicAdd(b_value, rhs_value);
                 }
             }
-        }
-        else
-        {
-            TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
-            for (unsigned int i_local = 0; i_local < local_size; i_local++)
-            {
-                const unsigned int i_global = EquationId[i_local];
+        } else {
+            TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
+            for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+                const IndexType i_global = rEquationId[i_local];
 
-                if (i_global < BaseType::mEquationSystemSize) //free dof
-                {
+                if (i_global < BaseType::mEquationSystemSize) { //free dof
                     // ASSEMBLING THE SYSTEM VECTOR
-                    double& b_value = b[i_global];
-                    const double& rhs_value = RHS_Contribution[i_local];
+                    double& b_value = rb[i_global];
+                    const double& rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    b_value += rhs_value;
-                }
-                else //fixed dof
-                {
-                    double& b_value = ReactionsVector[i_global - BaseType::mEquationSystemSize];
-                    const double& rhs_value = RHS_Contribution[i_local];
+                    AtomicAdd(b_value, rhs_value);
+                } else { // Fixed dof
+                    double& b_value = r_reactions_vector[i_global - BaseType::mEquationSystemSize];
+                    const double& rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    b_value += rhs_value;
+                    AtomicAdd(b_value, rhs_value);
                 }
             }
         }
     }
 
-    //**************************************************************************
-
-    void AssembleLHS_CompleteOnFreeRows(
-        TSystemMatrixType& A,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId
-    )
+    /**
+     * @brief This method assembles the LHS of the system (on free rows)
+     * @param rA The LHS to assemble
+     * @param rLHSContribution The local LHS contribution
+     * @param rEquationId The equation id
+     */
+    void AssembleLHSCompleteOnFreeRows(
+        TSystemMatrixType& rA,
+        LocalSystemMatrixType& rLHSContribution,
+        EquationIdVectorType& rEquationId
+        )
     {
-        unsigned int local_size = LHS_Contribution.size1();
-        for (unsigned int i_local = 0; i_local < local_size; i_local++)
-        {
-            unsigned int i_global = EquationId[i_local];
-            if (i_global < BaseType::mEquationSystemSize)
-            {
-                for (unsigned int j_local = 0; j_local < local_size; j_local++)
-                {
-                    int j_global = EquationId[j_local];
-                    A(i_global, j_global) += LHS_Contribution(i_local, j_local);
+        const SizeType local_size = rLHSContribution.size1();
+        for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+            const IndexType i_global = rEquationId[i_local];
+            if (i_global < BaseType::mEquationSystemSize) {
+                for (IndexType j_local = 0; j_local < local_size; ++j_local) {
+                    const IndexType j_global = rEquationId[j_local];
+                    rA(i_global, j_global) += rLHSContribution(i_local, j_local);
                 }
             }
         }

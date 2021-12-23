@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -101,6 +102,7 @@ public:
      *                       - The size of the bucket
      *                       - The proportion increased of the Radius/Bounding-box volume for the search
      *                       - TypeSearch: 0 means search in radius, 1 means search in box
+     * @param pPairedProperties Properties of the pair
      * @todo Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
      * @note Use an InterfacePreprocess object to create such a model part from a regular one:
      *          -# InterfaceMapper = InterfacePreprocess()
@@ -108,7 +110,8 @@ public:
      */
     AdvancedContactSearchProcess(
         ModelPart& rMainModelPart,
-        Parameters ThisParameters =  Parameters(R"({})")
+        Parameters ThisParameters =  Parameters(R"({})"),
+        Properties::Pointer pPairedProperties = nullptr
         );
 
     virtual ~AdvancedContactSearchProcess()= default;;
@@ -229,132 +232,132 @@ private:
 
     /**
      * @brief This method sets as active a node and it predicts the value of its LM
-     * @param ItNode The node iterator to set
+     * @param ItNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void SetActiveNodeWithRegression(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the scalar LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void CorrectScalarMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the vector LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void CorrectComponentsMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the ALM frictionless LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void CorrectALMFrictionlessMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the ALM frictionless in components LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void CorrectALMFrictionlessComponentsMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the ALM frictional LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void CorrectALMFrictionalMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the scalar LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void PredictScalarMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the vector LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void PredictComponentsMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the ALM frictionless LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void PredictALMFrictionlessMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the ALM frictionless in components LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void PredictALMFrictionlessComponentsMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the ALM frictional LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void PredictALMFrictionalMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );

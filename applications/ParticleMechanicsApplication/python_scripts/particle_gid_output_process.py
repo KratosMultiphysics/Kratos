@@ -5,6 +5,7 @@ import KratosMultiphysics
 
 # Import applications and dependencies
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+from  KratosMultiphysics.deprecation_management import DeprecationManager
 
 # Import time library
 from time import time
@@ -28,7 +29,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
             },
             "file_label": "time",
             "output_control_type": "step",
-            "output_frequency": 1.0,
+            "output_interval": 1.0,
             "body_output": true,
             "node_output": false,
             "skin_output": false,
@@ -50,6 +51,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
         if param is None:
             param = self.defaults
         else:
+            self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
             param.ValidateAndAssignDefaults(self.defaults)
 
         # Default
@@ -61,6 +63,18 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
         self.printed_step_count = 0
         self.next_output = 0.0
 
+    # This function can be extended with new deprecated variables as they are generated
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+        # Defining a string to help the user understand where the warnings come from (in case any is thrown)
+        context_string = type(self).__name__
+
+        if settings.Has('result_file_configuration'):
+            sub_settings_where_var_is = settings['result_file_configuration']
+            old_name = 'output_frequency'
+            new_name = 'output_interval'
+
+            if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
+                DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
 
     # Public Functions
     def ExecuteInitialize(self):
@@ -87,7 +101,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
             msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
             raise Exception(msg)
 
-        self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
+        self.output_frequency = result_file_configuration["output_interval"].GetDouble()
 
         # Set Variable list to print
         self.variable_name_list = result_file_configuration["gauss_point_results"]
@@ -105,7 +119,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
         self.mesh_file.write("\" dimension 3 ElemType Point Nnode 1\n")
         self.mesh_file.write("Coordinates\n")
         for mpm in self.model_part.Elements:
-            coord = mpm.GetValue(KratosParticle.MP_COORD)
+            coord = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD,self.model_part.ProcessInfo)[0]
             self.mesh_file.write("{} {} {} {}\n".format( mpm.Id, coord[0], coord[1], coord[2]))
         self.mesh_file.write("End Coordinates\n")
         self.mesh_file.write("Elements\n")
@@ -215,7 +229,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
 
             self.result_file.write("Values\n")
             for mpm in self.model_part.Elements:
-                print_variable = mpm.GetValue(variable)
+                print_variable = mpm.CalculateOnIntegrationPoints(variable,self.model_part.ProcessInfo)[0]
                 # Check whether variable is a scalar or vector
                 if isinstance(print_variable, float) or isinstance(print_variable, int):
                     print_size = 1

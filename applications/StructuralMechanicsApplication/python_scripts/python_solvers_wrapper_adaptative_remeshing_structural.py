@@ -1,24 +1,22 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics
 from importlib import import_module
 
 def CreateSolver(model, custom_settings):
 
-    if (type(model) != KratosMultiphysics.Model):
+    if not isinstance(model, KratosMultiphysics.Model):
         raise Exception("input is expected to be provided as a Kratos Model object")
 
-    if (type(custom_settings) != KratosMultiphysics.Parameters):
+    if not isinstance(custom_settings, KratosMultiphysics.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
     solver_type = custom_settings["solver_settings"]["solver_type"].GetString()
 
     # Solvers for OpenMP parallelism
-    if (parallelism == "OpenMP"):
-        if (solver_type == "static" or solver_type == "Static"):
+    if parallelism == "OpenMP":
+        if solver_type == "static" or solver_type == "Static":
             solver_module_name = "adaptative_remeshing_structural_mechanics_static_solver"
-        elif (solver_type == "dynamic" or solver_type == "Dynamic"):
+        elif solver_type == "dynamic" or solver_type == "Dynamic":
             solver_module_name = "adaptative_remeshing_structural_mechanics_implicit_dynamic_solver"
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"

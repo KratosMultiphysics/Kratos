@@ -252,25 +252,6 @@ void SmallDisplacement::SetConstitutiveVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacement::CalculateConstitutiveVariables(
-    KinematicVariables& rThisKinematicVariables,
-    ConstitutiveVariables& rThisConstitutiveVariables,
-    ConstitutiveLaw::Parameters& rValues,
-    const IndexType PointNumber,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    const ConstitutiveLaw::StressMeasure ThisStressMeasure
-    )
-{
-    // Set the constitutive variables
-    SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
-
-    // Actually do the computations in the ConstitutiveLaw
-    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void SmallDisplacement::CalculateB(
     Matrix& rB,
     const Matrix& rDN_DX,
@@ -294,20 +275,6 @@ void SmallDisplacement::ComputeEquivalentF(
     ) const
 {
     StructuralMechanicsElementUtilities::ComputeEquivalentF(*this, rStrainTensor, rF);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-int  SmallDisplacement::Check( const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    int ier = BaseSolidElement::Check(rCurrentProcessInfo);
-
-    return ier;
-
-    KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/

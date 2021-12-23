@@ -31,22 +31,22 @@ export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"location_python/python.exe"}
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
-add_app ${KRATOS_APP_DIR}/ExternalSolversApplication
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
-add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication
 
 # Configure
 cmake ..                                                                                            \
 -G "MinGW Makefiles"                                                                                \
 -DWIN32=TRUE                                                                                        \
+-DCMAKE_INSTALL_PREFIX="${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}"                                  \
+-DCMAKE_BUILD_TYPE="${KRATOS_BUILD_TYPE}"                                                           \
 -DCMAKE_EXE_LINKER_FLAGS="-s"                                                                       \
 -DCMAKE_SHARED_LINKER_FLAGS="-s"                                                                    \
--DLAPACK_LIBRARIES="location_msys64/msys64/mingw64/lib/liblapack.dll.a"                             \
--DBLAS_LIBRARIES="location_msys64/msys64/mingw64/lib/libblas.dll.a"                                 \
 -H"${KRATOS_SOURCE}"                                                                                \
 -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
 -DUSE_MPI=OFF                                                                                       \
+-DUSE_EIGEN_MKL=OFF
 
 # Buid
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j4
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)

@@ -7,39 +7,23 @@ include(pybind11Tools)
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/CompressiblePotentialFlowApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/CompressiblePotentialFlowApplication )
 
 # generate variables with the sources
-set( KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE
+file( GLOB_RECURSE KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/compressible_potential_flow_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/compressible_potential_flow_application_variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_potential_wall_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/potential_wall_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_analytical_incompressible_potential_flow_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_base_potential_flow_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_finite_difference_potential_flow_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_potential_flow_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_compressible_potential_flow_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_incompressible_potential_flow_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/incompressible_potential_flow_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_far_field_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_embedded_lift_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_nodal_potential_flow_velocity_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/define_2d_wake_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/define_embedded_wake_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/move_model_part_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_potential_response_function.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_lift_response_function_coordinates_jump.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/potential_flow_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
-set( KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_PYTHON_INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/compressible_potential_flow_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_response_functions_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+file( GLOB_RECURSE KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_PYTHON_INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 ## define compressible potential application test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
@@ -55,6 +39,12 @@ pybind11_add_module(KratosCompressiblePotentialFlowApplication MODULE THIN_LTO $
 target_link_libraries(KratosCompressiblePotentialFlowApplication PRIVATE KratosCompressiblePotentialFlowCore )
 set_target_properties(KratosCompressiblePotentialFlowApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosCompressiblePotentialFlowCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosCompressiblePotentialFlowApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosCompressiblePotentialFlowApplication PROPERTIES SUFFIX .pyd)
@@ -64,12 +54,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosCompressiblePotentialFlowApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosCompressiblePotentialFlowCore)
-    cotire(KratosCompressiblePotentialFlowApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/CompressiblePotentialFlowApplication.py KratosMultiphysics/CompressiblePotentialFlowApplication/__init__.py )
@@ -93,3 +77,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosCompressiblePotentialFlowCore DESTINATION libs )
 install(TARGETS KratosCompressiblePotentialFlowApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosCompressiblePotentialFlowCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosCompressiblePotentialFlowApplication" PARENT_SCOPE)

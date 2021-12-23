@@ -56,7 +56,7 @@ typedef Geometry<NodeType> GeometryType;
 int SolidElementCheck(
     const Element& rElement,
     const ProcessInfo& rCurrentProcessInfo,
-    std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws
+    const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws
     );
 
 /**
@@ -206,10 +206,10 @@ double GetDensityForMassMatrixComputation(const Element& rElement);
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @param MatrixSize The size of the damping-matrix
  */
-void CalculateRayleighDampingMatrix(
+void KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CalculateRayleighDampingMatrix(
     Element& rElement,
     Element::MatrixType& rDampingMatrix,
-    /*const*/ ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const std::size_t MatrixSize);
 
 /**
@@ -217,28 +217,48 @@ void CalculateRayleighDampingMatrix(
  * @param rElement The Element for which the reference length should be computed
  * @return reference length
  */
-double CalculateReferenceLength2D2N(const Element& rElement);
+double KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CalculateReferenceLength2D2N(const Element& rElement);
 
 /**
  * @brief This function calculates the current length for 2D2N elements
  * @param rElement The Element for which the current length should be computed
  * @return current length
  */
-double CalculateCurrentLength2D2N(const Element& rElement);
+double KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CalculateCurrentLength2D2N(const Element& rElement);
 
 /**
  * @brief This function calculates the reference length for 3D2N elements
  * @param rElement The Element for which the reference length should be computed
  * @return reference length
  */
-double CalculateReferenceLength3D2N(const Element& rElement);
+double KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CalculateReferenceLength3D2N(const Element& rElement);
 
 /**
  * @brief This function calculates the current length for 3D2N elements
  * @param rElement The Element for which the current length should be computed
  * @return current length
  */
-double CalculateCurrentLength3D2N(const Element& rElement);
+double KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CalculateCurrentLength3D2N(const Element& rElement);
+
+/**
+ * @brief This function checks the norm of the vectors
+ * @param rvi The vector of which norm has to be different from null
+ */
+void InitialCheckLocalAxes(
+    const array_1d<double, 3>& rv1,
+    const array_1d<double, 3>& rv2,
+    const array_1d<double, 3>& rv3,
+    const double Tolerance = 1.0e4*std::numeric_limits<double>::epsilon());
+
+/**
+ * @brief This function fills a rotation matrix from a set of vectors
+ * @param rRotationMatrix The rotation matrix from global to local axes
+ */
+void BuildRotationMatrix(
+    BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    const array_1d<double, 3>& rv1,
+    const array_1d<double, 3>& rv2,
+    const array_1d<double, 3>& rv3);
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

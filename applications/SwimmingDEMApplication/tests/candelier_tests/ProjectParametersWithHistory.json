@@ -115,6 +115,11 @@
             "input_type" : "mdpa",
             "input_filename" : "candelier_tests/CandelierFluid"
         },
+
+        "material_import_settings"    : {
+            "materials_filename" : "interpolation_tests/FluidMaterials.json"
+        },
+
         "formulation": {
             "element_type": "vms"
         },
@@ -219,7 +224,10 @@
     "RemoveBallsInEmbeddedOption" : true,
     "solver_settings" : {
         "strategy" : "swimming_sphere_strategy",
-        "RemoveBallsInitiallyTouchingWalls" : false
+        "RemoveBallsInitiallyTouchingWalls" : false,
+        "material_import_settings"           : {
+            "materials_filename" : "candelier_tests/MaterialsDEM.json"
+        }
     },
 
 
@@ -240,7 +248,6 @@
     "MaxTimeStep" : 0.005,
     "FinalTime" : 1.0,
     "NeighbourSearchFrequency" : 1,
-    "TestType" : "None",
     "ElementType" : "SwimmingDEMElement",
     "problem_name" : "Candelier",
     "GraphExportFreq" : 1e-3,

@@ -40,27 +40,27 @@ namespace Testing {
         )
     {
       switch(ThisMethod) {
-        case GeometryData::GI_GAUSS_1 :
+        case GeometryData::IntegrationMethod::GI_GAUSS_1 :
           return "GI_GAUSS_1";
-        case GeometryData::GI_GAUSS_2 :
+        case GeometryData::IntegrationMethod::GI_GAUSS_2 :
           return "GI_GAUSS_2";
-        case GeometryData::GI_GAUSS_3 :
+        case GeometryData::IntegrationMethod::GI_GAUSS_3 :
           return "GI_GAUSS_3";
-        case GeometryData::GI_GAUSS_4 :
+        case GeometryData::IntegrationMethod::GI_GAUSS_4 :
           return "GI_GAUSS_4";
-        case GeometryData::GI_GAUSS_5 :
+        case GeometryData::IntegrationMethod::GI_GAUSS_5 :
           return "GI_GAUSS_5";
-        case GeometryData::GI_EXTENDED_GAUSS_1 :
+        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 :
           return "GI_EXTENDED_GAUSS_1";
-        case GeometryData::GI_EXTENDED_GAUSS_2 :
+        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 :
           return "GI_EXTENDED_GAUSS_2";
-        case GeometryData::GI_EXTENDED_GAUSS_3 :
+        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 :
           return "GI_EXTENDED_GAUSS_3";
-        case GeometryData::GI_EXTENDED_GAUSS_4 :
+        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 :
           return "GI_EXTENDED_GAUSS_4";
-        case GeometryData::GI_EXTENDED_GAUSS_5 :
+        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 :
           return "GI_EXTENDED_GAUSS_5";
-        case GeometryData::NumberOfIntegrationMethods :
+        case GeometryData::IntegrationMethod::NumberOfIntegrationMethods :
           return "NumberOfIntegrationMethods";
       };
 
@@ -77,56 +77,86 @@ namespace Testing {
       GeometryData::KratosGeometryType geom_type = ThisGeometry.GetGeometryType();
 
       switch(geom_type) {
-        case GeometryData::Kratos_generic_type :
+        case GeometryData::KratosGeometryType::Kratos_generic_type :
           return "Kratos_generic_type";
-        case GeometryData::Kratos_Hexahedra3D20 :
+        case GeometryData::KratosGeometryType::Kratos_Hexahedra3D20 :
           return "Kratos_Hexahedra3D20";
-        case GeometryData::Kratos_Hexahedra3D27 :
+        case GeometryData::KratosGeometryType::Kratos_Hexahedra3D27 :
           return "Kratos_Hexahedra3D27";
-        case GeometryData::Kratos_Hexahedra3D8 :
+        case GeometryData::KratosGeometryType::Kratos_Hexahedra3D8 :
           return "Kratos_Hexahedra3D8";
-        case GeometryData::Kratos_Prism3D15 :
+        case GeometryData::KratosGeometryType::Kratos_Prism3D15 :
           return "Kratos_Prism3D15";
-        case GeometryData::Kratos_Prism3D6 :
+        case GeometryData::KratosGeometryType::Kratos_Prism3D6 :
           return "Kratos_Prism3D6";
-        case GeometryData::Kratos_Quadrilateral2D4 :
+        case GeometryData::KratosGeometryType::Kratos_Pyramid3D13 :
+          return "Kratos_Pyramid3D13";
+        case GeometryData::KratosGeometryType::Kratos_Pyramid3D5 :
+          return "Kratos_Pyramid3D5";
+        case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4 :
           return "Kratos_Quadrilateral2D4";
-        case GeometryData::Kratos_Quadrilateral2D8 :
+        case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8 :
           return "Kratos_Quadrilateral2D8";
-        case GeometryData::Kratos_Quadrilateral2D9 :
+        case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9 :
           return "Kratos_Quadrilateral2D9";
-        case GeometryData::Kratos_Quadrilateral3D4 :
+        case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4 :
           return "Kratos_Quadrilateral3D4";
-        case GeometryData::Kratos_Quadrilateral3D8 :
+        case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8 :
           return "Kratos_Quadrilateral3D8";
-        case GeometryData::Kratos_Quadrilateral3D9 :
+        case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9 :
           return "Kratos_Quadrilateral3D9";
-        case GeometryData::Kratos_Tetrahedra3D10 :
+        case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10 :
           return "Kratos_Tetrahedra3D10";
-        case GeometryData::Kratos_Tetrahedra3D4 :
+        case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 :
           return "Kratos_Tetrahedra3D4";
-        case GeometryData::Kratos_Triangle2D3 :
+        case GeometryData::KratosGeometryType::Kratos_Triangle2D3 :
           return "Kratos_Triangle3D3";
-        case GeometryData::Kratos_Triangle2D6 :
+        case GeometryData::KratosGeometryType::Kratos_Triangle2D6 :
           return "Kratos_Triangle2D6";
-        case GeometryData::Kratos_Triangle3D3 :
+        case GeometryData::KratosGeometryType::Kratos_Triangle3D3 :
           return "Kratos_Triangle3D3";
-        case GeometryData::Kratos_Triangle3D6 :
+        case GeometryData::KratosGeometryType::Kratos_Triangle3D6 :
           return "Kratos_Triangle3D6";
-        case GeometryData::Kratos_Line2D2 :
+        case GeometryData::KratosGeometryType::Kratos_Line2D2 :
           return "Kratos_Line2D2";
-        case GeometryData::Kratos_Line2D3 :
+        case GeometryData::KratosGeometryType::Kratos_Line2D3 :
           return "Kratos_Line2D3";
-        case GeometryData::Kratos_Line3D2 :
+        case GeometryData::KratosGeometryType::Kratos_Line3D2 :
           return "Kratos_Line3D2";
-        case GeometryData::Kratos_Line3D3 :
+        case GeometryData::KratosGeometryType::Kratos_Line3D3 :
           return "Kratos_Line3D3";
-        case GeometryData::Kratos_Point2D :
+        case GeometryData::KratosGeometryType::Kratos_Point2D :
           return "Kratos_Point2D";
-        case GeometryData::Kratos_Point3D :
+        case GeometryData::KratosGeometryType::Kratos_Point3D :
           return "Kratos_Point3D";
-        case GeometryData::Kratos_Sphere3D1 :
+        case GeometryData::KratosGeometryType::Kratos_Sphere3D1 :
           return "Kratos_Sphere3D1";
+        case GeometryData::KratosGeometryType::Kratos_Nurbs_Curve:
+          return "Kratos_Nurbs_Curve";
+        case GeometryData::KratosGeometryType::Kratos_Nurbs_Surface:
+          return "Kratos_Nurbs_Surface";
+        case GeometryData::KratosGeometryType::Kratos_Nurbs_Volume:
+          return "Kratos_Nurbs_Volume";
+        case GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface:
+          return "Kratos_Nurbs_Curve_On_Surface";
+        case GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume:
+          return "Kratos_Surface_In_Nurbs_Volume";
+        case GeometryData::KratosGeometryType::Kratos_Brep_Curve:
+          return "Kratos_Brep_Curve";
+        case GeometryData::KratosGeometryType::Kratos_Brep_Surface:
+          return "Kratos_Brep_Surface";
+        case GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface:
+          return "Kratos_Brep_Curve_On_Surface";
+        case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry:
+          return "Kratos_Quadrature_Point_Geometry";
+        case GeometryData::KratosGeometryType::Kratos_Coupling_Geometry:
+            return "Kratos_Coupling_Geometry";
+        case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry:
+          return "Kratos_Quadrature_Point_Curve_On_Surface_Geometry";
+        case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry:
+          return "Kratos_Quadrature_Point_Surface_In_Volume_Geometry";
+        case GeometryData::KratosGeometryType::NumberOfGeometryTypes:
+          return "UnknownGeometry";
       };
 
       return "UnknownGeometry";
@@ -384,5 +414,44 @@ namespace Testing {
         }
     }
 
+    /// Test self assigned geometry Id
+    KRATOS_TEST_CASE_IN_SUITE(GeometryIdSelfAssigned, KratosCoreGeometriesFastSuite) {
+        auto this_geometry = Geometry<Point>();
+
+        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdGeneratedFromString());
+        KRATOS_CHECK(this_geometry.IsIdSelfAssigned());
+
+        this_geometry.SetId(2);
+        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdGeneratedFromString());
+        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdSelfAssigned());
+
+        this_geometry.SetId("ThisGeometry");
+        KRATOS_CHECK(this_geometry.IsIdGeneratedFromString());
+        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdSelfAssigned());
+    }
+
+    /// Test geometry Id with name
+    KRATOS_TEST_CASE_IN_SUITE(GeometryName, KratosCoreGeometriesFastSuite) {
+        auto this_geometry = Geometry<Point>("Geometry1");
+
+        KRATOS_CHECK(this_geometry.IsIdGeneratedFromString());
+        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdSelfAssigned());
+        KRATOS_CHECK_EQUAL(this_geometry.Id(), Geometry<Point>::GenerateId("Geometry1"));
+    }
+
+    /// Test geometry Id
+    KRATOS_TEST_CASE_IN_SUITE(GeometryId, KratosCoreGeometriesFastSuite) {
+        auto this_geometry = Geometry<Point>(1);
+
+        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdGeneratedFromString());
+        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdSelfAssigned());
+        KRATOS_CHECK_EQUAL(this_geometry.Id(), 1);
+
+        // Check for higher Id.
+        auto this_geometry_2 = Geometry<Point>(717);
+        KRATOS_CHECK_IS_FALSE(this_geometry_2.IsIdGeneratedFromString());
+        KRATOS_CHECK_IS_FALSE(this_geometry_2.IsIdSelfAssigned());
+        KRATOS_CHECK_EQUAL(this_geometry_2.Id(), 717);
+    }
 } // namespace Testing.
 } // namespace Kratos.

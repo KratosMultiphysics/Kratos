@@ -1,7 +1,0 @@
-[91m[ERROR][0m class Element already defined
-  [element.h]: "class Element : public GeometricalObject, public Flags"
-
-[93m[WARNING][0m class Element probably defined with a likelihood of: 0.533
-  [geometry.h]: "class Geometry : public PointerVector<TPointType>"
-
-Your application has been generated in: applications/TracTracApplication

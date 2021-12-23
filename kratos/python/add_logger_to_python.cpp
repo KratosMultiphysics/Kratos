@@ -15,8 +15,10 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "includes/data_communicator.h"
+#include "includes/parallel_environment.h"
 #include "input_output/logger.h"
+#include "input_output/file_logger_output.h"
+#include "input_output/logger_table_output.h"
 
 
 namespace Kratos {
@@ -30,7 +32,7 @@ const DataCommunicator& getDataCommunicator(pybind11::kwargs kwargs) {
         return r_data_communicator;
     }
     else {
-        return DataCommunicator::GetDefault();
+        return ParallelEnvironment::GetDefaultDataCommunicator();
     }
 }
 
@@ -151,13 +153,28 @@ void printWarningOnAllRanks(pybind11::args args, pybind11::kwargs kwargs) {
 
 void  AddLoggerToPython(pybind11::module& m) {
 
-    py::class_<LoggerOutput, Kratos::shared_ptr<LoggerOutput>>(m,"LoggerOutput")
+    auto logger_output = py::class_<LoggerOutput, Kratos::shared_ptr<LoggerOutput>>(m,"LoggerOutput")
     .def("SetMaxLevel", &LoggerOutput::SetMaxLevel)
     .def("GetMaxLevel", &LoggerOutput::GetMaxLevel)
     .def("SetSeverity", &LoggerOutput::SetSeverity)
     .def("GetSeverity", &LoggerOutput::GetSeverity)
     .def("SetCategory", &LoggerOutput::SetCategory)
     .def("GetCategory", &LoggerOutput::GetCategory)
+    .def("SetOption", &LoggerOutput::SetOption)
+    .def("GetOption", &LoggerOutput::GetOption)
+    ;
+    logger_output.attr("WARNING_PREFIX") = LoggerOutput::WARNING_PREFIX;
+    logger_output.attr("INFO_PREFIX") = LoggerOutput::INFO_PREFIX;
+    logger_output.attr("DETAIL_PREFIX") = LoggerOutput::DETAIL_PREFIX;
+    logger_output.attr("DEBUG_PREFIX") = LoggerOutput::DEBUG_PREFIX;
+    logger_output.attr("TRACE_PREFIX") = LoggerOutput::TRACE_PREFIX;
+
+    py::class_<FileLoggerOutput, Kratos::shared_ptr<FileLoggerOutput>, LoggerOutput>(m,"FileLoggerOutput")
+    .def(py::init<std::string>())
+    ;
+
+    py::class_<LoggerTableOutput, Kratos::shared_ptr<LoggerTableOutput>, LoggerOutput>(m,"LoggerTableOutput")
+    .def(py::init<Parameters>())
     ;
 
     py::class_<Logger, Kratos::shared_ptr<Logger>> logger_scope(m,"Logger");
@@ -171,6 +188,7 @@ void  AddLoggerToPython(pybind11::module& m) {
     logger_scope.def_static("Flush", Logger::Flush);
     logger_scope.def_static("GetDefaultOutput", &Logger::GetDefaultOutputInstance, py::return_value_policy::reference); //_internal )
     logger_scope.def_static("AddOutput", &Logger::AddOutput);
+    logger_scope.def_static("RemoveOutput", &Logger::RemoveOutput);
     ;
 
     // Enums for Severity
