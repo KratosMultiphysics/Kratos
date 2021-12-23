@@ -141,9 +141,7 @@ void GeoCrBeamElement3D2N::
         rOutput[0][2] = -1.0 * nodal_forces_local_qe[2] * 0.75 + nodal_forces_local_qe[8] * 0.25;
         rOutput[1][2] = -1.0 * nodal_forces_local_qe[2] * 0.50 + nodal_forces_local_qe[8] * 0.50;
         rOutput[2][2] = -1.0 * nodal_forces_local_qe[2] * 0.25 + nodal_forces_local_qe[8] * 0.75;
-    }
-
-    else if (rVariable == LOCAL_AXIS_1) {
+    } else if (rVariable == LOCAL_AXIS_1) {
         BoundedMatrix<double, msElementSize, msElementSize> rotation_matrix = GetTransformationMatrixGlobal();
         for (SizeType i =0; i<msDimension; ++i) {
             rOutput[1][i] = column(rotation_matrix, 0)[i];
@@ -160,27 +158,21 @@ void GeoCrBeamElement3D2N::
         }
     }
 
-
     KRATOS_CATCH("")
 }
-
 
 //-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    if (mIsInitialization)
-    {
-        if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS))
-        {
+    if (mIsInitialization) {
+        if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
             if (rCurrentProcessInfo[RESET_DISPLACEMENTS])
                 noalias(mLocalForcesFinalizedPrevious) = mLocalForcesFinalized;
             else
                 noalias(mLocalForcesFinalized) = mLocalForcesFinalizedPrevious;
-        }
-        else
-        {
+        } else {
             noalias(mLocalForcesFinalized) = ZeroVector(msElementSize);
             noalias(mLocalForcesFinalizedPrevious) = ZeroVector(msElementSize);
         }
@@ -188,7 +180,6 @@ void GeoCrBeamElement3D2N::InitializeSolutionStep(const ProcessInfo& rCurrentPro
     mIsInitialization = false;
 
     KRATOS_CATCH("")
-
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -200,7 +191,6 @@ void GeoCrBeamElement3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProce
 
     KRATOS_CATCH("");
 }
-
 
 //-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::save(Serializer& rSerializer) const

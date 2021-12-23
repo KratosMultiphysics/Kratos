@@ -36,11 +36,12 @@
 #include "custom_processes/embedded_skin_visualization_process.h"
 #include "custom_processes/integration_point_statistics_process.h"
 #include "custom_processes/mass_conservation_check_process.h"
-#include "custom_processes/shock_capturing_process.h"
+#include "custom_processes/shock_capturing_physics_based_process.h"
 #include "custom_processes/two_fluids_inlet_process.h"
 #include "custom_processes/distance_smoothing_process.h"
 #include "custom_processes/calulate_levelset_consistent_nodal_gradient_process.h"
 #include "custom_processes/apply_compressible_navier_stokes_boundary_conditions_process.h"
+#include "custom_processes/shock_capturing_entropy_viscosity_process.h"
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/linear_solver.h"
@@ -135,8 +136,14 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def("ComputeFlowOverBoundary", &MassConservationCheckProcess::ComputeFlowOverBoundary)
     ;
 
-    py::class_<ShockCapturingProcess, ShockCapturingProcess::Pointer, Process>
-    (m, "ShockCapturingProcess")
+    py::class_<ShockCapturingPhysicsBasedProcess, ShockCapturingPhysicsBasedProcess::Pointer, Process>
+    (m, "ShockCapturingPhysicsBasedProcess")
+    .def(py::init < Model&, Parameters >())
+    .def(py::init < ModelPart&, Parameters >())
+    ;
+
+    py::class_<ShockCapturingEntropyViscosityProcess, ShockCapturingEntropyViscosityProcess::Pointer, Process>
+    (m, "ShockCapturingEntropyViscosityProcess")
     .def(py::init < Model&, Parameters >())
     .def(py::init < ModelPart&, Parameters >())
     ;

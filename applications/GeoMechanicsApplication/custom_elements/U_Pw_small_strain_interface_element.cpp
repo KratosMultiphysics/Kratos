@@ -385,7 +385,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
     }
 
-    if (rCurrentProcessInfo[NODAL_SMOOTHING] == true) {
+    if (rCurrentProcessInfo[NODAL_SMOOTHING]) {
         this->ExtrapolateGPValues(JointWidthContainer);
     }
 
@@ -432,8 +432,7 @@ void UPwSmallStrainInterfaceElement<2,4>::
 
     array_1d<double,2> DamageContainer; // 2 LobattoPoints
 
-    for ( unsigned int i = 0;  i < 2; ++i ) // NumLobattoPoints
-    {
+    for ( unsigned int i = 0;  i < 2; ++i ) { // NumLobattoPoints
         DamageContainer[i] = 0.0;
         DamageContainer[i] = mConstitutiveLawVector[i]->GetValue( DAMAGE_VARIABLE, DamageContainer[i] );
     }
@@ -453,8 +452,7 @@ void UPwSmallStrainInterfaceElement<2,4>::
     NodalDamage[2] = DamageContainer[1]*Area;
     NodalDamage[3] = DamageContainer[0]*Area;
 
-    for (unsigned int i = 0; i < 4; ++i) //NumNodes
-    {
+    for (unsigned int i = 0; i < 4; ++i) { //NumNodes
         rGeom[i].SetLock();
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) += NodalDamage[i];
@@ -594,15 +592,13 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             rValues.resize( OutputGPoints );
 
         this->InterpolateOutputDoubles(rValues,GPValues);
-    }
-    else if (rVariable == STATE_VARIABLE) {
+    } else if (rVariable == STATE_VARIABLE) {
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize(mConstitutiveLawVector.size());
 
         for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); ++i )
             rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
-    }
-    else if (rVariable == JOINT_WIDTH) {
+    } else if (rVariable == JOINT_WIDTH) {
         //Variables computed on Lobatto points
         const GeometryType& Geom = this->GetGeometry();
 
@@ -622,13 +618,11 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             rValues.resize( OutputGPoints );
 
         this->InterpolateOutputDoubles(rValues,GPValues);
-    }
-    else if (rVariable == DEGREE_OF_SATURATION ||
-             rVariable == EFFECTIVE_SATURATION ||
-             rVariable == BISHOP_COEFICIENT ||
-             rVariable == DERIVATIVE_OF_SATURATION ||
-             rVariable == RELATIVE_PERMEABILITY )
-    {
+    } else if (rVariable == DEGREE_OF_SATURATION ||
+               rVariable == EFFECTIVE_SATURATION ||
+               rVariable == BISHOP_COEFFICIENT ||
+               rVariable == DERIVATIVE_OF_SATURATION ||
+               rVariable == RELATIVE_PERMEABILITY ) {
         //Defining necessary variables
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -647,7 +641,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
             if (rVariable == DEGREE_OF_SATURATION)     rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
             if (rVariable == EFFECTIVE_SATURATION)     rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateEffectiveSaturation(RetentionParameters);
-            if (rVariable == BISHOP_COEFICIENT)        rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
+            if (rVariable == BISHOP_COEFFICIENT)        rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
             if (rVariable == DERIVATIVE_OF_SATURATION) rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(RetentionParameters);
             if (rVariable == RELATIVE_PERMEABILITY )   rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
         }
@@ -667,8 +661,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
         this->InterpolateOutputDoubles(rValues,GPValues);
     }
-    // KRATOS_INFO("1-UPwSmallStrainInterfaceElement:::CalculateOnIntegrationPoints<double>()") << std::endl;
 
+    // KRATOS_INFO("1-UPwSmallStrainInterfaceElement:::CalculateOnIntegrationPoints<double>()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -685,8 +679,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     if (rVariable == FLUID_FLUX_VECTOR ||
         rVariable == LOCAL_STRESS_VECTOR ||
         rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR ||
-        rVariable == LOCAL_FLUID_FLUX_VECTOR)
-    {
+        rVariable == LOCAL_FLUID_FLUX_VECTOR) {
         //Variables computed on Lobatto points
         const GeometryType& Geom = this->GetGeometry();
 
@@ -732,8 +725,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement:::CalculateOnIntegrationPoints<Matrix>()") << std::endl;
 
     if (rVariable == PERMEABILITY_MATRIX ||
-        rVariable == LOCAL_PERMEABILITY_MATRIX)
-    {
+        rVariable == LOCAL_PERMEABILITY_MATRIX) {
         //Variables computed on Lobatto points
         const GeometryType& Geom = this->GetGeometry();
         std::vector<Matrix> GPValues(Geom.IntegrationPointsNumber( mThisIntegrationMethod ));
@@ -775,8 +767,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement:::CalculateOnLobattoIntegrationPoints<array_1d>()") << std::endl;
 
-    if (rVariable == FLUID_FLUX_VECTOR)
-    {
+    if (rVariable == FLUID_FLUX_VECTOR) {
         const PropertiesType& Prop = this->GetProperties();
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -815,8 +806,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
 
         //Loop over integration points
-        for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint )
-        {
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
             InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu, NContainer, GPoint);
 
             noalias(RelDispVector) = prod(Variables.Nu, Variables.DisplacementVector);
@@ -860,10 +850,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint],FluidFlux);
         }
-
-    }
-    else if (rVariable == LOCAL_STRESS_VECTOR)
-    {
+    } else if (rVariable == LOCAL_STRESS_VECTOR) {
         array_1d<double,TDim> LocalStressVector;
 
         //Loop over integration points
@@ -873,9 +860,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], LocalStressVector);
         }
-    }
-    else if (rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR)
-    {
+    } else if (rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR) {
         //Defining necessary variables
         const GeometryType& Geom = this->GetGeometry();
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
@@ -888,8 +873,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         array_1d<double,TDim> RelDispVector;
 
         //Loop over integration points
-        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint )
-        {
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
             noalias(RelDispVector) = prod(Nu, DisplacementVector);
@@ -898,9 +882,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalRelDispVector);
         }
-    }
-    else if (rVariable == LOCAL_FLUID_FLUX_VECTOR)
-    {
+    } else if (rVariable == LOCAL_FLUID_FLUX_VECTOR) {
         const PropertiesType& Prop = this->GetProperties();
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -937,8 +919,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         SFGradAuxVariables SFGradAuxVars;
 
         //Loop over integration points
-        for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint )
-        {
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
             noalias(RelDispVector) = prod(Nu,DisplacementVector);
@@ -974,8 +955,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalFluidFlux);
         }
     }
-    // KRATOS_INFO("1-UPwSmallStrainInterfaceElement:::CalculateOnLobattoIntegrationPoints<array_1d>()") << std::endl;
 
+    // KRATOS_INFO("1-UPwSmallStrainInterfaceElement:::CalculateOnLobattoIntegrationPoints<array_1d>()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -989,8 +970,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement:::CalculateOnLobattoIntegrationPoints<Matrix>()") << std::endl;
 
-    if (rVariable == PERMEABILITY_MATRIX)
-    {
+    if (rVariable == PERMEABILITY_MATRIX) {
         const GeometryType& Geom = this->GetGeometry();
         const PropertiesType& Prop = this->GetProperties();
 
@@ -1012,8 +992,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         BoundedMatrix<double,TDim, TDim> PermeabilityMatrix;
 
         //Loop over integration points
-        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint )
-        {
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
             noalias(RelDispVector) = prod(Nu,DisplacementVector);
@@ -1032,9 +1011,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             rOutput[GPoint].resize(TDim,TDim,false);
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
         }
-    }
-    else if (rVariable == LOCAL_PERMEABILITY_MATRIX)
-    {
+    } else if (rVariable == LOCAL_PERMEABILITY_MATRIX) {
         const GeometryType& Geom = this->GetGeometry();
         const PropertiesType& Prop = this->GetProperties();
 
@@ -1075,7 +1052,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     }
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement:::CalculateOnLobattoIntegrationPoints<Matrix>()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -1083,7 +1059,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 template< >
 void UPwSmallStrainInterfaceElement<2,4>::CalculateInitialGap(const GeometryType& Geom)
 {
-
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<2,4>:::CalculateInitialGap()") << std::endl;
 
@@ -1099,13 +1074,11 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateInitialGap(const GeometryType
     noalias(Vx) = Geom.GetPoint( 2 ) - Geom.GetPoint( 1 );
     mInitialGap[1] = norm_2(Vx);
 
-    for (unsigned i=0; i < mIsOpen.size(); ++i)
-    {
+    for (unsigned i=0; i < mIsOpen.size(); ++i) {
         mIsOpen[i] = !(mInitialGap[i] < MinimumJointWidth);
     }
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement<2,4>:::CalculateInitialGap()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -1131,13 +1104,11 @@ void UPwSmallStrainInterfaceElement<3,6>::CalculateInitialGap(const GeometryType
     noalias(Vx) = Geom.GetPoint( 5 ) - Geom.GetPoint( 2 );
     mInitialGap[2] = norm_2(Vx);
 
-    for (unsigned i=0; i < mIsOpen.size(); ++i)
-    {
+    for (unsigned i=0; i < mIsOpen.size(); ++i) {
         mIsOpen[i] = !(mInitialGap[i] < MinimumJointWidth);
     }
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement<3,6>:::CalculateInitialGap()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -1166,13 +1137,11 @@ void UPwSmallStrainInterfaceElement<3,8>::CalculateInitialGap(const GeometryType
     noalias(Vx) = Geom.GetPoint( 7 ) - Geom.GetPoint( 3 );
     mInitialGap[3] = norm_2(Vx);
 
-    for (unsigned i=0; i < mIsOpen.size(); ++i)
-    {
+    for (unsigned i=0; i < mIsOpen.size(); ++i) {
         mIsOpen[i] = !(mInitialGap[i] < MinimumJointWidth);
     }
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement<3,8>:::CalculateInitialGap()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -1224,8 +1193,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     SFGradAuxVariables SFGradAuxVars;
 
     //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint)
-    {
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         //Compute Np, StrainVector, JointWidth, GradNpT
         noalias(Variables.Np) = row(NContainer,GPoint);
         InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
@@ -1261,13 +1229,12 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         //Compute stiffness matrix
         this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);
     }
-    // KRATOS_INFO("1-UPwSmallStrainInterfaceElement:::CalculateMaterialStiffnessMatrix()") << std::endl;
 
+    // KRATOS_INFO("1-UPwSmallStrainInterfaceElement:::CalculateMaterialStiffnessMatrix()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     CalculateAll(MatrixType& rLeftHandSideMatrix,
@@ -1318,8 +1285,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
     //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint)
-    {
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         //Compute Np, StrainVector, JointWidth, GradNpT
         noalias(Variables.Np) = row(NContainer,GPoint);
 
@@ -1378,7 +1344,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
         //Contributions to the right hand side
         if (CalculateResidualVectorFlag)  this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
-
     }
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement:::CalculateAll()") << std::endl;
@@ -1409,8 +1374,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     rVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
 
     //Nodal Variables
-    for (unsigned int i=0; i<TNumNodes; ++i)
-    {
+    for (unsigned int i=0; i<TNumNodes; ++i) {
         rVariables.PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
         rVariables.DtPressureVector[i] = Geom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
     }
@@ -1448,7 +1412,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     KRATOS_CATCH( "" )
 }
-
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
@@ -1515,19 +1478,15 @@ void UPwSmallStrainInterfaceElement<2,4>::
     MathUtils<double>::CrossProduct(Vz, Vx3D, Vy3D);
 
     // Vz must have the same sign as vector (0,0,1)
-    if (Vz[2] > 0.0)
-    {
+    if (Vz[2] > 0.0) {
         rRotationMatrix(1,0) = -Vx[1];
         rRotationMatrix(1,1) = Vx[0];
-    }
-    else
-    {
+    } else {
         rRotationMatrix(1,0) = Vx[1];
         rRotationMatrix(1,1) = -Vx[0];
     }
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement:::CalculateRotationMatrix()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -1582,7 +1541,6 @@ void UPwSmallStrainInterfaceElement<3,6>::
     rRotationMatrix(2,2) = Vz[2];
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement<3,6>:::CalculateRotationMatrix()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -1637,7 +1595,6 @@ void UPwSmallStrainInterfaceElement<3,8>::
     rRotationMatrix(2,2) = Vz[2];
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement<3,8>:::CalculateRotationMatrix()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -1652,20 +1609,18 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     rJointWidth = mInitialGap[GPoint] + NormalRelDisp;
 
-    if (rJointWidth < MinimumJointWidth)
-    {
+    if (rJointWidth < MinimumJointWidth) {
         rJointWidth = MinimumJointWidth;
     }
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement:::CalculateJointWidth()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
-    CheckAndCalculateJointWidth(double& rJointWidth,
+    CheckAndCalculateJointWidth(double& rJointWidth, 
                                 ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                 double& rNormalRelDisp,
                                 const double& MinimumJointWidth,
@@ -1679,35 +1634,27 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     // Ignore contact between interfaces
     rConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
 
-    if (mIsOpen[GPoint])
-    {
+    if (mIsOpen[GPoint]) {
         // Initally open joint
-        if (rJointWidth < MinimumJointWidth)
-        {
+        if (rJointWidth < MinimumJointWidth) {
             // consider contact between interfaces
             rConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
             rNormalRelDisp = rJointWidth - MinimumJointWidth;
             rJointWidth = MinimumJointWidth;
         }
-    }
-    else
-    {
+    } else {
         // Initally closed joint
-        if (rJointWidth < 0.0)
-        {
+        if (rJointWidth < 0.0) {
             // consider contact between interfaces
             rConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
             rNormalRelDisp = rJointWidth;
             rJointWidth = MinimumJointWidth;
-        }
-        else if (rJointWidth < MinimumJointWidth)
-        {
+        } else if (rJointWidth < MinimumJointWidth) {
             rJointWidth = MinimumJointWidth;
         }
     }
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement::CheckAndCalculateJointWidth()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -1730,7 +1677,7 @@ void UPwSmallStrainInterfaceElement<2,4>::
     //Quadrilateral_interface_2d_4
     rAuxVariables.GlobalCoordinatesGradients[0] = Jacobian(0,0);
     rAuxVariables.GlobalCoordinatesGradients[1] = Jacobian(1,0);
-    noalias(rAuxVariables.LocalCoordinatesGradients) = prod(RotationMatrix,rAuxVariables.GlobalCoordinatesGradients);
+    noalias(rAuxVariables.LocalCoordinatesGradients) = prod(RotationMatrix, rAuxVariables.GlobalCoordinatesGradients);
 
     rGradNpT(0,0) = DN_De(0,0)/rAuxVariables.LocalCoordinatesGradients[0]; rGradNpT(0,1) = -Ncontainer(GPoint,0)/JointWidth;
     rGradNpT(1,0) = DN_De(1,0)/rAuxVariables.LocalCoordinatesGradients[0]; rGradNpT(1,1) = -Ncontainer(GPoint,1)/JointWidth;
@@ -1758,8 +1705,7 @@ void UPwSmallStrainInterfaceElement<3,6>::
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients()") << std::endl;
 
     //Prism_interface_3d_6
-    for (unsigned int i = 0; i < 6; ++i)
-    {
+    for (unsigned int i = 0; i < 6; ++i) {
         rAuxVariables.ShapeFunctionsNaturalGradientsMatrix(i,0) = DN_De(i,0); rAuxVariables.ShapeFunctionsNaturalGradientsMatrix(i,1) = DN_De(i,1);
     }
 
@@ -1791,7 +1737,6 @@ void UPwSmallStrainInterfaceElement<3,6>::
     rGradNpT(5,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(5,0); rGradNpT(5,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(5,1); rGradNpT(5,2) = Ncontainer(GPoint,5)/JointWidth;
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -1799,17 +1744,20 @@ void UPwSmallStrainInterfaceElement<3,6>::
 template< >
 template< class TMatrixType >
 void UPwSmallStrainInterfaceElement<3,8>::
-    CalculateShapeFunctionsGradients(TMatrixType& rGradNpT,SFGradAuxVariables& rAuxVariables,
-                                     const Matrix& Jacobian,const BoundedMatrix<double,3,3>& RotationMatrix,
-                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,
+    CalculateShapeFunctionsGradients(TMatrixType& rGradNpT,
+                                     SFGradAuxVariables& rAuxVariables,
+                                     const Matrix& Jacobian,
+                                     const BoundedMatrix<double,3,3>& RotationMatrix,
+                                     const Matrix& DN_De,
+                                     const Matrix& Ncontainer,
+                                     const double& JointWidth,
                                      const unsigned int& GPoint)
 {
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients()") << std::endl;
 
     //Hexahedral_interface_3d_8
-    for (unsigned int i = 0; i < 8; ++i)
-    {
+    for (unsigned int i = 0; i < 8; ++i) {
         rAuxVariables.ShapeFunctionsNaturalGradientsMatrix(i,0) = DN_De(i,0); rAuxVariables.ShapeFunctionsNaturalGradientsMatrix(i,1) = DN_De(i,1);
     }
 
@@ -1858,8 +1806,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     this->CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix,rVariables);
 
-    if (!rVariables.IgnoreUndrained)
-    {
+    if (!rVariables.IgnoreUndrained) {
         this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix,rVariables);
 
         this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix,rVariables);
@@ -1891,9 +1838,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     GeoElementUtilities::AssembleUBlockMatrix<TDim, TNumNodes>(rLeftHandSideMatrix,rVariables.UMatrix);
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement::CalculateAndAddStiffnessMatrix()") << std::endl;
-
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------
@@ -1917,8 +1862,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     //Distribute coupling block matrix into the elemental matrix
     GeoElementUtilities::AssembleUPBlockMatrix<TDim, TNumNodes>(rLeftHandSideMatrix,rVariables.UPMatrix);
 
-    if (!rVariables.IgnoreUndrained)
-    {
+    if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
         noalias(rVariables.PUMatrix) =  PORE_PRESSURE_SIGN_FACTOR
                                       * SaturationCoefficient
@@ -1930,7 +1874,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     }
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement::CalculateAndAddCouplingMatrix()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -1954,7 +1897,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     GeoElementUtilities::AssemblePBlockMatrix< TDim, TNumNodes >(rLeftHandSideMatrix, rVariables.PMatrix);
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement::CalculateAndAddCompressibilityMatrix()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -1980,7 +1922,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     GeoElementUtilities::AssemblePBlockMatrix< TDim, TNumNodes >(rLeftHandSideMatrix,rVariables.PMatrix);
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement::CalculateAndAddPermeabilityMatrix()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -2073,7 +2014,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement::CalculateSoilDensity()") << std::endl;
     KRATOS_CATCH("");
-
 }
 
 //----------------------------------------------------------------------------------------
@@ -2090,7 +2030,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement::CalculateSoilGamma()") << std::endl;
     KRATOS_CATCH("");
-
 }
 
 //----------------------------------------------------------------------------------------
@@ -2285,7 +2224,6 @@ double UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     return BulkModulus;
 
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------
@@ -2302,8 +2240,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     //Properties variables
     if (hasBiotCoefficient) {
         rVariables.BiotCoefficient = Prop[BIOT_COEFFICIENT];
-    }
-    else {
+    } else {
         // calculate Bulk modulus from stiffness matrix
         const double BulkModulus = CalculateBulkModulus(rVariables.ConstitutiveMatrix);
         rVariables.BiotCoefficient = 1.0 - BulkModulus / Prop[BULK_MODULUS_SOLID];
@@ -2344,9 +2281,7 @@ void UPwSmallStrainInterfaceElement<2,4>::
     rOutput[3] = 0.16666666666666663 * GPValues[0] + 0.044658198738520435 * GPValues[1] + 0.16666666666666663 * GPValues[1] + 0.6220084679281462 * GPValues[0];
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement<2,4>::InterpolateOutputDoubles()") << std::endl;
-
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------
@@ -2384,7 +2319,6 @@ void UPwSmallStrainInterfaceElement<3,6>::
                 + 0.13144585576580214 * GPValues[0] + 0.13144585576580214 * GPValues[1] + 0.5257834230632086 * GPValues[2];
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement<3,6>::InterpolateOutputDoubles()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -2429,7 +2363,6 @@ void UPwSmallStrainInterfaceElement<3,8>::
                 + 0.13144585576580212 * GPValues[0] + 0.035220810900864506 * GPValues[1] + 0.13144585576580212 * GPValues[2] + 0.4905626121623441 * GPValues[3];
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputDoubles()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -2468,7 +2401,7 @@ void UPwSmallStrainInterfaceElement<2,4>::
 template<>
 template< class TValueType >
 void UPwSmallStrainInterfaceElement<3,6>::
-    InterpolateOutputValues( std::vector<TValueType>& rOutput,
+    InterpolateOutputValues( std::vector<TValueType>& rOutput, 
                              const std::vector<TValueType>& GPValues )
 {
     KRATOS_TRY;
@@ -2501,7 +2434,6 @@ void UPwSmallStrainInterfaceElement<3,6>::
                         + 0.13144585576580214 * GPValues[0] + 0.13144585576580214 * GPValues[1] + 0.5257834230632086 * GPValues[2];
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement<3,6>::InterpolateOutputDoubles()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -2548,65 +2480,67 @@ void UPwSmallStrainInterfaceElement<3,8>::
                         + 0.13144585576580212 * GPValues[0] + 0.035220810900864506 * GPValues[1] + 0.13144585576580212 * GPValues[2] + 0.4905626121623441 * GPValues[3];
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputDoubles()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------------------
-template void UPwSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients< BoundedMatrix<double,4,2> >
-                                                    ( BoundedMatrix<double,4,2>& rGradNpT,
-                                                      SFGradAuxVariables& rAuxVariables,
-                                                      const Matrix& Jacobian,
-                                                      const BoundedMatrix<double,2,2>& RotationMatrix,
-                                                      const Matrix& DN_De,
-                                                      const Matrix& Ncontainer,
-                                                      const double& JointWidth,
-                                                      const unsigned int& GPoint );
-template void UPwSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients< Matrix >
-                                                    ( Matrix& rGradNpT,
-                                                      SFGradAuxVariables& rAuxVariables,
-                                                      const Matrix& Jacobian,
-                                                      const BoundedMatrix<double,2,2>& RotationMatrix,
-                                                      const Matrix& DN_De,
-                                                      const Matrix& Ncontainer,
-                                                      const double& JointWidth,
-                                                      const unsigned int& GPoint );
-template void UPwSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients< BoundedMatrix<double,6,3> >
-                                                    ( BoundedMatrix<double,6,3>& rGradNpT,
-                                                      SFGradAuxVariables& rAuxVariables,
-                                                      const Matrix& Jacobian,
-                                                      const BoundedMatrix<double,3,3>& RotationMatrix,
-                                                      const Matrix& DN_De,
-                                                      const Matrix& Ncontainer,
-                                                      const double& JointWidth,
-                                                      const unsigned int& GPoint );
-template void UPwSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients< Matrix >
-                                                    ( Matrix& rGradNpT,
-                                                      SFGradAuxVariables& rAuxVariables,
-                                                      const Matrix& Jacobian,
-                                                      const BoundedMatrix<double,3,3>& RotationMatrix,
-                                                      const Matrix& DN_De,
-                                                      const Matrix& Ncontainer,
-                                                      const double& JointWidth,
-                                                      const unsigned int& GPoint );
-template void UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients< BoundedMatrix<double,8,3> >
-                                                    ( BoundedMatrix<double,8,3>& rGradNpT,
-                                                      SFGradAuxVariables& rAuxVariables,
-                                                      const Matrix& Jacobian,
-                                                      const BoundedMatrix<double,3,3>& RotationMatrix,
-                                                      const Matrix& DN_De,
-                                                      const Matrix& Ncontainer,
-                                                      const double& JointWidth,
-                                                      const unsigned int& GPoint );
-template void UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients< Matrix >
-                                                    ( Matrix& rGradNpT,
-                                                      SFGradAuxVariables& rAuxVariables,
-                                                      const Matrix& Jacobian,
-                                                      const BoundedMatrix<double,3,3>& RotationMatrix,
-                                                      const Matrix& DN_De,
-                                                      const Matrix& Ncontainer,
-                                                      const double& JointWidth,
-                                                      const unsigned int& GPoint );
+template void UPwSmallStrainInterfaceElement<2,4>::
+    CalculateShapeFunctionsGradients< BoundedMatrix<double,4,2> >( BoundedMatrix<double,4,2>& rGradNpT,
+                                                                   SFGradAuxVariables& rAuxVariables,
+                                                                   const Matrix& Jacobian,
+                                                                   const BoundedMatrix<double,2,2>& RotationMatrix,
+                                                                   const Matrix& DN_De,
+                                                                   const Matrix& Ncontainer,
+                                                                   const double& JointWidth,
+                                                                   const unsigned int& GPoint );
+template void UPwSmallStrainInterfaceElement<2,4>::
+    CalculateShapeFunctionsGradients< Matrix >( Matrix& rGradNpT,
+                                                SFGradAuxVariables& rAuxVariables,
+                                                const Matrix& Jacobian,
+                                                const BoundedMatrix<double,2,2>& RotationMatrix,
+                                                const Matrix& DN_De,
+                                                const Matrix& Ncontainer,
+                                                const double& JointWidth,
+                                                const unsigned int& GPoint );
+template void UPwSmallStrainInterfaceElement<3,6>::
+    CalculateShapeFunctionsGradients< BoundedMatrix<double,6,3> >( BoundedMatrix<double,6,3>& rGradNpT,
+                                                                   SFGradAuxVariables& rAuxVariables,
+                                                                   const Matrix& Jacobian,
+                                                                   const BoundedMatrix<double,3,3>& RotationMatrix,
+                                                                   const Matrix& DN_De,
+                                                                   const Matrix& Ncontainer,
+                                                                   const double& JointWidth,
+                                                                   const unsigned int& GPoint );
+
+template void UPwSmallStrainInterfaceElement<3,6>::
+    CalculateShapeFunctionsGradients< Matrix >( Matrix& rGradNpT,
+                                                SFGradAuxVariables& rAuxVariables,
+                                                const Matrix& Jacobian,
+                                                const BoundedMatrix<double,3,3>& RotationMatrix,
+                                                const Matrix& DN_De,
+                                                const Matrix& Ncontainer,
+                                                const double& JointWidth,
+                                                const unsigned int& GPoint );
+
+template void UPwSmallStrainInterfaceElement<3,8>::
+    CalculateShapeFunctionsGradients< BoundedMatrix<double,8,3> >( BoundedMatrix<double,8,3>& rGradNpT,
+                                                                   SFGradAuxVariables& rAuxVariables,
+                                                                   const Matrix& Jacobian,
+                                                                   const BoundedMatrix<double,3,3>& RotationMatrix,
+                                                                   const Matrix& DN_De,
+                                                                   const Matrix& Ncontainer,
+                                                                   const double& JointWidth,
+                                                                   const unsigned int& GPoint );
+
+template void UPwSmallStrainInterfaceElement<3,8>::
+    CalculateShapeFunctionsGradients< Matrix >( Matrix& rGradNpT,
+                                                SFGradAuxVariables& rAuxVariables,
+                                                const Matrix& Jacobian,
+                                                const BoundedMatrix<double,3,3>& RotationMatrix,
+                                                const Matrix& DN_De,
+                                                const Matrix& Ncontainer,
+                                                const double& JointWidth,
+                                                const unsigned int& GPoint );
 
 //----------------------------------------------------------------------------------------------------
 

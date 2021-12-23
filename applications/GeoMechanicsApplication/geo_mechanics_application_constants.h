@@ -91,6 +91,15 @@ namespace Kratos
                                       INDEX_3D_INTERFACE_YZ,
                                       INDEX_3D_INTERFACE_ZZ };
 
+    // stress/strain vector indices 2D beam:
+    enum indexStress2DBeam: int{ INDEX_2D_BEAM_XX,
+                                 INDEX_2D_BEAM_YY,
+                                 INDEX_2D_BEAM_XY };
+    // DOF indices 2D beam:
+    enum indexDOF2DBeam: int{ INDEX_2D_BEAM_X,
+                              INDEX_2D_BEAM_Y,
+                              INDEX_2D_BEAM_T };
+
 }
 
 #endif  /* KRATOS_GEO_MECHANICS_APPLICATION_CONSTANTS_H_INCLUDED */
