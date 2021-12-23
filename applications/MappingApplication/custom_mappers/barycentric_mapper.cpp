@@ -197,7 +197,18 @@ Kratos::unique_ptr<GeometryType> ReconstructTriangle(const ClosestPointsContaine
         geom_points.push_back(new_node);
         if (geom_points.size() == 3) break; // skip points that are farther away
     }
-    return Kratos::make_unique<Triangle3D3<NodeType>>(geom_points);
+
+    auto p_geom = Kratos::make_unique<Triangle3D3<NodeType>>(geom_points);
+
+
+    const double quality = p_geom->Quality(GeometryType::QualityCriteria::INRADIUS_TO_CIRCUMRADIUS);
+
+    // 1. if two points are too close remove one
+    // 2 if points are collinear remove last one
+
+    KRATOS_WARNING_IF("BarycentricMapper", quality < 0.05) << "Bad quality detected!!!" << std::endl;
+
+    return p_geom;
 
     KRATOS_CATCH("")
 }
