@@ -9,8 +9,7 @@ def CreateSolver(model, settings):
 class AdjointDiffusionSolver(PythonSolver):
 
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # for backwards compatibility, to be removed eventually
-        super(AdjointDiffusionSolver,self).__init__(model,custom_settings)
+        super().__init__(model,custom_settings)
 
         self.min_buffer_size = 1
 
@@ -37,7 +36,8 @@ class AdjointDiffusionSolver(PythonSolver):
         if self.primal_model_part_name == "":
             raise Exception("No primal_model_part_name provided")
 
-    def GetDefaultParameters(self):
+    @classmethod
+    def GetDefaultParameters(cls):
 
         default_settings = kratos.Parameters(r'''{
             "solver_type" : "adjoint_stationary",
@@ -70,10 +70,11 @@ class AdjointDiffusionSolver(PythonSolver):
             },
             "time_stepping" : {
                 "time_step" : 0.0
-            }
+            },
+            "time_integration_method": "implicit"
         }''')
 
-        default_settings.AddMissingParameters(super(AdjointDiffusionSolver,self).GetDefaultParameters())
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
     def AddVariables(self):

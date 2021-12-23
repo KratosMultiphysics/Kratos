@@ -19,6 +19,7 @@
 
 // Project includes
 #include "processes/replace_elements_and_condition_process.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 namespace {
@@ -34,9 +35,8 @@ void ReplaceEntities(
     TEntityContainer& rEntityContainer,
     std::unordered_set<std::size_t>& rSetOfIds)
 {
-    #pragma omp parallel for
-    for (int i=0; i<static_cast<int>(rEntityContainer.size()); ++i) {
-        auto it_entity = rEntityContainer.begin() + i;
+    IndexPartition<std::size_t>(rEntityContainer.size()).for_each([&](std::size_t Index){
+        auto it_entity = rEntityContainer.begin() + Index;
         if (rSetOfIds.find(it_entity->Id()) != rSetOfIds.end()) {
             auto p_new_entity = rReferenceEntity.Create(it_entity->Id(), it_entity->pGetGeometry(), it_entity->pGetProperties());
             // Deep copy data and flags
@@ -44,7 +44,7 @@ void ReplaceEntities(
 
             (*it_entity.base()) = p_new_entity;
         }
-    }
+    });
 }
 
 /// Replace elements in a given submodelpart using the elements from the root model part
@@ -58,13 +58,16 @@ void UpdateElementsInSubModelPart(
     ModelPart& rRootModelPart,
     std::unordered_set<std::size_t>& rSetOfElementsIds)
 {
-    #pragma omp parallel for
-    for(int i=0; i< static_cast<int>(rModelPart.Elements().size()); i++) {
-        auto it_elem = rModelPart.ElementsBegin() + i;
+    if(!rRootModelPart.Elements().IsSorted()) {
+        rRootModelPart.Elements().Sort();
+    }
+    IndexPartition<std::size_t>(rModelPart.Elements().size()).for_each([&](std::size_t Index){
+        auto it_elem = rModelPart.ElementsBegin() + Index;
         if (rSetOfElementsIds.find(it_elem->Id()) != rSetOfElementsIds.end()) {
             (*it_elem.base()) = rRootModelPart.Elements()(it_elem->Id());
         }
-    }
+    });
+
     // Change the submodelparts
     for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
         UpdateElementsInSubModelPart(r_sub_model_part, rRootModelPart, rSetOfElementsIds);
@@ -83,13 +86,16 @@ void UpdateConditionsInSubModelPart(
     ModelPart& rRootModelPart,
     std::unordered_set<std::size_t>& rSetOfConditions)
 {
-    #pragma omp parallel for
-    for(int i=0; i< static_cast<int>(rModelPart.Conditions().size()); i++) {
-        auto it_cond = rModelPart.ConditionsBegin() + i;
+    if(!rRootModelPart.Conditions().IsSorted()) {
+        rRootModelPart.Conditions().Sort();
+    }
+    IndexPartition<std::size_t>(rModelPart.Conditions().size()).for_each([&](std::size_t Index){
+        auto it_cond = rModelPart.ConditionsBegin() + Index;
         if (rSetOfConditions.find(it_cond->Id()) != rSetOfConditions.end()) {
             (*it_cond.base()) = rRootModelPart.Conditions()(it_cond->Id());
         }
-    }
+    });
+
     // Change the submodelparts
     for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
         UpdateConditionsInSubModelPart(r_sub_model_part, rRootModelPart, rSetOfConditions);

@@ -16,6 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <unordered_set>
 
 // External includes
 
@@ -74,14 +75,19 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( IGNORE_VARIABLES_ERROR );
     KRATOS_DEFINE_LOCAL_FLAG( SKIP_TIMER );
     KRATOS_DEFINE_LOCAL_FLAG( MESH_ONLY );
+    KRATOS_DEFINE_LOCAL_FLAG( SCIENTIFIC_PRECISION );
 
     typedef Node<3> NodeType;
+
+    typedef Geometry<NodeType> GeometryType;
 
     typedef Mesh<NodeType, Properties, Element, Condition> MeshType;
 
     typedef MeshType::NodesContainerType NodesContainerType;
 
     typedef MeshType::PropertiesContainerType PropertiesContainerType;
+
+    typedef ModelPart::GeometryContainerType GeometryContainerType;
 
     typedef MeshType::ElementsContainerType ElementsContainerType;
 
@@ -187,6 +193,51 @@ public:
     virtual void WriteProperties(PropertiesContainerType const& rThisProperties)
     {
         KRATOS_ERROR << "Calling base class method (WriteProperties). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
+     * @brief This method reads one geometry
+     * @param rThisNodes The nodes constituting the geometry
+     * @param pThisGeometries The pointer to the geometry
+     */
+    virtual void ReadGeometry(
+        NodesContainerType& rThisNodes,
+        GeometryType::Pointer& pThisGeometry
+        )
+    {
+        KRATOS_ERROR << "Calling base class method (ReadGeometry). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
+     * @brief This method reads an array of geometries
+     * @param rThisNodes The nodes constituting the geometry
+     * @param rThisGeometry The array of geometries
+     */
+    virtual void ReadGeometries(
+        NodesContainerType& rThisNodes,
+        GeometryContainerType& rThisGeometries
+        )
+    {
+        KRATOS_ERROR << "Calling base class method (ReadGeometries). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
+     * @brief This method reads the geometries connectivities
+     * @param rGeometriesConnectivities The geometries connectivities
+     * @return The number of geometries
+     */
+    virtual std::size_t ReadGeometriesConnectivities(ConnectivitiesContainerType& rGeometriesConnectivities)
+    {
+        KRATOS_ERROR << "Calling base class method (ReadGeometriesConnectivities). Please check the definition of derived class" << std::endl;
+    }
+
+    /**
+     * @brief This method writes an array of geometries
+     * @param rThisGeometries The array of geometries to be written
+     */
+    virtual void WriteGeometries(GeometryContainerType const& rThisGeometries)
+    {
+        KRATOS_ERROR << "Calling base class method (WriteGeometries). Please check the definition of derived class" << std::endl;
     }
 
     /**
@@ -307,8 +358,6 @@ public:
         KRATOS_ERROR << "Calling base class method (ReadInitialValues). Please check the definition of derived class" << std::endl;
     }
 
-//       void ReadGeometries(NodesContainerType& rThisNodes, GeometriesContainerType& rResults);
-
     /**
      * @brief This method reads the mesh
      * @param rThisMesh The mesh to be read
@@ -417,6 +466,22 @@ public:
                                          PartitionIndicesContainerType const& rConditionsAllPartitions)
     {
         KRATOS_ERROR << "Calling base class method (DivideInputToPartitions). Please check the definition of derived class" << std::endl;
+    }
+
+    virtual void ReadSubModelPartElementsAndConditionsIds(
+        std::string const& rModelPartName,
+        std::unordered_set<SizeType> &rElementsIds,
+        std::unordered_set<SizeType> &rConditionsIds)
+    {
+        KRATOS_ERROR << "Calling base class method (ReadSubModelPartElementsAndConditionsIds). Please check the definition of derived class" << std::endl;
+    }
+
+    virtual std::size_t ReadNodalGraphFromEntitiesList(
+        ConnectivitiesContainerType& rAuxConnectivities,
+        std::unordered_set<SizeType> &rElementsIds,
+        std::unordered_set<SizeType> &rConditionsIds)
+    {
+        KRATOS_ERROR << "Calling base class method (ReadNodalGraphFromEntitiesList). Please check the definition of derived class" << std::endl;
     }
 
     ///@}

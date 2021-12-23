@@ -20,7 +20,7 @@ class FlowsMeasuringUtilityTest(UnitTest.TestCase):
             "model_part_name_list" : ["FluidMOdelPart.first", "FluidMOdelPart.second"],
             "output_file_settings": {
                     "file_name"  : "test_flow_data_output.dat",
-                    "folder_name": ""
+                    "output_path": ""
             }
         }
         """)
@@ -99,8 +99,8 @@ class FlowsMeasuringUtilityTest(UnitTest.TestCase):
         second_smp.AddConditions([3])
 
 
-        flow_value_first = Fluid.FluidPostProcessUtilities().CalculateFlow(first_smp)
-        flow_value_second = Fluid.FluidPostProcessUtilities().CalculateFlow(second_smp)
+        flow_value_first = Fluid.FluidAuxiliaryUtilities.CalculateFlowRate(first_smp)
+        flow_value_second = Fluid.FluidAuxiliaryUtilities.CalculateFlowRate(second_smp)
 
         self.assertAlmostEqual(flow_value_first, 1.0)
         self.assertAlmostEqual(flow_value_second, -0.5)

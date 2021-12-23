@@ -91,7 +91,7 @@ public:
         KRATOS_TRY;
         
         typedef Variable<double> component_type;
-        component_type var_component = KratosComponents< component_type >::Get(mVariableName);
+        const component_type& var_component = KratosComponents< component_type >::Get(mVariableName);
         
         const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
 
@@ -118,7 +118,7 @@ public:
         KRATOS_TRY;
         
         typedef Variable<double> component_type;
-        component_type var_component = KratosComponents< component_type >::Get(mVariableName);
+        const component_type& var_component = KratosComponents< component_type >::Get(mVariableName);
         
         double time;
         if (mTimeUnitConverter != 0) {

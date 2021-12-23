@@ -4,7 +4,7 @@ The Fluid Dynamics Application contains the core developments in Computational F
 
 ### Features:
 
-- Stabilized FEM solvers for incompressible flow problems.
+- Stabilized FEM solvers for incompressible and compressible flow problems.
 
 - Support for MPI parallelization (with Trilinos Application).
 

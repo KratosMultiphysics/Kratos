@@ -1,0 +1,81 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+End Properties
+
+Begin Table 1 TIME VALUE
+    0.0 0.0
+    0.1 10000.0
+End Table
+
+Begin Table 2 TIME VALUE
+    0.0 0.0
+    0.1 300.0
+End Table
+
+Begin Table 3 TIME VALUE
+    0.0 0.0
+    0.1 6000.0
+End Table
+
+Begin Table 4 TIME VALUE
+    0.0 0.0
+    0.1 50000.0
+End Table
+
+Begin Table 5 TIME VALUE
+    0.0 0.0
+    0.1 600.0
+End Table
+
+Begin Table 6 TIME VALUE
+    0.0 0.0
+    0.1 7000.0
+End Table
+
+Begin Nodes
+    1 0.0 0.0 2.0
+    2 10.0 0.0 2.0
+End Nodes
+
+Begin Elements SphericParticle3D
+    1 1 1
+    2 1 2
+End Elements
+
+Begin NodalData RADIUS
+    1 0 1.0
+    2 0 1.0
+End NodalData
+
+Begin SubModelPart Ball1
+    Begin SubModelPartNodes
+            1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Ball2
+    Begin SubModelPartNodes
+            2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            2
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+    Begin SubModelPartTables
+            1
+            2
+            3
+            4
+            5
+            6
+    End SubModelPartTables
+End SubModelPart

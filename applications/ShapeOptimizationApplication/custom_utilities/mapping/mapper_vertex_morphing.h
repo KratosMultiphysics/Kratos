@@ -27,7 +27,7 @@
 #include "utilities/builtin_timer.h"
 #include "spaces/ublas_space.h"
 #include "mapper_base.h"
-#include "filter_function.h"
+#include "custom_utilities/filter_function.h"
 
 // ==============================================================================
 
@@ -116,16 +116,10 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("ShapeOpt") << "Starting initialization of mapper..." << std::endl;
 
-        CreateListOfNodesInOriginModelPart();
         CreateFilterFunction();
-        InitializeMappingVariables();
-        AssignMappingIds();
-
-        InitializeComputationOfMappingMatrix();
-        CreateSearchTreeWithAllNodesInOriginModelPart();
-        ComputeMappingMatrix();
-
         mIsMappingInitialized = true;
+
+        Update();
 
         KRATOS_INFO("ShapeOpt") << "Finished initialization of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
@@ -314,8 +308,10 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("ShapeOpt") << "Starting to update mapper..." << std::endl;
 
-        InitializeComputationOfMappingMatrix();
-        CreateSearchTreeWithAllNodesInOriginModelPart();
+        CreateListOfNodesInOriginModelPart();
+        InitializeMappingVariables();
+        AssignMappingIds();
+
         ComputeMappingMatrix();
 
         KRATOS_INFO("ShapeOpt") << "Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
@@ -375,7 +371,7 @@ protected:
     ModelPart& mrOriginModelPart;
     ModelPart& mrDestinationModelPart;
     Parameters mMapperSettings;
-    FilterFunction::Pointer mpFilterFunction;
+    FilterFunction::UniquePointer mpFilterFunction;
     bool mIsMappingInitialized = false;
 
     ///@}
@@ -456,20 +452,25 @@ private:
         std::string filter_type = mMapperSettings["filter_function_type"].GetString();
         double filter_radius = mMapperSettings["filter_radius"].GetDouble();
 
-        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type, filter_radius));
+        mpFilterFunction = Kratos::make_unique<FilterFunction>(filter_type, filter_radius);
     }
 
     // --------------------------------------------------------------------------
     void InitializeMappingVariables()
     {
         const unsigned int origin_node_number = mrOriginModelPart.Nodes().size();
+        mValuesOrigin.resize(3);
+        mValuesOrigin[0] = ZeroVector(origin_node_number);
+        mValuesOrigin[1] = ZeroVector(origin_node_number);
+        mValuesOrigin[2] = ZeroVector(origin_node_number);
+
         const unsigned int destination_node_number = mrDestinationModelPart.Nodes().size();
+        mValuesDestination.resize(3);
+        mValuesDestination[0] = ZeroVector(destination_node_number);
+        mValuesDestination[1] = ZeroVector(destination_node_number);
+        mValuesDestination[2] = ZeroVector(destination_node_number);
 
         mMappingMatrix.resize(destination_node_number,origin_node_number,false);
-        mMappingMatrix.clear();
-
-        mValuesOrigin.resize(3,ZeroVector(origin_node_number));
-        mValuesDestination.resize(3,ZeroVector(destination_node_number));
     }
 
     // --------------------------------------------------------------------------
@@ -493,6 +494,9 @@ private:
     // --------------------------------------------------------------------------
     void ComputeMappingMatrix()
     {
+        InitializeComputationOfMappingMatrix();
+        CreateSearchTreeWithAllNodesInOriginModelPart();
+
         double filter_radius = mMapperSettings["filter_radius"].GetDouble();
         unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 
@@ -529,7 +533,7 @@ private:
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            double weight = mpFilterFunction->compute_weight( origin_node.Coordinates(), neighbor_node.Coordinates() );
+            double weight = mpFilterFunction->ComputeWeight( origin_node.Coordinates(), neighbor_node.Coordinates() );
 
             list_of_weights[neighbor_itr] = weight;
             sum_of_weights += weight;

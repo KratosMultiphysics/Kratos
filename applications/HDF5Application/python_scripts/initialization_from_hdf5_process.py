@@ -10,7 +10,6 @@ __all__ = ["Factory"]
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application.core as core
 from KratosMultiphysics.HDF5Application.utils import ParametersWrapper
-from KratosMultiphysics.HDF5Application.utils import IsDistributed
 from KratosMultiphysics.HDF5Application.utils import CreateOperationSettings
 
 
@@ -48,7 +47,7 @@ def Factory(settings, Model):
     |                                     |            | "list_of_variables": []         |
     +-------------------------------------+------------+---------------------------------+
     """
-    core_settings = CreateCoreSettings(settings["Parameters"])
+    core_settings = CreateCoreSettings(settings["Parameters"], Model)
     return InitializationFromHDF5ProcessFactory(core_settings, Model)
 
 
@@ -56,7 +55,7 @@ def InitializationFromHDF5ProcessFactory(core_settings, Model):
     return core.Factory(core_settings, Model)
 
 
-def CreateCoreSettings(user_settings):
+def CreateCoreSettings(user_settings, model):
     """Return the core settings."""
     # Configure the defaults:
     core_settings = ParametersWrapper("""
@@ -91,7 +90,8 @@ def CreateCoreSettings(user_settings):
     for key in user_settings["file_settings"]:
         core_settings[0]["io_settings"][key] = user_settings["file_settings"][key]
     core_settings[0]["file_access_mode"] = "read_only"
-    if IsDistributed():
+    model_part_name = user_settings["model_part_name"]
+    if model[model_part_name].IsDistributed():
         core_settings[0]["io_settings"]["io_type"] = "parallel_hdf5_file_io"
     else:
         core_settings[0]["io_settings"]["io_type"] = "serial_hdf5_file_io"

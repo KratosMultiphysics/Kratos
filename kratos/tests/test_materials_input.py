@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 import os
 import sys
 
@@ -27,6 +25,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read")) #reusing the file that is already in the directory
         self.model_part_io.ReadModelPart(self.model_part)
 
@@ -62,7 +61,6 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self.assertEqual(self.model_part.Properties[2].GetValue(KratosMultiphysics.YOUNG_MODULUS), 100.0)
         self.assertEqual(self.model_part.Properties[2].GetValue(KratosMultiphysics.POISSON_RATIO), 0.1)
         self.assertEqual(self.model_part.Properties[2].GetValue(KratosMultiphysics.YIELD_STRESS), 800.0)
-        self.assertEqual(self.model_part.Properties[2].GetValue(KratosMultiphysics.HTC), 0.3)
         self.assertEqual(self.model_part.Properties[2].GetValue(KratosMultiphysics.TIME_STEPS), 159) # int
         self.assertEqual(self.model_part.Properties[2].GetValue(KratosMultiphysics.UPDATE_SENSITIVITIES), True) # bool
         self.assertEqual(self.model_part.Properties[2].GetValue(KratosMultiphysics.IDENTIFIER), "MyTestString") # std::string

@@ -12,8 +12,8 @@
 #include "pybind11.h"
 #include <functional>
 
-NAMESPACE_BEGIN(PYBIND11_NAMESPACE)
-NAMESPACE_BEGIN(detail)
+PYBIND11_NAMESPACE_BEGIN(PYBIND11_NAMESPACE)
+PYBIND11_NAMESPACE_BEGIN(detail)
 
 template <typename Return, typename... Args>
 struct type_caster<std::function<Return(Args...)>> {
@@ -46,11 +46,17 @@ public:
             auto c = reinterpret_borrow<capsule>(PyCFunction_GET_SELF(cfunc.ptr()));
             auto rec = (function_record *) c;
 
-            if (rec && rec->is_stateless &&
-                    same_type(typeid(function_type), *reinterpret_cast<const std::type_info *>(rec->data[1]))) {
-                struct capture { function_type f; };
-                value = ((capture *) &rec->data)->f;
-                return true;
+            while (rec != nullptr) {
+                if (rec->is_stateless
+                    && same_type(typeid(function_type),
+                                 *reinterpret_cast<const std::type_info *>(rec->data[1]))) {
+                    struct capture {
+                        function_type f;
+                    };
+                    value = ((capture *) &rec->data)->f;
+                    return true;
+                }
+                rec = rec->next;
             }
         }
 
@@ -58,7 +64,10 @@ public:
         struct func_handle {
             function f;
             func_handle(function&& f_) : f(std::move(f_)) {}
-            func_handle(const func_handle&) = default;
+            func_handle(const func_handle& f_) {
+                gil_scoped_acquire acq;
+                f = f_.f;
+            }
             ~func_handle() {
                 gil_scoped_acquire acq;
                 function kill_f(std::move(f));
@@ -89,13 +98,12 @@ public:
         auto result = f_.template target<function_type>();
         if (result)
             return cpp_function(*result, policy).release();
-        else
-            return cpp_function(std::forward<Func>(f_), policy).release();
+        return cpp_function(std::forward<Func>(f_), policy).release();
     }
 
     PYBIND11_TYPE_CASTER(type, _("Callable[[") + concat(make_caster<Args>::name...) + _("], ")
                                + make_caster<retval_type>::name + _("]"));
 };
 
-NAMESPACE_END(detail)
-NAMESPACE_END(PYBIND11_NAMESPACE)
+PYBIND11_NAMESPACE_END(detail)
+PYBIND11_NAMESPACE_END(PYBIND11_NAMESPACE)

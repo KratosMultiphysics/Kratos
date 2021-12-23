@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -17,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "utilities/parallel_utilities.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "custom_utilities/self_contact_utilities.h"
 #include "utilities/variable_utils.h"
@@ -208,41 +210,38 @@ void ComputeSelfContactPairing(
         }
     }
 
-    std::size_t master_counter = 0, slave_counter = 0;
-    #pragma omp parallel for firstprivate(master_counter,slave_counter)
-    for(int i = 0; i < num_conditions; ++i) {
-        auto it_cond = it_cond_begin + i;
-
-        master_counter = 0;
-        slave_counter = 0;
+    struct counter_containers {std::size_t master = 0, slave = 0;};
+    block_for_each(r_conditions_array, counter_containers(), [&EchoLevel](Condition& rCond, counter_containers& counter) {
+        counter.master = 0;
+        counter.slave = 0;
 
         // The slave geometry
-        auto& r_geometry = it_cond->GetGeometry();
+        auto& r_geometry = rCond.GetGeometry();
         const std::size_t number_of_nodes = r_geometry.size();
 
         // Count flags
         for (auto& r_node : r_geometry) {
             if (r_node.Is(MASTER)) {
-                ++master_counter;
+                ++counter.master;
             }
             if (r_node.Is(SLAVE)) {
-                ++slave_counter;
+                ++counter.slave;
             }
         }
 
         // Check
-        KRATOS_ERROR_IF((slave_counter + master_counter) > number_of_nodes) << "The MASTER/SLAVE flags are inconsistent" << std::endl;
+        KRATOS_ERROR_IF((counter.slave + counter.master) > number_of_nodes) << "The MASTER/SLAVE flags are inconsistent" << std::endl;
 
         // Check if the condition is active
-        if (slave_counter == number_of_nodes || master_counter == number_of_nodes) {
-            it_cond->Set(ACTIVE, true);
+        if (counter.slave == number_of_nodes || counter.master == number_of_nodes) {
+            rCond.Set(ACTIVE, true);
         } else {
-            KRATOS_WARNING_IF("SelfContactUtilities", EchoLevel > 0) << "Condition " << it_cond->Id() << " must be isolated for sharing MASTER/SLAVE nodes in it" << std::endl;
-            it_cond->Set(ACTIVE, false);
-            it_cond->Set(SLAVE, false);
-            it_cond->Set(MASTER, true);
+            KRATOS_WARNING_IF("SelfContactUtilities", EchoLevel > 0) << "Condition " << rCond.Id() << " must be isolated for sharing MASTER/SLAVE nodes in it" << std::endl;
+            rCond.Set(ACTIVE, false);
+            rCond.Set(SLAVE, false);
+            rCond.Set(MASTER, true);
         }
-    }
+    });
 
     KRATOS_CATCH("")
 }
@@ -326,30 +325,27 @@ void NotPredefinedMasterSlave(ModelPart& rModelPart)
     rModelPart.RemoveSubModelPart("AuxMasterModelPart");
 
     // Now we iterate over the conditions to set the nodes indexes
-    #pragma omp parallel for
-    for(int i = 0; i < num_conditions; ++i) {
-        auto it_cond = r_conditions_array.begin() + i;
-        if (it_cond->Is(SLAVE)) {
-            GeometryType& r_geometry = it_cond->GetGeometry();
+    block_for_each(r_conditions_array, [&](Condition& rCond) {
+        if (rCond.Is(SLAVE)) {
+            GeometryType& r_geometry = rCond.GetGeometry();
             for (NodeType& r_node : r_geometry) {
                 r_node.SetLock();
                 r_node.Set(SLAVE, true);
                 r_node.UnSetLock();
             }
         }
-        if (it_cond->Is(MASTER)) {
-            GeometryType& r_geometry = it_cond->GetGeometry();
+        if (rCond.Is(MASTER)) {
+            GeometryType& r_geometry = rCond.GetGeometry();
             for (NodeType& r_node : r_geometry) {
                 r_node.SetLock();
                 r_node.Set(MASTER, true);
                 r_node.UnSetLock();
             }
         }
-    }
+    });
 
     KRATOS_CATCH("")
 }
-
 
 } // namespace SelfContactUtilities
 } // namespace Kratos

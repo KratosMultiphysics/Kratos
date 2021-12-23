@@ -19,7 +19,7 @@ namespace Kratos {
         // TODO: make mDoApplyFaxenCorrections an option
         LothSteadyViscousTorqueLaw(){}
 
-        LothSteadyViscousTorqueLaw(Parameters& r_parameters);
+        LothSteadyViscousTorqueLaw(Parameters r_parameters);
 
         ~LothSteadyViscousTorqueLaw(){}
 

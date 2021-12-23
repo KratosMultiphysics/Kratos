@@ -15,6 +15,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "linear_solvers_define.h"
 
 namespace Kratos {
 
@@ -23,8 +24,8 @@ class EigenDenseHouseholderQRSolver
 {
 public:
     using Scalar = TScalar;
-    using Matrix = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
-    using Vector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+    using Matrix = Kratos::EigenDynamicMatrix<Scalar>;
+    using Vector = Kratos::EigenDynamicVector<Scalar>;
 
 private:
     Eigen::HouseholderQR<Matrix> m_solver;

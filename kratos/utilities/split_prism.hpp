@@ -2,21 +2,21 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_SPLIT_PRISM)
 #define  KRATOS_SPLIT_PRISM
 
 /** @file split_prism.hpp
- * @brief The class contains three helper functions to ease the splitting: 
+ * @brief The class contains three helper functions to ease the splitting:
  * PrismSplitMode, Split_Prism, and PrismGetNewConnectivityGID
  * EXAMPLE: imagine that an user would like to split a prism wit a face formed
  * by the ids 3 9 7 by introducing a new node 15 on the edge between 3 and 9
@@ -36,8 +36,8 @@
  * int number_splitted_edges; //number of splitted edges
  * int nint; //number of internal nodes
  * int split_needed = Split_Prism(edge_ids,t, &number_elem, &number_splitted_edges, &nint)
- * 
- * The split of the other face is straightforward, in fact this header is an adaptation of the split_triangle.c
+ *
+ * The split of the other face is straightforward, in fact this header is an adaptation of the split_triangle.h
  *
  * the new prisms ids can be then inspected by
  * for(int i=0; i<number_elem; i++)
@@ -69,9 +69,9 @@
  */
 
 void PrismSplitMode(
-  const int aux_ids[12], 
+  const int aux_ids[12],
   int edge_ids[6]
-) 
+)
 {
     /* Edge 01*/
     if (aux_ids[6] < 0)
@@ -95,12 +95,12 @@ void PrismSplitMode(
 
     /* Edge 12*/
     if (aux_ids[7] < 0)
-        if (aux_ids[1] > aux_ids[2]) 
+        if (aux_ids[1] > aux_ids[2])
 	{
 	  edge_ids[1] = 1;
 	  edge_ids[4] = 4;
 	}
-        else 
+        else
 	{
 	  edge_ids[1] = 2;
 	  edge_ids[4] = 5;
@@ -152,13 +152,13 @@ inline void PrismGetNewConnectivityGID(
   const int prism_index,
   const int t[24],
   const int aux_ids[12],
-  int* id0, 
-  int* id1, 
+  int* id0,
+  int* id1,
   int* id2,
-  int* id3, 
-  int* id4, 
+  int* id3,
+  int* id4,
   int* id5
-) 
+)
 {
     unsigned int base = prism_index * 6;
     *id0 = aux_ids[t[base]];
@@ -180,12 +180,12 @@ inline void PrismGetNewConnectivityGID(
 */
 
 int Split_Prism(
-  const int  edges[6], 
+  const int  edges[6],
   int  t[24],
-  int* number_elem, 
-  int* splitted_edges, 
+  int* number_elem,
+  int* splitted_edges,
   int* nint
-) 
+)
 {
     *splitted_edges = 0;
     int topology[6];
@@ -195,8 +195,8 @@ int Split_Prism(
     topology[3] = 0;
     topology[4] = 0;
     topology[5] = 0;
-    
-    for (unsigned int i = 0; i < 6; i++) 
+
+    for (unsigned int i = 0; i < 6; i++)
     {
         if (edges[i] > 2)
         {
@@ -205,7 +205,7 @@ int Split_Prism(
         }
     }
 
-    if (*splitted_edges == 0 && *nint == 0) 
+    if (*splitted_edges == 0 && *nint == 0)
     {
         /* No splitting needed */
         *number_elem = 1;
@@ -222,7 +222,7 @@ int Split_Prism(
         return 0;
     }
     /*WARNING = case new central node needed*/
-    else if (*splitted_edges == 0 && *nint == 1) 
+    else if (*splitted_edges == 0 && *nint == 1)
     {
         *number_elem = 3;
         // Lower face
@@ -250,7 +250,7 @@ int Split_Prism(
         t[11] = 9;
         t[11] = 5;
         t[11] = 3;
-	
+
         return 1;
     }
     else if (*splitted_edges == 2)
@@ -267,7 +267,7 @@ int Split_Prism(
             t[6] = 6;
             t[7] = 1;
             t[8] = 2;
-	    
+
             // Upper face
             t[3] = 9;
             t[4] = 5;
@@ -309,7 +309,7 @@ int Split_Prism(
             t[6] = 8;
             t[7] = 0;
             t[8] = 1;
-	    
+
             // Upper face
             t[3] = 11;
             t[4] = 4;
@@ -342,7 +342,7 @@ int Split_Prism(
                 t[12] = 7;
                 t[13] = 2;
                 t[14] = 0;
-		
+
                 // Upper face
                 t[3] = 10;
                 t[4] = 9;
@@ -371,7 +371,7 @@ int Split_Prism(
                 t[12] = 6;
                 t[13] = 2;
                 t[14] = 0;
-		
+
                 // Upper face
                 t[3] = 10;
                 t[4] = 9;
@@ -404,7 +404,7 @@ int Split_Prism(
                 t[13] = 0;
                 t[14] = 1;
             }
-            else if (edges[0] == 1) 
+            else if (edges[0] == 1)
             {
                 // Lower face
                 t[0] = 5;
@@ -423,7 +423,7 @@ int Split_Prism(
         /* Case 6 */
         else if (topology[0] == 1 && topology[2] == 1)
         {
-            if (edges[1] == 1) 
+            if (edges[1] == 1)
             {
                 // Lower face
                 t[0] = 8;
@@ -437,7 +437,7 @@ int Split_Prism(
                 t[12] = 8;
                 t[13] = 1;
                 t[14] = 2;
-		
+
                 // Upper face
                 t[3] = 11;
                 t[4] = 3;
@@ -451,7 +451,7 @@ int Split_Prism(
                 t[14] = 4;
                 t[15] = 5;
             }
-            else if (edges[1] == 2) 
+            else if (edges[1] == 2)
             {
                 // Lower face
                 t[0] = 8;
@@ -465,7 +465,7 @@ int Split_Prism(
                 t[12] = 6;
                 t[13] = 1;
                 t[14] = 2;
-		
+
                 // Upper face
                 t[3] = 11;
                 t[4] = 3;
@@ -501,7 +501,7 @@ int Split_Prism(
         t[18] = 8;
         t[19] = 7;
         t[20] = 2;
-	
+
         // Upper face
         t[3] = 11;
         t[4] = 3;
@@ -520,8 +520,8 @@ int Split_Prism(
         t[23] = 5;
 
         return 1;
-    } 
-    else 
+    }
+    else
     {
         return 0;
     }

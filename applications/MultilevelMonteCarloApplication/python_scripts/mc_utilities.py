@@ -1,35 +1,27 @@
-from __future__ import absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
-# Importing the Kratos Library
-import KratosMultiphysics
-from KratosMultiphysics.MultilevelMonteCarloApplication.tools import ParametersWrapper
-
-# Import packages
+# Import Python libraries
 import numpy as np
 from scipy.stats import norm
 from math import *
 import copy
 import time
+import pickle
 
-# Importing the analysis stage classes of the different problems
+# Import Kratos
+import KratosMultiphysics
+from KratosMultiphysics.MultilevelMonteCarloApplication.tools import ParametersWrapper
+
+# Import application utilities
 from simulation_definition import SimulationScenario
-
-# Import the StatisticalVariable class
 from KratosMultiphysics.MultilevelMonteCarloApplication.statistical_variable_utilities import StatisticalVariable
-
-# Import random variable generator
 import KratosMultiphysics.MultilevelMonteCarloApplication.generator_utilities as generator
 
-# Import PyCOMPSs
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
+# Import distributed framework
+from exaqute import *
 
-# Import cpickle to pickle the serializer
 try:
-    import cpickle as pickle  # Use cPickle on Python 2.7
-except ImportError:
-    import pickle
+    computing_units_mc_execute = int(os.environ["computing_units_mc_execute"])
+except:
+    computing_units_mc_execute = 1
 
 
 """
@@ -38,7 +30,7 @@ input:  level              : working level
         simulation_results : instances of the MonteCarloResults class
 output: new_values : power sums up to power 4
 """
-@ExaquteTask(returns=1,priority=True)
+@task(keep=True,returns=1,priority=True)
 def AddResultsAux_Task(level,*simulation_results):
     # each value is inside the relative level list, and only one value per level is computed
     # i.e. results = [[value_level_0],[value_level_1],...]
@@ -63,7 +55,7 @@ input:  current_number_samples                   : current number of samples com
         convergence_criteria                     : convergence criteria exploited to check convergence
 output : convergence_boolean: boolean setting if convergence is achieved
 """
-@ExaquteTask(returns=1,priority=True)
+@task(keep=True,returns=1,priority=True)
 def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_tol_absolute,current_delta,convergence_criteria):
     convergence_boolean = False
     if(convergence_criteria == "MC_sample_variance_sequential_stopping_rule"):
@@ -124,8 +116,8 @@ input:  pickled_model : pickled model
         current_level              : current level of the execution (= 0 for Monte Carlo)
 output: mc_results_class : instance of MonteCarloResults class
 """
-@constraint(ComputingUnits="${computing_units_mc_execute}")
-@ExaquteTask(returns=1)
+@constraint(computing_units=computing_units_mc_execute)
+@task(keep=True,returns=1)
 def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,sample,current_analysis_stage,current_level):
 # def ExecuteInstanceAux_Task(serialized_model,serialized_project_parameters,current_analysis_stage,current_level):
     time_0 = time.time()
@@ -476,12 +468,16 @@ class MonteCarlo(object):
         # save problem name
         self.problem_name = parameters["problem_data"]["problem_name"].GetString()
         # serialize parmeters (to avoid adding new data dependent on the application)
-        parameters = self.wrapper.SetModelImportSettingsInputType("use_input_model_part")
+        self.wrapper.SetModelImportSettingsInputType("use_input_model_part")
+        materials_filename = self.wrapper.GetMaterialsFilename()
+        self.wrapper.SetMaterialsFilename("")
         serialized_project_parameters = KratosMultiphysics.StreamSerializer()
         serialized_project_parameters.Save("ParametersSerialization",parameters)
         self.serialized_project_parameters = serialized_project_parameters
         # reset to read the model part
-        parameters = self.wrapper.SetModelImportSettingsInputType("mdpa")
+        self.wrapper.SetModelImportSettingsInputType("mdpa")
+        self.wrapper.SetMaterialsFilename(materials_filename)
+
         # prepare the model to serialize
         model = KratosMultiphysics.Model()
         fake_sample = generator.GenerateSample(self.problem_name) # only used to serialize

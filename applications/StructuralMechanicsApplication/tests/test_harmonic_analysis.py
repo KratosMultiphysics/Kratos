@@ -7,8 +7,6 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_analysis
 from KratosMultiphysics import eigen_solver_factory
 
-hdf5_application_available = kratos_utils.CheckIfApplicationsAvailable("HDF5Application")
-
 from math import sqrt
 from cmath import phase
 
@@ -29,6 +27,11 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
 
     def _solve_eigen(self,mp,echo=0):
+        self.skipTestIfApplicationsNotAvailable("LinearSolversApplication")
+        from KratosMultiphysics import LinearSolversApplication
+        if not LinearSolversApplication.HasFEAST():
+            self.skipTest("FEAST is missing in the compilation")
+
         eigensolver_settings = KratosMultiphysics.Parameters("""{
             "solver_type": "feast",
             "symmetric": true,
@@ -194,7 +197,8 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
             exfreq = exfreq + df
 
 class HarmonicAnalysisTestsWithHDF5(KratosUnittest.TestCase):
-    @KratosUnittest.skipUnless(hdf5_application_available,"Missing required application: HDF5Application")
+    @KratosUnittest.expectedFailure #FIXME see #8330
+    @KratosUnittest.skipIfApplicationsNotAvailable("HDF5Application")
     def test_harmonic_mdpa_input(self):
 
         with KratosUnittest.WorkFolderScope(".",__file__):

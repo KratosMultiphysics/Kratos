@@ -539,7 +539,7 @@ private:
 	      // std::cout<<" Radius "<<Radius<<std::endl;
 	      // std::cout<<" Base Point ["<<node_id<<"]"<<BasePoint<<std::endl;
 
-	      mrModelPart.AddNode(this->CreateNode(mrModelpart.GetParentModelPart(), BasePoint, node_id));
+	      mrModelPart.AddNode(this->CreateNode(mrModelPart.GetParentModelPart(), BasePoint, node_id));
 
 	    }
 
@@ -824,7 +824,7 @@ private:
       /* PropertiesArray[0]->Data() =PropertiesArray[1]->Data();    */
       /* Properties::Pointer pProperties = PropertiesArray[0]; */
 
-      unsigned int condition_id = GetMaxConditionId(mrModelpart.GetParentModelPart());
+      unsigned int condition_id = GetMaxConditionId(mrModelPart.GetParentModelPart());
 
       unsigned int counter = 1;
 
@@ -975,7 +975,7 @@ private:
       /* PropertiesArray[0]->Data() =PropertiesArray[1]->Data();    */
       /* Properties::Pointer pProperties = PropertiesArray[0]; */
 
-      unsigned int condition_id = GetMaxConditionId(mrModelpart.GetParentModelPart());
+      unsigned int condition_id = GetMaxConditionId(mrModelPart.GetParentModelPart());
 
       unsigned int counter = 1;
 
@@ -1365,7 +1365,7 @@ private:
         KRATOS_TRY
 
 	std::string OutputModelPartName;
-	ModelPart& rMainModelPart = mrModelpart.GetParentModelPart();
+	ModelPart& rMainModelPart = mrModelPart.GetParentModelPart();
 	for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin(); i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
 	{
 	  if( i_mp->Is(ACTIVE) )

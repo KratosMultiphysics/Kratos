@@ -32,7 +32,7 @@ namespace Kratos
  *
  * @author Klaus B Sautter
  */
-class CableElement3D2N : public TrussElement3D2N
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CableElement3D2N : public TrussElement3D2N
 {
 
 public:
@@ -87,7 +87,7 @@ public:
      * @brief This function updates the internal normal force w.r.t. the current deformations
      * @param rinternalForces The current updated internal forces
      */
-    void UpdateInternalForces(BoundedVector<double,msLocalSize>& rinternalForces) override;
+    void UpdateInternalForces(BoundedVector<double,msLocalSize>& rinternalForces, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     void CalculateOnIntegrationPoints(

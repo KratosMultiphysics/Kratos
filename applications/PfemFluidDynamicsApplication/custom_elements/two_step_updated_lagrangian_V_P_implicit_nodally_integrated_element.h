@@ -65,15 +65,6 @@ namespace Kratos
   template <unsigned int TDim>
   class TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement : public TwoStepUpdatedLagrangianVPImplicitElement<TDim>
   {
-
-  protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
   public:
     ///@name Type Definitions
     ///@{
@@ -203,12 +194,12 @@ namespace Kratos
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
 
-    void Initialize() override{};
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override{};
 
     /// Initializes the element and all geometric information required for the problem.
-    void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override{};
+    void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override{};
 
-    void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override;
 
     void CalcElementalStrains(ElementalVariables &rElementalVariables,
                               const ProcessInfo &rCurrentProcessInfo,
@@ -229,14 +220,9 @@ namespace Kratos
       KRATOS_CATCH("");
     };
 
-    // /// Calculate the element's local contribution to the system for the current step.
-    // void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
-    //                           VectorType &rRightHandSideVector,
-    //                           ProcessInfo &rCurrentProcessInfo) override;
-
     void CalculateLocalMomentumEquations(MatrixType &rLeftHandSideMatrix,
                                          VectorType &rRightHandSideVector,
-                                         ProcessInfo &rCurrentProcessInfo) override{};
+                                         const ProcessInfo &rCurrentProcessInfo) override{};
 
     /// Checks the input and that all required Kratos variables have been registered.
     /**
@@ -247,31 +233,31 @@ namespace Kratos
        * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
        * @return 0 if no errors were found.
        */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     void CalculateElementalLaplacian(MatrixType &rLeftHandSideMatrix,
                                      VectorType &rRightHandSideVector,
-                                     ProcessInfo &rCurrentProcessInfo);
+                                     const ProcessInfo &rCurrentProcessInfo);
 
     void CalculateElementalLaplacianAndTau(MatrixType &rLeftHandSideMatrix,
                                            VectorType &rRightHandSideVector,
-                                           ProcessInfo &rCurrentProcessInfo);
+                                           const ProcessInfo &rCurrentProcessInfo);
 
     void CalculateVolumetricStabilizedTerms(MatrixType &rLeftHandSideMatrix,
                                             VectorType &rRightHandSideVector,
-                                            ProcessInfo &rCurrentProcessInfo);
+                                            const ProcessInfo &rCurrentProcessInfo);
 
     void CalculateElementalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
                                                    VectorType &rRightHandSideVector,
-                                                   ProcessInfo &rCurrentProcessInfo);
+                                                   const ProcessInfo &rCurrentProcessInfo);
 
     void CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
-                                              VectorType &rRightHandSideVector,
-                                              ProcessInfo &rCurrentProcessInfo) override;
+                                               VectorType &rRightHandSideVector,
+                                               const ProcessInfo &rCurrentProcessInfo) override;
 
     void CalculateStabilizingTermsContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
                                                           VectorType &rRightHandSideVector,
-                                                          ProcessInfo &rCurrentProcessInfo);
+                                                          const ProcessInfo &rCurrentProcessInfo);
 
     void ComputeBoundLHSMatrix(MatrixType &BoundLHSMatrix,
                                const ShapeFunctionsType &rN,
@@ -290,20 +276,20 @@ namespace Kratos
 
     void ComputeStabLaplacianMatrix(MatrixType &StabLaplacianMatrix,
                                     const ShapeFunctionDerivativesType &rShapeDeriv,
-                                    const double Weight)  override;
+                                    const double Weight) override;
 
     void CalculateTauFIC(double &TauOne,
                          double ElemSize,
                          const double Density,
                          const double Viscosity,
-                         const ProcessInfo &rCurrentProcessInfo)  override;
+                         const ProcessInfo &rCurrentProcessInfo) override;
 
     void AddStabilizationNodalTermsRHS(VectorType &rRightHandSideVector,
                                        const double Tau,
                                        const double Density,
                                        const double Weight,
                                        const ShapeFunctionDerivativesType &rDN_DX,
-                                       const SizeType i)  override;
+                                       const SizeType i) override;
 
     ///@}
     ///@name Inquiry
@@ -329,10 +315,6 @@ namespace Kratos
 
   protected:
     void NodalFreeSurfaceLength(unsigned int nodeIndex);
-
-    void GetValueOnIntegrationPoints(const Variable<double> &rVariable,
-                                     std::vector<double> &rValues,
-                                     const ProcessInfo &rCurrentProcessInfo) override;
 
   private:
     friend class Serializer;
