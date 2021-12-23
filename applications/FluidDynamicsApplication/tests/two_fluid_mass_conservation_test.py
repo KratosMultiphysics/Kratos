@@ -6,7 +6,7 @@ from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 try:
-    import KratosMultiphysics.ExternalSolversApplication
+    import KratosMultiphysics.LinearSolversApplication
     have_external_solvers = True
 except ImportError as e:
     have_external_solvers = False
@@ -62,7 +62,7 @@ class TwoFluidMassConservationTest(UnitTest.TestCase):
                                 },
                                 "file_label"          : "time",
                                 "output_control_type" : "time",
-                                "output_frequency"    : 0.1,
+                                "output_interval"     : 0.1,
                                 "body_output"         : true,
                                 "node_output"         : false,
                                 "skin_output"         : false,
@@ -117,7 +117,7 @@ class TwoFluidMassConservationTest(UnitTest.TestCase):
                                 },
                                 "file_label"          : "time",
                                 "output_control_type" : "time",
-                                "output_frequency"    : 0.1,
+                                "output_interval"     : 0.1,
                                 "body_output"         : true,
                                 "node_output"         : false,
                                 "skin_output"         : false,

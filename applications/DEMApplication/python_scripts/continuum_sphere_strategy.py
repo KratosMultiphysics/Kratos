@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
@@ -25,7 +24,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
                 print ("Search is not active until a bond is broken.")
                 self.search_control = 0
                 if (len(fem_model_part.Nodes) > 0 or DEM_parameters["TestType"].GetString() == "BTS"):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
-                    print ("WARNING: Search should be activated since there might contact with FEM.")
+                    Logger.PrintWarning("DEM", "WARNING!: Search should be activated since there might contact with FEM.")
 
         if not "TestType" in DEM_parameters.keys():
             self.test_type = "None"
@@ -65,6 +64,16 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.max_number_of_intact_bonds_to_consider_a_sphere_broken = DEM_parameters["MaxNumberOfIntactBondsToConsiderASphereBroken"].GetDouble()
 
+        if not "AutomaticSkinComputation" in DEM_parameters.keys():
+            self.automatic_skin_computation = False
+        else:
+            self.automatic_skin_computation = DEM_parameters["AutomaticSkinComputation"].GetBool()
+
+        if not "SkinFactorRadius" in DEM_parameters.keys():
+            self.skin_factor_radius = 1.0
+        else:
+            self.skin_factor_radius = DEM_parameters["SkinFactorRadius"].GetDouble()
+
     def CreateCPlusPlusStrategy(self):
 
         self.SetVariablesAndOptions()
@@ -83,13 +92,17 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, POISSON_EFFECT_OPTION, self.poisson_effect_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION, self.shear_strain_parallel_to_bond_option)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_NUMBER_OF_INTACT_BONDS_TO_CONSIDER_A_SPHERE_BROKEN, self.max_number_of_intact_bonds_to_consider_a_sphere_broken)
+        self.spheres_model_part.ProcessInfo.SetValue(AUTOMATIC_SKIN_COMPUTATION, self.automatic_skin_computation)
+        self.spheres_model_part.ProcessInfo.SetValue(SKIN_FACTOR_RADIUS, self.skin_factor_radius)
 
         for properties in self.spheres_model_part.Properties:
-            ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
-            ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()
-            if ContinuumConstitutiveLaw.CheckRequirementsOfStressTensor():
-                self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, 1)
-                break
+            for subproperties in properties.GetSubProperties():
+                if subproperties.Has(DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME):
+                    continuum_constitutive_law_name = subproperties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
+                    continuum_constitutive_law_instance = globals().get(continuum_constitutive_law_name)()
+                    if continuum_constitutive_law_instance.CheckRequirementsOfStressTensor():
+                        self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, 1)
+                        break
 
         if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = ContinuumVelocityVerletSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
@@ -104,17 +117,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
     def SetContinuumType(self):
         self.continuum_type = True
 
-    def Initial_Critical_Time(self):        # Calls deprecated function
-        (self.cplusplus_strategy).InitialTimeStepCalculation()
-
     def AddAdditionalVariables(self, spheres_model_part, DEM_parameters):
         spheres_model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
         spheres_model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
 
-    def ModifyProperties(self, properties, param = 0):
-        BaseExplicitStrategy.ModifyProperties(self, properties, param)
 
-        if not param:
-            ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
-            ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()
-            ContinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
+

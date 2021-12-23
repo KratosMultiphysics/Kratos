@@ -38,7 +38,7 @@ Element::Pointer UPwElement<TDim,TNumNodes>::Create(IndexType NewId, GeometryTyp
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
+int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -132,7 +132,7 @@ int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::Initialize()
+void UPwElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -143,11 +143,20 @@ void UPwElement<TDim,TNumNodes>::Initialize()
     if ( mConstitutiveLawVector.size() != NumGPoints )
         mConstitutiveLawVector.resize( NumGPoints );
 
+    //Imposed Z strain vector initialisation
+    if ( mImposedZStrainVector.size() != NumGPoints )
+        mImposedZStrainVector.resize( NumGPoints );
+
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
     {
         mConstitutiveLawVector[i] = Prop[CONSTITUTIVE_LAW]->Clone();
         mConstitutiveLawVector[i]->InitializeMaterial( Prop, Geom,row( Geom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+
+        mImposedZStrainVector[i] = 0.0;
     }
+
+    // Initializing the intrinsic permeability matrix from the properties
+    PoroElementUtilities::CalculatePermeabilityMatrix(mIntrinsicPermeability,Prop,TDim);
 
     KRATOS_CATCH( "" )
 }
@@ -155,11 +164,11 @@ void UPwElement<TDim,TNumNodes>::Initialize()
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<TDim,TNumNodes>::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int element_size = TNumNodes * (TDim + 1);
     unsigned int index = 0;
 
@@ -183,13 +192,13 @@ void UPwElement<TDim,TNumNodes>::GetDofList( DofsVectorType& rElementalDofList, 
 template< unsigned int TDim, unsigned int TNumNodes >
 GeometryData::IntegrationMethod UPwElement<TDim,TNumNodes>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -213,7 +222,7 @@ void UPwElement<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSide
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
@@ -225,7 +234,7 @@ void UPwElement<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSid
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -244,11 +253,11 @@ void UPwElement<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandS
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwElement<2,3>::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<2,3>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int element_size = 3 * (2 + 1);
     unsigned int index = 0;
 
@@ -268,11 +277,11 @@ void UPwElement<2,3>::EquationIdVector( EquationIdVectorType& rResult, ProcessIn
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwElement<2,4>::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<2,4>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int element_size = 4 * (2 + 1);
     unsigned int index = 0;
 
@@ -292,11 +301,11 @@ void UPwElement<2,4>::EquationIdVector( EquationIdVectorType& rResult, ProcessIn
 //----------------------------------------------------------------------------------------
 
 template<  >
-void UPwElement<3,4>::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<3,4>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int element_size = 4 * (3 + 1);
     unsigned int index = 0;
 
@@ -317,11 +326,11 @@ void UPwElement<3,4>::EquationIdVector( EquationIdVectorType& rResult, ProcessIn
 //----------------------------------------------------------------------------------------
 
 template<  >
-void UPwElement<3,6>::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<3,6>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int element_size = 6 * (3 + 1);
     unsigned int index = 0;
 
@@ -342,11 +351,11 @@ void UPwElement<3,6>::EquationIdVector( EquationIdVectorType& rResult, ProcessIn
 //----------------------------------------------------------------------------------------
 
 template<  >
-void UPwElement<3,8>::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<3,8>::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const unsigned int element_size = 8 * (3 + 1);
     unsigned int index = 0;
 
@@ -367,7 +376,7 @@ void UPwElement<3,8>::EquationIdVector( EquationIdVectorType& rResult, ProcessIn
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void UPwElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -412,7 +421,7 @@ void UPwElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, P
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+void UPwElement<TDim,TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -444,7 +453,7 @@ void UPwElement<TDim,TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatr
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step )
+void UPwElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step ) const
 {
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes * (TDim + 1);
@@ -466,7 +475,7 @@ void UPwElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step )
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int Step )
+void UPwElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes * (TDim + 1);
@@ -488,7 +497,7 @@ void UPwElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, int Step )
+void UPwElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes * (TDim + 1);
@@ -510,100 +519,90 @@ void UPwElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, in
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,
+void UPwElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints( const Variable<double>& rVariable, const std::vector<double>& rValues,
                                                                 const ProcessInfo& rCurrentProcessInfo )
 {
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-        mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
-}
-
-//----------------------------------------------------------------------------------------
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,
-                                                                const ProcessInfo& rCurrentProcessInfo )
-{
-    if ( rVariable == VON_MISES_STRESS )
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-    else //if(rVariable == DAMAGE_VARIABLE || rVariable == STATE_VARIABLE)
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
-        {
-            rValues[i] = 0.0;
-            rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
+    if (rVariable == IMPOSED_Z_STRAIN_VALUE) {
+        for ( unsigned int i = 0; i < mImposedZStrainVector.size(); ++i ) {
+            mImposedZStrainVector[i] = rValues[i];
         }
-    }
-}
-
-//----------------------------------------------------------------------------------------
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,std::vector<array_1d<double,3>>& rValues,
-                                                                    const ProcessInfo& rCurrentProcessInfo)
-{
-    if(rVariable == FLUID_FLUX_VECTOR)
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-    else
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
-        {
-            noalias(rValues[i]) = ZeroVector(3);
-            rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
-        }
-    }
-}
-
-//----------------------------------------------------------------------------------------
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,std::vector<Matrix>& rValues,
-                                                                    const ProcessInfo& rCurrentProcessInfo)
-{
-    if( rVariable == CAUCHY_STRESS_TENSOR ||
-        rVariable == TOTAL_STRESS_TENSOR ||
-        rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||
-        rVariable == PERMEABILITY_MATRIX ) {
-
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
     } else {
-
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
-        {
-            rValues[i].resize(TDim,TDim,false);
-            noalias(rValues[i]) = ZeroMatrix(TDim,TDim);
-            rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
-        }
-
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+            mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
     }
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,std::vector<ConstitutiveLaw::Pointer>& rValues,
+void UPwElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,const std::vector<Matrix>& rValues,
+                                                            const ProcessInfo& rCurrentProcessInfo )
+{
+    if (rVariable == PERMEABILITY_MATRIX) {
+        // Permeability is set only on the element, not on every GP
+        noalias(mIntrinsicPermeability) = rValues[0];
+
+    } else {
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+            mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
+    }
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,
+                                                                const ProcessInfo& rCurrentProcessInfo )
+{
+    //if(rVariable == DAMAGE_VARIABLE || rVariable == STATE_VARIABLE)
+    if ( rValues.size() != mConstitutiveLawVector.size() )
+        rValues.resize(mConstitutiveLawVector.size());
+
+    for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
+    {
+        rValues[i] = 0.0;
+        rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
+    }
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,std::vector<array_1d<double,3>>& rValues,
+                                                                    const ProcessInfo& rCurrentProcessInfo)
+{
+    if ( rValues.size() != mConstitutiveLawVector.size() )
+        rValues.resize(mConstitutiveLawVector.size());
+
+    for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
+    {
+        noalias(rValues[i]) = ZeroVector(3);
+        rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
+    }
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,std::vector<Matrix>& rValues,
+                                                                    const ProcessInfo& rCurrentProcessInfo)
+{
+    if ( rValues.size() != mConstitutiveLawVector.size() )
+        rValues.resize(mConstitutiveLawVector.size());
+
+    for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
+    {
+        rValues[i].resize(TDim,TDim,false);
+        noalias(rValues[i]) = ZeroMatrix(TDim,TDim);
+        rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
+    }
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,std::vector<ConstitutiveLaw::Pointer>& rValues,
                                                                 const ProcessInfo& rCurrentProcessInfo )
 {
     if(rVariable == CONSTITUTIVE_LAW)
@@ -690,6 +689,312 @@ template< >
 void UPwElement<3,8>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
 {
     rIntegrationCoefficient = weight * detJ;
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwElement<TDim,TNumNodes>::CalculateFluxResidual( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateFluxResidual method for a particular element ... illegal operation!!", "" )
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwElement<TDim,TNumNodes>::CalculateMixBodyForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateMixBodyForce method for a particular element ... illegal operation!!", "" )
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwElement<TDim,TNumNodes>::CalculateNegInternalForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateNegInternalForce method for a particular element ... illegal operation!!", "" )
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwElement<TDim,TNumNodes>::CalculateExplicitContributions (VectorType& rFluxResidual, VectorType& rBodyForce, VectorType& rNegInternalForces, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateExplicitContributions method for a particular element ... illegal operation!!", "" )
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const auto& r_geom = GetGeometry();
+    const auto& r_prop = GetProperties();
+    const SizeType element_size = TNumNodes * (TDim + 1);
+
+    //Resizing mass matrix
+    if ( rLeftHandSideMatrix.size1() != element_size )
+        rLeftHandSideMatrix.resize( element_size, element_size, false );
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( element_size, element_size );
+
+    const double& porosity = r_prop[POROSITY];
+    const double density = porosity*r_prop[DENSITY_WATER] + (1.0-porosity)*r_prop[DENSITY_SOLID];
+
+    const double thickness = (TDim == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
+
+    // LUMPED MASS MATRIX
+    const double total_mass = r_geom.DomainSize() * density * thickness;
+
+    Vector lumping_factors;
+    lumping_factors = r_geom.LumpingFactors( lumping_factors );
+
+    for ( IndexType i = 0; i < TNumNodes; ++i ) {
+        const double temp = lumping_factors[i] * total_mass;
+        for ( IndexType j = 0; j < TDim; ++j ) {
+            IndexType index = i * (TDim + 1) + j;
+            rLeftHandSideMatrix(index,index) = temp;
+        }
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwElement<TDim,TNumNodes>::CalculateDampingMatrixWithLumpedMass( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    // Rayleigh Method (Damping Matrix = alpha*M + beta*K)
+
+    const unsigned int element_size = TNumNodes * (TDim + 1);
+
+    // Compute Mass Matrix
+    MatrixType MassMatrix(element_size,element_size);
+
+    this->CalculateLumpedMassMatrix(MassMatrix,rCurrentProcessInfo);
+
+    // Compute Stiffness matrix
+    MatrixType StiffnessMatrix(element_size,element_size);
+
+    this->CalculateStiffnessMatrix(StiffnessMatrix,rCurrentProcessInfo);
+
+    // Compute Damping Matrix
+    if ( rLeftHandSideMatrix.size1() != element_size )
+        rLeftHandSideMatrix.resize( element_size, element_size, false );
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( element_size, element_size );
+
+    noalias(rLeftHandSideMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * MassMatrix;
+    noalias(rLeftHandSideMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwElement<TDim,TNumNodes>::CalculateInertialForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const unsigned int element_size = TNumNodes * (TDim + 1);
+
+    //Resetting the RHS
+    if ( rRightHandSideVector.size() != element_size )
+        rRightHandSideVector.resize( element_size, false );
+    noalias( rRightHandSideVector ) = ZeroVector( element_size );
+
+    // Compute Mass Matrix
+    MatrixType MassMatrix(element_size,element_size);
+    this->CalculateLumpedMassMatrix(MassMatrix,rCurrentProcessInfo);
+
+    VectorType AccelerationVector(element_size);
+    this->GetSecondDerivativesVector(AccelerationVector,0);
+
+    noalias(rRightHandSideVector) = prod(MassMatrix,AccelerationVector);
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwElement<TDim,TNumNodes>::CalculateDampingForce( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const unsigned int element_size = TNumNodes * (TDim + 1);
+
+    //Resetting the RHS
+    if ( rRightHandSideVector.size() != element_size )
+        rRightHandSideVector.resize( element_size, false );
+    noalias( rRightHandSideVector ) = ZeroVector( element_size );
+
+    // Compute Damping Matrix
+    MatrixType DampingMatrix(element_size,element_size);
+    this->CalculateDampingMatrixWithLumpedMass(DampingMatrix,rCurrentProcessInfo);
+
+    VectorType VelocityVector(element_size);
+    this->GetFirstDerivativesVector(VelocityVector,0);
+
+    noalias(rRightHandSideVector) = prod(DampingMatrix,VelocityVector);
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwElement<TDim,TNumNodes>::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    const Variable<double>& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY
+
+    if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == NODAL_MASS ) {
+
+        GeometryType& rGeom = GetGeometry();
+
+        const unsigned int element_size = TNumNodes * (TDim + 1);
+
+        Matrix lumped_mass_matrix = ZeroMatrix(element_size,element_size);
+        this->CalculateLumpedMassMatrix(lumped_mass_matrix,rCurrentProcessInfo);
+
+        for(SizeType i=0; i< TNumNodes; ++i) {
+
+            SizeType index = (TDim + 1) * i;
+
+            #pragma omp atomic
+            rGeom[i].GetValue(NODAL_MASS) += lumped_mass_matrix(index,index);
+        }
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwElement<TDim,TNumNodes>::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    const Variable<array_1d<double,3> >& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY
+
+    GeometryType& rGeom = GetGeometry();
+
+    const unsigned int element_size = TNumNodes * (TDim + 1);
+
+    if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL ) {
+        // CD
+
+        Vector flux_residual = ZeroVector(element_size);
+        // this->CalculateFluxResidual(flux_residual,rCurrentProcessInfo);
+        Vector body_force = ZeroVector(element_size);
+        // this->CalculateMixBodyForce(body_force,rCurrentProcessInfo);
+        Vector neg_internal_force = ZeroVector(element_size);
+        // this->CalculateNegInternalForce(neg_internal_force,rCurrentProcessInfo);
+        this->CalculateExplicitContributions(flux_residual,body_force,neg_internal_force,rCurrentProcessInfo);
+
+        for(SizeType i=0; i< TNumNodes; ++i) {
+
+            SizeType index = (TDim + 1) * i;
+
+            array_1d<double, 3 >& r_external_force = rGeom[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
+            array_1d<double, 3 >& r_internal_force = rGeom[i].FastGetSolutionStepValue(INTERNAL_FORCE);
+
+            for(SizeType j=0; j<TDim; ++j) {
+                #pragma omp atomic
+                r_external_force[j] += body_force[index + j];
+
+                #pragma omp atomic
+                r_internal_force[j] += -neg_internal_force[index + j];
+            }
+        }
+    } else if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == DAMPING_FORCE ) {
+        // VV
+
+        Vector flux_residual = ZeroVector(element_size);
+        Vector body_force = ZeroVector(element_size);
+        Vector neg_internal_force = ZeroVector(element_size);
+        this->CalculateExplicitContributions(flux_residual,body_force,neg_internal_force,rCurrentProcessInfo);
+        Vector damping_force = ZeroVector(element_size);
+        this->CalculateDampingForce(damping_force,rCurrentProcessInfo);
+
+        for(SizeType i=0; i< TNumNodes; ++i) {
+
+            SizeType index = (TDim + 1) * i;
+
+            array_1d<double, 3 >& r_external_force = rGeom[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
+            array_1d<double, 3 >& r_internal_force = rGeom[i].FastGetSolutionStepValue(INTERNAL_FORCE);
+            array_1d<double, 3 >& r_damping_force = rGeom[i].FastGetSolutionStepValue(DAMPING_FORCE);
+
+            for(SizeType j=0; j<TDim; ++j) {
+                #pragma omp atomic
+                r_external_force[j] += body_force[index + j];
+
+                #pragma omp atomic
+                r_internal_force[j] += -neg_internal_force[index + j];
+
+                #pragma omp atomic
+                r_damping_force[j] += damping_force[index + j];
+            }
+        }
+    } else if(rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == REACTION ) {
+        // Residual/Reactions
+
+        Vector flux_residual = ZeroVector(element_size);
+        Vector body_force = ZeroVector(element_size);
+        Vector neg_internal_force = ZeroVector(element_size);
+        this->CalculateExplicitContributions(flux_residual,body_force,neg_internal_force,rCurrentProcessInfo);
+        // Vector damping_force = ZeroVector(element_size);
+        // this->CalculateDampingForce(damping_force,rCurrentProcessInfo);
+        // Vector inertial_force = ZeroVector(element_size);
+        // this->CalculateInertialForce(inertial_force,rCurrentProcessInfo);
+
+        for(SizeType i=0; i< TNumNodes; ++i) {
+
+            SizeType index = (TDim + 1) * i;
+
+            array_1d<double, 3 >& r_force_residual = rGeom[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+            double& r_flux_residual = rGeom[i].FastGetSolutionStepValue(FLUX_RESIDUAL);
+
+            for(SizeType j=0; j<TDim; ++j) {
+                #pragma omp atomic
+                r_force_residual[j] += body_force[index + j] + neg_internal_force[index + j]; // - damping_force[index + j] - inertial_force[index + j];
+            }
+
+            #pragma omp atomic
+            r_flux_residual += flux_residual[index + TDim];
+        }
+    }
+
+    KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

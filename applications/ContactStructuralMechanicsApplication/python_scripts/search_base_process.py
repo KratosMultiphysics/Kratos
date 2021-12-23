@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -47,6 +46,8 @@ class SearchBaseProcess(KM.Process):
             "interval"                    : [0.0,"End"],
             "zero_tolerance_factor"       : 1.0,
             "integration_order"           : 2,
+            "consider_tessellation"       : false,
+            "normal_check_proportion"     : 0.1,
             "search_parameters" : {
                 "type_search"                         : "in_radius_with_obb",
                 "simple_search"                       : false,
@@ -107,9 +108,25 @@ class SearchBaseProcess(KM.Process):
 
         # First we generate or identify the different model parts
         if self.main_model_part.HasSubModelPart("Contact"):
-            self.preprocess = False
-            # We get the submodelpart
-            self.search_model_part = self.main_model_part.GetSubModelPart("Contact")
+            # If remeshed we remove and redo everything from scratch
+            if self.main_model_part.GetRootModelPart().Is(KM.MODIFIED):
+                self.preprocess = True
+
+                # Clean up contact pairs
+                CSMA.ContactUtilities.CleanContactModelParts(self.main_model_part)
+
+                # We remove the submodelpart
+                self.main_model_part.RemoveSubModelPart("Contact")
+
+                KM.AuxiliarModelPartUtilities(self.main_model_part).EnsureModelPartOwnsProperties(True)
+                KM.AuxiliarModelPartUtilities(self.main_model_part.GetRootModelPart()).EnsureModelPartOwnsProperties(True)
+
+                # We create the submodelpart
+                self.search_model_part = self.main_model_part.CreateSubModelPart("Contact")
+            else:
+                self.preprocess = False
+                # We get the submodelpart
+                self.search_model_part = self.main_model_part.GetSubModelPart("Contact")
         else:
             self.preprocess = True
             # We create the submodelpart
@@ -134,7 +151,9 @@ class SearchBaseProcess(KM.Process):
         self.find_nodal_h.Execute()
 
         # We check the normals
-        check_normal_process = CSMA.NormalCheckProcess(self.main_model_part)
+        normal_check_parameters = KM.Parameters("""{"length_proportion" : 0.1}""")
+        normal_check_parameters["length_proportion"].SetDouble(self.settings["normal_check_proportion"].GetDouble())
+        check_normal_process = CSMA.NormalCheckProcess(self.main_model_part, normal_check_parameters)
         check_normal_process.Execute()
 
         ## We recompute the search factor and the check in function of the relative size of the mesh
@@ -158,6 +177,7 @@ class SearchBaseProcess(KM.Process):
         KM.AuxiliarModelPartUtilities(self._get_process_model_part()).RecursiveEnsureModelPartOwnsProperties(True)
         for prop in self._get_process_model_part().GetProperties():
             prop[CSMA.INTEGRATION_ORDER_CONTACT] = self.settings["integration_order"].GetInt()
+            prop[CSMA.CONSIDER_TESSELLATION] = self.settings["consider_tessellation"].GetBool()
 
         # We initialize the contact values
         self._initialize_search_values()
@@ -409,15 +429,18 @@ class SearchBaseProcess(KM.Process):
         # Create main parameters
         search_parameters = self._create_search_parameters(key)
 
+        # Get pair properties
+        properties_pair = self._get_properties_pair(key)
+
         # We create the search process
-        self.search_utility_list[key] = CSMA.ContactSearchProcess(self.main_model_part, search_parameters)
+        self.search_utility_list[key] = CSMA.ContactSearchProcess(self.main_model_part, search_parameters, properties_pair)
 
     def _create_search_parameters(self, key = "0"):
         """ This creates the parameters for the search
 
         Keyword arguments:
         self -- It signifies an instance of a class.
-        param -- The parameters where to set additional values
+        key -- The pair key
         """
 
         # Create main parameters
@@ -443,6 +466,34 @@ class SearchBaseProcess(KM.Process):
         self._set_additional_parameters(search_parameters)
 
         return search_parameters
+
+    def _get_properties_pair(self, key = "0"):
+        """ This gets the properties corresponding to the analyzed pair
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        key -- The pair key
+        """
+
+        # Retrieving properties
+        id_prop = self.settings["search_property_ids"][key].GetInt()
+        if id_prop != 0:
+            return self.main_model_part.GetProperties(id_prop)
+        else:
+            sub_search_model_part_name = "ContactSub"+key
+            if self._get_process_model_part().HasSubModelPart(sub_search_model_part_name):
+                sub_search_model_part = self._get_process_model_part().GetSubModelPart(sub_search_model_part_name)
+            else:
+                sub_search_model_part = self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
+            KM.AuxiliarModelPartUtilities(sub_search_model_part).RecursiveEnsureModelPartOwnsProperties(True)
+            if sub_search_model_part.RecursivelyHasProperties(100 + int(key)):
+                if sub_search_model_part.HasProperties(100 + int(key)):
+                    return sub_search_model_part.GetProperties(100 + int(key))
+                else:
+                    for prop in sub_search_model_part.GetRootModelPart().Properties:
+                        if prop.Id == 100 + int(key): return prop
+            else:
+                return sub_search_model_part.CreateNewProperties(100 + int(key))
 
     def _set_additional_parameters(self, param):
         """ This sets additional parameters for the search
@@ -632,18 +683,26 @@ class SearchBaseProcess(KM.Process):
 
             # We set the interface flag
             KM.VariableUtils().SetFlag(KM.INTERFACE, True, partial_model_part.Nodes)
-            if len(partial_model_part.Conditions) == 0:
+            if partial_model_part.NumberOfConditions() == 0:
                 KM.Logger.PrintInfo("Contact Process", "Using nodes for interface. We recommend to use conditions instead")
             else:
                 KM.VariableUtils().SetFlag(KM.INTERFACE, True, partial_model_part.Conditions)
 
-        if self.preprocess:
-            id_prop = self.settings["search_property_ids"][key].GetInt()
-            if id_prop != 0:
-                sub_search_model_part.SetProperties(self.main_model_part.GetProperties(id_prop))
+        id_prop = self.settings["search_property_ids"][key].GetInt()
+        if id_prop != 0:
+            sub_search_model_part.SetProperties(self.main_model_part.GetProperties(id_prop))
+        else:
+            sub_prop = self._get_properties_pair(key)
+            if partial_model_part.NumberOfConditions() == 0:
+                for elem in self.main_model_part.Elements:
+                    base_prop = elem.Properties
+                    break
             else:
-                sub_search_model_part.SetProperties(self.main_model_part.GetProperties())
-
+                for cond in partial_model_part.Conditions:
+                    base_prop = cond.Properties
+                    break
+            KM.PropertiesUtilities.CopyPropertiesValues(base_prop, sub_prop)
+        if self.preprocess:
             # We transfer the list of submodelparts to the contact model part
             for i in range(0, param.size()):
                 partial_model_part = self.main_model_part.GetSubModelPart(param[i].GetString())
@@ -690,4 +749,3 @@ class SearchBaseProcess(KM.Process):
             self.predefined_master_slave = True
         else:
             self.predefined_master_slave = False
-

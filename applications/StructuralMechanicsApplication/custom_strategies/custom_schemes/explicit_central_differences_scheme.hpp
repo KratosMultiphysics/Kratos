@@ -154,7 +154,7 @@ public:
      * @param rModelPart The model of the problem to solve
      * @return Zero means  all ok
      */
-    int Check(ModelPart& rModelPart) override
+    int Check(const ModelPart& rModelPart) const override
     {
         KRATOS_TRY;
 
@@ -189,7 +189,7 @@ public:
             ExplicitIntegrationUtilities::CalculateDeltaTime(rModelPart, prediction_parameters);
         }
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Preparing the time values for the first step (where time = initial_time +
         // dt)
@@ -244,42 +244,6 @@ public:
         }
         InitializeResidual(rModelPart);
         KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief It initializes the non-linear iteration
-     * @param rModelPart The model of the problem to solve
-     * @param rA LHS matrix
-     * @param rDx Incremental update of primary variables
-     * @param rb RHS Vector
-     * @todo I cannot find the formula for the higher orders with variable time step. I tried to deduce by myself but the result was very unstable
-     */
-    void InitializeNonLinIteration(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        ) override
-    {
-        KRATOS_TRY;
-
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-        #pragma omp parallel for schedule(guided,512)
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->InitializeNonLinearIteration(r_current_process_info);
-        }
-
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-        #pragma omp parallel for schedule(guided,512)
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_elem = it_cond_begin + i;
-            it_elem->InitializeNonLinearIteration(r_current_process_info);
-        }
-
-        KRATOS_CATCH( "" );
     }
 
     /**
@@ -393,7 +357,7 @@ public:
     {
         KRATOS_TRY
         // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // The array of nodes
         NodesArrayType& r_nodes = rModelPart.Nodes();
@@ -652,41 +616,41 @@ public:
 
     /**
      * @brief This function is designed to calculate just the RHS contribution
-     * @param pElement The element to compute
+     * @param rCurrentElement The element to compute
      * @param RHS_Contribution The RHS vector contribution
      * @param EquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    void Calculate_RHS_Contribution(
-        Element::Pointer pCurrentElement,
+    void CalculateRHSContribution(
+        Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        this->TCalculate_RHS_Contribution(pCurrentElement, RHS_Contribution, rCurrentProcessInfo);
+        this->TCalculateRHSContribution(rCurrentElement, RHS_Contribution, rCurrentProcessInfo);
         KRATOS_CATCH("")
     }
 
     /**
      * @brief Functions that calculates the RHS of a "condition" object
-     * @param pCondition The condition to compute
+     * @param rCurrentCondition The condition to compute
      * @param RHS_Contribution The RHS vector contribution
      * @param EquationId The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer pCurrentCondition,
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        this->TCalculate_RHS_Contribution(pCurrentCondition, RHS_Contribution, rCurrentProcessInfo);
+        this->TCalculateRHSContribution(rCurrentCondition, RHS_Contribution, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -696,7 +660,7 @@ public:
     {
         KRATOS_TRY
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         ConditionsArrayType& r_conditions = rModelPart.Conditions();
         ElementsArrayType& r_elements = rModelPart.Elements();
 
@@ -706,13 +670,13 @@ public:
         #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy), schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_conditions.size()); ++i) {
             auto it_cond = r_conditions.begin() + i;
-            Condition_Calculate_RHS_Contribution((*it_cond.base()), RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
+            CalculateRHSContribution(*it_cond, RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
         }
 
         #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy), schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
             auto it_elem = r_elements.begin() + i;
-            Calculate_RHS_Contribution((*it_elem.base()), RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
+            CalculateRHSContribution(*it_elem, RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
         }
 
         KRATOS_CATCH("")
@@ -827,21 +791,21 @@ private:
 
     /**
     * @brief Functions that calculates the RHS of a "TObjectType" object
-    * @param pCurrentEntity The TObjectType to compute
+    * @param rCurrentEntity The TObjectType to compute
     * @param RHS_Contribution The RHS vector contribution
     * @param rCurrentProcessInfo The current process info instance
     */
     template <typename TObjectType>
-    void TCalculate_RHS_Contribution(
-        TObjectType pCurrentEntity,
+    void TCalculateRHSContribution(
+        TObjectType& rCurrentEntity,
         LocalSystemVectorType& RHS_Contribution,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
-        pCurrentEntity->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+        rCurrentEntity.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
 
-        pCurrentEntity->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
-        pCurrentEntity->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
+        rCurrentEntity.AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
+        rCurrentEntity.AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
     }
 
     ///@}

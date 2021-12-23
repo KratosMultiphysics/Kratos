@@ -46,7 +46,7 @@ LineHeatFluxCondition::~LineHeatFluxCondition()
 
 //************************************************************************************
 //************************************************************************************
-void LineHeatFluxCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void LineHeatFluxCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
   //calculation flags
   bool CalculateStiffnessMatrixFlag = false;
@@ -58,7 +58,7 @@ void LineHeatFluxCondition::CalculateRightHandSide( VectorType& rRightHandSideVe
 
 //************************************************************************************
 //************************************************************************************
-void LineHeatFluxCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void LineHeatFluxCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
   //calculation flags
   bool CalculateStiffnessMatrixFlag = true;
@@ -71,7 +71,7 @@ void LineHeatFluxCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatri
 //************************************************************************************
 //************************************************************************************
 void LineHeatFluxCondition::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                                                    ProcessInfo& rCurrentProcessInfo,
+                                                    const ProcessInfo& rCurrentProcessInfo,
                                                     bool CalculateStiffnessMatrixFlag,
                                                     bool CalculateResidualVectorFlag )
 {
@@ -231,7 +231,7 @@ void LineHeatFluxCondition::CalculateAndAddFaceHeatFlux(Vector& rF,
 
 //************************************************************************************
 //************************************************************************************
-void LineHeatFluxCondition::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
+void LineHeatFluxCondition::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo ) const
 {
   int number_of_nodes     = GetGeometry().PointsNumber(); //=Geometry().size();
 
@@ -249,7 +249,7 @@ void LineHeatFluxCondition::EquationIdVector( EquationIdVectorType& rResult, Pro
 
 //************************************************************************************
 //************************************************************************************
-void LineHeatFluxCondition::GetDofList( DofsVectorType& rConditionalDofList, ProcessInfo& rCurrentProcessInfo )
+void LineHeatFluxCondition::GetDofList( DofsVectorType& rConditionalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
   rConditionalDofList.resize( 0 );
   for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
@@ -260,7 +260,7 @@ void LineHeatFluxCondition::GetDofList( DofsVectorType& rConditionalDofList, Pro
 
 //************************************************************************************
 //************************************************************************************
-void  LineHeatFluxCondition::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void  LineHeatFluxCondition::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -272,7 +272,7 @@ void  LineHeatFluxCondition::CalculateMassMatrix( MatrixType& rMassMatrix, Proce
 
 //************************************************************************************
 //************************************************************************************
-void  LineHeatFluxCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void  LineHeatFluxCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -282,11 +282,9 @@ void  LineHeatFluxCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix,
   KRATOS_CATCH( "" )
 }
 
-int LineHeatFluxCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int LineHeatFluxCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
   return 0;
 }
 
 } // Namespace Kratos
-
-

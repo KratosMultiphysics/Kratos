@@ -30,8 +30,7 @@ namespace Internals {
 void ModelPartForMPICommunicatorTests(ModelPart& rModelPart, const DataCommunicator& rComm)
 {
     /* NOTE: the modelpart should at least have PARTITION_INDEX in the nodal solution step data */
-    constexpr double pi = 3.141592653589793238462643383279502884197169399375105820974944592308;
-    constexpr double total_angle = pi/2.0;
+    constexpr double total_angle = Globals::Pi/2.0;
     constexpr double side_length = 1.0;
 
     Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
@@ -40,7 +39,7 @@ void ModelPartForMPICommunicatorTests(ModelPart& rModelPart, const DataCommunica
     const int size = rComm.Size();
 
     auto p_center = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-    p_center->FastGetSolutionStepValue(PARTITION_INDEX) = 0.0;
+    p_center->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
 
     const double angle_start = rank   * (total_angle / size);
     const double angle_end   = rank+1 * (total_angle / size);
@@ -56,14 +55,14 @@ void ModelPartForMPICommunicatorTests(ModelPart& rModelPart, const DataCommunica
     auto p_node_1 = rModelPart.CreateNewNode(local_index, x1, y1, 0.0);
     auto p_node_2 = rModelPart.CreateNewNode(ghost_index, x2, y2, 0.0);
 
-    p_node_1->FastGetSolutionStepValue(PARTITION_INDEX) = 1.0*rank;
+    p_node_1->FastGetSolutionStepValue(PARTITION_INDEX) = rank;
     const int remote_rank = (rank != size-1) ? rank + 1 : 0;
-    p_node_2->FastGetSolutionStepValue(PARTITION_INDEX) = 1.0*remote_rank;
+    p_node_2->FastGetSolutionStepValue(PARTITION_INDEX) = remote_rank;
 
     std::vector<ModelPart::IndexType> element_nodes{1, local_index, ghost_index};
     rModelPart.CreateNewElement("Element2D3N", rank+1, element_nodes, p_properties);
 
-    ParallelFillCommunicator(rModelPart).Execute();
+    ParallelFillCommunicator(rModelPart, Testing::GetDefaultDataCommunicator()).Execute();
 }
 
 }
@@ -324,6 +323,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
     r_model_part.AddNodalSolutionStepVariable(VELOCITY);              // Variable< array_1d<double,3> >
     r_model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_VECTOR);  // Variable<Vector>
     r_model_part.AddNodalSolutionStepVariable(DEFORMATION_GRADIENT);  // Variable<Matrix>
+    r_model_part.AddNodalSolutionStepVariable(ORIENTATION);           // Variable<Quaternion<double>>
 
     MPIDataCommunicator comm_world(MPI_COMM_WORLD);
     Internals::ModelPartForMPICommunicatorTests(r_model_part, comm_world);
@@ -345,6 +345,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
         r_deformation_gradient.resize(3,2,false);
         r_deformation_gradient = ZeroMatrix(3,2);
         r_deformation_gradient(2,1) = 1.0;
+        i_node->FastGetSolutionStepValue(ORIENTATION) = Quaternion<double>(4.0,1.0,2.0,3.0);
     }
 
     r_comm.SynchronizeVariable(DOMAIN_SIZE);
@@ -390,6 +391,15 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
         KRATOS_CHECK_EQUAL(r_matrix.size2(), 2);
         KRATOS_CHECK_EQUAL(r_matrix(0,0), 0.0);
         KRATOS_CHECK_EQUAL(r_matrix(2,1), 1.0);
+    }
+
+    r_comm.SynchronizeVariable(ORIENTATION);
+    for (const auto& r_node : r_model_part.Nodes()) {
+        const auto& r_quaternion = r_node.FastGetSolutionStepValue(ORIENTATION);
+        KRATOS_CHECK_EQUAL(r_quaternion.X(), 1.0);
+        KRATOS_CHECK_EQUAL(r_quaternion.Y(), 2.0);
+        KRATOS_CHECK_EQUAL(r_quaternion.Z(), 3.0);
+        KRATOS_CHECK_EQUAL(r_quaternion.W(), 4.0);
     }
 }
 
@@ -517,6 +527,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataSynchronize, Krato
         r_deformation_gradient.resize(3,2,false);
         r_deformation_gradient = ZeroMatrix(3,2);
         r_deformation_gradient(2,1) = 1.0;
+        i_node->SetValue(ORIENTATION, Quaternion<double>(4.0,1.0,2.0,3.0));
     }
 
     r_comm.SynchronizeNonHistoricalVariable(DOMAIN_SIZE);
@@ -562,6 +573,15 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataSynchronize, Krato
         KRATOS_CHECK_EQUAL(r_matrix.size2(), 2);
         KRATOS_CHECK_EQUAL(r_matrix(0,0), 0.0);
         KRATOS_CHECK_EQUAL(r_matrix(2,1), 1.0);
+    }
+
+    r_comm.SynchronizeNonHistoricalVariable(ORIENTATION);
+    for (const auto& r_node : r_model_part.Nodes()) {
+        const auto& r_quaternion = r_node.GetValue(ORIENTATION);
+        KRATOS_CHECK_EQUAL(r_quaternion.X(), 1.0);
+        KRATOS_CHECK_EQUAL(r_quaternion.Y(), 2.0);
+        KRATOS_CHECK_EQUAL(r_quaternion.Z(), 3.0);
+        KRATOS_CHECK_EQUAL(r_quaternion.W(), 4.0);
     }
 }
 
@@ -763,7 +783,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecution, KratosM
     auto neighbor_indices = r_mpi_comm.NeighbourIndices();
 
     int neighbor;
-    double local_index = comm_world.Rank(); // PARTITION_INDEX is a double
+    int local_index = comm_world.Rank();
     for (unsigned int i = 0; i < number_of_colors; i++)
     {
         if ((neighbor = neighbor_indices[i]) > -1)
@@ -773,7 +793,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecution, KratosM
             std::size_t ghost_size = r_mpi_comm.GhostMeshes()[i].Nodes().size();
             KRATOS_CHECK_GREATER(interface_size, 0);
             KRATOS_CHECK_EQUAL(interface_size, local_size+ghost_size);
-            double neighbor_index = neighbor; // PARTITION_INDEX is a double
+            int neighbor_index = neighbor;
             for (auto& node : r_mpi_comm.LocalMeshes()[i].Nodes())
             {
                 KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(PARTITION_INDEX,0), local_index);
@@ -784,6 +804,24 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecution, KratosM
             }
         }
     }
+}
+
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CommunicatorGlobalNumMethods, KratosMPICoreFastSuite)
+{
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    MPIDataCommunicator comm_world(MPI_COMM_WORLD);
+    Internals::ModelPartForMPICommunicatorTests(r_model_part, comm_world);
+
+    const auto& r_mpi_comm = r_model_part.GetCommunicator();
+
+    const unsigned int comm_size = r_mpi_comm.TotalProcesses();
+
+    KRATOS_CHECK_EQUAL(r_mpi_comm.GlobalNumberOfNodes(), comm_size+1);
+    KRATOS_CHECK_EQUAL(r_mpi_comm.GlobalNumberOfElements(), comm_size);
 }
 
 }

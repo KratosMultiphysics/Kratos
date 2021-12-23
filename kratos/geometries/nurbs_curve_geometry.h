@@ -24,6 +24,8 @@
 
 #include "integration/integration_point_utilities.h"
 
+#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
+
 namespace Kratos {
 
 template <int TWorkingSpaceDimension, class TContainerPointType>
@@ -118,17 +120,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator.
     NurbsCurveGeometry& operator=(const NurbsCurveGeometry& rOther)
     {
         BaseType::operator=(rOther);
@@ -138,17 +130,7 @@ public:
         return *this;
     }
 
-    /**
-     * @brief Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// @brief Assignment operator for geometries with different point type.
     template<class TOtherContainerPointType>
     NurbsCurveGeometry& operator=(
         NurbsCurveGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)
@@ -171,19 +153,39 @@ public:
     }
 
     ///@}
+    ///@name Geometrical Information
+    ///@{
+
+    /// Returns number of points per direction.
+    SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override
+    {
+        if (LocalDirectionIndex == 0) {
+            return this->PointsNumber();
+        }
+        KRATOS_ERROR << "Possible direction index in NurbsCurveGeometry is 0. Given direction index: "
+            << LocalDirectionIndex << std::endl;
+    }
+
+    ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the curve
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        KRATOS_DEBUG_ERROR_IF(LocalDirectionIndex != 0)
+            << "Trying to access polynomial degree in direction " << LocalDirectionIndex
+            << " from NurbsCurveGeometry #" << this->Id() << ". However, nurbs curves have only one direction."
+            << std::endl;
+
+        return mPolynomialDegree;
+    }
+
+    ///@}
     ///@name Get and Set functions
     ///@{
 
     /*
-    * @brief Polynomial degree of this curve.
-    * @return the polynomial degree.
-    */
-    SizeType PolynomialDegree() const
-    {
-        return mPolynomialDegree;
-    }
-
-    /* 
     * @brief Knot vector is defined to have a multiplicity of p
     *        at the beginning and end (NOT: p + 1).
     * @return knot vector.
@@ -209,7 +211,7 @@ public:
     */
     SizeType NumberOfNonzeroControlPoints() const
     {
-        return PolynomialDegree() + 1;
+        return mPolynomialDegree + 1;
     }
 
     /*
@@ -233,10 +235,9 @@ public:
         return mWeights;
     }
 
-    /* 
-    * @brief Provides the natural boundaries of the NURBS/B-Spline curve.
-    * @return domain interval.
-    */
+    /* @brief Provides the natural boundaries of the NURBS/B-Spline curve.
+     * @return domain interval.
+     */
     NurbsInterval DomainInterval() const
     {
         return NurbsInterval(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
@@ -281,7 +282,7 @@ public:
      * @param resulting vector of span intervals.
      * @param index of chosen direction, for curves always 0.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
+    void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
         rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
 
@@ -297,6 +298,172 @@ public:
     }
 
     ///@}
+    ///@name IsInside
+    ///@{
+
+    /* @brief checks and returns if local coordinate rPointLocalCoordinates[0]
+     *        is inside the local/parameter space.
+     * @return inside -> 1
+     *         outside -> 0
+     */
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter =
+            std::min(mKnots[mPolynomialDegree - 1],
+                mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            return 0;
+        }
+
+        const double max_parameter =
+            std::max(mKnots[mPolynomialDegree - 1],
+                mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            return 0;
+        }
+
+        return 1;
+    }
+
+    ///@}
+    ///@name ClosestPoint
+    ///@{
+
+    /* @brief Makes a check if the provided paramater rPointLocalCoordinates[0]
+     *        is inside the curve, or on the boundary or if it lays outside.
+     *        If it is outside, it is set to the boundary which is closer to it.
+     * @return if rPointLocalCoordinates[0] was before the projection:
+     *         outside -> 0
+     *         inside -> 1
+     *         on boundary -> 2 - meaning that it is equal to start or end point.
+     */
+    virtual int ClosestPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter = std::min(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            rClosestPointLocalCoordinates[0] = min_parameter;
+            return 0;
+        } else if (rPointLocalCoordinates[0] == min_parameter) {
+            rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+            return 2;
+        }
+
+        const double max_parameter = std::max(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            rClosestPointLocalCoordinates[0] = max_parameter;
+            return 0;
+        } else if (rPointLocalCoordinates[0] == max_parameter) {
+            rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+            return 2;
+        }
+
+        rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+        return 1;
+    }
+
+    ///@}
+    ///@name Projection Point
+    ///@{
+
+    /* @brief Makes projection of rPointGlobalCoordinates to
+     *       the closest point on the curve, with
+     *       local coordinates rProjectedPointLocalCoordinates.
+     *
+     * @param Tolerance is the breaking criteria.
+     * @return 1 -> projection succeeded
+     *         0 -> projection failed
+     */
+    int ProjectionPointGlobalToLocalSpace(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        CoordinatesArrayType point_global_coordinates;
+
+        return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+            rProjectedPointLocalCoordinates,
+            rPointGlobalCoordinates,
+            point_global_coordinates,
+            *this,
+            20, Tolerance);
+    }
+
+    ///@}
+    ///@name Geometrical Informations
+    ///@{
+
+    /// Computes the length of a nurbs curve
+    double Length() const override
+    {
+        IntegrationPointsArrayType integration_points;
+        IntegrationInfo integration_info = GetDefaultIntegrationInfo();
+        CreateIntegrationPoints(integration_points, integration_info);
+
+        double length = 0.0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            double determinant_jacobian = this->DeterminantOfJacobian(integration_points[i]);
+            length += integration_points[i].Weight() * determinant_jacobian;
+        }
+        return length;
+    }
+
+    ///@}
+    ///@name Jacobian
+    ///@{
+
+    /// Computes the Jacobian with coordinates
+    Matrix& Jacobian(
+        Matrix& rResult,
+        const CoordinatesArrayType& rCoordinates) const override
+    {
+        const SizeType working_space_dimension = this->WorkingSpaceDimension();
+        if (rResult.size1() != working_space_dimension || rResult.size2() != 1) {
+            rResult.resize(working_space_dimension, 1, false);
+        }
+        rResult.clear();
+
+        /// Compute shape functions
+        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 1);
+        if (IsRational()) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
+        }
+        else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
+        }
+
+        /// Compute Jacobian
+        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+            const IndexType index = shape_function_container.GetFirstNonzeroControlPoint() + i;
+
+            const array_1d<double, 3>& r_coordinates = (*this)[index].Coordinates();
+            for (IndexType k = 0; k < working_space_dimension; ++k) {
+                rResult(k, 0) += r_coordinates[k] * shape_function_container(i, 1);
+            }
+        }
+        return rResult;
+    }
+
+    ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        return IntegrationInfo(1,
+            mPolynomialDegree + 1,
+            IntegrationInfo::QuadratureMethod::GAUSS);
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
@@ -304,38 +471,14 @@ public:
      * @param result integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
-    {
-        const SizeType points_per_span = PolynomialDegree() + 1;
-
-        std::vector<double> spans;
-        Spans(spans);
-
-        this->CreateIntegrationPoints(
-            rIntegrationPoints, spans, points_per_span);
-    }
-
-    void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
-        const std::vector<double>& rSpanIntervals,
-        SizeType IntegrationPointsPerSpan) const
+        IntegrationInfo& rIntegrationInfo) const override
     {
-        const SizeType num_spans = rSpanIntervals.size() - 1;
-        const SizeType number_of_integration_points =
-            num_spans * IntegrationPointsPerSpan;
+        std::vector<double> spans;
+        SpansLocalSpace(spans);
 
-        if (rIntegrationPoints.size() != number_of_integration_points)
-            rIntegrationPoints.resize(number_of_integration_points);
-
-        typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
-
-        for (IndexType i = 0; i < num_spans; ++i)
-        {
-            IntegrationPointUtilities::IntegrationPoints1D(
-                integration_point_iterator,
-                IntegrationPointsPerSpan,
-                rSpanIntervals[i], rSpanIntervals[i + 1]);
-        }
+        IntegrationPointUtilities::CreateIntegrationPoints1D(
+            rIntegrationPoints, spans, rIntegrationInfo);
     }
 
     ///@}
@@ -355,7 +498,8 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints) override
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) override
     {
         // shape function container.
         NurbsCurveShapeFunction shape_function_container(
@@ -391,11 +535,10 @@ public:
             for (IndexType j = 0; j < num_nonzero_cps; j++) {
                 nonzero_control_points(j) = pGetPoint(first_cp_index + j);
             }
+
             /// Get Shape Functions N
-            if (NumberOfShapeFunctionDerivatives >= 0) {
-                for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                    N(0, j) = shape_function_container(j, 0);
-                }
+            for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                N(0, j) = shape_function_container(j, 0);
             }
 
             /// Get Shape Function Derivatives DN_De, ...
@@ -412,7 +555,7 @@ public:
                 N, shape_function_derivatives);
 
             rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
-                this->WorkingSpaceDimension(), 2, data_container, nonzero_control_points);
+                this->WorkingSpaceDimension(), 1, data_container, nonzero_control_points);
         }
     }
 
@@ -451,7 +594,7 @@ public:
         return rResult;
     }
 
-    /** 
+    /**
     * @brief This method maps from dimension space to working space and computes the
     *        number of derivatives at the dimension parameter.
     * From Piegl and Tiller, The NURBS Book, Algorithm A3.2/ A4.2
@@ -557,6 +700,20 @@ public:
     }
 
     ///@}
+    ///@name Geometry Family
+    ///@{
+
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Nurbs;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
+    }
+
+    ///@}
     ///@name Information
     ///@{
 
@@ -657,7 +814,7 @@ private:
 template<int TWorkingSpaceDimension, class TContainerPointType>
 const GeometryData NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
 
 template<int TWorkingSpaceDimension, class TContainerPointType>

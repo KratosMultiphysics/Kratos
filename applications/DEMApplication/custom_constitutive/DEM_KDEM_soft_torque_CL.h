@@ -9,17 +9,16 @@
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEM_soft_torque : public DEM_KDEM {
+
+        typedef DEM_KDEM BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_soft_torque);
 
-        DEM_KDEM_soft_torque() {
-        }
+        DEM_KDEM_soft_torque() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
-        ~DEM_KDEM_soft_torque() {
-        }
+        ~DEM_KDEM_soft_torque() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 

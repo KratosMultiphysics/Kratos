@@ -62,7 +62,7 @@ class AutomaticDirichletConditionsProcess(KM.Process):
         if self.settings["allow_outwards_flow_on_land"].GetBool():
             dimension = 2
             KM.NormalCalculationUtils().CalculateOnSimplex(skin_model_part, dimension)
-            KM.ComputeNodalGradientProcess(model_part, SW.TOPOGRAPHY, SW.TOPOGRAPHY_GRADIENT, KM.NODAL_AREA).Execute()
+            KM.ComputeNonHistoricalNodalGradientProcess(model_part, SW.TOPOGRAPHY, SW.TOPOGRAPHY_GRADIENT, KM.NODAL_AREA).Execute()
             SW.ShallowWaterUtilities().IdentifySolidBoundary(skin_model_part, self.settings["sea_water_level"].GetDouble(), KM.SOLID)
             skin_model_part.RemoveNodes((KM.SOLID).AsFalse())
             skin_model_part.RemoveConditionsFromAllLevels((KM.SOLID).AsFalse())

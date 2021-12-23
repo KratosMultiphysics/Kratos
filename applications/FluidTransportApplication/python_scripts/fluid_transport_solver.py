@@ -44,7 +44,7 @@ class FluidTransportSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("FluidTransportSolver", "Construction of FluidTransportSolver finished.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type": "fluid_transport_solver",
             "model_part_name": "FluidTransportDomain",
@@ -91,7 +91,7 @@ class FluidTransportSolver(PythonSolver):
 	        }
         }""")
 
-        this_defaults.AddMissingParameters(super(FluidTransportSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(FluidTransportSolver, cls).GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):

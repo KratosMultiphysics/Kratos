@@ -1,0 +1,17 @@
+# Spatial statistics process output
+# Kratos version               : not_given
+# Timestamp                    : not_specified
+# Method Name                  : variance
+# Norm type                    : magnitude
+# Container type               : condition_non_historical
+# Modelpart name               : test_model_part
+# Output control variable name : STEP
+# ----------------------------------------------------------------------
+# Headers:
+# OutputControlVariableValue PRESSURE_Mean PRESSURE_Variance VELOCITY_Mean VELOCITY_Variance LOAD_MESHES_Mean LOAD_MESHES_Variance GREEN_LAGRANGE_STRAIN_TENSOR_Mean GREEN_LAGRANGE_STRAIN_TENSOR_Variance
+2 16.5 47.25 57.15767664977295 567.0 43.603325561245896 236.25000000000023 225.0 4725.0
+4 27.5 131.25 95.26279441628824 1575.0000000000018 72.67220926874317 656.2499999999991 375.0 13125.0
+6 38.5 257.25 133.36791218280354 3087.0000000000036 101.74109297624042 1286.2500000000018 525.0 25725.0
+8 49.5 425.25 171.47302994931886 5103.0 130.80997668373772 2126.2499999999964 675.0 42525.0
+10 60.5 635.25 209.57814771583415 7623.0 159.87886039123495 3176.2500000000036 825.0 63525.0
+# End of file

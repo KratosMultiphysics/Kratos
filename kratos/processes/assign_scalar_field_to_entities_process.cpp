@@ -37,7 +37,7 @@ AssignScalarFieldToEntitiesProcess<TEntity>::AssignScalarFieldToEntitiesProcess(
     mMeshId       = rParameters["mesh_id"].GetInt();
     mVariableName = rParameters["variable_name"].GetString();
 
-    mpFunction = PythonGenericFunctionUtility::Pointer( new PythonGenericFunctionUtility(rParameters["value"].GetString(),  rParameters["local_axes"]));
+    mpFunction = Kratos::make_unique<GenericFunctionUtility>(rParameters["value"].GetString(), rParameters["local_axes"]);
 
     KRATOS_CATCH("");
 }
@@ -56,8 +56,6 @@ void AssignScalarFieldToEntitiesProcess<TEntity>::Execute()
 
     if( KratosComponents< Variable<double> >::Has( mVariableName ) ) { //case of scalar variable
         InternalAssignValueScalar<>(KratosComponents< Variable<double> >::Get(mVariableName), current_time);
-    } else if( KratosComponents< array_1d_component_type >::Has( mVariableName ) ) { //case of component variable
-        InternalAssignValueScalar<>(KratosComponents< array_1d_component_type >::Get(mVariableName), current_time);
     } else if( KratosComponents< Variable<Vector> >::Has( mVariableName ) ) { //case of vector variable
         InternalAssignValueVector<>(KratosComponents< Variable<Vector> >::Get(mVariableName), current_time);
     } else {

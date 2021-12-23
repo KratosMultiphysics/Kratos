@@ -1,6 +1,5 @@
 import KratosMultiphysics
 import KratosMultiphysics.ChimeraApplication as KratosChimera
-import numpy as np
 import os
 import json
 from copy import deepcopy
@@ -143,25 +142,28 @@ def __AddEntitiesToSubModelPart(original_sub_model_part,
     '''
     # making list containing node IDs of particular submodel part
     num_nodes_other = other_sub_model_part.NumberOfNodes()
-    smp_node_id_array = np.zeros(num_nodes_other, dtype=np.int)
+    # smp_node_id_array = np.zeros(num_nodes_other, dtype=np.int)
+    smp_node_id_array = [0]*num_nodes_other
     for node_i, node in enumerate(other_sub_model_part.Nodes):
         smp_node_id_array[node_i] = node.Id
 
     # making list containing element IDs of particular submodel part
     num_elements_other = other_sub_model_part.NumberOfElements()
-    smp_element_id_array = np.zeros(num_elements_other, dtype=np.int)
+    smp_element_id_array = [0]*num_elements_other
     for element_i, element in enumerate(other_sub_model_part.Elements):
         smp_element_id_array[element_i] = element.Id
 
     # making list containing condition IDs of particular submodel part
     num_conditions_other = other_sub_model_part.NumberOfConditions()
-    smp_condition_id_array = np.zeros(num_conditions_other, dtype=np.int)
+    # TODO: Can be a potential problem with data type conversion keep in mind
+    # Change back to numpy once it is available.
+    smp_condition_id_array = [0]*num_conditions_other
     for condition_i, condition in enumerate(other_sub_model_part.Conditions):
         smp_condition_id_array[condition_i] = condition.Id
 
-    original_sub_model_part.AddNodes(smp_node_id_array.tolist())
-    original_sub_model_part.AddElements(smp_element_id_array.tolist())
-    original_sub_model_part.AddConditions(smp_condition_id_array.tolist())
+    original_sub_model_part.AddNodes(smp_node_id_array)
+    original_sub_model_part.AddElements(smp_element_id_array)
+    original_sub_model_part.AddConditions(smp_condition_id_array)
 
 def __AddSubModelPart(original_model_part,
                       other_model_part):

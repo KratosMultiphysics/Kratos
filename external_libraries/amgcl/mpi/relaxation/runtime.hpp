@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -89,6 +89,7 @@ struct wrapper {
             AMGCL_RELAX_LOCAL_LOCAL(damped_jacobi);
             AMGCL_RELAX_LOCAL_LOCAL(ilu0);
             AMGCL_RELAX_LOCAL_LOCAL(iluk);
+            AMGCL_RELAX_LOCAL_LOCAL(ilup);
             AMGCL_RELAX_LOCAL_LOCAL(ilut);
             AMGCL_RELAX_LOCAL_LOCAL(spai1);
             AMGCL_RELAX_LOCAL_LOCAL(gauss_seidel);
@@ -118,6 +119,7 @@ struct wrapper {
             AMGCL_RELAX_LOCAL(damped_jacobi);
             AMGCL_RELAX_LOCAL(ilu0);
             AMGCL_RELAX_LOCAL(iluk);
+            AMGCL_RELAX_LOCAL(ilup);
             AMGCL_RELAX_LOCAL(ilut);
             AMGCL_RELAX_LOCAL(spai1);
             AMGCL_RELAX_LOCAL(chebyshev);
@@ -154,6 +156,7 @@ struct wrapper {
             AMGCL_RELAX_LOCAL_DISTR(damped_jacobi);
             AMGCL_RELAX_LOCAL_DISTR(ilu0);
             AMGCL_RELAX_LOCAL_DISTR(iluk);
+            AMGCL_RELAX_LOCAL_DISTR(ilup);
             AMGCL_RELAX_LOCAL_DISTR(ilut);
             AMGCL_RELAX_LOCAL_DISTR(spai1);
             AMGCL_RELAX_LOCAL_DISTR(chebyshev);
@@ -191,6 +194,7 @@ struct wrapper {
             AMGCL_RELAX_LOCAL_DISTR(damped_jacobi);
             AMGCL_RELAX_LOCAL_DISTR(ilu0);
             AMGCL_RELAX_LOCAL_DISTR(iluk);
+            AMGCL_RELAX_LOCAL_DISTR(ilup);
             AMGCL_RELAX_LOCAL_DISTR(ilut);
             AMGCL_RELAX_LOCAL_DISTR(spai1);
             AMGCL_RELAX_LOCAL_DISTR(chebyshev);
@@ -229,6 +233,7 @@ struct wrapper {
             AMGCL_RELAX_LOCAL_LOCAL(gauss_seidel);
             AMGCL_RELAX_LOCAL_DISTR(ilu0);
             AMGCL_RELAX_LOCAL_DISTR(iluk);
+            AMGCL_RELAX_LOCAL_DISTR(ilup);
             AMGCL_RELAX_LOCAL_DISTR(ilut);
             AMGCL_RELAX_LOCAL_DISTR(spai1);
             AMGCL_RELAX_LOCAL_DISTR(chebyshev);

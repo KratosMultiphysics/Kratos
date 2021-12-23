@@ -1,10 +1,10 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.FemToDemApplication.check_and_prepare_model_process as check_and_prepare_model_process
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+from importlib import import_module
 
 def CreateSolver(main_model_part, custom_settings):
     return FemDemMechanicalSolver(main_model_part, custom_settings)
@@ -45,15 +45,20 @@ class FemDemMechanicalSolver(object):
             "solution_type": "Dynamic",
             "time_integration_method": "Implicit",
             "scheme_type": "Newmark",
+            "time_step_prediction_level" : 0,
+            "delta_time_refresh"         : 1000,
+            "max_delta_time"             : 1.0e0,
+            "fraction_delta_time"        : 0.333333333333333333333333333333333333,
 	    "analysis_type": "Non-Linear",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
+                "path_to_mdpa"  :     "",
                 "input_file_label": 0
             },
             "computing_model_part_name" : "computing_domain",
             "dofs": [],
-            "reform_dofs_at_each_step": false,
+            "reform_dofs_at_each_step": true,
             "line_search": false,
             "implex": false,
             "stabilization_factor": null,
@@ -80,14 +85,20 @@ class FemDemMechanicalSolver(object):
             },
             "bodies_list": [],
             "problem_domain_sub_model_part_list": ["solid"],
-            "processes_sub_model_part_list": [""]
+            "processes_sub_model_part_list":      [""],
+            "strategy_type":                          "newton_raphson",
+            "arc_length_loads_sub_model_part_list":   [],
+            "arc_length_loads_variable_list":         [],
+            "arc_length_desired_iterations":          4,
+            "arc_length_max_radius_factor":           10.0,
+            "arc_length_min_radius_factor":           1.0
         }
         """)
 
 
         #trick to allow null value in a stabilization_factor variable
-        if(custom_settings.Has("stabilization_factor")):
-            if(custom_settings["stabilization_factor"].IsDouble()):
+        if (custom_settings.Has("stabilization_factor")):
+            if (custom_settings["stabilization_factor"].IsDouble()):
                 default_settings["stabilization_factor"].SetDouble(0.0)
 
 
@@ -117,10 +128,9 @@ class FemDemMechanicalSolver(object):
         # Add dynamic variables
         if(self.settings["solution_type"].GetString() == "Dynamic" or (self.settings["scheme_type"].GetString() != "Linear")):
             self.dof_variables = self.dof_variables + ['VELOCITY','ACCELERATION']
-            self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED']
 
         # Add specific variables for the problem conditions
-        self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION','POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD']
+        self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION','POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD','FORCE_LOAD']
 
         # Add nodal force variables for component wise calculation
         if( self.settings.Has("component_wise") ):
@@ -161,11 +171,30 @@ class FemDemMechanicalSolver(object):
         self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] != 'NOT_DEFINED']
         for variable in self.nodal_variables:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
+
+        scheme_type = self.settings["scheme_type"].GetString()
+        if scheme_type == "central_differences":
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_DISPLACEMENT_DAMPING)
+
+
         print("::[Mechanical_Solver]:: General Variables ADDED")
 
     def AddDofs(self):
-        AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, self.dof_variables, self.dof_reactions)
-        AddDofsProcess.Execute()
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
+
+        # Add dynamic variables
+        if(self.settings["solution_type"].GetString() == "Dynamic" or (self.settings["scheme_type"].GetString() != "Linear")):
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_X, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Y, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Z, self.main_model_part)
 
         print("::[Mechanical_Solver]:: DOF's ADDED")
 
@@ -175,33 +204,19 @@ class FemDemMechanicalSolver(object):
         problem_path = os.getcwd()
         input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
 
+        if self.settings["model_import_settings"].Has("path_to_mdpa"):
+            path_to_mdpa = self.settings["model_import_settings"]["path_to_mdpa"].GetString()
+        else:
+            path_to_mdpa = ""
+
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             # Import model part from mdpa file.
-            print("   Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa ")
-            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
+            print("   Reading model part from file: " + os.path.join(problem_path, path_to_mdpa, input_filename) + ".mdpa ")
+            KratosMultiphysics.ModelPartIO(os.path.join(path_to_mdpa, input_filename)).ReadModelPart(self.main_model_part)
             # print("   Finished reading model part from mdpa file ")
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
             self._set_and_fill_buffer()
-
-        elif(self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
-            # Import model part from restart file.
-            restart_path = os.path.join(problem_path, self.settings["model_import_settings"]["input_filename"].GetString() + "__" + self.settings["model_import_settings"]["input_file_label"].GetString() )
-            if(os.path.exists(restart_path+".rest") == False):
-                raise Exception("Restart file not found: " + restart_path + ".rest")
-            print("   Loading Restart file: ", restart_path + ".rest ")
-
-            # set serializer flag
-            serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
-
-            serializer = KratosMultiphysics.Serializer(restart_path, serializer_flag)
-            serializer.Load(self.main_model_part.Name, self.main_model_part)
-
-            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
-            #I use it to rebuild the contact conditions.
-            load_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] +1;
-            self.main_model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
-            # print("   Finished loading model part from restart file ")
 
         else:
             raise Exception("Other input options are not yet implemented.")
@@ -229,12 +244,13 @@ class FemDemMechanicalSolver(object):
         if (self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
             mechanical_solver.Initialize()
         else:
-            # SetInitializePerformedFlag is not a member of SolvingStrategy but
+            # SetInitializePerformedFlag is not a member of ImplicitSolvingStrategy but
             # is used by ResidualBasedNewtonRaphsonStrategy.
             if hasattr(mechanical_solver, SetInitializePerformedFlag):
                 mechanical_solver.SetInitializePerformedFlag(True)
         self.Check()
         print("::[Mechanical_Solver]:: -END-")
+
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
@@ -333,16 +349,28 @@ class FemDemMechanicalSolver(object):
 
     def _import_constitutive_laws(self):
 
-        if os.path.isfile("materials.py"):
-            # Constitutive law import
-            import KratosMultiphysics.SolidMechanicsApplication.constitutive_law_python_utility as constitutive_law_utils
-            constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
-                                                                             self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]);
-            constitutive_law.Initialize();
-
-            return True
+        if self.settings["model_import_settings"].Has("path_to_mdpa"):
+            path_to_mdpa = self.settings["model_import_settings"]["path_to_mdpa"].GetString()
         else:
-            return False
+            path_to_mdpa = ""
+
+
+        if path_to_mdpa == "":
+            if os.path.isfile("materials.py"):
+                # Constitutive law import
+                import KratosMultiphysics.FemToDemApplication.constitutive_law_python_utility as constitutive_law_utils
+                constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
+                                                                                self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]);
+                constitutive_law.Initialize()
+                return True
+            else:
+                return False
+        else:  # test cases
+            materials_path = path_to_mdpa
+            folders = materials_path.split("/")
+            materials = import_module(str(folders[0]) + "." + str(folders[1]) + ".materials")
+            materials.AssignMaterial(self.main_model_part.Properties)
+            return True
 
     def _validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
         """Transfer matching settings from origin to destination.

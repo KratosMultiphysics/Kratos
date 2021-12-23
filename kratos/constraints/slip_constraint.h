@@ -85,9 +85,6 @@ public:
     /// The variable type definition (double)
     typedef BaseType::VariableType VariableType;
 
-    /// The component variable type definition
-    typedef BaseType::VariableComponentType VariableComponentType;
-
     /// Pointer definition of DataValueContainer
     KRATOS_CLASS_POINTER_DEFINITION(SlipConstraint);
 

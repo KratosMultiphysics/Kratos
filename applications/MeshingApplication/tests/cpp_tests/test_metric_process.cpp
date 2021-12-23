@@ -175,6 +175,59 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(12)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
         }
 
+        KRATOS_TEST_CASE_IN_SUITE(LevelSetPiecewiseInterpolationMetricProcess, KratosMeshingApplicationFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+
+            r_model_part.AddNodalSolutionStepVariable(DISTANCE);
+            r_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
+
+            auto& process_info = r_model_part.GetProcessInfo();
+            process_info.SetValue(DOMAIN_SIZE, 2);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
+
+            CppTestsUtilities::Create2DGeometry(r_model_part, "Element2D3N");
+
+            // Set DISTANCE and other variables
+            for (std::size_t i_node = 0; i_node < r_model_part.Nodes().size(); ++i_node) {
+                auto it_node = r_model_part.Nodes().begin() + i_node;
+                it_node->FastGetSolutionStepValue(DISTANCE) = it_node->X();
+                it_node->SetValue(NODAL_H, 1.0);
+                it_node->SetValue(NODAL_AREA, 0.0);
+                it_node->SetValue(METRIC_TENSOR_2D, ZeroVector(3));
+            }
+
+            typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable> GradientType;
+            GradientType gradient_process = GradientType(r_model_part, DISTANCE, DISTANCE_GRADIENT, NODAL_AREA);
+            gradient_process.Execute();
+
+            // Compute metric
+            Parameters metric_parameters = Parameters(R"({
+                    "anisotropy_remeshing" : false,
+                    "sizing_parameters" : {
+                        "reference_variable_name"               : "DISTANCE",
+                        "boundary_layer_max_distance"           : 4.0,
+                        "interpolation"                         : "piecewise_linear",
+                        "size_distribution"                     : [[-1.0, 1.0],
+                                                                   [0.0, 0.1],
+                                                                   [1.0, 0.5],
+                                                                   [2.0, 2.0]]
+                    }
+                })");
+            ComputeLevelSetSolMetricProcess<2> level_set_process = ComputeLevelSetSolMetricProcess<2>(r_model_part, DISTANCE_GRADIENT, metric_parameters);
+            level_set_process.Execute();
+
+            const double tolerance = 1.0e-4;
+            array_1d<double, 3> ref_metric1{100.0, 100.0, 0.0};
+            array_1d<double, 3> ref_metric2{4.0, 4.0, 0.0};
+            array_1d<double, 3> ref_metric5{1.0, 1.0, 0.0};
+            KRATOS_CHECK_VECTOR_NEAR(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D), ref_metric1, tolerance);
+            KRATOS_CHECK_VECTOR_NEAR(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D), ref_metric2, tolerance);
+            KRATOS_CHECK_VECTOR_NEAR(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D), ref_metric5, tolerance);
+        }
+
         /**
         * Checks the correct work of the hessian metric process
         * Test triangle
@@ -205,8 +258,8 @@ namespace Kratos
 
             // Compute metric
             Parameters parameters = Parameters(R"({"enforce_anisotropy_relative_variable" : true})");
-            auto hessian_process = ComputeHessianSolMetricProcess(r_model_part, DISTANCE, parameters);
-            hessian_process.Execute();
+            auto hessian_process_constant = ComputeHessianSolMetricProcess(r_model_part, DISTANCE, parameters);
+            hessian_process_constant.Execute();
 
 //             // DEBUG
 //             GiDIODebugMetric(r_model_part);
@@ -220,6 +273,40 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
             KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
             KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+
+            // Compute metric
+            parameters = Parameters(R"({
+                "enforce_anisotropy_relative_variable" : true,
+                "hessian_strategy_parameters": {
+                    "normalization_method" : "value"
+                 }})");
+            auto hessian_process_value = ComputeHessianSolMetricProcess(r_model_part, DISTANCE, parameters);
+            hessian_process_value.Execute();
+
+//             // DEBUG
+//             GiDIODebugMetric(r_model_part);
+
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+
+            // Compute metric
+            parameters = Parameters(R"({
+                "enforce_anisotropy_relative_variable" : true,
+                "hessian_strategy_parameters": {
+                    "normalization_method" : "norm_gradient"
+                 }})");
+            auto hessian_process_norm_gradient = ComputeHessianSolMetricProcess(r_model_part, DISTANCE, parameters);
+            hessian_process_norm_gradient.Execute();
+
+//             // DEBUG
+//             GiDIODebugMetric(r_model_part);
+
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
         }
 
         /**

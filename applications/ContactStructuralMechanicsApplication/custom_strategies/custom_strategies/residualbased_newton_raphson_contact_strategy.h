@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -65,7 +66,6 @@ template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-
 class ResidualBasedNewtonRaphsonContactStrategy :
     public ResidualBasedNewtonRaphsonStrategy< TSparseSpace, TDenseSpace, TLinearSolver >
 {
@@ -76,9 +76,13 @@ public:
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedNewtonRaphsonContactStrategy );
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>            StrategyBaseType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace>                        SolvingStrategyType;
+
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>    StrategyBaseType;
 
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+
+    typedef ResidualBasedNewtonRaphsonContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>               TConvergenceCriteriaType;
 
@@ -116,21 +120,44 @@ public:
 
     /**
      * @brief Default constructor
+     */
+    explicit ResidualBasedNewtonRaphsonContactStrategy()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
      * @param rModelPart The model part of the problem
-     * @param p_scheme The integration scheme
-     * @param pNewLinearSolver The linear solver employed
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ResidualBasedNewtonRaphsonContactStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart),
+          mpMyProcesses(nullptr),
+          mpPostProcesses(nullptr)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Auxiliar assign
+        mConvergenceCriteriaEchoLevel = BaseType::mpConvergenceCriteria->GetEchoLevel();
+    }
+
+    /**
+     * @brief Default constructor
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param MaxIterations The maximum number of iterations
      * @param CalculateReactions The flag for the reaction calculation
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-
     ResidualBasedNewtonRaphsonContactStrategy(
         ModelPart& rModelPart,
-        typename TSchemeType::Pointer p_scheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TSchemeType::Pointer pScheme,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         IndexType MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
@@ -138,8 +165,8 @@ public:
         Parameters ThisParameters =  Parameters(R"({})"),
         ProcessesListType pMyProcesses = nullptr,
         ProcessesListType pPostProcesses = nullptr
-    )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, p_scheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
+        )
+        : BaseType(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
         mThisParameters(ThisParameters),
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
@@ -157,7 +184,7 @@ public:
     /**
      * @brief Default constructor
      * @param rModelPart The model part of the problem
-     * @param p_scheme The integration scheme
+     * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param MaxIterations The maximum number of iterations
@@ -165,10 +192,48 @@ public:
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-
     ResidualBasedNewtonRaphsonContactStrategy(
         ModelPart& rModelPart,
-        typename TSchemeType::Pointer p_scheme,
+        typename TSchemeType::Pointer pScheme,
+        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+        IndexType MaxIterations = 30,
+        bool CalculateReactions = false,
+        bool ReformDofSetAtEachStep = false,
+        bool MoveMeshFlag = false,
+        Parameters ThisParameters =  Parameters(R"({})"),
+        ProcessesListType pMyProcesses = nullptr,
+        ProcessesListType pPostProcesses = nullptr
+    )
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
+        mThisParameters(ThisParameters),
+        mpMyProcesses(pMyProcesses),
+        mpPostProcesses(pPostProcesses)
+    {
+        KRATOS_TRY;
+
+        mConvergenceCriteriaEchoLevel = pNewConvergenceCriteria->GetEchoLevel();
+
+        Parameters default_parameters = GetDefaultParameters();
+        mThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Default constructor
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param MaxIterations The maximum number of iterations
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     */
+    ResidualBasedNewtonRaphsonContactStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
@@ -180,7 +245,7 @@ public:
         ProcessesListType pMyProcesses = nullptr,
         ProcessesListType pPostProcesses = nullptr
         )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, p_scheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
+        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
         mThisParameters(ThisParameters),
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
@@ -198,12 +263,29 @@ public:
     /**
      * Destructor.
      */
-
     ~ResidualBasedNewtonRaphsonContactStrategy() override
     = default;
 
-    //******************** OPERATIONS ACCESSIBLE FROM THE INPUT: ************************//
-    //***********************************************************************************//
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    typename SolvingStrategyType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
 
     /**
      * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
@@ -218,14 +300,14 @@ public:
 
         // Set to zero the weighted gap
         ModelPart& r_model_part = StrategyBaseType::GetModelPart();
-        NodesArrayType& nodes_array = r_model_part.GetSubModelPart("Contact").Nodes();
+        NodesArrayType& r_nodes_array = r_model_part.GetSubModelPart("Contact").Nodes();
         const bool frictional = r_model_part.Is(SLIP);
 
         // We predict contact pressure in case of contact problem
-        if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
-            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, nodes_array);
+        if (r_nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
             if (frictional) {
-                VariableUtils().SetVariable(WEIGHTED_SLIP, zero_array, nodes_array);
+                VariableUtils().SetVariable(WEIGHTED_SLIP, zero_array, r_nodes_array);
             }
 
             // Compute the current gap
@@ -236,19 +318,13 @@ public:
             const std::size_t step = r_process_info[STEP];
 
             if (step == 1) {
-                #pragma omp parallel for
-                for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-                    auto it_node = nodes_array.begin() + i;
-                    noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
-
-                }
+                block_for_each(r_nodes_array, [&](NodeType& rNode) {
+                    noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
+                });
             } else {
-                #pragma omp parallel for
-                for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-                    auto it_node = nodes_array.begin() + i;
-                    noalias(it_node->Coordinates()) += (it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1));
-
-                }
+                block_for_each(r_nodes_array, [&](NodeType& rNode) {
+                    noalias(rNode.Coordinates()) += (rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1));
+                });
             }
         }
 
@@ -270,26 +346,21 @@ public:
 //             const double initial_penalty_parameter = r_process_info[INITIAL_PENALTY];
 //
 //             // We iterate over the nodes
-//             bool is_components = nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) ? false : true;
+//             const bool is_components = nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) ? false : true;
 //
-//             #pragma omp parallel for
-//             for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-//                 auto it_node = nodes_array.begin() + i;
-//
-//                 const double current_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-//
-//                 const double penalty = it_node->Has(INITIAL_PENALTY) ? it_node->GetValue(INITIAL_PENALTY) : initial_penalty_parameter;
-//
+//             block_for_each(r_nodes_array, [&initial_penalty_parameter, &is_components](NodeType& rNode) {
+//                 const double current_gap = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
+//                 const double penalty = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : initial_penalty_parameter;
 //                 if (current_gap < 0.0) {
-//                     it_node->Set(ACTIVE, true);
+//                     rNode.Set(ACTIVE, true);
 //                     if (is_components) {
-//                         it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = penalty * current_gap;
+//                         rNode.FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = penalty * current_gap;
 //                     } else {
-//                         const array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
-//                         it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = penalty * current_gap * normal;
+//                         const array_1d<double, 3>& normal = rNode.FastGetSolutionStepValue(NORMAL);
+//                         rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = penalty * current_gap * normal;
 //                     }
 //                 }
-//             }
+//             });
 //         }
 
         KRATOS_CATCH("")
@@ -433,6 +504,36 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief This method returns the defaulr parameters in order to avoid code duplication
+     * @return Returns the default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                : "newton_raphson_contact_strategy",
+            "adaptative_strategy"                 : false,
+            "split_factor"                        : 10.0,
+            "max_number_splits"                   : 3,
+            "inner_loop_iterations"               : 5
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "newton_raphson_contact_strategy";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -472,11 +573,26 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // Copy the parameters
+        mThisParameters = ThisParameters;
+    }
+
     /**
      * @brief Solves the current step.
      * @details This function returns true if a solution has been found, false otherwise.
      */
-
     bool BaseSolveSolutionStep()
     {
         KRATOS_TRY;
@@ -695,25 +811,20 @@ protected:
                     if (StrategyBaseType::MoveMeshFlag())
                         UnMoveMesh();
 
-                    NodesArrayType& nodes_array = r_model_part.Nodes();
-
-                    #pragma omp parallel for
-                    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-                        auto it_node = nodes_array.begin() + i;
-
-                        it_node->OverwriteSolutionStepData(1, 0);
-//                         it_node->OverwriteSolutionStepData(2, 1);
-                    }
+                    NodesArrayType& r_nodes_array = r_model_part.Nodes();
+                    block_for_each(r_nodes_array, [&](NodeType& rNode) {
+                        rNode.OverwriteSolutionStepData(1, 0);
+//                         rNode.OverwriteSolutionStepData(2, 1);
+                    });
 
                     r_process_info.SetCurrentTime(current_time); // Reduces the time step
 
                     FinalizeSolutionStep();
                 } else {
-                    NodesArrayType& nodes_array = r_model_part.Nodes();
-
-                    #pragma omp parallel for
-                    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-                        (nodes_array.begin() + i)->CloneSolutionStepData();
+                    NodesArrayType& r_nodes_array = r_model_part.Nodes();
+                    block_for_each(r_nodes_array, [&](NodeType& rNode) {
+                        rNode.CloneSolutionStepData();
+                    });
 
                     r_process_info.CloneSolutionStepInfo();
                     r_process_info.ClearHistory(r_model_part.GetBufferSize());
@@ -780,7 +891,6 @@ protected:
      * @param b The RHS vector
      * @param MoveMesh The flag that tells if the mesh should be moved
      */
-
     void UpdateDatabase(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -818,10 +928,10 @@ protected:
 
             // We check now the deformation gradient
             std::vector<Matrix> deformation_gradient_matrices;
-            it_elem->GetValueOnIntegrationPoints( DEFORMATION_GRADIENT, deformation_gradient_matrices, r_process_info);
+            it_elem->CalculateOnIntegrationPoints( DEFORMATION_GRADIENT, deformation_gradient_matrices, r_process_info);
 
             for (IndexType i_gp = 0; i_gp  < deformation_gradient_matrices.size(); ++i_gp) {
-                const double det_f = MathUtils<double>::DetMat(deformation_gradient_matrices[i_gp]);
+                const double det_f = MathUtils<double>::Det(deformation_gradient_matrices[i_gp]);
                 if (det_f < 0.0) {
                     if (mConvergenceCriteriaEchoLevel > 0) {
                         KRATOS_WATCH(it_elem->Id())
@@ -841,7 +951,6 @@ protected:
      * @param CurrentTime The current time
      * @return The destination time
      */
-
     double SplitTimeStep(
         double& AuxDeltaTime,
         double& CurrentTime
@@ -865,9 +974,8 @@ protected:
     }
 
     /**
-     * This method moves bak the mesh to the previous position
+     * @brief This method moves bak the mesh to the previous position
      */
-
     void UnMoveMesh()
     {
         KRATOS_TRY;
@@ -875,41 +983,18 @@ protected:
         if (StrategyBaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
             KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
 
-        NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
-
-            noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
-            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
-        }
+        NodesArrayType& r_nodes_array = StrategyBaseType::GetModelPart().Nodes();
+        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
+            noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+        });
 
         KRATOS_CATCH("");
     }
 
     /**
-     * @brief This method returns the defaulr parameters in order to avoid code duplication
-     * @return Returns the default parameters
-     */
-
-    Parameters GetDefaultParameters()
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "adaptative_strategy"              : false,
-            "split_factor"                     : 10.0,
-            "max_number_splits"                : 3,
-            "inner_loop_iterations"            : 5
-        })" );
-
-        return default_parameters;
-    }
-
-    /**
      * @brief This method prints information after solving the problem
      */
-
     void CoutSolvingProblem()
     {
         if (mConvergenceCriteriaEchoLevel != 0) {
@@ -922,7 +1007,6 @@ protected:
      * @param AuxDeltaTime The new time step to be considered
      * @param AuxTime The destination time
      */
-
     void CoutSplittingTime(
         const double AuxDeltaTime,
         const double AuxTime
@@ -943,7 +1027,6 @@ protected:
     /**
      * @brief This method prints information after reach the max number of interations
      */
-
     void MaxIterationsExceeded() override
     {
         if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 ) {
@@ -956,7 +1039,6 @@ protected:
     /**
      * @brief This method prints information after reach the max number of interations and splits
      */
-
     void MaxIterationsAndSplitsExceeded()
     {
         if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 ) {
@@ -966,10 +1048,6 @@ protected:
             std::cout << "|----------------------------------------------------|" << std::endl;
         }
     }
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
 
     ///@}
     ///@name Protected  Access
@@ -987,7 +1065,6 @@ protected:
     /**
      * Copy constructor.
      */
-
     ResidualBasedNewtonRaphsonContactStrategy(const ResidualBasedNewtonRaphsonContactStrategy& Other)
     {
     };

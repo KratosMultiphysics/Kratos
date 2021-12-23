@@ -25,6 +25,8 @@ class PotentialFlowFormulation(object):
                 self._SetUpIncompressiblePerturbationElement(formulation_settings)
             elif element_type == "perturbation_compressible":
                 self._SetUpCompressiblePerturbationElement(formulation_settings)
+            elif element_type == "perturbation_transonic":
+                self._SetUpTransonicPerturbationElement(formulation_settings)
         else:
             raise RuntimeError("Argument \'element_type\' not found in formulation settings.")
 
@@ -68,9 +70,19 @@ class PotentialFlowFormulation(object):
         self.element_name = "CompressiblePerturbationPotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
 
+    def _SetUpTransonicPerturbationElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "perturbation_transonic"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "TransonicPerturbationPotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "embedded_incompressible",
+            "stabilization_factor": 0.0,
             "penalty_coefficient": 0.0
 
         }""")
@@ -78,16 +90,22 @@ class PotentialFlowFormulation(object):
 
         self.element_name = "EmbeddedIncompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
+        self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
         self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
     def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "embedded_compressible"
+            "element_type": "embedded_compressible",
+            "stabilization_factor": 0.0,
+            "penalty_coefficient": 0.0
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "EmbeddedCompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
+        self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
+        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+
 
 def CreateSolver(model, custom_settings):
     return PotentialFlowSolver(model, custom_settings)
@@ -95,7 +113,7 @@ def CreateSolver(model, custom_settings):
 class PotentialFlowSolver(FluidSolver):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         # Default settings string in json format
         default_settings = KratosMultiphysics.Parameters(r'''{
             "solver_type": "potential_flow_solver",
@@ -113,6 +131,7 @@ class PotentialFlowSolver(FluidSolver):
             },
             "maximum_iterations": 10,
             "echo_level": 0,
+            "potential_application_echo_level": 0,
             "relative_tolerance": 1e-12,
             "absolute_tolerance": 1e-12,
             "compute_reactions": false,
@@ -137,7 +156,7 @@ class PotentialFlowSolver(FluidSolver):
             "auxiliary_variables_list" : []
         }''')
 
-        default_settings.AddMissingParameters(super(PotentialFlowSolver, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(PotentialFlowSolver, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):
@@ -179,26 +198,25 @@ class PotentialFlowSolver(FluidSolver):
         solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
+        self.GetComputingModelPart().ProcessInfo.SetValue(
+            KCPFApp.ECHO_LEVEL, self.settings["potential_application_echo_level"].GetInt())
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def _ComputeNodalElementalNeighbours(self):
         # Find nodal neigbours util call
-        data_communicator  = KratosMultiphysics.DataCommunicator.GetDefault()
-        KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(
-            data_communicator,
-            self.GetComputingModelPart()).Execute()
+        KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.GetComputingModelPart()).Execute()
 
     def _GetStrategyType(self):
         element_type = self.settings["formulation"]["element_type"].GetString()
         if "incompressible" in element_type:
-            if not self.settings["formulation"].Has("penalty_coefficient"):
+            if not self.settings["formulation"].Has("stabilization_factor"):
                 strategy_type = "linear"
-            elif self.settings["formulation"]["penalty_coefficient"].GetDouble() == 0.0:
+            elif self.settings["formulation"]["stabilization_factor"].GetDouble() == 0.0:
                 strategy_type = "linear"
             else:
                 strategy_type = "non_linear"
-        elif "compressible" in element_type:
+        elif "compressible" or "transonic" in element_type:
             strategy_type = "non_linear"
         else:
             strategy_type = None
@@ -245,3 +263,7 @@ class PotentialFlowSolver(FluidSolver):
             err_msg = "Unknown strategy type: \'" + strategy_type + "\'. Valid options are \'linear\' and \'non_linear\'."
             raise Exception(err_msg)
         return solution_strategy
+
+    def _SetPhysicalProperties(self):
+        # There are no properties in the potential flow solver. Free stream quantities are defined in the apply_far_field_process.py
+        return True

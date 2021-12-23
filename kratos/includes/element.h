@@ -22,8 +22,8 @@
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
 #include "includes/constitutive_law.h"
+#include "includes/kratos_parameters.h"
 #include "containers/global_pointers_vector.h"
-
 
 namespace Kratos
 {
@@ -182,19 +182,6 @@ public:
     }
 
     ///@}
-    ///@name Informations
-    ///@{
-
-    /** Dimensional space of the element geometry
-    @return SizeType, working space dimension of this geometry.
-    */
-
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please ask directly the Geometry") SizeType WorkingSpaceDimension() const
-    {
-         return pGetGeometry()->WorkingSpaceDimension();
-    }
-
-    ///@}
     ///@name Operations
     ///@{
 
@@ -269,16 +256,9 @@ public:
     virtual void EquationIdVector(EquationIdVectorType& rResult,
                                   const ProcessInfo& rCurrentProcessInfo) const
     {
-        const_cast<Element*>(this)->EquationIdVector(rResult, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        // if (rResult.size() != 0) {
-        //     rResult.resize(0);
-        // }
-    }
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rResult.size() != 0)
+        if (rResult.size() != 0) {
             rResult.resize(0);
+        }
     }
 
     /**
@@ -289,17 +269,9 @@ public:
     virtual void GetDofList(DofsVectorType& rElementalDofList,
                             const ProcessInfo& rCurrentProcessInfo) const
     {
-        const_cast<Element*>(this)->GetDofList(rElementalDofList, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        // if (rElementalDofList.size() != 0) {
-        //     rElementalDofList.resize(0);
-        // }
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rElementalDofList.size() != 0)
+        if (rElementalDofList.size() != 0) {
             rElementalDofList.resize(0);
+        }
     }
 
     /**
@@ -329,12 +301,6 @@ public:
             values.resize(0, false);
         }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void GetValuesVector(Vector& values, int Step = 0)
-    {
-        const auto& r_const_this = *this;
-        r_const_this.GetValuesVector(values, Step);
-    }
 
     /**
      * Getting method to obtain the time derivative of variable which defines the degrees of freedom
@@ -344,12 +310,6 @@ public:
         if (values.size() != 0) {
             values.resize(0, false);
         }
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void GetFirstDerivativesVector(Vector& values, int Step = 0)
-    {
-        const auto& r_const_this = *this;
-        r_const_this.GetFirstDerivativesVector(values, Step);
     }
 
     /**
@@ -361,16 +321,10 @@ public:
             values.resize(0, false);
         }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void GetSecondDerivativesVector(Vector& values, int Step = 0)
-    {
-        const auto& r_const_this = *this;
-        r_const_this.GetSecondDerivativesVector(values, Step);
-    }
 
     /**
      * ELEMENTS inherited from this class must implement next methods
-     * Initialize, ResetConstitutiveLaw, CleanMemory
+     * Initialize, ResetConstitutiveLaw
      * if the element needs to perform any operation before any calculation is done
      * reset material and constitutive parameters
      * or clean memory deleting obsolete variables
@@ -384,27 +338,13 @@ public:
      */
     virtual void Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
-        Initialize();
     }
-
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"ProcessInfo\"")
-    virtual void Initialize()
-    {
-    }
-
 
     /**
      * is called to reset the constitutive law parameters and the material properties
      * the elemental variables will be changed and reset using this method
      */
     virtual void ResetConstitutiveLaw()
-    {
-    }
-
-    /**
-     * deletes all obsolete data from memory
-     */
-    virtual void CleanMemory()
     {
     }
 
@@ -417,29 +357,17 @@ public:
      * these methods are: OPTIONAL
      */
 
-
     /**
      * this is called in the beginning of each solution step
      */
     virtual void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        InitializeSolutionStep(const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
     virtual void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
-    {
-        InitializeNonLinearIteration(const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -448,26 +376,14 @@ public:
      */
     virtual void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
     {
-        FinalizeNonLinearIteration(const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
 
     /**
      * this is called at the end of each solution step
      */
     virtual void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        FinalizeSolutionStep(const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
 
     /**
      * ELEMENTS inherited from this class have to implement next
@@ -488,46 +404,11 @@ public:
                                       VectorType& rRightHandSideVector,
                                       const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        // if (rLeftHandSideMatrix.size1() != 0) {
-        //     rLeftHandSideMatrix.resize(0, 0, false);
-        // }
-        // if (rRightHandSideVector.size() != 0) {
-        //     rRightHandSideVector.resize(0, false);
-        // }
-    }
-
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                      VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
-    {
-       if (rLeftHandSideMatrix.size1() != 0)
-      rLeftHandSideMatrix.resize(0, 0, false);
-        if (rRightHandSideVector.size() != 0)
-      rRightHandSideVector.resize(0, false);
-    }
-
-    /**
-     * this function provides a more general interface to the element.
-     * it is designed so that rLHSvariables and rRHSvariables are passed TO the element
-     * thus telling what is the desired output
-     * @param rLeftHandSideMatrices container with the output left hand side matrices
-     * @param rLHSVariables paramter describing the expected LHSs
-     * @param rRightHandSideVectors container for the desired RHS output
-     * @param rRHSVariables parameter describing the expected RHSs
-     */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function") virtual void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
-                                      const std::vector< Variable< MatrixType > >& rLHSVariables,
-                                      std::vector< VectorType >& rRightHandSideVectors,
-                                      const std::vector< Variable< VectorType > >& rRHSVariables,
-                                      ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rLeftHandSideMatrices.size() != 0) {
-	        rLeftHandSideMatrices.resize(0);
+        if (rLeftHandSideMatrix.size1() != 0) {
+            rLeftHandSideMatrix.resize(0, 0, false);
         }
-        if (rRightHandSideVectors.size() != 0) {
-	        rRightHandSideVectors.resize(0);
+        if (rRightHandSideVector.size() != 0) {
+            rRightHandSideVector.resize(0, false);
         }
     }
 
@@ -540,33 +421,8 @@ public:
     virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateLeftHandSide(rLeftHandSideMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        // if (rLeftHandSideMatrix.size1() != 0) {
-        //     rLeftHandSideMatrix.resize(0, 0, false);
-        // }
-    }
-
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rLeftHandSideMatrix.size1() != 0)
-      rLeftHandSideMatrix.resize(0, 0, false);
-    }
-
-    /**
-     * this function provides a more general interface to the element.
-     * it is designed so that rLHSvariables are passed TO the element
-     * thus telling what is the desired output
-     * @param rLeftHandSideMatrices container for the desired LHS output
-     * @param rLHSVariables parameter describing the expected LHSs
-     */
-    virtual void CalculateLeftHandSide(std::vector< MatrixType >& rLeftHandSideMatrices,
-                    const std::vector< Variable< MatrixType > >& rLHSVariables,
-                    ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rLeftHandSideMatrices.size() != 0) {
-	        rLeftHandSideMatrices.resize(0);
+        if (rLeftHandSideMatrix.size1() != 0) {
+            rLeftHandSideMatrix.resize(0, 0, false);
         }
     }
 
@@ -579,35 +435,10 @@ public:
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                         const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateRightHandSide(rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        // if (rRightHandSideVector.size() != 0) {
-        //     rRightHandSideVector.resize(0, false);
-        // }
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rRightHandSideVector.size() != 0)
-      rRightHandSideVector.resize(0, false);
-    }
-
-    /**
-     * this function provides a more general interface to the element.
-     * it is designed so that rRHSvariables are passed TO the element
-     * thus telling what is the desired output
-     * @param rRightHandSideVectors container for the desired RHS output
-     * @param rRHSVariables parameter describing the expected RHSs
-     */
-    virtual void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
-                    const std::vector< Variable< VectorType > >& rRHSVariables,
-                    ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rRightHandSideVectors.size() != 0) {
-	        rRightHandSideVectors.resize(0);
+        if (rRightHandSideVector.size() != 0) {
+            rRightHandSideVector.resize(0, false);
         }
     }
-
 
     /**
      * ELEMENTS inherited from this class must implement this methods
@@ -617,7 +448,6 @@ public:
      * CalculateFirstDerivativesContributions,
      * CalculateFirstDerivativesLHS, CalculateFirstDerivativesRHS methods are : OPTIONAL
      */
-
 
     /**
      * this is called during the assembling process in order
@@ -630,23 +460,12 @@ public:
                                                         VectorType& rRightHandSideVector,
                                                         const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateFirstDerivativesContributions(rLeftHandSideMatrix, rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        // if (rLeftHandSideMatrix.size1() != 0) {
-        //     rLeftHandSideMatrix.resize(0, 0, false);
-        // }
-        // if (rRightHandSideVector.size() != 0) {
-        //     rRightHandSideVector.resize(0, false);
-        // }
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-                            VectorType& rRightHandSideVector,
-                            ProcessInfo& rCurrentProcessInfo)
-    {
-       if (rLeftHandSideMatrix.size1() != 0)
-      rLeftHandSideMatrix.resize(0, 0, false);
-        if (rRightHandSideVector.size() != 0)
-      rRightHandSideVector.resize(0, false);
+        if (rLeftHandSideMatrix.size1() != 0) {
+            rLeftHandSideMatrix.resize(0, 0, false);
+        }
+        if (rRightHandSideVector.size() != 0) {
+            rRightHandSideVector.resize(0, false);
+        }
     }
 
     /**
@@ -658,19 +477,10 @@ public:
     virtual void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
                                               const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateFirstDerivativesLHS(rLeftHandSideMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        // if (rLeftHandSideMatrix.size1() != 0) {
-        //     rLeftHandSideMatrix.resize(0, 0, false);
-        // }
+        if (rLeftHandSideMatrix.size1() != 0) {
+            rLeftHandSideMatrix.resize(0, 0, false);
+        }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                          ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rLeftHandSideMatrix.size1() != 0)
-      rLeftHandSideMatrix.resize(0, 0, false);
-    }
-
 
     /**
      * this is called during the assembling process in order
@@ -681,22 +491,10 @@ public:
     virtual void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
                                               const ProcessInfo& rCurrentProcessInfo)
     {
-
-        CalculateFirstDerivativesRHS(rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-
-        // if (rRightHandSideVector.size() != 0) {
-        //     rRightHandSideVector.resize(0, false);
-        // }
+        if (rRightHandSideVector.size() != 0) {
+            rRightHandSideVector.resize(0, false);
+        }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
-                          ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rRightHandSideVector.size() != 0)
-      rRightHandSideVector.resize(0, false);
-    }
-
-
 
     /**
      * ELEMENTS inherited from this class must implement this methods
@@ -719,25 +517,13 @@ public:
                                                          VectorType& rRightHandSideVector,
                                                          const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateSecondDerivativesContributions(rLeftHandSideMatrix, rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        // if (rLeftHandSideMatrix.size1() != 0) {
-        //     rLeftHandSideMatrix.resize(0, 0, false);
-        // }
-        // if (rRightHandSideVector.size() != 0) {
-        //     rRightHandSideVector.resize(0, false);
-        // }
+        if (rLeftHandSideMatrix.size1() != 0) {
+            rLeftHandSideMatrix.resize(0, 0, false);
+        }
+        if (rRightHandSideVector.size() != 0) {
+            rRightHandSideVector.resize(0, false);
+        }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-                             VectorType& rRightHandSideVector,
-                             ProcessInfo& rCurrentProcessInfo)
-    {
-       if (rLeftHandSideMatrix.size1() != 0)
-      rLeftHandSideMatrix.resize(0, 0, false);
-        if (rRightHandSideVector.size() != 0)
-      rRightHandSideVector.resize(0, false);
-    }
-
 
     /**
      * this is called during the assembling process in order
@@ -748,19 +534,10 @@ public:
     virtual void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
                                                const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateSecondDerivativesLHS(rLeftHandSideMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        // if (rLeftHandSideMatrix.size1() != 0) {
-        //     rLeftHandSideMatrix.resize(0, 0, false);
-        // }
+        if (rLeftHandSideMatrix.size1() != 0) {
+            rLeftHandSideMatrix.resize(0, 0, false);
+        }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                           ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rLeftHandSideMatrix.size1() != 0)
-      rLeftHandSideMatrix.resize(0, 0, false);
-    }
-
 
     /**
      * this is called during the assembling process in order
@@ -771,25 +548,15 @@ public:
     virtual void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
                                                const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateSecondDerivativesRHS(rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        // if (rRightHandSideVector.size() != 0) {
-        //     rRightHandSideVector.resize(0, false);
-        // }
+        if (rRightHandSideVector.size() != 0) {
+            rRightHandSideVector.resize(0, false);
+        }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-                           ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rRightHandSideVector.size() != 0)
-      rRightHandSideVector.resize(0, false);
-    }
-
-
 
     /**
      * ELEMENTS inherited from this class must implement this methods
      * if they need to add dynamic element contributions
-     * CalculateMassMatrix and CalculateDampingMatrix methods are: OPTIONAL
+     * CalculateMassMatrix, CalculateDampingMatrix and CalculateLumpedMassVector methods are: OPTIONAL
      */
 
     /**
@@ -800,18 +567,10 @@ public:
      */
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateMassMatrix(rMassMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        // if (rMassMatrix.size1() != 0) {
-        //     rMassMatrix.resize(0, 0, false);
-        // }
+        if (rMassMatrix.size1() != 0) {
+            rMassMatrix.resize(0, 0, false);
+        }
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rMassMatrix.size1() != 0)
-      rMassMatrix.resize(0, 0, false);
-    }
-
 
     /**
      * this is called during the assembling process in order
@@ -821,18 +580,25 @@ public:
      */
     virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateDampingMatrix(rDampingMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        // if (rDampingMatrix.size1() != 0) {
-        //     rDampingMatrix.resize(0, 0, false);
-        // }
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rDampingMatrix.size1() != 0)
-      rDampingMatrix.resize(0, 0, false);
+        if (rDampingMatrix.size1() != 0) {
+            rDampingMatrix.resize(0, 0, false);
+        }
     }
 
+    /**
+     * this is called during the initialize of the builder
+     * to calculate the lumped mass vector
+     * @param rLumpedMassVector the elemental lumped mass vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void CalculateLumpedMassVector(
+        VectorType& rLumpedMassVector,
+        const ProcessInfo& rCurrentProcessInfo) const
+        {
+            KRATOS_TRY;
+            KRATOS_ERROR << "Calling the CalculateLumpedMassVector() method of the base element. The method must be implemented in the derived element.";
+            KRATOS_CATCH("");
+        }
 
 
     /**
@@ -853,11 +619,6 @@ public:
      */
     virtual void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
     {
-        AddExplicitContribution(const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
-    {
     }
 
     /**
@@ -877,17 +638,6 @@ public:
     {
         KRATOS_ERROR << "Base element class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void AddExplicitContribution(
-        const VectorType& rRHSVector,
-        const Variable<VectorType>& rRHSVariable,
-        Variable<double >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        const auto& r_destination_variable = rDestinationVariable;
-        this->AddExplicitContribution(rRHSVector, rRHSVariable, r_destination_variable, rCurrentProcessInfo);
-    }
 
     /**
      * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable. (This is the vector version)
@@ -906,17 +656,6 @@ public:
     {
          KRATOS_ERROR << "Base element class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void AddExplicitContribution(
-        const VectorType& rRHSVector,
-        const Variable<VectorType>& rRHSVariable,
-        Variable<array_1d<double,3> >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        const auto& r_destination_variable = rDestinationVariable;
-        this->AddExplicitContribution(rRHSVector, rRHSVariable, r_destination_variable, rCurrentProcessInfo);
-    }
 
     /**
      * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable. (This is the matrix version)
@@ -934,17 +673,6 @@ public:
         )
     {
          KRATOS_ERROR << "Base element class is not able to assemble rLHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void AddExplicitContribution(
-        const MatrixType& rLHSMatrix,
-        const Variable<MatrixType>& rLHSVariable,
-        Variable<Matrix>& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        const auto& r_destination_variable = rDestinationVariable;
-        this->AddExplicitContribution(rLHSMatrix, rLHSVariable, r_destination_variable, rCurrentProcessInfo);
     }
 
     /**
@@ -984,7 +712,6 @@ public:
      * Note, that these functions expect a std::vector of values for the specified variable type that
      * contains a value for each integration point!
      * CalculateValueOnIntegrationPoints: calculates the values of given Variable.
-     * these methods are: OPTIONAL
      */
 
     virtual void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
@@ -1005,27 +732,57 @@ public:
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                          std::vector< array_1d<double, 3 > >& rOutput,
+    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
+                          std::vector< array_1d<double,3>>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                          std::vector< array_1d<double, 6 > >& rOutput,
+    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double,6>>& rVariable,
+                          std::vector<array_1d<double,6>>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
-                          std::vector< Vector >& rOutput,
+    virtual void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                          std::vector<Vector>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
-                          std::vector< Matrix >& rOutput,
+    // virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::StrainVectorType>& rVariable,
+    //                       std::vector<ConstitutiveLaw::StrainVectorType>& rOutput,
+    //                       const ProcessInfo& rCurrentProcessInfo)
+    // {
+    // }
+
+    // virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::StressVectorType>& rVariable,
+    //                       std::vector<ConstitutiveLaw::StressVectorType>& rOutput,
+    //                       const ProcessInfo& rCurrentProcessInfo)
+    // {
+    // }
+
+    virtual void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                          std::vector<Matrix>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    // virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::VoigtSizeMatrixType>& rVariable,
+    //                       std::vector<ConstitutiveLaw::VoigtSizeMatrixType>& rOutput,
+    //                       const ProcessInfo& rCurrentProcessInfo)
+    // {
+    // }
+
+    // virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::DeformationGradientMatrixType>& rVariable,
+    //                       std::vector<ConstitutiveLaw::DeformationGradientMatrixType>& rOutput,
+    //                       const ProcessInfo& rCurrentProcessInfo)
+    // {
+    // }
+
+    virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                         std::vector<ConstitutiveLaw::Pointer>& rOutput,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -1036,104 +793,54 @@ public:
      * Note, that these functions expect a std::vector of values for the specified variable type that
      * contains a value for each integration point!
      * SetValuesOnIntegrationPoints: set the values for given Variable.
-     * GetValueOnIntegrationPoints: get the values for given Variable.
+     * CalculateOnIntegrationPoints: get/calculate the values for given Variable.
      * these methods are: OPTIONAL
      */
 
     //SET ON INTEGRATION POINTS - METHODS
     virtual void SetValuesOnIntegrationPoints(const Variable<bool>& rVariable,
-                         std::vector<bool>& rValues,
+                         const std::vector<bool>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
     virtual void SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
-                         std::vector<int>& rValues,
+                         const std::vector<int>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-                         std::vector<double>& rValues,
+                         const std::vector<double>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                         std::vector<array_1d<double, 3 > > rValues,
+                         const std::vector<array_1d<double, 3 > >& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                         std::vector<array_1d<double, 6 > > rValues,
+                         const std::vector<array_1d<double, 6 > >& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
-                         std::vector<Vector>& rValues,
+                         const std::vector<Vector>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                         std::vector<Matrix>& rValues,
+                         const std::vector<Matrix>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValuesOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                         std::vector<ConstitutiveLaw::Pointer>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
-    //GET ON INTEGRATION POINTS METHODS
-
-    virtual void GetValueOnIntegrationPoints(const Variable<bool>& rVariable,
-                         std::vector<bool>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
-    virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
-                         std::vector<int>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                         std::vector<double>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                         std::vector<array_1d<double, 3 > >& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                         std::vector<array_1d<double, 6 > >& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
-    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                         std::vector<Vector>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
-    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                         std::vector<Matrix>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
-    virtual void GetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                         std::vector<ConstitutiveLaw::Pointer>& rValues,
+                         const std::vector<ConstitutiveLaw::Pointer>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -1151,27 +858,13 @@ public:
     virtual int Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
-        const_cast<Element*>(this)->Check(rCurrentProcessInfo); // TODO remove this after the transition period
 
         KRATOS_ERROR_IF( this->Id() < 1 ) << "Element found with Id " << this->Id() << std::endl;
 
         const double domain_size = this->GetGeometry().DomainSize();
         KRATOS_ERROR_IF( domain_size <= 0.0 ) << "Element " << this->Id() << " has non-positive size " << domain_size << std::endl;
 
-        return 0;
-
-        KRATOS_CATCH("")
-    }
-
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR_IF( this->Id() < 1 ) << "Element found with Id " << this->Id() << std::endl;
-
-        const double domain_size = this->GetGeometry().DomainSize();
-        KRATOS_ERROR_IF( domain_size <= 0.0 ) << "Element " << this->Id() << " has non-positive size " << domain_size << std::endl;
+        GetGeometry().Check();
 
         return 0;
 
@@ -1186,17 +879,9 @@ public:
      */
     virtual void MassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
-        MassMatrix(rMassMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-
-        // if (rMassMatrix.size1() != 0) {
-        //     rMassMatrix.resize(0, 0, false);
-        // }
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rMassMatrix.size1() != 0)
-      rMassMatrix.resize(0, 0, false);
+        if (rMassMatrix.size1() != 0) {
+            rMassMatrix.resize(0, 0, false);
+        }
     }
 
     /**
@@ -1208,12 +893,6 @@ public:
     virtual void AddMassMatrix(MatrixType& rLeftHandSideMatrix,
                                double coeff, const ProcessInfo& rCurrentProcessInfo)
     {
-        AddMassMatrix(rLeftHandSideMatrix, coeff, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void AddMassMatrix(MatrixType& rLeftHandSideMatrix,
-                               double coeff, ProcessInfo& rCurrentProcessInfo)
-    {
     }
 
     /**
@@ -1224,16 +903,9 @@ public:
      */
     virtual void DampMatrix(MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
-        DampMatrix(rDampMatrix, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        // if (rDampMatrix.size1() != 0) {
-        //     rDampMatrix.resize(0, 0, false);
-        // }
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rDampMatrix.size1() != 0)
-      rDampMatrix.resize(0, 0, false);
+        if (rDampMatrix.size1() != 0) {
+            rDampMatrix.resize(0, 0, false);
+        }
     }
 
     /**
@@ -1242,12 +914,6 @@ public:
      */
     virtual void AddInertiaForces(VectorType& rRightHandSideVector, double coeff,
                                   const ProcessInfo& rCurrentProcessInfo)
-    {
-        AddInertiaForces(rRightHandSideVector, coeff, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void AddInertiaForces(VectorType& rRightHandSideVector, double coeff,
-                                  ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -1260,18 +926,9 @@ public:
     virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateLocalVelocityContribution(rDampingMatrix, rRightHandSideVector, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
-        // if (rDampingMatrix.size1() != 0) {
-        //     rDampingMatrix.resize(0, 0, false);
-        // }
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
-            VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rDampingMatrix.size1() != 0)
-      rDampingMatrix.resize(0, 0, false);
-
+        if (rDampingMatrix.size1() != 0) {
+            rDampingMatrix.resize(0, 0, false);
+        }
     }
 
     /**
@@ -1295,7 +952,6 @@ public:
         if (rOutput.size1() != 0)
             rOutput.resize(0, 0, false);
     }
-
 
     //METHODS TO BE CLEANED: DEPRECATED end
 
@@ -1353,6 +1009,64 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @details This can be used to enhance solvers and analysis. The following is an example:
+     * {
+        "time_integration"           : [],                                   // NOTE: Options are static, implicit, explicit
+        "framework"                  : "eulerian",                           // NOTE: Options are eulerian, lagrangian, ALE
+        "symmetric_lhs"              : true,                                 // NOTE: Options are true/false
+        "positive_definite_lhs"      : false,                                // NOTE: Options are true/false
+        "output"                     : {                                     // NOTE: Values compatible as output
+                "gauss_point"            : ["INTEGRATION_WEIGTH"],
+                "nodal_historical"       : ["DISPLACEMENT"],
+                "nodal_non_historical"   : [],
+                "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT"],                     // NOTE: Fill with the required variables
+        "required_dofs"              : ["DISPLACEMENT_X", "DISPLACEMENT_Y"], // NOTE: Fill with the required dofs
+        "flags_used"                 : ["BOUNDARY", "ACTIVE"],               // NOTE: Fill with the flags used
+        "compatible_geometries"      : ["Triangle2D3"],                      // NOTE: Compatible geometries. Options are "Point2D", "Point3D", "Sphere3D1", "Line2D2", "Line2D3", "Line3D2", "Line3D3", "Triangle2D3", "Triangle2D6", "Triangle3D3", "Triangle3D6", "Quadrilateral2D4", "Quadrilateral2D8", "Quadrilateral2D9", "Quadrilateral3D4", "Quadrilateral3D8", "Quadrilateral3D9", "Tetrahedra3D4" , "Tetrahedra3D10" , "Prism3D6" , "Prism3D15" , "Hexahedra3D8" , "Hexahedra3D20" , "Hexahedra3D27"
+        "element_integrates_in_time" : true,                                 // NOTE: Options are true/false
+        "compatible_constitutive_laws": {
+            "type"         : ["PlaneStress","PlaneStrain"],                  // NOTE: List of CL compatible types. Options are "PlaneStress", "PlaneStrain", "3D"
+            "dimension"   : ["2D", "2D"],                                    // NOTE: List of dimensions. Options are "2D", "3D", "2DAxysimm"
+            "strain_size" : [3,3]                                            // NOTE: List of strain sizes
+            },
+        "documentation"              : "This is an element"                  // NOTE: The documentation of the entity
+        }
+     * @return specifications The required specifications/requirements
+     */
+    virtual const Parameters GetSpecifications() const
+    {
+        const Parameters specifications = Parameters(R"({
+            "time_integration"           : [],
+            "framework"                  : "lagrangian",
+            "symmetric_lhs"              : false,
+            "positive_definite_lhs"      : false,
+            "output"                     : {
+                "gauss_point"            : [],
+                "nodal_historical"       : [],
+                "nodal_non_historical"   : [],
+                "entity"                 : []
+            },
+            "required_variables"         : [],
+            "required_dofs"              : [],
+            "flags_used"                 : [],
+            "compatible_geometries"      : [],
+            "element_integrates_in_time" : true,
+            "compatible_constitutive_laws": {
+                "type"        : [],
+                "dimension"   : [],
+                "strain_size" : []
+            },
+            "required_polynomial_degree_of_geometry" : -1,
+            "documentation"   : "This is the base element"
+
+        })");
+        return specifications;
+    }
 
     /// Turn back information as a string.
 

@@ -34,11 +34,11 @@ namespace Kratos
          "echo_level": 1,
          "model_part_name": "Main_Domain",
          "characteristic_length": 0.0,
-         "local_variables": ["PLASTIC_VOL_DEF", 
-                             "PLASTIC_VOL_DEF_ABS", 
+         "local_variables": ["PLASTIC_VOL_DEF",
+                             "PLASTIC_VOL_DEF_ABS",
                              "PLASTIC_DEV_DEF"],
          "non_local_variables": ["NONLOCAL_PLASTIC_VOL_DEF",
-                                 "NONLOCAL_PLASTIC_VOL_DEF_ABS", 
+                                 "NONLOCAL_PLASTIC_VOL_DEF_ABS",
                                  "NONLOCAL_PLASTIC_DEV_DEF"]
       } )" );
 
@@ -92,10 +92,10 @@ namespace Kratos
       std::vector< GaussPoint > GaussPointsVector;
 
 
-      double start = OpenMPUtils::GetCurrentTime();
+      //double start = OpenMPUtils::GetCurrentTime();
 
       this->PerformGaussPointSearch( GaussPointsVector, 3.0*CharacteristicLength);
-      double start2 = OpenMPUtils::GetCurrentTime();
+      // double start2 = OpenMPUtils::GetCurrentTime();
 
 
 
@@ -121,7 +121,7 @@ namespace Kratos
 
             if ( rGP.NeighbourWeight.size() > 1) {
                for (unsigned int nei = 0; nei < rGP.NeighbourWeight.size(); nei++) {
-                  numerator +=  LocalVariableVector[ rGP.NeighbourGP[nei] ] * rGP.NeighbourWeight[nei]; 
+                  numerator +=  LocalVariableVector[ rGP.NeighbourGP[nei] ] * rGP.NeighbourWeight[nei];
                   denominator += rGP.NeighbourWeight[nei];
                }
             }
@@ -139,9 +139,9 @@ namespace Kratos
       }
 
 
-      double start3 = OpenMPUtils::GetCurrentTime();
+      //double start3 = OpenMPUtils::GetCurrentTime();
 
-      std::cout << "        SearchTime " << start2-start << " smooothing " << start3-start2 << " totalTime " << start3-start << std::endl;
+      //std::cout << "        SearchTime " << start2-start << " smooothing " << start3-start2 << " totalTime " << start3-start << std::endl;
 
 
 
@@ -167,7 +167,7 @@ namespace Kratos
 
    //*********************************************************************************************
    // create  a list of the nodes that have an influence
-   void NonLocalPlasticityProcess::PerformGaussPointSearch( std::vector< GaussPoint > & rGPVector, 
+   void NonLocalPlasticityProcess::PerformGaussPointSearch( std::vector< GaussPoint > & rGPVector,
          const double CharacteristicLength)
    {
       KRATOS_TRY
@@ -192,7 +192,7 @@ namespace Kratos
 
 
          std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(numberOfGP);
-         ie->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW, ConstitutiveLawVector, rCurrentProcessInfo);
+         ie->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, ConstitutiveLawVector, rCurrentProcessInfo);
 
 
 
@@ -226,7 +226,7 @@ namespace Kratos
             distance = pow(distance, 0.5);
 
             if ( distance < CharacteristicLength) {
-               alpha = ComputeWeightFunction( distance, mCharacteristicLength, alpha); 
+               alpha = ComputeWeightFunction( distance, mCharacteristicLength, alpha);
                rGPVector[ii].AddNeighbour( jj, alpha);
                rGPVector[jj].AddNeighbour( ii, alpha);
             }

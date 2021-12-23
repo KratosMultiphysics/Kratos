@@ -12,11 +12,31 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Import the tests o test_classes to create the suites
-from evm_k_epsilon_tests import EvmKEpsilonTest
-from custom_process_tests import CustomProcessTest
-from adjoint_k_epsilon_sensitivity_2d import AdjointKEpsilonSensitivity2D
 import run_cpp_unit_tests
 
+# process test_classes
+from custom_process_tests import CustomProcessTest
+
+# flow solver test_classes
+from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
+from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
+from fractional_step_velocity_pressure_formulation_tests import FractionalStepVelocityPressureFormulationTest
+
+# turbulence model test_classes
+### k-epsilon test_classes
+from monolithic_k_epsilon_formulation_tests import MonolithicKEpsilonTest
+from monolithic_k_epsilon_formulation_tests import MonolithicKEpsilonPeriodicTest
+from fractional_step_k_epsilon_formulation_tests import FractionalStepKEpsilonTest
+
+### k-omega test_classes
+from monolithic_k_omega_formulation_tests import MonolithicKOmegaTest
+from monolithic_k_omega_formulation_tests import MonolithicKOmegaPeriodicTest
+from fractional_step_k_omega_formulation_tests import FractionalStepKOmegaTest
+
+### k-omega-sst test_classes
+from monolithic_k_omega_sst_formulation_tests import MonolithicKOmegaSSTTest
+from monolithic_k_omega_sst_formulation_tests import MonolithicKOmegaSSTPeriodicTest
+from fractional_step_k_omega_sst_formulation_tests import FractionalStepKOmegaSSTTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -35,31 +55,60 @@ def AssembleTestSuites():
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
 
+    # adding process tests to small suite
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CustomProcessTest]))
+
+    # adding k-epsilon high re periodic tests to small suite
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKEpsilonPeriodicTest]))
+
+    # adding k-omega high re periodic tests to small suite
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaPeriodicTest]))
+
+    # adding k-omega-sst high re periodic tests to small suite
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaSSTPeriodicTest]))
+
+    # adding representative transient tests to small suite
+    smallSuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcVelocityTransient"))
+    smallSuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcVelocityTransient"))
+    smallSuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcVelocityTransient"))
+
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
 
-    nightSuite.addTest(CustomProcessTest('testCheckScalarBoundsProcess'))
-    nightSuite.addTest(CustomProcessTest('testCheckVectorBoundsProcess'))
-    nightSuite.addTest(CustomProcessTest('testClipScalarVariableProcess'))
-    nightSuite.addTest(CustomProcessTest('testApplyFlagProcess'))
-    nightSuite.addTest(CustomProcessTest('testScalarCellCenterAveragingProcess'))
-    nightSuite.addTest(CustomProcessTest('testVectorCellCenterAveragingProcess'))
-    nightSuite.addTest(CustomProcessTest('testVectorAlignProcessTangential'))
-    nightSuite.addTest(CustomProcessTest('testVectorAlignProcessNormal'))
-    nightSuite.addTest(CustomProcessTest('testWallDistanceCalculationProcess'))
-    nightSuite.addTest(CustomProcessTest('testLogarithmicYPlusCalculationProcess'))
-    nightSuite.addTest(CustomProcessTest('testLogarithmicYPlusVelocitySensitivitiesProcessFlow'))
-    nightSuite.addTest(CustomProcessTest('testNutKEpsilonHighReCalculationProcess'))
-    nightSuite.addTest(CustomProcessTest('testNutKEpsilonHighReSensitivitiesProcess'))
-    nightSuite.addTest(EvmKEpsilonTest('testBackwardFacingStepKEpsilonTransient'))
-    nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteady'))
-    nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteadyPeriodic'))
-    nightSuite.addTest(EvmKEpsilonTest('testOneElementKEpsilonSteady'))
+    # adding incompressible potential flow solver tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IncompressiblePotentialFlowSolverFormulationTest]))
 
-    # Adjoint tests
-    nightSuite.addTest(AdjointKEpsilonSensitivity2D('testOneElementSteady'))
+    # adding monolithic flow solver tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicVelocityPressureFormulationTest]))
 
+    # adding fractional step flow solver tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepVelocityPressureFormulationTest]))
+
+    # adding monolithic k-epsilon high re tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKEpsilonTest]))
+    # adding fractional step k-epsilon high re tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKEpsilonTest]))
+
+    # adding monolithic k-omega high re tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaTest]))
+    # adding fractional step k-omega high re tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaTest]))
+
+    # adding monolithic k-omega-sst high re tests
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testVMSAfcTkeSteady"))
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testVMSAfcVelocitySteady"))
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcTkeSteady"))
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcVelocitySteady"))
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcTkeTransient"))
+    nightSuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcVelocitySteady"))
+
+    # adding fractional step k-omega-sst high re tests
+    nightSuite.addTest(FractionalStepKOmegaSSTTest("testVMSAfcTkeSteady"))
+    nightSuite.addTest(FractionalStepKOmegaSSTTest("testVMSAfcVelocitySteady"))
+    nightSuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcTkeSteady"))
+    nightSuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcVelocitySteady"))
+    nightSuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcTkeTransient"))
 
     # For very long tests that should not be in nighly and you can use to validate
     # validationSuite = suites['validation']
@@ -79,17 +128,6 @@ if __name__ == '__main__':
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
     run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-
-    if kratos_utilities.IsMPIAvailable() and kratos_utilities.CheckIfApplicationsAvailable("MetisApplication", "TrilinosApplication"):
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
-        p = subprocess.Popen(
-            ["mpiexec", "-np", "2", "python3", "test_RANSApplication_mpi.py"],
-            stdout=subprocess.PIPE,
-            cwd=os.path.dirname(os.path.abspath(__file__)))
-        p.wait()
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
-    else:
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nSkipping mpi python tests due to missing dependencies")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())

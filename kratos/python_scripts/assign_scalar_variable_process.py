@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -57,7 +56,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
-        if not isinstance(self.variable, KratosMultiphysics.Array1DComponentVariable) and not isinstance(self.variable, KratosMultiphysics.DoubleVariable) and not isinstance(self.variable, KratosMultiphysics.VectorVariable):
+        if not isinstance(self.variable, KratosMultiphysics.DoubleVariable) and not isinstance(self.variable, KratosMultiphysics.VectorVariable):
             msg = "Error in AssignScalarToNodesProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a scalar or a component"
             raise Exception(msg)
 
@@ -71,7 +70,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             self.value = settings["value"].GetDouble()
         else:
             self.function_string = settings["value"].GetString()
-            self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string, settings["local_axes"])
+            self.aux_function = KratosMultiphysics.GenericFunctionUtility(self.function_string, settings["local_axes"])
 
             if self.aux_function.DependsOnSpace():
                 self.cpp_apply_function_utility = KratosMultiphysics.ApplyFunctionToNodesUtility(self.mesh.Nodes, self.aux_function )

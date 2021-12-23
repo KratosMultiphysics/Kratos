@@ -125,6 +125,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def("Solve",pointer_to_solve_eigen)
     .def("Clear",&LinearSolverType::Clear)
     .def("__str__", PrintObject<LinearSolverType>)
+    .def( "GetIterationsNumber",&LinearSolverType::GetIterationsNumber)
     ;
 
     py::class_<ComplexLinearSolverType, ComplexLinearSolverType::Pointer>(m,"ComplexLinearSolver")

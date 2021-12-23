@@ -86,7 +86,7 @@
                 "damping_ratio_0"     : 0.001,
                 "damping_ratio_1"     : -1.0,
                 "eigen_system_settings" : {
-                    "solver_type"                : "eigen_feast",
+                    "solver_type"                : "feast",
                     "symmetric"             : true,
                     "e_min"                 : 3000.0,
                     "e_max"                 : 4.0e5,

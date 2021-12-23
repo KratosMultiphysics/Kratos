@@ -20,11 +20,10 @@
 #include "custom_elements/base_solid_element.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
-#include "fem_to_dem_application_variables.h"
 
 namespace Kratos
 {
-void BaseSolidElement::Initialize()
+void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -44,7 +43,7 @@ void BaseSolidElement::Initialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -92,7 +91,7 @@ void BaseSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void BaseSolidElement::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
     const GeometryType& r_geometry = GetGeometry();
     const Properties& r_properties = GetProperties();
@@ -106,7 +105,7 @@ void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProces
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void BaseSolidElement::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
     const GeometryType& r_geometry = GetGeometry();
     const Properties& r_properties = GetProperties();
@@ -120,7 +119,7 @@ void BaseSolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessI
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void BaseSolidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -252,8 +251,8 @@ Element::Pointer BaseSolidElement::Clone (
 
 void BaseSolidElement::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
@@ -288,8 +287,8 @@ void BaseSolidElement::EquationIdVector(
 
 void BaseSolidElement::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
@@ -320,7 +319,7 @@ void BaseSolidElement::GetDofList(
 void BaseSolidElement::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -344,7 +343,7 @@ void BaseSolidElement::GetValuesVector(
 void BaseSolidElement::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -365,7 +364,7 @@ void BaseSolidElement::GetFirstDerivativesVector(
 void BaseSolidElement::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -386,7 +385,7 @@ void BaseSolidElement::GetSecondDerivativesVector(
 void BaseSolidElement::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double>& rDestinationVariable,
+    const Variable<double>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -400,7 +399,7 @@ void BaseSolidElement::AddExplicitContribution(
     // Compiting the nodal mass
     if (rDestinationVariable == NODAL_MASS ) {
         VectorType element_mass_vector(mat_size);
-        this->CalculateLumpedMassVector(element_mass_vector);
+        this->CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
 
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             const IndexType index = i * dimension;
@@ -419,7 +418,7 @@ void BaseSolidElement::AddExplicitContribution(
 void BaseSolidElement::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -468,7 +467,7 @@ void BaseSolidElement::AddExplicitContribution(
 void BaseSolidElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     //calculation flags
@@ -481,8 +480,10 @@ void BaseSolidElement::CalculateLocalSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                             ProcessInfo& rCurrentProcessInfo)
+void BaseSolidElement::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+    )
 {
     KRATOS_TRY;
     VectorType RHS;
@@ -495,7 +496,7 @@ void BaseSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 
 void BaseSolidElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Calculation flags
@@ -511,7 +512,7 @@ void BaseSolidElement::CalculateRightHandSide(
 
 void BaseSolidElement::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -537,7 +538,7 @@ void BaseSolidElement::CalculateMassMatrix(
     // LUMPED MASS MATRIX
     if (compute_lumped_mass_matrix) {
         VectorType temp_vector(mat_size);
-        CalculateLumpedMassVector(temp_vector);
+        CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
         for (IndexType i = 0; i < mat_size; ++i)
             rMassMatrix(i, i) = temp_vector[i];
     } else { // CONSISTENT MASS
@@ -553,7 +554,7 @@ void BaseSolidElement::CalculateMassMatrix(
         for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
             GeometryUtils::JacobianOnInitialConfiguration(
                 r_geom, integration_points[point_number], J0);
-            const double detJ0 = MathUtils<double>::DetMat(J0);
+            const double detJ0 = MathUtils<double>::Det(J0);
             const double integration_weight =
                 GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
             const Vector& rN = row(Ncontainer,point_number);
@@ -580,7 +581,7 @@ void BaseSolidElement::CalculateMassMatrix(
 
 void BaseSolidElement::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     const unsigned int mat_size = GetGeometry().PointsNumber() * GetGeometry().WorkingSpaceDimension();
@@ -1132,7 +1133,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<bool>& rVariable,
-    std::vector<bool>& rValues,
+    const std::vector<bool>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1150,7 +1151,7 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<int>& rVariable,
-    std::vector<int>& rValues,
+    const std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1168,7 +1169,7 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
-    std::vector<double>& rValues,
+    const std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1186,7 +1187,7 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
+    const std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1204,7 +1205,7 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
-    std::vector<ConstitutiveLaw::Pointer>& rValues,
+    const std::vector<ConstitutiveLaw::Pointer>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1221,7 +1222,7 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > > rValues,
+    const std::vector<array_1d<double, 3 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1239,7 +1240,7 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<array_1d<double, 6 > >& rVariable,
-    std::vector<array_1d<double, 6 > > rValues,
+    const std::vector<array_1d<double, 6 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1257,7 +1258,7 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues,
+    const std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1273,91 +1274,7 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::GetValueOnIntegrationPoints(
-    const Variable<bool>& rVariable,
-    std::vector<bool>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseSolidElement::GetValueOnIntegrationPoints(
-    const Variable<int>& rVariable,
-    std::vector<int>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseSolidElement::GetValueOnIntegrationPoints(
-    const Variable<double>& rVariable,
-    std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseSolidElement::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseSolidElement::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 6>>& rVariable,
-    std::vector<array_1d<double, 6>>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseSolidElement::GetValueOnIntegrationPoints(
-    const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseSolidElement::GetValueOnIntegrationPoints(
-    const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseSolidElement::GetValueOnIntegrationPoints(
+void BaseSolidElement::CalculateOnIntegrationPoints(
         const Variable<ConstitutiveLaw::Pointer>& rVariable,
         std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -1377,7 +1294,7 @@ void BaseSolidElement::GetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY;
 
@@ -1385,14 +1302,6 @@ int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
     const SizeType number_of_nodes = this->GetGeometry().size();
     const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
-
-    // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY)
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < number_of_nodes; i++ ) {
@@ -1755,7 +1664,9 @@ void BaseSolidElement::CalculateAndAddExtForceContribution(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::CalculateLumpedMassVector(VectorType& rMassVector) const
+void BaseSolidElement::CalculateLumpedMassVector(
+    VectorType &rLumpedMassVector,
+    const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -1766,8 +1677,8 @@ void BaseSolidElement::CalculateLumpedMassVector(VectorType& rMassVector) const
     const SizeType mat_size = dimension * number_of_nodes;
 
     // Clear matrix
-    if (rMassVector.size() != mat_size)
-        rMassVector.resize( mat_size, false );
+    if (rLumpedMassVector.size() != mat_size)
+        rLumpedMassVector.resize( mat_size, false );
 
     const double density = r_prop[DENSITY];
     const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
@@ -1782,7 +1693,7 @@ void BaseSolidElement::CalculateLumpedMassVector(VectorType& rMassVector) const
         const double temp = lumping_factors[i] * total_mass;
         for ( IndexType j = 0; j < dimension; ++j ) {
             IndexType index = i * dimension + j;
-            rMassVector[index] = temp;
+            rLumpedMassVector[index] = temp;
         }
     }
 
@@ -1829,7 +1740,7 @@ void BaseSolidElement::CalculateDampingMatrixWithLumpedMass(
     // 2.-Calculate mass matrix:
     if (alpha > std::numeric_limits<double>::epsilon()) {
         VectorType temp_vector(mat_size);
-        CalculateLumpedMassVector(temp_vector);
+        CalculateLumpedMassVector(temp_vector, rCurrentProcessInfo);
         for (IndexType i = 0; i < mat_size; ++i)
             rDampingMatrix(i, i) += alpha * temp_vector[i];
     }
@@ -1853,7 +1764,7 @@ void BaseSolidElement::CalculateDampingMatrixWithLumpedMass(
 void BaseSolidElement::CalculateRayleighDampingMatrix(
     Element& rElement,
     Element::MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const std::size_t MatrixSize)
 {
     KRATOS_TRY;

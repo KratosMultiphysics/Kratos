@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -10,6 +8,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 from KratosMultiphysics import eigen_solver_factory
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 def CreateSolver(main_model_part, custom_settings):
     return EigenSolver(main_model_part, custom_settings)
@@ -22,30 +21,35 @@ class EigenSolver(MechanicalSolver):
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
+        if custom_settings.Has("linear_solver_settings"):
+            IssueDeprecationWarning('EigenSolver', '"linear_solver_settings" was specified which is not used in the EigenSolver. Use "eigensolver_settings"!')
+            custom_settings.RemoveValue("linear_solver_settings")
+
         # Construct the base solver.
-        super(EigenSolver, self).__init__(main_model_part, custom_settings)
+        super().__init__(main_model_part, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[EigenSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "scheme_type"         : "dynamic",
             "compute_modal_decomposition": false,
             "eigensolver_settings" : {
-                "solver_type"           : "eigen_eigensystem",
+                "solver_type"           : "spectra_sym_g_eigs_shift",
                 "max_iteration"         : 1000,
-                "tolerance"             : 1e-6,
                 "number_of_eigenvalues" : 5,
                 "echo_level"            : 1
             },
             "eigensolver_diagonal_values" : { }
         }""")
-        this_defaults.AddMissingParameters(super(EigenSolver, cls).GetDefaultSettings())
+        base_parameters = super().GetDefaultParameters()
+        base_parameters.RemoveValue("linear_solver_settings")
+        this_defaults.AddMissingParameters(base_parameters)
         return this_defaults
 
     #### Private functions ####
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         """Create the scheme for the eigenvalue problem.
 
         The scheme determines the left- and right-hand side matrices in the
@@ -61,7 +65,7 @@ class EigenSolver(MechanicalSolver):
 
         return solution_scheme
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         """Create the eigensolver.
 
         This overrides the base class method and replaces the usual linear solver
@@ -69,16 +73,16 @@ class EigenSolver(MechanicalSolver):
         """
         return eigen_solver_factory.ConstructSolver(self.settings["eigensolver_settings"])
 
-    def _create_mechanical_solution_strategy(self):
-        eigen_scheme = self.get_solution_scheme() # The scheme defines the matrices of the eigenvalue problem.
-        builder_and_solver = self.get_builder_and_solver() # The eigensolver is created here.
+    def _CreateSolutionStrategy(self):
+        eigen_scheme = self._GetScheme() # The scheme defines the matrices of the eigenvalue problem.
+        builder_and_solver = self._GetBuilderAndSolver() # The eigensolver is created here.
         computing_model_part = self.GetComputingModelPart()
 
         solver_type = self.settings["eigensolver_settings"]["solver_type"].GetString()
-        if solver_type == "eigen_eigensystem":
+        if solver_type in ["eigen_eigensystem", "spectra_sym_g_eigs_shift"]: # TODO evaluate what has to be used for spectra
             mass_matrix_diagonal_value = 0.0
             stiffness_matrix_diagonal_value = 1.0
-        elif solver_type == "feast" or solver_type == "eigen_feast":
+        elif solver_type == "feast":
             mass_matrix_diagonal_value = 1.0
             stiffness_matrix_diagonal_value = -1.0
         else:

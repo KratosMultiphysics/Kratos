@@ -34,7 +34,7 @@ namespace Kratos
 
 /// Utility for calculating the Distance on a given modelpart
 template <int TDim>
-class KRATOS_API(CHIMERA_APPLICATION) ChimeraDistanceCalculationUtility
+class ChimeraDistanceCalculationUtility
 {
 public:
     ///@name Type Definitions
@@ -90,7 +90,7 @@ public:
         auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<TDim>>();
         p_distance_smoother->CalculateDistances(rBackgroundModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
 
-        VariableUtils().CopyScalarVar(DISTANCE, CHIMERA_DISTANCE, rBackgroundModelPart.Nodes());
+        VariableUtils().CopyVariable<double>(DISTANCE, CHIMERA_DISTANCE, rBackgroundModelPart.Nodes());
     }
 
     ///@}

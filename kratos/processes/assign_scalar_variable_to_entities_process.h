@@ -23,6 +23,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -49,9 +50,6 @@ public:
 
     /// Node type definition
     typedef Node<3> NodeType;
-
-    /// Definition of array component
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
 
     /// The container of the entities
     typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
@@ -156,8 +154,6 @@ protected:
     ///@{
 
     /// Copy constructor.
-    AssignScalarVariableToEntitiesProcess(AssignScalarVariableToEntitiesProcess const& rOther);
-
     ///@}
     ///@name Protected Operations
     ///@{
@@ -199,19 +195,7 @@ private:
     template< class TVarType, class TDataType >
     void InternalAssignValue(TVarType& rVar, const TDataType Value)
     {
-        auto& r_entities_array = GetEntitiesContainer();
-        const int number_of_entities = static_cast<int>(r_entities_array.size());
-
-        if(number_of_entities != 0) {
-            const auto it_begin = r_entities_array.begin();
-
-            #pragma omp parallel for
-            for(int i = 0; i<number_of_entities; i++) {
-                auto it_entity = it_begin + i;
-
-                it_entity->SetValue(rVar, Value);
-            }
-        }
+        VariableUtils().SetNonHistoricalVariable(rVar, Value, GetEntitiesContainer());
     }
 
     /**
@@ -250,8 +234,6 @@ private:
     ///@{
 
     /// Assignment operator.
-    AssignScalarVariableToEntitiesProcess& operator=(AssignScalarVariableToEntitiesProcess const& rOther);
-
     ///@}
     ///@name Serialization
     ///@{

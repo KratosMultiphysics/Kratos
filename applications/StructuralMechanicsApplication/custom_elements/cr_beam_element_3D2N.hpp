@@ -34,7 +34,7 @@ namespace Kratos
  * @author Klaus B Sautter
  */
 
-class CrBeamElement3D2N : public Element
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CrBeamElement3D2N : public Element
 {
 protected:
     //const values
@@ -94,11 +94,11 @@ public:
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * @brief This function calculates the elastic part of the total stiffness matrix
@@ -146,32 +146,32 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void ConstCalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) const;
+        const ProcessInfo& rCurrentProcessInfo) const;
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void ConstCalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) const;
+    virtual void ConstCalculateRightHandSide(
+                 VectorType& rRightHandSideVector,
+                  const ProcessInfo& rCurrentProcessInfo) const;
 
     void ConstCalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) const;
+        const ProcessInfo& rCurrentProcessInfo) const;
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -209,34 +209,36 @@ public:
 
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void AddExplicitContribution(const VectorType& rRHSVector,
                                  const Variable<VectorType>& rRHSVariable,
-                                 Variable<array_1d<double, 3> >& rDestinationVariable,
+                                 const Variable<array_1d<double, 3> >& rDestinationVariable,
                                  const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValuesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     void GetSecondDerivativesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     void GetFirstDerivativesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     /**
      * @brief This function is used to assemble single transformation matrix in the big global rotation matrix
-     * @param SmallMatrix The local transformation matrix
-     * @param BigMatrix The total global rotation matrix
+     * @param rSmallMatrix The local transformation matrix
+     * @param rBigMatrix The total global rotation matrix
      */
-    void AssembleSmallInBigMatrix(Matrix SmallMatrix, BoundedMatrix<double,
-                                  msElementSize,msElementSize>& BigMatrix) const;
+    void AssembleSmallInBigMatrix(
+        const Matrix& rSmallMatrix,
+        BoundedMatrix<double,msElementSize,msElementSize>& rBigMatrix
+        ) const;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     /**
@@ -256,14 +258,10 @@ public:
      */
     BoundedVector<double,msElementSize> CalculateBodyForces() const;
 
-    void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput,
+     const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector< array_1d<double, 3 > >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
         std::vector< array_1d<double, 3 > >& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
@@ -300,7 +298,7 @@ public:
      */
     Vector CalculateLocalNodalForces() const;
 
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     Vector CalculateGlobalNodalForces() const;
 
@@ -308,11 +306,13 @@ public:
 
     BoundedMatrix<double, msElementSize, msElementSize> GetTransformationMatrixGlobal() const;
 
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     void UpdateQuaternionParameters(double& rScalNodeA,double& rScalNodeB,
          Vector& rVecNodeA,Vector& rVecNodeB) const;
+
+    const Parameters GetSpecifications() const override;
 
 private:
 

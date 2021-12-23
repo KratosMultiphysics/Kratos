@@ -105,6 +105,7 @@ namespace Python
         binder.def("fill", [](TVectorType& self, const typename TVectorType::value_type value) { noalias(self) = TVectorType(self.size(),value); });
         binder.def("norm_1", [](TVectorType& self) { return boost::numeric::ublas::norm_1(self); });
         binder.def("norm_2", [](TVectorType& self) { return boost::numeric::ublas::norm_2(self); });
+        binder.def("norm_inf", [](TVectorType& self) { return boost::numeric::ublas::norm_inf(self); });
     #endif // KRATOS_USE_AMATRIX
         binder.def("__iter__", [](TVectorType& self){ return py::make_iterator(self.begin(), self.end(), py::return_value_policy::reference_internal); } , py::keep_alive<0,1>() ) ;
         binder.def("__str__", PrintObject<TVectorType>);
@@ -215,6 +216,9 @@ namespace Python
                                     tmp[i] = py::cast<double>(input[i]);
                                 return tmp;
                                 }));
+        vector_binder.def(py::init([](const VectorSlice& input) -> Vector {
+                                return input;
+                                }));
         py::implicitly_convertible<py::list, Vector>();
         py::implicitly_convertible<array_1d<double,3>, Vector>();
 
@@ -254,4 +258,3 @@ namespace Python
 }  // namespace Python.
 
 } // Namespace Kratos
-

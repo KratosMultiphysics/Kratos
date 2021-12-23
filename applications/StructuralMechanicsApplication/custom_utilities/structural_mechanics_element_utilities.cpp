@@ -29,21 +29,13 @@ namespace StructuralMechanicsElementUtilities {
 int SolidElementCheck(
     const Element& rElement,
     const ProcessInfo& rCurrentProcessInfo,
-    std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws
+    const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws
     )
 {
     const auto& r_geometry = rElement.GetGeometry();
     const auto& r_properties = rElement.GetProperties();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
-
-    // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY)
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < number_of_nodes; i++ ) {
@@ -208,26 +200,31 @@ void CalculateRayleighDampingMatrix(
     KRATOS_TRY;
     // Rayleigh Damping Matrix: alpha*M + beta*K
 
-    // 1.-Resizing if needed
-    if (rDampingMatrix.size1() != MatrixSize || rDampingMatrix.size2() != MatrixSize) {
-        rDampingMatrix.resize(MatrixSize, MatrixSize, false);
-    }
-    noalias(rDampingMatrix) = ZeroMatrix(MatrixSize, MatrixSize);
-
-    // 2.-Calculate StiffnessMatrix (if needed):
-    const double beta = GetRayleighBeta(rElement.GetProperties(), rCurrentProcessInfo);
-    if (std::abs(beta) > 0.0) {
-        Element::MatrixType stiffness_matrix;
-        rElement.CalculateLeftHandSide(stiffness_matrix, rCurrentProcessInfo);
-        noalias(rDampingMatrix) += beta  * stiffness_matrix;
-    }
-
-    // 3.-Calculate MassMatrix (if needed):
     const double alpha = GetRayleighAlpha(rElement.GetProperties(), rCurrentProcessInfo);
-    if (std::abs(alpha) > 0.0) {
-        Element::MatrixType mass_matrix;
+    const double beta = GetRayleighBeta(rElement.GetProperties(), rCurrentProcessInfo);
+
+    if (std::abs(alpha) < 1E-12 && std::abs(beta) < 1E-12) {
+        // no damping specified, only setting the matrix to zero
+        if (rDampingMatrix.size1() != MatrixSize || rDampingMatrix.size2() != MatrixSize) {
+            rDampingMatrix.resize(MatrixSize, MatrixSize, false);
+        }
+        noalias(rDampingMatrix) = ZeroMatrix(MatrixSize, MatrixSize);
+    } else if (std::abs(alpha) > 1E-12 && std::abs(beta) < 1E-12) {
+        // damping only required with the mass matrix
+        rElement.CalculateMassMatrix(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
+        rDampingMatrix *= alpha;
+    } else if (std::abs(alpha) < 1E-12 && std::abs(beta) > 1E-12) {
+        // damping only required with the stiffness matrix
+        rElement.CalculateLeftHandSide(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
+        rDampingMatrix *= beta;
+    } else {
+        // damping with both mass matrix and stiffness matrix required
+        rElement.CalculateLeftHandSide(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
+        rDampingMatrix *= beta;
+
+        Matrix mass_matrix;
         rElement.CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
-        noalias(rDampingMatrix) += alpha * mass_matrix;
+        noalias(rDampingMatrix) += alpha  * mass_matrix;
     }
 
     KRATOS_CATCH("CalculateRayleighDampingMatrix")
@@ -311,6 +308,39 @@ double CalculateCurrentLength3D2N(const Element& rElement)
     return l;
 
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void InitialCheckLocalAxes(
+    const array_1d<double, 3>& rv1,
+    const array_1d<double, 3>& rv2,
+    const array_1d<double, 3>& rv3,
+    const double Tolerance
+    )
+{
+    if (MathUtils<double>::Norm3(rv1) > 1.0 + Tolerance ||
+        MathUtils<double>::Norm3(rv2) > 1.0 + Tolerance ||
+        MathUtils<double>::Norm3(rv3) > 1.0 + Tolerance) {
+            KRATOS_ERROR << "The norm of one of the LOCAL_AXIS is greater than 1.0!" << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BuildRotationMatrix(
+    BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    const array_1d<double, 3>& rv1,
+    const array_1d<double, 3>& rv2,
+    const array_1d<double, 3>& rv3
+    )
+{
+    rRotationMatrix(0, 0) = rv1[0]; rRotationMatrix(0, 1) = rv1[1]; rRotationMatrix(0, 2) = rv1[2];
+    rRotationMatrix(1, 0) = rv2[0]; rRotationMatrix(1, 1) = rv2[1]; rRotationMatrix(1, 2) = rv2[2];
+    rRotationMatrix(2, 0) = rv3[0]; rRotationMatrix(2, 1) = rv3[1]; rRotationMatrix(2, 2) = rv3[2];
+
 }
 
 } // namespace StructuralMechanicsElementUtilities.

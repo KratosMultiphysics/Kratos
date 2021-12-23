@@ -104,8 +104,12 @@ public:
     ///@name Access
     ///@{
 
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > > rValues,
+        const std::vector<array_1d<double, 3 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
@@ -164,7 +168,7 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag
         ) override;
@@ -179,7 +183,7 @@ protected:
      * Called at the end of eahc solution step
      * @param rCurrentProcessInfo the current process info instance
      */
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
     /**
      * Calculation of the Nodal Force
@@ -240,10 +244,15 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticleBaseLoadCondition );
+        rSerializer.save("point_load", m_point_load);
+
     }
 
     void load( Serializer& rSerializer ) override
     {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticleBaseLoadCondition );
+        rSerializer.load("point_load", m_point_load);
     }
 
 

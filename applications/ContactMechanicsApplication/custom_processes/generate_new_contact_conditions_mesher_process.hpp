@@ -130,7 +130,7 @@ namespace Kratos
       //*******************************************************************
       //set consecutive ids for global conditions
       int id=1;
-      for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.GetParentModelPart()->ConditionsBegin() ; i_cond != mrModelPart.GetParentModelPart()->ConditionsEnd(); ++i_cond)
+      for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.GetParentModelPart().ConditionsBegin() ; i_cond != mrModelPart.GetParentModelPart().ConditionsEnd(); ++i_cond)
 	{
 	  i_cond->SetId(id);
 	  id++;
@@ -150,7 +150,7 @@ namespace Kratos
       int& OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
       int* OutElementList      = mrRemesh.OutMesh.GetElementList();
 
-      int previous_id = mrModelPart.GetParentModelPart()->Conditions().back().Id();
+      int previous_id = mrModelPart.GetParentModelPart().Conditions().back().Id();
       id = previous_id;
 
       ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();

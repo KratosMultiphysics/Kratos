@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics as KM
 
@@ -13,13 +11,13 @@ class TestGeometry(KratosUnittest.TestCase):
         tester = KM.GeometryTesterUtility()
         self.assertTrue( tester.TestTetrahedra3D4N(model_part) )
 
-    def test_tetrahedra_2D3N(self):
+    def test_triangle_2D3N(self):
         current_model = KM.Model()
         model_part= current_model.CreateModelPart("Main")
         tester = KM.GeometryTesterUtility()
         self.assertTrue( tester.TestTriangle2D3N(model_part) )
 
-    def test_tetrahedra_2D6N(self):
+    def test_triangle_2D6N(self):
         current_model = KM.Model()
         model_part= current_model.CreateModelPart("Main")
         tester = KM.GeometryTesterUtility()
@@ -31,19 +29,19 @@ class TestGeometry(KratosUnittest.TestCase):
         tester = KM.GeometryTesterUtility()
         self.assertTrue( tester.TestTetrahedra3D10N(model_part) )
 
-    def test_tetrahedra_3D8N(self):
+    def test_hexahedra_3D8N(self):
         current_model = KM.Model()
         model_part= current_model.CreateModelPart("Main")
         tester = KM.GeometryTesterUtility()
         self.assertTrue( tester.TestHexahedra3D8N(model_part) )
 
-    def test_tetrahedra_3D27N(self):
+    def test_hexahedra_3D27N(self):
         current_model = KM.Model()
         model_part= current_model.CreateModelPart("Main")
         tester = KM.GeometryTesterUtility()
         self.assertTrue( tester.TestHexahedra3D27N(model_part) )
-        
-    def test_tetrahedra_3D20N(self):
+
+    def test_hexahedra_3D20N(self):
         current_model = KM.Model()
         model_part= current_model.CreateModelPart("Main")
         tester = KM.GeometryTesterUtility()

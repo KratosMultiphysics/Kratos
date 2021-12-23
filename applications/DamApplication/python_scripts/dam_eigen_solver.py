@@ -29,7 +29,7 @@ class DamEigenSolver():
                 "input_file_label": 0
             },
             "eigensolver_settings":{
-                "solver_type": "eigen_feast",
+                "solver_type": "feast",
                 "echo_level" : 0,
                 "symmetric" : true,
                 "search_lowest_eigenvalues" : false,
@@ -106,7 +106,7 @@ class DamEigenSolver():
         solver_type = self.eigensolver_settings["solver_type"].GetString()
         solution_type = self.settings["solution_type"].GetString()
 
-        if solver_type == "FEAST" or solver_type == "eigen_feast":
+        if solver_type == "FEAST" or solver_type == "feast":
             from KratosMultiphysics import eigen_solver_factory
             self.linear_solver = eigen_solver_factory.ConstructSolver(self.eigensolver_settings)
             mass_matrix_diagonal_value = 1.0

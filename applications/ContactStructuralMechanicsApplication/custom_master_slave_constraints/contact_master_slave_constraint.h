@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -86,9 +87,6 @@ public:
     /// The variable type definition (double)
     typedef BaseType::VariableType VariableType;
 
-    /// The component variable type definition
-    typedef BaseType::VariableComponentType VariableComponentType;
-
     /// Pointer definition of DataValueContainer
     KRATOS_CLASS_POINTER_DEFINITION(ContactMasterSlaveConstraint);
 
@@ -138,26 +136,6 @@ public:
         const VariableType& rMasterVariable,
         NodeType& rSlaveNode,
         const VariableType& rSlaveVariable,
-        const double Weight,
-        const double Constant
-        );
-
-    /**
-     * @brief Constructor by passing a single Master and slave dofs and corresponding weight and constant for a variable component
-     * @param IndexType The Id of the new created constraint
-     * @param rMasterNode The node of master side
-     * @param rMasterVariable The variable of the master DoF
-     * @param rSlaveNode The node of slave side
-     * @param rSlaveVariable The variable of the slave DoF
-     * @param Weight The relation between the master/slave DoF
-     * @param Constant The additional kinematic relationship
-     */
-    ContactMasterSlaveConstraint(
-        IndexType Id,
-        NodeType& rMasterNode,
-        const VariableComponentType& rMasterVariable,
-        NodeType& rSlaveNode,
-        const VariableComponentType& rSlaveVariable,
         const double Weight,
         const double Constant
         );
@@ -213,27 +191,6 @@ public:
         const VariableType& rMasterVariable,
         NodeType& rSlaveNode,
         const VariableType& rSlaveVariable,
-        const double Weight,
-        const double Constant
-        ) const override;
-
-    /**
-     * @brief Create method by passing a single Master and slave dofs and corresponding weight and constant for a variable component
-     * @param IndexType The Id of the new created constraint
-     * @param rMasterNode The node of master side
-     * @param rMasterVariable The variable of the master DoF
-     * @param rSlaveNode The node of slave side
-     * @param rSlaveVariable The variable of the slave DoF
-     * @param Weight The relation between the master/slave DoF
-     * @param Constant The additional kinematic relationship
-     * @return A Pointer to the new constraint
-     */
-    MasterSlaveConstraint::Pointer Create(
-        IndexType Id,
-        NodeType& rMasterNode,
-        const VariableComponentType& rMasterVariable,
-        NodeType& rSlaveNode,
-        const VariableComponentType& rSlaveVariable,
         const double Weight,
         const double Constant
         ) const override;

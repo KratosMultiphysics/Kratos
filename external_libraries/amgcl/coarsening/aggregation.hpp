@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -94,7 +94,9 @@ struct aggregation {
          */
         float over_interp;
 
-        params() : over_interp(1.5f) { }
+        params()
+            : over_interp(math::static_rows<typename Backend::value_type>::value == 1 ? 1.5f : 2.0f)
+        {}
 
 #ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
@@ -138,9 +140,6 @@ struct aggregation {
                 n, aggr.count, aggr.id, prm.nullspace, prm.aggr.block_size
                 );
         AMGCL_TOC("interpolation");
-
-        if (prm.nullspace.cols > 0)
-            prm.aggr.block_size = prm.nullspace.cols;
 
         return std::make_tuple(P, transpose(*P));
     }

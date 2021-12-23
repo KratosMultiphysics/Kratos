@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -100,7 +99,6 @@ class BasePatchTestCrBeam3D2N(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
                                                                 scheme,
-                                                                linear_solver,
                                                                 builder_and_solver,
                                                                 compute_reactions,
                                                                 reform_step_dofs,
@@ -115,7 +113,9 @@ class BasePatchTestCrBeam3D2N(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(1e-15,1e-15)
+        convergence_criterion = KratosMultiphysics.MixedGenericCriteria(
+            [(KratosMultiphysics.DISPLACEMENT, 1e-15,1e-15),
+             (KratosMultiphysics.ROTATION,     1e-15,1e-15)])
         convergence_criterion.SetEchoLevel(0)
 
         max_iters = 1000
@@ -124,7 +124,6 @@ class BasePatchTestCrBeam3D2N(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                 scheme,
-                                                                linear_solver,
                                                                 convergence_criterion,
                                                                 builder_and_solver,
                                                                 max_iters,
@@ -150,7 +149,6 @@ class BasePatchTestCrBeam3D2N(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                 scheme,
-                                                                linear_solver,
                                                                 convergence_criterion,
                                                                 builder_and_solver,
                                                                 max_iters,
@@ -253,7 +251,7 @@ class DynamicPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
         mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
-        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,False)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,True)
 
         #create nodes
         dx = 1.00 / nr_elements
@@ -313,7 +311,7 @@ class DynamicPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
         mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
-        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,True)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
 
         #create nodes
         dx = 1.00 / nr_elements
@@ -374,7 +372,7 @@ class DynamicPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
             self._add_variables(mp)
             _add_explicit_variables(mp)
             self._apply_material_properties(mp,dim)
-            mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,True)
+            mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
 
             #create nodes
             dx = 1.00 / nr_elements
@@ -614,12 +612,12 @@ class StaticPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
 
         out1 = mp.Elements[1].CalculateOnIntegrationPoints(KratosMultiphysics.MOMENT,mp.ProcessInfo)
         out2 = mp.Elements[2].CalculateOnIntegrationPoints(KratosMultiphysics.MOMENT,mp.ProcessInfo)
-        self.assertAlmostEqual(out1[0][2], 165000.0)
-        self.assertAlmostEqual(out1[1][2], 110000.0)
-        self.assertAlmostEqual(out1[2][2], 55000.0)
-        self.assertAlmostEqual(out2[2][2], 165000.0)
-        self.assertAlmostEqual(out2[1][2], 110000.0)
-        self.assertAlmostEqual(out2[0][2], 55000.0)
+        self.assertAlmostEqual(out1[0][2], -165000.0)
+        self.assertAlmostEqual(out1[1][2], -110000.0)
+        self.assertAlmostEqual(out1[2][2], -55000.0)
+        self.assertAlmostEqual(out2[2][2], -165000.0)
+        self.assertAlmostEqual(out2[1][2], -110000.0)
+        self.assertAlmostEqual(out2[0][2], -55000.0)
 
 
 class BasePatchTestCrBeam2D2N(KratosUnittest.TestCase):
@@ -707,7 +705,6 @@ class BasePatchTestCrBeam2D2N(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
                                                                 scheme,
-                                                                linear_solver,
                                                                 builder_and_solver,
                                                                 compute_reactions,
                                                                 reform_step_dofs,
@@ -722,7 +719,9 @@ class BasePatchTestCrBeam2D2N(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(1e-15,1e-15)
+        convergence_criterion = KratosMultiphysics.MixedGenericCriteria(
+            [(KratosMultiphysics.DISPLACEMENT, 1e-15,1e-15),
+             (KratosMultiphysics.ROTATION,     1e-15,1e-15)])
         convergence_criterion.SetEchoLevel(0)
 
         max_iters = 1000
@@ -731,7 +730,6 @@ class BasePatchTestCrBeam2D2N(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                 scheme,
-                                                                linear_solver,
                                                                 convergence_criterion,
                                                                 builder_and_solver,
                                                                 max_iters,
@@ -757,7 +755,6 @@ class BasePatchTestCrBeam2D2N(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                 scheme,
-                                                                linear_solver,
                                                                 convergence_criterion,
                                                                 builder_and_solver,
                                                                 max_iters,
@@ -917,7 +914,7 @@ class DynamicPatchTestBeam2D2N(BasePatchTestCrBeam2D2N):
             self._add_variables(mp)
             _add_explicit_variables(mp)
             self._apply_material_properties(mp,dim)
-            mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,True)
+            mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
 
             #create nodes
             dx = 1.00 / nr_elements

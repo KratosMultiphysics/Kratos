@@ -35,7 +35,7 @@
         },
         "pressure_dofs"                      : false,
         "linear_solver_settings"             :{
-            "solver_type"   : "EigenSolversApplication.sparse_lu",
+            "solver_type"   : "LinearSolversApplication.sparse_qr",
             "scaling": false
         }
     },

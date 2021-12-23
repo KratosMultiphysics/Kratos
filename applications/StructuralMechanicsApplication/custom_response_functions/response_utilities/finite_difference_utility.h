@@ -38,7 +38,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteDifferenceUtility
 {
 public:
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
 
@@ -47,7 +47,7 @@ public:
                                                 const Variable<double>& rDesignVariable,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
-                                                ProcessInfo& rCurrentProcessInfo);
+                                                const ProcessInfo& rCurrentProcessInfo);
 
     template <typename TElementType>
     static void CalculateRightHandSideDerivative(TElementType& rElement,
@@ -56,7 +56,7 @@ public:
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Vector& rOutput,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -101,7 +101,7 @@ public:
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
-                                                ProcessInfo& rCurrentProcessInfo);
+                                                const ProcessInfo& rCurrentProcessInfo);
 
     static void CalculateMassMatrixDerivative(Element& rElement,
                                                 const Matrix& rMassMatrix,
@@ -109,7 +109,7 @@ public:
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
-                                                ProcessInfo& rCurrentProcessInfo);
+                                                const ProcessInfo& rCurrentProcessInfo);
 
 private:
 

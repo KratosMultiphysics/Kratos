@@ -40,8 +40,6 @@ AssignScalarVariableToEntitiesProcess<TEntity>::AssignScalarVariableToEntitiesPr
 
     if( KratosComponents< Variable<double> >::Has( mVariableName )) { //case of double variable
         mDoubleValue = rParameters["value"].GetDouble();
-    } else if( KratosComponents<array_1d_component_type>::Has( mVariableName ) ) { //case of component variable
-        mDoubleValue = rParameters["value"].GetDouble();
     } else if( KratosComponents< Variable<int> >::Has( mVariableName ) ) { //case of int variable
         mIntValue = rParameters["value"].GetInt();
     } else if( KratosComponents< Variable<bool> >::Has( mVariableName ) ) { //case of bool variable
@@ -63,8 +61,6 @@ void AssignScalarVariableToEntitiesProcess<TEntity>::Execute()
 
     if( KratosComponents< Variable<double> >::Has( mVariableName )) { //case of double variable
         InternalAssignValue<>(KratosComponents< Variable<double> >::Get(mVariableName), mDoubleValue);
-    } else if( KratosComponents<array_1d_component_type>::Has( mVariableName )  ) { //case of component variable
-        InternalAssignValueSerial<>(KratosComponents<array_1d_component_type>::Get(mVariableName), mDoubleValue);
     } else if( KratosComponents< Variable<int> >::Has( mVariableName ) ) { //case of int variable
         InternalAssignValue<>(KratosComponents< Variable<int> >::Get(mVariableName) , mIntValue);
     } else if( KratosComponents< Variable<bool> >::Has( mVariableName ) ) { //case of bool variable

@@ -152,13 +152,7 @@ void AssignScalarVariableToPfemEntitiesProcess::Execute()
 
   if( mEntity == EntityType::NODES ){
 
-    if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
-    {
-      typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-      component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
-      AssignValueToNodes< component_type, double>(var_component , mdouble_value);
-    }
-    else if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
+    if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
     {
       AssignValueToNodes<>(KratosComponents< Variable<double> >::Get(mvariable_name), mdouble_value);
     }

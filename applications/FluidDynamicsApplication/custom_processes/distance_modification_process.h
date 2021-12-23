@@ -59,7 +59,11 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) DistanceModificationProcess : publi
 public:
     ///@name Type Definitions
     ///@{
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3>> > ComponentType;
+
+    typedef Variable<double> ComponentType;
+    
+    static constexpr std::array<std::array<std::size_t,2>, 3> NodeIDs2D {{ {{1,2}}, {{2,0}}, {{0,1}} }};
+    static constexpr std::array<std::array<std::size_t,2>, 6> NodeIDs3D {{ {{0,1}}, {{1,2}}, {{2,0}}, {{0,3}}, {{1,3}}, {{2,3}} }};    
 
     /// Pointer definition of DistanceModificationProcess
     KRATOS_CLASS_POINTER_DEFINITION(DistanceModificationProcess);
@@ -157,7 +161,7 @@ private:
     bool                                    mNegElemDeactivation;
     bool                               mAvoidAlmostEmptyElements;
     bool                                mRecoverOriginalDistance;
-    std::vector<unsigned int>              mModifiedDistancesIDs;
+    std::vector<std::size_t>               mModifiedDistancesIDs;
     std::vector<double>                 mModifiedDistancesValues;
     std::vector<Vector>        mModifiedElementalDistancesValues;
     std::vector<const Variable<double>*>    mDoubleVariablesList;
@@ -198,8 +202,8 @@ private:
         Element &rElem,
         const TDistancesVectorType& rDistancesVector)
     {
-        unsigned int n_pos = 0;
-        unsigned int n_neg = 0;
+        std::size_t n_pos = 0;
+        std::size_t n_neg = 0;
         for (double i_dist : rDistancesVector) {
             if (i_dist < 0.0) {
                 n_neg++;
@@ -225,6 +229,18 @@ private:
      * @param rVariableStringArray Array containing the variables to be fixed in the full negative elements
     */
     void CheckAndStoreVariablesList(const std::vector<std::string>& rVariableStringArray);
+
+    /**
+     * @brief Returns the node IDs corresponding to the given edge ID. 
+     * This mapping is a consequence of the node and edge order used in the CalculateDiscontinuousDistanceToSkinProcess
+     * for ELEMENTAL_DISTANCES and ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, 
+     * which is based on triangle_2d_3.h and tetrahedra_3d_4.h (geometry)
+     * @param NumEdges Number of edges of one element to distinguish between Triangle2D3N and Tetrahedra2D4N 
+     * @param EdgeID ID of the element's edge
+    */
+    const std::array<std::size_t,2> GetNodeIDs(
+        const std::size_t NumEdges, 
+        const std::size_t EdgeID);
 
     ///@}
     ///@name Private  Access

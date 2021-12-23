@@ -1,12 +1,7 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
-
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
-using_pykratos = UsingPyKratos()
 
 # The expected definitions are here to make the handling of the
 # multiline-stings easier (no need to deal with indentation)
@@ -61,13 +56,12 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             elem.SetValue(KM.DENSITY, ElementScalarValue(elem_id))
             elem.SetValue(KM.FORCE, ElementVectorValue(elem_id))
 
-        if not using_pykratos: # pyKratos does not have Conditions
-            for i in range(num_conds):
-                cond_id = i+1
-                cond = self.mp.CreateNewCondition("LineCondition2D2N", cond_id, [1,2], props)
+        for i in range(num_conds):
+            cond_id = i+1
+            cond = self.mp.CreateNewCondition("LineCondition2D2N", cond_id, [1,2], props)
 
-                cond.SetValue(KM.YOUNG_MODULUS, ConditionScalarValue(cond_id))
-                cond.SetValue(KM.ROTATION, ConditionVectorValue(cond_id))
+            cond.SetValue(KM.YOUNG_MODULUS, ConditionScalarValue(cond_id))
+            cond.SetValue(KM.ROTATION, ConditionVectorValue(cond_id))
 
         self.mp[KM.NODAL_MASS] = model_part_scalar_value
         self.mp[KM.TORQUE] = model_part_vector_value
@@ -86,9 +80,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         }""")
 
         coupling_data_scal = CouplingInterfaceData(settings_scal_hist, self.model)
-        coupling_data_scal.Initialize()
         coupling_data_vec = CouplingInterfaceData(settings_vec_elem, self.model)
-        coupling_data_vec.Initialize()
 
         self.assertEqual(coupling_data_scal.GetModelPart().Name, "mp_4_test")
         self.assertEqual(coupling_data_vec.GetModelPart().Name, "mp_4_test")
@@ -110,41 +102,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         }""")
 
         coupling_data = CouplingInterfaceData(settings, self.model)
-        coupling_data.Initialize()
         self.assertMultiLineEqual(str(coupling_data), coupling_interface_data_str)
-
-    def test_without_initialization(self):
-        settings = KM.Parameters("""{
-            "model_part_name" : "mp_4_test",
-            "variable_name"   : "DISPLACEMENT",
-            "dimension"       : 2
-        }""")
-
-        coupling_data = CouplingInterfaceData(settings, self.model)
-        # coupling_data.Initialize() # intentially commented to raise error
-        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
-            self.assertMultiLineEqual(str(coupling_data), coupling_interface_data_str)
-
-        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
-            coupling_data.PrintInfo()
-
-        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
-            coupling_data.GetModelPart()
-
-        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
-            coupling_data.IsDistributed()
-
-        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
-            coupling_data.Size()
-
-        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
-            coupling_data.GetBufferSize()
-
-        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
-            coupling_data.GetData()
-
-        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
-            coupling_data.SetData([])
 
     def test_unallowed_names(self):
         settings = KM.Parameters("""{
@@ -160,7 +118,6 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         with self.assertRaisesRegex(Exception, 'The name cannot be empty, contain whitespaces or "."!'):
             CouplingInterfaceData(settings, self.model, "aaa bbb")
-
 
     def test_var_does_not_exist(self):
         settings = KM.Parameters("""{
@@ -178,9 +135,8 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "dimension"       : 2
         }""")
 
-        coupling_data = CouplingInterfaceData(settings, self.model)
         with self.assertRaisesRegex(Exception, '"dimension" cannot be specifed for scalar variables!'):
-            coupling_data.Initialize()
+            CouplingInterfaceData(settings, self.model)
 
     def test_wrong_input_no_dim_vector(self):
         settings = KM.Parameters("""{
@@ -188,9 +144,8 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "variable_name"   : "DISPLACEMENT"
         }""")
 
-        coupling_data = CouplingInterfaceData(settings, self.model)
         with self.assertRaisesRegex(Exception, '"dimension" has to be specifed for vector variables!'):
-            coupling_data.Initialize()
+            CouplingInterfaceData(settings, self.model)
 
     def test_wrong_input_variable_type(self):
         settings = KM.Parameters("""{
@@ -198,7 +153,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "variable_name"   : "EXTERNAL_FORCES_VECTOR"
         }""")
 
-        exp_error = 'The input for "variable" "EXTERNAL_FORCES_VECTOR" is of variable type "Vector" which is not allowed, only the following variable types are allowed:\nBool, Integer, Unsigned Integer, Double, Component, Array'
+        exp_error = 'The input for "variable" "EXTERNAL_FORCES_VECTOR" is of variable type "Vector" which is not allowed, only the following variable types are allowed:\nBool, Integer, Unsigned Integer, Double, Array'
 
         with self.assertRaisesRegex(Exception, exp_error):
             CouplingInterfaceData(settings, self.model)
@@ -228,9 +183,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         }""")
 
         coupling_data = CouplingInterfaceData(settings, self.model)
-        coupling_data.Initialize()
         coupling_data_mp = CouplingInterfaceData(settings_model_part, self.model)
-        coupling_data_mp.Initialize()
 
         wrong_data = [1,2,3]
         correct_data = [1,2,3,4,5]
@@ -253,9 +206,8 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         exp_error = '"dimension" can only be 1,2,3 when using variables of type "Array"'
 
-        coupling_data = CouplingInterfaceData(settings, self.model)
         with self.assertRaisesRegex(Exception, exp_error):
-            coupling_data.Initialize()
+            CouplingInterfaceData(settings, self.model)
 
     def test_wrong_input_missing_solutionstepvar(self):
         settings = KM.Parameters("""{
@@ -266,9 +218,8 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         exp_error = '"FORCE" is missing as SolutionStepVariable in ModelPart "mp_4_test"'
 
-        coupling_data = CouplingInterfaceData(settings, self.model)
         with self.assertRaisesRegex(Exception, exp_error):
-            coupling_data.Initialize()
+            CouplingInterfaceData(settings, self.model)
 
     def test_wrong_input_missing_solutionstepvar_component(self):
         settings = KM.Parameters("""{
@@ -276,11 +227,21 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "variable_name"   : "FORCE_X"
         }""")
 
-        exp_error = '"FORCE" is missing as SolutionStepVariable in ModelPart "mp_4_test"'
+        exp_error = '"FORCE_X" is missing as SolutionStepVariable in ModelPart "mp_4_test"'
 
-        coupling_data = CouplingInterfaceData(settings, self.model)
         with self.assertRaisesRegex(Exception, exp_error):
-            coupling_data.Initialize()
+            CouplingInterfaceData(settings, self.model)
+
+    def test_wrong_input_missing_solutionstepvar_double(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "TEMPERATURE"
+        }""")
+
+        exp_error = '"TEMPERATURE" is missing as SolutionStepVariable in ModelPart "mp_4_test"'
+
+        with self.assertRaisesRegex(Exception, exp_error):
+            CouplingInterfaceData(settings, self.model)
 
     def test_non_existing_model_part(self):
         settings = KM.Parameters("""{
@@ -289,9 +250,8 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "location"        : "node_non_historical"
         }""")
 
-        coupling_data = CouplingInterfaceData(settings, self.model)
-        with self.assertRaisesRegex(Exception, "The specified ModelPart is not in the Model, only the following ModelParts are available:"):
-            coupling_data.Initialize()
+        with self.assertRaisesRegex(Exception, 'The ModelPart named : "something" was not found either as root-ModelPart or as a flat name. The total input string was "something'):
+            CouplingInterfaceData(settings, self.model)
 
     def test_GetHistoricalVariableDict(self):
         settings = KM.Parameters("""{
@@ -337,8 +297,6 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         coupling_data_scal = CouplingInterfaceData(settings_scal, self.model)
         coupling_data_vec = CouplingInterfaceData(settings_vec,  self.model)
-        coupling_data_scal.Initialize()
-        coupling_data_vec.Initialize()
 
         # 1. check the initial values
         exp_data_scal_cur = [NodeScalarHistValueCurrent(node.Id) for node in self.mp.Nodes]
@@ -384,8 +342,6 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         coupling_data_scal = CouplingInterfaceData(settings_scal, self.model)
         coupling_data_vec = CouplingInterfaceData(settings_vec,  self.model)
-        coupling_data_scal.Initialize()
-        coupling_data_vec.Initialize()
 
         # 1. check the initial values
         exp_data_scal = [NodeScalarNonHistValue(node.Id) for node in self.mp.Nodes]
@@ -417,8 +373,6 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         coupling_data_scal = CouplingInterfaceData(settings_scal, self.model)
         coupling_data_vec = CouplingInterfaceData(settings_vec,  self.model)
-        coupling_data_scal.Initialize()
-        coupling_data_vec.Initialize()
 
         # 1. check the initial values
         exp_data_scal = [ElementScalarValue(elem.Id) for elem in self.mp.Elements]
@@ -435,8 +389,6 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         self.__CheckSetGetData(set_data_vec, coupling_data_vec)
 
     def test_GetSetConditionalData(self):
-        if using_pykratos:
-            self.skipTest("This test cannot be run with pyKratos!")
         settings_scal = KM.Parameters("""{
             "model_part_name" : "mp_4_test",
             "location"        : "condition",
@@ -452,8 +404,6 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         coupling_data_scal = CouplingInterfaceData(settings_scal, self.model)
         coupling_data_vec = CouplingInterfaceData(settings_vec,  self.model)
-        coupling_data_scal.Initialize()
-        coupling_data_vec.Initialize()
 
         # 1. check the initial values
         exp_data_scal = [ConditionScalarValue(cond.Id) for cond in self.mp.Conditions]
@@ -487,8 +437,6 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         coupling_data_scal = CouplingInterfaceData(settings_scal, self.model)
         coupling_data_vec = CouplingInterfaceData(settings_vec,  self.model)
-        coupling_data_scal.Initialize()
-        coupling_data_vec.Initialize()
 
         # 1. check the initial values
         self.__CheckData([model_part_scalar_value], coupling_data_scal.GetData())

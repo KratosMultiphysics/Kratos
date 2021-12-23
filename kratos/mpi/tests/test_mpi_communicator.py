@@ -1,32 +1,22 @@
-﻿from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.mpi as KratosMPI
-import KratosMultiphysics.MetisApplication as KratosMetis
-import KratosMultiphysics.kratos_utilities as kratos_utilities
+from KratosMultiphysics.testing.utilities import ReadModelPart
+from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting
 
+import os
 
 def GetFilePath(fileName):
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 
 class TestMPICommunicator(KratosUnittest.TestCase):
 
-    def setUp(self):
-        self.communicator = KratosMultiphysics.DataCommunicator.GetDefault()
-
     def tearDown(self):
-        rank = self.communicator.Rank()
-        if rank == 0:
-            kratos_utilities.DeleteFileIfExisting("test_mpi_communicator.time")
-        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".mdpa")
-        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".time")
-        self.communicator.Barrier()
+        DeleteDirectoryIfExisting("test_mpi_communicator_partitioned")
 
     def _read_model_part_mpi(self,main_model_part):
 
-        if self.communicator.Size() == 1:
+        if KratosMultiphysics.DataCommunicator.GetDefault().Size() == 1:
             self.skipTest("Test can be run only using more than one mpi process")
 
         ## Add variables to the model part
@@ -35,34 +25,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-        ## Serial partition of the original .mdpa file
-        input_filename = "test_mpi_communicator"
-        if self.communicator.Rank() == 0 :
-
-            # Original .mdpa file reading
-            model_part_io = KratosMultiphysics.ModelPartIO(input_filename)
-
-            # Partition of the original .mdpa file
-            number_of_partitions = self.communicator.Size() # Number of partitions equals the number of processors
-            domain_size = main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-            verbosity = 0
-            sync_conditions = True # Make sure that the condition goes to the same partition as the element is a face of
-
-            partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
-            partitioner.Execute()
-
-            KratosMultiphysics.Logger.PrintInfo("TestMPICommunicator","Metis divide finished.")
-
-        self.communicator.Barrier()
-
-        ## Read the partitioned .mdpa files
-        mpi_input_filename = input_filename + "_" + str(self.communicator.Rank())
-        model_part_io = KratosMultiphysics.ModelPartIO(mpi_input_filename)
-        model_part_io.ReadModelPart(main_model_part)
-
-        ## Construct and execute the Parallel fill communicator
-        ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(main_model_part.GetRootModelPart())
-        ParallelFillCommunicator.Execute()
+        ReadModelPart(GetFilePath("test_mpi_communicator"), main_model_part)
 
         ## Check submodelpart of each main_model_part of each processor
         self.assertTrue(main_model_part.HasSubModelPart("Skin"))
@@ -125,7 +88,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
 
         submodelpart = main_model_part.GetSubModelPart("Skin")
 
-        self.communicator.Barrier()
+        # self.communicator.Barrier()
 
         # Check partitioning
         #~ for i in range(KratosMPI.mpi.size):
@@ -219,10 +182,24 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         self.assertEqual(comm.ScanSum(1), 1)
 
 
-    #def test_model_part_io_properties_block(self):
-    #    model_part = ModelPart("Main")
-    #    model_part_io = ModelPartIO("test_model_part_io")
-    #    model_part_io.ReadProperties(model_part.Properties)
+    def test_GlobalNumberOf_Methods(self):
+        current_model = KratosMultiphysics.Model()
+        main_model_part = current_model.CreateModelPart("MainModelPart")
+        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+
+        self._read_model_part_mpi(main_model_part)
+
+        main_comm = main_model_part.GetCommunicator()
+
+        self.assertEqual(main_comm.GlobalNumberOfNodes(), 9)
+        self.assertEqual(main_comm.GlobalNumberOfElements(), 8)
+        self.assertEqual(main_comm.GlobalNumberOfConditions(), 8)
+
+        sub_comm = main_model_part.GetSubModelPart("Skin").GetCommunicator()
+
+        self.assertEqual(sub_comm.GlobalNumberOfNodes(), 8)
+        self.assertEqual(sub_comm.GlobalNumberOfElements(), 0)
+        self.assertEqual(sub_comm.GlobalNumberOfConditions(), 8)
 
 if __name__ == '__main__':
     KratosUnittest.main()
