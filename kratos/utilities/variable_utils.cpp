@@ -115,6 +115,67 @@ array_1d<double, 3> VariableUtils::SumElementVectorVariable(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void VariableUtils::AddDofsList(
+    const std::vector<std::string>& rDofsVarNamesList,
+    ModelPart& rModelPart)
+{
+    // Create a set with the variables to be added as DOFs
+    std::set<const Variable<double>*> dofs_vars_set;
+    const IndexType n_dofs = rDofsVarNamesList.size();
+    for (IndexType i = 0; i < n_dofs; ++i) {
+        const std::string r_var_name = rDofsVarNamesList[i];
+        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_var_name)) << "Provided variable \'" << r_var_name << "\' is not in KratosComponents." << std::endl;
+        const auto& r_dof_var = KratosComponents<Variable<double>>::Get(r_var_name);
+        const Variable<double>* p_dof_var = &r_dof_var;
+        dofs_vars_set.insert(p_dof_var);
+        rModelPart.GetNodalSolutionStepVariablesList().AddDof(&r_dof_var);
+    }
+
+    // Add the DOFs to the model part nodes
+    block_for_each(rModelPart.Nodes(), [&dofs_vars_set](Node<3>& rNode){
+        for (auto p_var : dofs_vars_set) {
+            rNode.AddDof(*p_var);
+        }
+    });
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariableUtils::AddDofsWithReactionsList(
+    const std::vector<std::array<std::string,2>>& rDofsAndReactionsNamesList,
+    ModelPart& rModelPart)
+{
+    // Create a set with the variables to be added as DOFs and reactions
+    std::array<const Variable<double>*,2> aux_dof_vars;
+    const IndexType n_dofs = rDofsAndReactionsNamesList.size();
+    std::set<std::array<const Variable<double>*, 2>> dofs_and_react_vars_set;
+    for (IndexType i = 0; i < n_dofs; ++i) {
+        const auto& r_dof_data = rDofsAndReactionsNamesList[i];
+        const std::string r_var_name = r_dof_data[0];
+        const std::string r_react_name = r_dof_data[1];
+        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_var_name)) << "Provided variable \'" << r_var_name << "\' is not in KratosComponents." << std::endl;
+        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_react_name)) << "Provided reaction \'" << r_react_name << "\' is not in KratosComponents." << std::endl;
+        const auto& r_dof_var = KratosComponents<Variable<double>>::Get(r_var_name);
+        const auto& r_react_var = KratosComponents<Variable<double>>::Get(r_react_name);
+        aux_dof_vars[0] = &r_dof_var;
+        aux_dof_vars[1] = &r_react_var;
+        dofs_and_react_vars_set.insert(aux_dof_vars);
+
+        rModelPart.GetNodalSolutionStepVariablesList().AddDof(&r_dof_var, &r_react_var);
+    }
+
+    // Add the DOFs and reactions to the model part nodes
+    block_for_each(rModelPart.Nodes(), [&dofs_and_react_vars_set](Node<3>& rNode){
+        for (auto& r_dof_data : dofs_and_react_vars_set) {
+            rNode.AddDof(*(r_dof_data[0]), *(r_dof_data[1]));
+        }
+    });
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool VariableUtils::CheckVariableKeys()
 {
     KRATOS_TRY
