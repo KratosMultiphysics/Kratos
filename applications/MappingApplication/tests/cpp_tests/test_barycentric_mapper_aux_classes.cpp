@@ -78,19 +78,11 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_line_interpolation, Kr
     KRATOS_CHECK(barycentric_info.GetLocalSearchWasSuccessful());
     KRATOS_CHECK_IS_FALSE(barycentric_info.GetIsApproximation());
 
-    std::vector<int> found_ids;
-    barycentric_info.GetValue(found_ids, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_ids.size(), 2);
-    KRATOS_CHECK_EQUAL(found_ids[0], 108);
-    KRATOS_CHECK_EQUAL(found_ids[1], 5);
+    ClosestPointsContainer exp_closest_points(2);
+    exp_closest_points.Add(PointWithId(108, Point(0.3, 0.0, 0.0), 0.1));
+    exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), MapperUtilities::ComputeDistance(coords, node_2->Coordinates())));
 
-    std::vector<double> neighbor_coords;
-    barycentric_info.GetValue(neighbor_coords, MapperInterfaceInfo::InfoType::Dummy);
-    const std::vector<double> exp_results {
-        0.3, 0.0, 0.0,
-        1.0, 0.1, -0.2
-    };
-    KRATOS_CHECK_VECTOR_EQUAL(exp_results, neighbor_coords)
+    KRATOS_CHECK_EQUAL(barycentric_info.GetClosestPoints(), exp_closest_points);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_only_one_point, KratosMappingApplicationSerialTestSuite)
