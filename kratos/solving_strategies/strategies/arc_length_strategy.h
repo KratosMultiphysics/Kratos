@@ -226,10 +226,17 @@ class ArcLengthStrategy
 
             mInitializeArcLengthWasPerformed = true;
 
-            KRATOS_INFO("Arc Length Strategy") << "Strategy Initialized" << std::endl;
+            KRATOS_INFO("Arc-Length Strategy") << "Strategy Initialized" << std::endl;
         }
 
-        BaseType::InitializeSolutionStep();
+		if (!BaseType::mSolutionStepIsInitialized) {
+            BaseType::InitializeSolutionStep();
+            this->SaveInitializeSystemVector(mpf);
+            this->InitializeSystemVector(mpDxf);
+            this->InitializeSystemVector(mpDxb);
+            this->InitializeSystemVector(mpDxPred);
+            this->InitializeSystemVector(mpDxStep);
+        }
 
         KRATOS_CATCH("");
     }
@@ -293,7 +300,22 @@ class ArcLengthStrategy
         TSparseSpace::InplaceMult(r_Dxf, 1.0 / lambda_increment);
         UpdateDatabase(r_A, r_DxPred, r_b, BaseType::MoveMeshFlag());
 
-        return true;
+        mpScheme->FinalizeNonLinIteration(r_model_part, r_A, r_DxPred, r_b);
+        mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
+
+        if (is_converged) {
+            if (mpConvergenceCriteria->GetActualizeRHSflag()) {
+                TSparseSpace::SetToZero(r_b);
+
+                mpBuilderAndSolver->BuildRHS(mpScheme, r_model_part, r_b);
+            }
+
+            is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_Dxf, r_b);
+        }
+
+
+
+        return is_converged;
     }
 
     void UpdateExternalLoads()
