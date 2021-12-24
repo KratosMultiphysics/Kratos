@@ -1336,14 +1336,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    static void AddDofsList(
-        const std::vector<std::string>& rDofsVarNamesList,
-        ModelPart& rModelPart);
-
-    static void AddDofsWithReactionsList(
-        const std::vector<std::array<std::string,2>>& rDofsAndReactionsNamesList,
-        ModelPart& rModelPart);
-
     /**
      * @brief Add a list of DOFs to the nodes
      * Provided a list with the DOFs variable names, this method adds such variables as DOFs
