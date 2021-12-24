@@ -1,5 +1,4 @@
 ﻿# Importing the Kratos Library
-from unittest.case import expectedFailure
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
