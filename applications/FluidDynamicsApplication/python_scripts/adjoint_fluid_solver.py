@@ -37,10 +37,6 @@ class AdjointFluidSolver(FluidSolver):
 
         return dofs_list
 
-    def GetDofsWithReactionsList(self):
-        err_msg = "DOFs reactions are not required in {}. Please call \'GetDofsList\' instead.".format(self.__class__.__name__)
-        raise Exception(err_msg)
-
     def InitializeSolutionStep(self):
         self._GetSolutionStrategy().InitializeSolutionStep()
         self.GetResponseFunction().InitializeSolutionStep()

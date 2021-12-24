@@ -99,22 +99,6 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("::[NavierStokesCompressibleExplicitSolver]:: ","Explicit compressible fluid solver variables added correctly")
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils.AddDofsList(self.GetDofsWithReactionsList(), self.main_model_part)
-
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver DOFs added correctly.")
-
-    def GetDofsList(self):
-        dofs_list = []
-        dofs_list.append("DENSITY")
-        dofs_list.append("MOMENTUM_X")
-        dofs_list.append("MOMENTUM_Y")
-        if self.settings["domain_size"].GetInt() == 3:
-            dofs_list.append("MOMENTUM_Z")
-        dofs_list.append("TOTAL_ENERGY")
-
-        return dofs_list
-
-    def GetDofsWithReactionsList(self):
         dofs_with_reactions_list = []
         dofs_with_reactions_list.append(["DENSITY","REACTION_DENSITY"])
         dofs_with_reactions_list.append(["MOMENTUM_X","REACTION_X"])
@@ -122,8 +106,9 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         if self.settings["domain_size"].GetInt() == 3:
             dofs_with_reactions_list.append(["MOMENTUM_Z","REACTION_Z"])
         dofs_with_reactions_list.append(["TOTAL_ENERGY","REACTION_ENERGY"])
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_with_reactions_list, self.main_model_part)
 
-        return dofs_with_reactions_list
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver DOFs added correctly.")
 
     def Initialize(self):
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.OSS_SWITCH] = int(self.settings["use_oss"].GetBool())

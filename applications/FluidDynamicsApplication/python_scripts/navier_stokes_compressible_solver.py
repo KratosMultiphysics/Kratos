@@ -136,17 +136,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
         return dofs_list
 
-    def GetDofsWithReactionsList(self):
-        dofs_with_reactions_list = []
-        dofs_with_reactions_list.append(["DENSITY","REACTION_DENSITY"])
-        dofs_with_reactions_list.append(["MOMENTUM_X","REACTION_X"])
-        dofs_with_reactions_list.append(["MOMENTUM_Y","REACTION_Y"])
-        if self.settings["domain_size"].GetInt() == 3:
-            dofs_with_reactions_list.append(["MOMENTUM_Z","REACTION_Z"])
-        dofs_with_reactions_list.append(["TOTAL_ENERGY","REACTION_ENERGY"])
-
-        return dofs_with_reactions_list
-
     def Initialize(self):
         # Construct and set the solution strategy
         solution_strategy = self._GetSolutionStrategy()
