@@ -600,6 +600,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     mod_spec_utils.def("CheckCompatibleConstitutiveLaws", &SpecificationsUtilities::CheckCompatibleConstitutiveLaws );
     mod_spec_utils.def("CheckGeometricalPolynomialDegree", &SpecificationsUtilities::CheckGeometricalPolynomialDegree );
     mod_spec_utils.def("GetDocumention", &SpecificationsUtilities::GetDocumention );
+    mod_spec_utils.def("GetDofsListFromSpecifications", &SpecificationsUtilities::GetDofsListFromSpecifications);
+    mod_spec_utils.def("GetDofsListFromElementsSpecifications", &SpecificationsUtilities::GetDofsListFromElementsSpecifications);
+    mod_spec_utils.def("GetDofsListFromConditionsSpecifications", &SpecificationsUtilities::GetDofsListFromConditionsSpecifications);
 
     // PropertiesUtilities
     auto mod_prop_utils = m.def_submodule("PropertiesUtilities");
@@ -700,7 +703,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     auto single_model_part_import = m.def_submodule("SingleImportModelPart");
     single_model_part_import.def("Import", &SingleImportModelPart::Import );
-  
+
     // RVE periodicity utility
     py::class_<RVEPeriodicityUtility>(m,"RVEPeriodicityUtility")
         .def(py::init<ModelPart&>())
