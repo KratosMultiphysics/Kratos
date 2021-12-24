@@ -61,10 +61,6 @@ std::vector<std::string> GetDofsListFromGenericEntitiesSpecifications(const TCon
     return dofs_var_names_list;
 }
 
-template KRATOS_API(KRATOS_CORE) std::vector<std::string> GetDofsListFromGenericEntitiesSpecifications<const ModelPart::ElementsContainerType>(const ModelPart::ElementsContainerType&);
-
-template KRATOS_API(KRATOS_CORE) std::vector<std::string> GetDofsListFromGenericEntitiesSpecifications<const ModelPart::ConditionsContainerType>(const ModelPart::ConditionsContainerType&);
-
 }
 
 void AddMissingVariables(ModelPart& rModelPart)
