@@ -1345,6 +1345,28 @@ public:
         ModelPart& rModelPart);
 
     /**
+     * @brief Add a list of DOFs to the nodes
+     * Provided a list with the DOFs variable names, this method adds such variables as DOFs
+     * to the nodes of the given model part. Note that the addition is performed at once.
+     * @param rDofsVarNamesList List with the string variable names to be added as DOFs
+     * @param rModelPart Model part to which the DOFs are added
+     */
+    static void AddDofsList(
+        const std::vector<std::string>& rDofsVarNamesList,
+        ModelPart& rModelPart);
+
+    /**
+     * @brief Add a list of DOFs to the nodes
+     * Provided a list with the DOFs and reactions variable names, this method adds such variables
+     * as DOFs and reaction to the nodes of the given model part. Note that the addition is performed at once.
+     * @param rDofsAndReactionsNamesList List with the DOF and reaction string variable names to be added as DOFs and reaction
+     * @param rModelPart Model part to which the DOFs are added
+     */
+    static void AddDofsWithReactionsList(
+        const std::vector<std::array<std::string,2>>& rDofsAndReactionsNamesList,
+        ModelPart& rModelPart);
+
+    /**
      * @brief This method checks the variable keys
      * @return True if all the keys are correct
      */
