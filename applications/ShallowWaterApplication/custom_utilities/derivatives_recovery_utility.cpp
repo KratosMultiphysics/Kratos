@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "derivatives_recovery_utility.h"
@@ -28,6 +29,14 @@
 
 namespace Kratos
 {
+
+#define SUPERCONVERGENT_FACTORIAL(n) ( \
+    (n) == 2 ? 2 : \
+    (n) == 3 ? 6 : \
+    (n) == 4 ? 24 : \
+    (n) == 5 ? 120 : \
+    KRATOS_ERROR)
+
 
 void DerivativesRecoveryUtility::CalculateDivergence(
     ModelPart& rModelPart,
@@ -137,14 +146,19 @@ void DerivativesRecoveryUtility::CalculateSuperconvergentDivergence(
         auto n_neigh = neigh_nodes.size();
 
         double& divergence = rNode.FastGetSolutionStepValue(rDestinationVariable);
-        const Vector& nodal_weights = rNode.FastGetSolutionStepValue(NODAL_WEIGHTS);
+        const Vector& nodal_weights = rNode.FastGetSolutionStepValue(FIRST_DERIVATIVE_WEIGHTS);
         divergence = 0.0;
 
-        for (unsigned int i_neigh = 0; i_neigh < n_neigh; ++i_neigh){
-            const array_1d<double,3>& value = neigh_nodes[i_neigh].FastGetSolutionStepValue(rOriginVariable);
+        const array_1d<double,3>& first_value = rNode.FastGetSolutionStepValue(rOriginVariable);
+        for (unsigned int d = 0; d < TDim; ++d){
+            divergence += nodal_weights[d] * first_value[d];
+        }
+
+        for (unsigned int n = 0; n < n_neigh; ++n){
+            const array_1d<double,3>& value = neigh_nodes[n].FastGetSolutionStepValue(rOriginVariable);
 
             for (unsigned int d = 0; d < TDim; ++d){
-                divergence += nodal_weights[3 * i_neigh + d] * value[d];
+                divergence += nodal_weights[TDim * n + d] * value[d];
             }
         }
     });
@@ -161,14 +175,19 @@ void DerivativesRecoveryUtility::CalculateSuperconvergentGradient(
         auto n_neigh = neigh_nodes.size();
 
         array_1d<double,3>& gradient = rNode.FastGetSolutionStepValue(rDestinationVariable);
-        const Vector& nodal_weights = rNode.FastGetSolutionStepValue(NODAL_WEIGHTS);
+        const Vector& nodal_weights = rNode.FastGetSolutionStepValue(FIRST_DERIVATIVE_WEIGHTS);
         gradient = ZeroVector(3);
 
-        for (std::size_t i_neigh = 0; i_neigh < n_neigh; ++i_neigh){
-            const double& value = neigh_nodes[i_neigh].FastGetSolutionStepValue(rOriginVariable);
+        const double& first_value = rNode.FastGetSolutionStepValue(rOriginVariable);
+        for (unsigned int d = 0; d < TDim; ++d) {
+            gradient[d] += nodal_weights[d] * first_value;
+        }
 
-            for (unsigned int d = 0; d < 3; ++d){
-                gradient[d] += nodal_weights[3 * i_neigh + d] * value;
+        for (std::size_t n = 0; n < n_neigh; ++n){
+            const double& value = neigh_nodes[n].FastGetSolutionStepValue(rOriginVariable);
+
+            for (unsigned int d = 0; d < TDim; ++d) {
+                gradient[d] += nodal_weights[TDim * n + d] * value;
             }
         }
     });
@@ -185,10 +204,10 @@ void DerivativesRecoveryUtility::CalculateSuperconvergentLaplacian(
     CalculateSuperconvergentGradient(rModelPart, rIntermediateVariable, rDestinationVariable, BufferStep);
 }
 
-void DerivativesRecoveryUtility::ExtendRequiredNeighbors(ModelPart& rModelPart)
+void DerivativesRecoveryUtility::ExtendNeighborsPatch(ModelPart& rModelPart)
 {
     std::size_t space_degree = 1;
-    std::size_t required_n_neighbors = (space_degree + 2) * (space_degree * 3) / 2;
+    std::size_t required_n_neighbors = (space_degree + 2) * (space_degree + 3) / 2;
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
         auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
         auto n_neigh = neigh_nodes.size();
@@ -223,15 +242,98 @@ void DerivativesRecoveryUtility::ExtendRequiredNeighbors(ModelPart& rModelPart)
 
 void DerivativesRecoveryUtility::CalculatePolynomialWeights(ModelPart& rModelPart)
 {
-    const std::size_t n_poly_terms = 6;
+    constexpr std::size_t n_poly_terms = SUPERCONVERGENT_FACTORIAL(TDim+2) / SUPERCONVERGENT_FACTORIAL(TDim) / 2;
+    constexpr std::size_t first_order_terms = SUPERCONVERGENT_FACTORIAL(TDim+1) / SUPERCONVERGENT_FACTORIAL(TDim);
 
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
         auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
         auto n_neigh = neigh_nodes.size();
         const double h_inv = 1.0 / DerivativesRecoveryUtility::CalculateMaximumDistance(rNode, neigh_nodes); // we use it as a scaling parameter to improve stability
 
-        Vector nodal_values(n_neigh);
-        Matrix A(n_neigh, n_poly_terms);
+        Matrix A(n_neigh + 1, n_poly_terms);
+
+        A(0,0) = 1.0; // the current node coordinates
+        for (std::size_t i = 1; i < n_poly_terms; ++i)
+        {
+            A(0,i) = 0.0;
+        }
+
+        for (std::size_t n = 0; n < n_neigh; ++n) // the neighbors coordinates
+        {
+            auto& r_neigh = neigh_nodes[n];
+            const array_1d<double,3> rel_coordinates = h_inv * (r_neigh - rNode);
+
+            A(n+1,0) = 1.0;
+            for (std::size_t i = 0; i < TDim; ++i) {
+                const auto i_first_order = 1 + i;
+                const auto i_second_order = 1 + TDim + i;
+                A(n+1,i_first_order) = rel_coordinates[i];
+                A(n+1,i_second_order) = rel_coordinates[i] * rel_coordinates[i];
+            }
+            if (TDim == 2) {
+                A(n+1,n_poly_terms) = rel_coordinates[0] * rel_coordinates[1];
+            }
+            else {
+                A(n+1,n_poly_terms-2) = rel_coordinates[0] * rel_coordinates[1];
+                A(n+1,n_poly_terms-1) = rel_coordinates[0] * rel_coordinates[2];
+                A(n+1,n_poly_terms)   = rel_coordinates[1] * rel_coordinates[2];
+            }
+        }
+
+        // The lesat squares projection
+        double det;
+        Matrix A_pseudo_inv;
+        MathUtils<double>::GeneralizedInvertMatrix(A, A_pseudo_inv, det);
+
+        // Each row of the pseudo inverse contributes to a partial derivative evaluated at the current node
+        constexpr std::size_t n_first_order_terms = first_order_terms -1;
+        constexpr std::size_t n_second_order_terms = n_poly_terms - first_order_terms;
+        std::array<int,n_first_order_terms> first_derivative_terms;
+        std::array<int,n_second_order_terms> second_derivative_terms;
+        if (TDim == 2) {
+            first_derivative_terms[0] = 1;
+            first_derivative_terms[1] = 2;
+            second_derivative_terms[0] = 3;
+            second_derivative_terms[1] = 4;
+            second_derivative_terms[2] = 5;
+        }
+        else {
+            first_derivative_terms[0] = 1;
+            first_derivative_terms[1] = 2;
+            first_derivative_terms[2] = 3;
+            second_derivative_terms[0] = 4;
+            second_derivative_terms[1] = 5;
+            second_derivative_terms[2] = 6;
+            second_derivative_terms[3] = 7;
+            second_derivative_terms[4] = 8;
+            second_derivative_terms[5] = 9;
+        }
+
+        Vector& first_derivative_weights = rNode.FastGetSolutionStepValue(FIRST_DERIVATIVE_WEIGHTS);
+        first_derivative_weights.resize(n_first_order_terms*(n_neigh + 1));
+        Vector& second_derivative_weights = rNode.FastGetSolutionStepValue(SECOND_DERIVATIVE_WEIGHTS);
+        second_derivative_weights.resize(n_second_order_terms*(n_neigh + 1));
+
+        // Assembly of the partial derivatives contribution for every node (included the current node)
+        for (std::size_t n = 0; n < n_neigh + 1; ++n)
+        {
+            for (std::size_t d = 0; d < n_first_order_terms; ++d)
+            {
+                auto row = first_derivative_terms[d];
+                first_derivative_weights[n_first_order_terms*n + d] = h_inv * A_pseudo_inv(row, n);
+            }
+            for (std::size_t d = 0; d < n_second_order_terms; ++d)
+            {
+                auto row = second_derivative_terms[d];
+                second_derivative_weights[n_first_order_terms*n + d] = h_inv * h_inv * A_pseudo_inv(row, n);
+            }
+
+            // Note, d^2(x^2)/(dx^2) = 2
+            for (std::size_t d = 0; d < TDim; ++d)
+            {
+                second_derivative_weights[n_first_order_terms*n + d] *= 2.0;
+            }
+        }
     });
 }
 

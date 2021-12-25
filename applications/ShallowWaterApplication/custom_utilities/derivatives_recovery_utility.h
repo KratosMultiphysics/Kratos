@@ -37,6 +37,9 @@ class ModelPart;
  * @ingroup ShallowWaterApplication
  * @class DerivativesRecoveryUtility
  * @brief This class is a wrapper of derivatives recovery tools
+ * @see Zhimin Zhangand Ahmed Naga, 
+ * "A new finite element gradient recovery method: superconvergence property"
+ * SIAM J. Sci. Comput., 26(4), 1192–1213. (22 pages)
  */
 class DerivativesRecoveryUtility
 {
@@ -47,8 +50,6 @@ public:
     typedef Node<3> NodeType;
 
     static constexpr std::size_t TDim = 2;
-
-    static constexpr std::size_t TNumNodes = 3;
 
     ///@}
     ///@name Pointer Definitions
@@ -108,7 +109,7 @@ public:
         const Variable<double>& rIntermediateVariable,
         const std::size_t BufferStep = 0);
 
-    static void ExtendRequiredNeighbors(ModelPart& rModelPart);
+    static void ExtendNeighborsPatch(ModelPart& rModelPart);
 
     static void CalculatePolynomialWeights(ModelPart& rModelPart);
 
