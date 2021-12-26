@@ -138,8 +138,7 @@ class ArcLengthStrategy
     {
         KRATOS_TRY;
 
-        if (!BaseType::mInitializeWasPerformed)
-        {
+        if (!BaseType::mInitializeWasPerformed) {
             BaseType::Initialize();
         }
 
@@ -502,14 +501,11 @@ class ArcLengthStrategy
      */
     void SaveInitializeSystemVector(TSystemVectorPointerType& pv)
     {
-        if (pv == NULL)
-        {
+        if (pv == NULL) {
             TSystemVectorPointerType pNewv = TSystemVectorPointerType(new TSystemVectorType(0));
             pv.swap(pNewv);
         }
-
         TSystemVectorType& v = *pv;
-
         if (v.size() != mpBuilderAndSolver->GetEquationSystemSize())
             v.resize(mpBuilderAndSolver->GetEquationSystemSize(), true);
     }
