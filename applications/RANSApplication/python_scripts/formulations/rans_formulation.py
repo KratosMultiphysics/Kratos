@@ -443,31 +443,28 @@ class RansFormulation(ABC):
            of the the leaf node formulations.
         """
 
-        if not self.__chimera_initialized:
-            # set the ACTIVE flag of all elements to True in the beginning
-            Kratos.VariableUtils().SetFlag(Kratos.ACTIVE, True, self.GetModelPart().Elements)
-            
+        if not self.__chimera_initialized: 
             # ACTIVE Flag
             # set the ACTIVE flag in the destination element if defined in the original modelpart
             for source_element in self.GetBaseModelPart().Elements:
                 # NOTE below line of code is a very expensive process: should be moved to KratosCore.VariableUtils()
                 element = self.GetModelPart().GetElement(source_element.Id)
-                if source_element.IsDefined(Kratos.ACTIVE):
-                    element.Set(Kratos.ACTIVE, source_element.Is(Kratos.ACTIVE))
+                # if source_element.IsDefined(Kratos.ACTIVE):
+                element.Set(Kratos.ACTIVE, source_element.Is(Kratos.ACTIVE))
 
-                    # set the nodal solutions of inactive elements to ZERO.
-                    if source_element.IsNot(Kratos.ACTIVE):
-                        for node in element.GetNodes():
-                            for solving_variable in self.GetSolvingVariables():
-                                node.SetSolutionStepValue(solving_variable, 0, 0.0)
-                                # node.SetSolutionStepValue(solving_variable, 1, 0.0)
-                                # # ^ This is what was causing the issues in overlapping region when appy_chimera_constraints_every_step was true for transient case
-                        source_element.SetValue(Kratos.TURBULENT_VISCOSITY, 0)   
+                # set the nodal solutions of inactive elements to ZERO.
+                if source_element.IsNot(Kratos.ACTIVE):
+                    for node in element.GetNodes():
+                        for solving_variable in self.GetSolvingVariables():
+                            node.SetSolutionStepValue(solving_variable, 0, 0.0)
+                            # node.SetSolutionStepValue(solving_variable, 1, 0.0)
+                            # # ^ This is what was causing the issues in overlapping region when appy_chimera_constraints_every_step was true for transient case
+                    # source_element.SetValue(Kratos.TURBULENT_VISCOSITY, 0)   # not useful
 
             # CONSTRAINTS
             # remove any existing Chimera master-slave constraints (Assuming only chimera constraints exist.)
             self.GetModelPart().RemoveMasterSlaveConstraintsFromAllLevels(Kratos.TO_ERASE)
-            print(len(self.GetModelPart().MasterSlaveConstraints))
+            # print(len(self.GetModelPart().MasterSlaveConstraints))
             # add constraints to the model part
             for constraint in self.GetBaseModelPart().MasterSlaveConstraints:
                 if (constraint.GetSlaveDofsVector()[0].GetVariable() in self.GetSolvingVariables()):

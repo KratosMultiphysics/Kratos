@@ -225,9 +225,11 @@ double RansNutUtility::CalculateTurbulentViscosity(
 
     double nu_t;
 
-    if (rElement.IsNot(ACTIVE)){
-        nu_t = 0.0;
-        rElement.SetValue(TURBULENT_VISCOSITY, nu_t);
+    if (rElement.IsDefined(ACTIVE)){    // req for pureRANS; cannot be used for chimeraRANS
+        if (rElement.IsNot(ACTIVE)){
+            nu_t = 0.0;
+            rElement.SetValue(TURBULENT_VISCOSITY, nu_t);
+        }
     }
     else {
         auto& Ws = std::get<0>(rTLS);
@@ -251,7 +253,6 @@ double RansNutUtility::CalculateTurbulentViscosity(
 
         rElement.GetValue(CONSTITUTIVE_LAW)->CalculateValue(parameters, TURBULENT_VISCOSITY, nu_t);
     }
-    
     return nu_t;        
 
     KRATOS_CATCH("");

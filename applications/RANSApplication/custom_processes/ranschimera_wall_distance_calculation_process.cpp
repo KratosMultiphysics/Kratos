@@ -118,8 +118,8 @@ int RansChimeraWallDistanceCalculationProcess::Check()
 void RansChimeraWallDistanceCalculationProcess::ExecuteInitializeSolutionStep()
 {
     if (!mIsFormulated) {
-        CalculateWallDistances();
-        // CalculateAnalyticalWallDistances();
+        // CalculateWallDistances();
+        CalculateAnalyticalWallDistances();
         mIsFormulated = true;
     }
 }
@@ -261,8 +261,8 @@ void RansChimeraWallDistanceCalculationProcess::CalculateWallDistances()
         auto& r_background_mp = r_main_model_part.GetSubModelPart(background_mp_name);
         auto const& p_point_locator_on_background = rBackgroundPointLocatorMap.second;
 
-        int found = 0;
         for (auto& rPatchPointLocatorMap: mPointLocatorsMap){
+            int found = 0;
             std::string patch_mp_name = rPatchPointLocatorMap.first;
             auto& r_patch_mp = r_main_model_part.GetSubModelPart(patch_mp_name);
 
